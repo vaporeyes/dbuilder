@@ -67,9 +67,9 @@ public static class DoomMapLoader
 
         var map = new MapSet();
 
-        ReadVertexes(vertexesLump, map);
-        ReadSectors(sectorsLump, map);
-        ReadSidedefs(sidedefsLump, map);
+        DoomMapLoaderInternals.ReadVertexes(vertexesLump, map);
+        DoomMapLoaderInternals.ReadSectors(sectorsLump, map);
+        DoomMapLoaderInternals.ReadSidedefs(sidedefsLump, map);
         ReadLinedefs(linedefsLump, map);
         if (thingsLump != null) ReadThings(thingsLump, map);
 
@@ -98,74 +98,6 @@ public static class DoomMapLoader
         _ => false,
     };
 
-    private static void ReadVertexes(Lump lump, MapSet map)
-    {
-        byte[] bytes = lump.Stream.ReadAllBytes();
-        using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 4;
-        for (int i = 0; i < n; i++)
-        {
-            short x = r.ReadInt16();
-            short y = r.ReadInt16();
-            map.Vertices.Add(new Vertex(new Vector2D(x, y)));
-        }
-    }
-
-    private static void ReadSectors(Lump lump, MapSet map)
-    {
-        byte[] bytes = lump.Stream.ReadAllBytes();
-        using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 26;
-        for (int i = 0; i < n; i++)
-        {
-            short floorHeight = r.ReadInt16();
-            short ceilHeight = r.ReadInt16();
-            string floorTex = ReadFixedString(r, 8);
-            string ceilTex  = ReadFixedString(r, 8);
-            short light = r.ReadInt16();
-            short special = r.ReadInt16();
-            short tag = r.ReadInt16();
-
-            map.Sectors.Add(new Sector
-            {
-                Index = i,
-                FloorHeight = floorHeight,
-                CeilHeight = ceilHeight,
-                FloorTexture = floorTex,
-                CeilTexture = ceilTex,
-                Brightness = light,
-                Special = special,
-                Tag = tag,
-            });
-        }
-    }
-
-    private static void ReadSidedefs(Lump lump, MapSet map)
-    {
-        byte[] bytes = lump.Stream.ReadAllBytes();
-        using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 30;
-        for (int i = 0; i < n; i++)
-        {
-            short offsetX = r.ReadInt16();
-            short offsetY = r.ReadInt16();
-            string upper = ReadFixedString(r, 8);
-            string lower = ReadFixedString(r, 8);
-            string middle = ReadFixedString(r, 8);
-            short sectorIdx = r.ReadInt16();
-
-            map.Sidedefs.Add(new Sidedef
-            {
-                OffsetX = offsetX,
-                OffsetY = offsetY,
-                HighTexture = upper,
-                LowTexture = lower,
-                MidTexture = middle,
-                Sector = (sectorIdx >= 0 && sectorIdx < map.Sectors.Count) ? map.Sectors[sectorIdx] : null,
-            });
-        }
-    }
-
     private static void ReadLinedefs(Lump lump, MapSet map)
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
@@ -181,8 +113,8 @@ public static class DoomMapLoader
             short sideRight = r.ReadInt16();
             short sideLeft = r.ReadInt16();
 
-            var start = SafeVertex(map, v1);
-            var end = SafeVertex(map, v2);
+            var start = DoomMapLoaderInternals.SafeVertex(map, v1);
+            var end = DoomMapLoaderInternals.SafeVertex(map, v2);
             var line = new Linedef(start, end)
             {
                 Flags = flags,
@@ -255,24 +187,4 @@ public static class DoomMapLoader
         }
     }
 
-    private static Vertex SafeVertex(MapSet map, int idx)
-    {
-        if (map.Vertices.Count == 0)
-        {
-            // Degenerate input: synthesize a placeholder so the linedef can still be constructed.
-            var v = new Vertex(new Vector2D(0, 0));
-            map.Vertices.Add(v);
-            return v;
-        }
-        if (idx < 0 || idx >= map.Vertices.Count) return map.Vertices[0];
-        return map.Vertices[idx];
-    }
-
-    private static string ReadFixedString(BinaryReader r, int length)
-    {
-        byte[] buf = r.ReadBytes(length);
-        int end = 0;
-        while (end < buf.Length && buf[end] != 0) end++;
-        return Encoding.ASCII.GetString(buf, 0, end).ToUpperInvariant();
-    }
 }

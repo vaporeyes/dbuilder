@@ -3,7 +3,7 @@
 //
 // Usage:
 //   dotnet run                       # use embedded synthetic UDMF sample
-//   dotnet run -- path/to/file.wad   # load first map in the WAD (auto-detects Doom-binary vs UDMF)
+//   dotnet run -- path/to/file.wad   # load first map in the WAD (auto-detects Doom-binary, Hexen-binary, or UDMF)
 //   dotnet run -- file.wad MAP05     # load a specific map by marker lump name
 
 using System.IO;
@@ -112,6 +112,12 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source)
             }
             if (wad.Lumps[j].Name == "VERTEXES") break;
         }
+    }
+
+    if (HexenMapLoader.IsHexenFormat(wad, marker))
+    {
+        source = $"{Path.GetFileName(path)} [{marker}] Hexen-binary";
+        return HexenMapLoader.Load(wad, marker);
     }
 
     source = $"{Path.GetFileName(path)} [{marker}] Doom-binary";
