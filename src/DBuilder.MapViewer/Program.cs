@@ -31,12 +31,14 @@ MapSet? map = null;
 string source;
 // Sector index -> ARGB color from that sector's floor flat (averaged). Empty when no WAD source / no PLAYPAL.
 Dictionary<int, uint> sectorFloorColors = new();
+// Unique flat name -> 64x64 RGBA8 bytes decoded through PLAYPAL. Drives the textured sector fills.
+Dictionary<string, byte[]> flatRgba = new(StringComparer.OrdinalIgnoreCase);
 
 if (args.Length >= 1 && File.Exists(args[0]))
 {
     string wadPath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
-    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors);
+    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba);
     if (map == null)
     {
         Console.WriteLine($"[load]  Could not load a map from '{wadPath}'.");
@@ -59,10 +61,11 @@ else
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
 
-static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors)
+static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[]> flatRgba)
 {
     source = "";
     sectorFloorColors = new();
+    flatRgba = new(StringComparer.OrdinalIgnoreCase);
     using var fs = File.OpenRead(path);
     var ms = new MemoryStream();
     fs.CopyTo(ms);
@@ -129,8 +132,38 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source, out 
         loaded = DoomMapLoader.Load(wad, marker);
     }
 
-    if (loaded != null) sectorFloorColors = BuildSectorFloorColors(loaded, wad);
+    if (loaded != null)
+    {
+        sectorFloorColors = BuildSectorFloorColors(loaded, wad);
+        flatRgba = LoadUniqueFlats(loaded, wad);
+    }
     return loaded;
+}
+
+/// <summary>For each unique floor flat name in the map, decode it through PLAYPAL and stash the 64x64 RGBA8 bytes.</summary>
+static Dictionary<string, byte[]> LoadUniqueFlats(MapSet map, WAD wad)
+{
+    var result = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+    var palette = DoomPalette.FromWad(wad);
+    if (palette == null) return result;
+
+    foreach (var sector in map.Sectors)
+    {
+        string name = sector.FloorTexture;
+        if (string.IsNullOrEmpty(name) || name == "-") continue;
+        if (name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase)) continue;
+        if (result.ContainsKey(name)) continue;
+
+        try
+        {
+            byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
+            if (rgba != null) result[name] = rgba;
+        }
+        catch { /* skip unreadable flats */ }
+    }
+
+    Console.WriteLine($"[wad]   loaded {result.Count} flat textures for sector fills");
+    return result;
 }
 
 /// <summary>For each sector, decode its floor flat through PLAYPAL and average the RGB to a single tint color. Cached by flat name so shared textures decode once.</summary>
@@ -265,15 +298,18 @@ FlatVertex[] BuildLineVerts()
 var lineVerts = BuildLineVerts();
 
 // ============================================================
-// 2.5. Triangulate sectors and build filled-floor vertex buffer.
-// Each sector fills with a slightly-dimmer version of its floor tint, sitting under the linedef overlay.
+// 2.5. Triangulate sectors and bucket triangles by floor flat name.
+// Each bucket becomes one textured draw call: bind the flat's GL texture, draw all triangles using it.
+// Triangles without a known flat (no WAD source, "-" texture, F_SKY) fall back to a flat-tint bucket keyed by "".
 // ============================================================
-var sectorTris = new List<FlatVertex>();
+// Flat name -> list of FlatVertex (3 per triangle). "" key = untextured fallback (uses dimmed sector tint as vertex color).
+var flatBuckets = new Dictionary<string, List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
 int triangulatedSectors = 0;
 int failedSectors = 0;
+int totalSectorTris = 0;
+
 foreach (var sector in map.Sectors)
 {
-    // Triangulation only works when this sector has sidedefs (set up by BuildIndexes).
     if (sector.Sidedefs.Count == 0) continue;
 
     Triangulation tri;
@@ -283,18 +319,47 @@ foreach (var sector in map.Sectors)
     if (tri.Vertices.Count == 0) { failedSectors++; continue; }
     triangulatedSectors++;
 
-    // Use the floor tint, dimmed so linedefs on top stay legible.
-    uint tint = sectorFloorColors.TryGetValue(sector.Index, out uint c) ? c : 0xff303030;
-    int color = unchecked((int)DimColor(tint, 0.55));
+    // Doom flats tile every 64 world units; modulate sample by sector brightness so dark rooms render dark.
+    string flatName = sector.FloorTexture ?? "-";
+    bool textured = flatRgba.ContainsKey(flatName);
+    string bucketKey = textured ? flatName : "";
 
-    // Triangle vertices come 3-per-triangle from the algorithm.
+    int vertexColor;
+    if (textured)
+    {
+        // White multiplied by brightness so the texture comes through, scaled to Doom's light level.
+        double brightness = Math.Clamp(sector.Brightness / 255.0, 0.2, 1.0);
+        byte bb = (byte)(brightness * 255);
+        vertexColor = unchecked((int)(0xff000000u | ((uint)bb << 16) | ((uint)bb << 8) | bb));
+    }
+    else
+    {
+        // No flat available - use the dimmed sector-tint we already compute, with useTexture=0.
+        uint tint = sectorFloorColors.TryGetValue(sector.Index, out uint c) ? c : 0xff303030;
+        vertexColor = unchecked((int)DimColor(tint, 0.55));
+    }
+
+    if (!flatBuckets.TryGetValue(bucketKey, out var bucket))
+    {
+        bucket = new List<FlatVertex>();
+        flatBuckets[bucketKey] = bucket;
+    }
+
     for (int i = 0; i < tri.Vertices.Count; i++)
     {
-        sectorTris.Add(MkFV(tri.Vertices[i], color));
+        var p = tri.Vertices[i];
+        bucket.Add(new FlatVertex
+        {
+            x = (float)p.x, y = (float)p.y, z = 0, w = 1,
+            c = vertexColor,
+            u = (float)(p.x / 64.0),
+            v = (float)(p.y / 64.0),
+        });
+        totalSectorTris++;
     }
 }
 if (map.Sectors.Count > 0)
-    Console.WriteLine($"[tri]   {triangulatedSectors} of {map.Sectors.Count} sectors triangulated ({sectorTris.Count / 3} triangles, {failedSectors} failed)");
+    Console.WriteLine($"[tri]   {triangulatedSectors} of {map.Sectors.Count} sectors triangulated ({totalSectorTris / 3} triangles, {failedSectors} failed, {flatBuckets.Count} flat buckets)");
 
 static uint DimColor(uint c, double factor)
 {
@@ -366,14 +431,22 @@ layout(location=1) in vec4 a_color;
 layout(location=2) in vec2 a_uv;
 uniform mat4 projection;
 out vec4 v_color;
+out vec2 v_uv;
 void main() {
     gl_Position = projection * vec4(a_pos.xyz, 1.0);
     v_color = a_color;
+    v_uv = a_uv;
 }";
 const string FragmentSrc = @"#version 330 core
 in vec4 v_color;
+in vec2 v_uv;
+uniform sampler2D tex0;
+uniform float useTexture;
 out vec4 frag;
-void main() { frag = v_color; }";
+void main() {
+    vec4 sampled = texture(tex0, v_uv);
+    frag = mix(v_color, sampled * v_color, useTexture);
+}";
 
 var opts = WindowOptions.Default with
 {
@@ -390,8 +463,11 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
-DBVertexBuffer? sectorTrisVb = null;
-bool showSectorFills = sectorTris.Count > 0;
+// One textured draw per unique flat. Bucket key "" is the untextured-fallback bucket.
+var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture? Tex)>();
+bool showSectorFills = totalSectorTris > 0;
+// 1x1 white placeholder so the sampler always has something bound (avoids GL "unloadable sampler" warning during untextured draws).
+DBuilder.Rendering.Texture? placeholderTex = null;
 GL? gl = null;
 
 window.Load += () =>
@@ -409,10 +485,31 @@ window.Load += () =>
     thingsLinesVb = new DBVertexBuffer(gl);
     device.SetBufferData(thingsLinesVb, thingLines.ToArray());
 
-    if (sectorTris.Count > 0)
+    // 1x1 white placeholder texture - bound when drawing untextured geometry to keep the sampler happy.
+    placeholderTex = new DBuilder.Rendering.Texture(gl);
+    placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
+    device.SetTexture(0, placeholderTex);
+    // Nearest filtering + no mipmaps - keeps each texture "complete" without needing mipmap chains.
+    device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+    device.SetSamplerState(TextureAddress.Wrap);
+
+    // Upload per-flat textures + per-bucket vertex buffers.
+    foreach (var (name, verts) in flatBuckets)
     {
-        sectorTrisVb = new DBVertexBuffer(gl);
-        device.SetBufferData(sectorTrisVb, sectorTris.ToArray());
+        var vb = new DBVertexBuffer(gl);
+        device.SetBufferData(vb, verts.ToArray());
+
+        DBuilder.Rendering.Texture? tex = null;
+        if (name != "" && flatRgba.TryGetValue(name, out byte[]? rgba))
+        {
+            tex = new DBuilder.Rendering.Texture(gl);
+            tex.SetPixelsRgba8(64, 64, rgba, generateMipmaps: false);
+            device.SetTexture(0, tex);
+            // Per-texture sampler state so any draw using this texture is complete.
+            device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+            device.SetSamplerState(TextureAddress.Wrap);
+        }
+        sectorBucketResources.Add((name, vb, verts.Count / 3, tex));
     }
 
     device.SetViewport(opts.Size.X, opts.Size.Y);
@@ -482,7 +579,7 @@ window.Load += () =>
             }
             if (key == Key.S)
             {
-                if (sectorTris.Count == 0)
+                if (totalSectorTris == 0)
                 {
                     Console.WriteLine("[ui]    S: no sector fills available");
                 }
@@ -516,14 +613,26 @@ window.Render += _ =>
         (float)(camY - halfH), (float)(camY + halfH),
         -1, 1);
     device.SetUniform("projection", proj);
+    device.SetUniform("tex0", 0);
 
     // Draw order: sector fills (bottom) -> linedef overlay -> thing markers (top).
-    if (showSectorFills && sectorTrisVb != null && sectorTris.Count > 0)
+    // Sampler state was configured at load time per-texture so no per-frame setup needed.
+    if (showSectorFills)
     {
-        device.SetVertexBuffer(sectorTrisVb);
-        device.Draw(DBPrimitiveType.TriangleList, 0, sectorTris.Count / 3);
+        foreach (var bucket in sectorBucketResources)
+        {
+            if (bucket.TriCount == 0) continue;
+            // Textured bucket vs. fallback bucket (no texture, just dimmed vertex color)
+            device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
+            device.SetTexture(0, bucket.Tex ?? placeholderTex);
+            device.SetVertexBuffer(bucket.Vb);
+            device.Draw(DBPrimitiveType.TriangleList, 0, bucket.TriCount);
+        }
     }
 
+    // Lines + things: vertex color only. Keep placeholder bound so the sampler always has something.
+    device.SetTexture(0, placeholderTex);
+    device.SetUniform("useTexture", 0f);
     device.SetVertexBuffer(linesVb);
     device.Draw(DBPrimitiveType.LineList, 0, lineVerts.Length / 2);
 
@@ -546,7 +655,12 @@ window.Closing += () =>
     linesVb?.Dispose();
     thingsTrisVb?.Dispose();
     thingsLinesVb?.Dispose();
-    sectorTrisVb?.Dispose();
+    foreach (var bucket in sectorBucketResources)
+    {
+        bucket.Vb.Dispose();
+        bucket.Tex?.Dispose();
+    }
+    placeholderTex?.Dispose();
     shader?.Dispose();
     device?.Dispose();
 };
