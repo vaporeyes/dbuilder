@@ -33,12 +33,17 @@ string source;
 Dictionary<int, uint> sectorFloorColors = new();
 // Unique flat name -> 64x64 RGBA8 bytes decoded through PLAYPAL. Drives the textured sector fills.
 Dictionary<string, byte[][]> flatRgba = new(StringComparer.OrdinalIgnoreCase);
+// Composed sky wall texture (variable size, typically 256x128) for sectors with F_SKY* ceiling.  Null when no sky is found.
+SkyTextureData? sky = null;
 
 if (args.Length >= 1 && File.Exists(args[0]))
 {
     string wadPath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
-    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba);
+    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky);
+    int animatedCount = 0;
+    foreach (var frames in flatRgba.Values) if (frames.Length > 1) animatedCount++;
+    if (animatedCount > 0) Console.WriteLine($"[wad]   {animatedCount} animated flat chains detected");
     if (map == null)
     {
         Console.WriteLine($"[load]  Could not load a map from '{wadPath}'.");
@@ -61,11 +66,12 @@ else
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
 
-static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba)
+static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba, out SkyTextureData? sky)
 {
     source = "";
     sectorFloorColors = new();
     flatRgba = new(StringComparer.OrdinalIgnoreCase);
+    sky = null;
     using var fs = File.OpenRead(path);
     var ms = new MemoryStream();
     fs.CopyTo(ms);
@@ -136,9 +142,57 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source, out 
     {
         sectorFloorColors = BuildSectorFloorColors(loaded, wad);
         flatRgba = LoadUniqueFlats(loaded, wad);
+        sky = LoadSkyTexture(loaded, wad);
     }
     return loaded;
 }
+
+/// <summary>
+/// Composes the WAD's sky wall texture (SKY1 / SKY2 / SKY3 / SKY4 / RSKY1, tried in that order) via the
+/// PNAMES + TEXTURE1/2 + patch pipeline.  Returns null when the WAD has no recognizable sky texture or no
+/// sector in the map needs one.
+/// </summary>
+static SkyTextureData? LoadSkyTexture(MapSet map, WAD wad)
+{
+    // Only do the work when at least one sector actually uses sky.
+    bool anySky = false;
+    foreach (var sector in map.Sectors)
+    {
+        if (IsSkyName(sector.CeilTexture) || IsSkyName(sector.FloorTexture)) { anySky = true; break; }
+    }
+    if (!anySky) return null;
+
+    var palette = DoomPalette.FromWad(wad);
+    if (palette == null) return null;
+
+    var pnames = DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
+    var lists = new List<List<DoomTextureDef>>();
+    var t1 = DoomTextureListReader.FromWad(wad, "TEXTURE1"); if (t1 != null) lists.Add(t1);
+    var t2 = DoomTextureListReader.FromWad(wad, "TEXTURE2"); if (t2 != null) lists.Add(t2);
+    if (lists.Count == 0) return null;
+
+    // Try common sky names in order. Different episodes/games use different ones.
+    string[] candidates = { "SKY1", "SKY2", "SKY3", "SKY4", "RSKY1", "RSKY2", "RSKY3" };
+    foreach (var name in candidates)
+    {
+        foreach (var list in lists)
+        {
+            foreach (var def in list)
+            {
+                if (!string.Equals(def.Name, name, StringComparison.OrdinalIgnoreCase)) continue;
+                byte[]? rgba = DoomWallTextureCompositor.Compose(def, pnames, wad, palette);
+                if (rgba != null)
+                {
+                    Console.WriteLine($"[wad]   sky texture '{def.Name}' composed ({def.Width}x{def.Height})");
+                    return new SkyTextureData(rgba, def.Width, def.Height);
+                }
+            }
+        }
+    }
+    return null;
+}
+
+static bool IsSkyName(string? name) => name != null && name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase);
 
 /// <summary>For each unique floor flat name in the map, decode it through PLAYPAL and stash the 64x64 RGBA8 bytes.</summary>
 static Dictionary<string, byte[][]> LoadUniqueFlats(MapSet map, WAD wad)
@@ -355,16 +409,41 @@ foreach (var sector in map.Sectors)
     if (tri.Vertices.Count == 0) { failedSectors++; continue; }
     triangulatedSectors++;
 
-    // Doom flats tile every 64 world units; modulate sample by sector brightness so dark rooms render dark.
+    // Sky-ceilinged or sky-floored sectors get routed to a special "__SKY" bucket using the composed sky wall texture.
+    // Other sectors use their floor flat (Doom flats tile every 64 world units).
+    bool isSky = sky != null && (IsSkyName(sector.CeilTexture) || IsSkyName(sector.FloorTexture));
     string flatName = sector.FloorTexture ?? "-";
-    bool textured = flatRgba.ContainsKey(flatName);
-    string bucketKey = textured ? flatName : "";
+    bool textured;
+    string bucketKey;
+    int texW, texH;
+    if (isSky)
+    {
+        textured = true;
+        bucketKey = "__SKY";
+        texW = sky!.Width;
+        texH = sky.Height;
+    }
+    else
+    {
+        textured = flatRgba.ContainsKey(flatName);
+        bucketKey = textured ? flatName : "";
+        texW = 64;
+        texH = 64;
+    }
 
     int vertexColor;
     if (textured)
     {
-        // White multiplied by brightness so the texture comes through, scaled to Doom's light level.
-        double brightness = Math.Clamp(sector.Brightness / 255.0, 0.2, 1.0);
+        // Sky uses full brightness (sky is its own emissive look). Other textures modulate by sector brightness.
+        double brightness;
+        if (isSky)
+        {
+            brightness = 1.0;
+        }
+        else
+        {
+            brightness = Math.Clamp(sector.Brightness / 255.0, 0.2, 1.0);
+        }
         byte bb = (byte)(brightness * 255);
         vertexColor = unchecked((int)(0xff000000u | ((uint)bb << 16) | ((uint)bb << 8) | bb));
     }
@@ -388,8 +467,8 @@ foreach (var sector in map.Sectors)
         {
             x = (float)p.x, y = (float)p.y, z = 0, w = 1,
             c = vertexColor,
-            u = (float)(p.x / 64.0),
-            v = (float)(p.y / 64.0),
+            u = (float)(p.x / texW),
+            v = (float)(p.y / texH),
         });
         totalSectorTris++;
     }
@@ -532,13 +611,23 @@ window.Load += () =>
     device.SetSamplerState(TextureAddress.Wrap);
 
     // Upload per-flat textures + per-bucket vertex buffers.  Animated flats get N textures (one per frame).
+    // Sky bucket ("__SKY") gets the composed sky wall texture at its native dimensions.
     foreach (var (name, verts) in flatBuckets)
     {
         var vb = new DBVertexBuffer(gl);
         device.SetBufferData(vb, verts.ToArray());
 
         DBuilder.Rendering.Texture[]? frames = null;
-        if (name != "" && flatRgba.TryGetValue(name, out byte[][]? rgbaFrames))
+        if (name == "__SKY" && sky != null)
+        {
+            var tex = new DBuilder.Rendering.Texture(gl);
+            tex.SetPixelsRgba8(sky.Width, sky.Height, sky.Rgba, generateMipmaps: false);
+            device.SetTexture(0, tex);
+            device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+            device.SetSamplerState(TextureAddress.Wrap);
+            frames = new[] { tex };
+        }
+        else if (name != "" && flatRgba.TryGetValue(name, out byte[][]? rgbaFrames))
         {
             frames = new DBuilder.Rendering.Texture[rgbaFrames.Length];
             for (int i = 0; i < rgbaFrames.Length; i++)
@@ -732,3 +821,5 @@ return 0;
 
 static FlatVertex MkFV(Vec2D p, int color)
     => new FlatVertex { x = (float)p.x, y = (float)p.y, z = 0, w = 1, c = color, u = 0, v = 0 };
+
+internal sealed record SkyTextureData(byte[] Rgba, int Width, int Height);
