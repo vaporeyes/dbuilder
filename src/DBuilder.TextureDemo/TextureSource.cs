@@ -29,14 +29,28 @@ public static class TextureSource
             Console.WriteLine("[wad]   PLAYPAL found");
         }
 
-        // Split the budget across the three kinds so the grid mixes flats, composed wall textures, and patches.
-        int flatBudget = maxCount / 3;
-        int wallBudget = maxCount / 3;
-        int pictureBudget = maxCount - flatBudget - wallBudget;
+        // Reserve one cell for a colormap-strip diagnostic when COLORMAP is present.
+        var colormap = DoomColormapReader.FromWad(wad);
+        bool hasColormap = colormap != null;
+        if (hasColormap) Console.WriteLine($"[wad]   COLORMAP found ({colormap!.LevelCount} light levels)");
+
+        int budgetRemaining = maxCount - (hasColormap ? 1 : 0);
+
+        // Split the rest across the three kinds so the grid mixes flats, composed wall textures, and patches.
+        int flatBudget = budgetRemaining / 3;
+        int wallBudget = budgetRemaining / 3;
+        int pictureBudget = budgetRemaining - flatBudget - wallBudget;
 
         var flats = new List<LoadedTexture>();
         var walls = new List<LoadedTexture>();
         var pictures = new List<LoadedTexture>();
+        var diagnostics = new List<LoadedTexture>();
+
+        if (hasColormap)
+        {
+            byte[] stripRgba = DoomColormapReader.RenderAllLevelsStrip(colormap!, palette, out int stripW, out int stripH);
+            diagnostics.Add(new LoadedTexture("COLORMAP", "colormap", stripW, stripH, stripRgba));
+        }
 
         // Load PNAMES + TEXTURE1/TEXTURE2 lists once for the wall-composition pass.
         var pnames = DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
@@ -104,8 +118,9 @@ public static class TextureSource
             }
         }
 
-        // Stitch the three kinds together for a mixed grid.
+        // Stitch the kinds together: diagnostics first (so the COLORMAP strip sits in the top-left cell), then flats, walls, pictures.
         var result = new List<LoadedTexture>(maxCount);
+        result.AddRange(diagnostics);
         result.AddRange(flats);
         result.AddRange(walls);
         result.AddRange(pictures);
