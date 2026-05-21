@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DBuilder.IO</RootNamespace>
+    <AssemblyName>DBuilder.IO</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+  </ItemGroup>
+
+</Project>

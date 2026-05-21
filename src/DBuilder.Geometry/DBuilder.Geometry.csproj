@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DBuilder.Geometry</RootNamespace>
+    <AssemblyName>DBuilder.Geometry</AssemblyName>
+  </PropertyGroup>
+
+</Project>

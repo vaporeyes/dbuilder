@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DBuilder.MapDemo</RootNamespace>
+    <AssemblyName>DBuilder.MapDemo</AssemblyName>
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DBuilder.Rendering\DBuilder.Rendering.csproj" />
+    <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+    <ProjectReference Include="..\DBuilder.IO\DBuilder.IO.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DBuilder.Map</RootNamespace>
+    <AssemblyName>DBuilder.Map</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+  </ItemGroup>
+
+</Project>
