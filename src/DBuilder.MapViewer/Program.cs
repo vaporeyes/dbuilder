@@ -264,6 +264,45 @@ FlatVertex[] BuildLineVerts()
 
 var lineVerts = BuildLineVerts();
 
+// ============================================================
+// 2.5. Triangulate sectors and build filled-floor vertex buffer.
+// Each sector fills with a slightly-dimmer version of its floor tint, sitting under the linedef overlay.
+// ============================================================
+var sectorTris = new List<FlatVertex>();
+int triangulatedSectors = 0;
+int failedSectors = 0;
+foreach (var sector in map.Sectors)
+{
+    // Triangulation only works when this sector has sidedefs (set up by BuildIndexes).
+    if (sector.Sidedefs.Count == 0) continue;
+
+    Triangulation tri;
+    try { tri = Triangulation.Create(sector); }
+    catch { failedSectors++; continue; }
+
+    if (tri.Vertices.Count == 0) { failedSectors++; continue; }
+    triangulatedSectors++;
+
+    // Use the floor tint, dimmed so linedefs on top stay legible.
+    uint tint = sectorFloorColors.TryGetValue(sector.Index, out uint c) ? c : 0xff303030;
+    int color = unchecked((int)DimColor(tint, 0.55));
+
+    // Triangle vertices come 3-per-triangle from the algorithm.
+    for (int i = 0; i < tri.Vertices.Count; i++)
+    {
+        sectorTris.Add(MkFV(tri.Vertices[i], color));
+    }
+}
+if (map.Sectors.Count > 0)
+    Console.WriteLine($"[tri]   {triangulatedSectors} of {map.Sectors.Count} sectors triangulated ({sectorTris.Count / 3} triangles, {failedSectors} failed)");
+
+static uint DimColor(uint c, double factor)
+{
+    byte r = (byte)((c >> 16) & 0xFF), g = (byte)((c >> 8) & 0xFF), b = (byte)(c & 0xFF);
+    r = (byte)(r * factor); g = (byte)(g * factor); b = (byte)(b * factor);
+    return 0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b;
+}
+
 // Thing markers: draw each thing as a small filled diamond (4 triangles -> 12 verts)
 // Plus a short angle indicator line.
 var thingTris = new List<FlatVertex>(map.Things.Count * 12);
@@ -351,6 +390,8 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
+DBVertexBuffer? sectorTrisVb = null;
+bool showSectorFills = sectorTris.Count > 0;
 GL? gl = null;
 
 window.Load += () =>
@@ -367,6 +408,12 @@ window.Load += () =>
 
     thingsLinesVb = new DBVertexBuffer(gl);
     device.SetBufferData(thingsLinesVb, thingLines.ToArray());
+
+    if (sectorTris.Count > 0)
+    {
+        sectorTrisVb = new DBVertexBuffer(gl);
+        device.SetBufferData(sectorTrisVb, sectorTris.ToArray());
+    }
 
     device.SetViewport(opts.Size.X, opts.Size.Y);
     device.SetCullMode(Cull.None);
@@ -433,11 +480,23 @@ window.Load += () =>
                     device!.SetBufferData(linesVb!, lineVerts);
                 }
             }
+            if (key == Key.S)
+            {
+                if (sectorTris.Count == 0)
+                {
+                    Console.WriteLine("[ui]    S: no sector fills available");
+                }
+                else
+                {
+                    showSectorFills = !showSectorFills;
+                    Console.WriteLine($"[ui]    S: sector fills = {(showSectorFills ? "on" : "off")}");
+                }
+            }
         };
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    LMB drag = pan,  wheel = zoom,  R = reset,  F = toggle color mode (currently: {(tintBySectorFloor ? "sector floor" : "linedef type")}),  Esc = quit");
+    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = toggle line color mode, S = toggle sector fills, Esc = quit");
 };
 
 window.Resize += sz => device?.SetViewport(sz.X, sz.Y);
@@ -458,7 +517,13 @@ window.Render += _ =>
         -1, 1);
     device.SetUniform("projection", proj);
 
-    // Lines first, then thing markers on top.
+    // Draw order: sector fills (bottom) -> linedef overlay -> thing markers (top).
+    if (showSectorFills && sectorTrisVb != null && sectorTris.Count > 0)
+    {
+        device.SetVertexBuffer(sectorTrisVb);
+        device.Draw(DBPrimitiveType.TriangleList, 0, sectorTris.Count / 3);
+    }
+
     device.SetVertexBuffer(linesVb);
     device.Draw(DBPrimitiveType.LineList, 0, lineVerts.Length / 2);
 
@@ -481,6 +546,7 @@ window.Closing += () =>
     linesVb?.Dispose();
     thingsTrisVb?.Dispose();
     thingsLinesVb?.Dispose();
+    sectorTrisVb?.Dispose();
     shader?.Dispose();
     device?.Dispose();
 };

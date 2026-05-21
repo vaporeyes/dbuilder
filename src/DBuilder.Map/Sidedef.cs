@@ -9,6 +9,9 @@ public class Sidedef
     public Sector? Sector { get; set; }
     public bool IsFront { get; set; }
 
+    /// <summary>The opposite sidedef on the same linedef, when this is a two-sided line. Populated by MapSet.BuildIndexes().</summary>
+    public Sidedef? Other { get; set; }
+
     // Binary record fields.
     public int OffsetX { get; set; }
     public int OffsetY { get; set; }

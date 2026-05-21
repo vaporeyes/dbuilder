@@ -16,6 +16,35 @@ public class MapSet
     // UDMF namespace (e.g. "ZDoomTranslated", "Doom").
     public string Namespace { get; set; } = "";
 
+    /// <summary>
+    /// Populates the topology back-references used by Triangulation: Vertex.Linedefs, Sidedef.Other,
+    /// Sector.Sidedefs. Call this once after loading; idempotent (clears existing entries first).
+    /// </summary>
+    public void BuildIndexes()
+    {
+        foreach (var v in Vertices) v.Linedefs.Clear();
+        foreach (var s in Sectors)  s.Sidedefs.Clear();
+        foreach (var sd in Sidedefs) sd.Other = null;
+
+        foreach (var line in Linedefs)
+        {
+            if (line.Start != null) line.Start.Linedefs.Add(line);
+            // Avoid double-adding if Start == End (degenerate but observed in the wild).
+            if (line.End != null && !object.ReferenceEquals(line.End, line.Start)) line.End.Linedefs.Add(line);
+
+            if (line.Front != null)
+            {
+                if (line.Front.Sector != null) line.Front.Sector.Sidedefs.Add(line.Front);
+                line.Front.Other = line.Back;
+            }
+            if (line.Back != null)
+            {
+                if (line.Back.Sector != null) line.Back.Sector.Sidedefs.Add(line.Back);
+                line.Back.Other = line.Front;
+            }
+        }
+    }
+
     /// <summary>Axis-aligned bounding box of the vertex set; (0,0,0,0) when empty.</summary>
     public (double minX, double minY, double maxX, double maxY) Bounds()
     {

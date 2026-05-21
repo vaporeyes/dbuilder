@@ -1,5 +1,5 @@
-// ABOUTME: Skeleton of UDB's Map.Sector expanded with binary-record fields needed for map I/O.
-// ABOUTME: Still omits the full UDB surface (marks, selection, slopes, 3D floors, BSP linkage, sidedef collection).
+// ABOUTME: Skeleton of UDB's Map.Sector with binary-record fields + Sidedefs back-ref used by triangulation.
+// ABOUTME: Still omits the full UDB surface (marks, selection, slopes, 3D floors, BSP linkage).
 
 namespace DBuilder.Map;
 
@@ -14,4 +14,7 @@ public class Sector
     public int Brightness { get; set; } = 160;
     public int Special { get; set; }
     public int Tag { get; set; }
+
+    /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
+    public List<Sidedef> Sidedefs { get; } = new();
 }

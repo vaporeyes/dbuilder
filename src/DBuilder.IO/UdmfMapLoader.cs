@@ -70,6 +70,7 @@ public static class UdmfMapLoader
         foreach (var ld in linedefEntries) map.Linedefs.Add(LoadLinedef(ld, map.Vertices, map.Sidedefs));
         foreach (var t in thingEntries) map.Things.Add(LoadThing(t));
 
+        map.BuildIndexes();
         return map;
     }
 

@@ -73,6 +73,7 @@ public static class DoomMapLoader
         ReadLinedefs(linedefsLump, map);
         if (thingsLump != null) ReadThings(thingsLump, map);
 
+        map.BuildIndexes();
         return map;
     }
 
