@@ -35,12 +35,14 @@ Dictionary<int, uint> sectorFloorColors = new();
 Dictionary<string, byte[][]> flatRgba = new(StringComparer.OrdinalIgnoreCase);
 // Composed sky wall texture (variable size, typically 256x128) for sectors with F_SKY* ceiling.  Null when no sky is found.
 SkyTextureData? sky = null;
+// Unique wall texture name -> composed RGBA8 + dimensions for the wall-ribbon overlay.
+Dictionary<string, SkyTextureData> wallTextures = new(StringComparer.OrdinalIgnoreCase);
 
 if (args.Length >= 1 && File.Exists(args[0]))
 {
     string wadPath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
-    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky);
+    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky, out wallTextures);
     int animatedCount = 0;
     foreach (var frames in flatRgba.Values) if (frames.Length > 1) animatedCount++;
     if (animatedCount > 0) Console.WriteLine($"[wad]   {animatedCount} animated flat chains detected");
@@ -66,12 +68,13 @@ else
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
 
-static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba, out SkyTextureData? sky)
+static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba, out SkyTextureData? sky, out Dictionary<string, SkyTextureData> wallTextures)
 {
     source = "";
     sectorFloorColors = new();
     flatRgba = new(StringComparer.OrdinalIgnoreCase);
     sky = null;
+    wallTextures = new(StringComparer.OrdinalIgnoreCase);
     using var fs = File.OpenRead(path);
     var ms = new MemoryStream();
     fs.CopyTo(ms);
@@ -143,6 +146,7 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source, out 
         sectorFloorColors = BuildSectorFloorColors(loaded, wad);
         flatRgba = LoadUniqueFlats(loaded, wad);
         sky = LoadSkyTexture(loaded, wad);
+        wallTextures = LoadUniqueWallTextures(loaded, wad);
     }
     return loaded;
 }
@@ -193,6 +197,61 @@ static SkyTextureData? LoadSkyTexture(MapSet map, WAD wad)
 }
 
 static bool IsSkyName(string? name) => name != null && name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase);
+
+/// <summary>Determines the representative wall texture name for a linedef - what the viewer should ribbon-render along it.</summary>
+static string? PickWallTextureName(Linedef line)
+{
+    // One-sided line: front mid is the wall.
+    // Two-sided portal: prefer mid (sometimes set as a translucent overlay), then upper/lower.
+    var front = line.Front;
+    if (front == null) return null;
+    string mid = front.MidTexture;
+    string upr = front.HighTexture;
+    string low = front.LowTexture;
+    string Pick(string s) => (string.IsNullOrEmpty(s) || s == "-") ? "" : s;
+    string chosen = Pick(mid);
+    if (chosen == "") chosen = Pick(low);
+    if (chosen == "") chosen = Pick(upr);
+    return chosen == "" ? null : chosen;
+}
+
+/// <summary>For each unique wall texture referenced by the map's linedefs, compose it via PNAMES + TEXTURE1/2 + patches.</summary>
+static Dictionary<string, SkyTextureData> LoadUniqueWallTextures(MapSet map, WAD wad)
+{
+    var result = new Dictionary<string, SkyTextureData>(StringComparer.OrdinalIgnoreCase);
+    var palette = DoomPalette.FromWad(wad);
+    if (palette == null) return result;
+
+    var pnames = DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
+    var lists = new List<List<DoomTextureDef>>();
+    var t1 = DoomTextureListReader.FromWad(wad, "TEXTURE1"); if (t1 != null) lists.Add(t1);
+    var t2 = DoomTextureListReader.FromWad(wad, "TEXTURE2"); if (t2 != null) lists.Add(t2);
+    if (lists.Count == 0) return result;
+
+    // Build a name -> def lookup once so we don't scan the lists per query.
+    var byName = new Dictionary<string, DoomTextureDef>(StringComparer.OrdinalIgnoreCase);
+    foreach (var list in lists)
+        foreach (var def in list)
+            if (!byName.ContainsKey(def.Name)) byName[def.Name] = def;
+
+    // Collect unique names actually referenced by the map's linedefs.
+    var wanted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var line in map.Linedefs)
+    {
+        string? n = PickWallTextureName(line);
+        if (n != null) wanted.Add(n);
+    }
+
+    foreach (var name in wanted)
+    {
+        if (!byName.TryGetValue(name, out var def)) continue;
+        byte[]? rgba = DoomWallTextureCompositor.Compose(def, pnames, wad, palette);
+        if (rgba != null) result[name] = new SkyTextureData(rgba, def.Width, def.Height);
+    }
+
+    Console.WriteLine($"[wad]   composed {result.Count} unique wall textures of {wanted.Count} requested");
+    return result;
+}
 
 /// <summary>For each unique floor flat name in the map, decode it through PLAYPAL and stash the 64x64 RGBA8 bytes.</summary>
 static Dictionary<string, byte[][]> LoadUniqueFlats(MapSet map, WAD wad)
@@ -483,6 +542,60 @@ static uint DimColor(uint c, double factor)
     return 0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b;
 }
 
+// ============================================================
+// 2.6. Wall texture ribbons - one thin textured quad per linedef along its length, bucketed by wall texture.
+// ============================================================
+// Wall ribbons are world-space thin rectangles centered on each linedef. UV.u runs along the wall (length/texW),
+// UV.v runs across the ribbon (0..1).
+const double ribbonHalfThickness = 6.0; // 12 world units total - visible at default zoom on typical Doom maps
+
+var wallBuckets = new Dictionary<string, List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+foreach (var line in map.Linedefs)
+{
+    string? texName = PickWallTextureName(line);
+    if (texName == null || !wallTextures.TryGetValue(texName, out var tex)) continue;
+
+    var a = line.Start.Position;
+    var b = line.End.Position;
+    double dx = b.x - a.x;
+    double dy = b.y - a.y;
+    double len = Math.Sqrt(dx * dx + dy * dy);
+    if (len < 0.0001) continue; // skip zero-length linedefs
+
+    // Perpendicular (rotated 90 degrees CCW) normalized to half-thickness.
+    double px = -dy / len * ribbonHalfThickness;
+    double py = dx / len * ribbonHalfThickness;
+
+    // Quad corners walking start-left, end-left, end-right, start-right.
+    var p1 = new Vec2D(a.x + px, a.y + py);
+    var p2 = new Vec2D(b.x + px, b.y + py);
+    var p3 = new Vec2D(b.x - px, b.y - py);
+    var p4 = new Vec2D(a.x - px, a.y - py);
+
+    float uMax = (float)(len / tex.Width);
+    // Two-sided lines get a slightly dimmer ribbon so the line overlay still reads.
+    bool twoSided = line.Front != null && line.Back != null;
+    int color = twoSided ? unchecked((int)0xffa0a0a0) : unchecked((int)0xffffffff);
+
+    if (!wallBuckets.TryGetValue(texName, out var bucket))
+    {
+        bucket = new List<FlatVertex>();
+        wallBuckets[texName] = bucket;
+    }
+
+    // Two triangles for the quad: (p1, p2, p3) and (p1, p3, p4).
+    bucket.Add(new FlatVertex { x = (float)p1.x, y = (float)p1.y, z = 0, w = 1, c = color, u = 0,    v = 0 });
+    bucket.Add(new FlatVertex { x = (float)p2.x, y = (float)p2.y, z = 0, w = 1, c = color, u = uMax, v = 0 });
+    bucket.Add(new FlatVertex { x = (float)p3.x, y = (float)p3.y, z = 0, w = 1, c = color, u = uMax, v = 1 });
+    bucket.Add(new FlatVertex { x = (float)p1.x, y = (float)p1.y, z = 0, w = 1, c = color, u = 0,    v = 0 });
+    bucket.Add(new FlatVertex { x = (float)p3.x, y = (float)p3.y, z = 0, w = 1, c = color, u = uMax, v = 1 });
+    bucket.Add(new FlatVertex { x = (float)p4.x, y = (float)p4.y, z = 0, w = 1, c = color, u = 0,    v = 1 });
+}
+int wallRibbonTriCount = 0;
+foreach (var v in wallBuckets.Values) wallRibbonTriCount += v.Count / 3;
+if (wallBuckets.Count > 0)
+    Console.WriteLine($"[wall]  {wallBuckets.Count} wall texture buckets, {wallRibbonTriCount} ribbon triangles");
+
 // Thing markers: draw each thing as a small filled diamond (4 triangles -> 12 verts)
 // Plus a short angle indicator line.
 var thingTris = new List<FlatVertex>(map.Things.Count * 12);
@@ -582,6 +695,9 @@ DBVertexBuffer? thingsLinesVb = null;
 // flats (the placeholder is used), length 1 for static-with-real-texture, or length N for animated chains.
 var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
 bool showSectorFills = totalSectorTris > 0;
+// Wall ribbon GL resources: one VB + 1 texture per bucket.
+var wallRibbonResources = new List<(string TexName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture Tex)>();
+bool showWallRibbons = wallBuckets.Count > 0;
 bool animationsEnabled = true;
 // 1x1 white placeholder so the sampler always has something bound (avoids GL "unloadable sampler" warning during untextured draws).
 DBuilder.Rendering.Texture? placeholderTex = null;
@@ -642,6 +758,22 @@ window.Load += () =>
             }
         }
         sectorBucketResources.Add((name, vb, verts.Count / 3, frames));
+    }
+
+    // Upload wall ribbon buckets.
+    foreach (var (name, verts) in wallBuckets)
+    {
+        if (!wallTextures.TryGetValue(name, out var texData)) continue;
+        var vb = new DBVertexBuffer(gl);
+        device.SetBufferData(vb, verts.ToArray());
+
+        var tex = new DBuilder.Rendering.Texture(gl);
+        tex.SetPixelsRgba8(texData.Width, texData.Height, texData.Rgba, generateMipmaps: false);
+        device.SetTexture(0, tex);
+        device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+        device.SetSamplerState(TextureAddress.Wrap);
+
+        wallRibbonResources.Add((name, vb, verts.Count / 3, tex));
     }
 
     device.SetViewport(opts.Size.X, opts.Size.Y);
@@ -726,11 +858,23 @@ window.Load += () =>
                 animationsEnabled = !animationsEnabled;
                 Console.WriteLine($"[ui]    A: flat animations = {(animationsEnabled ? "on" : "off")}");
             }
+            if (key == Key.W)
+            {
+                if (wallRibbonResources.Count == 0)
+                {
+                    Console.WriteLine("[ui]    W: no wall texture data");
+                }
+                else
+                {
+                    showWallRibbons = !showWallRibbons;
+                    Console.WriteLine($"[ui]    W: wall ribbons = {(showWallRibbons ? "on" : "off")}");
+                }
+            }
         };
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, A = flat animations, Esc = quit");
+    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
 };
 
 window.Resize += sz => device?.SetViewport(sz.X, sz.Y);
@@ -752,7 +896,7 @@ window.Render += _ =>
     device.SetUniform("projection", proj);
     device.SetUniform("tex0", 0);
 
-    // Draw order: sector fills (bottom) -> linedef overlay -> thing markers (top).
+    // Draw order: sector fills -> wall ribbons -> line overlay -> thing markers (top to bottom in z).
     // Sampler state was configured at load time per-texture so no per-frame setup needed.
     if (showSectorFills)
     {
@@ -772,6 +916,19 @@ window.Render += _ =>
             }
             device.SetUniform("useTexture", activeTex != null ? 1f : 0f);
             device.SetTexture(0, activeTex ?? placeholderTex);
+            device.SetVertexBuffer(bucket.Vb);
+            device.Draw(DBPrimitiveType.TriangleList, 0, bucket.TriCount);
+        }
+    }
+
+    // Wall texture ribbons under the line overlay.
+    if (showWallRibbons)
+    {
+        device.SetUniform("useTexture", 1f);
+        foreach (var bucket in wallRibbonResources)
+        {
+            if (bucket.TriCount == 0) continue;
+            device.SetTexture(0, bucket.Tex);
             device.SetVertexBuffer(bucket.Vb);
             device.Draw(DBPrimitiveType.TriangleList, 0, bucket.TriCount);
         }
@@ -809,6 +966,11 @@ window.Closing += () =>
         {
             foreach (var f in bucket.Frames) f.Dispose();
         }
+    }
+    foreach (var bucket in wallRibbonResources)
+    {
+        bucket.Vb.Dispose();
+        bucket.Tex.Dispose();
     }
     placeholderTex?.Dispose();
     shader?.Dispose();
