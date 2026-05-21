@@ -29,12 +29,14 @@ using DBVertexBuffer = DBuilder.Rendering.VertexBuffer;
 // ============================================================
 MapSet? map = null;
 string source;
+// Sector index -> ARGB color from that sector's floor flat (averaged). Empty when no WAD source / no PLAYPAL.
+Dictionary<int, uint> sectorFloorColors = new();
 
 if (args.Length >= 1 && File.Exists(args[0]))
 {
     string wadPath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
-    map = LoadFromWad(wadPath, requestedMap, out source);
+    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors);
     if (map == null)
     {
         Console.WriteLine($"[load]  Could not load a map from '{wadPath}'.");
@@ -57,9 +59,10 @@ else
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
 
-static MapSet? LoadFromWad(string path, string? mapName, out string source)
+static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors)
 {
     source = "";
+    sectorFloorColors = new();
     using var fs = File.OpenRead(path);
     var ms = new MemoryStream();
     fs.CopyTo(ms);
@@ -114,14 +117,79 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source)
         }
     }
 
+    MapSet? loaded;
     if (HexenMapLoader.IsHexenFormat(wad, marker))
     {
         source = $"{Path.GetFileName(path)} [{marker}] Hexen-binary";
-        return HexenMapLoader.Load(wad, marker);
+        loaded = HexenMapLoader.Load(wad, marker);
+    }
+    else
+    {
+        source = $"{Path.GetFileName(path)} [{marker}] Doom-binary";
+        loaded = DoomMapLoader.Load(wad, marker);
     }
 
-    source = $"{Path.GetFileName(path)} [{marker}] Doom-binary";
-    return DoomMapLoader.Load(wad, marker);
+    if (loaded != null) sectorFloorColors = BuildSectorFloorColors(loaded, wad);
+    return loaded;
+}
+
+/// <summary>For each sector, decode its floor flat through PLAYPAL and average the RGB to a single tint color. Cached by flat name so shared textures decode once.</summary>
+static Dictionary<int, uint> BuildSectorFloorColors(MapSet map, WAD wad)
+{
+    var result = new Dictionary<int, uint>();
+    var palette = DoomPalette.FromWad(wad);
+    if (palette == null) return result;
+
+    var byFlatName = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+
+    foreach (var sector in map.Sectors)
+    {
+        string name = sector.FloorTexture;
+        if (string.IsNullOrEmpty(name) || name == "-")
+        {
+            result[sector.Index] = 0xff202020;
+            continue;
+        }
+        if (name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase))
+        {
+            result[sector.Index] = 0xff3060a0; // sky-ish blue
+            continue;
+        }
+
+        if (byFlatName.TryGetValue(name, out uint cached))
+        {
+            result[sector.Index] = cached;
+            continue;
+        }
+
+        uint color = 0xff404040; // fallback when flat is missing
+        try
+        {
+            byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
+            if (rgba != null)
+            {
+                long sumR = 0, sumG = 0, sumB = 0;
+                int count = rgba.Length / 4;
+                for (int i = 0; i < rgba.Length; i += 4)
+                {
+                    sumR += rgba[i + 0];
+                    sumG += rgba[i + 1];
+                    sumB += rgba[i + 2];
+                }
+                byte r = (byte)(sumR / count);
+                byte g = (byte)(sumG / count);
+                byte b = (byte)(sumB / count);
+                color = 0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b;
+            }
+        }
+        catch { /* fallback color stays */ }
+
+        byFlatName[name] = color;
+        result[sector.Index] = color;
+    }
+
+    Console.WriteLine($"[wad]   resolved {byFlatName.Count} unique floor textures across {map.Sectors.Count} sectors");
+    return result;
 }
 
 var (mapMinX, mapMinY, mapMaxX, mapMaxY) = map.Bounds();
@@ -137,20 +205,64 @@ const uint colorOneSided = 0xffd0d0d0;     // solid wall
 const uint colorTwoSided = 0xff70a0ff;     // portal / two-sided
 const uint colorActioned = 0xffffd040;     // any linedef with a special
 
-uint LineColor(Linedef l) =>
+// Two color modes, toggled by 'F': type-based coloring vs. sector-floor-tinted.
+// Tinted mode falls back to type colors when no sector floor data is available.
+bool tintBySectorFloor = sectorFloorColors.Count > 0;
+
+uint TypeColor(Linedef l) =>
     l.Action != 0 ? colorActioned :
     (l.Front != null && l.Back != null) ? colorTwoSided :
     colorOneSided;
 
-// One FlatVertex pair per linedef
-var lineVerts = new FlatVertex[map.Linedefs.Count * 2];
-for (int i = 0; i < map.Linedefs.Count; i++)
+uint SectorBlendedColor(Linedef l)
 {
-    var l = map.Linedefs[i];
-    int c = unchecked((int)LineColor(l));
-    lineVerts[i * 2 + 0] = MkFV(l.Start.Position, c);
-    lineVerts[i * 2 + 1] = MkFV(l.End.Position, c);
+    // Action-tagged lines always pop to gold so important interactions remain visible.
+    if (l.Action != 0) return colorActioned;
+
+    uint? front = null, back = null;
+    if (l.Front?.Sector != null && sectorFloorColors.TryGetValue(l.Front.Sector.Index, out uint fc)) front = fc;
+    if (l.Back?.Sector  != null && sectorFloorColors.TryGetValue(l.Back.Sector.Index,  out uint bc)) back  = bc;
+
+    if (front == null && back == null) return TypeColor(l);
+    if (front != null && back == null) return BrightenForVisibility(front.Value);
+    if (back  != null && front == null) return BrightenForVisibility(back.Value);
+    return BrightenForVisibility(AverageColor(front!.Value, back!.Value));
 }
+
+static uint AverageColor(uint a, uint b)
+{
+    byte ar = (byte)((a >> 16) & 0xFF), ag = (byte)((a >> 8) & 0xFF), ab = (byte)(a & 0xFF);
+    byte br = (byte)((b >> 16) & 0xFF), bg = (byte)((b >> 8) & 0xFF), bb = (byte)(b & 0xFF);
+    return 0xff000000u | ((uint)((ar + br) / 2) << 16) | ((uint)((ag + bg) / 2) << 8) | (uint)((ab + bb) / 2);
+}
+
+// Doom floor textures are often quite dark; boost lines so they read against the dark window background.
+static uint BrightenForVisibility(uint c)
+{
+    byte r = (byte)((c >> 16) & 0xFF), g = (byte)((c >> 8) & 0xFF), b = (byte)(c & 0xFF);
+    r = (byte)Math.Min(255, r + (255 - r) / 2);
+    g = (byte)Math.Min(255, g + (255 - g) / 2);
+    b = (byte)Math.Min(255, b + (255 - b) / 2);
+    return 0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b;
+}
+
+uint LineColor(Linedef l) => tintBySectorFloor ? SectorBlendedColor(l) : TypeColor(l);
+
+// Helper: rebuilds the line vertex buffer using the current LineColor mode.
+FlatVertex[] BuildLineVerts()
+{
+    var verts = new FlatVertex[map.Linedefs.Count * 2];
+    for (int i = 0; i < map.Linedefs.Count; i++)
+    {
+        var l = map.Linedefs[i];
+        int c = unchecked((int)LineColor(l));
+        verts[i * 2 + 0] = MkFV(l.Start.Position, c);
+        verts[i * 2 + 1] = MkFV(l.End.Position, c);
+    }
+    return verts;
+}
+
+var lineVerts = BuildLineVerts();
 
 // Thing markers: draw each thing as a small filled diamond (4 triangles -> 12 verts)
 // Plus a short angle indicator line.
@@ -307,11 +419,25 @@ window.Load += () =>
         {
             if (key == Key.R) ResetCamera(window.Size);
             if (key == Key.Escape) window.Close();
+            if (key == Key.F)
+            {
+                if (sectorFloorColors.Count == 0)
+                {
+                    Console.WriteLine("[ui]    F: no floor data loaded (sector tinting unavailable)");
+                }
+                else
+                {
+                    tintBySectorFloor = !tintBySectorFloor;
+                    Console.WriteLine($"[ui]    F: color mode = {(tintBySectorFloor ? "sector floor" : "linedef type")}");
+                    lineVerts = BuildLineVerts();
+                    device!.SetBufferData(linesVb!, lineVerts);
+                }
+            }
         };
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine("[ui]    LMB drag = pan,  wheel = zoom,  R = reset,  Esc = quit");
+    Console.WriteLine($"[ui]    LMB drag = pan,  wheel = zoom,  R = reset,  F = toggle color mode (currently: {(tintBySectorFloor ? "sector floor" : "linedef type")}),  Esc = quit");
 };
 
 window.Resize += sz => device?.SetViewport(sz.X, sz.Y);
