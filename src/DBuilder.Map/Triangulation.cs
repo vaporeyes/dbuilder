@@ -38,6 +38,12 @@ public sealed class Triangulation
     /// <summary>Per-vertex source sidedef. A null entry means the vertex isn't the start of a sidedef (e.g. interior split vertex).</summary>
     public ReadOnlyCollection<Sidedef?> Sidedefs => sidedefs;
 
+    /// <summary>
+    /// True when the main trace+cut+earclip algorithm produced no triangles and the fallback (centroid fan over angle-sorted vertices, or bbox quad)
+    /// was used.  Fallback geometry is visually approximate - convex shapes are exact, concave shapes overshoot their actual boundary.
+    /// </summary>
+    public bool IsApproximate { get; private set; }
+
     public Triangulation()
     {
         islandvertices = Array.AsReadOnly(new int[0]);
@@ -70,9 +76,111 @@ public sealed class Triangulation
         foreach (EarClipPolygon p in polys)
             islandslist.Add(DoEarClip(p, verticeslist, sidedefslist));
 
+        // Stage 4 (fallback): when the main algorithm produced no triangles but the sector clearly has geometry,
+        // approximate it with a centroid fan so the viewer can still draw *something* for pathological sectors
+        // (self-intersecting boundaries, multi-island geometry, etc.).
+        if (verticeslist.Count == 0 && s.Sidedefs.Count > 0)
+        {
+            int produced = CentroidFanFallback(s, verticeslist, sidedefslist);
+            if (produced > 0)
+            {
+                islandslist.Add(produced);
+                IsApproximate = true;
+            }
+        }
+
         islandvertices = Array.AsReadOnly(islandslist.ToArray());
         vertices = Array.AsReadOnly(verticeslist.ToArray());
         sidedefs = Array.AsReadOnly(sidedefslist.ToArray());
+    }
+
+    // ============================================================================================
+    // Stage 4: centroid-fan fallback for sectors the main algorithm couldn't trace
+    // ============================================================================================
+
+    /// <summary>
+    /// Collects all unique vertex positions from the sector's sidedefs, sorts them by angle around their centroid,
+    /// and fan-triangulates from the centroid.  Convex sectors fan exactly.  Concave sectors over-cover (some
+    /// triangles spill outside the real boundary) but the viewer at least gets a colored patch where the sector lives.
+    /// </summary>
+    /// <returns>Number of vertex entries appended to <paramref name="verts"/> (3 per triangle).</returns>
+    private static int CentroidFanFallback(Sector s, List<Vector2D> verts, List<Sidedef?> sides)
+    {
+        // Collect unique vertex positions across all sidedefs of this sector.
+        var seen = new HashSet<(double, double)>();
+        var positions = new List<Vector2D>();
+        foreach (var sd in s.Sidedefs)
+        {
+            if (sd.Line == null) continue;
+            TryAdd(sd.Line.Start.Position);
+            TryAdd(sd.Line.End.Position);
+        }
+        void TryAdd(Vector2D p)
+        {
+            var key = (p.x, p.y);
+            if (seen.Add(key)) positions.Add(p);
+        }
+
+        if (positions.Count == 0) return 0;
+
+        if (positions.Count < 3)
+        {
+            // Degenerate (single point or single segment): emit a tiny bbox quad so the viewer sees a dot.
+            return EmitBboxQuad(positions, verts, sides);
+        }
+
+        // Centroid
+        double cx = 0, cy = 0;
+        foreach (var p in positions) { cx += p.x; cy += p.y; }
+        cx /= positions.Count; cy /= positions.Count;
+        var centroid = new Vector2D(cx, cy);
+
+        // Angle-sort around centroid so the fan covers the convex hull of the vertex set.
+        positions.Sort((a, b) => Math.Atan2(a.y - cy, a.x - cx).CompareTo(Math.Atan2(b.y - cy, b.x - cx)));
+
+        int produced = 0;
+        for (int i = 0; i < positions.Count; i++)
+        {
+            int j = (i + 1) % positions.Count;
+            // Skip near-zero-area triangles (two adjacent sorted vertices coincident with each other or centroid).
+            var pa = centroid;
+            var pb = positions[i];
+            var pc = positions[j];
+            double signedArea = (pb.x - pa.x) * (pc.y - pa.y) - (pc.x - pa.x) * (pb.y - pa.y);
+            if (Math.Abs(signedArea) < 0.001) continue;
+
+            verts.Add(pa); verts.Add(pb); verts.Add(pc);
+            sides.Add(null); sides.Add(null); sides.Add(null);
+            produced += 3;
+        }
+        return produced;
+    }
+
+    /// <summary>Emits a tiny axis-aligned quad covering the bounding box of <paramref name="positions"/> as a fallback for degenerate sectors.</summary>
+    private static int EmitBboxQuad(List<Vector2D> positions, List<Vector2D> verts, List<Sidedef?> sides)
+    {
+        double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+        foreach (var p in positions)
+        {
+            if (p.x < minX) minX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y > maxY) maxY = p.y;
+        }
+        // Expand zero-width/height degenerate cases so the quad has area.
+        const double minSize = 4.0;
+        if (maxX - minX < minSize) { maxX = minX + minSize; }
+        if (maxY - minY < minSize) { maxY = minY + minSize; }
+
+        var a = new Vector2D(minX, minY);
+        var b = new Vector2D(maxX, minY);
+        var c = new Vector2D(maxX, maxY);
+        var d = new Vector2D(minX, maxY);
+        verts.Add(a); verts.Add(b); verts.Add(c);
+        sides.Add(null); sides.Add(null); sides.Add(null);
+        verts.Add(a); verts.Add(c); verts.Add(d);
+        sides.Add(null); sides.Add(null); sides.Add(null);
+        return 6;
     }
 
     // ============================================================================================
