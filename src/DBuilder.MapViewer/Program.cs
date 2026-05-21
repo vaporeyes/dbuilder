@@ -32,7 +32,7 @@ string source;
 // Sector index -> ARGB color from that sector's floor flat (averaged). Empty when no WAD source / no PLAYPAL.
 Dictionary<int, uint> sectorFloorColors = new();
 // Unique flat name -> 64x64 RGBA8 bytes decoded through PLAYPAL. Drives the textured sector fills.
-Dictionary<string, byte[]> flatRgba = new(StringComparer.OrdinalIgnoreCase);
+Dictionary<string, byte[][]> flatRgba = new(StringComparer.OrdinalIgnoreCase);
 
 if (args.Length >= 1 && File.Exists(args[0]))
 {
@@ -61,7 +61,7 @@ else
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
 
-static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[]> flatRgba)
+static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba)
 {
     source = "";
     sectorFloorColors = new();
@@ -141,11 +141,29 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source, out 
 }
 
 /// <summary>For each unique floor flat name in the map, decode it through PLAYPAL and stash the 64x64 RGBA8 bytes.</summary>
-static Dictionary<string, byte[]> LoadUniqueFlats(MapSet map, WAD wad)
+static Dictionary<string, byte[][]> LoadUniqueFlats(MapSet map, WAD wad)
 {
-    var result = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+    var result = new Dictionary<string, byte[][]>(StringComparer.OrdinalIgnoreCase);
     var palette = DoomPalette.FromWad(wad);
     if (palette == null) return result;
+
+    // Cache per-frame decoded RGBA so animation chains shared across many sectors only decode each frame once.
+    var frameCache = new Dictionary<string, byte[]?>(StringComparer.OrdinalIgnoreCase);
+    byte[]? DecodeFlat(string name)
+    {
+        if (frameCache.TryGetValue(name, out var cached)) return cached;
+        try
+        {
+            byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
+            frameCache[name] = rgba;
+            return rgba;
+        }
+        catch
+        {
+            frameCache[name] = null;
+            return null;
+        }
+    }
 
     foreach (var sector in map.Sectors)
     {
@@ -154,15 +172,33 @@ static Dictionary<string, byte[]> LoadUniqueFlats(MapSet map, WAD wad)
         if (name.StartsWith("F_SKY", StringComparison.OrdinalIgnoreCase)) continue;
         if (result.ContainsKey(name)) continue;
 
-        try
+        var chain = FlatAnimations.GetChainStarting(name);
+        if (chain != null)
         {
-            byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
-            if (rgba != null) result[name] = rgba;
+            // Animated: load all frames, rotated so this sector's referenced flat is frame 0.
+            var frames = new List<byte[]>(chain.Count);
+            foreach (var frameName in chain)
+            {
+                byte[]? rgba = DecodeFlat(frameName);
+                if (rgba != null) frames.Add(rgba);
+            }
+            // Require at least 2 distinct frames to count as animated; fall back to static if the WAD is missing frames.
+            if (frames.Count >= 2) result[name] = frames.ToArray();
+            else if (frames.Count == 1) result[name] = new[] { frames[0] };
         }
-        catch { /* skip unreadable flats */ }
+        else
+        {
+            byte[]? rgba = DecodeFlat(name);
+            if (rgba != null) result[name] = new[] { rgba };
+        }
     }
 
     Console.WriteLine($"[wad]   loaded {result.Count} flat textures for sector fills");
+    foreach (var (name, frames) in result)
+    {
+        if (frames.Length > 1)
+            Console.WriteLine($"[wad]   animated chain '{name}' -> {frames.Length} frames");
+    }
     return result;
 }
 
@@ -463,9 +499,11 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
-// One textured draw per unique flat. Bucket key "" is the untextured-fallback bucket.
-var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture? Tex)>();
+// One textured draw per unique flat. Bucket key "" is the untextured-fallback bucket.  Frames is null for static
+// flats (the placeholder is used), length 1 for static-with-real-texture, or length N for animated chains.
+var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
 bool showSectorFills = totalSectorTris > 0;
+bool animationsEnabled = true;
 // 1x1 white placeholder so the sampler always has something bound (avoids GL "unloadable sampler" warning during untextured draws).
 DBuilder.Rendering.Texture? placeholderTex = null;
 GL? gl = null;
@@ -493,23 +531,28 @@ window.Load += () =>
     device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
     device.SetSamplerState(TextureAddress.Wrap);
 
-    // Upload per-flat textures + per-bucket vertex buffers.
+    // Upload per-flat textures + per-bucket vertex buffers.  Animated flats get N textures (one per frame).
     foreach (var (name, verts) in flatBuckets)
     {
         var vb = new DBVertexBuffer(gl);
         device.SetBufferData(vb, verts.ToArray());
 
-        DBuilder.Rendering.Texture? tex = null;
-        if (name != "" && flatRgba.TryGetValue(name, out byte[]? rgba))
+        DBuilder.Rendering.Texture[]? frames = null;
+        if (name != "" && flatRgba.TryGetValue(name, out byte[][]? rgbaFrames))
         {
-            tex = new DBuilder.Rendering.Texture(gl);
-            tex.SetPixelsRgba8(64, 64, rgba, generateMipmaps: false);
-            device.SetTexture(0, tex);
-            // Per-texture sampler state so any draw using this texture is complete.
-            device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
-            device.SetSamplerState(TextureAddress.Wrap);
+            frames = new DBuilder.Rendering.Texture[rgbaFrames.Length];
+            for (int i = 0; i < rgbaFrames.Length; i++)
+            {
+                var tex = new DBuilder.Rendering.Texture(gl);
+                tex.SetPixelsRgba8(64, 64, rgbaFrames[i], generateMipmaps: false);
+                device.SetTexture(0, tex);
+                // Per-texture sampler state so any draw using this texture is complete.
+                device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+                device.SetSamplerState(TextureAddress.Wrap);
+                frames[i] = tex;
+            }
         }
-        sectorBucketResources.Add((name, vb, verts.Count / 3, tex));
+        sectorBucketResources.Add((name, vb, verts.Count / 3, frames));
     }
 
     device.SetViewport(opts.Size.X, opts.Size.Y);
@@ -589,11 +632,16 @@ window.Load += () =>
                     Console.WriteLine($"[ui]    S: sector fills = {(showSectorFills ? "on" : "off")}");
                 }
             }
+            if (key == Key.A)
+            {
+                animationsEnabled = !animationsEnabled;
+                Console.WriteLine($"[ui]    A: flat animations = {(animationsEnabled ? "on" : "off")}");
+            }
         };
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = toggle line color mode, S = toggle sector fills, Esc = quit");
+    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, A = flat animations, Esc = quit");
 };
 
 window.Resize += sz => device?.SetViewport(sz.X, sz.Y);
@@ -619,12 +667,22 @@ window.Render += _ =>
     // Sampler state was configured at load time per-texture so no per-frame setup needed.
     if (showSectorFills)
     {
+        // Doom-authentic frame index: 1 frame every 8 game tics at 35 tics/sec.
+        double elapsed = window.Time;
+        int globalFrame = animationsEnabled ? (int)(elapsed / DBuilder.IO.FlatAnimations.FramePeriodSeconds) : 0;
+
         foreach (var bucket in sectorBucketResources)
         {
             if (bucket.TriCount == 0) continue;
-            // Textured bucket vs. fallback bucket (no texture, just dimmed vertex color)
-            device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
-            device.SetTexture(0, bucket.Tex ?? placeholderTex);
+            // Pick the current frame for animated buckets (length > 1); fall back to frame 0 for static.
+            DBuilder.Rendering.Texture? activeTex = null;
+            if (bucket.Frames != null && bucket.Frames.Length > 0)
+            {
+                int idx = bucket.Frames.Length > 1 ? (globalFrame % bucket.Frames.Length) : 0;
+                activeTex = bucket.Frames[idx];
+            }
+            device.SetUniform("useTexture", activeTex != null ? 1f : 0f);
+            device.SetTexture(0, activeTex ?? placeholderTex);
             device.SetVertexBuffer(bucket.Vb);
             device.Draw(DBPrimitiveType.TriangleList, 0, bucket.TriCount);
         }
@@ -658,7 +716,10 @@ window.Closing += () =>
     foreach (var bucket in sectorBucketResources)
     {
         bucket.Vb.Dispose();
-        bucket.Tex?.Dispose();
+        if (bucket.Frames != null)
+        {
+            foreach (var f in bucket.Frames) f.Dispose();
+        }
     }
     placeholderTex?.Dispose();
     shader?.Dispose();
