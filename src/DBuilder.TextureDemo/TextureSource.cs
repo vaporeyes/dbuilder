@@ -29,28 +29,32 @@ public static class TextureSource
             Console.WriteLine("[wad]   PLAYPAL found");
         }
 
-        var result = new List<LoadedTexture>();
+        // Split the budget so the grid mixes both texture kinds rather than filling with flats alone.
+        int flatBudget = (maxCount + 1) / 2;   // half of the cells (rounded up)
+        int pictureBudget = maxCount - flatBudget;
+
+        var flats = new List<LoadedTexture>();
+        var pictures = new List<LoadedTexture>();
 
         // Pass 1: 64x64 flats anywhere in the WAD.
-        for (int i = 0; i < wad.Lumps.Count && result.Count < maxCount; i++)
+        for (int i = 0; i < wad.Lumps.Count && flats.Count < flatBudget; i++)
         {
             var lump = wad.Lumps[i];
             if (!DoomFlatReader.LooksLikeFlat(lump.Length)) continue;
-            // Skip obvious non-flats: anything inside a flat marker range would be fine, but we'll just trust the size+heuristic
-            // and avoid known-non-flat lump names that happen to be 4096 bytes.
-            if (lump.Name == "PLAYPAL" || lump.Name == "COLORMAP" || lump.Name == "PNAMES" || lump.Name == "TEXTURE1" || lump.Name == "TEXTURE2") continue;
+            // Skip well-known non-flat lumps that happen to share the 4096-byte size (esp. REJECT/BLOCKMAP from small maps).
+            if (IsKnownNonFlatLump(lump.Name)) continue;
 
             try
             {
                 byte[] indexed = lump.Stream.ReadAllBytes();
                 byte[] rgba = DoomFlatReader.DecodeRgba8(indexed, palette);
-                result.Add(new LoadedTexture(lump.Name, "flat", DoomFlatReader.Width, DoomFlatReader.Height, rgba));
+                flats.Add(new LoadedTexture(lump.Name, "flat", DoomFlatReader.Width, DoomFlatReader.Height, rgba));
             }
             catch { /* skip lumps that don't decode */ }
         }
 
         // Pass 2: column-based pictures (sprites, wall patches, fullscreen graphics).
-        for (int i = 0; i < wad.Lumps.Count && result.Count < maxCount; i++)
+        for (int i = 0; i < wad.Lumps.Count && pictures.Count < pictureBudget; i++)
         {
             var lump = wad.Lumps[i];
             if (lump.Length < 8) continue;
@@ -66,9 +70,13 @@ public static class TextureSource
             if (pic.Width < 4 || pic.Height < 4) continue;
             if (pic.Width > 640 || pic.Height > 480) continue;
 
-            result.Add(new LoadedTexture(lump.Name, "picture", pic.Width, pic.Height, pic.Rgba8));
+            pictures.Add(new LoadedTexture(lump.Name, "picture", pic.Width, pic.Height, pic.Rgba8));
         }
 
+        // Interleave flats and pictures so the grid alternates kinds row-by-row.
+        var result = new List<LoadedTexture>(maxCount);
+        result.AddRange(flats);
+        result.AddRange(pictures);
         return result;
     }
 
@@ -199,6 +207,18 @@ public static class TextureSource
                   ?? throw new InvalidOperationException("Synthetic picture failed to decode - this is a test bug, not a runtime issue");
         return new LoadedTexture(name, "picture", pic.Width, pic.Height, pic.Rgba8);
     }
+
+    private static bool IsKnownNonFlatLump(string name) => name switch
+    {
+        // Engine data lumps that can hit the 4096-byte size
+        "PLAYPAL" or "COLORMAP" or "PNAMES" or "TEXTURE1" or "TEXTURE2"
+        or "GENMIDI" or "DMXGUS" or "DMXGUSC" or "ENDOOM" or "DEMO1" or "DEMO2" or "DEMO3" or "DEMO4"
+        // Map auxiliary lumps that can be exactly 4096 bytes for small maps
+        or "REJECT" or "BLOCKMAP" or "NODES" or "SEGS" or "SSECTORS"
+        or "VERTEXES" or "LINEDEFS" or "SIDEDEFS" or "SECTORS" or "THINGS"
+        or "BEHAVIOR" or "TEXTMAP" or "ZNODES" or "SCRIPTS" => true,
+        _ => false,
+    };
 
     private static DoomPalette MakeGrayscalePalette()
     {
