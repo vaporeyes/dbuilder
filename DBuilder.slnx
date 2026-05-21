@@ -4,6 +4,7 @@
     <Project Path="src/DBuilder.IO/DBuilder.IO.csproj" />
     <Project Path="src/DBuilder.Map/DBuilder.Map.csproj" />
     <Project Path="src/DBuilder.MapDemo/DBuilder.MapDemo.csproj" />
+    <Project Path="src/DBuilder.MapViewer/DBuilder.MapViewer.csproj" />
     <Project Path="src/DBuilder.Rendering/DBuilder.Rendering.csproj" />
     <Project Path="src/DBuilder.RenderSpike/DBuilder.RenderSpike.csproj" />
   </Folder>

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+    <ProjectReference Include="..\DBuilder.Map\DBuilder.Map.csproj" />
   </ItemGroup>
 
 </Project>

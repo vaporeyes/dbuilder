@@ -1,5 +1,5 @@
-// ABOUTME: Skeleton of UDB's Map.Linedef sufficient for the geometry port.
-// ABOUTME: Real Linedef (action+args, flags, tags, blockmap, sector linkage, length cache) follows in the Map port.
+// ABOUTME: Skeleton of UDB's Map.Linedef expanded with binary-record fields needed for map I/O.
+// ABOUTME: Still omits the full UDB surface (marks, selection, blockmap, length cache, args[5], owner sector linkage).
 
 namespace DBuilder.Map;
 
@@ -12,6 +12,15 @@ public class Linedef
     public double Angle { get; set; }
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
+
+    // Binary record fields (Doom + UDMF).
+    public int Flags { get; set; }
+    public int Action { get; set; }
+    public int Tag { get; set; }
+
+    // UDMF-specific named flags collected as a string set so we don't lose data on round-trip.
+    // Real UDB resolves these against the game config (blocking, dontdraw, etc.).
+    public HashSet<string> UdmfFlags { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public Linedef() { }
     public Linedef(Vertex start, Vertex end)
