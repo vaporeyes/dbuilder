@@ -1,6 +1,12 @@
-// ABOUTME: Interactive 2D map viewer: loads a UDMF map through the full pipeline (UniversalParser -> UdmfMapLoader -> MapSet)
-// ABOUTME: and renders it via DBuilder.Rendering with mouse pan, wheel zoom, R-to-reset, and color-coded line + thing markers.
+// ABOUTME: Interactive 2D map viewer: loads either a real .wad (Doom binary or UDMF text) or falls back to an embedded
+// ABOUTME: synthetic UDMF sample, then renders via DBuilder.Rendering with mouse pan, wheel zoom, R-to-reset, color-coded lines + thing markers.
+//
+// Usage:
+//   dotnet run                       # use embedded synthetic UDMF sample
+//   dotnet run -- path/to/file.wad   # load first map in the WAD (auto-detects Doom-binary vs UDMF)
+//   dotnet run -- file.wad MAP05     # load a specific map by marker lump name
 
+using System.IO;
 using System.Numerics;
 using DBuilder.Geometry;
 using DBuilder.IO;
@@ -19,15 +25,98 @@ using DBPrimitiveType = DBuilder.Rendering.PrimitiveType;
 using DBVertexBuffer = DBuilder.Rendering.VertexBuffer;
 
 // ============================================================
-// 1. Parse the UDMF sample through the real pipeline.
+// 1. Resolve input source: command-line .wad or embedded sample.
 // ============================================================
-var map = UdmfMapLoader.Load(SampleMap.Udmf, out var parser);
-if (map == null)
+MapSet? map = null;
+string source;
+
+if (args.Length >= 1 && File.Exists(args[0]))
 {
-    Console.WriteLine($"UDMF parse failed (line {parser.ErrorLine}): {parser.ErrorDescription}");
-    return 1;
+    string wadPath = args[0];
+    string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
+    map = LoadFromWad(wadPath, requestedMap, out source);
+    if (map == null)
+    {
+        Console.WriteLine($"[load]  Could not load a map from '{wadPath}'.");
+        return 1;
+    }
 }
-Console.WriteLine($"[load]  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
+else
+{
+    if (args.Length >= 1)
+        Console.WriteLine($"[load]  File '{args[0]}' not found; falling back to embedded sample.");
+
+    map = UdmfMapLoader.Load(SampleMap.Udmf, out var parser);
+    if (map == null)
+    {
+        Console.WriteLine($"UDMF parse failed (line {parser.ErrorLine}): {parser.ErrorDescription}");
+        return 1;
+    }
+    source = "embedded UDMF sample";
+}
+
+Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
+
+static MapSet? LoadFromWad(string path, string? mapName, out string source)
+{
+    source = "";
+    using var fs = File.OpenRead(path);
+    var ms = new MemoryStream();
+    fs.CopyTo(ms);
+    ms.Position = 0;
+
+    using var wad = new WAD(ms, openreadonly: true, virtualFilename: path);
+    Console.WriteLine($"[wad]   {(wad.IsIWAD ? "IWAD" : "PWAD")}{(wad.IsOfficialIWAD ? " (official)" : "")}  {wad.Lumps.Count} lumps");
+
+    // Resolve map name: explicit -> use it; otherwise scan for the first marker lump that has either TEXTMAP or VERTEXES nearby.
+    string? marker = mapName;
+    if (marker == null)
+    {
+        for (int i = 0; i < wad.Lumps.Count; i++)
+        {
+            var l = wad.Lumps[i];
+            if (l.Length != 0) continue;
+            // Look one or two lumps ahead for a known map sub-lump.
+            for (int j = i + 1; j < Math.Min(i + 6, wad.Lumps.Count); j++)
+            {
+                string nm = wad.Lumps[j].Name;
+                if (nm == "TEXTMAP" || nm == "VERTEXES")
+                {
+                    marker = l.Name;
+                    break;
+                }
+            }
+            if (marker != null) break;
+        }
+    }
+
+    if (marker == null)
+    {
+        Console.WriteLine("[wad]   No map markers found.");
+        return null;
+    }
+    Console.WriteLine($"[wad]   Loading map '{marker}'");
+
+    // Check for TEXTMAP (UDMF) before VERTEXES (binary).
+    int markerIdx = wad.FindLumpIndex(marker);
+    if (markerIdx >= 0)
+    {
+        for (int j = markerIdx + 1; j < Math.Min(markerIdx + 6, wad.Lumps.Count); j++)
+        {
+            if (wad.Lumps[j].Name == "TEXTMAP")
+            {
+                byte[] textBytes = wad.Lumps[j].Stream.ReadAllBytes();
+                string udmfText = System.Text.Encoding.ASCII.GetString(textBytes);
+                source = $"{Path.GetFileName(path)} [{marker}] UDMF";
+                return UdmfMapLoader.Load(udmfText, out _);
+            }
+            if (wad.Lumps[j].Name == "VERTEXES") break;
+        }
+    }
+
+    source = $"{Path.GetFileName(path)} [{marker}] Doom-binary";
+    return DoomMapLoader.Load(wad, marker);
+}
 
 var (mapMinX, mapMinY, mapMaxX, mapMaxY) = map.Bounds();
 double mapW = mapMaxX - mapMinX;
