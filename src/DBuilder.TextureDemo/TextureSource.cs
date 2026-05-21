@@ -29,12 +29,23 @@ public static class TextureSource
             Console.WriteLine("[wad]   PLAYPAL found");
         }
 
-        // Split the budget so the grid mixes both texture kinds rather than filling with flats alone.
-        int flatBudget = (maxCount + 1) / 2;   // half of the cells (rounded up)
-        int pictureBudget = maxCount - flatBudget;
+        // Split the budget across the three kinds so the grid mixes flats, composed wall textures, and patches.
+        int flatBudget = maxCount / 3;
+        int wallBudget = maxCount / 3;
+        int pictureBudget = maxCount - flatBudget - wallBudget;
 
         var flats = new List<LoadedTexture>();
+        var walls = new List<LoadedTexture>();
         var pictures = new List<LoadedTexture>();
+
+        // Load PNAMES + TEXTURE1/TEXTURE2 lists once for the wall-composition pass.
+        var pnames = DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
+        var textureLists = new List<List<DoomTextureDef>>();
+        var tex1 = DoomTextureListReader.FromWad(wad, "TEXTURE1");
+        var tex2 = DoomTextureListReader.FromWad(wad, "TEXTURE2");
+        if (tex1 != null) textureLists.Add(tex1);
+        if (tex2 != null) textureLists.Add(tex2);
+        if (textureLists.Count > 0) Console.WriteLine($"[wad]   {pnames.Length} patches in PNAMES; {textureLists.Sum(l => l.Count)} entries across TEXTURE1/2");
 
         // Pass 1: 64x64 flats anywhere in the WAD.
         for (int i = 0; i < wad.Lumps.Count && flats.Count < flatBudget; i++)
@@ -73,9 +84,30 @@ public static class TextureSource
             pictures.Add(new LoadedTexture(lump.Name, "picture", pic.Width, pic.Height, pic.Rgba8));
         }
 
-        // Interleave flats and pictures so the grid alternates kinds row-by-row.
+        // Pass 1.5: composed wall textures via PNAMES + TEXTURE1/2.
+        // The first entry of TEXTURE1 is historically unused ("no texture" placeholder); we skip names like "AASHITTY"/"-".
+        foreach (var list in textureLists)
+        {
+            if (walls.Count >= wallBudget) break;
+            // Walk in order but skip the first entry of TEXTURE1 (UDB's RemoveAt(0) equivalent)
+            bool first = true;
+            foreach (var def in list)
+            {
+                if (walls.Count >= wallBudget) break;
+                if (first) { first = false; continue; }
+                if (def.Name == "-" || def.Name.Length == 0) continue;
+
+                byte[]? rgba = DoomWallTextureCompositor.Compose(def, pnames, wad, palette);
+                if (rgba == null) continue;
+
+                walls.Add(new LoadedTexture(def.Name, "wall", def.Width, def.Height, rgba));
+            }
+        }
+
+        // Stitch the three kinds together for a mixed grid.
         var result = new List<LoadedTexture>(maxCount);
         result.AddRange(flats);
+        result.AddRange(walls);
         result.AddRange(pictures);
         return result;
     }
