@@ -663,6 +663,95 @@ foreach (var t in map.Things)
 }
 
 // ============================================================
+// 2.8. 3D geometry - real-height floors/ceilings/walls for the perspective fly mode.
+// ============================================================
+// Vertex-colored (untextured) so we don't need to re-bucket textures for 3D. Floors sit at GetFloorZ
+// (sloped), ceilings at GetCeilZ, walls span the gaps. This is where sloped sectors visibly tilt.
+var floors3D = new List<FlatVertex>();
+var ceils3D = new List<FlatVertex>();
+var walls3D = new List<FlatVertex>();
+
+static int GrayColor(int sectorBrightness, double scale)
+{
+    double br = Math.Clamp(sectorBrightness / 255.0, 0.15, 1.0) * scale;
+    byte b = (byte)Math.Clamp(br * 255, 0, 255);
+    return unchecked((int)(0xff000000u | ((uint)b << 16) | ((uint)b << 8) | b));
+}
+
+void PushQuad3D(List<FlatVertex> list,
+                double x1, double y1, double z1,
+                double x2, double y2, double z2,
+                double x3, double y3, double z3,
+                double x4, double y4, double z4, int color)
+{
+    FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = color, u = 0, v = 0 };
+    list.Add(V(x1, y1, z1)); list.Add(V(x2, y2, z2)); list.Add(V(x3, y3, z3));
+    list.Add(V(x1, y1, z1)); list.Add(V(x3, y3, z3)); list.Add(V(x4, y4, z4));
+}
+
+foreach (var sector in map.Sectors)
+{
+    if (sector.Sidedefs.Count == 0) continue;
+    Triangulation tri3;
+    try { tri3 = Triangulation.Create(sector); }
+    catch { continue; }
+    if (tri3.Vertices.Count == 0) continue;
+
+    int floorCol = GrayColor(sector.Brightness, 1.0);
+    int ceilCol  = GrayColor(sector.Brightness, 0.75);
+    for (int i = 0; i < tri3.Vertices.Count; i++)
+    {
+        var p = tri3.Vertices[i];
+        double fz = sector.GetFloorZ(p);
+        floors3D.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)fz, w = 1, c = floorCol, u = 0, v = 0 });
+        double cz = sector.GetCeilZ(p);
+        ceils3D.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)cz, w = 1, c = ceilCol, u = 0, v = 0 });
+    }
+}
+
+foreach (var line in map.Linedefs)
+{
+    var a = line.Start.Position;
+    var b = line.End.Position;
+    var frontSec = line.Front?.Sector;
+    var backSec = line.Back?.Sector;
+
+    if (frontSec != null && backSec == null)
+    {
+        // One-sided wall: full span of the front sector from floor to ceiling.
+        int col = GrayColor(frontSec.Brightness, 0.6);
+        PushQuad3D(walls3D,
+            a.x, a.y, frontSec.GetFloorZ(a),
+            b.x, b.y, frontSec.GetFloorZ(b),
+            b.x, b.y, frontSec.GetCeilZ(b),
+            a.x, a.y, frontSec.GetCeilZ(a), col);
+    }
+    else if (frontSec != null && backSec != null)
+    {
+        // Two-sided: lower step (floor gap) and upper step (ceiling gap).
+        int col = GrayColor(Math.Max(frontSec.Brightness, backSec.Brightness), 0.6);
+        double fFa = frontSec.GetFloorZ(a), fFb = frontSec.GetFloorZ(b);
+        double bFa = backSec.GetFloorZ(a),  bFb = backSec.GetFloorZ(b);
+        if (fFa != bFa || fFb != bFb)
+            PushQuad3D(walls3D,
+                a.x, a.y, Math.Min(fFa, bFa),
+                b.x, b.y, Math.Min(fFb, bFb),
+                b.x, b.y, Math.Max(fFb, bFb),
+                a.x, a.y, Math.Max(fFa, bFa), col);
+
+        double fCa = frontSec.GetCeilZ(a), fCb = frontSec.GetCeilZ(b);
+        double bCa = backSec.GetCeilZ(a),  bCb = backSec.GetCeilZ(b);
+        if (fCa != bCa || fCb != bCb)
+            PushQuad3D(walls3D,
+                a.x, a.y, Math.Min(fCa, bCa),
+                b.x, b.y, Math.Min(fCb, bCb),
+                b.x, b.y, Math.Max(fCb, bCb),
+                a.x, a.y, Math.Max(fCa, bCa), col);
+    }
+}
+Console.WriteLine($"[3d]    floors {floors3D.Count / 3} tris, ceilings {ceils3D.Count / 3} tris, walls {walls3D.Count / 3} tris");
+
+// ============================================================
 // 3. Camera state - simple 2D pan/zoom.
 // ============================================================
 double camX = mapCx;
@@ -680,6 +769,32 @@ void ResetCamera(SilkVec2I windowSize)
     double zoomY = mapH / windowSize.Y;
     camZoom = Math.Max(zoomX, zoomY) * 1.15;
     if (camZoom <= 0) camZoom = 1;
+}
+
+// ------------------------------------------------------------
+// 3D fly camera (Doom z-up). Toggled with Tab; WASD moves, arrows look, Q/E descend/ascend.
+// ------------------------------------------------------------
+bool mode3D = false;
+var cam3DPos = new Vector3((float)mapCx, (float)mapCy, 96f);
+double cam3DYaw = 0;          // radians, rotation about z (0 = +x)
+double cam3DPitch = 0;        // radians, +looks up
+bool cam3DInit = false;
+
+void Reset3DCamera()
+{
+    // Drop the camera at the map center, backed off and slightly elevated, looking toward +x level.
+    cam3DPos = new Vector3((float)mapCx, (float)mapCy, 160f);
+    cam3DYaw = 0;
+    cam3DPitch = -0.25;
+}
+
+Vector3 Cam3DForward()
+{
+    float cp = (float)Math.Cos(cam3DPitch);
+    return new Vector3(
+        cp * (float)Math.Cos(cam3DYaw),
+        cp * (float)Math.Sin(cam3DYaw),
+        (float)Math.Sin(cam3DPitch));
 }
 
 // ============================================================
@@ -711,8 +826,10 @@ void main() {
 var opts = WindowOptions.Default with
 {
     Size = new SilkVec2I(1100, 800),
-    Title = "DBuilder map viewer  -  drag to pan  -  wheel to zoom  -  R to reset",
+    Title = "DBuilder map viewer  -  Tab = 2D/3D  -  drag to pan  -  wheel to zoom  -  R to reset",
     API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(3, 3)),
+    // 24-bit depth buffer is required for correct occlusion in the 3D perspective mode.
+    PreferredDepthBufferBits = 24,
     VSync = true
 };
 
@@ -723,6 +840,9 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
+DBVertexBuffer? floors3DVb = null;
+DBVertexBuffer? ceils3DVb = null;
+DBVertexBuffer? walls3DVb = null;
 // One textured draw per unique flat. Bucket key "" is the untextured-fallback bucket.  Frames is null for static
 // flats (the placeholder is used), length 1 for static-with-real-texture, or length N for animated chains.
 var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
@@ -734,6 +854,7 @@ bool animationsEnabled = true;
 // 1x1 white placeholder so the sampler always has something bound (avoids GL "unloadable sampler" warning during untextured draws).
 DBuilder.Rendering.Texture? placeholderTex = null;
 GL? gl = null;
+Silk.NET.Input.IKeyboard? keyboard0 = null;
 
 window.Load += () =>
 {
@@ -749,6 +870,13 @@ window.Load += () =>
 
     thingsLinesVb = new DBVertexBuffer(gl);
     device.SetBufferData(thingsLinesVb, thingLines.ToArray());
+
+    floors3DVb = new DBVertexBuffer(gl);
+    if (floors3D.Count > 0) device.SetBufferData(floors3DVb, floors3D.ToArray());
+    ceils3DVb = new DBVertexBuffer(gl);
+    if (ceils3D.Count > 0) device.SetBufferData(ceils3DVb, ceils3D.ToArray());
+    walls3DVb = new DBVertexBuffer(gl);
+    if (walls3D.Count > 0) device.SetBufferData(walls3DVb, walls3D.ToArray());
 
     // 1x1 white placeholder texture - bound when drawing untextured geometry to keep the sampler happy.
     placeholderTex = new DBuilder.Rendering.Texture(gl);
@@ -853,12 +981,19 @@ window.Load += () =>
             if (camZoom > 100) camZoom = 100;
         };
     }
+    if (input.Keyboards.Count > 0) keyboard0 = input.Keyboards[0];
     foreach (var kb in input.Keyboards)
     {
         kb.KeyDown += (k, key, _) =>
         {
-            if (key == Key.R) ResetCamera(window.Size);
+            if (key == Key.R) { if (mode3D) Reset3DCamera(); else ResetCamera(window.Size); }
             if (key == Key.Escape) window.Close();
+            if (key == Key.Tab)
+            {
+                mode3D = !mode3D;
+                if (mode3D && !cam3DInit) { Reset3DCamera(); cam3DInit = true; }
+                Console.WriteLine($"[ui]    Tab: view = {(mode3D ? "3D perspective (WASD move, arrows look, Q/E down/up)" : "2D top-down")}");
+            }
             if (key == Key.F)
             {
                 if (sectorFloorColors.Count == 0)
@@ -873,7 +1008,8 @@ window.Load += () =>
                     device!.SetBufferData(linesVb!, lineVerts);
                 }
             }
-            if (key == Key.S)
+            // S/A/W double as 3D movement keys, so their 2D toggles only fire in 2D mode.
+            if (key == Key.S && !mode3D)
             {
                 if (totalSectorTris == 0)
                 {
@@ -885,12 +1021,12 @@ window.Load += () =>
                     Console.WriteLine($"[ui]    S: sector fills = {(showSectorFills ? "on" : "off")}");
                 }
             }
-            if (key == Key.A)
+            if (key == Key.A && !mode3D)
             {
                 animationsEnabled = !animationsEnabled;
                 Console.WriteLine($"[ui]    A: flat animations = {(animationsEnabled ? "on" : "off")}");
             }
-            if (key == Key.W)
+            if (key == Key.W && !mode3D)
             {
                 if (wallRibbonResources.Count == 0)
                 {
@@ -906,10 +1042,37 @@ window.Load += () =>
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
+    Console.WriteLine($"[ui]    Tab = 2D/3D, LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
+    Console.WriteLine($"[ui]    3D: WASD move, arrows look, Q/E down/up, Shift = faster, R = reset camera");
 };
 
 window.Resize += sz => device?.SetViewport(sz.X, sz.Y);
+
+window.Update += dt =>
+{
+    if (!mode3D || keyboard0 is null) return;
+    var kb = keyboard0;
+    float move = (float)(dt * 320.0);   // world units/sec
+    if (kb.IsKeyPressed(Key.ShiftLeft) || kb.IsKeyPressed(Key.ShiftRight)) move *= 3f;
+    float look = (float)(dt * 1.6);      // radians/sec
+
+    if (kb.IsKeyPressed(Key.Left))  cam3DYaw += look;
+    if (kb.IsKeyPressed(Key.Right)) cam3DYaw -= look;
+    if (kb.IsKeyPressed(Key.Up))    cam3DPitch += look;
+    if (kb.IsKeyPressed(Key.Down))  cam3DPitch -= look;
+    cam3DPitch = Math.Clamp(cam3DPitch, -1.5, 1.5);
+
+    // Horizontal forward (ignore pitch) for WASD so movement stays on the ground plane feel.
+    var flatFwd = new Vector3((float)Math.Cos(cam3DYaw), (float)Math.Sin(cam3DYaw), 0);
+    var rightV = new Vector3((float)Math.Sin(cam3DYaw), -(float)Math.Cos(cam3DYaw), 0);
+
+    if (kb.IsKeyPressed(Key.W)) cam3DPos += flatFwd * move;
+    if (kb.IsKeyPressed(Key.S)) cam3DPos -= flatFwd * move;
+    if (kb.IsKeyPressed(Key.D)) cam3DPos += rightV * move;
+    if (kb.IsKeyPressed(Key.A)) cam3DPos -= rightV * move;
+    if (kb.IsKeyPressed(Key.E)) cam3DPos.Z += move;
+    if (kb.IsKeyPressed(Key.Q)) cam3DPos.Z -= move;
+};
 
 window.Render += _ =>
 {
@@ -919,6 +1082,15 @@ window.Render += _ =>
     device.SetShader(shader);
 
     var size = window.Size;
+
+    if (mode3D)
+    {
+        Render3D(size);
+        device.FinishRendering();
+        return;
+    }
+
+    device.SetZEnable(false);
     double halfW = size.X * 0.5 * camZoom;
     double halfH = size.Y * 0.5 * camZoom;
     var proj = Matrix4x4.CreateOrthographicOffCenter(
@@ -986,11 +1158,51 @@ window.Render += _ =>
     device.FinishRendering();
 };
 
+void Render3D(SilkVec2I size)
+{
+    if (device is null) return;
+
+    device.SetZEnable(true);
+    device.SetUniform("tex0", 0);
+    device.SetUniform("useTexture", 0f);
+
+    var pos = cam3DPos;
+    var target = pos + Cam3DForward();
+    var up = new Vector3(0, 0, 1);
+    var view = Matrix4x4.CreateLookAt(pos, target, up);
+    float aspect = size.Y > 0 ? (float)size.X / size.Y : 1f;
+    var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)(75.0 * Math.PI / 180.0), aspect, 1f, 20000f);
+    // System.Numerics row-vector convention: combined = view * persp; the device uploads it so the
+    // GLSL "projection * vec4(pos)" multiply matches "pos * view * persp".
+    device.SetUniform("projection", view * persp);
+
+    device.SetTexture(0, placeholderTex);
+
+    if (floors3DVb != null && floors3D.Count > 0)
+    {
+        device.SetVertexBuffer(floors3DVb);
+        device.Draw(DBPrimitiveType.TriangleList, 0, floors3D.Count / 3);
+    }
+    if (ceils3DVb != null && ceils3D.Count > 0)
+    {
+        device.SetVertexBuffer(ceils3DVb);
+        device.Draw(DBPrimitiveType.TriangleList, 0, ceils3D.Count / 3);
+    }
+    if (walls3DVb != null && walls3D.Count > 0)
+    {
+        device.SetVertexBuffer(walls3DVb);
+        device.Draw(DBPrimitiveType.TriangleList, 0, walls3D.Count / 3);
+    }
+}
+
 window.Closing += () =>
 {
     linesVb?.Dispose();
     thingsTrisVb?.Dispose();
     thingsLinesVb?.Dispose();
+    floors3DVb?.Dispose();
+    ceils3DVb?.Dispose();
+    walls3DVb?.Dispose();
     foreach (var bucket in sectorBucketResources)
     {
         bucket.Vb.Dispose();
