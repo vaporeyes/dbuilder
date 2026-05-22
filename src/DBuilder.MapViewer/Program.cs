@@ -432,18 +432,50 @@ static uint BrightenForVisibility(uint c)
 
 uint LineColor(Linedef l) => tintBySectorFloor ? SectorBlendedColor(l) : TypeColor(l);
 
-// Helper: rebuilds the line vertex buffer using the current LineColor mode.
+// Selection highlight colors for the 2D overlay.
+const int SelectedLineColor = unchecked((int)0xffffee00);   // bright yellow - directly selected line
+const int SelectedSectorLineColor = unchecked((int)0xff00ccff); // cyan - line bordering a selected sector
+
+// Helper: rebuilds the line vertex buffer using the current LineColor mode, with selection highlighting.
 FlatVertex[] BuildLineVerts()
 {
     var verts = new FlatVertex[map.Linedefs.Count * 2];
     for (int i = 0; i < map.Linedefs.Count; i++)
     {
         var l = map.Linedefs[i];
-        int c = unchecked((int)LineColor(l));
+        int c;
+        if (l.Selected)
+            c = SelectedLineColor;
+        else if ((l.Front?.Sector?.Selected ?? false) || (l.Back?.Sector?.Selected ?? false))
+            c = SelectedSectorLineColor;
+        else
+            c = unchecked((int)LineColor(l));
         verts[i * 2 + 0] = MkFV(l.Start.Position, c);
         verts[i * 2 + 1] = MkFV(l.End.Position, c);
     }
     return verts;
+}
+
+// Selected-vertex highlight markers - small diamonds (4 triangles each) rebuilt on selection change.
+FlatVertex[] BuildSelectedVertexMarkers(double worldRadius)
+{
+    var list = new List<FlatVertex>();
+    const int markerColor = unchecked((int)0xffffee00);
+    foreach (var v in map.Vertices)
+    {
+        if (!v.Selected) continue;
+        var p = v.Position;
+        double s = worldRadius;
+        var n = new Vec2D(p.x, p.y - s);
+        var e = new Vec2D(p.x + s, p.y);
+        var so = new Vec2D(p.x, p.y + s);
+        var w = new Vec2D(p.x - s, p.y);
+        list.Add(MkFV(p, markerColor)); list.Add(MkFV(n, markerColor)); list.Add(MkFV(e, markerColor));
+        list.Add(MkFV(p, markerColor)); list.Add(MkFV(e, markerColor)); list.Add(MkFV(so, markerColor));
+        list.Add(MkFV(p, markerColor)); list.Add(MkFV(so, markerColor)); list.Add(MkFV(w, markerColor));
+        list.Add(MkFV(p, markerColor)); list.Add(MkFV(w, markerColor)); list.Add(MkFV(n, markerColor));
+    }
+    return list.ToArray();
 }
 
 var lineVerts = BuildLineVerts();
@@ -782,6 +814,7 @@ double camY = mapCy;
 double camZoom = 1.0; // world-units-per-pixel; recomputed on Load to fit map
 bool dragging = false;
 double dragLastX = 0, dragLastY = 0;
+double mouseDownX = 0, mouseDownY = 0; // screen pos at button-down, to tell a click from a pan
 
 void ResetCamera(SilkVec2I windowSize)
 {
@@ -863,6 +896,8 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
+DBVertexBuffer? selVertMarkersVb = null;
+FlatVertex[] selVertMarkers = System.Array.Empty<FlatVertex>();
 // 3D bucket resources. Frames null/empty = untextured (gray), length 1 = static, length N = animated.
 // Textures are SHARED with the 2D sector/wall resources (referenced, not owned - not disposed here).
 var floor3DResources = new List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
@@ -881,6 +916,57 @@ DBuilder.Rendering.Texture? placeholderTex = null;
 GL? gl = null;
 Silk.NET.Input.IKeyboard? keyboard0 = null;
 
+// Picks the nearest element at a screen position (2D mode). Priority: vertex -> linedef -> sector.
+// Rebuilds the line overlay + selected-vertex markers to reflect the new selection.
+void PickAt(double screenX, double screenY, bool additive)
+{
+    if (device is null) return;
+    var size = window.Size;
+    // Inverse of the 2D ortho projection (Doom Y up, screen Y down).
+    double worldX = camX + (screenX - size.X * 0.5) * camZoom;
+    double worldY = camY - (screenY - size.Y * 0.5) * camZoom;
+    var worldPos = new Vec2D(worldX, worldY);
+
+    double vertexRange = 10 * camZoom;  // ~10 px pick radius
+    double lineRange = 8 * camZoom;
+
+    if (!additive) map.ClearAllSelected();
+
+    var v = map.NearestVertex(worldPos, vertexRange);
+    if (v != null)
+    {
+        v.Selected = !v.Selected;
+        Console.WriteLine($"[pick]  vertex ({v.Position.x:0.#}, {v.Position.y:0.#}) {(v.Selected ? "selected" : "deselected")}");
+    }
+    else
+    {
+        var l = map.NearestLinedef(worldPos, lineRange);
+        if (l != null)
+        {
+            l.Selected = !l.Selected;
+            Console.WriteLine($"[pick]  linedef {map.Linedefs.IndexOf(l)} {(l.Selected ? "selected" : "deselected")}");
+        }
+        else
+        {
+            var s = map.GetSectorAt(worldPos);
+            if (s != null)
+            {
+                s.Selected = !s.Selected;
+                Console.WriteLine($"[pick]  sector {s.Index} {(s.Selected ? "selected" : "deselected")}");
+            }
+            else if (!additive)
+            {
+                Console.WriteLine("[pick]  nothing under cursor (cleared selection)");
+            }
+        }
+    }
+
+    lineVerts = BuildLineVerts();
+    device.SetBufferData(linesVb!, lineVerts);
+    selVertMarkers = BuildSelectedVertexMarkers(5 * camZoom);
+    if (selVertMarkers.Length > 0) device.SetBufferData(selVertMarkersVb!, selVertMarkers);
+}
+
 window.Load += () =>
 {
     gl = GL.GetApi(window);
@@ -895,6 +981,8 @@ window.Load += () =>
 
     thingsLinesVb = new DBVertexBuffer(gl);
     device.SetBufferData(thingsLinesVb, thingLines.ToArray());
+
+    selVertMarkersVb = new DBVertexBuffer(gl);
 
     // 1x1 white placeholder texture - bound when drawing untextured geometry to keep the sampler happy.
     placeholderTex = new DBuilder.Rendering.Texture(gl);
@@ -1002,11 +1090,23 @@ window.Load += () =>
                 dragging = true;
                 dragLastX = m.Position.X;
                 dragLastY = m.Position.Y;
+                mouseDownX = m.Position.X;
+                mouseDownY = m.Position.Y;
             }
         };
         mouse.MouseUp += (m, btn) =>
         {
-            if (btn == MouseButton.Left) dragging = false;
+            if (btn == MouseButton.Left)
+            {
+                dragging = false;
+                // A left-click that barely moved is a pick (2D only); a larger move was a pan.
+                double moved = Math.Abs(m.Position.X - mouseDownX) + Math.Abs(m.Position.Y - mouseDownY);
+                if (!mode3D && moved < 4)
+                {
+                    bool additive = keyboard0?.IsKeyPressed(Key.ShiftLeft) == true || keyboard0?.IsKeyPressed(Key.ShiftRight) == true;
+                    PickAt(m.Position.X, m.Position.Y, additive);
+                }
+            }
         };
         mouse.MouseMove += (m, pos) =>
         {
@@ -1090,7 +1190,7 @@ window.Load += () =>
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    Tab = 2D/3D, LMB drag = pan, wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
+    Console.WriteLine($"[ui]    Tab = 2D/3D, LMB drag = pan, LMB click = select (Shift = add), wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
     Console.WriteLine($"[ui]    3D: WASD move, arrows look, Q/E down/up, Shift = faster, R = reset camera");
 };
 
@@ -1203,6 +1303,13 @@ window.Render += _ =>
         device.Draw(DBPrimitiveType.LineList, 0, thingLines.Count / 2);
     }
 
+    // Selected-vertex highlight markers on top of everything.
+    if (selVertMarkersVb != null && selVertMarkers.Length > 0)
+    {
+        device.SetVertexBuffer(selVertMarkersVb);
+        device.Draw(DBPrimitiveType.TriangleList, 0, selVertMarkers.Length / 3);
+    }
+
     device.FinishRendering();
 };
 
@@ -1250,6 +1357,7 @@ window.Closing += () =>
     linesVb?.Dispose();
     thingsTrisVb?.Dispose();
     thingsLinesVb?.Dispose();
+    selVertMarkersVb?.Dispose();
     // 3D bucket VBs (textures are shared with the 2D resources and disposed there).
     foreach (var b in floor3DResources) b.Vb.Dispose();
     foreach (var b in ceil3DResources) b.Vb.Dispose();
