@@ -39,6 +39,10 @@ void main() { frag = v_color; }";
     private DBShader? _shader;
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
+    private GlVertexBuffer? _thingsVb;
+    private int _thingTris;
+    private GlVertexBuffer? _selVertsVb;
+    private int _selVertTris;
     private bool _geometryDirty = true;
 
     private MapSet? _map;
@@ -83,6 +87,8 @@ void main() { frag = v_color; }";
         _device = new RenderDevice(_gl);
         _shader = new DBShader(_gl, VertexSrc, FragmentSrc);
         _linesVb = new GlVertexBuffer(_gl);
+        _thingsVb = new GlVertexBuffer(_gl);
+        _selVertsVb = new GlVertexBuffer(_gl);
         _device.SetCullMode(Cull.None);
         _device.SetZEnable(false);
         _device.SetAlphaBlendEnable(false);
@@ -91,9 +97,11 @@ void main() { frag = v_color; }";
     protected override void OnOpenGlDeinit(GlInterface gl)
     {
         _linesVb?.Dispose();
+        _thingsVb?.Dispose();
+        _selVertsVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _linesVb = null; _shader = null; _device = null; _gl = null;
+        _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
@@ -110,7 +118,7 @@ void main() { frag = v_color; }";
 
         if (_map != null)
         {
-            if (_geometryDirty) { RebuildLines(); _geometryDirty = false; }
+            if (_geometryDirty) { RebuildGeometry(); _geometryDirty = false; }
 
             double halfW = Bounds.Width * 0.5 * _zoom;
             double halfH = Bounds.Height * 0.5 * _zoom;
@@ -120,28 +128,100 @@ void main() { frag = v_color; }";
                 -1, 1);
             _device.SetUniform("projection", proj);
 
+            // Things (filled diamonds) under the line overlay, then lines, then selection markers on top.
+            if (_thingTris > 0 && _thingsVb != null)
+            {
+                _device.SetVertexBuffer(_thingsVb);
+                _device.Draw(DBPrimitiveType.TriangleList, 0, _thingTris);
+            }
             if (_lineCount > 0 && _linesVb != null)
             {
                 _device.SetVertexBuffer(_linesVb);
                 _device.Draw(DBPrimitiveType.LineList, 0, _lineCount);
             }
+            if (_selVertTris > 0 && _selVertsVb != null)
+            {
+                _device.SetVertexBuffer(_selVertsVb);
+                _device.Draw(DBPrimitiveType.TriangleList, 0, _selVertTris);
+            }
         }
     }
 
-    private void RebuildLines()
+    private void RebuildGeometry()
     {
-        if (_map == null || _device is null || _linesVb is null) return;
-        var verts = new FlatVertex[_map.Linedefs.Count * 2];
-        for (int i = 0; i < _map.Linedefs.Count; i++)
+        if (_map == null || _device is null) return;
+
+        // Lines.
+        if (_linesVb != null)
         {
-            var l = _map.Linedefs[i];
-            int c = LineColor(l);
-            verts[i * 2 + 0] = FV(l.Start.Position, c);
-            verts[i * 2 + 1] = FV(l.End.Position, c);
+            var lv = new FlatVertex[_map.Linedefs.Count * 2];
+            for (int i = 0; i < _map.Linedefs.Count; i++)
+            {
+                var l = _map.Linedefs[i];
+                int c = LineColor(l);
+                lv[i * 2 + 0] = FV(l.Start.Position, c);
+                lv[i * 2 + 1] = FV(l.End.Position, c);
+            }
+            _device.SetBufferData(_linesVb, lv);
+            _lineCount = lv.Length / 2;
         }
-        _device.SetBufferData(_linesVb, verts);
-        _lineCount = verts.Length / 2;
+
+        // Thing markers (filled diamonds, colored by type; selected = yellow).
+        if (_thingsVb != null)
+        {
+            var tv = new System.Collections.Generic.List<FlatVertex>(_map.Things.Count * 12);
+            const double s = 10;
+            foreach (var t in _map.Things)
+            {
+                int c = t.Selected ? unchecked((int)0xffffee00) : ThingColor(t.Type);
+                var p = t.Position;
+                var n = new Vec2D(p.x, p.y + s);
+                var e = new Vec2D(p.x + s, p.y);
+                var so = new Vec2D(p.x, p.y - s);
+                var w = new Vec2D(p.x - s, p.y);
+                tv.Add(FV(p, c)); tv.Add(FV(n, c)); tv.Add(FV(e, c));
+                tv.Add(FV(p, c)); tv.Add(FV(e, c)); tv.Add(FV(so, c));
+                tv.Add(FV(p, c)); tv.Add(FV(so, c)); tv.Add(FV(w, c));
+                tv.Add(FV(p, c)); tv.Add(FV(w, c)); tv.Add(FV(n, c));
+            }
+            var arr = tv.ToArray();
+            if (arr.Length > 0) _device.SetBufferData(_thingsVb, arr);
+            _thingTris = arr.Length / 3;
+        }
+
+        // Selected-vertex highlight markers.
+        if (_selVertsVb != null)
+        {
+            var vv = new System.Collections.Generic.List<FlatVertex>();
+            const int mc = unchecked((int)0xffffee00);
+            double s = 6;
+            foreach (var v in _map.Vertices)
+            {
+                if (!v.Selected) continue;
+                var p = v.Position;
+                var n = new Vec2D(p.x, p.y + s);
+                var e = new Vec2D(p.x + s, p.y);
+                var so = new Vec2D(p.x, p.y - s);
+                var w = new Vec2D(p.x - s, p.y);
+                vv.Add(FV(p, mc)); vv.Add(FV(n, mc)); vv.Add(FV(e, mc));
+                vv.Add(FV(p, mc)); vv.Add(FV(e, mc)); vv.Add(FV(so, mc));
+                vv.Add(FV(p, mc)); vv.Add(FV(so, mc)); vv.Add(FV(w, mc));
+                vv.Add(FV(p, mc)); vv.Add(FV(w, mc)); vv.Add(FV(n, mc));
+            }
+            var arr = vv.ToArray();
+            if (arr.Length > 0) _device.SetBufferData(_selVertsVb, arr);
+            _selVertTris = arr.Length / 3;
+        }
     }
+
+    private static int ThingColor(int type) => type switch
+    {
+        1 or 2 or 3 or 4 => unchecked((int)0xff40ff40),     // player starts - green
+        >= 3000 and < 3100 => unchecked((int)0xffff5050),   // monsters - red
+        2014 => unchecked((int)0xff60d0ff),                 // health bonus - cyan
+        2018 => unchecked((int)0xff8080ff),                 // armor - blue
+        _ => unchecked((int)0xffd0d0d0),
+    };
 
     private static int LineColor(Linedef l)
     {
@@ -217,10 +297,12 @@ void main() { frag = v_color; }";
         if (_map == null) return;
         if (!additive) _map.ClearAllSelected();
 
-        double vr = 10 * _zoom, lr = 8 * _zoom;
+        double vr = 10 * _zoom, tr = 12 * _zoom, lr = 8 * _zoom;
         string desc;
         var v = _map.NearestVertex(world, vr);
+        var t = v == null ? _map.NearestThing(world, tr) : null;
         if (v != null) { v.Selected = !v.Selected; desc = $"vertex ({v.Position.x:0.#}, {v.Position.y:0.#})"; }
+        else if (t != null) { t.Selected = !t.Selected; desc = $"thing type {t.Type} ({t.Position.x:0.#}, {t.Position.y:0.#})"; }
         else
         {
             var l = _map.NearestLinedef(world, lr);

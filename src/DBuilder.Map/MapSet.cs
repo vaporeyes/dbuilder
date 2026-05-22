@@ -249,6 +249,21 @@ public class MapSet
         return closest;
     }
 
+    /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/> units, or null if none.</summary>
+    public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
+    {
+        Thing? closest = null;
+        double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
+        foreach (var t in Things)
+        {
+            double dx = t.Position.x - pos.x;
+            double dy = t.Position.y - pos.y;
+            double d = dx * dx + dy * dy;
+            if (d < bestSq) { bestSq = d; closest = t; }
+        }
+        return closest;
+    }
+
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
     {

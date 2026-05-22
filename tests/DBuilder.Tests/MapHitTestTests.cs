@@ -125,6 +125,19 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void NearestThingFindsClosestWithinRange()
+    {
+        var map = new MapSet();
+        var t0 = map.AddThing(new Vector2D(0, 0), 1);
+        var t1 = map.AddThing(new Vector2D(100, 0), 3001);
+
+        Assert.Same(t0, map.NearestThing(new Vector2D(5, 5)));
+        Assert.Same(t1, map.NearestThing(new Vector2D(95, 2)));
+        Assert.Null(map.NearestThing(new Vector2D(50, 50), maxRange: 10));
+        Assert.Null(new MapSet().NearestThing(new Vector2D(0, 0)));
+    }
+
+    [Fact]
     public void GetSectorAtTwoSidedDividerPicksCorrectSector()
     {
         var map = new MapSet();
