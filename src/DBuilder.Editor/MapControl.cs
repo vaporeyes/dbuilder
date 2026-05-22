@@ -56,7 +56,11 @@ void main() { frag = v_color; }";
 
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
-    private bool _panning;
+    private enum DragKind { None, Pan, Move }
+    private bool _pressed;
+    private DragKind _drag = DragKind.None;
+    private bool _moveCandidate;
+    private Point _dragStart;
     private Point _lastPointer;
 
     /// <summary>Raised with the world coordinates under the cursor (for the status bar).</summary>
@@ -64,6 +68,12 @@ void main() { frag = v_color; }";
 
     /// <summary>Raised when a left-click pick selects (or clears) something; carries a short description.</summary>
     public event Action<string>? Picked;
+
+    /// <summary>Raised just before an interactive edit mutates the map, so the host can snapshot for undo.</summary>
+    public event Action<string>? EditBegun;
+
+    /// <summary>Raised after the map changes (move/pick) so the host can refresh its panels.</summary>
+    public event Action? Changed;
 
     public void FitToMap()
     {
@@ -287,24 +297,31 @@ void main() { frag = v_color; }";
         var pt = e.GetCurrentPoint(this);
         if (pt.Properties.IsLeftButtonPressed)
         {
-            _panning = true;
+            _pressed = true;
+            _drag = DragKind.None;
+            _dragStart = pt.Position;
             _lastPointer = pt.Position;
-            _panStart = pt.Position;
+            // Pressing on an already-selected vertex/thing arms a move-drag; otherwise a drag pans.
+            _moveCandidate = IsOverSelectedMovable(ToWorld(pt.Position));
         }
     }
-
-    private Point _panStart;
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (_panning)
+        if (!_pressed) return;
+        _pressed = false;
+        var pos = e.GetCurrentPoint(this).Position;
+        if (_drag == DragKind.None)
         {
-            _panning = false;
-            var pos = e.GetCurrentPoint(this).Position;
-            double moved = Math.Abs(pos.X - _panStart.X) + Math.Abs(pos.Y - _panStart.Y);
-            if (moved < 4) Pick(ToWorld(pos), additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            // No significant movement: treat as a click-pick.
+            Pick(ToWorld(pos), additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
         }
+        else if (_drag == DragKind.Move)
+        {
+            Changed?.Invoke();
+        }
+        _drag = DragKind.None;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -312,15 +329,40 @@ void main() { frag = v_color; }";
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
         CursorWorldMoved?.Invoke(ToWorld(pos));
-        if (_panning)
+        if (!_pressed) return;
+
+        if (_drag == DragKind.None)
         {
-            double dx = pos.X - _lastPointer.X;
-            double dy = pos.Y - _lastPointer.Y;
-            _lastPointer = pos;
-            _camX -= dx * _zoom;
-            _camY += dy * _zoom;
+            double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);
+            if (moved < 4) return;
+            _drag = _moveCandidate ? DragKind.Move : DragKind.Pan;
+            if (_drag == DragKind.Move) EditBegun?.Invoke("Move selection");
+        }
+
+        if (_drag == DragKind.Pan)
+        {
+            _camX -= (pos.X - _lastPointer.X) * _zoom;
+            _camY += (pos.Y - _lastPointer.Y) * _zoom;
             RequestNextFrameRendering();
         }
+        else if (_drag == DragKind.Move && _map != null)
+        {
+            var delta = ToWorld(pos) - ToWorld(_lastPointer);
+            _map.MoveSelectedVerticesBy(delta);
+            _map.MoveSelectedThingsBy(delta);
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+        _lastPointer = pos;
+    }
+
+    private bool IsOverSelectedMovable(Vec2D world)
+    {
+        if (_map == null) return false;
+        var v = _map.NearestVertex(world, 10 * _zoom);
+        if (v != null && v.Selected) return true;
+        var t = _map.NearestThing(world, 12 * _zoom);
+        return t != null && t.Selected;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

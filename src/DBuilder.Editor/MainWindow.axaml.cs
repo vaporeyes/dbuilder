@@ -24,6 +24,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
         MapView.Picked += _ => UpdateInfo();
+        MapView.EditBegun += desc => _undo?.CreateUndo(desc);
+        MapView.Changed += UpdateInfo;
 
         if (openPath != null && System.IO.File.Exists(openPath))
             LoadWad(openPath);
