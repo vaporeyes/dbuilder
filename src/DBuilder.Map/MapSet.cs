@@ -177,6 +177,85 @@ public class MapSet
         return newLine;
     }
 
+    // ============================================================
+    // Geometry cleanup / merging.
+    // ============================================================
+
+    /// <summary>
+    /// Merges <paramref name="remove"/> into <paramref name="keep"/>: every linedef referencing
+    /// <paramref name="remove"/> is repointed to <paramref name="keep"/>, then any linedef that became
+    /// degenerate (both ends the same vertex) is removed. Call BuildIndexes() afterward.
+    /// </summary>
+    public void JoinVertices(Vertex keep, Vertex remove)
+    {
+        if (ReferenceEquals(keep, remove)) return;
+        foreach (var l in Linedefs)
+        {
+            if (ReferenceEquals(l.Start, remove)) l.Start = keep;
+            if (ReferenceEquals(l.End, remove)) l.End = keep;
+        }
+        Vertices.Remove(remove);
+
+        // Drop linedefs that collapsed to a point, and refresh angles on the rest.
+        for (int i = Linedefs.Count - 1; i >= 0; i--)
+        {
+            var l = Linedefs[i];
+            if (ReferenceEquals(l.Start, l.End)) RemoveLinedef(l);
+            else l.Angle = Linedef.ComputeAngle(l.Start, l.End);
+        }
+    }
+
+    /// <summary>
+    /// Merges every pair of vertices closer than <paramref name="distance"/> map units into one
+    /// (useful after dragging vertices together). Returns the number of merges. Call BuildIndexes() after.
+    /// </summary>
+    public int MergeOverlappingVertices(double distance)
+    {
+        double d2 = distance * distance;
+        int merges = 0;
+        bool joined;
+        do
+        {
+            joined = false;
+            for (int i = 0; i < Vertices.Count - 1 && !joined; i++)
+            {
+                for (int c = i + 1; c < Vertices.Count; c++)
+                {
+                    double dx = Vertices[i].Position.x - Vertices[c].Position.x;
+                    double dy = Vertices[i].Position.y - Vertices[c].Position.y;
+                    if (dx * dx + dy * dy <= d2)
+                    {
+                        JoinVertices(Vertices[i], Vertices[c]);
+                        merges++;
+                        joined = true; // list mutated; restart the scan
+                        break;
+                    }
+                }
+            }
+        } while (joined);
+        return merges;
+    }
+
+    /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>
+    public int RemoveUnusedVertices()
+    {
+        var used = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
+        foreach (var l in Linedefs) { used.Add(l.Start); used.Add(l.End); }
+        int before = Vertices.Count;
+        Vertices.RemoveAll(v => !used.Contains(v));
+        return before - Vertices.Count;
+    }
+
+    /// <summary>Removes sectors not referenced by any sidedef. Returns the number removed.</summary>
+    public int RemoveUnusedSectors()
+    {
+        var used = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+        foreach (var sd in Sidedefs) if (sd.Sector != null) used.Add(sd.Sector);
+        int before = Sectors.Count;
+        Sectors.RemoveAll(s => !used.Contains(s));
+        return before - Sectors.Count;
+    }
+
     private static void CopySidedefProperties(Sidedef src, Sidedef dst)
     {
         dst.OffsetX = src.OffsetX;
