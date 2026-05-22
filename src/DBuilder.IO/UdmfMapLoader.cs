@@ -78,12 +78,18 @@ public static class UdmfMapLoader
     {
         double x = GetDouble(c, "x");
         double y = GetDouble(c, "y");
-        return new Vertex(new Vector2D(x, y));
+        var v = new Vertex(new Vector2D(x, y))
+        {
+            ZCeiling = GetDouble(c, "zceiling", double.NaN),
+            ZFloor = GetDouble(c, "zfloor", double.NaN),
+        };
+        CollectCustomFields(c, v.Fields, VertexManagedFields);
+        return v;
     }
 
     private static Sector LoadSector(UniversalCollection c, int index)
     {
-        return new Sector
+        var s = new Sector
         {
             Index = index,
             FloorHeight = GetInt(c, "heightfloor"),
@@ -94,12 +100,30 @@ public static class UdmfMapLoader
             Special = GetInt(c, "special"),
             Tag = GetInt(c, "id"),
         };
+        AppendMoreIds(c, s.Tags);
+
+        // UDMF slope plane: normal = (a,b,c) normalized, offset = d (NaN when unset).
+        var fslope = new Vector3D(GetDouble(c, "floorplane_a"), GetDouble(c, "floorplane_b"), GetDouble(c, "floorplane_c"));
+        if (fslope.GetLengthSq() > 0)
+        {
+            s.FloorSlope = fslope.GetNormal();
+            s.FloorSlopeOffset = GetDouble(c, "floorplane_d", double.NaN);
+        }
+        var cslope = new Vector3D(GetDouble(c, "ceilingplane_a"), GetDouble(c, "ceilingplane_b"), GetDouble(c, "ceilingplane_c"));
+        if (cslope.GetLengthSq() > 0)
+        {
+            s.CeilSlope = cslope.GetNormal();
+            s.CeilSlopeOffset = GetDouble(c, "ceilingplane_d", double.NaN);
+        }
+
+        CollectCustomFields(c, s.Fields, SectorManagedFields);
+        return s;
     }
 
     private static Sidedef LoadSidedef(UniversalCollection c, List<Sector> sectors)
     {
         int sectorIdx = GetInt(c, "sector");
-        return new Sidedef
+        var sd = new Sidedef
         {
             // Line is back-filled when the owning linedef is loaded.
             Sector = (sectorIdx >= 0 && sectorIdx < sectors.Count) ? sectors[sectorIdx] : null,
@@ -109,6 +133,8 @@ public static class UdmfMapLoader
             MidTexture = GetString(c, "texturemiddle", "-"),
             LowTexture = GetString(c, "texturebottom", "-"),
         };
+        CollectCustomFields(c, sd.Fields, SidedefManagedFields);
+        return sd;
     }
 
     private static Linedef LoadLinedef(UniversalCollection c, List<Vertex> verts, List<Sidedef> sides)
@@ -128,6 +154,8 @@ public static class UdmfMapLoader
             Action = GetInt(c, "special"),
             Tag = GetInt(c, "id"),
         };
+        for (int i = 0; i < line.Args.Length; i++) line.Args[i] = GetInt(c, $"arg{i}");
+        AppendMoreIds(c, line.Tags);
 
         if (sideFront >= 0 && sideFront < sides.Count)
         {
@@ -153,6 +181,7 @@ public static class UdmfMapLoader
             }
         }
 
+        CollectCustomFields(c, line.Fields, LinedefManagedFields);
         return line;
     }
 
@@ -167,6 +196,7 @@ public static class UdmfMapLoader
             Action = GetInt(c, "special"),
             Tag = GetInt(c, "id"),
         };
+        for (int i = 0; i < t.Args.Length; i++) t.Args[i] = GetInt(c, $"arg{i}");
 
         foreach (var entry in c)
         {
@@ -174,10 +204,58 @@ public static class UdmfMapLoader
                 t.UdmfFlags.Add(entry.Key);
         }
 
+        CollectCustomFields(c, t.Fields, ThingManagedFields);
         return t;
     }
 
     // --- Field helpers ---
+
+    // Keys handled by typed properties on each element. Anything else (and not a bool flag) is
+    // preserved verbatim in the element's Fields dictionary so custom UDMF data survives round trip.
+    private static readonly HashSet<string> VertexManagedFields = new(StringComparer.Ordinal)
+        { "x", "y", "zfloor", "zceiling" };
+    private static readonly HashSet<string> SectorManagedFields = new(StringComparer.Ordinal)
+        { "heightfloor", "heightceiling", "texturefloor", "textureceiling", "lightlevel", "special", "id", "moreids",
+          "floorplane_a", "floorplane_b", "floorplane_c", "floorplane_d",
+          "ceilingplane_a", "ceilingplane_b", "ceilingplane_c", "ceilingplane_d" };
+    private static readonly HashSet<string> SidedefManagedFields = new(StringComparer.Ordinal)
+        { "sector", "offsetx", "offsety", "texturetop", "texturemiddle", "texturebottom" };
+    private static readonly HashSet<string> LinedefManagedFields = new(StringComparer.Ordinal)
+        { "v1", "v2", "sidefront", "sideback", "special", "id", "moreids", "arg0", "arg1", "arg2", "arg3", "arg4" };
+    private static readonly HashSet<string> ThingManagedFields = new(StringComparer.Ordinal)
+        { "x", "y", "height", "type", "angle", "special", "id", "arg0", "arg1", "arg2", "arg3", "arg4" };
+
+    // Appends ZDoom "moreids" (space-separated extra tags) onto a Tags list seeded with the primary id.
+    // Tags[0] is the id read from the typed property; moreids contributes Tags[1..].
+    private static void AppendMoreIds(UniversalCollection c, List<int> tags)
+    {
+        string more = GetString(c, "moreids", "");
+        if (string.IsNullOrWhiteSpace(more)) return;
+        foreach (var token in more.Split(new[] { ' ', '\t', ',' }, System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (int.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int id))
+                tags.Add(id);
+        }
+    }
+
+    // Copies non-managed, non-bool entries into the destination Fields dictionary, normalizing the boxed
+    // value to one of int/double/string. Bool entries are skipped here - they are captured as UdmfFlags.
+    private static void CollectCustomFields(UniversalCollection c, Dictionary<string, object> fields, HashSet<string> managed)
+    {
+        foreach (var e in c)
+        {
+            if (managed.Contains(e.Key)) continue;
+            switch (e.Value)
+            {
+                case bool: continue; // handled as a named flag
+                case int i: fields[e.Key] = i; break;
+                case long l: fields[e.Key] = (int)l; break;
+                case double d: fields[e.Key] = d; break;
+                case float f: fields[e.Key] = (double)f; break;
+                case string s: fields[e.Key] = s; break;
+            }
+        }
+    }
 
     private static bool IsLinedefIndexField(string key) => key switch
     {

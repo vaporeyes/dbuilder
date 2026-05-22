@@ -19,6 +19,9 @@ public class Sidedef
     public string MidTexture { get; set; } = "-";
     public string LowTexture { get; set; } = "-";
 
+    /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
+    public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
+
     public Sidedef() { }
     public Sidedef(Linedef line, bool isFront)
     {

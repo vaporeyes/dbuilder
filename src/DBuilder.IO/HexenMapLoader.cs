@@ -145,9 +145,10 @@ public static class HexenMapLoader
                 Action = action,
                 Tag = 0, // Hexen has no tag field; tag lives in args
             };
+            line.Args[0] = a0; line.Args[1] = a1; line.Args[2] = a2; line.Args[3] = a3; line.Args[4] = a4;
 
-            // Args[5] currently isn't surfaced on Linedef yet; store as named UDMF entries
-            // so the data survives round trip until the Map module grows an Args property.
+            // Also stashed as named UdmfFlags so existing consumers that depend on this
+            // representation keep working until they migrate to Linedef.Args.
             if (a0 != 0) line.UdmfFlags.Add($"arg0={a0}");
             if (a1 != 0) line.UdmfFlags.Add($"arg1={a1}");
             if (a2 != 0) line.UdmfFlags.Add($"arg2={a2}");
@@ -214,8 +215,7 @@ public static class HexenMapLoader
             short type = r.ReadInt16();
             ushort flags = r.ReadUInt16();
             byte action = r.ReadByte();
-            // Args[5] - read but not currently stored on Thing.
-            r.ReadByte(); r.ReadByte(); r.ReadByte(); r.ReadByte(); r.ReadByte();
+            byte ta0 = r.ReadByte(), ta1 = r.ReadByte(), ta2 = r.ReadByte(), ta3 = r.ReadByte(), ta4 = r.ReadByte();
 
             var t = new Thing
             {
@@ -227,6 +227,7 @@ public static class HexenMapLoader
                 Tag = tid,
                 Action = action,
             };
+            t.Args[0] = ta0; t.Args[1] = ta1; t.Args[2] = ta2; t.Args[3] = ta3; t.Args[4] = ta4;
 
             var tf = (HexenThingFlags)flags;
             if (tf.HasFlag(HexenThingFlags.Skill1And2)) { t.UdmfFlags.Add("skill1"); t.UdmfFlags.Add("skill2"); }

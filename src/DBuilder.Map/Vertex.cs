@@ -9,8 +9,17 @@ public class Vertex
 {
     public Vector2D Position { get; set; }
 
+    /// <summary>UDMF per-vertex ceiling height for vertex slopes. NaN means unset.</summary>
+    public double ZCeiling { get; set; } = double.NaN;
+
+    /// <summary>UDMF per-vertex floor height for vertex slopes. NaN means unset.</summary>
+    public double ZFloor { get; set; } = double.NaN;
+
     /// <summary>Linedefs touching this vertex. Populated by MapSet.BuildIndexes().</summary>
     public List<Linedef> Linedefs { get; } = new();
+
+    /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
+    public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
 
     public Vertex() { }
     public Vertex(Vector2D position) { Position = position; }

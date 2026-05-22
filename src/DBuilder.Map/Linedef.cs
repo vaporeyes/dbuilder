@@ -16,11 +16,30 @@ public class Linedef
     // Binary record fields (Doom + UDMF).
     public int Flags { get; set; }
     public int Action { get; set; }
-    public int Tag { get; set; }
+
+    /// <summary>All tags (UDMF id + moreids). Authoritative; <see cref="Tag"/> is a convenience over the first entry.</summary>
+    public List<int> Tags { get; } = new();
+
+    /// <summary>The primary tag (first entry of <see cref="Tags"/>). Setting it replaces or seeds the first entry.</summary>
+    public int Tag
+    {
+        get => Tags.Count > 0 ? Tags[0] : 0;
+        set
+        {
+            if (Tags.Count == 0) Tags.Add(value);
+            else Tags[0] = value;
+        }
+    }
+
+    // Hexen/UDMF action parameters (5 bytes in Hexen binary, ints in UDMF).
+    public int[] Args { get; } = new int[5];
 
     // UDMF-specific named flags collected as a string set so we don't lose data on round-trip.
     // Real UDB resolves these against the game config (blocking, dontdraw, etc.).
     public HashSet<string> UdmfFlags { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
+    public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
 
     public Linedef() { }
     public Linedef(Vertex start, Vertex end)

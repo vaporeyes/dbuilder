@@ -3,6 +3,8 @@
 
 namespace DBuilder.Map;
 
+using DBuilder.Geometry;
+
 public class Sector
 {
     public int Index { get; set; }
@@ -13,8 +15,36 @@ public class Sector
     public string CeilTexture { get; set; } = "-";
     public int Brightness { get; set; } = 160;
     public int Special { get; set; }
-    public int Tag { get; set; }
+
+    /// <summary>All tags (UDMF id + moreids). Authoritative; <see cref="Tag"/> is a convenience over the first entry.</summary>
+    public List<int> Tags { get; } = new();
+
+    /// <summary>The primary tag (first entry of <see cref="Tags"/>). Setting it replaces or seeds the first entry.</summary>
+    public int Tag
+    {
+        get => Tags.Count > 0 ? Tags[0] : 0;
+        set
+        {
+            if (Tags.Count == 0) Tags.Add(value);
+            else Tags[0] = value;
+        }
+    }
+
+    /// <summary>Floor slope plane normal. Zero-length means a flat (unsloped) floor.</summary>
+    public Vector3D FloorSlope { get; set; }
+
+    /// <summary>Floor slope plane offset (UDMF floorplane_d). NaN means unset.</summary>
+    public double FloorSlopeOffset { get; set; } = double.NaN;
+
+    /// <summary>Ceiling slope plane normal. Zero-length means a flat (unsloped) ceiling.</summary>
+    public Vector3D CeilSlope { get; set; }
+
+    /// <summary>Ceiling slope plane offset (UDMF ceilingplane_d). NaN means unset.</summary>
+    public double CeilSlopeOffset { get; set; } = double.NaN;
 
     /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
     public List<Sidedef> Sidedefs { get; } = new();
+
+    /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
+    public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
 }
