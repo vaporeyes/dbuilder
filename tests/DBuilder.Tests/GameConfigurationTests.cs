@@ -1,0 +1,154 @@
+// ABOUTME: Tests for GameConfiguration - parsing thingtypes/linedeftypes/sectortypes into catalogs with inheritance.
+// ABOUTME: Inline cfg covers the schema deterministically; an opportunistic test loads a real Doom config when present.
+
+using DBuilder.IO;
+
+namespace DBuilder.Tests;
+
+public class GameConfigurationTests
+{
+    private const string SampleCfg = """
+        thingtypes
+        {
+            players
+            {
+                color = 10;
+                width = 16;
+                height = 56;
+                1
+                {
+                    title = "Player 1 start";
+                    sprite = "PLAYA2A8";
+                    class = "$Player1Start";
+                }
+            }
+            monsters
+            {
+                color = 4;
+                width = 20;
+                height = 56;
+                3001
+                {
+                    title = "Imp";
+                    sprite = "TROOA1";
+                    class = "DoomImp";
+                }
+                3002
+                {
+                    title = "Demon";
+                    sprite = "SARGA1";
+                    width = 30;
+                }
+            }
+        }
+
+        linedeftypes
+        {
+            door
+            {
+                title = "Door";
+                1 { title = "Door Open Wait Close (also monsters)"; prefix = "DR"; }
+            }
+            exit
+            {
+                title = "Exit";
+                11 { title = "Exit Level"; prefix = "S1"; }
+            }
+        }
+
+        sectortypes
+        {
+            0 = "None";
+            9 = "Secret";
+            11 = "Damage and End level";
+        }
+        """;
+
+    [Fact]
+    public void ParsesThingTypesWithTitlesAndSprites()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("Imp", gc.ThingTitle(3001));
+        var imp = gc.GetThing(3001)!;
+        Assert.Equal("TROOA1", imp.Sprite);
+        Assert.Equal("DoomImp", imp.ClassName);
+        Assert.Equal("monsters", imp.Category);
+    }
+
+    [Fact]
+    public void ThingsInheritCategoryDefaults()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        // Imp has no explicit width/height/color -> inherits the monsters category defaults.
+        var imp = gc.GetThing(3001)!;
+        Assert.Equal(20, imp.Width);
+        Assert.Equal(56, imp.Height);
+        Assert.Equal(4, imp.Color);
+        // Demon overrides width but inherits the rest.
+        var demon = gc.GetThing(3002)!;
+        Assert.Equal(30, demon.Width);
+        Assert.Equal(56, demon.Height);
+    }
+
+    [Fact]
+    public void UnknownThingFallsBackToPlaceholderTitle()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("Unknown (9999)", gc.ThingTitle(9999));
+        Assert.Null(gc.GetThing(9999));
+    }
+
+    [Fact]
+    public void ParsesLinedefActions()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("Door Open Wait Close (also monsters)", gc.LinedefActionTitle(1));
+        Assert.Equal("Exit Level", gc.LinedefActionTitle(11));
+        Assert.Equal("DR", gc.GetLinedefAction(1)!.Prefix);
+        Assert.Equal("Door", gc.GetLinedefAction(1)!.Category);
+        Assert.Equal("Exit", gc.GetLinedefAction(11)!.Category);
+    }
+
+    [Fact]
+    public void LinedefActionZeroIsNone()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("None", gc.LinedefActionTitle(0));
+        Assert.Equal("Unknown (777)", gc.LinedefActionTitle(777));
+    }
+
+    [Fact]
+    public void ParsesSectorEffects()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("None", gc.SectorEffectTitle(0));
+        Assert.Equal("Secret", gc.SectorEffectTitle(9));
+        Assert.Equal("Damage and End level", gc.SectorEffectTitle(11));
+        Assert.Equal("Unknown (5)", gc.SectorEffectTitle(5));
+    }
+
+    [Fact]
+    public void EmptyConfigYieldsEmptyCatalogs()
+    {
+        var gc = GameConfiguration.FromText("gameformat = \"DOOM\";");
+        Assert.Empty(gc.Things);
+        Assert.Empty(gc.LinedefActions);
+        Assert.Empty(gc.SectorEffects);
+        Assert.Equal("Unknown (1)", gc.ThingTitle(1));
+    }
+
+    [Fact]
+    public void LoadsRealDoomConfigWhenAvailable()
+    {
+        // Opportunistic: only runs when the UDB asset tree is present on this machine.
+        const string path = "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations/Doom_DoomDoom.cfg";
+        if (!System.IO.File.Exists(path)) return;
+
+        var gc = GameConfiguration.FromFile(path);
+        // Imp (3001) and Player 1 start (1) are canonical Doom thing numbers.
+        Assert.Equal("Imp", gc.GetThing(3001)?.Title);
+        Assert.NotNull(gc.GetThing(1));
+        // Sector effect 9 is the secret sector in Doom.
+        Assert.Contains("Secret", gc.SectorEffectTitle(9), System.StringComparison.OrdinalIgnoreCase);
+    }
+}
