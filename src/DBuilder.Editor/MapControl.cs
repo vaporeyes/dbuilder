@@ -48,6 +48,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _fillBuckets = new();
     // Flat-name -> uploaded GL texture (null cached when unresolvable). Lives across geometry rebuilds.
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _flatTextures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _wallTextures = new(StringComparer.OrdinalIgnoreCase);
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
     private GlVertexBuffer? _thingsVb;
@@ -56,12 +57,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _selVertTris;
     private bool _geometryDirty = true;
 
+    // 3D fly-mode state (toggled with Tab). Geometry built lazily into textured buckets.
+    private bool _mode3D;
+    private bool _geo3DDirty = true;
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _floor3D = new();
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _ceil3D = new();
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _wall3D = new();
+    private Vector3 _cam3DPos;
+    private double _yaw, _pitch;
+    private bool _cam3DInit;
+    private readonly System.Collections.Generic.HashSet<Key> _heldKeys = new();
+    private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+    private double _lastTime;
+
+    public MapControl()
+    {
+        Focusable = true; // required to receive keyboard input for the 3D fly camera
+    }
+
     private ResourceManager? _resources;
     /// <summary>Texture source for sector fills. Setting it invalidates the flat-texture cache and geometry.</summary>
     public ResourceManager? MapResources
     {
         get => _resources;
-        set { _resources = value; InvalidateTextures(); _geometryDirty = true; RequestNextFrameRendering(); }
+        set { _resources = value; InvalidateTextures(); _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
     }
 
     private bool _needsFit;
@@ -71,7 +90,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _geometryDirty = true; _needsFit = true; RequestNextFrameRendering(); }
+        set { _map = value; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; RequestNextFrameRendering(); }
     }
 
     // Camera: world-space center + zoom in world-units-per-DIP.
@@ -112,7 +131,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_zoom <= 0) _zoom = 1;
     }
 
-    public void MarkGeometryDirty() { _geometryDirty = true; RequestNextFrameRendering(); }
+    public void MarkGeometryDirty() { _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
 
     // ---- GL lifecycle ----
 
@@ -139,8 +158,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         foreach (var b in _fillBuckets) b.Vb.Dispose();
         _fillBuckets.Clear();
+        foreach (var b in _floor3D) b.Vb.Dispose();
+        foreach (var b in _ceil3D) b.Vb.Dispose();
+        foreach (var b in _wall3D) b.Vb.Dispose();
+        _floor3D.Clear(); _ceil3D.Clear(); _wall3D.Clear();
         foreach (var t in _flatTextures.Values) t?.Dispose();
         _flatTextures.Clear();
+        foreach (var t in _wallTextures.Values) t?.Dispose();
+        _wallTextures.Clear();
         _placeholderTex?.Dispose();
         _linesVb?.Dispose();
         _thingsVb?.Dispose();
@@ -154,6 +179,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         foreach (var t in _flatTextures.Values) t?.Dispose();
         _flatTextures.Clear();
+        foreach (var t in _wallTextures.Values) t?.Dispose();
+        _wallTextures.Clear();
+    }
+
+    // Returns the cached GL texture for a wall texture, uploading it from MapResources on first use.
+    private DBTexture? GetWallTexture(string name)
+    {
+        if (_wallTextures.TryGetValue(name, out var cached)) return cached;
+        DBTexture? tex = null;
+        var img = _resources?.GetWallTexture(name);
+        if (img != null && _device != null && _gl != null)
+        {
+            tex = new DBTexture(_gl);
+            tex.SetPixelsRgba8(img.Width, img.Height, img.Rgba, generateMipmaps: false);
+            _device.SetTexture(0, tex);
+            _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+            _device.SetSamplerState(TextureAddress.Wrap);
+        }
+        _wallTextures[name] = tex;
+        return tex;
     }
 
     // Returns the cached GL texture for a flat, uploading it from MapResources on first use. Null when unresolved.
@@ -174,6 +219,148 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return tex;
     }
 
+    // ---- 3D fly mode ----
+
+    private void Render3D(int pw, int ph)
+    {
+        if (_device is null || _map is null) return;
+        if (_geo3DDirty) { Rebuild3D(); _geo3DDirty = false; }
+        UpdateFlyCamera();
+
+        _device.SetZEnable(true);
+        _device.SetUniform("tex0", 0);
+
+        var pos = _cam3DPos;
+        var view = Matrix4x4.CreateLookAt(pos, pos + Cam3DForward(), new Vector3(0, 0, 1));
+        float aspect = ph > 0 ? (float)pw / ph : 1f;
+        var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)(75.0 * Math.PI / 180.0), aspect, 1f, 20000f);
+        _device.SetUniform("projection", view * persp);
+
+        DrawBuckets3D(_floor3D);
+        DrawBuckets3D(_ceil3D);
+        DrawBuckets3D(_wall3D);
+    }
+
+    private void DrawBuckets3D(System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> buckets)
+    {
+        if (_device is null) return;
+        foreach (var b in buckets)
+        {
+            if (b.Tris == 0) continue;
+            _device.SetUniform("useTexture", b.Tex != null ? 1f : 0f);
+            _device.SetTexture(0, b.Tex ?? _placeholderTex);
+            _device.SetVertexBuffer(b.Vb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, b.Tris);
+        }
+    }
+
+    private void Rebuild3D()
+    {
+        foreach (var b in _floor3D) b.Vb.Dispose();
+        foreach (var b in _ceil3D) b.Vb.Dispose();
+        foreach (var b in _wall3D) b.Vb.Dispose();
+        _floor3D.Clear(); _ceil3D.Clear(); _wall3D.Clear();
+        if (_map == null || _device is null || _gl is null) return;
+
+        var floorB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        var ceilB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        var wallB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+
+        static System.Collections.Generic.List<FlatVertex> Bucket(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> d, string k)
+        { if (!d.TryGetValue(k, out var l)) { l = new(); d[k] = l; } return l; }
+
+        static int Gray(int brightness, double scale)
+        {
+            double b = Math.Clamp(brightness / 255.0, 0.15, 1.0) * scale;
+            byte g = (byte)Math.Clamp(b * 255, 0, 255);
+            return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
+        }
+
+        // Floors + ceilings at real heights, textured by their flats.
+        foreach (var s in _map.Sectors)
+        {
+            if (s.Sidedefs.Count == 0) continue;
+            Triangulation tri;
+            try { tri = Triangulation.Create(s); }
+            catch { continue; }
+            if (tri.Vertices.Count == 0) continue;
+
+            string fName = s.FloorTexture ?? "-";
+            string cName = s.CeilTexture ?? "-";
+            string fKey = GetFlatTexture(fName) != null ? fName : "";
+            string cKey = GetFlatTexture(cName) != null ? cName : "";
+            int fc = Gray(s.Brightness, 1.0);
+            int cc = Gray(s.Brightness, 0.85);
+            var fl = Bucket(floorB, fKey);
+            var cl = Bucket(ceilB, cKey);
+            for (int i = 0; i < tri.Vertices.Count; i++)
+            {
+                var p = tri.Vertices[i];
+                fl.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)s.GetFloorZ(p), w = 1, c = fc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+                cl.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)s.GetCeilZ(p), w = 1, c = cc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+            }
+        }
+
+        // Walls: one-sided full height; two-sided lower/upper steps.
+        foreach (var l in _map.Linedefs)
+        {
+            var a = l.Start.Position; var b = l.End.Position;
+            var front = l.Front; var back = l.Back;
+            var fs = front?.Sector; var bs = back?.Sector;
+            if (fs != null && bs == null && front != null)
+                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, fs.Brightness, Gray);
+            else if (fs != null && bs != null && front != null)
+            {
+                double fFa = fs.GetFloorZ(a), fFb = fs.GetFloorZ(b), bFa = bs.GetFloorZ(a), bFb = bs.GetFloorZ(b);
+                if (fFa != bFa || fFb != bFb)
+                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, fs.Brightness, Gray);
+                double fCa = fs.GetCeilZ(a), fCb = fs.GetCeilZ(b), bCa = bs.GetCeilZ(a), bCb = bs.GetCeilZ(b);
+                if (fCa != bCa || fCb != bCb)
+                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, fs.Brightness, Gray);
+            }
+        }
+
+        UploadBuckets(floorB, _floor3D, false);
+        UploadBuckets(ceilB, _ceil3D, false);
+        UploadBuckets(wallB, _wall3D, true);
+    }
+
+    private void PushWall(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> wallB,
+        Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName, int brightness, Func<int, double, int> gray)
+    {
+        if (topZa <= botZa && topZb <= botZb) return;
+        bool textured = GetWallTexture(texName) != null;
+        string key = textured ? texName : "";
+        int texW = textured ? (_resources!.GetWallTexture(texName)!.Width) : 64;
+        int texH = textured ? (_resources!.GetWallTexture(texName)!.Height) : 64;
+        double len = (b - a).GetLength();
+        double uMax = len / texW;
+        int c = textured ? gray(brightness, 1.0) : gray(brightness, 0.6);
+        float Vof(double z, double top) => (float)((top - z) / texH);
+
+        if (!wallB.TryGetValue(key, out var list)) { list = new(); wallB[key] = list; }
+        FlatVertex V(Vec2D p, double z, double u, float vv) => new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)z, w = 1, c = c, u = (float)u, v = vv };
+        var bl = V(a, botZa, 0, Vof(botZa, topZa));
+        var br = V(b, botZb, uMax, Vof(botZb, topZb));
+        var tr = V(b, topZb, uMax, 0);
+        var tl = V(a, topZa, 0, 0);
+        list.Add(bl); list.Add(br); list.Add(tr);
+        list.Add(bl); list.Add(tr); list.Add(tl);
+    }
+
+    private void UploadBuckets(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> src,
+        System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> dest, bool wall)
+    {
+        foreach (var (key, verts) in src)
+        {
+            if (verts.Count == 0) continue;
+            var vb = new GlVertexBuffer(_gl!);
+            _device!.SetBufferData(vb, verts.ToArray());
+            DBTexture? tex = key.Length == 0 ? null : (wall ? GetWallTexture(key) : GetFlatTexture(key));
+            dest.Add((vb, verts.Count / 3, tex));
+        }
+    }
+
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
         if (_device is null || _shader is null) return;
@@ -185,6 +372,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _device.StartRendering(clear: true, clearColorArgb: 0xff10131a);
         _device.SetShader(_shader);
+
+        if (_mode3D && _map != null)
+        {
+            Render3D(pw, ph);
+            RequestNextFrameRendering(); // keep the fly loop animating
+            return;
+        }
+
+        _device.SetZEnable(false); // 2D overlay draws back-to-front, no depth test
 
         if (_map != null)
         {
@@ -388,10 +584,80 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private bool _selectionDoneOnPress;
 
+    private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
+        or Key.Up or Key.Down or Key.Left or Key.Right;
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Tab)
+        {
+            _mode3D = !_mode3D;
+            if (_mode3D)
+            {
+                if (!_cam3DInit) { Reset3DCamera(); _cam3DInit = true; }
+                _lastTime = _clock.Elapsed.TotalSeconds;
+            }
+            e.Handled = true;
+            RequestNextFrameRendering();
+            return;
+        }
+        if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        if (_heldKeys.Remove(e.Key)) e.Handled = true;
+        else base.OnKeyUp(e);
+    }
+
+    private void Reset3DCamera()
+    {
+        if (_map != null)
+        {
+            var (minX, minY, maxX, maxY) = _map.Bounds();
+            _cam3DPos = new Vector3((float)((minX + maxX) * 0.5), (float)((minY + maxY) * 0.5), 200f);
+        }
+        else _cam3DPos = new Vector3(0, 0, 200f);
+        _yaw = 0; _pitch = -0.3;
+    }
+
+    private Vector3 Cam3DForward()
+    {
+        float cp = (float)Math.Cos(_pitch);
+        return new Vector3(cp * (float)Math.Cos(_yaw), cp * (float)Math.Sin(_yaw), (float)Math.Sin(_pitch));
+    }
+
+    private void UpdateFlyCamera()
+    {
+        double now = _clock.Elapsed.TotalSeconds;
+        float dt = (float)Math.Min(0.05, now - _lastTime); // clamp to avoid jumps after a stall
+        _lastTime = now;
+
+        float move = dt * 320f;
+        float look = dt * 1.6f;
+        if (_heldKeys.Contains(Key.Left)) _yaw += look;
+        if (_heldKeys.Contains(Key.Right)) _yaw -= look;
+        if (_heldKeys.Contains(Key.Up)) _pitch += look;
+        if (_heldKeys.Contains(Key.Down)) _pitch -= look;
+        _pitch = Math.Clamp(_pitch, -1.5, 1.5);
+
+        var flatFwd = new Vector3((float)Math.Cos(_yaw), (float)Math.Sin(_yaw), 0);
+        var right = new Vector3((float)Math.Sin(_yaw), -(float)Math.Cos(_yaw), 0);
+        if (_heldKeys.Contains(Key.W)) _cam3DPos += flatFwd * move;
+        if (_heldKeys.Contains(Key.S)) _cam3DPos -= flatFwd * move;
+        if (_heldKeys.Contains(Key.D)) _cam3DPos += right * move;
+        if (_heldKeys.Contains(Key.A)) _cam3DPos -= right * move;
+        if (_heldKeys.Contains(Key.E)) _cam3DPos.Z += move;
+        if (_heldKeys.Contains(Key.Q)) _cam3DPos.Z -= move;
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
+        Focus(); // take keyboard focus so the 3D fly camera receives WASD/arrows
         var pt = e.GetCurrentPoint(this);
+        if (_mode3D) return; // 3D ignores 2D pointer picking/panning
         if (pt.Properties.IsLeftButtonPressed)
         {
             if (e.ClickCount >= 2)
