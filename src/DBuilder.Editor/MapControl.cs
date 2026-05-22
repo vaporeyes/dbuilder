@@ -917,9 +917,42 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else if (_drag == DragKind.Move)
         {
+            MergeDraggedVertices(); // snap+merge dragged vertices dropped onto stationary ones
             Changed?.Invoke();
         }
         _drag = DragKind.None;
+    }
+
+    // After a vertex drag, merge any selected vertex dropped within snap range of a stationary (unselected)
+    // vertex into that target. Part of the same gesture, so the move's undo snapshot already covers it.
+    private void MergeDraggedVertices()
+    {
+        if (_map == null) return;
+        double r2 = (8 * _zoom) * (8 * _zoom);
+        bool merged = false;
+        foreach (var v in _map.GetSelectedVertices())
+        {
+            Vertex? target = null;
+            double best = r2;
+            foreach (var o in _map.Vertices)
+            {
+                if (o.Selected || ReferenceEquals(o, v)) continue;
+                double dx = o.Position.x - v.Position.x, dy = o.Position.y - v.Position.y;
+                double d = dx * dx + dy * dy;
+                if (d <= best) { best = d; target = o; }
+            }
+            if (target != null)
+            {
+                v.Position = target.Position; // snap exactly onto the target
+                _map.JoinVertices(target, v);
+                merged = true;
+            }
+        }
+        if (merged)
+        {
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+        }
     }
 
     // Selects the nearest vertex/thing under the cursor on press. Returns true if one ended up selected
