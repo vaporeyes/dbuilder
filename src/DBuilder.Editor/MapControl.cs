@@ -107,6 +107,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set { _map = value; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; RequestNextFrameRendering(); }
     }
 
+    // 2D view-layer visibility toggles.
+    private bool _showFills = true;
+    private bool _showThings = true;
+
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
     private enum DragKind { None, Pan, Move }
@@ -436,19 +440,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _device.SetUniform("projection", proj);
             _device.SetUniform("tex0", 0);
 
-            // Draw order: sector fills (textured) -> things -> lines -> selection markers.
-            foreach (var bucket in _fillBuckets)
+            // Draw order: sector fills (textured) -> lines -> things/sprites -> selection markers.
+            if (_showFills)
             {
-                if (bucket.Tris == 0) continue;
-                _device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
-                _device.SetTexture(0, bucket.Tex ?? _placeholderTex);
-                _device.SetVertexBuffer(bucket.Vb);
-                _device.Draw(DBPrimitiveType.TriangleList, 0, bucket.Tris);
+                foreach (var bucket in _fillBuckets)
+                {
+                    if (bucket.Tris == 0) continue;
+                    _device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
+                    _device.SetTexture(0, bucket.Tex ?? _placeholderTex);
+                    _device.SetVertexBuffer(bucket.Vb);
+                    _device.Draw(DBPrimitiveType.TriangleList, 0, bucket.Tris);
+                }
             }
 
             _device.SetUniform("useTexture", 0f);
             _device.SetTexture(0, _placeholderTex);
-            if (_thingTris > 0 && _thingsVb != null)
+            if (_showThings && _thingTris > 0 && _thingsVb != null)
             {
                 _device.SetVertexBuffer(_thingsVb);
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _thingTris);
@@ -460,7 +467,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             // Thing sprites (alpha-blended, above lines).
-            if (_spriteBuckets.Count > 0)
+            if (_showThings && _spriteBuckets.Count > 0)
             {
                 _device.SetAlphaBlendEnable(true);
                 _device.SetSourceBlend(Blend.SourceAlpha);
@@ -703,6 +710,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
+
+        if (!_mode3D)
+        {
+            switch (e.Key)
+            {
+                case Key.S: _showFills = !_showFills; e.Handled = true; RequestNextFrameRendering(); return;
+                case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
+                case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
+                case Key.OemPlus or Key.Add: ZoomBy(0.8); e.Handled = true; return;     // zoom in
+                case Key.OemMinus or Key.Subtract: ZoomBy(1.25); e.Handled = true; return; // zoom out
+            }
+        }
         base.OnKeyDown(e);
     }
 
@@ -893,9 +912,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        double factor = e.Delta.Y > 0 ? 0.85 : 1.0 / 0.85;
-        _zoom *= factor;
-        _zoom = Math.Clamp(_zoom, 0.02, 200);
+        // Trackpads report scroll on either axis; use whichever has the larger magnitude.
+        double delta = Math.Abs(e.Delta.Y) >= Math.Abs(e.Delta.X) ? e.Delta.Y : e.Delta.X;
+        if (delta == 0) return;
+        ZoomBy(delta > 0 ? 0.85 : 1.0 / 0.85);
+        e.Handled = true;
+    }
+
+    private void ZoomBy(double factor)
+    {
+        _zoom = Math.Clamp(_zoom * factor, 0.02, 200);
         RequestNextFrameRendering();
     }
 
