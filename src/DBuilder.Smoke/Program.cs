@@ -26,21 +26,21 @@ using var wad = new WAD(wadPath, openreadonly: true);
 using var resources = new ResourceManager();
 resources.AddResource(wadPath);
 
-var markers = FindMapMarkers(wad);
-if (filter != null) markers = markers.FindAll(m => m.Equals(filter, StringComparison.OrdinalIgnoreCase));
+var maps = WadMaps.Find(wad);
+if (filter != null) maps = maps.FindAll(m => m.Name.Equals(filter, StringComparison.OrdinalIgnoreCase));
 
-Console.WriteLine($"[smoke] {Path.GetFileName(wadPath)}  -  {markers.Count} map(s){(resources.Palette != null ? "" : "  (no palette)")}");
+Console.WriteLine($"[smoke] {Path.GetFileName(wadPath)}  -  {maps.Count} map(s){(resources.Palette != null ? "" : "  (no palette)")}");
 Console.WriteLine();
 
 int passed = 0, failed = 0;
 var healthTotals = new Dictionary<MapIssueKind, int>();
-foreach (var marker in markers)
+foreach (var entry in maps)
 {
-    if (SmokeMap(wad, marker, resources, healthTotals)) passed++; else failed++;
+    if (SmokeMap(wad, entry, resources, healthTotals)) passed++; else failed++;
 }
 
 Console.WriteLine();
-Console.WriteLine($"[smoke] {passed}/{markers.Count} maps passed" + (failed > 0 ? $", {failed} FAILED" : ""));
+Console.WriteLine($"[smoke] {passed}/{maps.Count} maps passed" + (failed > 0 ? $", {failed} FAILED" : ""));
 if (healthTotals.Count > 0)
 {
     Console.WriteLine("[smoke] health issues across all maps (reported, not failed):");
@@ -51,14 +51,15 @@ return failed == 0 ? 0 : 1;
 
 // ============================================================
 
-static bool SmokeMap(WAD wad, string marker, ResourceManager resources, Dictionary<MapIssueKind, int> healthTotals)
+static bool SmokeMap(WAD wad, MapEntry entry, ResourceManager resources, Dictionary<MapIssueKind, int> healthTotals)
 {
     var problems = new List<string>();
+    string marker = entry.Name;
+    string fmt = entry.Format.ToString();
     MapSet? map = null;
-    string fmt = "?";
     try
     {
-        (map, fmt) = LoadAnyFormat(wad, marker);
+        map = WadMaps.Load(wad, entry);
     }
     catch (Exception ex) { problems.Add($"load threw: {ex.GetType().Name}: {ex.Message}"); }
 
@@ -210,36 +211,3 @@ static (int flatsOk, int flatsTotal, int wallsOk, int wallsTotal) ResolveTexture
     return (fok, flats.Count, wok, walls.Count);
 }
 
-// Loads a map with the matching loader, returning the MapSet and a short format tag.
-static (MapSet? map, string fmt) LoadAnyFormat(WAD wad, string marker)
-{
-    int idx = wad.FindLumpIndex(marker);
-    bool udmf = false, hexen = false;
-    for (int j = idx + 1; j < wad.Lumps.Count && j <= idx + 12; j++)
-    {
-        string sub = wad.Lumps[j].Name;
-        if (sub == "TEXTMAP") { udmf = true; break; }
-        if (sub == "BEHAVIOR") hexen = true;
-    }
-    if (udmf)
-    {
-        var textmap = wad.FindLump("TEXTMAP");
-        return (textmap == null ? null : UdmfMapLoader.Load(System.Text.Encoding.ASCII.GetString(textmap.Stream.ReadAllBytes()), out _), "UDMF");
-    }
-    return hexen ? (HexenMapLoader.Load(wad, marker), "Hexen") : (DoomMapLoader.Load(wad, marker), "Doom");
-}
-
-// A map marker is a zero-length lump immediately followed by the first map sub-lump:
-// THINGS (Doom/Hexen) or TEXTMAP (UDMF). Other sub-lumps (LINEDEFS, SIDEDEFS, ...) are not markers.
-static List<string> FindMapMarkers(WAD wad)
-{
-    var result = new List<string>();
-    for (int i = 0; i < wad.Lumps.Count - 1; i++)
-    {
-        if (wad.Lumps[i].Length != 0) continue; // markers are zero-length
-        string next = wad.Lumps[i + 1].Name;
-        if (next is "THINGS" or "TEXTMAP")
-            result.Add(wad.Lumps[i].Name);
-    }
-    return result;
-}

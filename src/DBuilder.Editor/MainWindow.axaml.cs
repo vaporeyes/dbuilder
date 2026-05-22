@@ -284,31 +284,10 @@ public partial class MainWindow : Window
     // Finds the first map block and loads it with the matching loader (UDMF / Hexen-binary / Doom-binary).
     private static (string? marker, MapSet? map) LoadFirstMap(WAD wad)
     {
-        for (int i = 0; i < wad.Lumps.Count; i++)
+        foreach (var entry in WadMaps.Find(wad))
         {
-            string name = wad.Lumps[i].Name;
-            bool udmf = false, binary = false, hexen = false;
-            for (int j = i + 1; j < wad.Lumps.Count && j <= i + 12; j++)
-            {
-                string sub = wad.Lumps[j].Name;
-                if (sub == "TEXTMAP") { udmf = true; break; }
-                if (sub == "BEHAVIOR") hexen = true;
-                if (sub is "VERTEXES" or "LINEDEFS" or "SIDEDEFS" or "SECTORS" or "THINGS") binary = true;
-            }
-            if (udmf)
-            {
-                var textmap = wad.FindLump("TEXTMAP");
-                if (textmap != null)
-                {
-                    var m = UdmfMapLoader.Load(System.Text.Encoding.ASCII.GetString(textmap.Stream.ReadAllBytes()), out _);
-                    return (name, m);
-                }
-            }
-            if (binary)
-            {
-                var m = hexen ? HexenMapLoader.Load(wad, name) : DoomMapLoader.Load(wad, name);
-                if (m != null) return (name, m);
-            }
+            var m = WadMaps.Load(wad, entry);
+            if (m != null) return (entry.Name, m);
         }
         return (null, null);
     }
