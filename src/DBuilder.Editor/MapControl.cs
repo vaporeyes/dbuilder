@@ -291,6 +291,8 @@ void main() { frag = v_color; }";
         => new Vec2D(_camX + (p.X - Bounds.Width * 0.5) * _zoom,
                      _camY - (p.Y - Bounds.Height * 0.5) * _zoom);
 
+    private bool _selectionDoneOnPress;
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -301,8 +303,10 @@ void main() { frag = v_color; }";
             _drag = DragKind.None;
             _dragStart = pt.Position;
             _lastPointer = pt.Position;
-            // Pressing on an already-selected vertex/thing arms a move-drag; otherwise a drag pans.
-            _moveCandidate = IsOverSelectedMovable(ToWorld(pt.Position));
+            bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+            // Select a vertex/thing immediately on press so a single press-drag moves it.
+            _selectionDoneOnPress = SelectPointElementAt(ToWorld(pt.Position), shift);
+            _moveCandidate = _selectionDoneOnPress;
         }
     }
 
@@ -314,14 +318,45 @@ void main() { frag = v_color; }";
         var pos = e.GetCurrentPoint(this).Position;
         if (_drag == DragKind.None)
         {
-            // No significant movement: treat as a click-pick.
-            Pick(ToWorld(pos), additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            // A click. Point elements were already handled on press; otherwise pick a line/sector (or clear).
+            if (!_selectionDoneOnPress)
+                Pick(ToWorld(pos), additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
         }
         else if (_drag == DragKind.Move)
         {
             Changed?.Invoke();
         }
         _drag = DragKind.None;
+    }
+
+    // Selects the nearest vertex/thing under the cursor on press. Returns true if one ended up selected
+    // (so a subsequent drag should move it). Non-additive clicks replace the selection only when the hit
+    // element wasn't already selected, preserving an existing multi-selection for dragging.
+    private bool SelectPointElementAt(Vec2D world, bool additive)
+    {
+        if (_map == null) return false;
+
+        var v = _map.NearestVertex(world, 10 * _zoom);
+        if (v != null)
+        {
+            if (additive) v.Selected = !v.Selected;
+            else if (!v.Selected) { _map.ClearAllSelected(); v.Selected = true; }
+            MarkGeometryDirty();
+            Picked?.Invoke($"vertex ({v.Position.x:0.#}, {v.Position.y:0.#})");
+            return v.Selected;
+        }
+
+        var t = _map.NearestThing(world, 12 * _zoom);
+        if (t != null)
+        {
+            if (additive) t.Selected = !t.Selected;
+            else if (!t.Selected) { _map.ClearAllSelected(); t.Selected = true; }
+            MarkGeometryDirty();
+            Picked?.Invoke($"thing type {t.Type} ({t.Position.x:0.#}, {t.Position.y:0.#})");
+            return t.Selected;
+        }
+
+        return false;
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -356,14 +391,6 @@ void main() { frag = v_color; }";
         _lastPointer = pos;
     }
 
-    private bool IsOverSelectedMovable(Vec2D world)
-    {
-        if (_map == null) return false;
-        var v = _map.NearestVertex(world, 10 * _zoom);
-        if (v != null && v.Selected) return true;
-        var t = _map.NearestThing(world, 12 * _zoom);
-        return t != null && t.Selected;
-    }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -379,22 +406,15 @@ void main() { frag = v_color; }";
         if (_map == null) return;
         if (!additive) _map.ClearAllSelected();
 
-        double vr = 10 * _zoom, tr = 12 * _zoom, lr = 8 * _zoom;
+        // Point elements (vertices/things) are picked on press; this handles line then sector.
         string desc;
-        var v = _map.NearestVertex(world, vr);
-        var t = v == null ? _map.NearestThing(world, tr) : null;
-        if (v != null) { v.Selected = !v.Selected; desc = $"vertex ({v.Position.x:0.#}, {v.Position.y:0.#})"; }
-        else if (t != null) { t.Selected = !t.Selected; desc = $"thing type {t.Type} ({t.Position.x:0.#}, {t.Position.y:0.#})"; }
+        var l = _map.NearestLinedef(world, 8 * _zoom);
+        if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
         else
         {
-            var l = _map.NearestLinedef(world, lr);
-            if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
-            else
-            {
-                var s = _map.GetSectorAt(world);
-                if (s != null) { s.Selected = !s.Selected; desc = $"sector {s.Index}"; }
-                else desc = "nothing";
-            }
+            var s = _map.GetSectorAt(world);
+            if (s != null) { s.Selected = !s.Selected; desc = $"sector {s.Index}"; }
+            else desc = "nothing";
         }
         MarkGeometryDirty();
         Picked?.Invoke(desc);
