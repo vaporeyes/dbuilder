@@ -133,6 +133,35 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FindPotentialSectorRetracesOuterWhenNearestLineIsHole()
+    {
+        // Outer 100x100 square + inner 20x20 hole at center. Clicking just outside the hole edge (nearest
+        // line is the hole boundary) must retrace outward and yield the full outer + inner side set.
+        var map = new MapSet();
+        var outer = new[]
+        {
+            new Vector2D(0, 0), new Vector2D(0, 100), new Vector2D(100, 100), new Vector2D(100, 0),
+        };
+        var hole = new[]
+        {
+            new Vector2D(40, 40), new Vector2D(60, 40), new Vector2D(60, 60), new Vector2D(40, 60),
+        };
+        void Ring(Vector2D[] pts)
+        {
+            var vs = pts.Select(p => map.AddVertex(p)).ToList();
+            for (int i = 0; i < vs.Count; i++) map.AddLinedef(vs[i], vs[(i + 1) % vs.Count]);
+        }
+        Ring(outer); Ring(hole);
+        map.BuildIndexes();
+
+        // Point at (50, 38): nearest line is the hole's bottom edge, but it lies in the ring (the outer sector).
+        var path = Tools.FindPotentialSectorAt(map, new Vector2D(50, 38));
+        Assert.NotNull(path);
+        Assert.Equal(8, path!.Count);
+        Assert.Equal(8, new HashSet<Linedef>(path.Select(ls => ls.Line)).Count);
+    }
+
+    [Fact]
     public void FindPotentialSectorSimpleSquareHasNoHoles()
     {
         var (map, lines) = BuildPolygon(new[]

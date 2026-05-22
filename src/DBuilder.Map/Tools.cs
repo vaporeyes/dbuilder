@@ -19,9 +19,8 @@ public static class Tools
 {
     /// <summary>
     /// Finds the linedef sides bounding the sector that would contain <paramref name="pos"/>: traces the loop
-    /// of the nearest linedef on the side facing the point, then detects inner hole loops. Returns the combined
-    /// outer+inner sides, or null if no enclosing loop. (The outer-vs-inner retrace UDB does when the click's
-    /// nearest loop is itself a hole is not yet ported; for the common click-inside-a-sector case this matches.)
+    /// of the nearest linedef on the side facing the point (retracing outward if that loop is itself a hole),
+    /// then detects inner hole loops. Returns the combined outer+inner sides, or null if no enclosing loop.
     /// </summary>
     public static List<LinedefSide>? FindPotentialSectorAt(MapSet map, Vector2D pos)
     {
@@ -31,16 +30,65 @@ public static class Tools
         return FindPotentialSectorAt(map, line, front);
     }
 
-    /// <summary>Traces the loop from a line+side, then adds any inner hole loops found inside it.</summary>
+    // A scanline shot to the right from a hole's rightmost vertex extends to here looking for the enclosing loop.
+    private const double RightBoundary = 1e7;
+
+    /// <summary>Finds the outer loop enclosing the line+side (retracing outward if it lands on a hole), then adds inner hole loops.</summary>
     public static List<LinedefSide>? FindPotentialSectorAt(MapSet map, Linedef line, bool front)
     {
-        var path = FindClosestPath(line, front, turnatends: true);
-        if (path == null || path.Count < 3) return null;
+        var all = new List<LinedefSide>();
+        var poly = FindOuterLines(map, line, front, all);
+        if (poly == null || all.Count < 3) return null;
 
-        var all = new List<LinedefSide>(path);
-        var poly = new LinedefTracePath(path).MakePolygon(true);
         FindInnerLines(map, poly, all);
         return all;
+    }
+
+    // Traces the outermost loop enclosing the start line+side (UDB FindOuterLines). If the trace lands on an
+    // inner (hole) loop, casts a scanline to the right from the loop's rightmost vertex to find the next
+    // outward linedef and retraces from there, until the traced side faces inside its own loop (the true outer).
+    private static EarClipPolygon? FindOuterLines(MapSet map, Linedef line, bool front, List<LinedefSide> all)
+    {
+        Linedef? scanline = line;
+        bool scanfront = front;
+        int guard = 0;
+
+        while (scanline != null && ++guard < 1000)
+        {
+            var path = FindClosestPath(scanline, scanfront, turnatends: true);
+            if (path == null || path.Count < 3) return null;
+
+            var poly = new LinedefTracePath(path).MakePolygon(true);
+
+            // The traced side faces into its own loop: this is the outer boundary we want.
+            if (poly.Intersect(GetSidePoint(scanline, scanfront)))
+            {
+                all.AddRange(path);
+                return poly;
+            }
+
+            // Otherwise this is a hole boundary. Cast a ray right from the loop's rightmost vertex.
+            Vector2D rightmost = poly.First!.Value.Position;
+            foreach (var ecv in poly)
+                if (ecv.Position.x > rightmost.x) rightmost = ecv.Position;
+
+            var scan = new Line2D(rightmost, new Vector2D(RightBoundary, rightmost.y));
+            Linedef? foundline = null;
+            double foundu = double.MaxValue;
+            foreach (var ld in map.Linedefs)
+            {
+                if (scan.GetIntersection(ld.Start.Position.x, ld.Start.Position.y, ld.End.Position.x, ld.End.Position.y, out double u_ray, out double _))
+                {
+                    if (u_ray > 0.00001 && u_ray < foundu) { foundu = u_ray; foundline = ld; }
+                }
+            }
+            if (foundline == null) return null;
+
+            // Continue tracing the found line on the side facing back toward our region (the rightmost vertex).
+            scanfront = Line2D.GetSideOfLine(foundline.Start.Position, foundline.End.Position, rightmost) <= 0;
+            scanline = foundline;
+        }
+        return null;
     }
 
     // Finds hole loops fully inside the outer polygon and appends their sides to alllines (UDB FindInnerLines).
