@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
         MapView.Changed += UpdateInfo;
         MapView.EditRequested += OnEditSelected;
+        MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); };
         MapView.DrawModeChanged += () => SetStatus(MapView.DrawMode
             ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
             : "Draw mode off.");
@@ -324,7 +325,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Click select; drag move/pan (drop a vertex on another to merge); wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures; Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
+                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; drag move/pan (drop a vertex on another to merge); wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures; Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
             return;
         }
 

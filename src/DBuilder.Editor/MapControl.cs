@@ -138,6 +138,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
 
+    /// <summary>Which element class clicks select. Switched with the number keys 1-4.</summary>
+    public enum EditMode { Vertices, Linedefs, Sectors, Things }
+    private EditMode _editMode = EditMode.Linedefs;
+    public EditMode CurrentEditMode => _editMode;
+    /// <summary>Raised when the active selection mode changes (for the status bar).</summary>
+    public event Action? ModeChanged;
+
+    private void SetEditMode(EditMode m)
+    {
+        if (_editMode == m) return;
+        _editMode = m;
+        ModeChanged?.Invoke();
+        Picked?.Invoke($"mode: {m}");
+        RequestNextFrameRendering();
+    }
+
     // Grid: power-of-two world-unit spacing, rendered behind geometry; snap aligns draws/moves to it.
     private int _gridSize = 64;
     private bool _snapToGrid = true;
@@ -871,6 +887,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.D: ToggleDrawMode(); e.Handled = true; return;
                 case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
+                case Key.D1 or Key.NumPad1: SetEditMode(EditMode.Vertices); e.Handled = true; return;
+                case Key.D2 or Key.NumPad2: SetEditMode(EditMode.Linedefs); e.Handled = true; return;
+                case Key.D3 or Key.NumPad3: SetEditMode(EditMode.Sectors); e.Handled = true; return;
+                case Key.D4 or Key.NumPad4: SetEditMode(EditMode.Things); e.Handled = true; return;
                 case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.A: AutoAlignSelected(); e.Handled = true; return;
                 case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {_gridSize})"); e.Handled = true; return;
@@ -1234,26 +1254,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return false;
 
-        var v = _map.NearestVertex(world, 10 * _zoom);
-        if (v != null)
+        if (_editMode == EditMode.Vertices)
         {
-            if (additive) v.Selected = !v.Selected;
-            else if (!v.Selected) { _map.ClearAllSelected(); v.Selected = true; }
-            MarkGeometryDirty();
-            Picked?.Invoke($"vertex ({v.Position.x:0.#}, {v.Position.y:0.#})");
-            return v.Selected;
+            var v = _map.NearestVertex(world, 10 * _zoom);
+            if (v != null)
+            {
+                if (additive) v.Selected = !v.Selected;
+                else if (!v.Selected) { _map.ClearAllSelected(); v.Selected = true; }
+                MarkGeometryDirty();
+                Picked?.Invoke($"vertex ({v.Position.x:0.#}, {v.Position.y:0.#})");
+                return v.Selected;
+            }
+        }
+        else if (_editMode == EditMode.Things)
+        {
+            var t = _map.NearestThing(world, 12 * _zoom);
+            if (t != null)
+            {
+                if (additive) t.Selected = !t.Selected;
+                else if (!t.Selected) { _map.ClearAllSelected(); t.Selected = true; }
+                MarkGeometryDirty();
+                Picked?.Invoke($"thing type {t.Type} ({t.Position.x:0.#}, {t.Position.y:0.#})");
+                return t.Selected;
+            }
         }
 
-        var t = _map.NearestThing(world, 12 * _zoom);
-        if (t != null)
-        {
-            if (additive) t.Selected = !t.Selected;
-            else if (!t.Selected) { _map.ClearAllSelected(); t.Selected = true; }
-            MarkGeometryDirty();
-            Picked?.Invoke($"thing type {t.Type} ({t.Position.x:0.#}, {t.Position.y:0.#})");
-            return t.Selected;
-        }
-
+        // Linedef/Sector modes select on release; a press on empty space (point modes) selects nothing.
         return false;
     }
 
@@ -1327,18 +1353,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         _map.ClearAllSelected();
-        var v = _map.NearestVertex(world, 10 * _zoom);
-        if (v != null) { v.Selected = true; }
-        else
+        switch (_editMode)
         {
-            var t = _map.NearestThing(world, 12 * _zoom);
-            if (t != null) { t.Selected = true; }
-            else
-            {
-                var l = _map.NearestLinedef(world, 8 * _zoom);
-                if (l != null) { l.Selected = true; }
-                else { var s = _map.GetSectorAt(world); if (s != null) s.Selected = true; }
-            }
+            case EditMode.Vertices:
+                if (_map.NearestVertex(world, 10 * _zoom) is { } v) v.Selected = true;
+                break;
+            case EditMode.Things:
+                if (_map.NearestThing(world, 12 * _zoom) is { } t) t.Selected = true;
+                break;
+            case EditMode.Sectors:
+                if (_map.GetSectorAt(world) is { } s) s.Selected = true;
+                break;
+            default:
+                if (_map.NearestLinedef(world, 8 * _zoom) is { } l) l.Selected = true;
+                break;
         }
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -1349,15 +1377,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null) return;
         if (!additive) _map.ClearAllSelected();
 
-        // Point elements (vertices/things) are picked on press; this handles line then sector.
-        string desc;
-        var l = _map.NearestLinedef(world, 8 * _zoom);
-        if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
-        else
+        // Vertices/things are handled on press; here Linedefs/Sectors modes pick their element (else just clear).
+        string desc = "nothing";
+        if (_editMode == EditMode.Linedefs)
+        {
+            var l = _map.NearestLinedef(world, 8 * _zoom);
+            if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
+        }
+        else if (_editMode == EditMode.Sectors)
         {
             var s = _map.GetSectorAt(world);
             if (s != null) { s.Selected = !s.Selected; desc = $"sector {s.Index}"; }
-            else desc = "nothing";
         }
         MarkGeometryDirty();
         Picked?.Invoke(desc);
