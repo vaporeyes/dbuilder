@@ -322,7 +322,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Click select; drag move/pan (drop a vertex on another to merge); wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector; M make sector at cursor; F flip linedef (Shift+F sidedefs); G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
+                            $"   Config: {_configName}.   Click select; drag move/pan (drop a vertex on another to merge); wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
             return;
         }
 
