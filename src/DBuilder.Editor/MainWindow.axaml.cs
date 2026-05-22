@@ -16,6 +16,8 @@ public partial class MainWindow : Window
     private MapSet? _map;
     private UndoManager? _undo;
     private string? _mapMarker;
+    private GameConfiguration? _config;
+    private string _configName = "(none)";
 
     public MainWindow() : this(null) { }
 
@@ -27,8 +29,34 @@ public partial class MainWindow : Window
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
         MapView.Changed += UpdateInfo;
 
+        TryLoadDefaultConfig();
+
         if (openPath != null && System.IO.File.Exists(openPath))
             LoadWad(openPath);
+    }
+
+    // Attempts to load a game config on startup from DBUILDER_GAMECONFIG, else a known UDB asset path.
+    private void TryLoadDefaultConfig()
+    {
+        string? path = Environment.GetEnvironmentVariable("DBUILDER_GAMECONFIG");
+        if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
+        {
+            const string fallback = "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations/Doom_DoomDoom.cfg";
+            path = System.IO.File.Exists(fallback) ? fallback : null;
+        }
+        if (path != null) LoadConfig(path);
+    }
+
+    private void LoadConfig(string path)
+    {
+        try
+        {
+            _config = GameConfiguration.FromFile(path);
+            _configName = System.IO.Path.GetFileNameWithoutExtension(path);
+            SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
+            UpdateInfo();
+        }
+        catch (Exception ex) { SetStatus($"Config load failed: {ex.Message}"); }
     }
 
     // ---- File ----
@@ -68,6 +96,20 @@ public partial class MainWindow : Window
             SetStatus($"Saved UDMF to {outPath}");
         }
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
+    }
+
+    private async void OnLoadConfig(object? sender, RoutedEventArgs e)
+    {
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Load Game Configuration",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { new FilePickerFileType("Game config") { Patterns = new[] { "*.cfg" } } },
+        });
+        if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
+            LoadConfig(path);
     }
 
     private void OnExit(object? sender, RoutedEventArgs e) => Close();
@@ -172,13 +214,39 @@ public partial class MainWindow : Window
     {
         if (_map is null) { InfoText.Text = "No map loaded."; return; }
         int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
+
         if (sv + sl + ss + st == 0)
         {
-            InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things. " +
-                            "Click to select (Shift = add). Delete removes the selection (undoable).";
+            InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
+                            $"   Config: {_configName}.   Click to select (Shift = add); drag to move; Delete removes (undoable).";
             return;
         }
-        InfoText.Text = $"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
-                        (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : "");
+
+        // Detailed read-out for a single selected element (config-aware names); otherwise a counts summary.
+        if (st == 1 && sl == 0 && ss == 0 && sv == 0)
+        {
+            var t = _map.GetSelectedThings()[0];
+            string name = _config?.ThingTitle(t.Type) ?? $"type {t.Type}";
+            InfoText.Text = $"Thing: {t.Type} - {name}    pos ({t.Position.x:0}, {t.Position.y:0})    angle {t.Angle}    tag {t.Tag}" +
+                            (t.Action != 0 ? $"    action {t.Action}" : "");
+        }
+        else if (sl == 1 && st == 0 && ss == 0 && sv == 0)
+        {
+            var l = _map.GetSelectedLinedefs()[0];
+            string act = _config?.LinedefActionTitle(l.Action) ?? (l.Action == 0 ? "None" : $"action {l.Action}");
+            InfoText.Text = $"Linedef {_map.Linedefs.IndexOf(l)}: action {l.Action} - {act}    tag {l.Tag}    flags 0x{l.Flags:X4}    " +
+                            (l.Back != null ? "two-sided" : "one-sided");
+        }
+        else if (ss == 1 && st == 0 && sl == 0 && sv == 0)
+        {
+            var s = _map.GetSelectedSectors()[0];
+            string eff = _config?.SectorEffectTitle(s.Special) ?? (s.Special == 0 ? "None" : $"effect {s.Special}");
+            InfoText.Text = $"Sector {s.Index}: floor {s.FloorHeight} / ceil {s.CeilHeight}    light {s.Brightness}    effect {s.Special} - {eff}    tag {s.Tag}";
+        }
+        else
+        {
+            InfoText.Text = $"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
+                            (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : "");
+        }
     }
 }

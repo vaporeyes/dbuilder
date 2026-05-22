@@ -13,6 +13,8 @@
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
                 <MenuItem Header="_Save as UDMF..." Click="OnSave" />
                 <Separator />
+                <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
+                <Separator />
                 <MenuItem Header="E_xit" Click="OnExit" />
             </MenuItem>
             <MenuItem Header="_Edit">
