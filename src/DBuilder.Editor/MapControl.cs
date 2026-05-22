@@ -783,7 +783,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
-        if (!_mode3D)
+        // Let Ctrl/Cmd shortcuts (undo/redo/save) bubble up to the window instead of triggering view toggles.
+        bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        if (!_mode3D && !accel)
         {
             switch (e.Key)
             {

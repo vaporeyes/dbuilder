@@ -120,6 +120,30 @@ public partial class MainWindow : Window
         MapView.Focus(); // ensure the map view has keyboard focus on first launch (command-line load)
     }
 
+    // Window-level accelerators. The map control bubbles unhandled keys here. Accept both Ctrl (Win/Linux)
+    // and Cmd/Meta (macOS) so undo/redo/save/delete work regardless of which the user presses.
+    protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
+    {
+        bool accel = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control)
+                  || e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Meta);
+        if (accel)
+        {
+            switch (e.Key)
+            {
+                case Avalonia.Input.Key.Z: OnUndo(this, new RoutedEventArgs()); e.Handled = true; return;
+                case Avalonia.Input.Key.Y: OnRedo(this, new RoutedEventArgs()); e.Handled = true; return;
+                case Avalonia.Input.Key.S: OnSave(this, new RoutedEventArgs()); e.Handled = true; return;
+            }
+        }
+        if (e.Key == Avalonia.Input.Key.Delete || e.Key == Avalonia.Input.Key.Back)
+        {
+            OnDelete(this, new RoutedEventArgs());
+            e.Handled = true;
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
     private void OnExit(object? sender, RoutedEventArgs e) => Close();
 
     // ---- Edit ----
