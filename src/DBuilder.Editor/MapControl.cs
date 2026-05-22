@@ -37,6 +37,8 @@ void main() { frag = v_color; }";
     private GL? _gl;
     private RenderDevice? _device;
     private DBShader? _shader;
+    private GlVertexBuffer? _fillsVb;
+    private int _fillTris;
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
     private GlVertexBuffer? _thingsVb;
@@ -86,6 +88,7 @@ void main() { frag = v_color; }";
         _gl = new GL(new LamdaNativeContext(name => gl.GetProcAddress(name)));
         _device = new RenderDevice(_gl);
         _shader = new DBShader(_gl, VertexSrc, FragmentSrc);
+        _fillsVb = new GlVertexBuffer(_gl);
         _linesVb = new GlVertexBuffer(_gl);
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
@@ -96,12 +99,13 @@ void main() { frag = v_color; }";
 
     protected override void OnOpenGlDeinit(GlInterface gl)
     {
+        _fillsVb?.Dispose();
         _linesVb?.Dispose();
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
+        _fillsVb = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
@@ -128,7 +132,12 @@ void main() { frag = v_color; }";
                 -1, 1);
             _device.SetUniform("projection", proj);
 
-            // Things (filled diamonds) under the line overlay, then lines, then selection markers on top.
+            // Draw order: sector fills -> things -> lines -> selection markers.
+            if (_fillTris > 0 && _fillsVb != null)
+            {
+                _device.SetVertexBuffer(_fillsVb);
+                _device.Draw(DBPrimitiveType.TriangleList, 0, _fillTris);
+            }
             if (_thingTris > 0 && _thingsVb != null)
             {
                 _device.SetVertexBuffer(_thingsVb);
@@ -150,6 +159,27 @@ void main() { frag = v_color; }";
     private void RebuildGeometry()
     {
         if (_map == null || _device is null) return;
+
+        // Sector fills (brightness-shaded; selected sectors tinted cyan). Triangulated per sector.
+        if (_fillsVb != null)
+        {
+            var fv = new System.Collections.Generic.List<FlatVertex>();
+            foreach (var sector in _map.Sectors)
+            {
+                if (sector.Sidedefs.Count == 0) continue;
+                Triangulation tri;
+                try { tri = Triangulation.Create(sector); }
+                catch { continue; }
+                if (tri.Vertices.Count == 0) continue;
+
+                int c = SectorFillColor(sector);
+                for (int i = 0; i < tri.Vertices.Count; i++)
+                    fv.Add(FV(tri.Vertices[i], c));
+            }
+            var arr = fv.ToArray();
+            if (arr.Length > 0) _device.SetBufferData(_fillsVb, arr);
+            _fillTris = arr.Length / 3;
+        }
 
         // Lines.
         if (_linesVb != null)
@@ -212,6 +242,16 @@ void main() { frag = v_color; }";
             if (arr.Length > 0) _device.SetBufferData(_selVertsVb, arr);
             _selVertTris = arr.Length / 3;
         }
+    }
+
+    private static int SectorFillColor(Sector s)
+    {
+        // Dim brightness-shaded gray so the line/thing overlays stay legible on top.
+        double br = Math.Clamp(s.Brightness / 255.0, 0.12, 1.0) * 0.45;
+        byte g = (byte)Math.Clamp(br * 255, 0, 255);
+        if (s.Selected) // blend toward cyan to flag the selection as a fill
+            return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)Math.Min(255, g + 60) << 8) | (uint)Math.Min(255, g + 80)));
+        return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
     }
 
     private static int ThingColor(int type) => type switch
