@@ -131,6 +131,62 @@ public class MapSet
 
     public void RemoveThing(Thing t) => Things.Remove(t);
 
+    /// <summary>
+    /// Splits a linedef at <paramref name="pos"/>: shortens it to start..newVertex and adds a second linedef
+    /// newVertex..oldEnd that copies the original's flags/action/tags/args/sidedefs (same sectors/textures).
+    /// Returns the inserted vertex. Call BuildIndexes() afterward. Front-side X offset is advanced by the first
+    /// half's length to keep front textures continuous (back-side and pegging adjustments are a later refinement).
+    /// </summary>
+    public Vertex SplitLinedef(Linedef l, Vector2D pos)
+    {
+        var v = AddVertex(pos);
+        SplitLinedefAt(l, v);
+        return v;
+    }
+
+    /// <summary>Splits a linedef at an existing vertex; returns the new (second-half) linedef.</summary>
+    public Linedef SplitLinedefAt(Linedef l, Vertex v)
+    {
+        double firstHalfLen = (v.Position - l.Start.Position).GetLength();
+        var oldEnd = l.End;
+
+        var newLine = new Linedef(v, oldEnd) { Flags = l.Flags, Action = l.Action };
+        newLine.Tags.Clear();
+        newLine.Tags.AddRange(l.Tags);
+        for (int i = 0; i < newLine.Args.Length; i++) newLine.Args[i] = l.Args[i];
+        foreach (var f in l.UdmfFlags) newLine.UdmfFlags.Add(f);
+        foreach (var kv in l.Fields) newLine.Fields[kv.Key] = kv.Value;
+        Linedefs.Add(newLine);
+
+        // Shorten the original to start..v and refresh both angle caches.
+        l.End = v;
+        l.Angle = Linedef.ComputeAngle(l.Start, v);
+        newLine.Angle = Linedef.ComputeAngle(v, oldEnd);
+
+        if (l.Front != null)
+        {
+            var nf = AddSidedef(newLine, true, l.Front.Sector);
+            CopySidedefProperties(l.Front, nf);
+            nf.OffsetX += (int)System.Math.Round(firstHalfLen);
+        }
+        if (l.Back != null)
+        {
+            var nb = AddSidedef(newLine, false, l.Back.Sector);
+            CopySidedefProperties(l.Back, nb);
+        }
+        return newLine;
+    }
+
+    private static void CopySidedefProperties(Sidedef src, Sidedef dst)
+    {
+        dst.OffsetX = src.OffsetX;
+        dst.OffsetY = src.OffsetY;
+        dst.HighTexture = src.HighTexture;
+        dst.MidTexture = src.MidTexture;
+        dst.LowTexture = src.LowTexture;
+        foreach (var kv in src.Fields) dst.Fields[kv.Key] = kv.Value;
+    }
+
     // ============================================================
     // Selection.
     // ============================================================
