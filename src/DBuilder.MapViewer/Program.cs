@@ -38,10 +38,14 @@ SkyTextureData? sky = null;
 // Unique wall texture name -> composed RGBA8 + dimensions for the wall-ribbon overlay.
 Dictionary<string, SkyTextureData> wallTextures = new(StringComparer.OrdinalIgnoreCase);
 
+string? loadedWadPath = null;
+string? loadedMapName = null;
 if (args.Length >= 1 && File.Exists(args[0]))
 {
     string wadPath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
+    loadedWadPath = wadPath;
+    loadedMapName = requestedMap;
     map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky, out wallTextures);
     int animatedCount = 0;
     foreach (var frames in flatRgba.Values) if (frames.Length > 1) animatedCount++;
@@ -916,6 +920,31 @@ DBuilder.Rendering.Texture? placeholderTex = null;
 GL? gl = null;
 Silk.NET.Input.IKeyboard? keyboard0 = null;
 
+// Saves the current (possibly edited) map as a UDMF PWAD next to the source, demonstrating the
+// load -> edit -> save round trip. UDMF is chosen because it losslessly preserves everything we model.
+void SaveMap()
+{
+    string outPath = loadedWadPath != null
+        ? Path.Combine(Path.GetDirectoryName(Path.GetFullPath(loadedWadPath)) ?? ".",
+                       Path.GetFileNameWithoutExtension(loadedWadPath) + ".edited.wad")
+        : Path.Combine(Directory.GetCurrentDirectory(), "dbuilder_edited.wad");
+    string marker = string.IsNullOrEmpty(loadedMapName) ? "MAP01" : loadedMapName!;
+
+    try
+    {
+        if (File.Exists(outPath)) File.Delete(outPath); // our own .edited.wad output; start fresh
+        using (var outWad = new WAD(outPath, openreadonly: false))
+        {
+            UdmfMapWriter.WriteMap(map, outWad, marker, 0);
+        }
+        Console.WriteLine($"[save]  wrote UDMF map '{marker}' to {outPath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[save]  failed: {ex.Message}");
+    }
+}
+
 // Picks the nearest element at a screen position (2D mode). Priority: vertex -> linedef -> sector.
 // Rebuilds the line overlay + selected-vertex markers to reflect the new selection.
 void PickAt(double screenX, double screenY, bool additive)
@@ -1156,8 +1185,14 @@ window.Load += () =>
                     device!.SetBufferData(linesVb!, lineVerts);
                 }
             }
+            // Ctrl+S saves the (edited) map as a UDMF PWAD, regardless of view mode.
+            bool ctrl = keyboard0?.IsKeyPressed(Key.ControlLeft) == true || keyboard0?.IsKeyPressed(Key.ControlRight) == true;
+            if (key == Key.S && ctrl)
+            {
+                SaveMap();
+            }
             // S/A/W double as 3D movement keys, so their 2D toggles only fire in 2D mode.
-            if (key == Key.S && !mode3D)
+            else if (key == Key.S && !mode3D)
             {
                 if (totalSectorTris == 0)
                 {
@@ -1190,7 +1225,7 @@ window.Load += () =>
     }
 
     Console.WriteLine($"[gl]    {gl.GetStringS(StringName.Version)}");
-    Console.WriteLine($"[ui]    Tab = 2D/3D, LMB drag = pan, LMB click = select (Shift = add), wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Esc = quit");
+    Console.WriteLine($"[ui]    Tab = 2D/3D, LMB drag = pan, LMB click = select (Shift = add), wheel = zoom, R = reset, F = line colors, S = sector fills, W = wall ribbons, A = flat animations, Ctrl+S = save UDMF, Esc = quit");
     Console.WriteLine($"[ui]    3D: WASD move, arrows look, Q/E down/up, Shift = faster, R = reset camera");
 };
 

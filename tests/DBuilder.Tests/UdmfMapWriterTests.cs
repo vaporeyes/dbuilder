@@ -191,6 +191,38 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void SaveToWadFileAndReload()
+    {
+        // Mirrors the viewer's Ctrl+S save: write UDMF into a file-backed WAD, then reopen and reload.
+        var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
+        map.Sectors[0].Fields["lightcolor"] = 255; // a custom field to confirm fidelity through the file
+
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder_savetest_" + System.Guid.NewGuid().ToString("N") + ".wad");
+        try
+        {
+            using (var wad = new WAD(path, openreadonly: false))
+            {
+                UdmfMapWriter.WriteMap(map, wad, "MAP01", 0);
+            }
+            Assert.True(File.Exists(path));
+
+            using var reopened = new WAD(path, openreadonly: true);
+            Assert.True(HexenOrUdmfHasTextmap(reopened));
+            var r = UdmfMapLoader.Load(System.Text.Encoding.ASCII.GetString(reopened.FindLump("TEXTMAP")!.Stream.ReadAllBytes()), out var parser)!;
+            Assert.Equal(0, parser.ErrorResult);
+            Assert.Equal(map.Vertices.Count, r.Vertices.Count);
+            Assert.Equal(map.Linedefs.Count, r.Linedefs.Count);
+            Assert.Equal(255, (int)r.Sectors[0].Fields["lightcolor"]);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    private static bool HexenOrUdmfHasTextmap(WAD wad) => wad.FindLump("TEXTMAP") != null;
+
+    [Fact]
     public void WriteMapThrowsOnReadOnlyWad()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
