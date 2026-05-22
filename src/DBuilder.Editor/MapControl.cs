@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
+using Avalonia.Rendering;
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -21,8 +22,12 @@ using Vec2D = DBuilder.Geometry.Vector2D;
 
 namespace DBuilder.Editor;
 
-public class MapControl : OpenGlControlBase
+public class MapControl : OpenGlControlBase, ICustomHitTest
 {
+    // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
+    // reach it by default. Claiming the whole control area as a hit makes pointer input work.
+    public bool HitTest(Point point) => true;
+
     private const string VertexSrc = @"#version 330 core
 layout(location=0) in vec4 a_pos;
 layout(location=1) in vec4 a_color;
@@ -110,6 +115,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 2D view-layer visibility toggles.
     private bool _showFills = true;
     private bool _showThings = true;
+
+    private bool _thingArrows;
+    /// <summary>When true, things draw as Doom-Builder-style colored discs with a direction arrow instead of sprites.</summary>
+    public bool ThingArrows
+    {
+        get => _thingArrows;
+        set { _thingArrows = value; _geometryDirty = true; RequestNextFrameRendering(); }
+    }
 
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
