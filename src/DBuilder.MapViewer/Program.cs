@@ -519,18 +519,50 @@ foreach (var sector in map.Sectors)
         flatBuckets[bucketKey] = bucket;
     }
 
+    // Sloped floors can't tilt in this top-down ortho view, so we surface the slope as a per-vertex
+    // brightness gradient: higher floor renders brighter. Flat sectors get factor 1.0 (no change).
+    double slopeMinZ = 0, slopeRange = 0;
+    if (sector.HasFloorSlope)
+    {
+        slopeMinZ = double.MaxValue;
+        double maxZ = double.MinValue;
+        foreach (var p in tri.Vertices)
+        {
+            double z = sector.GetFloorZ(p);
+            if (z < slopeMinZ) slopeMinZ = z;
+            if (z > maxZ) maxZ = z;
+        }
+        slopeRange = maxZ - slopeMinZ;
+    }
+
     for (int i = 0; i < tri.Vertices.Count; i++)
     {
         var p = tri.Vertices[i];
+        int c = vertexColor;
+        if (sector.HasFloorSlope && slopeRange > 0)
+        {
+            double t = (sector.GetFloorZ(p) - slopeMinZ) / slopeRange; // 0 at lowest, 1 at highest
+            c = ScaleColorRgb(vertexColor, 0.6 + 0.4 * t);
+        }
         bucket.Add(new FlatVertex
         {
             x = (float)p.x, y = (float)p.y, z = 0, w = 1,
-            c = vertexColor,
+            c = c,
             u = (float)(p.x / texW),
             v = (float)(p.y / texH),
         });
         totalSectorTris++;
     }
+}
+
+static int ScaleColorRgb(int argb, double factor)
+{
+    uint u = unchecked((uint)argb);
+    byte a = (byte)((u >> 24) & 0xFF);
+    byte r = (byte)Math.Clamp(((u >> 16) & 0xFF) * factor, 0, 255);
+    byte g = (byte)Math.Clamp(((u >> 8) & 0xFF) * factor, 0, 255);
+    byte b = (byte)Math.Clamp((u & 0xFF) * factor, 0, 255);
+    return unchecked((int)(((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b));
 }
 if (map.Sectors.Count > 0)
     Console.WriteLine($"[tri]   {triangulatedSectors} of {map.Sectors.Count} sectors triangulated ({totalSectorTris / 3} triangles, {failedSectors} failed, {flatBuckets.Count} flat buckets)");

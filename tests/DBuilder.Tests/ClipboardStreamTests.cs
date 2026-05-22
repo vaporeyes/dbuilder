@@ -253,7 +253,7 @@ public class ClipboardStreamTests
         var rs = dst.Sectors[0];
         Assert.Equal(16711680, (int)rs.Fields["lightcolor"]);
         Assert.Equal(2.5, (double)rs.Fields["xscalefloor"]);
-        Assert.Equal(true, (bool)rs.Fields["hidden"]);
+        Assert.True((bool)rs.Fields["hidden"]);
         Assert.Equal("lava", (string)rs.Fields["comment"]);
         Assert.Equal(-8.0, (double)dst.Vertices[0].Fields["zfloor"]);
     }

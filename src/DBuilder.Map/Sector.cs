@@ -42,6 +42,24 @@ public class Sector
     /// <summary>Ceiling slope plane offset (UDMF ceilingplane_d). NaN means unset.</summary>
     public double CeilSlopeOffset { get; set; } = double.NaN;
 
+    /// <summary>True when the floor has an active (non-vertical, non-flat) slope plane.</summary>
+    public bool HasFloorSlope => FloorSlope.GetLengthSq() > 0 && FloorSlope.z != 0;
+
+    /// <summary>True when the ceiling has an active (non-vertical, non-flat) slope plane.</summary>
+    public bool HasCeilSlope => CeilSlope.GetLengthSq() > 0 && CeilSlope.z != 0;
+
+    /// <summary>Floor height at a map position. Uses the slope plane when sloped, else the flat <see cref="FloorHeight"/>.</summary>
+    public double GetFloorZ(Vector2D pos)
+        => HasFloorSlope
+            ? new Plane(FloorSlope, double.IsNaN(FloorSlopeOffset) ? 0.0 : FloorSlopeOffset).GetZ(pos)
+            : FloorHeight;
+
+    /// <summary>Ceiling height at a map position. Uses the slope plane when sloped, else the flat <see cref="CeilHeight"/>.</summary>
+    public double GetCeilZ(Vector2D pos)
+        => HasCeilSlope
+            ? new Plane(CeilSlope, double.IsNaN(CeilSlopeOffset) ? 0.0 : CeilSlopeOffset).GetZ(pos)
+            : CeilHeight;
+
     /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
     public List<Sidedef> Sidedefs { get; } = new();
 
