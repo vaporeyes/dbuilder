@@ -164,6 +164,54 @@ public class MapSet
         ClearSelectedThings();
     }
 
+    // ============================================================
+    // Selection-driven edit operations.
+    // ============================================================
+    // These act on whatever is currently selected. Callers bracket them with UndoManager.CreateUndo and
+    // call BuildIndexes() afterward (deletions change topology). Offsets move geometry in place.
+
+    /// <summary>Moves every selected vertex by <paramref name="delta"/>. Returns the number moved.</summary>
+    public int MoveSelectedVerticesBy(Vector2D delta)
+    {
+        int n = 0;
+        foreach (var v in Vertices)
+            if (v.Selected) { v.Position += delta; n++; }
+        return n;
+    }
+
+    /// <summary>Moves every selected thing by <paramref name="delta"/>. Returns the number moved.</summary>
+    public int MoveSelectedThingsBy(Vector2D delta)
+    {
+        int n = 0;
+        foreach (var t in Things)
+            if (t.Selected) { t.Position += delta; n++; }
+        return n;
+    }
+
+    /// <summary>
+    /// Deletes all currently selected elements in dependency-safe order: things, then sectors (orphaning
+    /// their sidedefs), then linedefs (with their sidedefs), then vertices (cascading any remaining lines).
+    /// Returns the total number of primary elements removed. Call BuildIndexes() afterward.
+    /// </summary>
+    public int DeleteSelection()
+    {
+        int removed = 0;
+
+        for (int i = Things.Count - 1; i >= 0; i--)
+            if (Things[i].Selected) { Things.RemoveAt(i); removed++; }
+
+        for (int i = Sectors.Count - 1; i >= 0; i--)
+            if (Sectors[i].Selected) { RemoveSector(Sectors[i]); removed++; }
+
+        for (int i = Linedefs.Count - 1; i >= 0; i--)
+            if (Linedefs[i].Selected) { RemoveLinedef(Linedefs[i]); removed++; }
+
+        for (int i = Vertices.Count - 1; i >= 0; i--)
+            if (Vertices[i].Selected) { RemoveVertex(Vertices[i]); removed++; }
+
+        return removed;
+    }
+
     private static List<T> Filter<T>(List<T> items) where T : ISelectable
     {
         var result = new List<T>();
