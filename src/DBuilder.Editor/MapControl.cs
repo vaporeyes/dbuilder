@@ -1061,6 +1061,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    // Process-wide clipboard buffer for copy/paste of a selection.
+    private static byte[]? _clipboard;
+
+    /// <summary>Copies the current selection (with its dependency closure) to the clipboard.</summary>
+    public void CopySelection()
+    {
+        if (_map == null) return;
+        var buf = SelectionClipboard.CopySelection(_map);
+        if (buf == null) { Picked?.Invoke("nothing selected to copy"); return; }
+        _clipboard = buf;
+        Picked?.Invoke("copied selection");
+    }
+
+    /// <summary>Pastes the clipboard one grid cell from the originals and selects the result (undoable).</summary>
+    public void PasteClipboard()
+    {
+        if (_map == null || _clipboard == null) { Picked?.Invoke("clipboard empty"); return; }
+        EditBegun?.Invoke("Paste");
+        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_gridSize, _gridSize));
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke($"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things");
+    }
+
     // Auto-aligns texture X offsets along the wall run starting at the first selected linedef's front side, undoable.
     private void AutoAlignSelected()
     {
