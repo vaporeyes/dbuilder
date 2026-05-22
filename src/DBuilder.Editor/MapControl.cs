@@ -125,6 +125,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set { _thingArrows = value; _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
+    // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector.
+    private bool _drawMode;
+    private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
+    private Vec2D _drawCursor;
+    private GlVertexBuffer? _drawVb;
+    private int _drawLineCount;
+
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
     private enum DragKind { None, Pan, Move }
@@ -175,6 +182,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _linesVb = new GlVertexBuffer(_gl);
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
+        _drawVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
@@ -206,9 +214,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _linesVb?.Dispose();
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
+        _drawVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -504,6 +513,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.SetVertexBuffer(_selVertsVb);
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _selVertTris);
             }
+
+            // In-progress draw-tool polyline on top.
+            if (_drawLineCount > 0 && _drawVb != null)
+            {
+                _device.SetVertexBuffer(_drawVb);
+                _device.Draw(DBPrimitiveType.LineList, 0, _drawLineCount);
+            }
         }
     }
 
@@ -793,6 +809,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.S: _showFills = !_showFills; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
+                case Key.D: ToggleDrawMode(); e.Handled = true; return;
+                case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
+                case Key.Escape when _drawMode: CancelDraw(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.OemPlus or Key.Add: ZoomBy(0.8); e.Handled = true; return;     // zoom in
                 case Key.OemMinus or Key.Subtract: ZoomBy(1.25); e.Handled = true; return; // zoom out
@@ -866,6 +885,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var pt = e.GetCurrentPoint(this);
         if (_mode3D) return; // 3D ignores 2D pointer picking/panning
 
+        // Draw mode: left-click places loop points (or closes); a drag still pans. Right-click cancels.
+        if (_drawMode)
+        {
+            if (pt.Properties.IsRightButtonPressed) { CancelDraw(); return; }
+            if (pt.Properties.IsLeftButtonPressed)
+            {
+                if (e.ClickCount >= 2) { FinishDraw(); return; }
+                _pressed = true; _drag = DragKind.None;
+                _dragStart = pt.Position; _lastPointer = pt.Position;
+            }
+            return;
+        }
+
         // Right-click on a line inserts a vertex there (splits it), bracketed with undo.
         if (pt.Properties.IsRightButtonPressed && _map != null)
         {
@@ -909,6 +941,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!_pressed) return;
         _pressed = false;
         var pos = e.GetCurrentPoint(this).Position;
+
+        if (_drawMode)
+        {
+            if (_drag == DragKind.None) PlaceDrawPoint(ToWorld(pos)); // a click adds/closes a loop point
+            _drag = DragKind.None;
+            return;
+        }
+
         if (_drag == DragKind.None)
         {
             // A click. Point elements were already handled on press; otherwise pick a line/sector (or clear).
@@ -955,6 +995,103 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    // ---- Draw-geometry tool ----
+
+    /// <summary>True when the draw-geometry tool is active (host can reflect it in the status bar).</summary>
+    public bool DrawMode => _drawMode;
+    public event Action? DrawModeChanged;
+
+    private void ToggleDrawMode()
+    {
+        _drawMode = !_drawMode;
+        _drawPoints.Clear();
+        RebuildDrawPreview();
+        DrawModeChanged?.Invoke();
+        RequestNextFrameRendering();
+    }
+
+    private void CancelDraw()
+    {
+        _drawPoints.Clear();
+        RebuildDrawPreview();
+        RequestNextFrameRendering();
+    }
+
+    // Snaps a world point to a nearby existing vertex or the first draw point (for closing the loop).
+    private Vec2D SnapWorld(Vec2D world)
+    {
+        double r2 = (10 * _zoom) * (10 * _zoom);
+        if (_drawPoints.Count >= 3)
+        {
+            var f = _drawPoints[0];
+            double dx0 = f.x - world.x, dy0 = f.y - world.y;
+            if (dx0 * dx0 + dy0 * dy0 <= r2) return f;
+        }
+        if (_map != null)
+        {
+            var v = _map.NearestVertex(world, 10 * _zoom);
+            if (v != null) return v.Position;
+        }
+        return world;
+    }
+
+    private void PlaceDrawPoint(Vec2D world)
+    {
+        var p = SnapWorld(world);
+        // Clicking the first point (when we have a polygon) closes the loop.
+        if (_drawPoints.Count >= 3 && p.x == _drawPoints[0].x && p.y == _drawPoints[0].y)
+        {
+            FinishDraw();
+            return;
+        }
+        _drawPoints.Add(p);
+        RebuildDrawPreview();
+        RequestNextFrameRendering();
+    }
+
+    private void FinishDraw()
+    {
+        if (_map == null || _drawPoints.Count < 3) { CancelDraw(); return; }
+
+        EditBegun?.Invoke("Draw sector");
+        var loop = new System.Collections.Generic.List<Vertex>(_drawPoints.Count);
+        foreach (var p in _drawPoints)
+        {
+            var existing = _map.NearestVertex(p, 0.01); // exact reuse of snapped existing vertices
+            loop.Add(existing ?? _map.AddVertex(p));
+        }
+        SectorBuilder.CreateSector(_map, loop);
+        _map.MergeOverlappingVertices(0.01);
+        _map.BuildIndexes();
+
+        _drawPoints.Clear();
+        RebuildDrawPreview();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+    }
+
+    // Builds the in-progress draw overlay: placed-point segments + a preview segment to the cursor.
+    private void RebuildDrawPreview()
+    {
+        _drawLineCount = 0;
+        if (_device is null || _drawVb is null || !_drawMode || _drawPoints.Count == 0) return;
+
+        const int col = unchecked((int)0xff40ff80);   // bright green polyline
+        const int preview = unchecked((int)0xff80ff40);
+        var verts = new System.Collections.Generic.List<FlatVertex>();
+        for (int i = 0; i < _drawPoints.Count - 1; i++)
+        {
+            verts.Add(FV(_drawPoints[i], col));
+            verts.Add(FV(_drawPoints[i + 1], col));
+        }
+        // Preview segment from the last placed point to the (snapped) cursor.
+        verts.Add(FV(_drawPoints[^1], preview));
+        verts.Add(FV(_drawCursor, preview));
+
+        _device.SetBufferData(_drawVb, verts.ToArray());
+        _drawLineCount = verts.Count / 2;
+    }
+
     // Selects the nearest vertex/thing under the cursor on press. Returns true if one ended up selected
     // (so a subsequent drag should move it). Non-additive clicks replace the selection only when the hit
     // element wasn't already selected, preserving an existing multi-selection for dragging.
@@ -990,13 +1127,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
         CursorWorldMoved?.Invoke(ToWorld(pos));
+
+        if (_drawMode)
+        {
+            _drawCursor = SnapWorld(ToWorld(pos));
+            RebuildDrawPreview();
+            RequestNextFrameRendering();
+        }
+
         if (!_pressed) return;
 
         if (_drag == DragKind.None)
         {
             double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);
             if (moved < 4) return;
-            _drag = _moveCandidate ? DragKind.Move : DragKind.Pan;
+            _drag = _drawMode ? DragKind.Pan : (_moveCandidate ? DragKind.Move : DragKind.Pan);
             if (_drag == DragKind.Move) EditBegun?.Invoke("Move selection");
         }
 
