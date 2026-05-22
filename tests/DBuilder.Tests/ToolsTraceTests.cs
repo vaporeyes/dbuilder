@@ -103,6 +103,47 @@ public class ToolsTraceTests
         Assert.Equal(10000.0, total, 1e-6);
     }
 
+    [Fact]
+    public void FindPotentialSectorDetectsHole()
+    {
+        // Outer 100x100 square + inner 20x20 hole at center. A point in the ring should yield outer + inner loops.
+        var map = new MapSet();
+        var outer = new[]
+        {
+            new Vector2D(0, 0), new Vector2D(0, 100), new Vector2D(100, 100), new Vector2D(100, 0),
+        };
+        var hole = new[]
+        {
+            new Vector2D(40, 40), new Vector2D(60, 40), new Vector2D(60, 60), new Vector2D(40, 60),
+        };
+        void Ring(Vector2D[] pts)
+        {
+            var vs = pts.Select(p => map.AddVertex(p)).ToList();
+            for (int i = 0; i < vs.Count; i++) map.AddLinedef(vs[i], vs[(i + 1) % vs.Count]);
+        }
+        Ring(outer); Ring(hole);
+        map.BuildIndexes();
+
+        var path = Tools.FindPotentialSectorAt(map, new Vector2D(10, 50)); // in the ring, outside the hole
+        Assert.NotNull(path);
+        // 4 outer + 4 inner = 8 sides.
+        Assert.Equal(8, path!.Count);
+        var lines = new HashSet<Linedef>(path.Select(ls => ls.Line));
+        Assert.Equal(8, lines.Count);
+    }
+
+    [Fact]
+    public void FindPotentialSectorSimpleSquareHasNoHoles()
+    {
+        var (map, lines) = BuildPolygon(new[]
+        {
+            new Vector2D(0, 0), new Vector2D(0, 100), new Vector2D(100, 100), new Vector2D(100, 0),
+        });
+        var path = Tools.FindPotentialSectorAt(map, new Vector2D(50, 50));
+        Assert.NotNull(path);
+        Assert.Equal(4, path!.Count);
+    }
+
     private static double TriArea(Vector2D a, Vector2D b, Vector2D c)
         => System.Math.Abs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 0.5;
 

@@ -1007,10 +1007,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void MakeSectorAtCursor()
     {
         if (_map == null || _map.Linedefs.Count == 0) return;
-        var near = _map.NearestLinedef(_cursorWorld);
-        if (near == null) return;
-        bool front = Line2D.GetSideOfLine(near.Start.Position, near.End.Position, _cursorWorld) <= 0;
-        var path = Tools.FindClosestPath(near, front, turnatends: true);
+        var path = Tools.FindPotentialSectorAt(_map, _cursorWorld); // hole-aware
         if (path == null || path.Count < 3) { Picked?.Invoke("no enclosing loop here"); return; }
 
         EditBegun?.Invoke("Make sector");
