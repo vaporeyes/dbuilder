@@ -98,9 +98,15 @@ public sealed class GameConfiguration
     /// <summary>Display title for a thing type, e.g. "Imp" or "Unknown (12345)".</summary>
     public string ThingTitle(int index) => GetThing(index)?.Title ?? $"Unknown ({index})";
 
-    /// <summary>Display title for a linedef action, e.g. "Door Open Stay" or "Unknown (999)".</summary>
+    /// <summary>Display title for a linedef action, e.g. "Door Open Stay" or "Unknown (999)".
+    /// Falls back to a decoded Boom generalized-type description for numbers in the generalized range.</summary>
     public string LinedefActionTitle(int index)
-        => index == 0 ? "None" : GetLinedefAction(index)?.Title ?? $"Unknown ({index})";
+    {
+        if (index == 0) return "None";
+        var a = GetLinedefAction(index);
+        if (a != null) return a.Title;
+        return BoomGeneralized.Describe(index) ?? $"Unknown ({index})";
+    }
 
     /// <summary>Display title for a sector effect, or "None"/"Unknown".</summary>
     public string SectorEffectTitle(int index)
