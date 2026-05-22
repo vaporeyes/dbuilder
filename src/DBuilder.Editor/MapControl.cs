@@ -137,6 +137,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
+
+    // Grid: power-of-two world-unit spacing, rendered behind geometry; snap aligns draws/moves to it.
+    private int _gridSize = 64;
+    private bool _snapToGrid = true;
+    private GlVertexBuffer? _gridVb;
+    private int _gridLineCount;
     private enum DragKind { None, Pan, Move }
     private bool _pressed;
     private DragKind _drag = DragKind.None;
@@ -186,6 +192,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
         _drawVb = new GlVertexBuffer(_gl);
+        _gridVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
@@ -218,9 +225,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
         _drawVb?.Dispose();
+        _gridVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -468,6 +476,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 -1, 1);
             _device.SetUniform("projection", proj);
             _device.SetUniform("tex0", 0);
+
+            // Grid behind everything (visible in the void between sectors).
+            DrawGrid();
 
             // Draw order: sector fills (textured) -> lines -> things/sprites -> selection markers.
             if (_showFills)
@@ -776,6 +787,48 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         => new Vec2D(_camX + (p.X - Bounds.Width * 0.5) * _zoom,
                      _camY - (p.Y - Bounds.Height * 0.5) * _zoom);
 
+    // Rounds a world point to the nearest grid intersection (identity when snapping is off).
+    private Vec2D SnapToGrid(Vec2D w)
+    {
+        if (!_snapToGrid || _gridSize <= 0) return w;
+        return new Vec2D(Math.Round(w.x / _gridSize) * _gridSize, Math.Round(w.y / _gridSize) * _gridSize);
+    }
+
+    // Builds and draws the visible grid as a line list. Skips when cells would be denser than a few pixels.
+    private void DrawGrid()
+    {
+        if (_device is null || _gridVb is null || _gridSize <= 0) { _gridLineCount = 0; return; }
+        if (_gridSize / _zoom < 4) { _gridLineCount = 0; return; }
+
+        double halfW = Bounds.Width * 0.5 * _zoom;
+        double halfH = Bounds.Height * 0.5 * _zoom;
+        double left = _camX - halfW, right = _camX + halfW;
+        double bottom = _camY - halfH, top = _camY + halfH;
+
+        const int col = unchecked((int)0xff20242c);   // dim grid
+        const int axis = unchecked((int)0xff3a4654);   // brighter x=0 / y=0 axes
+        var verts = new System.Collections.Generic.List<FlatVertex>();
+        int x0 = (int)Math.Floor(left / _gridSize), x1 = (int)Math.Ceiling(right / _gridSize);
+        int y0 = (int)Math.Floor(bottom / _gridSize), y1 = (int)Math.Ceiling(top / _gridSize);
+        for (int gx = x0; gx <= x1; gx++)
+        {
+            double x = gx * (double)_gridSize; int c = gx == 0 ? axis : col;
+            verts.Add(FV(new Vec2D(x, bottom), c)); verts.Add(FV(new Vec2D(x, top), c));
+        }
+        for (int gy = y0; gy <= y1; gy++)
+        {
+            double y = gy * (double)_gridSize; int c = gy == 0 ? axis : col;
+            verts.Add(FV(new Vec2D(left, y), c)); verts.Add(FV(new Vec2D(right, y), c));
+        }
+
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetBufferData(_gridVb, verts.ToArray());
+        _gridLineCount = verts.Count / 2;
+        _device.SetVertexBuffer(_gridVb);
+        _device.Draw(DBPrimitiveType.LineList, 0, _gridLineCount);
+    }
+
     // Projects a world point onto a linedef's segment (clamped to its endpoints).
     private static Vec2D NearestPointOnLine(Linedef l, Vec2D p)
     {
@@ -818,6 +871,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.D: ToggleDrawMode(); e.Handled = true; return;
                 case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
+                case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {_gridSize})"); e.Handled = true; return;
+                case Key.OemOpenBrackets: _gridSize = Math.Max(8, _gridSize / 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
+                case Key.OemCloseBrackets: _gridSize = Math.Min(1024, _gridSize * 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
                 case Key.Escape when _drawMode: CancelDraw(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
@@ -1055,7 +1111,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var v = _map.NearestVertex(world, 10 * _zoom);
             if (v != null) return v.Position;
         }
-        return world;
+        return SnapToGrid(world);
     }
 
     private void PlaceDrawPoint(Vec2D world)
@@ -1177,11 +1233,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else if (_drag == DragKind.Move && _map != null)
         {
-            var delta = ToWorld(pos) - ToWorld(_lastPointer);
-            _map.MoveSelectedVerticesBy(delta);
-            _map.MoveSelectedThingsBy(delta);
-            MarkGeometryDirty();
-            Changed?.Invoke();
+            // With snapping, step by grid increments: diff the snapped previous/current pointer so the
+            // selection only advances when the cursor crosses a grid cell boundary.
+            var delta = _snapToGrid
+                ? SnapToGrid(ToWorld(pos)) - SnapToGrid(ToWorld(_lastPointer))
+                : ToWorld(pos) - ToWorld(_lastPointer);
+            if (delta.x != 0 || delta.y != 0)
+            {
+                _map.MoveSelectedVerticesBy(delta);
+                _map.MoveSelectedThingsBy(delta);
+                MarkGeometryDirty();
+                Changed?.Invoke();
+            }
         }
         _lastPointer = pos;
     }
