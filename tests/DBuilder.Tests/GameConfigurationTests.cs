@@ -62,6 +62,20 @@ public class GameConfigurationTests
             9 = "Secret";
             11 = "Damage and End level";
         }
+
+        linedefflags
+        {
+            1 = "Impassable";
+            2 = "Block Monsters";
+            4 = "Double Sided";
+            8 = "Upper Unpegged";
+        }
+
+        thingflags
+        {
+            1 = "Easy";
+            8 = "Ambush players";
+        }
         """;
 
     [Fact]
@@ -125,6 +139,32 @@ public class GameConfigurationTests
         Assert.Equal("Secret", gc.SectorEffectTitle(9));
         Assert.Equal("Damage and End level", gc.SectorEffectTitle(11));
         Assert.Equal("Unknown (5)", gc.SectorEffectTitle(5));
+    }
+
+    [Fact]
+    public void ParsesFlagDefinitions()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal("Impassable", gc.LinedefFlags[1]);
+        Assert.Equal("Double Sided", gc.LinedefFlags[4]);
+        Assert.Equal("Ambush players", gc.ThingFlags[8]);
+    }
+
+    [Fact]
+    public void DescribeLinedefFlagsListsSetBitsInOrder()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        // bits 1 (Impassable) + 4 (Double Sided) set; 2 and 8 clear.
+        var names = System.Linq.Enumerable.ToList(gc.DescribeLinedefFlags(1 | 4));
+        Assert.Equal(new[] { "Impassable", "Double Sided" }, names);
+        Assert.Empty(gc.DescribeLinedefFlags(0));
+    }
+
+    [Fact]
+    public void DescribeThingFlagsListsSetBits()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        Assert.Equal(new[] { "Easy", "Ambush players" }, System.Linq.Enumerable.ToList(gc.DescribeThingFlags(1 | 8)));
     }
 
     [Fact]

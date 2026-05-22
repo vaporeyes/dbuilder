@@ -337,7 +337,9 @@ public partial class MainWindow : Window
         {
             var l = _map.GetSelectedLinedefs()[0];
             string act = _config?.LinedefActionTitle(l.Action) ?? (l.Action == 0 ? "None" : $"action {l.Action}");
-            InfoText.Text = $"Linedef {_map.Linedefs.IndexOf(l)}: action {l.Action} - {act}    tag {l.Tag}    flags 0x{l.Flags:X4}    " +
+            string flags = _config != null ? string.Join(", ", _config.DescribeLinedefFlags(l.Flags)) : $"0x{l.Flags:X4}";
+            if (flags.Length == 0) flags = "none";
+            InfoText.Text = $"Linedef {_map.Linedefs.IndexOf(l)}: action {l.Action} - {act}    tag {l.Tag}    flags: {flags}    " +
                             (l.Back != null ? "two-sided" : "one-sided");
         }
         else if (ss == 1 && st == 0 && sl == 0 && sv == 0)

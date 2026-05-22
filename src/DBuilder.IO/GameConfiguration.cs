@@ -49,10 +49,18 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, ThingTypeInfo> things = new();
     private readonly Dictionary<int, LinedefActionInfo> linedefActions = new();
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
+    private readonly Dictionary<int, string> linedefFlags = new();
+    private readonly Dictionary<int, string> thingFlags = new();
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
     public IReadOnlyDictionary<int, SectorEffectInfo> SectorEffects => sectorEffects;
+
+    /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
+    public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
+
+    /// <summary>Thing flag bit value -> display name (e.g. 1 -> "Easy", 8 -> "Ambush players").</summary>
+    public IReadOnlyDictionary<int, string> ThingFlags => thingFlags;
 
     /// <summary>Loads a game configuration file (resolving its include() statements) into catalogs.</summary>
     public static GameConfiguration FromFile(string path)
@@ -77,6 +85,8 @@ public sealed class GameConfiguration
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
+            if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
+            if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
         }
         return gc;
     }
@@ -95,6 +105,20 @@ public sealed class GameConfiguration
     /// <summary>Display title for a sector effect, or "None"/"Unknown".</summary>
     public string SectorEffectTitle(int index)
         => GetSectorEffect(index)?.Title ?? (index == 0 ? "None" : $"Unknown ({index})");
+
+    /// <summary>Names of the set bits in a linedef flags value, in ascending bit order.</summary>
+    public IEnumerable<string> DescribeLinedefFlags(int flags) => DescribeFlags(linedefFlags, flags);
+
+    /// <summary>Names of the set bits in a thing flags value, in ascending bit order.</summary>
+    public IEnumerable<string> DescribeThingFlags(int flags) => DescribeFlags(thingFlags, flags);
+
+    private static IEnumerable<string> DescribeFlags(Dictionary<int, string> defs, int flags)
+    {
+        var bits = new List<int>(defs.Keys);
+        bits.Sort();
+        foreach (int bit in bits)
+            if (bit != 0 && (flags & bit) == bit) yield return defs[bit];
+    }
 
     // ============================================================
 
@@ -164,6 +188,17 @@ public sealed class GameConfiguration
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
             if (e.Value is string title)
                 sectorEffects[number] = new SectorEffectInfo { Index = number, Title = title };
+        }
+    }
+
+    // Parses a flat "<int> = "<string>";" map (flags, etc.) into the destination dictionary.
+    private void ParseFlatIntStrings(IDictionary src, Dictionary<int, string> dest)
+    {
+        foreach (DictionaryEntry e in src)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
+            if (e.Value is string s) dest[number] = s;
         }
     }
 
