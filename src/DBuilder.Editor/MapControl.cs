@@ -92,7 +92,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public ResourceManager? MapResources
     {
         get => _resources;
-        set { _resources = value; InvalidateTextures(); _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
+        set { _resources = value; _invalidateTextures = true; _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
     }
 
     private GameConfiguration? _gameConfig;
@@ -131,6 +131,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private Vec2D _drawCursor;
     private GlVertexBuffer? _drawVb;
     private int _drawLineCount;
+    private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
+    private bool _invalidateTextures; // dispose cached GL textures on the render thread (context current)
 
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
@@ -440,6 +442,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.StartRendering(clear: true, clearColorArgb: 0xff10131a);
         _device.SetShader(_shader);
 
+        // GL resource disposal must happen here (context current), never from input handlers.
+        if (_invalidateTextures) { InvalidateTextures(); _invalidateTextures = false; }
+
         if (_mode3D && _map != null)
         {
             Render3D(pw, ph);
@@ -514,7 +519,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _selVertTris);
             }
 
-            // In-progress draw-tool polyline on top.
+            // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
+            if (_drawDirty) { RebuildDrawPreview(); _drawDirty = false; }
             if (_drawLineCount > 0 && _drawVb != null)
             {
                 _device.SetVertexBuffer(_drawVb);
@@ -1005,7 +1011,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _drawMode = !_drawMode;
         _drawPoints.Clear();
-        RebuildDrawPreview();
+        _drawDirty = true;
         DrawModeChanged?.Invoke();
         RequestNextFrameRendering();
     }
@@ -1013,7 +1019,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void CancelDraw()
     {
         _drawPoints.Clear();
-        RebuildDrawPreview();
+        _drawDirty = true;
         RequestNextFrameRendering();
     }
 
@@ -1045,7 +1051,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
         _drawPoints.Add(p);
-        RebuildDrawPreview();
+        _drawDirty = true;
         RequestNextFrameRendering();
     }
 
@@ -1065,7 +1071,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.BuildIndexes();
 
         _drawPoints.Clear();
-        RebuildDrawPreview();
+        _drawDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
     }
@@ -1131,7 +1137,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_drawMode)
         {
             _drawCursor = SnapWorld(ToWorld(pos));
-            RebuildDrawPreview();
+            _drawDirty = true; // GL buffer rebuilt on the render thread
             RequestNextFrameRendering();
         }
 
