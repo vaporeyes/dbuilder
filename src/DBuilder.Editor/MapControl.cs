@@ -49,6 +49,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Flat-name -> uploaded GL texture (null cached when unresolvable). Lives across geometry rebuilds.
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _flatTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _wallTextures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _spriteTextures = new(StringComparer.OrdinalIgnoreCase);
+    // 2D thing sprite quads, bucketed by sprite lump (alpha-blended). Things without a resolvable sprite
+    // fall back to the colored diamond markers in _thingsVb.
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _spriteBuckets = new();
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
     private GlVertexBuffer? _thingsVb;
@@ -83,6 +87,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _resources;
         set { _resources = value; InvalidateTextures(); _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
+    }
+
+    private GameConfiguration? _gameConfig;
+    /// <summary>Game config used to resolve a thing's sprite name for 2D sprite rendering.</summary>
+    public GameConfiguration? GameConfig
+    {
+        get => _gameConfig;
+        set { _gameConfig = value; _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
     private bool _needsFit;
@@ -164,10 +176,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         foreach (var b in _ceil3D) b.Vb.Dispose();
         foreach (var b in _wall3D) b.Vb.Dispose();
         _floor3D.Clear(); _ceil3D.Clear(); _wall3D.Clear();
+        foreach (var b in _spriteBuckets) b.Vb.Dispose();
+        _spriteBuckets.Clear();
         foreach (var t in _flatTextures.Values) t?.Dispose();
         _flatTextures.Clear();
         foreach (var t in _wallTextures.Values) t?.Dispose();
         _wallTextures.Clear();
+        foreach (var t in _spriteTextures.Values) t?.Dispose();
+        _spriteTextures.Clear();
         _placeholderTex?.Dispose();
         _linesVb?.Dispose();
         _thingsVb?.Dispose();
@@ -183,6 +199,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _flatTextures.Clear();
         foreach (var t in _wallTextures.Values) t?.Dispose();
         _wallTextures.Clear();
+        foreach (var t in _spriteTextures.Values) t?.Dispose();
+        _spriteTextures.Clear();
     }
 
     // Returns the cached GL texture for a wall texture, uploading it from MapResources on first use.
@@ -200,6 +218,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _device.SetSamplerState(TextureAddress.Wrap);
         }
         _wallTextures[name] = tex;
+        return tex;
+    }
+
+    // Returns the cached GL texture for a sprite (clamped, transparent edges), uploading on first use.
+    private DBTexture? GetSpriteTexture(string name)
+    {
+        if (_spriteTextures.TryGetValue(name, out var cached)) return cached;
+        DBTexture? tex = null;
+        var img = _resources?.GetSprite(name);
+        if (img != null && _device != null && _gl != null)
+        {
+            tex = new DBTexture(_gl);
+            tex.SetPixelsRgba8(img.Width, img.Height, img.Rgba, generateMipmaps: false);
+            _device.SetTexture(0, tex);
+            _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+            _device.SetSamplerState(TextureAddress.Clamp);
+        }
+        _spriteTextures[name] = tex;
         return tex;
     }
 
@@ -422,6 +458,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.SetVertexBuffer(_linesVb);
                 _device.Draw(DBPrimitiveType.LineList, 0, _lineCount);
             }
+
+            // Thing sprites (alpha-blended, above lines).
+            if (_spriteBuckets.Count > 0)
+            {
+                _device.SetAlphaBlendEnable(true);
+                _device.SetSourceBlend(Blend.SourceAlpha);
+                _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+                _device.SetUniform("useTexture", 1f);
+                foreach (var b in _spriteBuckets)
+                {
+                    if (b.Tris == 0) continue;
+                    _device.SetTexture(0, b.Tex ?? _placeholderTex);
+                    _device.SetVertexBuffer(b.Vb);
+                    _device.Draw(DBPrimitiveType.TriangleList, 0, b.Tris);
+                }
+                _device.SetAlphaBlendEnable(false);
+                _device.SetUniform("useTexture", 0f);
+                _device.SetTexture(0, _placeholderTex);
+            }
+
             if (_selVertTris > 0 && _selVertsVb != null)
             {
                 _device.SetVertexBuffer(_selVertsVb);
@@ -452,27 +508,58 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _lineCount = lv.Length / 2;
         }
 
-        // Thing markers (filled diamonds, colored by type; selected = yellow).
+        // Things: render real sprites where the config + resources resolve one (alpha-blended quads,
+        // bucketed by sprite lump); the rest fall back to colored diamond markers in _thingsVb.
+        foreach (var b in _spriteBuckets) b.Vb.Dispose();
+        _spriteBuckets.Clear();
+        var spriteVerts = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+
         if (_thingsVb != null)
         {
-            var tv = new System.Collections.Generic.List<FlatVertex>(_map.Things.Count * 12);
+            var tv = new System.Collections.Generic.List<FlatVertex>();
             const double s = 10;
             foreach (var t in _map.Things)
             {
+                string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
+                if (!string.IsNullOrEmpty(sprite) && GetSpriteTexture(sprite!) is { } && _resources?.GetSprite(sprite!) is { } img)
+                {
+                    int sc = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+                    double hw = img.Width * 0.5, hh = img.Height * 0.5;
+                    var p = t.Position;
+                    if (!spriteVerts.TryGetValue(sprite!, out var list)) { list = new(); spriteVerts[sprite!] = list; }
+                    // Image top (v=0) maps to higher world-y so the sprite stands upright on screen.
+                    FlatVertex SV(double x, double y, float u, float v) => new FlatVertex { x = (float)x, y = (float)y, z = 0, w = 1, c = sc, u = u, v = v };
+                    var tl = SV(p.x - hw, p.y + hh, 0, 0);
+                    var tr = SV(p.x + hw, p.y + hh, 1, 0);
+                    var brv = SV(p.x + hw, p.y - hh, 1, 1);
+                    var bl = SV(p.x - hw, p.y - hh, 0, 1);
+                    list.Add(tl); list.Add(tr); list.Add(brv);
+                    list.Add(tl); list.Add(brv); list.Add(bl);
+                    continue;
+                }
+
                 int c = t.Selected ? unchecked((int)0xffffee00) : ThingColor(t.Type);
-                var p = t.Position;
-                var n = new Vec2D(p.x, p.y + s);
-                var e = new Vec2D(p.x + s, p.y);
-                var so = new Vec2D(p.x, p.y - s);
-                var w = new Vec2D(p.x - s, p.y);
-                tv.Add(FV(p, c)); tv.Add(FV(n, c)); tv.Add(FV(e, c));
-                tv.Add(FV(p, c)); tv.Add(FV(e, c)); tv.Add(FV(so, c));
-                tv.Add(FV(p, c)); tv.Add(FV(so, c)); tv.Add(FV(w, c));
-                tv.Add(FV(p, c)); tv.Add(FV(w, c)); tv.Add(FV(n, c));
+                var pp = t.Position;
+                var n = new Vec2D(pp.x, pp.y + s);
+                var e = new Vec2D(pp.x + s, pp.y);
+                var so = new Vec2D(pp.x, pp.y - s);
+                var w = new Vec2D(pp.x - s, pp.y);
+                tv.Add(FV(pp, c)); tv.Add(FV(n, c)); tv.Add(FV(e, c));
+                tv.Add(FV(pp, c)); tv.Add(FV(e, c)); tv.Add(FV(so, c));
+                tv.Add(FV(pp, c)); tv.Add(FV(so, c)); tv.Add(FV(w, c));
+                tv.Add(FV(pp, c)); tv.Add(FV(w, c)); tv.Add(FV(n, c));
             }
             var arr = tv.ToArray();
             if (arr.Length > 0) _device.SetBufferData(_thingsVb, arr);
             _thingTris = arr.Length / 3;
+        }
+
+        foreach (var (name, verts) in spriteVerts)
+        {
+            if (verts.Count == 0) continue;
+            var vb = new GlVertexBuffer(_gl!);
+            _device.SetBufferData(vb, verts.ToArray());
+            _spriteBuckets.Add((vb, verts.Count / 3, GetSpriteTexture(name)));
         }
 
         // Selected-vertex highlight markers.

@@ -54,6 +54,7 @@ public partial class MainWindow : Window
         {
             _config = GameConfiguration.FromFile(path);
             _configName = System.IO.Path.GetFileNameWithoutExtension(path);
+            MapView.GameConfig = _config; // enables thing sprites in the map view
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateInfo();
         }
