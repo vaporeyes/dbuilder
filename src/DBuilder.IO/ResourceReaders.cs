@@ -15,8 +15,8 @@ internal interface IResourceReader : IDisposable
     ImageData? GetFlat(string name, DoomPalette? palette);
     ImageData? GetWallTexture(string name, DoomPalette? palette);
     ImageData? GetSprite(string name, DoomPalette? palette);
-    /// <summary>The TEXTURES lump text if this resource defines one, else null.</summary>
-    string? GetTexturesLump();
+    /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
+    string? GetTextLump(string name);
 }
 
 internal sealed class WadResourceReader : IResourceReader
@@ -68,9 +68,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
-    public string? GetTexturesLump()
+    public string? GetTextLump(string name)
     {
-        var lump = wad.FindLump("TEXTURES");
+        var lump = wad.FindLump(name);
         return lump != null ? System.Text.Encoding.ASCII.GetString(lump.Stream.ReadAllBytes()) : null;
     }
 
@@ -152,9 +152,9 @@ internal sealed class Pk3ResourceReader : IResourceReader
         return ms.ToArray();
     }
 
-    public string? GetTexturesLump()
+    public string? GetTextLump(string name)
     {
-        var e = Find("TEXTURES", "", "textures");
+        var e = Find(name, "", name.ToLowerInvariant());
         return e != null ? System.Text.Encoding.ASCII.GetString(Read(e)) : null;
     }
 

@@ -75,7 +75,7 @@ public sealed class ResourceManager : IDisposable
         defsBuilt = true;
         foreach (var reader in readers)
         {
-            string? text = reader.GetTexturesLump();
+            string? text = reader.GetTextLump("TEXTURES");
             if (text == null) continue;
             foreach (var def in TexturesParser.Parse(text))
             {
@@ -162,6 +162,15 @@ public sealed class ResourceManager : IDisposable
             return fs.Length >= 4 && fs.ReadByte() == 'P' && fs.ReadByte() == 'K' && fs.ReadByte() == 3 && fs.ReadByte() == 4;
         }
         catch { return false; }
+    }
+
+    /// <summary>The text of a named lump (e.g. DECORATE) from every resource that has one, oldest first.</summary>
+    public List<string> GetTextLumps(string name)
+    {
+        var result = new List<string>();
+        foreach (var reader in readers)
+            if (reader.GetTextLump(name) is { } text) result.Add(text);
+        return result;
     }
 
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or null.</summary>

@@ -91,6 +91,28 @@ public sealed class GameConfiguration
         return gc;
     }
 
+    /// <summary>
+    /// Merges DECORATE actor definitions into the thing catalog. Actors with an editor number override or add
+    /// to existing entries (so mod things get titles/sprites/categories). Actors without a number are skipped.
+    /// </summary>
+    public void MergeActors(IEnumerable<ActorInfo> actors)
+    {
+        foreach (var a in actors)
+        {
+            if (a.DoomEdNum < 0) continue;
+            things[a.DoomEdNum] = new ThingTypeInfo
+            {
+                Index = a.DoomEdNum,
+                ClassName = a.ClassName,
+                Title = a.Title,
+                Category = a.Category ?? "Decorate",
+                Sprite = a.EditorSprite ?? "",
+                Width = a.Radius > 0 ? a.Radius : 16,
+                Height = a.Height > 0 ? a.Height : 16,
+            };
+        }
+    }
+
     public ThingTypeInfo? GetThing(int index) => things.TryGetValue(index, out var t) ? t : null;
     public LinedefActionInfo? GetLinedefAction(int index) => linedefActions.TryGetValue(index, out var a) ? a : null;
     public SectorEffectInfo? GetSectorEffect(int index) => sectorEffects.TryGetValue(index, out var s) ? s : null;

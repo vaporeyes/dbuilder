@@ -55,6 +55,25 @@ public partial class MainWindow : Window
         if (path != null) LoadConfig(path);
     }
 
+    // Parses any DECORATE lumps in the loaded resources and folds the actors into the game config so mod
+    // thing types get titles/sprites/categories in the editor.
+    private void MergeDecorateFromResources()
+    {
+        if (_resources is null) return;
+        var lumps = _resources.GetTextLumps("DECORATE");
+        if (lumps.Count == 0) return;
+        _config ??= GameConfiguration.FromText("");
+        int count = 0;
+        foreach (var text in lumps)
+        {
+            var actors = DecorateParser.Parse(text);
+            _config.MergeActors(actors);
+            foreach (var a in actors) if (a.DoomEdNum >= 0) count++;
+        }
+        MapView.GameConfig = _config; // refresh thing labels/sprites
+        if (count > 0) SetStatus($"Loaded {count} DECORATE actor(s) from resources.");
+    }
+
     private void LoadConfig(string path)
     {
         try
@@ -129,7 +148,8 @@ public partial class MainWindow : Window
         {
             _resources.AddBaseResource(path);
             MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
-            SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats refreshed)");
+            MergeDecorateFromResources();
+            SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
     }
@@ -369,6 +389,7 @@ public partial class MainWindow : Window
             _resources = new ResourceManager();
             _resources.AddResource(path);
             MapView.MapResources = _resources;
+            MergeDecorateFromResources();
 
             LoadMapEntry(maps[0]);
             if (maps.Count > 1)
