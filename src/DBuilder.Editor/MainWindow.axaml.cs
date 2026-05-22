@@ -187,6 +187,7 @@ public partial class MainWindow : Window
             {
                 _undo.CreateUndo("Edit thing");
                 t.Type = dlg.ResultType; t.Angle = dlg.ResultAngle; t.Tag = dlg.ResultTag; t.Action = dlg.ResultAction;
+                t.Flags = dlg.ResultFlags;
                 t.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY); t.Height = dlg.ResultHeight;
                 AfterEdit("Thing updated");
             }

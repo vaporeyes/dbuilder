@@ -19,6 +19,17 @@ public sealed record CatalogItem(int Number, string Label)
     public override string ToString() => Label;
 }
 
+/// <summary>A set of flag checkboxes (bit -> CheckBox) that recombines into an int on demand.</summary>
+public sealed class FlagChecks
+{
+    private readonly Dictionary<int, CheckBox> _boxes = new();
+    public void Add(int bit, CheckBox box) => _boxes[bit] = box;
+    public int Value
+    {
+        get { int v = 0; foreach (var (bit, cb) in _boxes) if (cb.IsChecked == true) v |= bit; return v; }
+    }
+}
+
 // Shared helpers for building simple label/input forms without XAML.
 public abstract class PropertyDialog : Window
 {
@@ -92,6 +103,22 @@ public abstract class PropertyDialog : Window
         return combo;
     }
 
+    // Adds a labeled column of checkboxes, one per flag bit, returning a handle that recombines them on OK.
+    protected FlagChecks AddFlagChecks(string label, IReadOnlyDictionary<int, string> defs, int current)
+    {
+        var fc = new FlagChecks();
+        var panel = new StackPanel { Spacing = 1 };
+        panel.Children.Add(new TextBlock { Text = label, Margin = new Avalonia.Thickness(0, 2, 0, 2) });
+        foreach (int bit in defs.Keys.OrderBy(b => b))
+        {
+            var cb = new CheckBox { Content = defs[bit], IsChecked = (current & bit) != 0, Padding = new Avalonia.Thickness(4, 0) };
+            fc.Add(bit, cb);
+            panel.Children.Add(cb);
+        }
+        _rows.Children.Insert(_rows.Children.Count - 1, panel);
+        return fc;
+    }
+
     protected static int ParseInt(TextBox box, int fallback)
         => int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
 
@@ -106,8 +133,9 @@ public sealed class ThingEditDialog : PropertyDialog
     private readonly ComboBox? _typeCombo;
     private readonly TextBox? _typeBox;
     private readonly TextBox _x, _y, _angle, _height, _tag, _action;
+    private readonly FlagChecks? _flagChecks;
 
-    public int ResultType, ResultAngle, ResultTag, ResultAction;
+    public int ResultType, ResultAngle, ResultTag, ResultAction, ResultFlags;
     public double ResultX, ResultY, ResultHeight;
 
     public ThingEditDialog(Thing t, GameConfiguration? config) : base("Edit Thing")
@@ -123,6 +151,8 @@ public sealed class ThingEditDialog : PropertyDialog
         _angle = AddField("Angle", t.Angle.ToString(CultureInfo.InvariantCulture));
         _tag = AddField("Tag (TID)", t.Tag.ToString(CultureInfo.InvariantCulture));
         _action = AddField("Action", t.Action.ToString(CultureInfo.InvariantCulture));
+        _flagChecks = (config != null && config.ThingFlags.Count > 0) ? AddFlagChecks("Flags", config.ThingFlags, t.Flags) : null;
+        ResultFlags = t.Flags; // preserved when no flag config
     }
 
     protected override void OnConfirm()
@@ -131,6 +161,7 @@ public sealed class ThingEditDialog : PropertyDialog
         ResultAngle = ParseInt(_angle, 0);
         ResultTag = ParseInt(_tag, 0);
         ResultAction = ParseInt(_action, 0);
+        if (_flagChecks != null) ResultFlags = _flagChecks.Value;
         ResultX = double.TryParse(_x.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) ? x : 0;
         ResultY = double.TryParse(_y.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var y) ? y : 0;
         ResultHeight = double.TryParse(_height.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var h) ? h : 0;
@@ -141,7 +172,9 @@ public sealed class LinedefEditDialog : PropertyDialog
 {
     private readonly ComboBox? _actionCombo;
     private readonly TextBox? _actionBox;
-    private readonly TextBox _tag, _flags;
+    private readonly TextBox _tag;
+    private readonly FlagChecks? _flagChecks;
+    private readonly TextBox? _flagsBox;
 
     public int ResultAction, ResultTag, ResultFlags;
 
@@ -156,14 +189,18 @@ public sealed class LinedefEditDialog : PropertyDialog
         else _actionBox = AddField("Action", l.Action.ToString(CultureInfo.InvariantCulture));
 
         _tag = AddField("Tag", l.Tag.ToString(CultureInfo.InvariantCulture));
-        _flags = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
+
+        if (config != null && config.LinedefFlags.Count > 0)
+            _flagChecks = AddFlagChecks("Flags", config.LinedefFlags, l.Flags);
+        else
+            _flagsBox = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
     }
 
     protected override void OnConfirm()
     {
         ResultAction = _actionCombo != null ? ComboNumber(_actionCombo, 0) : ParseInt(_actionBox!, 0);
         ResultTag = ParseInt(_tag, 0);
-        ResultFlags = ParseInt(_flags, 0);
+        ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
     }
 }
 
