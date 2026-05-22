@@ -11,6 +11,19 @@ public class Thing
     public double Height { get; set; } // UDMF Z; Doom-format things have no height
     public int Type { get; set; }
     public int Angle { get; set; }
+
+    /// <summary>UDMF pitch in degrees (rotation about the actor's lateral axis). Default 0.</summary>
+    public int Pitch { get; set; }
+
+    /// <summary>UDMF roll in degrees (rotation about the actor's forward axis). Default 0.</summary>
+    public int Roll { get; set; }
+
+    /// <summary>UDMF horizontal scale multiplier. Default 1.0 (unscaled).</summary>
+    public double ScaleX { get; set; } = 1.0;
+
+    /// <summary>UDMF vertical scale multiplier. Default 1.0 (unscaled).</summary>
+    public double ScaleY { get; set; } = 1.0;
+
     public int Flags { get; set; }
     public int Tag { get; set; }
     public int Action { get; set; }

@@ -169,6 +169,10 @@ public static class UdmfMapWriter
         WriteAssignment(sb, "y",     t.Position.y, indent: true);
         if (t.Height != 0) WriteAssignment(sb, "height", t.Height, indent: true);
         WriteIfNonzero(sb, "angle",   t.Angle);
+        WriteIfNonzero(sb, "pitch",   t.Pitch);
+        WriteIfNonzero(sb, "roll",    t.Roll);
+        if (t.ScaleX != 0 && t.ScaleX != 1.0) WriteAssignment(sb, "scalex", t.ScaleX, indent: true);
+        if (t.ScaleY != 0 && t.ScaleY != 1.0) WriteAssignment(sb, "scaley", t.ScaleY, indent: true);
         WriteAssignment(sb, "type",   t.Type, indent: true);
         WriteIfNonzero(sb, "special", t.Action);
         WriteIfNonzero(sb, "id",      t.Tag);

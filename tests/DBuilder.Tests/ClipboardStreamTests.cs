@@ -259,6 +259,33 @@ public class ClipboardStreamTests
     }
 
     [Fact]
+    public void ThingPitchRollScaleRoundTrip()
+    {
+        var src = new MapSet();
+        src.Things.Add(new Thing
+        {
+            Position = new Vector2D(10, 20),
+            Type = 3001,
+            Pitch = 30,
+            Roll = 45,
+            ScaleX = 2.0,
+            ScaleY = 0.5,
+        });
+
+        var ms = new MemoryStream();
+        ClipboardStreamWriter.Write(src, ms);
+        ms.Position = 0;
+        var dst = new MapSet();
+        ClipboardStreamReader.Read(dst, ms);
+
+        var t = dst.Things[0];
+        Assert.Equal(30, t.Pitch);
+        Assert.Equal(45, t.Roll);
+        Assert.Equal(2.0, t.ScaleX);
+        Assert.Equal(0.5, t.ScaleY);
+    }
+
+    [Fact]
     public void VertexZAndSlopesRoundTrip()
     {
         var src = new MapSet();

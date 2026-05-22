@@ -193,10 +193,18 @@ public static class UdmfMapLoader
             Height = GetDouble(c, "height"),
             Type = GetInt(c, "type"),
             Angle = GetInt(c, "angle"),
+            Pitch = GetInt(c, "pitch"),
+            Roll = GetInt(c, "roll"),
+            ScaleX = GetDouble(c, "scalex", 1.0),
+            ScaleY = GetDouble(c, "scaley", 1.0),
             Action = GetInt(c, "special"),
             Tag = GetInt(c, "id"),
         };
         for (int i = 0; i < t.Args.Length; i++) t.Args[i] = GetInt(c, $"arg{i}");
+
+        // "scale" is a uniform-scale shorthand: when present and nonzero it overrides scalex/scaley.
+        double uniformScale = GetDouble(c, "scale");
+        if (uniformScale != 0) { t.ScaleX = uniformScale; t.ScaleY = uniformScale; }
 
         foreach (var entry in c)
         {
@@ -223,7 +231,8 @@ public static class UdmfMapLoader
     private static readonly HashSet<string> LinedefManagedFields = new(StringComparer.Ordinal)
         { "v1", "v2", "sidefront", "sideback", "special", "id", "moreids", "arg0", "arg1", "arg2", "arg3", "arg4" };
     private static readonly HashSet<string> ThingManagedFields = new(StringComparer.Ordinal)
-        { "x", "y", "height", "type", "angle", "special", "id", "arg0", "arg1", "arg2", "arg3", "arg4" };
+        { "x", "y", "height", "type", "angle", "pitch", "roll", "scalex", "scaley", "scale",
+          "special", "id", "arg0", "arg1", "arg2", "arg3", "arg4" };
 
     // Appends ZDoom "moreids" (space-separated extra tags) onto a Tags list seeded with the primary id.
     // Tags[0] is the id read from the typed property; moreids contributes Tags[1..].

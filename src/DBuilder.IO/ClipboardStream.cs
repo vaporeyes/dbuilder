@@ -20,7 +20,8 @@
  *                                       args[5], flags; tags;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   things:    int32 count; per thing: int32 tag; double x, y, height;
- *                                      int32 angle, type, action, args[5], flags;
+ *                                      int32 angle, pitch, roll; double scalex, scaley;
+ *                                      int32 type, action, args[5], flags;
  *                                      int32 udmfFlagCount; (str, bool) pairs; customFields
  *
  *   tags:         int32 count; int32 tag per entry
@@ -154,6 +155,10 @@ public static class ClipboardStreamWriter
             w.Write(t.Position.y);
             w.Write(t.Height);
             w.Write(t.Angle);
+            w.Write(t.Pitch);
+            w.Write(t.Roll);
+            w.Write(t.ScaleX);
+            w.Write(t.ScaleY);
             w.Write(t.Type);
             w.Write(t.Action);
             for (int i = 0; i < t.Args.Length; i++) w.Write(t.Args[i]);
@@ -393,6 +398,10 @@ public static class ClipboardStreamReader
             double y = r.ReadDouble();
             double h = r.ReadDouble();
             int angle = r.ReadInt32();
+            int pitch = r.ReadInt32();
+            int roll = r.ReadInt32();
+            double scaleX = r.ReadDouble();
+            double scaleY = r.ReadDouble();
             int type = r.ReadInt32();
             int action = r.ReadInt32();
             int a0 = r.ReadInt32(), a1 = r.ReadInt32(), a2 = r.ReadInt32(), a3 = r.ReadInt32(), a4 = r.ReadInt32();
@@ -404,6 +413,10 @@ public static class ClipboardStreamReader
                 Position = new Vector2D(x, y),
                 Height = h,
                 Angle = angle,
+                Pitch = pitch,
+                Roll = roll,
+                ScaleX = scaleX,
+                ScaleY = scaleY,
                 Type = type,
                 Action = action,
                 Flags = flags,

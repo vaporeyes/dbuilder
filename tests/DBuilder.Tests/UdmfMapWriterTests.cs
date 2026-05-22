@@ -262,6 +262,67 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void ThingPitchRollScaleRoundTrip()
+    {
+        const string udmf = """
+            namespace = "ZDoom";
+            thing { x = 0.0; y = 0.0; type = 1; pitch = 30; roll = 45; scalex = 2.0; scaley = 0.5; }
+            thing { x = 8.0; y = 8.0; type = 2; }
+            """;
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        var t = map.Things[0];
+        Assert.Equal(30, t.Pitch);
+        Assert.Equal(45, t.Roll);
+        Assert.Equal(2.0, t.ScaleX);
+        Assert.Equal(0.5, t.ScaleY);
+        // Defaults on the untouched thing.
+        Assert.Equal(0, map.Things[1].Pitch);
+        Assert.Equal(1.0, map.Things[1].ScaleX);
+        Assert.Equal(1.0, map.Things[1].ScaleY);
+
+        // Round-trip through the writer.
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("pitch = 30;", written);
+        Assert.Contains("roll = 45;", written);
+        Assert.Contains("scalex = 2.0;", written);
+        Assert.Contains("scaley = 0.5;", written);
+
+        var r = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal(30, r.Things[0].Pitch);
+        Assert.Equal(45, r.Things[0].Roll);
+        Assert.Equal(2.0, r.Things[0].ScaleX);
+        Assert.Equal(0.5, r.Things[0].ScaleY);
+    }
+
+    [Fact]
+    public void UniformScaleShorthandOverridesScaleXY()
+    {
+        const string udmf = """
+            namespace = "ZDoom";
+            thing { x = 0.0; y = 0.0; type = 1; scale = 3.0; }
+            """;
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+        Assert.Equal(3.0, map.Things[0].ScaleX);
+        Assert.Equal(3.0, map.Things[0].ScaleY);
+        // "scale" must not leak into custom Fields.
+        Assert.DoesNotContain("scale", map.Things[0].Fields.Keys);
+    }
+
+    [Fact]
+    public void DefaultScaleEmitsNothing()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Things.Add(new Thing { Position = new Vector2D(0, 0), Type = 1 });
+        var text = UdmfMapWriter.Write(map);
+        Assert.DoesNotContain("scalex", text);
+        Assert.DoesNotContain("scaley", text);
+        Assert.DoesNotContain("pitch", text);
+        Assert.DoesNotContain("roll", text);
+    }
+
+    [Fact]
     public void VertexZAndSectorSlopesRoundTrip()
     {
         const string udmf = """
