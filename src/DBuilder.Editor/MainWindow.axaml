@@ -15,7 +15,7 @@
                 <MenuItem Header="_New Map" Click="OnNewMap" />
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
                 <MenuItem Header="Open _Map..." Click="OnOpenMap" />
-                <MenuItem Header="_Save as UDMF..." Click="OnSave" />
+                <MenuItem Header="_Save WAD As..." Click="OnSave" />
                 <Separator />
                 <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
                 <Separator />

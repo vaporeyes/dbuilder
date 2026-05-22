@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private UndoManager? _undo;
     private string? _mapMarker;
     private string? _wadPath;
+    private MapFormat _mapFormat = MapFormat.Doom;
     private GameConfiguration? _config;
     private string _configName = "(none)";
 
@@ -75,6 +76,7 @@ public partial class MainWindow : Window
         var map = new MapSet();
         _map = map;
         _mapMarker = "MAP01";
+        _mapFormat = MapFormat.Doom;
         _undo = new UndoManager(map);
         MapView.Map = map;
         MapView.Focus();
@@ -117,18 +119,33 @@ public partial class MainWindow : Window
         if (top is null) return;
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Save as UDMF WAD",
-            SuggestedFileName = (_mapMarker ?? "MAP01") + ".edited.wad",
+            Title = "Save WAD As",
+            SuggestedFileName = _wadPath != null
+                ? System.IO.Path.GetFileNameWithoutExtension(_wadPath) + ".edited.wad"
+                : (_mapMarker ?? "MAP01") + ".wad",
             DefaultExtension = "wad",
             FileTypeChoices = new[] { new FilePickerFileType("Doom WAD") { Patterns = new[] { "*.wad" } } },
         });
         if (file?.TryGetLocalPath() is not { } outPath) return;
         try
         {
-            if (System.IO.File.Exists(outPath)) System.IO.File.Delete(outPath);
-            using (var wad = new WAD(outPath, openreadonly: false))
-                UdmfMapWriter.WriteMap(_map, wad, _mapMarker ?? "MAP01", 0);
-            SetStatus($"Saved UDMF to {outPath}");
+            string marker = _mapMarker ?? "MAP01";
+            // Build the result in memory (so saving over the source WAD is safe), replacing just this map's
+            // block and preserving every other lump in its original format.
+            byte[] bytes;
+            var msOut = new System.IO.MemoryStream();
+            using (var dst = new WAD(msOut))
+            {
+                if (_wadPath != null && System.IO.File.Exists(_wadPath))
+                {
+                    using var src = new WAD(_wadPath, openreadonly: true);
+                    WadMaps.CopyAllLumps(src, dst);
+                }
+                WadMaps.SaveMap(dst, marker, _map, _mapFormat);
+                bytes = msOut.ToArray();
+            }
+            System.IO.File.WriteAllBytes(outPath, bytes);
+            SetStatus($"Saved {marker} [{_mapFormat}] to {System.IO.Path.GetFileName(outPath)}");
         }
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
     }
@@ -332,6 +349,7 @@ public partial class MainWindow : Window
 
             _map = map;
             _mapMarker = entry.Name;
+            _mapFormat = entry.Format;
             _undo = new UndoManager(map);
 
             MapView.Map = map;
