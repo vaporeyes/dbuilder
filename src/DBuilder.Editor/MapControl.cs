@@ -47,11 +47,14 @@ void main() { frag = v_color; }";
     private int _selVertTris;
     private bool _geometryDirty = true;
 
+    private bool _needsFit;
     private MapSet? _map;
     public MapSet? Map
     {
         get => _map;
-        set { _map = value; _geometryDirty = true; FitToMap(); RequestNextFrameRendering(); }
+        // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
+        // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
+        set { _map = value; _geometryDirty = true; _needsFit = true; RequestNextFrameRendering(); }
     }
 
     // Camera: world-space center + zoom in world-units-per-DIP.
@@ -132,6 +135,7 @@ void main() { frag = v_color; }";
 
         if (_map != null)
         {
+            if (_needsFit && Bounds.Width > 1 && Bounds.Height > 1) { FitToMap(); _needsFit = false; }
             if (_geometryDirty) { RebuildGeometry(); _geometryDirty = false; }
 
             double halfW = Bounds.Width * 0.5 * _zoom;
