@@ -112,6 +112,28 @@ public partial class MainWindow : Window
             LoadMapEntry(entry);
     }
 
+    // Adds a base resource (IWAD or PK3) beneath the current map's WAD so its textures/flats/sprites resolve.
+    private async void OnAddResource(object? sender, RoutedEventArgs e)
+    {
+        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Add Resource (IWAD / PK3)",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { new FilePickerFileType("WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip" } } },
+        });
+        if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+        try
+        {
+            _resources.AddBaseResource(path);
+            MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
+            SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats refreshed)");
+        }
+        catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
+    }
+
     private async void OnSave(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("Nothing to save."); return; }
