@@ -159,12 +159,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _snapToGrid = true;
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
-    private enum DragKind { None, Pan, Move }
+    private enum DragKind { None, Pan, Move, Box }
     private bool _pressed;
     private DragKind _drag = DragKind.None;
     private bool _moveCandidate;
     private Point _dragStart;
     private Point _lastPointer;
+    // Right-button: a drag pans, a click splits the nearest line. Decided on release.
+    private bool _rightPressed, _rightDragging;
+    // Rubber-band box selection (left-drag over empty space).
+    private bool _boxAdditive;
+    private Vec2D _boxStartWorld, _boxCurWorld;
+    private GlVertexBuffer? _boxVb;
 
     /// <summary>Raised with the world coordinates under the cursor (for the status bar).</summary>
     public event Action<Vec2D>? CursorWorldMoved;
@@ -209,6 +215,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _selVertsVb = new GlVertexBuffer(_gl);
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
+        _boxVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
@@ -242,9 +249,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _selVertsVb?.Dispose();
         _drawVb?.Dispose();
         _gridVb?.Dispose();
+        _boxVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -554,7 +562,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.SetVertexBuffer(_drawVb);
                 _device.Draw(DBPrimitiveType.LineList, 0, _drawLineCount);
             }
+
+            DrawSelectionBox();
         }
+    }
+
+    // Draws the rubber-band selection rectangle outline while a box drag is in progress.
+    private void DrawSelectionBox()
+    {
+        if (_drag != DragKind.Box || _device is null || _boxVb is null) return;
+        double x0 = Math.Min(_boxStartWorld.x, _boxCurWorld.x), x1 = Math.Max(_boxStartWorld.x, _boxCurWorld.x);
+        double y0 = Math.Min(_boxStartWorld.y, _boxCurWorld.y), y1 = Math.Max(_boxStartWorld.y, _boxCurWorld.y);
+        const int c = unchecked((int)0xffffee00);
+        var p00 = new Vec2D(x0, y0); var p10 = new Vec2D(x1, y0); var p11 = new Vec2D(x1, y1); var p01 = new Vec2D(x0, y1);
+        var v = new[]
+        {
+            FV(p00, c), FV(p10, c), FV(p10, c), FV(p11, c),
+            FV(p11, c), FV(p01, c), FV(p01, c), FV(p00, c),
+        };
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetBufferData(_boxVb, v);
+        _device.SetVertexBuffer(_boxVb);
+        _device.Draw(DBPrimitiveType.LineList, 0, 4);
     }
 
     private void RebuildGeometry()
@@ -984,19 +1014,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        // Right-click on a line inserts a vertex there (splits it), bracketed with undo.
-        if (pt.Properties.IsRightButtonPressed && _map != null)
+        // Right button: a drag pans, a click (no drag) splits the nearest line. Decide on release.
+        if (pt.Properties.IsRightButtonPressed)
         {
-            var world = ToWorld(pt.Position);
-            var l = _map.NearestLinedef(world, 8 * _zoom);
-            if (l != null)
-            {
-                EditBegun?.Invoke("Split linedef");
-                _map.SplitLinedef(l, NearestPointOnLine(l, world));
-                _map.BuildIndexes();
-                MarkGeometryDirty();
-                Changed?.Invoke();
-            }
+            _rightPressed = true; _rightDragging = false;
+            _dragStart = pt.Position; _lastPointer = pt.Position;
             return;
         }
 
@@ -1015,6 +1037,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _dragStart = pt.Position;
             _lastPointer = pt.Position;
             bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+            _boxAdditive = shift;
             // Select a vertex/thing immediately on press so a single press-drag moves it.
             _selectionDoneOnPress = SelectPointElementAt(ToWorld(pt.Position), shift);
             _moveCandidate = _selectionDoneOnPress;
@@ -1024,9 +1047,31 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+        var pos = e.GetCurrentPoint(this).Position;
+
+        // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
+        if (e.InitialPressMouseButton == MouseButton.Right && _rightPressed)
+        {
+            bool wasDrag = _rightDragging;
+            _rightPressed = false; _rightDragging = false;
+            if (!wasDrag && !_drawMode && _map != null)
+            {
+                var world = ToWorld(pos);
+                var l = _map.NearestLinedef(world, 8 * _zoom);
+                if (l != null)
+                {
+                    EditBegun?.Invoke("Split linedef");
+                    _map.SplitLinedef(l, NearestPointOnLine(l, world));
+                    _map.BuildIndexes();
+                    MarkGeometryDirty();
+                    Changed?.Invoke();
+                }
+            }
+            return;
+        }
+
         if (!_pressed) return;
         _pressed = false;
-        var pos = e.GetCurrentPoint(this).Position;
 
         if (_drawMode)
         {
@@ -1046,7 +1091,40 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             MergeDraggedVertices(); // snap+merge dragged vertices dropped onto stationary ones
             Changed?.Invoke();
         }
+        else if (_drag == DragKind.Box)
+        {
+            ApplyBoxSelection(_boxStartWorld, ToWorld(pos), _boxAdditive);
+        }
         _drag = DragKind.None;
+    }
+
+    // Selects all elements of the active mode whose geometry falls inside the rubber-band box.
+    private void ApplyBoxSelection(Vec2D a, Vec2D b, bool additive)
+    {
+        if (_map == null) return;
+        double minX = Math.Min(a.x, b.x), maxX = Math.Max(a.x, b.x);
+        double minY = Math.Min(a.y, b.y), maxY = Math.Max(a.y, b.y);
+        if (!additive) _map.ClearAllSelected();
+
+        int n = 0;
+        switch (_editMode)
+        {
+            case EditMode.Vertices:
+                foreach (var v in _map.GetVerticesInBox(minX, minY, maxX, maxY)) { v.Selected = true; n++; }
+                break;
+            case EditMode.Things:
+                foreach (var t in _map.GetThingsInBox(minX, minY, maxX, maxY)) { t.Selected = true; n++; }
+                break;
+            case EditMode.Sectors:
+                foreach (var s in _map.GetSectorsInBox(minX, minY, maxX, maxY)) { s.Selected = true; n++; }
+                break;
+            default:
+                foreach (var l in _map.GetLinedefsInBox(minX, minY, maxX, maxY)) { l.Selected = true; n++; }
+                break;
+        }
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke($"box-selected {n} {_editMode}");
     }
 
     // After a vertex drag, merge any selected vertex dropped within snap range of a stationary (unselected)
@@ -1297,20 +1375,39 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             RequestNextFrameRendering();
         }
 
+        // Right-drag pans the view (decided once the cursor moves past the click threshold).
+        if (_rightPressed)
+        {
+            if (!_rightDragging && Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y) < 4) return;
+            _rightDragging = true;
+            _camX -= (pos.X - _lastPointer.X) * _zoom;
+            _camY += (pos.Y - _lastPointer.Y) * _zoom;
+            _lastPointer = pos;
+            RequestNextFrameRendering();
+            return;
+        }
+
         if (!_pressed) return;
 
         if (_drag == DragKind.None)
         {
             double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);
             if (moved < 4) return;
-            _drag = _drawMode ? DragKind.Pan : (_moveCandidate ? DragKind.Move : DragKind.Pan);
+            // Draw mode pans; a press on a vertex/thing moves it; otherwise rubber-band box select.
+            _drag = _drawMode ? DragKind.Pan : (_moveCandidate ? DragKind.Move : DragKind.Box);
             if (_drag == DragKind.Move) EditBegun?.Invoke("Move selection");
+            else if (_drag == DragKind.Box) { _boxStartWorld = ToWorld(_dragStart); _boxCurWorld = ToWorld(pos); }
         }
 
         if (_drag == DragKind.Pan)
         {
             _camX -= (pos.X - _lastPointer.X) * _zoom;
             _camY += (pos.Y - _lastPointer.Y) * _zoom;
+            RequestNextFrameRendering();
+        }
+        else if (_drag == DragKind.Box)
+        {
+            _boxCurWorld = ToWorld(pos);
             RequestNextFrameRendering();
         }
         else if (_drag == DragKind.Move && _map != null)

@@ -458,6 +458,57 @@ public class MapSet
         return side?.Sector;
     }
 
+    /// <summary>Vertices whose position falls within the axis-aligned box (inclusive).</summary>
+    public List<Vertex> GetVerticesInBox(double minX, double minY, double maxX, double maxY)
+    {
+        var result = new List<Vertex>();
+        foreach (var v in Vertices)
+            if (InBox(v.Position, minX, minY, maxX, maxY)) result.Add(v);
+        return result;
+    }
+
+    /// <summary>Things whose position falls within the axis-aligned box (inclusive).</summary>
+    public List<Thing> GetThingsInBox(double minX, double minY, double maxX, double maxY)
+    {
+        var result = new List<Thing>();
+        foreach (var t in Things)
+            if (InBox(t.Position, minX, minY, maxX, maxY)) result.Add(t);
+        return result;
+    }
+
+    /// <summary>Linedefs with BOTH endpoints inside the box (the classic rubber-band rule).</summary>
+    public List<Linedef> GetLinedefsInBox(double minX, double minY, double maxX, double maxY)
+    {
+        var result = new List<Linedef>();
+        foreach (var l in Linedefs)
+            if (InBox(l.Start.Position, minX, minY, maxX, maxY) && InBox(l.End.Position, minX, minY, maxX, maxY))
+                result.Add(l);
+        return result;
+    }
+
+    /// <summary>Sectors all of whose boundary vertices are inside the box (a sector fully enclosed by the box).</summary>
+    public List<Sector> GetSectorsInBox(double minX, double minY, double maxX, double maxY)
+    {
+        var result = new List<Sector>();
+        foreach (var s in Sectors)
+        {
+            if (s.Sidedefs.Count == 0) continue;
+            bool all = true;
+            foreach (var sd in s.Sidedefs)
+            {
+                var line = sd.Line;
+                if (line == null) continue;
+                if (!InBox(line.Start.Position, minX, minY, maxX, maxY) || !InBox(line.End.Position, minX, minY, maxX, maxY))
+                { all = false; break; }
+            }
+            if (all) result.Add(s);
+        }
+        return result;
+    }
+
+    private static bool InBox(Vector2D p, double minX, double minY, double maxX, double maxY)
+        => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY;
+
     // Bounded point-to-segment squared distance, guarding against zero-length (degenerate) linedefs.
     private static double LinedefDistanceSq(Linedef l, Vector2D pos)
     {
