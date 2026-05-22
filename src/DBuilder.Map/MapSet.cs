@@ -323,6 +323,24 @@ public class MapSet
         return n;
     }
 
+    /// <summary>Reverses the direction of every selected linedef. Returns the number flipped. Call BuildIndexes() after.</summary>
+    public int FlipSelectedLinedefs()
+    {
+        int n = 0;
+        foreach (var l in Linedefs)
+            if (l.Selected) { l.FlipVertices(); n++; }
+        return n;
+    }
+
+    /// <summary>Swaps front/back sidedefs on every selected linedef. Returns the number swapped. Call BuildIndexes() after.</summary>
+    public int FlipSelectedSidedefs()
+    {
+        int n = 0;
+        foreach (var l in Linedefs)
+            if (l.Selected) { l.FlipSidedefs(); n++; }
+        return n;
+    }
+
     /// <summary>
     /// Deletes all currently selected elements in dependency-safe order: things, then sectors (orphaning
     /// their sidedefs), then linedefs (with their sidedefs), then vertices (cascading any remaining lines).

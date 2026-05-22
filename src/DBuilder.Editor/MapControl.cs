@@ -871,6 +871,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.D: ToggleDrawMode(); e.Handled = true; return;
                 case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
+                case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {_gridSize})"); e.Handled = true; return;
                 case Key.OemOpenBrackets: _gridSize = Math.Max(8, _gridSize / 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.OemCloseBrackets: _gridSize = Math.Min(1024, _gridSize * 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
@@ -1057,6 +1058,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _map.BuildIndexes();
             MarkGeometryDirty();
         }
+    }
+
+    // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.
+    private void FlipSelected(bool sidedefs)
+    {
+        if (_map == null || _map.SelectedLinedefsCount == 0) { Picked?.Invoke("no linedefs selected"); return; }
+        EditBegun?.Invoke(sidedefs ? "Flip sidedefs" : "Flip linedefs");
+        int n = sidedefs ? _map.FlipSelectedSidedefs() : _map.FlipSelectedLinedefs();
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke($"flipped {n} {(sidedefs ? "sidedef" : "linedef")}{(n == 1 ? "" : "s")}");
     }
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).
