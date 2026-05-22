@@ -5,11 +5,14 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Linedef
+public class Linedef : ISelectable
 {
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
     public double Angle { get; set; }
+
+    /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
+    public bool Selected { get; set; }
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
 

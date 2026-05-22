@@ -132,6 +132,55 @@ public class MapSet
     public void RemoveThing(Thing t) => Things.Remove(t);
 
     // ============================================================
+    // Selection.
+    // ============================================================
+    // Selection lives on each element's transient Selected flag (not serialized). These helpers query and
+    // clear it. Selection is reset by undo/redo since snapshots restore fresh element instances.
+
+    public List<Vertex> GetSelectedVertices() => Filter(Vertices);
+    public List<Linedef> GetSelectedLinedefs() => Filter(Linedefs);
+    public List<Sidedef> GetSelectedSidedefs() => Filter(Sidedefs);
+    public List<Sector> GetSelectedSectors() => Filter(Sectors);
+    public List<Thing> GetSelectedThings() => Filter(Things);
+
+    public int SelectedVerticesCount => Count(Vertices);
+    public int SelectedLinedefsCount => Count(Linedefs);
+    public int SelectedSectorsCount => Count(Sectors);
+    public int SelectedThingsCount => Count(Things);
+
+    public void ClearSelectedVertices() { foreach (var v in Vertices) v.Selected = false; }
+    public void ClearSelectedLinedefs() { foreach (var l in Linedefs) l.Selected = false; }
+    public void ClearSelectedSidedefs() { foreach (var s in Sidedefs) s.Selected = false; }
+    public void ClearSelectedSectors() { foreach (var s in Sectors) s.Selected = false; }
+    public void ClearSelectedThings() { foreach (var t in Things) t.Selected = false; }
+
+    /// <summary>Clears the Selected flag on every element of every type.</summary>
+    public void ClearAllSelected()
+    {
+        ClearSelectedVertices();
+        ClearSelectedLinedefs();
+        ClearSelectedSidedefs();
+        ClearSelectedSectors();
+        ClearSelectedThings();
+    }
+
+    private static List<T> Filter<T>(List<T> items) where T : ISelectable
+    {
+        var result = new List<T>();
+        foreach (var it in items)
+            if (it.Selected) result.Add(it);
+        return result;
+    }
+
+    private static int Count<T>(List<T> items) where T : ISelectable
+    {
+        int n = 0;
+        foreach (var it in items)
+            if (it.Selected) n++;
+        return n;
+    }
+
+    // ============================================================
     // Spatial queries / hit-testing.
     // ============================================================
     // Foundations for cursor picking and snapping. All distances are in map units. These scan the primary

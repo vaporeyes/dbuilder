@@ -5,9 +5,12 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Vertex
+public class Vertex : ISelectable
 {
     public Vector2D Position { get; set; }
+
+    /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
+    public bool Selected { get; set; }
 
     /// <summary>UDMF per-vertex ceiling height for vertex slopes. NaN means unset.</summary>
     public double ZCeiling { get; set; } = double.NaN;

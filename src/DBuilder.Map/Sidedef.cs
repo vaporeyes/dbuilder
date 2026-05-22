@@ -3,11 +3,14 @@
 
 namespace DBuilder.Map;
 
-public class Sidedef
+public class Sidedef : ISelectable
 {
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
     public bool IsFront { get; set; }
+
+    /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
+    public bool Selected { get; set; }
 
     /// <summary>The opposite sidedef on the same linedef, when this is a two-sided line. Populated by MapSet.BuildIndexes().</summary>
     public Sidedef? Other { get; set; }

@@ -5,9 +5,12 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Sector
+public class Sector : ISelectable
 {
     public int Index { get; set; }
+
+    /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
+    public bool Selected { get; set; }
 
     public int FloorHeight { get; set; }
     public int CeilHeight { get; set; }
