@@ -2,6 +2,7 @@
 // ABOUTME: Owns the loaded MapSet + UndoManager and keeps the status/info panels in sync with selection.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -16,6 +17,7 @@ public partial class MainWindow : Window
     private MapSet? _map;
     private UndoManager? _undo;
     private string? _mapMarker;
+    private string? _wadPath;
     private GameConfiguration? _config;
     private string _configName = "(none)";
 
@@ -79,6 +81,19 @@ public partial class MainWindow : Window
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
             LoadWad(path);
+    }
+
+    // Lets the user pick any map in the currently open WAD (doom2 has 32, hexen 31, ...).
+    private async void OnOpenMap(object? sender, RoutedEventArgs e)
+    {
+        if (_wadPath is null) { SetStatus("Open a WAD first."); return; }
+        List<MapEntry> maps;
+        using (var wad = new WAD(_wadPath, openreadonly: true)) maps = WadMaps.Find(wad);
+        if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
+
+        var dlg = new MapPickerDialog(maps, _mapMarker);
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } entry)
+            LoadMapEntry(entry);
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e)
@@ -258,13 +273,11 @@ public partial class MainWindow : Window
     {
         try
         {
-            using var wad = new WAD(path, openreadonly: true);
-            var (marker, map) = LoadFirstMap(wad);
-            if (map is null) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
+            List<MapEntry> maps;
+            using (var wad = new WAD(path, openreadonly: true)) maps = WadMaps.Find(wad);
+            if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
 
-            _map = map;
-            _mapMarker = marker;
-            _undo = new UndoManager(map);
+            _wadPath = path;
 
             // Resource manager over the loaded WAD provides flats/textures for the map view.
             _resources?.Dispose();
@@ -272,24 +285,34 @@ public partial class MainWindow : Window
             _resources.AddResource(path);
             MapView.MapResources = _resources;
 
-            MapView.Map = map;
-            MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
-            Title = $"DBuilder - {System.IO.Path.GetFileName(path)} ({marker})";
-            UpdateInfo();
-            SetStatus($"Loaded {marker}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
+            LoadMapEntry(maps[0]);
+            if (maps.Count > 1)
+                SetStatus($"Loaded {maps[0].Name} (1 of {maps.Count} maps - File > Open Map to switch)");
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
 
-    // Finds the first map block and loads it with the matching loader (UDMF / Hexen-binary / Doom-binary).
-    private static (string? marker, MapSet? map) LoadFirstMap(WAD wad)
+    // Loads a specific map from the currently open WAD into the editor.
+    private void LoadMapEntry(MapEntry entry)
     {
-        foreach (var entry in WadMaps.Find(wad))
+        if (_wadPath == null) return;
+        try
         {
-            var m = WadMaps.Load(wad, entry);
-            if (m != null) return (entry.Name, m);
+            using var wad = new WAD(_wadPath, openreadonly: true);
+            var map = WadMaps.Load(wad, entry);
+            if (map is null) { SetStatus($"Failed to load {entry.Name}"); return; }
+
+            _map = map;
+            _mapMarker = entry.Name;
+            _undo = new UndoManager(map);
+
+            MapView.Map = map;
+            MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
+            Title = $"DBuilder - {System.IO.Path.GetFileName(_wadPath)} ({entry.Name})";
+            UpdateInfo();
+            SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
-        return (null, null);
+        catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
 
     // ---- UI helpers ----
