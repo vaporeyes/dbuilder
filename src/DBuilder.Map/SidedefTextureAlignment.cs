@@ -37,6 +37,38 @@ public static class SidedefTextureAlignment
         return aligned;
     }
 
+    /// <summary>
+    /// Walks the same forward chain as <see cref="AutoAlignX"/> and sets each sidedef's Y (row) offset so a
+    /// top-pegged texture stays continuous across ceiling-height changes. The start sidedef is the anchor.
+    /// Returns the number of downstream sidedefs aligned. Requires BuildIndexes() for Vertex.Linedefs.
+    /// </summary>
+    public static int AutoAlignY(Sidedef start, int textureHeight)
+    {
+        if (textureHeight <= 0) textureHeight = 1;
+        string tex = PrimaryTexture(start);
+
+        int aligned = 0;
+        var visited = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance) { start };
+        int offset = start.OffsetY;
+        int top = TopReference(start);
+        Sidedef? next = NextSidedef(start, tex);
+
+        while (next != null && visited.Add(next))
+        {
+            int nextTop = TopReference(next);
+            // Continuity: top_prev - z + off_prev == top_next - z + off_next, so off_next = off_prev + (top_prev - top_next).
+            offset += top - nextTop;
+            next.OffsetY = Mod(offset, textureHeight);
+            aligned++;
+            top = nextTop;
+            next = NextSidedef(next, tex);
+        }
+        return aligned;
+    }
+
+    // The vertical anchor for a top-pegged wall is its sector's ceiling height (0 when it has no sector).
+    private static int TopReference(Sidedef sd) => sd.Sector?.CeilHeight ?? 0;
+
     // The primary texture used to decide chain membership: mid first (one-sided walls), then upper, then lower.
     public static string PrimaryTexture(Sidedef sd)
     {

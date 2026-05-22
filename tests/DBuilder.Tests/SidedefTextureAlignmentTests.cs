@@ -91,4 +91,43 @@ public class SidedefTextureAlignmentTests
         var ex = Record.Exception(() => SidedefTextureAlignment.AutoAlignX(lines[0].Front!, 0));
         Assert.Null(ex);
     }
+
+    // Builds a chain where each wall belongs to its own sector with a specified ceiling height.
+    private static (MapSet map, List<Linedef> lines) HeightChain(string tex, params int[] ceilings)
+    {
+        var map = new MapSet();
+        var verts = new List<Vertex>();
+        for (int i = 0; i <= ceilings.Length; i++) verts.Add(map.AddVertex(new Vector2D(i * 64, 0)));
+        var lines = new List<Linedef>();
+        for (int i = 0; i < ceilings.Length; i++)
+        {
+            var sector = map.AddSector();
+            sector.CeilHeight = ceilings[i];
+            var l = map.AddLinedef(verts[i], verts[i + 1]);
+            map.AddSidedef(l, true, sector).MidTexture = tex;
+            lines.Add(l);
+        }
+        map.BuildIndexes();
+        return (map, lines);
+    }
+
+    [Fact]
+    public void AlignsYByCeilingDeltas()
+    {
+        var (_, lines) = HeightChain("WALL", 128, 96, 160);
+        int n = SidedefTextureAlignment.AutoAlignY(lines[0].Front!, 128);
+        Assert.Equal(2, n);
+        Assert.Equal(0, lines[0].Front!.OffsetY);   // anchor
+        Assert.Equal(32, lines[1].Front!.OffsetY);  // +(128-96)
+        Assert.Equal(96, lines[2].Front!.OffsetY);  // 32+(96-160) = -32 -> mod 128
+    }
+
+    [Fact]
+    public void EqualCeilingsLeaveYOffsetUnchanged()
+    {
+        var (_, lines) = HeightChain("WALL", 100, 100, 100);
+        SidedefTextureAlignment.AutoAlignY(lines[0].Front!, 128);
+        Assert.Equal(0, lines[1].Front!.OffsetY);
+        Assert.Equal(0, lines[2].Front!.OffsetY);
+    }
 }
