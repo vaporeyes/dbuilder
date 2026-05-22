@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         MapView.Picked += _ => UpdateInfo();
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
         MapView.Changed += UpdateInfo;
+        MapView.EditRequested += OnEditSelected;
 
         TryLoadDefaultConfig();
 
@@ -137,6 +138,57 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Deleted {removed} element(s).");
+    }
+
+    // Opens a property dialog for the single selected element (triggered by a double-click).
+    private async void OnEditSelected()
+    {
+        if (_map is null || _undo is null) return;
+
+        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0)
+        {
+            var t = _map.GetSelectedThings()[0];
+            var dlg = new ThingEditDialog(t, _config);
+            if (await dlg.ShowDialog<bool>(this))
+            {
+                _undo.CreateUndo("Edit thing");
+                t.Type = dlg.ResultType; t.Angle = dlg.ResultAngle; t.Tag = dlg.ResultTag; t.Action = dlg.ResultAction;
+                t.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY); t.Height = dlg.ResultHeight;
+                AfterEdit("Thing updated");
+            }
+        }
+        else if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSectorsCount == 0)
+        {
+            var l = _map.GetSelectedLinedefs()[0];
+            var dlg = new LinedefEditDialog(l, _config);
+            if (await dlg.ShowDialog<bool>(this))
+            {
+                _undo.CreateUndo("Edit linedef");
+                l.Action = dlg.ResultAction; l.Tag = dlg.ResultTag; l.Flags = dlg.ResultFlags;
+                AfterEdit("Linedef updated");
+            }
+        }
+        else if (_map.SelectedSectorsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0)
+        {
+            var s = _map.GetSelectedSectors()[0];
+            var dlg = new SectorEditDialog(s, _config);
+            if (await dlg.ShowDialog<bool>(this))
+            {
+                _undo.CreateUndo("Edit sector");
+                s.FloorHeight = dlg.ResultFloor; s.CeilHeight = dlg.ResultCeil;
+                s.FloorTexture = dlg.ResultFloorTex; s.CeilTexture = dlg.ResultCeilTex;
+                s.Brightness = dlg.ResultBright; s.Special = dlg.ResultSpecial; s.Tag = dlg.ResultTag;
+                AfterEdit("Sector updated");
+            }
+        }
+    }
+
+    private void AfterEdit(string status)
+    {
+        _map?.BuildIndexes();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus(status);
     }
 
     private void OnSelectNone(object? sender, RoutedEventArgs e)

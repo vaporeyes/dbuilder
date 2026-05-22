@@ -78,6 +78,9 @@ void main() { frag = v_color; }";
     /// <summary>Raised after the map changes (move/pick) so the host can refresh its panels.</summary>
     public event Action? Changed;
 
+    /// <summary>Raised on a double-click after selecting a single element, so the host can open a property dialog.</summary>
+    public event Action? EditRequested;
+
     public void FitToMap()
     {
         if (_map == null || _map.Vertices.Count == 0) return;
@@ -303,6 +306,14 @@ void main() { frag = v_color; }";
         var pt = e.GetCurrentPoint(this);
         if (pt.Properties.IsLeftButtonPressed)
         {
+            if (e.ClickCount >= 2)
+            {
+                // Double-click: select exactly one element under the cursor and request a property edit.
+                SelectSingleAt(ToWorld(pt.Position));
+                EditRequested?.Invoke();
+                _pressed = false;
+                return;
+            }
             _pressed = true;
             _drag = DragKind.None;
             _dragStart = pt.Position;
@@ -403,6 +414,28 @@ void main() { frag = v_color; }";
         _zoom *= factor;
         _zoom = Math.Clamp(_zoom, 0.02, 200);
         RequestNextFrameRendering();
+    }
+
+    // Clears the selection and selects the single nearest element (vertex -> thing -> linedef -> sector).
+    private void SelectSingleAt(Vec2D world)
+    {
+        if (_map == null) return;
+        _map.ClearAllSelected();
+        var v = _map.NearestVertex(world, 10 * _zoom);
+        if (v != null) { v.Selected = true; }
+        else
+        {
+            var t = _map.NearestThing(world, 12 * _zoom);
+            if (t != null) { t.Selected = true; }
+            else
+            {
+                var l = _map.NearestLinedef(world, 8 * _zoom);
+                if (l != null) { l.Selected = true; }
+                else { var s = _map.GetSectorAt(world); if (s != null) s.Selected = true; }
+            }
+        }
+        MarkGeometryDirty();
+        Changed?.Invoke();
     }
 
     private void Pick(Vec2D world, bool additive)
