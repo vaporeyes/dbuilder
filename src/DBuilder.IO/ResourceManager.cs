@@ -30,6 +30,12 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, ImageData?> textureCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> spriteCache = new(StringComparer.OrdinalIgnoreCase);
 
+    // TEXTURES-lump composite definitions, keyed by name per usage (newest resource wins).
+    private readonly Dictionary<string, TexturesDef> wallDefs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, TexturesDef> flatDefs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, TexturesDef> spriteDefs = new(StringComparer.OrdinalIgnoreCase);
+    private bool defsBuilt;
+
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
     public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false)); Invalidate(); }
 
@@ -48,14 +54,100 @@ public sealed class ResourceManager : IDisposable
         Invalidate();
     }
 
-    // Resource set changed: drop cached lookups and re-resolve the palette (a newly added IWAD may provide it).
+    // Resource set changed: drop cached lookups, definitions and the palette (a newly added IWAD may provide them).
     private void Invalidate()
     {
         flatCache.Clear();
         textureCache.Clear();
         spriteCache.Clear();
+        wallDefs.Clear();
+        flatDefs.Clear();
+        spriteDefs.Clear();
+        defsBuilt = false;
         palette = null;
         paletteResolved = false;
+    }
+
+    // Parses each resource's TEXTURES lump (oldest first, so newer resources override) into per-usage tables.
+    private void EnsureDefs()
+    {
+        if (defsBuilt) return;
+        defsBuilt = true;
+        foreach (var reader in readers)
+        {
+            string? text = reader.GetTexturesLump();
+            if (text == null) continue;
+            foreach (var def in TexturesParser.Parse(text))
+            {
+                switch (def.Type)
+                {
+                    case TexturesType.WallTexture: wallDefs[def.Name] = def; break;
+                    case TexturesType.Flat: flatDefs[def.Name] = def; break;
+                    case TexturesType.Sprite:
+                    case TexturesType.Graphic: spriteDefs[def.Name] = def; break;
+                    default: // Texture: usable as both a wall and a flat
+                        wallDefs[def.Name] = def; flatDefs[def.Name] = def; break;
+                }
+            }
+        }
+    }
+
+    // Composes a TEXTURES definition into RGBA by blitting each patch (resolved as a raw single image).
+    private ImageData? ComposeTextures(TexturesDef def)
+    {
+        if (def.Width <= 0 || def.Height <= 0) return null;
+        var buf = new byte[def.Width * def.Height * 4]; // transparent
+        var pal = Palette;
+        foreach (var patch in def.Patches)
+        {
+            var img = ResolvePatchRaw(patch.Name, pal);
+            if (img != null) Blit(buf, def.Width, def.Height, img, patch.X, patch.Y, patch.FlipX, patch.FlipY);
+        }
+        return new ImageData(def.Width, def.Height, buf);
+    }
+
+    // Resolves a patch as a single image across resources (never via TEXTURES defs, so composition can't recurse).
+    private ImageData? ResolvePatchRaw(string name, DoomPalette? pal)
+    {
+        for (int i = readers.Count - 1; i >= 0; i--)
+        {
+            var img = readers[i].GetSprite(name, pal);
+            if (img != null) return img;
+        }
+        return null;
+    }
+
+    private static void Blit(byte[] dst, int dw, int dh, ImageData src, int px, int py, bool flipX, bool flipY)
+    {
+        for (int sy = 0; sy < src.Height; sy++)
+        {
+            int dy = py + sy;
+            if (dy < 0 || dy >= dh) continue;
+            int srcY = flipY ? src.Height - 1 - sy : sy;
+            for (int sx = 0; sx < src.Width; sx++)
+            {
+                int dx = px + sx;
+                if (dx < 0 || dx >= dw) continue;
+                int srcX = flipX ? src.Width - 1 - sx : sx;
+                int si = (srcY * src.Width + srcX) * 4;
+                byte a = src.Rgba[si + 3];
+                if (a == 0) continue;
+                int di = (dy * dw + dx) * 4;
+                if (a == 255)
+                {
+                    dst[di] = src.Rgba[si]; dst[di + 1] = src.Rgba[si + 1];
+                    dst[di + 2] = src.Rgba[si + 2]; dst[di + 3] = 255;
+                }
+                else
+                {
+                    int ia = 255 - a;
+                    dst[di] = (byte)((src.Rgba[si] * a + dst[di] * ia) / 255);
+                    dst[di + 1] = (byte)((src.Rgba[si + 1] * a + dst[di + 1] * ia) / 255);
+                    dst[di + 2] = (byte)((src.Rgba[si + 2] * a + dst[di + 2] * ia) / 255);
+                    dst[di + 3] = Math.Max(dst[di + 3], a);
+                }
+            }
+        }
     }
 
     private static bool LooksLikeZip(string path)
@@ -88,25 +180,31 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>Resolves a flat to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetFlat(string name) => Resolve(name, flatCache, static (r, n, p) => r.GetFlat(n, p));
+    public ImageData? GetFlat(string name) => Resolve(name, flatCache, flatDefs, static (r, n, p) => r.GetFlat(n, p));
 
     /// <summary>Resolves a wall texture to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, static (r, n, p) => r.GetWallTexture(n, p));
+    public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTexture(n, p));
 
     /// <summary>Resolves a sprite/patch to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetSprite(string name) => Resolve(name, spriteCache, static (r, n, p) => r.GetSprite(n, p));
+    public ImageData? GetSprite(string name) => Resolve(name, spriteCache, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
 
-    private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache,
+    private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
         Func<IResourceReader, string, DoomPalette?, ImageData?> lookup)
     {
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (cache.TryGetValue(name, out var cached)) return cached;
 
-        var pal = Palette;
-        ImageData? result = null;
-        // Newest resource wins; PK3/PNG entries resolve even when no palette is present.
-        for (int i = readers.Count - 1; i >= 0 && result == null; i--)
-            result = lookup(readers[i], name, pal);
+        EnsureDefs();
+        // A TEXTURES definition takes priority over single-image / TEXTUREx lookups.
+        ImageData? result = defs.TryGetValue(name, out var def) ? ComposeTextures(def) : null;
+
+        if (result == null)
+        {
+            var pal = Palette;
+            // Newest resource wins; PK3/PNG entries resolve even when no palette is present.
+            for (int i = readers.Count - 1; i >= 0 && result == null; i--)
+                result = lookup(readers[i], name, pal);
+        }
 
         cache[name] = result;
         return result;
