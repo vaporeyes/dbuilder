@@ -540,6 +540,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             const double s = 10;
             foreach (var t in _map.Things)
             {
+                // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
+                if (_thingArrows)
+                {
+                    BuildThingDisc(tv, t);
+                    continue;
+                }
+
                 string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
                 if (!string.IsNullOrEmpty(sprite) && GetSpriteTexture(sprite!) is { } && _resources?.GetSprite(sprite!) is { } img)
                 {
@@ -675,6 +682,58 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => unchecked((int)0xffd0d0d0),
     };
 
+    // Classic 16-colour console palette used by the .cfg thing category "color" index.
+    private static int Color16(int i)
+    {
+        uint rgb = (i & 15) switch
+        {
+            0 => 0x000000, 1 => 0x0000AA, 2 => 0x00AA00, 3 => 0x00AAAA,
+            4 => 0xAA0000, 5 => 0xAA00AA, 6 => 0xAA5500, 7 => 0xAAAAAA,
+            8 => 0x555555, 9 => 0x5555FF, 10 => 0x55FF55, 11 => 0x55FFFF,
+            12 => 0xFF5555, 13 => 0xFF55FF, 14 => 0xFFFF55, _ => 0xFFFFFF,
+        };
+        return unchecked((int)(0xff000000u | rgb));
+    }
+
+    // Appends a Doom-Builder-style colored disc + direction arrow for a thing into the (untextured) list.
+    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t)
+    {
+        const double radius = 11;
+        const int segments = 14;
+        var p = t.Position;
+        int catColor = _gameConfig?.GetThing(t.Type) is { } info ? Color16(info.Color) : ThingColor(t.Type);
+        int disc = t.Selected ? Brighten(catColor) : catColor;
+
+        // Disc as a triangle fan around the center.
+        for (int i = 0; i < segments; i++)
+        {
+            double a0 = i * 2 * Math.PI / segments;
+            double a1 = (i + 1) * 2 * Math.PI / segments;
+            var v0 = new Vec2D(p.x + Math.Cos(a0) * radius, p.y + Math.Sin(a0) * radius);
+            var v1 = new Vec2D(p.x + Math.Cos(a1) * radius, p.y + Math.Sin(a1) * radius);
+            list.Add(FV(p, disc)); list.Add(FV(v0, disc)); list.Add(FV(v1, disc));
+        }
+
+        // Direction arrow (a dark wedge from center toward the thing's angle).
+        double rad = t.Angle * Math.PI / 180.0;
+        var dir = new Vec2D(Math.Cos(rad), Math.Sin(rad));
+        var perp = new Vec2D(-dir.y, dir.x);
+        const int arrow = unchecked((int)0xff101010);
+        var tip = new Vec2D(p.x + dir.x * radius * 1.0, p.y + dir.y * radius * 1.0);
+        var baseL = new Vec2D(p.x + perp.x * radius * 0.45, p.y + perp.y * radius * 0.45);
+        var baseR = new Vec2D(p.x - perp.x * radius * 0.45, p.y - perp.y * radius * 0.45);
+        list.Add(FV(tip, arrow)); list.Add(FV(baseL, arrow)); list.Add(FV(baseR, arrow));
+    }
+
+    private static int Brighten(int argb)
+    {
+        uint u = unchecked((uint)argb);
+        byte r = (byte)Math.Min(255, ((u >> 16) & 0xFF) + 80);
+        byte g = (byte)Math.Min(255, ((u >> 8) & 0xFF) + 80);
+        byte b = (byte)Math.Min(255, (u & 0xFF) + 80);
+        return unchecked((int)(0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b));
+    }
+
     private static int LineColor(Linedef l)
     {
         if (l.Selected) return unchecked((int)0xffffee00);                       // yellow
@@ -730,6 +789,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 case Key.S: _showFills = !_showFills; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
+                case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.OemPlus or Key.Add: ZoomBy(0.8); e.Handled = true; return;     // zoom in
                 case Key.OemMinus or Key.Subtract: ZoomBy(1.25); e.Handled = true; return; // zoom out

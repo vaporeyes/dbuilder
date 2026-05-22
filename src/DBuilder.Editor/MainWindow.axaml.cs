@@ -209,6 +209,13 @@ public partial class MainWindow : Window
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
 
+    private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
+    {
+        MapView.ThingArrows = !MapView.ThingArrows;
+        SetStatus($"Things: {(MapView.ThingArrows ? "arrows" : "sprites")}");
+        MapView.Focus();
+    }
+
     private void OnAbout(object? sender, RoutedEventArgs e)
         => SetStatus("DBuilder - a cross-platform Doom map editor (Avalonia + Silk.NET).");
 
@@ -287,7 +294,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Click select; drag move/pan; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
+                            $"   Config: {_configName}.   Click select; drag move/pan; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
             return;
         }
 
