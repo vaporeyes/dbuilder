@@ -33,18 +33,25 @@ Console.WriteLine($"[smoke] {Path.GetFileName(wadPath)}  -  {markers.Count} map(
 Console.WriteLine();
 
 int passed = 0, failed = 0;
+var healthTotals = new Dictionary<MapIssueKind, int>();
 foreach (var marker in markers)
 {
-    if (SmokeMap(wad, marker, resources)) passed++; else failed++;
+    if (SmokeMap(wad, marker, resources, healthTotals)) passed++; else failed++;
 }
 
 Console.WriteLine();
 Console.WriteLine($"[smoke] {passed}/{markers.Count} maps passed" + (failed > 0 ? $", {failed} FAILED" : ""));
+if (healthTotals.Count > 0)
+{
+    Console.WriteLine("[smoke] health issues across all maps (reported, not failed):");
+    foreach (var kind in (MapIssueKind[])Enum.GetValues(typeof(MapIssueKind)))
+        if (healthTotals.TryGetValue(kind, out int n)) Console.WriteLine($"           {kind}: {n}");
+}
 return failed == 0 ? 0 : 1;
 
 // ============================================================
 
-static bool SmokeMap(WAD wad, string marker, ResourceManager resources)
+static bool SmokeMap(WAD wad, string marker, ResourceManager resources, Dictionary<MapIssueKind, int> healthTotals)
 {
     var problems = new List<string>();
     MapSet? map = null;
@@ -83,12 +90,28 @@ static bool SmokeMap(WAD wad, string marker, ResourceManager resources)
     // Resolve referenced textures/flats.
     var (flatsOk, flatsTotal, wallsOk, wallsTotal) = ResolveTextures(map, resources);
 
+    // Health check (reported, not failed - real maps legitimately contain editor-flagged geometry).
+    string health = "";
+    try
+    {
+        var issues = MapAnalysis.Check(map);
+        int errs = 0, warns = 0;
+        foreach (var iss in issues)
+        {
+            if (iss.Severity == MapIssueSeverity.Error) errs++; else warns++;
+            healthTotals[iss.Kind] = healthTotals.TryGetValue(iss.Kind, out int c) ? c + 1 : 1;
+        }
+        if (errs + warns > 0) health = $"  health {errs}E/{warns}W";
+    }
+    catch (Exception ex) { problems.Add($"analysis threw: {ex.GetType().Name}: {ex.Message}"); }
+
     bool ok = problems.Count == 0;
     string detail = $"{fmt} sectors={map.Sectors.Count} tris={triCount}" +
                     (triFailed > 0 ? $" ({triFailed} failed" + (triApprox > 0 ? $", {triApprox} approx)" : ")") : triApprox > 0 ? $" ({triApprox} approx)" : "") +
                     $"  doom={doom} hexen={hexen} udmf={udmf}" +
                     (flatsTotal > 0 ? $"  flats {flatsOk}/{flatsTotal}" : "") +
-                    (wallsTotal > 0 ? $"  walls {wallsOk}/{wallsTotal}" : "");
+                    (wallsTotal > 0 ? $"  walls {wallsOk}/{wallsTotal}" : "") +
+                    health;
     Report(marker, fmt, ok ? "ok" : "FAIL", detail, ok ? null : problems);
     return ok;
 }
