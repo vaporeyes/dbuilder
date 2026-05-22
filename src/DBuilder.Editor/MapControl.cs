@@ -25,8 +25,9 @@ namespace DBuilder.Editor;
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
-    // reach it by default. Claiming the whole control area as a hit makes pointer input work.
-    public bool HitTest(Point point) => true;
+    // reach it by default. Claim only points actually inside the control's bounds - returning true for
+    // ALL points made the map swallow clicks meant for the surrounding menu/toolbar chrome.
+    public bool HitTest(Point point) => point.X >= 0 && point.Y >= 0 && point.X < Bounds.Width && point.Y < Bounds.Height;
 
     private const string VertexSrc = @"#version 330 core
 layout(location=0) in vec4 a_pos;
