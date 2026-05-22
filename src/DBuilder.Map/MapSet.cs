@@ -131,6 +131,82 @@ public class MapSet
 
     public void RemoveThing(Thing t) => Things.Remove(t);
 
+    // ============================================================
+    // Spatial queries / hit-testing.
+    // ============================================================
+    // Foundations for cursor picking and snapping. All distances are in map units. These scan the primary
+    // lists linearly (O(n)); a blockmap acceleration structure can replace the scans later if needed.
+
+    /// <summary>Nearest vertex to <paramref name="pos"/> within <paramref name="maxRange"/> units, or null if none.</summary>
+    public Vertex? NearestVertex(Vector2D pos, double maxRange = double.MaxValue)
+    {
+        Vertex? closest = null;
+        double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
+        foreach (var v in Vertices)
+        {
+            double dx = v.Position.x - pos.x;
+            double dy = v.Position.y - pos.y;
+            double d = dx * dx + dy * dy;
+            if (d < bestSq) { bestSq = d; closest = v; }
+        }
+        return closest;
+    }
+
+    /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
+    public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
+    {
+        Linedef? closest = null;
+        double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
+        foreach (var l in Linedefs)
+        {
+            double d = LinedefDistanceSq(l, pos);
+            if (d < bestSq) { bestSq = d; closest = l; }
+        }
+        return closest;
+    }
+
+    /// <summary>
+    /// Nearest sidedef to <paramref name="pos"/>: finds the nearest linedef, then returns the sidedef on the
+    /// side of that line where the point lies (front when the point is on the right of start->end).
+    /// </summary>
+    public Sidedef? NearestSidedef(Vector2D pos, double maxRange = double.MaxValue)
+    {
+        var line = NearestLinedef(pos, maxRange);
+        if (line == null) return null;
+        // GetSideOfLine < 0 means the point is on the front (right) side for start->end winding.
+        bool front = Line2D.GetSideOfLine(line.Start.Position, line.End.Position, pos) < 0;
+        return front ? (line.Front ?? line.Back) : (line.Back ?? line.Front);
+    }
+
+    /// <summary>
+    /// Returns the sector containing <paramref name="pos"/>, determined via the nearest linedef's facing side.
+    /// Assumes well-formed, closed sectors. Returns null when there are no linedefs or the facing side has no sector.
+    /// </summary>
+    public Sector? GetSectorAt(Vector2D pos)
+    {
+        var line = NearestLinedef(pos);
+        if (line == null) return null;
+        bool front = Line2D.GetSideOfLine(line.Start.Position, line.End.Position, pos) < 0;
+        // The facing side determines the sector. A null facing side means the point is in the void
+        // (outside a one-sided wall), so return null rather than the wall's own sector.
+        var side = front ? line.Front : line.Back;
+        return side?.Sector;
+    }
+
+    // Bounded point-to-segment squared distance, guarding against zero-length (degenerate) linedefs.
+    private static double LinedefDistanceSq(Linedef l, Vector2D pos)
+    {
+        var a = l.Start.Position;
+        var b = l.End.Position;
+        double lenSq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+        if (lenSq < 1e-12)
+        {
+            double dx0 = pos.x - a.x, dy0 = pos.y - a.y;
+            return dx0 * dx0 + dy0 * dy0;
+        }
+        return Line2D.GetDistanceToLineSq(a, b, pos, bounded: true);
+    }
+
     /// <summary>Axis-aligned bounding box of the vertex set; (0,0,0,0) when empty.</summary>
     public (double minX, double minY, double maxX, double maxY) Bounds()
     {
