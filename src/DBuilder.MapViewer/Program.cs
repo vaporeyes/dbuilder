@@ -234,12 +234,14 @@ static Dictionary<string, SkyTextureData> LoadUniqueWallTextures(MapSet map, WAD
         foreach (var def in list)
             if (!byName.ContainsKey(def.Name)) byName[def.Name] = def;
 
-    // Collect unique names actually referenced by the map's linedefs.
+    // Collect unique names actually referenced by the map's linedefs. The 2D ribbon view only needs the
+    // representative texture, but the 3D view textures upper/lower steps separately, so gather all slots.
     var wanted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    void Want(string? s) { if (!string.IsNullOrEmpty(s) && s != "-") wanted.Add(s!); }
     foreach (var line in map.Linedefs)
     {
-        string? n = PickWallTextureName(line);
-        if (n != null) wanted.Add(n);
+        if (line.Front != null) { Want(line.Front.MidTexture); Want(line.Front.HighTexture); Want(line.Front.LowTexture); }
+        if (line.Back != null)  { Want(line.Back.MidTexture);  Want(line.Back.HighTexture);  Want(line.Back.LowTexture); }
     }
 
     foreach (var name in wanted)
@@ -665,11 +667,12 @@ foreach (var t in map.Things)
 // ============================================================
 // 2.8. 3D geometry - real-height floors/ceilings/walls for the perspective fly mode.
 // ============================================================
-// Vertex-colored (untextured) so we don't need to re-bucket textures for 3D. Floors sit at GetFloorZ
-// (sloped), ceilings at GetCeilZ, walls span the gaps. This is where sloped sectors visibly tilt.
-var floors3D = new List<FlatVertex>();
-var ceils3D = new List<FlatVertex>();
-var walls3D = new List<FlatVertex>();
+// Bucketed by texture name so the 3D view reuses the same GL textures the 2D mode uploaded.
+// Floors sit at GetFloorZ (sloped), ceilings at GetCeilZ, walls span the gaps. Bucket key "" = untextured
+// (vertex-colored gray fallback). Flats use UV = (x/64, y/64); walls run u along length, v down from the top.
+var floor3DBuckets = new Dictionary<string, List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+var ceil3DBuckets = new Dictionary<string, List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+var wall3DBuckets = new Dictionary<string, List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
 
 static int GrayColor(int sectorBrightness, double scale)
 {
@@ -678,15 +681,10 @@ static int GrayColor(int sectorBrightness, double scale)
     return unchecked((int)(0xff000000u | ((uint)b << 16) | ((uint)b << 8) | b));
 }
 
-void PushQuad3D(List<FlatVertex> list,
-                double x1, double y1, double z1,
-                double x2, double y2, double z2,
-                double x3, double y3, double z3,
-                double x4, double y4, double z4, int color)
+List<FlatVertex> Bucket3D(Dictionary<string, List<FlatVertex>> buckets, string key)
 {
-    FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = color, u = 0, v = 0 };
-    list.Add(V(x1, y1, z1)); list.Add(V(x2, y2, z2)); list.Add(V(x3, y3, z3));
-    list.Add(V(x1, y1, z1)); list.Add(V(x3, y3, z3)); list.Add(V(x4, y4, z4));
+    if (!buckets.TryGetValue(key, out var list)) { list = new List<FlatVertex>(); buckets[key] = list; }
+    return list;
 }
 
 foreach (var sector in map.Sectors)
@@ -697,59 +695,84 @@ foreach (var sector in map.Sectors)
     catch { continue; }
     if (tri3.Vertices.Count == 0) continue;
 
-    int floorCol = GrayColor(sector.Brightness, 1.0);
-    int ceilCol  = GrayColor(sector.Brightness, 0.75);
+    string floorName = sector.FloorTexture ?? "-";
+    string ceilName = sector.CeilTexture ?? "-";
+    string floorKey = flatRgba.ContainsKey(floorName) ? floorName : "";
+    string ceilKey = flatRgba.ContainsKey(ceilName) ? ceilName : "";
+    int floorCol = floorKey != "" ? GrayColor(sector.Brightness, 1.0) : GrayColor(sector.Brightness, 1.0);
+    int ceilCol  = ceilKey != ""  ? GrayColor(sector.Brightness, 0.85) : GrayColor(sector.Brightness, 0.75);
+
+    var floorList = Bucket3D(floor3DBuckets, floorKey);
+    var ceilList = Bucket3D(ceil3DBuckets, ceilKey);
     for (int i = 0; i < tri3.Vertices.Count; i++)
     {
         var p = tri3.Vertices[i];
-        double fz = sector.GetFloorZ(p);
-        floors3D.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)fz, w = 1, c = floorCol, u = 0, v = 0 });
-        double cz = sector.GetCeilZ(p);
-        ceils3D.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)cz, w = 1, c = ceilCol, u = 0, v = 0 });
+        floorList.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)sector.GetFloorZ(p), w = 1, c = floorCol, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+        ceilList.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)sector.GetCeilZ(p), w = 1, c = ceilCol, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
     }
+}
+
+// Adds a textured (or gray) vertical wall quad spanning bottom->top along the segment a..b.
+void PushWall3D(Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName, int brightness)
+{
+    if (topZa <= botZa && topZb <= botZb) return; // no visible span
+    string key = wallTextures.TryGetValue(texName, out var td) ? texName : "";
+    int texH = key != "" ? wallTextures[key].Height : 64;
+    int texW = key != "" ? wallTextures[key].Width : 64;
+    double len = (b - a).GetLength();
+    double uMax = len / texW;
+    int col = key != "" ? GrayColor(brightness, 1.0) : GrayColor(brightness, 0.6);
+
+    // v runs downward from the top of the segment so the texture top sits at the wall top.
+    float Vof(double z, double top) => (float)((top - z) / texH);
+
+    var list = Bucket3D(wall3DBuckets, key);
+    FlatVertex V(Vec2D p, double z, double u, float vv) => new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)z, w = 1, c = col, u = (float)u, v = vv };
+    var bl = V(a, botZa, 0, Vof(botZa, topZa));
+    var br = V(b, botZb, uMax, Vof(botZb, topZb));
+    var tr = V(b, topZb, uMax, 0);
+    var tl = V(a, topZa, 0, 0);
+    list.Add(bl); list.Add(br); list.Add(tr);
+    list.Add(bl); list.Add(tr); list.Add(tl);
 }
 
 foreach (var line in map.Linedefs)
 {
     var a = line.Start.Position;
     var b = line.End.Position;
-    var frontSec = line.Front?.Sector;
-    var backSec = line.Back?.Sector;
+    var front = line.Front;
+    var back = line.Back;
+    var frontSec = front?.Sector;
+    var backSec = back?.Sector;
 
-    if (frontSec != null && backSec == null)
+    if (frontSec != null && backSec == null && front != null)
     {
-        // One-sided wall: full span of the front sector from floor to ceiling.
-        int col = GrayColor(frontSec.Brightness, 0.6);
-        PushQuad3D(walls3D,
-            a.x, a.y, frontSec.GetFloorZ(a),
-            b.x, b.y, frontSec.GetFloorZ(b),
-            b.x, b.y, frontSec.GetCeilZ(b),
-            a.x, a.y, frontSec.GetCeilZ(a), col);
+        // One-sided wall: front mid texture from floor to ceiling.
+        PushWall3D(a, b, frontSec.GetFloorZ(a), frontSec.GetFloorZ(b), frontSec.GetCeilZ(a), frontSec.GetCeilZ(b),
+            front.MidTexture, frontSec.Brightness);
     }
-    else if (frontSec != null && backSec != null)
+    else if (frontSec != null && backSec != null && front != null)
     {
-        // Two-sided: lower step (floor gap) and upper step (ceiling gap).
-        int col = GrayColor(Math.Max(frontSec.Brightness, backSec.Brightness), 0.6);
+        // Lower step (floor gap): textured with the front lower texture.
         double fFa = frontSec.GetFloorZ(a), fFb = frontSec.GetFloorZ(b);
         double bFa = backSec.GetFloorZ(a),  bFb = backSec.GetFloorZ(b);
         if (fFa != bFa || fFb != bFb)
-            PushQuad3D(walls3D,
-                a.x, a.y, Math.Min(fFa, bFa),
-                b.x, b.y, Math.Min(fFb, bFb),
-                b.x, b.y, Math.Max(fFb, bFb),
-                a.x, a.y, Math.Max(fFa, bFa), col);
+            PushWall3D(a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb),
+                front.LowTexture, frontSec.Brightness);
 
+        // Upper step (ceiling gap): textured with the front upper texture.
         double fCa = frontSec.GetCeilZ(a), fCb = frontSec.GetCeilZ(b);
         double bCa = backSec.GetCeilZ(a),  bCb = backSec.GetCeilZ(b);
         if (fCa != bCa || fCb != bCb)
-            PushQuad3D(walls3D,
-                a.x, a.y, Math.Min(fCa, bCa),
-                b.x, b.y, Math.Min(fCb, bCb),
-                b.x, b.y, Math.Max(fCb, bCb),
-                a.x, a.y, Math.Max(fCa, bCa), col);
+            PushWall3D(a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb),
+                front.HighTexture, frontSec.Brightness);
     }
 }
-Console.WriteLine($"[3d]    floors {floors3D.Count / 3} tris, ceilings {ceils3D.Count / 3} tris, walls {walls3D.Count / 3} tris");
+int floor3DTris = 0, ceil3DTris = 0, wall3DTris = 0;
+foreach (var v in floor3DBuckets.Values) floor3DTris += v.Count / 3;
+foreach (var v in ceil3DBuckets.Values) ceil3DTris += v.Count / 3;
+foreach (var v in wall3DBuckets.Values) wall3DTris += v.Count / 3;
+Console.WriteLine($"[3d]    floors {floor3DTris} tris, ceilings {ceil3DTris} tris, walls {wall3DTris} tris ({floor3DBuckets.Count + ceil3DBuckets.Count + wall3DBuckets.Count} buckets)");
 
 // ============================================================
 // 3. Camera state - simple 2D pan/zoom.
@@ -840,9 +863,11 @@ DBShader? shader = null;
 DBVertexBuffer? linesVb = null;
 DBVertexBuffer? thingsTrisVb = null;
 DBVertexBuffer? thingsLinesVb = null;
-DBVertexBuffer? floors3DVb = null;
-DBVertexBuffer? ceils3DVb = null;
-DBVertexBuffer? walls3DVb = null;
+// 3D bucket resources. Frames null/empty = untextured (gray), length 1 = static, length N = animated.
+// Textures are SHARED with the 2D sector/wall resources (referenced, not owned - not disposed here).
+var floor3DResources = new List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
+var ceil3DResources = new List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
+var wall3DResources = new List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
 // One textured draw per unique flat. Bucket key "" is the untextured-fallback bucket.  Frames is null for static
 // flats (the placeholder is used), length 1 for static-with-real-texture, or length N for animated chains.
 var sectorBucketResources = new List<(string FlatName, DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)>();
@@ -870,13 +895,6 @@ window.Load += () =>
 
     thingsLinesVb = new DBVertexBuffer(gl);
     device.SetBufferData(thingsLinesVb, thingLines.ToArray());
-
-    floors3DVb = new DBVertexBuffer(gl);
-    if (floors3D.Count > 0) device.SetBufferData(floors3DVb, floors3D.ToArray());
-    ceils3DVb = new DBVertexBuffer(gl);
-    if (ceils3D.Count > 0) device.SetBufferData(ceils3DVb, ceils3D.ToArray());
-    walls3DVb = new DBVertexBuffer(gl);
-    if (walls3D.Count > 0) device.SetBufferData(walls3DVb, walls3D.ToArray());
 
     // 1x1 white placeholder texture - bound when drawing untextured geometry to keep the sampler happy.
     placeholderTex = new DBuilder.Rendering.Texture(gl);
@@ -934,6 +952,36 @@ window.Load += () =>
         device.SetSamplerState(TextureAddress.Wrap);
 
         wallRibbonResources.Add((name, vb, verts.Count / 3, tex));
+    }
+
+    // 3D bucket resources reuse the textures uploaded above (by flat / wall texture name).
+    var flatNameToFrames = new Dictionary<string, DBuilder.Rendering.Texture[]>(StringComparer.OrdinalIgnoreCase);
+    foreach (var b in sectorBucketResources)
+        if (b.FlatName != "" && b.Frames != null) flatNameToFrames[b.FlatName] = b.Frames;
+    var wallNameToTex = new Dictionary<string, DBuilder.Rendering.Texture>(StringComparer.OrdinalIgnoreCase);
+    foreach (var b in wallRibbonResources) wallNameToTex[b.TexName] = b.Tex;
+
+    void BuildFlatBuckets3D(Dictionary<string, List<FlatVertex>> buckets,
+                            List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)> dest)
+    {
+        foreach (var (name, verts) in buckets)
+        {
+            if (verts.Count == 0) continue;
+            var vb = new DBVertexBuffer(gl);
+            device.SetBufferData(vb, verts.ToArray());
+            DBuilder.Rendering.Texture[]? frames = (name != "" && flatNameToFrames.TryGetValue(name, out var f)) ? f : null;
+            dest.Add((vb, verts.Count / 3, frames));
+        }
+    }
+    BuildFlatBuckets3D(floor3DBuckets, floor3DResources);
+    BuildFlatBuckets3D(ceil3DBuckets, ceil3DResources);
+    foreach (var (name, verts) in wall3DBuckets)
+    {
+        if (verts.Count == 0) continue;
+        var vb = new DBVertexBuffer(gl);
+        device.SetBufferData(vb, verts.ToArray());
+        DBuilder.Rendering.Texture[]? frames = (name != "" && wallNameToTex.TryGetValue(name, out var t)) ? new[] { t } : null;
+        wall3DResources.Add((vb, verts.Count / 3, frames));
     }
 
     device.SetViewport(opts.Size.X, opts.Size.Y);
@@ -1164,7 +1212,6 @@ void Render3D(SilkVec2I size)
 
     device.SetZEnable(true);
     device.SetUniform("tex0", 0);
-    device.SetUniform("useTexture", 0f);
 
     var pos = cam3DPos;
     var target = pos + Cam3DForward();
@@ -1176,23 +1223,26 @@ void Render3D(SilkVec2I size)
     // GLSL "projection * vec4(pos)" multiply matches "pos * view * persp".
     device.SetUniform("projection", view * persp);
 
-    device.SetTexture(0, placeholderTex);
+    int globalFrame = animationsEnabled ? (int)(window.Time / DBuilder.IO.FlatAnimations.FramePeriodSeconds) : 0;
 
-    if (floors3DVb != null && floors3D.Count > 0)
+    void DrawBuckets(List<(DBVertexBuffer Vb, int TriCount, DBuilder.Rendering.Texture[]? Frames)> buckets)
     {
-        device.SetVertexBuffer(floors3DVb);
-        device.Draw(DBPrimitiveType.TriangleList, 0, floors3D.Count / 3);
+        foreach (var bucket in buckets)
+        {
+            if (bucket.TriCount == 0) continue;
+            DBuilder.Rendering.Texture? activeTex = null;
+            if (bucket.Frames != null && bucket.Frames.Length > 0)
+                activeTex = bucket.Frames[bucket.Frames.Length > 1 ? (globalFrame % bucket.Frames.Length) : 0];
+            device.SetUniform("useTexture", activeTex != null ? 1f : 0f);
+            device.SetTexture(0, activeTex ?? placeholderTex);
+            device.SetVertexBuffer(bucket.Vb);
+            device.Draw(DBPrimitiveType.TriangleList, 0, bucket.TriCount);
+        }
     }
-    if (ceils3DVb != null && ceils3D.Count > 0)
-    {
-        device.SetVertexBuffer(ceils3DVb);
-        device.Draw(DBPrimitiveType.TriangleList, 0, ceils3D.Count / 3);
-    }
-    if (walls3DVb != null && walls3D.Count > 0)
-    {
-        device.SetVertexBuffer(walls3DVb);
-        device.Draw(DBPrimitiveType.TriangleList, 0, walls3D.Count / 3);
-    }
+
+    DrawBuckets(floor3DResources);
+    DrawBuckets(ceil3DResources);
+    DrawBuckets(wall3DResources);
 }
 
 window.Closing += () =>
@@ -1200,9 +1250,10 @@ window.Closing += () =>
     linesVb?.Dispose();
     thingsTrisVb?.Dispose();
     thingsLinesVb?.Dispose();
-    floors3DVb?.Dispose();
-    ceils3DVb?.Dispose();
-    walls3DVb?.Dispose();
+    // 3D bucket VBs (textures are shared with the 2D resources and disposed there).
+    foreach (var b in floor3DResources) b.Vb.Dispose();
+    foreach (var b in ceil3DResources) b.Vb.Dispose();
+    foreach (var b in wall3DResources) b.Vb.Dispose();
     foreach (var bucket in sectorBucketResources)
     {
         bucket.Vb.Dispose();
