@@ -236,6 +236,41 @@ public class MapSet
         return merges;
     }
 
+    /// <summary>
+    /// Splits any linedef that passes through a vertex (a T-junction) at that vertex, welding drawn or pasted
+    /// geometry onto existing walls. A vertex within <paramref name="distance"/> of a line's interior (not at an
+    /// endpoint) triggers a split. Returns the number of splits performed. Call BuildIndexes() afterward.
+    /// </summary>
+    public int SplitLinedefsAtVertices(double distance = 1.0)
+    {
+        double epsSq = distance * distance;
+        int total = 0, pass, guard = 0;
+        do
+        {
+            pass = 0;
+            foreach (var v in Vertices)
+            {
+                var p = v.Position;
+                // Linedefs grows as we split; a newly created half has v as an endpoint, so it is skipped here.
+                for (int i = 0; i < Linedefs.Count; i++)
+                {
+                    var l = Linedefs[i];
+                    if (ReferenceEquals(l.Start, v) || ReferenceEquals(l.End, v)) continue;
+                    var a = l.Start.Position;
+                    var b = l.End.Position;
+                    if ((b - a).GetLengthSq() < 1e-9) continue; // degenerate line
+                    double u = Line2D.GetNearestOnLine(a, b, p);
+                    if (u <= 1e-6 || u >= 1 - 1e-6) continue; // at/near an endpoint - not an interior split
+                    if (Line2D.GetDistanceToLineSq(a, b, p, bounded: true) > epsSq) continue;
+                    SplitLinedefAt(l, v);
+                    pass++;
+                }
+            }
+            total += pass;
+        } while (pass > 0 && ++guard < 64);
+        return total;
+    }
+
     /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>
     public int RemoveUnusedVertices()
     {

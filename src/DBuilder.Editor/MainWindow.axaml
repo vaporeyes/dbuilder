@@ -27,6 +27,8 @@
                 <Separator />
                 <MenuItem Header="_Delete selection" Click="OnDelete" />
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
+                <Separator />
+                <MenuItem Header="Stitch _geometry" Click="OnStitch" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Fit to map" Click="OnFit" />

@@ -266,6 +266,19 @@ public partial class MainWindow : Window
         UpdateInfo();
     }
 
+    // Welds the whole map: merges coincident vertices and splits lines at vertices lying on them.
+    private void OnStitch(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) return;
+        _undo.CreateUndo("Stitch geometry");
+        int merged = _map.MergeOverlappingVertices(0.5);
+        int split = _map.SplitLinedefsAtVertices(0.5);
+        _map.BuildIndexes();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Stitched: {merged} vertices merged, {split} lines split.");
+    }
+
     // ---- View / Help ----
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }

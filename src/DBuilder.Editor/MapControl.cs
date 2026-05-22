@@ -1365,6 +1365,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         _map.MergeOverlappingVertices(0.01);
+        _map.SplitLinedefsAtVertices(0.5); // weld drawn vertices that landed on existing walls (T-junctions)
         _map.BuildIndexes();
 
         _drawPoints.Clear();

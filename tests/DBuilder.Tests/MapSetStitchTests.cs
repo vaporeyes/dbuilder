@@ -1,0 +1,97 @@
+// ABOUTME: Tests for MapSet.SplitLinedefsAtVertices - welding T-junctions by splitting lines at vertices on them.
+// ABOUTME: Covers an interior split, endpoint/no-op cases, sidedef preservation, and multi-line junctions.
+
+using DBuilder.Geometry;
+using DBuilder.Map;
+
+namespace DBuilder.Tests;
+
+public class MapSetStitchTests
+{
+    [Fact]
+    public void SplitsLineAtInteriorVertex()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        map.AddLinedef(a, b);
+        var mid = map.AddVertex(new Vector2D(50, 0)); // sits on the line interior
+        map.BuildIndexes();
+
+        int n = map.SplitLinedefsAtVertices(0.5);
+        map.BuildIndexes();
+
+        Assert.Equal(1, n);
+        Assert.Equal(2, map.Linedefs.Count);
+        // The two halves meet at the mid vertex.
+        Assert.Contains(map.Linedefs, l => ReferenceEquals(l.End, mid) || ReferenceEquals(l.Start, mid));
+    }
+
+    [Fact]
+    public void DoesNotSplitAtEndpoints()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        Assert.Equal(0, map.SplitLinedefsAtVertices(0.5));
+        Assert.Single(map.Linedefs);
+    }
+
+    [Fact]
+    public void DoesNotSplitOffLineVertex()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        map.AddLinedef(a, b);
+        map.AddVertex(new Vector2D(50, 20)); // not on the line
+        map.BuildIndexes();
+
+        Assert.Equal(0, map.SplitLinedefsAtVertices(0.5));
+        Assert.Single(map.Linedefs);
+    }
+
+    [Fact]
+    public void SplitPreservesSidedefAndSector()
+    {
+        var map = new MapSet();
+        var s = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var l = map.AddLinedef(a, b);
+        map.AddSidedef(l, true, s);
+        l.Front!.MidTexture = "WALL";
+        map.AddVertex(new Vector2D(50, 0));
+        map.BuildIndexes();
+
+        map.SplitLinedefsAtVertices(0.5);
+        map.BuildIndexes();
+
+        Assert.Equal(2, map.Linedefs.Count);
+        foreach (var line in map.Linedefs)
+        {
+            Assert.NotNull(line.Front);
+            Assert.Same(s, line.Front!.Sector);
+            Assert.Equal("WALL", line.Front.MidTexture);
+        }
+    }
+
+    [Fact]
+    public void WeldsDrawnLineCrossingTwoExistingWalls()
+    {
+        // Two parallel horizontal walls; a vertex placed on each by a "drawn" connector should split both.
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 80)), map.AddVertex(new Vector2D(100, 80)));
+        map.AddVertex(new Vector2D(50, 0));
+        map.AddVertex(new Vector2D(50, 80));
+        map.BuildIndexes();
+
+        int n = map.SplitLinedefsAtVertices(0.5);
+        Assert.Equal(2, n);
+        Assert.Equal(4, map.Linedefs.Count);
+    }
+}
