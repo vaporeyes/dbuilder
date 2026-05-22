@@ -125,8 +125,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set { _thingArrows = value; _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
-    // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector.
+    // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector
+    // (or, in lines-only mode, just the linedefs of the drawn polyline).
     private bool _drawMode;
+    private bool _drawLinesOnly; // Shift+D: lay plain linedefs instead of building a sector
+    private bool _drawClosed;    // set when the user closes the polyline by clicking the first point
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
     private Vec2D _drawCursor;
     private Vec2D _cursorWorld; // last known cursor position in world space (for cursor-targeted actions)
@@ -915,8 +918,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.S: _showFills = !_showFills; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
-                case Key.D: ToggleDrawMode(); e.Handled = true; return;
+                case Key.D: ToggleDrawMode(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
+                case Key.I or Key.Insert: InsertAtCursor(); e.Handled = true; return;
                 case Key.D1 or Key.NumPad1: SetEditMode(EditMode.Vertices); e.Handled = true; return;
                 case Key.D2 or Key.NumPad2: SetEditMode(EditMode.Linedefs); e.Handled = true; return;
                 case Key.D3 or Key.NumPad3: SetEditMode(EditMode.Sectors); e.Handled = true; return;
@@ -1215,6 +1219,52 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Picked?.Invoke($"flipped {n} {(sidedefs ? "sidedef" : "linedef")}{(n == 1 ? "" : "s")}");
     }
 
+    /// <summary>The thing type used by the insert tool; remembers the last value edited via the dialog.</summary>
+    public int InsertThingType { get; set; } = 1;
+
+    // Insert tool (I): in Things mode drops a thing at the snapped cursor; otherwise inserts a vertex,
+    // splitting the nearest line if the cursor is close to one, else placing a free vertex. Undoable.
+    private void InsertAtCursor()
+    {
+        if (_map == null) return;
+        var pos = SnapToGrid(_cursorWorld);
+
+        if (_editMode == EditMode.Things)
+        {
+            EditBegun?.Invoke("Insert thing");
+            _map.ClearAllSelected();
+            var t = _map.AddThing(pos, InsertThingType);
+            t.Selected = true;
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Picked?.Invoke($"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})");
+            return;
+        }
+
+        var line = _map.NearestLinedef(_cursorWorld, 8 * _zoom);
+        if (line != null)
+        {
+            EditBegun?.Invoke("Insert vertex (split)");
+            _map.SplitLinedef(line, NearestPointOnLine(line, _cursorWorld));
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Picked?.Invoke("split linedef");
+        }
+        else
+        {
+            EditBegun?.Invoke("Insert vertex");
+            _map.ClearAllSelected();
+            var v = _map.AddVertex(pos);
+            v.Selected = true;
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Picked?.Invoke($"inserted vertex at ({pos.x:0}, {pos.y:0})");
+        }
+    }
+
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).
     private void MakeSectorAtCursor()
     {
@@ -1236,10 +1286,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawMode => _drawMode;
     public event Action? DrawModeChanged;
 
-    private void ToggleDrawMode()
+    private void ToggleDrawMode(bool linesOnly = false)
     {
-        _drawMode = !_drawMode;
+        // Re-pressing the same draw key exits; switching kind restarts with the new kind.
+        if (_drawMode && _drawLinesOnly == linesOnly) _drawMode = false;
+        else { _drawMode = true; _drawLinesOnly = linesOnly; }
         _drawPoints.Clear();
+        _drawClosed = false;
         _drawDirty = true;
         DrawModeChanged?.Invoke();
         RequestNextFrameRendering();
@@ -1248,6 +1301,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void CancelDraw()
     {
         _drawPoints.Clear();
+        _drawClosed = false;
         _drawDirty = true;
         RequestNextFrameRendering();
     }
@@ -1276,6 +1330,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // Clicking the first point (when we have a polygon) closes the loop.
         if (_drawPoints.Count >= 3 && p.x == _drawPoints[0].x && p.y == _drawPoints[0].y)
         {
+            _drawClosed = true;
             FinishDraw();
             return;
         }
@@ -1286,20 +1341,34 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void FinishDraw()
     {
-        if (_map == null || _drawPoints.Count < 3) { CancelDraw(); return; }
+        if (_map == null) { CancelDraw(); return; }
+        int min = _drawLinesOnly ? 2 : 3;
+        if (_drawPoints.Count < min) { CancelDraw(); return; }
 
-        EditBegun?.Invoke("Draw sector");
-        var loop = new System.Collections.Generic.List<Vertex>(_drawPoints.Count);
+        // Materialize the drawn points as vertices, reusing any that snapped exactly onto existing ones.
+        var verts = new System.Collections.Generic.List<Vertex>(_drawPoints.Count);
+        EditBegun?.Invoke(_drawLinesOnly ? "Draw lines" : "Draw sector");
         foreach (var p in _drawPoints)
         {
-            var existing = _map.NearestVertex(p, 0.01); // exact reuse of snapped existing vertices
-            loop.Add(existing ?? _map.AddVertex(p));
+            var existing = _map.NearestVertex(p, 0.01);
+            verts.Add(existing ?? _map.AddVertex(p));
         }
-        SectorBuilder.CreateSector(_map, loop);
+
+        if (_drawLinesOnly)
+        {
+            for (int i = 0; i < verts.Count - 1; i++) _map.AddLinedef(verts[i], verts[i + 1]);
+            if (_drawClosed && verts.Count >= 3) _map.AddLinedef(verts[^1], verts[0]);
+        }
+        else
+        {
+            SectorBuilder.CreateSector(_map, verts);
+        }
+
         _map.MergeOverlappingVertices(0.01);
         _map.BuildIndexes();
 
         _drawPoints.Clear();
+        _drawClosed = false;
         _drawDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();

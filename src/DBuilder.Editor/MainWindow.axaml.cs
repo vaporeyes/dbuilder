@@ -69,6 +69,20 @@ public partial class MainWindow : Window
 
     // ---- File ----
 
+    // Starts a fresh empty map. Keeps any open WAD's resources so textures still resolve while editing.
+    private void OnNewMap(object? sender, RoutedEventArgs e)
+    {
+        var map = new MapSet();
+        _map = map;
+        _mapMarker = "MAP01";
+        _undo = new UndoManager(map);
+        MapView.Map = map;
+        MapView.Focus();
+        Title = "DBuilder - (new map)";
+        UpdateInfo();
+        SetStatus("New empty map. Draw with D (sector) or Shift+D (lines); I inserts a vertex/thing.");
+    }
+
     private async void OnOpen(object? sender, RoutedEventArgs e)
     {
         var top = GetTopLevel(this);
@@ -207,6 +221,7 @@ public partial class MainWindow : Window
                 t.Type = dlg.ResultType; t.Angle = dlg.ResultAngle; t.Tag = dlg.ResultTag; t.Action = dlg.ResultAction;
                 t.Flags = dlg.ResultFlags;
                 t.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY); t.Height = dlg.ResultHeight;
+                MapView.InsertThingType = t.Type; // the insert tool reuses the last edited type
                 AfterEdit("Thing updated");
             }
         }
@@ -327,7 +342,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
+                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
             return;
         }
 
