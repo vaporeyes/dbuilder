@@ -5,10 +5,12 @@
         Width="1100" Height="800"
         Title="DBuilder">
 
-    <DockPanel LastChildFill="True">
+    <!-- Explicit Grid rows (not DockPanel) so the GL map view is confined to its own row and
+         can never overlap / steal pointer input from the menu and toolbar. -->
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
 
         <!-- Menu bar -->
-        <Menu DockPanel.Dock="Top">
+        <Menu Grid.Row="0">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
                 <MenuItem Header="_Save as UDMF..." Click="OnSave" />
@@ -18,10 +20,10 @@
                 <MenuItem Header="E_xit" Click="OnExit" />
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Header="_Undo" Click="OnUndo" InputGesture="Ctrl+Z" />
-                <MenuItem Header="_Redo" Click="OnRedo" InputGesture="Ctrl+Y" />
+                <MenuItem Header="_Undo" Click="OnUndo" />
+                <MenuItem Header="_Redo" Click="OnRedo" />
                 <Separator />
-                <MenuItem Header="_Delete selection" Click="OnDelete" InputGesture="Delete" />
+                <MenuItem Header="_Delete selection" Click="OnDelete" />
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
             </MenuItem>
             <MenuItem Header="_View">
@@ -34,36 +36,34 @@
         </Menu>
 
         <!-- Toolbar -->
-        <Border DockPanel.Dock="Top" Background="#202530" Padding="4" BorderBrush="#10000000" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="4">
+        <Border Grid.Row="1" Background="#202530" Padding="4" BorderBrush="#10000000" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="6">
                 <Button Content="Open" Click="OnOpen" />
                 <Button Content="Save" Click="OnSave" />
-                <Separator Width="1" Margin="4,2" Background="#40000000" />
                 <Button Content="Undo" Click="OnUndo" />
                 <Button Content="Redo" Click="OnRedo" />
-                <Separator Width="1" Margin="4,2" Background="#40000000" />
                 <Button Content="Delete" Click="OnDelete" />
                 <Button Content="Fit" Click="OnFit" />
             </StackPanel>
         </Border>
 
+        <!-- Central map view -->
+        <local:MapControl Grid.Row="2" x:Name="MapView" />
+
+        <!-- Info panel -->
+        <Border Grid.Row="3" Background="#1c2028" Padding="8,6" Height="96"
+                BorderBrush="#10000000" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
+                       Text="No map loaded. File &gt; Open WAD to begin." />
+        </Border>
+
         <!-- Status bar -->
-        <Border DockPanel.Dock="Bottom" Background="#181c24" Padding="6,3">
+        <Border Grid.Row="4" Background="#181c24" Padding="6,3">
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" Foreground="#c0c8d0" />
                 <TextBlock Grid.Column="1" x:Name="CoordText" Text="" Foreground="#c0c8d0" />
             </Grid>
         </Border>
 
-        <!-- Info panel -->
-        <Border DockPanel.Dock="Bottom" Background="#1c2028" Padding="8,6" Height="96"
-                BorderBrush="#10000000" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
-                       Text="No map loaded. File &gt; Open WAD to begin." />
-        </Border>
-
-        <!-- Central map view -->
-        <local:MapControl x:Name="MapView" />
-
-    </DockPanel>
+    </Grid>
 </Window>
