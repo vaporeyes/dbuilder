@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DBuilder.Smoke</RootNamespace>
+    <AssemblyName>DBuilder.Smoke</AssemblyName>
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+    <ProjectReference Include="..\DBuilder.Map\DBuilder.Map.csproj" />
+    <ProjectReference Include="..\DBuilder.IO\DBuilder.IO.csproj" />
+  </ItemGroup>
+
+</Project>
