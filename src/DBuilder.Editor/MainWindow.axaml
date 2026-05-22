@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DBuilder.Editor"
+        x:Class="DBuilder.Editor.MainWindow"
+        Width="1100" Height="800"
+        Title="DBuilder">
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Menu bar -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open WAD..." Click="OnOpen" />
+                <MenuItem Header="_Save as UDMF..." Click="OnSave" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="OnExit" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Click="OnUndo" InputGesture="Ctrl+Z" />
+                <MenuItem Header="_Redo" Click="OnRedo" InputGesture="Ctrl+Y" />
+                <Separator />
+                <MenuItem Header="_Delete selection" Click="OnDelete" InputGesture="Delete" />
+                <MenuItem Header="Select _none" Click="OnSelectNone" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Fit to map" Click="OnFit" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Click="OnAbout" />
+            </MenuItem>
+        </Menu>
+
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Background="#202530" Padding="4" BorderBrush="#10000000" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Content="Open" Click="OnOpen" />
+                <Button Content="Save" Click="OnSave" />
+                <Separator Width="1" Margin="4,2" Background="#40000000" />
+                <Button Content="Undo" Click="OnUndo" />
+                <Button Content="Redo" Click="OnRedo" />
+                <Separator Width="1" Margin="4,2" Background="#40000000" />
+                <Button Content="Delete" Click="OnDelete" />
+                <Button Content="Fit" Click="OnFit" />
+            </StackPanel>
+        </Border>
+
+        <!-- Status bar -->
+        <Border DockPanel.Dock="Bottom" Background="#181c24" Padding="6,3">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" Foreground="#c0c8d0" />
+                <TextBlock Grid.Column="1" x:Name="CoordText" Text="" Foreground="#c0c8d0" />
+            </Grid>
+        </Border>
+
+        <!-- Info panel -->
+        <Border DockPanel.Dock="Bottom" Background="#1c2028" Padding="8,6" Height="96"
+                BorderBrush="#10000000" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
+                       Text="No map loaded. File &gt; Open WAD to begin." />
+        </Border>
+
+        <!-- Central map view -->
+        <local:MapControl x:Name="MapView" />
+
+    </DockPanel>
+</Window>

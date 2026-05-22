@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DBuilder.Editor</RootNamespace>
+    <AssemblyName>DBuilder.Editor</AssemblyName>
+    <RollForward>LatestMajor</RollForward>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.6" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DBuilder.Rendering\DBuilder.Rendering.csproj" />
+    <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+    <ProjectReference Include="..\DBuilder.Map\DBuilder.Map.csproj" />
+    <ProjectReference Include="..\DBuilder.IO\DBuilder.IO.csproj" />
+  </ItemGroup>
+
+</Project>
