@@ -54,6 +54,26 @@ public static class SectorBuilder
         return sector;
     }
 
+    /// <summary>
+    /// Assigns the given traced linedef sides (from Tools.FindClosestPath) to a new sector: each side's sidedef
+    /// is created (or reassigned) to the sector. Returns the new sector, or null for an empty path. Call
+    /// BuildIndexes() afterward.
+    /// </summary>
+    public static Sector? CreateSectorFromSides(MapSet map, IReadOnlyList<LinedefSide> sides, Sector? copyFrom = null)
+    {
+        if (sides.Count == 0) return null;
+        var sector = map.AddSector();
+        if (copyFrom != null) CopyProperties(copyFrom, sector);
+
+        foreach (var ls in sides)
+        {
+            var side = ls.Front ? ls.Line.Front : ls.Line.Back;
+            if (side == null) map.AddSidedef(ls.Line, ls.Front, sector);
+            else side.Sector = sector;
+        }
+        return sector;
+    }
+
     private static double SignedArea(IReadOnlyList<Vertex> verts)
     {
         double sum = 0;

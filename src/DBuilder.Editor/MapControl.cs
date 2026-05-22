@@ -129,6 +129,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawMode;
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
     private Vec2D _drawCursor;
+    private Vec2D _cursorWorld; // last known cursor position in world space (for cursor-targeted actions)
     private GlVertexBuffer? _drawVb;
     private int _drawLineCount;
     private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
@@ -816,6 +817,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.D: ToggleDrawMode(); e.Handled = true; return;
+                case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
                 case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
                 case Key.Escape when _drawMode: CancelDraw(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
@@ -1001,6 +1003,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    // Traces the line loop enclosing the cursor and creates a sector from it (undoable).
+    private void MakeSectorAtCursor()
+    {
+        if (_map == null || _map.Linedefs.Count == 0) return;
+        var near = _map.NearestLinedef(_cursorWorld);
+        if (near == null) return;
+        bool front = Line2D.GetSideOfLine(near.Start.Position, near.End.Position, _cursorWorld) <= 0;
+        var path = Tools.FindClosestPath(near, front, turnatends: true);
+        if (path == null || path.Count < 3) { Picked?.Invoke("no enclosing loop here"); return; }
+
+        EditBegun?.Invoke("Make sector");
+        SectorBuilder.CreateSectorFromSides(_map, path);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke($"made sector from {path.Count} lines");
+    }
+
     // ---- Draw-geometry tool ----
 
     /// <summary>True when the draw-geometry tool is active (host can reflect it in the status bar).</summary>
@@ -1132,7 +1152,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
-        CursorWorldMoved?.Invoke(ToWorld(pos));
+        _cursorWorld = ToWorld(pos);
+        CursorWorldMoved?.Invoke(_cursorWorld);
 
         if (_drawMode)
         {

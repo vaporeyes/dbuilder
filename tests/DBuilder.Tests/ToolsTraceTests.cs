@@ -74,6 +74,39 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void TraceThenCreateSectorAssignsAllSides()
+    {
+        // A closed square of sideless lines; tracing from the inside and building a sector should fill it.
+        var map = new MapSet();
+        var verts = new[]
+        {
+            map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(0, 100)),
+            map.AddVertex(new Vector2D(100, 100)), map.AddVertex(new Vector2D(100, 0)),
+        };
+        var lines = new List<Linedef>();
+        for (int i = 0; i < 4; i++) lines.Add(map.AddLinedef(verts[i], verts[(i + 1) % 4]));
+        map.BuildIndexes();
+
+        // Point inside (50,50): find nearest line, side facing the point, trace, build.
+        var pos = new Vector2D(50, 50);
+        var near = map.NearestLinedef(pos)!;
+        bool front = Line2D.GetSideOfLine(near.Start.Position, near.End.Position, pos) <= 0;
+        var path = Tools.FindClosestPath(near, front, true)!;
+        var sector = SectorBuilder.CreateSectorFromSides(map, path)!;
+        map.BuildIndexes();
+
+        Assert.Equal(4, sector.Sidedefs.Count);
+        var tri = Triangulation.Create(sector);
+        double total = 0;
+        for (int i = 0; i < tri.Vertices.Count; i += 3)
+            total += TriArea(tri.Vertices[i], tri.Vertices[i + 1], tri.Vertices[i + 2]);
+        Assert.Equal(10000.0, total, 1e-6);
+    }
+
+    private static double TriArea(Vector2D a, Vector2D b, Vector2D c)
+        => System.Math.Abs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 0.5;
+
+    [Fact]
     public void OpenGeometryTurnsAtDeadEnds()
     {
         // A single linedef (no closed loop). With turnatends it traces both sides and returns to start.
