@@ -286,7 +286,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Click to select (Shift = add); drag to move; double-click to edit; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G = walk).";
+                            $"   Config: {_configName}.   Click select; drag move; double-click edit; right-click splits a line; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G = walk).";
             return;
         }
 

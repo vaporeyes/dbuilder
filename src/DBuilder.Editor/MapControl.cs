@@ -586,6 +586,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         => new Vec2D(_camX + (p.X - Bounds.Width * 0.5) * _zoom,
                      _camY - (p.Y - Bounds.Height * 0.5) * _zoom);
 
+    // Projects a world point onto a linedef's segment (clamped to its endpoints).
+    private static Vec2D NearestPointOnLine(Linedef l, Vec2D p)
+    {
+        var a = l.Start.Position;
+        var b = l.End.Position;
+        double u = Math.Clamp(Line2D.GetNearestOnLine(a, b, p), 0.0, 1.0);
+        return a + u * (b - a);
+    }
+
     private bool _selectionDoneOnPress;
 
     private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
@@ -674,6 +683,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Focus(); // take keyboard focus so the 3D fly camera receives WASD/arrows
         var pt = e.GetCurrentPoint(this);
         if (_mode3D) return; // 3D ignores 2D pointer picking/panning
+
+        // Right-click on a line inserts a vertex there (splits it), bracketed with undo.
+        if (pt.Properties.IsRightButtonPressed && _map != null)
+        {
+            var world = ToWorld(pt.Position);
+            var l = _map.NearestLinedef(world, 8 * _zoom);
+            if (l != null)
+            {
+                EditBegun?.Invoke("Split linedef");
+                _map.SplitLinedef(l, NearestPointOnLine(l, world));
+                _map.BuildIndexes();
+                MarkGeometryDirty();
+                Changed?.Invoke();
+            }
+            return;
+        }
+
         if (pt.Properties.IsLeftButtonPressed)
         {
             if (e.ClickCount >= 2)
