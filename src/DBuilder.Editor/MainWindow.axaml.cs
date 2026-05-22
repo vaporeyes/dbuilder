@@ -144,10 +144,28 @@ public partial class MainWindow : Window
                 WadMaps.SaveMap(dst, marker, _map, _mapFormat);
                 bytes = msOut.ToArray();
             }
+
+            // Optionally rebuild nodes via an external builder (BSP/BLOCKMAP/REJECT), making the save playable.
+            string nodeStatus = BuildNodesIfConfigured(ref bytes);
+
             System.IO.File.WriteAllBytes(outPath, bytes);
-            SetStatus($"Saved {marker} [{_mapFormat}] to {System.IO.Path.GetFileName(outPath)}");
+            SetStatus($"Saved {marker} [{_mapFormat}] to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
+    }
+
+    // Runs the external node builder configured via DBUILDER_NODEBUILDER (+ _ARGS) over the WAD bytes.
+    // Returns a short status suffix; on failure the original (node-less) bytes are kept.
+    private static string BuildNodesIfConfigured(ref byte[] bytes)
+    {
+        string? exe = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER");
+        if (string.IsNullOrWhiteSpace(exe)) return "  (no nodes - set DBUILDER_NODEBUILDER to build)";
+        if (!System.IO.File.Exists(exe)) return $"  (node builder not found: {exe})";
+
+        string args = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER_ARGS") ?? "-o \"%FO\" \"%FI\"";
+        var result = NodeBuilder.Build(bytes, new NodebuilderConfig(exe, args));
+        if (result.Success && result.Output != null) { bytes = result.Output; return "  (nodes built)"; }
+        return "  (node build FAILED, saved without nodes)";
     }
 
     private async void OnLoadConfig(object? sender, RoutedEventArgs e)
