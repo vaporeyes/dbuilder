@@ -59,6 +59,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // 3D fly-mode state (toggled with Tab). Geometry built lazily into textured buckets.
     private bool _mode3D;
+    private bool _walkMode;          // G toggles: camera snaps to floor + eye height instead of free flight
+    private const double EyeHeight = 41; // Doom player view height above the floor
     private bool _geo3DDirty = true;
     private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _floor3D = new();
     private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _ceil3D = new();
@@ -308,15 +310,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var front = l.Front; var back = l.Back;
             var fs = front?.Sector; var bs = back?.Sector;
             if (fs != null && bs == null && front != null)
-                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, fs.Brightness, Gray);
+                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, fs.Brightness, front.OffsetX, front.OffsetY, Gray);
             else if (fs != null && bs != null && front != null)
             {
                 double fFa = fs.GetFloorZ(a), fFb = fs.GetFloorZ(b), bFa = bs.GetFloorZ(a), bFb = bs.GetFloorZ(b);
                 if (fFa != bFa || fFb != bFb)
-                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, fs.Brightness, Gray);
+                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, fs.Brightness, front.OffsetX, front.OffsetY, Gray);
                 double fCa = fs.GetCeilZ(a), fCb = fs.GetCeilZ(b), bCa = bs.GetCeilZ(a), bCb = bs.GetCeilZ(b);
                 if (fCa != bCa || fCb != bCb)
-                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, fs.Brightness, Gray);
+                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, fs.Brightness, front.OffsetX, front.OffsetY, Gray);
             }
         }
 
@@ -326,7 +328,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     private void PushWall(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> wallB,
-        Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName, int brightness, Func<int, double, int> gray)
+        Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName, int brightness, int offsetX, int offsetY, Func<int, double, int> gray)
     {
         if (topZa <= botZa && topZb <= botZb) return;
         bool textured = GetWallTexture(texName) != null;
@@ -334,16 +336,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int texW = textured ? (_resources!.GetWallTexture(texName)!.Width) : 64;
         int texH = textured ? (_resources!.GetWallTexture(texName)!.Height) : 64;
         double len = (b - a).GetLength();
-        double uMax = len / texW;
+        // U runs by world distance along the wall + the sidedef X offset; V runs downward from the top + Y offset.
+        double u0 = offsetX / (double)texW;
+        double u1 = (len + offsetX) / texW;
         int c = textured ? gray(brightness, 1.0) : gray(brightness, 0.6);
-        float Vof(double z, double top) => (float)((top - z) / texH);
+        float Vof(double z, double top) => (float)((top - z + offsetY) / texH);
 
         if (!wallB.TryGetValue(key, out var list)) { list = new(); wallB[key] = list; }
         FlatVertex V(Vec2D p, double z, double u, float vv) => new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)z, w = 1, c = c, u = (float)u, v = vv };
-        var bl = V(a, botZa, 0, Vof(botZa, topZa));
-        var br = V(b, botZb, uMax, Vof(botZb, topZb));
-        var tr = V(b, topZb, uMax, 0);
-        var tl = V(a, topZa, 0, 0);
+        var bl = V(a, botZa, u0, Vof(botZa, topZa));
+        var br = V(b, botZb, u1, Vof(botZb, topZb));
+        var tr = V(b, topZb, u1, Vof(topZb, topZb));
+        var tl = V(a, topZa, u0, Vof(topZa, topZa));
         list.Add(bl); list.Add(br); list.Add(tr);
         list.Add(bl); list.Add(tr); list.Add(tl);
     }
@@ -601,6 +605,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             RequestNextFrameRendering();
             return;
         }
+        if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
         base.OnKeyDown(e);
     }
@@ -648,8 +653,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_heldKeys.Contains(Key.S)) _cam3DPos -= flatFwd * move;
         if (_heldKeys.Contains(Key.D)) _cam3DPos += right * move;
         if (_heldKeys.Contains(Key.A)) _cam3DPos -= right * move;
-        if (_heldKeys.Contains(Key.E)) _cam3DPos.Z += move;
-        if (_heldKeys.Contains(Key.Q)) _cam3DPos.Z -= move;
+
+        if (_walkMode)
+        {
+            // Stand on the floor of the sector under the camera, at eye height (no free vertical movement).
+            var sector = _map?.GetSectorAt(new Vec2D(_cam3DPos.X, _cam3DPos.Y));
+            if (sector != null)
+                _cam3DPos.Z = (float)(sector.GetFloorZ(new Vec2D(_cam3DPos.X, _cam3DPos.Y)) + EyeHeight);
+        }
+        else
+        {
+            if (_heldKeys.Contains(Key.E)) _cam3DPos.Z += move;
+            if (_heldKeys.Contains(Key.Q)) _cam3DPos.Z -= move;
+        }
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

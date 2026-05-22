@@ -113,6 +113,12 @@ public partial class MainWindow : Window
             LoadConfig(path);
     }
 
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        MapView.Focus(); // ensure the map view has keyboard focus on first launch (command-line load)
+    }
+
     private void OnExit(object? sender, RoutedEventArgs e) => Close();
 
     // ---- Edit ----
@@ -228,6 +234,7 @@ public partial class MainWindow : Window
             MapView.MapResources = _resources;
 
             MapView.Map = map;
+            MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
             Title = $"DBuilder - {System.IO.Path.GetFileName(path)} ({marker})";
             UpdateInfo();
             SetStatus($"Loaded {marker}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
@@ -279,7 +286,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Click to select (Shift = add); drag to move; double-click to edit; Delete removes (undoable).   Tab = 3D fly (WASD/arrows/QE).";
+                            $"   Config: {_configName}.   Click to select (Shift = add); drag to move; double-click to edit; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G = walk).";
             return;
         }
 
