@@ -8,12 +8,14 @@ using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using DBuilder.Geometry;
+using DBuilder.IO;
 using DBuilder.Map;
 using DBuilder.Rendering;
 using Silk.NET.Core.Contexts;
 using Silk.NET.OpenGL;
 using GlVertexBuffer = DBuilder.Rendering.VertexBuffer;
 using DBShader = DBuilder.Rendering.Shader;
+using DBTexture = DBuilder.Rendering.Texture;
 using DBPrimitiveType = DBuilder.Rendering.PrimitiveType;
 using Vec2D = DBuilder.Geometry.Vector2D;
 
@@ -27,18 +29,25 @@ layout(location=1) in vec4 a_color;
 layout(location=2) in vec2 a_uv;
 uniform mat4 projection;
 out vec4 v_color;
-void main() { gl_Position = projection * vec4(a_pos.xyz, 1.0); v_color = a_color; }";
+out vec2 v_uv;
+void main() { gl_Position = projection * vec4(a_pos.xyz, 1.0); v_color = a_color; v_uv = a_uv; }";
 
     private const string FragmentSrc = @"#version 330 core
 in vec4 v_color;
+in vec2 v_uv;
+uniform sampler2D tex0;
+uniform float useTexture;
 out vec4 frag;
-void main() { frag = v_color; }";
+void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, useTexture); }";
 
     private GL? _gl;
     private RenderDevice? _device;
     private DBShader? _shader;
-    private GlVertexBuffer? _fillsVb;
-    private int _fillTris;
+    private DBTexture? _placeholderTex;
+    // Sector fill buckets: VB + triangle count + flat texture to bind (null = untextured/gray fallback).
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _fillBuckets = new();
+    // Flat-name -> uploaded GL texture (null cached when unresolvable). Lives across geometry rebuilds.
+    private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _flatTextures = new(StringComparer.OrdinalIgnoreCase);
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
     private GlVertexBuffer? _thingsVb;
@@ -46,6 +55,14 @@ void main() { frag = v_color; }";
     private GlVertexBuffer? _selVertsVb;
     private int _selVertTris;
     private bool _geometryDirty = true;
+
+    private ResourceManager? _resources;
+    /// <summary>Texture source for sector fills. Setting it invalidates the flat-texture cache and geometry.</summary>
+    public ResourceManager? MapResources
+    {
+        get => _resources;
+        set { _resources = value; InvalidateTextures(); _geometryDirty = true; RequestNextFrameRendering(); }
+    }
 
     private bool _needsFit;
     private MapSet? _map;
@@ -104,10 +121,15 @@ void main() { frag = v_color; }";
         _gl = new GL(new LamdaNativeContext(name => gl.GetProcAddress(name)));
         _device = new RenderDevice(_gl);
         _shader = new DBShader(_gl, VertexSrc, FragmentSrc);
-        _fillsVb = new GlVertexBuffer(_gl);
         _linesVb = new GlVertexBuffer(_gl);
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
+        // 1x1 white placeholder so the sampler is always complete during untextured draws.
+        _placeholderTex = new DBTexture(_gl);
+        _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+        _device.SetSamplerState(TextureAddress.Wrap);
         _device.SetCullMode(Cull.None);
         _device.SetZEnable(false);
         _device.SetAlphaBlendEnable(false);
@@ -115,13 +137,41 @@ void main() { frag = v_color; }";
 
     protected override void OnOpenGlDeinit(GlInterface gl)
     {
-        _fillsVb?.Dispose();
+        foreach (var b in _fillBuckets) b.Vb.Dispose();
+        _fillBuckets.Clear();
+        foreach (var t in _flatTextures.Values) t?.Dispose();
+        _flatTextures.Clear();
+        _placeholderTex?.Dispose();
         _linesVb?.Dispose();
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _fillsVb = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _shader = null; _device = null; _gl = null;
+    }
+
+    private void InvalidateTextures()
+    {
+        foreach (var t in _flatTextures.Values) t?.Dispose();
+        _flatTextures.Clear();
+    }
+
+    // Returns the cached GL texture for a flat, uploading it from MapResources on first use. Null when unresolved.
+    private DBTexture? GetFlatTexture(string name)
+    {
+        if (_flatTextures.TryGetValue(name, out var cached)) return cached;
+        DBTexture? tex = null;
+        var img = _resources?.GetFlat(name);
+        if (img != null && _device != null && _gl != null)
+        {
+            tex = new DBTexture(_gl);
+            tex.SetPixelsRgba8(img.Width, img.Height, img.Rgba, generateMipmaps: false);
+            _device.SetTexture(0, tex);
+            _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+            _device.SetSamplerState(TextureAddress.Wrap);
+        }
+        _flatTextures[name] = tex;
+        return tex;
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
@@ -148,13 +198,20 @@ void main() { frag = v_color; }";
                 (float)(_camY - halfH), (float)(_camY + halfH),
                 -1, 1);
             _device.SetUniform("projection", proj);
+            _device.SetUniform("tex0", 0);
 
-            // Draw order: sector fills -> things -> lines -> selection markers.
-            if (_fillTris > 0 && _fillsVb != null)
+            // Draw order: sector fills (textured) -> things -> lines -> selection markers.
+            foreach (var bucket in _fillBuckets)
             {
-                _device.SetVertexBuffer(_fillsVb);
-                _device.Draw(DBPrimitiveType.TriangleList, 0, _fillTris);
+                if (bucket.Tris == 0) continue;
+                _device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
+                _device.SetTexture(0, bucket.Tex ?? _placeholderTex);
+                _device.SetVertexBuffer(bucket.Vb);
+                _device.Draw(DBPrimitiveType.TriangleList, 0, bucket.Tris);
             }
+
+            _device.SetUniform("useTexture", 0f);
+            _device.SetTexture(0, _placeholderTex);
             if (_thingTris > 0 && _thingsVb != null)
             {
                 _device.SetVertexBuffer(_thingsVb);
@@ -177,26 +234,8 @@ void main() { frag = v_color; }";
     {
         if (_map == null || _device is null) return;
 
-        // Sector fills (brightness-shaded; selected sectors tinted cyan). Triangulated per sector.
-        if (_fillsVb != null)
-        {
-            var fv = new System.Collections.Generic.List<FlatVertex>();
-            foreach (var sector in _map.Sectors)
-            {
-                if (sector.Sidedefs.Count == 0) continue;
-                Triangulation tri;
-                try { tri = Triangulation.Create(sector); }
-                catch { continue; }
-                if (tri.Vertices.Count == 0) continue;
-
-                int c = SectorFillColor(sector);
-                for (int i = 0; i < tri.Vertices.Count; i++)
-                    fv.Add(FV(tri.Vertices[i], c));
-            }
-            var arr = fv.ToArray();
-            if (arr.Length > 0) _device.SetBufferData(_fillsVb, arr);
-            _fillTris = arr.Length / 3;
-        }
+        // Sector fills, bucketed by floor flat texture (when resolvable) else an untextured gray bucket.
+        RebuildFills();
 
         // Lines.
         if (_linesVb != null)
@@ -261,12 +300,61 @@ void main() { frag = v_color; }";
         }
     }
 
+    // Builds sector fills bucketed by floor flat texture (when resolvable) else a single untextured gray bucket.
+    private void RebuildFills()
+    {
+        foreach (var b in _fillBuckets) b.Vb.Dispose();
+        _fillBuckets.Clear();
+        if (_map == null || _device is null || _gl is null) return;
+
+        var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var sector in _map.Sectors)
+        {
+            if (sector.Sidedefs.Count == 0) continue;
+            Triangulation tri;
+            try { tri = Triangulation.Create(sector); }
+            catch { continue; }
+            if (tri.Vertices.Count == 0) continue;
+
+            string flatName = sector.FloorTexture ?? "-";
+            bool textured = GetFlatTexture(flatName) != null;
+            string key = textured ? flatName : "";
+            int c = textured ? TexturedFillColor(sector) : SectorFillColor(sector);
+
+            if (!buckets.TryGetValue(key, out var list)) { list = new(); buckets[key] = list; }
+            for (int i = 0; i < tri.Vertices.Count; i++)
+            {
+                var p = tri.Vertices[i];
+                list.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = 0, w = 1, c = c, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+            }
+        }
+
+        foreach (var (key, verts) in buckets)
+        {
+            if (verts.Count == 0) continue;
+            var vb = new GlVertexBuffer(_gl);
+            _device.SetBufferData(vb, verts.ToArray());
+            DBTexture? tex = key.Length > 0 ? GetFlatTexture(key) : null;
+            _fillBuckets.Add((vb, verts.Count / 3, tex));
+        }
+    }
+
+    // Brightness-shaded color used to modulate a textured flat (selected sectors tint cyan).
+    private static int TexturedFillColor(Sector s)
+    {
+        double b = Math.Clamp(s.Brightness / 255.0, 0.2, 1.0);
+        byte g = (byte)(b * 255);
+        if (s.Selected)
+            return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)g << 8) | g));
+        return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
+    }
+
+    // Untextured fallback fill: dim gray so the line/thing overlays stay legible (selected -> cyan).
     private static int SectorFillColor(Sector s)
     {
-        // Dim brightness-shaded gray so the line/thing overlays stay legible on top.
         double br = Math.Clamp(s.Brightness / 255.0, 0.12, 1.0) * 0.45;
         byte g = (byte)Math.Clamp(br * 255, 0, 255);
-        if (s.Selected) // blend toward cyan to flag the selection as a fill
+        if (s.Selected)
             return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)Math.Min(255, g + 60) << 8) | (uint)Math.Min(255, g + 80)));
         return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
     }

@@ -207,6 +207,8 @@ public partial class MainWindow : Window
 
     // ---- Map loading ----
 
+    private ResourceManager? _resources;
+
     private void LoadWad(string path)
     {
         try
@@ -218,6 +220,13 @@ public partial class MainWindow : Window
             _map = map;
             _mapMarker = marker;
             _undo = new UndoManager(map);
+
+            // Resource manager over the loaded WAD provides flats/textures for the map view.
+            _resources?.Dispose();
+            _resources = new ResourceManager();
+            _resources.AddResource(path);
+            MapView.MapResources = _resources;
+
             MapView.Map = map;
             Title = $"DBuilder - {System.IO.Path.GetFileName(path)} ({marker})";
             UpdateInfo();
