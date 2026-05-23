@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
@@ -20,8 +21,15 @@ public enum MapIssueKind
     UnclosedSector,
 }
 
-/// <summary>A single detected map problem with a human-readable message.</summary>
-public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, string Message);
+/// <summary>A single detected map problem with a human-readable message and optional navigation hints.</summary>
+public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, string Message)
+{
+    /// <summary>The offending element, so the editor can select it (null when the issue has no single element).</summary>
+    public ISelectable? Target { get; init; }
+
+    /// <summary>A representative world location to center the view on (null when unknown).</summary>
+    public Vector2D? Focus { get; init; }
+}
 
 public static class MapAnalysis
 {
@@ -46,18 +54,19 @@ public static class MapAnalysis
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var l = map.Linedefs[i];
+            var mid = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
             double dx = l.End.Position.x - l.Start.Position.x;
             double dy = l.End.Position.y - l.Start.Position.y;
             if (dx * dx + dy * dy < 1e-9)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.ZeroLengthLinedef,
-                    $"Linedef {i} has zero length."));
+                    $"Linedef {i} has zero length.") { Target = l, Focus = mid });
 
             if (l.Front == null && l.Back == null)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefWithoutSidedefs,
-                    $"Linedef {i} has no sidedefs."));
+                    $"Linedef {i} has no sidedefs.") { Target = l, Focus = mid });
             else if (l.Front == null)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront,
-                    $"Linedef {i} has only a back sidedef (a front sidedef is required)."));
+                    $"Linedef {i} has only a back sidedef (a front sidedef is required).") { Target = l, Focus = mid });
         }
     }
 
@@ -75,9 +84,11 @@ public static class MapAnalysis
         foreach (var (_, list) in buckets)
             if (list.Count > 1)
             {
-                var p = map.Vertices[list[0]].Position;
+                var v0 = map.Vertices[list[0]];
+                var p = v0.Position;
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingVertices,
-                    $"{list.Count} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)})."));
+                    $"{list.Count} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)}).")
+                    { Target = v0, Focus = p });
             }
     }
 
@@ -88,7 +99,7 @@ public static class MapAnalysis
         foreach (var v in map.Vertices)
             if (!used.Contains(v))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex,
-                    $"Vertex {vertexIndex[v]} is not used by any linedef."));
+                    $"Vertex {vertexIndex[v]} is not used by any linedef.") { Target = v, Focus = v.Position });
     }
 
     private static void CheckSectors(MapSet map, List<MapIssue> issues)
@@ -116,7 +127,7 @@ public static class MapAnalysis
             if (!referenced.Contains(s))
             {
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.EmptySector,
-                    $"Sector {i} has no sidedefs."));
+                    $"Sector {i} has no sidedefs.") { Target = s });
                 continue;
             }
             // A closed boundary visits every vertex an even number of times; an odd degree means a gap.
@@ -125,10 +136,20 @@ public static class MapAnalysis
                 if ((count & 1) != 0) { unclosed = true; break; }
             if (unclosed)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.UnclosedSector,
-                    $"Sector {i} is not closed (a boundary vertex has an odd number of edges)."));
+                    $"Sector {i} is not closed (a boundary vertex has an odd number of edges).")
+                    { Target = s, Focus = Centroid(degrees[s].Keys) });
         }
     }
 
     private static void Bump(Dictionary<Vertex, int> d, Vertex v)
         => d[v] = d.TryGetValue(v, out int c) ? c + 1 : 1;
+
+    // Average position of a set of vertices, or null when empty.
+    private static Vector2D? Centroid(IEnumerable<Vertex> verts)
+    {
+        double sx = 0, sy = 0;
+        int n = 0;
+        foreach (var v in verts) { sx += v.Position.x; sy += v.Position.y; n++; }
+        return n == 0 ? null : new Vector2D(sx / n, sy / n);
+    }
 }

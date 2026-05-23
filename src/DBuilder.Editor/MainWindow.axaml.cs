@@ -517,6 +517,21 @@ public partial class MainWindow : Window
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
 
+    // Runs the map health checker and opens a non-modal results window; selecting an issue locates it.
+    private void OnCheckMap(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var issues = MapAnalysis.Check(_map);
+        var win = new MapCheckWindow(issues);
+        win.IssueActivated += iss =>
+        {
+            MapView.NavigateTo(iss.Target, iss.Focus);
+            UpdateInfo();
+        };
+        win.Show(this);
+        SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
+    }
+
     // ---- UI helpers ----
 
     private void SetStatus(string text) => StatusText.Text = text;

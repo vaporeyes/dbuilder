@@ -106,4 +106,29 @@ public class MapAnalysisTests
         map.BuildIndexes();
         Assert.True(Has(map, MapIssueKind.EmptySector));
     }
+
+    [Fact]
+    public void LinedefIssueCarriesTargetAndFocus()
+    {
+        var map = Square(true);
+        var a = map.AddVertex(new Vector2D(200, 0));
+        var b = map.AddVertex(new Vector2D(300, 0));
+        var line = map.AddLinedef(a, b); // no sidedefs
+        map.BuildIndexes();
+        var issue = MapAnalysis.Check(map).First(i => i.Kind == MapIssueKind.LinedefWithoutSidedefs);
+        Assert.Same(line, issue.Target);
+        Assert.NotNull(issue.Focus);
+        Assert.Equal(250, issue.Focus!.Value.x, 3); // midpoint x of (200,0)-(300,0)
+    }
+
+    [Fact]
+    public void UnusedVertexIssueTargetsTheVertex()
+    {
+        var map = Square(true);
+        var v = map.AddVertex(new Vector2D(900, 900));
+        map.BuildIndexes();
+        var issue = MapAnalysis.Check(map).First(i => i.Kind == MapIssueKind.UnusedVertex);
+        Assert.Same(v, issue.Target);
+        Assert.Equal(900, issue.Focus!.Value.y, 3);
+    }
 }

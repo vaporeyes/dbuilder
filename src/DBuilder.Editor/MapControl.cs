@@ -207,6 +207,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     /// <summary>Raised on a double-click after selecting a single element, so the host can open a property dialog.</summary>
     public event Action? EditRequested;
 
+    /// <summary>
+    /// Reveals a map element: selects it (switching to the matching edit mode) and centers the 2D view on
+    /// <paramref name="focus"/>, zooming in if the view is currently zoomed far out. Used by the map check panel.
+    /// </summary>
+    public void NavigateTo(ISelectable? target, Vec2D? focus)
+    {
+        if (_map == null) return;
+        if (target != null)
+        {
+            _map.ClearAllSelected();
+            target.Selected = true;
+            SetEditMode(target switch
+            {
+                Vertex => EditMode.Vertices,
+                Sector => EditMode.Sectors,
+                Thing => EditMode.Things,
+                _ => EditMode.Linedefs, // Linedef and Sidedef both select in Linedefs mode
+            });
+        }
+        if (focus is { } f)
+        {
+            _camX = f.x;
+            _camY = f.y;
+            if (_zoom > 1.0) _zoom = 1.0; // zoom in to reveal a small element, but never zoom further out
+        }
+        _geometryDirty = true;
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+    }
+
     public void FitToMap()
     {
         if (_map == null || _map.Vertices.Count == 0) return;
