@@ -353,7 +353,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         DrawBuckets3D(_wall3D);
 
         UpdateTarget3D();
-        DrawPickMarker3D();
+        DrawTargetHighlight3D();
     }
 
     // Raycasts from the camera crosshair and records the targeted surface (for editing + highlight).
@@ -374,25 +374,46 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (desc != _target3DDesc) { _target3DDesc = desc; Target3DChanged?.Invoke(desc); }
     }
 
-    // A small 3D crosshair at the hit point so the user sees what is targeted.
-    private void DrawPickMarker3D()
+    // Outlines the targeted surface: a wall as its quad, a floor/ceiling as the sector's edge loop at that height.
+    private void DrawTargetHighlight3D()
     {
-        if (_target3D == null || _device == null || _pick3DVb == null) return;
-        var p = _target3D.Point;
-        const float s = 6f;
+        if (_target3D == null || _device == null || _pick3DVb == null || _map == null) return;
         const int c = unchecked((int)0xffffee00);
+        var verts = new System.Collections.Generic.List<FlatVertex>();
         FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = c };
-        var v = new[]
+        void Edge(Vec2D a, Vec2D b, double za, double zb) { verts.Add(V(a.x, a.y, za)); verts.Add(V(b.x, b.y, zb)); }
+
+        if (_target3D.Kind == VisualHitKind.Wall && _target3D.Line is { } l)
         {
-            V(p.x - s, p.y, p.z), V(p.x + s, p.y, p.z),
-            V(p.x, p.y - s, p.z), V(p.x, p.y + s, p.z),
-            V(p.x, p.y, p.z - s), V(p.x, p.y, p.z + s),
-        };
+            var a = l.Start.Position; var b = l.End.Position;
+            double bot = _target3D.Bottom, top = _target3D.Top;
+            Edge(a, b, bot, bot); Edge(b, b, bot, top); Edge(b, a, top, top); Edge(a, a, top, bot);
+        }
+        else if (_target3D.Sector is { } s)
+        {
+            double z = _target3D.Bottom;
+            foreach (var sd in s.Sidedefs)
+                if (sd.Line is { } line) Edge(line.Start.Position, line.End.Position, z, z);
+        }
+        if (verts.Count == 0) return;
+
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
-        _device.SetBufferData(_pick3DVb, v);
+        _device.SetBufferData(_pick3DVb, verts.ToArray());
         _device.SetVertexBuffer(_pick3DVb);
-        _device.Draw(DBPrimitiveType.LineList, 0, 3);
+        _device.Draw(DBPrimitiveType.LineList, 0, verts.Count / 2);
+    }
+
+    // Adjusts the targeted sector's brightness ([ darker / ] brighter), undoable.
+    private void AdjustTargetBrightness3D(int delta)
+    {
+        if (_map == null || _target3D?.Sector is not { } s) return;
+        EditBegun?.Invoke("Change brightness");
+        s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
     }
 
     // Raises/lowers the targeted floor or ceiling by the given step (undoable).
@@ -971,6 +992,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
         if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
+        // 3D brightness on the targeted sector: [ darker, ] brighter.
+        if (_mode3D && e.Key == Key.OemOpenBrackets) { AdjustTargetBrightness3D(-8); e.Handled = true; return; }
+        if (_mode3D && e.Key == Key.OemCloseBrackets) { AdjustTargetBrightness3D(8); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
         // Let Ctrl/Cmd shortcuts (undo/redo/save) bubble up to the window instead of triggering view toggles.

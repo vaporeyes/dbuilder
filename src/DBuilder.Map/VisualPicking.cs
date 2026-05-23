@@ -8,9 +8,13 @@ namespace DBuilder.Map;
 
 public enum VisualHitKind { Floor, Ceiling, Wall }
 
-/// <summary>A surface hit by a 3D ray: which kind, how far, where, and the owning sector / linedef side.</summary>
+/// <summary>
+/// A surface hit by a 3D ray: which kind, how far, where, the owning sector / linedef side, and the surface's
+/// vertical extent (Bottom..Top; equal for a flat floor/ceiling) for drawing a highlight.
+/// </summary>
 public sealed record VisualHit(
-    VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front);
+    VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front,
+    double Bottom, double Top);
 
 public static class VisualPicking
 {
@@ -75,7 +79,7 @@ public static class VisualPicking
         if (!ReferenceEquals(map.GetSectorAt(xy), s)) return;
 
         bestDist = t;
-        best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, z), s, null, kind == VisualHitKind.Floor);
+        best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, z), s, null, kind == VisualHitKind.Floor, z, z);
     }
 
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBottom, double zTop,
@@ -100,6 +104,6 @@ public static class VisualPicking
         var sector = front ? l.Front?.Sector : l.Back?.Sector;
 
         bestDist = u;
-        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front);
+        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, zBottom, zTop);
     }
 }
