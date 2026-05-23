@@ -30,6 +30,27 @@ public sealed class FlagChecks
     }
 }
 
+/// <summary>Up to 5 per-arg editors (combo for enum args, text box otherwise) that recombine into an int[5] on demand.</summary>
+public sealed class ArgEditors
+{
+    private readonly ComboBox?[] _combos = new ComboBox?[5];
+    private readonly TextBox?[] _boxes = new TextBox?[5];
+    public void SetCombo(int i, ComboBox c) => _combos[i] = c;
+    public void SetBox(int i, TextBox b) => _boxes[i] = b;
+
+    // Reads the edited args, falling back to the prior value for any arg without an editor.
+    public int[] Read(int[] fallback)
+    {
+        var result = (int[])fallback.Clone();
+        for (int i = 0; i < 5; i++)
+        {
+            if (_combos[i]?.SelectedItem is CatalogItem ci) result[i] = ci.Number;
+            else if (_boxes[i] is { } box && int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)) result[i] = v;
+        }
+        return result;
+    }
+}
+
 // Shared helpers for building simple label/input forms without XAML.
 public abstract class PropertyDialog : Window
 {
@@ -119,6 +140,31 @@ public abstract class PropertyDialog : Window
         return fc;
     }
 
+    // Adds up to 5 labeled arg editors driven by action/thing argument metadata: a dropdown for
+    // enum-typed args (value - title) and a text box otherwise. Returns null when no arg is used.
+    protected ArgEditors? AddArgEditors(GameConfiguration? config, ArgInfo[] meta, int[] current)
+    {
+        if (meta.Length == 0 || !Array.Exists(meta, a => a.Used)) return null;
+        var editors = new ArgEditors();
+        for (int i = 0; i < meta.Length; i++)
+        {
+            var info = meta[i];
+            if (!info.Used) continue;
+            string label = $"Arg{i}: {info.Title}";
+            var argEnum = config?.GetArgEnum(info);
+            if (argEnum != null)
+            {
+                var items = argEnum.Select(kv => new CatalogItem(kv.Key, $"{kv.Key} - {kv.Value}"));
+                editors.SetCombo(i, AddCombo(label, items, current[i]));
+            }
+            else
+            {
+                editors.SetBox(i, AddField(label, current[i].ToString(CultureInfo.InvariantCulture)));
+            }
+        }
+        return editors;
+    }
+
     protected static int ParseInt(TextBox box, int fallback)
         => int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
 
@@ -134,12 +180,15 @@ public sealed class ThingEditDialog : PropertyDialog
     private readonly TextBox? _typeBox;
     private readonly TextBox _x, _y, _angle, _height, _tag, _action;
     private readonly FlagChecks? _flagChecks;
+    private readonly ArgEditors? _args;
 
     public int ResultType, ResultAngle, ResultTag, ResultAction, ResultFlags;
     public double ResultX, ResultY, ResultHeight;
+    public int[] ResultArgs;
 
     public ThingEditDialog(Thing t, GameConfiguration? config) : base("Edit Thing")
     {
+        ResultArgs = (int[])t.Args.Clone();
         if (config != null && config.Things.Count > 0)
             _typeCombo = AddCombo("Type", config.Things.Values.Select(x => new CatalogItem(x.Index, $"{x.Index} - {x.Title}")), t.Type);
         else
@@ -151,6 +200,7 @@ public sealed class ThingEditDialog : PropertyDialog
         _angle = AddField("Angle", t.Angle.ToString(CultureInfo.InvariantCulture));
         _tag = AddField("Tag (TID)", t.Tag.ToString(CultureInfo.InvariantCulture));
         _action = AddField("Action", t.Action.ToString(CultureInfo.InvariantCulture));
+        _args = AddArgEditors(config, config?.GetThing(t.Type)?.Args ?? Array.Empty<ArgInfo>(), t.Args);
         _flagChecks = (config != null && config.ThingFlags.Count > 0) ? AddFlagChecks("Flags", config.ThingFlags, t.Flags) : null;
         ResultFlags = t.Flags; // preserved when no flag config
     }
@@ -162,6 +212,7 @@ public sealed class ThingEditDialog : PropertyDialog
         ResultTag = ParseInt(_tag, 0);
         ResultAction = ParseInt(_action, 0);
         if (_flagChecks != null) ResultFlags = _flagChecks.Value;
+        if (_args != null) ResultArgs = _args.Read(ResultArgs);
         ResultX = double.TryParse(_x.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) ? x : 0;
         ResultY = double.TryParse(_y.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var y) ? y : 0;
         ResultHeight = double.TryParse(_height.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var h) ? h : 0;
@@ -175,11 +226,14 @@ public sealed class LinedefEditDialog : PropertyDialog
     private readonly TextBox _tag;
     private readonly FlagChecks? _flagChecks;
     private readonly TextBox? _flagsBox;
+    private readonly ArgEditors? _args;
 
     public int ResultAction, ResultTag, ResultFlags;
+    public int[] ResultArgs;
 
     public LinedefEditDialog(Linedef l, GameConfiguration? config) : base("Edit Linedef")
     {
+        ResultArgs = (int[])l.Args.Clone();
         if (config != null && config.LinedefActions.Count > 0)
         {
             var items = config.LinedefActions.Values.Select(a => new CatalogItem(a.Index, $"{a.Index} - {a.Title}"))
@@ -189,6 +243,8 @@ public sealed class LinedefEditDialog : PropertyDialog
         else _actionBox = AddField("Action", l.Action.ToString(CultureInfo.InvariantCulture));
 
         _tag = AddField("Tag", l.Tag.ToString(CultureInfo.InvariantCulture));
+
+        _args = AddArgEditors(config, config?.GetLinedefAction(l.Action)?.Args ?? Array.Empty<ArgInfo>(), l.Args);
 
         if (config != null && config.LinedefFlags.Count > 0)
             _flagChecks = AddFlagChecks("Flags", config.LinedefFlags, l.Flags);
@@ -201,6 +257,7 @@ public sealed class LinedefEditDialog : PropertyDialog
         ResultAction = _actionCombo != null ? ComboNumber(_actionCombo, 0) : ParseInt(_actionBox!, 0);
         ResultTag = ParseInt(_tag, 0);
         ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
+        if (_args != null) ResultArgs = _args.Read(ResultArgs);
     }
 }
 

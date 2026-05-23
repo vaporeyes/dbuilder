@@ -12,11 +12,23 @@
  * generalized types, enums) can be layered on later.
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 
 namespace DBuilder.IO;
+
+/// <summary>Metadata for one of a linedef action's / thing's 5 args: display name, type code, enum reference, default.</summary>
+public sealed class ArgInfo
+{
+    public string Title { get; init; } = "";
+    public int Type { get; init; }
+    public string? Enum { get; init; }
+    public int Default { get; init; }
+    /// <summary>True when this arg slot is actually used (has a title).</summary>
+    public bool Used => Title.Length > 0;
+}
 
 public sealed class ThingTypeInfo
 {
@@ -28,6 +40,7 @@ public sealed class ThingTypeInfo
     public int Color { get; init; }
     public int Width { get; init; } = 16;
     public int Height { get; init; } = 16;
+    public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
 }
 
 public sealed class LinedefActionInfo
@@ -36,6 +49,7 @@ public sealed class LinedefActionInfo
     public string Title { get; init; } = "";
     public string Prefix { get; init; } = "";
     public string Category { get; init; } = "";
+    public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
 }
 
 public sealed class SectorEffectInfo
@@ -51,6 +65,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
     private readonly Dictionary<int, string> linedefFlags = new();
     private readonly Dictionary<int, string> thingFlags = new();
+    private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
@@ -82,6 +97,7 @@ public sealed class GameConfiguration
         var gc = new GameConfiguration();
         if (cfg.Root is IDictionary root)
         {
+            if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
@@ -194,6 +210,7 @@ public sealed class GameConfiguration
                     Color = GetInt(thing, "color", defColor),
                     Width = GetInt(thing, "width", defWidth),
                     Height = GetInt(thing, "height", defHeight),
+                    Args = ParseArgs(thing),
                 };
             }
         }
@@ -219,10 +236,62 @@ public sealed class GameConfiguration
                     Category = catTitle,
                     Title = GetString(action, "title", key),
                     Prefix = GetString(action, "prefix", ""),
+                    Args = ParseArgs(action),
                 };
             }
         }
     }
+
+    // Parses up to 5 argN { title; type; enum; default } sub-dicts from a linedef action / thing entry.
+    private static ArgInfo[] ParseArgs(IDictionary entry)
+    {
+        ArgInfo[]? args = null;
+        for (int i = 0; i < 5; i++)
+        {
+            if (entry["arg" + i] is not IDictionary ad) continue;
+            args ??= new ArgInfo[5];
+            args[i] = new ArgInfo
+            {
+                Title = GetString(ad, "title", ""),
+                Type = GetInt(ad, "type", 0),
+                Enum = ad["enum"] as string,
+                Default = GetInt(ad, "default", 0),
+            };
+        }
+        if (args == null) return Array.Empty<ArgInfo>();
+        for (int i = 0; i < 5; i++) args[i] ??= new ArgInfo();
+        return args;
+    }
+
+    // Parses the "enums" block: each named enum maps int values to titles (flat "v = title" or nested "v { title }").
+    private void ParseEnums(IDictionary enumsDict)
+    {
+        foreach (DictionaryEntry e in enumsDict)
+        {
+            string name = e.Key.ToString() ?? "";
+            if (e.Value is not IDictionary vals) continue;
+            var map = new Dictionary<int, string>();
+            foreach (DictionaryEntry kv in vals)
+            {
+                if (!int.TryParse(kv.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)) continue;
+                map[v] = kv.Value switch
+                {
+                    string s => s,
+                    IDictionary d => GetString(d, "title", v.ToString(CultureInfo.InvariantCulture)),
+                    _ => v.ToString(CultureInfo.InvariantCulture),
+                };
+            }
+            if (map.Count > 0) enums[name] = map;
+        }
+    }
+
+    /// <summary>The value-&gt;title map for a named enum, or null.</summary>
+    public IReadOnlyDictionary<int, string>? GetEnum(string name)
+        => enums.TryGetValue(name, out var m) ? m : null;
+
+    /// <summary>The value-&gt;title map for an arg's enum, or null when the arg has none.</summary>
+    public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
+        => arg.Enum != null ? GetEnum(arg.Enum) : null;
 
     private void ParseSectorTypes(IDictionary sectortypes)
     {

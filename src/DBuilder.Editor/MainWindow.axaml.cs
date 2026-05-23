@@ -334,6 +334,7 @@ public partial class MainWindow : Window
                 _undo.CreateUndo("Edit thing");
                 t.Type = dlg.ResultType; t.Angle = dlg.ResultAngle; t.Tag = dlg.ResultTag; t.Action = dlg.ResultAction;
                 t.Flags = dlg.ResultFlags;
+                Array.Copy(dlg.ResultArgs, t.Args, t.Args.Length);
                 t.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY); t.Height = dlg.ResultHeight;
                 MapView.InsertThingType = t.Type; // the insert tool reuses the last edited type
                 AfterEdit("Thing updated");
@@ -347,6 +348,7 @@ public partial class MainWindow : Window
             {
                 _undo.CreateUndo("Edit linedef");
                 l.Action = dlg.ResultAction; l.Tag = dlg.ResultTag; l.Flags = dlg.ResultFlags;
+                Array.Copy(dlg.ResultArgs, l.Args, l.Args.Length);
                 AfterEdit("Linedef updated");
             }
         }
