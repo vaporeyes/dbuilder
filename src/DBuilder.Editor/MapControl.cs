@@ -86,6 +86,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private VisualHit? _target3D;
     private string _target3DDesc = "";
     private string? _texClipboard3D; // texture name copied off a surface for painting onto others
+    private bool _look3D;            // left-drag mouse-look active in 3D
     private GlVertexBuffer? _pick3DVb;
     /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
     public event Action<string>? Target3DChanged;
@@ -450,6 +451,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         RequestNextFrameRendering();
         Target3DChanged?.Invoke($"applied texture {tex}");
+    }
+
+    // The sidedef on the camera-facing side of the targeted wall, or null.
+    private Sidedef? TargetSidedef3D()
+    {
+        var h = _target3D;
+        if (h == null || h.Kind != VisualHitKind.Wall || h.Line == null) return null;
+        return h.Front ? h.Line.Front : h.Line.Back;
+    }
+
+    // Nudges the targeted wall's texture offset by 8 (Shift+arrows), undoable.
+    private void NudgeTargetOffset3D(Key key)
+    {
+        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to offset its texture"); return; }
+        EditBegun?.Invoke("Texture offset");
+        const int step = 8;
+        switch (key)
+        {
+            case Key.Left: sd.OffsetX -= step; break;
+            case Key.Right: sd.OffsetX += step; break;
+            case Key.Up: sd.OffsetY -= step; break;
+            case Key.Down: sd.OffsetY += step; break;
+        }
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"offset {sd.OffsetX}, {sd.OffsetY}");
+    }
+
+    // Auto-aligns textures along the targeted wall's run (A = X, Shift+A = Y), undoable.
+    private void AutoAlignTarget3D(bool vertical)
+    {
+        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to align textures"); return; }
+        string tex = SidedefTextureAlignment.PrimaryTexture(sd);
+        var img = _resources?.GetWallTexture(tex);
+        EditBegun?.Invoke(vertical ? "Auto-align (Y)" : "Auto-align (X)");
+        int n = vertical
+            ? SidedefTextureAlignment.AutoAlignY(sd, img?.Height ?? 0)
+            : SidedefTextureAlignment.AutoAlignX(sd, img?.Width ?? 0);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {(vertical ? "vertically" : "horizontally")}");
     }
 
     // Adjusts the targeted sector's brightness ([ darker / ] brighter), undoable.
@@ -1025,6 +1071,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
         or Key.Up or Key.Down or Key.Left or Key.Right;
 
+    private static bool IsArrow(Key k) => k is Key.Left or Key.Right or Key.Up or Key.Down;
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Tab)
@@ -1047,6 +1095,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool mod = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         if (_mode3D && !mod && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
+        if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
+        // Shift+arrows nudge the targeted wall's texture offset (plain arrows remain camera look).
+        if (_mode3D && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && IsArrow(e.Key)) { NudgeTargetOffset3D(e.Key); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
         // Let Ctrl/Cmd shortcuts (undo/redo/save) bubble up to the window instead of triggering view toggles.
@@ -1143,7 +1194,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         base.OnPointerPressed(e);
         Focus(); // take keyboard focus so the 3D fly camera receives WASD/arrows
         var pt = e.GetCurrentPoint(this);
-        if (_mode3D) return; // 3D ignores 2D pointer picking/panning
+        if (_mode3D)
+        {
+            // Left-drag is mouse-look in 3D.
+            if (pt.Properties.IsLeftButtonPressed) { _look3D = true; _lastPointer = pt.Position; }
+            return;
+        }
 
         // Draw mode: left-click places loop points (or closes); a drag still pans. Right-click cancels.
         if (_drawMode)
@@ -1191,6 +1247,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+        if (_mode3D) { _look3D = false; return; }
         var pos = e.GetCurrentPoint(this).Position;
 
         // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
@@ -1577,6 +1634,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
+
+        // 3D mouse-look: drag rotates the camera (yaw decreases moving right, pitch decreases moving down).
+        if (_mode3D)
+        {
+            if (_look3D)
+            {
+                const double sens = 0.005;
+                _yaw -= (pos.X - _lastPointer.X) * sens;
+                _pitch = Math.Clamp(_pitch - (pos.Y - _lastPointer.Y) * sens, -1.5, 1.5);
+                _lastPointer = pos;
+                RequestNextFrameRendering();
+            }
+            return;
+        }
+
         _cursorWorld = ToWorld(pos);
         CursorWorldMoved?.Invoke(_cursorWorld);
 
