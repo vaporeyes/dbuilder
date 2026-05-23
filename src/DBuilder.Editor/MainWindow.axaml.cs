@@ -544,6 +544,18 @@ public partial class MainWindow : Window
         SetStatus(merge ? $"Merged {sel.Count} sectors." : $"Joined {sel.Count} sectors.");
     }
 
+    private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
+    private void OnDrawEllipse(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Ellipse, "ellipse");
+
+    private void ToggleShape(MapControl.ShapeKind kind, string name)
+    {
+        MapView.SetShapeMode(kind);
+        MapView.Focus();
+        SetStatus(MapView.CurrentShape == kind
+            ? $"Draw {name}: drag a box to create the sector (corners snap to grid). Select the menu item again to stop."
+            : "Shape draw off.");
+    }
+
     // ---- View / Help ----
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }

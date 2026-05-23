@@ -153,6 +153,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private GlVertexBuffer? _drawVb;
     private int _drawLineCount;
     private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
+
+    // Shape-draw tool: while active, a left-drag defines a bounding box that becomes a rectangle/ellipse sector.
+    public enum ShapeKind { None, Rectangle, Ellipse }
+    private ShapeKind _shapeKind = ShapeKind.None;
+    private int _shapeSides = 24; // segments for the ellipse
+    public ShapeKind CurrentShape => _shapeKind;
+
+    /// <summary>Toggles a shape-draw tool (off if the same kind is already active). Disables the polyline draw tool.</summary>
+    public void SetShapeMode(ShapeKind kind)
+    {
+        _shapeKind = _shapeKind == kind ? ShapeKind.None : kind;
+        if (_shapeKind != ShapeKind.None) { _drawMode = false; _drawPoints.Clear(); _drawDirty = true; }
+        RequestNextFrameRendering();
+    }
     private bool _invalidateTextures; // dispose cached GL textures on the render thread (context current)
 
     // Camera: world-space center + zoom in world-units-per-DIP.
@@ -1690,10 +1704,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else if (_drag == DragKind.Box)
         {
-            ApplyBoxSelection(_boxStartWorld, ToWorld(pos), _boxAdditive);
+            if (_shapeKind != ShapeKind.None) CreateShapeFromBox(_boxStartWorld, ToWorld(pos));
+            else ApplyBoxSelection(_boxStartWorld, ToWorld(pos), _boxAdditive);
         }
         _drag = DragKind.None;
         _moveVerts = null;
+    }
+
+    // Builds a rectangle/ellipse sector inscribed in the dragged box (corners snapped to grid), undoable.
+    private void CreateShapeFromBox(Vec2D a, Vec2D b)
+    {
+        if (_map == null) return;
+        var p0 = SnapToGrid(a);
+        var p1 = SnapToGrid(b);
+        var loop = _shapeKind == ShapeKind.Rectangle
+            ? ShapeGenerator.Rectangle(p0, p1)
+            : ShapeGenerator.Ellipse(p0, p1, _shapeSides);
+        if (loop.Count < 3) return;
+
+        EditBegun?.Invoke(_shapeKind == ShapeKind.Rectangle ? "Draw rectangle" : "Draw ellipse");
+        var verts = new System.Collections.Generic.List<Vertex>(loop.Count);
+        foreach (var p in loop)
+        {
+            var existing = _map.NearestVertex(p, 0.01);
+            verts.Add(existing ?? _map.AddVertex(p));
+        }
+        SectorBuilder.CreateSector(_map, verts);
+        _map.MergeOverlappingVertices(0.01);
+        _map.SplitLinedefsAtVertices(0.5);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
     }
 
     // Selects all elements of the active mode whose geometry falls inside the rubber-band box.
@@ -2081,7 +2122,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);
             if (moved < 4) return;
             // Draw mode pans; a press on a vertex/thing moves it; otherwise rubber-band box select.
-            _drag = _drawMode ? DragKind.Pan : (_moveCandidate ? DragKind.Move : DragKind.Box);
+            _drag = _shapeKind != ShapeKind.None ? DragKind.Box
+                  : _drawMode ? DragKind.Pan
+                  : (_moveCandidate ? DragKind.Move : DragKind.Box);
             if (_drag == DragKind.Move)
             {
                 EditBegun?.Invoke("Move selection");

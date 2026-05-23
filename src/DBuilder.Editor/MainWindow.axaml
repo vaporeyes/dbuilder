@@ -48,6 +48,10 @@
                 <MenuItem Header="_Fit to map" Click="OnFit" />
                 <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
             </MenuItem>
+            <MenuItem Header="_Draw">
+                <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />
+                <MenuItem Header="Draw _Ellipse" Click="OnDrawEllipse" />
+            </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Check Map" Click="OnCheckMap" />
                 <MenuItem Header="_Test Map" Click="OnTestMap" />
