@@ -999,6 +999,39 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
         }
 
+        // GZDoom 3D floors: render each control sector's slab (top + bottom flats and side walls) into target sectors.
+        var tdf = DBuilder.Map.ThreeDFloors.Resolve(_map);
+        foreach (var (sector, floors) in tdf)
+        {
+            if (sector.Sidedefs.Count == 0) continue;
+            Triangulation tri;
+            try { tri = Triangulation.Create(sector); }
+            catch { continue; }
+            if (tri.Vertices.Count == 0) continue;
+
+            foreach (var f in floors)
+            {
+                if (f.Alpha == 0 || f.Top <= f.Bottom) continue;
+                int tc = Gray(f.Brightness, 1.0), bc = Gray(f.Brightness, 0.85);
+                var topL = Bucket(floorB, GetFlatTexture(f.TopFlat) != null ? f.TopFlat : "");
+                var botL = Bucket(ceilB, GetFlatTexture(f.BottomFlat) != null ? f.BottomFlat : "");
+                for (int i = 0; i < tri.Vertices.Count; i++)
+                {
+                    var p = tri.Vertices[i];
+                    topL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Top, w = 1, c = tc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+                    botL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Bottom, w = 1, c = bc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+                }
+
+                // Slab side walls around the target sector's perimeter.
+                foreach (var sd in sector.Sidedefs)
+                {
+                    if (sd.Line == null) continue;
+                    PushWall(wallB, sd.Line.Start.Position, sd.Line.End.Position,
+                        f.Bottom, f.Bottom, f.Top, f.Top, f.SideTexture, f.Brightness, 0, 0, WallPeg.Top, 0, 0, Gray);
+                }
+            }
+        }
+
         UploadBuckets(floorB, _floor3D);
         UploadBuckets(ceilB, _ceil3D);
         UploadBuckets(wallB, _wall3D);
