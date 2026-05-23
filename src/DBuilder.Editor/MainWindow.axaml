@@ -56,11 +56,17 @@
         <!-- Central map view -->
         <local:MapControl Grid.Row="2" x:Name="MapView" />
 
-        <!-- Info panel -->
-        <Border Grid.Row="3" Background="#1c2028" Padding="8,6" Height="96"
+        <!-- Info panel: text on the left, texture/sprite previews on the right -->
+        <Border Grid.Row="3" Background="#1c2028" Padding="8,6" Height="124"
                 BorderBrush="#10000000" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
-                       Text="No map loaded. File &gt; Open WAD to begin." />
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
+                           VerticalAlignment="Top"
+                           Text="No map loaded. File &gt; Open WAD to begin." />
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="PreviewPanel" Orientation="Horizontal" Spacing="10" />
+                </ScrollViewer>
+            </Grid>
         </Border>
 
         <!-- Status bar -->

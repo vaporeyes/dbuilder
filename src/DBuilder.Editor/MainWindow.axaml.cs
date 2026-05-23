@@ -3,9 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -446,8 +452,9 @@ public partial class MainWindow : Window
 
     private void UpdateInfo()
     {
-        if (_map is null) { InfoText.Text = "No map loaded."; return; }
+        if (_map is null) { InfoText.Text = "No map loaded."; PreviewPanel.Children.Clear(); return; }
         int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
+        UpdatePreviews(sv, sl, ss, st);
 
         if (sv + sl + ss + st == 0)
         {
@@ -484,5 +491,93 @@ public partial class MainWindow : Window
             InfoText.Text = $"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
                             (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : "");
         }
+    }
+
+    // Shows texture/sprite thumbnails for a single selected element (sidedef textures, sector flats, thing sprite).
+    private void UpdatePreviews(int sv, int sl, int ss, int st)
+    {
+        PreviewPanel.Children.Clear();
+        if (_map is null || _resources is null) return;
+
+        if (sl == 1 && st == 0 && ss == 0 && sv == 0)
+        {
+            var l = _map.GetSelectedLinedefs()[0];
+            if (l.Front is { } f) PreviewPanel.Children.Add(SidePreviews("Front", f));
+            if (l.Back is { } b) PreviewPanel.Children.Add(SidePreviews("Back", b));
+        }
+        else if (ss == 1 && st == 0 && sl == 0 && sv == 0)
+        {
+            var s = _map.GetSelectedSectors()[0];
+            PreviewPanel.Children.Add(Group("Sector", new[]
+            {
+                Slot("Floor", s.FloorTexture, _resources.GetFlat(s.FloorTexture)),
+                Slot("Ceiling", s.CeilTexture, _resources.GetFlat(s.CeilTexture)),
+            }));
+        }
+        else if (st == 1 && sl == 0 && ss == 0 && sv == 0)
+        {
+            var t = _map.GetSelectedThings()[0];
+            string sprite = _config?.GetThing(t.Type)?.Sprite ?? "";
+            PreviewPanel.Children.Add(Group("Thing", new[]
+            {
+                Slot(sprite.Length > 0 ? sprite : $"type {t.Type}", sprite, _resources.GetSprite(sprite)),
+            }));
+        }
+    }
+
+    private Control SidePreviews(string header, Sidedef sd) => Group($"{header} Sidedef", new[]
+    {
+        Slot("Upper", sd.HighTexture, _resources!.GetWallTexture(sd.HighTexture)),
+        Slot("Middle", sd.MidTexture, _resources!.GetWallTexture(sd.MidTexture)),
+        Slot("Lower", sd.LowTexture, _resources!.GetWallTexture(sd.LowTexture)),
+    });
+
+    // A labeled group of preview slots.
+    private static Control Group(string header, IEnumerable<Control> slots)
+    {
+        var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
+        panel.Children.Add(new TextBlock { Text = header, Foreground = Brushes.LightSkyBlue, FontSize = 11 });
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+        foreach (var s in slots) row.Children.Add(s);
+        panel.Children.Add(row);
+        return panel;
+    }
+
+    // A single 64x64 thumbnail with its texture name underneath ("-" / missing shows an empty box).
+    private static Control Slot(string label, string texName, ImageData? img)
+    {
+        var image = new Image { Width = 64, Height = 64, Stretch = Stretch.Uniform };
+        RenderOptions.SetBitmapInterpolationMode(image, BitmapInterpolationMode.None); // crisp pixel art
+        if (img != null) image.Source = ToBitmap(img);
+
+        var box = new Border
+        {
+            Width = 66, Height = 66, Background = new SolidColorBrush(Color.FromRgb(0x10, 0x12, 0x16)),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0x33, 0x3a, 0x44)), BorderThickness = new Thickness(1),
+            Child = image,
+        };
+        var stack = new StackPanel { Orientation = Orientation.Vertical, Spacing = 1 };
+        stack.Children.Add(box);
+        stack.Children.Add(new TextBlock
+        {
+            Text = string.IsNullOrEmpty(texName) || texName == "-" ? "-" : texName,
+            Foreground = Brushes.Gray, FontSize = 10, MaxWidth = 66, TextTrimming = TextTrimming.CharacterEllipsis,
+        });
+        return stack;
+    }
+
+    // Converts RGBA8 ImageData to an Avalonia bitmap (row-by-row to honor the framebuffer stride).
+    private static Bitmap? ToBitmap(ImageData img)
+    {
+        if (img.Width <= 0 || img.Height <= 0) return null;
+        var wb = new WriteableBitmap(new PixelSize(img.Width, img.Height), new Vector(96, 96),
+            PixelFormat.Rgba8888, AlphaFormat.Unpremul);
+        using (var fb = wb.Lock())
+        {
+            int rowBytes = img.Width * 4;
+            for (int y = 0; y < img.Height; y++)
+                Marshal.Copy(img.Rgba, y * rowBytes, IntPtr.Add(fb.Address, y * fb.RowBytes), rowBytes);
+        }
+        return wb;
     }
 }
