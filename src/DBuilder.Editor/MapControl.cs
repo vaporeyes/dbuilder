@@ -427,11 +427,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke($"copied texture {tex}");
     }
 
+    /// <summary>Raised when the 3D user requests the texture browser (true = flats for a floor/ceiling target).</summary>
+    public event Action<bool>? BrowseTexturesRequested;
+
+    /// <summary>Applies a chosen texture name (from the browser) to the current 3D target and remembers it.</summary>
+    public void ApplyChosenTexture(string name)
+    {
+        _texClipboard3D = name;
+        ApplyTextureToTarget(name);
+    }
+
     // Applies the 3D texture clipboard onto the targeted surface (undoable).
     private void ApplyTexture3D()
     {
-        if (_map == null || _target3D is not { } h || string.IsNullOrEmpty(_texClipboard3D)) return;
-        string tex = _texClipboard3D!;
+        if (string.IsNullOrEmpty(_texClipboard3D)) { Target3DChanged?.Invoke("no copied texture (use C or T)"); return; }
+        ApplyTextureToTarget(_texClipboard3D!);
+    }
+
+    private void ApplyTextureToTarget(string tex)
+    {
+        if (_map == null || _target3D is not { } h) return;
         EditBegun?.Invoke("Apply texture");
         if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) fs.FloorTexture = tex;
         else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) cs.CeilTexture = tex;
@@ -1096,6 +1111,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && !mod && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
+        // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
+        if (_mode3D && !mod && e.Key == Key.T && _target3D != null)
+        {
+            BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
+            e.Handled = true;
+            return;
+        }
         // Shift+arrows nudge the targeted wall's texture offset (plain arrows remain camera look).
         if (_mode3D && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && IsArrow(e.Key)) { NudgeTargetOffset3D(e.Key); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }

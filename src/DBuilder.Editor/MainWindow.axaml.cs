@@ -40,6 +40,7 @@ public partial class MainWindow : Window
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
+        MapView.BrowseTexturesRequested += OnBrowseTextures;
         MapView.DrawModeChanged += () => SetStatus(MapView.DrawMode
             ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
             : "Draw mode off.");
@@ -176,6 +177,18 @@ public partial class MainWindow : Window
             SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
+    }
+
+    // Opens the texture/flat browser for the current 3D target and applies the pick to it.
+    private async void OnBrowseTextures(bool flats)
+    {
+        if (_resources is null) { SetStatus("No resources loaded for textures."); return; }
+        var dlg = new TextureBrowserDialog(_resources, flats);
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
+        {
+            MapView.ApplyChosenTexture(name);
+            MapView.Focus();
+        }
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e)
@@ -459,7 +472,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD move, arrows or drag to look, QE up/down, G walk; wheel raises/lowers targeted floor/ceiling, Shift = 1; [ ] brightness; C/V copy/apply texture; A/Shift+A align; Shift+arrows nudge offset).";
+                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD move, arrows or drag to look, QE up/down, G walk; wheel raises/lowers targeted floor/ceiling, Shift = 1; [ ] brightness; C/V copy/apply texture; T browse textures; A/Shift+A align; Shift+arrows nudge offset).";
             return;
         }
 
@@ -548,7 +561,7 @@ public partial class MainWindow : Window
     {
         var image = new Image { Width = 64, Height = 64, Stretch = Stretch.Uniform };
         RenderOptions.SetBitmapInterpolationMode(image, BitmapInterpolationMode.None); // crisp pixel art
-        if (img != null) image.Source = ToBitmap(img);
+        if (img != null) image.Source = BitmapConvert.ToBitmap(img);
 
         var box = new Border
         {
@@ -566,18 +579,4 @@ public partial class MainWindow : Window
         return stack;
     }
 
-    // Converts RGBA8 ImageData to an Avalonia bitmap (row-by-row to honor the framebuffer stride).
-    private static Bitmap? ToBitmap(ImageData img)
-    {
-        if (img.Width <= 0 || img.Height <= 0) return null;
-        var wb = new WriteableBitmap(new PixelSize(img.Width, img.Height), new Vector(96, 96),
-            PixelFormat.Rgba8888, AlphaFormat.Unpremul);
-        using (var fb = wb.Lock())
-        {
-            int rowBytes = img.Width * 4;
-            for (int y = 0; y < img.Height; y++)
-                Marshal.Copy(img.Rgba, y * rowBytes, IntPtr.Add(fb.Address, y * fb.RowBytes), rowBytes);
-        }
-        return wb;
-    }
 }
