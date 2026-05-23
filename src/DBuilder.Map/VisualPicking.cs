@@ -6,7 +6,7 @@ using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
-public enum VisualHitKind { Floor, Ceiling, Wall }
+public enum VisualHitKind { Floor, Ceiling, Wall, Thing }
 
 /// <summary>Which texture slot a wall hit corresponds to (None for floor/ceiling hits).</summary>
 public enum WallPart { None, Upper, Middle, Lower }
@@ -17,7 +17,7 @@ public enum WallPart { None, Upper, Middle, Lower }
 /// </summary>
 public sealed record VisualHit(
     VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front,
-    double Bottom, double Top, WallPart Part = WallPart.None);
+    double Bottom, double Top, WallPart Part = WallPart.None, Thing? Thing = null);
 
 public static class VisualPicking
 {
@@ -27,7 +27,8 @@ public static class VisualPicking
     /// Casts a ray from <paramref name="origin"/> along <paramref name="dir"/> and returns the nearest surface
     /// hit (floor/ceiling/wall), or null. Requires MapSet.BuildIndexes() (uses GetSectorAt for plane containment).
     /// </summary>
-    public static VisualHit? Raycast(MapSet map, Vector3D origin, Vector3D dir)
+    public static VisualHit? Raycast(MapSet map, Vector3D origin, Vector3D dir,
+        Func<Thing, (double radius, double height)>? thingSize = null)
     {
         double len = Math.Sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len < Eps) return null;
@@ -64,7 +65,53 @@ public static class VisualPicking
             }
         }
 
+        // Things as upright bounding boxes (only when the caller supplies their radius/height from the config).
+        if (thingSize != null)
+            foreach (var t in map.Things)
+                TryThing(map, origin, dir, t, thingSize(t), ref best, ref bestDist);
+
         return best;
+    }
+
+    private static void TryThing(MapSet map, Vector3D o, Vector3D d, Thing t, (double radius, double height) size,
+        ref VisualHit? best, ref double bestDist)
+    {
+        double r = size.radius > 0 ? size.radius : 16;
+        double h = size.height > 0 ? size.height : 16;
+        double floorZ = map.GetSectorAt(t.Position)?.GetFloorZ(t.Position) ?? 0;
+        double zb = floorZ + t.Height;
+        double zt = zb + h;
+
+        if (!RayAabb(o, d, t.Position.x - r, t.Position.y - r, zb, t.Position.x + r, t.Position.y + r, zt, out double tt)) return;
+        if (tt <= Eps || tt >= bestDist) return;
+
+        bestDist = tt;
+        best = new VisualHit(VisualHitKind.Thing, tt, new Vector3D(o.x + d.x * tt, o.y + d.y * tt, o.z + d.z * tt),
+            map.GetSectorAt(t.Position), null, true, zb, zt, WallPart.None, t);
+    }
+
+    // Slab-method ray vs axis-aligned box; returns the nearest forward entry distance.
+    private static bool RayAabb(Vector3D o, Vector3D d,
+        double minX, double minY, double minZ, double maxX, double maxY, double maxZ, out double t)
+    {
+        t = 0;
+        double tmin = double.NegativeInfinity, tmax = double.PositiveInfinity;
+        if (!Slab(o.x, d.x, minX, maxX, ref tmin, ref tmax)) return false;
+        if (!Slab(o.y, d.y, minY, maxY, ref tmin, ref tmax)) return false;
+        if (!Slab(o.z, d.z, minZ, maxZ, ref tmin, ref tmax)) return false;
+        if (tmax < Eps) return false;
+        t = tmin > Eps ? tmin : tmax; // box entry, or exit when the origin is inside
+        return t > Eps;
+
+        static bool Slab(double o1, double d1, double lo, double hi, ref double tmin, ref double tmax)
+        {
+            if (Math.Abs(d1) < Eps) return o1 >= lo && o1 <= hi; // parallel: must already be within the slab
+            double t1 = (lo - o1) / d1, t2 = (hi - o1) / d1;
+            if (t1 > t2) (t1, t2) = (t2, t1);
+            if (t1 > tmin) tmin = t1;
+            if (t2 < tmax) tmax = t2;
+            return tmin <= tmax;
+        }
     }
 
     private static void TryPlane(MapSet map, Vector3D o, Vector3D d, Sector s, VisualHitKind kind,

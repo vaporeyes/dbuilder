@@ -126,6 +126,34 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void PicksThingBoxWhenSizerProvided()
+    {
+        var (map, _, _) = Room();
+        var thing = map.AddThing(new Vector2D(50, 50), 1);
+        map.BuildIndexes();
+
+        // From inside the room at (50,90,28) looking -y, the thing box (r=16) front face is at y=66, dist 24.
+        var hit = VisualPicking.Raycast(map, new Vector3D(50, 90, 28), new Vector3D(0, -1, 0),
+            _ => (16.0, 56.0));
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Thing, hit!.Kind);
+        Assert.Same(thing, hit.Thing);
+        Assert.Equal(24, hit.Distance, 4);
+    }
+
+    [Fact]
+    public void ThingsIgnoredWithoutSizer()
+    {
+        var (map, _, _) = Room();
+        map.AddThing(new Vector2D(50, 50), 1);
+        map.BuildIndexes();
+        // No sizer -> things are not picked; the back wall is hit instead.
+        var hit = VisualPicking.Raycast(map, new Vector3D(50, 90, 28), new Vector3D(0, -1, 0));
+        Assert.NotNull(hit);
+        Assert.NotEqual(VisualHitKind.Thing, hit!.Kind);
+    }
+
+    [Fact]
     public void RayMissingEverythingReturnsNull()
     {
         var (map, _, _) = Room();
