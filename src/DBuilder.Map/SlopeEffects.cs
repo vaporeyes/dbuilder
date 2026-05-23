@@ -12,6 +12,51 @@ public static class SlopeEffects
     /// <summary>The Hexen/ZDoom Plane_Align linedef special number.</summary>
     public const int PlaneAlignAction = 181;
 
+    /// <summary>ZDoom floor / ceiling slope thing editor numbers.</summary>
+    public const int FloorSlopeThing = 9502;
+    public const int CeilingSlopeThing = 9503;
+
+    /// <summary>Applies both Plane_Align line slopes and slope-thing slopes. Returns the number of planes set.</summary>
+    public static int ApplyAll(MapSet map, int planeAlignAction = PlaneAlignAction)
+        => ApplyPlaneAlign(map, planeAlignAction) + ApplyThingSlopes(map);
+
+    /// <summary>
+    /// Applies ZDoom floor (9502) / ceiling (9503) slope things: a plane anchored at the thing's position and Z
+    /// (plus the sector height) tilted by arg0 degrees in the thing's facing direction. Returns planes set.
+    /// Requires <see cref="MapSet.BuildIndexes"/> (uses GetSectorAt).
+    /// </summary>
+    public static int ApplyThingSlopes(MapSet map)
+    {
+        int count = 0;
+        foreach (var t in map.Things)
+        {
+            bool floor = t.Type == FloorSlopeThing;
+            if (!floor && t.Type != CeilingSlopeThing) continue;
+
+            var sector = map.GetSectorAt(t.Position);
+            if (sector == null) continue;
+
+            double angle = Angle2D.DoomToReal(t.Angle);
+            double vangle = Angle2D.DegToRad(Math.Clamp(t.Args[0], 0, 180));
+            if (Math.Sin(vangle) < 1e-6) continue; // vertical/degenerate -> no usable plane
+
+            var point = new Vector2D(t.Position.x + Math.Cos(angle) * Math.Sin(vangle),
+                                     t.Position.y + Math.Sin(angle) * Math.Sin(vangle));
+            var perp = new Line2D(t.Position, point).GetPerpendicular();
+            double baseZ = t.Height + (floor ? sector.FloorHeight : sector.CeilHeight);
+
+            var v1 = new Vector3D(t.Position.x, t.Position.y, baseZ);
+            var v2 = new Vector3D(point.x + perp.x, point.y + perp.y, baseZ + Math.Cos(vangle));
+            var v3 = new Vector3D(point.x - perp.x, point.y - perp.y, baseZ + Math.Cos(vangle));
+            var plane = new Plane(v1, v2, v3, up: floor);
+
+            if (floor) { sector.FloorSlope = plane.Normal; sector.FloorSlopeOffset = plane.Offset; }
+            else { sector.CeilSlope = plane.Normal; sector.CeilSlopeOffset = plane.Offset; }
+            count++;
+        }
+        return count;
+    }
+
     /// <summary>
     /// Applies every Plane_Align special to slope the indicated sector's floor (arg0) and/or ceiling (arg1):
     /// 1 = slope the front sector, 2 = slope the back sector. Returns the number of slope planes set.

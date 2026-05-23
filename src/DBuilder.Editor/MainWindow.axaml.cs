@@ -827,12 +827,12 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) return;
         _undo.CreateUndo("Apply slopes");
-        int n = SlopeEffects.ApplyPlaneAlign(_map);
+        int n = SlopeEffects.ApplyAll(_map);
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus(n == 0
-            ? "No Plane_Align (181) slopes found."
-            : $"Applied {n} slope plane(s) from Plane_Align specials (visible in 3D).");
+            ? "No slope specials found (Plane_Align lines or 9502/9503 slope things)."
+            : $"Applied {n} slope plane(s) from specials (visible in 3D).");
     }
 
     // Builds a staircase from the selected sectors (stepped floor heights), undoable.
