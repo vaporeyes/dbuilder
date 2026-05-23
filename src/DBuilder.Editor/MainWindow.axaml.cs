@@ -220,7 +220,7 @@ public partial class MainWindow : Window
                     using var src = new WAD(_wadPath, openreadonly: true);
                     WadMaps.CopyAllLumps(src, dst);
                 }
-                WadMaps.SaveMap(dst, marker, _map, _mapFormat);
+                WadMaps.SaveMap(dst, marker, _map, _mapFormat, _config);
                 bytes = msOut.ToArray();
             }
 

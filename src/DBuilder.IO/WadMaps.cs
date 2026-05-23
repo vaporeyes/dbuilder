@@ -64,7 +64,7 @@ public static class WadMaps
     /// format, replacing the marker and its existing map sub-lumps in place (other lumps are untouched). If the
     /// marker is absent the block is appended. An existing Hexen BEHAVIOR lump is preserved across the rewrite.
     /// </summary>
-    public static void SaveMap(WAD wad, string marker, MapSet map, MapFormat format)
+    public static void SaveMap(WAD wad, string marker, MapSet map, MapFormat format, GameConfiguration? config = null)
     {
         int insertPos;
         byte[]? behavior = null;
@@ -74,11 +74,11 @@ public static class WadMaps
         {
             insertPos = idx;
             // Capture the existing compiled ACS so a Hexen save keeps its scripts.
-            for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name); j++)
+            for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name, config); j++)
                 if (wad.Lumps[j].Name == "BEHAVIOR") { behavior = wad.Lumps[j].Stream.ReadAllBytes(); break; }
 
             wad.RemoveAt(idx, false);                                   // the marker
-            while (idx < wad.Lumps.Count && IsMapSubLump(wad.Lumps[idx].Name))
+            while (idx < wad.Lumps.Count && IsMapSubLump(wad.Lumps[idx].Name, config))
                 wad.RemoveAt(idx, false);                               // its sub-lumps
         }
         else
@@ -107,7 +107,10 @@ public static class WadMaps
         dst.WriteHeaders();
     }
 
-    private static bool IsMapSubLump(string name) => name switch
+    // A lump is a map sub-lump if the game config lists it (port-specific lumps) or it is in the curated
+    // built-in set. The config only extends this set, so save-back never fails to clean a standard lump.
+    private static bool IsMapSubLump(string name, GameConfiguration? config = null)
+        => (config != null && config.IsMapLump(name)) || name switch
     {
         "THINGS" or "LINEDEFS" or "SIDEDEFS" or "VERTEXES" or "SECTORS"
             or "SEGS" or "SSECTORS" or "NODES" or "REJECT" or "BLOCKMAP"

@@ -71,6 +71,7 @@ public sealed class GameConfiguration
     private readonly List<GeneralizedCategory> genSectors = new();
     private readonly List<FlagTranslation> linedefFlagsTranslation = new();
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
+    private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
@@ -87,6 +88,9 @@ public sealed class GameConfiguration
 
     /// <summary>Binary thing flag bit -> UDMF field translations (empty if not configured).</summary>
     public IReadOnlyList<FlagTranslation> ThingFlagsTranslation => thingFlagsTranslation;
+
+    /// <summary>Lump name -> map lump description from the maplumpnames block (empty if not configured).</summary>
+    public IReadOnlyDictionary<string, MapLumpInfo> MapLumpNames => mapLumpNames;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
     public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
@@ -128,6 +132,7 @@ public sealed class GameConfiguration
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectors.AddRange(GeneralizedCategory.ParseBlock(gs));
             if (root["linedefflagstranslation"] is IDictionary lft) gc.ParseFlagTranslations(lft, gc.linedefFlagsTranslation);
             if (root["thingflagstranslation"] is IDictionary tft) gc.ParseFlagTranslations(tft, gc.thingFlagsTranslation);
+            if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln);
         }
         return gc;
     }
@@ -326,6 +331,30 @@ public sealed class GameConfiguration
     public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
         => arg.Enum != null ? GetEnum(arg.Enum) : null;
 
+    /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
+    public bool IsMapLump(string name)
+        => mapLumpNames.TryGetValue(name, out var info) && !info.IsMarker;
+
+    // Parses the maplumpnames block: each key is a lump name, each value its property sub-dict.
+    private void ParseMapLumpNames(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string name = e.Key.ToString() ?? "";
+            if (e.Value is not IDictionary d) continue;
+            mapLumpNames[name] = new MapLumpInfo
+            {
+                Name = name,
+                Required = GetBool(d, "required", false),
+                BlindCopy = GetBool(d, "blindcopy", false),
+                NodeBuild = GetBool(d, "nodebuild", false),
+                AllowEmpty = GetBool(d, "allowempty", false),
+                Forbidden = GetBool(d, "forbidden", false),
+                Script = d["script"] as string,
+            };
+        }
+    }
+
     // Parses a "<bit> = "<udmf spec>";" block into FlagTranslation entries (compound "a,b" / negated "!a").
     private void ParseFlagTranslations(IDictionary src, List<FlagTranslation> dest)
     {
@@ -417,4 +446,13 @@ public sealed class GameConfiguration
 
     private static string GetString(IDictionary d, string key, string fallback)
         => d[key] is string s ? s : fallback;
+
+    private static bool GetBool(IDictionary d, string key, bool fallback)
+        => d[key] switch
+        {
+            bool b => b,
+            int i => i != 0,
+            string s when bool.TryParse(s, out bool p) => p,
+            _ => fallback,
+        };
 }
