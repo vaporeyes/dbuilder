@@ -941,35 +941,56 @@ public partial class MainWindow : Window
         InfoFields.Children.Clear();
     }
 
-    // Shows a header + label/value field cells and hides the free-text block.
+    // Number of label/value pairs per row in the field grid (columns align across rows for easy scanning).
+    private const int FieldPairsPerRow = 3;
+    private static readonly IBrush FieldLabelBrush = new SolidColorBrush(Color.FromRgb(0x8a, 0x93, 0x9e));
+    private static readonly IBrush FieldValueBrush = new SolidColorBrush(Color.FromRgb(0xe0, 0xe6, 0xee));
+
+    // Shows a header + an aligned grid of label/value pairs and hides the free-text block.
     private void ShowFields(string header, List<(string Label, string Value)> fields)
     {
         InfoFields.Children.Clear();
         InfoFields.Children.Add(new TextBlock
         {
             Text = header, Foreground = Brushes.LightSkyBlue, FontWeight = FontWeight.Bold, FontSize = 12,
-            Margin = new Thickness(0, 0, 0, 3),
+            Margin = new Thickness(0, 0, 0, 4),
         });
-        var wrap = new WrapPanel { Orientation = Orientation.Horizontal };
-        foreach (var (label, value) in fields) wrap.Children.Add(FieldCell(label, value));
-        InfoFields.Children.Add(wrap);
+
+        // Each pair is a label column (auto) + a value column (fixed) so values line up down each column.
+        var grid = new Grid { RowSpacing = 3, ColumnSpacing = 8 };
+        for (int p = 0; p < FieldPairsPerRow; p++)
+        {
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));      // label
+            grid.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(120)));  // value
+        }
+        int rows = (fields.Count + FieldPairsPerRow - 1) / FieldPairsPerRow;
+        for (int r = 0; r < rows; r++) grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+
+        for (int i = 0; i < fields.Count; i++)
+        {
+            int pair = i % FieldPairsPerRow, row = i / FieldPairsPerRow;
+            var label = new TextBlock
+            {
+                Text = fields[i].Label, Foreground = FieldLabelBrush, FontSize = 11,
+                VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(pair == 0 ? 0 : 8, 0, 0, 0),
+            };
+            Grid.SetRow(label, row);
+            Grid.SetColumn(label, pair * 2);
+            grid.Children.Add(label);
+
+            var value = new TextBlock
+            {
+                Text = fields[i].Value, Foreground = FieldValueBrush, FontSize = 11, FontWeight = FontWeight.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis,
+            };
+            Grid.SetRow(value, row);
+            Grid.SetColumn(value, pair * 2 + 1);
+            grid.Children.Add(value);
+        }
+
+        InfoFields.Children.Add(grid);
         InfoText.IsVisible = false;
         InfoFields.IsVisible = true;
-    }
-
-    // A fixed-width "label: value" cell for the field grid.
-    private static Control FieldCell(string label, string value)
-    {
-        var grid = new Grid { Width = 230, Margin = new Thickness(0, 1, 12, 1), ColumnDefinitions = new ColumnDefinitions("110,*") };
-        grid.Children.Add(new TextBlock { Text = label, Foreground = Brushes.Gray, FontSize = 11 });
-        var v = new TextBlock
-        {
-            Text = value, Foreground = new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)), FontSize = 11,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-        };
-        Grid.SetColumn(v, 1);
-        grid.Children.Add(v);
-        return grid;
     }
 
     // Shows texture/sprite thumbnails for a single selected element (sidedef textures, sector flats, thing sprite).
