@@ -630,6 +630,25 @@ public partial class MainWindow : Window
         SetStatus($"Blockmap overlay {(MapView.ShowBlockmap ? "on" : "off")}.");
     }
 
+    // Toggles the BSP node partition overlay, reading and parsing the map's NODES lump on enable.
+    private void OnToggleNodes(object? sender, RoutedEventArgs e)
+    {
+        if (MapView.ShowNodes) { MapView.ShowNodes = false; SetStatus("Nodes overlay off."); return; }
+        if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes overlay needs the source WAD."); return; }
+
+        byte[]? bytes;
+        using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "NODES");
+        var parts = NodesReader.Parse(bytes ?? Array.Empty<byte>());
+        if (parts.Count == 0) { SetStatus("No vanilla NODES data (none built, or ZDoom/GL nodes)."); return; }
+
+        var lines = new List<(DBuilder.Geometry.Vector2D, DBuilder.Geometry.Vector2D)>(parts.Count);
+        foreach (var p in parts)
+            lines.Add((new DBuilder.Geometry.Vector2D(p.X1, p.Y1), new DBuilder.Geometry.Vector2D(p.X2, p.Y2)));
+        MapView.SetNodeLines(lines);
+        MapView.ShowNodes = true;
+        SetStatus($"Nodes overlay on: {parts.Count} BSP partition line(s).");
+    }
+
     private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
     {
         MapView.ThingArrows = !MapView.ThingArrows;

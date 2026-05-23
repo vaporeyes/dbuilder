@@ -224,6 +224,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _showBlockmap;
         set { _showBlockmap = value; RequestNextFrameRendering(); }
     }
+
+    private GlVertexBuffer? _nodesVb;
+    private int _nodesLineCount;
+    private bool _showNodes;
+    private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
+
+    /// <summary>When true, overlays the BSP node partition lines (set via <see cref="SetNodeLines"/>).</summary>
+    public bool ShowNodes
+    {
+        get => _showNodes;
+        set { _showNodes = value; _nodesDirty = true; RequestNextFrameRendering(); }
+    }
+    private bool _nodesDirty;
+
+    /// <summary>Supplies the BSP partition segments (world coordinates) for the nodes overlay.</summary>
+    public void SetNodeLines(System.Collections.Generic.IReadOnlyList<(Vec2D a, Vec2D b)> lines)
+    {
+        _nodeLines = new (Vec2D, Vec2D)[lines.Count];
+        for (int i = 0; i < lines.Count; i++) _nodeLines[i] = lines[i];
+        _nodesDirty = true;
+        RequestNextFrameRendering();
+    }
     private enum DragKind { None, Pan, Move, Box }
     private bool _pressed;
     private DragKind _drag = DragKind.None;
@@ -331,6 +353,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
         _blockmapVb = new GlVertexBuffer(_gl);
+        _nodesVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -369,12 +392,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb?.Dispose();
         _gridVb?.Dispose();
         _blockmapVb?.Dispose();
+        _nodesVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1129,6 +1153,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             DrawBlockmap(); // debug overlay on top of geometry
+            DrawNodes();    // BSP partition lines overlay
 
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
             if (_drawDirty) { RebuildDrawPreview(); _drawDirty = false; }
@@ -1533,6 +1558,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _blockmapLineCount = verts.Count / 2;
         _device.SetVertexBuffer(_blockmapVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _blockmapLineCount);
+    }
+
+    // Draws the BSP node partition lines (set via SetNodeLines) as a green overlay.
+    private void DrawNodes()
+    {
+        if (!_showNodes || _device is null || _nodesVb is null || _nodeLines.Length == 0) return;
+
+        if (_nodesDirty)
+        {
+            var verts = new System.Collections.Generic.List<FlatVertex>(_nodeLines.Length * 2);
+            const int col = unchecked((int)0xff40ff80); // green (R<->B swap -> greenish on screen)
+            foreach (var (a, b) in _nodeLines) { verts.Add(FV(a, col)); verts.Add(FV(b, col)); }
+            _device.SetBufferData(_nodesVb, verts.ToArray());
+            _nodesLineCount = verts.Count / 2;
+            _nodesDirty = false;
+        }
+        if (_nodesLineCount == 0) return;
+
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetVertexBuffer(_nodesVb);
+        _device.Draw(DBPrimitiveType.LineList, 0, _nodesLineCount);
     }
 
     // Projects a world point onto a linedef's segment (clamped to its endpoints).
