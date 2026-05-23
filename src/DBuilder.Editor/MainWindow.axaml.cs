@@ -191,7 +191,17 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnSave(object? sender, RoutedEventArgs e)
+    private async void OnSave(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat);
+
+    // Prompts for a target map format and saves a converted copy (flags translated via the game config).
+    private async void OnSaveAsFormat(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("Nothing to save."); return; }
+        var dlg = new FormatPickerDialog(_mapFormat);
+        if (await dlg.ShowDialog<bool>(this)) await DoSave(dlg.ResultFormat);
+    }
+
+    private async System.Threading.Tasks.Task DoSave(MapFormat targetFormat)
     {
         if (_map is null) { SetStatus("Nothing to save."); return; }
         var top = GetTopLevel(this);
@@ -209,6 +219,11 @@ public partial class MainWindow : Window
         try
         {
             string marker = _mapMarker ?? "MAP01";
+            // When exporting to a different format, translate the flag representation the target writer reads.
+            // The fill is additive, so the in-memory map remains valid in its original format afterwards.
+            if (targetFormat != _mapFormat)
+                MapFormatConverter.Convert(_map, _mapFormat, targetFormat, _config);
+
             // Build the result in memory (so saving over the source WAD is safe), replacing just this map's
             // block and preserving every other lump in its original format.
             byte[] bytes;
@@ -220,7 +235,7 @@ public partial class MainWindow : Window
                     using var src = new WAD(_wadPath, openreadonly: true);
                     WadMaps.CopyAllLumps(src, dst);
                 }
-                WadMaps.SaveMap(dst, marker, _map, _mapFormat, _config);
+                WadMaps.SaveMap(dst, marker, _map, targetFormat, _config);
                 bytes = msOut.ToArray();
             }
 
@@ -228,7 +243,8 @@ public partial class MainWindow : Window
             string nodeStatus = BuildNodesIfConfigured(ref bytes);
 
             System.IO.File.WriteAllBytes(outPath, bytes);
-            SetStatus($"Saved {marker} [{_mapFormat}] to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
+            string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
+            SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
     }

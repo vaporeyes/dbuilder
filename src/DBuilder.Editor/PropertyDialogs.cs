@@ -299,3 +299,25 @@ public sealed class SectorEditDialog : PropertyDialog
         ResultCeilTex = string.IsNullOrWhiteSpace(_ceilTex.Text) ? "-" : _ceilTex.Text!;
     }
 }
+
+/// <summary>Picks a target map format for a format-converting save (defaults to the current format).</summary>
+public sealed class FormatPickerDialog : PropertyDialog
+{
+    private readonly ComboBox _combo;
+    public MapFormat ResultFormat;
+
+    public FormatPickerDialog(MapFormat current)
+        : base("Save As Format", $"Current format: {current}. Flags are translated via the loaded game config.")
+    {
+        ResultFormat = current;
+        var items = new[]
+        {
+            new CatalogItem((int)MapFormat.Doom,  "Doom (binary)"),
+            new CatalogItem((int)MapFormat.Hexen, "Hexen (binary)"),
+            new CatalogItem((int)MapFormat.Udmf,  "UDMF (text)"),
+        };
+        _combo = AddCombo("Format", items, (int)current);
+    }
+
+    protected override void OnConfirm() => ResultFormat = (MapFormat)ComboNumber(_combo, (int)ResultFormat);
+}
