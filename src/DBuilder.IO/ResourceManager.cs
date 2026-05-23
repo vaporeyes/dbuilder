@@ -36,6 +36,12 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, TexturesDef> spriteDefs = new(StringComparer.OrdinalIgnoreCase);
     private bool defsBuilt;
 
+    // ANIMDEFS sequences: each animated name maps to (the ordered frame names, per-frame tics, this name's phase).
+    private readonly Dictionary<string, (List<string> Seq, int Tics, int Phase)> flatAnims = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, (List<string> Seq, int Tics, int Phase)> texAnims = new(StringComparer.OrdinalIgnoreCase);
+    private bool animsBuilt;
+    private const double TicsPerSecond = 35.0; // Doom runs at 35 tics/second
+
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
     public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false)); Invalidate(); }
 
@@ -65,8 +71,73 @@ public sealed class ResourceManager : IDisposable
         flatDefs.Clear();
         spriteDefs.Clear();
         defsBuilt = false;
+        flatAnims.Clear();
+        texAnims.Clear();
+        animsBuilt = false;
         palette = null;
         paletteResolved = false;
+    }
+
+    /// <summary>True when any ANIMDEFS animations were defined (so the view should keep redrawing).</summary>
+    public bool HasAnimations { get { EnsureAnimations(); return flatAnims.Count > 0 || texAnims.Count > 0; } }
+
+    /// <summary>The flat name to display at the given time for an animated base, else the name unchanged.</summary>
+    public string CurrentFlatFrame(string name, double seconds) => CurrentFrame(flatAnims, name, seconds);
+
+    /// <summary>The wall-texture name to display at the given time for an animated base, else the name unchanged.</summary>
+    public string CurrentTextureFrame(string name, double seconds) => CurrentFrame(texAnims, name, seconds);
+
+    private string CurrentFrame(Dictionary<string, (List<string> Seq, int Tics, int Phase)> anims, string name, double seconds)
+    {
+        EnsureAnimations();
+        if (!anims.TryGetValue(name, out var a) || a.Seq.Count < 2) return name;
+        int step = (int)(seconds * TicsPerSecond / a.Tics);
+        return a.Seq[((a.Phase + step) % a.Seq.Count + a.Seq.Count) % a.Seq.Count];
+    }
+
+    // Parses ANIMDEFS from all resources and builds the per-name frame sequences (ranges resolved against name lists).
+    private void EnsureAnimations()
+    {
+        if (animsBuilt) return;
+        animsBuilt = true;
+        var flatNames = GetFlatNames();
+        var texNames = GetTextureNames();
+        foreach (var text in GetTextLumps("ANIMDEFS"))
+        {
+            foreach (var def in AnimdefsParser.Parse(text).Animations)
+            {
+                bool flat = def.Kind == AnimKind.Flat;
+                var names = ExpandAnim(def, flat ? flatNames : texNames);
+                if (names.Count < 2) continue;
+                int tics = def.IsRange ? def.RangeTics : (def.Frames.Count > 0 ? def.Frames[0].Tics : 8);
+                if (tics <= 0) tics = 8;
+                var map = flat ? flatAnims : texAnims;
+                for (int k = 0; k < names.Count; k++) map[names[k]] = (names, tics, k);
+            }
+        }
+    }
+
+    // Resolves an animation's ordered frame names. A range slices the (sorted) name list from first..last inclusive.
+    private static List<string> ExpandAnim(AnimationDef def, IReadOnlyList<string> ordered)
+    {
+        if (!def.IsRange)
+        {
+            var list = new List<string>(def.Frames.Count);
+            foreach (var f in def.Frames) list.Add(f.Texture);
+            return list;
+        }
+        int first = IndexOf(ordered, def.FirstName), last = IndexOf(ordered, def.RangeLast!);
+        if (first < 0 || last < 0 || last < first) return new List<string>();
+        var result = new List<string>(last - first + 1);
+        for (int i = first; i <= last; i++) result.Add(ordered[i]);
+        return result;
+    }
+
+    private static int IndexOf(IReadOnlyList<string> list, string name)
+    {
+        for (int i = 0; i < list.Count; i++)
+            if (string.Equals(list[i], name, StringComparison.OrdinalIgnoreCase)) return i;
+        return -1;
     }
 
     // Parses each resource's TEXTURES lump (oldest first, so newer resources override) into per-usage tables.

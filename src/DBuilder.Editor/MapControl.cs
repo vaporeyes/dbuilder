@@ -50,8 +50,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private RenderDevice? _device;
     private DBShader? _shader;
     private DBTexture? _placeholderTex;
-    // Sector fill buckets: VB + triangle count + flat texture to bind (null = untextured/gray fallback).
-    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _fillBuckets = new();
+    // Sector fill buckets: VB + triangle count + flat name to bind ("" = untextured/gray). The name (not a
+    // cached texture) is stored so the animated frame can be resolved each draw.
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> _fillBuckets = new();
     // Flat-name -> uploaded GL texture (null cached when unresolvable). Lives across geometry rebuilds.
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _flatTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _wallTextures = new(StringComparer.OrdinalIgnoreCase);
@@ -72,9 +73,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _walkMode;          // G toggles: camera snaps to floor + eye height instead of free flight
     private const double EyeHeight = 41; // Doom player view height above the floor
     private bool _geo3DDirty = true;
-    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _floor3D = new();
-    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _ceil3D = new();
-    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _wall3D = new();
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> _floor3D = new();
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> _ceil3D = new();
+    private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> _wall3D = new();
     private Vector3 _cam3DPos;
     private double _yaw, _pitch;
     private bool _cam3DInit;
@@ -357,9 +358,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)(75.0 * Math.PI / 180.0), aspect, 1f, 20000f);
         _device.SetUniform("projection", view * persp);
 
-        DrawBuckets3D(_floor3D);
-        DrawBuckets3D(_ceil3D);
-        DrawBuckets3D(_wall3D);
+        DrawBuckets3D(_floor3D, wall: false);
+        DrawBuckets3D(_ceil3D, wall: false);
+        DrawBuckets3D(_wall3D, wall: true);
         DrawThings3D();
 
         UpdateTarget3D();
@@ -762,18 +763,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
-    private void DrawBuckets3D(System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> buckets)
+    private void DrawBuckets3D(System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> buckets, bool wall)
     {
         if (_device is null) return;
         foreach (var b in buckets)
         {
             if (b.Tris == 0) continue;
-            _device.SetUniform("useTexture", b.Tex != null ? 1f : 0f);
-            _device.SetTexture(0, b.Tex ?? _placeholderTex);
+            var tex = wall ? ResolveWallBucket(b.Name) : ResolveFlatBucket(b.Name);
+            _device.SetUniform("useTexture", tex != null ? 1f : 0f);
+            _device.SetTexture(0, tex ?? _placeholderTex);
             _device.SetVertexBuffer(b.Vb);
             _device.Draw(DBPrimitiveType.TriangleList, 0, b.Tris);
         }
     }
+
+    // Resolves a flat/wall bucket's current GL texture, applying ANIMDEFS animation by name (empty name = none).
+    private DBTexture? ResolveFlatBucket(string name)
+        => name.Length == 0 ? null : GetFlatTexture(_resources != null ? _resources.CurrentFlatFrame(name, _clock.Elapsed.TotalSeconds) : name);
+
+    private DBTexture? ResolveWallBucket(string name)
+        => name.Length == 0 ? null : GetWallTexture(_resources != null ? _resources.CurrentTextureFrame(name, _clock.Elapsed.TotalSeconds) : name);
 
     private void Rebuild3D()
     {
@@ -855,9 +864,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
         }
 
-        UploadBuckets(floorB, _floor3D, false);
-        UploadBuckets(ceilB, _ceil3D, false);
-        UploadBuckets(wallB, _wall3D, true);
+        UploadBuckets(floorB, _floor3D);
+        UploadBuckets(ceilB, _ceil3D);
+        UploadBuckets(wallB, _wall3D);
     }
 
     // How a wall texture is vertically pegged: Top = texture top at the quad top; BottomUp = texture bottom at the
@@ -895,15 +904,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     private void UploadBuckets(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> src,
-        System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> dest, bool wall)
+        System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> dest)
     {
         foreach (var (key, verts) in src)
         {
             if (verts.Count == 0) continue;
             var vb = new GlVertexBuffer(_gl!);
             _device!.SetBufferData(vb, verts.ToArray());
-            DBTexture? tex = key.Length == 0 ? null : (wall ? GetWallTexture(key) : GetFlatTexture(key));
-            dest.Add((vb, verts.Count / 3, tex));
+            dest.Add((vb, verts.Count / 3, key)); // texture resolved (and animated) at draw time
         }
     }
 
@@ -954,11 +962,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 foreach (var bucket in _fillBuckets)
                 {
                     if (bucket.Tris == 0) continue;
-                    _device.SetUniform("useTexture", bucket.Tex != null ? 1f : 0f);
-                    _device.SetTexture(0, bucket.Tex ?? _placeholderTex);
+                    var tex = ResolveFlatBucket(bucket.Name);
+                    _device.SetUniform("useTexture", tex != null ? 1f : 0f);
+                    _device.SetTexture(0, tex ?? _placeholderTex);
                     _device.SetVertexBuffer(bucket.Vb);
                     _device.Draw(DBPrimitiveType.TriangleList, 0, bucket.Tris);
                 }
+                // Keep redrawing so animated flats cycle (2D already idles otherwise).
+                if (_resources?.HasAnimations == true) RequestNextFrameRendering();
             }
 
             _device.SetUniform("useTexture", 0f);
@@ -1173,8 +1184,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (verts.Count == 0) continue;
             var vb = new GlVertexBuffer(_gl);
             _device.SetBufferData(vb, verts.ToArray());
-            DBTexture? tex = key.Length > 0 ? GetFlatTexture(key) : null;
-            _fillBuckets.Add((vb, verts.Count / 3, tex));
+            _fillBuckets.Add((vb, verts.Count / 3, key)); // flat resolved (and animated) at draw time
         }
     }
 
