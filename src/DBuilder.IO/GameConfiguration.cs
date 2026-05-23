@@ -66,10 +66,18 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, string> linedefFlags = new();
     private readonly Dictionary<int, string> thingFlags = new();
     private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<GeneralizedCategory> genLinedefs = new();
+    private readonly List<GeneralizedCategory> genSectors = new();
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
     public IReadOnlyDictionary<int, SectorEffectInfo> SectorEffects => sectorEffects;
+
+    /// <summary>Boom generalized linedef categories parsed from gen_linedeftypes (empty if not configured).</summary>
+    public IReadOnlyList<GeneralizedCategory> GeneralizedLinedefs => genLinedefs;
+
+    /// <summary>Boom generalized sector categories parsed from gen_sectortypes (empty if not configured).</summary>
+    public IReadOnlyList<GeneralizedCategory> GeneralizedSectors => genSectors;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
     public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
@@ -103,6 +111,8 @@ public sealed class GameConfiguration
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
             if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
+            if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
+            if (root["gen_sectortypes"] is IDictionary gs) gc.genSectors.AddRange(GeneralizedCategory.ParseBlock(gs));
         }
         return gc;
     }
@@ -159,7 +169,15 @@ public sealed class GameConfiguration
         if (index == 0) return "None";
         var a = GetLinedefAction(index);
         if (a != null) return a.Title;
-        return BoomGeneralized.Describe(index) ?? $"Unknown ({index})";
+        return DescribeGeneralizedLinedef(index) ?? BoomGeneralized.Describe(index) ?? $"Unknown ({index})";
+    }
+
+    /// <summary>Decodes a generalized linedef number using the configured categories, or null if none matches.</summary>
+    public string? DescribeGeneralizedLinedef(int action)
+    {
+        foreach (var cat in genLinedefs)
+            if (cat.Contains(action)) return cat.Describe(action);
+        return null;
     }
 
     /// <summary>Display title for a sector effect, or "None"/"Unknown".</summary>
