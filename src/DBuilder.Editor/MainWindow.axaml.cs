@@ -756,6 +756,22 @@ public partial class MainWindow : Window
         win.Show(this);
     }
 
+    // Opens a non-modal list of tags in use; selecting one selects and reveals its elements.
+    private void OnTagList(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var win = new TagListWindow(MapSearch.UsedTags(_map));
+        win.TagActivated += tag =>
+        {
+            if (_map is null) return;
+            var r = MapSearch.Find(_map, FindCategory.Tag, tag.ToString());
+            MapView.RevealSelection(MapControl.EditMode.Linedefs, r.Focus);
+            UpdateInfo();
+            SetStatus($"Tag {tag}: {r.Count} element(s).");
+        };
+        win.Show(this);
+    }
+
     // The edit mode that best shows matches of a given find category.
     private static MapControl.EditMode ModeFor(FindCategory cat) => cat switch
     {

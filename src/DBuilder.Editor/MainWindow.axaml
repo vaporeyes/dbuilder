@@ -46,6 +46,7 @@
                 <MenuItem Header="_Insert Prefab..." Click="OnInsertPrefab" />
                 <Separator />
                 <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
+                <MenuItem Header="Ta_gs..." Click="OnTagList" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Fit to map" Click="OnFit" />

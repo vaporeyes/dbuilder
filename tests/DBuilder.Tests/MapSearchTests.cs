@@ -99,6 +99,20 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void UsedTagsAggregatesAcrossTypesAscending()
+    {
+        var map = Build(); // tag 5 used by sector s1, linedef 0, thing[2]
+        var tags = MapSearch.UsedTags(map);
+        Assert.Single(tags);
+        Assert.Equal(5, tags[0].Tag);
+        Assert.Equal(3, tags[0].Count);
+
+        map.Sectors[1].Tag = 2;
+        var tags2 = MapSearch.UsedTags(map);
+        Assert.Equal(new[] { 2, 5 }, tags2.ConvertAll(t => t.Tag)); // ascending
+    }
+
+    [Fact]
     public void NextFreeTagSkipsUsed()
     {
         var map = Build();

@@ -118,6 +118,20 @@ public static class MapSearch
         return changed;
     }
 
+    /// <summary>All positive tags in use (linedefs, sectors, things) with how many elements use each, ascending.</summary>
+    public static List<(int Tag, int Count)> UsedTags(MapSet map)
+    {
+        var counts = new Dictionary<int, int>();
+        void Add(int t) { if (t != 0) counts[t] = counts.TryGetValue(t, out int c) ? c + 1 : 1; }
+        foreach (var l in map.Linedefs) Add(l.Tag);
+        foreach (var s in map.Sectors) Add(s.Tag);
+        foreach (var t in map.Things) Add(t.Tag);
+        var list = new List<(int, int)>();
+        foreach (var kv in counts) list.Add((kv.Key, kv.Value));
+        list.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+        return list;
+    }
+
     /// <summary>The lowest positive tag not used by any linedef, sector or thing.</summary>
     public static int NextFreeTag(MapSet map)
     {
