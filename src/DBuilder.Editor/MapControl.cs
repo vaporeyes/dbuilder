@@ -669,10 +669,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
-    // Smoothly drags the captured target's height during a right-drag (accumulates sub-unit movement).
-    private void DragTargetHeight3D(double pixelsDown)
+    // Routes a right-drag: a thing moves on the horizontal plane; a surface changes height.
+    private void Drag3D(double dx, double dy)
     {
         if (_map == null || _drag3DTarget is not { } h) return;
+        if (h.Kind == VisualHitKind.Thing && h.Thing is { } t)
+        {
+            // Move in the camera's horizontal basis; scale by hit distance so it feels consistent at any range.
+            double scale = Math.Max(0.05, h.Distance * 0.0015);
+            var right = new Vec2D(Math.Sin(_yaw), -Math.Cos(_yaw));
+            var fwd = new Vec2D(Math.Cos(_yaw), Math.Sin(_yaw));
+            t.Position += right * (dx * scale) + fwd * (-dy * scale); // up = forward
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+            return;
+        }
+        DragTargetHeight3D(dy);
+    }
+
+    // Smoothly drags the captured surface's height during a right-drag (accumulates sub-unit movement).
+    private void DragTargetHeight3D(double pixelsDown)
+    {
+        if (_drag3DTarget is not { } h) return;
         _drag3DAccum += -pixelsDown * 0.5; // dragging up raises; ~0.5 map units per pixel
         int delta = (int)_drag3DAccum;
         if (delta == 0) return;
@@ -1395,7 +1415,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             else if (pt.Properties.IsRightButtonPressed && _target3D is { } h && HeightEditLabel(h) != null)
             {
                 _drag3DTarget = h; _drag3DAccum = 0; _lastPointer = pt.Position;
-                EditBegun?.Invoke(HeightEditLabel(h)!);
+                EditBegun?.Invoke(h.Kind == VisualHitKind.Thing ? "Move thing" : HeightEditLabel(h)!);
             }
             return;
         }
@@ -1847,7 +1867,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
             else if (_drag3DTarget != null)
             {
-                DragTargetHeight3D(pos.Y - _lastPointer.Y);
+                Drag3D(pos.X - _lastPointer.X, pos.Y - _lastPointer.Y);
                 _lastPointer = pos;
             }
             return;
