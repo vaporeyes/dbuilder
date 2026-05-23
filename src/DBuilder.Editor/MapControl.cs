@@ -237,6 +237,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    /// <summary>
+    /// Shows an externally-set selection (e.g. from find): switches to <paramref name="mode"/> so clicks act on
+    /// that element class, centers the view on <paramref name="focus"/> when given, and redraws.
+    /// </summary>
+    public void RevealSelection(EditMode mode, Vec2D? focus)
+    {
+        SetEditMode(mode);
+        if (focus is { } f)
+        {
+            _camX = f.x;
+            _camY = f.y;
+            if (_zoom > 1.0) _zoom = 1.0;
+        }
+        _geometryDirty = true;
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+    }
+
     public void FitToMap()
     {
         if (_map == null || _map.Vertices.Count == 0) return;

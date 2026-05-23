@@ -571,6 +571,52 @@ public partial class MainWindow : Window
         catch (Exception ex) { SetStatus($"Test Map failed: {ex.Message}"); }
     }
 
+    private FindReplaceWindow? _findWindow;
+
+    // Opens (or focuses) the non-modal Find & Replace window and wires it to the map.
+    private void OnFindReplace(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_findWindow != null) { _findWindow.Activate(); return; }
+
+        var win = new FindReplaceWindow();
+        _findWindow = win;
+        win.Closed += (_, _) => _findWindow = null;
+        win.FindRequested += () =>
+        {
+            if (_map is null) return;
+            var r = MapSearch.Find(_map, win.Category, win.FindText);
+            MapView.RevealSelection(ModeFor(win.Category), r.Focus);
+            win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
+            UpdateInfo();
+        };
+        win.ReplaceRequested += () =>
+        {
+            if (_map is null || _undo is null) return;
+            _undo.CreateUndo("Find & replace");
+            int n = MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
+            if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
+            win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
+            UpdateInfo();
+        };
+        win.NextFreeTagRequested += () =>
+        {
+            if (_map is null) return;
+            int tag = MapSearch.NextFreeTag(_map);
+            win.SetFindText(tag.ToString());
+            win.SetResult($"Next free tag: {tag}.");
+        };
+        win.Show(this);
+    }
+
+    // The edit mode that best shows matches of a given find category.
+    private static MapControl.EditMode ModeFor(FindCategory cat) => cat switch
+    {
+        FindCategory.ThingType => MapControl.EditMode.Things,
+        FindCategory.SectorEffect or FindCategory.Flat => MapControl.EditMode.Sectors,
+        _ => MapControl.EditMode.Linedefs, // actions, tags, sidedef textures
+    };
+
     // Runs the map health checker and opens a non-modal results window; selecting an issue locates it.
     private void OnCheckMap(object? sender, RoutedEventArgs e)
     {

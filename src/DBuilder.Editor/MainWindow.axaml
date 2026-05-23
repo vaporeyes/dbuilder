@@ -31,6 +31,8 @@
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" Click="OnStitch" />
+                <Separator />
+                <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Fit to map" Click="OnFit" />
