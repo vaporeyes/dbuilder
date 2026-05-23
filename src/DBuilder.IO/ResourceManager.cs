@@ -47,8 +47,9 @@ public sealed class ResourceManager : IDisposable
 
     private void Add(string path, bool asBase)
     {
-        IResourceReader reader = LooksLikeZip(path)
-            ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true)
+        IResourceReader reader =
+            Directory.Exists(path) ? new DirectoryResourceReader(path)
+            : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true)
             : new WadResourceReader(new WAD(path, openreadonly: true), owns: true);
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();

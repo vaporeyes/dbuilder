@@ -98,34 +98,28 @@ internal sealed class WadResourceReader : IResourceReader
     public void Dispose() { if (owns) wad.Dispose(); }
 }
 
-internal sealed class Pk3ResourceReader : IResourceReader
+// Shared base for folder-structured resources (PK3 zip or a filesystem directory): entries keyed by
+// "<folder>/<BASENAME>" (folder lowercased, basename uppercased), each mapping to a byte-provider.
+internal abstract class FolderResourceReader : IResourceReader
 {
-    private readonly ZipArchive zip;
-    private readonly Stream? ownedStream;
-    // key = "<folder>/<BASENAME>" with folder lowercased and basename uppercased (Doom-style names).
-    private readonly Dictionary<string, ZipArchiveEntry> entries = new(StringComparer.Ordinal);
+    protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
 
-    public Pk3ResourceReader(Stream zipStream, bool ownsStream)
+    // Registers an entry from a relative path like "flats/floor1.png".
+    protected void AddEntry(string relativePath, Func<byte[]> read)
     {
-        ownedStream = ownsStream ? zipStream : null;
-        zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
-        foreach (var e in zip.Entries)
-        {
-            if (e.FullName.EndsWith("/")) continue; // directory entry
-            string norm = e.FullName.Replace('\\', '/');
-            int slash = norm.LastIndexOf('/');
-            string folder = slash >= 0 ? norm.Substring(0, slash).ToLowerInvariant() : "";
-            string file = slash >= 0 ? norm.Substring(slash + 1) : norm;
-            int dot = file.LastIndexOf('.');
-            string baseName = (dot >= 0 ? file.Substring(0, dot) : file).ToUpperInvariant();
-            entries[folder + "/" + baseName] = e; // last entry of a name wins
-        }
+        string norm = relativePath.Replace('\\', '/');
+        int slash = norm.LastIndexOf('/');
+        string folder = slash >= 0 ? norm.Substring(0, slash).ToLowerInvariant() : "";
+        string file = slash >= 0 ? norm.Substring(slash + 1) : norm;
+        int dot = file.LastIndexOf('.');
+        string baseName = (dot >= 0 ? file.Substring(0, dot) : file).ToUpperInvariant();
+        entries[folder + "/" + baseName] = read; // last entry of a name wins
     }
 
     public DoomPalette? GetPalette()
     {
-        var e = Find("PLAYPAL", "");
-        return e != null ? DoomPalette.FromBytes(Read(e)) : null;
+        var b = Find("PLAYPAL", "");
+        return b != null ? DoomPalette.FromBytes(b) : null;
     }
 
     public ImageData? GetFlat(string name, DoomPalette? palette)
@@ -137,19 +131,26 @@ internal sealed class Pk3ResourceReader : IResourceReader
     public ImageData? GetSprite(string name, DoomPalette? palette)
         => Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
 
-    private ZipArchiveEntry? Find(string name, params string[] folders)
+    public string? GetTextLump(string name)
+    {
+        var b = Find(name, "", name.ToLowerInvariant());
+        return b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
+    }
+
+    public IEnumerable<string> TextureNames() => NamesInFolder("textures/");
+    public IEnumerable<string> FlatNames() => NamesInFolder("flats/");
+
+    private byte[]? Find(string name, params string[] folders)
     {
         string key = name.ToUpperInvariant();
         foreach (var f in folders)
-            if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var e)) return e;
+            if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var read)) return read();
         return null;
     }
 
-    private ImageData? Decode(ZipArchiveEntry? entry, DoomPalette? palette, bool preferFlat)
+    private static ImageData? Decode(byte[]? bytes, DoomPalette? palette, bool preferFlat)
     {
-        if (entry == null) return null;
-        byte[] bytes = Read(entry);
-
+        if (bytes == null) return null;
         if (PngDecoder.IsPng(bytes)) return PngDecoder.Decode(bytes);
         if (palette == null) return null;
 
@@ -165,32 +166,56 @@ internal sealed class Pk3ResourceReader : IResourceReader
         return null;
     }
 
-    private static byte[] Read(ZipArchiveEntry e)
-    {
-        using var s = e.Open();
-        using var ms = new MemoryStream();
-        s.CopyTo(ms);
-        return ms.ToArray();
-    }
-
-    public string? GetTextLump(string name)
-    {
-        var e = Find(name, "", name.ToLowerInvariant());
-        return e != null ? System.Text.Encoding.ASCII.GetString(Read(e)) : null;
-    }
-
-    public IEnumerable<string> TextureNames() => NamesInFolder("textures/");
-    public IEnumerable<string> FlatNames() => NamesInFolder("flats/");
-
     private IEnumerable<string> NamesInFolder(string prefix)
     {
         foreach (var key in entries.Keys)
             if (key.StartsWith(prefix, StringComparison.Ordinal)) yield return key.Substring(prefix.Length);
     }
 
-    public void Dispose()
+    public abstract void Dispose();
+}
+
+internal sealed class Pk3ResourceReader : FolderResourceReader
+{
+    private readonly ZipArchive zip;
+    private readonly Stream? ownedStream;
+
+    public Pk3ResourceReader(Stream zipStream, bool ownsStream)
+    {
+        ownedStream = ownsStream ? zipStream : null;
+        zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
+        foreach (var e in zip.Entries)
+        {
+            if (e.FullName.EndsWith("/")) continue; // directory entry
+            var entry = e;
+            AddEntry(e.FullName, () =>
+            {
+                using var s = entry.Open();
+                using var ms = new MemoryStream();
+                s.CopyTo(ms);
+                return ms.ToArray();
+            });
+        }
+    }
+
+    public override void Dispose()
     {
         zip.Dispose();
         ownedStream?.Dispose();
     }
+}
+
+internal sealed class DirectoryResourceReader : FolderResourceReader
+{
+    public DirectoryResourceReader(string root)
+    {
+        foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+        {
+            string rel = Path.GetRelativePath(root, path);
+            string p = path;
+            AddEntry(rel, () => File.ReadAllBytes(p));
+        }
+    }
+
+    public override void Dispose() { /* nothing to release */ }
 }
