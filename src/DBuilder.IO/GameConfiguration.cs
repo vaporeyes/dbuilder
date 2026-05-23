@@ -69,6 +69,8 @@ public sealed class GameConfiguration
     private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<GeneralizedCategory> genLinedefs = new();
     private readonly List<GeneralizedCategory> genSectors = new();
+    private readonly List<FlagTranslation> linedefFlagsTranslation = new();
+    private readonly List<FlagTranslation> thingFlagsTranslation = new();
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
@@ -79,6 +81,12 @@ public sealed class GameConfiguration
 
     /// <summary>Boom generalized sector categories parsed from gen_sectortypes (empty if not configured).</summary>
     public IReadOnlyList<GeneralizedCategory> GeneralizedSectors => genSectors;
+
+    /// <summary>Binary linedef flag bit -> UDMF field translations (empty if not configured).</summary>
+    public IReadOnlyList<FlagTranslation> LinedefFlagsTranslation => linedefFlagsTranslation;
+
+    /// <summary>Binary thing flag bit -> UDMF field translations (empty if not configured).</summary>
+    public IReadOnlyList<FlagTranslation> ThingFlagsTranslation => thingFlagsTranslation;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
     public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
@@ -118,6 +126,8 @@ public sealed class GameConfiguration
             if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectors.AddRange(GeneralizedCategory.ParseBlock(gs));
+            if (root["linedefflagstranslation"] is IDictionary lft) gc.ParseFlagTranslations(lft, gc.linedefFlagsTranslation);
+            if (root["thingflagstranslation"] is IDictionary tft) gc.ParseFlagTranslations(tft, gc.thingFlagsTranslation);
         }
         return gc;
     }
@@ -315,6 +325,58 @@ public sealed class GameConfiguration
     /// <summary>The value-&gt;title map for an arg's enum, or null when the arg has none.</summary>
     public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
         => arg.Enum != null ? GetEnum(arg.Enum) : null;
+
+    // Parses a "<bit> = "<udmf spec>";" block into FlagTranslation entries (compound "a,b" / negated "!a").
+    private void ParseFlagTranslations(IDictionary src, List<FlagTranslation> dest)
+    {
+        foreach (DictionaryEntry e in src)
+        {
+            if (!int.TryParse(e.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit)) continue;
+            if (e.Value is not string spec) continue;
+            var ft = FlagTranslation.Parse(bit, spec);
+            if (ft != null) dest.Add(ft);
+        }
+    }
+
+    /// <summary>Converts a binary linedef flags value into the set of true UDMF flag field names.</summary>
+    public ISet<string> LinedefFlagsToUdmf(int bits) => FlagsToUdmf(linedefFlagsTranslation, bits);
+
+    /// <summary>Converts a binary thing flags value into the set of true UDMF flag field names.</summary>
+    public ISet<string> ThingFlagsToUdmf(int bits) => FlagsToUdmf(thingFlagsTranslation, bits);
+
+    /// <summary>Converts a set of true UDMF linedef flag names back into a binary flags value.</summary>
+    public int LinedefFlagsFromUdmf(ICollection<string> flags) => FlagsFromUdmf(linedefFlagsTranslation, flags);
+
+    /// <summary>Converts a set of true UDMF thing flag names back into a binary flags value.</summary>
+    public int ThingFlagsFromUdmf(ICollection<string> flags) => FlagsFromUdmf(thingFlagsTranslation, flags);
+
+    // A field is true iff its declared value equals whether its bit is set; only true fields are emitted.
+    private static ISet<string> FlagsToUdmf(List<FlagTranslation> table, int bits)
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var ft in table)
+        {
+            bool bitSet = (bits & ft.Flag) == ft.Flag;
+            for (int i = 0; i < ft.Fields.Count; i++)
+                if (ft.Values[i] == bitSet) result.Add(ft.Fields[i]);
+        }
+        return result;
+    }
+
+    // A bit is set iff every one of its fields matches its declared value (present == true).
+    private static int FlagsFromUdmf(List<FlagTranslation> table, ICollection<string> flags)
+    {
+        var set = new HashSet<string>(flags, StringComparer.OrdinalIgnoreCase);
+        int bits = 0;
+        foreach (var ft in table)
+        {
+            bool match = true;
+            for (int i = 0; i < ft.Fields.Count; i++)
+                if (set.Contains(ft.Fields[i]) != ft.Values[i]) { match = false; break; }
+            if (match) bits |= ft.Flag;
+        }
+        return bits;
+    }
 
     private void ParseSectorTypes(IDictionary sectortypes)
     {
