@@ -62,6 +62,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _spriteBuckets = new();
     private GlVertexBuffer? _linesVb;
     private int _lineCount;
+    private GlVertexBuffer? _thingDirVb; // thing angle direction ticks, drawn above sprites so they stay visible
+    private int _thingDirCount;
     private GlVertexBuffer? _thingsVb;
     private int _thingTris;
     private GlVertexBuffer? _selVertsVb;
@@ -229,6 +231,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device = new RenderDevice(_gl);
         _shader = new DBShader(_gl, VertexSrc, FragmentSrc);
         _linesVb = new GlVertexBuffer(_gl);
+        _thingDirVb = new GlVertexBuffer(_gl);
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
         _drawVb = new GlVertexBuffer(_gl);
@@ -265,6 +268,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _spriteTextures.Clear();
         _placeholderTex?.Dispose();
         _linesVb?.Dispose();
+        _thingDirVb?.Dispose();
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
         _drawVb?.Dispose();
@@ -274,7 +278,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _things3DVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1014,6 +1018,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.SetTexture(0, _placeholderTex);
             }
 
+            // Thing direction ticks above sprites so the facing stays visible over the sprite art.
+            if (_showThings && _thingDirCount > 0 && _thingDirVb != null)
+            {
+                _device.SetVertexBuffer(_thingDirVb);
+                _device.Draw(DBPrimitiveType.LineList, 0, _thingDirCount);
+            }
+
             if (_selVertTris > 0 && _selVertsVb != null)
             {
                 _device.SetVertexBuffer(_selVertsVb);
@@ -1059,19 +1070,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // Sector fills, bucketed by floor flat texture (when resolvable) else an untextured gray bucket.
         RebuildFills();
 
-        // Lines.
+        // Lines (each linedef segment plus a short front-side tick at its midpoint showing orientation).
         if (_linesVb != null)
         {
-            var lv = new FlatVertex[_map.Linedefs.Count * 2];
-            for (int i = 0; i < _map.Linedefs.Count; i++)
+            const double frontTick = 6;
+            var lv = new System.Collections.Generic.List<FlatVertex>(_map.Linedefs.Count * 4);
+            foreach (var l in _map.Linedefs)
             {
-                var l = _map.Linedefs[i];
                 int c = LineColor(l);
-                lv[i * 2 + 0] = FV(l.Start.Position, c);
-                lv[i * 2 + 1] = FV(l.End.Position, c);
+                lv.Add(FV(l.Start.Position, c));
+                lv.Add(FV(l.End.Position, c));
+
+                var dir = l.End.Position - l.Start.Position;
+                double len = dir.GetLength();
+                if (len > 0.0001)
+                {
+                    // Front side is to the right of start->end (Doom convention): right-hand normal (dy, -dx).
+                    var mid = new Vec2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+                    var nrm = new Vec2D(dir.y / len, -dir.x / len);
+                    lv.Add(FV(mid, c));
+                    lv.Add(FV(new Vec2D(mid.x + nrm.x * frontTick, mid.y + nrm.y * frontTick), c));
+                }
             }
-            _device.SetBufferData(_linesVb, lv);
-            _lineCount = lv.Length / 2;
+            _device.SetBufferData(_linesVb, lv.ToArray());
+            _lineCount = lv.Count / 2;
+        }
+
+        // Thing direction ticks (own buffer, drawn above sprites). Skipped in arrow mode, which draws its own arrow.
+        if (_thingDirVb != null)
+        {
+            var dv = new System.Collections.Generic.List<FlatVertex>();
+            if (!_thingArrows)
+            {
+                const double tickLen = 18;
+                foreach (var t in _map.Things)
+                {
+                    double a = t.Angle * Math.PI / 180.0;
+                    int c = t.Selected ? unchecked((int)0xffffee00) : unchecked((int)0xffd0d8e0);
+                    var p = t.Position;
+                    var tip = new Vec2D(p.x + Math.Cos(a) * tickLen, p.y + Math.Sin(a) * tickLen);
+                    dv.Add(FV(p, c));
+                    dv.Add(FV(tip, c));
+                }
+            }
+            if (dv.Count > 0) _device.SetBufferData(_thingDirVb, dv.ToArray());
+            _thingDirCount = dv.Count / 2;
         }
 
         // Things: render real sprites where the config + resources resolve one (alpha-blended quads,
