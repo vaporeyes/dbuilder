@@ -544,6 +544,43 @@ public partial class MainWindow : Window
         SetStatus(merge ? $"Merged {sel.Count} sectors." : $"Joined {sel.Count} sectors.");
     }
 
+    // Saves the current selection to a .prefab file (the clipboard byte format).
+    private async void OnSavePrefab(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var data = MapView.GetSelectionPrefab();
+        if (data is null) { SetStatus("Select something to save as a prefab."); return; }
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save Prefab",
+            SuggestedFileName = "prefab.dbprefab",
+            DefaultExtension = "dbprefab",
+            FileTypeChoices = new[] { new FilePickerFileType("DBuilder prefab") { Patterns = new[] { "*.dbprefab" } } },
+        });
+        if (file?.TryGetLocalPath() is not { } path) return;
+        try { System.IO.File.WriteAllBytes(path, data); SetStatus($"Saved prefab to {System.IO.Path.GetFileName(path)}."); }
+        catch (Exception ex) { SetStatus($"Save prefab failed: {ex.Message}"); }
+    }
+
+    // Inserts a .prefab file at the cursor (undoable via the EditBegun hook).
+    private async void OnInsertPrefab(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("Open a map first."); return; }
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Insert Prefab",
+            AllowMultiple = false,
+            FileTypeFilter = new[] { new FilePickerFileType("DBuilder prefab") { Patterns = new[] { "*.dbprefab" } } },
+        });
+        if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+        try { MapView.InsertPrefab(System.IO.File.ReadAllBytes(path)); UpdateInfo(); MapView.Focus(); }
+        catch (Exception ex) { SetStatus($"Insert prefab failed: {ex.Message}"); }
+    }
+
     private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
     private void OnDrawEllipse(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Ellipse, "ellipse");
 

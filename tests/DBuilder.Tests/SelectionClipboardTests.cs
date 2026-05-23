@@ -57,6 +57,43 @@ public class SelectionClipboardTests
     }
 
     [Fact]
+    public void PasteAtAnchorPlacesLowerLeftCornerAtAnchor()
+    {
+        // A square sector at (0,0)-(64,64); copy then insert it anchored at (200, 300) in a fresh map.
+        var (src, s) = SquareSector();
+        s.Selected = true;
+        var buf = SelectionClipboard.CopySelection(src)!;
+
+        var dst = new MapSet();
+        var res = SelectionClipboard.PasteAtAnchor(dst, buf, new Vector2D(200, 300));
+
+        double minX = double.MaxValue, minY = double.MaxValue;
+        for (int i = res.FirstVertex; i < res.FirstVertex + res.VertexCount; i++)
+        {
+            minX = System.Math.Min(minX, dst.Vertices[i].Position.x);
+            minY = System.Math.Min(minY, dst.Vertices[i].Position.y);
+        }
+        Assert.Equal(200, minX, 6);
+        Assert.Equal(300, minY, 6);
+        Assert.Equal(4, res.VertexCount);
+    }
+
+    [Fact]
+    public void PrefabRoundTripsThroughBytes()
+    {
+        // Simulate save/insert: copy bytes from one map, paste into another (origin-independent anchor).
+        var (src, s) = SquareSector();
+        s.Selected = true;
+        byte[] bytes = SelectionClipboard.CopySelection(src)!;
+
+        var dst = new MapSet();
+        var res = SelectionClipboard.PasteAtAnchor(dst, bytes, new Vector2D(0, 0));
+        Assert.Equal(1, res.SectorCount);
+        Assert.Equal(4, res.LinedefCount);
+        Assert.Equal(4, dst.Vertices.Count);
+    }
+
+    [Fact]
     public void CopySectorPullsInClosure()
     {
         var (map, s) = SquareSector();

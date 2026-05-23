@@ -84,6 +84,34 @@ public static class SelectionClipboard
         return result;
     }
 
+    /// <summary>
+    /// Pastes a buffer so the pasted geometry's lower-left corner lands at <paramref name="anchor"/> (origin
+    /// independent - used for prefab insertion at the cursor). Returns the appended slice.
+    /// </summary>
+    public static PasteResult PasteAtAnchor(MapSet map, byte[] data, Vector2D anchor)
+    {
+        var res = Paste(map, data, new Vector2D(0, 0));
+
+        double minX = double.MaxValue, minY = double.MaxValue;
+        bool any = false;
+        for (int i = res.FirstVertex; i < res.FirstVertex + res.VertexCount; i++)
+        {
+            var p = map.Vertices[i].Position;
+            if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; any = true;
+        }
+        for (int i = res.FirstThing; i < res.FirstThing + res.ThingCount; i++)
+        {
+            var p = map.Things[i].Position;
+            if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; any = true;
+        }
+        if (!any) return res;
+
+        var delta = new Vector2D(anchor.x - minX, anchor.y - minY);
+        for (int i = res.FirstVertex; i < res.FirstVertex + res.VertexCount; i++) map.Vertices[i].Position += delta;
+        for (int i = res.FirstThing; i < res.FirstThing + res.ThingCount; i++) map.Things[i].Position += delta;
+        return res;
+    }
+
     // Insertion-ordered set so the serialized subset's indices are stable and references resolve positionally.
     private sealed class OrderedSet<T> where T : class
     {
