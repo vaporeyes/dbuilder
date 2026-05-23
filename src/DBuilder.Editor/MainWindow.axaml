@@ -33,6 +33,8 @@
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" Click="OnStitch" />
+                <MenuItem Header="_Join sectors" Click="OnJoinSectors" />
+                <MenuItem Header="Mer_ge sectors" Click="OnMergeSectors" />
                 <Separator />
                 <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
             </MenuItem>

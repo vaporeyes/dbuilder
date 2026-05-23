@@ -132,6 +132,50 @@ public class MapSet
     public void RemoveThing(Thing t) => Things.Remove(t);
 
     /// <summary>
+    /// Reassigns every sidedef of the given sectors to the first one and removes the rest. Geometry (linedefs)
+    /// is unchanged, so the lines between the joined sectors remain. Returns the kept sector (null if fewer than
+    /// two were given). Call BuildIndexes() afterward.
+    /// </summary>
+    public Sector? JoinSectors(IReadOnlyList<Sector> sectors)
+    {
+        if (sectors == null || sectors.Count < 2) return null;
+        var keep = sectors[0];
+        var remove = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+        for (int i = 1; i < sectors.Count; i++) if (!ReferenceEquals(sectors[i], keep)) remove.Add(sectors[i]);
+        if (remove.Count == 0) return keep;
+
+        foreach (var sd in Sidedefs)
+            if (sd.Sector != null && remove.Contains(sd.Sector)) sd.Sector = keep;
+        Sectors.RemoveAll(s => remove.Contains(s));
+        ReindexSectors();
+        return keep;
+    }
+
+    /// <summary>
+    /// Joins the sectors and then removes the now-internal linedefs (both sides in the kept sector) and any
+    /// vertices left unused, fusing them into one sector. Returns the kept sector. Call BuildIndexes() afterward.
+    /// </summary>
+    public Sector? MergeSectors(IReadOnlyList<Sector> sectors)
+    {
+        var keep = JoinSectors(sectors);
+        if (keep == null) return null;
+
+        for (int i = Linedefs.Count - 1; i >= 0; i--)
+        {
+            var l = Linedefs[i];
+            if (l.Front?.Sector != null && l.Back?.Sector != null && ReferenceEquals(l.Front.Sector, l.Back.Sector))
+                RemoveLinedef(l); // an internal wall between two merged sectors
+        }
+        RemoveUnusedVertices();
+        return keep;
+    }
+
+    private void ReindexSectors()
+    {
+        for (int i = 0; i < Sectors.Count; i++) Sectors[i].Index = i;
+    }
+
+    /// <summary>
     /// Splits a linedef at <paramref name="pos"/>: shortens it to start..newVertex and adds a second linedef
     /// newVertex..oldEnd that copies the original's flags/action/tags/args/sidedefs (same sectors/textures).
     /// Returns the inserted vertex. Call BuildIndexes() afterward. Front-side X offset is advanced by the first

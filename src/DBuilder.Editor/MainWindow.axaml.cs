@@ -503,6 +503,25 @@ public partial class MainWindow : Window
         SetStatus($"Stitched: {merged} vertices merged, {split} lines split.");
     }
 
+    private void OnJoinSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: false);
+    private void OnMergeSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: true);
+
+    // Joins (or merges, also deleting internal walls) the selected sectors into one, undoable.
+    private void JoinOrMergeSectors(bool merge)
+    {
+        if (_map is null || _undo is null) return;
+        var sel = _map.GetSelectedSectors();
+        if (sel.Count < 2) { SetStatus("Select 2 or more sectors to join/merge."); return; }
+
+        _undo.CreateUndo(merge ? "Merge sectors" : "Join sectors");
+        var keep = merge ? _map.MergeSectors(sel) : _map.JoinSectors(sel);
+        _map.BuildIndexes();
+        if (keep != null) { _map.ClearAllSelected(); keep.Selected = true; }
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus(merge ? $"Merged {sel.Count} sectors." : $"Joined {sel.Count} sectors.");
+    }
+
     // ---- View / Help ----
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
