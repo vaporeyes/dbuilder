@@ -61,9 +61,14 @@
         <Border Grid.Row="3" Background="#1c2028" Padding="8,6" Height="124"
                 BorderBrush="#10000000" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
-                           VerticalAlignment="Top"
-                           Text="No map loaded. File &gt; Open WAD to begin." />
+                <Panel Grid.Column="0">
+                    <!-- Free-text help / multi-selection summary (shown when no single element is selected). -->
+                    <TextBlock x:Name="InfoText" Foreground="#a0a8b0" TextWrapping="Wrap"
+                               VerticalAlignment="Top"
+                               Text="No map loaded. File &gt; Open WAD to begin." />
+                    <!-- Structured label/value fields for a single selected thing/linedef/sector. -->
+                    <StackPanel x:Name="InfoFields" IsVisible="False" Orientation="Vertical" Spacing="2" />
+                </Panel>
                 <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="PreviewPanel" Orientation="Horizontal" Spacing="10" />
                 </ScrollViewer>

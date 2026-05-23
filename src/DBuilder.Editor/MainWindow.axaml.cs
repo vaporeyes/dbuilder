@@ -514,45 +514,129 @@ public partial class MainWindow : Window
 
     private void UpdateInfo()
     {
-        if (_map is null) { InfoText.Text = "No map loaded."; PreviewPanel.Children.Clear(); return; }
+        if (_map is null) { ShowText("No map loaded."); PreviewPanel.Children.Clear(); return; }
         int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
         UpdatePreviews(sv, sl, ss, st);
 
         if (sv + sl + ss + st == 0)
         {
-            InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD move, arrows or drag to look, QE up/down, G walk; wheel raises/lowers floor/ceiling/thing-Z (Shift=1); right-drag moves a thing or drags a surface height; [ ] brightness; C/V copy/apply texture; T browse textures; A/Shift+A align; Shift+arrows nudge offset; O reset offsets; click selects surfaces (Esc clears) for batch edits; Enter edit properties; Delete removes a targeted thing).";
+            ShowText($"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
+                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD move, arrows or drag to look, QE up/down, G walk; wheel raises/lowers floor/ceiling/thing-Z (Shift=1); right-drag moves a thing or drags a surface height; [ ] brightness; C/V copy/apply texture; T browse textures; A/Shift+A align; Shift+arrows nudge offset; O reset offsets; click selects surfaces (Esc clears) for batch edits; Enter edit properties; Delete removes a targeted thing).");
             return;
         }
 
         // Detailed read-out for a single selected element (config-aware names); otherwise a counts summary.
-        if (st == 1 && sl == 0 && ss == 0 && sv == 0)
-        {
-            var t = _map.GetSelectedThings()[0];
-            string name = _config?.ThingTitle(t.Type) ?? $"type {t.Type}";
-            InfoText.Text = $"Thing: {t.Type} - {name}    pos ({t.Position.x:0}, {t.Position.y:0})    angle {t.Angle}    tag {t.Tag}" +
-                            (t.Action != 0 ? $"    action {t.Action}" : "");
-        }
-        else if (sl == 1 && st == 0 && ss == 0 && sv == 0)
-        {
-            var l = _map.GetSelectedLinedefs()[0];
-            string act = _config?.LinedefActionTitle(l.Action) ?? (l.Action == 0 ? "None" : $"action {l.Action}");
-            string flags = _config != null ? string.Join(", ", _config.DescribeLinedefFlags(l.Flags)) : $"0x{l.Flags:X4}";
-            if (flags.Length == 0) flags = "none";
-            InfoText.Text = $"Linedef {_map.Linedefs.IndexOf(l)}: action {l.Action} - {act}    tag {l.Tag}    flags: {flags}    " +
-                            (l.Back != null ? "two-sided" : "one-sided");
-        }
-        else if (ss == 1 && st == 0 && sl == 0 && sv == 0)
-        {
-            var s = _map.GetSelectedSectors()[0];
-            string eff = _config?.SectorEffectTitle(s.Special) ?? (s.Special == 0 ? "None" : $"effect {s.Special}");
-            InfoText.Text = $"Sector {s.Index}: floor {s.FloorHeight} / ceil {s.CeilHeight}    light {s.Brightness}    effect {s.Special} - {eff}    tag {s.Tag}";
-        }
+        if (st == 1 && sl == 0 && ss == 0 && sv == 0) ShowThingFields(_map.GetSelectedThings()[0]);
+        else if (sl == 1 && st == 0 && ss == 0 && sv == 0) ShowLinedefFields(_map.GetSelectedLinedefs()[0]);
+        else if (ss == 1 && st == 0 && sl == 0 && sv == 0) ShowSectorFields(_map.GetSelectedSectors()[0]);
         else
         {
-            InfoText.Text = $"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
-                            (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : "");
+            ShowText($"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
+                     (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : ""));
         }
+    }
+
+    private bool HasArgs => _mapFormat != MapFormat.Doom;
+
+    private void ShowThingFields(Thing t)
+    {
+        string name = _config?.ThingTitle(t.Type) ?? $"type {t.Type}";
+        string action = _config?.LinedefActionTitle(t.Action) ?? (t.Action == 0 ? "None" : $"action {t.Action}");
+        var fields = new List<(string, string)>
+        {
+            ("Type", $"{t.Type} - {name}"),
+            ("Action", $"{t.Action} - {action}"),
+            ("Position", $"({t.Position.x:0}, {t.Position.y:0}, {t.Height:0})"),
+            ("Angle", $"{t.Angle}°"),
+            ("Tag", t.Tag.ToString()),
+        };
+        if (HasArgs) AddArgFields(fields, t.Args, _config?.GetThing(t.Type)?.Args);
+        ShowFields($"Thing {_map!.Things.IndexOf(t)}", fields);
+    }
+
+    private void ShowLinedefFields(Linedef l)
+    {
+        string act = _config?.LinedefActionTitle(l.Action) ?? (l.Action == 0 ? "None" : $"action {l.Action}");
+        string flags = _config != null ? string.Join(", ", _config.DescribeLinedefFlags(l.Flags)) : $"0x{l.Flags:X4}";
+        if (flags.Length == 0) flags = "none";
+        double length = (l.End.Position - l.Start.Position).GetLength();
+        var fields = new List<(string, string)>
+        {
+            ("Action", $"{l.Action} - {act}"),
+            ("Tag", l.Tag.ToString()),
+            ("Length", $"{length:0}"),
+            ("Sides", l.Back != null ? "two-sided" : "one-sided"),
+            ("Front sector", l.Front?.Sector is { } fs ? fs.Index.ToString() : "-"),
+            ("Back sector", l.Back?.Sector is { } bs ? bs.Index.ToString() : "-"),
+            ("Flags", flags),
+        };
+        if (HasArgs) AddArgFields(fields, l.Args, _config?.GetLinedefAction(l.Action)?.Args);
+        ShowFields($"Linedef {_map!.Linedefs.IndexOf(l)}", fields);
+    }
+
+    private void ShowSectorFields(Sector s)
+    {
+        string eff = _config?.SectorEffectTitle(s.Special) ?? (s.Special == 0 ? "None" : $"effect {s.Special}");
+        ShowFields($"Sector {s.Index}", new List<(string, string)>
+        {
+            ("Floor height", s.FloorHeight.ToString()),
+            ("Ceiling height", s.CeilHeight.ToString()),
+            ("Floor texture", s.FloorTexture),
+            ("Ceiling texture", s.CeilTexture),
+            ("Brightness", s.Brightness.ToString()),
+            ("Effect", $"{s.Special} - {eff}"),
+            ("Tag", s.Tag.ToString()),
+        });
+    }
+
+    // Appends Arg1..Arg5 cells, labeling each with its config arg title when available.
+    private static void AddArgFields(List<(string, string)> fields, int[] args, ArgInfo[]? meta)
+    {
+        for (int i = 0; i < args.Length; i++)
+        {
+            string title = meta != null && i < meta.Length && meta[i].Used ? $" ({meta[i].Title})" : "";
+            fields.Add(($"Arg{i + 1}{title}", args[i].ToString()));
+        }
+    }
+
+    // Shows free text (help / multi-selection) and hides the structured field grid.
+    private void ShowText(string text)
+    {
+        InfoText.Text = text;
+        InfoText.IsVisible = true;
+        InfoFields.IsVisible = false;
+        InfoFields.Children.Clear();
+    }
+
+    // Shows a header + label/value field cells and hides the free-text block.
+    private void ShowFields(string header, List<(string Label, string Value)> fields)
+    {
+        InfoFields.Children.Clear();
+        InfoFields.Children.Add(new TextBlock
+        {
+            Text = header, Foreground = Brushes.LightSkyBlue, FontWeight = FontWeight.Bold, FontSize = 12,
+            Margin = new Thickness(0, 0, 0, 3),
+        });
+        var wrap = new WrapPanel { Orientation = Orientation.Horizontal };
+        foreach (var (label, value) in fields) wrap.Children.Add(FieldCell(label, value));
+        InfoFields.Children.Add(wrap);
+        InfoText.IsVisible = false;
+        InfoFields.IsVisible = true;
+    }
+
+    // A fixed-width "label: value" cell for the field grid.
+    private static Control FieldCell(string label, string value)
+    {
+        var grid = new Grid { Width = 230, Margin = new Thickness(0, 1, 12, 1), ColumnDefinitions = new ColumnDefinitions("110,*") };
+        grid.Children.Add(new TextBlock { Text = label, Foreground = Brushes.Gray, FontSize = 11 });
+        var v = new TextBlock
+        {
+            Text = value, Foreground = new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)), FontSize = 11,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+        };
+        Grid.SetColumn(v, 1);
+        grid.Children.Add(v);
+        return grid;
     }
 
     // Shows texture/sprite thumbnails for a single selected element (sidedef textures, sector flats, thing sprite).
