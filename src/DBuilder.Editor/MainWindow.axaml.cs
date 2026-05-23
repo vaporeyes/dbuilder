@@ -199,8 +199,17 @@ public partial class MainWindow : Window
         try
         {
             _resources.AddBaseResource(path);
-            MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
+
+            // Adding the IWAD often reveals the game (a PWAD alone may lack the signature lumps), so re-detect
+            // the config before merging actors onto it.
+            if (path.EndsWith(".wad", StringComparison.OrdinalIgnoreCase) && _configIsAuto)
+            {
+                try { using var iwad = new WAD(path, openreadonly: true); AutoDetectConfig(iwad); }
+                catch { /* not a readable WAD - skip detection, still usable as a resource */ }
+            }
+
             MergeActorsFromResources();
+            MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
             SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
