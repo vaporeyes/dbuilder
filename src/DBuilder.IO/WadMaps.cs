@@ -109,6 +109,16 @@ public static class WadMaps
 
     // A lump is a map sub-lump if the game config lists it (port-specific lumps) or it is in the curated
     // built-in set. The config only extends this set, so save-back never fails to clean a standard lump.
+    /// <summary>Reads a named sub-lump (e.g. REJECT, BLOCKMAP) belonging to a map marker, or null if absent.</summary>
+    public static byte[]? ReadMapLump(WAD wad, string marker, string lumpName)
+    {
+        int idx = wad.FindLumpIndex(marker);
+        if (idx < 0) return null;
+        for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name); j++)
+            if (wad.Lumps[j].Name == lumpName) return wad.Lumps[j].Stream.ReadAllBytes();
+        return null;
+    }
+
     private static bool IsMapSubLump(string name, GameConfiguration? config = null)
         => (config != null && config.IsMapLump(name)) || name switch
     {

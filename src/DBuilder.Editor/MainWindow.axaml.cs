@@ -822,6 +822,32 @@ public partial class MainWindow : Window
         SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
     }
 
+    // Reads the map's REJECT lump and highlights sectors that cannot see the selected sector (reject visualization).
+    private void OnRejectViewer(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var sel = _map.GetSelectedSectors();
+        if (sel.Count != 1) { SetStatus("Select one sector to inspect REJECT."); return; }
+        if (_wadPath is null || _mapMarker is null) { SetStatus("Reject viewer needs the source WAD."); return; }
+
+        byte[]? bytes;
+        using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "REJECT");
+        var reject = RejectTable.Parse(bytes ?? Array.Empty<byte>(), _map.Sectors.Count);
+        if (!reject.HasData) { SetStatus("No usable REJECT data for this map (none built or too small)."); return; }
+
+        int target = sel[0].Index;
+        _map.ClearAllSelected();
+        int count = 0;
+        for (int i = 0; i < _map.Sectors.Count; i++)
+        {
+            if (i == target) continue;
+            if (reject.IsRejected(target, i)) { _map.Sectors[i].Selected = true; count++; }
+        }
+        MapView.RevealSelection(MapControl.EditMode.Sectors, null);
+        UpdateInfo();
+        SetStatus($"{count} sector(s) are rejected (cannot see) from sector {target}.");
+    }
+
     // Bakes Plane_Align (181) linedef specials into sector floor/ceiling slope planes so 3D shows them, undoable.
     private void OnApplySlopes(object? sender, RoutedEventArgs e)
     {
