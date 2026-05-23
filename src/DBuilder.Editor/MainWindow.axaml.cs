@@ -822,6 +822,22 @@ public partial class MainWindow : Window
         SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
     }
 
+    // Traces Doom-style sound propagation from the single selected sector and highlights everything it reaches.
+    private void OnSoundPropagation(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var sel = _map.GetSelectedSectors();
+        if (sel.Count != 1) { SetStatus("Select exactly one sector to trace sound from."); return; }
+
+        var reach = SoundPropagation.Reachable(_map, sel[0]);
+        _map.ClearAllSelected();
+        int direct = 0, viaBlock = 0;
+        foreach (var (s, level) in reach) { s.Selected = true; if (level == 1) direct++; else viaBlock++; }
+        MapView.RevealSelection(MapControl.EditMode.Sectors, null);
+        UpdateInfo();
+        SetStatus($"Sound reaches {reach.Count} sector(s): {direct} direct, {viaBlock} via a sound-blocking line.");
+    }
+
     // Builds the resource/config-aware check context from the loaded resources and game config.
     private MapCheckContext BuildCheckContext()
     {
