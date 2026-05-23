@@ -183,6 +183,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _pressed;
     private DragKind _drag = DragKind.None;
     private bool _moveCandidate;
+    private System.Collections.Generic.HashSet<Vertex>? _moveVerts; // vertices being dragged (captured at move start)
     private Point _dragStart;
     private Point _lastPointer;
     // Right-button: a drag pans, a click splits the nearest line. Decided on release.
@@ -1692,6 +1693,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             ApplyBoxSelection(_boxStartWorld, ToWorld(pos), _boxAdditive);
         }
         _drag = DragKind.None;
+        _moveVerts = null;
     }
 
     // Selects all elements of the active mode whose geometry falls inside the rubber-band box.
@@ -2080,7 +2082,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (moved < 4) return;
             // Draw mode pans; a press on a vertex/thing moves it; otherwise rubber-band box select.
             _drag = _drawMode ? DragKind.Pan : (_moveCandidate ? DragKind.Move : DragKind.Box);
-            if (_drag == DragKind.Move) EditBegun?.Invoke("Move selection");
+            if (_drag == DragKind.Move)
+            {
+                EditBegun?.Invoke("Move selection");
+                // Capture the vertices implied by the selection once, so dragging a selected line or sector
+                // moves its geometry (not just directly-selected vertices).
+                _moveVerts = _map?.SelectedGeometryVertices();
+            }
             else if (_drag == DragKind.Box) { _boxStartWorld = ToWorld(_dragStart); _boxCurWorld = ToWorld(pos); }
         }
 
@@ -2104,7 +2112,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 : ToWorld(pos) - ToWorld(_lastPointer);
             if (delta.x != 0 || delta.y != 0)
             {
-                _map.MoveSelectedVerticesBy(delta);
+                if (_moveVerts != null) foreach (var v in _moveVerts) v.Position += delta;
                 _map.MoveSelectedThingsBy(delta);
                 MarkGeometryDirty();
                 Changed?.Invoke();
