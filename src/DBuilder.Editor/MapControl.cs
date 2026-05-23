@@ -561,6 +561,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke($"offset {sd.OffsetX}, {sd.OffsetY}");
     }
 
+    // Resets the targeted wall's texture offsets to zero, undoable.
+    private void ResetTargetOffsets3D()
+    {
+        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to reset offsets"); return; }
+        EditBegun?.Invoke("Reset offsets");
+        sd.OffsetX = 0;
+        sd.OffsetY = 0;
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke("reset offsets");
+    }
+
+    // Deletes the targeted thing, undoable.
+    private void DeleteTargetThing3D()
+    {
+        if (_map == null || _target3D?.Thing is not { } t) { Target3DChanged?.Invoke("aim at a thing to delete it"); return; }
+        EditBegun?.Invoke("Delete thing");
+        _map.RemoveThing(t);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke("deleted thing");
+    }
+
     // Auto-aligns textures along the targeted wall's run (A = X, Shift+A = Y), undoable.
     private void AutoAlignTarget3D(bool vertical)
     {
@@ -1231,6 +1258,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.Enter) { OpenTargetDialog3D(); e.Handled = true; return; }
+        if (_mode3D && !mod && e.Key == Key.O) { ResetTargetOffsets3D(); e.Handled = true; return; }
+        if (_mode3D && (e.Key == Key.Delete || e.Key == Key.Back)) { DeleteTargetThing3D(); e.Handled = true; return; }
         // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
         if (_mode3D && !mod && e.Key == Key.T && _target3D != null)
         {
