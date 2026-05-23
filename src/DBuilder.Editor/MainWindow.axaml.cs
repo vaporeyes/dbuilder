@@ -597,6 +597,24 @@ public partial class MainWindow : Window
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
 
+    // Opens a non-modal panel to show/hide thing categories in the 2D view.
+    private void OnThingFilter(object? sender, RoutedEventArgs e)
+    {
+        if (_config is null || _config.Things.Count == 0) { SetStatus("Load a game config to filter thing categories."); return; }
+        var cats = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in _config.Things.Values)
+        {
+            string key = MapControl.ThingCategoryKey(t.Category);
+            if (seen.Add(key)) cats.Add(key);
+        }
+        cats.Sort(StringComparer.OrdinalIgnoreCase);
+
+        var win = new ThingFilterWindow(cats, MapView.IsThingCategoryHidden);
+        win.CategoryToggled += (cat, hidden) => MapView.SetThingCategoryHidden(cat, hidden);
+        win.Show(this);
+    }
+
     private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
     {
         MapView.ThingArrows = !MapView.ThingArrows;

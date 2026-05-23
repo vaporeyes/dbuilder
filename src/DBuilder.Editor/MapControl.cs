@@ -160,6 +160,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _shapeSides = 24; // segments for the ellipse
     public ShapeKind CurrentShape => _shapeKind;
 
+    // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
+    private readonly System.Collections.Generic.HashSet<string> _hiddenThingCategories = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The display key for a thing's category (its config category, or "(uncategorized)").</summary>
+    public static string ThingCategoryKey(string? category) => string.IsNullOrEmpty(category) ? "(uncategorized)" : category;
+
+    public bool IsThingCategoryHidden(string categoryKey) => _hiddenThingCategories.Contains(categoryKey);
+
+    /// <summary>Shows or hides all things in a category (by <see cref="ThingCategoryKey"/>) and redraws.</summary>
+    public void SetThingCategoryHidden(string categoryKey, bool hidden)
+    {
+        if (hidden) _hiddenThingCategories.Add(categoryKey); else _hiddenThingCategories.Remove(categoryKey);
+        _geometryDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    private bool ThingHidden(Thing t)
+        => _hiddenThingCategories.Count > 0
+           && _hiddenThingCategories.Contains(ThingCategoryKey(_gameConfig?.GetThing(t.Type)?.Category));
+
     /// <summary>Toggles a shape-draw tool (off if the same kind is already active). Disables the polyline draw tool.</summary>
     public void SetShapeMode(ShapeKind kind)
     {
@@ -444,6 +464,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in _map.Things)
         {
+            if (ThingHidden(t)) continue;
             string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
             if (string.IsNullOrEmpty(sprite)) continue;
             var img = _resources?.GetSprite(sprite!);
@@ -1168,6 +1189,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 const double tickLen = 18;
                 foreach (var t in _map.Things)
                 {
+                    if (ThingHidden(t)) continue;
                     double a = t.Angle * Math.PI / 180.0;
                     int c = t.Selected ? unchecked((int)0xffffee00) : unchecked((int)0xffd0d8e0);
                     var p = t.Position;
@@ -1192,6 +1214,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             const double s = 10;
             foreach (var t in _map.Things)
             {
+                if (ThingHidden(t)) continue;
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
