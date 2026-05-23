@@ -30,12 +30,18 @@ public partial class MainWindow : Window
     private string _configName = "(none)";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
 
-    // Directory holding the bundled UDB game configurations (the default config lives here too).
-    private static readonly string ConfigDir =
+    // Default directory holding the bundled UDB game configurations (the default config lives here too).
+    private const string DefaultConfigDir =
         "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations";
 
-    // Standard macOS GZDoom install, used by Test Map when DBUILDER_TESTPORT is unset.
+    // Standard macOS GZDoom install, used by Test Map when no port is configured.
     private const string DefaultGzdoomPath = "/Applications/GZDoom.app/Contents/MacOS/gzdoom";
+
+    private Settings _settings = new();
+    private readonly string _settingsPath = Settings.DefaultPath;
+
+    // The game-config directory, overridable via settings (falls back to the bundled location).
+    private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
 
     public MainWindow() : this(null) { }
 
@@ -54,10 +60,34 @@ public partial class MainWindow : Window
             ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
             : "Draw mode off.");
 
+        _settings = Settings.Load(_settingsPath);
+        RebuildRecentMenu();
         TryLoadDefaultConfig();
 
         if (openPath != null && System.IO.File.Exists(openPath))
             LoadWad(openPath);
+    }
+
+    private void SaveSettings() => _settings.Save(_settingsPath);
+
+    // Rebuilds the File > Open Recent submenu from the persisted recent-files list.
+    private void RebuildRecentMenu()
+    {
+        var items = new List<MenuItem>();
+        foreach (var path in _settings.RecentFiles)
+        {
+            var item = new MenuItem { Header = path };
+            string captured = path;
+            item.Click += (_, _) =>
+            {
+                if (System.IO.File.Exists(captured)) LoadWad(captured);
+                else SetStatus($"File not found: {captured}");
+            };
+            items.Add(item);
+        }
+        if (items.Count == 0)
+            items.Add(new MenuItem { Header = "(none)", IsEnabled = false });
+        OpenRecentMenu.ItemsSource = items;
     }
 
     // Attempts to load a game config on startup from DBUILDER_GAMECONFIG, else a known UDB asset path.
@@ -294,18 +324,35 @@ public partial class MainWindow : Window
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
     }
 
-    // Runs the external node builder configured via DBUILDER_NODEBUILDER (+ _ARGS) over the WAD bytes.
+    // Runs the external node builder (DBUILDER_NODEBUILDER env, else settings) over the WAD bytes.
     // Returns a short status suffix; on failure the original (node-less) bytes are kept.
-    private static string BuildNodesIfConfigured(ref byte[] bytes)
+    private string BuildNodesIfConfigured(ref byte[] bytes)
     {
         string? exe = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER");
-        if (string.IsNullOrWhiteSpace(exe)) return "  (no nodes - set DBUILDER_NODEBUILDER to build)";
+        if (string.IsNullOrWhiteSpace(exe)) exe = _settings.NodeBuilderPath;
+        if (string.IsNullOrWhiteSpace(exe)) return "  (no nodes - set a node builder in Settings or DBUILDER_NODEBUILDER)";
         if (!System.IO.File.Exists(exe)) return $"  (node builder not found: {exe})";
 
-        string args = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER_ARGS") ?? "-o \"%FO\" \"%FI\"";
+        string args = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER_ARGS")
+            ?? (string.IsNullOrWhiteSpace(_settings.NodeBuilderArgs) ? "-o \"%FO\" \"%FI\"" : _settings.NodeBuilderArgs!);
         var result = NodeBuilder.Build(bytes, new NodebuilderConfig(exe, args));
         if (result.Success && result.Output != null) { bytes = result.Output; return "  (nodes built)"; }
         return "  (node build FAILED, saved without nodes)";
+    }
+
+    // Opens the modal Settings dialog and persists changes.
+    private async void OnSettings(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new SettingsWindow(_settings);
+        if (!await dlg.ShowDialog<bool>(this)) return;
+        _settings.ConfigDir = dlg.ConfigDir;
+        _settings.TestPort = dlg.TestPort;
+        _settings.TestIwad = dlg.TestIwad;
+        _settings.TestPortArgs = dlg.TestPortArgs;
+        _settings.NodeBuilderPath = dlg.NodeBuilderPath;
+        _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
+        SaveSettings();
+        SetStatus("Settings saved.");
     }
 
     private async void OnLoadConfig(object? sender, RoutedEventArgs e)
@@ -496,6 +543,10 @@ public partial class MainWindow : Window
             MapView.MapResources = _resources;
             MergeActorsFromResources();
 
+            _settings.AddRecent(path);
+            SaveSettings();
+            RebuildRecentMenu();
+
             LoadMapEntry(maps[0]);
             if (maps.Count > 1)
                 SetStatus($"Loaded {maps[0].Name} (1 of {maps.Count} maps - File > Open Map to switch)");
@@ -532,20 +583,23 @@ public partial class MainWindow : Window
     {
         if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test."); return; }
 
+        // Source port: env, else settings, else a standard GZDoom install.
         string? port = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT");
-        if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port))
-            port = DefaultGzdoomPath; // fall back to a standard GZDoom install
+        if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port)) port = _settings.TestPort;
+        if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port)) port = DefaultGzdoomPath;
         if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port))
         {
-            SetStatus("Set DBUILDER_TESTPORT to your source-port executable (e.g. gzdoom) to use Test Map.");
+            SetStatus("Set a source port in Settings (or DBUILDER_TESTPORT) to use Test Map.");
             return;
         }
 
+        // IWAD: env, else settings, else the one detected from the loaded WAD / added resource.
         string? iwad = Environment.GetEnvironmentVariable("DBUILDER_TESTIWAD");
+        if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad)) iwad = _settings.TestIwad;
         if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad)) iwad = _iwadPath;
         if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad))
         {
-            SetStatus("No IWAD known for testing - open an IWAD or add one as a resource, or set DBUILDER_TESTIWAD.");
+            SetStatus("No IWAD for testing - set one in Settings/DBUILDER_TESTIWAD, or open/add an IWAD.");
             return;
         }
 
@@ -560,7 +614,8 @@ public partial class MainWindow : Window
             string temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"dbuilder_test_{_mapMarker}.wad");
             System.IO.File.WriteAllBytes(temp, bytes);
 
-            string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS") ?? SourcePort.DefaultArgsTemplate;
+            string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS")
+                ?? (string.IsNullOrWhiteSpace(_settings.TestPortArgs) ? SourcePort.DefaultArgsTemplate : _settings.TestPortArgs!);
             var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker);
 
             var psi = new System.Diagnostics.ProcessStartInfo(port!) { UseShellExecute = false };

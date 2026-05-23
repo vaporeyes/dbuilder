@@ -14,12 +14,14 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_New Map" Click="OnNewMap" />
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
+                <MenuItem Header="Open _Recent" x:Name="OpenRecentMenu" />
                 <MenuItem Header="Open _Map..." Click="OnOpenMap" />
                 <MenuItem Header="Add _Resource (IWAD/PK3)..." Click="OnAddResource" />
                 <MenuItem Header="_Save WAD As..." Click="OnSave" />
                 <MenuItem Header="Save As _Format..." Click="OnSaveAsFormat" />
                 <Separator />
                 <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
+                <MenuItem Header="_Settings..." Click="OnSettings" />
                 <Separator />
                 <MenuItem Header="E_xit" Click="OnExit" />
             </MenuItem>
