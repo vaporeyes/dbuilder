@@ -40,8 +40,8 @@ public static class VisualPicking
         foreach (var s in map.Sectors)
         {
             if (s.Sidedefs.Count == 0) continue;
-            TryPlane(map, origin, dir, s, s.FloorHeight, VisualHitKind.Floor, ref best, ref bestDist);
-            TryPlane(map, origin, dir, s, s.CeilHeight, VisualHitKind.Ceiling, ref best, ref bestDist);
+            TryPlane(map, origin, dir, s, VisualHitKind.Floor, ref best, ref bestDist);
+            TryPlane(map, origin, dir, s, VisualHitKind.Ceiling, ref best, ref bestDist);
         }
 
         // Sidedef walls as vertical quads along each linedef.
@@ -67,22 +67,33 @@ public static class VisualPicking
         return best;
     }
 
-    private static void TryPlane(MapSet map, Vector3D o, Vector3D d, Sector s, double z, VisualHitKind kind,
+    private static void TryPlane(MapSet map, Vector3D o, Vector3D d, Sector s, VisualHitKind kind,
         ref VisualHit? best, ref double bestDist)
     {
-        if (Math.Abs(d.z) < Eps) return;
-        // A floor is visible from above; a ceiling from below.
-        if (kind == VisualHitKind.Floor && o.z < z) return;
-        if (kind == VisualHitKind.Ceiling && o.z > z) return;
+        bool floor = kind == VisualHitKind.Floor;
+        var here = new Vector2D(o.x, o.y);
+        double zHere = floor ? s.GetFloorZ(here) : s.GetCeilZ(here);
 
-        double t = (z - o.z) / d.z;
+        // A floor is visible from above; a ceiling from below.
+        if (floor && o.z < zHere) return;
+        if (!floor && o.z > zHere) return;
+
+        // For a (possibly sloped, but planar) surface z = a*x + b*y + c, a unit step along the ray's xy changes
+        // the surface height by g; solving o.z + t*d.z = surface(o.xy + t*d.xy) gives t below.
+        var step = new Vector2D(o.x + d.x, o.y + d.y);
+        double g = (floor ? s.GetFloorZ(step) : s.GetCeilZ(step)) - zHere;
+        double denom = d.z - g;
+        if (Math.Abs(denom) < Eps) return;
+
+        double t = (zHere - o.z) / denom;
         if (t <= Eps || t >= bestDist) return;
 
         var xy = new Vector2D(o.x + d.x * t, o.y + d.y * t);
         if (!ReferenceEquals(map.GetSectorAt(xy), s)) return;
 
+        double zHit = floor ? s.GetFloorZ(xy) : s.GetCeilZ(xy);
         bestDist = t;
-        best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, z), s, null, kind == VisualHitKind.Floor, z, z);
+        best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, zHit), s, null, floor, zHit, zHit);
     }
 
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBottom, double zTop, WallPart part,

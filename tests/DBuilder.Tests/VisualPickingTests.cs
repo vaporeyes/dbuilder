@@ -106,6 +106,26 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void SlopedFloorIsHitAtItsSlopedHeight()
+    {
+        var (map, s, _) = Room();
+        // Floor sloping z = x: normal (-1,0,1)/sqrt2, offset 0 -> GetFloorZ(x,y) = x.
+        double k = 1.0 / System.Math.Sqrt(2);
+        s.FloorSlope = new Vector3D(-k, 0, k);
+        s.FloorSlopeOffset = 0;
+        Assert.True(s.HasFloorSlope);
+        Assert.Equal(50, s.GetFloorZ(new Vector2D(50, 50)), 6);
+
+        // Straight down from (50,50,200): a flat floor (height 0) would hit z=0 at distance 200;
+        // the slope puts the floor at z=50, so the hit is at z=50, distance 150.
+        var hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 200), new Vector3D(0, 0, -1));
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Equal(50, hit.Point.z, 4);
+        Assert.Equal(150, hit.Distance, 4);
+    }
+
+    [Fact]
     public void RayMissingEverythingReturnsNull()
     {
         var (map, _, _) = Room();
