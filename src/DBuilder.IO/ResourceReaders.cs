@@ -17,6 +17,10 @@ internal interface IResourceReader : IDisposable
     ImageData? GetSprite(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
+    /// <summary>Names of the wall textures this resource provides (for the texture browser).</summary>
+    IEnumerable<string> TextureNames();
+    /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
+    IEnumerable<string> FlatNames();
 }
 
 internal sealed class WadResourceReader : IResourceReader
@@ -72,6 +76,23 @@ internal sealed class WadResourceReader : IResourceReader
     {
         var lump = wad.FindLump(name);
         return lump != null ? System.Text.Encoding.ASCII.GetString(lump.Stream.ReadAllBytes()) : null;
+    }
+
+    public IEnumerable<string> TextureNames() => TexDefs().Keys;
+
+    public IEnumerable<string> FlatNames()
+    {
+        // Flats live between F_START/F_END (and FF_/F1_/F2_/F3_) namespace markers.
+        var result = new List<string>();
+        bool inFlats = false;
+        foreach (var l in wad.Lumps)
+        {
+            string n = l.Name;
+            if (n is "F_START" or "FF_START" or "F1_START" or "F2_START" or "F3_START") { inFlats = true; continue; }
+            if (n is "F_END" or "FF_END" or "F1_END" or "F2_END" or "F3_END") { inFlats = false; continue; }
+            if (inFlats && l.Length > 0) result.Add(n);
+        }
+        return result;
     }
 
     public void Dispose() { if (owns) wad.Dispose(); }
@@ -156,6 +177,15 @@ internal sealed class Pk3ResourceReader : IResourceReader
     {
         var e = Find(name, "", name.ToLowerInvariant());
         return e != null ? System.Text.Encoding.ASCII.GetString(Read(e)) : null;
+    }
+
+    public IEnumerable<string> TextureNames() => NamesInFolder("textures/");
+    public IEnumerable<string> FlatNames() => NamesInFolder("flats/");
+
+    private IEnumerable<string> NamesInFolder(string prefix)
+    {
+        foreach (var key in entries.Keys)
+            if (key.StartsWith(prefix, StringComparison.Ordinal)) yield return key.Substring(prefix.Length);
     }
 
     public void Dispose()

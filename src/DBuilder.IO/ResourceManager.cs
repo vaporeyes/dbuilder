@@ -164,6 +164,23 @@ public sealed class ResourceManager : IDisposable
         catch { return false; }
     }
 
+    /// <summary>All wall-texture names across resources (incl. TEXTURES defs), sorted and de-duplicated.</summary>
+    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames(), wallDefs);
+
+    /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
+    public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs);
+
+    private List<string> CollectNames(Func<IResourceReader, IEnumerable<string>> select, Dictionary<string, TexturesDef> defs)
+    {
+        EnsureDefs();
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var r in readers) foreach (var n in select(r)) set.Add(n);
+        foreach (var k in defs.Keys) set.Add(k);
+        var list = new List<string>(set);
+        list.Sort(StringComparer.OrdinalIgnoreCase);
+        return list;
+    }
+
     /// <summary>The text of a named lump (e.g. DECORATE) from every resource that has one, oldest first.</summary>
     public List<string> GetTextLumps(string name)
     {
