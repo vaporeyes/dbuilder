@@ -131,4 +131,88 @@ public class MapAnalysisTests
         Assert.Same(v, issue.Target);
         Assert.Equal(900, issue.Focus!.Value.y, 3);
     }
+
+    // --- context-aware checks ---
+
+    private static bool Has(MapSet map, MapCheckContext ctx, MapIssueKind kind)
+        => MapAnalysis.Check(map, ctx).Any(i => i.Kind == kind);
+
+    [Fact]
+    public void ContextIsOptional_NoNewIssuesWhenNull()
+    {
+        // The clean square has "-" textures by default; without a context those must not be flagged.
+        Assert.Empty(MapAnalysis.Check(Square(true)));
+    }
+
+    [Fact]
+    public void OneSidedLineMissingMiddleTexture()
+    {
+        var map = Square(true); // sidedefs default to "-" textures, one-sided
+        var ctx = new MapCheckContext();
+        Assert.True(Has(map, ctx, MapIssueKind.MissingTexture));
+    }
+
+    [Fact]
+    public void UnknownTextureFlagged()
+    {
+        var map = Square(true);
+        foreach (var sd in map.Sidedefs) sd.MidTexture = "NOPE99";
+        var ctx = new MapCheckContext { TextureExists = n => n == "STARTAN3" };
+        Assert.True(Has(map, ctx, MapIssueKind.UnknownTexture));
+    }
+
+    [Fact]
+    public void UnknownFlatAndMissingFlatFlagged()
+    {
+        var map = Square(true);
+        map.Sectors[0].FloorTexture = "-";          // missing
+        map.Sectors[0].CeilTexture = "WAT99";       // unknown
+        var ctx = new MapCheckContext { FlatExists = n => n == "FLOOR4_8" };
+        var issues = MapAnalysis.Check(map, ctx);
+        Assert.Contains(issues, i => i.Kind == MapIssueKind.MissingFlat);
+        Assert.Contains(issues, i => i.Kind == MapIssueKind.UnknownFlat);
+    }
+
+    [Fact]
+    public void UnknownThingAndActionFlagged()
+    {
+        var map = Square(true);
+        map.AddThing(new Vector2D(50, 50), 99999);
+        map.Linedefs[0].Action = 4242;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { ThingTypeKnown = n => n == 1, ActionKnown = a => a == 11 };
+        Assert.True(Has(map, ctx, MapIssueKind.UnknownThingType));
+        Assert.True(Has(map, ctx, MapIssueKind.UnknownAction));
+    }
+
+    [Fact]
+    public void OverlappingLinedefsFlagged()
+    {
+        var map = Square(true);
+        // Add a second line over the first edge (0,0)-(0,100).
+        map.AddLinedef(map.Vertices[0], map.Vertices[1]);
+        map.BuildIndexes();
+        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+    }
+
+    [Fact]
+    public void ShortLinedefFlagged()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(4, 0)); // length 4 < default 8
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+        Assert.True(Has(map, new MapCheckContext { ShortLinedefLength = 8 }, MapIssueKind.ShortLinedef));
+    }
+
+    [Fact]
+    public void OffGridVertexFlaggedOnlyWithGrid()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(7, 3)); // off a 64 grid
+        var withGrid = new MapCheckContext { GridSize = 64 };
+        Assert.True(Has(map, withGrid, MapIssueKind.OffGridVertex));
+        Assert.False(Has(map, new MapCheckContext { GridSize = 0 }, MapIssueKind.OffGridVertex));
+    }
 }

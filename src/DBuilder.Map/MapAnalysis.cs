@@ -19,6 +19,36 @@ public enum MapIssueKind
     UnusedVertex,
     EmptySector,
     UnclosedSector,
+    // Context-aware checks (require a MapCheckContext):
+    MissingTexture,
+    UnknownTexture,
+    MissingFlat,
+    UnknownFlat,
+    UnknownThingType,
+    UnknownAction,
+    OverlappingLinedefs,
+    ShortLinedef,
+    OffGridVertex,
+}
+
+/// <summary>
+/// Optional lookups that enable the resource/config-aware checks. Delegates are injected by the host (so this
+/// project stays decoupled from resource/config code); a null delegate disables its check.
+/// </summary>
+public sealed class MapCheckContext
+{
+    /// <summary>Returns true when a wall-texture name resolves in the loaded resources.</summary>
+    public Func<string, bool>? TextureExists { get; init; }
+    /// <summary>Returns true when a flat name resolves in the loaded resources.</summary>
+    public Func<string, bool>? FlatExists { get; init; }
+    /// <summary>Returns true when a thing editor number is known to the game config.</summary>
+    public Func<int, bool>? ThingTypeKnown { get; init; }
+    /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
+    public Func<int, bool>? ActionKnown { get; init; }
+    /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
+    public int GridSize { get; init; }
+    /// <summary>Linedefs shorter than this (but non-zero) are flagged. Default 8.</summary>
+    public double ShortLinedefLength { get; init; } = 8;
 }
 
 /// <summary>A single detected map problem with a human-readable message and optional navigation hints.</summary>
@@ -34,7 +64,12 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
 public static class MapAnalysis
 {
     /// <summary>Scans the map and returns all detected issues (empty list when clean).</summary>
-    public static IReadOnlyList<MapIssue> Check(MapSet map)
+    public static IReadOnlyList<MapIssue> Check(MapSet map) => Check(map, null);
+
+    /// <summary>
+    /// Scans the map, additionally running the resource/config-aware checks when <paramref name="ctx"/> is given.
+    /// </summary>
+    public static IReadOnlyList<MapIssue> Check(MapSet map, MapCheckContext? ctx)
     {
         var issues = new List<MapIssue>();
 
@@ -46,8 +81,141 @@ public static class MapAnalysis
         CheckUnusedVertices(map, vertexIndex, issues);
         CheckSectors(map, issues);
 
+        if (ctx != null)
+        {
+            CheckTextures(map, ctx, issues);
+            CheckFlats(map, ctx, issues);
+            CheckThingsAndActions(map, ctx, issues);
+            CheckOverlappingLinedefs(map, issues);
+            CheckShortLinedefs(map, ctx, issues);
+            CheckOffGridVertices(map, ctx, vertexIndex, issues);
+        }
+
         return issues;
     }
+
+    // A two-sided line needs an upper/lower texture where its sector is taller/lower than the neighbor; a
+    // one-sided line needs a middle texture. Flags required-but-absent ("-") slots and unresolved names.
+    private static void CheckTextures(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var l = map.Linedefs[i];
+            CheckSide(l, l.Front, l.Back, i, "front");
+            CheckSide(l, l.Back, l.Front, i, "back");
+        }
+
+        void CheckSide(Linedef l, Sidedef? side, Sidedef? other, int index, string which)
+        {
+            if (side == null) return;
+            var mid = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+
+            if (other == null)
+            {
+                if (IsBlank(side.MidTexture))
+                    issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
+                        $"Linedef {index} ({which}) is one-sided but has no middle texture.") { Target = l, Focus = mid });
+            }
+            else
+            {
+                if (side.Sector != null && other.Sector != null)
+                {
+                    if (other.Sector.CeilHeight < side.Sector.CeilHeight && IsBlank(side.HighTexture))
+                        issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
+                            $"Linedef {index} ({which}) needs an upper texture.") { Target = l, Focus = mid });
+                    if (other.Sector.FloorHeight > side.Sector.FloorHeight && IsBlank(side.LowTexture))
+                        issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
+                            $"Linedef {index} ({which}) needs a lower texture.") { Target = l, Focus = mid });
+                }
+            }
+
+            if (ctx.TextureExists != null)
+                foreach (var (slot, name) in new[] { ("upper", side.HighTexture), ("middle", side.MidTexture), ("lower", side.LowTexture) })
+                    if (!IsBlank(name) && !ctx.TextureExists(name))
+                        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture,
+                            $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.") { Target = l, Focus = mid });
+        }
+    }
+
+    private static void CheckFlats(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        for (int i = 0; i < map.Sectors.Count; i++)
+        {
+            var s = map.Sectors[i];
+            foreach (var (slot, name) in new[] { ("floor", s.FloorTexture), ("ceiling", s.CeilTexture) })
+            {
+                if (IsBlank(name))
+                    issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingFlat,
+                        $"Sector {i} has no {slot} flat.") { Target = s });
+                else if (ctx.FlatExists != null && !ctx.FlatExists(name))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat,
+                        $"Sector {i} {slot} flat \"{name}\" is not found.") { Target = s });
+            }
+        }
+    }
+
+    private static void CheckThingsAndActions(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (ctx.ThingTypeKnown != null)
+            foreach (var t in map.Things)
+                if (!ctx.ThingTypeKnown(t.Type))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingType,
+                        $"Thing type {t.Type} is not in the game config.") { Target = t, Focus = t.Position });
+
+        if (ctx.ActionKnown != null)
+            for (int i = 0; i < map.Linedefs.Count; i++)
+            {
+                var l = map.Linedefs[i];
+                if (l.Action != 0 && !ctx.ActionKnown(l.Action))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction,
+                        $"Linedef {i} action {l.Action} is not in the game config.")
+                        { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+            }
+    }
+
+    // Two linedefs sharing both endpoints (same positions) overlap; report each extra one once.
+    private static void CheckOverlappingLinedefs(MapSet map, List<MapIssue> issues)
+    {
+        var seen = new HashSet<(long, long, long, long)>();
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var l = map.Linedefs[i];
+            var a = Key(l.Start.Position);
+            var b = Key(l.End.Position);
+            var key = Compare(a, b) <= 0 ? (a.Item1, a.Item2, b.Item1, b.Item2) : (b.Item1, b.Item2, a.Item1, a.Item2);
+            if (!seen.Add(key))
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
+                    $"Linedef {i} overlaps another linedef (same endpoints).")
+                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+        }
+
+        static (long, long) Key(Vector2D p) => ((long)Math.Round(p.x * 1000), (long)Math.Round(p.y * 1000));
+        static int Compare((long, long) a, (long, long) b) => a.Item1 != b.Item1 ? a.Item1.CompareTo(b.Item1) : a.Item2.CompareTo(b.Item2);
+    }
+
+    private static void CheckShortLinedefs(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var l = map.Linedefs[i];
+            double len = (l.End.Position - l.Start.Position).GetLength();
+            if (len > 1e-4 && len < ctx.ShortLinedefLength)
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
+                    $"Linedef {i} is very short ({len:0.##} units).")
+                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+        }
+    }
+
+    private static void CheckOffGridVertices(MapSet map, MapCheckContext ctx, Dictionary<Vertex, int> index, List<MapIssue> issues)
+    {
+        if (ctx.GridSize <= 0) return;
+        foreach (var v in map.Vertices)
+            if (v.Position.x % ctx.GridSize != 0 || v.Position.y % ctx.GridSize != 0)
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex,
+                    $"Vertex {index[v]} is off the {ctx.GridSize}-unit grid.") { Target = v, Focus = v.Position });
+    }
+
+    private static bool IsBlank(string? tex) => string.IsNullOrEmpty(tex) || tex == "-";
 
     private static void CheckLinedefs(MapSet map, List<MapIssue> issues)
     {

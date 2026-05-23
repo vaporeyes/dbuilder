@@ -678,7 +678,7 @@ public partial class MainWindow : Window
     private void OnCheckMap(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var issues = MapAnalysis.Check(_map);
+        var issues = MapAnalysis.Check(_map, BuildCheckContext());
         var win = new MapCheckWindow(issues);
         win.IssueActivated += iss =>
         {
@@ -687,6 +687,34 @@ public partial class MainWindow : Window
         };
         win.Show(this);
         SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
+    }
+
+    // Builds the resource/config-aware check context from the loaded resources and game config.
+    private MapCheckContext BuildCheckContext()
+    {
+        Func<string, bool>? texExists = null, flatExists = null;
+        if (_resources != null)
+        {
+            var texSet = new HashSet<string>(_resources.GetTextureNames(), StringComparer.OrdinalIgnoreCase);
+            var flatSet = new HashSet<string>(_resources.GetFlatNames(), StringComparer.OrdinalIgnoreCase);
+            texExists = n => texSet.Contains(n);
+            flatExists = n => flatSet.Contains(n);
+        }
+        Func<int, bool>? thingKnown = null, actionKnown = null;
+        if (_config != null)
+        {
+            thingKnown = n => _config.GetThing(n) != null;
+            actionKnown = a => _config.GetLinedefAction(a) != null
+                || _config.DescribeGeneralizedLinedef(a) != null
+                || BoomGeneralized.IsGeneralized(a);
+        }
+        return new MapCheckContext
+        {
+            TextureExists = texExists,
+            FlatExists = flatExists,
+            ThingTypeKnown = thingKnown,
+            ActionKnown = actionKnown,
+        };
     }
 
     // ---- UI helpers ----
