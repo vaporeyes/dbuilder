@@ -87,6 +87,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private string _target3DDesc = "";
     private string? _texClipboard3D; // texture name copied off a surface for painting onto others
     private bool _look3D;            // left-drag mouse-look active in 3D
+    private VisualHit? _drag3DTarget; // surface/thing captured for a right-drag height change
+    private double _drag3DAccum;       // accumulated sub-unit drag movement
     private GlVertexBuffer? _pick3DVb;
     private GlVertexBuffer? _things3DVb; // reused per-frame for camera-facing thing billboards
     /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
@@ -613,11 +615,42 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Wheel on a target: raises/lowers a floor/ceiling, or a thing's Z offset, by the given step (undoable).
     private void AdjustTarget3D(int step)
     {
-        if (_map == null || _target3D is not { } h) return;
-        if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) { EditBegun?.Invoke("Change floor height"); fs.FloorHeight += step; }
-        else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) { EditBegun?.Invoke("Change ceiling height"); cs.CeilHeight += step; }
-        else if (h.Kind == VisualHitKind.Thing && h.Thing is { } t) { EditBegun?.Invoke("Change thing height"); t.Height += step; }
-        else return; // walls are not directly height-editable here
+        if (_map == null || _target3D is not { } h || HeightEditLabel(h) is not { } label) return;
+        EditBegun?.Invoke(label);
+        ApplyHeightDelta(h, step);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+    }
+
+    private static string? HeightEditLabel(VisualHit h) => h.Kind switch
+    {
+        VisualHitKind.Floor => "Change floor height",
+        VisualHitKind.Ceiling => "Change ceiling height",
+        VisualHitKind.Thing => "Change thing height",
+        _ => null, // walls are not directly height-editable
+    };
+
+    private static void ApplyHeightDelta(VisualHit h, int delta)
+    {
+        switch (h.Kind)
+        {
+            case VisualHitKind.Floor: if (h.Sector is { } fs) fs.FloorHeight += delta; break;
+            case VisualHitKind.Ceiling: if (h.Sector is { } cs) cs.CeilHeight += delta; break;
+            case VisualHitKind.Thing: if (h.Thing is { } t) t.Height += delta; break;
+        }
+    }
+
+    // Smoothly drags the captured target's height during a right-drag (accumulates sub-unit movement).
+    private void DragTargetHeight3D(double pixelsDown)
+    {
+        if (_map == null || _drag3DTarget is not { } h) return;
+        _drag3DAccum += -pixelsDown * 0.5; // dragging up raises; ~0.5 map units per pixel
+        int delta = (int)_drag3DAccum;
+        if (delta == 0) return;
+        _drag3DAccum -= delta;
+        ApplyHeightDelta(h, delta);
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -1305,8 +1338,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var pt = e.GetCurrentPoint(this);
         if (_mode3D)
         {
-            // Left-drag is mouse-look in 3D.
+            // Left-drag is mouse-look; right-drag changes the targeted surface/thing height.
             if (pt.Properties.IsLeftButtonPressed) { _look3D = true; _lastPointer = pt.Position; }
+            else if (pt.Properties.IsRightButtonPressed && _target3D is { } h && HeightEditLabel(h) != null)
+            {
+                _drag3DTarget = h; _drag3DAccum = 0; _lastPointer = pt.Position;
+                EditBegun?.Invoke(HeightEditLabel(h)!);
+            }
             return;
         }
 
@@ -1356,7 +1394,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (_mode3D) { _look3D = false; return; }
+        if (_mode3D) { _look3D = false; _drag3DTarget = null; return; }
         var pos = e.GetCurrentPoint(this).Position;
 
         // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
@@ -1744,7 +1782,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
 
-        // 3D mouse-look: drag rotates the camera (yaw decreases moving right, pitch decreases moving down).
+        // 3D: left-drag rotates the camera; right-drag changes the captured surface/thing height.
         if (_mode3D)
         {
             if (_look3D)
@@ -1754,6 +1792,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _pitch = Math.Clamp(_pitch - (pos.Y - _lastPointer.Y) * sens, -1.5, 1.5);
                 _lastPointer = pos;
                 RequestNextFrameRendering();
+            }
+            else if (_drag3DTarget != null)
+            {
+                DragTargetHeight3D(pos.Y - _lastPointer.Y);
+                _lastPointer = pos;
             }
             return;
         }
