@@ -33,6 +33,7 @@ public partial class MainWindow : Window
         MapView.Changed += UpdateInfo;
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); };
+        MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.DrawModeChanged += () => SetStatus(MapView.DrawMode
             ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
             : "Draw mode off.");
@@ -451,7 +452,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             InfoText.Text = $"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk).";
+                            $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD/arrows/QE, G walk; wheel raises/lowers targeted floor/ceiling, Shift = 1).";
             return;
         }
 

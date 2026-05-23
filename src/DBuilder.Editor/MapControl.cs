@@ -82,6 +82,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
     private double _lastTime;
 
+    // 3D visual-editing target (surface under the crosshair) and its marker buffer.
+    private VisualHit? _target3D;
+    private string _target3DDesc = "";
+    private GlVertexBuffer? _pick3DVb;
+    /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
+    public event Action<string>? Target3DChanged;
+
     public MapControl()
     {
         Focusable = true; // required to receive keyboard input for the 3D fly camera
@@ -219,6 +226,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
+        _pick3DVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
@@ -253,9 +261,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb?.Dispose();
         _gridVb?.Dispose();
         _boxVb?.Dispose();
+        _pick3DVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -342,6 +351,61 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         DrawBuckets3D(_floor3D);
         DrawBuckets3D(_ceil3D);
         DrawBuckets3D(_wall3D);
+
+        UpdateTarget3D();
+        DrawPickMarker3D();
+    }
+
+    // Raycasts from the camera crosshair and records the targeted surface (for editing + highlight).
+    private void UpdateTarget3D()
+    {
+        if (_map == null) { _target3D = null; return; }
+        var f = Cam3DForward();
+        _target3D = VisualPicking.Raycast(_map,
+            new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z),
+            new DBuilder.Geometry.Vector3D(f.X, f.Y, f.Z));
+
+        string desc = _target3D == null ? "" : _target3D.Kind switch
+        {
+            VisualHitKind.Floor => $"floor (sector {_target3D.Sector?.Index}, z={_target3D.Sector?.FloorHeight})",
+            VisualHitKind.Ceiling => $"ceiling (sector {_target3D.Sector?.Index}, z={_target3D.Sector?.CeilHeight})",
+            _ => $"wall (linedef {(_target3D.Line != null ? _map.Linedefs.IndexOf(_target3D.Line) : -1)})",
+        };
+        if (desc != _target3DDesc) { _target3DDesc = desc; Target3DChanged?.Invoke(desc); }
+    }
+
+    // A small 3D crosshair at the hit point so the user sees what is targeted.
+    private void DrawPickMarker3D()
+    {
+        if (_target3D == null || _device == null || _pick3DVb == null) return;
+        var p = _target3D.Point;
+        const float s = 6f;
+        const int c = unchecked((int)0xffffee00);
+        FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = c };
+        var v = new[]
+        {
+            V(p.x - s, p.y, p.z), V(p.x + s, p.y, p.z),
+            V(p.x, p.y - s, p.z), V(p.x, p.y + s, p.z),
+            V(p.x, p.y, p.z - s), V(p.x, p.y, p.z + s),
+        };
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetBufferData(_pick3DVb, v);
+        _device.SetVertexBuffer(_pick3DVb);
+        _device.Draw(DBPrimitiveType.LineList, 0, 3);
+    }
+
+    // Raises/lowers the targeted floor or ceiling by the given step (undoable).
+    private void AdjustTarget3D(int step)
+    {
+        if (_map == null || _target3D?.Sector is not { } s) return;
+        if (_target3D.Kind == VisualHitKind.Floor) { EditBegun?.Invoke("Change floor height"); s.FloorHeight += step; }
+        else if (_target3D.Kind == VisualHitKind.Ceiling) { EditBegun?.Invoke("Change ceiling height"); s.CeilHeight += step; }
+        else return; // walls are not directly height-editable here
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
     }
 
     private void DrawBuckets3D(System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> buckets)
@@ -1507,6 +1571,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // Trackpads report scroll on either axis; use whichever has the larger magnitude.
         double delta = Math.Abs(e.Delta.Y) >= Math.Abs(e.Delta.X) ? e.Delta.Y : e.Delta.X;
         if (delta == 0) return;
+
+        // In 3D, the wheel raises/lowers the targeted floor/ceiling (Shift = fine 1-unit step).
+        if (_mode3D)
+        {
+            int step = e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? 1 : 8;
+            AdjustTarget3D(delta > 0 ? step : -step);
+            e.Handled = true;
+            return;
+        }
+
         ZoomBy(delta > 0 ? 0.85 : 1.0 / 0.85);
         e.Handled = true;
     }
