@@ -127,7 +127,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; RequestNextFrameRendering(); }
+        set { _map = value; _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -213,6 +213,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _snapToGrid = true;
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
+    private GlVertexBuffer? _blockmapVb;
+    private int _blockmapLineCount;
+    private DBuilder.Map.BlockMap? _blockmapCache; // built lazily while the overlay is shown
+    private bool _showBlockmap;
+
+    /// <summary>When true, draws the 128-unit blockmap grid (occupied blocks brighter) over the map.</summary>
+    public bool ShowBlockmap
+    {
+        get => _showBlockmap;
+        set { _showBlockmap = value; RequestNextFrameRendering(); }
+    }
     private enum DragKind { None, Pan, Move, Box }
     private bool _pressed;
     private DragKind _drag = DragKind.None;
@@ -304,7 +315,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_zoom <= 0) _zoom = 1;
     }
 
-    public void MarkGeometryDirty() { _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
+    public void MarkGeometryDirty() { _geometryDirty = true; _geo3DDirty = true; _blockmapCache = null; RequestNextFrameRendering(); }
 
     // ---- GL lifecycle ----
 
@@ -319,6 +330,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _selVertsVb = new GlVertexBuffer(_gl);
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
+        _blockmapVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -356,12 +368,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _selVertsVb?.Dispose();
         _drawVb?.Dispose();
         _gridVb?.Dispose();
+        _blockmapVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1115,6 +1128,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _selVertTris);
             }
 
+            DrawBlockmap(); // debug overlay on top of geometry
+
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
             if (_drawDirty) { RebuildDrawPreview(); _drawDirty = false; }
             if (_drawLineCount > 0 && _drawVb != null)
@@ -1466,6 +1481,57 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _gridLineCount = verts.Count / 2;
         _device.SetVertexBuffer(_gridVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _gridLineCount);
+    }
+
+    // Draws the 128-unit blockmap grid over the map (occupied blocks brighter), as a debug overlay.
+    private void DrawBlockmap()
+    {
+        _blockmapLineCount = 0;
+        if (!_showBlockmap || _device is null || _blockmapVb is null || _map is null || _map.Vertices.Count == 0) return;
+
+        _blockmapCache ??= new DBuilder.Map.BlockMap(_map);
+        var bm = _blockmapCache;
+        double bs = bm.BlockSize;
+        if (bs / _zoom < 3) return; // too dense to be useful
+
+        // Visible block range (clamped to the blockmap extents).
+        double halfW = Bounds.Width * 0.5 * _zoom, halfH = Bounds.Height * 0.5 * _zoom;
+        int c0 = Math.Max(0, (int)Math.Floor((_camX - halfW - bm.OriginX) / bs));
+        int c1 = Math.Min(bm.Columns, (int)Math.Ceiling((_camX + halfW - bm.OriginX) / bs));
+        int r0 = Math.Max(0, (int)Math.Floor((_camY - halfH - bm.OriginY) / bs));
+        int r1 = Math.Min(bm.Rows, (int)Math.Ceiling((_camY + halfH - bm.OriginY) / bs));
+        if (c1 <= c0 || r1 <= r0) return;
+
+        const int grid = unchecked((int)0xff806040);     // dim amber grid
+        const int occupied = unchecked((int)0xffffc040);  // brighter amber for blocks with linedefs
+        var verts = new System.Collections.Generic.List<FlatVertex>();
+
+        double x0 = bm.OriginX + c0 * bs, x1 = bm.OriginX + c1 * bs;
+        double y0 = bm.OriginY + r0 * bs, y1 = bm.OriginY + r1 * bs;
+        for (int c = c0; c <= c1; c++) { double x = bm.OriginX + c * bs; verts.Add(FV(new Vec2D(x, y0), grid)); verts.Add(FV(new Vec2D(x, y1), grid)); }
+        for (int r = r0; r <= r1; r++) { double y = bm.OriginY + r * bs; verts.Add(FV(new Vec2D(x0, y), grid)); verts.Add(FV(new Vec2D(x1, y), grid)); }
+
+        // Outline blocks that contain linedefs.
+        for (int r = r0; r < r1; r++)
+            for (int c = c0; c < c1; c++)
+            {
+                if (bm.LinedefCountAt(c, r) == 0) continue;
+                double bx0 = bm.OriginX + c * bs, by0 = bm.OriginY + r * bs, bx1 = bx0 + bs, by1 = by0 + bs;
+                var p00 = new Vec2D(bx0, by0); var p10 = new Vec2D(bx1, by0);
+                var p11 = new Vec2D(bx1, by1); var p01 = new Vec2D(bx0, by1);
+                verts.Add(FV(p00, occupied)); verts.Add(FV(p10, occupied));
+                verts.Add(FV(p10, occupied)); verts.Add(FV(p11, occupied));
+                verts.Add(FV(p11, occupied)); verts.Add(FV(p01, occupied));
+                verts.Add(FV(p01, occupied)); verts.Add(FV(p00, occupied));
+            }
+
+        if (verts.Count == 0) return;
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetBufferData(_blockmapVb, verts.ToArray());
+        _blockmapLineCount = verts.Count / 2;
+        _device.SetVertexBuffer(_blockmapVb);
+        _device.Draw(DBPrimitiveType.LineList, 0, _blockmapLineCount);
     }
 
     // Projects a world point onto a linedef's segment (clamped to its endpoints).

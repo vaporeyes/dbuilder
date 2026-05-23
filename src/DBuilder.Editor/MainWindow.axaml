@@ -52,6 +52,7 @@
                 <MenuItem Header="_Fit to map" Click="OnFit" />
                 <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
                 <MenuItem Header="Thing _Filter..." Click="OnThingFilter" />
+                <MenuItem Header="Show _Blockmap" Click="OnToggleBlockmap" />
             </MenuItem>
             <MenuItem Header="_Draw">
                 <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />

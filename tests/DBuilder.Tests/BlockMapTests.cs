@@ -122,4 +122,20 @@ public class BlockMapTests
         Assert.Null(bm.NearestThing(new Vector2D(0, 0)));
         Assert.Null(bm.NearestVertex(new Vector2D(0, 0)));
     }
+
+    [Fact]
+    public void OriginAndOccupancyForOverlay()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(10, 10));
+        var b = map.AddVertex(new Vector2D(40, 40)); // both inside the first 128-block
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 128);
+
+        Assert.Equal(10, bm.OriginX, 6); // origin = min bounds
+        Assert.Equal(10, bm.OriginY, 6);
+        Assert.True(bm.LinedefCountAt(0, 0) >= 1); // the line occupies block (0,0)
+        Assert.Equal(0, bm.LinedefCountAt(99, 99)); // out of range -> 0
+    }
 }

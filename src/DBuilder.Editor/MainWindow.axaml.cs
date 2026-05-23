@@ -624,6 +624,12 @@ public partial class MainWindow : Window
         win.Show(this);
     }
 
+    private void OnToggleBlockmap(object? sender, RoutedEventArgs e)
+    {
+        MapView.ShowBlockmap = !MapView.ShowBlockmap;
+        SetStatus($"Blockmap overlay {(MapView.ShowBlockmap ? "on" : "off")}.");
+    }
+
     private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
     {
         MapView.ThingArrows = !MapView.ThingArrows;

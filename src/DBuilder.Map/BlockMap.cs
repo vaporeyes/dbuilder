@@ -23,6 +23,12 @@ public sealed class BlockMap
     public double BlockSize => blockSize;
     public int Columns => cols;
     public int Rows => rows;
+    public double OriginX => originX;
+    public double OriginY => originY;
+
+    /// <summary>Number of linedefs overlapping the given block (0 when out of range).</summary>
+    public int LinedefCountAt(int col, int row)
+        => col < 0 || row < 0 || col >= cols || row >= rows ? 0 : lineCells[Index(col, row)].Count;
 
     public BlockMap(MapSet map, double blockSize = 128.0)
     {
