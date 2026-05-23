@@ -822,6 +822,23 @@ public partial class MainWindow : Window
         SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
     }
 
+    // Builds a staircase from the selected sectors (stepped floor heights), undoable.
+    private async void OnBuildStairs(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) return;
+        var sel = _map.GetSelectedSectors();
+        if (sel.Count < 2) { SetStatus("Select 2 or more sectors to build stairs."); return; }
+
+        var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8);
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        _undo.CreateUndo("Build stairs");
+        int n = StairBuilder.Apply(sel, dlg.ResultStart, dlg.ResultStep, dlg.ResultMoveCeiling);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Built stairs across {n} sectors (start {dlg.ResultStart}, step {dlg.ResultStep}).");
+    }
+
     // Traces Doom-style sound propagation from the single selected sector and highlights everything it reaches.
     private void OnSoundPropagation(object? sender, RoutedEventArgs e)
     {

@@ -206,6 +206,14 @@ public abstract class PropertyDialog : Window
         return editors;
     }
 
+    // Adds a single labeled checkbox (inserted before the buttons row).
+    protected CheckBox AddCheckBox(string label, bool initial)
+    {
+        var cb = new CheckBox { Content = label, IsChecked = initial };
+        _rows.Children.Insert(_rows.Children.Count - 1, cb);
+        return cb;
+    }
+
     protected static int ParseInt(TextBox box, int fallback)
         => int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
 
