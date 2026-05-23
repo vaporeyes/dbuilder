@@ -13,6 +13,7 @@
  * A map is Hexen-format when its marker lump is followed by a BEHAVIOR lump (compiled ACS bytecode).
  */
 
+using System.Collections.Generic;
 using System.IO;
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -127,6 +128,7 @@ public static class HexenMapLoader
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
         int n = bytes.Length / 16;
+        var used = new HashSet<Sidedef>();
         for (int i = 0; i < n; i++)
         {
             int v1 = r.ReadUInt16();
@@ -155,19 +157,9 @@ public static class HexenMapLoader
             if (a3 != 0) line.UdmfFlags.Add($"arg3={a3}");
             if (a4 != 0) line.UdmfFlags.Add($"arg4={a4}");
 
-            // Hexen reuses ushort.MaxValue (-1 as unsigned) for "no sidedef".
-            if (s1 != 0xFFFF && s1 < map.Sidedefs.Count)
-            {
-                line.Front = map.Sidedefs[s1];
-                line.Front.Line = line;
-                line.Front.IsFront = true;
-            }
-            if (s2 != 0xFFFF && s2 < map.Sidedefs.Count)
-            {
-                line.Back = map.Sidedefs[s2];
-                line.Back.Line = line;
-                line.Back.IsFront = false;
-            }
+            // Hexen reuses ushort.MaxValue (-1 as unsigned) for "no sidedef". Shared sidedefs are unpacked.
+            if (s1 != 0xFFFF) DoomMapLoaderInternals.AttachSidedef(map, s1, line, front: true, used);
+            if (s2 != 0xFFFF) DoomMapLoaderInternals.AttachSidedef(map, s2, line, front: false, used);
 
             var hf = (HexenLinedefFlags)flags;
             if (hf.HasFlag(HexenLinedefFlags.Blocking))      line.UdmfFlags.Add("blocking");

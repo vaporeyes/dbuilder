@@ -78,6 +78,36 @@ internal static class DoomMapLoaderInternals
         }
     }
 
+    /// <summary>
+    /// Attaches sidedef <paramref name="idx"/> to <paramref name="line"/>'s front/back. Vanilla maps (e.g. Plutonia,
+    /// TNT) sometimes share one sidedef index across multiple linedefs to save space; an editor needs each
+    /// linedef-side to own its sidedef, so a sidedef already in use is cloned (unpacked) here.
+    /// </summary>
+    public static void AttachSidedef(MapSet map, int idx, Linedef line, bool front, HashSet<Sidedef> used)
+    {
+        if (idx < 0 || idx >= map.Sidedefs.Count) return;
+        var sd = map.Sidedefs[idx];
+        if (!used.Add(sd)) // already attached to another linedef -> clone it
+        {
+            var clone = new Sidedef(line, front)
+            {
+                OffsetX = sd.OffsetX,
+                OffsetY = sd.OffsetY,
+                HighTexture = sd.HighTexture,
+                MidTexture = sd.MidTexture,
+                LowTexture = sd.LowTexture,
+                Sector = sd.Sector,
+            };
+            foreach (var kv in sd.Fields) clone.Fields[kv.Key] = kv.Value;
+            map.Sidedefs.Add(clone);
+            used.Add(clone);
+            sd = clone;
+        }
+        sd.Line = line;
+        sd.IsFront = front;
+        if (front) line.Front = sd; else line.Back = sd;
+    }
+
     public static Vertex SafeVertex(MapSet map, int idx)
     {
         if (map.Vertices.Count == 0)

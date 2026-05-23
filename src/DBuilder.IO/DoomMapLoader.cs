@@ -14,6 +14,7 @@
  * We scan forward from the marker rather than relying on fixed positions.
  */
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using DBuilder.Geometry;
@@ -104,6 +105,7 @@ public static class DoomMapLoader
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
         int n = bytes.Length / 14;
+        var used = new HashSet<Sidedef>();
         for (int i = 0; i < n; i++)
         {
             short v1 = r.ReadInt16();
@@ -123,18 +125,8 @@ public static class DoomMapLoader
                 Tag = tag,
             };
 
-            if (sideRight >= 0 && sideRight < map.Sidedefs.Count)
-            {
-                line.Front = map.Sidedefs[sideRight];
-                line.Front.Line = line;
-                line.Front.IsFront = true;
-            }
-            if (sideLeft >= 0 && sideLeft < map.Sidedefs.Count)
-            {
-                line.Back = map.Sidedefs[sideLeft];
-                line.Back.Line = line;
-                line.Back.IsFront = false;
-            }
+            DoomMapLoaderInternals.AttachSidedef(map, sideRight, line, front: true, used);
+            DoomMapLoaderInternals.AttachSidedef(map, sideLeft, line, front: false, used);
 
             // Decode the well-known Doom bits to canonical UDMF flag names so the viewer
             // (and any UDMF-vs-binary-agnostic code) treats both formats identically.
