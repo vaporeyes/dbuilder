@@ -45,6 +45,11 @@ public sealed class ResourceManager : IDisposable
     private bool animsBuilt;
     private const double TicsPerSecond = 35.0; // Doom runs at 35 tics/second
 
+    // Switch off<->on texture pairs (from SWITCHES/ANIMDEFS); vanilla pairs fall back to the SW1/SW2 convention.
+    private readonly Dictionary<string, string> switchPairs = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string>? textureNameSet;
+    private bool switchesBuilt;
+
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
     public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false)); Invalidate(); }
 
@@ -77,8 +82,41 @@ public sealed class ResourceManager : IDisposable
         flatAnims.Clear();
         texAnims.Clear();
         animsBuilt = false;
+        switchPairs.Clear();
+        textureNameSet = null;
+        switchesBuilt = false;
         palette = null;
         paletteResolved = false;
+    }
+
+    /// <summary>
+    /// The paired texture for a switch (the on texture for an off SW1 texture, and vice versa), or null.
+    /// Uses explicit SWITCHES/ANIMDEFS pairs, falling back to the SW1/SW2 naming convention when the partner exists.
+    /// </summary>
+    public string? GetSwitchPair(string name)
+    {
+        EnsureSwitches();
+        if (switchPairs.TryGetValue(name, out var p)) return p;
+        if (name.Length > 3)
+        {
+            string prefix = name.Substring(0, 3);
+            string? partner = prefix.Equals("SW1", StringComparison.OrdinalIgnoreCase) ? "SW2" + name.Substring(3)
+                            : prefix.Equals("SW2", StringComparison.OrdinalIgnoreCase) ? "SW1" + name.Substring(3) : null;
+            if (partner != null && (textureNameSet ??= new HashSet<string>(GetTextureNames(), StringComparer.OrdinalIgnoreCase)).Contains(partner))
+                return partner;
+        }
+        return null;
+    }
+
+    private void EnsureSwitches()
+    {
+        if (switchesBuilt) return;
+        switchesBuilt = true;
+        void Add(string off, string on) { switchPairs[off] = on; switchPairs[on] = off; }
+        foreach (var bytes in GetLumpBytesAll("SWITCHES"))
+            foreach (var sw in BoomSwitches.Parse(bytes)) Add(sw.OffTexture, sw.OnTexture);
+        foreach (var text in GetTextLumps("ANIMDEFS"))
+            foreach (var sw in AnimdefsParser.Parse(text).Switches) Add(sw.OffTexture, sw.OnTexture);
     }
 
     /// <summary>True when any ANIMDEFS animations were defined (so the view should keep redrawing).</summary>
@@ -107,8 +145,10 @@ public sealed class ResourceManager : IDisposable
         var flatNames = GetFlatNames();
         var texNames = GetTextureNames();
 
-        // 1) Hardcoded vanilla animations (IWADs ship no animation lump).
+        // 1) Hardcoded vanilla animations (IWADs ship no animation lump). Doom + Heretic; absent names ignored.
         foreach (var e in BoomAnimated.DoomDefaults)
+            AddRangeAnim(e.IsTexture, e.First, e.Last, e.Tics, flatNames, texNames);
+        foreach (var e in BoomAnimated.HereticDefaults)
             AddRangeAnim(e.IsTexture, e.First, e.Last, e.Tics, flatNames, texNames);
 
         // 2) Boom ANIMATED binary lumps (PWADs), oldest first.

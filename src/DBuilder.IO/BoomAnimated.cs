@@ -68,4 +68,17 @@ public static class BoomAnimated
         new(true, "WFALL1", "WFALL4", 8),
         new(true, "DBRAIN1", "DBRAIN4", 8),
     };
+
+    /// <summary>Hardcoded vanilla Heretic animations (applied harmlessly when the names are absent).</summary>
+    public static readonly Entry[] HereticDefaults =
+    {
+        new(false, "FLTWAWA1", "FLTWAWA3", 8),  // water
+        new(false, "FLTSLUD1", "FLTSLUD3", 8),  // sludge
+        new(false, "FLTTELE1", "FLTTELE4", 6),  // teleport
+        new(false, "FLTFLWW1", "FLTFLWW3", 9),  // flowing water
+        new(false, "FLTLAVA1", "FLTLAVA4", 8),  // lava
+        new(false, "FLATHUH1", "FLATHUH4", 8),  // "huh?"
+        new(true, "LAVAFL1", "LAVAFL3", 6),     // lavafall
+        new(true, "WATRWAL1", "WATRWAL3", 4),   // waterfall
+    };
 }
