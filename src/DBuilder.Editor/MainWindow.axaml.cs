@@ -822,6 +822,19 @@ public partial class MainWindow : Window
         SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
     }
 
+    // Bakes Plane_Align (181) linedef specials into sector floor/ceiling slope planes so 3D shows them, undoable.
+    private void OnApplySlopes(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) return;
+        _undo.CreateUndo("Apply slopes");
+        int n = SlopeEffects.ApplyPlaneAlign(_map);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus(n == 0
+            ? "No Plane_Align (181) slopes found."
+            : $"Applied {n} slope plane(s) from Plane_Align specials (visible in 3D).");
+    }
+
     // Builds a staircase from the selected sectors (stepped floor heights), undoable.
     private async void OnBuildStairs(object? sender, RoutedEventArgs e)
     {
