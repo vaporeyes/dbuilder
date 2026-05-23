@@ -88,6 +88,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private string? _texClipboard3D; // texture name copied off a surface for painting onto others
     private bool _look3D;            // left-drag mouse-look active in 3D
     private GlVertexBuffer? _pick3DVb;
+    private GlVertexBuffer? _things3DVb; // reused per-frame for camera-facing thing billboards
     /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
     public event Action<string>? Target3DChanged;
 
@@ -229,6 +230,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _gridVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
+        _things3DVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
@@ -264,9 +266,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _gridVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
+        _things3DVb?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -353,9 +356,55 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         DrawBuckets3D(_floor3D);
         DrawBuckets3D(_ceil3D);
         DrawBuckets3D(_wall3D);
+        DrawThings3D();
 
         UpdateTarget3D();
         DrawTargetHighlight3D();
+    }
+
+    // Draws things as upright camera-facing sprite billboards (rebuilt each frame; depth-tested against geometry).
+    private void DrawThings3D()
+    {
+        if (_device is null || _map is null || _things3DVb is null) return;
+        var right = new Vector3((float)Math.Sin(_yaw), -(float)Math.Cos(_yaw), 0);
+        var up = new Vector3(0, 0, 1);
+
+        var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in _map.Things)
+        {
+            string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
+            if (string.IsNullOrEmpty(sprite)) continue;
+            var img = _resources?.GetSprite(sprite!);
+            if (img == null || GetSpriteTexture(sprite!) == null) continue;
+
+            double floorZ = _map.GetSectorAt(t.Position)?.GetFloorZ(t.Position) ?? 0;
+            float hw = img.Width * 0.5f, hh = img.Height * 0.5f;
+            var c = new Vector3((float)t.Position.x, (float)t.Position.y, (float)(floorZ + t.Height) + hh);
+            int col = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+            FlatVertex V(Vector3 p, float u, float v) => new FlatVertex { x = p.X, y = p.Y, z = p.Z, w = 1, c = col, u = u, v = v };
+
+            var bl = c - right * hw - up * hh; var br = c + right * hw - up * hh;
+            var tr = c + right * hw + up * hh; var tl = c - right * hw + up * hh;
+            if (!buckets.TryGetValue(sprite!, out var list)) { list = new(); buckets[sprite!] = list; }
+            list.Add(V(tl, 0, 0)); list.Add(V(tr, 1, 0)); list.Add(V(br, 1, 1));
+            list.Add(V(tl, 0, 0)); list.Add(V(br, 1, 1)); list.Add(V(bl, 0, 1));
+        }
+        if (buckets.Count == 0) return;
+
+        _device.SetAlphaBlendEnable(true);
+        _device.SetSourceBlend(Blend.SourceAlpha);
+        _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+        _device.SetUniform("useTexture", 1f);
+        foreach (var (name, verts) in buckets)
+        {
+            _device.SetTexture(0, GetSpriteTexture(name) ?? _placeholderTex);
+            _device.SetBufferData(_things3DVb, verts.ToArray());
+            _device.SetVertexBuffer(_things3DVb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, verts.Count / 3);
+        }
+        _device.SetAlphaBlendEnable(false);
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
     }
 
     // Raycasts from the camera crosshair and records the targeted surface (for editing + highlight).
@@ -365,12 +414,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var f = Cam3DForward();
         _target3D = VisualPicking.Raycast(_map,
             new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z),
-            new DBuilder.Geometry.Vector3D(f.X, f.Y, f.Z));
+            new DBuilder.Geometry.Vector3D(f.X, f.Y, f.Z),
+            ThingSize3D);
 
         string desc = _target3D == null ? "" : _target3D.Kind switch
         {
             VisualHitKind.Floor => $"floor (sector {_target3D.Sector?.Index}, z={_target3D.Sector?.FloorHeight})",
             VisualHitKind.Ceiling => $"ceiling (sector {_target3D.Sector?.Index}, z={_target3D.Sector?.CeilHeight})",
+            VisualHitKind.Thing => $"thing {_target3D.Thing?.Type} (z={_target3D.Thing?.Height})",
             _ => $"wall (linedef {(_target3D.Line != null ? _map.Linedefs.IndexOf(_target3D.Line) : -1)})",
         };
         if (desc != _target3DDesc) { _target3DDesc = desc; Target3DChanged?.Invoke(desc); }
@@ -390,6 +441,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var a = l.Start.Position; var b = l.End.Position;
             double bot = _target3D.Bottom, top = _target3D.Top;
             Edge(a, b, bot, bot); Edge(b, b, bot, top); Edge(b, a, top, top); Edge(a, a, top, bot);
+        }
+        else if (_target3D.Kind == VisualHitKind.Thing && _target3D.Thing is { } t)
+        {
+            double r = ThingSize3D(t).radius;
+            double zb = _target3D.Bottom, zt = _target3D.Top;
+            var p = t.Position;
+            var c00 = new Vec2D(p.x - r, p.y - r); var c10 = new Vec2D(p.x + r, p.y - r);
+            var c11 = new Vec2D(p.x + r, p.y + r); var c01 = new Vec2D(p.x - r, p.y + r);
+            // bottom rectangle, top rectangle, and the four verticals
+            Edge(c00, c10, zb, zb); Edge(c10, c11, zb, zb); Edge(c11, c01, zb, zb); Edge(c01, c00, zb, zb);
+            Edge(c00, c10, zt, zt); Edge(c10, c11, zt, zt); Edge(c11, c01, zt, zt); Edge(c01, c00, zt, zt);
+            Edge(c00, c00, zb, zt); Edge(c10, c10, zb, zt); Edge(c11, c11, zb, zt); Edge(c01, c01, zb, zt);
         }
         else if (_target3D.Sector is { } s)
         {
@@ -525,12 +588,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
-    // Raises/lowers the targeted floor or ceiling by the given step (undoable).
+    // The picking box size for a thing, from the game config (falls back to a default).
+    private (double radius, double height) ThingSize3D(Thing t)
+    {
+        var info = _gameConfig?.GetThing(t.Type);
+        return (info?.Width > 0 ? info.Width : 16, info?.Height > 0 ? info.Height : 16);
+    }
+
+    // Wheel on a target: raises/lowers a floor/ceiling, or a thing's Z offset, by the given step (undoable).
     private void AdjustTarget3D(int step)
     {
-        if (_map == null || _target3D?.Sector is not { } s) return;
-        if (_target3D.Kind == VisualHitKind.Floor) { EditBegun?.Invoke("Change floor height"); s.FloorHeight += step; }
-        else if (_target3D.Kind == VisualHitKind.Ceiling) { EditBegun?.Invoke("Change ceiling height"); s.CeilHeight += step; }
+        if (_map == null || _target3D is not { } h) return;
+        if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) { EditBegun?.Invoke("Change floor height"); fs.FloorHeight += step; }
+        else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) { EditBegun?.Invoke("Change ceiling height"); cs.CeilHeight += step; }
+        else if (h.Kind == VisualHitKind.Thing && h.Thing is { } t) { EditBegun?.Invoke("Change thing height"); t.Height += step; }
         else return; // walls are not directly height-editable here
         _geo3DDirty = true;
         MarkGeometryDirty();
