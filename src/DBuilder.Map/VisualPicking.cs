@@ -50,18 +50,22 @@ public static class VisualPicking
         {
             var fs = l.Front?.Sector;
             var bs = l.Back?.Sector;
+            var a = l.Start.Position;
+            var b = l.End.Position;
             if (fs != null && bs == null)
-                TryWall(origin, dir, l, fs.FloorHeight, fs.CeilHeight, WallPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), WallPart.Middle, ref best, ref bestDist);
             else if (fs == null && bs != null)
-                TryWall(origin, dir, l, bs.FloorHeight, bs.CeilHeight, WallPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, bs.GetFloorZ(a), bs.GetFloorZ(b), bs.GetCeilZ(a), bs.GetCeilZ(b), WallPart.Middle, ref best, ref bestDist);
             else if (fs != null && bs != null)
             {
-                int loBot = Math.Min(fs.FloorHeight, bs.FloorHeight);
-                int loTop = Math.Max(fs.FloorHeight, bs.FloorHeight);
-                if (loTop > loBot) TryWall(origin, dir, l, loBot, loTop, WallPart.Lower, ref best, ref bestDist); // lower step
-                int hiBot = Math.Min(fs.CeilHeight, bs.CeilHeight);
-                int hiTop = Math.Max(fs.CeilHeight, bs.CeilHeight);
-                if (hiTop > hiBot) TryWall(origin, dir, l, hiBot, hiTop, WallPart.Upper, ref best, ref bestDist); // upper step
+                // Lower step: between the two floors (per endpoint, so slopes are followed).
+                double lbA = Math.Min(fs.GetFloorZ(a), bs.GetFloorZ(a)), lbB = Math.Min(fs.GetFloorZ(b), bs.GetFloorZ(b));
+                double ltA = Math.Max(fs.GetFloorZ(a), bs.GetFloorZ(a)), ltB = Math.Max(fs.GetFloorZ(b), bs.GetFloorZ(b));
+                if (ltA > lbA || ltB > lbB) TryWall(origin, dir, l, lbA, lbB, ltA, ltB, WallPart.Lower, ref best, ref bestDist);
+                // Upper step: between the two ceilings.
+                double ubA = Math.Min(fs.GetCeilZ(a), bs.GetCeilZ(a)), ubB = Math.Min(fs.GetCeilZ(b), bs.GetCeilZ(b));
+                double utA = Math.Max(fs.GetCeilZ(a), bs.GetCeilZ(a)), utB = Math.Max(fs.GetCeilZ(b), bs.GetCeilZ(b));
+                if (utA > ubA || utB > ubB) TryWall(origin, dir, l, ubA, ubB, utA, utB, WallPart.Upper, ref best, ref bestDist);
             }
         }
 
@@ -143,8 +147,10 @@ public static class VisualPicking
         best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, zHit), s, null, floor, zHit, zHit);
     }
 
-    private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBottom, double zTop, WallPart part,
-        ref VisualHit? best, ref double bestDist)
+    // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
+    // wall follows sloped floors/ceilings.
+    private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
+        WallPart part, ref VisualHit? best, ref double bestDist)
     {
         var a = l.Start.Position;
         var b = l.End.Position;
@@ -157,14 +163,16 @@ public static class VisualPicking
         double seg = (dx * d.y - dy * d.x) / denom; // position along the wall segment
         if (u <= Eps || u >= bestDist || seg < 0 || seg > 1) return;
 
+        double bot = zBotA + (zBotB - zBotA) * seg;
+        double top = zTopA + (zTopB - zTopA) * seg;
         double z = o.z + d.z * u;
-        if (z < zBottom || z > zTop) return;
+        if (z < bot || z > top) return;
 
         // The visible side is the one facing the camera (front when the origin is on the right of start->end).
         bool front = Line2D.GetSideOfLine(a, b, new Vector2D(o.x, o.y)) < 0;
         var sector = front ? l.Front?.Sector : l.Back?.Sector;
 
         bestDist = u;
-        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, zBottom, zTop, part);
+        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, bot, top, part);
     }
 }

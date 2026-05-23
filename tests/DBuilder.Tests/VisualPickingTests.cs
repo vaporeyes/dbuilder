@@ -154,6 +154,28 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void WallSpanFollowsSlopedFloor()
+    {
+        var (map, s, lines) = Room();
+        // Floor sloping z = x, so at the right wall (x=100) the floor is at z=100; the wall exists z=100..128.
+        double k = 1.0 / System.Math.Sqrt(2);
+        s.FloorSlope = new Vector3D(-k, 0, k);
+        s.FloorSlopeOffset = 0;
+
+        // A horizontal ray at z=110 hits the right wall (within its 100..128 span).
+        var high = VisualPicking.Raycast(map, new Vector3D(50, 50, 110), new Vector3D(1, 0, 0));
+        Assert.NotNull(high);
+        Assert.Equal(VisualHitKind.Wall, high!.Kind);
+        Assert.Same(lines[2], high.Line);
+        Assert.Equal(50, high.Distance, 4);
+
+        // A ray at z=20 is below the sloped floor at x=100, so it does not hit that wall; it hits the floor.
+        var low = VisualPicking.Raycast(map, new Vector3D(10, 50, 20), new Vector3D(1, 0, 0));
+        Assert.NotNull(low);
+        Assert.Equal(VisualHitKind.Floor, low!.Kind);
+    }
+
+    [Fact]
     public void RayMissingEverythingReturnsNull()
     {
         var (map, _, _) = Room();
