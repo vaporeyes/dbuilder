@@ -26,6 +26,7 @@ public static class PngDecoder
         if (data.Length < 8 || !HasSignature(data)) return null;
 
         int width = 0, height = 0, bitDepth = 0, colorType = 0, interlace = 0;
+        int grabX = 0, grabY = 0;     // sprite offsets from a grAb chunk (SLADE/ZDoom)
         byte[]? palette = null;       // RGB triples
         byte[]? trns = null;          // palette alpha (or color-key, unused for non-palette)
         var idat = new MemoryStream();
@@ -55,6 +56,9 @@ public static class PngDecoder
                     trns = new byte[len];
                     Array.Copy(data, dataStart, trns, 0, len);
                     break;
+                case "grAb": // SLADE/ZDoom sprite offset (signed int32 x, y)
+                    if (len >= 8) { grabX = ReadBE32(data, dataStart); grabY = ReadBE32(data, dataStart + 4); }
+                    break;
                 case "IDAT":
                     idat.Write(data, dataStart, len);
                     break;
@@ -80,7 +84,7 @@ public static class PngDecoder
         if (raw.Length < (long)(stride + 1) * height) return null;
 
         byte[] pixels = Unfilter(raw, width, height, stride, bpp);
-        return new ImageData(width, height, ToRgba(pixels, width, height, stride, bitDepth, colorType, palette, trns));
+        return new ImageData(width, height, ToRgba(pixels, width, height, stride, bitDepth, colorType, palette, trns), grabX, grabY);
     }
 
     // Reverses PNG per-scanline filtering (None/Sub/Up/Average/Paeth) into a contiguous pixel buffer.

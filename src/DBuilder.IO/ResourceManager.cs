@@ -16,8 +16,11 @@ using System.IO;
 
 namespace DBuilder.IO;
 
-/// <summary>A decoded image: RGBA8 bytes (row-major, 4 bytes per pixel) with dimensions.</summary>
-public sealed record ImageData(int Width, int Height, byte[] Rgba);
+/// <summary>
+/// A decoded image: RGBA8 bytes (row-major, 4 bytes per pixel) with dimensions and optional render offsets
+/// (sprite hot-spot: OffsetX from the left, OffsetY from the top; 0,0 means unset/centered).
+/// </summary>
+public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0);
 
 public sealed class ResourceManager : IDisposable
 {
@@ -208,7 +211,7 @@ public sealed class ResourceManager : IDisposable
             var img = ResolvePatchRaw(patch.Name, pal);
             if (img != null) Blit(buf, def.Width, def.Height, img, patch.X, patch.Y, patch.FlipX, patch.FlipY);
         }
-        return new ImageData(def.Width, def.Height, buf);
+        return new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY);
     }
 
     // Resolves a patch as a single image across resources (never via TEXTURES defs, so composition can't recurse).

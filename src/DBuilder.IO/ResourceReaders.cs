@@ -56,7 +56,7 @@ internal sealed class WadResourceReader : IResourceReader
     {
         if (palette == null) return null;
         var pic = DoomPictureReader.Decode(wad, name, palette);
-        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8) : null;
+        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
 
     private Dictionary<string, DoomTextureDef> TexDefs()
@@ -165,7 +165,7 @@ internal abstract class FolderResourceReader : IResourceReader
         if (DoomPictureReader.Validate(bytes))
         {
             var pic = DoomPictureReader.Decode(bytes, palette);
-            if (pic != null) return new ImageData(pic.Width, pic.Height, pic.Rgba8);
+            if (pic != null) return new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY);
         }
         if (DoomFlatReader.LooksLikeFlat(bytes.Length))
             return new ImageData(DoomFlatReader.Width, DoomFlatReader.Height, DoomFlatReader.DecodeRgba8(bytes, palette));

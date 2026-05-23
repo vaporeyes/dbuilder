@@ -384,7 +384,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             double floorZ = _map.GetSectorAt(t.Position)?.GetFloorZ(t.Position) ?? 0;
             float hw = img.Width * 0.5f, hh = img.Height * 0.5f;
-            var c = new Vector3((float)t.Position.x, (float)t.Position.y, (float)(floorZ + t.Height) + hh);
+            double originZ = floorZ + t.Height;
+            // Use the sprite hot-spot when present (OffsetX from left, OffsetY above the origin); else
+            // fall back to centered horizontally with the bottom resting on the floor.
+            float cz, hcx;
+            if (img.OffsetX != 0 || img.OffsetY != 0)
+            {
+                cz = (float)(originZ + img.OffsetY - img.Height * 0.5); // top at origin+OffsetY, so center is half-height below
+                hcx = img.Width * 0.5f - img.OffsetX;                    // shift so the hot-spot column sits at the thing
+            }
+            else { cz = (float)(originZ) + hh; hcx = 0f; }
+            var c = new Vector3((float)t.Position.x, (float)t.Position.y, cz) + right * hcx;
             int col = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
             FlatVertex V(Vector3 p, float u, float v) => new FlatVertex { x = p.X, y = p.Y, z = p.Z, w = 1, c = col, u = u, v = v };
 
