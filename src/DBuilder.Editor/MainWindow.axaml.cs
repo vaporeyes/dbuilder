@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private UndoManager? _undo;
     private string? _mapMarker;
     private string? _wadPath;
+    private string? _iwadPath; // an IWAD (the loaded WAD if it is one, else an added IWAD resource) for Test Map
     private MapFormat _mapFormat = MapFormat.Doom;
     private GameConfiguration? _config;
     private string _configName = "(none)";
@@ -32,6 +33,9 @@ public partial class MainWindow : Window
     // Directory holding the bundled UDB game configurations (the default config lives here too).
     private static readonly string ConfigDir =
         "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations";
+
+    // Standard macOS GZDoom install, used by Test Map when DBUILDER_TESTPORT is unset.
+    private const string DefaultGzdoomPath = "/Applications/GZDoom.app/Contents/MacOS/gzdoom";
 
     public MainWindow() : this(null) { }
 
@@ -202,9 +206,14 @@ public partial class MainWindow : Window
 
             // Adding the IWAD often reveals the game (a PWAD alone may lack the signature lumps), so re-detect
             // the config before merging actors onto it.
-            if (path.EndsWith(".wad", StringComparison.OrdinalIgnoreCase) && _configIsAuto)
+            if (path.EndsWith(".wad", StringComparison.OrdinalIgnoreCase))
             {
-                try { using var iwad = new WAD(path, openreadonly: true); AutoDetectConfig(iwad); }
+                try
+                {
+                    using var iwad = new WAD(path, openreadonly: true);
+                    if (_configIsAuto) AutoDetectConfig(iwad);
+                    if (iwad.IsIWAD) _iwadPath = path; // remember the IWAD for Test Map
+                }
                 catch { /* not a readable WAD - skip detection, still usable as a resource */ }
             }
 
@@ -474,6 +483,7 @@ public partial class MainWindow : Window
             {
                 maps = WadMaps.Find(wad);
                 AutoDetectConfig(wad); // switch the auto/default config to match this WAD's game
+                if (wad.IsIWAD) _iwadPath = path; // loaded an IWAD directly - usable as the Test Map base
             }
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
 
@@ -515,6 +525,50 @@ public partial class MainWindow : Window
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
+    }
+
+    // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
+    private void OnTestMap(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test."); return; }
+
+        string? port = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT");
+        if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port))
+            port = DefaultGzdoomPath; // fall back to a standard GZDoom install
+        if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port))
+        {
+            SetStatus("Set DBUILDER_TESTPORT to your source-port executable (e.g. gzdoom) to use Test Map.");
+            return;
+        }
+
+        string? iwad = Environment.GetEnvironmentVariable("DBUILDER_TESTIWAD");
+        if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad)) iwad = _iwadPath;
+        if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad))
+        {
+            SetStatus("No IWAD known for testing - open an IWAD or add one as a resource, or set DBUILDER_TESTIWAD.");
+            return;
+        }
+
+        try
+        {
+            // Build a minimal PWAD containing only the edited map block (the IWAD provides everything else).
+            byte[] bytes;
+            var ms = new System.IO.MemoryStream();
+            using (var dst = new WAD(ms)) { WadMaps.SaveMap(dst, _mapMarker, _map, _mapFormat, _config); bytes = ms.ToArray(); }
+            BuildNodesIfConfigured(ref bytes); // GZDoom can build nodes itself, but use the configured builder when present
+
+            string temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"dbuilder_test_{_mapMarker}.wad");
+            System.IO.File.WriteAllBytes(temp, bytes);
+
+            string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS") ?? SourcePort.DefaultArgsTemplate;
+            var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker);
+
+            var psi = new System.Diagnostics.ProcessStartInfo(port!) { UseShellExecute = false };
+            foreach (var a in args) psi.ArgumentList.Add(a);
+            System.Diagnostics.Process.Start(psi);
+            SetStatus($"Testing {_mapMarker} in {System.IO.Path.GetFileNameWithoutExtension(port)} (iwad: {System.IO.Path.GetFileName(iwad)}).");
+        }
+        catch (Exception ex) { SetStatus($"Test Map failed: {ex.Message}"); }
     }
 
     // Runs the map health checker and opens a non-modal results window; selecting an issue locates it.
