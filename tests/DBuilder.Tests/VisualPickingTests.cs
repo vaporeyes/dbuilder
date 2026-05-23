@@ -76,6 +76,36 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void OneSidedWallIsMiddlePart()
+    {
+        var (map, _, _) = Room();
+        var hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 40), new Vector3D(1, 0, 0));
+        Assert.Equal(WallPart.Middle, hit!.Part);
+    }
+
+    [Fact]
+    public void TwoSidedWallReportsLowerAndUpperParts()
+    {
+        // A single shared two-sided wall: front floor 0/ceil 128, back floor 32/ceil 96.
+        var map = new MapSet();
+        var fs = map.AddSector(); fs.FloorHeight = 0; fs.CeilHeight = 128;
+        var bs = map.AddSector(); bs.FloorHeight = 32; bs.CeilHeight = 96;
+        var a = map.AddVertex(new Vector2D(50, 0));
+        var b = map.AddVertex(new Vector2D(50, 100));
+        var l = map.AddLinedef(a, b);
+        map.AddSidedef(l, true, fs);
+        map.AddSidedef(l, false, bs);
+        map.BuildIndexes();
+
+        var low = VisualPicking.Raycast(map, new Vector3D(20, 50, 16), new Vector3D(1, 0, 0));
+        Assert.Equal(VisualHitKind.Wall, low!.Kind);
+        Assert.Equal(WallPart.Lower, low.Part); // z=16 is within the lower step [0,32]
+
+        var high = VisualPicking.Raycast(map, new Vector3D(20, 50, 110), new Vector3D(1, 0, 0));
+        Assert.Equal(WallPart.Upper, high!.Part); // z=110 is within the upper step [96,128]
+    }
+
+    [Fact]
     public void RayMissingEverythingReturnsNull()
     {
         var (map, _, _) = Room();

@@ -85,6 +85,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 3D visual-editing target (surface under the crosshair) and its marker buffer.
     private VisualHit? _target3D;
     private string _target3DDesc = "";
+    private string? _texClipboard3D; // texture name copied off a surface for painting onto others
     private GlVertexBuffer? _pick3DVb;
     /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
     public event Action<string>? Target3DChanged;
@@ -402,6 +403,53 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetBufferData(_pick3DVb, verts.ToArray());
         _device.SetVertexBuffer(_pick3DVb);
         _device.Draw(DBPrimitiveType.LineList, 0, verts.Count / 2);
+    }
+
+    // The texture name on the targeted surface (sector flat or the hit wall part), or null.
+    private string? TargetTextureName3D()
+    {
+        var h = _target3D;
+        if (h == null) return null;
+        if (h.Kind == VisualHitKind.Floor) return h.Sector?.FloorTexture;
+        if (h.Kind == VisualHitKind.Ceiling) return h.Sector?.CeilTexture;
+        var sd = h.Front ? h.Line?.Front : h.Line?.Back;
+        if (sd == null) return null;
+        return h.Part switch { WallPart.Upper => sd.HighTexture, WallPart.Lower => sd.LowTexture, _ => sd.MidTexture };
+    }
+
+    // Copies the targeted surface's texture into the 3D texture clipboard.
+    private void CopyTexture3D()
+    {
+        var tex = TargetTextureName3D();
+        if (string.IsNullOrEmpty(tex)) { Target3DChanged?.Invoke("nothing to copy"); return; }
+        _texClipboard3D = tex;
+        Target3DChanged?.Invoke($"copied texture {tex}");
+    }
+
+    // Applies the 3D texture clipboard onto the targeted surface (undoable).
+    private void ApplyTexture3D()
+    {
+        if (_map == null || _target3D is not { } h || string.IsNullOrEmpty(_texClipboard3D)) return;
+        string tex = _texClipboard3D!;
+        EditBegun?.Invoke("Apply texture");
+        if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) fs.FloorTexture = tex;
+        else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) cs.CeilTexture = tex;
+        else
+        {
+            var sd = h.Front ? h.Line?.Front : h.Line?.Back;
+            if (sd == null) return;
+            switch (h.Part)
+            {
+                case WallPart.Upper: sd.HighTexture = tex; break;
+                case WallPart.Lower: sd.LowTexture = tex; break;
+                default: sd.MidTexture = tex; break;
+            }
+        }
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"applied texture {tex}");
     }
 
     // Adjusts the targeted sector's brightness ([ darker / ] brighter), undoable.
@@ -995,6 +1043,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // 3D brightness on the targeted sector: [ darker, ] brighter.
         if (_mode3D && e.Key == Key.OemOpenBrackets) { AdjustTargetBrightness3D(-8); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.OemCloseBrackets) { AdjustTargetBrightness3D(8); e.Handled = true; return; }
+        // 3D texture copy/apply (plain C/V; Ctrl/Cmd+C/V stay 2D selection copy/paste at the window level).
+        bool mod = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        if (_mode3D && !mod && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
+        if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
         // Let Ctrl/Cmd shortcuts (undo/redo/save) bubble up to the window instead of triggering view toggles.

@@ -8,13 +8,16 @@ namespace DBuilder.Map;
 
 public enum VisualHitKind { Floor, Ceiling, Wall }
 
+/// <summary>Which texture slot a wall hit corresponds to (None for floor/ceiling hits).</summary>
+public enum WallPart { None, Upper, Middle, Lower }
+
 /// <summary>
 /// A surface hit by a 3D ray: which kind, how far, where, the owning sector / linedef side, and the surface's
 /// vertical extent (Bottom..Top; equal for a flat floor/ceiling) for drawing a highlight.
 /// </summary>
 public sealed record VisualHit(
     VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front,
-    double Bottom, double Top);
+    double Bottom, double Top, WallPart Part = WallPart.None);
 
 public static class VisualPicking
 {
@@ -47,17 +50,17 @@ public static class VisualPicking
             var fs = l.Front?.Sector;
             var bs = l.Back?.Sector;
             if (fs != null && bs == null)
-                TryWall(origin, dir, l, fs.FloorHeight, fs.CeilHeight, ref best, ref bestDist);
+                TryWall(origin, dir, l, fs.FloorHeight, fs.CeilHeight, WallPart.Middle, ref best, ref bestDist);
             else if (fs == null && bs != null)
-                TryWall(origin, dir, l, bs.FloorHeight, bs.CeilHeight, ref best, ref bestDist);
+                TryWall(origin, dir, l, bs.FloorHeight, bs.CeilHeight, WallPart.Middle, ref best, ref bestDist);
             else if (fs != null && bs != null)
             {
                 int loBot = Math.Min(fs.FloorHeight, bs.FloorHeight);
                 int loTop = Math.Max(fs.FloorHeight, bs.FloorHeight);
-                if (loTop > loBot) TryWall(origin, dir, l, loBot, loTop, ref best, ref bestDist); // lower step
+                if (loTop > loBot) TryWall(origin, dir, l, loBot, loTop, WallPart.Lower, ref best, ref bestDist); // lower step
                 int hiBot = Math.Min(fs.CeilHeight, bs.CeilHeight);
                 int hiTop = Math.Max(fs.CeilHeight, bs.CeilHeight);
-                if (hiTop > hiBot) TryWall(origin, dir, l, hiBot, hiTop, ref best, ref bestDist); // upper step
+                if (hiTop > hiBot) TryWall(origin, dir, l, hiBot, hiTop, WallPart.Upper, ref best, ref bestDist); // upper step
             }
         }
 
@@ -82,7 +85,7 @@ public static class VisualPicking
         best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, z), s, null, kind == VisualHitKind.Floor, z, z);
     }
 
-    private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBottom, double zTop,
+    private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBottom, double zTop, WallPart part,
         ref VisualHit? best, ref double bestDist)
     {
         var a = l.Start.Position;
@@ -104,6 +107,6 @@ public static class VisualPicking
         var sector = front ? l.Front?.Sector : l.Back?.Sector;
 
         bestDist = u;
-        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, zBottom, zTop);
+        best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, zBottom, zTop, part);
     }
 }
