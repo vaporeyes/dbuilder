@@ -65,6 +65,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
     private readonly Dictionary<int, string> linedefFlags = new();
     private readonly Dictionary<int, string> thingFlags = new();
+    private readonly Dictionary<int, string> skills = new();
     private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<GeneralizedCategory> genLinedefs = new();
     private readonly List<GeneralizedCategory> genSectors = new();
@@ -84,6 +85,9 @@ public sealed class GameConfiguration
 
     /// <summary>Thing flag bit value -> display name (e.g. 1 -> "Easy", 8 -> "Ambush players").</summary>
     public IReadOnlyDictionary<int, string> ThingFlags => thingFlags;
+
+    /// <summary>Skill level number -> display name (e.g. 1 -> "I'm too young to die").</summary>
+    public IReadOnlyDictionary<int, string> Skills => skills;
 
     /// <summary>Loads a game configuration file (resolving its include() statements) into catalogs.</summary>
     public static GameConfiguration FromFile(string path)
@@ -111,6 +115,7 @@ public sealed class GameConfiguration
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
             if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
+            if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectors.AddRange(GeneralizedCategory.ParseBlock(gs));
         }

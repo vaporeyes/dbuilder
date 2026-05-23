@@ -85,4 +85,20 @@ thingtypes
         Assert.NotNull(t);
         Assert.Equal("TID", t!.Args[0].Title);
     }
+
+    [Fact]
+    public void ParsesSkills()
+    {
+        const string skillCfg = @"
+skills
+{
+    1 = ""I'm too young to die"";
+    3 = ""Hurt me plenty"";
+    5 = ""Nightmare"";
+}";
+        var gc = GameConfiguration.FromText(skillCfg);
+        Assert.Equal(3, gc.Skills.Count);
+        Assert.Equal("Hurt me plenty", gc.Skills[3]);
+        Assert.Equal("Nightmare", gc.Skills[5]);
+    }
 }
