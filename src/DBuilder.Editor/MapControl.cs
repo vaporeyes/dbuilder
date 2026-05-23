@@ -1502,8 +1502,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int r1 = Math.Min(bm.Rows, (int)Math.Ceiling((_camY + halfH - bm.OriginY) / bs));
         if (c1 <= c0 || r1 <= r0) return;
 
-        const int grid = unchecked((int)0xff806040);     // dim amber grid
-        const int occupied = unchecked((int)0xffffc040);  // brighter amber for blocks with linedefs
+        // Note: the renderer swaps R<->B, so these read blue-ish on screen (consistent with the app palette).
+        const int grid = unchecked((int)0xff403028);      // dim grid for empty blocks (kept subtle)
+        const int occupied = unchecked((int)0xffffc040);  // bright highlight for blocks containing linedefs
         var verts = new System.Collections.Generic.List<FlatVertex>();
 
         double x0 = bm.OriginX + c0 * bs, x1 = bm.OriginX + c1 * bs;
