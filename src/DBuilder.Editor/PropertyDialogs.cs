@@ -124,6 +124,47 @@ public abstract class PropertyDialog : Window
         return combo;
     }
 
+    // Like AddCombo, but with a "..." button opening the categorized browser; picking there updates the combo.
+    protected ComboBox AddComboWithBrowse(string label, IEnumerable<CatalogItem> items, int current,
+        string browseTitle, Func<List<BrowseEntry>> entriesFactory)
+    {
+        var list = items.OrderBy(i => i.Number).ToList();
+        if (!list.Exists(i => i.Number == current))
+            list.Insert(0, new CatalogItem(current, $"{current} - (current)"));
+
+        var combo = new ComboBox { ItemsSource = list, HorizontalAlignment = HorizontalAlignment.Stretch };
+        combo.SelectedItem = list.Find(i => i.Number == current);
+
+        var browse = new Button { Content = "...", MinWidth = 34, Margin = new Avalonia.Thickness(4, 0, 0, 0) };
+        browse.Click += async (_, _) =>
+        {
+            var dlg = new BrowserDialog(browseTitle, entriesFactory(), ComboNumber(combo, current));
+            if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
+                SetComboNumber(combo, list, n, dlg.SelectedTitle);
+        };
+
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*,Auto") };
+        grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(combo, 1);
+        grid.Children.Add(combo);
+        Grid.SetColumn(browse, 2);
+        grid.Children.Add(browse);
+        _rows.Children.Insert(_rows.Children.Count - 1, grid);
+        return combo;
+    }
+
+    // Selects a number in a combo, inserting a synthetic entry (and refreshing the source) when it is not present.
+    private static void SetComboNumber(ComboBox combo, List<CatalogItem> list, int number, string title)
+    {
+        if (!list.Exists(i => i.Number == number))
+        {
+            list.Add(new CatalogItem(number, $"{number} - {title}"));
+            list.Sort((a, b) => a.Number.CompareTo(b.Number));
+            combo.ItemsSource = list.ToList(); // reassign so the ComboBox observes the added entry
+        }
+        combo.SelectedItem = list.Find(i => i.Number == number);
+    }
+
     // Adds a labeled column of checkboxes, one per flag bit, returning a handle that recombines them on OK.
     protected FlagChecks AddFlagChecks(string label, IReadOnlyDictionary<int, string> defs, int current)
     {
@@ -190,7 +231,9 @@ public sealed class ThingEditDialog : PropertyDialog
     {
         ResultArgs = (int[])t.Args.Clone();
         if (config != null && config.Things.Count > 0)
-            _typeCombo = AddCombo("Type", config.Things.Values.Select(x => new CatalogItem(x.Index, $"{x.Index} - {x.Title}")), t.Type);
+            _typeCombo = AddComboWithBrowse("Type",
+                config.Things.Values.Select(x => new CatalogItem(x.Index, $"{x.Index} - {x.Title}")), t.Type,
+                "Browse Things", () => CatalogBrowse.Things(config));
         else
             _typeBox = AddField("Type", t.Type.ToString(CultureInfo.InvariantCulture));
 
@@ -238,7 +281,8 @@ public sealed class LinedefEditDialog : PropertyDialog
         {
             var items = config.LinedefActions.Values.Select(a => new CatalogItem(a.Index, $"{a.Index} - {a.Title}"))
                 .Prepend(new CatalogItem(0, "0 - None"));
-            _actionCombo = AddCombo("Action", items, l.Action);
+            _actionCombo = AddComboWithBrowse("Action", items, l.Action, "Browse Linedef Actions",
+                () => CatalogBrowse.LinedefActions(config));
         }
         else _actionBox = AddField("Action", l.Action.ToString(CultureInfo.InvariantCulture));
 
@@ -281,7 +325,8 @@ public sealed class SectorEditDialog : PropertyDialog
         if (config != null && config.SectorEffects.Count > 0)
         {
             var items = config.SectorEffects.Values.Select(x => new CatalogItem(x.Index, $"{x.Index} - {x.Title}"));
-            _specialCombo = AddCombo("Effect", items, s.Special);
+            _specialCombo = AddComboWithBrowse("Effect", items, s.Special, "Browse Sector Effects",
+                () => CatalogBrowse.SectorEffects(config));
         }
         else _specialBox = AddField("Effect", s.Special.ToString(CultureInfo.InvariantCulture));
 
