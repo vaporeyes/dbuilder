@@ -35,6 +35,12 @@
                 <MenuItem Header="Stitch _geometry" Click="OnStitch" />
                 <MenuItem Header="_Join sectors" Click="OnJoinSectors" />
                 <MenuItem Header="Mer_ge sectors" Click="OnMergeSectors" />
+                <MenuItem Header="_Transform selection">
+                    <MenuItem Header="Flip _Horizontal" Click="OnFlipH" />
+                    <MenuItem Header="Flip _Vertical" Click="OnFlipV" />
+                    <MenuItem Header="Rotate 90 C_W" Click="OnRotateCW" />
+                    <MenuItem Header="Rotate 90 CC_W" Click="OnRotateCCW" />
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
             </MenuItem>

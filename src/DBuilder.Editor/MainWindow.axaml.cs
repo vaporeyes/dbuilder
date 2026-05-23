@@ -506,6 +506,28 @@ public partial class MainWindow : Window
     private void OnJoinSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: false);
     private void OnMergeSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: true);
 
+    private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
+    private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
+    private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate 90 CW");
+    private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
+
+    // Applies a flip/rotate to the current selection about its center, undoable.
+    private void Transform(SelectionTransform.Op op, string desc)
+    {
+        if (_map is null || _undo is null) return;
+        if (_map.SelectedGeometryVertices().Count == 0 && _map.SelectedThingsCount == 0)
+        {
+            SetStatus("Select elements to transform first.");
+            return;
+        }
+        _undo.CreateUndo(desc);
+        SelectionTransform.Apply(_map, op);
+        _map.BuildIndexes();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"{desc} applied.");
+    }
+
     // Joins (or merges, also deleting internal walls) the selected sectors into one, undoable.
     private void JoinOrMergeSectors(bool merge)
     {

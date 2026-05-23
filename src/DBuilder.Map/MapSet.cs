@@ -176,6 +176,20 @@ public class MapSet
     }
 
     /// <summary>
+    /// The set of vertices implied by the current selection: directly-selected vertices, the endpoints of
+    /// selected linedefs, and the vertices of selected sectors' sidedefs. Used by transforms and dragging.
+    /// </summary>
+    public HashSet<Vertex> SelectedGeometryVertices()
+    {
+        var set = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
+        foreach (var v in Vertices) if (v.Selected) set.Add(v);
+        foreach (var l in Linedefs) if (l.Selected) { set.Add(l.Start); set.Add(l.End); }
+        foreach (var sd in Sidedefs)
+            if (sd.Line != null && sd.Sector is { Selected: true }) { set.Add(sd.Line.Start); set.Add(sd.Line.End); }
+        return set;
+    }
+
+    /// <summary>
     /// Splits a linedef at <paramref name="pos"/>: shortens it to start..newVertex and adds a second linedef
     /// newVertex..oldEnd that copies the original's flags/action/tags/args/sidedefs (same sectors/textures).
     /// Returns the inserted vertex. Call BuildIndexes() afterward. Front-side X offset is advanced by the first
