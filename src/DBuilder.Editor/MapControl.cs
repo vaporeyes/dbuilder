@@ -588,6 +588,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    // Selects the targeted element and opens its property dialog (reuses the 2D edit flow).
+    private void OpenTargetDialog3D()
+    {
+        if (_map == null || _target3D is not { } h) return;
+        _map.ClearAllSelected();
+        switch (h.Kind)
+        {
+            case VisualHitKind.Floor:
+            case VisualHitKind.Ceiling: if (h.Sector is { } s) s.Selected = true; break;
+            case VisualHitKind.Wall: if (h.Line is { } l) l.Selected = true; break;
+            case VisualHitKind.Thing: if (h.Thing is { } t) t.Selected = true; break;
+        }
+        EditRequested?.Invoke();
+    }
+
     // The picking box size for a thing, from the game config (falls back to a default).
     private (double radius, double height) ThingSize3D(Thing t)
     {
@@ -1182,6 +1197,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && !mod && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
+        if (_mode3D && e.Key == Key.Enter) { OpenTargetDialog3D(); e.Handled = true; return; }
         // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
         if (_mode3D && !mod && e.Key == Key.T && _target3D != null)
         {
