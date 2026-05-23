@@ -95,13 +95,25 @@ public sealed class ResourceManager : IDisposable
         return a.Seq[((a.Phase + step) % a.Seq.Count + a.Seq.Count) % a.Seq.Count];
     }
 
-    // Parses ANIMDEFS from all resources and builds the per-name frame sequences (ranges resolved against name lists).
+    // Builds the per-name frame sequences from (in increasing priority) the vanilla Doom defaults, the Boom
+    // ANIMATED lump, and the ZDoom ANIMDEFS lump. Ranges are resolved against the (sorted) name lists.
     private void EnsureAnimations()
     {
         if (animsBuilt) return;
         animsBuilt = true;
         var flatNames = GetFlatNames();
         var texNames = GetTextureNames();
+
+        // 1) Hardcoded vanilla animations (IWADs ship no animation lump).
+        foreach (var e in BoomAnimated.DoomDefaults)
+            AddRangeAnim(e.IsTexture, e.First, e.Last, e.Tics, flatNames, texNames);
+
+        // 2) Boom ANIMATED binary lumps (PWADs), oldest first.
+        foreach (var bytes in GetLumpBytesAll("ANIMATED"))
+            foreach (var e in BoomAnimated.Parse(bytes))
+                AddRangeAnim(e.IsTexture, e.First, e.Last, e.Tics, flatNames, texNames);
+
+        // 3) ZDoom ANIMDEFS (highest priority; also supports explicit frame blocks).
         foreach (var text in GetTextLumps("ANIMDEFS"))
         {
             foreach (var def in AnimdefsParser.Parse(text).Animations)
@@ -111,10 +123,31 @@ public sealed class ResourceManager : IDisposable
                 if (names.Count < 2) continue;
                 int tics = def.IsRange ? def.RangeTics : (def.Frames.Count > 0 ? def.Frames[0].Tics : 8);
                 if (tics <= 0) tics = 8;
-                var map = flat ? flatAnims : texAnims;
-                for (int k = 0; k < names.Count; k++) map[names[k]] = (names, tics, k);
+                Register(flat ? flatAnims : texAnims, names, tics);
             }
         }
+    }
+
+    private void AddRangeAnim(bool isTexture, string first, string last, int tics,
+        IReadOnlyList<string> flatNames, IReadOnlyList<string> texNames)
+    {
+        var names = ExpandAnim(new AnimationDef { Kind = isTexture ? AnimKind.Texture : AnimKind.Flat, FirstName = first, RangeLast = last },
+                               isTexture ? texNames : flatNames);
+        if (names.Count < 2) return;
+        Register(isTexture ? texAnims : flatAnims, names, tics <= 0 ? 8 : tics);
+    }
+
+    private static void Register(Dictionary<string, (List<string> Seq, int Tics, int Phase)> map, List<string> names, int tics)
+    {
+        for (int k = 0; k < names.Count; k++) map[names[k]] = (names, tics, k);
+    }
+
+    private List<byte[]> GetLumpBytesAll(string name)
+    {
+        var result = new List<byte[]>();
+        foreach (var r in readers)
+            if (r.GetLumpBytes(name) is { } b) result.Add(b);
+        return result;
     }
 
     // Resolves an animation's ordered frame names. A range slices the (sorted) name list from first..last inclusive.

@@ -17,6 +17,8 @@ internal interface IResourceReader : IDisposable
     ImageData? GetSprite(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
+    /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
+    byte[]? GetLumpBytes(string name);
     /// <summary>Names of the wall textures this resource provides (for the texture browser).</summary>
     IEnumerable<string> TextureNames();
     /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
@@ -78,6 +80,8 @@ internal sealed class WadResourceReader : IResourceReader
         return lump != null ? System.Text.Encoding.ASCII.GetString(lump.Stream.ReadAllBytes()) : null;
     }
 
+    public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
+
     public IEnumerable<string> TextureNames() => TexDefs().Keys;
 
     public IEnumerable<string> FlatNames()
@@ -136,6 +140,8 @@ internal abstract class FolderResourceReader : IResourceReader
         var b = Find(name, "", name.ToLowerInvariant());
         return b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
     }
+
+    public byte[]? GetLumpBytes(string name) => Find(name, "");
 
     public IEnumerable<string> TextureNames() => NamesInFolder("textures/");
     public IEnumerable<string> FlatNames() => NamesInFolder("flats/");
