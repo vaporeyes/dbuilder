@@ -1545,7 +1545,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.OemOpenBrackets: _gridSize = Math.Max(8, _gridSize / 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.OemCloseBrackets: _gridSize = Math.Min(1024, _gridSize * 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
-                case Key.Escape when _drawMode: CancelDraw(); e.Handled = true; return;
+                case Key.Escape when InDrawMode: ExitDrawModes(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
                 case Key.OemPlus or Key.Add: ZoomBy(0.8); e.Handled = true; return;     // zoom in
                 case Key.OemMinus or Key.Subtract: ZoomBy(1.25); e.Handled = true; return; // zoom out
@@ -1962,11 +1962,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         // Re-pressing the same draw key exits; switching kind restarts with the new kind.
         if (_drawMode && _drawLinesOnly == linesOnly) _drawMode = false;
-        else { _drawMode = true; _drawLinesOnly = linesOnly; }
+        else { _drawMode = true; _drawLinesOnly = linesOnly; _shapeKind = ShapeKind.None; } // draw and shape are exclusive
         _drawPoints.Clear();
         _drawClosed = false;
         _drawDirty = true;
         DrawModeChanged?.Invoke();
+        RequestNextFrameRendering();
+    }
+
+    /// <summary>True while any draw tool (polyline or shape) is active.</summary>
+    public bool InDrawMode => _drawMode || _shapeKind != ShapeKind.None;
+
+    /// <summary>Fully exits the polyline and shape draw tools and clears any in-progress preview.</summary>
+    public void ExitDrawModes()
+    {
+        bool was = InDrawMode;
+        _drawMode = false;
+        _shapeKind = ShapeKind.None;
+        _drawPoints.Clear();
+        _drawClosed = false;
+        _drawDirty = true;
+        _drawLineCount = 0; // drop the green preview immediately
+        if (was) DrawModeChanged?.Invoke();
         RequestNextFrameRendering();
     }
 

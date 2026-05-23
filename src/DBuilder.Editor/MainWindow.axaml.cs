@@ -398,6 +398,15 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
+        // Escape always exits a draw tool, even if focus left the map view (e.g. after using a menu).
+        if (e.Key == Avalonia.Input.Key.Escape && MapView.InDrawMode)
+        {
+            MapView.ExitDrawModes();
+            MapView.Focus();
+            SetStatus("Draw mode off.");
+            e.Handled = true;
+            return;
+        }
         base.OnKeyDown(e);
     }
 
