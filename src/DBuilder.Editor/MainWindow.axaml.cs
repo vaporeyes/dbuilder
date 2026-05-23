@@ -27,6 +27,11 @@ public partial class MainWindow : Window
     private MapFormat _mapFormat = MapFormat.Doom;
     private GameConfiguration? _config;
     private string _configName = "(none)";
+    private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
+
+    // Directory holding the bundled UDB game configurations (the default config lives here too).
+    private static readonly string ConfigDir =
+        "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations";
 
     public MainWindow() : this(null) { }
 
@@ -57,10 +62,31 @@ public partial class MainWindow : Window
         string? path = Environment.GetEnvironmentVariable("DBUILDER_GAMECONFIG");
         if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
         {
-            const string fallback = "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations/Doom_DoomDoom.cfg";
+            string fallback = System.IO.Path.Combine(ConfigDir, "Doom_DoomDoom.cfg");
             path = System.IO.File.Exists(fallback) ? fallback : null;
         }
-        if (path != null) LoadConfig(path);
+        if (path != null) LoadConfig(path, auto: true);
+    }
+
+    // Maps a detected game to its bundled config filename (null when no bundled match).
+    private static string? ConfigForGame(DetectedGame game) => game switch
+    {
+        DetectedGame.Doom => "Doom_DoomDoom.cfg",
+        DetectedGame.Doom2 => "Doom_Doom2Doom.cfg",
+        DetectedGame.Heretic => "Heretic_HereticDoom.cfg",
+        DetectedGame.Hexen => "Hexen_HexenHexen.cfg",
+        _ => null,
+    };
+
+    // When the active config is still the auto/default one, switch it to match the opened WAD's game.
+    private void AutoDetectConfig(WAD wad)
+    {
+        if (!_configIsAuto) return;
+        var file = ConfigForGame(GameDetect.FromWad(wad));
+        if (file == null) return;
+        string path = System.IO.Path.Combine(ConfigDir, file);
+        if (System.IO.File.Exists(path) && !string.Equals(_configName, System.IO.Path.GetFileNameWithoutExtension(file)))
+            LoadConfig(path, auto: true);
     }
 
     // Parses DECORATE + ZScript actors (and MAPINFO DoomEdNums) from the loaded resources and folds them into
@@ -99,12 +125,13 @@ public partial class MainWindow : Window
         if (count > 0) SetStatus($"Loaded {count} actor(s) from DECORATE/ZScript resources.");
     }
 
-    private void LoadConfig(string path)
+    private void LoadConfig(string path, bool auto = false)
     {
         try
         {
             _config = GameConfiguration.FromFile(path);
             _configName = System.IO.Path.GetFileNameWithoutExtension(path);
+            _configIsAuto = auto;
             MapView.GameConfig = _config; // enables thing sprites in the map view
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateInfo();
@@ -434,7 +461,11 @@ public partial class MainWindow : Window
         try
         {
             List<MapEntry> maps;
-            using (var wad = new WAD(path, openreadonly: true)) maps = WadMaps.Find(wad);
+            using (var wad = new WAD(path, openreadonly: true))
+            {
+                maps = WadMaps.Find(wad);
+                AutoDetectConfig(wad); // switch the auto/default config to match this WAD's game
+            }
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
 
             _wadPath = path;
