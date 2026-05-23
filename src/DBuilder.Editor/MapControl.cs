@@ -87,8 +87,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private string _target3DDesc = "";
     private string? _texClipboard3D; // texture name copied off a surface for painting onto others
     private bool _look3D;            // left-drag mouse-look active in 3D
+    private bool _lookMoved;         // whether the left-drag actually moved (vs a click to select)
     private VisualHit? _drag3DTarget; // surface/thing captured for a right-drag height change
     private double _drag3DAccum;       // accumulated sub-unit drag movement
+    private readonly System.Collections.Generic.List<VisualHit> _sel3D = new(); // multi-surface selection
     private GlVertexBuffer? _pick3DVb;
     private GlVertexBuffer? _things3DVb; // reused per-frame for camera-facing thing billboards
     /// <summary>Raised when the 3D crosshair target changes (for the status bar).</summary>
@@ -122,7 +124,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; RequestNextFrameRendering(); }
+        set { _map = value; _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -429,39 +431,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (desc != _target3DDesc) { _target3DDesc = desc; Target3DChanged?.Invoke(desc); }
     }
 
-    // Outlines the targeted surface: a wall as its quad, a floor/ceiling as the sector's edge loop at that height.
+    // Outlines selected surfaces (cyan) and the current crosshair target (yellow).
     private void DrawTargetHighlight3D()
     {
-        if (_target3D == null || _device == null || _pick3DVb == null || _map == null) return;
-        const int c = unchecked((int)0xffffee00);
+        if (_device == null || _pick3DVb == null || _map == null) return;
         var verts = new System.Collections.Generic.List<FlatVertex>();
-        FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = c };
-        void Edge(Vec2D a, Vec2D b, double za, double zb) { verts.Add(V(a.x, a.y, za)); verts.Add(V(b.x, b.y, zb)); }
-
-        if (_target3D.Kind == VisualHitKind.Wall && _target3D.Line is { } l)
-        {
-            var a = l.Start.Position; var b = l.End.Position;
-            double bot = _target3D.Bottom, top = _target3D.Top;
-            Edge(a, b, bot, bot); Edge(b, b, bot, top); Edge(b, a, top, top); Edge(a, a, top, bot);
-        }
-        else if (_target3D.Kind == VisualHitKind.Thing && _target3D.Thing is { } t)
-        {
-            double r = ThingSize3D(t).radius;
-            double zb = _target3D.Bottom, zt = _target3D.Top;
-            var p = t.Position;
-            var c00 = new Vec2D(p.x - r, p.y - r); var c10 = new Vec2D(p.x + r, p.y - r);
-            var c11 = new Vec2D(p.x + r, p.y + r); var c01 = new Vec2D(p.x - r, p.y + r);
-            // bottom rectangle, top rectangle, and the four verticals
-            Edge(c00, c10, zb, zb); Edge(c10, c11, zb, zb); Edge(c11, c01, zb, zb); Edge(c01, c00, zb, zb);
-            Edge(c00, c10, zt, zt); Edge(c10, c11, zt, zt); Edge(c11, c01, zt, zt); Edge(c01, c00, zt, zt);
-            Edge(c00, c00, zb, zt); Edge(c10, c10, zb, zt); Edge(c11, c11, zb, zt); Edge(c01, c01, zb, zt);
-        }
-        else if (_target3D.Sector is { } s)
-        {
-            double z = _target3D.Bottom;
-            foreach (var sd in s.Sidedefs)
-                if (sd.Line is { } line) Edge(line.Start.Position, line.End.Position, z, z);
-        }
+        foreach (var h in _sel3D) AppendHitOutline(verts, h, unchecked((int)0xff00ccff)); // cyan = selected
+        if (_target3D is { } target) AppendHitOutline(verts, target, unchecked((int)0xffffee00)); // yellow = target
         if (verts.Count == 0) return;
 
         _device.SetUniform("useTexture", 0f);
@@ -469,6 +445,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetBufferData(_pick3DVb, verts.ToArray());
         _device.SetVertexBuffer(_pick3DVb);
         _device.Draw(DBPrimitiveType.LineList, 0, verts.Count / 2);
+    }
+
+    // Appends a hit's outline edges (wall quad / thing box / sector edge loop) to the line list in the given color.
+    private void AppendHitOutline(System.Collections.Generic.List<FlatVertex> verts, VisualHit hit, int color)
+    {
+        FlatVertex V(double x, double y, double z) => new FlatVertex { x = (float)x, y = (float)y, z = (float)z, w = 1, c = color };
+        void Edge(Vec2D a, Vec2D b, double za, double zb) { verts.Add(V(a.x, a.y, za)); verts.Add(V(b.x, b.y, zb)); }
+
+        if (hit.Kind == VisualHitKind.Wall && hit.Line is { } l)
+        {
+            var a = l.Start.Position; var b = l.End.Position;
+            double bot = hit.Bottom, top = hit.Top;
+            Edge(a, b, bot, bot); Edge(b, b, bot, top); Edge(b, a, top, top); Edge(a, a, top, bot);
+        }
+        else if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } t)
+        {
+            double r = ThingSize3D(t).radius;
+            double zb = hit.Bottom, zt = hit.Top;
+            var p = t.Position;
+            var c00 = new Vec2D(p.x - r, p.y - r); var c10 = new Vec2D(p.x + r, p.y - r);
+            var c11 = new Vec2D(p.x + r, p.y + r); var c01 = new Vec2D(p.x - r, p.y + r);
+            Edge(c00, c10, zb, zb); Edge(c10, c11, zb, zb); Edge(c11, c01, zb, zb); Edge(c01, c00, zb, zb);
+            Edge(c00, c10, zt, zt); Edge(c10, c11, zt, zt); Edge(c11, c01, zt, zt); Edge(c01, c00, zt, zt);
+            Edge(c00, c00, zb, zt); Edge(c10, c10, zb, zt); Edge(c11, c11, zb, zt); Edge(c01, c01, zb, zt);
+        }
+        else if (hit.Sector is { } s)
+        {
+            double z = hit.Bottom;
+            foreach (var sd in s.Sidedefs)
+                if (sd.Line is { } line) Edge(line.Start.Position, line.End.Position, z, z);
+        }
     }
 
     // The texture name on the targeted surface (sector flat or the hit wall part), or null.
@@ -511,11 +518,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void ApplyTextureToTarget(string tex)
     {
-        if (_map == null || _target3D is not { } h) return;
+        if (_map == null) return;
+        var targets = EditTargets3D();
+        if (targets.Count == 0) return;
         EditBegun?.Invoke("Apply texture");
+        foreach (var h in targets) ApplyTextureToHit(h, tex);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"applied texture {tex} to {targets.Count} surface(s)");
+    }
+
+    private static void ApplyTextureToHit(VisualHit h, string tex)
+    {
         if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) fs.FloorTexture = tex;
         else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) cs.CeilTexture = tex;
-        else
+        else if (h.Kind == VisualHitKind.Wall)
         {
             var sd = h.Front ? h.Line?.Front : h.Line?.Back;
             if (sd == null) return;
@@ -526,11 +545,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 default: sd.MidTexture = tex; break;
             }
         }
-        _geo3DDirty = true;
-        MarkGeometryDirty();
-        Changed?.Invoke();
-        RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"applied texture {tex}");
     }
 
     // The sidedef on the camera-facing side of the targeted wall, or null.
@@ -605,17 +619,57 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {(vertical ? "vertically" : "horizontally")}");
     }
 
-    // Adjusts the targeted sector's brightness ([ darker / ] brighter), undoable.
+    // Adjusts the selected (or targeted) sectors' brightness ([ darker / ] brighter), undoable.
     private void AdjustTargetBrightness3D(int delta)
     {
-        if (_map == null || _target3D?.Sector is not { } s) return;
-        EditBegun?.Invoke("Change brightness");
-        s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
+        if (_map == null) return;
+        var done = new System.Collections.Generic.HashSet<Sector>();
+        foreach (var h in EditTargets3D())
+        {
+            if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
+            if (done.Count == 1) EditBegun?.Invoke("Change brightness");
+            s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
+        }
+        if (done.Count == 0) return;
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
     }
+
+    // Whether two hits refer to the same editable surface (ignoring distance/point).
+    private static bool SameSurface3D(VisualHit a, VisualHit b)
+    {
+        if (a.Kind != b.Kind) return false;
+        return a.Kind switch
+        {
+            VisualHitKind.Thing => ReferenceEquals(a.Thing, b.Thing),
+            VisualHitKind.Wall => ReferenceEquals(a.Line, b.Line) && a.Front == b.Front && a.Part == b.Part,
+            _ => ReferenceEquals(a.Sector, b.Sector), // floor/ceiling
+        };
+    }
+
+    // Toggles the current crosshair target in/out of the multi-surface selection (left-click in 3D).
+    private void ToggleSelection3D()
+    {
+        if (_target3D is not { } h) return;
+        int idx = _sel3D.FindIndex(s => SameSurface3D(s, h));
+        if (idx >= 0) _sel3D.RemoveAt(idx); else _sel3D.Add(h);
+        Target3DChanged?.Invoke($"{_sel3D.Count} surface(s) selected");
+        RequestNextFrameRendering();
+    }
+
+    private void ClearSelection3D()
+    {
+        if (_sel3D.Count == 0) return;
+        _sel3D.Clear();
+        Target3DChanged?.Invoke("selection cleared");
+        RequestNextFrameRendering();
+    }
+
+    // The surfaces a discrete edit affects: the selection if any, otherwise just the crosshair target.
+    private System.Collections.Generic.List<VisualHit> EditTargets3D()
+        => _sel3D.Count > 0 ? _sel3D : (_target3D != null ? new() { _target3D } : new());
 
     // Selects the targeted element and opens its property dialog (reuses the 2D edit flow).
     private void OpenTargetDialog3D()
@@ -639,12 +693,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return (info?.Width > 0 ? info.Width : 16, info?.Height > 0 ? info.Height : 16);
     }
 
-    // Wheel on a target: raises/lowers a floor/ceiling, or a thing's Z offset, by the given step (undoable).
+    // Wheel: raises/lowers the selected (or targeted) floors/ceilings/things by the given step (undoable).
     private void AdjustTarget3D(int step)
     {
-        if (_map == null || _target3D is not { } h || HeightEditLabel(h) is not { } label) return;
-        EditBegun?.Invoke(label);
-        ApplyHeightDelta(h, step);
+        if (_map == null) return;
+        bool any = false;
+        foreach (var h in EditTargets3D())
+        {
+            if (HeightEditLabel(h) == null) continue;
+            if (!any) { EditBegun?.Invoke("Change height"); any = true; }
+            ApplyHeightDelta(h, step);
+        }
+        if (!any) return;
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -669,35 +729,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
-    // Routes a right-drag: a thing moves on the horizontal plane; a surface changes height.
+    // The surfaces a right-drag affects: the selection if any, otherwise the captured target.
+    private System.Collections.Generic.List<VisualHit> DragTargets3D()
+        => _sel3D.Count > 0 ? _sel3D : (_drag3DTarget != null ? new() { _drag3DTarget } : new());
+
+    // Routes a right-drag by the captured target's kind: a thing moves on the plane; a surface changes height.
     private void Drag3D(double dx, double dy)
     {
-        if (_map == null || _drag3DTarget is not { } h) return;
-        if (h.Kind == VisualHitKind.Thing && h.Thing is { } t)
+        if (_map == null || _drag3DTarget is not { } cap) return;
+        var targets = DragTargets3D();
+
+        if (cap.Kind == VisualHitKind.Thing)
         {
             // Move in the camera's horizontal basis; scale by hit distance so it feels consistent at any range.
-            double scale = Math.Max(0.05, h.Distance * 0.0015);
+            double scale = Math.Max(0.05, cap.Distance * 0.0015);
             var right = new Vec2D(Math.Sin(_yaw), -Math.Cos(_yaw));
             var fwd = new Vec2D(Math.Cos(_yaw), Math.Sin(_yaw));
-            t.Position += right * (dx * scale) + fwd * (-dy * scale); // up = forward
-            _geo3DDirty = true;
-            MarkGeometryDirty();
-            Changed?.Invoke();
-            RequestNextFrameRendering();
-            return;
+            var delta = right * (dx * scale) + fwd * (-dy * scale); // up = forward
+            foreach (var h in targets) if (h.Thing is { } t) t.Position += delta;
         }
-        DragTargetHeight3D(dy);
-    }
-
-    // Smoothly drags the captured surface's height during a right-drag (accumulates sub-unit movement).
-    private void DragTargetHeight3D(double pixelsDown)
-    {
-        if (_drag3DTarget is not { } h) return;
-        _drag3DAccum += -pixelsDown * 0.5; // dragging up raises; ~0.5 map units per pixel
-        int delta = (int)_drag3DAccum;
-        if (delta == 0) return;
-        _drag3DAccum -= delta;
-        ApplyHeightDelta(h, delta);
+        else
+        {
+            _drag3DAccum += -dy * 0.5; // dragging up raises; ~0.5 map units per pixel
+            int d = (int)_drag3DAccum;
+            if (d == 0) return;
+            _drag3DAccum -= d;
+            foreach (var h in targets) if (h.Kind != VisualHitKind.Thing && HeightEditLabel(h) != null) ApplyHeightDelta(h, d);
+        }
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -1287,6 +1345,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (!_cam3DInit) { Reset3DCamera(); _cam3DInit = true; }
                 _lastTime = _clock.Elapsed.TotalSeconds;
             }
+            else _sel3D.Clear(); // drop the 3D selection when returning to 2D
             e.Handled = true;
             RequestNextFrameRendering();
             return;
@@ -1301,6 +1360,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.Enter) { OpenTargetDialog3D(); e.Handled = true; return; }
+        if (_mode3D && e.Key == Key.Escape) { ClearSelection3D(); e.Handled = true; return; }
         if (_mode3D && !mod && e.Key == Key.O) { ResetTargetOffsets3D(); e.Handled = true; return; }
         if (_mode3D && (e.Key == Key.Delete || e.Key == Key.Back)) { DeleteTargetThing3D(); e.Handled = true; return; }
         // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
@@ -1410,8 +1470,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var pt = e.GetCurrentPoint(this);
         if (_mode3D)
         {
-            // Left-drag is mouse-look; right-drag changes the targeted surface/thing height.
-            if (pt.Properties.IsLeftButtonPressed) { _look3D = true; _lastPointer = pt.Position; }
+            // Left-drag is mouse-look (a left click without dragging toggles selection); right-drag edits height.
+            if (pt.Properties.IsLeftButtonPressed) { _look3D = true; _lookMoved = false; _lastPointer = pt.Position; }
             else if (pt.Properties.IsRightButtonPressed && _target3D is { } h && HeightEditLabel(h) != null)
             {
                 _drag3DTarget = h; _drag3DAccum = 0; _lastPointer = pt.Position;
@@ -1466,7 +1526,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (_mode3D) { _look3D = false; _drag3DTarget = null; return; }
+        if (_mode3D)
+        {
+            if (e.InitialPressMouseButton == MouseButton.Left && _look3D && !_lookMoved) ToggleSelection3D();
+            _look3D = false; _drag3DTarget = null;
+            return;
+        }
         var pos = e.GetCurrentPoint(this).Position;
 
         // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
@@ -1859,6 +1924,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             if (_look3D)
             {
+                if (Math.Abs(pos.X - _lastPointer.X) + Math.Abs(pos.Y - _lastPointer.Y) > 2) _lookMoved = true;
                 const double sens = 0.005;
                 _yaw -= (pos.X - _lastPointer.X) * sens;
                 _pitch = Math.Clamp(_pitch - (pos.Y - _lastPointer.Y) * sens, -1.5, 1.5);
