@@ -517,6 +517,8 @@ public partial class MainWindow : Window
     private void OnAbout(object? sender, RoutedEventArgs e)
         => SetStatus("DBuilder - a cross-platform Doom map editor (Avalonia + Silk.NET).");
 
+    private void OnShortcuts(object? sender, RoutedEventArgs e) => new ShortcutsWindow().Show(this);
+
     // ---- Map loading ----
 
     private ResourceManager? _resources;
@@ -700,7 +702,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             ShowText($"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Click select; left-drag box-selects (or moves a grabbed vertex/thing); right-drag pans; wheel or -/= zoom; R fit; double-click edit; right-click splits; S/T toggle fills/things; Y sprites/arrows; D draw sector (Shift+D lines); I insert vertex/thing; M make sector at cursor; F flip linedef (Shift+F sidedefs); A align textures X (Shift+A Y); Ctrl/Cmd+C/V copy/paste; G snap, [ ] grid size; Delete removes (undoable).   Tab = 3D (WASD move, arrows or drag to look, QE up/down, G walk; wheel raises/lowers floor/ceiling/thing-Z (Shift=1); right-drag moves a thing or drags a surface height; [ ] brightness; C/V copy/apply texture; T browse textures; A/Shift+A align; Shift+arrows nudge offset; O reset offsets; click selects surfaces (Esc clears) for batch edits; Enter edit properties; Delete removes a targeted thing).");
+                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Tab toggles 3D.   See Help > Shortcuts for all controls.");
             return;
         }
 
@@ -835,8 +837,10 @@ public partial class MainWindow : Window
             var s = _map.GetSelectedSectors()[0];
             PreviewPanel.Children.Add(Group("Sector", new[]
             {
-                Slot("Floor", s.FloorTexture, _resources.GetFlat(s.FloorTexture)),
-                Slot("Ceiling", s.CeilTexture, _resources.GetFlat(s.CeilTexture)),
+                Slot("Floor", s.FloorTexture, _resources.GetFlat(s.FloorTexture),
+                    () => _ = ChangeFlat(s, ceiling: false)),
+                Slot("Ceiling", s.CeilTexture, _resources.GetFlat(s.CeilTexture),
+                    () => _ = ChangeFlat(s, ceiling: true)),
             }));
         }
         else if (st == 1 && sl == 0 && ss == 0 && sv == 0)
@@ -845,17 +849,67 @@ public partial class MainWindow : Window
             string sprite = _config?.GetThing(t.Type)?.Sprite ?? "";
             PreviewPanel.Children.Add(Group("Thing", new[]
             {
-                Slot(sprite.Length > 0 ? sprite : $"type {t.Type}", sprite, _resources.GetSprite(sprite)),
+                Slot(sprite.Length > 0 ? sprite : $"type {t.Type}", sprite, _resources.GetSprite(sprite),
+                    () => _ = ChangeThingType(t)),
             }));
         }
     }
 
     private Control SidePreviews(string header, Sidedef sd) => Group($"{header} Sidedef", new[]
     {
-        Slot("Upper", sd.HighTexture, _resources!.GetWallTexture(sd.HighTexture)),
-        Slot("Middle", sd.MidTexture, _resources!.GetWallTexture(sd.MidTexture)),
-        Slot("Lower", sd.LowTexture, _resources!.GetWallTexture(sd.LowTexture)),
+        Slot("Upper", sd.HighTexture, _resources!.GetWallTexture(sd.HighTexture),
+            () => _ = ChangeTexture("Browse Textures", n => sd.HighTexture = n)),
+        Slot("Middle", sd.MidTexture, _resources!.GetWallTexture(sd.MidTexture),
+            () => _ = ChangeTexture("Browse Textures", n => sd.MidTexture = n)),
+        Slot("Lower", sd.LowTexture, _resources!.GetWallTexture(sd.LowTexture),
+            () => _ = ChangeTexture("Browse Textures", n => sd.LowTexture = n)),
     });
+
+    // Opens the wall-texture browser and applies the pick to a sidedef slot (undoable), then refreshes previews.
+    private async Task ChangeTexture(string title, Action<string> apply)
+    {
+        if (_resources is null || _undo is null) return;
+        var dlg = new TextureBrowserDialog(_resources, flats: false) { Title = title };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
+        {
+            _undo.CreateUndo("Change texture");
+            apply(name);
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            MapView.Focus();
+        }
+    }
+
+    // Opens the flat browser and applies the pick to a sector's floor or ceiling (undoable).
+    private async Task ChangeFlat(Sector s, bool ceiling)
+    {
+        if (_resources is null || _undo is null) return;
+        var dlg = new TextureBrowserDialog(_resources, flats: true) { Title = ceiling ? "Browse Ceiling Flat" : "Browse Floor Flat" };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
+        {
+            _undo.CreateUndo("Change flat");
+            if (ceiling) s.CeilTexture = name; else s.FloorTexture = name;
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            MapView.Focus();
+        }
+    }
+
+    // Opens the categorized thing browser and changes the selected thing's type (undoable).
+    private async Task ChangeThingType(Thing t)
+    {
+        if (_config is null || _undo is null) return;
+        var dlg = new BrowserDialog("Browse Things", CatalogBrowse.Things(_config), t.Type);
+        if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
+        {
+            _undo.CreateUndo("Change thing type");
+            t.Type = n;
+            MapView.InsertThingType = n;
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            MapView.Focus();
+        }
+    }
 
     // A labeled group of preview slots.
     private static Control Group(string header, IEnumerable<Control> slots)
@@ -869,7 +923,8 @@ public partial class MainWindow : Window
     }
 
     // A single 64x64 thumbnail with its texture name underneath ("-" / missing shows an empty box).
-    private static Control Slot(string label, string texName, ImageData? img)
+    // When onClick is given the thumbnail is clickable (hand cursor) to browse/change the texture.
+    private static Control Slot(string label, string texName, ImageData? img, Action? onClick = null)
     {
         var image = new Image { Width = 64, Height = 64, Stretch = Stretch.Uniform };
         RenderOptions.SetBitmapInterpolationMode(image, BitmapInterpolationMode.None); // crisp pixel art
@@ -881,6 +936,12 @@ public partial class MainWindow : Window
             BorderBrush = new SolidColorBrush(Color.FromRgb(0x33, 0x3a, 0x44)), BorderThickness = new Thickness(1),
             Child = image,
         };
+        if (onClick != null)
+        {
+            box.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand);
+            ToolTip.SetTip(box, "Click to change");
+            box.PointerPressed += (_, _) => onClick();
+        }
         var stack = new StackPanel { Orientation = Orientation.Vertical, Spacing = 1 };
         stack.Children.Add(box);
         stack.Children.Add(new TextBlock
