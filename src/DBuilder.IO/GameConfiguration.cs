@@ -95,14 +95,30 @@ public sealed class GameConfiguration
     /// Merges DECORATE actor definitions into the thing catalog. Actors with an editor number override or add
     /// to existing entries (so mod things get titles/sprites/categories). Actors without a number are skipped.
     /// </summary>
-    public void MergeActors(IEnumerable<ActorInfo> actors)
+    public void MergeActors(IEnumerable<ActorInfo> actors) => MergeActors(actors, null);
+
+    /// <summary>
+    /// Merges actors, assigning an editor number from <paramref name="doomEdNums"/> (MAPINFO num -&gt; class) when
+    /// the actor itself has none (the ZScript case, where the class header carries no DoomEdNum).
+    /// </summary>
+    public void MergeActors(IEnumerable<ActorInfo> actors, IReadOnlyDictionary<int, string>? doomEdNums)
     {
+        // Invert num->class to class->num so each actor can look up its own number.
+        Dictionary<string, int>? classToNum = null;
+        if (doomEdNums != null)
+        {
+            classToNum = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (num, cls) in doomEdNums) classToNum[cls] = num;
+        }
+
         foreach (var a in actors)
         {
-            if (a.DoomEdNum < 0) continue;
-            things[a.DoomEdNum] = new ThingTypeInfo
+            int num = a.DoomEdNum;
+            if (num < 0 && classToNum != null && classToNum.TryGetValue(a.ClassName, out int mapped)) num = mapped;
+            if (num < 0) continue;
+            things[num] = new ThingTypeInfo
             {
-                Index = a.DoomEdNum,
+                Index = num,
                 ClassName = a.ClassName,
                 Title = a.Title,
                 Category = a.Category ?? "Decorate",

@@ -45,16 +45,21 @@ public static class DecorateParser
     { "goto", "loop", "stop", "wait", "fail", "hold" };
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
-    public static List<ActorInfo> Parse(string text)
+    public static List<ActorInfo> Parse(string text) => ParseActors(text, "actor", headerNum: true);
+
+    /// <summary>
+    /// Shared engine for DECORATE ("actor", editor number in the header) and ZScript ("class", no header number).
+    /// </summary>
+    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum)
     {
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         int i = 0;
         while (i < toks.Count)
         {
-            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("actor", StringComparison.OrdinalIgnoreCase))
+            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
-                var a = ParseActor(toks, ref i);
+                var a = ParseActor(toks, ref i, headerNum);
                 if (a != null) actors.Add(a);
             }
             else i++;
@@ -63,14 +68,14 @@ public static class DecorateParser
         return actors;
     }
 
-    private static ActorInfo? ParseActor(List<Tok> t, ref int i)
+    private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum)
     {
-        i++; // 'actor'
+        i++; // keyword
         if (i >= t.Count || t[i].Kind != Kind.Word) return null;
         var actor = new ActorInfo { ClassName = t[i++].Text };
 
-        // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' or EOL-of-header.
-        while (i < t.Count && !(t[i].Kind == Kind.Sym && t[i].Text == "{"))
+        // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' (body) or ';' (forward declaration).
+        while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
         {
             var tk = t[i];
             if (tk.Kind == Kind.Sym && tk.Text == ":")
@@ -83,14 +88,14 @@ public static class DecorateParser
                 i++;
                 if (i < t.Count && t[i].Kind == Kind.Word) actor.Replaces = t[i++].Text;
             }
-            else if (tk.Kind == Kind.Word && int.TryParse(tk.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n))
+            else if (headerNum && tk.Kind == Kind.Word && int.TryParse(tk.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n))
             {
                 actor.DoomEdNum = n; i++;
             }
-            else i++; // 'native', stray tokens
+            else i++; // 'native'/'abstract'/version "x"/stray tokens
         }
 
-        if (i >= t.Count || t[i].Text != "{") return actor; // no body
+        if (i >= t.Count || t[i].Text != "{") return actor; // no body (e.g. forward declaration)
         i++; // '{'
         ParseBody(actor, t, ref i);
         return actor;
@@ -121,9 +126,10 @@ public static class DecorateParser
             if (tk.Kind != Kind.Word) continue;
 
             string lw = tk.Text.ToLowerInvariant();
+            // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && lw == "states") { pendingStates = true; }
-            else if (depth == 1 && lw == "radius" && PeekInt(t, ref i, out int r)) actor.Radius = r;
-            else if (depth == 1 && lw == "height" && PeekInt(t, ref i, out int h)) actor.Height = h;
+            else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) actor.Radius = r;
+            else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) actor.Height = h;
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
         }

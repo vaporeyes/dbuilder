@@ -35,6 +35,10 @@ public sealed class MapInfo
     private readonly List<MapInfoEntry> maps = new();
     public IReadOnlyList<MapInfoEntry> Maps => maps;
 
+    private readonly Dictionary<int, string> doomEdNums = new();
+    /// <summary>Editor number -> actor class name, from the MAPINFO DoomEdNums block (ZScript thing placement).</summary>
+    public IReadOnlyDictionary<int, string> DoomEdNums => doomEdNums;
+
     /// <summary>Finds a map entry by lump name (case-insensitive), or null.</summary>
     public MapInfoEntry? GetMap(string lump)
     {
@@ -54,6 +58,12 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("map", StringComparison.OrdinalIgnoreCase))
             {
                 mi.maps.Add(ParseMap(toks, ref i));
+                continue;
+            }
+            if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                ParseDoomEdNums(toks, ref i, mi.doomEdNums);
                 continue;
             }
             // Any other directive's brace block (gameinfo, cluster, ...) is skipped wholesale; non-map
@@ -166,6 +176,24 @@ public sealed class MapInfo
             if (toks[i].Text == "{") depth++;
             else if (toks[i].Text == "}") { depth--; if (depth == 0) { i++; return; } }
         }
+    }
+
+    // Parses a "DoomEdNums { <num> = <ClassName> [, args...] ... }" block into the editor-number map.
+    private static void ParseDoomEdNums(List<Tok> toks, ref int i, Dictionary<int, string> map)
+    {
+        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
+        i++; // {
+        while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
+        {
+            if (!toks[i].IsString && int.TryParse(toks[i].Text, out int num)
+                && i + 2 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "=")
+            {
+                map[num] = toks[i + 2].Text; // ClassName (extra args after a comma are ignored)
+                i += 3;
+            }
+            else i++;
+        }
+        if (i < toks.Count) i++; // }
     }
 
     // ---- tokenizer ----

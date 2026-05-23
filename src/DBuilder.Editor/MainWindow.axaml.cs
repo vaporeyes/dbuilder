@@ -55,23 +55,40 @@ public partial class MainWindow : Window
         if (path != null) LoadConfig(path);
     }
 
-    // Parses any DECORATE lumps in the loaded resources and folds the actors into the game config so mod
-    // thing types get titles/sprites/categories in the editor.
-    private void MergeDecorateFromResources()
+    // Parses DECORATE + ZScript actors (and MAPINFO DoomEdNums) from the loaded resources and folds them into
+    // the game config so mod thing types get titles/sprites/categories in the editor.
+    private void MergeActorsFromResources()
     {
         if (_resources is null) return;
-        var lumps = _resources.GetTextLumps("DECORATE");
-        if (lumps.Count == 0) return;
+        var decorate = _resources.GetTextLumps("DECORATE");
+        var zscript = _resources.GetTextLumps("ZSCRIPT");
+        if (decorate.Count == 0 && zscript.Count == 0) return;
+
         _config ??= GameConfiguration.FromText("");
+
+        // Collect editor numbers from every MAPINFO/ZMAPINFO DoomEdNums block (ZScript needs these).
+        var doomEdNums = new Dictionary<int, string>();
+        foreach (var text in _resources.GetTextLumps("MAPINFO"))
+            foreach (var (n, c) in MapInfo.Parse(text).DoomEdNums) doomEdNums[n] = c;
+        foreach (var text in _resources.GetTextLumps("ZMAPINFO"))
+            foreach (var (n, c) in MapInfo.Parse(text).DoomEdNums) doomEdNums[n] = c;
+
         int count = 0;
-        foreach (var text in lumps)
+        foreach (var text in decorate)
         {
             var actors = DecorateParser.Parse(text);
-            _config.MergeActors(actors);
+            _config.MergeActors(actors, doomEdNums);
             foreach (var a in actors) if (a.DoomEdNum >= 0) count++;
         }
+        foreach (var text in zscript)
+        {
+            var actors = ZScriptParser.Parse(text);
+            _config.MergeActors(actors, doomEdNums);
+            foreach (var a in actors) if (doomEdNums.ContainsValue(a.ClassName)) count++;
+        }
+
         MapView.GameConfig = _config; // refresh thing labels/sprites
-        if (count > 0) SetStatus($"Loaded {count} DECORATE actor(s) from resources.");
+        if (count > 0) SetStatus($"Loaded {count} actor(s) from DECORATE/ZScript resources.");
     }
 
     private void LoadConfig(string path)
@@ -148,7 +165,7 @@ public partial class MainWindow : Window
         {
             _resources.AddBaseResource(path);
             MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
-            MergeDecorateFromResources();
+            MergeActorsFromResources();
             SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
@@ -389,7 +406,7 @@ public partial class MainWindow : Window
             _resources = new ResourceManager();
             _resources.AddResource(path);
             MapView.MapResources = _resources;
-            MergeDecorateFromResources();
+            MergeActorsFromResources();
 
             LoadMapEntry(maps[0]);
             if (maps.Count > 1)

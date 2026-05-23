@@ -194,29 +194,62 @@ public sealed class ResourceManager : IDisposable
     /// <summary>Resolves a wall texture to RGBA, or null. Cached by name.</summary>
     public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTexture(n, p));
 
-    /// <summary>Resolves a sprite/patch to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetSprite(string name) => Resolve(name, spriteCache, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
+    /// <summary>Resolves a sprite/patch to RGBA, or null. Tries rotation variants so e.g. TROOA0 finds TROOA1. Cached by name.</summary>
+    public ImageData? GetSprite(string name)
+    {
+        if (string.IsNullOrEmpty(name) || name == "-") return null;
+        if (spriteCache.TryGetValue(name, out var cached)) return cached;
+
+        ImageData? result = ResolveCore(name, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
+        if (result == null)
+            foreach (var variant in RotationVariants(name))
+            {
+                result = ResolveCore(variant, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
+                if (result != null) break;
+            }
+
+        spriteCache[name] = result;
+        return result;
+    }
+
+    // Sprite lumps are SPRITE + frame + rotation. A name asked with rotation 0 may exist only as rotation 1
+    // (or vice versa), and a 5-char name (no rotation) needs a digit appended.
+    private static IEnumerable<string> RotationVariants(string name)
+    {
+        if (name.Length == 5) { yield return name + "0"; yield return name + "1"; yield break; }
+        if (name.Length >= 6 && char.IsDigit(name[^1]))
+        {
+            string baseName = name.Substring(0, name.Length - 1);
+            char last = name[^1];
+            if (last != '1') yield return baseName + "1";
+            if (last != '0') yield return baseName + "0";
+        }
+    }
 
     private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
         Func<IResourceReader, string, DoomPalette?, ImageData?> lookup)
     {
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (cache.TryGetValue(name, out var cached)) return cached;
-
-        EnsureDefs();
-        // A TEXTURES definition takes priority over single-image / TEXTUREx lookups.
-        ImageData? result = defs.TryGetValue(name, out var def) ? ComposeTextures(def) : null;
-
-        if (result == null)
-        {
-            var pal = Palette;
-            // Newest resource wins; PK3/PNG entries resolve even when no palette is present.
-            for (int i = readers.Count - 1; i >= 0 && result == null; i--)
-                result = lookup(readers[i], name, pal);
-        }
-
+        var result = ResolveCore(name, defs, lookup);
         cache[name] = result;
         return result;
+    }
+
+    // Resolves a name without caching: a TEXTURES definition first, then newest-resource single-image lookup.
+    private ImageData? ResolveCore(string name, Dictionary<string, TexturesDef> defs,
+        Func<IResourceReader, string, DoomPalette?, ImageData?> lookup)
+    {
+        EnsureDefs();
+        if (defs.TryGetValue(name, out var def)) return ComposeTextures(def);
+
+        var pal = Palette;
+        for (int i = readers.Count - 1; i >= 0; i--)
+        {
+            var img = lookup(readers[i], name, pal);
+            if (img != null) return img;
+        }
+        return null;
     }
 
     public void Dispose()
