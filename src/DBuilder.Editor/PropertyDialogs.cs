@@ -206,6 +206,21 @@ public abstract class PropertyDialog : Window
         return editors;
     }
 
+    // Adds a labeled multi-line text area (e.g. for custom UDMF fields), inserted before the buttons row.
+    protected TextBox AddTextArea(string label, string value)
+    {
+        var panel = new StackPanel { Spacing = 2 };
+        panel.Children.Add(new TextBlock { Text = label, Margin = new Avalonia.Thickness(0, 4, 0, 0) });
+        var box = new TextBox
+        {
+            Text = value, AcceptsReturn = true, MinHeight = 64, MaxHeight = 140,
+            TextWrapping = TextWrapping.NoWrap, FontFamily = new FontFamily("monospace"),
+        };
+        panel.Children.Add(box);
+        _rows.Children.Insert(_rows.Children.Count - 1, panel);
+        return box;
+    }
+
     // Adds a single labeled checkbox (inserted before the buttons row).
     protected CheckBox AddCheckBox(string label, bool initial)
     {
@@ -230,10 +245,12 @@ public sealed class ThingEditDialog : PropertyDialog
     private readonly TextBox _x, _y, _angle, _height, _tag, _action;
     private readonly FlagChecks? _flagChecks;
     private readonly ArgEditors? _args;
+    private readonly TextBox _custom;
 
     public int ResultType, ResultAngle, ResultTag, ResultAction, ResultFlags;
     public double ResultX, ResultY, ResultHeight;
     public int[] ResultArgs;
+    public Dictionary<string, object> ResultFields = new();
 
     public ThingEditDialog(Thing t, GameConfiguration? config) : base("Edit Thing")
     {
@@ -254,6 +271,7 @@ public sealed class ThingEditDialog : PropertyDialog
         _args = AddArgEditors(config, config?.GetThing(t.Type)?.Args ?? Array.Empty<ArgInfo>(), t.Args);
         _flagChecks = (config != null && config.ThingFlags.Count > 0) ? AddFlagChecks("Flags", config.ThingFlags, t.Flags) : null;
         ResultFlags = t.Flags; // preserved when no flag config
+        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(t.Fields));
     }
 
     protected override void OnConfirm()
@@ -267,6 +285,7 @@ public sealed class ThingEditDialog : PropertyDialog
         ResultX = double.TryParse(_x.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) ? x : 0;
         ResultY = double.TryParse(_y.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var y) ? y : 0;
         ResultHeight = double.TryParse(_height.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var h) ? h : 0;
+        ResultFields = UdmfFields.Parse(_custom.Text);
     }
 }
 
@@ -278,9 +297,11 @@ public sealed class LinedefEditDialog : PropertyDialog
     private readonly FlagChecks? _flagChecks;
     private readonly TextBox? _flagsBox;
     private readonly ArgEditors? _args;
+    private readonly TextBox _custom;
 
     public int ResultAction, ResultTag, ResultFlags;
     public int[] ResultArgs;
+    public Dictionary<string, object> ResultFields = new();
 
     public LinedefEditDialog(Linedef l, GameConfiguration? config) : base("Edit Linedef")
     {
@@ -302,6 +323,7 @@ public sealed class LinedefEditDialog : PropertyDialog
             _flagChecks = AddFlagChecks("Flags", config.LinedefFlags, l.Flags);
         else
             _flagsBox = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
+        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(l.Fields));
     }
 
     protected override void OnConfirm()
@@ -310,6 +332,7 @@ public sealed class LinedefEditDialog : PropertyDialog
         ResultTag = ParseInt(_tag, 0);
         ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
         if (_args != null) ResultArgs = _args.Read(ResultArgs);
+        ResultFields = UdmfFields.Parse(_custom.Text);
     }
 }
 
@@ -318,9 +341,11 @@ public sealed class SectorEditDialog : PropertyDialog
     private readonly TextBox _floor, _ceil, _floorTex, _ceilTex, _bright, _tag;
     private readonly ComboBox? _specialCombo;
     private readonly TextBox? _specialBox;
+    private readonly TextBox _custom;
 
     public int ResultFloor, ResultCeil, ResultBright, ResultSpecial, ResultTag;
     public string ResultFloorTex = "-", ResultCeilTex = "-";
+    public Dictionary<string, object> ResultFields = new();
 
     public SectorEditDialog(Sector s, GameConfiguration? config) : base("Edit Sector")
     {
@@ -339,6 +364,7 @@ public sealed class SectorEditDialog : PropertyDialog
         else _specialBox = AddField("Effect", s.Special.ToString(CultureInfo.InvariantCulture));
 
         _tag = AddField("Tag", s.Tag.ToString(CultureInfo.InvariantCulture));
+        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(s.Fields));
     }
 
     protected override void OnConfirm()
@@ -350,6 +376,7 @@ public sealed class SectorEditDialog : PropertyDialog
         ResultTag = ParseInt(_tag, 0);
         ResultFloorTex = string.IsNullOrWhiteSpace(_floorTex.Text) ? "-" : _floorTex.Text!;
         ResultCeilTex = string.IsNullOrWhiteSpace(_ceilTex.Text) ? "-" : _ceilTex.Text!;
+        ResultFields = UdmfFields.Parse(_custom.Text);
     }
 }
 

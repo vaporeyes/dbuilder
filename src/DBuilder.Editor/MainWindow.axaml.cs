@@ -453,6 +453,7 @@ public partial class MainWindow : Window
                 t.Flags = dlg.ResultFlags;
                 Array.Copy(dlg.ResultArgs, t.Args, t.Args.Length);
                 t.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY); t.Height = dlg.ResultHeight;
+                ApplyFields(t.Fields, dlg.ResultFields);
                 MapView.InsertThingType = t.Type; // the insert tool reuses the last edited type
                 AfterEdit("Thing updated");
             }
@@ -466,6 +467,7 @@ public partial class MainWindow : Window
                 _undo.CreateUndo("Edit linedef");
                 l.Action = dlg.ResultAction; l.Tag = dlg.ResultTag; l.Flags = dlg.ResultFlags;
                 Array.Copy(dlg.ResultArgs, l.Args, l.Args.Length);
+                ApplyFields(l.Fields, dlg.ResultFields);
                 AfterEdit("Linedef updated");
             }
         }
@@ -479,9 +481,17 @@ public partial class MainWindow : Window
                 s.FloorHeight = dlg.ResultFloor; s.CeilHeight = dlg.ResultCeil;
                 s.FloorTexture = dlg.ResultFloorTex; s.CeilTexture = dlg.ResultCeilTex;
                 s.Brightness = dlg.ResultBright; s.Special = dlg.ResultSpecial; s.Tag = dlg.ResultTag;
+                ApplyFields(s.Fields, dlg.ResultFields);
                 AfterEdit("Sector updated");
             }
         }
+    }
+
+    // Replaces an element's custom UDMF fields with the dialog's parsed result.
+    private static void ApplyFields(Dictionary<string, object> target, Dictionary<string, object> result)
+    {
+        target.Clear();
+        foreach (var kv in result) target[kv.Key] = kv.Value;
     }
 
     private void AfterEdit(string status)
