@@ -1,5 +1,5 @@
 // ABOUTME: Tests minimal MapOptions persistence backed by Configuration.
-// ABOUTME: Covers UDB-compatible identity, selection group, tag-label and drawing-option write/read shape.
+// ABOUTME: Covers UDB-compatible identity, selection group, tag-label, drawing-option, script-tab and command settings.
 
 using System.Collections;
 using DBuilder.Geometry;
@@ -409,6 +409,224 @@ public class MapOptionsTests
         Assert.True(double.IsNaN(options.MapConfiguration.ReadSetting("viewpositiony", double.NaN)));
         Assert.True(double.IsNaN(options.MapConfiguration.ReadSetting("viewscale", double.NaN)));
         Assert.Equal("", options.MapConfiguration.ReadSetting("scriptcompiler", ""));
+    }
+
+    [Fact]
+    public void WriteScriptDocumentSettingsStoresUdbCompatibleDocumentEntries()
+    {
+        var options = new MapOptions();
+        var settings = new ScriptDocumentSettings
+        {
+            Filename = "SCRIPTS",
+            Hash = 1234567890123,
+            ResourceLocation = "maps/test.wad",
+            TabType = ScriptDocumentTabType.Lump,
+            ScriptType = ScriptType.Acs,
+            CaretPosition = 42,
+            FirstVisibleLine = 7,
+            IsActiveTab = true,
+        };
+        settings.FoldLevels[1] = new HashSet<int> { 12, 13 };
+        settings.FoldLevels[2] = new HashSet<int> { 21 };
+        options.ScriptDocumentSettings[settings.Filename] = settings;
+
+        options.WriteScriptDocumentSettings();
+
+        var document = Assert.IsAssignableFrom<IDictionary>(
+            options.MapConfiguration.ReadSetting("scriptdocuments.document0", (IDictionary?)null));
+        Assert.Equal("SCRIPTS", document["filename"]);
+        Assert.Equal(1234567890123L, document["hash"]);
+        Assert.Equal("maps/test.wad", document["resource"]);
+        Assert.Equal((int)ScriptDocumentTabType.Lump, document["tabtype"]);
+        Assert.Equal((int)ScriptType.Acs, document["scripttype"]);
+        Assert.Equal(42, document["caretposition"]);
+        Assert.Equal(7, document["firstvisibleline"]);
+        Assert.True((bool)document["activetab"]!);
+        Assert.Equal("1:12,13;2:21", document["foldlevels"]);
+    }
+
+    [Fact]
+    public void ReadScriptDocumentSettingsRestoresValidDocuments()
+    {
+        var options = new MapOptions();
+        options.MapConfiguration.InputConfiguration("""
+            scriptdocuments
+            {
+                document0
+                {
+                    filename = "SCRIPTS";
+                    hash = 1234567890123;
+                    resource = "maps/test.wad";
+                    tabtype = 0;
+                    scripttype = 1;
+                    caretposition = 42;
+                    firstvisibleline = 7;
+                    activetab = true;
+                    foldlevels = "1:12,13;2:21";
+                }
+            }
+            """);
+
+        options.ReadScriptDocumentSettings();
+
+        var settings = options.ScriptDocumentSettings["SCRIPTS"];
+        Assert.Equal(1234567890123L, settings.Hash);
+        Assert.Equal("maps/test.wad", settings.ResourceLocation);
+        Assert.Equal(ScriptDocumentTabType.Lump, settings.TabType);
+        Assert.Equal(ScriptType.Acs, settings.ScriptType);
+        Assert.Equal(42, settings.CaretPosition);
+        Assert.Equal(7, settings.FirstVisibleLine);
+        Assert.True(settings.IsActiveTab);
+        Assert.Equal(new[] { 12, 13 }, settings.FoldLevels[1].OrderBy(v => v));
+        Assert.Equal(new[] { 21 }, settings.FoldLevels[2].OrderBy(v => v));
+    }
+
+    [Fact]
+    public void ReadScriptDocumentSettingsReplacesExistingAndSkipsInvalidDocuments()
+    {
+        var options = new MapOptions();
+        options.ScriptDocumentSettings["OLD"] = new ScriptDocumentSettings { Filename = "OLD" };
+        options.MapConfiguration.InputConfiguration("""
+            scriptdocuments
+            {
+                document0
+                {
+                    hash = 99;
+                }
+                document1
+                {
+                    filename = "SCRIPTS";
+                    foldlevels = "1:12,bad;2:21";
+                }
+            }
+            """);
+
+        options.ReadScriptDocumentSettings();
+
+        Assert.Single(options.ScriptDocumentSettings);
+        Assert.False(options.ScriptDocumentSettings.ContainsKey("OLD"));
+        var settings = options.ScriptDocumentSettings["SCRIPTS"];
+        Assert.False(settings.FoldLevels.ContainsKey(1));
+        Assert.Equal(new[] { 21 }, settings.FoldLevels[2].OrderBy(v => v));
+    }
+
+    [Fact]
+    public void WriteScriptDocumentSettingsRemovesStaleConfigurationWhenEmpty()
+    {
+        var options = new MapOptions();
+        options.ScriptDocumentSettings["SCRIPTS"] = new ScriptDocumentSettings { Filename = "SCRIPTS" };
+        options.WriteScriptDocumentSettings();
+        options.ScriptDocumentSettings.Clear();
+
+        options.WriteScriptDocumentSettings();
+
+        Assert.Null(options.MapConfiguration.ReadSetting("scriptdocuments", (IDictionary?)null));
+    }
+
+    [Fact]
+    public void ExternalCommandSettingsDefaultsMatchUdb()
+    {
+        var settings = new ExternalCommandSettings();
+
+        Assert.Equal("", settings.WorkingDirectory);
+        Assert.Equal("", settings.Commands);
+        Assert.True(settings.AutoCloseOnSuccess);
+        Assert.True(settings.ExitCodeIsError);
+        Assert.True(settings.StdErrIsError);
+    }
+
+    [Fact]
+    public void ExternalCommandSettingsWriteAndReadRoundTrip()
+    {
+        var configuration = new Configuration(sorted: true);
+        var settings = new ExternalCommandSettings
+        {
+            WorkingDirectory = "/tmp/project",
+            Commands = "make test",
+            AutoCloseOnSuccess = false,
+            ExitCodeIsError = false,
+            StdErrIsError = false,
+        };
+
+        settings.WriteSettings(configuration, "testprecommand");
+        var roundTrip = new ExternalCommandSettings(configuration, "testprecommand");
+
+        Assert.Equal("/tmp/project", roundTrip.WorkingDirectory);
+        Assert.Equal("make test", roundTrip.Commands);
+        Assert.False(roundTrip.AutoCloseOnSuccess);
+        Assert.False(roundTrip.ExitCodeIsError);
+        Assert.False(roundTrip.StdErrIsError);
+    }
+
+    [Fact]
+    public void ExternalCommandSettingsRemovesBlankCommandAndWorkingDirectory()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.WriteSetting("testprecommand.commands", "old");
+        configuration.WriteSetting("testprecommand.workingdirectory", "/tmp");
+        var settings = new ExternalCommandSettings
+        {
+            WorkingDirectory = " ",
+            Commands = " ",
+        };
+
+        settings.WriteSettings(configuration, "testprecommand");
+
+        Assert.Equal("", configuration.ReadSetting("testprecommand.commands", ""));
+        Assert.Equal("", configuration.ReadSetting("testprecommand.workingdirectory", ""));
+        Assert.True(configuration.ReadSetting("testprecommand.autocloseonsuccess", false));
+        Assert.True(configuration.ReadSetting("testprecommand.exitcodeiserror", false));
+        Assert.True(configuration.ReadSetting("testprecommand.stderriserror", false));
+    }
+
+    [Fact]
+    public void MapOptionsWritesExternalCommandSections()
+    {
+        var options = new MapOptions
+        {
+            ReloadResourcePreCommand = new ExternalCommandSettings { Commands = "reload-pre" },
+            ReloadResourcePostCommand = new ExternalCommandSettings { Commands = "reload-post" },
+            TestPreCommand = new ExternalCommandSettings { Commands = "test-pre" },
+            TestPostCommand = new ExternalCommandSettings { Commands = "test-post" },
+        };
+
+        options.WriteExternalCommandSettings();
+
+        Assert.Equal("reload-pre", options.MapConfiguration.ReadSetting("reloadresourceprecommand.commands", ""));
+        Assert.Equal("reload-post", options.MapConfiguration.ReadSetting("reloadresourcepostcommand.commands", ""));
+        Assert.Equal("test-pre", options.MapConfiguration.ReadSetting("testprecommand.commands", ""));
+        Assert.Equal("test-post", options.MapConfiguration.ReadSetting("testpostcommand.commands", ""));
+    }
+
+    [Fact]
+    public void MapOptionsReadsExternalCommandSections()
+    {
+        var options = new MapOptions();
+        options.MapConfiguration.InputConfiguration("""
+            reloadresourceprecommand
+            {
+                commands = "reload-pre";
+            }
+            reloadresourcepostcommand
+            {
+                commands = "reload-post";
+            }
+            testprecommand
+            {
+                commands = "test-pre";
+            }
+            testpostcommand
+            {
+                commands = "test-post";
+            }
+            """);
+
+        options.ReadExternalCommandSettings();
+
+        Assert.Equal("reload-pre", options.ReloadResourcePreCommand.Commands);
+        Assert.Equal("reload-post", options.ReloadResourcePostCommand.Commands);
+        Assert.Equal("test-pre", options.TestPreCommand.Commands);
+        Assert.Equal("test-post", options.TestPostCommand.Commands);
     }
 
     private static MapSet BuildMap()

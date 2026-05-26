@@ -1,8 +1,9 @@
 // ABOUTME: Minimal map-options container for UDB-compatible per-map settings backed by Configuration.
-// ABOUTME: Ports map identity, selection group, tag-label and drawing-option persistence.
+// ABOUTME: Ports map identity, selection group, tag-label, drawing-option, script-tab and command persistence.
 
 using System.Collections;
 using System.Collections.Specialized;
+using System.Globalization;
 using DBuilder.Geometry;
 using DBuilder.Map;
 
@@ -16,6 +17,11 @@ public sealed class MapOptions
 
     public Configuration MapConfiguration { get; }
     public Dictionary<int, string> TagLabels { get; } = new();
+    public Dictionary<string, ScriptDocumentSettings> ScriptDocumentSettings { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public ExternalCommandSettings ReloadResourcePreCommand { get; set; } = new();
+    public ExternalCommandSettings ReloadResourcePostCommand { get; set; } = new();
+    public ExternalCommandSettings TestPreCommand { get; set; } = new();
+    public ExternalCommandSettings TestPostCommand { get; set; } = new();
     public string ConfigFile { get; set; } = "";
     public bool StrictPatches { get; set; }
     public string PreviousName { get; set; } = "";
@@ -222,6 +228,64 @@ public sealed class MapOptions
         ViewScale = MapConfiguration.ReadSetting("viewscale", double.NaN);
     }
 
+    public void WriteScriptDocumentSettings()
+    {
+        MapConfiguration.DeleteSetting("scriptdocuments");
+        int counter = 0;
+        foreach (var settings in ScriptDocumentSettings.Values)
+        {
+            var data = new ListDictionary
+            {
+                { "filename", settings.Filename },
+                { "hash", settings.Hash },
+                { "resource", settings.ResourceLocation },
+                { "tabtype", (int)settings.TabType },
+                { "scripttype", (int)settings.ScriptType },
+            };
+
+            if (settings.CaretPosition > 0) data.Add("caretposition", settings.CaretPosition);
+            if (settings.FirstVisibleLine > 0) data.Add("firstvisibleline", settings.FirstVisibleLine);
+            if (settings.IsActiveTab) data.Add("activetab", true);
+
+            string foldLevels = FormatFoldLevels(settings.FoldLevels);
+            if (!string.IsNullOrEmpty(foldLevels)) data.Add("foldlevels", foldLevels);
+
+            MapConfiguration.WriteSetting("scriptdocuments.document" + counter.ToString(CultureInfo.InvariantCulture), data);
+            counter++;
+        }
+    }
+
+    public void ReadScriptDocumentSettings()
+    {
+        ScriptDocumentSettings.Clear();
+
+        var documents = MapConfiguration.ReadSetting("scriptdocuments", new Hashtable());
+        if (documents == null) return;
+
+        foreach (DictionaryEntry entry in documents)
+        {
+            if (entry.Value is not IDictionary data) continue;
+            var settings = ReadScriptDocument(data);
+            if (!string.IsNullOrEmpty(settings.Filename)) ScriptDocumentSettings[settings.Filename] = settings;
+        }
+    }
+
+    public void WriteExternalCommandSettings()
+    {
+        ReloadResourcePreCommand.WriteSettings(MapConfiguration, "reloadresourceprecommand");
+        ReloadResourcePostCommand.WriteSettings(MapConfiguration, "reloadresourcepostcommand");
+        TestPreCommand.WriteSettings(MapConfiguration, "testprecommand");
+        TestPostCommand.WriteSettings(MapConfiguration, "testpostcommand");
+    }
+
+    public void ReadExternalCommandSettings()
+    {
+        ReloadResourcePreCommand = new ExternalCommandSettings(MapConfiguration, "reloadresourceprecommand");
+        ReloadResourcePostCommand = new ExternalCommandSettings(MapConfiguration, "reloadresourcepostcommand");
+        TestPreCommand = new ExternalCommandSettings(MapConfiguration, "testprecommand");
+        TestPostCommand = new ExternalCommandSettings(MapConfiguration, "testpostcommand");
+    }
+
     private static void AddGroupIndices<T>(IDictionary group, string key, IReadOnlyList<T> items, int mask)
         where T : IGroupable
     {
@@ -280,5 +344,82 @@ public sealed class MapOptions
     {
         if (!data.Contains(key) || data[key] == null) return "";
         return data[key]!.ToString() ?? "";
+    }
+
+    private static long ReadLong(IDictionary data, string key)
+    {
+        if (!data.Contains(key) || data[key] == null) return 0;
+        if (data[key] is long longValue) return longValue;
+        if (data[key] is int intValue) return intValue;
+        return long.TryParse(data[key]!.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed) ? parsed : 0;
+    }
+
+    private static bool ReadBool(IDictionary data, string key)
+    {
+        if (!data.Contains(key) || data[key] == null) return false;
+        if (data[key] is bool value) return value;
+        return bool.TryParse(data[key]!.ToString(), out bool parsed) && parsed;
+    }
+
+    private static ScriptDocumentSettings ReadScriptDocument(IDictionary data)
+    {
+        var settings = new ScriptDocumentSettings
+        {
+            Filename = ReadString(data, "filename"),
+            Hash = ReadLong(data, "hash"),
+            ResourceLocation = ReadString(data, "resource"),
+            TabType = (ScriptDocumentTabType)ReadInt(data, "tabtype"),
+            ScriptType = (ScriptType)ReadInt(data, "scripttype"),
+            CaretPosition = ReadInt(data, "caretposition"),
+            FirstVisibleLine = ReadInt(data, "firstvisibleline"),
+            IsActiveTab = ReadBool(data, "activetab"),
+        };
+        ReadFoldLevels(ReadString(data, "foldlevels"), settings.FoldLevels);
+        return settings;
+    }
+
+    private static string FormatFoldLevels(Dictionary<int, HashSet<int>> foldLevels)
+    {
+        var groups = new List<string>();
+        foreach (var group in foldLevels)
+        {
+            if (group.Value.Count == 0) continue;
+
+            var lines = new List<string>();
+            foreach (int line in group.Value) lines.Add(line.ToString(CultureInfo.InvariantCulture));
+            groups.Add(group.Key.ToString(CultureInfo.InvariantCulture) + ":" + string.Join(",", lines));
+        }
+
+        return string.Join(";", groups);
+    }
+
+    private static void ReadFoldLevels(string value, Dictionary<int, HashSet<int>> foldLevels)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+
+        string[] groups = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (string group in groups)
+        {
+            string[] parts = group.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2) continue;
+            if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int level)) continue;
+            if (foldLevels.ContainsKey(level)) continue;
+
+            string[] lineParts = parts[1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            if (lineParts.Length == 0) continue;
+
+            var lines = new HashSet<int>();
+            foreach (string linePart in lineParts)
+            {
+                if (!int.TryParse(linePart, NumberStyles.Integer, CultureInfo.InvariantCulture, out int line))
+                {
+                    lines.Clear();
+                    break;
+                }
+                lines.Add(line);
+            }
+
+            if (lines.Count == lineParts.Length) foldLevels[level] = lines;
+        }
     }
 }
