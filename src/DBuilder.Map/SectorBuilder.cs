@@ -105,5 +105,13 @@ public static class SectorBuilder
         dst.CeilTexture = src.CeilTexture;
         dst.Brightness = src.Brightness;
         dst.Special = src.Special;
+        dst.FloorSlope = src.FloorSlope;
+        dst.FloorSlopeOffset = src.FloorSlopeOffset;
+        dst.CeilSlope = src.CeilSlope;
+        dst.CeilSlopeOffset = src.CeilSlopeOffset;
+        dst.Tags.Clear();
+        dst.Tags.AddRange(src.Tags);
+        dst.Fields.Clear();
+        foreach (var kv in src.Fields) dst.Fields[kv.Key] = kv.Value;
     }
 }

@@ -106,6 +106,32 @@ public class SectorBuilderTests
     }
 
     [Fact]
+    public void CopyFromPreservesTagsSlopesAndFields()
+    {
+        var map = new MapSet();
+        var src = new Sector
+        {
+            FloorSlope = new Vector3D(1, 0, 2),
+            FloorSlopeOffset = 16,
+            CeilSlope = new Vector3D(0, 1, 2),
+            CeilSlopeOffset = 128,
+        };
+        src.Tags.AddRange(new[] { 5, 7 });
+        src.SetIntegerField("lightcolor", 16711680);
+        src.SetStringField("comment", "copied");
+
+        var sector = SectorBuilder.CreateSector(map, Square(map, 50, ccw: true), src)!;
+
+        Assert.Equal(src.FloorSlope, sector.FloorSlope);
+        Assert.Equal(16, sector.FloorSlopeOffset);
+        Assert.Equal(src.CeilSlope, sector.CeilSlope);
+        Assert.Equal(128, sector.CeilSlopeOffset);
+        Assert.Equal(new[] { 5, 7 }, sector.Tags);
+        Assert.Equal(16711680, sector.GetIntegerField("lightcolor"));
+        Assert.Equal("copied", sector.GetStringField("comment"));
+    }
+
+    [Fact]
     public void BuildingASectorIsUndoable()
     {
         var map = new MapSet();
