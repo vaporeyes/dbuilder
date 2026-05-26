@@ -1,8 +1,9 @@
 // ABOUTME: Minimal map-options container for UDB-compatible per-map settings backed by Configuration.
-// ABOUTME: Ports selection group and tag-label persistence while leaving UI and resource options for later slices.
+// ABOUTME: Ports map identity, selection group, tag-label and drawing-option persistence.
 
 using System.Collections;
 using System.Collections.Specialized;
+using DBuilder.Geometry;
 using DBuilder.Map;
 
 namespace DBuilder.IO;
@@ -15,12 +16,66 @@ public sealed class MapOptions
 
     public Configuration MapConfiguration { get; }
     public Dictionary<int, string> TagLabels { get; } = new();
+    public string ConfigFile { get; set; } = "";
+    public bool StrictPatches { get; set; }
+    public string PreviousName { get; set; } = "";
+    private string currentName = "";
+    public string CurrentName
+    {
+        get => currentName;
+        set
+        {
+            if (currentName == value) return;
+            if (string.IsNullOrEmpty(PreviousName)) PreviousName = currentName;
+            currentName = value;
+        }
+    }
+
+    public bool LevelNameChanged => !string.IsNullOrEmpty(PreviousName) && PreviousName != CurrentName;
+    public string LevelName => CurrentName;
+    public string ScriptCompiler { get; set; } = "";
+    public string DefaultTopTexture { get; set; } = "";
+    public string DefaultWallTexture { get; set; } = "";
+    public string DefaultBottomTexture { get; set; } = "";
+    public string DefaultFloorTexture { get; set; } = "";
+    public string DefaultCeilingTexture { get; set; } = "";
+    public int CustomBrightness { get; set; } = 196;
+    public int CustomFloorHeight { get; set; }
+    public int CustomCeilingHeight { get; set; } = 128;
+    public bool OverrideFloorTexture { get; set; }
+    public bool OverrideCeilingTexture { get; set; }
+    public bool OverrideTopTexture { get; set; }
+    public bool OverrideMiddleTexture { get; set; }
+    public bool OverrideBottomTexture { get; set; }
+    public bool OverrideFloorHeight { get; set; }
+    public bool OverrideCeilingHeight { get; set; }
+    public bool OverrideBrightness { get; set; }
+    public bool UseLongTextureNames { get; set; }
+    public Vector2D ViewPosition { get; set; } = new(double.NaN, double.NaN);
+    public double ViewScale { get; set; } = double.NaN;
 
     public MapOptions() : this(new Configuration(sorted: true)) { }
 
     public MapOptions(Configuration mapConfiguration)
     {
         MapConfiguration = mapConfiguration;
+    }
+
+    public void ReadRootOptions(Configuration wadConfiguration, string mapName)
+    {
+        ConfigFile = wadConfiguration.ReadSetting("gameconfig", "") ?? "";
+        StrictPatches = wadConfiguration.ReadSetting("strictpatches", 0) != 0;
+        PreviousName = "";
+        currentName = mapName;
+        MapConfiguration.Root = wadConfiguration.ReadSetting("maps." + mapName, new Hashtable()) ?? new Hashtable();
+    }
+
+    public void WriteRootOptions(Configuration wadConfiguration)
+    {
+        wadConfiguration.WriteSetting("type", "Doom Builder Map Settings Configuration");
+        wadConfiguration.WriteSetting("gameconfig", ConfigFile);
+        wadConfiguration.WriteSetting("strictpatches", StrictPatches ? 1 : 0);
+        if (!string.IsNullOrEmpty(CurrentName)) wadConfiguration.WriteSetting("maps." + CurrentName, MapConfiguration.Root);
     }
 
     public void WriteSelectionGroups(MapSet map)
@@ -100,6 +155,71 @@ public sealed class MapOptions
             string label = ReadString(data, "label");
             if (tag != 0 && !string.IsNullOrEmpty(label)) TagLabels[tag] = label;
         }
+    }
+
+    public void WriteDrawingOptions()
+    {
+        MapConfiguration.WriteSetting("defaultfloortexture", DefaultFloorTexture);
+        MapConfiguration.WriteSetting("defaultceiltexture", DefaultCeilingTexture);
+        MapConfiguration.WriteSetting("defaulttoptexture", DefaultTopTexture);
+        MapConfiguration.WriteSetting("defaultwalltexture", DefaultWallTexture);
+        MapConfiguration.WriteSetting("defaultbottomtexture", DefaultBottomTexture);
+        MapConfiguration.WriteSetting("custombrightness", CustomBrightness);
+        MapConfiguration.WriteSetting("customfloorheight", CustomFloorHeight);
+        MapConfiguration.WriteSetting("customceilheight", CustomCeilingHeight);
+        MapConfiguration.WriteSetting("overridefloortexture", OverrideFloorTexture);
+        MapConfiguration.WriteSetting("overrideceiltexture", OverrideCeilingTexture);
+        MapConfiguration.WriteSetting("overridetoptexture", OverrideTopTexture);
+        MapConfiguration.WriteSetting("overridemiddletexture", OverrideMiddleTexture);
+        MapConfiguration.WriteSetting("overridebottomtexture", OverrideBottomTexture);
+        MapConfiguration.WriteSetting("overridefloorheight", OverrideFloorHeight);
+        MapConfiguration.WriteSetting("overrideceilheight", OverrideCeilingHeight);
+        MapConfiguration.WriteSetting("overridebrightness", OverrideBrightness);
+        MapConfiguration.WriteSetting("uselongtexturenames", UseLongTextureNames);
+
+        if (!double.IsNaN(ViewPosition.x) && !double.IsNaN(ViewPosition.y))
+        {
+            MapConfiguration.WriteSetting("viewpositionx", ViewPosition.x);
+            MapConfiguration.WriteSetting("viewpositiony", ViewPosition.y);
+        }
+        else
+        {
+            MapConfiguration.DeleteSetting("viewpositionx");
+            MapConfiguration.DeleteSetting("viewpositiony");
+        }
+
+        if (!double.IsNaN(ViewScale)) MapConfiguration.WriteSetting("viewscale", ViewScale);
+        else MapConfiguration.DeleteSetting("viewscale");
+
+        MapConfiguration.DeleteSetting("scriptcompiler");
+        if (!string.IsNullOrEmpty(ScriptCompiler)) MapConfiguration.WriteSetting("scriptcompiler", ScriptCompiler);
+    }
+
+    public void ReadDrawingOptions(bool longTextureNamesSupported)
+    {
+        DefaultFloorTexture = MapConfiguration.ReadSetting("defaultfloortexture", "") ?? "";
+        DefaultCeilingTexture = MapConfiguration.ReadSetting("defaultceiltexture", "") ?? "";
+        DefaultTopTexture = MapConfiguration.ReadSetting("defaulttoptexture", "") ?? "";
+        DefaultWallTexture = MapConfiguration.ReadSetting("defaultwalltexture", "") ?? "";
+        DefaultBottomTexture = MapConfiguration.ReadSetting("defaultbottomtexture", "") ?? "";
+        CustomBrightness = System.Math.Clamp(MapConfiguration.ReadSetting("custombrightness", 196), 0, 255);
+        CustomFloorHeight = MapConfiguration.ReadSetting("customfloorheight", 0);
+        CustomCeilingHeight = MapConfiguration.ReadSetting("customceilheight", 128);
+        OverrideFloorTexture = MapConfiguration.ReadSetting("overridefloortexture", false);
+        OverrideCeilingTexture = MapConfiguration.ReadSetting("overrideceiltexture", false);
+        OverrideTopTexture = MapConfiguration.ReadSetting("overridetoptexture", false);
+        OverrideMiddleTexture = MapConfiguration.ReadSetting("overridemiddletexture", false);
+        OverrideBottomTexture = MapConfiguration.ReadSetting("overridebottomtexture", false);
+        OverrideFloorHeight = MapConfiguration.ReadSetting("overridefloorheight", false);
+        OverrideCeilingHeight = MapConfiguration.ReadSetting("overrideceilheight", false);
+        OverrideBrightness = MapConfiguration.ReadSetting("overridebrightness", false);
+        UseLongTextureNames = longTextureNamesSupported && MapConfiguration.ReadSetting("uselongtexturenames", false);
+        ScriptCompiler = MapConfiguration.ReadSetting("scriptcompiler", "") ?? "";
+
+        double x = MapConfiguration.ReadSetting("viewpositionx", double.NaN);
+        double y = MapConfiguration.ReadSetting("viewpositiony", double.NaN);
+        ViewPosition = !double.IsNaN(x) && !double.IsNaN(y) ? new Vector2D(x, y) : new Vector2D(double.NaN, double.NaN);
+        ViewScale = MapConfiguration.ReadSetting("viewscale", double.NaN);
     }
 
     private static void AddGroupIndices<T>(IDictionary group, string key, IReadOnlyList<T> items, int mask)

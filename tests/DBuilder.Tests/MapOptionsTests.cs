@@ -1,5 +1,5 @@
 // ABOUTME: Tests minimal MapOptions persistence backed by Configuration.
-// ABOUTME: Covers UDB-compatible selection group and tag-label write/read shape.
+// ABOUTME: Covers UDB-compatible identity, selection group, tag-label and drawing-option write/read shape.
 
 using System.Collections;
 using DBuilder.Geometry;
@@ -10,6 +10,82 @@ namespace DBuilder.Tests;
 
 public class MapOptionsTests
 {
+    [Fact]
+    public void CurrentNameTracksPreviousNameOnFirstRename()
+    {
+        var options = new MapOptions();
+
+        options.CurrentName = "MAP01";
+        options.CurrentName = "MAP02";
+        options.CurrentName = "MAP03";
+
+        Assert.Equal("MAP01", options.PreviousName);
+        Assert.Equal("MAP03", options.CurrentName);
+        Assert.Equal("MAP03", options.LevelName);
+        Assert.True(options.LevelNameChanged);
+    }
+
+    [Fact]
+    public void CurrentNameDoesNotMarkChangedWhenNameStaysSame()
+    {
+        var options = new MapOptions();
+
+        options.CurrentName = "";
+
+        Assert.Equal("", options.PreviousName);
+        Assert.Equal("", options.CurrentName);
+        Assert.False(options.LevelNameChanged);
+    }
+
+    [Fact]
+    public void ReadRootOptionsLoadsRootSettingsAndMapConfiguration()
+    {
+        var wadConfiguration = new Configuration(sorted: true);
+        wadConfiguration.InputConfiguration("""
+            gameconfig = "Doom_Doom.cfg";
+            strictpatches = 1;
+            maps
+            {
+                MAP01
+                {
+                    defaultfloortexture = "FLOOR1";
+                }
+            }
+            """);
+        var options = new MapOptions();
+
+        options.ReadRootOptions(wadConfiguration, "MAP01");
+
+        Assert.Equal("Doom_Doom.cfg", options.ConfigFile);
+        Assert.True(options.StrictPatches);
+        Assert.Equal("MAP01", options.CurrentName);
+        Assert.Equal("", options.PreviousName);
+        Assert.False(options.LevelNameChanged);
+        Assert.Equal("FLOOR1", options.MapConfiguration.ReadSetting("defaultfloortexture", ""));
+    }
+
+    [Fact]
+    public void WriteRootOptionsStoresUdbCompatibleRootSettings()
+    {
+        var options = new MapOptions
+        {
+            ConfigFile = "Doom_Doom.cfg",
+            StrictPatches = true,
+            CurrentName = "MAP01",
+            DefaultFloorTexture = "FLOOR1",
+        };
+        options.WriteDrawingOptions();
+        var wadConfiguration = new Configuration(sorted: true);
+
+        options.WriteRootOptions(wadConfiguration);
+
+        Assert.Equal("Doom Builder Map Settings Configuration", wadConfiguration.ReadSetting("type", ""));
+        Assert.Equal("Doom_Doom.cfg", wadConfiguration.ReadSetting("gameconfig", ""));
+        Assert.Equal(1, wadConfiguration.ReadSetting("strictpatches", 0));
+        var mapRoot = Assert.IsAssignableFrom<IDictionary>(wadConfiguration.ReadSetting("maps.MAP01", (IDictionary?)null));
+        Assert.Equal("FLOOR1", mapRoot["defaultfloortexture"]);
+    }
+
     [Fact]
     public void WriteSelectionGroupsStoresUdbCompatibleIndexLists()
     {
@@ -189,6 +265,150 @@ public class MapOptionsTests
         options.WriteTagLabels();
 
         Assert.Null(options.MapConfiguration.ReadSetting(MapOptions.TagLabelsPath, (IDictionary?)null));
+    }
+
+    [Fact]
+    public void WriteDrawingOptionsStoresUdbCompatibleScalarKeys()
+    {
+        var options = new MapOptions
+        {
+            DefaultFloorTexture = "FLOOR1",
+            DefaultCeilingTexture = "CEIL1",
+            DefaultTopTexture = "TOP",
+            DefaultWallTexture = "MID",
+            DefaultBottomTexture = "BOT",
+            CustomBrightness = 144,
+            CustomFloorHeight = -16,
+            CustomCeilingHeight = 192,
+            OverrideFloorTexture = true,
+            OverrideCeilingTexture = true,
+            OverrideTopTexture = true,
+            OverrideMiddleTexture = true,
+            OverrideBottomTexture = true,
+            OverrideFloorHeight = true,
+            OverrideCeilingHeight = true,
+            OverrideBrightness = true,
+            UseLongTextureNames = true,
+            ViewPosition = new Vector2D(12.5, -4.25),
+            ViewScale = 1.75,
+            ScriptCompiler = "acc",
+        };
+
+        options.WriteDrawingOptions();
+
+        Assert.Equal("FLOOR1", options.MapConfiguration.ReadSetting("defaultfloortexture", ""));
+        Assert.Equal("CEIL1", options.MapConfiguration.ReadSetting("defaultceiltexture", ""));
+        Assert.Equal("TOP", options.MapConfiguration.ReadSetting("defaulttoptexture", ""));
+        Assert.Equal("MID", options.MapConfiguration.ReadSetting("defaultwalltexture", ""));
+        Assert.Equal("BOT", options.MapConfiguration.ReadSetting("defaultbottomtexture", ""));
+        Assert.Equal(144, options.MapConfiguration.ReadSetting("custombrightness", 0));
+        Assert.Equal(-16, options.MapConfiguration.ReadSetting("customfloorheight", 0));
+        Assert.Equal(192, options.MapConfiguration.ReadSetting("customceilheight", 0));
+        Assert.True(options.MapConfiguration.ReadSetting("overridefloortexture", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overrideceiltexture", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overridetoptexture", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overridemiddletexture", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overridebottomtexture", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overridefloorheight", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overrideceilheight", false));
+        Assert.True(options.MapConfiguration.ReadSetting("overridebrightness", false));
+        Assert.True(options.MapConfiguration.ReadSetting("uselongtexturenames", false));
+        Assert.Equal(12.5, options.MapConfiguration.ReadSetting("viewpositionx", 0.0));
+        Assert.Equal(-4.25, options.MapConfiguration.ReadSetting("viewpositiony", 0.0));
+        Assert.Equal(1.75, options.MapConfiguration.ReadSetting("viewscale", 0.0));
+        Assert.Equal("acc", options.MapConfiguration.ReadSetting("scriptcompiler", ""));
+    }
+
+    [Fact]
+    public void ReadDrawingOptionsRestoresValuesAndClampsBrightness()
+    {
+        var options = new MapOptions();
+        options.MapConfiguration.InputConfiguration("""
+            defaultfloortexture = "FLOOR1";
+            defaultceiltexture = "CEIL1";
+            defaulttoptexture = "TOP";
+            defaultwalltexture = "MID";
+            defaultbottomtexture = "BOT";
+            custombrightness = 999;
+            customfloorheight = -16;
+            customceilheight = 192;
+            overridefloortexture = true;
+            overrideceiltexture = true;
+            overridetoptexture = true;
+            overridemiddletexture = true;
+            overridebottomtexture = true;
+            overridefloorheight = true;
+            overrideceilheight = true;
+            overridebrightness = true;
+            uselongtexturenames = true;
+            viewpositionx = 12.5;
+            viewpositiony = -4.25;
+            viewscale = 1.75;
+            scriptcompiler = "acc";
+            """);
+
+        options.ReadDrawingOptions(longTextureNamesSupported: true);
+
+        Assert.Equal("FLOOR1", options.DefaultFloorTexture);
+        Assert.Equal("CEIL1", options.DefaultCeilingTexture);
+        Assert.Equal("TOP", options.DefaultTopTexture);
+        Assert.Equal("MID", options.DefaultWallTexture);
+        Assert.Equal("BOT", options.DefaultBottomTexture);
+        Assert.Equal(255, options.CustomBrightness);
+        Assert.Equal(-16, options.CustomFloorHeight);
+        Assert.Equal(192, options.CustomCeilingHeight);
+        Assert.True(options.OverrideFloorTexture);
+        Assert.True(options.OverrideCeilingTexture);
+        Assert.True(options.OverrideTopTexture);
+        Assert.True(options.OverrideMiddleTexture);
+        Assert.True(options.OverrideBottomTexture);
+        Assert.True(options.OverrideFloorHeight);
+        Assert.True(options.OverrideCeilingHeight);
+        Assert.True(options.OverrideBrightness);
+        Assert.True(options.UseLongTextureNames);
+        Assert.Equal(new Vector2D(12.5, -4.25), options.ViewPosition);
+        Assert.Equal(1.75, options.ViewScale);
+        Assert.Equal("acc", options.ScriptCompiler);
+    }
+
+    [Fact]
+    public void ReadDrawingOptionsUsesDefaultsAndHonorsLongTextureSupport()
+    {
+        var options = new MapOptions();
+        options.MapConfiguration.InputConfiguration("uselongtexturenames = true; custombrightness = -5;");
+
+        options.ReadDrawingOptions(longTextureNamesSupported: false);
+
+        Assert.Equal("", options.DefaultFloorTexture);
+        Assert.Equal(0, options.CustomBrightness);
+        Assert.Equal(0, options.CustomFloorHeight);
+        Assert.Equal(128, options.CustomCeilingHeight);
+        Assert.False(options.UseLongTextureNames);
+        Assert.True(double.IsNaN(options.ViewPosition.x));
+        Assert.True(double.IsNaN(options.ViewPosition.y));
+        Assert.True(double.IsNaN(options.ViewScale));
+    }
+
+    [Fact]
+    public void WriteDrawingOptionsRemovesStaleOptionalRendererAndScriptSettings()
+    {
+        var options = new MapOptions
+        {
+            ViewPosition = new Vector2D(1, 2),
+            ViewScale = 3,
+            ScriptCompiler = "acc",
+        };
+        options.WriteDrawingOptions();
+        options.ViewPosition = new Vector2D(double.NaN, double.NaN);
+        options.ViewScale = double.NaN;
+        options.ScriptCompiler = "";
+
+        options.WriteDrawingOptions();
+
+        Assert.True(double.IsNaN(options.MapConfiguration.ReadSetting("viewpositionx", double.NaN)));
+        Assert.True(double.IsNaN(options.MapConfiguration.ReadSetting("viewpositiony", double.NaN)));
+        Assert.True(double.IsNaN(options.MapConfiguration.ReadSetting("viewscale", double.NaN)));
+        Assert.Equal("", options.MapConfiguration.ReadSetting("scriptcompiler", ""));
     }
 
     private static MapSet BuildMap()
