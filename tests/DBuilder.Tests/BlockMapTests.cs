@@ -138,4 +138,29 @@ public class BlockMapTests
         Assert.True(bm.LinedefCountAt(0, 0) >= 1); // the line occupies block (0,0)
         Assert.Equal(0, bm.LinedefCountAt(99, 99)); // out of range -> 0
     }
+
+    [Fact]
+    public void CellHelpersExposeCoordinatesRangeCenterAndContents()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(10, 10));
+        var b = map.AddVertex(new Vector2D(140, 10));
+        var line = map.AddLinedef(a, b);
+        var thing = map.AddThing(new Vector2D(20, 20), 3001);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        Assert.Equal((0, 0), bm.GetCellCoordinates(new Vector2D(10, 10)));
+        Assert.Equal((1, 0), bm.GetCellCoordinates(new Vector2D(74, 10)));
+        Assert.True(bm.IsCellInRange(0, 0));
+        Assert.True(bm.IsInRange(new Vector2D(20, 20)));
+        Assert.False(bm.IsCellInRange(-1, 0));
+        Assert.False(bm.IsInRange(new Vector2D(-1000, -1000)));
+
+        Assert.Equal(new Vector2D(42, 42), bm.GetCellCenter(0, 0));
+        Assert.Contains(line, bm.GetLinedefsAt(0, 0));
+        Assert.Contains(a, bm.GetVerticesAt(0, 0));
+        Assert.Contains(thing, bm.GetThingsAt(0, 0));
+        Assert.Empty(bm.GetLinedefsAt(-1, 0));
+    }
 }

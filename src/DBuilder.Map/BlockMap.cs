@@ -30,6 +30,32 @@ public sealed class BlockMap
     public int LinedefCountAt(int col, int row)
         => col < 0 || row < 0 || col >= cols || row >= rows ? 0 : lineCells[Index(col, row)].Count;
 
+    /// <summary>Returns the unclamped block coordinates for a world position.</summary>
+    public (int Col, int Row) GetCellCoordinates(Vector2D pos)
+        => ((int)Math.Floor((pos.x - originX) / blockSize), (int)Math.Floor((pos.y - originY) / blockSize));
+
+    /// <summary>Returns the center point of a block in map coordinates.</summary>
+    public Vector2D GetCellCenter(int col, int row)
+        => new(originX + (col + 0.5) * blockSize, originY + (row + 0.5) * blockSize);
+
+    public bool IsCellInRange(int col, int row)
+        => col >= 0 && row >= 0 && col < cols && row < rows;
+
+    public bool IsInRange(Vector2D pos)
+    {
+        var (col, row) = GetCellCoordinates(pos);
+        return IsCellInRange(col, row);
+    }
+
+    public IReadOnlyList<Linedef> GetLinedefsAt(int col, int row)
+        => IsCellInRange(col, row) ? lineCells[Index(col, row)] : Array.Empty<Linedef>();
+
+    public IReadOnlyList<Thing> GetThingsAt(int col, int row)
+        => IsCellInRange(col, row) ? thingCells[Index(col, row)] : Array.Empty<Thing>();
+
+    public IReadOnlyList<Vertex> GetVerticesAt(int col, int row)
+        => IsCellInRange(col, row) ? vertCells[Index(col, row)] : Array.Empty<Vertex>();
+
     public BlockMap(MapSet map, double blockSize = 128.0)
     {
         this.blockSize = blockSize > 0 ? blockSize : 128.0;
