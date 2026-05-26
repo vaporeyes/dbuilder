@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments
+public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, IMultiTaggedMapElement
 {
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;

@@ -79,7 +79,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port remaining map options.
 - [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
 - [x] Port argument handling and typed field access.
-- [ ] Port tag behavior and tag collections.
+- [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
