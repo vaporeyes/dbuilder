@@ -27,10 +27,14 @@ public sealed class AnimationDef
 /// <summary>A wall switch: its default (off) texture and its pressed (on) texture.</summary>
 public sealed record SwitchDef(string OffTexture, string OnTexture);
 
+/// <summary>A named camera texture surface declared by ANIMDEFS.</summary>
+public sealed record CameraTextureDef(string Name, int Width, int Height);
+
 public sealed class Animdefs
 {
     public List<AnimationDef> Animations { get; } = new();
     public List<SwitchDef> Switches { get; } = new();
+    public List<CameraTextureDef> CameraTextures { get; } = new();
 }
 
 public static class AnimdefsParser
@@ -45,6 +49,7 @@ public static class AnimdefsParser
             string kw = t[i].ToLowerInvariant();
             if (kw == "flat" || kw == "texture") ParseAnimation(result, kw == "flat" ? AnimKind.Flat : AnimKind.Texture, t, ref i);
             else if (kw == "switch") ParseSwitch(result, t, ref i);
+            else if (kw == "cameratexture") ParseCameraTexture(result, t, ref i);
             else if (t[i] == "{") SkipBlock(t, ref i); // unknown directive's block (warp/cameratexture/...)
             else i++;
         }
@@ -110,6 +115,17 @@ public static class AnimdefsParser
             i++;
         }
         if (on != null) result.Switches.Add(new SwitchDef(off, on));
+    }
+
+    private static void ParseCameraTexture(Animdefs result, List<string> t, ref int i)
+    {
+        i++; // cameratexture
+        if (i >= t.Count) return;
+        string name = t[i++];
+        int width = ReadInt(t, ref i);
+        int height = ReadInt(t, ref i);
+        if (width > 0 && height > 0) result.CameraTextures.Add(new CameraTextureDef(name, width, height));
+        if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
     }
 
     private static bool IsGameQualifier(string s) =>

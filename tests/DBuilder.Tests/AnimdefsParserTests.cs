@@ -72,5 +72,21 @@ switch SW1COMP on pic SW2COMP tics 0";
         Assert.Single(a.Switches);
         Assert.Equal("NUKAGE1", a.Animations[0].FirstName);
         Assert.Equal("SLADRIP", a.Animations[1].FirstName);
+        Assert.Single(a.CameraTextures);
+        Assert.Equal(new CameraTextureDef("FOO", 64, 64), a.CameraTextures[0]);
+    }
+
+    [Fact]
+    public void ParsesMultipleCameraTextures()
+    {
+        const string text = @"
+cameratexture CAM1 128 64 { fitwidth 128 }
+cameratexture CAM2 320 200";
+
+        var a = AnimdefsParser.Parse(text);
+
+        Assert.Equal(new[] { "CAM1", "CAM2" }, a.CameraTextures.Select(c => c.Name).ToArray());
+        Assert.Equal(128, a.CameraTextures[0].Width);
+        Assert.Equal(200, a.CameraTextures[1].Height);
     }
 }
