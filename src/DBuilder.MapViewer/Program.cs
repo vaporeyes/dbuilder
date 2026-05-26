@@ -1,9 +1,10 @@
-// ABOUTME: Interactive 2D map viewer: loads either a real .wad (Doom binary or UDMF text) or falls back to an embedded
+// ABOUTME: Interactive 2D map viewer: loads a real WAD/PK3 map archive or falls back to an embedded
 // ABOUTME: synthetic UDMF sample, then renders via DBuilder.Rendering with mouse pan, wheel zoom, R-to-reset, color-coded lines + thing markers.
 //
 // Usage:
 //   dotnet run                       # use embedded synthetic UDMF sample
 //   dotnet run -- path/to/file.wad   # load first map in the WAD (auto-detects Doom-binary, Hexen-binary, or UDMF)
+//   dotnet run -- path/to/file.pk3   # load first embedded WAD map entry from the PK3
 //   dotnet run -- file.wad MAP05     # load a specific map by marker lump name
 
 using System.IO;
@@ -42,17 +43,17 @@ string? loadedWadPath = null;
 string? loadedMapName = null;
 if (args.Length >= 1 && File.Exists(args[0]))
 {
-    string wadPath = args[0];
+    string archivePath = args[0];
     string? requestedMap = args.Length >= 2 ? args[1].ToUpperInvariant() : null;
-    loadedWadPath = wadPath;
+    loadedWadPath = archivePath;
     loadedMapName = requestedMap;
-    map = LoadFromWad(wadPath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky, out wallTextures);
+    map = LoadFromArchive(archivePath, requestedMap, out source, out sectorFloorColors, out flatRgba, out sky, out wallTextures);
     int animatedCount = 0;
     foreach (var frames in flatRgba.Values) if (frames.Length > 1) animatedCount++;
     if (animatedCount > 0) Console.WriteLine($"[wad]   {animatedCount} animated flat chains detected");
     if (map == null)
     {
-        Console.WriteLine($"[load]  Could not load a map from '{wadPath}'.");
+        Console.WriteLine($"[load]  Could not load a map from '{archivePath}'.");
         return 1;
     }
 }
@@ -71,6 +72,44 @@ else
 }
 
 Console.WriteLine($"[load]  source={source}  ns='{map.Namespace}'  vertices={map.Vertices.Count}  linedefs={map.Linedefs.Count}  sectors={map.Sectors.Count}  things={map.Things.Count}");
+
+static MapSet? LoadFromArchive(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba, out SkyTextureData? sky, out Dictionary<string, SkyTextureData> wallTextures)
+{
+    if (!IsPk3Path(path)) return LoadFromWad(path, mapName, out source, out sectorFloorColors, out flatRgba, out sky, out wallTextures);
+
+    source = "";
+    sectorFloorColors = new();
+    flatRgba = new(StringComparer.OrdinalIgnoreCase);
+    sky = null;
+    wallTextures = new(StringComparer.OrdinalIgnoreCase);
+
+    var maps = Pk3Maps.Find(path);
+    if (maps.Count == 0)
+    {
+        Console.WriteLine("[pk3]   No embedded WAD map entries found.");
+        return null;
+    }
+
+    Pk3MapEntry? selected = null;
+    if (mapName != null)
+    {
+        foreach (var entry in maps)
+        {
+            if (entry.Map.Name.Equals(mapName, StringComparison.OrdinalIgnoreCase)
+                || entry.ArchivePath.Equals(mapName, StringComparison.OrdinalIgnoreCase)
+                || $"{entry.Map.Name}@{entry.ArchivePath}".Equals(mapName, StringComparison.OrdinalIgnoreCase))
+            {
+                selected = entry;
+                break;
+            }
+        }
+    }
+
+    selected ??= maps[0];
+    Console.WriteLine($"[pk3]   Loading map '{selected.Map.Name}' from '{selected.ArchivePath}' ({maps.Count} map entries)");
+    source = $"{Path.GetFileName(path)} [{selected.ArchivePath}:{selected.Map.Name}] {selected.Map.Format}";
+    return Pk3Maps.Load(path, selected);
+}
 
 static MapSet? LoadFromWad(string path, string? mapName, out string source, out Dictionary<int, uint> sectorFloorColors, out Dictionary<string, byte[][]> flatRgba, out SkyTextureData? sky, out Dictionary<string, SkyTextureData> wallTextures)
 {
@@ -153,6 +192,14 @@ static MapSet? LoadFromWad(string path, string? mapName, out string source, out 
         wallTextures = LoadUniqueWallTextures(loaded, wad);
     }
     return loaded;
+}
+
+static bool IsPk3Path(string path)
+{
+    string ext = Path.GetExtension(path);
+    return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
+        || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
+        || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>
