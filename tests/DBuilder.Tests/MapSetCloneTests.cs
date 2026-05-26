@@ -55,6 +55,10 @@ public class MapSetCloneTests
         Assert.True(clone.Sectors[1].Marked);
         Assert.True(clone.Things[0].Selected);
 
+        Assert.Equal(MapSet.GroupMask(1), clone.Vertices[0].Groups);
+        Assert.Equal(MapSet.GroupMask(2), clone.Linedefs[0].Groups);
+        Assert.Equal(MapSet.GroupMask(3), clone.Sectors[0].Groups);
+        Assert.Equal(MapSet.GroupMask(4), clone.Things[0].Groups);
         Assert.Equal(-8.0, clone.Vertices[0].ZFloor);
         Assert.Equal(16711680, clone.Sectors[0].GetField<int>("lightcolor"));
         Assert.Equal(new[] { 4, 12 }, clone.Sectors[0].Tags);
@@ -91,6 +95,7 @@ public class MapSetCloneTests
         var map = new MapSet { Namespace = "Doom" };
         map.Fields["author"] = "tester";
         var frontSector = map.AddSector();
+        frontSector.Groups = MapSet.GroupMask(3);
         frontSector.Tag = 4;
         frontSector.Tags.Add(12);
         frontSector.SetField("lightcolor", 16711680);
@@ -99,10 +104,12 @@ public class MapSetCloneTests
 
         var v0 = map.AddVertex(new Vector2D(0, 0));
         v0.Selected = true;
+        v0.Groups = MapSet.GroupMask(1);
         v0.ZFloor = -8.0;
         var v1 = map.AddVertex(new Vector2D(128, 0));
         var line = map.AddLinedef(v0, v1);
         line.Marked = true;
+        line.Groups = MapSet.GroupMask(2);
         line.Flags = 1;
         line.Action = 80;
         line.SetArg(2, 9);
@@ -117,6 +124,7 @@ public class MapSetCloneTests
 
         var thing = map.AddThing(new Vector2D(64, 32), 3001);
         thing.Selected = true;
+        thing.Groups = MapSet.GroupMask(4);
         thing.SetArg(1, 33);
         thing.SetField("health", 200);
         map.BuildIndexes();

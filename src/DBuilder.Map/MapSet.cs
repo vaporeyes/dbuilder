@@ -108,6 +108,7 @@ public class MapSet
             {
                 Selected = vertex.Selected,
                 Marked = vertex.Marked,
+                Groups = vertex.Groups,
                 ZCeiling = vertex.ZCeiling,
                 ZFloor = vertex.ZFloor,
             };
@@ -123,6 +124,7 @@ public class MapSet
                 Index = sector.Index,
                 Selected = sector.Selected,
                 Marked = sector.Marked,
+                Groups = sector.Groups,
                 FloorHeight = sector.FloorHeight,
                 CeilHeight = sector.CeilHeight,
                 FloorTexture = sector.FloorTexture,
@@ -146,6 +148,7 @@ public class MapSet
             {
                 Selected = line.Selected,
                 Marked = line.Marked,
+                Groups = line.Groups,
                 Flags = line.Flags,
                 Action = line.Action,
             };
@@ -188,6 +191,7 @@ public class MapSet
             {
                 Selected = thing.Selected,
                 Marked = thing.Marked,
+                Groups = thing.Groups,
                 Height = thing.Height,
                 Pitch = thing.Pitch,
                 Roll = thing.Roll,
@@ -609,6 +613,43 @@ public class MapSet
     }
 
     // ============================================================
+    // Selection groups.
+    // ============================================================
+    // UDB selection groups are a transient bitmask on vertices, linedefs, sectors and things. Sidedefs are
+    // intentionally excluded because UDB does not group them independently.
+
+    /// <summary>Returns the bitmask for a zero-based selection group index.</summary>
+    public static int GroupMask(int groupIndex)
+    {
+        if (groupIndex < 0 || groupIndex > 30) throw new ArgumentOutOfRangeException(nameof(groupIndex));
+        return 1 << groupIndex;
+    }
+
+    /// <summary>Adds every currently selected vertex, linedef, sector and thing to the group.</summary>
+    public void AddSelectionToGroup(int groupIndex)
+    {
+        int mask = GroupMask(groupIndex);
+        AddSelectedToGroup(Vertices, mask);
+        AddSelectedToGroup(Linedefs, mask);
+        AddSelectedToGroup(Sectors, mask);
+        AddSelectedToGroup(Things, mask);
+    }
+
+    /// <summary>Removes the group mask from every vertex, linedef, sector and thing.</summary>
+    public void ClearGroup(int groupMask)
+    {
+        ClearGroupMask(Vertices, groupMask);
+        ClearGroupMask(Linedefs, groupMask);
+        ClearGroupMask(Sectors, groupMask);
+        ClearGroupMask(Things, groupMask);
+    }
+
+    public void SelectVerticesByGroup(int groupMask) => SelectByGroup(Vertices, groupMask);
+    public void SelectLinedefsByGroup(int groupMask) => SelectByGroup(Linedefs, groupMask);
+    public void SelectSectorsByGroup(int groupMask) => SelectByGroup(Sectors, groupMask);
+    public void SelectThingsByGroup(int groupMask) => SelectByGroup(Things, groupMask);
+
+    // ============================================================
     // Marking.
     // ============================================================
     // Marks are transient scratch flags used by editing and analysis algorithms. They intentionally mirror
@@ -739,6 +780,22 @@ public class MapSet
         foreach (var it in items)
             if (it.Selected) n++;
         return n;
+    }
+
+    private static void AddSelectedToGroup<T>(List<T> items, int mask) where T : IGroupable
+    {
+        foreach (var it in items)
+            if (it.Selected) it.Groups |= mask;
+    }
+
+    private static void ClearGroupMask<T>(List<T> items, int mask) where T : IGroupable
+    {
+        foreach (var it in items) it.Groups &= ~mask;
+    }
+
+    private static void SelectByGroup<T>(List<T> items, int mask) where T : IGroupable
+    {
+        foreach (var it in items) it.Selected = (it.Groups & mask) != 0;
     }
 
     private static List<T> FilterMarked<T>(List<T> items) where T : IMarkable

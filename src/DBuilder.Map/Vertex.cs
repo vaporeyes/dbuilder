@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Vertex : IMapElement, ISelectable, IMarkable, IFielded
+public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 {
     public Vector2D Position { get; set; }
 
@@ -17,6 +17,9 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IFielded
 
     /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
     public bool Marked { get; set; }
+
+    /// <summary>Transient editor selection group membership bitmask.</summary>
+    public int Groups { get; set; }
 
     /// <summary>UDMF per-vertex ceiling height for vertex slopes. NaN means unset.</summary>
     public double ZCeiling { get; set; } = double.NaN;

@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Thing : IMapElement, ISelectable, IMarkable, IFielded, IHasArguments
+public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments
 {
     public Vector2D Position { get; set; }
 
@@ -17,6 +17,9 @@ public class Thing : IMapElement, ISelectable, IMarkable, IFielded, IHasArgument
 
     /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
     public bool Marked { get; set; }
+
+    /// <summary>Transient editor selection group membership bitmask.</summary>
+    public int Groups { get; set; }
 
     public double Height { get; set; } // UDMF Z; Doom-format things have no height
     public int Type { get; set; }

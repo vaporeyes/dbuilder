@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Linedef : IMapElement, ISelectable, IMarkable, IFielded, IHasArguments
+public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments
 {
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
@@ -19,6 +19,9 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IFielded, IHasArgume
 
     /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
     public bool Marked { get; set; }
+
+    /// <summary>Transient editor selection group membership bitmask.</summary>
+    public int Groups { get; set; }
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
 

@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Sector : IMapElement, ISelectable, IMarkable, IFielded
+public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 {
     public int Index { get; set; }
 
@@ -17,6 +17,9 @@ public class Sector : IMapElement, ISelectable, IMarkable, IFielded
 
     /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
     public bool Marked { get; set; }
+
+    /// <summary>Transient editor selection group membership bitmask.</summary>
+    public int Groups { get; set; }
 
     public int FloorHeight { get; set; }
     public int CeilHeight { get; set; }
