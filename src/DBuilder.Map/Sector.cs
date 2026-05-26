@@ -5,9 +5,12 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Sector : ISelectable, IMarkable, IFielded
+public class Sector : IMapElement, ISelectable, IMarkable, IFielded
 {
     public int Index { get; set; }
+
+    /// <summary>True after this element has been removed from its owning map.</summary>
+    public bool IsDisposed { get; set; }
 
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }

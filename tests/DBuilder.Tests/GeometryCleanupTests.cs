@@ -27,6 +27,7 @@ public class GeometryCleanupTests
         Assert.Equal(2, map.Vertices.Count);
         Assert.Same(b, l2.Start); // l2 was c->a, now b->a
         Assert.Equal(2, map.Linedefs.Count);
+        Assert.True(c.IsDisposed);
     }
 
     [Fact]
@@ -44,6 +45,7 @@ public class GeometryCleanupTests
         Assert.DoesNotContain(ab, map.Linedefs);
         Assert.Empty(map.Linedefs);
         Assert.Single(map.Vertices);
+        Assert.True(ab.IsDisposed);
     }
 
     [Fact]
@@ -83,13 +85,15 @@ public class GeometryCleanupTests
         var map = new MapSet();
         var a = map.AddVertex(new Vector2D(0, 0));
         var b = map.AddVertex(new Vector2D(10, 0));
-        map.AddVertex(new Vector2D(50, 50)); // orphan
+        var orphan = map.AddVertex(new Vector2D(50, 50));
         map.AddLinedef(a, b);
         map.BuildIndexes();
 
         int removed = map.RemoveUnusedVertices();
         Assert.Equal(1, removed);
         Assert.Equal(2, map.Vertices.Count);
+        Assert.True(map.ContainsVertex(a));
+        Assert.True(orphan.IsDisposed);
     }
 
     [Fact]
@@ -97,7 +101,7 @@ public class GeometryCleanupTests
     {
         var map = new MapSet();
         var used = map.AddSector();
-        map.AddSector(); // unreferenced
+        var unused = map.AddSector();
         var a = map.AddVertex(new Vector2D(0, 0));
         var b = map.AddVertex(new Vector2D(10, 0));
         var l = map.AddLinedef(a, b);
@@ -108,6 +112,7 @@ public class GeometryCleanupTests
         Assert.Equal(1, removed);
         Assert.Single(map.Sectors);
         Assert.Same(used, map.Sectors[0]);
+        Assert.True(unused.IsDisposed);
     }
 
     [Fact]
@@ -127,6 +132,8 @@ public class GeometryCleanupTests
         Assert.Contains(valid, map.Linedefs);
         Assert.DoesNotContain(invalid, map.Linedefs);
         Assert.DoesNotContain(invalidSide, map.Sidedefs);
+        Assert.True(invalid.IsDisposed);
+        Assert.True(invalidSide.IsDisposed);
     }
 
     [Fact]
@@ -147,6 +154,7 @@ public class GeometryCleanupTests
         Assert.Contains(owned, map.Sidedefs);
         Assert.DoesNotContain(detached, map.Sidedefs);
         Assert.Null(line.Back);
+        Assert.True(detached.IsDisposed);
     }
 
     [Fact]

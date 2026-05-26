@@ -3,11 +3,14 @@
 
 namespace DBuilder.Map;
 
-public class Sidedef : ISelectable, IMarkable, IFielded
+public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
 {
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
     public bool IsFront { get; set; }
+
+    /// <summary>True after this element has been removed from its owning map.</summary>
+    public bool IsDisposed { get; set; }
 
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }

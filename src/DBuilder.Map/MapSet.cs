@@ -211,17 +211,23 @@ public class MapSet
             if (ReferenceEquals(sd.Line.Front, sd)) sd.Line.Front = null;
             if (ReferenceEquals(sd.Line.Back, sd)) sd.Line.Back = null;
         }
-        Sidedefs.Remove(sd);
+        if (Sidedefs.Remove(sd)) DisposeElement(sd);
     }
 
     /// <summary>Removes a linedef along with its front and back sidedefs.</summary>
     public void RemoveLinedef(Linedef l)
     {
-        if (l.Front != null) Sidedefs.Remove(l.Front);
-        if (l.Back != null) Sidedefs.Remove(l.Back);
+        if (l.Front != null)
+        {
+            if (Sidedefs.Remove(l.Front)) DisposeElement(l.Front);
+        }
+        if (l.Back != null)
+        {
+            if (Sidedefs.Remove(l.Back)) DisposeElement(l.Back);
+        }
         l.Front = null;
         l.Back = null;
-        Linedefs.Remove(l);
+        if (Linedefs.Remove(l)) DisposeElement(l);
     }
 
     /// <summary>Removes a vertex and every linedef touching it (which in turn removes those linedefs' sidedefs).</summary>
@@ -232,7 +238,7 @@ public class MapSet
             var l = Linedefs[i];
             if (ReferenceEquals(l.Start, v) || ReferenceEquals(l.End, v)) RemoveLinedef(l);
         }
-        Vertices.Remove(v);
+        if (Vertices.Remove(v)) DisposeElement(v);
     }
 
     /// <summary>Removes a sector; sidedefs that referenced it are left in place with a null sector reference.</summary>
@@ -240,10 +246,13 @@ public class MapSet
     {
         foreach (var sd in Sidedefs)
             if (ReferenceEquals(sd.Sector, s)) sd.Sector = null;
-        Sectors.Remove(s);
+        if (Sectors.Remove(s)) DisposeElement(s);
     }
 
-    public void RemoveThing(Thing t) => Things.Remove(t);
+    public void RemoveThing(Thing t)
+    {
+        if (Things.Remove(t)) DisposeElement(t);
+    }
 
     /// <summary>
     /// Repairs invalid cross-list references after low-level edits: removes linedefs whose vertices are no longer
@@ -290,6 +299,7 @@ public class MapSet
             if (line == null || !lines.Contains(line) || (!ReferenceEquals(line.Front, side) && !ReferenceEquals(line.Back, side)))
             {
                 Sidedefs.RemoveAt(i);
+                DisposeElement(side);
                 repairs++;
                 continue;
             }
@@ -318,7 +328,12 @@ public class MapSet
 
         foreach (var sd in Sidedefs)
             if (sd.Sector != null && remove.Contains(sd.Sector)) sd.Sector = keep;
-        Sectors.RemoveAll(s => remove.Contains(s));
+        for (int i = Sectors.Count - 1; i >= 0; i--)
+        {
+            if (!remove.Contains(Sectors[i])) continue;
+            DisposeElement(Sectors[i]);
+            Sectors.RemoveAt(i);
+        }
         ReindexSectors();
         return keep;
     }
@@ -424,7 +439,7 @@ public class MapSet
             if (ReferenceEquals(l.Start, remove)) l.Start = keep;
             if (ReferenceEquals(l.End, remove)) l.End = keep;
         }
-        Vertices.Remove(remove);
+        if (Vertices.Remove(remove)) DisposeElement(remove);
 
         // Drop linedefs that collapsed to a point, and refresh angles on the rest.
         for (int i = Linedefs.Count - 1; i >= 0; i--)
@@ -506,9 +521,15 @@ public class MapSet
     {
         var used = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
         foreach (var l in Linedefs) { used.Add(l.Start); used.Add(l.End); }
-        int before = Vertices.Count;
-        Vertices.RemoveAll(v => !used.Contains(v));
-        return before - Vertices.Count;
+        int removed = 0;
+        for (int i = Vertices.Count - 1; i >= 0; i--)
+        {
+            if (used.Contains(Vertices[i])) continue;
+            DisposeElement(Vertices[i]);
+            Vertices.RemoveAt(i);
+            removed++;
+        }
+        return removed;
     }
 
     /// <summary>Removes sectors not referenced by any sidedef. Returns the number removed.</summary>
@@ -516,9 +537,15 @@ public class MapSet
     {
         var used = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
         foreach (var sd in Sidedefs) if (sd.Sector != null) used.Add(sd.Sector);
-        int before = Sectors.Count;
-        Sectors.RemoveAll(s => !used.Contains(s));
-        return before - Sectors.Count;
+        int removed = 0;
+        for (int i = Sectors.Count - 1; i >= 0; i--)
+        {
+            if (used.Contains(Sectors[i])) continue;
+            DisposeElement(Sectors[i]);
+            Sectors.RemoveAt(i);
+            removed++;
+        }
+        return removed;
     }
 
     private static void CopySidedefProperties(Sidedef src, Sidedef dst)
@@ -540,6 +567,8 @@ public class MapSet
     {
         for (int i = 0; i < dst.Args.Length; i++) dst.Args[i] = src.Args[i];
     }
+
+    private static void DisposeElement(IMapElement element) => element.IsDisposed = true;
 
     // ============================================================
     // Selection.

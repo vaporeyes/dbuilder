@@ -28,6 +28,11 @@ public class MapSetCloneTests
         Assert.NotSame(map.Sidedefs[0], clone.Sidedefs[0]);
         Assert.NotSame(map.Sectors[0], clone.Sectors[0]);
         Assert.NotSame(map.Things[0], clone.Things[0]);
+        Assert.False(clone.Vertices[0].IsDisposed);
+        Assert.False(clone.Linedefs[0].IsDisposed);
+        Assert.False(clone.Sidedefs[0].IsDisposed);
+        Assert.False(clone.Sectors[0].IsDisposed);
+        Assert.False(clone.Things[0].IsDisposed);
 
         Assert.Same(clone.Vertices[0], clone.Linedefs[0].Start);
         Assert.Same(clone.Vertices[1], clone.Linedefs[0].End);

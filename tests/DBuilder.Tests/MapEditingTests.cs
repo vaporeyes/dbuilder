@@ -68,6 +68,9 @@ public class MapEditingTests
         Assert.DoesNotContain(back, map.Sidedefs);
         Assert.Null(lDiv.Front);
         Assert.Null(lDiv.Back);
+        Assert.True(lDiv.IsDisposed);
+        Assert.True(front.IsDisposed);
+        Assert.True(back.IsDisposed);
     }
 
     [Fact]
@@ -85,6 +88,7 @@ public class MapEditingTests
         // All three sidedefs (lA front, lDiv front+back) are gone.
         Assert.Equal(sidedefsBefore - 3, map.Sidedefs.Count);
         Assert.Empty(map.Sidedefs);
+        Assert.True(v1.IsDisposed);
     }
 
     [Fact]
@@ -101,6 +105,8 @@ public class MapEditingTests
         Assert.Null(backSide.Sector);
         // The sidedef itself survives (orphaned), only its sector reference is cleared.
         Assert.Contains(backSide, map.Sidedefs);
+        Assert.True(sB.IsDisposed);
+        Assert.False(backSide.IsDisposed);
     }
 
     [Fact]
@@ -130,6 +136,8 @@ public class MapEditingTests
         Assert.Null(lDiv.Back);
         Assert.NotNull(lDiv.Front); // front untouched
         Assert.DoesNotContain(back, map.Sidedefs);
+        Assert.True(back.IsDisposed);
+        Assert.False(lDiv.IsDisposed);
     }
 
     [Fact]
@@ -139,6 +147,18 @@ public class MapEditingTests
         var t = map.AddThing(new Vector2D(0, 0), 1);
         map.RemoveThing(t);
         Assert.Empty(map.Things);
+        Assert.True(t.IsDisposed);
+    }
+
+    [Fact]
+    public void RemoveIgnoresForeignThingWithoutDisposingIt()
+    {
+        var map = new MapSet();
+        var foreign = new Thing(new Vector2D(0, 0), 1);
+
+        map.RemoveThing(foreign);
+
+        Assert.False(foreign.IsDisposed);
     }
 
     [Fact]
