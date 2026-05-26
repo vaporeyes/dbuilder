@@ -5,12 +5,15 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Thing : ISelectable
+public class Thing : ISelectable, IMarkable
 {
     public Vector2D Position { get; set; }
 
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }
+
+    /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
+    public bool Marked { get; set; }
 
     public double Height { get; set; } // UDMF Z; Doom-format things have no height
     public int Type { get; set; }

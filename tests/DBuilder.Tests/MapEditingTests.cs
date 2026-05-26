@@ -140,4 +140,71 @@ public class MapEditingTests
         map.RemoveThing(t);
         Assert.Empty(map.Things);
     }
+
+    [Fact]
+    public void MarkHelpersTrackAndClearAllElementTypes()
+    {
+        var map = BuildTwoRooms();
+        var thing = map.AddThing(new Vector2D(32, 32), 3001);
+
+        map.Vertices[0].Marked = true;
+        map.Linedefs[0].Marked = true;
+        map.Sidedefs[0].Marked = true;
+        map.Sectors[0].Marked = true;
+        thing.Marked = true;
+        map.Vertices[1].Selected = true;
+
+        Assert.Equal(new[] { map.Vertices[0] }, map.GetMarkedVertices());
+        Assert.Equal(new[] { map.Linedefs[0] }, map.GetMarkedLinedefs());
+        Assert.Equal(new[] { map.Sidedefs[0] }, map.GetMarkedSidedefs());
+        Assert.Equal(new[] { map.Sectors[0] }, map.GetMarkedSectors());
+        Assert.Equal(new[] { thing }, map.GetMarkedThings());
+        Assert.Equal(1, map.MarkedVerticesCount);
+        Assert.Equal(1, map.MarkedLinedefsCount);
+        Assert.Equal(1, map.MarkedSidedefsCount);
+        Assert.Equal(1, map.MarkedSectorsCount);
+        Assert.Equal(1, map.MarkedThingsCount);
+
+        map.ClearAllMarked();
+
+        Assert.Equal(0, map.MarkedVerticesCount);
+        Assert.Equal(0, map.MarkedLinedefsCount);
+        Assert.Equal(0, map.MarkedSidedefsCount);
+        Assert.Equal(0, map.MarkedSectorsCount);
+        Assert.Equal(0, map.MarkedThingsCount);
+        Assert.True(map.Vertices[1].Selected);
+    }
+
+    [Fact]
+    public void LookupHelpersReturnReferenceIndexesAndMembership()
+    {
+        var map = BuildTwoRooms();
+        var thing = map.AddThing(new Vector2D(16, 16), 3004);
+
+        Assert.Equal(1, map.IndexOfVertex(map.Vertices[1]));
+        Assert.Equal(1, map.IndexOfLinedef(map.Linedefs[1]));
+        Assert.Equal(2, map.IndexOfSidedef(map.Sidedefs[2]));
+        Assert.Equal(1, map.IndexOfSector(map.Sectors[1]));
+        Assert.Equal(0, map.IndexOfThing(thing));
+
+        Assert.True(map.ContainsVertex(map.Vertices[0]));
+        Assert.True(map.ContainsLinedef(map.Linedefs[0]));
+        Assert.True(map.ContainsSidedef(map.Sidedefs[0]));
+        Assert.True(map.ContainsSector(map.Sectors[0]));
+        Assert.True(map.ContainsThing(thing));
+
+        Assert.Equal(-1, map.IndexOfVertex(new Vertex(new Vector2D(0, 0))));
+        Assert.False(map.ContainsThing(new Thing(new Vector2D(16, 16), 3004)));
+    }
+
+    [Fact]
+    public void SelectedSidedefsCountMatchesSelectedSidedefs()
+    {
+        var map = BuildTwoRooms();
+        map.Sidedefs[0].Selected = true;
+        map.Sidedefs[2].Selected = true;
+
+        Assert.Equal(2, map.SelectedSidedefsCount);
+        Assert.Equal(new[] { map.Sidedefs[0], map.Sidedefs[2] }, map.GetSelectedSidedefs());
+    }
 }

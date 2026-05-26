@@ -3,7 +3,7 @@
 
 namespace DBuilder.Map;
 
-public class Sidedef : ISelectable
+public class Sidedef : ISelectable, IMarkable
 {
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
@@ -11,6 +11,9 @@ public class Sidedef : ISelectable
 
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }
+
+    /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
+    public bool Marked { get; set; }
 
     /// <summary>The opposite sidedef on the same linedef, when this is a two-sided line. Populated by MapSet.BuildIndexes().</summary>
     public Sidedef? Other { get; set; }

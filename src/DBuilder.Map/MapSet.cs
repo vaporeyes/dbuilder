@@ -373,6 +373,7 @@ public class MapSet
 
     public int SelectedVerticesCount => Count(Vertices);
     public int SelectedLinedefsCount => Count(Linedefs);
+    public int SelectedSidedefsCount => Count(Sidedefs);
     public int SelectedSectorsCount => Count(Sectors);
     public int SelectedThingsCount => Count(Things);
 
@@ -391,6 +392,57 @@ public class MapSet
         ClearSelectedSectors();
         ClearSelectedThings();
     }
+
+    // ============================================================
+    // Marking.
+    // ============================================================
+    // Marks are transient scratch flags used by editing and analysis algorithms. They intentionally mirror
+    // selection helpers but are not user-visible selection state and are not serialized.
+
+    public List<Vertex> GetMarkedVertices() => FilterMarked(Vertices);
+    public List<Linedef> GetMarkedLinedefs() => FilterMarked(Linedefs);
+    public List<Sidedef> GetMarkedSidedefs() => FilterMarked(Sidedefs);
+    public List<Sector> GetMarkedSectors() => FilterMarked(Sectors);
+    public List<Thing> GetMarkedThings() => FilterMarked(Things);
+
+    public int MarkedVerticesCount => CountMarked(Vertices);
+    public int MarkedLinedefsCount => CountMarked(Linedefs);
+    public int MarkedSidedefsCount => CountMarked(Sidedefs);
+    public int MarkedSectorsCount => CountMarked(Sectors);
+    public int MarkedThingsCount => CountMarked(Things);
+
+    public void ClearMarkedVertices() { foreach (var v in Vertices) v.Marked = false; }
+    public void ClearMarkedLinedefs() { foreach (var l in Linedefs) l.Marked = false; }
+    public void ClearMarkedSidedefs() { foreach (var s in Sidedefs) s.Marked = false; }
+    public void ClearMarkedSectors() { foreach (var s in Sectors) s.Marked = false; }
+    public void ClearMarkedThings() { foreach (var t in Things) t.Marked = false; }
+
+    /// <summary>Clears the Marked flag on every element of every type.</summary>
+    public void ClearAllMarked()
+    {
+        ClearMarkedVertices();
+        ClearMarkedLinedefs();
+        ClearMarkedSidedefs();
+        ClearMarkedSectors();
+        ClearMarkedThings();
+    }
+
+    // ============================================================
+    // Element lookup.
+    // ============================================================
+    // These helpers make ownership/index checks explicit at call sites and keep reference semantics visible.
+
+    public int IndexOfVertex(Vertex vertex) => Vertices.IndexOf(vertex);
+    public int IndexOfLinedef(Linedef linedef) => Linedefs.IndexOf(linedef);
+    public int IndexOfSidedef(Sidedef sidedef) => Sidedefs.IndexOf(sidedef);
+    public int IndexOfSector(Sector sector) => Sectors.IndexOf(sector);
+    public int IndexOfThing(Thing thing) => Things.IndexOf(thing);
+
+    public bool ContainsVertex(Vertex vertex) => IndexOfVertex(vertex) >= 0;
+    public bool ContainsLinedef(Linedef linedef) => IndexOfLinedef(linedef) >= 0;
+    public bool ContainsSidedef(Sidedef sidedef) => IndexOfSidedef(sidedef) >= 0;
+    public bool ContainsSector(Sector sector) => IndexOfSector(sector) >= 0;
+    public bool ContainsThing(Thing thing) => IndexOfThing(thing) >= 0;
 
     // ============================================================
     // Selection-driven edit operations.
@@ -471,6 +523,22 @@ public class MapSet
         int n = 0;
         foreach (var it in items)
             if (it.Selected) n++;
+        return n;
+    }
+
+    private static List<T> FilterMarked<T>(List<T> items) where T : IMarkable
+    {
+        var result = new List<T>();
+        foreach (var it in items)
+            if (it.Marked) result.Add(it);
+        return result;
+    }
+
+    private static int CountMarked<T>(List<T> items) where T : IMarkable
+    {
+        int n = 0;
+        foreach (var it in items)
+            if (it.Marked) n++;
         return n;
     }
 

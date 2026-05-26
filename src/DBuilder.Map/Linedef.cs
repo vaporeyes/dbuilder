@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Linedef : ISelectable
+public class Linedef : ISelectable, IMarkable
 {
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
@@ -13,6 +13,9 @@ public class Linedef : ISelectable
 
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }
+
+    /// <summary>Transient editor mark state for batch algorithms. Not part of the saved map.</summary>
+    public bool Marked { get; set; }
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
 
