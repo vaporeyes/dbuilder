@@ -53,6 +53,24 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void GetSectorAtMatchesMapSetNearestLinedefRule()
+    {
+        var map = new MapSet();
+        var left = map.AddSector();
+        var right = map.AddSector();
+        var a = map.AddVertex(new Vector2D(50, 0));
+        var b = map.AddVertex(new Vector2D(50, 100));
+        var divider = map.AddLinedef(a, b);
+        map.AddSidedef(divider, true, right);
+        map.AddSidedef(divider, false, left);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 32);
+
+        Assert.Same(map.GetSectorAt(new Vector2D(60, 50)), bm.GetSectorAt(new Vector2D(60, 50)));
+        Assert.Same(map.GetSectorAt(new Vector2D(40, 50)), bm.GetSectorAt(new Vector2D(40, 50)));
+    }
+
+    [Fact]
     public void NearestThingMatchesBruteForce()
     {
         var map = RandomMap(555);

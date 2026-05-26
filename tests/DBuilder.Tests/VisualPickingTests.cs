@@ -42,6 +42,20 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void BlockMapAcceleratedRaycastMatchesFloorHit()
+    {
+        var (map, s, _) = Room();
+        var blockMap = new BlockMap(map, 32);
+
+        var hit = VisualPicking.Raycast(map, blockMap, new Vector3D(50, 50, 40), new Vector3D(0, 0, -1));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Same(s, hit.Sector);
+        Assert.Equal(40, hit.Distance, 6);
+    }
+
+    [Fact]
     public void LookingUpHitsCeiling()
     {
         var (map, s, _) = Room();

@@ -110,6 +110,18 @@ public sealed class BlockMap
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(lineCells, pos, maxRange, static (l, p) => SegmentDistanceSq(l, p));
 
+    /// <summary>
+    /// Returns the sector containing <paramref name="pos"/> using the same nearest-linedef side rule as
+    /// <see cref="MapSet.GetSectorAt"/>, accelerated by this blockmap's linedef grid.
+    /// </summary>
+    public Sector? GetSectorAt(Vector2D pos)
+    {
+        var line = NearestLinedef(pos);
+        if (line == null) return null;
+        bool front = Line2D.GetSideOfLine(line.Start.Position, line.End.Position, pos) < 0;
+        return (front ? line.Front : line.Back)?.Sector;
+    }
+
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(thingCells, pos, maxRange, static (t, p) => DistSq(t.Position, p));

@@ -26,6 +26,13 @@ public static class VisualPicking
     /// </summary>
     public static VisualHit? Raycast(MapSet map, Vector3D origin, Vector3D dir,
         Func<Thing, (double radius, double height)>? thingSize = null)
+        => Raycast(map, null, origin, dir, thingSize);
+
+    /// <summary>
+    /// Casts a ray using an optional blockmap to accelerate sector containment checks on large maps.
+    /// </summary>
+    public static VisualHit? Raycast(MapSet map, BlockMap? blockMap, Vector3D origin, Vector3D dir,
+        Func<Thing, (double radius, double height)>? thingSize = null)
     {
         double len = Math.Sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len < Eps) return null;
@@ -38,8 +45,8 @@ public static class VisualPicking
         foreach (var s in map.Sectors)
         {
             if (s.Sidedefs.Count == 0) continue;
-            TryPlane(map, origin, dir, s, VisualHitKind.Floor, ref best, ref bestDist);
-            TryPlane(map, origin, dir, s, VisualHitKind.Ceiling, ref best, ref bestDist);
+            TryPlane(map, blockMap, origin, dir, s, VisualHitKind.Floor, ref best, ref bestDist);
+            TryPlane(map, blockMap, origin, dir, s, VisualHitKind.Ceiling, ref best, ref bestDist);
         }
 
         // Sidedef walls as vertical quads along each linedef.
@@ -69,17 +76,21 @@ public static class VisualPicking
         // Things as upright bounding boxes (only when the caller supplies their radius/height from the config).
         if (thingSize != null)
             foreach (var t in map.Things)
-                TryThing(map, origin, dir, t, thingSize(t), ref best, ref bestDist);
+                TryThing(map, blockMap, origin, dir, t, thingSize(t), ref best, ref bestDist);
 
         return best;
     }
 
-    private static void TryThing(MapSet map, Vector3D o, Vector3D d, Thing t, (double radius, double height) size,
+    private static Sector? SectorAt(MapSet map, BlockMap? blockMap, Vector2D pos)
+        => blockMap?.GetSectorAt(pos) ?? map.GetSectorAt(pos);
+
+    private static void TryThing(MapSet map, BlockMap? blockMap, Vector3D o, Vector3D d, Thing t, (double radius, double height) size,
         ref VisualHit? best, ref double bestDist)
     {
         double r = size.radius > 0 ? size.radius : 16;
         double h = size.height > 0 ? size.height : 16;
-        double floorZ = map.GetSectorAt(t.Position)?.GetFloorZ(t.Position) ?? 0;
+        var sector = SectorAt(map, blockMap, t.Position);
+        double floorZ = sector?.GetFloorZ(t.Position) ?? 0;
         double zb = floorZ + t.Height;
         double zt = zb + h;
 
@@ -88,7 +99,7 @@ public static class VisualPicking
 
         bestDist = tt;
         best = new VisualHit(VisualHitKind.Thing, tt, new Vector3D(o.x + d.x * tt, o.y + d.y * tt, o.z + d.z * tt),
-            map.GetSectorAt(t.Position), null, true, zb, zt, SidedefPart.None, t);
+            sector, null, true, zb, zt, SidedefPart.None, t);
     }
 
     // Slab-method ray vs axis-aligned box; returns the nearest forward entry distance.
@@ -115,7 +126,7 @@ public static class VisualPicking
         }
     }
 
-    private static void TryPlane(MapSet map, Vector3D o, Vector3D d, Sector s, VisualHitKind kind,
+    private static void TryPlane(MapSet map, BlockMap? blockMap, Vector3D o, Vector3D d, Sector s, VisualHitKind kind,
         ref VisualHit? best, ref double bestDist)
     {
         bool floor = kind == VisualHitKind.Floor;
@@ -137,7 +148,7 @@ public static class VisualPicking
         if (t <= Eps || t >= bestDist) return;
 
         var xy = new Vector2D(o.x + d.x * t, o.y + d.y * t);
-        if (!ReferenceEquals(map.GetSectorAt(xy), s)) return;
+        if (!ReferenceEquals(SectorAt(map, blockMap, xy), s)) return;
 
         double zHit = floor ? s.GetFloorZ(xy) : s.GetCeilZ(xy);
         bestDist = t;

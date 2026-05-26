@@ -471,6 +471,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_device is null || _map is null) return;
         if (_geo3DDirty) { Rebuild3D(); _geo3DDirty = false; }
+        _blockmapCache ??= new DBuilder.Map.BlockMap(_map);
         UpdateFlyCamera();
 
         _device.SetZEnable(true);
@@ -507,7 +508,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var img = _resources?.GetSprite(sprite!);
             if (img == null || GetSpriteTexture(sprite!) == null) continue;
 
-            double floorZ = _map.GetSectorAt(t.Position)?.GetFloorZ(t.Position) ?? 0;
+            double floorZ = (_blockmapCache?.GetSectorAt(t.Position) ?? _map.GetSectorAt(t.Position))?.GetFloorZ(t.Position) ?? 0;
             float hw = img.Width * 0.5f, hh = img.Height * 0.5f;
             double originZ = floorZ + t.Height;
             // Use the sprite hot-spot when present (OffsetX from left, OffsetY above the origin); else
@@ -553,6 +554,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null) { _target3D = null; return; }
         var f = Cam3DForward();
         _target3D = VisualPicking.Raycast(_map,
+            _blockmapCache,
             new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z),
             new DBuilder.Geometry.Vector3D(f.X, f.Y, f.Z),
             ThingSize3D);
@@ -1743,9 +1745,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_walkMode)
         {
             // Stand on the floor of the sector under the camera, at eye height (no free vertical movement).
-            var sector = _map?.GetSectorAt(new Vec2D(_cam3DPos.X, _cam3DPos.Y));
+            var pos = new Vec2D(_cam3DPos.X, _cam3DPos.Y);
+            var sector = _blockmapCache?.GetSectorAt(pos) ?? _map?.GetSectorAt(pos);
             if (sector != null)
-                _cam3DPos.Z = (float)(sector.GetFloorZ(new Vec2D(_cam3DPos.X, _cam3DPos.Y)) + EyeHeight);
+                _cam3DPos.Z = (float)(sector.GetFloorZ(pos) + EyeHeight);
         }
         else
         {
