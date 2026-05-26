@@ -46,6 +46,19 @@ public class SelectionTests
     }
 
     [Fact]
+    public void GetSelectedCanReturnEitherSelectionState()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Selected = true;
+        map.Linedefs[1].Selected = true;
+
+        Assert.Equal(new[] { map.Vertices[0] }, map.GetSelectedVertices(selected: true));
+        Assert.Equal(new[] { map.Vertices[1], map.Vertices[2] }, map.GetSelectedVertices(selected: false));
+        Assert.Equal(new[] { map.Linedefs[1] }, map.GetSelectedLinedefs(selected: true));
+        Assert.Equal(new[] { map.Linedefs[0] }, map.GetSelectedLinedefs(selected: false));
+    }
+
+    [Fact]
     public void CountsMatchSelection()
     {
         var map = BuildMap();
@@ -86,6 +99,46 @@ public class SelectionTests
         Assert.Empty(map.GetSelectedSidedefs());
         Assert.Empty(map.GetSelectedSectors());
         Assert.Empty(map.GetSelectedThings());
+    }
+
+    [Fact]
+    public void SelectMarkedGeometrySetsSelectionForMatchingMarks()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Marked = true;
+        map.Linedefs[0].Marked = true;
+        map.Sectors[0].Marked = true;
+        map.Things[0].Marked = true;
+        map.Vertices[1].Selected = true;
+
+        map.SelectMarkedGeometry(mark: true, select: true);
+
+        Assert.True(map.Vertices[0].Selected);
+        Assert.True(map.Vertices[1].Selected);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Things[0].Selected);
+
+        map.SelectMarkedGeometry(mark: true, select: false);
+
+        Assert.False(map.Vertices[0].Selected);
+        Assert.True(map.Vertices[1].Selected);
+        Assert.False(map.Linedefs[0].Selected);
+        Assert.False(map.Sectors[0].Selected);
+        Assert.False(map.Things[0].Selected);
+    }
+
+    [Fact]
+    public void GetMarkedCanReturnEitherMarkState()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Marked = true;
+        map.Sidedefs[0].Marked = true;
+
+        Assert.Equal(new[] { map.Vertices[0] }, map.GetMarkedVertices(marked: true));
+        Assert.Equal(new[] { map.Vertices[1], map.Vertices[2] }, map.GetMarkedVertices(marked: false));
+        Assert.Equal(new[] { map.Sidedefs[0] }, map.GetMarkedSidedefs(marked: true));
+        Assert.Empty(map.GetMarkedSidedefs(marked: false));
     }
 
     [Fact]

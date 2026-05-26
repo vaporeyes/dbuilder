@@ -590,6 +590,12 @@ public class MapSet
     public List<Sector> GetSelectedSectors() => Filter(Sectors);
     public List<Thing> GetSelectedThings() => Filter(Things);
 
+    public List<Vertex> GetSelectedVertices(bool selected) => FilterSelected(Vertices, selected);
+    public List<Linedef> GetSelectedLinedefs(bool selected) => FilterSelected(Linedefs, selected);
+    public List<Sidedef> GetSelectedSidedefs(bool selected) => FilterSelected(Sidedefs, selected);
+    public List<Sector> GetSelectedSectors(bool selected) => FilterSelected(Sectors, selected);
+    public List<Thing> GetSelectedThings(bool selected) => FilterSelected(Things, selected);
+
     public int SelectedVerticesCount => Count(Vertices);
     public int SelectedLinedefsCount => Count(Linedefs);
     public int SelectedSidedefsCount => Count(Sidedefs);
@@ -611,6 +617,19 @@ public class MapSet
         ClearSelectedSectors();
         ClearSelectedThings();
     }
+
+    public void SelectMarkedGeometry(bool mark, bool select)
+    {
+        SelectMarkedVertices(mark, select);
+        SelectMarkedLinedefs(mark, select);
+        SelectMarkedSectors(mark, select);
+        SelectMarkedThings(mark, select);
+    }
+
+    public void SelectMarkedVertices(bool mark, bool select) => SelectMarked(Vertices, mark, select);
+    public void SelectMarkedLinedefs(bool mark, bool select) => SelectMarked(Linedefs, mark, select);
+    public void SelectMarkedSectors(bool mark, bool select) => SelectMarked(Sectors, mark, select);
+    public void SelectMarkedThings(bool mark, bool select) => SelectMarked(Things, mark, select);
 
     // ============================================================
     // Selection groups.
@@ -660,6 +679,12 @@ public class MapSet
     public List<Sidedef> GetMarkedSidedefs() => FilterMarked(Sidedefs);
     public List<Sector> GetMarkedSectors() => FilterMarked(Sectors);
     public List<Thing> GetMarkedThings() => FilterMarked(Things);
+
+    public List<Vertex> GetMarkedVertices(bool marked) => FilterMarked(Vertices, marked);
+    public List<Linedef> GetMarkedLinedefs(bool marked) => FilterMarked(Linedefs, marked);
+    public List<Sidedef> GetMarkedSidedefs(bool marked) => FilterMarked(Sidedefs, marked);
+    public List<Sector> GetMarkedSectors(bool marked) => FilterMarked(Sectors, marked);
+    public List<Thing> GetMarkedThings(bool marked) => FilterMarked(Things, marked);
 
     public int MarkedVerticesCount => CountMarked(Vertices);
     public int MarkedLinedefsCount => CountMarked(Linedefs);
@@ -780,6 +805,14 @@ public class MapSet
         return result;
     }
 
+    private static List<T> FilterSelected<T>(List<T> items, bool selected) where T : ISelectable
+    {
+        var result = new List<T>();
+        foreach (var it in items)
+            if (it.Selected == selected) result.Add(it);
+        return result;
+    }
+
     private static int Count<T>(List<T> items) where T : ISelectable
     {
         int n = 0;
@@ -812,12 +845,26 @@ public class MapSet
         return result;
     }
 
+    private static List<T> FilterMarked<T>(List<T> items, bool marked) where T : IMarkable
+    {
+        var result = new List<T>();
+        foreach (var it in items)
+            if (it.Marked == marked) result.Add(it);
+        return result;
+    }
+
     private static int CountMarked<T>(List<T> items) where T : IMarkable
     {
         int n = 0;
         foreach (var it in items)
             if (it.Marked) n++;
         return n;
+    }
+
+    private static void SelectMarked<T>(List<T> items, bool mark, bool select) where T : ISelectable, IMarkable
+    {
+        foreach (var it in items)
+            if (it.Marked == mark) it.Selected = select;
     }
 
     // ============================================================
