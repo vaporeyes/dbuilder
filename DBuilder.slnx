@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/DBuilder.Geometry/DBuilder.Geometry.csproj" />
     <Project Path="src/DBuilder.IO/DBuilder.IO.csproj" />
+    <Project Path="src/DBuilder.Editor/DBuilder.Editor.csproj" />
     <Project Path="src/DBuilder.Map/DBuilder.Map.csproj" />
     <Project Path="src/DBuilder.MapDemo/DBuilder.MapDemo.csproj" />
     <Project Path="src/DBuilder.MapViewer/DBuilder.MapViewer.csproj" />
