@@ -448,6 +448,39 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void TopLevelCustomMapFieldsRoundTrip()
+    {
+        const string udmf = """
+            namespace = "ZDoom";
+            author = "tester";
+            gravity = 0.5;
+            allowjump = true;
+            musicorder = 3;
+            vertex { x = 0.0; y = 0.0; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal("tester", map.Fields["author"]);
+        Assert.Equal(0.5, (double)map.Fields["gravity"]);
+        Assert.True((bool)map.Fields["allowjump"]);
+        Assert.Equal(3, (int)map.Fields["musicorder"]);
+
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("author = \"tester\";", written);
+        Assert.Contains("gravity = 0.5;", written);
+        Assert.Contains("allowjump = true;", written);
+        Assert.Contains("musicorder = 3;", written);
+
+        var reloaded = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal("tester", reloaded.Fields["author"]);
+        Assert.Equal(0.5, (double)reloaded.Fields["gravity"]);
+        Assert.True((bool)reloaded.Fields["allowjump"]);
+        Assert.Equal(3, (int)reloaded.Fields["musicorder"]);
+    }
+
+    [Fact]
     public void UdmfArgsLoadIntoTypedArray()
     {
         const string udmf = """

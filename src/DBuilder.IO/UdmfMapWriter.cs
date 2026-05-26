@@ -23,6 +23,7 @@ public static class UdmfMapWriter
     {
         var sb = new StringBuilder();
         WriteAssignment(sb, "namespace", string.IsNullOrEmpty(map.Namespace) ? "Doom" : map.Namespace);
+        WriteCustomFields(sb, map.Fields, indent: false);
         sb.AppendLine();
 
         var vertexIndex  = BuildIndex(map.Vertices);
@@ -202,18 +203,18 @@ public static class UdmfMapWriter
         WriteAssignment(sb, "moreids", extra.ToString(), indent: true);
     }
 
-    private static void WriteCustomFields(StringBuilder sb, Dictionary<string, object> fields)
+    private static void WriteCustomFields(StringBuilder sb, Dictionary<string, object> fields, bool indent = true)
     {
         foreach (var kv in fields)
         {
             switch (kv.Value)
             {
-                case bool b:   WriteAssignment(sb, kv.Key, b, indent: true); break;
-                case int i:    WriteAssignment(sb, kv.Key, i, indent: true); break;
-                case long l:   WriteAssignment(sb, kv.Key, (int)l, indent: true); break;
-                case double d: WriteAssignment(sb, kv.Key, d, indent: true); break;
-                case float f:  WriteAssignment(sb, kv.Key, (double)f, indent: true); break;
-                case string s: WriteAssignment(sb, kv.Key, s, indent: true); break;
+                case bool b:   WriteAssignment(sb, kv.Key, b, indent); break;
+                case int i:    WriteAssignment(sb, kv.Key, i, indent); break;
+                case long l:   WriteAssignment(sb, kv.Key, (int)l, indent); break;
+                case double d: WriteAssignment(sb, kv.Key, d, indent); break;
+                case float f:  WriteAssignment(sb, kv.Key, (double)f, indent); break;
+                case string s: WriteAssignment(sb, kv.Key, s, indent); break;
             }
         }
     }

@@ -84,17 +84,20 @@ public class UndoManagerTests
     public void SnapshotPreservesFieldsTagsAndNamespace()
     {
         var map = BuildMap();
+        map.Fields["author"] = "tester";
         map.Sectors[0].Fields["lightcolor"] = 16711680;
         map.Sectors[0].Tags.Add(9); // now [7, 9]
         var undo = new UndoManager(map);
 
         undo.CreateUndo("edit");
         map.Namespace = "ZDoom";
+        map.Fields.Clear();
         map.Sectors[0].Fields.Clear();
         map.Sectors[0].Tags.Clear();
         undo.Undo();
 
         Assert.Equal("Doom", map.Namespace);
+        Assert.Equal("tester", map.Fields["author"]);
         Assert.Equal(16711680, (int)map.Sectors[0].Fields["lightcolor"]);
         Assert.Equal(new[] { 7, 9 }, map.Sectors[0].Tags);
     }

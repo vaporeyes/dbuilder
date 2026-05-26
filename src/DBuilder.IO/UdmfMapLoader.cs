@@ -60,6 +60,9 @@ public static class UdmfMapLoader
                 case "thing" when entry.Value is UniversalCollection t:
                     thingEntries.Add(t);
                     break;
+                default:
+                    CollectMapField(map, entry);
+                    break;
             }
         }
 
@@ -217,6 +220,17 @@ public static class UdmfMapLoader
     }
 
     // --- Field helpers ---
+
+    private static void CollectMapField(MapSet map, UniversalEntry entry)
+    {
+        switch (entry.Value)
+        {
+            case bool b: map.Fields[entry.Key] = b; break;
+            case int i: map.Fields[entry.Key] = i; break;
+            case double d: map.Fields[entry.Key] = d; break;
+            case string s: map.Fields[entry.Key] = s; break;
+        }
+    }
 
     // Keys handled by typed properties on each element. Anything else (and not a bool flag) is
     // preserved verbatim in the element's Fields dictionary so custom UDMF data survives round trip.

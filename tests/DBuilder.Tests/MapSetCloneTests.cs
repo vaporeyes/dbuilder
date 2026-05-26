@@ -17,6 +17,7 @@ public class MapSetCloneTests
 
         Assert.NotSame(map, clone);
         Assert.Equal(map.Namespace, clone.Namespace);
+        Assert.Equal("tester", clone.Fields["author"]);
         Assert.Equal(map.Vertices.Count, clone.Vertices.Count);
         Assert.Equal(map.Linedefs.Count, clone.Linedefs.Count);
         Assert.Equal(map.Sidedefs.Count, clone.Sidedefs.Count);
@@ -71,12 +72,14 @@ public class MapSetCloneTests
         var clone = map.Clone();
 
         map.Vertices[0].Position = new Vector2D(999, 999);
+        map.Fields["author"] = "changed";
         map.Sectors[0].Fields["lightcolor"] = 1;
         map.Linedefs[0].SetArg(2, 1);
         map.Sidedefs[0].MidTexture = "CHANGED";
         map.Things[0].Position = new Vector2D(10, 10);
 
         Assert.Equal(new Vector2D(0, 0), clone.Vertices[0].Position);
+        Assert.Equal("tester", clone.Fields["author"]);
         Assert.Equal(16711680, clone.Sectors[0].GetField<int>("lightcolor"));
         Assert.Equal(9, clone.Linedefs[0].GetArg(2));
         Assert.Equal("MID", clone.Sidedefs[0].MidTexture);
@@ -86,6 +89,7 @@ public class MapSetCloneTests
     private static MapSet BuildSample()
     {
         var map = new MapSet { Namespace = "Doom" };
+        map.Fields["author"] = "tester";
         var frontSector = map.AddSector();
         frontSector.Tag = 4;
         frontSector.Tags.Add(12);
