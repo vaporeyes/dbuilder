@@ -85,6 +85,14 @@ public class Pk3ResourceTests
         return ms.ToArray();
     }
 
+    private static byte[] BuildNestedResourcePk3()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("flats/NESTPK3.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 33, 44, 55, 255))));
+        try { return File.ReadAllBytes(pk3); }
+        finally { File.Delete(pk3); }
+    }
+
     private static void Insert(WAD wad, string name, byte[] bytes)
     {
         var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
@@ -179,6 +187,23 @@ public class Pk3ResourceTests
             Assert.NotNull(flat);
             Assert.Equal(64, flat!.Width);
             Assert.Equal(new byte[] { 42, 42, 42, 255 }, flat.Rgba[0..4]);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void NestedPk3InsidePk3ProvidesFolderResources()
+    {
+        string path = TestArtifacts.BuildPk3(("archives/nested.pk3", BuildNestedResourcePk3()));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            var flat = rm.GetFlat("NESTPK3");
+            Assert.NotNull(flat);
+            Assert.Equal(new byte[] { 33, 44, 55, 255 }, flat!.Rgba[0..4]);
+            Assert.Contains("NESTPK3", rm.GetFlatNames());
         }
         finally { File.Delete(path); }
     }

@@ -185,8 +185,8 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 {
     private readonly ZipArchive zip;
     private readonly Stream? ownedStream;
-    private readonly List<WadResourceReader> nestedWads = new();
-    private readonly List<MemoryStream> nestedWadStreams = new();
+    private readonly List<IResourceReader> nestedReaders = new();
+    private readonly List<MemoryStream> nestedStreams = new();
 
     public Pk3ResourceReader(Stream zipStream, bool ownsStream)
     {
@@ -210,8 +210,17 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 var ms = new MemoryStream();
                 s.CopyTo(ms);
                 ms.Position = 0;
-                nestedWadStreams.Add(ms);
-                nestedWads.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true));
+                nestedStreams.Add(ms);
+                nestedReaders.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true));
+            }
+            else if (LooksLikeNestedZip(e.FullName))
+            {
+                using var s = e.Open();
+                var ms = new MemoryStream();
+                s.CopyTo(ms);
+                ms.Position = 0;
+                nestedStreams.Add(ms);
+                nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false));
             }
         }
     }
@@ -221,9 +230,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var palette = base.GetPalette();
         if (palette != null) return palette;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            palette = nestedWads[i].GetPalette();
+            palette = nestedReaders[i].GetPalette();
             if (palette != null) return palette;
         }
 
@@ -235,9 +244,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var image = base.GetFlat(name, palette);
         if (image != null) return image;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedWads[i].GetFlat(name, palette);
+            image = nestedReaders[i].GetFlat(name, palette);
             if (image != null) return image;
         }
 
@@ -249,9 +258,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var image = base.GetWallTexture(name, palette);
         if (image != null) return image;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedWads[i].GetWallTexture(name, palette);
+            image = nestedReaders[i].GetWallTexture(name, palette);
             if (image != null) return image;
         }
 
@@ -263,9 +272,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var image = base.GetSprite(name, palette);
         if (image != null) return image;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedWads[i].GetSprite(name, palette);
+            image = nestedReaders[i].GetSprite(name, palette);
             if (image != null) return image;
         }
 
@@ -277,9 +286,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var text = base.GetTextLump(name);
         if (text != null) return text;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            text = nestedWads[i].GetTextLump(name);
+            text = nestedReaders[i].GetTextLump(name);
             if (text != null) return text;
         }
 
@@ -291,9 +300,9 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         var bytes = base.GetLumpBytes(name);
         if (bytes != null) return bytes;
 
-        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            bytes = nestedWads[i].GetLumpBytes(name);
+            bytes = nestedReaders[i].GetLumpBytes(name);
             if (bytes != null) return bytes;
         }
 
@@ -303,23 +312,32 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     public override IEnumerable<string> TextureNames()
     {
         foreach (var name in base.TextureNames()) yield return name;
-        foreach (var wad in nestedWads)
-            foreach (var name in wad.TextureNames())
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.TextureNames())
                 yield return name;
     }
 
     public override IEnumerable<string> FlatNames()
     {
         foreach (var name in base.FlatNames()) yield return name;
-        foreach (var wad in nestedWads)
-            foreach (var name in wad.FlatNames())
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.FlatNames())
                 yield return name;
+    }
+
+    private static bool LooksLikeNestedZip(string path)
+    {
+        string ext = Path.GetExtension(path);
+        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".pkz", StringComparison.OrdinalIgnoreCase);
     }
 
     public override void Dispose()
     {
-        foreach (var wad in nestedWads) wad.Dispose();
-        foreach (var stream in nestedWadStreams) stream.Dispose();
+        foreach (var reader in nestedReaders) reader.Dispose();
+        foreach (var stream in nestedStreams) stream.Dispose();
         zip.Dispose();
         ownedStream?.Dispose();
     }
