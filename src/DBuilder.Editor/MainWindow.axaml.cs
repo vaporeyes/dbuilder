@@ -24,6 +24,9 @@ public partial class MainWindow : Window
     private UndoManager? _undo;
     private string? _mapMarker;
     private string? _wadPath;
+    private string? _pk3Path;
+    private List<Pk3MapEntry>? _pk3Maps;
+    private string? _pk3MapArchivePath;
     private string? _iwadPath; // an IWAD (the loaded WAD if it is one, else an added IWAD resource) for Test Map
     private MapFormat _mapFormat = MapFormat.Doom;
     private GameConfiguration? _config;
@@ -65,7 +68,7 @@ public partial class MainWindow : Window
         TryLoadDefaultConfig();
 
         if (openPath != null && System.IO.File.Exists(openPath))
-            LoadWad(openPath);
+            LoadArchive(openPath);
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
@@ -80,7 +83,7 @@ public partial class MainWindow : Window
             string captured = path;
             item.Click += (_, _) =>
             {
-                if (System.IO.File.Exists(captured)) LoadWad(captured);
+                if (System.IO.File.Exists(captured)) LoadArchive(captured);
                 else SetStatus($"File not found: {captured}");
             };
             items.Add(item);
@@ -196,20 +199,33 @@ public partial class MainWindow : Window
         if (top is null) return;
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Open WAD",
+            Title = "Open WAD or PK3",
             AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("Doom WAD") { Patterns = new[] { "*.wad" } } },
+            FileTypeFilter = new[] { new FilePickerFileType("Doom WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip" } } },
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
-            LoadWad(path);
+            LoadArchive(path);
     }
 
     // Lets the user pick any map in the currently open WAD (doom2 has 32, hexen 31, ...).
     private async void OnOpenMap(object? sender, RoutedEventArgs e)
     {
-        if (_wadPath is null) { SetStatus("Open a WAD first."); return; }
+        if (_wadPath is null && _pk3Path is null) { SetStatus("Open a WAD or PK3 first."); return; }
+        if (_pk3Path is not null && _pk3Maps is not null)
+        {
+            var displayMaps = new List<MapEntry>();
+            foreach (var pk3Map in _pk3Maps) displayMaps.Add(DisplayEntry(pk3Map));
+            var pk3Dialog = new MapPickerDialog(displayMaps, CurrentPk3DisplayName());
+            if (await pk3Dialog.ShowDialog<bool>(this) && pk3Dialog.Selected is { } selected)
+            {
+                int index = displayMaps.FindIndex(m => m.Name == selected.Name && m.Format == selected.Format);
+                if (index >= 0) LoadPk3MapEntry(_pk3Maps[index]);
+            }
+            return;
+        }
+
         List<MapEntry> maps;
-        using (var wad = new WAD(_wadPath, openreadonly: true)) maps = WadMaps.Find(wad);
+        using (var wad = new WAD(_wadPath!, openreadonly: true)) maps = WadMaps.Find(wad);
         if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
 
         var dlg = new MapPickerDialog(maps, _mapMarker);
@@ -675,6 +691,12 @@ public partial class MainWindow : Window
 
     private ResourceManager? _resources;
 
+    private void LoadArchive(string path)
+    {
+        if (IsPk3Path(path)) LoadPk3(path);
+        else LoadWad(path);
+    }
+
     private void LoadWad(string path)
     {
         try
@@ -689,6 +711,9 @@ public partial class MainWindow : Window
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
 
             _wadPath = path;
+            _pk3Path = null;
+            _pk3Maps = null;
+            _pk3MapArchivePath = null;
 
             // Resource manager over the loaded WAD provides flats/textures for the map view.
             _resources?.Dispose();
@@ -706,6 +731,34 @@ public partial class MainWindow : Window
                 SetStatus($"Loaded {maps[0].Name} (1 of {maps.Count} maps - File > Open Map to switch)");
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
+    }
+
+    private void LoadPk3(string path)
+    {
+        try
+        {
+            var maps = Pk3Maps.Find(path);
+            if (maps.Count == 0) { SetStatus($"No embedded map WAD found in {System.IO.Path.GetFileName(path)}"); return; }
+
+            _wadPath = null;
+            _pk3Path = path;
+            _pk3Maps = maps;
+
+            _resources?.Dispose();
+            _resources = new ResourceManager();
+            _resources.AddResource(path);
+            MapView.MapResources = _resources;
+            MergeActorsFromResources();
+
+            _settings.AddRecent(path);
+            SaveSettings();
+            RebuildRecentMenu();
+
+            LoadPk3MapEntry(maps[0]);
+            if (maps.Count > 1)
+                SetStatus($"Loaded {maps[0].Map.Name} from {maps[0].ArchivePath} (1 of {maps.Count} maps - File > Open Map to switch)");
+        }
+        catch (Exception ex) { SetStatus($"PK3 load failed: {ex.Message}"); }
     }
 
     // Loads a specific map from the currently open WAD into the editor.
@@ -731,6 +784,43 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
+
+    private void LoadPk3MapEntry(Pk3MapEntry entry)
+    {
+        if (_pk3Path == null) return;
+        try
+        {
+            var map = Pk3Maps.Load(_pk3Path, entry);
+            if (map is null) { SetStatus($"Failed to load {entry.Map.Name} from {entry.ArchivePath}"); return; }
+
+            _map = map;
+            _mapMarker = entry.Map.Name;
+            _mapFormat = entry.Map.Format;
+            _pk3MapArchivePath = entry.ArchivePath;
+            _undo = new UndoManager(map);
+
+            MapView.Map = map;
+            MapView.Focus();
+            Title = $"DBuilder - {System.IO.Path.GetFileName(_pk3Path)} ({entry.ArchivePath}:{entry.Map.Name})";
+            UpdateInfo();
+            SetStatus($"Loaded {entry.Map.Name} [{entry.Map.Format}] from {entry.ArchivePath}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
+        }
+        catch (Exception ex) { SetStatus($"PK3 map load failed: {ex.Message}"); }
+    }
+
+    private static bool IsPk3Path(string path)
+    {
+        string ext = System.IO.Path.GetExtension(path);
+        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static MapEntry DisplayEntry(Pk3MapEntry entry)
+        => new($"{entry.Map.Name} @ {entry.ArchivePath}", entry.Map.Format);
+
+    private string? CurrentPk3DisplayName()
+        => _mapMarker is null || _pk3MapArchivePath is null ? null : $"{_mapMarker} @ {_pk3MapArchivePath}";
 
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
     private void OnTestMap(object? sender, RoutedEventArgs e)
