@@ -162,6 +162,36 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void DisposeMarksAllElementsAndClearsCollections()
+    {
+        var map = BuildTwoRooms();
+        var vertex = map.Vertices[0];
+        var line = map.Linedefs[0];
+        var side = map.Sidedefs[0];
+        var sector = map.Sectors[0];
+        var thing = map.AddThing(new Vector2D(16, 16), 3004);
+        map.Namespace = "ZDoom";
+        map.Fields["author"] = "tester";
+
+        map.Dispose();
+        map.Dispose();
+
+        Assert.True(map.IsDisposed);
+        Assert.True(vertex.IsDisposed);
+        Assert.True(line.IsDisposed);
+        Assert.True(side.IsDisposed);
+        Assert.True(sector.IsDisposed);
+        Assert.True(thing.IsDisposed);
+        Assert.Empty(map.Vertices);
+        Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+        Assert.Empty(map.Sectors);
+        Assert.Empty(map.Things);
+        Assert.Empty(map.Fields);
+        Assert.Equal("", map.Namespace);
+    }
+
+    [Fact]
     public void MarkHelpersTrackAndClearAllElementTypes()
     {
         var map = BuildTwoRooms();

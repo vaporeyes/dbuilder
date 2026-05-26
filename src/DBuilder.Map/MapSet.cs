@@ -5,13 +5,15 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class MapSet
+public class MapSet : IDisposable
 {
     public List<Vertex> Vertices { get; } = new();
     public List<Linedef> Linedefs { get; } = new();
     public List<Sidedef> Sidedefs { get; } = new();
     public List<Sector> Sectors { get; } = new();
     public List<Thing> Things { get; } = new();
+
+    public bool IsDisposed { get; private set; }
 
     // UDMF namespace (e.g. "ZDoomTranslated", "Doom").
     public string Namespace { get; set; } = "";
@@ -90,6 +92,26 @@ public class MapSet
         var t = new Thing(position, type);
         Things.Add(t);
         return t;
+    }
+
+    public void Dispose()
+    {
+        if (IsDisposed) return;
+
+        foreach (var thing in Things) DisposeElement(thing);
+        foreach (var sector in Sectors) DisposeElement(sector);
+        foreach (var side in Sidedefs) DisposeElement(side);
+        foreach (var line in Linedefs) DisposeElement(line);
+        foreach (var vertex in Vertices) DisposeElement(vertex);
+
+        Things.Clear();
+        Sectors.Clear();
+        Sidedefs.Clear();
+        Linedefs.Clear();
+        Vertices.Clear();
+        Fields.Clear();
+        Namespace = "";
+        IsDisposed = true;
     }
 
     /// <summary>Creates a deep copy of this map, preserving element data, transient flags and references.</summary>
