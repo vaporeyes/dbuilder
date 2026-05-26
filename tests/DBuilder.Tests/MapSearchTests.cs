@@ -60,6 +60,20 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindTagMatchesMoreIds()
+    {
+        var map = Build();
+        map.Sectors[0].Tags.Add(17);
+        map.Linedefs[0].Tags.Add(17);
+
+        var r = MapSearch.Find(map, FindCategory.Tag, "17");
+
+        Assert.Equal(2, r.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Linedefs[0].Selected);
+    }
+
+    [Fact]
     public void FindClearsPriorSelection()
     {
         var map = Build();
@@ -113,6 +127,21 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void UsedTagsIncludesMoreIds()
+    {
+        var map = Build();
+        map.Sectors[0].Tags.Add(7);
+        map.Linedefs[0].Tags.Add(7);
+        map.Linedefs[1].Tag = 2;
+
+        var tags = MapSearch.UsedTags(map);
+
+        Assert.Equal(new[] { 2, 5, 7 }, tags.ConvertAll(t => t.Tag));
+        Assert.Equal(3, tags.First(t => t.Tag == 5).Count);
+        Assert.Equal(2, tags.First(t => t.Tag == 7).Count);
+    }
+
+    [Fact]
     public void NextFreeTagSkipsUsed()
     {
         var map = Build();
@@ -120,6 +149,29 @@ public class MapSearchTests
         Assert.Equal(1, MapSearch.NextFreeTag(map));
         map.Sectors[1].Tag = 1; map.Linedefs[1].Tag = 2; map.Things[0].Tag = 3;
         Assert.Equal(4, MapSearch.NextFreeTag(map));
+    }
+
+    [Fact]
+    public void NextFreeTagSkipsMoreIds()
+    {
+        var map = Build();
+        map.Linedefs[0].Tags.AddRange(new[] { 1, 2, 3, 4 });
+
+        Assert.Equal(6, MapSearch.NextFreeTag(map));
+    }
+
+    [Fact]
+    public void ReplaceTagUpdatesMoreIds()
+    {
+        var map = Build();
+        map.Sectors[0].Tags.Add(17);
+        map.Linedefs[0].Tags.Add(17);
+
+        int changed = MapSearch.Replace(map, FindCategory.Tag, "17", "19");
+
+        Assert.Equal(2, changed);
+        Assert.Equal(new[] { 5, 19 }, map.Sectors[0].Tags);
+        Assert.Equal(new[] { 5, 19 }, map.Linedefs[0].Tags);
     }
 
     [Fact]

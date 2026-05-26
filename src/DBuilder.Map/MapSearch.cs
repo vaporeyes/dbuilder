@@ -44,9 +44,9 @@ public static class MapSearch
             case FindCategory.Tag:
                 if (numOk)
                 {
-                    foreach (var l in map.Linedefs) if (l.Tag == num) { l.Selected = true; count++; focus ??= Mid(l); }
-                    foreach (var s in map.Sectors) if (s.Tag == num) { s.Selected = true; count++; }
-                    foreach (var t in map.Things) if (t.Tag == num) { t.Selected = true; count++; focus ??= t.Position; }
+                    foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
+                    foreach (var s in map.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
+                    foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 }
                 break;
             case FindCategory.Texture:
@@ -110,9 +110,9 @@ public static class MapSearch
                 foreach (var s in map.Sectors) if (s.Special == from) { s.Special = to; changed++; }
                 break;
             case FindCategory.Tag:
-                foreach (var l in map.Linedefs) if (l.Tag == from) { l.Tag = to; changed++; }
-                foreach (var s in map.Sectors) if (s.Tag == from) { s.Tag = to; changed++; }
-                foreach (var t in map.Things) if (t.Tag == from) { t.Tag = to; changed++; }
+                foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
+                foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
+                foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
         }
         return changed;
@@ -123,9 +123,9 @@ public static class MapSearch
     {
         var counts = new Dictionary<int, int>();
         void Add(int t) { if (t != 0) counts[t] = counts.TryGetValue(t, out int c) ? c + 1 : 1; }
-        foreach (var l in map.Linedefs) Add(l.Tag);
-        foreach (var s in map.Sectors) Add(s.Tag);
-        foreach (var t in map.Things) Add(t.Tag);
+        foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(tag);
+        foreach (var s in map.Sectors) foreach (int tag in MapElementTags.PositiveTags(s)) Add(tag);
+        foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(tag);
         var list = new List<(int, int)>();
         foreach (var kv in counts) list.Add((kv.Key, kv.Value));
         list.Sort((a, b) => a.Item1.CompareTo(b.Item1));
@@ -136,9 +136,9 @@ public static class MapSearch
     public static int NextFreeTag(MapSet map)
     {
         var used = new HashSet<int>();
-        foreach (var l in map.Linedefs) if (l.Tag > 0) used.Add(l.Tag);
-        foreach (var s in map.Sectors) if (s.Tag > 0) used.Add(s.Tag);
-        foreach (var t in map.Things) if (t.Tag > 0) used.Add(t.Tag);
+        foreach (var l in map.Linedefs) foreach (int t in MapElementTags.PositiveTags(l)) used.Add(t);
+        foreach (var s in map.Sectors) foreach (int t in MapElementTags.PositiveTags(s)) used.Add(t);
+        foreach (var thing in map.Things) foreach (int t in MapElementTags.PositiveTags(thing)) used.Add(t);
         int tag = 1;
         while (used.Contains(tag)) tag++;
         return tag;
