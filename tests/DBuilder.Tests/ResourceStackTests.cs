@@ -1,0 +1,115 @@
+// ABOUTME: Tests ResourceManager behavior across mixed IWAD, PWAD, PK3, nested WAD, and directory resources.
+// ABOUTME: Builds synthetic assets so priority and fallback behavior are covered without copyrighted game data.
+
+using System;
+using System.IO;
+using DBuilder.IO;
+
+namespace DBuilder.Tests;
+
+public class ResourceStackTests
+{
+    private static byte[] GrayscalePlaypal()
+    {
+        var p = new byte[768];
+        for (int i = 0; i < 256; i++) { p[i * 3] = (byte)i; p[i * 3 + 1] = (byte)i; p[i * 3 + 2] = (byte)i; }
+        return p;
+    }
+
+    private static byte[] SolidFlat(byte index)
+    {
+        var f = new byte[DoomFlatReader.RawSize];
+        for (int i = 0; i < f.Length; i++) f[i] = index;
+        return f;
+    }
+
+    private static string BuildWadFile(params (string name, byte[] bytes)[] lumps)
+    {
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder_stack_" + Guid.NewGuid().ToString("N") + ".wad");
+        using (var wad = new WAD(path))
+        {
+            foreach (var (name, bytes) in lumps) Insert(wad, name, bytes);
+            wad.WriteHeaders();
+        }
+        return path;
+    }
+
+    private static byte[] BuildNestedWadBytes()
+    {
+        using var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            Insert(wad, "F_START", Array.Empty<byte>());
+            Insert(wad, "PK3NEST", SolidFlat(70));
+            Insert(wad, "F_END", Array.Empty<byte>());
+            wad.WriteHeaders();
+        }
+        return ms.ToArray();
+    }
+
+    private static void Insert(WAD wad, string name, byte[] bytes)
+    {
+        var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+        lump.Stream.Write(bytes, 0, bytes.Length);
+    }
+
+    private static string BuildResourceDirectory()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder_stack_dir_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "flats"));
+        File.WriteAllBytes(
+            Path.Combine(root, "flats", "STACKFLAT.png"),
+            TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 90, 91, 92, 255)));
+        File.WriteAllBytes(
+            Path.Combine(root, "flats", "DIRONLY.png"),
+            TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 100, 101, 102, 255)));
+        return root;
+    }
+
+    [Fact]
+    public void MixedResourceStackResolvesPriorityAndFallbacks()
+    {
+        string iwad = BuildWadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("BASEONLY", SolidFlat(10)),
+            ("STACKFLAT", SolidFlat(20)),
+            ("F_END", Array.Empty<byte>()));
+        string pwad = BuildWadFile(
+            ("F_START", Array.Empty<byte>()),
+            ("PWADONLY", SolidFlat(40)),
+            ("STACKFLAT", SolidFlat(50)),
+            ("F_END", Array.Empty<byte>()));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("flats/PK3ONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 60, 61, 62, 255))),
+            ("resources/nested.wad", BuildNestedWadBytes()));
+        string dir = BuildResourceDirectory();
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddBaseResource(iwad);
+            rm.AddResource(pwad);
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            Assert.Equal(new byte[] { 90, 91, 92, 255 }, rm.GetFlat("STACKFLAT")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 10, 10, 10, 255 }, rm.GetFlat("BASEONLY")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 40, 40, 40, 255 }, rm.GetFlat("PWADONLY")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 60, 61, 62, 255 }, rm.GetFlat("PK3ONLY")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetFlat("PK3NEST")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 100, 101, 102, 255 }, rm.GetFlat("DIRONLY")!.Rgba[0..4]);
+
+            Assert.Contains("BASEONLY", rm.GetFlatNames());
+            Assert.Contains("PK3NEST", rm.GetFlatNames());
+            Assert.Contains("DIRONLY", rm.GetFlatNames());
+        }
+        finally
+        {
+            File.Delete(iwad);
+            File.Delete(pwad);
+            File.Delete(pk3);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+}
