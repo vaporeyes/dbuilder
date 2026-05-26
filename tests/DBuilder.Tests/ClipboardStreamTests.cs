@@ -343,6 +343,27 @@ public class ClipboardStreamTests
     }
 
     [Fact]
+    public void SelectionGroupsRoundTrip()
+    {
+        var src = BuildSampleMap();
+        src.Vertices[0].Groups = MapSet.GroupMask(1);
+        src.Sectors[0].Groups = MapSet.GroupMask(2);
+        src.Linedefs[0].Groups = MapSet.GroupMask(3);
+        src.Things[0].Groups = MapSet.GroupMask(4);
+
+        var ms = new MemoryStream();
+        ClipboardStreamWriter.Write(src, ms);
+        ms.Position = 0;
+        var dst = new MapSet();
+        ClipboardStreamReader.Read(dst, ms);
+
+        Assert.Equal(MapSet.GroupMask(1), dst.Vertices[0].Groups);
+        Assert.Equal(MapSet.GroupMask(2), dst.Sectors[0].Groups);
+        Assert.Equal(MapSet.GroupMask(3), dst.Linedefs[0].Groups);
+        Assert.Equal(MapSet.GroupMask(4), dst.Things[0].Groups);
+    }
+
+    [Fact]
     public void EmptyMapRoundTripsCleanly()
     {
         var src = new MapSet();

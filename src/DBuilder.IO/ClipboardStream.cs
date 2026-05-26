@@ -10,18 +10,18 @@
  * Wire layout (all little-endian, length-prefixed strings as int32 + UTF-8 bytes):
  *
  *   header:    int32 numVerts, int32 numSectors, int32 numLinedefs, int32 numThings
- *   vertices:  int32 count; per vertex: double x, double y, zceiling, zfloor; customFields
+ *   vertices:  int32 count; per vertex: double x, double y, zceiling, zfloor; int32 groups; customFields
  *   sectors:   int32 count; per sector: int32 special, hfloor, hceil, bright; tags;
  *                                       str floortex, str ceiltex;
  *                                       double floorSlopeOffset, fSlope.x/y/z,
- *                                              ceilSlopeOffset, cSlope.x/y/z; customFields
+ *                                              ceilSlopeOffset, cSlope.x/y/z; int32 groups; customFields
  *   sidedefs:  int32 count; per sidedef: int32 offx, offy, sectorId; str hi, mid, lo; customFields
  *   linedefs:  int32 count; per linedef: int32 v1, v2, sidefront, sideback, action,
- *                                       args[5], flags; tags;
+ *                                       args[5], flags; tags; int32 groups;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   things:    int32 count; per thing: int32 tag; double x, y, height;
  *                                      int32 angle, pitch, roll; double scalex, scaley;
- *                                      int32 type, action, args[5], flags;
+ *                                      int32 type, action, args[5], flags; int32 groups;
  *                                      int32 udmfFlagCount; (str, bool) pairs; customFields
  *
  *   tags:         int32 count; int32 tag per entry
@@ -86,6 +86,7 @@ public static class ClipboardStreamWriter
             w.Write(v.Position.y);
             w.Write(v.ZCeiling);
             w.Write(v.ZFloor);
+            w.Write(v.Groups);
             WriteCustomFields(w, v.Fields);
         }
     }
@@ -106,6 +107,7 @@ public static class ClipboardStreamWriter
             w.Write(s.FloorSlope.x); w.Write(s.FloorSlope.y); w.Write(s.FloorSlope.z);
             w.Write(s.CeilSlopeOffset);
             w.Write(s.CeilSlope.x); w.Write(s.CeilSlope.y); w.Write(s.CeilSlope.z);
+            w.Write(s.Groups);
             WriteCustomFields(w, s.Fields);
         }
     }
@@ -140,6 +142,7 @@ public static class ClipboardStreamWriter
             for (int i = 0; i < l.Args.Length; i++) w.Write(l.Args[i]);
             w.Write(l.Flags);
             WriteTags(w, l.Tags);
+            w.Write(l.Groups);
             WriteUdmfFlagSet(w, l.UdmfFlags);
             WriteCustomFields(w, l.Fields);
         }
@@ -163,6 +166,7 @@ public static class ClipboardStreamWriter
             w.Write(t.Action);
             for (int i = 0; i < t.Args.Length; i++) w.Write(t.Args[i]);
             w.Write(t.Flags);
+            w.Write(t.Groups);
             WriteUdmfFlagSet(w, t.UdmfFlags);
             WriteCustomFields(w, t.Fields);
         }
@@ -268,6 +272,7 @@ public static class ClipboardStreamReader
                 ZCeiling = r.ReadDouble(),
                 ZFloor = r.ReadDouble(),
             };
+            v.Groups = r.ReadInt32();
             ReadCustomFields(r, v.Fields);
             map.Vertices.Add(v);
             list.Add(v);
@@ -307,6 +312,7 @@ public static class ClipboardStreamReader
                 CeilSlopeOffset = coffset,
                 CeilSlope = cslope,
             };
+            s.Groups = r.ReadInt32();
             s.Tags.AddRange(tags);
             ReadCustomFields(r, s.Fields);
             map.Sectors.Add(s);
@@ -357,6 +363,7 @@ public static class ClipboardStreamReader
             int a0 = r.ReadInt32(), a1 = r.ReadInt32(), a2 = r.ReadInt32(), a3 = r.ReadInt32(), a4 = r.ReadInt32();
             int flags = r.ReadInt32();
             var tags = ReadTags(r);
+            int groups = r.ReadInt32();
 
             var start = (v1 >= 0 && v1 < newVerts.Count) ? newVerts[v1] : newVerts[0];
             var end   = (v2 >= 0 && v2 < newVerts.Count) ? newVerts[v2] : newVerts[0];
@@ -365,6 +372,7 @@ public static class ClipboardStreamReader
             {
                 Action = action,
                 Flags = flags,
+                Groups = groups,
             };
             l.Tags.AddRange(tags);
             l.Args[0] = a0; l.Args[1] = a1; l.Args[2] = a2; l.Args[3] = a3; l.Args[4] = a4;
@@ -406,6 +414,7 @@ public static class ClipboardStreamReader
             int action = r.ReadInt32();
             int a0 = r.ReadInt32(), a1 = r.ReadInt32(), a2 = r.ReadInt32(), a3 = r.ReadInt32(), a4 = r.ReadInt32();
             int flags = r.ReadInt32();
+            int groups = r.ReadInt32();
 
             var t = new Thing
             {
@@ -420,6 +429,7 @@ public static class ClipboardStreamReader
                 Type = type,
                 Action = action,
                 Flags = flags,
+                Groups = groups,
             };
             t.Args[0] = a0; t.Args[1] = a1; t.Args[2] = a2; t.Args[3] = a3; t.Args[4] = a4;
             ReadUdmfFlagSet(r, t.UdmfFlags);

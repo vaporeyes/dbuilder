@@ -87,6 +87,10 @@ public class UndoManagerTests
         map.Fields["author"] = "tester";
         map.Sectors[0].Fields["lightcolor"] = 16711680;
         map.Sectors[0].Tags.Add(9); // now [7, 9]
+        map.Vertices[0].Groups = MapSet.GroupMask(1);
+        map.Linedefs[0].Groups = MapSet.GroupMask(2);
+        map.Sectors[0].Groups = MapSet.GroupMask(3);
+        map.Things[0].Groups = MapSet.GroupMask(4);
         var undo = new UndoManager(map);
 
         undo.CreateUndo("edit");
@@ -94,12 +98,20 @@ public class UndoManagerTests
         map.Fields.Clear();
         map.Sectors[0].Fields.Clear();
         map.Sectors[0].Tags.Clear();
+        map.Vertices[0].Groups = 0;
+        map.Linedefs[0].Groups = 0;
+        map.Sectors[0].Groups = 0;
+        map.Things[0].Groups = 0;
         undo.Undo();
 
         Assert.Equal("Doom", map.Namespace);
         Assert.Equal("tester", map.Fields["author"]);
         Assert.Equal(16711680, (int)map.Sectors[0].Fields["lightcolor"]);
         Assert.Equal(new[] { 7, 9 }, map.Sectors[0].Tags);
+        Assert.Equal(MapSet.GroupMask(1), map.Vertices[0].Groups);
+        Assert.Equal(MapSet.GroupMask(2), map.Linedefs[0].Groups);
+        Assert.Equal(MapSet.GroupMask(3), map.Sectors[0].Groups);
+        Assert.Equal(MapSet.GroupMask(4), map.Things[0].Groups);
     }
 
     [Fact]
