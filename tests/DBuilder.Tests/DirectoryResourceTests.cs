@@ -22,6 +22,36 @@ public class DirectoryResourceTests
         return root;
     }
 
+    private static byte[] GrayscalePlaypal()
+    {
+        var p = new byte[768];
+        for (int i = 0; i < 256; i++) { p[i * 3] = (byte)i; p[i * 3 + 1] = (byte)i; p[i * 3 + 2] = (byte)i; }
+        return p;
+    }
+
+    private static byte[] SolidFlat(byte index)
+    {
+        var f = new byte[DoomFlatReader.RawSize];
+        for (int i = 0; i < f.Length; i++) f[i] = index;
+        return f;
+    }
+
+    private static void WriteRootWad(string path)
+    {
+        using var wad = new WAD(path);
+        Insert(wad, "PLAYPAL", GrayscalePlaypal());
+        Insert(wad, "F_START", System.Array.Empty<byte>());
+        Insert(wad, "ROOTFLAT", SolidFlat(77));
+        Insert(wad, "F_END", System.Array.Empty<byte>());
+        wad.WriteHeaders();
+    }
+
+    private static void Insert(WAD wad, string name, byte[] bytes)
+    {
+        var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+        lump.Stream.Write(bytes, 0, bytes.Length);
+    }
+
     [Fact]
     public void ResolvesImagesFromAFolder()
     {
@@ -53,6 +83,26 @@ public class DirectoryResourceTests
             using var rm = new ResourceManager();
             rm.AddResource(dir);
             Assert.NotNull(rm.GetSprite("DSPRA")); // 5-char name resolves DSPRA0 via rotation fallback
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
+    public void RootWadInsideDirectoryProvidesNestedResources()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            WriteRootWad(Path.Combine(dir, "resources.wad"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(dir);
+
+            Assert.NotNull(rm.Palette);
+            var flat = rm.GetFlat("ROOTFLAT");
+            Assert.NotNull(flat);
+            Assert.Equal(new byte[] { 77, 77, 77, 255 }, flat!.Rgba[0..4]);
+            Assert.Contains("ROOTFLAT", rm.GetFlatNames());
         }
         finally { Directory.Delete(dir, recursive: true); }
     }

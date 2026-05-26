@@ -107,6 +107,7 @@ internal sealed class WadResourceReader : IResourceReader
 internal abstract class FolderResourceReader : IResourceReader
 {
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
+    protected readonly List<IResourceReader> nestedReaders = new();
 
     // Registers an entry from a relative path like "flats/floor1.png".
     protected void AddEntry(string relativePath, Func<byte[]> read)
@@ -123,28 +124,104 @@ internal abstract class FolderResourceReader : IResourceReader
     public virtual DoomPalette? GetPalette()
     {
         var b = Find("PLAYPAL", "");
-        return b != null ? DoomPalette.FromBytes(b) : null;
+        var palette = b != null ? DoomPalette.FromBytes(b) : null;
+        if (palette != null) return palette;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            palette = nestedReaders[i].GetPalette();
+            if (palette != null) return palette;
+        }
+
+        return null;
     }
 
     public virtual ImageData? GetFlat(string name, DoomPalette? palette)
-        => Decode(Find(name, "flats", ""), palette, preferFlat: true);
+    {
+        var image = Decode(Find(name, "flats", ""), palette, preferFlat: true);
+        if (image != null) return image;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            image = nestedReaders[i].GetFlat(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
 
     public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
-        => Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
+    {
+        var image = Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
+        if (image != null) return image;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            image = nestedReaders[i].GetWallTexture(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
 
     public virtual ImageData? GetSprite(string name, DoomPalette? palette)
-        => Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
+    {
+        var image = Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
+        if (image != null) return image;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            image = nestedReaders[i].GetSprite(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
 
     public virtual string? GetTextLump(string name)
     {
         var b = Find(name, "", name.ToLowerInvariant());
-        return b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
+        var text = b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
+        if (text != null) return text;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            text = nestedReaders[i].GetTextLump(name);
+            if (text != null) return text;
+        }
+
+        return null;
     }
 
-    public virtual byte[]? GetLumpBytes(string name) => Find(name, "");
+    public virtual byte[]? GetLumpBytes(string name)
+    {
+        var bytes = Find(name, "");
+        if (bytes != null) return bytes;
 
-    public virtual IEnumerable<string> TextureNames() => NamesInFolder("textures/");
-    public virtual IEnumerable<string> FlatNames() => NamesInFolder("flats/");
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            bytes = nestedReaders[i].GetLumpBytes(name);
+            if (bytes != null) return bytes;
+        }
+
+        return null;
+    }
+
+    public virtual IEnumerable<string> TextureNames()
+    {
+        foreach (var name in NamesInFolder("textures/")) yield return name;
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.TextureNames())
+                yield return name;
+    }
+
+    public virtual IEnumerable<string> FlatNames()
+    {
+        foreach (var name in NamesInFolder("flats/")) yield return name;
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.FlatNames())
+                yield return name;
+    }
 
     private byte[]? Find(string name, params string[] folders)
     {
@@ -185,7 +262,6 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 {
     private readonly ZipArchive zip;
     private readonly Stream? ownedStream;
-    private readonly List<IResourceReader> nestedReaders = new();
     private readonly List<MemoryStream> nestedStreams = new();
 
     public Pk3ResourceReader(Stream zipStream, bool ownsStream)
@@ -225,106 +301,6 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         }
     }
 
-    public override DoomPalette? GetPalette()
-    {
-        var palette = base.GetPalette();
-        if (palette != null) return palette;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            palette = nestedReaders[i].GetPalette();
-            if (palette != null) return palette;
-        }
-
-        return null;
-    }
-
-    public override ImageData? GetFlat(string name, DoomPalette? palette)
-    {
-        var image = base.GetFlat(name, palette);
-        if (image != null) return image;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            image = nestedReaders[i].GetFlat(name, palette);
-            if (image != null) return image;
-        }
-
-        return null;
-    }
-
-    public override ImageData? GetWallTexture(string name, DoomPalette? palette)
-    {
-        var image = base.GetWallTexture(name, palette);
-        if (image != null) return image;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            image = nestedReaders[i].GetWallTexture(name, palette);
-            if (image != null) return image;
-        }
-
-        return null;
-    }
-
-    public override ImageData? GetSprite(string name, DoomPalette? palette)
-    {
-        var image = base.GetSprite(name, palette);
-        if (image != null) return image;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            image = nestedReaders[i].GetSprite(name, palette);
-            if (image != null) return image;
-        }
-
-        return null;
-    }
-
-    public override string? GetTextLump(string name)
-    {
-        var text = base.GetTextLump(name);
-        if (text != null) return text;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            text = nestedReaders[i].GetTextLump(name);
-            if (text != null) return text;
-        }
-
-        return null;
-    }
-
-    public override byte[]? GetLumpBytes(string name)
-    {
-        var bytes = base.GetLumpBytes(name);
-        if (bytes != null) return bytes;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            bytes = nestedReaders[i].GetLumpBytes(name);
-            if (bytes != null) return bytes;
-        }
-
-        return null;
-    }
-
-    public override IEnumerable<string> TextureNames()
-    {
-        foreach (var name in base.TextureNames()) yield return name;
-        foreach (var reader in nestedReaders)
-            foreach (var name in reader.TextureNames())
-                yield return name;
-    }
-
-    public override IEnumerable<string> FlatNames()
-    {
-        foreach (var name in base.FlatNames()) yield return name;
-        foreach (var reader in nestedReaders)
-            foreach (var name in reader.FlatNames())
-                yield return name;
-    }
-
     private static bool LooksLikeNestedZip(string path)
     {
         string ext = Path.GetExtension(path);
@@ -351,9 +327,18 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
         {
             string rel = Path.GetRelativePath(root, path);
             string p = path;
+            if (IsRootWad(rel))
+                nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true));
             AddEntry(rel, () => File.ReadAllBytes(p));
         }
     }
 
-    public override void Dispose() { /* nothing to release */ }
+    private static bool IsRootWad(string relativePath)
+        => Path.GetDirectoryName(relativePath) is null or ""
+            && Path.GetExtension(relativePath).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+
+    public override void Dispose()
+    {
+        foreach (var reader in nestedReaders) reader.Dispose();
+    }
 }
