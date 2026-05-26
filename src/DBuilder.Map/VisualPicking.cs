@@ -8,16 +8,13 @@ namespace DBuilder.Map;
 
 public enum VisualHitKind { Floor, Ceiling, Wall, Thing }
 
-/// <summary>Which texture slot a wall hit corresponds to (None for floor/ceiling hits).</summary>
-public enum WallPart { None, Upper, Middle, Lower }
-
 /// <summary>
 /// A surface hit by a 3D ray: which kind, how far, where, the owning sector / linedef side, and the surface's
 /// vertical extent (Bottom..Top; equal for a flat floor/ceiling) for drawing a highlight.
 /// </summary>
 public sealed record VisualHit(
     VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front,
-    double Bottom, double Top, WallPart Part = WallPart.None, Thing? Thing = null);
+    double Bottom, double Top, SidedefPart Part = SidedefPart.None, Thing? Thing = null);
 
 public static class VisualPicking
 {
@@ -53,19 +50,19 @@ public static class VisualPicking
             var a = l.Start.Position;
             var b = l.End.Position;
             if (fs != null && bs == null)
-                TryWall(origin, dir, l, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), WallPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), SidedefPart.Middle, ref best, ref bestDist);
             else if (fs == null && bs != null)
-                TryWall(origin, dir, l, bs.GetFloorZ(a), bs.GetFloorZ(b), bs.GetCeilZ(a), bs.GetCeilZ(b), WallPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, bs.GetFloorZ(a), bs.GetFloorZ(b), bs.GetCeilZ(a), bs.GetCeilZ(b), SidedefPart.Middle, ref best, ref bestDist);
             else if (fs != null && bs != null)
             {
                 // Lower step: between the two floors (per endpoint, so slopes are followed).
                 double lbA = Math.Min(fs.GetFloorZ(a), bs.GetFloorZ(a)), lbB = Math.Min(fs.GetFloorZ(b), bs.GetFloorZ(b));
                 double ltA = Math.Max(fs.GetFloorZ(a), bs.GetFloorZ(a)), ltB = Math.Max(fs.GetFloorZ(b), bs.GetFloorZ(b));
-                if (ltA > lbA || ltB > lbB) TryWall(origin, dir, l, lbA, lbB, ltA, ltB, WallPart.Lower, ref best, ref bestDist);
+                if (ltA > lbA || ltB > lbB) TryWall(origin, dir, l, lbA, lbB, ltA, ltB, SidedefPart.Lower, ref best, ref bestDist);
                 // Upper step: between the two ceilings.
                 double ubA = Math.Min(fs.GetCeilZ(a), bs.GetCeilZ(a)), ubB = Math.Min(fs.GetCeilZ(b), bs.GetCeilZ(b));
                 double utA = Math.Max(fs.GetCeilZ(a), bs.GetCeilZ(a)), utB = Math.Max(fs.GetCeilZ(b), bs.GetCeilZ(b));
-                if (utA > ubA || utB > ubB) TryWall(origin, dir, l, ubA, ubB, utA, utB, WallPart.Upper, ref best, ref bestDist);
+                if (utA > ubA || utB > ubB) TryWall(origin, dir, l, ubA, ubB, utA, utB, SidedefPart.Upper, ref best, ref bestDist);
             }
         }
 
@@ -91,7 +88,7 @@ public static class VisualPicking
 
         bestDist = tt;
         best = new VisualHit(VisualHitKind.Thing, tt, new Vector3D(o.x + d.x * tt, o.y + d.y * tt, o.z + d.z * tt),
-            map.GetSectorAt(t.Position), null, true, zb, zt, WallPart.None, t);
+            map.GetSectorAt(t.Position), null, true, zb, zt, SidedefPart.None, t);
     }
 
     // Slab-method ray vs axis-aligned box; returns the nearest forward entry distance.
@@ -150,7 +147,7 @@ public static class VisualPicking
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
-        WallPart part, ref VisualHit? best, ref double bestDist)
+        SidedefPart part, ref VisualHit? best, ref double bestDist)
     {
         var a = l.Start.Position;
         var b = l.End.Position;

@@ -623,7 +623,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (h.Kind == VisualHitKind.Ceiling) return h.Sector?.CeilTexture;
         var sd = h.Front ? h.Line?.Front : h.Line?.Back;
         if (sd == null) return null;
-        return h.Part switch { WallPart.Upper => sd.HighTexture, WallPart.Lower => sd.LowTexture, _ => sd.MidTexture };
+        return sd.GetTexture(h.Part);
     }
 
     // Copies the targeted surface's texture into the 3D texture clipboard.
@@ -674,12 +674,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             var sd = h.Front ? h.Line?.Front : h.Line?.Back;
             if (sd == null) return;
-            switch (h.Part)
-            {
-                case WallPart.Upper: sd.HighTexture = tex; break;
-                case WallPart.Lower: sd.LowTexture = tex; break;
-                default: sd.MidTexture = tex; break;
-            }
+            sd.SetTexture(h.Part, tex);
         }
     }
 

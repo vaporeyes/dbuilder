@@ -1,0 +1,104 @@
+// ABOUTME: Tests sidedef part texture slots and UDB-style required wall part semantics.
+// ABOUTME: Covers one-sided middle walls, two-sided upper and lower gaps, and sloped height comparisons.
+
+using DBuilder.Geometry;
+using DBuilder.Map;
+
+namespace DBuilder.Tests;
+
+public class SidedefPartTests
+{
+    [Fact]
+    public void TextureAccessorsUseTheRequestedPart()
+    {
+        var side = new Sidedef
+        {
+            HighTexture = "UP",
+            MidTexture = "MID",
+            LowTexture = "LOW",
+        };
+
+        Assert.Equal("UP", side.GetTexture(SidedefPart.Upper));
+        Assert.Equal("MID", side.GetTexture(SidedefPart.Middle));
+        Assert.Equal("LOW", side.GetTexture(SidedefPart.Lower));
+        Assert.Equal("-", side.GetTexture(SidedefPart.None));
+
+        side.SetTexture(SidedefPart.Upper, "NEWUP");
+        side.SetTexture(SidedefPart.Middle, "");
+        side.SetTexture(SidedefPart.Lower, null);
+
+        Assert.Equal("NEWUP", side.HighTexture);
+        Assert.Equal("-", side.MidTexture);
+        Assert.Equal("-", side.LowTexture);
+    }
+
+    [Fact]
+    public void OneSidedWallRequiresMiddleTextureOnly()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var side = map.AddSidedef(line, true, sector);
+        map.BuildIndexes();
+
+        Assert.False(side.HighRequired());
+        Assert.True(side.MiddleRequired());
+        Assert.False(side.LowRequired());
+        Assert.Equal(128, side.GetPartHeight(SidedefPart.Middle));
+    }
+
+    [Fact]
+    public void TwoSidedWallReportsUpperAndLowerGapsRelativeToThisSide()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 32;
+        backSector.CeilHeight = 96;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var front = map.AddSidedef(line, true, frontSector);
+        var back = map.AddSidedef(line, false, backSector);
+        map.BuildIndexes();
+
+        Assert.True(front.HighRequired());
+        Assert.False(front.MiddleRequired());
+        Assert.True(front.LowRequired());
+        Assert.Equal(32, front.GetHighHeight());
+        Assert.Equal(64, front.GetMiddleHeight());
+        Assert.Equal(32, front.GetLowHeight());
+
+        Assert.False(back.HighRequired());
+        Assert.False(back.LowRequired());
+        Assert.Equal(0, back.GetHighHeight());
+        Assert.Equal(0, back.GetLowHeight());
+    }
+
+    [Fact]
+    public void SlopedSectorsAffectRequiredPartsAndHeights()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 0;
+        backSector.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var front = map.AddSidedef(line, true, frontSector);
+        map.AddSidedef(line, false, backSector);
+
+        double k = 1.0 / System.Math.Sqrt(2);
+        backSector.FloorSlope = new Vector3D(-k, 0, k);
+        backSector.FloorSlopeOffset = 0;
+        map.BuildIndexes();
+
+        Assert.True(front.LowRequired());
+        Assert.Equal(64, front.GetLowHeight(), 6);
+    }
+}
