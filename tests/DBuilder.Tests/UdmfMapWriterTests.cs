@@ -250,19 +250,22 @@ public class UdmfMapWriterTests
     {
         const string udmf = """
             namespace = "ZDoom";
-            vertex { x = 0.0; y = 0.0; user_weight = 12.5; }
-            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; lightlevel = 160; lightcolor = 16711680; xscalefloor = 2.0; comment = "lava pit"; }
-            sidedef { sector = 0; scalex_mid = 1.5; }
+            vertex { x = 0.0; y = 0.0; user_weight = 12.5; locked = true; }
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; lightlevel = 160; lightcolor = 16711680; xscalefloor = 2.0; comment = "lava pit"; secretmarked = true; }
+            sidedef { sector = 0; scalex_mid = 1.5; wraps_mid = true; }
             thing { x = 10.0; y = 10.0; type = 1; health = 200; nicename = "boss"; }
             """;
         var map = UdmfMapLoader.Load(udmf, out _)!;
 
         // Custom fields captured on load.
         Assert.Equal(12.5, (double)map.Vertices[0].Fields["user_weight"]);
+        Assert.True((bool)map.Vertices[0].Fields["locked"]);
         Assert.Equal(16711680, (int)map.Sectors[0].Fields["lightcolor"]);
         Assert.Equal(2.0, (double)map.Sectors[0].Fields["xscalefloor"]);
         Assert.Equal("lava pit", (string)map.Sectors[0].Fields["comment"]);
+        Assert.True((bool)map.Sectors[0].Fields["secretmarked"]);
         Assert.Equal(1.5, (double)map.Sidedefs[0].Fields["scalex_mid"]);
+        Assert.True((bool)map.Sidedefs[0].Fields["wraps_mid"]);
         Assert.Equal(200, (int)map.Things[0].Fields["health"]);
         Assert.Equal("boss", (string)map.Things[0].Fields["nicename"]);
 
@@ -271,10 +274,13 @@ public class UdmfMapWriterTests
         var r = UdmfMapLoader.Load(written, out var parser)!;
         Assert.Equal(0, parser.ErrorResult);
         Assert.Equal(12.5, (double)r.Vertices[0].Fields["user_weight"]);
+        Assert.True((bool)r.Vertices[0].Fields["locked"]);
         Assert.Equal(16711680, (int)r.Sectors[0].Fields["lightcolor"]);
         Assert.Equal(2.0, (double)r.Sectors[0].Fields["xscalefloor"]);
         Assert.Equal("lava pit", (string)r.Sectors[0].Fields["comment"]);
+        Assert.True((bool)r.Sectors[0].Fields["secretmarked"]);
         Assert.Equal(1.5, (double)r.Sidedefs[0].Fields["scalex_mid"]);
+        Assert.True((bool)r.Sidedefs[0].Fields["wraps_mid"]);
         Assert.Equal(200, (int)r.Things[0].Fields["health"]);
         Assert.Equal("boss", (string)r.Things[0].Fields["nicename"]);
     }

@@ -86,7 +86,7 @@ public static class UdmfMapLoader
             ZCeiling = GetDouble(c, "zceiling", double.NaN),
             ZFloor = GetDouble(c, "zfloor", double.NaN),
         };
-        CollectCustomFields(c, v.Fields, VertexManagedFields);
+        CollectCustomFields(c, v.Fields, VertexManagedFields, preserveBoolFields: true);
         return v;
     }
 
@@ -119,7 +119,7 @@ public static class UdmfMapLoader
             s.CeilSlopeOffset = GetDouble(c, "ceilingplane_d", double.NaN);
         }
 
-        CollectCustomFields(c, s.Fields, SectorManagedFields);
+        CollectCustomFields(c, s.Fields, SectorManagedFields, preserveBoolFields: true);
         return s;
     }
 
@@ -136,7 +136,7 @@ public static class UdmfMapLoader
             MidTexture = GetString(c, "texturemiddle", "-"),
             LowTexture = GetString(c, "texturebottom", "-"),
         };
-        CollectCustomFields(c, sd.Fields, SidedefManagedFields);
+        CollectCustomFields(c, sd.Fields, SidedefManagedFields, preserveBoolFields: true);
         return sd;
     }
 
@@ -184,7 +184,7 @@ public static class UdmfMapLoader
             }
         }
 
-        CollectCustomFields(c, line.Fields, LinedefManagedFields);
+        CollectCustomFields(c, line.Fields, LinedefManagedFields, preserveBoolFields: false);
         return line;
     }
 
@@ -215,7 +215,7 @@ public static class UdmfMapLoader
                 t.UdmfFlags.Add(entry.Key);
         }
 
-        CollectCustomFields(c, t.Fields, ThingManagedFields);
+        CollectCustomFields(c, t.Fields, ThingManagedFields, preserveBoolFields: false);
         return t;
     }
 
@@ -261,16 +261,17 @@ public static class UdmfMapLoader
         }
     }
 
-    // Copies non-managed, non-bool entries into the destination Fields dictionary, normalizing the boxed
-    // value to one of int/double/string. Bool entries are skipped here - they are captured as UdmfFlags.
-    private static void CollectCustomFields(UniversalCollection c, Dictionary<string, object> fields, HashSet<string> managed)
+    // Copies non-managed entries into the destination Fields dictionary, normalizing the boxed value to one of
+    // bool/int/double/string. Linedefs and things skip bools here because unknown bools are retained as UDMF flags.
+    private static void CollectCustomFields(UniversalCollection c, Dictionary<string, object> fields, HashSet<string> managed, bool preserveBoolFields)
     {
         foreach (var e in c)
         {
             if (managed.Contains(e.Key)) continue;
             switch (e.Value)
             {
-                case bool: continue; // handled as a named flag
+                case bool b when preserveBoolFields: fields[e.Key] = b; break;
+                case bool: continue;
                 case int i: fields[e.Key] = i; break;
                 case long l: fields[e.Key] = (int)l; break;
                 case double d: fields[e.Key] = d; break;
