@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Sector : ISelectable, IMarkable
+public class Sector : ISelectable, IMarkable, IFielded
 {
     public int Index { get; set; }
 

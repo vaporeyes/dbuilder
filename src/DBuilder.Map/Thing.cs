@@ -5,7 +5,7 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
-public class Thing : ISelectable, IMarkable
+public class Thing : ISelectable, IMarkable, IFielded, IHasArguments
 {
     public Vector2D Position { get; set; }
 

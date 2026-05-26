@@ -3,7 +3,7 @@
 
 namespace DBuilder.Map;
 
-public class Sidedef : ISelectable, IMarkable
+public class Sidedef : ISelectable, IMarkable, IFielded
 {
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
