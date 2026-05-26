@@ -84,7 +84,10 @@ public sealed class DataLocationList : List<DataLocation>
         if (!string.IsNullOrEmpty(requiredArchives))
         {
             foreach (string archive in requiredArchives.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                location.RequiredArchives.Add(archive);
+            {
+                string trimmed = archive.Trim();
+                if (trimmed.Length > 0) location.RequiredArchives.Add(trimmed);
+            }
         }
 
         return location;

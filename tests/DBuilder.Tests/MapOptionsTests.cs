@@ -687,6 +687,28 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationListTrimsRequiredArchiveEntries()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.InputConfiguration("""
+            resources
+            {
+                resource0
+                {
+                    type = 2;
+                    location = "/tmp/mod.pk3";
+                    requiredarchives = "doom.wad, textures.pk3, , extras.pk3 ";
+                }
+            }
+            """);
+
+        var locations = new DataLocationList(configuration, "resources");
+
+        var location = Assert.Single(locations);
+        Assert.Equal(new[] { "doom.wad", "textures.pk3", "extras.pk3" }, location.RequiredArchives);
+    }
+
+    [Fact]
     public void DataLocationListCombinedKeepsLaterDuplicates()
     {
         var first = new DataLocationList
