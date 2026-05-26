@@ -85,7 +85,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
-- [ ] Port map element collections and lookup behavior.
+- [x] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.
 
 ## Geometry And Analysis

@@ -218,6 +218,25 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void GetByIndexHelpersReturnElementsOrNull()
+    {
+        var map = BuildTwoRooms();
+        var thing = map.AddThing(new Vector2D(16, 16), 3004);
+
+        Assert.Same(map.Vertices[1], map.GetVertexByIndex(1));
+        Assert.Same(map.Linedefs[1], map.GetLinedefByIndex(1));
+        Assert.Same(map.Sidedefs[2], map.GetSidedefByIndex(2));
+        Assert.Same(map.Sectors[1], map.GetSectorByIndex(1));
+        Assert.Same(thing, map.GetThingByIndex(0));
+
+        Assert.Null(map.GetVertexByIndex(-1));
+        Assert.Null(map.GetLinedefByIndex(map.Linedefs.Count));
+        Assert.Null(map.GetSidedefByIndex(map.Sidedefs.Count));
+        Assert.Null(map.GetSectorByIndex(map.Sectors.Count));
+        Assert.Null(map.GetThingByIndex(map.Things.Count));
+    }
+
+    [Fact]
     public void SelectedSidedefsCountMatchesSelectedSidedefs()
     {
         var map = BuildTwoRooms();

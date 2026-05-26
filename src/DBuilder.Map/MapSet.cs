@@ -694,6 +694,12 @@ public class MapSet
     public int IndexOfSector(Sector sector) => Sectors.IndexOf(sector);
     public int IndexOfThing(Thing thing) => Things.IndexOf(thing);
 
+    public Vertex? GetVertexByIndex(int index) => (uint)index < (uint)Vertices.Count ? Vertices[index] : null;
+    public Linedef? GetLinedefByIndex(int index) => (uint)index < (uint)Linedefs.Count ? Linedefs[index] : null;
+    public Sidedef? GetSidedefByIndex(int index) => (uint)index < (uint)Sidedefs.Count ? Sidedefs[index] : null;
+    public Sector? GetSectorByIndex(int index) => (uint)index < (uint)Sectors.Count ? Sectors[index] : null;
+    public Thing? GetThingByIndex(int index) => (uint)index < (uint)Things.Count ? Things[index] : null;
+
     public bool ContainsVertex(Vertex vertex) => IndexOfVertex(vertex) >= 0;
     public bool ContainsLinedef(Linedef linedef) => IndexOfLinedef(linedef) >= 0;
     public bool ContainsSidedef(Sidedef sidedef) => IndexOfSidedef(sidedef) >= 0;
