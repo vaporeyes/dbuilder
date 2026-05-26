@@ -66,6 +66,8 @@ public static class WadMaps
     /// </summary>
     public static void SaveMap(WAD wad, string marker, MapSet map, MapFormat format, GameConfiguration? config = null)
     {
+        MapFormatConstraints.ThrowIfInvalid(map, format);
+
         int insertPos;
         byte[]? behavior = null;
 

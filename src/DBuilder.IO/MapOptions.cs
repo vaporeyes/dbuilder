@@ -1,5 +1,5 @@
 // ABOUTME: Minimal map-options container for UDB-compatible per-map settings backed by Configuration.
-// ABOUTME: Currently ports selection group persistence while leaving UI and resource options for later slices.
+// ABOUTME: Ports selection group and tag-label persistence while leaving UI and resource options for later slices.
 
 using System.Collections;
 using System.Collections.Specialized;
@@ -10,9 +10,11 @@ namespace DBuilder.IO;
 public sealed class MapOptions
 {
     public const string SelectionGroupsPath = "selectiongroups";
+    public const string TagLabelsPath = "taglabels";
     public const int SelectionGroupCount = 10;
 
     public Configuration MapConfiguration { get; }
+    public Dictionary<int, string> TagLabels { get; } = new();
 
     public MapOptions() : this(new Configuration(sorted: true)) { }
 
@@ -61,6 +63,45 @@ public sealed class MapOptions
         }
     }
 
+    public void WriteTagLabels()
+    {
+        MapConfiguration.DeleteSetting(TagLabelsPath);
+        if (TagLabels.Count == 0) return;
+
+        var labelEntries = new ListDictionary();
+        int counter = 1;
+        foreach (var pair in TagLabels)
+        {
+            if (pair.Key == 0 || string.IsNullOrEmpty(pair.Value)) continue;
+
+            var data = new ListDictionary
+            {
+                { "tag", pair.Key },
+                { "label", pair.Value },
+            };
+            labelEntries.Add("taglabel" + counter.ToString(System.Globalization.CultureInfo.InvariantCulture), data);
+            counter++;
+        }
+
+        if (labelEntries.Count > 0) MapConfiguration.WriteSetting(TagLabelsPath, labelEntries);
+    }
+
+    public void ReadTagLabels()
+    {
+        TagLabels.Clear();
+
+        var labelEntries = MapConfiguration.ReadSetting(TagLabelsPath, new ListDictionary());
+        if (labelEntries == null) return;
+
+        foreach (DictionaryEntry entry in labelEntries)
+        {
+            if (entry.Value is not IDictionary data) continue;
+            int tag = ReadInt(data, "tag");
+            string label = ReadString(data, "label");
+            if (tag != 0 && !string.IsNullOrEmpty(label)) TagLabels[tag] = label;
+        }
+    }
+
     private static void AddGroupIndices<T>(IDictionary group, string key, IReadOnlyList<T> items, int mask)
         where T : IGroupable
     {
@@ -106,5 +147,18 @@ public sealed class MapOptions
         where T : IGroupable
     {
         foreach (var item in items) item.Groups &= ~mask;
+    }
+
+    private static int ReadInt(IDictionary data, string key)
+    {
+        if (!data.Contains(key) || data[key] == null) return 0;
+        if (data[key] is int value) return value;
+        return int.TryParse(data[key]!.ToString(), out int parsed) ? parsed : 0;
+    }
+
+    private static string ReadString(IDictionary data, string key)
+    {
+        if (!data.Contains(key) || data[key] == null) return "";
+        return data[key]!.ToString() ?? "";
     }
 }

@@ -1,5 +1,5 @@
 // ABOUTME: Tests minimal MapOptions persistence backed by Configuration.
-// ABOUTME: Covers UDB-compatible selection group write/read shape and stale group replacement.
+// ABOUTME: Covers UDB-compatible selection group and tag-label write/read shape.
 
 using System.Collections;
 using DBuilder.Geometry;
@@ -98,6 +98,97 @@ public class MapOptionsTests
 
         Assert.Equal(MapSet.GroupMask(0), map.Vertices[0].Groups);
         Assert.Equal(0, map.Things[0].Groups);
+    }
+
+    [Fact]
+    public void WriteTagLabelsStoresUdbCompatibleEntries()
+    {
+        var options = new MapOptions();
+        options.TagLabels[12] = "Door controls";
+        options.TagLabels[3] = "Secret lift";
+
+        options.WriteTagLabels();
+
+        var labels = options.MapConfiguration.ReadSetting(MapOptions.TagLabelsPath, (IDictionary?)null);
+        Assert.NotNull(labels);
+        var first = Assert.IsAssignableFrom<IDictionary>(labels!["taglabel1"]);
+        var second = Assert.IsAssignableFrom<IDictionary>(labels["taglabel2"]);
+        Assert.Equal(12, first["tag"]);
+        Assert.Equal("Door controls", first["label"]);
+        Assert.Equal(3, second["tag"]);
+        Assert.Equal("Secret lift", second["label"]);
+    }
+
+    [Fact]
+    public void ReadTagLabelsRestoresValidEntries()
+    {
+        var options = new MapOptions();
+        options.MapConfiguration.InputConfiguration("""
+            taglabels
+            {
+                taglabel1
+                {
+                    tag = 12;
+                    label = "Door controls";
+                }
+                taglabel2
+                {
+                    tag = 3;
+                    label = "Secret lift";
+                }
+            }
+            """);
+
+        options.ReadTagLabels();
+
+        Assert.Equal("Door controls", options.TagLabels[12]);
+        Assert.Equal("Secret lift", options.TagLabels[3]);
+    }
+
+    [Fact]
+    public void ReadTagLabelsReplacesExistingLabelsAndIgnoresInvalidEntries()
+    {
+        var options = new MapOptions();
+        options.TagLabels[99] = "Stale";
+        options.MapConfiguration.InputConfiguration("""
+            taglabels
+            {
+                taglabel1
+                {
+                    tag = 0;
+                    label = "Ignored zero";
+                }
+                taglabel2
+                {
+                    tag = 8;
+                    label = "";
+                }
+                taglabel3
+                {
+                    tag = 5;
+                    label = "Valid";
+                }
+                broken = 12;
+            }
+            """);
+
+        options.ReadTagLabels();
+
+        Assert.Single(options.TagLabels);
+        Assert.Equal("Valid", options.TagLabels[5]);
+    }
+
+    [Fact]
+    public void WriteTagLabelsRemovesStaleConfigurationWhenEmpty()
+    {
+        var options = new MapOptions();
+        options.TagLabels[1] = "Old";
+        options.WriteTagLabels();
+        options.TagLabels.Clear();
+
+        options.WriteTagLabels();
+
+        Assert.Null(options.MapConfiguration.ReadSetting(MapOptions.TagLabelsPath, (IDictionary?)null));
     }
 
     private static MapSet BuildMap()
