@@ -7,7 +7,7 @@
  * PNG (or Doom-format) entries under flats/, textures/, patches/, sprites/, graphics/.
  *
  * This produces CPU-side RGBA8 (ImageData); GL upload stays with the rendering host. Not yet handled: lazy/
- * threaded loading, sprite offsets, hi-res replacements and TEXTURES-lump composite definitions.
+ * threaded loading, full sprite offsets and advanced TEXTURES-lump composite definitions.
  */
 
 using System;

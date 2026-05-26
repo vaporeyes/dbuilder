@@ -71,6 +71,35 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void AddingResourceInvalidatesCachedMisses()
+    {
+        using var empty = BuildWad(("PLAYPAL", GrayscalePlaypal()));
+        using var withFlat = BuildWad(("FLAT7", SolidFlat(7)));
+        using var rm = new ResourceManager();
+        rm.AddResource(empty);
+
+        Assert.Null(rm.GetFlat("FLAT7"));
+
+        rm.AddResource(withFlat);
+
+        var flat = rm.GetFlat("FLAT7");
+        Assert.NotNull(flat);
+        Assert.Equal(7, flat!.Rgba[0]);
+    }
+
+    [Fact]
+    public void DisposeDoesNotDisposeCallerOwnedWads()
+    {
+        using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()));
+        var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        rm.Dispose();
+
+        Assert.False(wad.IsDisposed);
+    }
+
+    [Fact]
     public void SameInstanceReturnedFromCache()
     {
         using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()), ("FLAT9", SolidFlat(9)));
