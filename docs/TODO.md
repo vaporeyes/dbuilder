@@ -78,7 +78,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port map-options-backed selection group persistence.
 - [x] Port remaining map options.
 - [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
-- [ ] Port argument handling and typed field access.
+- [x] Port argument handling and typed field access.
 - [ ] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.

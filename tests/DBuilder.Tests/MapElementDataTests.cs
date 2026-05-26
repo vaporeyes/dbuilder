@@ -50,6 +50,65 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void DefaultOmittingFieldSettersRemoveDefaultValues()
+    {
+        var sector = new Sector();
+
+        sector.SetFloatField("gravity", 0.5);
+        sector.SetIntegerField("lightcolor", 16711680);
+        sector.SetStringField("comment", "lava", "");
+
+        Assert.Equal(0.5, sector.GetFloatField("gravity"));
+        Assert.Equal(16711680, sector.GetIntegerField("lightcolor"));
+        Assert.Equal("lava", sector.GetStringField("comment"));
+
+        sector.SetFloatField("gravity", 1.0, 1.0);
+        sector.SetIntegerField("lightcolor", 255, 255);
+        sector.SetStringField("comment", "default", "default");
+
+        Assert.Equal(1.0, sector.GetFloatField("gravity", 1.0));
+        Assert.Equal(255, sector.GetIntegerField("lightcolor", 255));
+        Assert.Equal("default", sector.GetStringField("comment", "default"));
+        Assert.Empty(sector.Fields);
+    }
+
+    [Fact]
+    public void RemoveFieldsIgnoresMissingKeys()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 3001);
+        thing.SetField("alpha", 1);
+        thing.SetField("beta", 2);
+
+        thing.RemoveFields(["alpha", "missing"]);
+
+        Assert.False(thing.Fields.ContainsKey("alpha"));
+        Assert.True(thing.Fields.ContainsKey("beta"));
+    }
+
+    [Fact]
+    public void FieldComparisonRequiresMatchingKeysTypesAndValues()
+    {
+        var left = new Vertex(new Vector2D(0, 0));
+        var right = new Vertex(new Vector2D(1, 1));
+
+        Assert.True(left.FieldsMatch(right));
+        Assert.True(left.FieldValueMatches(right, "missing"));
+
+        left.SetIntegerField("id", 1);
+        right.SetIntegerField("id", 1);
+        left.SetFloatField("gravity", 1.0);
+        right.SetFloatField("gravity", 1.0);
+
+        Assert.True(left.FieldsMatch(right));
+        Assert.True(left.FieldValueMatches(right, "id"));
+
+        right.SetFloatField("id", 1.0);
+
+        Assert.False(left.FieldsMatch(right));
+        Assert.False(left.FieldValueMatches(right, "id"));
+    }
+
+    [Fact]
     public void ArgumentHelpersReadSetAndClearLinedefArgs()
     {
         var line = new Linedef();

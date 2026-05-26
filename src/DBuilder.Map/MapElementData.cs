@@ -23,6 +23,48 @@ public static class MapElementData
     public static bool RemoveField(this IFielded element, string key)
         => element.Fields.Remove(key);
 
+    public static double GetFloatField(this IFielded element, string key, double defaultValue = 0.0)
+        => element.GetField(key, defaultValue);
+
+    public static void SetFloatField(this IFielded element, string key, double value, double defaultValue = 0.0)
+        => SetDefaultOmittingField(element, key, value, defaultValue);
+
+    public static int GetIntegerField(this IFielded element, string key, int defaultValue = 0)
+        => element.GetField(key, defaultValue);
+
+    public static void SetIntegerField(this IFielded element, string key, int value, int defaultValue = 0)
+        => SetDefaultOmittingField(element, key, value, defaultValue);
+
+    public static string GetStringField(this IFielded element, string key, string defaultValue = "")
+        => element.GetField(key, defaultValue);
+
+    public static void SetStringField(this IFielded element, string key, string value, string defaultValue = "")
+        => SetDefaultOmittingField(element, key, value, defaultValue);
+
+    public static void RemoveFields(this IFielded element, IEnumerable<string> keys)
+    {
+        foreach (var key in keys) element.Fields.Remove(key);
+    }
+
+    public static bool FieldsMatch(this IFielded left, IFielded right)
+    {
+        if (left.Fields.Count != right.Fields.Count) return false;
+        foreach (var (key, value) in left.Fields)
+        {
+            if (!right.Fields.TryGetValue(key, out var otherValue) || !FieldValuesMatch(value, otherValue)) return false;
+        }
+
+        return true;
+    }
+
+    public static bool FieldValueMatches(this IFielded left, IFielded right, string key)
+    {
+        var leftHasValue = left.Fields.TryGetValue(key, out var leftValue);
+        var rightHasValue = right.Fields.TryGetValue(key, out var rightValue);
+        if (!leftHasValue && !rightHasValue) return true;
+        return leftHasValue == rightHasValue && FieldValuesMatch(leftValue!, rightValue!);
+    }
+
     public static int GetArg(this IHasArguments element, int index)
         => element.Args[CheckedArgIndex(index)];
 
@@ -39,6 +81,20 @@ public static class MapElementData
         if ((uint)index >= 5) throw new ArgumentOutOfRangeException(nameof(index), "Map elements have five arguments indexed 0 through 4.");
         return index;
     }
+
+    private static void SetDefaultOmittingField<T>(IFielded element, string key, T value, T defaultValue)
+    {
+        if (EqualityComparer<T>.Default.Equals(value, defaultValue))
+        {
+            element.Fields.Remove(key);
+            return;
+        }
+
+        element.Fields[key] = value!;
+    }
+
+    private static bool FieldValuesMatch(object left, object right)
+        => left.GetType() == right.GetType() && left.Equals(right);
 
     private static bool TryConvert<T>(object raw, out T value)
     {
