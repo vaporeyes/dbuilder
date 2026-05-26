@@ -25,7 +25,7 @@ Status values:
 | `Source/Core/Plugins` | missing | none | Plugin framework not ported. |
 | `Source/Core/Properties` | partial | `DBuilder.Editor` | Basic property dialogs exist. Full typed property system remains. |
 | `Source/Core/Rendering` | partial | `DBuilder.Rendering`, `DBuilder.Editor` | Silk.NET renderer exists. Full render pipeline and visual modes remain. |
-| `Source/Core/Resources` | partial | `DBuilder.IO` | Basic texture, flat, sprite, and WAD resource behavior exists. Full priority/cache/PK3 behavior remains. |
+| `Source/Core/Resources` | partial | `DBuilder.IO` | WAD, PK3, nested PK3, directory, mixed stack, texture, flat, and sprite resource behavior has focused coverage. Full DataManager, lazy loading, cache invalidation, hires, model, voxel, and advanced namespace behavior remains. |
 | `Source/Core/Types` | partial | `DBuilder.IO` | Generalized types and game config subsets exist. Full type manager remains. |
 | `Source/Core/VisualModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Picking and 3D helpers exist. Full visual-mode framework remains. |
 | `Source/Core/Windows` | partial | `DBuilder.Editor` | Selected windows exist. Full UDB dialog set remains. |

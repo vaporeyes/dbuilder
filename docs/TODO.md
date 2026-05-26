@@ -142,7 +142,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port voxel image behavior.
 - [ ] Port model resource discovery.
 - [ ] Port resource cache invalidation and disposal behavior.
-- [ ] Add resource tests for WAD, PK3, nested PK3, directory resources, and mixed priority stacks.
+- [x] Add resource tests for WAD, PK3, nested PK3, directory resources, and mixed priority stacks.
 
 ## ZDoom And GZDoom Data
 
