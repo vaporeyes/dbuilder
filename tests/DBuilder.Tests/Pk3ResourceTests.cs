@@ -57,6 +57,40 @@ public class Pk3ResourceTests
         return px;
     }
 
+    private static byte[] GrayscalePlaypal()
+    {
+        var p = new byte[768];
+        for (int i = 0; i < 256; i++) { p[i * 3] = (byte)i; p[i * 3 + 1] = (byte)i; p[i * 3 + 2] = (byte)i; }
+        return p;
+    }
+
+    private static byte[] SolidFlat(byte index)
+    {
+        var f = new byte[DoomFlatReader.RawSize];
+        for (int i = 0; i < f.Length; i++) f[i] = index;
+        return f;
+    }
+
+    private static byte[] BuildNestedResourceWad()
+    {
+        using var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            Insert(wad, "PLAYPAL", GrayscalePlaypal());
+            Insert(wad, "F_START", Array.Empty<byte>());
+            Insert(wad, "NESTFLAT", SolidFlat(42));
+            Insert(wad, "F_END", Array.Empty<byte>());
+            wad.WriteHeaders();
+        }
+        return ms.ToArray();
+    }
+
+    private static void Insert(WAD wad, string name, byte[] bytes)
+    {
+        var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+        lump.Stream.Write(bytes, 0, bytes.Length);
+    }
+
     private static string BuildPk3()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");
@@ -119,6 +153,32 @@ public class Pk3ResourceTests
             rm.AddResource(path);
             Assert.Equal(new byte[] { 1, 1, 1, 255 }, rm.GetFlat("SHARED")!.Rgba[0..4]);
             Assert.Equal(new byte[] { 2, 2, 2, 255 }, rm.GetWallTexture("SHARED")!.Rgba[0..4]);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void NestedWadInsidePk3ProvidesPaletteAndFlats()
+    {
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");
+        try
+        {
+            using (var fs = File.Create(path))
+            using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
+            {
+                using var s = zip.CreateEntry("resources/nested.wad").Open();
+                var bytes = BuildNestedResourceWad();
+                s.Write(bytes, 0, bytes.Length);
+            }
+
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.NotNull(rm.Palette);
+            var flat = rm.GetFlat("NESTFLAT");
+            Assert.NotNull(flat);
+            Assert.Equal(64, flat!.Width);
+            Assert.Equal(new byte[] { 42, 42, 42, 255 }, flat.Rgba[0..4]);
         }
         finally { File.Delete(path); }
     }

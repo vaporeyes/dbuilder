@@ -120,31 +120,31 @@ internal abstract class FolderResourceReader : IResourceReader
         entries[folder + "/" + baseName] = read; // last entry of a name wins
     }
 
-    public DoomPalette? GetPalette()
+    public virtual DoomPalette? GetPalette()
     {
         var b = Find("PLAYPAL", "");
         return b != null ? DoomPalette.FromBytes(b) : null;
     }
 
-    public ImageData? GetFlat(string name, DoomPalette? palette)
+    public virtual ImageData? GetFlat(string name, DoomPalette? palette)
         => Decode(Find(name, "flats", ""), palette, preferFlat: true);
 
-    public ImageData? GetWallTexture(string name, DoomPalette? palette)
+    public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
         => Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
 
-    public ImageData? GetSprite(string name, DoomPalette? palette)
+    public virtual ImageData? GetSprite(string name, DoomPalette? palette)
         => Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
 
-    public string? GetTextLump(string name)
+    public virtual string? GetTextLump(string name)
     {
         var b = Find(name, "", name.ToLowerInvariant());
         return b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
     }
 
-    public byte[]? GetLumpBytes(string name) => Find(name, "");
+    public virtual byte[]? GetLumpBytes(string name) => Find(name, "");
 
-    public IEnumerable<string> TextureNames() => NamesInFolder("textures/");
-    public IEnumerable<string> FlatNames() => NamesInFolder("flats/");
+    public virtual IEnumerable<string> TextureNames() => NamesInFolder("textures/");
+    public virtual IEnumerable<string> FlatNames() => NamesInFolder("flats/");
 
     private byte[]? Find(string name, params string[] folders)
     {
@@ -185,6 +185,8 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 {
     private readonly ZipArchive zip;
     private readonly Stream? ownedStream;
+    private readonly List<WadResourceReader> nestedWads = new();
+    private readonly List<MemoryStream> nestedWadStreams = new();
 
     public Pk3ResourceReader(Stream zipStream, bool ownsStream)
     {
@@ -201,11 +203,123 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 s.CopyTo(ms);
                 return ms.ToArray();
             });
+
+            if (Path.GetExtension(e.FullName).Equals(".wad", StringComparison.OrdinalIgnoreCase))
+            {
+                using var s = e.Open();
+                var ms = new MemoryStream();
+                s.CopyTo(ms);
+                ms.Position = 0;
+                nestedWadStreams.Add(ms);
+                nestedWads.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true));
+            }
         }
+    }
+
+    public override DoomPalette? GetPalette()
+    {
+        var palette = base.GetPalette();
+        if (palette != null) return palette;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            palette = nestedWads[i].GetPalette();
+            if (palette != null) return palette;
+        }
+
+        return null;
+    }
+
+    public override ImageData? GetFlat(string name, DoomPalette? palette)
+    {
+        var image = base.GetFlat(name, palette);
+        if (image != null) return image;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            image = nestedWads[i].GetFlat(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
+
+    public override ImageData? GetWallTexture(string name, DoomPalette? palette)
+    {
+        var image = base.GetWallTexture(name, palette);
+        if (image != null) return image;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            image = nestedWads[i].GetWallTexture(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
+
+    public override ImageData? GetSprite(string name, DoomPalette? palette)
+    {
+        var image = base.GetSprite(name, palette);
+        if (image != null) return image;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            image = nestedWads[i].GetSprite(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
+
+    public override string? GetTextLump(string name)
+    {
+        var text = base.GetTextLump(name);
+        if (text != null) return text;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            text = nestedWads[i].GetTextLump(name);
+            if (text != null) return text;
+        }
+
+        return null;
+    }
+
+    public override byte[]? GetLumpBytes(string name)
+    {
+        var bytes = base.GetLumpBytes(name);
+        if (bytes != null) return bytes;
+
+        for (int i = nestedWads.Count - 1; i >= 0; i--)
+        {
+            bytes = nestedWads[i].GetLumpBytes(name);
+            if (bytes != null) return bytes;
+        }
+
+        return null;
+    }
+
+    public override IEnumerable<string> TextureNames()
+    {
+        foreach (var name in base.TextureNames()) yield return name;
+        foreach (var wad in nestedWads)
+            foreach (var name in wad.TextureNames())
+                yield return name;
+    }
+
+    public override IEnumerable<string> FlatNames()
+    {
+        foreach (var name in base.FlatNames()) yield return name;
+        foreach (var wad in nestedWads)
+            foreach (var name in wad.FlatNames())
+                yield return name;
     }
 
     public override void Dispose()
     {
+        foreach (var wad in nestedWads) wad.Dispose();
+        foreach (var stream in nestedWadStreams) stream.Dispose();
         zip.Dispose();
         ownedStream?.Dispose();
     }
