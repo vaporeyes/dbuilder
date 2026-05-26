@@ -1,5 +1,5 @@
 // ABOUTME: Minimal map-options container for UDB-compatible per-map settings backed by Configuration.
-// ABOUTME: Ports map identity, selection group, tag-label, drawing-option, script-tab and command persistence.
+// ABOUTME: Ports map identity, selection group, tag-label, drawing-option, script-tab, command and resource persistence.
 
 using System.Collections;
 using System.Collections.Specialized;
@@ -18,6 +18,7 @@ public sealed class MapOptions
     public Configuration MapConfiguration { get; }
     public Dictionary<int, string> TagLabels { get; } = new();
     public Dictionary<string, ScriptDocumentSettings> ScriptDocumentSettings { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private readonly DataLocationList resources = new();
     public ExternalCommandSettings ReloadResourcePreCommand { get; set; } = new();
     public ExternalCommandSettings ReloadResourcePostCommand { get; set; } = new();
     public ExternalCommandSettings TestPreCommand { get; set; } = new();
@@ -286,6 +287,85 @@ public sealed class MapOptions
         TestPostCommand = new ExternalCommandSettings(MapConfiguration, "testpostcommand");
     }
 
+    public void WriteResources()
+    {
+        resources.WriteToConfig(MapConfiguration, "resources");
+    }
+
+    public void ReadResources()
+    {
+        resources.ReadFromConfig(MapConfiguration, "resources");
+    }
+
+    public int AddResource(DataLocation location)
+    {
+        var normalized = CloneLocation(location);
+        normalized.Location = Path.GetFullPath(normalized.Location);
+
+        for (int i = 0; i < resources.Count; i++)
+        {
+            if (!string.Equals(Path.GetFullPath(resources[i].Location), normalized.Location, StringComparison.OrdinalIgnoreCase)) continue;
+            resources[i] = normalized;
+            return i;
+        }
+
+        resources.Add(normalized);
+        return resources.Count - 1;
+    }
+
+    public DataLocationList GetResources() => new(resources);
+
+    public void ClearResources()
+    {
+        resources.Clear();
+    }
+
+    public void RemoveResource(int index)
+    {
+        resources.RemoveAt(index);
+    }
+
+    public void CopyResources(DataLocationList source)
+    {
+        resources.Clear();
+        resources.AddRange(new DataLocationList(source));
+    }
+
+    public string? ReadPluginSetting(string pluginName, string setting, string? defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public int ReadPluginSetting(string pluginName, string setting, int defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public float ReadPluginSetting(string pluginName, string setting, float defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public double ReadPluginSetting(string pluginName, string setting, double defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public short ReadPluginSetting(string pluginName, string setting, short defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public long ReadPluginSetting(string pluginName, string setting, long defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public bool ReadPluginSetting(string pluginName, string setting, bool defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public byte ReadPluginSetting(string pluginName, string setting, byte defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public IDictionary? ReadPluginSetting(string pluginName, string setting, IDictionary? defaultValue)
+        => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
+
+    public bool WritePluginSetting(string pluginName, string setting, object? value)
+        => MapConfiguration.WriteSetting(PluginSettingPath(pluginName, setting), value);
+
+    public bool DeletePluginSetting(string pluginName, string setting)
+        => MapConfiguration.DeleteSetting(PluginSettingPath(pluginName, setting));
+
+    public override string ToString() => CurrentName;
+
     private static void AddGroupIndices<T>(IDictionary group, string key, IReadOnlyList<T> items, int mask)
         where T : IGroupable
     {
@@ -422,4 +502,14 @@ public sealed class MapOptions
             if (lines.Count == lineParts.Length) foldLevels[level] = lines;
         }
     }
+
+    private static DataLocation CloneLocation(DataLocation source)
+    {
+        var clone = new DataLocation(source.Type, source.Location, source.Option1, source.Option2, source.NotForTesting);
+        clone.RequiredArchives.AddRange(source.RequiredArchives);
+        return clone;
+    }
+
+    private static string PluginSettingPath(string pluginName, string setting)
+        => pluginName.ToLowerInvariant() + "." + setting;
 }

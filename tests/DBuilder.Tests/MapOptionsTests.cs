@@ -1,7 +1,8 @@
 // ABOUTME: Tests minimal MapOptions persistence backed by Configuration.
-// ABOUTME: Covers UDB-compatible identity, selection group, tag-label, drawing-option, script-tab and command settings.
+// ABOUTME: Covers UDB-compatible identity, selection group, tag-label, drawing-option, script-tab, command and resource settings.
 
 using System.Collections;
+using System.IO;
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -627,6 +628,164 @@ public class MapOptionsTests
         Assert.Equal("reload-post", options.ReloadResourcePostCommand.Commands);
         Assert.Equal("test-pre", options.TestPreCommand.Commands);
         Assert.Equal("test-post", options.TestPostCommand.Commands);
+    }
+
+    [Fact]
+    public void DataLocationListWritesUdbCompatibleResourceEntries()
+    {
+        var configuration = new Configuration(sorted: true);
+        var locations = new DataLocationList
+        {
+            new(DataLocationType.Wad, "/tmp/base.wad", option1: true, option2: false, notForTesting: true),
+            new(DataLocationType.Pk3, "/tmp/mod.pk3", option1: false, option2: true),
+        };
+        locations[0].RequiredArchives.AddRange(new[] { "doom.wad", "textures.pk3" });
+
+        locations.WriteToConfig(configuration, "resources");
+
+        var first = Assert.IsAssignableFrom<IDictionary>(configuration.ReadSetting("resources.resource0", (IDictionary?)null));
+        var second = Assert.IsAssignableFrom<IDictionary>(configuration.ReadSetting("resources.resource1", (IDictionary?)null));
+        Assert.Equal((int)DataLocationType.Wad, first["type"]);
+        Assert.Equal("/tmp/base.wad", first["location"]);
+        Assert.Equal(1, first["option1"]);
+        Assert.Equal(0, first["option2"]);
+        Assert.Equal(1, first["notfortesting"]);
+        Assert.Equal("doom.wad,textures.pk3", first["requiredarchives"]);
+        Assert.Equal((int)DataLocationType.Pk3, second["type"]);
+        Assert.Equal(0, second["option1"]);
+        Assert.Equal(1, second["option2"]);
+    }
+
+    [Fact]
+    public void DataLocationListReadsResourceEntries()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.InputConfiguration("""
+            resources
+            {
+                resource0
+                {
+                    type = 0;
+                    location = "/tmp/base.wad";
+                    option1 = 1;
+                    option2 = 0;
+                    notfortesting = 1;
+                    requiredarchives = "doom.wad,textures.pk3";
+                }
+            }
+            """);
+
+        var locations = new DataLocationList(configuration, "resources");
+
+        var location = Assert.Single(locations);
+        Assert.Equal(DataLocationType.Wad, location.Type);
+        Assert.Equal("/tmp/base.wad", location.Location);
+        Assert.True(location.Option1);
+        Assert.False(location.Option2);
+        Assert.True(location.NotForTesting);
+        Assert.Equal(new[] { "doom.wad", "textures.pk3" }, location.RequiredArchives);
+    }
+
+    [Fact]
+    public void DataLocationListCombinedKeepsLaterDuplicates()
+    {
+        var first = new DataLocationList
+        {
+            new(DataLocationType.Wad, "/tmp/base.wad", option1: false),
+            new(DataLocationType.Pk3, "/tmp/extra.pk3"),
+        };
+        var second = new DataLocationList
+        {
+            new(DataLocationType.Wad, "/tmp/base.wad", option1: true),
+        };
+
+        var combined = DataLocationList.Combined(first, second);
+
+        Assert.Equal(2, combined.Count);
+        Assert.True(combined.Single(location => location.Location == "/tmp/base.wad").Option1);
+    }
+
+    [Fact]
+    public void MapOptionsResourceHelpersReplaceByFullPathAndReturnCopies()
+    {
+        var options = new MapOptions();
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder-resource-test.wad");
+        var first = new DataLocation(DataLocationType.Wad, path, option1: false);
+        var second = new DataLocation(DataLocationType.Wad, path, option1: true);
+
+        int firstIndex = options.AddResource(first);
+        int secondIndex = options.AddResource(second);
+        var resources = options.GetResources();
+        resources[0].Option1 = false;
+
+        Assert.Equal(0, firstIndex);
+        Assert.Equal(0, secondIndex);
+        Assert.Single(options.GetResources());
+        Assert.True(options.GetResources()[0].Option1);
+    }
+
+    [Fact]
+    public void MapOptionsReadsAndWritesResources()
+    {
+        var options = new MapOptions();
+        options.AddResource(new DataLocation(DataLocationType.Directory, Path.GetTempPath(), option2: true));
+
+        options.WriteResources();
+        var restored = new MapOptions(options.MapConfiguration);
+        restored.ReadResources();
+
+        var location = Assert.Single(restored.GetResources());
+        Assert.Equal(DataLocationType.Directory, location.Type);
+        Assert.True(location.Option2);
+    }
+
+    [Fact]
+    public void DataLocationIsValidChecksTypeSpecificPath()
+    {
+        string tempFile = Path.GetTempFileName();
+        try
+        {
+            Assert.True(new DataLocation(DataLocationType.Wad, tempFile).IsValid());
+            Assert.True(new DataLocation(DataLocationType.Directory, Path.GetTempPath()).IsValid());
+            Assert.False(new DataLocation(DataLocationType.Pk3, tempFile + ".missing").IsValid());
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void PluginSettingsUseLowercasePluginPrefix()
+    {
+        var options = new MapOptions();
+
+        Assert.True(options.WritePluginSetting("TagRange", "enabled", true));
+        Assert.True(options.WritePluginSetting("TagRange", "count", 3));
+        Assert.True(options.WritePluginSetting("TagRange", "label", "range"));
+
+        Assert.True(options.MapConfiguration.ReadSetting("tagrange.enabled", false));
+        Assert.Equal(3, options.ReadPluginSetting("TagRange", "count", 0));
+        Assert.Equal("range", options.ReadPluginSetting("TagRange", "label", ""));
+    }
+
+    [Fact]
+    public void DeletePluginSettingRemovesPluginValue()
+    {
+        var options = new MapOptions();
+        options.WritePluginSetting("TagRange", "enabled", true);
+
+        Assert.True(options.DeletePluginSetting("TagRange", "enabled"));
+
+        Assert.False(options.ReadPluginSetting("TagRange", "enabled", false));
+    }
+
+    [Fact]
+    public void ToStringReturnsCurrentName()
+    {
+        var options = new MapOptions { CurrentName = "MAP01" };
+
+        Assert.Equal("MAP01", options.ToString());
     }
 
     private static MapSet BuildMap()
