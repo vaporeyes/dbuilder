@@ -21,7 +21,7 @@ Status values:
 | `Source/Core/Geometry` | partial | `DBuilder.Geometry`, `DBuilder.Map` | Many helpers are ported. Remaining `Tools.cs` and edge behavior need comparison. |
 | `Source/Core/GZBuilder` | partial | `DBuilder.Editor` | Main editor shell exists. Full shell behavior remains. |
 | `Source/Core/IO` | partial | `DBuilder.IO` | WAD and map IO exist, including static format constraints before saves. Full stream, conversion, and save semantics remain. |
-| `Source/Core/Map` | partial | `DBuilder.Map`, `DBuilder.IO` | Core map elements exist. Map options, grid setup, selection groups, typed field and argument helpers, tag collections, element lookup helpers, sidedef part semantics, and static format constraints are ported. Broader map behavior remains partial. |
+| `Source/Core/Map` | partial | `DBuilder.Map`, `DBuilder.IO` | Core map elements exist. Map options, grid setup, selection groups, disposal and orphan cleanup, typed field and argument helpers, tag collections, element lookup helpers, sidedef part semantics, and static format constraints are ported. Broader map behavior remains partial. |
 | `Source/Core/Plugins` | missing | none | Plugin framework not ported. |
 | `Source/Core/Properties` | partial | `DBuilder.Editor` | Basic property dialogs exist. Full typed property system remains. |
 | `Source/Core/Rendering` | partial | `DBuilder.Rendering`, `DBuilder.Editor` | Silk.NET renderer exists. Full render pipeline and visual modes remain. |

@@ -71,7 +71,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Expand `MapSet` to cover full UDB map behavior.
 - [ ] Port all selection, marking, and indexing semantics.
-- [ ] Port element disposal and orphan cleanup behavior.
+- [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
 - [x] Port in-memory selection groups and group metadata.
 - [x] Preserve selection groups through clipboard and undo snapshots.
