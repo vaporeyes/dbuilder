@@ -138,7 +138,7 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetFlat(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "flats", ""), palette, preferFlat: true);
+        var image = Decode(Find(name, "hires", "flats", ""), palette, preferFlat: true);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -152,7 +152,7 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
+        var image = Decode(Find(name, "hires", "textures", "patches"), palette, preferFlat: false);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -166,7 +166,7 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetSprite(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
+        var image = Decode(Find(name, "hires", "sprites", "graphics", "patches", ""), palette, preferFlat: false);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
