@@ -246,6 +246,64 @@ public class MapSet
     public void RemoveThing(Thing t) => Things.Remove(t);
 
     /// <summary>
+    /// Repairs invalid cross-list references after low-level edits: removes linedefs whose vertices are no longer
+    /// in the map, drops sidedefs not owned by their linedef, clears sidedef sector references to removed sectors,
+    /// and removes front/back references to sidedefs not in the map. Returns the number of repairs made.
+    /// </summary>
+    public int RepairReferences()
+    {
+        int repairs = 0;
+        var vertices = new HashSet<Vertex>(Vertices, ReferenceEqualityComparer.Instance);
+        var sectors = new HashSet<Sector>(Sectors, ReferenceEqualityComparer.Instance);
+
+        for (int i = Linedefs.Count - 1; i >= 0; i--)
+        {
+            var line = Linedefs[i];
+            if (!vertices.Contains(line.Start) || !vertices.Contains(line.End))
+            {
+                RemoveLinedef(line);
+                repairs++;
+            }
+        }
+
+        var lines = new HashSet<Linedef>(Linedefs, ReferenceEqualityComparer.Instance);
+        var sides = new HashSet<Sidedef>(Sidedefs, ReferenceEqualityComparer.Instance);
+
+        foreach (var line in Linedefs)
+        {
+            if (line.Front != null && (!sides.Contains(line.Front) || !ReferenceEquals(line.Front.Line, line)))
+            {
+                line.Front = null;
+                repairs++;
+            }
+            if (line.Back != null && (!sides.Contains(line.Back) || !ReferenceEquals(line.Back.Line, line)))
+            {
+                line.Back = null;
+                repairs++;
+            }
+        }
+
+        for (int i = Sidedefs.Count - 1; i >= 0; i--)
+        {
+            var side = Sidedefs[i];
+            var line = side.Line;
+            if (line == null || !lines.Contains(line) || (!ReferenceEquals(line.Front, side) && !ReferenceEquals(line.Back, side)))
+            {
+                Sidedefs.RemoveAt(i);
+                repairs++;
+                continue;
+            }
+            if (side.Sector != null && !sectors.Contains(side.Sector))
+            {
+                side.Sector = null;
+                repairs++;
+            }
+        }
+
+        return repairs;
+    }
+
+    /// <summary>
     /// Reassigns every sidedef of the given sectors to the first one and removes the rest. Geometry (linedefs)
     /// is unchanged, so the lines between the joined sectors remain. Returns the kept sector (null if fewer than
     /// two were given). Call BuildIndexes() afterward.

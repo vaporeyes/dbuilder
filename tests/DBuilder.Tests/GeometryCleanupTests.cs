@@ -111,6 +111,63 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void RepairReferencesRemovesLinedefsWithMissingVertices()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var outside = new Vertex(new Vector2D(20, 0));
+        var valid = map.AddLinedef(a, b);
+        var invalid = map.AddLinedef(a, outside);
+        var invalidSide = map.AddSidedef(invalid, true, null);
+
+        int repairs = map.RepairReferences();
+
+        Assert.Equal(1, repairs);
+        Assert.Contains(valid, map.Linedefs);
+        Assert.DoesNotContain(invalid, map.Linedefs);
+        Assert.DoesNotContain(invalidSide, map.Sidedefs);
+    }
+
+    [Fact]
+    public void RepairReferencesRemovesDetachedSidedefsAndClearsInvalidLineSides()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var line = map.AddLinedef(a, b);
+        var owned = map.AddSidedef(line, true, null);
+        var detached = new Sidedef(line, false);
+        map.Sidedefs.Add(detached);
+        line.Back = new Sidedef(line, false);
+
+        int repairs = map.RepairReferences();
+
+        Assert.Equal(2, repairs);
+        Assert.Contains(owned, map.Sidedefs);
+        Assert.DoesNotContain(detached, map.Sidedefs);
+        Assert.Null(line.Back);
+    }
+
+    [Fact]
+    public void RepairReferencesNullsSidedefSectorRemovedFromMap()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var line = map.AddLinedef(a, b);
+        var side = map.AddSidedef(line, true, sector);
+        map.Sectors.Clear();
+
+        int repairs = map.RepairReferences();
+
+        Assert.Equal(1, repairs);
+        Assert.Null(side.Sector);
+        Assert.Contains(side, map.Sidedefs);
+    }
+
+    [Fact]
     public void MergeIsUndoable()
     {
         var map = new MapSet();
