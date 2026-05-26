@@ -1,5 +1,5 @@
 // ABOUTME: Minimal map-options container for UDB-compatible per-map settings backed by Configuration.
-// ABOUTME: Ports map identity, selection group, tag-label, drawing-option, script-tab, command and resource persistence.
+// ABOUTME: Ports map identity, selection group, tag-label, drawing-option, grid, script-tab, command and resource persistence.
 
 using System.Collections;
 using System.Collections.Specialized;
@@ -331,6 +331,16 @@ public sealed class MapOptions
         resources.AddRange(new DataLocationList(source));
     }
 
+    public void WriteGridSetup(GridSetup grid)
+    {
+        grid.WriteToConfig(MapConfiguration, "grid");
+    }
+
+    public void ReadGridSetup(GridSetup grid)
+    {
+        grid.ReadFromConfig(MapConfiguration, "grid");
+    }
+
     public string? ReadPluginSetting(string pluginName, string setting, string? defaultValue)
         => MapConfiguration.ReadSetting(PluginSettingPath(pluginName, setting), defaultValue);
 
@@ -363,6 +373,26 @@ public sealed class MapOptions
 
     public bool DeletePluginSetting(string pluginName, string setting)
         => MapConfiguration.DeleteSetting(PluginSettingPath(pluginName, setting));
+
+    public int GetUniversalFieldType(string elementName, string fieldName, int defaultType, Configuration? gameConfiguration = null)
+    {
+        int configuredType = gameConfiguration?.ReadSetting("universalfields." + elementName + "." + fieldName + ".type", -1) ?? -1;
+        return configuredType != -1
+            ? configuredType
+            : MapConfiguration.ReadSetting("fieldtypes." + elementName + "." + fieldName, defaultType);
+    }
+
+    public void SetUniversalFieldType(string elementName, string fieldName, int type, Configuration? gameConfiguration = null)
+    {
+        int configuredType = gameConfiguration?.ReadSetting("universalfields." + elementName + "." + fieldName + ".type", -1) ?? -1;
+        if (configuredType == -1)
+            MapConfiguration.WriteSetting("fieldtypes." + elementName + "." + fieldName, type);
+    }
+
+    public void ForgetUniversalFieldTypes()
+    {
+        MapConfiguration.DeleteSetting("fieldtypes");
+    }
 
     public override string ToString() => CurrentName;
 

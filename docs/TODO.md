@@ -76,7 +76,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port in-memory selection groups and group metadata.
 - [x] Preserve selection groups through clipboard and undo snapshots.
 - [x] Port map-options-backed selection group persistence.
-- [ ] Port remaining map options.
+- [x] Port remaining map options.
 - [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
 - [ ] Port argument handling and typed field access.
 - [ ] Port tag behavior and tag collections.
@@ -84,7 +84,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sector builder behavior beyond the current subset.
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
-- [ ] Port map options and map metadata.
+- [x] Port map options and map metadata.
 - [ ] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.
 
@@ -230,7 +230,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port copy/paste manager behavior fully.
 - [ ] Port undo manager behavior fully.
 - [ ] Port undo snapshot behavior.
-- [ ] Port grid setup behavior.
+- [x] Port grid setup behavior.
 - [ ] Port things filter behavior fully.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.

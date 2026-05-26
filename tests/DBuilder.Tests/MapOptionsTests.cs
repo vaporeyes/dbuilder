@@ -788,6 +788,55 @@ public class MapOptionsTests
         Assert.Equal("MAP01", options.ToString());
     }
 
+    [Fact]
+    public void UniversalFieldTypeFallsBackToMapConfiguration()
+    {
+        var options = new MapOptions();
+
+        options.SetUniversalFieldType("thing", "health", 1);
+
+        Assert.Equal(1, options.GetUniversalFieldType("thing", "health", 0));
+        Assert.Equal(0, options.GetUniversalFieldType("thing", "missing", 0));
+        Assert.Equal(1, options.MapConfiguration.ReadSetting("fieldtypes.thing.health", 0));
+    }
+
+    [Fact]
+    public void UniversalFieldTypePrefersGameConfiguration()
+    {
+        var options = new MapOptions();
+        options.SetUniversalFieldType("thing", "health", 1);
+        var gameConfiguration = new Configuration(sorted: true);
+        gameConfiguration.InputConfiguration("""
+            universalfields
+            {
+                thing
+                {
+                    health
+                    {
+                        type = 2;
+                    }
+                }
+            }
+            """);
+
+        int fieldType = options.GetUniversalFieldType("thing", "health", 0, gameConfiguration);
+        options.SetUniversalFieldType("thing", "health", 3, gameConfiguration);
+
+        Assert.Equal(2, fieldType);
+        Assert.Equal(1, options.MapConfiguration.ReadSetting("fieldtypes.thing.health", 0));
+    }
+
+    [Fact]
+    public void ForgetUniversalFieldTypesRemovesOverrides()
+    {
+        var options = new MapOptions();
+        options.SetUniversalFieldType("thing", "health", 1);
+
+        options.ForgetUniversalFieldTypes();
+
+        Assert.Equal(0, options.GetUniversalFieldType("thing", "health", 0));
+    }
+
     private static MapSet BuildMap()
     {
         var map = new MapSet();
