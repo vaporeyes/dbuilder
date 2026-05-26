@@ -127,7 +127,7 @@ Deliverables:
 Verification:
 
 - [x] Resource stack tests cover IWAD plus PWAD plus PK3 plus directory resources.
-- [ ] Texture and sprite tests cover priority overrides and namespace conflicts.
+- [x] Texture and sprite tests cover priority overrides and namespace conflicts.
 - [ ] Large resource stacks remain responsive under measured thresholds.
 
 Exit Criteria:
