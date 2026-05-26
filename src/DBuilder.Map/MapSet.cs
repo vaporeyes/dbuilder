@@ -89,6 +89,120 @@ public class MapSet
         return t;
     }
 
+    /// <summary>Creates a deep copy of this map, preserving element data, transient flags and references.</summary>
+    public MapSet Clone()
+    {
+        var clone = new MapSet { Namespace = Namespace };
+        var vertexMap = new Dictionary<Vertex, Vertex>(ReferenceEqualityComparer.Instance);
+        var sectorMap = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
+        var linedefMap = new Dictionary<Linedef, Linedef>(ReferenceEqualityComparer.Instance);
+        var sidedefMap = new Dictionary<Sidedef, Sidedef>(ReferenceEqualityComparer.Instance);
+
+        foreach (var vertex in Vertices)
+        {
+            var copy = new Vertex(vertex.Position)
+            {
+                Selected = vertex.Selected,
+                Marked = vertex.Marked,
+                ZCeiling = vertex.ZCeiling,
+                ZFloor = vertex.ZFloor,
+            };
+            CopyFields(vertex, copy);
+            clone.Vertices.Add(copy);
+            vertexMap[vertex] = copy;
+        }
+
+        foreach (var sector in Sectors)
+        {
+            var copy = new Sector
+            {
+                Index = sector.Index,
+                Selected = sector.Selected,
+                Marked = sector.Marked,
+                FloorHeight = sector.FloorHeight,
+                CeilHeight = sector.CeilHeight,
+                FloorTexture = sector.FloorTexture,
+                CeilTexture = sector.CeilTexture,
+                Brightness = sector.Brightness,
+                Special = sector.Special,
+                FloorSlope = sector.FloorSlope,
+                FloorSlopeOffset = sector.FloorSlopeOffset,
+                CeilSlope = sector.CeilSlope,
+                CeilSlopeOffset = sector.CeilSlopeOffset,
+            };
+            copy.Tags.AddRange(sector.Tags);
+            CopyFields(sector, copy);
+            clone.Sectors.Add(copy);
+            sectorMap[sector] = copy;
+        }
+
+        foreach (var line in Linedefs)
+        {
+            var copy = new Linedef(vertexMap[line.Start], vertexMap[line.End])
+            {
+                Selected = line.Selected,
+                Marked = line.Marked,
+                Flags = line.Flags,
+                Action = line.Action,
+            };
+            copy.Tags.AddRange(line.Tags);
+            CopyArgs(line, copy);
+            foreach (var flag in line.UdmfFlags) copy.UdmfFlags.Add(flag);
+            CopyFields(line, copy);
+            clone.Linedefs.Add(copy);
+            linedefMap[line] = copy;
+        }
+
+        foreach (var side in Sidedefs)
+        {
+            var copy = new Sidedef(linedefMap[side.Line], side.IsFront)
+            {
+                Sector = side.Sector == null ? null : sectorMap[side.Sector],
+                Selected = side.Selected,
+                Marked = side.Marked,
+                OffsetX = side.OffsetX,
+                OffsetY = side.OffsetY,
+                HighTexture = side.HighTexture,
+                MidTexture = side.MidTexture,
+                LowTexture = side.LowTexture,
+            };
+            CopyFields(side, copy);
+            clone.Sidedefs.Add(copy);
+            sidedefMap[side] = copy;
+        }
+
+        foreach (var line in Linedefs)
+        {
+            var copy = linedefMap[line];
+            copy.Front = line.Front == null ? null : sidedefMap[line.Front];
+            copy.Back = line.Back == null ? null : sidedefMap[line.Back];
+        }
+
+        foreach (var thing in Things)
+        {
+            var copy = new Thing(thing.Position, thing.Type, thing.Angle)
+            {
+                Selected = thing.Selected,
+                Marked = thing.Marked,
+                Height = thing.Height,
+                Pitch = thing.Pitch,
+                Roll = thing.Roll,
+                ScaleX = thing.ScaleX,
+                ScaleY = thing.ScaleY,
+                Flags = thing.Flags,
+                Tag = thing.Tag,
+                Action = thing.Action,
+            };
+            CopyArgs(thing, copy);
+            foreach (var flag in thing.UdmfFlags) copy.UdmfFlags.Add(flag);
+            CopyFields(thing, copy);
+            clone.Things.Add(copy);
+        }
+
+        clone.BuildIndexes();
+        return clone;
+    }
+
     /// <summary>Removes a sidedef and detaches it from its owning linedef.</summary>
     public void RemoveSidedef(Sidedef sd)
     {
@@ -356,7 +470,17 @@ public class MapSet
         dst.HighTexture = src.HighTexture;
         dst.MidTexture = src.MidTexture;
         dst.LowTexture = src.LowTexture;
+        CopyFields(src, dst);
+    }
+
+    private static void CopyFields(IFielded src, IFielded dst)
+    {
         foreach (var kv in src.Fields) dst.Fields[kv.Key] = kv.Value;
+    }
+
+    private static void CopyArgs(IHasArguments src, IHasArguments dst)
+    {
+        for (int i = 0; i < dst.Args.Length; i++) dst.Args[i] = src.Args[i];
     }
 
     // ============================================================
