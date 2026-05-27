@@ -59,6 +59,8 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, ImageData?> flatCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> textureCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> spriteCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, VoxelDefinition> voxelDefs = new(StringComparer.OrdinalIgnoreCase);
+    private bool voxelDefsBuilt;
 
     // TEXTURES-lump composite definitions, keyed by name per usage (newest resource wins).
     private readonly Dictionary<string, TexturesDef> wallDefs = new(StringComparer.OrdinalIgnoreCase);
@@ -106,6 +108,8 @@ public sealed class ResourceManager : IDisposable
         flatCache.Clear();
         textureCache.Clear();
         spriteCache.Clear();
+        voxelDefs.Clear();
+        voxelDefsBuilt = false;
         wallDefs.Clear();
         flatDefs.Clear();
         spriteDefs.Clear();
@@ -284,6 +288,46 @@ public sealed class ResourceManager : IDisposable
         }
     }
 
+    private void EnsureVoxelDefs()
+    {
+        if (voxelDefsBuilt) return;
+        voxelDefsBuilt = true;
+        foreach (var text in GetTextLumps("VOXELDEF"))
+        {
+            foreach (var entry in VoxeldefParser.Parse(text).Entries)
+                voxelDefs[entry.Key] = entry.Value;
+        }
+    }
+
+    /// <summary>All directly discoverable voxel model names across resources, sorted and de-duplicated.</summary>
+    public IReadOnlyList<string> GetVoxelNames()
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var reader in readers)
+            foreach (var name in reader.VoxelNames())
+                set.Add(name);
+        var list = new List<string>(set);
+        list.Sort(StringComparer.OrdinalIgnoreCase);
+        return list;
+    }
+
+    /// <summary>Raw voxel model bytes, searching newest resource first.</summary>
+    public byte[]? GetVoxelBytes(string name)
+    {
+        for (int i = readers.Count - 1; i >= 0; i--)
+            if (readers[i].GetVoxelBytes(name) is { } bytes)
+                return bytes;
+        return null;
+    }
+
+    /// <summary>The voxel model name mapped to a sprite by VOXELDEF, or null when none is declared.</summary>
+    public string? GetVoxelModelForSprite(string sprite)
+    {
+        EnsureVoxelDefs();
+        string normalized = NormalizeSpriteForVoxel(sprite);
+        return voxelDefs.TryGetValue(normalized, out var definition) ? definition.ModelName : null;
+    }
+
     private static ImageData CreateCameraTexture(CameraTextureDef texture)
     {
         var rgba = new byte[texture.Width * texture.Height * 4];
@@ -298,6 +342,54 @@ public sealed class ResourceManager : IDisposable
         DrawCameraCorner(rgba, texture.Width, texture.Height, texture.Width - 1, texture.Height - 1, line, arm);
         DrawCameraRec(rgba, texture.Width, texture.Height, line);
         return new ImageData(texture.Width, texture.Height, rgba);
+    }
+
+    private ImageData? CreateVoxelSprite(string sprite)
+    {
+        string normalized = NormalizeSpriteForVoxel(sprite);
+        string? model = GetVoxelModelForSprite(normalized);
+        if (model == null && GetVoxelBytes(normalized) != null) model = normalized;
+        if (model == null || GetVoxelBytes(model) == null) return null;
+
+        const int size = 64;
+        var rgba = new byte[size * size * 4];
+        for (int i = 0; i < size * size; i++)
+        {
+            rgba[i * 4] = 12;
+            rgba[i * 4 + 1] = 14;
+            rgba[i * 4 + 2] = 18;
+            rgba[i * 4 + 3] = 255;
+        }
+
+        for (int y = 10; y < 54; y++)
+        {
+            int half = y < 32 ? y - 10 : 53 - y;
+            for (int x = 32 - half; x <= 32 + half; x++)
+            {
+                int i = (y * size + x) * 4;
+                rgba[i] = (byte)(40 + y * 2);
+                rgba[i + 1] = (byte)(120 + x);
+                rgba[i + 2] = 220;
+            }
+        }
+
+        for (int y = 22; y < 42; y++)
+            for (int x = 20; x < 44; x++)
+                if (((x + y) & 3) == 0)
+                {
+                    int i = (y * size + x) * 4;
+                    rgba[i] = 236;
+                    rgba[i + 1] = 236;
+                    rgba[i + 2] = 120;
+                }
+
+        return new ImageData(size, size, rgba, OffsetX: size / 2, OffsetY: size - 1);
+    }
+
+    private static string NormalizeSpriteForVoxel(string sprite)
+    {
+        string name = Path.GetFileNameWithoutExtension(sprite.Replace('\\', '/')).ToUpperInvariant();
+        return name.Length > 4 ? name.Substring(0, 4) : name;
     }
 
     private static void DrawCameraCorner(byte[] rgba, int width, int height, int x, int y, int line, int arm)
@@ -541,6 +633,7 @@ public sealed class ResourceManager : IDisposable
                 result = ResolveCore(variant, spriteDefs, static (r, n, p) => r.GetSprite(n, p), includeCameraTextures: false);
                 if (result != null) break;
             }
+        result ??= CreateVoxelSprite(name);
 
         spriteCache[name] = result;
         return result;

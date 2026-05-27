@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
 
@@ -24,10 +25,15 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> TextureNames();
     /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
     IEnumerable<string> FlatNames();
+    /// <summary>Names of voxel model lumps or files this resource provides.</summary>
+    IEnumerable<string> VoxelNames();
+    /// <summary>Raw voxel model bytes, or null when this resource does not provide the model.</summary>
+    byte[]? GetVoxelBytes(string name);
 }
 
 internal sealed class WadResourceReader : IResourceReader
 {
+    private static readonly Regex VoxelName = new(@"^\S{4}(([A-Za-z][0-9])?|[A-Za-z]?)$", RegexOptions.Compiled);
     private readonly WAD wad;
     private readonly bool owns;
     private Dictionary<string, DoomTextureDef>? texDefs;
@@ -100,6 +106,41 @@ internal sealed class WadResourceReader : IResourceReader
             if (inFlats && l.Length > 0) result.Add(n);
         }
         return result;
+    }
+
+    public IEnumerable<string> VoxelNames()
+    {
+        bool inVoxels = false;
+        foreach (var l in wad.Lumps)
+        {
+            string n = l.Name;
+            if (n is "VX_START" or "V_START") { inVoxels = true; continue; }
+            if (n is "VX_END" or "V_END") { inVoxels = false; continue; }
+            if (inVoxels && IsValidVoxelName(n)) yield return n;
+        }
+    }
+
+    public byte[]? GetVoxelBytes(string name)
+    {
+        string shortName = VoxelLookupName(name);
+        bool inVoxels = false;
+        foreach (var l in wad.Lumps)
+        {
+            string n = l.Name;
+            if (n is "VX_START" or "V_START") { inVoxels = true; continue; }
+            if (n is "VX_END" or "V_END") { inVoxels = false; continue; }
+            if (inVoxels && string.Equals(n, shortName, StringComparison.OrdinalIgnoreCase))
+                return l.Stream.ReadAllBytes();
+        }
+        return null;
+    }
+
+    internal static bool IsValidVoxelName(string name) => name.Length > 3 && name.Length < 7 && VoxelName.IsMatch(name);
+
+    internal static string VoxelLookupName(string name)
+    {
+        string file = Path.GetFileNameWithoutExtension(name.Replace('\\', '/'));
+        return file.ToUpperInvariant();
     }
 
     public void Dispose() { if (owns) wad.Dispose(); }
@@ -231,6 +272,35 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var reader in nestedReaders)
             foreach (var name in reader.FlatNames())
                 yield return name;
+    }
+
+    public virtual IEnumerable<string> VoxelNames()
+    {
+        foreach (var name in NamesInFolder("voxels/"))
+            if (WadResourceReader.IsValidVoxelName(name))
+                yield return name;
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.VoxelNames())
+                yield return name;
+    }
+
+    public virtual byte[]? GetVoxelBytes(string name)
+    {
+        string normalized = name.Replace('\\', '/');
+        string lookup = WadResourceReader.VoxelLookupName(normalized);
+        string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
+        byte[]? bytes = string.IsNullOrWhiteSpace(folder)
+            ? Find(lookup, "voxels", "")
+            : Find(lookup, folder);
+        if (bytes != null) return bytes;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            bytes = nestedReaders[i].GetVoxelBytes(name);
+            if (bytes != null) return bytes;
+        }
+
+        return null;
     }
 
     private byte[]? Find(string name, params string[] folders)
