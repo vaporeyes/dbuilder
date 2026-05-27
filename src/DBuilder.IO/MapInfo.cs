@@ -312,9 +312,9 @@ public sealed class MapInfo
             case "next": e.Next = First(); break;
             case "secretnext": e.SecretNext = First(); break;
             case "music": e.Music = First(); break;
-            case "sky1": e.Sky1 = First(); e.Sky1ScrollSpeed = FloatAt(1); break;
-            case "sky2": e.Sky2 = First(); e.Sky2ScrollSpeed = FloatAt(1); break;
-            case "skybox": e.Sky1 = First(); e.Sky1ScrollSpeed = 0; break;
+            case "sky1": e.Sky1 = First().ToUpperInvariant(); e.Sky1ScrollSpeed = FloatAt(1); break;
+            case "sky2": e.Sky2 = First().ToUpperInvariant(); e.Sky2ScrollSpeed = FloatAt(1); break;
+            case "skybox": e.Sky1 = First().ToUpperInvariant(); e.Sky1ScrollSpeed = 0; break;
             case "titlepatch": e.TitlePatch = First(); break;
             case "cluster": e.Cluster = Int(); break;
             case "levelnum": e.LevelNum = Int(); break;

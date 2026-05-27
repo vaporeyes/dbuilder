@@ -243,8 +243,8 @@ map MAP02 ""Underhalls""
         const string text = @"
 map MAP01 ""Entryway""
 {
-    sky1 = SKY1, 0.25
-    sky2 = SKY2, -0.5
+    sky1 = sky1, 0.25
+    sky2 = sky2, -0.5
     doublesky
     fade = ""204060""
     outsidefog = ""102030""
@@ -279,5 +279,16 @@ map MAP01 ""Entryway""
         Assert.Equal("3", map.LightMode);
         Assert.Equal("linear", map.LightAttenuationMode);
         Assert.Equal(1.2, map.PixelRatio);
+    }
+
+    [Fact]
+    public void NormalizesSkyboxTextureName()
+    {
+        const string text = @"map MAP01 ""Entryway"" { skybox = ""skybox01"" }";
+
+        var map = MapInfo.Parse(text).GetMap("MAP01")!;
+
+        Assert.Equal("SKYBOX01", map.Sky1);
+        Assert.Equal(0, map.Sky1ScrollSpeed);
     }
 }
