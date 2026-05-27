@@ -63,6 +63,8 @@ public sealed class ResourceManager : IDisposable
     private bool voxelDefsBuilt;
     private readonly List<Modeldef> modelDefs = new();
     private bool modelDefsBuilt;
+    private Gldefs? gldefs;
+    private bool gldefsBuilt;
 
     // TEXTURES-lump composite definitions, keyed by name per usage (newest resource wins).
     private readonly Dictionary<string, TexturesDef> wallDefs = new(StringComparer.OrdinalIgnoreCase);
@@ -114,6 +116,8 @@ public sealed class ResourceManager : IDisposable
         voxelDefsBuilt = false;
         modelDefs.Clear();
         modelDefsBuilt = false;
+        gldefs = null;
+        gldefsBuilt = false;
         wallDefs.Clear();
         flatDefs.Clear();
         spriteDefs.Clear();
@@ -309,6 +313,36 @@ public sealed class ResourceManager : IDisposable
         modelDefsBuilt = true;
         foreach (var text in GetTextLumps("MODELDEF"))
             modelDefs.AddRange(ModeldefParser.Parse(text));
+    }
+
+    private void EnsureGldefs()
+    {
+        if (gldefsBuilt) return;
+        gldefsBuilt = true;
+        gldefs = new Gldefs();
+        foreach (var reader in readers)
+        {
+            string? text = reader.GetTextLump("GLDEFS");
+            if (text == null) continue;
+            var parsed = GldefsParser.Parse(text, reader.GetTextResource);
+            MergeGldefs(gldefs, parsed);
+        }
+    }
+
+    public Gldefs GetGldefs()
+    {
+        EnsureGldefs();
+        return gldefs!;
+    }
+
+    private static void MergeGldefs(Gldefs target, Gldefs source)
+    {
+        foreach (var light in source.Lights) target.Lights[light.Key] = light.Value;
+        target.Objects.AddRange(source.Objects);
+        target.GlowFlats.AddRange(source.GlowFlats);
+        target.GlowTextures.AddRange(source.GlowTextures);
+        foreach (var glow in source.Glows) target.Glows[glow.Key] = glow.Value;
+        foreach (var skybox in source.Skyboxes) target.Skyboxes[skybox.Key] = skybox.Value;
     }
 
     /// <summary>MODELDEF blocks discovered from loaded resources, oldest resource first.</summary>

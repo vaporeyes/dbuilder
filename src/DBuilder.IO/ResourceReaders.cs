@@ -19,6 +19,8 @@ internal interface IResourceReader : IDisposable
     ImageData? GetSprite(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
+    /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
+    string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
     byte[]? GetLumpBytes(string name);
     /// <summary>Names of the wall textures this resource provides (for the texture browser).</summary>
@@ -90,6 +92,8 @@ internal sealed class WadResourceReader : IResourceReader
         var lump = wad.FindLump(name);
         return lump != null ? System.Text.Encoding.ASCII.GetString(lump.Stream.ReadAllBytes()) : null;
     }
+
+    public string? GetTextResource(string name) => GetTextLump(name);
 
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
@@ -244,6 +248,23 @@ internal abstract class FolderResourceReader : IResourceReader
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
             text = nestedReaders[i].GetTextLump(name);
+            if (text != null) return text;
+        }
+
+        return null;
+    }
+
+    public virtual string? GetTextResource(string name)
+    {
+        string normalized = name.Replace('\\', '/').TrimStart('/');
+        if (files.TryGetValue(normalized, out var read)) return System.Text.Encoding.ASCII.GetString(read());
+
+        var text = GetTextLump(name);
+        if (text != null) return text;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            text = nestedReaders[i].GetTextResource(name);
             if (text != null) return text;
         }
 
