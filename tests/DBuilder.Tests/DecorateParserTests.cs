@@ -160,6 +160,54 @@ ACTOR UserVarActor 7006
     }
 
     [Fact]
+    public void MonsterDirectiveSetsActorFlags()
+    {
+        const string text = "ACTOR MonsterActor 7007 { Monster }";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.True(actor.Flags["shootable"]);
+        Assert.True(actor.Flags["countkill"]);
+        Assert.True(actor.Flags["solid"]);
+        Assert.True(actor.Flags["canpushwalls"]);
+        Assert.True(actor.Flags["canusewalls"]);
+        Assert.True(actor.Flags["activatemcross"]);
+        Assert.True(actor.Flags["canpass"]);
+        Assert.True(actor.Flags["ismonster"]);
+        Assert.False(actor.Properties.ContainsKey("Monster"));
+    }
+
+    [Fact]
+    public void ProjectileDirectiveSetsActorFlags()
+    {
+        const string text = "ACTOR ProjectileActor 7008 { Projectile }";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.True(actor.Flags["noblockmap"]);
+        Assert.True(actor.Flags["nogravity"]);
+        Assert.True(actor.Flags["dropoff"]);
+        Assert.True(actor.Flags["missile"]);
+        Assert.True(actor.Flags["activateimpact"]);
+        Assert.True(actor.Flags["activatepcross"]);
+        Assert.True(actor.Flags["noteleport"]);
+        Assert.False(actor.Properties.ContainsKey("Projectile"));
+    }
+
+    [Fact]
+    public void ClearFlagsDirectiveClearsExistingActorFlags()
+    {
+        const string text = "ACTOR ClearActor 7009 { +SOLID Monster ClearFlags +NOGRAVITY }";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.DoesNotContain("solid", actor.Flags.Keys);
+        Assert.DoesNotContain("shootable", actor.Flags.Keys);
+        Assert.True(actor.Flags["NOGRAVITY"]);
+        Assert.False(actor.Properties.ContainsKey("ClearFlags"));
+    }
+
+    [Fact]
     public void ScalePopulatesXScaleAndYScaleProperties()
     {
         const string text = "ACTOR Scaled 7004 { Scale 1.5 }";

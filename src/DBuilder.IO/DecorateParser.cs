@@ -206,6 +206,9 @@ public static class DecorateParser
             else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) SkipUntilSemicolon(t, ref i);
             else if (!inStates && (tk.Text.Equals("action", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))) SkipUntilSemicolon(t, ref i);
+            else if (!inStates && tk.Text.Equals("monster", StringComparison.OrdinalIgnoreCase)) ApplyMonsterFlags(actor);
+            else if (!inStates && tk.Text.Equals("projectile", StringComparison.OrdinalIgnoreCase)) ApplyProjectileFlags(actor);
+            else if (!inStates && tk.Text.Equals("clearflags", StringComparison.OrdinalIgnoreCase)) actor.Flags.Clear();
             else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
             else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
             else if (!inStates && LooksLikeProperty(tk.Text, t, i))
@@ -224,6 +227,29 @@ public static class DecorateParser
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
         }
+    }
+
+    private static void ApplyMonsterFlags(ActorInfo actor)
+    {
+        actor.Flags["shootable"] = true;
+        actor.Flags["countkill"] = true;
+        actor.Flags["solid"] = true;
+        actor.Flags["canpushwalls"] = true;
+        actor.Flags["canusewalls"] = true;
+        actor.Flags["activatemcross"] = true;
+        actor.Flags["canpass"] = true;
+        actor.Flags["ismonster"] = true;
+    }
+
+    private static void ApplyProjectileFlags(ActorInfo actor)
+    {
+        actor.Flags["noblockmap"] = true;
+        actor.Flags["nogravity"] = true;
+        actor.Flags["dropoff"] = true;
+        actor.Flags["missile"] = true;
+        actor.Flags["activateimpact"] = true;
+        actor.Flags["activatepcross"] = true;
+        actor.Flags["noteleport"] = true;
     }
 
     private static void SkipUntilSemicolon(List<Tok> t, ref int i)
