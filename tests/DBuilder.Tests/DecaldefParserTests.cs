@@ -11,7 +11,7 @@ public class DecaldefParserTests
     public void ParsesDecalsAndGenerators()
     {
         const string text = @"
-decal BloodSplat
+decal BloodSplat 12
 {
     pic BLUD1
     scale 0.5 0.75
@@ -28,6 +28,7 @@ generator ImpScorch ScorchMark";
         var defs = DecaldefParser.Parse(text);
 
         var decal = defs.Decals["BloodSplat"];
+        Assert.Equal(12, decal.Id);
         Assert.Equal("BLUD1", decal.Pic);
         Assert.Equal(0.5f, decal.ScaleX);
         Assert.Equal(0.75f, decal.ScaleY);
@@ -46,5 +47,25 @@ generator ImpScorch ScorchMark";
 
         Assert.Equal(0.25f, decal.ScaleX);
         Assert.Equal(0.5f, decal.ScaleY);
+    }
+
+    [Fact]
+    public void ParsesDecalGroups()
+    {
+        const string text = @"
+decal BloodA { pic BLDA }
+decal BloodB { pic BLDB }
+decalgroup BloodPool 99
+{
+    BloodA 3
+    BloodB 1
+}";
+
+        var group = DecaldefParser.Parse(text).Groups["BloodPool"];
+
+        Assert.Equal(99, group.Id);
+        Assert.Equal(2, group.Entries.Count);
+        Assert.Contains(group.Entries, e => e.DecalName == "BloodA" && e.Weight == 3);
+        Assert.Contains(group.Entries, e => e.DecalName == "BloodB" && e.Weight == 1);
     }
 }
