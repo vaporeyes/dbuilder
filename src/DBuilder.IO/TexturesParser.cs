@@ -173,9 +173,9 @@ public static class TexturesParser
         if (i >= t.Count) return;
         string name = t[i++];
         SkipCommas(t, ref i);
-        ReadInt(t, ref i, out int x);
+        if (!ReadInt(t, ref i, out int x)) return;
         SkipCommas(t, ref i);
-        ReadInt(t, ref i, out int y);
+        if (!ReadInt(t, ref i, out int y)) return;
         var patch = new TexturesPatch
         {
             Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
@@ -287,9 +287,7 @@ public static class TexturesParser
     {
         v = 0;
         if (i >= t.Count) return false;
-        // Some files use float offsets; accept and truncate.
         if (int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out v)) { i++; return true; }
-        if (double.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double d)) { v = (int)d; i++; return true; }
         return false;
     }
 

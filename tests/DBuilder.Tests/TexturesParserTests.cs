@@ -128,6 +128,37 @@ Texture After, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsDefinitionsWithNonIntegralSize()
+    {
+        const string text = @"
+Texture BAD, 8.5, 8 { Patch P, 0, 0 }
+Texture OK, 8, 8 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
+    public void SkipsPatchesWithNonIntegralOffsets()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch BADX, 0.5, 0
+    Patch BADY, 1, 2.5
+    Patch OK, 2, 3
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(2, patch.X);
+        Assert.Equal(3, patch.Y);
+    }
+
+    [Fact]
     public void ParsesTextureAndPatchMetadata()
     {
         const string text = @"
