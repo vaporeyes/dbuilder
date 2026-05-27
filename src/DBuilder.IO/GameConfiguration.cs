@@ -41,6 +41,42 @@ public sealed class ArgInfo
     public bool Used => Title.Length > 0;
 }
 
+public sealed record EnumItemInfo(string Value, string Title) : IComparable<EnumItemInfo>
+{
+    public override string ToString() => Title;
+
+    public int CompareTo(EnumItemInfo? other)
+    {
+        if (other == null) return 1;
+        return GetIntValue().CompareTo(other.GetIntValue());
+    }
+
+    public int GetIntValue()
+        => int.TryParse(Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) ? value : 0;
+}
+
+public sealed class EnumListInfo
+{
+    private readonly List<EnumItemInfo> items = new();
+
+    public EnumListInfo(string name)
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
+    public IReadOnlyList<EnumItemInfo> Items => items;
+
+    internal void Add(EnumItemInfo item) => items.Add(item);
+
+    public EnumItemInfo? GetByEnumIndex(string value)
+    {
+        foreach (var item in items)
+            if (item.Value == value) return item;
+        return null;
+    }
+}
+
 public sealed class ThingTypeInfo
 {
     public int Index { get; init; }
@@ -223,6 +259,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, string> thingFlags = new();
     private readonly Dictionary<int, string> skills = new();
     private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, EnumListInfo> enumLists = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<GeneralizedCategory> genLinedefs = new();
     private readonly List<GeneralizedCategory> genSectors = new();
     private readonly List<FlagTranslation> linedefFlagsTranslation = new();
@@ -272,6 +309,9 @@ public sealed class GameConfiguration
 
     /// <summary>Skill level number -> display name (e.g. 1 -> "I'm too young to die").</summary>
     public IReadOnlyDictionary<int, string> Skills => skills;
+
+    /// <summary>Named enum lists with string values and titles, matching UDB's enum metadata model.</summary>
+    public IReadOnlyDictionary<string, EnumListInfo> EnumLists => enumLists;
 
     /// <summary>Loads a game configuration file (resolving its include() statements) into catalogs.</summary>
     public static GameConfiguration FromFile(string path)
@@ -684,35 +724,51 @@ public sealed class GameConfiguration
         return args;
     }
 
-    // Parses the "enums" block: each named enum maps int values to titles (flat "v = title" or nested "v { title }").
+    // Parses the "enums" block: UDB stores string value/title pairs; the int map is kept for existing callers.
     private void ParseEnums(IDictionary enumsDict)
     {
         foreach (DictionaryEntry e in enumsDict)
         {
             string name = e.Key.ToString() ?? "";
             if (e.Value is not IDictionary vals) continue;
+            var list = new EnumListInfo(name);
             var map = new Dictionary<int, string>();
             foreach (DictionaryEntry kv in vals)
             {
-                if (!int.TryParse(kv.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)) continue;
-                map[v] = kv.Value switch
+                string value = kv.Key.ToString() ?? "";
+                string title = kv.Value switch
                 {
                     string s => s,
-                    IDictionary d => GetString(d, "title", v.ToString(CultureInfo.InvariantCulture)),
-                    _ => v.ToString(CultureInfo.InvariantCulture),
+                    IDictionary d => GetString(d, "title", value),
+                    _ => kv.Value?.ToString() ?? value,
                 };
+                list.Add(new EnumItemInfo(value, title));
+                if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
+                    map[intValue] = title;
             }
+            if (list.Items.Count > 0) enumLists[name] = list;
             if (map.Count > 0) enums[name] = map;
         }
     }
+
+    /// <summary>The string value/title list for a named enum, or null.</summary>
+    public EnumListInfo? GetEnumList(string name)
+        => enumLists.TryGetValue(name, out var list) ? list : null;
 
     /// <summary>The value-&gt;title map for a named enum, or null.</summary>
     public IReadOnlyDictionary<int, string>? GetEnum(string name)
         => enums.TryGetValue(name, out var m) ? m : null;
 
+    /// <summary>The string value/title list for an arg's enum, or null when the arg has none.</summary>
+    public EnumListInfo? GetArgEnumList(ArgInfo arg)
+        => arg.Enum != null ? GetEnumList(arg.Enum) : null;
+
     /// <summary>The value-&gt;title map for an arg's enum, or null when the arg has none.</summary>
     public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
         => arg.Enum != null ? GetEnum(arg.Enum) : null;
+
+    public EnumListInfo? GetArgFlagsList(ArgInfo arg)
+        => arg.Flags != null ? GetEnumList(arg.Flags) : null;
 
     public IReadOnlyDictionary<int, string>? GetArgFlags(ArgInfo arg)
         => arg.Flags != null ? GetEnum(arg.Flags) : null;

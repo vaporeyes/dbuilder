@@ -193,7 +193,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port matching texture sets.
 - [ ] Port generalized categories, options, and bits.
 - [ ] Port flag translations.
-- [ ] Port enum lists and enum items.
+- [x] Port enum lists and enum items.
 - [ ] Port script configuration.
 - [x] Port compiler info.
 - [x] Port node-builder info.

@@ -21,6 +21,11 @@ enums
         1 = ""Silent"";
         2 = ""Fog"";
     }
+    renderstyles
+    {
+        Translucent = ""Translucent"";
+        Add = ""Additive"";
+    }
 }
 linedeftypes
 {
@@ -69,6 +74,13 @@ thingtypes
         Assert.NotNull(e);
         Assert.Equal("Normal", e![16]);
         Assert.Equal("Fast", e[32]);
+
+        var list = gc.GetEnumList("renderstyles");
+        Assert.NotNull(list);
+        Assert.Equal("renderstyles", list!.Name);
+        Assert.Equal("Additive", list.GetByEnumIndex("Add")!.Title);
+        Assert.Contains(list.Items, item => item.Value == "Translucent" && item.Title == "Translucent");
+        Assert.Null(gc.GetEnum("renderstyles"));
     }
 
     [Fact]
@@ -104,6 +116,10 @@ thingtypes
         var e = gc.GetArgEnum(arg);
         Assert.NotNull(e);
         Assert.Equal("Slow", e![0]);
+
+        var list = gc.GetArgEnumList(arg);
+        Assert.NotNull(list);
+        Assert.Equal("Normal", list!.GetByEnumIndex("16")!.Title);
     }
 
     [Fact]
@@ -114,6 +130,10 @@ thingtypes
         var flags = gc.GetArgFlags(arg);
         Assert.NotNull(flags);
         Assert.Equal("Fog", flags![2]);
+
+        var list = gc.GetArgFlagsList(arg);
+        Assert.NotNull(list);
+        Assert.Equal("Silent", list!.GetByEnumIndex("1")!.Title);
     }
 
     [Fact]
