@@ -364,12 +364,13 @@ public sealed class ResourceManager : IDisposable
         if (mapInfoBuilt) return;
         mapInfoBuilt = true;
         mapInfo = new MapInfo();
+        var knownColors = BuildKnownColors();
         foreach (var reader in readers)
         {
             var texts = new List<string>(reader.GetTextLumps("ZMAPINFO", partialTitleMatch: false));
             if (texts.Count == 0) texts.AddRange(reader.GetTextLumps("MAPINFO", partialTitleMatch: false));
             foreach (string text in texts)
-                mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
+                mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource, knownColors));
         }
     }
 

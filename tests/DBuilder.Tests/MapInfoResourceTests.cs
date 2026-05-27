@@ -86,4 +86,32 @@ DoomEdNums { 9000 = IncludedActor }
             File.Delete(higher);
         }
     }
+
+    [Fact]
+    public void ResourceManagerUsesX11ColorsForMapinfoFog()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("X11R6RGB", Encoding.ASCII.GetBytes("248 248 255 ghost white\n")),
+            ("MAPINFO.txt", Encoding.ASCII.GetBytes("""
+map MAP01 "Entryway"
+{
+    fade = "ghostwhite"
+    fogdensity = 64
+}
+""")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var map = resources.GetMapInfo().GetMap("MAP01")!;
+            Assert.Equal(((byte)248, (byte)248, (byte)255), map.FadeColor);
+            Assert.True(map.HasFadeColor);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
 }

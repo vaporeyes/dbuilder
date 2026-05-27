@@ -31,7 +31,11 @@ public sealed class MapInfoEntry
     public bool SmoothLighting { get; set; }
     public bool ForceWorldPanning { get; set; }
     public string? Fade { get; set; }
+    public (byte R, byte G, byte B)? FadeColor { get; set; }
+    public bool HasFadeColor => FogDensity.GetValueOrDefault() > 0 && FadeColor is { } color && (color.R != 0 || color.G != 0 || color.B != 0);
     public string? OutsideFog { get; set; }
+    public (byte R, byte G, byte B)? OutsideFogColor { get; set; }
+    public bool HasOutsideFogColor => OutsideFogDensity.GetValueOrDefault() > 0 && OutsideFogColor is { } color && (color.R != 0 || color.G != 0 || color.B != 0);
     public int? FogDensity { get; set; }
     public int? OutsideFogDensity { get; set; }
     public int? HorizWallShade { get; set; }
@@ -72,13 +76,16 @@ public sealed class MapInfo
     public static MapInfo Parse(string text) => Parse(text, includeResolver: null);
 
     public static MapInfo Parse(string text, Func<string, string?>? includeResolver)
+        => Parse(text, includeResolver, knownColors: null);
+
+    public static MapInfo Parse(string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         var mi = new MapInfo();
-        ParseInto(mi, text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        ParseInto(mi, text, includeResolver, knownColors, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         return mi;
     }
 
-    private static void ParseInto(MapInfo mi, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static void ParseInto(MapInfo mi, string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         var toks = Tokenize(text);
         var defaults = new MapInfoEntry();
@@ -89,20 +96,20 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (!t.IsString && t.Text.Equals("map", StringComparison.OrdinalIgnoreCase))
             {
-                mi.maps.Add(ParseMap(toks, ref i, defaults));
+                mi.maps.Add(ParseMap(toks, ref i, defaults, knownColors));
                 continue;
             }
             if (!t.IsString && t.Text.Equals("defaultmap", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
                 defaults = new MapInfoEntry();
-                ParseDefaultMap(toks, ref i, defaults);
+                ParseDefaultMap(toks, ref i, defaults, knownColors);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("adddefaultmap", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseDefaultMap(toks, ref i, defaults);
+                ParseDefaultMap(toks, ref i, defaults, knownColors);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
@@ -126,7 +133,7 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("include", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseInclude(mi, toks, ref i, includeResolver, parsedIncludes);
+                ParseInclude(mi, toks, ref i, includeResolver, knownColors, parsedIncludes);
                 continue;
             }
             // Any other directive's brace block (gameinfo, cluster, ...) is skipped wholesale; non-map
@@ -144,13 +151,13 @@ public sealed class MapInfo
         if (other.SkyFlatName != null) SkyFlatName = other.SkyFlatName;
     }
 
-    private static void ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static void ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         if (includeResolver == null || i >= toks.Count) return;
         string include = toks[i++].Text;
         if (!parsedIncludes.Add(include)) return;
         string? text = includeResolver(include);
-        if (text != null) ParseInto(mi, text, includeResolver, parsedIncludes);
+        if (text != null) ParseInto(mi, text, includeResolver, knownColors, parsedIncludes);
     }
 
     private static void ParseGameInfo(List<Tok> toks, ref int i, MapInfo mi)
@@ -196,7 +203,7 @@ public sealed class MapInfo
         return clusterDef && i + 1 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "{";
     }
 
-    private static MapInfoEntry ParseMap(List<Tok> toks, ref int i, MapInfoEntry defaults)
+    private static MapInfoEntry ParseMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         i++; // consume 'map'
         string lump = i < toks.Count ? toks[i++].Text : "";
@@ -220,32 +227,32 @@ public sealed class MapInfo
         {
             i++; // consume '{'
             while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
-                ReadProperty(toks, ref i, entry, stopAtBrace: true);
+                ReadProperty(toks, ref i, entry, stopAtBrace: true, knownColors);
             if (i < toks.Count) i++; // consume '}'
         }
         else
         {
             // Old format: properties run until the next structural directive at a line start.
             while (i < toks.Count && !OldFormatTerminates(toks, i))
-                ReadProperty(toks, ref i, entry, stopAtBrace: false);
+                ReadProperty(toks, ref i, entry, stopAtBrace: false, knownColors);
         }
 
         return entry;
     }
 
-    private static void ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults)
+    private static void ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i < toks.Count && !toks[i].IsString && toks[i].Text == "{")
         {
             i++;
             while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
-                ReadProperty(toks, ref i, defaults, stopAtBrace: true);
+                ReadProperty(toks, ref i, defaults, stopAtBrace: true, knownColors);
             if (i < toks.Count) i++;
         }
         else
         {
             while (i < toks.Count && !OldFormatTerminates(toks, i))
-                ReadProperty(toks, ref i, defaults, stopAtBrace: false);
+                ReadProperty(toks, ref i, defaults, stopAtBrace: false, knownColors);
         }
     }
 
@@ -272,7 +279,9 @@ public sealed class MapInfo
             SmoothLighting = defaults.SmoothLighting,
             ForceWorldPanning = defaults.ForceWorldPanning,
             Fade = defaults.Fade,
+            FadeColor = defaults.FadeColor,
             OutsideFog = defaults.OutsideFog,
+            OutsideFogColor = defaults.OutsideFogColor,
             FogDensity = defaults.FogDensity,
             OutsideFogDensity = defaults.OutsideFogDensity,
             HorizWallShade = defaults.HorizWallShade,
@@ -286,7 +295,7 @@ public sealed class MapInfo
     }
 
     // Reads one "key [=] value..." property (values run to end of line / closing brace) into the entry.
-    private static void ReadProperty(List<Tok> toks, ref int i, MapInfoEntry e, bool stopAtBrace)
+    private static void ReadProperty(List<Tok> toks, ref int i, MapInfoEntry e, bool stopAtBrace, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         string key = toks[i++].Text;
         if (i < toks.Count && !toks[i].IsString && toks[i].Text == "=") i++;
@@ -298,10 +307,10 @@ public sealed class MapInfo
             if (!toks[i].IsString && toks[i].Text == ",") { i++; continue; }
             values.Add(toks[i++].Text);
         }
-        Apply(e, key, values);
+        Apply(e, key, values, knownColors);
     }
 
-    private static void Apply(MapInfoEntry e, string key, List<string> values)
+    private static void Apply(MapInfoEntry e, string key, List<string> values, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         string First() => values.Count > 0 ? values[0] : "";
         int? Int() => values.Count > 0 && int.TryParse(values[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : null;
@@ -324,8 +333,16 @@ public sealed class MapInfo
             case "evenlighting": e.EvenLighting = true; break;
             case "smoothlighting": e.SmoothLighting = true; break;
             case "forceworldpanning": e.ForceWorldPanning = true; break;
-            case "fade": e.Fade = First(); break;
-            case "outsidefog": e.OutsideFog = First(); break;
+            case "fade":
+                e.Fade = First();
+                if (ZDoomColorParser.TryParse(e.Fade, knownColors, out byte fadeRed, out byte fadeGreen, out byte fadeBlue))
+                    e.FadeColor = (fadeRed, fadeGreen, fadeBlue);
+                break;
+            case "outsidefog":
+                e.OutsideFog = First();
+                if (ZDoomColorParser.TryParse(e.OutsideFog, knownColors, out byte fogRed, out byte fogGreen, out byte fogBlue))
+                    e.OutsideFogColor = (fogRed, fogGreen, fogBlue);
+                break;
             case "fogdensity": e.FogDensity = Int(); break;
             case "outsidefogdensity": e.OutsideFogDensity = Int(); break;
             case "horizwallshade": e.HorizWallShade = Int(); break;
