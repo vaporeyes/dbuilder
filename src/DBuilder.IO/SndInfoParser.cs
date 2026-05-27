@@ -16,15 +16,30 @@ public sealed class SndInfo
 
 public static class SndInfoParser
 {
-    public static SndInfo Parse(string text)
+    public static SndInfo Parse(string text) => Parse(text, baseGame: null);
+
+    public static SndInfo Parse(string text, TerrainBaseGame? baseGame)
     {
         var result = new SndInfo();
+        TerrainBaseGame? conditionalGame = null;
         foreach (string rawLine in text.Replace("\r\n", "\n").Split('\n'))
         {
             var t = Tokenize(StripLineComment(rawLine));
             if (t.Count == 0) continue;
 
             string first = t[0];
+            if (TryReadConditional(first, out var game))
+            {
+                conditionalGame = game;
+                continue;
+            }
+            if (first.Equals("$endif", StringComparison.OrdinalIgnoreCase))
+            {
+                conditionalGame = null;
+                continue;
+            }
+            if (baseGame.HasValue && conditionalGame.HasValue && conditionalGame.Value != baseGame.Value) continue;
+
             if (first.Equals("$alias", StringComparison.OrdinalIgnoreCase))
             {
                 if (t.Count >= 3) result.Aliases[t[1]] = t[2];
@@ -41,6 +56,16 @@ public static class SndInfoParser
             else if (t.Count >= 2) result.Sounds[first] = t[1];
         }
         return result;
+    }
+
+    private static bool TryReadConditional(string token, out TerrainBaseGame game)
+    {
+        if (token.Equals("$ifdoom", StringComparison.OrdinalIgnoreCase)) { game = TerrainBaseGame.Doom; return true; }
+        if (token.Equals("$ifheretic", StringComparison.OrdinalIgnoreCase)) { game = TerrainBaseGame.Heretic; return true; }
+        if (token.Equals("$ifhexen", StringComparison.OrdinalIgnoreCase)) { game = TerrainBaseGame.Hexen; return true; }
+        if (token.Equals("$ifstrife", StringComparison.OrdinalIgnoreCase)) { game = TerrainBaseGame.Strife; return true; }
+        game = default;
+        return false;
     }
 
     private static void ParseRandom(SndInfo result, List<string> tokens)

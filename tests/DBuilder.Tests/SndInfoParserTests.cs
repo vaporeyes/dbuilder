@@ -51,4 +51,24 @@ $volume world/drip 0.5";
 
         Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/random"]);
     }
+
+    [Fact]
+    public void AppliesBaseGameConditionals()
+    {
+        const string text = @"
+$ifdoom
+world/secret DSSECRET
+$endif
+$ifhexen
+world/secret HEXSECRET
+$endif";
+
+        var doom = SndInfoParser.Parse(text, TerrainBaseGame.Doom);
+        var hexen = SndInfoParser.Parse(text, TerrainBaseGame.Hexen);
+        var all = SndInfoParser.Parse(text);
+
+        Assert.Equal("DSSECRET", doom.Sounds["world/secret"]);
+        Assert.Equal("HEXSECRET", hexen.Sounds["world/secret"]);
+        Assert.Equal("HEXSECRET", all.Sounds["world/secret"]);
+    }
 }
