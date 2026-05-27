@@ -1,15 +1,35 @@
-// ABOUTME: Shared test helpers for building real PNG images and temp PK3 (zip) files in resource tests.
-// ABOUTME: Produces RGBA color-type-6 PNGs (filter None) with valid zlib + CRC, and a .pk3 from named entries.
+// ABOUTME: Shared test helpers for building synthetic WAD, PNG and PK3 resource fixtures.
+// ABOUTME: Produces copyright-free IWAD/PWAD/PK3 assets for resource and map pipeline tests.
 
 using System;
 using System.IO;
 using System.IO.Compression;
+using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
 internal static class TestArtifacts
 {
     private static readonly byte[] Sig = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+
+    public static byte[] GrayscalePlaypal()
+    {
+        var palette = new byte[768];
+        for (int i = 0; i < 256; i++)
+        {
+            palette[i * 3] = (byte)i;
+            palette[i * 3 + 1] = (byte)i;
+            palette[i * 3 + 2] = (byte)i;
+        }
+        return palette;
+    }
+
+    public static byte[] SolidFlat(byte index)
+    {
+        var flat = new byte[DoomFlatReader.RawSize];
+        for (int i = 0; i < flat.Length; i++) flat[i] = index;
+        return flat;
+    }
 
     public static byte[] SolidRgba(int w, int h, byte r, byte g, byte b, byte a)
     {
@@ -46,6 +66,28 @@ internal static class TestArtifacts
         {
             using var s = zip.CreateEntry(name).Open();
             s.Write(bytes, 0, bytes.Length);
+        }
+        return path;
+    }
+
+    public static string BuildIwadFile(params (string name, byte[] bytes)[] lumps)
+        => BuildWadFile(isIwad: true, lumps);
+
+    public static string BuildPwadFile(params (string name, byte[] bytes)[] lumps)
+        => BuildWadFile(isIwad: false, lumps);
+
+    public static string BuildWadFile(bool isIwad, params (string name, byte[] bytes)[] lumps)
+    {
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".wad");
+        using (var wad = new WAD(path))
+        {
+            wad.IsIWAD = isIwad;
+            foreach (var (name, bytes) in lumps)
+            {
+                var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+                lump.Stream.Write(bytes, 0, bytes.Length);
+            }
+            wad.WriteHeaders();
         }
         return path;
     }

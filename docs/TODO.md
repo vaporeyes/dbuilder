@@ -25,7 +25,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add CI that runs all tests on every supported platform.
 - [x] Add a documented project layout that maps DBuilder projects to UDB source areas.
 - [x] Add a parity tracker that maps every UDB core folder and plugin to `missing`, `partial`, or `ported`.
-- [ ] Add test fixtures that can load representative IWAD/PWAD/PK3 resources without committing copyrighted assets.
+- [x] Add test fixtures that can load representative IWAD/PWAD/PK3 resources without committing copyrighted assets.
 
 ## Core Application Systems
 
