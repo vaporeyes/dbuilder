@@ -66,6 +66,23 @@ pointlight VISIBLE { color 0.1 0 0 size 16 }";
     }
 
     [Fact]
+    public void SkipsLightsWithoutVisibleRadius()
+    {
+        const string text = @"
+pointlight NOSIZE { color 0.1 0.1 0.1 }
+pulselight NOANIMSIZE { color 0.1 0.1 0.1 }
+pulselight SECONDARY { color 0.1 0.1 0.1 secondarysize 8 interval 1 }
+sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("NOSIZE"));
+        Assert.False(g.Lights.ContainsKey("NOANIMSIZE"));
+        Assert.True(g.Lights.ContainsKey("SECONDARY"));
+        Assert.True(g.Lights.ContainsKey("SECTOR"));
+    }
+
+    [Fact]
     public void ParsesGlow()
     {
         const string text = @"

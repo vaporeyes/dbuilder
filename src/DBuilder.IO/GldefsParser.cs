@@ -131,7 +131,7 @@ public static class GldefsParser
             }
             if (i < t.Count) i++; // }
         }
-        if (light.Name.Length > 0 && !IsBlack(light)) g.Lights[light.Name] = light;
+        if (light.Name.Length > 0 && ShouldKeepLight(light)) g.Lights[light.Name] = light;
     }
 
     private static float NormalizeInterval(string type, float interval)
@@ -144,6 +144,19 @@ public static class GldefsParser
     private static float ClampColor(float value) => Math.Clamp(value, 0.0f, 1.0f);
 
     private static bool IsBlack(GldefsLight light) => light.R == 0.0f && light.G == 0.0f && light.B == 0.0f;
+
+    private static bool ShouldKeepLight(GldefsLight light)
+    {
+        if (IsBlack(light)) return false;
+        if (light.Type.Equals("pointlight", StringComparison.OrdinalIgnoreCase)
+            || light.Type.Equals("spotlight", StringComparison.OrdinalIgnoreCase))
+            return light.Size != 0.0f;
+        if (light.Type.Equals("pulselight", StringComparison.OrdinalIgnoreCase)
+            || light.Type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase)
+            || light.Type.Equals("flickerlight2", StringComparison.OrdinalIgnoreCase))
+            return light.Size != 0.0f || light.SecondarySize != 0.0f;
+        return true;
+    }
 
     private static void ParseObject(Gldefs g, List<string> t, ref int i)
     {
