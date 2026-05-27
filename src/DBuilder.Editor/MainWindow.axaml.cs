@@ -14,6 +14,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -63,6 +64,7 @@ public partial class MainWindow : Window
         MapView.DrawModeChanged += () => SetStatus(MapView.DrawMode
             ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
             : "Draw mode off.");
+        Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
         RebuildRecentMenu();
@@ -390,7 +392,17 @@ public partial class MainWindow : Window
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
-        MapView.Focus(); // ensure the map view has keyboard focus on first launch (command-line load)
+        FocusMapViewForShortcuts();
+    }
+
+    private void FocusMapViewForShortcuts()
+    {
+        Activate();
+        Dispatcher.UIThread.Post(() =>
+        {
+            Activate();
+            MapView.Focus();
+        }, DispatcherPriority.Loaded);
     }
 
     // Window-level accelerators. The map control bubbles unhandled keys here. Accept both Ctrl (Win/Linux)
