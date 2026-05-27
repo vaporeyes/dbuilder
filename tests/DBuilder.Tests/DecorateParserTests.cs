@@ -162,6 +162,23 @@ ACTOR Derived : Base 7003 { -SOLID }";
     }
 
     [Fact]
+    public void ParsesStateBlocksWithCastTypes()
+    {
+        const string text = @"
+ACTOR CastStateThing 8001
+{
+    States(Actor, Item)
+    {
+    Spawn:
+        CSTT A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("CSTTA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {
         const string text = @"

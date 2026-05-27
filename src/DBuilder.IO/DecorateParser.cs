@@ -197,7 +197,7 @@ public static class DecorateParser
 
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
-            if (depth == 1 && lw == "states") { pendingStates = true; }
+            if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal))) { pendingStates = true; }
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
