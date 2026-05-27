@@ -430,6 +430,39 @@ map MAP01 ""Entryway""
     }
 
     [Fact]
+    public void IgnoresInvalidMapInfoFadeColors()
+    {
+        const string text = @"
+defaultmap
+{
+    fade = ""20 40 60""
+    outsidefog = ""10 20 30""
+}
+map MAP01 ""Entryway""
+{
+    fade = invalid
+    outsidefog = alsoinvalid
+}
+map MAP02 ""Underhalls""
+{
+    fade = ""40 50 60""
+    outsidefog = ""30 20 10""
+}";
+
+        var invalid = MapInfo.Parse(text).GetMap("MAP01")!;
+        var valid = MapInfo.Parse(text).GetMap("MAP02")!;
+
+        Assert.Equal("204060", invalid.Fade);
+        Assert.Equal(((byte)0x20, (byte)0x40, (byte)0x60), invalid.FadeColor);
+        Assert.Equal("102030", invalid.OutsideFog);
+        Assert.Equal(((byte)0x10, (byte)0x20, (byte)0x30), invalid.OutsideFogColor);
+        Assert.Equal("405060", valid.Fade);
+        Assert.Equal(((byte)0x40, (byte)0x50, (byte)0x60), valid.FadeColor);
+        Assert.Equal("302010", valid.OutsideFog);
+        Assert.Equal(((byte)0x30, (byte)0x20, (byte)0x10), valid.OutsideFogColor);
+    }
+
+    [Fact]
     public void StripsAttachedCommasFromMapInfoSkyTextures()
     {
         const string text = @"

@@ -364,14 +364,20 @@ public sealed class MapInfo
             case "smoothlighting": e.SmoothLighting = true; break;
             case "forceworldpanning": e.ForceWorldPanning = true; break;
             case "fade":
-                e.Fade = NormalizeColorToken(First());
-                if (ZDoomColorParser.TryParse(e.Fade, knownColors, out byte fadeRed, out byte fadeGreen, out byte fadeBlue))
+                string fade = NormalizeColorToken(First());
+                if (ZDoomColorParser.TryParse(fade, knownColors, out byte fadeRed, out byte fadeGreen, out byte fadeBlue))
+                {
+                    e.Fade = fade;
                     e.FadeColor = (fadeRed, fadeGreen, fadeBlue);
+                }
                 break;
             case "outsidefog":
-                e.OutsideFog = NormalizeColorToken(First());
-                if (ZDoomColorParser.TryParse(e.OutsideFog, knownColors, out byte fogRed, out byte fogGreen, out byte fogBlue))
+                string outsideFog = NormalizeColorToken(First());
+                if (ZDoomColorParser.TryParse(outsideFog, knownColors, out byte fogRed, out byte fogGreen, out byte fogBlue))
+                {
+                    e.OutsideFog = outsideFog;
                     e.OutsideFogColor = (fogRed, fogGreen, fogBlue);
+                }
                 break;
             case "fogdensity":
                 if (Int().HasValue) e.FogDensity = Int();
