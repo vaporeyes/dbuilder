@@ -6,7 +6,7 @@
     { "udbArea": "Source/Core/Config", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
     { "udbArea": "Source/Core/Controls", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
     { "udbArea": "Source/Core/Data", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
-    { "udbArea": "Source/Core/Dehacked", "status": "missing", "dbuilderLocation": null },
+    { "udbArea": "Source/Core/Dehacked", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
     { "udbArea": "Source/Core/Editing", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.Map" },
     { "udbArea": "Source/Core/General", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.IO" },
     { "udbArea": "Source/Core/Geometry", "status": "partial", "dbuilderLocation": "DBuilder.Geometry;DBuilder.Map" },

@@ -159,10 +159,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port TERRAIN parser.
 - [x] Port LOCKDEFS parser.
 - [x] Port DECALDEF parser.
-- [ ] Port VOXELDEF parser.
+- [x] Port VOXELDEF parser.
 - [x] Port IWADINFO parser.
 - [x] Port CVARINFO parser.
-- [ ] Port REVERBS parser.
+- [x] Port REVERBS parser.
 - [x] Port X11 RGB parser.
 - [ ] Port actor structure behavior for DECORATE and ZScript.
 - [ ] Port state, goto, and inheritance behavior.
@@ -171,9 +171,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Dehacked
 
-- [ ] Port Dehacked data model.
-- [ ] Port Dehacked thing parsing.
-- [ ] Port Dehacked frame parsing.
+- [x] Port Dehacked data model.
+- [x] Port Dehacked thing parsing.
+- [x] Port Dehacked frame parsing.
 - [ ] Port Dehacked parser behavior.
 - [ ] Integrate Dehacked data into thing definitions and editor display.
 - [ ] Add Dehacked parser and integration tests.

@@ -15,7 +15,7 @@ Status values:
 | `Source/Core/Config` | partial | `DBuilder.IO` | Basic configuration parsing exists. Full inheritance, includes, defaults, and type sections remain. |
 | `Source/Core/Controls` | partial | `DBuilder.Editor` | Avalonia dialogs exist for selected workflows only. |
 | `Source/Core/Data` | partial | `DBuilder.IO` | Resource manager exists, but full UDB DataManager parity is incomplete. |
-| `Source/Core/Dehacked` | missing | none | Dehacked data and parser behavior not ported. |
+| `Source/Core/Dehacked` | partial | `DBuilder.IO` | Basic patch data model, thing parsing, and frame parsing exist. Full parser parity and integration into thing definitions remain. |
 | `Source/Core/Editing` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected editing workflows exist. Full edit-mode lifecycle remains. |
 | `Source/Core/General` | partial | `DBuilder.Editor`, `DBuilder.IO` | Settings and launch helpers exist. Full application orchestration remains. |
 | `Source/Core/Geometry` | partial | `DBuilder.Geometry`, `DBuilder.Map` | Many helpers are ported. Remaining `Tools.cs` and edge behavior need comparison. |
@@ -29,7 +29,7 @@ Status values:
 | `Source/Core/Types` | partial | `DBuilder.IO` | Generalized types and game config subsets exist. Full type manager remains. |
 | `Source/Core/VisualModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Picking and 3D helpers exist. Full visual-mode framework remains. |
 | `Source/Core/Windows` | partial | `DBuilder.Editor` | Selected windows exist. Full UDB dialog set remains. |
-| `Source/Core/ZDoom` | partial | `DBuilder.IO` | Several parsers exist, including MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, IWADINFO, CVARINFO, and X11 RGB discovery. Full actor, metadata, model rendering, voxel, REVERBS, and Dehacked merge behavior remains. |
+| `Source/Core/ZDoom` | partial | `DBuilder.IO` | Several parsers exist, including MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, and X11 RGB discovery. Full actor, metadata, model rendering, voxel rendering, and Dehacked merge behavior remains. |
 | `Source/Native/OpenGL` | partial | `DBuilder.Rendering` | Replaced with Silk.NET abstraction. Full parity not established. |
 
 ## Bundled Plugins
