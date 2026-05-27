@@ -152,7 +152,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete ZScript parser behavior.
 - [ ] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
-- [ ] Port MODELDEF parser.
+- [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
 - [ ] Port SNDINFO parser.
 - [ ] Port SNDSEQ parser.
