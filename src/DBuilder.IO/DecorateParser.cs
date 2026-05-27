@@ -281,8 +281,9 @@ public static class DecorateParser
     private static List<string> ReadPropertyValues(string key, List<Tok> t, ref int i)
     {
         var values = new List<string>();
-        int maxValues = key.Equals("scale", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
+            : key.Equals("scale", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         while (i < t.Count && values.Count < maxValues)
         {
             var tk = t[i];
@@ -296,6 +297,17 @@ public static class DecorateParser
             i++;
         }
         return values;
+    }
+
+    private static bool HasSemicolonTerminator(List<Tok> t, int i)
+    {
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == ";") return true;
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}") return false;
+        }
+        return false;
     }
 
     // A spawn-state frame begins with a 4-char sprite name followed by a frame-letters token.

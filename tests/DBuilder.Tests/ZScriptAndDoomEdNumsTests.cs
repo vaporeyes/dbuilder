@@ -89,6 +89,26 @@ class Assigned : Actor
     }
 
     [Fact]
+    public void ParsesSemicolonTerminatedDefaultPropertyValues()
+    {
+        const string text = @"
+class MultiValueDefault : Actor
+{
+    Default
+    {
+        DamageFactor ""Fire"", 0.5;
+        Scale 1.5, 0.75;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal(new[] { "Fire", "0.5" }, actor.Properties["DamageFactor"]);
+        Assert.Equal(new[] { "1.5", "0.75" }, actor.Properties["xscale"]);
+        Assert.Equal(new[] { "1.5", "0.75" }, actor.Properties["yscale"]);
+    }
+
+    [Fact]
     public void ParsesMapInfoDoomEdNums()
     {
         const string text = @"
