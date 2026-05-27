@@ -109,6 +109,41 @@ class MultiValueDefault : Actor
     }
 
     [Fact]
+    public void SkipsZScriptClassBodyMembersOutsideDefaultsAndStates()
+    {
+        const string text = @"
+class MemberActor : Actor
+{
+    mixin InventoryMixin;
+    property CustomThing: user_value;
+    flagdef CUSTOMFLAG: bflags, 7;
+    const int LocalConst = 3;
+    int user_value;
+    void Helper()
+    {
+        int local_value;
+    }
+    Default
+    {
+        Radius 12;
+        +SOLID;
+    }
+    States { Spawn: MEMB A -1; stop; }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal(12, actor.Radius);
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.Equal("MEMBA0", actor.EditorSprite);
+        Assert.False(actor.Properties.ContainsKey("mixin"));
+        Assert.False(actor.Properties.ContainsKey("property"));
+        Assert.False(actor.Properties.ContainsKey("flagdef"));
+        Assert.False(actor.Properties.ContainsKey("int"));
+        Assert.False(actor.Properties.ContainsKey("void"));
+    }
+
+    [Fact]
     public void ParsesMapInfoDoomEdNums()
     {
         const string text = @"

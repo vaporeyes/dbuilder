@@ -168,11 +168,11 @@ public static class DecorateParser
 
         if (i >= t.Count || t[i].Text != "{") return actor; // no body (e.g. forward declaration)
         i++; // '{'
-        ParseBody(actor, t, ref i);
+        ParseBody(actor, t, ref i, zscriptBody: !headerNum);
         return actor;
     }
 
-    private static void ParseBody(ActorInfo actor, List<Tok> t, ref int i)
+    private static void ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody)
     {
         int depth = 1;
         bool pendingStates = false, inStates = false;
@@ -199,6 +199,7 @@ public static class DecorateParser
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal))) { pendingStates = true; }
+            else if (zscriptBody && depth == 1 && lw != "default") SkipZScriptMember(t, ref i);
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
@@ -226,6 +227,28 @@ public static class DecorateParser
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
+        }
+    }
+
+    private static void SkipZScriptMember(List<Tok> t, ref int i)
+    {
+        int braceDepth = 0;
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "{")
+            {
+                braceDepth++;
+                continue;
+            }
+            if (tk.Kind == Kind.Sym && tk.Text == "}")
+            {
+                if (braceDepth == 0) { i--; return; }
+                braceDepth--;
+                if (braceDepth == 0) return;
+                continue;
+            }
+            if (braceDepth == 0 && tk.Kind == Kind.Sym && tk.Text == ";") return;
         }
     }
 
