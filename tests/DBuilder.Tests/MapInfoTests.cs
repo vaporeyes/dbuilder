@@ -353,6 +353,30 @@ map MAP02 ""NewStyle""
     }
 
     [Fact]
+    public void IgnoresInvalidMapInfoVisualNumericValues()
+    {
+        const string text = @"
+map MAP01 ""Entryway""
+{
+    lightmode = bright
+    pixelratio = wide
+}
+map MAP02 ""Underhalls""
+{
+    lightmode = 2
+    pixelratio = 1.0
+}";
+
+        var invalid = MapInfo.Parse(text).GetMap("MAP01")!;
+        var valid = MapInfo.Parse(text).GetMap("MAP02")!;
+
+        Assert.Null(invalid.LightMode);
+        Assert.Equal(1.2, invalid.PixelRatio);
+        Assert.Equal("2", valid.LightMode);
+        Assert.Equal(1.0, valid.PixelRatio);
+    }
+
+    [Fact]
     public void ParsesSpacedMapInfoFadeColors()
     {
         const string text = @"

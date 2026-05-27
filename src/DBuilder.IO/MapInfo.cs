@@ -377,9 +377,13 @@ public sealed class MapInfo
             case "outsidefogdensity": e.OutsideFogDensity = Int(); break;
             case "horizwallshade": e.HorizWallShade = ClampWallShade(Int()); break;
             case "vertwallshade": e.VertWallShade = ClampWallShade(Int()); break;
-            case "lightmode": e.LightMode = First(); break;
+            case "lightmode":
+                if (Int().HasValue) e.LightMode = First();
+                break;
             case "lightattenuationmode": e.LightAttenuationMode = First(); break;
-            case "pixelratio": e.PixelRatio = Double(); break;
+            case "pixelratio":
+                if (Double().HasValue) e.PixelRatio = Double();
+                break;
             default: e.Properties[key] = string.Join(" ", values); break;
         }
     }
