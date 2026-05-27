@@ -68,7 +68,7 @@ public sealed class Gldefs
 public static class GldefsParser
 {
     private static readonly HashSet<string> LightTypes = new(StringComparer.OrdinalIgnoreCase)
-    { "pointlight", "pulselight", "flickerlight", "flickerlight2", "sectorlight", "spotlight" };
+    { "pointlight", "pulselight", "flickerlight", "flickerlight2", "sectorlight" };
 
     public static Gldefs Parse(string text) => Parse(text, includeResolver: null);
 
@@ -198,8 +198,7 @@ public static class GldefsParser
     private static bool ShouldKeepLight(GldefsLight light)
     {
         if (IsBlack(light)) return false;
-        if (light.Type.Equals("pointlight", StringComparison.OrdinalIgnoreCase)
-            || light.Type.Equals("spotlight", StringComparison.OrdinalIgnoreCase))
+        if (light.Type.Equals("pointlight", StringComparison.OrdinalIgnoreCase))
             return light.Size != 0.0f;
         if (light.Type.Equals("pulselight", StringComparison.OrdinalIgnoreCase)
             || light.Type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase)

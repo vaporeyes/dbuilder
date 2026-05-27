@@ -269,6 +269,19 @@ pointlight MISSING { color 1.0 1.0 1.0 size 8 attenuate }";
     }
 
     [Fact]
+    public void SkipsUnsupportedSpotlightBlocks()
+    {
+        const string text = @"
+spotlight SPOT { color 1.0 1.0 1.0 size 8 }
+pointlight VALID { color 1.0 1.0 1.0 size 8 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("SPOT"));
+        Assert.True(g.Lights.ContainsKey("VALID"));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"
