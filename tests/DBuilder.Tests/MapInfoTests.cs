@@ -374,6 +374,24 @@ map MAP01 ""Entryway""
     }
 
     [Fact]
+    public void StripsAttachedCommasFromMapInfoSkyTextures()
+    {
+        const string text = @"
+map MAP01 ""Entryway""
+{
+    sky1 = ""sky1,"" 0.25
+    sky2 = sky2, -0.5
+}";
+
+        var map = MapInfo.Parse(text).GetMap("MAP01")!;
+
+        Assert.Equal("SKY1", map.Sky1);
+        Assert.Equal(0.25f, map.Sky1ScrollSpeed);
+        Assert.Equal("SKY2", map.Sky2);
+        Assert.Equal(-0.5f, map.Sky2ScrollSpeed);
+    }
+
+    [Fact]
     public void ClearsDoubleSkyWithoutSecondSky()
     {
         const string text = @"
