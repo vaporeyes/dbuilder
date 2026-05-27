@@ -192,6 +192,14 @@ public sealed class MapInfo
         "doomednums", "spawnnums", "conversationids", "damagetype", "include",
     };
 
+    private static readonly HashSet<string> KnownProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "next", "secretnext", "music", "sky1", "sky2", "skybox", "titlepatch", "cluster", "levelnum", "par",
+        "doublesky", "evenlighting", "smoothlighting", "forceworldpanning", "fade", "outsidefog",
+        "fogdensity", "outsidefogdensity", "horizwallshade", "vertwallshade", "lightmode",
+        "lightattenuationmode", "pixelratio",
+    };
+
     // Whether the token at i ends an old-format map body (a structural directive on its own line).
     private static bool OldFormatTerminates(List<Tok> toks, int i)
     {
@@ -311,10 +319,16 @@ public sealed class MapInfo
         while (i < toks.Count && !toks[i].NewLine)
         {
             if (stopAtBrace && !toks[i].IsString && toks[i].Text == "}") break;
+            if (stopAtBrace && values.Count > 0 && IsInlinePropertyStart(toks, i)) break;
             if (!toks[i].IsString && toks[i].Text == ",") { i++; continue; }
             values.Add(toks[i++].Text);
         }
         Apply(e, key, values, knownColors);
+    }
+
+    private static bool IsInlinePropertyStart(List<Tok> toks, int i)
+    {
+        return i < toks.Count && !toks[i].IsString && KnownProperties.Contains(toks[i].Text);
     }
 
     private static void Apply(MapInfoEntry e, string key, List<string> values, IReadOnlyDictionary<string, X11Color>? knownColors)

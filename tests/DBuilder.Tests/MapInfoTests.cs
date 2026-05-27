@@ -328,4 +328,18 @@ map MAP02 ""Underhalls""
         Assert.False(mi.GetMap("MAP01")!.DoubleSky);
         Assert.True(mi.GetMap("MAP02")!.DoubleSky);
     }
+
+    [Fact]
+    public void ParsesMultipleBracePropertiesOnOneLine()
+    {
+        const string text = @"map MAP01 ""Entryway"" { next = MAP02 secretnext = MAP31 sky1 = SKY1 par = 30 doublesky }";
+
+        var map = MapInfo.Parse(text).GetMap("MAP01")!;
+
+        Assert.Equal("MAP02", map.Next);
+        Assert.Equal("MAP31", map.SecretNext);
+        Assert.Equal("SKY1", map.Sky1);
+        Assert.Equal(30, map.Par);
+        Assert.False(map.DoubleSky);
+    }
 }
