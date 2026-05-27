@@ -34,6 +34,64 @@ public static class WadMaps
         return result;
     }
 
+    /// <summary>
+    /// Returns maps whose lump blocks match the supplied game configuration's maplumpnames rules.
+    /// Forbidden configured lumps reject a candidate block, matching UDB's open-map detection.
+    /// </summary>
+    public static List<MapEntry> Find(WAD wad, GameConfiguration config)
+    {
+        if (config.MapLumpNames.Count == 0) return Find(wad);
+
+        var result = new List<MapEntry>();
+        int required = CountRequiredMapLumps(config.MapLumpNames);
+        var seen = new HashSet<string>();
+
+        for (int i = 0; i < wad.Lumps.Count - 1; i++)
+        {
+            if (config.MapLumpNames.ContainsKey(wad.Lumps[i].Name)) continue;
+
+            int found = 0;
+            bool rejected = false;
+            bool hasTextmap = false;
+            int offset = 1;
+
+            while (i + offset < wad.Lumps.Count && config.MapLumpNames.TryGetValue(wad.Lumps[i + offset].Name, out var info))
+            {
+                if (info.Forbidden)
+                {
+                    rejected = true;
+                    break;
+                }
+
+                if (info.Required) found++;
+                if (wad.Lumps[i + offset].Name == "TEXTMAP") hasTextmap = true;
+                offset++;
+            }
+
+            if (!rejected && found >= required && seen.Add(wad.Lumps[i].Name))
+                result.Add(new MapEntry(wad.Lumps[i].Name, InferFormat(wad, i, hasTextmap)));
+        }
+
+        return result;
+    }
+
+    private static int CountRequiredMapLumps(IReadOnlyDictionary<string, MapLumpInfo> mapLumps)
+    {
+        int count = 0;
+        foreach (var lump in mapLumps.Values)
+            if (!lump.IsMarker && lump.Required) count++;
+        return count;
+    }
+
+    private static MapFormat InferFormat(WAD wad, int markerIndex, bool hasTextmap)
+    {
+        if (hasTextmap || (markerIndex + 1 < wad.Lumps.Count && wad.Lumps[markerIndex + 1].Name == "TEXTMAP"))
+            return MapFormat.Udmf;
+
+        string marker = wad.Lumps[markerIndex].Name;
+        return HexenMapLoader.IsHexenFormat(wad, marker) ? MapFormat.Hexen : MapFormat.Doom;
+    }
+
     /// <summary>Loads a discovered map with the loader matching its format, or null on failure.</summary>
     public static MapSet? Load(WAD wad, MapEntry entry)
     {

@@ -19,6 +19,15 @@ maplumpnames
     LINEDEFS { required = true; }
 }";
 
+    private const string DoomMapLumpConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    BEHAVIOR { forbidden = true; }
+}";
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -99,6 +108,40 @@ maplumpnames
         Assert.Single(maps);
         Assert.Equal("MAP01", maps[0].Name);
         Assert.Equal(MapFormat.Hexen, maps[0].Format);
+    }
+
+    [Fact]
+    public void ConfiguredFindRejectsForbiddenMapLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "BEHAVIOR", new byte[0], 3);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(DoomMapLumpConfig);
+        Assert.Empty(WadMaps.Find(wad, config));
+    }
+
+    [Fact]
+    public void ConfiguredFindRequiresConfiguredLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(DoomMapLumpConfig);
+        Assert.Empty(WadMaps.Find(wad, config));
+
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        wad.WriteHeaders();
+
+        var maps = WadMaps.Find(wad, config);
+        var entry = Assert.Single(maps);
+        Assert.Equal("MAP01", entry.Name);
+        Assert.Equal(MapFormat.Doom, entry.Format);
     }
 
     [Fact]
