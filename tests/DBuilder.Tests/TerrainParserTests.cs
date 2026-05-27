@@ -60,4 +60,32 @@ splash Lava { sound world/lava }";
         Assert.Equal("Lava", data.Terrains["LAVA1"].Splash);
         Assert.Equal("world/lava", data.Splashes["Lava"].Sound);
     }
+
+    [Fact]
+    public void AppliesBaseGameConditionals()
+    {
+        const string text = @"
+ifdoom
+terrain DOOMWATR { splash Doom }
+endif
+ifheretic
+terrain HTICWATR { splash Heretic }
+endif
+ifhexen
+terrain HEXWATR { splash Hexen }
+endif
+ifstrife
+terrain STRWATR { splash Strife }
+endif";
+
+        var doom = TerrainParser.Parse(text, TerrainBaseGame.Doom);
+        var heretic = TerrainParser.Parse(text, TerrainBaseGame.Heretic);
+        var all = TerrainParser.Parse(text);
+
+        Assert.True(doom.Terrains.ContainsKey("DOOMWATR"));
+        Assert.False(doom.Terrains.ContainsKey("HTICWATR"));
+        Assert.True(heretic.Terrains.ContainsKey("HTICWATR"));
+        Assert.False(heretic.Terrains.ContainsKey("HEXWATR"));
+        Assert.Equal(4, all.Terrains.Count);
+    }
 }

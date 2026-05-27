@@ -33,21 +33,45 @@ public sealed class TerrainSplash
     public string? Sound { get; set; }
 }
 
+public enum TerrainBaseGame
+{
+    Doom,
+    Heretic,
+    Hexen,
+    Strife
+}
+
 public static class TerrainParser
 {
-    public static TerrainData Parse(string text)
+    public static TerrainData Parse(string text) => Parse(text, baseGame: null);
+
+    public static TerrainData Parse(string text, TerrainBaseGame? baseGame)
     {
         var data = new TerrainData();
         var t = ZDoomTokenScanner.Tokenize(text);
+        bool skipDefinitions = false;
         for (int i = 0; i < t.Count;)
         {
             string keyword = t[i++].ToLowerInvariant();
-            if (keyword == "terrain" && i < t.Count) ParseTerrain(data, t, ref i);
+            if (skipDefinitions)
+            {
+                if (keyword == "endif") skipDefinitions = false;
+                continue;
+            }
+
+            if (keyword == "ifdoom") skipDefinitions = ShouldSkip(baseGame, TerrainBaseGame.Doom);
+            else if (keyword == "ifheretic") skipDefinitions = ShouldSkip(baseGame, TerrainBaseGame.Heretic);
+            else if (keyword == "ifhexen") skipDefinitions = ShouldSkip(baseGame, TerrainBaseGame.Hexen);
+            else if (keyword == "ifstrife") skipDefinitions = ShouldSkip(baseGame, TerrainBaseGame.Strife);
+            else if (keyword == "terrain" && i < t.Count) ParseTerrain(data, t, ref i);
             else if (keyword == "splash" && i < t.Count) ParseSplash(data, t, ref i);
             else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
         return data;
     }
+
+    private static bool ShouldSkip(TerrainBaseGame? baseGame, TerrainBaseGame expected)
+        => baseGame.HasValue && baseGame.Value != expected;
 
     private static void ParseTerrain(TerrainData data, List<string> t, ref int i)
     {
