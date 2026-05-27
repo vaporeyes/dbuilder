@@ -29,8 +29,8 @@ Deliverables:
 
 Verification:
 
-- [x] `dotnet build DBuilder.slnx` builds the editor and core projects.
-- [x] `dotnet test DBuilder.slnx` passes.
+- [x] `scripts/verify.sh` builds the editor, core projects, demos, spikes, and tests.
+- [x] `scripts/verify.sh` runs the test suite successfully.
 - [x] Parity matrix has every UDB core folder and bundled plugin listed.
 
 Exit Criteria:
