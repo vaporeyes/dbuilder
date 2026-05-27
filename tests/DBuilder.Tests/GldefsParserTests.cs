@@ -170,6 +170,7 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
         const string text = @"
 pointlight FIRST { color 1 0 0 size 16 }
 pointlight SECOND { color 0 1 0 size 16 }
+object EmptyActor { frame EMPTB { light SECOND } }
 object TorchActor
 {
     frame TRCHB { light SECOND }
@@ -179,6 +180,7 @@ object TorchActor
 
         var g = GldefsParser.Parse(text);
 
+        Assert.Single(g.Objects);
         Assert.Single(g.Objects[0].Lights);
         Assert.Equal("FIRST", g.Objects[0].Lights[0]);
         Assert.Equal(1.0f, g.ActorLightColor("TorchActor")!.Value.R, 4);
