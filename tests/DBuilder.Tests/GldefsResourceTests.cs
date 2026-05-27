@@ -55,4 +55,26 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }
             File.Delete(newPk3);
         }
     }
+
+    [Fact]
+    public void ResourceManagerParsesMultipleGldefsFilesFromPk3()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("GLDEFS.txt", Encoding.ASCII.GetBytes("pointlight ROOT_LIGHT { color 0.1 0.2 0.3 size 16 }")),
+            ("GLDEFS.extra", Encoding.ASCII.GetBytes("pointlight EXTRA_LIGHT { color 0.4 0.5 0.6 size 32 }")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var gldefs = resources.GetGldefs();
+            Assert.True(gldefs.Lights.ContainsKey("ROOT_LIGHT"));
+            Assert.True(gldefs.Lights.ContainsKey("EXTRA_LIGHT"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
 }

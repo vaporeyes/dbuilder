@@ -19,6 +19,8 @@ internal interface IResourceReader : IDisposable
     ImageData? GetSprite(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
+    /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
+    IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch);
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -89,8 +91,18 @@ internal sealed class WadResourceReader : IResourceReader
 
     public string? GetTextLump(string name)
     {
-        var lump = wad.FindLump(name);
-        return lump != null ? System.Text.Encoding.ASCII.GetString(lump.Stream.ReadAllBytes()) : null;
+        foreach (string text in GetTextLumps(name, partialTitleMatch: false)) return text;
+        return null;
+    }
+
+    public IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch)
+    {
+        int index = wad.FindLumpIndex(name);
+        while (index != -1)
+        {
+            yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
+            index = wad.FindLumpIndex(name, index + 1);
+        }
     }
 
     public string? GetTextResource(string name) => GetTextLump(name);
@@ -241,17 +253,17 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual string? GetTextLump(string name)
     {
-        var b = Find(name, "", name.ToLowerInvariant());
-        var text = b != null ? System.Text.Encoding.ASCII.GetString(b) : null;
-        if (text != null) return text;
+        foreach (string text in GetTextLumps(name, partialTitleMatch: false)) return text;
+        return null;
+    }
+
+    public virtual IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch)
+    {
+        foreach (string text in LocalTextLumps(name, partialTitleMatch)) yield return text;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            text = nestedReaders[i].GetTextLump(name);
-            if (text != null) return text;
-        }
-
-        return null;
+            foreach (string text in nestedReaders[i].GetTextLumps(name, partialTitleMatch))
+                yield return text;
     }
 
     public virtual string? GetTextResource(string name)
@@ -359,6 +371,37 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var f in folders)
             if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var read)) return read();
         return null;
+    }
+
+    private IEnumerable<string> LocalTextLumps(string name, bool partialTitleMatch)
+    {
+        var matched = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string normalizedName = name.ToLowerInvariant();
+        var paths = new List<string>(files.Keys);
+        paths.Sort(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string path in paths)
+        {
+            if (!IsRootTextLumpMatch(path, normalizedName, partialTitleMatch)) continue;
+            matched.Add(path);
+            yield return System.Text.Encoding.ASCII.GetString(files[path]());
+        }
+
+        if (!partialTitleMatch)
+        {
+            string folderKey = normalizedName + "/" + name.ToUpperInvariant();
+            if (entries.TryGetValue(folderKey, out var read) && matched.Add(folderKey))
+                yield return System.Text.Encoding.ASCII.GetString(read());
+        }
+    }
+
+    private static bool IsRootTextLumpMatch(string path, string name, bool partialTitleMatch)
+    {
+        string normalized = path.Replace('\\', '/').TrimStart('/');
+        if (normalized.Contains('/')) return false;
+
+        string title = Path.GetFileNameWithoutExtension(normalized).ToLowerInvariant();
+        return partialTitleMatch ? title.StartsWith(name, StringComparison.Ordinal) : title == name;
     }
 
     private static ImageData? Decode(byte[]? bytes, DoomPalette? palette, bool preferFlat)

@@ -272,18 +272,19 @@ public sealed class ResourceManager : IDisposable
         defsBuilt = true;
         foreach (var reader in readers)
         {
-            string? text = reader.GetTextLump("TEXTURES");
-            if (text == null) continue;
-            foreach (var def in TexturesParser.Parse(text))
+            foreach (string text in reader.GetTextLumps("TEXTURES", partialTitleMatch: true))
             {
-                switch (def.Type)
+                foreach (var def in TexturesParser.Parse(text))
                 {
-                    case TexturesType.WallTexture: wallDefs[def.Name] = def; break;
-                    case TexturesType.Flat: flatDefs[def.Name] = def; break;
-                    case TexturesType.Sprite:
-                    case TexturesType.Graphic: spriteDefs[def.Name] = def; break;
-                    default: // Texture: usable as both a wall and a flat
-                        wallDefs[def.Name] = def; flatDefs[def.Name] = def; break;
+                    switch (def.Type)
+                    {
+                        case TexturesType.WallTexture: wallDefs[def.Name] = def; break;
+                        case TexturesType.Flat: flatDefs[def.Name] = def; break;
+                        case TexturesType.Sprite:
+                        case TexturesType.Graphic: spriteDefs[def.Name] = def; break;
+                        default: // Texture: usable as both a wall and a flat
+                            wallDefs[def.Name] = def; flatDefs[def.Name] = def; break;
+                    }
                 }
             }
         }
@@ -326,10 +327,11 @@ public sealed class ResourceManager : IDisposable
         gldefs = new Gldefs();
         foreach (var reader in readers)
         {
-            string? text = reader.GetTextLump("GLDEFS");
-            if (text == null) continue;
-            var parsed = GldefsParser.Parse(text, reader.GetTextResource);
-            MergeGldefs(gldefs, parsed);
+            foreach (string text in reader.GetTextLumps("GLDEFS", partialTitleMatch: true))
+            {
+                var parsed = GldefsParser.Parse(text, reader.GetTextResource);
+                MergeGldefs(gldefs, parsed);
+            }
         }
     }
 
@@ -348,9 +350,8 @@ public sealed class ResourceManager : IDisposable
         {
             foreach (string lumpName in new[] { "MAPINFO", "ZMAPINFO" })
             {
-                string? text = reader.GetTextLump(lumpName);
-                if (text == null) continue;
-                mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
+                foreach (string text in reader.GetTextLumps(lumpName, partialTitleMatch: false))
+                    mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
             }
         }
     }
@@ -714,7 +715,7 @@ public sealed class ResourceManager : IDisposable
         {
             var textures = new List<string>(reader.TextureNames());
             var flats = new List<string>(reader.FlatNames());
-            if (reader.GetTextLump("ANIMDEFS") is { } text)
+            foreach (string text in reader.GetTextLumps("ANIMDEFS", partialTitleMatch: false))
             {
                 foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
                 {
@@ -741,11 +742,14 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>The text of a named lump (e.g. DECORATE) from every resource that has one, oldest first.</summary>
-    public List<string> GetTextLumps(string name)
+    public List<string> GetTextLumps(string name) => GetTextLumps(name, partialTitleMatch: false);
+
+    /// <summary>The text of matching lumps or root resource files from every resource, oldest first.</summary>
+    public List<string> GetTextLumps(string name, bool partialTitleMatch)
     {
         var result = new List<string>();
         foreach (var reader in readers)
-            if (reader.GetTextLump(name) is { } text) result.Add(text);
+            result.AddRange(reader.GetTextLumps(name, partialTitleMatch));
         return result;
     }
 

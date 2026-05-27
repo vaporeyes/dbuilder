@@ -161,4 +161,34 @@ public class TexturesComposeTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void LoadsMultipleRootTexturesFilesFromPk3()
+    {
+        string first =
+            "WallTexture WFIRST, 1, 1\n" +
+            "{\n" +
+            "    Patch \"RED\", 0, 0\n" +
+            "}\n";
+        string second =
+            "WallTexture WSECOND, 1, 1\n" +
+            "{\n" +
+            "    Patch \"BLUE\", 0, 0\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(first)),
+            ("TEXTURES.extra", Encoding.ASCII.GetBytes(second)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 200, 0, 0, 255 }, rm.GetWallTexture("WFIRST")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetWallTexture("WSECOND")!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
 }
