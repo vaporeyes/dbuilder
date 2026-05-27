@@ -16,6 +16,7 @@ public class TexturesParserTests
 WallTexture COMPO, 4, 2
 {
     XScale 2.0
+    YScale 0.5
     Offset 1, 3
     Patch ""PAT"", 0, 0
     Patch PAT, 2, 0
@@ -33,7 +34,8 @@ WallTexture COMPO, 4, 2
         Assert.Equal(2, d.Height);
         Assert.Equal(1, d.OffsetX);
         Assert.Equal(3, d.OffsetY);
-        Assert.Equal(2.0, d.ScaleX, 6);
+        Assert.Equal(0.5, d.ScaleX, 6);
+        Assert.Equal(2.0, d.ScaleY, 6);
         Assert.Equal(2, d.Patches.Count);
 
         Assert.Equal("PAT", d.Patches[0].Name);

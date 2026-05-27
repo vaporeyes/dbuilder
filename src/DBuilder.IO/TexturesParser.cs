@@ -121,8 +121,8 @@ public static class TexturesParser
                 string kw = t[i++].ToLowerInvariant();
                 switch (kw)
                 {
-                    case "xscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sx)) def.ScaleX = sx; break;
-                    case "yscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sy)) def.ScaleY = sy; break;
+                    case "xscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sx)) def.ScaleX = NormalizeScale(sx); break;
+                    case "yscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sy)) def.ScaleY = NormalizeScale(sy); break;
                     case "worldpanning": def.WorldPanning = true; break;
                     case "nulltexture": def.NullTexture = true; break;
                     case "offset":
@@ -138,6 +138,8 @@ public static class TexturesParser
         }
         return def;
     }
+
+    private static double NormalizeScale(double value) => value == 0.0 ? 1.0 : 1.0 / value;
 
     private static void ParsePatch(TexturesDef def, List<string> t, ref int i)
     {
