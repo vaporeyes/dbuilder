@@ -1,5 +1,5 @@
 // ABOUTME: Parser for X11 rgb.txt color definitions used by ZDoom data.
-// ABOUTME: Captures color names and RGB values from whitespace-separated rows.
+// ABOUTME: Captures canonical no-space color names and RGB values from whitespace-separated rows.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,7 @@ public static class X11RgbParser
             if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int r)) continue;
             if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int g)) continue;
             if (!int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int b)) continue;
-            string name = string.Join(' ', parts, 3, parts.Length - 3);
+            string name = string.Join("", parts, 3, parts.Length - 3).ToLowerInvariant();
             rgb.Colors[name] = new X11Color(name, r, g, b);
         }
         return rgb;
