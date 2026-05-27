@@ -68,6 +68,9 @@ public static class TexturesParser
 {
     /// <summary>Parses a TEXTURES lump into its definitions (malformed entries are skipped).</summary>
     public static List<TexturesDef> Parse(string text)
+        => Parse(text, knownColors: null);
+
+    public static List<TexturesDef> Parse(string text, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         var defs = new List<TexturesDef>();
         var t = Tokenize(text);
@@ -91,13 +94,13 @@ public static class TexturesParser
             if (type == null) { i++; continue; }
 
             i++; // type
-            var def = ParseDefinition(type.Value, optional, t, ref i);
+            var def = ParseDefinition(type.Value, optional, t, ref i, knownColors);
             if (def != null) defs.Add(def);
         }
         return defs;
     }
 
-    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<string> t, ref int i)
+    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return null;
         string name = t[i++];
@@ -131,7 +134,7 @@ public static class TexturesParser
                         SkipCommas(t, ref i); if (ReadInt(t, ref i, out int ox)) def.OffsetX = ox;
                         SkipCommas(t, ref i); if (ReadInt(t, ref i, out int oy)) def.OffsetY = oy;
                         break;
-                    case "patch": ParsePatch(def, t, ref i); break;
+                    case "patch": ParsePatch(def, t, ref i, knownColors); break;
                     default: break; // unknown single-token flag/value; skip
                 }
             }
@@ -142,7 +145,7 @@ public static class TexturesParser
 
     private static double NormalizeScale(double value) => value == 0.0 ? 1.0 : 1.0 / value;
 
-    private static void ParsePatch(TexturesDef def, List<string> t, ref int i)
+    private static void ParsePatch(TexturesDef def, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return;
         string name = t[i++];
@@ -176,7 +179,7 @@ public static class TexturesParser
                             patch.RenderStyle = ParseRenderStyle(patch.Style);
                         }
                         break;
-                    case "blend": ParseBlend(patch, t, ref i); break;
+                    case "blend": ParseBlend(patch, t, ref i, knownColors); break;
                     default: break; // translation and other patch modifiers are skipped token by token
                 }
             }
@@ -185,7 +188,7 @@ public static class TexturesParser
         def.Patches.Add(patch);
     }
 
-    private static void ParseBlend(TexturesPatch patch, List<string> t, ref int i)
+    private static void ParseBlend(TexturesPatch patch, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return;
 
@@ -200,7 +203,7 @@ public static class TexturesParser
             SkipCommas(t, ref i);
             if (!ReadByte(t, ref i, out blue)) return;
         }
-        else if (!TryParseColor(token, out red, out green, out blue))
+        else if (!ZDoomColorParser.TryParse(token, knownColors, out red, out green, out blue))
         {
             return;
         }
@@ -280,30 +283,6 @@ public static class TexturesParser
         if (i >= t.Count) return false;
         if (byte.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
         return false;
-    }
-
-    private static bool TryParseColor(string token, out byte red, out byte green, out byte blue)
-    {
-        red = green = blue = 0;
-        string value = token.Trim();
-        if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
-        if (value.Length == 6 && int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int rgb))
-        {
-            red = (byte)((rgb >> 16) & 0xFF);
-            green = (byte)((rgb >> 8) & 0xFF);
-            blue = (byte)(rgb & 0xFF);
-            return true;
-        }
-
-        switch (value.ToLowerInvariant())
-        {
-            case "black": red = 0; green = 0; blue = 0; return true;
-            case "white": red = 255; green = 255; blue = 255; return true;
-            case "red": red = 255; green = 0; blue = 0; return true;
-            case "green": red = 0; green = 255; blue = 0; return true;
-            case "blue": red = 0; green = 0; blue = 255; return true;
-            default: return false;
-        }
     }
 
     // Tokenizes into words / quoted strings / single-char symbols ({ } ,), skipping // and /* */ comments.

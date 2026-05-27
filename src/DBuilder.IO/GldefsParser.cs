@@ -310,62 +310,11 @@ public static class GldefsParser
             color = (r, g, b);
             return true;
         }
-        if (TryReadColorString(value, knownColors, out color))
+        if (ZDoomColorParser.TryParse(value, knownColors, out byte red, out byte green, out byte blue))
         {
             i++;
+            color = (red / 255.0f, green / 255.0f, blue / 255.0f);
             return true;
-        }
-        return false;
-    }
-
-    private static bool TryReadColorString(string value, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)
-    {
-        color = default;
-        string name = value.Replace(" ", "", StringComparison.Ordinal);
-        bool htmlColor = name.StartsWith('#');
-        if (htmlColor)
-        {
-            name = name.Substring(1);
-            if (name.Length == 3)
-                name = string.Concat(name[0], name[0], name[1], name[1], name[2], name[2]);
-            else if (name.Length != 6)
-            {
-                color = (0.0f, 0.0f, 0.0f);
-                return true;
-            }
-        }
-
-        if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int rgb))
-        {
-            color = (((rgb >> 16) & 0xff) / 255.0f, ((rgb >> 8) & 0xff) / 255.0f, (rgb & 0xff) / 255.0f);
-            return true;
-        }
-
-        if (!htmlColor && TryLookupKnownColor(name, knownColors, out var known))
-        {
-            color = (known.R / 255.0f, known.G / 255.0f, known.B / 255.0f);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static bool TryLookupKnownColor(string normalizedName, IReadOnlyDictionary<string, X11Color>? knownColors, out X11Color color)
-    {
-        color = default!;
-        if (knownColors == null) return false;
-        if (knownColors.TryGetValue(normalizedName, out var exact))
-        {
-            color = exact;
-            return true;
-        }
-        foreach (var entry in knownColors)
-        {
-            if (entry.Key.Replace(" ", "", StringComparison.Ordinal).Equals(normalizedName, StringComparison.OrdinalIgnoreCase))
-            {
-                color = entry.Value;
-                return true;
-            }
         }
         return false;
     }

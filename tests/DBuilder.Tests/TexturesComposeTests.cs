@@ -96,6 +96,34 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void UsesX11ColorsForTexturePatchBlend()
+    {
+        string textures =
+            "WallTexture WX11, 1, 1\n" +
+            "{\n" +
+            "    Patch \"WHITE\", 0, 0\n" +
+            "    {\n" +
+            "        Blend \"ghostwhite\"\n" +
+            "    }\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("X11R6RGB", Encoding.ASCII.GetBytes("248 248 255 ghost white\n")),
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/WHITE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 255, 255, 255, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WX11");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 248, 248, 255, 255 }, tex!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void AppliesPatchRotationDuringComposition()
     {
         string textures =
