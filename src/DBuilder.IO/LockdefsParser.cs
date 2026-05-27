@@ -17,6 +17,7 @@ public sealed class LockDefinition
 {
     public string Id { get; init; } = "";
     public string? Game { get; set; }
+    public string? Title { get; set; }
     public string? Message { get; set; }
     public string? RemoteMessage { get; set; }
     public (int R, int G, int B)? MapColor { get; set; }
@@ -34,7 +35,7 @@ public static class LockdefsParser
         for (int i = 0; i < t.Count;)
         {
             string keyword = t[i++].ToLowerInvariant();
-            if (keyword == "clearlocks") defs.ClearLocks = true;
+            if (keyword == "clearlocks") { defs.ClearLocks = true; defs.Locks.Clear(); }
             else if (keyword == "lock" && i < t.Count) ParseLock(defs, t, ref i);
             else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
@@ -51,7 +52,8 @@ public static class LockdefsParser
             while (i < t.Count && t[i] != "}")
             {
                 string prop = t[i++].ToLowerInvariant();
-                if (prop == "message" && i < t.Count) lockDef.Message = t[i++];
+                if (prop == "$title" && i < t.Count) lockDef.Title = t[i++];
+                else if (prop == "message" && i < t.Count) lockDef.Message = t[i++];
                 else if (prop == "remotemessage" && i < t.Count) lockDef.RemoteMessage = t[i++];
                 else if (prop == "mapcolor") lockDef.MapColor = ReadMapColor(t, ref i);
                 else if ((prop == "any" || prop == "all") && i < t.Count && t[i] == "{") lockDef.KeyGroups.Add(ReadKeyGroup(prop, t, ref i));
