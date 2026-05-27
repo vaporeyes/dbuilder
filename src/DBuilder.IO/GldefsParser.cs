@@ -70,9 +70,17 @@ public static class GldefsParser
     private static readonly HashSet<string> LightTypes = new(StringComparer.OrdinalIgnoreCase)
     { "pointlight", "pulselight", "flickerlight", "flickerlight2", "sectorlight", "spotlight" };
 
-    public static Gldefs Parse(string text)
+    public static Gldefs Parse(string text) => Parse(text, includeResolver: null);
+
+    public static Gldefs Parse(string text, Func<string, string?>? includeResolver)
     {
         var g = new Gldefs();
+        ParseInto(g, text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        return g;
+    }
+
+    private static void ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
         var t = Tokenize(text);
         int i = 0;
         while (i < t.Count)
@@ -82,10 +90,20 @@ public static class GldefsParser
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, t, ref i);
             else if (kw == "skybox") ParseSkybox(g, t, ref i);
+            else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, parsedIncludes);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
             else i++; // unknown keyword (skybox/brightmap/material/... handled by skipping its block next)
         }
-        return g;
+    }
+
+    private static void ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
+        i++; // #include
+        if (includeResolver == null || i >= t.Count) return;
+        string include = t[i++];
+        if (!parsedIncludes.Add(include)) return;
+        string? text = includeResolver(include);
+        if (text != null) ParseInto(g, text, includeResolver, parsedIncludes);
     }
 
     private static void ParseLight(Gldefs g, string type, List<string> t, ref int i)

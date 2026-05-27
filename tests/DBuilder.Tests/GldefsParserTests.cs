@@ -78,4 +78,21 @@ brightmap texture FOO { map FOO_BR }";
         Assert.True(g.Skyboxes["SKY1"].FlipTop);
         Assert.Equal(6, g.Skyboxes["SKY1"].Textures.Count);
     }
+
+    [Fact]
+    public void ParsesIncludesOnce()
+    {
+        const string root = @"
+#include ""lights/gldefs.txt""
+#include ""lights/gldefs.txt""
+object LampActor { frame LAMP { light LAMP_LIGHT } }";
+
+        var g = GldefsParser.Parse(root, include => include == "lights/gldefs.txt"
+            ? "pointlight LAMP_LIGHT { color 0.1 0.2 0.3 size 32 }"
+            : null);
+
+        Assert.Single(g.Lights);
+        Assert.True(g.Lights.ContainsKey("LAMP_LIGHT"));
+        Assert.Equal(0.2f, g.ActorLightColor("LampActor")!.Value.G, 4);
+    }
 }
