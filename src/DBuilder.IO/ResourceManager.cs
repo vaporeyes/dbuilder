@@ -270,12 +270,14 @@ public sealed class ResourceManager : IDisposable
     {
         if (defsBuilt) return;
         defsBuilt = true;
-        foreach (var reader in readers)
+        for (int readerIndex = 0; readerIndex < readers.Count; readerIndex++)
         {
+            var reader = readers[readerIndex];
             foreach (string text in reader.GetTextLumps("TEXTURES", partialTitleMatch: true))
             {
                 foreach (var def in TexturesParser.Parse(text))
                 {
+                    def.ResourceIndex = readerIndex;
                     switch (def.Type)
                     {
                         case TexturesType.WallTexture: wallDefs[def.Name] = def; break;
@@ -837,11 +839,11 @@ public sealed class ResourceManager : IDisposable
         }
 
         EnsureDefs();
-        if (defs.TryGetValue(name, out var def)) return ComposeTextures(def);
-
         var pal = Palette;
         for (int i = readers.Count - 1; i >= 0; i--)
         {
+            if (defs.TryGetValue(name, out var def) && def.ResourceIndex == i) return ComposeTextures(def);
+
             var img = lookup(readers[i], name, pal);
             if (img != null) return img;
         }

@@ -61,6 +61,7 @@ public sealed class TexturesDef
     public bool NullTexture { get; set; }
     public bool WorldPanning { get; set; }
     public List<TexturesPatch> Patches { get; } = new();
+    internal int ResourceIndex { get; set; }
 }
 
 public static class TexturesParser
