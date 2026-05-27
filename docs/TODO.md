@@ -194,7 +194,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port generalized categories, options, and bits.
 - [x] Port flag translations.
 - [x] Port enum lists and enum items.
-- [ ] Port script configuration.
+- [x] Port script configuration.
 - [x] Port compiler info.
 - [x] Port node-builder info.
 - [x] Port required archive behavior.
