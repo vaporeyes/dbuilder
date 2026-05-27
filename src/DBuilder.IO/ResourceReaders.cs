@@ -29,6 +29,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> VoxelNames();
     /// <summary>Raw voxel model bytes, or null when this resource does not provide the model.</summary>
     byte[]? GetVoxelBytes(string name);
+    /// <summary>Raw model or skin bytes by MODELDEF path, or null when this resource does not provide the file.</summary>
+    byte[]? GetModelResourceBytes(string path);
 }
 
 internal sealed class WadResourceReader : IResourceReader
@@ -135,6 +137,8 @@ internal sealed class WadResourceReader : IResourceReader
         return null;
     }
 
+    public byte[]? GetModelResourceBytes(string path) => null;
+
     internal static bool IsValidVoxelName(string name) => name.Length > 3 && name.Length < 7 && VoxelName.IsMatch(name);
 
     internal static string VoxelLookupName(string name)
@@ -151,6 +155,7 @@ internal sealed class WadResourceReader : IResourceReader
 internal abstract class FolderResourceReader : IResourceReader
 {
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Func<byte[]>> files = new(StringComparer.OrdinalIgnoreCase);
     protected readonly List<IResourceReader> nestedReaders = new();
 
     protected FolderResourceReader(string displayName)
@@ -164,6 +169,7 @@ internal abstract class FolderResourceReader : IResourceReader
     protected void AddEntry(string relativePath, Func<byte[]> read)
     {
         string norm = relativePath.Replace('\\', '/');
+        files[norm.TrimStart('/')] = read;
         int slash = norm.LastIndexOf('/');
         string folder = slash >= 0 ? norm.Substring(0, slash).ToLowerInvariant() : "";
         string file = slash >= 0 ? norm.Substring(slash + 1) : norm;
@@ -287,6 +293,8 @@ internal abstract class FolderResourceReader : IResourceReader
     public virtual byte[]? GetVoxelBytes(string name)
     {
         string normalized = name.Replace('\\', '/');
+        if (files.TryGetValue(normalized.TrimStart('/'), out var read)) return read();
+
         string lookup = WadResourceReader.VoxelLookupName(normalized);
         string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
         byte[]? bytes = string.IsNullOrWhiteSpace(folder)
@@ -297,6 +305,27 @@ internal abstract class FolderResourceReader : IResourceReader
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
             bytes = nestedReaders[i].GetVoxelBytes(name);
+            if (bytes != null) return bytes;
+        }
+
+        return null;
+    }
+
+    public virtual byte[]? GetModelResourceBytes(string path)
+    {
+        string normalized = path.Replace('\\', '/').TrimStart('/');
+        if (files.TryGetValue(normalized, out var read)) return read();
+
+        string lookup = WadResourceReader.VoxelLookupName(normalized);
+        string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
+        byte[]? bytes = string.IsNullOrWhiteSpace(folder)
+            ? Find(lookup, "models", "")
+            : Find(lookup, folder);
+        if (bytes != null) return bytes;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            bytes = nestedReaders[i].GetModelResourceBytes(path);
             if (bytes != null) return bytes;
         }
 

@@ -61,6 +61,8 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, ImageData?> spriteCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, VoxelDefinition> voxelDefs = new(StringComparer.OrdinalIgnoreCase);
     private bool voxelDefsBuilt;
+    private readonly List<Modeldef> modelDefs = new();
+    private bool modelDefsBuilt;
 
     // TEXTURES-lump composite definitions, keyed by name per usage (newest resource wins).
     private readonly Dictionary<string, TexturesDef> wallDefs = new(StringComparer.OrdinalIgnoreCase);
@@ -110,6 +112,8 @@ public sealed class ResourceManager : IDisposable
         spriteCache.Clear();
         voxelDefs.Clear();
         voxelDefsBuilt = false;
+        modelDefs.Clear();
+        modelDefsBuilt = false;
         wallDefs.Clear();
         flatDefs.Clear();
         spriteDefs.Clear();
@@ -297,6 +301,40 @@ public sealed class ResourceManager : IDisposable
             foreach (var entry in VoxeldefParser.Parse(text).Entries)
                 voxelDefs[entry.Key] = entry.Value;
         }
+    }
+
+    private void EnsureModelDefs()
+    {
+        if (modelDefsBuilt) return;
+        modelDefsBuilt = true;
+        foreach (var text in GetTextLumps("MODELDEF"))
+            modelDefs.AddRange(ModeldefParser.Parse(text));
+    }
+
+    /// <summary>MODELDEF blocks discovered from loaded resources, oldest resource first.</summary>
+    public IReadOnlyList<Modeldef> GetModelDefs()
+    {
+        EnsureModelDefs();
+        return modelDefs;
+    }
+
+    /// <summary>Raw model or skin bytes by path, searching newest resource first.</summary>
+    public byte[]? GetModelResourceBytes(string path)
+    {
+        for (int i = readers.Count - 1; i >= 0; i--)
+            if (readers[i].GetModelResourceBytes(path) is { } bytes)
+                return bytes;
+        return null;
+    }
+
+    /// <summary>Raw model or skin bytes using a MODELDEF block path plus a referenced file name.</summary>
+    public byte[]? GetModelResourceBytes(Modeldef def, string file) => GetModelResourceBytes(CombineModelPath(def.Path, file));
+
+    public static string CombineModelPath(string path, string file)
+    {
+        string normalizedFile = file.Replace('\\', '/').TrimStart('/');
+        string normalizedPath = path.Replace('\\', '/').Trim('/');
+        return normalizedPath.Length == 0 ? normalizedFile : normalizedPath + "/" + normalizedFile;
     }
 
     /// <summary>All directly discoverable voxel model names across resources, sorted and de-duplicated.</summary>

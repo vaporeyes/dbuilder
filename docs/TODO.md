@@ -140,7 +140,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port dynamic bitmap images.
 - [ ] Port color and unknown image behavior.
 - [ ] Port voxel image behavior.
-- [ ] Port model resource discovery.
+- [x] Port model resource discovery.
 - [ ] Port resource cache invalidation and disposal behavior.
 - [x] Add resource tests for WAD, PK3, nested PK3, directory resources, and mixed priority stacks.
 
@@ -325,7 +325,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port KVX loader.
 - [ ] Port Unreal model loader.
 - [ ] Port model skins and frame behavior.
-- [ ] Port model resource discovery from MODELDEF.
+- [x] Port model resource discovery from MODELDEF.
 - [ ] Integrate models into 3D thing rendering.
 
 ## Script Editing And Compilers
