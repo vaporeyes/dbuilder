@@ -322,6 +322,42 @@ TROOCPOS
     }
 
     [Fact]
+    public void ParsesLinedefActivationInfo()
+    {
+        const string cfg = """
+            linedefactivations
+            {
+                1024 = "Player presses Use";
+
+                repeatspecial
+                {
+                    name = "Repeatable action";
+                    istrigger = false;
+                }
+
+                playercross = "When player walks over";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(3, gc.LinedefActivations.Count);
+        var use = gc.LinedefActivations.Single(a => a.Key == "1024");
+        Assert.Equal(1024, use.Index);
+        Assert.Equal("Player presses Use", use.Title);
+        Assert.True(use.IsTrigger);
+
+        var repeat = gc.LinedefActivations.Single(a => a.Key == "repeatspecial");
+        Assert.Equal(0, repeat.Index);
+        Assert.Equal("Repeatable action", repeat.Title);
+        Assert.False(repeat.IsTrigger);
+
+        var cross = gc.LinedefActivations.Single(a => a.Key == "playercross");
+        Assert.Equal("When player walks over", cross.Title);
+        Assert.True(cross.IsTrigger);
+    }
+
+    [Fact]
     public void LoadsRealDoomConfigWhenAvailable()
     {
         // Opportunistic: only runs when the UDB asset tree is present on this machine.

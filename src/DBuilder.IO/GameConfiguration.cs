@@ -69,6 +69,8 @@ public sealed record RequiredArchiveEntry(string Name, string? Lump, string? Cla
 
 public sealed record RequiredArchiveInfo(string Name, string Filename, bool NeedExclude, IReadOnlyList<RequiredArchiveEntry> Entries);
 
+public sealed record LinedefActivationInfo(string Key, int Index, string Title, bool IsTrigger);
+
 public sealed class TextureSetInfo
 {
     private readonly Regex regex;
@@ -132,6 +134,7 @@ public sealed class GameConfiguration
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
     private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<RequiredArchiveInfo> requiredArchives = new();
+    private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
@@ -161,6 +164,7 @@ public sealed class GameConfiguration
     public string NodeBuilderTest { get; private set; } = "";
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
+    public IReadOnlyList<LinedefActivationInfo> LinedefActivations => linedefActivations;
     public IReadOnlyList<TextureSetInfo> TextureSets => textureSets;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
@@ -202,6 +206,7 @@ public sealed class GameConfiguration
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
             if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
+            if (root["linedefactivations"] is IDictionary la) gc.ParseLinedefActivations(la);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
             if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
@@ -650,6 +655,34 @@ public sealed class GameConfiguration
             textureSets.Add(new TextureSetInfo(key, GetString(set, "name", "Unnamed Set"), filters));
         }
     }
+
+    private void ParseLinedefActivations(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (key.Length == 0) continue;
+            if (e.Value is IDictionary activation)
+            {
+                linedefActivations.Add(new LinedefActivationInfo(
+                    key,
+                    ParseActivationIndex(key),
+                    GetString(activation, "name", key),
+                    GetBool(activation, "istrigger", true)));
+            }
+            else
+            {
+                linedefActivations.Add(new LinedefActivationInfo(
+                    key,
+                    ParseActivationIndex(key),
+                    e.Value?.ToString() ?? key,
+                    true));
+            }
+        }
+    }
+
+    private static int ParseActivationIndex(string key)
+        => int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index) ? index : 0;
 
     // Parses a flat "<int> = "<string>";" map (flags, etc.) into the destination dictionary.
     private void ParseFlatIntStrings(IDictionary src, Dictionary<int, string> dest)

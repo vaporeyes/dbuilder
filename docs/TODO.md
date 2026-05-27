@@ -185,7 +185,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port thing categories.
 - [ ] Port thing type info behavior.
 - [ ] Port linedef action categories and action info.
-- [ ] Port linedef activation info.
+- [x] Port linedef activation info.
 - [ ] Port argument info behavior.
 - [ ] Port sector effect info.
 - [x] Port texture sets.
