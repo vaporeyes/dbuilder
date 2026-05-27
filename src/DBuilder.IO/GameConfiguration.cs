@@ -45,6 +45,23 @@ public sealed class ThingTypeInfo
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
 }
 
+public sealed record ThingCategoryInfo(
+    string Key,
+    string Title,
+    string? ParentKey,
+    int Color,
+    int Width,
+    int Height,
+    bool Sorted,
+    int Arrow,
+    int Hangs,
+    int Blocking,
+    int ErrorCheck,
+    bool FixedSize,
+    bool FixedRotation,
+    bool AbsoluteZ,
+    bool Optional);
+
 public sealed class LinedefActionInfo
 {
     public int Index { get; init; }
@@ -122,6 +139,7 @@ public sealed class TextureSetInfo
 public sealed class GameConfiguration
 {
     private readonly Dictionary<int, ThingTypeInfo> things = new();
+    private readonly Dictionary<string, ThingCategoryInfo> thingCategories = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, LinedefActionInfo> linedefActions = new();
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
     private readonly Dictionary<int, string> linedefFlags = new();
@@ -139,6 +157,7 @@ public sealed class GameConfiguration
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
+    public IReadOnlyDictionary<string, ThingCategoryInfo> ThingCategories => thingCategories;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
     public IReadOnlyDictionary<int, SectorEffectInfo> SectorEffects => sectorEffects;
 
@@ -406,30 +425,52 @@ public sealed class GameConfiguration
         {
             string catName = catEntry.Key.ToString() ?? "";
             if (catEntry.Value is not IDictionary cat) continue;
+            ParseThingCategory(catName, cat, null);
+        }
+    }
 
-            // Category-level defaults inherited by things in this category.
-            int defColor = GetInt(cat, "color", 0);
-            int defWidth = GetInt(cat, "width", 16);
-            int defHeight = GetInt(cat, "height", 16);
+    private void ParseThingCategory(string key, IDictionary cat, ThingCategoryInfo? parent)
+    {
+        var info = new ThingCategoryInfo(
+            key,
+            GetString(cat, "title", key),
+            parent?.Key,
+            GetInt(cat, "color", parent?.Color ?? 0),
+            GetInt(cat, "width", parent?.Width ?? 16),
+            GetInt(cat, "height", parent?.Height ?? 16),
+            GetBoolishInt(cat, "sort", parent?.Sorted ?? false),
+            GetInt(cat, "arrow", parent?.Arrow ?? 0),
+            GetInt(cat, "hangs", parent?.Hangs ?? 0),
+            GetInt(cat, "blocking", parent?.Blocking ?? 0),
+            GetInt(cat, "error", parent?.ErrorCheck ?? 1),
+            GetBool(cat, "fixedsize", parent?.FixedSize ?? false),
+            GetBool(cat, "fixedrotation", parent?.FixedRotation ?? false),
+            GetBool(cat, "absolutez", parent?.AbsoluteZ ?? false),
+            GetBool(cat, "optional", parent?.Optional ?? false));
+        thingCategories[key] = info;
 
-            foreach (DictionaryEntry e in cat)
+        foreach (DictionaryEntry e in cat)
+        {
+            string childKey = e.Key.ToString() ?? "";
+            if (e.Value is not IDictionary child) continue;
+            if (int.TryParse(childKey, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
             {
-                string key = e.Key.ToString() ?? "";
-                if (e.Value is not IDictionary thing) continue;       // skip scalar category props
-                if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
-
                 things[number] = new ThingTypeInfo
                 {
                     Index = number,
-                    Category = catName,
-                    Title = GetString(thing, "title", key),
-                    Sprite = GetString(thing, "sprite", ""),
-                    ClassName = GetString(thing, "class", ""),
-                    Color = GetInt(thing, "color", defColor),
-                    Width = GetInt(thing, "width", defWidth),
-                    Height = GetInt(thing, "height", defHeight),
-                    Args = ParseArgs(thing),
+                    Category = key,
+                    Title = GetString(child, "title", childKey),
+                    Sprite = GetString(child, "sprite", ""),
+                    ClassName = GetString(child, "class", ""),
+                    Color = GetInt(child, "color", info.Color),
+                    Width = GetInt(child, "width", info.Width),
+                    Height = GetInt(child, "height", info.Height),
+                    Args = ParseArgs(child),
                 };
+            }
+            else
+            {
+                ParseThingCategory(key + "." + childKey, child, info);
             }
         }
     }
@@ -718,6 +759,17 @@ public sealed class GameConfiguration
         {
             bool b => b,
             int i => i != 0,
+            string s when bool.TryParse(s, out bool p) => p,
+            _ => fallback,
+        };
+
+    private static bool GetBoolishInt(IDictionary d, string key, bool fallback)
+        => d[key] switch
+        {
+            bool b => b,
+            int i => i != 0,
+            long l => l != 0,
+            string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int p) => p != 0,
             string s when bool.TryParse(s, out bool p) => p,
             _ => fallback,
         };

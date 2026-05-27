@@ -105,6 +105,59 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesThingCategoriesAndNestedCategoryDefaults()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+                    color = 12;
+                    width = 20;
+                    height = 56;
+                    sort = 1;
+                    blocking = 1;
+
+                    bosses
+                    {
+                        title = "Bosses";
+                        color = 4;
+                        fixedsize = true;
+
+                        3003
+                        {
+                            title = "Baron of Hell";
+                            sprite = "BOSSA1";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var monsters = gc.ThingCategories["monsters"];
+        Assert.Equal("Monsters", monsters.Title);
+        Assert.True(monsters.Sorted);
+        Assert.Equal(1, monsters.Blocking);
+
+        var bosses = gc.ThingCategories["monsters.bosses"];
+        Assert.Equal("monsters", bosses.ParentKey);
+        Assert.Equal("Bosses", bosses.Title);
+        Assert.Equal(4, bosses.Color);
+        Assert.Equal(20, bosses.Width);
+        Assert.Equal(56, bosses.Height);
+        Assert.True(bosses.FixedSize);
+
+        var baron = gc.GetThing(3003)!;
+        Assert.Equal("monsters.bosses", baron.Category);
+        Assert.Equal(4, baron.Color);
+        Assert.Equal(20, baron.Width);
+        Assert.Equal(56, baron.Height);
+    }
+
+    [Fact]
     public void UnknownThingFallsBackToPlaceholderTitle()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
