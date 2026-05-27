@@ -373,10 +373,18 @@ public sealed class MapInfo
                 if (ZDoomColorParser.TryParse(e.OutsideFog, knownColors, out byte fogRed, out byte fogGreen, out byte fogBlue))
                     e.OutsideFogColor = (fogRed, fogGreen, fogBlue);
                 break;
-            case "fogdensity": e.FogDensity = Int(); break;
-            case "outsidefogdensity": e.OutsideFogDensity = Int(); break;
-            case "horizwallshade": e.HorizWallShade = ClampWallShade(Int()); break;
-            case "vertwallshade": e.VertWallShade = ClampWallShade(Int()); break;
+            case "fogdensity":
+                if (Int().HasValue) e.FogDensity = Int();
+                break;
+            case "outsidefogdensity":
+                if (Int().HasValue) e.OutsideFogDensity = Int();
+                break;
+            case "horizwallshade":
+                if (Int().HasValue) e.HorizWallShade = ClampWallShade(Int());
+                break;
+            case "vertwallshade":
+                if (Int().HasValue) e.VertWallShade = ClampWallShade(Int());
+                break;
             case "lightmode":
                 if (Int().HasValue) e.LightMode = First();
                 break;

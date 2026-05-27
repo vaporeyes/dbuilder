@@ -377,6 +377,38 @@ map MAP02 ""Underhalls""
     }
 
     [Fact]
+    public void IgnoresInvalidMapInfoVisualIntegerValues()
+    {
+        const string text = @"
+map MAP01 ""Entryway""
+{
+    fogdensity = dense
+    outsidefogdensity = light
+    horizwallshade = dark
+    vertwallshade = bright
+}
+map MAP02 ""Underhalls""
+{
+    fogdensity = 64
+    outsidefogdensity = 32
+    horizwallshade = -999
+    vertwallshade = 999
+}";
+
+        var invalid = MapInfo.Parse(text).GetMap("MAP01")!;
+        var valid = MapInfo.Parse(text).GetMap("MAP02")!;
+
+        Assert.Equal(255, invalid.FogDensity);
+        Assert.Equal(255, invalid.OutsideFogDensity);
+        Assert.Equal(-16, invalid.HorizWallShade);
+        Assert.Equal(16, invalid.VertWallShade);
+        Assert.Equal(64, valid.FogDensity);
+        Assert.Equal(32, valid.OutsideFogDensity);
+        Assert.Equal(-255, valid.HorizWallShade);
+        Assert.Equal(255, valid.VertWallShade);
+    }
+
+    [Fact]
     public void ParsesSpacedMapInfoFadeColors()
     {
         const string text = @"
