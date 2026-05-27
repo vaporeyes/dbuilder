@@ -1,0 +1,80 @@
+// ABOUTME: Parser for ZDoom SNDINFO logical sound declarations.
+// ABOUTME: Captures sound name to lump path mappings and aliases without loading audio data.
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace DBuilder.IO;
+
+public sealed class SndInfo
+{
+    public Dictionary<string, string> Sounds { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Aliases { get; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
+public static class SndInfoParser
+{
+    public static SndInfo Parse(string text)
+    {
+        var result = new SndInfo();
+        foreach (string rawLine in text.Replace("\r\n", "\n").Split('\n'))
+        {
+            var t = Tokenize(StripLineComment(rawLine));
+            if (t.Count == 0) continue;
+
+            string first = t[0];
+            if (first.Equals("$alias", StringComparison.OrdinalIgnoreCase))
+            {
+                if (t.Count >= 3) result.Aliases[t[1]] = t[2];
+                continue;
+            }
+
+            if (first.StartsWith("$", StringComparison.Ordinal)) continue;
+            if (t.Count >= 2) result.Sounds[first] = t[1];
+        }
+        return result;
+    }
+
+    private static string StripLineComment(string line)
+    {
+        bool quoted = false;
+        for (int i = 0; i < line.Length; i++)
+        {
+            if (line[i] == '"') quoted = !quoted;
+            if (quoted) continue;
+            if (line[i] == '#') return line.Substring(0, i);
+            if (line[i] == '/' && i + 1 < line.Length && line[i + 1] == '/') return line.Substring(0, i);
+        }
+        return line;
+    }
+
+    private static List<string> Tokenize(string s)
+    {
+        var toks = new List<string>();
+        int n = s.Length;
+        for (int p = 0; p < n;)
+        {
+            char c = s[p];
+            if (char.IsWhiteSpace(c)) { p++; continue; }
+            if (c == '"')
+            {
+                var sb = new StringBuilder();
+                p++;
+                while (p < n && s[p] != '"')
+                {
+                    if (s[p] == '\\' && p + 1 < n) { sb.Append(s[p + 1]); p += 2; }
+                    else sb.Append(s[p++]);
+                }
+                if (p < n) p++;
+                toks.Add(sb.ToString());
+                continue;
+            }
+
+            int b = p;
+            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '"') p++;
+            toks.Add(s.Substring(b, p - b));
+        }
+        return toks;
+    }
+}
