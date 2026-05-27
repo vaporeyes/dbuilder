@@ -178,6 +178,61 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void MergeDehackedAddsThingDefinitions()
+    {
+        const string text = @"
+Thing 2 (Former Human Captain)
+ID # = 31000
+Initial frame = 10
+Width = 1310720
+Height = 3670016
+#$Category = Monsters
+
+Frame 10
+Sprite number = 1
+Sprite subnumber = 0
+
+[SPRITES]
+1 = POSS
+";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeDehacked(DehackedParser.Parse(text));
+
+        var thing = gc.GetThing(31000);
+        Assert.NotNull(thing);
+        Assert.Equal("Former Human Captain", gc.ThingTitle(31000));
+        Assert.Equal("POSSA0", thing!.Sprite);
+        Assert.Equal(20, thing.Width);
+        Assert.Equal(56, thing.Height);
+        Assert.Equal("Monsters", thing.Category);
+    }
+
+    [Fact]
+    public void MergeDehackedUpdatesExistingThingAndAppliesSpriteReplacement()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+        const string text = @"
+Thing 2 (Renamed Imp)
+ID # = 3001
+Width = 1572864
+
+Text 4 4
+TROOCPOS
+";
+
+        gc.MergeDehacked(DehackedParser.Parse(text));
+
+        var thing = gc.GetThing(3001);
+        Assert.NotNull(thing);
+        Assert.Equal("Renamed Imp", thing!.Title);
+        Assert.Equal("CPOSA1", thing.Sprite);
+        Assert.Equal(24, thing.Width);
+        Assert.Equal(56, thing.Height);
+        Assert.Equal("monsters", thing.Category);
+    }
+
+    [Fact]
     public void LoadsRealDoomConfigWhenAvailable()
     {
         // Opportunistic: only runs when the UDB asset tree is present on this machine.

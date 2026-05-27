@@ -15,7 +15,7 @@ Status values:
 | `Source/Core/Config` | partial | `DBuilder.IO` | Basic configuration parsing exists. Full inheritance, includes, defaults, and type sections remain. |
 | `Source/Core/Controls` | partial | `DBuilder.Editor` | Avalonia dialogs exist for selected workflows only. |
 | `Source/Core/Data` | partial | `DBuilder.IO` | Resource manager exists, but full UDB DataManager parity is incomplete. |
-| `Source/Core/Dehacked` | partial | `DBuilder.IO` | Patch data model and parser behavior exist for things, frames, text replacements, and sprite rows. Integration into thing definitions remains. |
+| `Source/Core/Dehacked` | partial | `DBuilder.IO` | Patch data model, parser behavior, sprite replacements, and thing catalog merge support exist. Full UDB baseline DehackedData table processing remains. |
 | `Source/Core/Editing` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected editing workflows exist. Full edit-mode lifecycle remains. |
 | `Source/Core/General` | partial | `DBuilder.Editor`, `DBuilder.IO` | Settings and launch helpers exist. Full application orchestration remains. |
 | `Source/Core/Geometry` | partial | `DBuilder.Geometry`, `DBuilder.Map` | Many helpers are ported. Remaining `Tools.cs` and edge behavior need comparison. |

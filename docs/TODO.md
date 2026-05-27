@@ -175,8 +175,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port Dehacked thing parsing.
 - [x] Port Dehacked frame parsing.
 - [x] Port Dehacked parser behavior.
-- [ ] Integrate Dehacked data into thing definitions and editor display.
-- [ ] Add Dehacked parser and integration tests.
+- [x] Integrate Dehacked data into thing definitions and editor display.
+- [x] Add Dehacked parser and integration tests.
 
 ## Game Configuration
 

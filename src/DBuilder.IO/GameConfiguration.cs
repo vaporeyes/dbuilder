@@ -175,6 +175,102 @@ public sealed class GameConfiguration
         }
     }
 
+    /// <summary>
+    /// Applies parsed DeHackEd display data to the thing catalog. This only uses patch-local data that does not
+    /// require the full UDB DehackedData baseline tables.
+    /// </summary>
+    public void MergeDehacked(DehackedPatch patch)
+    {
+        var spriteReplacements = BuildSpriteReplacementMap(patch);
+        if (spriteReplacements.Count > 0)
+        {
+            var keys = new List<int>(things.Keys);
+            foreach (int key in keys)
+                things[key] = WithSprite(things[key], ApplySpriteReplacement(things[key].Sprite, spriteReplacements));
+        }
+
+        foreach (var thing in patch.Things)
+        {
+            if (!TryReadDehackedInt(thing.Properties, "ID #", out int doomEdNum) || doomEdNum < 0) continue;
+            things.TryGetValue(doomEdNum, out var existing);
+            string sprite = ResolveDehackedSprite(thing, patch) ?? existing?.Sprite ?? "";
+            sprite = ApplySpriteReplacement(sprite, spriteReplacements);
+            int width = TryReadDehackedInt(thing.Properties, "Width", out int rawWidth) ? FixedToInt(rawWidth) : existing?.Width ?? 16;
+            int height = TryReadDehackedInt(thing.Properties, "Height", out int rawHeight) ? FixedToInt(rawHeight) : existing?.Height ?? 16;
+            string category = ReadDehackedProperty(thing.Properties, "$Category") ?? existing?.Category ?? "Dehacked";
+
+            things[doomEdNum] = new ThingTypeInfo
+            {
+                Index = doomEdNum,
+                ClassName = existing?.ClassName ?? "DehackedThing" + thing.Number.ToString(CultureInfo.InvariantCulture),
+                Title = thing.Name,
+                Category = category,
+                Sprite = sprite,
+                Width = width > 0 ? width : existing?.Width ?? 16,
+                Height = height > 0 ? height : existing?.Height ?? 16,
+                Color = existing?.Color ?? 0,
+                Args = existing?.Args ?? System.Array.Empty<ArgInfo>(),
+            };
+        }
+    }
+
+    private static Dictionary<string, string> BuildSpriteReplacementMap(DehackedPatch patch)
+    {
+        var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in patch.Texts)
+            if (kvp.Key.Length == 4 && kvp.Value.Length == 4) replacements[kvp.Key] = kvp.Value;
+        foreach (var kvp in patch.SpriteReplacements)
+            replacements[kvp.Key] = kvp.Value;
+        return replacements;
+    }
+
+    private static string ApplySpriteReplacement(string sprite, Dictionary<string, string> replacements)
+    {
+        if (sprite.Length < 4) return sprite;
+        string baseName = sprite.Substring(0, 4);
+        return replacements.TryGetValue(baseName, out string? replacement) ? replacement + sprite.Substring(4) : sprite;
+    }
+
+    private static ThingTypeInfo WithSprite(ThingTypeInfo info, string sprite) => new()
+    {
+        Index = info.Index,
+        ClassName = info.ClassName,
+        Title = info.Title,
+        Category = info.Category,
+        Sprite = sprite,
+        Width = info.Width,
+        Height = info.Height,
+        Color = info.Color,
+        Args = info.Args,
+    };
+
+    private static string? ResolveDehackedSprite(DehackedThing thing, DehackedPatch patch)
+    {
+        if (!TryReadDehackedInt(thing.Properties, "Initial frame", out int frameNumber)) return null;
+        if (!patch.Frames.TryGetValue(frameNumber, out var frame)) return null;
+        if (!TryReadDehackedInt(frame.Properties, "Sprite number", out int spriteNumber)) return null;
+        if (!patch.NewSprites.TryGetValue(spriteNumber, out string? spriteName)) return null;
+        int subNumber = 0;
+        if (TryReadDehackedInt(frame.Properties, "Sprite subnumber", out int rawSubNumber))
+        {
+            subNumber = rawSubNumber >= 32768 ? rawSubNumber - 32768 : rawSubNumber;
+        }
+        char frameLetter = (char)('A' + Math.Clamp(subNumber, 0, 25));
+        return spriteName + frameLetter + "0";
+    }
+
+    private static bool TryReadDehackedInt(Dictionary<string, string> properties, string key, out int value)
+    {
+        value = 0;
+        return properties.TryGetValue(key, out string? text)
+            && int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static string? ReadDehackedProperty(Dictionary<string, string> properties, string key)
+        => properties.TryGetValue(key, out string? value) && value.Length > 0 ? value : null;
+
+    private static int FixedToInt(int value) => value >> 16;
+
     public ThingTypeInfo? GetThing(int index) => things.TryGetValue(index, out var t) ? t : null;
     public LinedefActionInfo? GetLinedefAction(int index) => linedefActions.TryGetValue(index, out var a) ? a : null;
     public SectorEffectInfo? GetSectorEffect(int index) => sectorEffects.TryGetValue(index, out var s) ? s : null;
