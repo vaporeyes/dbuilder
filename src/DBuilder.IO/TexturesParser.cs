@@ -117,6 +117,7 @@ public static class TexturesParser
         if (!ReadInt(t, ref i, out int height)) return null;
 
         var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
+        if (i >= t.Count || t[i] != "{") return null;
 
         if (i < t.Count && t[i] == "{")
         {

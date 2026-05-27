@@ -106,12 +106,10 @@ Texture After, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void HandlesNoBodyDefinition()
+    public void SkipsDefinitionsWithoutBody()
     {
         var defs = TexturesParser.Parse("Graphic G, 10, 12");
-        Assert.Single(defs);
-        Assert.Equal(10, defs[0].Width);
-        Assert.Empty(defs[0].Patches);
+        Assert.Empty(defs);
     }
 
     [Fact]
