@@ -125,6 +125,23 @@ ACTOR Flagged 7002
     }
 
     [Fact]
+    public void IgnoresActionAndNativeDeclarations()
+    {
+        const string text = @"
+ACTOR NativeActor 7005
+{
+    action native A_CustomAction(int amount);
+    native int NativeField;
+    Radius 16
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.False(actor.Properties.ContainsKey("action"));
+        Assert.False(actor.Properties.ContainsKey("native"));
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ScalePopulatesXScaleAndYScaleProperties()
     {
         const string text = "ACTOR Scaled 7004 { Scale 1.5 }";
