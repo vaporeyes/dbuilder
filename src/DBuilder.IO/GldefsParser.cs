@@ -216,36 +216,34 @@ public static class GldefsParser
         if (i < t.Count && t[i] == "{")
         {
             i++;
-            while (i < t.Count && t[i] != "}")
+            int bracesCount = 1;
+            bool foundFrame = false;
+            while (i < t.Count)
             {
-                if (t[i].Equals("frame", StringComparison.OrdinalIgnoreCase))
+                string token = t[i++].ToLowerInvariant();
+                if (!foundLight && !foundFrame && token == "frame")
                 {
-                    i++;
-                    string frameName = i < t.Count ? t[i++] : "";
-                    bool useFrame = !foundLight && (frameName.Length == 4 || (frameName.Length > 4 && char.ToLowerInvariant(frameName[4]) == 'a'));
-                    if (i < t.Count && t[i] == "{")
+                    string frameName = i < t.Count ? t[i++].ToLowerInvariant() : "";
+                    foundFrame = frameName.Length == 4 || (frameName.Length > 4 && frameName[4] == 'a');
+                }
+                else if (!foundLight && foundFrame && token == "light")
+                {
+                    string lightName = i < t.Count ? t[i++] : "";
+                    if (!string.IsNullOrEmpty(lightName))
                     {
-                        i++;
-                        while (i < t.Count && t[i] != "}")
-                        {
-                            if (t[i].Equals("light", StringComparison.OrdinalIgnoreCase) && i + 1 < t.Count)
-                            {
-                                if (useFrame)
-                                {
-                                    obj.Lights.Add(t[i + 1]);
-                                    foundLight = true;
-                                    useFrame = false;
-                                }
-                                i += 2;
-                            }
-                            else i++;
-                        }
-                        if (i < t.Count) i++; // }
+                        obj.Lights.Add(lightName);
+                        foundLight = true;
                     }
                 }
-                else i++;
+                else if (token == "{")
+                {
+                    bracesCount++;
+                }
+                else if (token == "}" && --bracesCount < 1)
+                {
+                    break;
+                }
             }
-            if (i < t.Count) i++; // }
         }
         if (obj.Lights.Count > 0) g.Objects.Add(obj);
     }

@@ -241,6 +241,35 @@ object TorchActor
     }
 
     [Fact]
+    public void ObjectFindsFirstRelevantFrameLightAcrossNestedBody()
+    {
+        const string text = @"
+pointlight FIRST { color 1 0 0 size 16 }
+pointlight SECOND { color 0 1 0 size 16 }
+object LooseActor
+{
+    frame LOOSA
+    light FIRST
+}
+object NestedActor
+{
+    frame NESTA
+    {
+        state
+        {
+            light SECOND
+        }
+    }
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(2, g.Objects.Count);
+        Assert.Equal("FIRST", g.Objects.Single(o => o.ClassName == "LooseActor").Lights[0]);
+        Assert.Equal("SECOND", g.Objects.Single(o => o.ClassName == "NestedActor").Lights[0]);
+    }
+
+    [Fact]
     public void NormalizesFlickerChanceAndSectorScale()
     {
         const string text = @"
