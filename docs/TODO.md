@@ -181,7 +181,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
-- [ ] Port configuration inheritance and includes.
+- [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
 - [x] Port linedef action categories and action info.

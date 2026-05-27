@@ -211,4 +211,108 @@ public class ConfigurationTests
         Assert.False(cfg.InputConfiguration("include(\"other.cfg\");"));
         Assert.Contains("Include function is not supported", cfg.ErrorDescription);
     }
+
+    [Fact]
+    public void IncludeMergesFileRelativeToSourceFile()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_cfg_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        string include = Path.Combine(dir, "base.cfg");
+        string root = Path.Combine(dir, "root.cfg");
+        try
+        {
+            File.WriteAllText(include, """
+                game
+                {
+                    title = "Included";
+                    options
+                    {
+                        skill = 3;
+                    }
+                }
+                """);
+            File.WriteAllText(root, """
+                include("base.cfg");
+                game
+                {
+                    options
+                    {
+                        sky = "SKY1";
+                    }
+                }
+                """);
+
+            var cfg = new Configuration(root, sorted: true);
+            Assert.False(cfg.ErrorResult, cfg.ErrorDescription);
+            Assert.Equal("Included", cfg.ReadSetting("game.title", ""));
+            Assert.Equal(3, cfg.ReadSetting("game.options.skill", 0));
+            Assert.Equal("SKY1", cfg.ReadSetting("game.options.sky", ""));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void IncludeCanMergeNamedSubStructure()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_cfg_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        string include = Path.Combine(dir, "profiles.cfg");
+        string root = Path.Combine(dir, "root.cfg");
+        try
+        {
+            File.WriteAllText(include, """
+                profiles
+                {
+                    doom
+                    {
+                        format = "Doom";
+                        flags
+                        {
+                            strict = true;
+                        }
+                    }
+                }
+                """);
+            File.WriteAllText(root, """include("profiles.cfg", "profiles.doom");""");
+
+            var cfg = new Configuration(root);
+            Assert.False(cfg.ErrorResult, cfg.ErrorDescription);
+            Assert.Equal("Doom", cfg.ReadSetting("format", ""));
+            Assert.True(cfg.ReadSetting("flags.strict", false));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void RepeatedStructureBlocksMergeRecursively()
+    {
+        var cfg = new Configuration();
+        Assert.True(cfg.InputConfiguration("""
+            thing
+            {
+                title = "Former Human";
+                args
+                {
+                    arg0 = "TID";
+                }
+            }
+            thing
+            {
+                args
+                {
+                    arg1 = "Special";
+                }
+            }
+            """));
+
+        Assert.Equal("Former Human", cfg.ReadSetting("thing.title", ""));
+        Assert.Equal("TID", cfg.ReadSetting("thing.args.arg0", ""));
+        Assert.Equal("Special", cfg.ReadSetting("thing.args.arg1", ""));
+    }
 }
