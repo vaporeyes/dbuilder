@@ -397,6 +397,7 @@ public sealed class GameConfiguration
             int num = a.DoomEdNum;
             if (num < 0 && classToNum != null && classToNum.TryGetValue(a.ClassName, out int mapped)) num = mapped;
             if (num < 0) continue;
+            things.TryGetValue(num, out var existing);
             things[num] = new ThingTypeInfo
             {
                 Index = num,
@@ -414,6 +415,7 @@ public sealed class GameConfiguration
                 Hangs = ActorFlag(a, "spawnceiling"),
                 Blocking = ActorFlag(a, "solid") ? 2 : 0,
                 ErrorCheck = ActorFlag(a, "solid") ? 1 : 0,
+                Args = ActorArgs(a, existing?.Args),
             };
         }
     }
@@ -456,6 +458,36 @@ public sealed class GameConfiguration
     private static bool ActorFlag(ActorInfo actor, string flag)
         => actor.Flags.TryGetValue(flag, out bool enabled) && enabled;
 
+    private static ArgInfo[] ActorArgs(ActorInfo actor, ArgInfo[]? existing)
+    {
+        ArgInfo[]? args = null;
+        for (int i = 0; i < 5; i++)
+        {
+            string prefix = "$arg" + i.ToString(CultureInfo.InvariantCulture);
+            if (!TryActorProperty(actor, prefix, out string title)) continue;
+            args ??= new ArgInfo[5];
+            args[i] = new ArgInfo
+            {
+                Title = title,
+                ToolTip = ActorProperty(actor, prefix + "tooltip").Replace("\\n", Environment.NewLine),
+                Type = ActorPropertyInt(actor, prefix + "type"),
+                Enum = EmptyToNull(ActorProperty(actor, prefix + "enum")),
+                Default = ActorPropertyInt(actor, prefix + "default"),
+                DefaultValue = ActorPropertyInt(actor, prefix + "default"),
+                TargetClasses = ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")),
+                RenderStyle = ActorProperty(actor, prefix + "renderstyle").ToLowerInvariant(),
+                MinRange = ActorPropertyInt(actor, prefix + "minrange"),
+                MaxRange = ActorPropertyInt(actor, prefix + "maxrange"),
+                Str = actor.Properties.ContainsKey(prefix + "str"),
+                TitleStr = ActorProperty(actor, prefix + "str") is { Length: > 0 } titleStr ? titleStr : title,
+            };
+        }
+
+        if (args == null) return existing ?? Array.Empty<ArgInfo>();
+        for (int i = 0; i < 5; i++) args[i] ??= existing != null && i < existing.Length ? existing[i] : new ArgInfo();
+        return args;
+    }
+
     private static bool TryActorProperty(ActorInfo actor, string name, out string value)
     {
         value = "";
@@ -477,6 +509,14 @@ public sealed class GameConfiguration
         return TryActorProperty(actor, name, out string raw)
             && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
     }
+
+    private static string ActorProperty(ActorInfo actor, string name)
+        => TryActorProperty(actor, name, out string value) ? value : "";
+
+    private static int ActorPropertyInt(ActorInfo actor, string name)
+        => TryActorPropertyInt(actor, name, out int value) ? value : 0;
+
+    private static string? EmptyToNull(string value) => value.Length == 0 ? null : value;
 
     /// <summary>
     /// Applies parsed DeHackEd display data to the thing catalog. This only uses patch-local data that does not

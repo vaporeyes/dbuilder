@@ -163,6 +163,15 @@ ACTOR CoolMonster 31000
     $Angled
     +SOLID
     +SPAWNCEILING
+    $Arg0 ""Target""
+    $Arg0Type 25
+    $Arg0Default 7
+    $Arg0Tooltip ""Pick target\nby tid""
+    $Arg0TargetClasses ""MapSpot, PatrolPoint""
+    $Arg0RenderStyle Circle
+    $Arg0MinRange 16
+    $Arg0MaxRange 256
+    $Arg0Str ""Target Name""
     Radius 24
     Height 48
     States { Spawn: COOL A -1 stop }
@@ -184,6 +193,18 @@ ACTOR CoolMonster 31000
         Assert.True(info.Hangs);
         Assert.Equal(2, info.Blocking);
         Assert.Equal(1, info.ErrorCheck);
+        Assert.Equal("Target", info.Args[0].Title);
+        Assert.Equal(25, info.Args[0].Type);
+        Assert.Equal(7, info.Args[0].Default);
+        Assert.Equal(7, info.Args[0].DefaultValue);
+        Assert.Equal("Pick target\nby tid", info.Args[0].ToolTip);
+        Assert.Contains("MapSpot", info.Args[0].TargetClasses);
+        Assert.Contains("PatrolPoint", info.Args[0].TargetClasses);
+        Assert.Equal("circle", info.Args[0].RenderStyle);
+        Assert.Equal(16, info.Args[0].MinRange);
+        Assert.Equal(256, info.Args[0].MaxRange);
+        Assert.True(info.Args[0].Str);
+        Assert.Equal("Target Name", info.Args[0].TitleStr);
     }
 
     [Fact]

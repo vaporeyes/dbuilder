@@ -340,7 +340,16 @@ public static class DecorateParser
             if (c == '"')
             {
                 int b = ++p; var sb = new System.Text.StringBuilder();
-                while (p < n && s[p] != '"') { if (s[p] == '\\' && p + 1 < n) { sb.Append(s[p + 1]); p += 2; } else sb.Append(s[p++]); }
+                while (p < n && s[p] != '"')
+                {
+                    if (s[p] == '\\' && p + 1 < n)
+                    {
+                        if (s[p + 1] == 'n') sb.Append("\\n");
+                        else sb.Append(s[p + 1]);
+                        p += 2;
+                    }
+                    else sb.Append(s[p++]);
+                }
                 p++;
                 toks.Add(new Tok(Kind.Str, sb.ToString()));
                 continue;
