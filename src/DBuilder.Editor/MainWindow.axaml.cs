@@ -397,9 +397,11 @@ public partial class MainWindow : Window
 
     private void FocusMapViewForShortcuts()
     {
+        MacApplicationActivator.Activate();
         Activate();
         Dispatcher.UIThread.Post(() =>
         {
+            MacApplicationActivator.Activate();
             Activate();
             MapView.Focus();
         }, DispatcherPriority.Loaded);
