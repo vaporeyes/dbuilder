@@ -155,8 +155,8 @@ DoomEdNums
 map MAP01 ""x"" { }";
         var mi = MapInfo.Parse(text);
         Assert.Equal(2, mi.DoomEdNums.Count);
-        Assert.Equal("MyMonster", mi.DoomEdNums[9050]);
-        Assert.Equal("OtherThing", mi.DoomEdNums[9051]);
+        Assert.Equal("mymonster", mi.DoomEdNums[9050]);
+        Assert.Equal("otherthing", mi.DoomEdNums[9051]);
         Assert.Single(mi.Maps); // the map directive still parses
     }
 

@@ -398,7 +398,7 @@ public sealed class MapInfo
             if (!toks[i].IsString && int.TryParse(toks[i].Text, out int num)
                 && i + 2 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "=")
             {
-                if (!skipZero || num != 0) map[num] = toks[i + 2].Text; // ClassName (extra args after a comma are ignored)
+                if (!skipZero || num != 0) map[num] = toks[i + 2].Text.ToLowerInvariant(); // ClassName (extra args after a comma are ignored)
                 i += 3;
             }
             else i++;

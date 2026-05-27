@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -155,7 +156,8 @@ public partial class MainWindow : Window
         {
             var actors = ZScriptParser.Parse(text, _resources.GetTextResource);
             _config.MergeActors(actors, doomEdNums);
-            foreach (var a in actors) if (doomEdNums.ContainsValue(a.ClassName)) count++;
+            foreach (var a in actors)
+                if (doomEdNums.Values.Contains(a.ClassName, StringComparer.OrdinalIgnoreCase)) count++;
         }
 
         MapView.GameConfig = _config; // refresh thing labels/sprites

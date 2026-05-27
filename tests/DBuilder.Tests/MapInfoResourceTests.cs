@@ -29,8 +29,8 @@ DoomEdNums { 9000 = IncludedActor }
 
             var mapInfo = resources.GetMapInfo();
             Assert.Equal("MAP02", mapInfo.GetMap("MAP01")!.Next);
-            Assert.Equal("IncludedActor", mapInfo.DoomEdNums[9000]);
-            Assert.Equal("RootActor", mapInfo.DoomEdNums[9001]);
+            Assert.Equal("includedactor", mapInfo.DoomEdNums[9000]);
+            Assert.Equal("rootactor", mapInfo.DoomEdNums[9001]);
         }
         finally
         {
@@ -54,7 +54,7 @@ DoomEdNums { 9000 = IncludedActor }
             Assert.Null(mapInfo.GetMap("MAP01"));
             Assert.Equal("E1M2", mapInfo.GetMap("E1M1")!.Next);
             Assert.False(mapInfo.DoomEdNums.ContainsKey(9000));
-            Assert.Equal("ZMapinfoActor", mapInfo.DoomEdNums[9001]);
+            Assert.Equal("zmapinfoactor", mapInfo.DoomEdNums[9001]);
         }
         finally
         {
@@ -77,8 +77,8 @@ DoomEdNums { 9000 = IncludedActor }
             var mapInfo = resources.GetMapInfo();
             Assert.Equal("MAP02", mapInfo.GetMap("MAP01")!.Next);
             Assert.Equal("E1M2", mapInfo.GetMap("E1M1")!.Next);
-            Assert.Equal("MapinfoActor", mapInfo.DoomEdNums[9000]);
-            Assert.Equal("ZMapinfoActor", mapInfo.DoomEdNums[9001]);
+            Assert.Equal("mapinfoactor", mapInfo.DoomEdNums[9000]);
+            Assert.Equal("zmapinfoactor", mapInfo.DoomEdNums[9001]);
         }
         finally
         {

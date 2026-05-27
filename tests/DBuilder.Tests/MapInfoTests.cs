@@ -179,10 +179,10 @@ SpawnNums
         var mi = MapInfo.Parse(text);
 
         Assert.False(mi.DoomEdNums.ContainsKey(0));
-        Assert.Equal("Zombieman", mi.DoomEdNums[3004]);
-        Assert.Equal("CustomActor", mi.DoomEdNums[32000]);
-        Assert.Equal("DoomImp", mi.SpawnNums[4]);
-        Assert.Equal("BossBrain", mi.SpawnNums[255]);
+        Assert.Equal("zombieman", mi.DoomEdNums[3004]);
+        Assert.Equal("customactor", mi.DoomEdNums[32000]);
+        Assert.Equal("doomimp", mi.SpawnNums[4]);
+        Assert.Equal("bossbrain", mi.SpawnNums[255]);
     }
 
     [Fact]
@@ -199,8 +199,8 @@ DoomEdNums { 9001 = LocalActor }";
 
         Assert.Single(mi.Maps);
         Assert.Equal("MAP02", mi.GetMap("MAP01")!.Next);
-        Assert.Equal("IncludedActor", mi.DoomEdNums[9000]);
-        Assert.Equal("LocalActor", mi.DoomEdNums[9001]);
+        Assert.Equal("includedactor", mi.DoomEdNums[9000]);
+        Assert.Equal("localactor", mi.DoomEdNums[9001]);
     }
 
     [Fact]
