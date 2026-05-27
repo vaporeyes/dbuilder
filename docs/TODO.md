@@ -195,8 +195,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port flag translations.
 - [ ] Port enum lists and enum items.
 - [ ] Port script configuration.
-- [ ] Port compiler info.
-- [ ] Port node-builder info.
+- [x] Port compiler info.
+- [x] Port node-builder info.
 - [x] Port required archive behavior.
 - [x] Port static limits.
 - [ ] Add parity tests for bundled UDB configuration files.
