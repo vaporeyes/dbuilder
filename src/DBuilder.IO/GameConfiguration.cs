@@ -428,7 +428,9 @@ public sealed class GameConfiguration
     }
 
     private static double ActorAlpha(ActorInfo actor)
-        => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0) : 1.0;
+        => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0)
+            : actor.Properties.ContainsKey("defaultalpha") ? 0.6
+            : 1.0;
 
     private static string ActorRenderStyle(ActorInfo actor)
         => actor.Properties.ContainsKey("$ignorerenderstyle")

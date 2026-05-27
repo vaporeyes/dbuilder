@@ -208,6 +208,27 @@ ACTOR CoolMonster 31000
     }
 
     [Fact]
+    public void DefaultAlphaPopulatesCatalogAlphaWhenNoExplicitAlphaExists()
+    {
+        const string text = @"
+ACTOR GhostThing 31002
+{
+    DefaultAlpha
+    Radius 12
+    Height 24
+    States { Spawn: GHST A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31002);
+        Assert.NotNull(info);
+        Assert.True(DecorateParser.Parse(text).Single().Properties.ContainsKey("DefaultAlpha"));
+        Assert.Equal(0.6, info!.Alpha);
+    }
+
+    [Fact]
     public void ParsesActorDefinitionsFromIncludes()
     {
         const string root = @"
