@@ -131,7 +131,7 @@ public static class GldefsParser
             }
             if (i < t.Count) i++; // }
         }
-        if (light.Name.Length > 0) g.Lights[light.Name] = light;
+        if (light.Name.Length > 0 && !IsBlack(light)) g.Lights[light.Name] = light;
     }
 
     private static float NormalizeInterval(string type, float interval)
@@ -142,6 +142,8 @@ public static class GldefsParser
     }
 
     private static float ClampColor(float value) => Math.Clamp(value, 0.0f, 1.0f);
+
+    private static bool IsBlack(GldefsLight light) => light.R == 0.0f && light.G == 0.0f && light.B == 0.0f;
 
     private static void ParseObject(Gldefs g, List<string> t, ref int i)
     {

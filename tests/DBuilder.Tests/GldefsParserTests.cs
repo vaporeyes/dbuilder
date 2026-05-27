@@ -53,6 +53,19 @@ object ShortRedTorch
     }
 
     [Fact]
+    public void SkipsBlackLights()
+    {
+        const string text = @"
+pointlight BLACK { color 0 0 0 size 16 }
+pointlight VISIBLE { color 0.1 0 0 size 16 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BLACK"));
+        Assert.True(g.Lights.ContainsKey("VISIBLE"));
+    }
+
+    [Fact]
     public void ParsesGlow()
     {
         const string text = @"
