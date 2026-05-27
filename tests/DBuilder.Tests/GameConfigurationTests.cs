@@ -47,7 +47,19 @@ public class GameConfigurationTests
             door
             {
                 title = "Door";
-                1 { title = "Door Open Wait Close (also monsters)"; prefix = "DR"; }
+                1
+                {
+                    title = "Door Open Wait Close (also monsters)";
+                    id = "Door_Open";
+                    prefix = "DR";
+                    requiresactivation = false;
+                    linetolinetag = true;
+                    errorchecker
+                    {
+                        ignoreuppertexture = true;
+                        floorraisetonexthigher = true;
+                    }
+                }
             }
             exit
             {
@@ -174,6 +186,31 @@ public class GameConfigurationTests
         Assert.Equal("DR", gc.GetLinedefAction(1)!.Prefix);
         Assert.Equal("Door", gc.GetLinedefAction(1)!.Category);
         Assert.Equal("Exit", gc.GetLinedefAction(11)!.Category);
+    }
+
+    [Fact]
+    public void ParsesLinedefActionCategoriesAndMetadata()
+    {
+        var gc = GameConfiguration.FromText(SampleCfg);
+
+        var doorCategory = gc.LinedefActionCategories["door"];
+        Assert.Equal("Door", doorCategory.Title);
+        Assert.Contains(1, doorCategory.Actions);
+
+        var action = gc.GetLinedefAction(1)!;
+        Assert.Equal("door", action.CategoryKey);
+        Assert.Equal("Door Open Wait Close (also monsters)", action.Name);
+        Assert.Equal("DR Door Open Wait Close (also monsters)", action.DisplayTitle);
+        Assert.Equal("Door_Open", action.Id);
+        Assert.True(action.IsKnown);
+        Assert.False(action.IsGeneralized);
+        Assert.False(action.IsNull);
+        Assert.False(action.RequiresActivation);
+        Assert.True(action.LineToLineTag);
+        Assert.False(action.LineToLineSameAction);
+        Assert.True(action.ErrorChecker.IgnoreUpperTexture);
+        Assert.True(action.ErrorChecker.FloorRaiseToNextHigher);
+        Assert.False(action.ErrorChecker.IgnoreLowerTexture);
     }
 
     [Fact]

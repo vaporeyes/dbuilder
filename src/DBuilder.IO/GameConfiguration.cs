@@ -75,9 +75,46 @@ public sealed class LinedefActionInfo
 {
     public int Index { get; init; }
     public string Title { get; init; } = "";
+    public string DisplayTitle { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string Id { get; init; } = "";
     public string Prefix { get; init; } = "";
     public string Category { get; init; } = "";
+    public string CategoryKey { get; init; } = "";
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
+    public bool IsKnown { get; init; } = true;
+    public bool IsGeneralized { get; init; }
+    public bool IsNull => Index == 0;
+    public bool RequiresActivation { get; init; } = true;
+    public bool LineToLineTag { get; init; }
+    public bool LineToLineSameAction { get; init; }
+    public LinedefActionErrorCheckerExemptions ErrorChecker { get; init; } = new();
+}
+
+public sealed record LinedefActionErrorCheckerExemptions(
+    bool IgnoreUpperTexture = false,
+    bool IgnoreMiddleTexture = false,
+    bool IgnoreLowerTexture = false,
+    bool RequiresUpperTexture = false,
+    bool FloorLowerToLowest = false,
+    bool FloorRaiseToNextHigher = false,
+    bool FloorRaiseToHighest = false);
+
+public sealed class LinedefActionCategoryInfo
+{
+    private readonly List<int> actions = new();
+
+    public LinedefActionCategoryInfo(string key, string title)
+    {
+        Key = key;
+        Title = title;
+    }
+
+    public string Key { get; }
+    public string Title { get; }
+    public IReadOnlyList<int> Actions => actions;
+
+    internal void Add(int action) => actions.Add(action);
 }
 
 public sealed class SectorEffectInfo
@@ -153,6 +190,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, ThingTypeInfo> things = new();
     private readonly Dictionary<string, ThingCategoryInfo> thingCategories = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, LinedefActionInfo> linedefActions = new();
+    private readonly Dictionary<string, LinedefActionCategoryInfo> linedefActionCategories = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
     private readonly Dictionary<int, string> linedefFlags = new();
     private readonly Dictionary<int, string> thingFlags = new();
@@ -171,6 +209,7 @@ public sealed class GameConfiguration
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<string, ThingCategoryInfo> ThingCategories => thingCategories;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
+    public IReadOnlyDictionary<string, LinedefActionCategoryInfo> LinedefActionCategories => linedefActionCategories;
     public IReadOnlyDictionary<int, SectorEffectInfo> SectorEffects => sectorEffects;
 
     /// <summary>Boom generalized linedef categories parsed from gen_linedeftypes (empty if not configured).</summary>
@@ -494,23 +533,49 @@ public sealed class GameConfiguration
             string catName = catEntry.Key.ToString() ?? "";
             if (catEntry.Value is not IDictionary cat) continue;
             string catTitle = GetString(cat, "title", catName);
+            var category = new LinedefActionCategoryInfo(catName, catTitle);
+            linedefActionCategories[catName] = category;
 
             foreach (DictionaryEntry e in cat)
             {
                 string key = e.Key.ToString() ?? "";
                 if (e.Value is not IDictionary action) continue;
                 if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
+                string name = GetString(action, "title", key);
+                string prefix = GetString(action, "prefix", "");
 
                 linedefActions[number] = new LinedefActionInfo
                 {
                     Index = number,
                     Category = catTitle,
-                    Title = GetString(action, "title", key),
-                    Prefix = GetString(action, "prefix", ""),
+                    CategoryKey = catName,
+                    Name = name,
+                    Title = name,
+                    DisplayTitle = (prefix + " " + name).Trim(),
+                    Id = GetString(action, "id", ""),
+                    Prefix = prefix,
+                    RequiresActivation = GetBool(action, "requiresactivation", true),
+                    LineToLineTag = GetBool(action, "linetolinetag", false),
+                    LineToLineSameAction = GetBool(action, "linetolinesameaction", false),
+                    ErrorChecker = ParseLinedefActionErrorChecker(action),
                     Args = ParseArgs(action),
                 };
+                category.Add(number);
             }
         }
+    }
+
+    private static LinedefActionErrorCheckerExemptions ParseLinedefActionErrorChecker(IDictionary action)
+    {
+        if (action["errorchecker"] is not IDictionary errorchecker) return new LinedefActionErrorCheckerExemptions();
+        return new LinedefActionErrorCheckerExemptions(
+            GetBool(errorchecker, "ignoreuppertexture", false),
+            GetBool(errorchecker, "ignoremiddletexture", false),
+            GetBool(errorchecker, "ignorelowertexture", false),
+            GetBool(errorchecker, "requiresuppertexture", false),
+            GetBool(errorchecker, "floorlowertolowest", false),
+            GetBool(errorchecker, "floorraisetonexthigher", false),
+            GetBool(errorchecker, "floorraisetohighest", false));
     }
 
     // Parses up to 5 argN { title; type; enum; default } sub-dicts from a linedef action / thing entry.
