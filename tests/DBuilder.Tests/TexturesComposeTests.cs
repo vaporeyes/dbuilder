@@ -62,4 +62,69 @@ public class TexturesComposeTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void AppliesPatchAlphaBlendAndSkipMetadata()
+    {
+        string textures =
+            "WallTexture WMETA, 1, 1\n" +
+            "{\n" +
+            "    Patch \"BASE\", 0, 0\n" +
+            "    Patch \"TNT1A0\", 0, 0\n" +
+            "    Patch \"WHITE\", 0, 0\n" +
+            "    {\n" +
+            "        Alpha 0.5\n" +
+            "        Blend 255, 0, 0\n" +
+            "    }\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/BASE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 100, 100, 100, 255))),
+            ("patches/TNT1A0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 255, 0, 255))),
+            ("patches/WHITE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 255, 255, 255, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WMETA");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 177, 49, 49, 255 }, tex!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void AppliesPatchRotationDuringComposition()
+    {
+        string textures =
+            "WallTexture WROT, 1, 2\n" +
+            "{\n" +
+            "    Patch \"STRIP\", 0, 0\n" +
+            "    {\n" +
+            "        Rotate 90\n" +
+            "    }\n" +
+            "}\n";
+
+        byte[] pixels =
+        {
+            10, 0, 0, 255,
+            20, 0, 0, 255,
+        };
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/STRIP.png", TestArtifacts.Png(2, 1, pixels)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WROT");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 10, 0, 0, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 20, 0, 0, 255 }, tex.Rgba[4..8]);
+        }
+        finally { File.Delete(pk3); }
+    }
 }

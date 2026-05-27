@@ -275,8 +275,9 @@ public sealed class ResourceManager : IDisposable
         var pal = Palette;
         foreach (var patch in def.Patches)
         {
+            if (patch.Skip) continue;
             var img = ResolvePatchRaw(patch.Name, pal);
-            if (img != null) Blit(buf, def.Width, def.Height, img, patch.X, patch.Y, patch.FlipX, patch.FlipY);
+            if (img != null) Blit(buf, def.Width, def.Height, img, patch);
         }
         return new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY);
     }
@@ -292,36 +293,89 @@ public sealed class ResourceManager : IDisposable
         return null;
     }
 
-    private static void Blit(byte[] dst, int dw, int dh, ImageData src, int px, int py, bool flipX, bool flipY)
+    private static void Blit(byte[] dst, int dw, int dh, ImageData src, TexturesPatch patch)
     {
-        for (int sy = 0; sy < src.Height; sy++)
+        int outWidth = patch.Rotation is 90 or 270 ? src.Height : src.Width;
+        int outHeight = patch.Rotation is 90 or 270 ? src.Width : src.Height;
+        int patchAlpha = (int)Math.Round(Math.Clamp(patch.Alpha, 0.0, 1.0) * 255.0);
+
+        for (int sy = 0; sy < outHeight; sy++)
         {
-            int dy = py + sy;
+            int dy = patch.Y + sy;
             if (dy < 0 || dy >= dh) continue;
-            int srcY = flipY ? src.Height - 1 - sy : sy;
-            for (int sx = 0; sx < src.Width; sx++)
+            for (int sx = 0; sx < outWidth; sx++)
             {
-                int dx = px + sx;
+                int dx = patch.X + sx;
                 if (dx < 0 || dx >= dw) continue;
-                int srcX = flipX ? src.Width - 1 - sx : sx;
+                MapPatchPixel(sx, sy, src.Width, src.Height, patch, out int srcX, out int srcY);
                 int si = (srcY * src.Width + srcX) * 4;
-                byte a = src.Rgba[si + 3];
+                int a = src.Rgba[si + 3] * patchAlpha / 255;
                 if (a == 0) continue;
+
+                byte sr = src.Rgba[si];
+                byte sg = src.Rgba[si + 1];
+                byte sb = src.Rgba[si + 2];
+                ApplyPatchBlend(patch, ref sr, ref sg, ref sb);
+
                 int di = (dy * dw + dx) * 4;
                 if (a == 255)
                 {
-                    dst[di] = src.Rgba[si]; dst[di + 1] = src.Rgba[si + 1];
-                    dst[di + 2] = src.Rgba[si + 2]; dst[di + 3] = 255;
+                    dst[di] = sr; dst[di + 1] = sg;
+                    dst[di + 2] = sb; dst[di + 3] = 255;
                 }
                 else
                 {
                     int ia = 255 - a;
-                    dst[di] = (byte)((src.Rgba[si] * a + dst[di] * ia) / 255);
-                    dst[di + 1] = (byte)((src.Rgba[si + 1] * a + dst[di + 1] * ia) / 255);
-                    dst[di + 2] = (byte)((src.Rgba[si + 2] * a + dst[di + 2] * ia) / 255);
-                    dst[di + 3] = Math.Max(dst[di + 3], a);
+                    dst[di] = (byte)((sr * a + dst[di] * ia) / 255);
+                    dst[di + 1] = (byte)((sg * a + dst[di + 1] * ia) / 255);
+                    dst[di + 2] = (byte)((sb * a + dst[di + 2] * ia) / 255);
+                    dst[di + 3] = (byte)Math.Max(dst[di + 3], a);
                 }
             }
+        }
+    }
+
+    private static void MapPatchPixel(int x, int y, int width, int height, TexturesPatch patch, out int sourceX, out int sourceY)
+    {
+        switch (patch.Rotation)
+        {
+            case 90:
+                sourceX = y;
+                sourceY = height - 1 - x;
+                break;
+            case 180:
+                sourceX = width - 1 - x;
+                sourceY = height - 1 - y;
+                break;
+            case 270:
+                sourceX = width - 1 - y;
+                sourceY = x;
+                break;
+            default:
+                sourceX = x;
+                sourceY = y;
+                break;
+        }
+
+        if (patch.FlipX) sourceX = width - 1 - sourceX;
+        if (patch.FlipY) sourceY = height - 1 - sourceY;
+    }
+
+    private static void ApplyPatchBlend(TexturesPatch patch, ref byte red, ref byte green, ref byte blue)
+    {
+        if (patch.BlendStyle == TexturesPatchBlendStyle.Blend)
+        {
+            red = (byte)(red * patch.BlendRed / 255);
+            green = (byte)(green * patch.BlendGreen / 255);
+            blue = (byte)(blue * patch.BlendBlue / 255);
+        }
+        else if (patch.BlendStyle == TexturesPatchBlendStyle.Tint)
+        {
+            double tint = patch.BlendAlpha / 255.0;
+            double inverse = 1.0 - tint;
+            red = (byte)((red / 255.0 * inverse + patch.BlendRed / 255.0 * tint) * 255.0);
+            green = (byte)((green / 255.0 * inverse + patch.BlendGreen / 255.0 * tint) * 255.0);
+            blue = (byte)((blue / 255.0 * inverse + patch.BlendBlue / 255.0 * tint) * 255.0);
         }
     }
 
