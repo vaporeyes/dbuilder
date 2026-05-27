@@ -154,9 +154,21 @@ public static class GldefsParser
                     if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) invalid = true;
                     else light.Interval = (int)(light.Scale * 10.0f);
                 }
-                else if (p == "subtractive") light.Subtractive = ReadBool(t, ref i);
-                else if (p == "attenuate") light.Attenuate = ReadBool(t, ref i);
-                else if (p == "dontlightself") light.DontLightSelf = ReadBool(t, ref i);
+                else if (p == "subtractive")
+                {
+                    if (TryReadIntFlag(t, ref i, out bool subtractive)) light.Subtractive = subtractive;
+                    else invalid = true;
+                }
+                else if (p == "attenuate")
+                {
+                    if (TryReadIntFlag(t, ref i, out bool attenuate)) light.Attenuate = attenuate;
+                    else invalid = true;
+                }
+                else if (p == "dontlightself")
+                {
+                    if (TryReadIntFlag(t, ref i, out bool dontLightSelf)) light.DontLightSelf = dontLightSelf;
+                    else invalid = true;
+                }
             }
             if (i < t.Count) i++; // }
         }
@@ -326,20 +338,17 @@ public static class GldefsParser
         return 0;
     }
 
-    private static bool ReadBool(List<string> t, ref int i)
+    private static bool TryReadIntFlag(List<string> t, ref int i, out bool value)
     {
-        if (i >= t.Count) return true;
+        value = false;
+        if (i >= t.Count) return false;
         if (int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int numeric))
         {
             i++;
-            return numeric != 0;
+            value = numeric == 1;
+            return true;
         }
-        if (bool.TryParse(t[i], out bool value))
-        {
-            i++;
-            return value;
-        }
-        return true;
+        return false;
     }
 
     private static bool TryReadColor(List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)

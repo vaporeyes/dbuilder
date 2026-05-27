@@ -246,6 +246,29 @@ sectorlight VALIDSECTOR { color 1.0 1.0 1.0 scale 0.5 }";
     }
 
     [Fact]
+    public void RequiresIntegerLightRenderFlags()
+    {
+        const string text = @"
+pointlight FALSEFLAGS { color 1.0 1.0 1.0 size 8 subtractive 0 attenuate 0 dontlightself 0 }
+pointlight TRUEFLAGS { color 1.0 1.0 1.0 size 8 subtractive 1 attenuate 1 dontlightself 1 }
+pointlight BADBOOL { color 1.0 1.0 1.0 size 8 subtractive true }
+pointlight MISSING { color 1.0 1.0 1.0 size 8 attenuate }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.True(g.Lights.ContainsKey("FALSEFLAGS"));
+        Assert.False(g.Lights["FALSEFLAGS"].Subtractive);
+        Assert.False(g.Lights["FALSEFLAGS"].Attenuate);
+        Assert.False(g.Lights["FALSEFLAGS"].DontLightSelf);
+        Assert.True(g.Lights.ContainsKey("TRUEFLAGS"));
+        Assert.True(g.Lights["TRUEFLAGS"].Subtractive);
+        Assert.True(g.Lights["TRUEFLAGS"].Attenuate);
+        Assert.True(g.Lights["TRUEFLAGS"].DontLightSelf);
+        Assert.False(g.Lights.ContainsKey("BADBOOL"));
+        Assert.False(g.Lights.ContainsKey("MISSING"));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"
