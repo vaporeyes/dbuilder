@@ -56,8 +56,10 @@ glow
         Assert.Contains("GLOWTEX", g.GlowTextures);
         Assert.Contains("GLOWHEX", g.GlowTextures);
         Assert.True(g.Glows["NUKAGE1"].CalculateTextureColor);
+        Assert.Equal(128, g.Glows["NUKAGE1"].Height);
         Assert.Equal(0.5f, g.Glows["GLOWTEX"].R, 4);
-        Assert.Equal(32, g.Glows["GLOWHEX"].Height);
+        Assert.Equal(128, g.Glows["GLOWTEX"].Height);
+        Assert.Equal(64, g.Glows["GLOWHEX"].Height);
         Assert.True(g.Glows["GLOWHEX"].Fullbright);
     }
 

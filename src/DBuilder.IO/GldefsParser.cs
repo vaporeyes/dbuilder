@@ -36,7 +36,7 @@ public sealed class GldefsObject
     public List<string> Lights { get; } = new();
 }
 
-public sealed record GldefsGlow(string Texture, float R, float G, float B, int Height = 64, bool Fullbright = false, bool CalculateTextureColor = false);
+public sealed record GldefsGlow(string Texture, float R, float G, float B, int Height = 128, bool Fullbright = false, bool CalculateTextureColor = false);
 
 public sealed class GldefsSkybox
 {
@@ -187,7 +187,7 @@ public static class GldefsParser
                 {
                     string name = t[i++];
                     g.GlowFlats.Add(name);
-                    g.Glows[name] = new GldefsGlow(name, 1.0f, 1.0f, 1.0f, Height: 64, Fullbright: true, CalculateTextureColor: true);
+                    g.Glows[name] = new GldefsGlow(name, 1.0f, 1.0f, 1.0f, Height: 128, Fullbright: true, CalculateTextureColor: true);
                 }
                 if (i < t.Count) i++; // }
             }
@@ -231,7 +231,7 @@ public static class GldefsParser
         }
 
         g.GlowTextures.Add(texture);
-        g.Glows[texture] = new GldefsGlow(texture, r, green, b, height, fullbright);
+        g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
     }
 
     private static void ParseSkybox(Gldefs g, List<string> t, ref int i)
