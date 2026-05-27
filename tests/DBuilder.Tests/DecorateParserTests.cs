@@ -229,6 +229,19 @@ ACTOR GhostThing 31002
     }
 
     [Fact]
+    public void StopsAtGzdbSkipDirective()
+    {
+        const string text = @"
+ACTOR BeforeSkip 31003 { Radius 8 }
+$gzdb_skip
+ACTOR AfterSkip 31004 { Radius 16 }";
+
+        var actor = Assert.Single(DecorateParser.Parse(text));
+
+        Assert.Equal("BeforeSkip", actor.ClassName);
+    }
+
+    [Fact]
     public void ParsesActorDefinitionsFromIncludes()
     {
         const string root = @"
