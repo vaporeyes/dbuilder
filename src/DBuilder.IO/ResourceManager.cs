@@ -22,6 +22,33 @@ namespace DBuilder.IO;
 /// </summary>
 public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0);
 
+public sealed class ResourceTextureSetInfo
+{
+    private readonly HashSet<string> textures;
+    private readonly HashSet<string> flats;
+
+    public ResourceTextureSetInfo(string name, IEnumerable<string> textures, IEnumerable<string> flats)
+    {
+        Name = name;
+        this.textures = new HashSet<string>(textures, StringComparer.OrdinalIgnoreCase);
+        this.flats = new HashSet<string>(flats, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public string Name { get; }
+    public IReadOnlyCollection<string> Textures => textures;
+    public IReadOnlyCollection<string> Flats => flats;
+
+    public bool TextureExists(string name) => textures.Contains(name);
+    public bool FlatExists(string name) => flats.Contains(name);
+
+    public void MixTexturesAndFlats()
+    {
+        var flatNames = new List<string>(flats);
+        foreach (string texture in textures) flats.Add(texture);
+        foreach (string flat in flatNames) textures.Add(flat);
+    }
+}
+
 public sealed class ResourceManager : IDisposable
 {
     private readonly List<IResourceReader> readers = new();
@@ -63,7 +90,7 @@ public sealed class ResourceManager : IDisposable
     {
         IResourceReader reader =
             Directory.Exists(path) ? new DirectoryResourceReader(path)
-            : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true)
+            : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: Path.GetFileName(path))
             : new WadResourceReader(new WAD(path, openreadonly: true), owns: true);
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();
@@ -317,6 +344,14 @@ public sealed class ResourceManager : IDisposable
 
     /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
     public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs);
+
+    public IReadOnlyList<ResourceTextureSetInfo> GetResourceTextureSets()
+    {
+        var sets = new List<ResourceTextureSetInfo>(readers.Count);
+        foreach (var reader in readers)
+            sets.Add(new ResourceTextureSetInfo(reader.DisplayName, reader.TextureNames(), reader.FlatNames()));
+        return sets;
+    }
 
     private List<string> CollectNames(Func<IResourceReader, IEnumerable<string>> select, Dictionary<string, TexturesDef> defs)
     {

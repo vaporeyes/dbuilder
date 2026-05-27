@@ -11,6 +11,7 @@ namespace DBuilder.IO;
 /// <summary>A single resource (WAD or PK3) able to resolve images by name against the active palette.</summary>
 internal interface IResourceReader : IDisposable
 {
+    string DisplayName { get; }
     DoomPalette? GetPalette();
     ImageData? GetFlat(string name, DoomPalette? palette);
     ImageData? GetWallTexture(string name, DoomPalette? palette);
@@ -33,6 +34,8 @@ internal sealed class WadResourceReader : IResourceReader
     private DoomPatchNames? patchNames;
 
     public WadResourceReader(WAD wad, bool owns) { this.wad = wad; this.owns = owns; }
+
+    public string DisplayName => string.IsNullOrEmpty(wad.Filename) ? "WAD resource" : Path.GetFileName(wad.Filename);
 
     public DoomPalette? GetPalette() => DoomPalette.FromWad(wad);
 
@@ -108,6 +111,13 @@ internal abstract class FolderResourceReader : IResourceReader
 {
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
     protected readonly List<IResourceReader> nestedReaders = new();
+
+    protected FolderResourceReader(string displayName)
+    {
+        DisplayName = displayName;
+    }
+
+    public string DisplayName { get; }
 
     // Registers an entry from a relative path like "flats/floor1.png".
     protected void AddEntry(string relativePath, Func<byte[]> read)
@@ -264,7 +274,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     private readonly Stream? ownedStream;
     private readonly List<MemoryStream> nestedStreams = new();
 
-    public Pk3ResourceReader(Stream zipStream, bool ownsStream)
+    public Pk3ResourceReader(Stream zipStream, bool ownsStream, string displayName = "PK3 resource") : base(displayName)
     {
         ownedStream = ownsStream ? zipStream : null;
         zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
@@ -296,7 +306,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 s.CopyTo(ms);
                 ms.Position = 0;
                 nestedStreams.Add(ms);
-                nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false));
+                nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false, displayName: e.FullName));
             }
         }
     }
@@ -321,7 +331,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 
 internal sealed class DirectoryResourceReader : FolderResourceReader
 {
-    public DirectoryResourceReader(string root)
+    public DirectoryResourceReader(string root) : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)))
     {
         foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
         {

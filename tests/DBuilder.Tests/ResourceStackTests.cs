@@ -63,6 +63,10 @@ public class ResourceStackTests
         File.WriteAllBytes(
             Path.Combine(root, "flats", "DIRONLY.png"),
             TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 100, 101, 102, 255)));
+        Directory.CreateDirectory(Path.Combine(root, "textures"));
+        File.WriteAllBytes(
+            Path.Combine(root, "textures", "DIRWALL.png"),
+            TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 110, 111, 112, 255)));
         return root;
     }
 
@@ -108,6 +112,46 @@ public class ResourceStackTests
         {
             File.Delete(iwad);
             File.Delete(pwad);
+            File.Delete(pk3);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResourceTextureSetsExposePerResourceNames()
+    {
+        string iwad = BuildWadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("BASEONLY", SolidFlat(10)),
+            ("F_END", Array.Empty<byte>()));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("flats/PK3ONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 60, 61, 62, 255))),
+            ("textures/PK3WALL.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 63, 64, 65, 255))));
+        string dir = BuildResourceDirectory();
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddBaseResource(iwad);
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var sets = rm.GetResourceTextureSets();
+            var pk3Set = Assert.Single(sets, s => s.Name == Path.GetFileName(pk3));
+            Assert.True(pk3Set.TextureExists("PK3WALL"));
+            Assert.True(pk3Set.FlatExists("PK3ONLY"));
+
+            var dirSet = Assert.Single(sets, s => s.Name == Path.GetFileName(dir));
+            Assert.True(dirSet.TextureExists("DIRWALL"));
+            Assert.True(dirSet.FlatExists("DIRONLY"));
+            dirSet.MixTexturesAndFlats();
+            Assert.True(dirSet.FlatExists("DIRWALL"));
+            Assert.True(dirSet.TextureExists("DIRONLY"));
+        }
+        finally
+        {
+            File.Delete(iwad);
             File.Delete(pk3);
             Directory.Delete(dir, recursive: true);
         }
