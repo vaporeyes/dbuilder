@@ -17,6 +17,16 @@ public sealed class GldefsLight
     public float G { get; set; }
     public float B { get; set; }
     public float Size { get; set; }
+    public float SecondarySize { get; set; }
+    public float OffsetX { get; set; }
+    public float OffsetY { get; set; }
+    public float OffsetZ { get; set; }
+    public float Interval { get; set; }
+    public float Chance { get; set; }
+    public float Scale { get; set; }
+    public bool Subtractive { get; set; }
+    public bool Attenuate { get; set; }
+    public bool DontLightSelf { get; set; }
 }
 
 /// <summary>An actor's light associations from an `object` block (the light names its frames reference).</summary>
@@ -26,12 +36,23 @@ public sealed class GldefsObject
     public List<string> Lights { get; } = new();
 }
 
+public sealed record GldefsGlow(string Texture, float R, float G, float B, int Height = 64, bool Fullbright = false, bool CalculateTextureColor = false);
+
+public sealed class GldefsSkybox
+{
+    public string Name { get; init; } = "";
+    public bool FlipTop { get; set; }
+    public List<string> Textures { get; } = new();
+}
+
 public sealed class Gldefs
 {
     public Dictionary<string, GldefsLight> Lights { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<GldefsObject> Objects { get; } = new();
     public List<string> GlowFlats { get; } = new();
     public List<string> GlowTextures { get; } = new();
+    public Dictionary<string, GldefsGlow> Glows { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, GldefsSkybox> Skyboxes { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The color of the first light an actor references, or null.</summary>
     public (float R, float G, float B)? ActorLightColor(string className)
@@ -60,6 +81,7 @@ public static class GldefsParser
             if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, t, ref i);
+            else if (kw == "skybox") ParseSkybox(g, t, ref i);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
             else i++; // unknown keyword (skybox/brightmap/material/... handled by skipping its block next)
         }
@@ -78,8 +100,15 @@ public static class GldefsParser
             {
                 string p = t[i++].ToLowerInvariant();
                 if (p == "color") { light.R = ReadFloat(t, ref i); light.G = ReadFloat(t, ref i); light.B = ReadFloat(t, ref i); }
-                else if (p == "size" || p == "secondarysize") light.Size = ReadFloat(t, ref i);
-                // other props (offset/interval/chance/subtractive/...) skipped
+                else if (p == "size") light.Size = ReadFloat(t, ref i);
+                else if (p == "secondarysize") light.SecondarySize = ReadFloat(t, ref i);
+                else if (p == "offset") { light.OffsetX = ReadFloat(t, ref i); light.OffsetY = ReadFloat(t, ref i); light.OffsetZ = ReadFloat(t, ref i); }
+                else if (p == "interval") light.Interval = ReadFloat(t, ref i);
+                else if (p == "chance") light.Chance = ReadFloat(t, ref i);
+                else if (p == "scale") light.Scale = ReadFloat(t, ref i);
+                else if (p == "subtractive") light.Subtractive = ReadBool(t, ref i);
+                else if (p == "attenuate") light.Attenuate = ReadBool(t, ref i);
+                else if (p == "dontlightself") light.DontLightSelf = ReadBool(t, ref i);
             }
             if (i < t.Count) i++; // }
         }
@@ -126,26 +155,125 @@ public static class GldefsParser
         while (i < t.Count && t[i] != "}")
         {
             string p = t[i++].ToLowerInvariant();
-            if (p == "flats" && i < t.Count && t[i] == "{")
+            if ((p == "flats" || p == "walls") && i < t.Count && t[i] == "{")
             {
                 i++;
-                while (i < t.Count && t[i] != "}") g.GlowFlats.Add(t[i++]);
+                while (i < t.Count && t[i] != "}")
+                {
+                    string name = t[i++];
+                    g.GlowFlats.Add(name);
+                    g.Glows[name] = new GldefsGlow(name, 1.0f, 1.0f, 1.0f, Height: 64, Fullbright: true, CalculateTextureColor: true);
+                }
                 if (i < t.Count) i++; // }
             }
             else if (p == "texture" && i < t.Count)
             {
-                g.GlowTextures.Add(t[i++]);
-                // skip a trailing "color r g b" / fullbright if present
-                if (i < t.Count && t[i].Equals("color", StringComparison.OrdinalIgnoreCase)) { i++; ReadFloat(t, ref i); ReadFloat(t, ref i); ReadFloat(t, ref i); }
+                ParseGlowTexture(g, t, ref i);
             }
         }
         if (i < t.Count) i++; // }
+    }
+
+    private static void ParseGlowTexture(Gldefs g, List<string> t, ref int i)
+    {
+        string texture = t[i++];
+        float r = 1.0f, green = 1.0f, b = 1.0f;
+        int height = 64;
+        bool fullbright = false;
+
+        if (i < t.Count && t[i] == ",") i++;
+        if (i < t.Count && t[i].Equals("color", StringComparison.OrdinalIgnoreCase)) i++;
+
+        if (i < t.Count && TryReadColor(t, ref i, out var color))
+        {
+            r = color.R;
+            green = color.G;
+            b = color.B;
+        }
+
+        if (i < t.Count && t[i] == ",") i++;
+        if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedHeight))
+        {
+            height = parsedHeight;
+            i++;
+            if (i < t.Count && t[i] == ",") i++;
+        }
+
+        if (i < t.Count && t[i].Equals("fullbright", StringComparison.OrdinalIgnoreCase))
+        {
+            fullbright = true;
+            i++;
+        }
+
+        g.GlowTextures.Add(texture);
+        g.Glows[texture] = new GldefsGlow(texture, r, green, b, height, fullbright);
+    }
+
+    private static void ParseSkybox(Gldefs g, List<string> t, ref int i)
+    {
+        i++; // skybox
+        if (i >= t.Count) return;
+        var skybox = new GldefsSkybox { Name = t[i++].ToUpperInvariant() };
+        if (i < t.Count && t[i].Equals("fliptop", StringComparison.OrdinalIgnoreCase))
+        {
+            skybox.FlipTop = true;
+            i++;
+        }
+        if (i < t.Count && t[i] == "{")
+        {
+            i++;
+            while (i < t.Count && t[i] != "}") skybox.Textures.Add(t[i++]);
+            if (i < t.Count) i++;
+        }
+        if (skybox.Name.Length > 0 && (skybox.Textures.Count == 3 || skybox.Textures.Count == 6)) g.Skyboxes[skybox.Name] = skybox;
     }
 
     private static float ReadFloat(List<string> t, ref int i)
     {
         if (i < t.Count && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float v)) { i++; return v; }
         return 0;
+    }
+
+    private static bool ReadBool(List<string> t, ref int i)
+    {
+        if (i >= t.Count) return true;
+        if (int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int numeric))
+        {
+            i++;
+            return numeric != 0;
+        }
+        if (bool.TryParse(t[i], out bool value))
+        {
+            i++;
+            return value;
+        }
+        return true;
+    }
+
+    private static bool TryReadColor(List<string> t, ref int i, out (float R, float G, float B) color)
+    {
+        color = default;
+        if (i >= t.Count) return false;
+        string value = t[i];
+        if (value.StartsWith('#') && value.Length == 7
+            && int.TryParse(value.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int red)
+            && int.TryParse(value.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int green)
+            && int.TryParse(value.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int blue))
+        {
+            i++;
+            color = (red / 255.0f, green / 255.0f, blue / 255.0f);
+            return true;
+        }
+        if (i + 2 < t.Count
+            && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float r)
+            && float.TryParse(t[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out float g)
+            && float.TryParse(t[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out float b))
+        {
+            i += 3;
+            color = (r, g, b);
+            return true;
+        }
+        return false;
     }
 
     private static void SkipBlock(List<string> t, ref int i)
@@ -169,9 +297,9 @@ public static class GldefsParser
             if (c == '/' && p + 1 < n && s[p + 1] == '/') { p += 2; while (p < n && s[p] != '\n') p++; continue; }
             if (c == '/' && p + 1 < n && s[p + 1] == '*') { p += 2; while (p + 1 < n && !(s[p] == '*' && s[p + 1] == '/')) p++; p += 2; continue; }
             if (c == '"') { var sb = new StringBuilder(); p++; while (p < n && s[p] != '"') sb.Append(s[p++]); p++; toks.Add(sb.ToString()); continue; }
-            if (c == '{' || c == '}') { toks.Add(c.ToString()); p++; continue; }
+            if (c == '{' || c == '}' || c == ',') { toks.Add(c.ToString()); p++; continue; }
             int b = p;
-            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '{' && s[p] != '}' && s[p] != '"') p++;
+            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '{' && s[p] != '}' && s[p] != ',' && s[p] != '"') p++;
             toks.Add(s.Substring(b, p - b));
         }
         return toks;
