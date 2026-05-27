@@ -165,6 +165,26 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
     }
 
     [Fact]
+    public void ObjectUsesFirstRelevantFrameLight()
+    {
+        const string text = @"
+pointlight FIRST { color 1 0 0 size 16 }
+pointlight SECOND { color 0 1 0 size 16 }
+object TorchActor
+{
+    frame TRCHB { light SECOND }
+    frame TRCHA { light FIRST }
+    frame TRCHB { light SECOND }
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Single(g.Objects[0].Lights);
+        Assert.Equal("FIRST", g.Objects[0].Lights[0]);
+        Assert.Equal(1.0f, g.ActorLightColor("TorchActor")!.Value.R, 4);
+    }
+
+    [Fact]
     public void NormalizesFlickerChanceAndSectorScale()
     {
         const string text = @"

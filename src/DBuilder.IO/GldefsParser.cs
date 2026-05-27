@@ -166,6 +166,7 @@ public static class GldefsParser
         i++; // object
         if (i >= t.Count) return;
         var obj = new GldefsObject { ClassName = t[i++] };
+        bool foundLight = false;
         if (i < t.Count && t[i] == "{")
         {
             i++;
@@ -174,13 +175,23 @@ public static class GldefsParser
                 if (t[i].Equals("frame", StringComparison.OrdinalIgnoreCase))
                 {
                     i++;
-                    if (i < t.Count) i++; // frame sprite name
+                    string frameName = i < t.Count ? t[i++] : "";
+                    bool useFrame = !foundLight && (frameName.Length == 4 || (frameName.Length > 4 && char.ToLowerInvariant(frameName[4]) == 'a'));
                     if (i < t.Count && t[i] == "{")
                     {
                         i++;
                         while (i < t.Count && t[i] != "}")
                         {
-                            if (t[i].Equals("light", StringComparison.OrdinalIgnoreCase) && i + 1 < t.Count) { obj.Lights.Add(t[i + 1]); i += 2; }
+                            if (t[i].Equals("light", StringComparison.OrdinalIgnoreCase) && i + 1 < t.Count)
+                            {
+                                if (useFrame)
+                                {
+                                    obj.Lights.Add(t[i + 1]);
+                                    foundLight = true;
+                                    useFrame = false;
+                                }
+                                i += 2;
+                            }
                             else i++;
                         }
                         if (i < t.Count) i++; // }
