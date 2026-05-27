@@ -63,13 +63,27 @@ public sealed class MapInfo
     private static void ParseInto(MapInfo mi, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
     {
         var toks = Tokenize(text);
+        var defaults = new MapInfoEntry();
         int i = 0;
         while (i < toks.Count)
         {
             var t = toks[i];
             if (!t.IsString && t.Text.Equals("map", StringComparison.OrdinalIgnoreCase))
             {
-                mi.maps.Add(ParseMap(toks, ref i));
+                mi.maps.Add(ParseMap(toks, ref i, defaults));
+                continue;
+            }
+            if (!t.IsString && t.Text.Equals("defaultmap", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                defaults = new MapInfoEntry();
+                ParseDefaultMap(toks, ref i, defaults);
+                continue;
+            }
+            if (!t.IsString && t.Text.Equals("adddefaultmap", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                ParseDefaultMap(toks, ref i, defaults);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
@@ -133,7 +147,7 @@ public sealed class MapInfo
         return clusterDef && i + 1 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "{";
     }
 
-    private static MapInfoEntry ParseMap(List<Tok> toks, ref int i)
+    private static MapInfoEntry ParseMap(List<Tok> toks, ref int i, MapInfoEntry defaults)
     {
         i++; // consume 'map'
         string lump = i < toks.Count ? toks[i++].Text : "";
@@ -151,7 +165,7 @@ public sealed class MapInfo
             else title = toks[i++].Text;
         }
 
-        var entry = new MapInfoEntry { MapLump = lump, Title = title, TitleIsLookup = lookup };
+        var entry = CloneDefaults(defaults, lump, title, lookup);
 
         if (i < toks.Count && !toks[i].IsString && toks[i].Text == "{")
         {
@@ -167,6 +181,43 @@ public sealed class MapInfo
                 ReadProperty(toks, ref i, entry, stopAtBrace: false);
         }
 
+        return entry;
+    }
+
+    private static void ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults)
+    {
+        if (i < toks.Count && !toks[i].IsString && toks[i].Text == "{")
+        {
+            i++;
+            while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
+                ReadProperty(toks, ref i, defaults, stopAtBrace: true);
+            if (i < toks.Count) i++;
+        }
+        else
+        {
+            while (i < toks.Count && !OldFormatTerminates(toks, i))
+                ReadProperty(toks, ref i, defaults, stopAtBrace: false);
+        }
+    }
+
+    private static MapInfoEntry CloneDefaults(MapInfoEntry defaults, string lump, string title, bool lookup)
+    {
+        var entry = new MapInfoEntry
+        {
+            MapLump = lump,
+            Title = title,
+            TitleIsLookup = lookup,
+            Next = defaults.Next,
+            SecretNext = defaults.SecretNext,
+            Music = defaults.Music,
+            Sky1 = defaults.Sky1,
+            Sky2 = defaults.Sky2,
+            TitlePatch = defaults.TitlePatch,
+            Cluster = defaults.Cluster,
+            LevelNum = defaults.LevelNum,
+            Par = defaults.Par,
+        };
+        foreach (var property in defaults.Properties) entry.Properties[property.Key] = property.Value;
         return entry;
     }
 

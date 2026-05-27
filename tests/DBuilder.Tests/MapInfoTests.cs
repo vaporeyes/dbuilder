@@ -169,4 +169,42 @@ DoomEdNums { 9001 = LocalActor }";
         Assert.Equal("IncludedActor", mi.DoomEdNums[9000]);
         Assert.Equal("LocalActor", mi.DoomEdNums[9001]);
     }
+
+    [Fact]
+    public void AppliesDefaultMapAndAddDefaultMap()
+    {
+        const string text = @"
+defaultmap
+{
+    sky1 = SKY1
+    music = D_RUNNIN
+    cluster = 1
+}
+map MAP01 ""Entryway""
+{
+    next = MAP02
+}
+adddefaultmap
+{
+    par = 45
+}
+map MAP02 ""Underhalls""
+{
+    sky1 = SKY2
+}";
+
+        var mi = MapInfo.Parse(text);
+
+        var map01 = mi.GetMap("MAP01")!;
+        Assert.Equal("SKY1", map01.Sky1);
+        Assert.Equal("D_RUNNIN", map01.Music);
+        Assert.Equal(1, map01.Cluster);
+        Assert.Null(map01.Par);
+
+        var map02 = mi.GetMap("MAP02")!;
+        Assert.Equal("SKY2", map02.Sky1);
+        Assert.Equal("D_RUNNIN", map02.Music);
+        Assert.Equal(1, map02.Cluster);
+        Assert.Equal(45, map02.Par);
+    }
 }
