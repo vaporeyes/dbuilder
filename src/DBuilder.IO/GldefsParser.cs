@@ -291,16 +291,31 @@ public static class GldefsParser
         green = color.G;
         b = color.B;
 
-        if (i < t.Count && t[i] == ",") i++;
-        if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedHeight))
+        if (i < t.Count && t[i] == ",")
         {
-            height = parsedHeight;
             i++;
-            if (i < t.Count && t[i] == ",") i++;
-        }
+            if (i >= t.Count) return;
 
-        if (i < t.Count && t[i].Equals("fullbright", StringComparison.OrdinalIgnoreCase))
-        {
+            string token = t[i];
+            if (int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedHeight))
+            {
+                height = parsedHeight;
+                i++;
+                if (i < t.Count && t[i] == ",")
+                {
+                    i++;
+                    if (i >= t.Count) return;
+                    token = t[i];
+                }
+                else
+                {
+                    g.GlowTextures.Add(texture);
+                    g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
+                    return;
+                }
+            }
+
+            if (!token.Equals("fullbright", StringComparison.OrdinalIgnoreCase)) return;
             fullbright = true;
             i++;
         }

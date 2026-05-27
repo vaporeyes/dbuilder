@@ -141,6 +141,28 @@ glow
     }
 
     [Fact]
+    public void RequiresValidGlowTextureCommaSuffix()
+    {
+        const string text = @"
+glow
+{
+    texture BADFLAG, ""#2040ff"", bogus
+    texture BADHEIGHTFLAG, ""#2040ff"", 32, bogus
+    texture MISSINGFLAG, ""#2040ff"", 32,
+    texture HEIGHT, ""#2040ff"", 32
+    texture FULLBRIGHT, ""#2040ff"", fullbright
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Glows.ContainsKey("BADFLAG"));
+        Assert.False(g.Glows.ContainsKey("BADHEIGHTFLAG"));
+        Assert.False(g.Glows.ContainsKey("MISSINGFLAG"));
+        Assert.Equal(64, g.Glows["HEIGHT"].Height);
+        Assert.True(g.Glows["FULLBRIGHT"].Fullbright);
+    }
+
+    [Fact]
     public void ParsesZdTextGlowColorStrings()
     {
         const string text = @"
