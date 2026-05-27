@@ -89,4 +89,21 @@ cameratexture CAM2 320 200";
         Assert.Equal(128, a.CameraTextures[0].Width);
         Assert.Equal(200, a.CameraTextures[1].Height);
     }
+
+    [Fact]
+    public void ParsesCameraTextureFitAndWorldPanning()
+    {
+        const string text = @"
+cameratexture CAM1 64 32 fit 128 32 worldpanning
+cameratexture CAM2 320 200 worldpanning";
+
+        var a = AnimdefsParser.Parse(text);
+
+        Assert.Equal(2.0f, a.CameraTextures[0].ScaleX);
+        Assert.Equal(1.0f, a.CameraTextures[0].ScaleY);
+        Assert.True(a.CameraTextures[0].FitTexture);
+        Assert.True(a.CameraTextures[0].WorldPanning);
+        Assert.False(a.CameraTextures[1].FitTexture);
+        Assert.True(a.CameraTextures[1].WorldPanning);
+    }
 }

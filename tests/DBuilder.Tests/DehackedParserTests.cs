@@ -51,8 +51,7 @@ Duration = 4
 150 = BOSS
 
 Text 4 4
-POSS
-CPOS
+POSSCPOS
 ";
 
         var patch = DehackedParser.Parse(text);
@@ -60,6 +59,43 @@ CPOS
         Assert.Equal("POSS", patch.Sprites[1]);
         Assert.Equal("BOSS", patch.Sprites[150]);
         Assert.Equal("CPOS", patch.Texts["POSS"]);
+    }
+
+    [Fact]
+    public void ParsesLengthBasedTextReplacementsWithEmbeddedNewlines()
+    {
+        const string text = @"Text 5 7
+AB
+CDXY
+ZQ!!
+
+Frame 1
+Duration = 8
+";
+
+        var patch = DehackedParser.Parse(text);
+
+        Assert.Equal("XY\nZQ!!", patch.Texts["AB\nCD"]);
+        Assert.True(patch.Frames.ContainsKey(1));
+    }
+
+    [Fact]
+    public void SeparatesNumericNewSpritesFromSpriteRenames()
+    {
+        const string text = @"
+[SPRITES]
+1 = POSS
+POSS = CPOS
+TOOLONG = BOSS
+BOSS = TOOLONG
+";
+
+        var patch = DehackedParser.Parse(text);
+
+        Assert.Equal("POSS", patch.NewSprites[1]);
+        Assert.Equal("CPOS", patch.SpriteReplacements["POSS"]);
+        Assert.False(patch.SpriteReplacements.ContainsKey("TOOLONG"));
+        Assert.False(patch.SpriteReplacements.ContainsKey("BOSS"));
     }
 
     [Fact]

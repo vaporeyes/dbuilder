@@ -12,9 +12,12 @@ public sealed class DehackedPatch
     public List<DehackedThing> Things { get; } = new();
     public Dictionary<int, DehackedFrame> Frames { get; } = new();
     public Dictionary<string, string> Texts { get; } = new(StringComparer.Ordinal);
-    public Dictionary<int, string> Sprites { get; } = new();
+    public Dictionary<int, string> NewSprites { get; } = new();
+    public Dictionary<string, string> SpriteReplacements { get; } = new(StringComparer.OrdinalIgnoreCase);
     public string? DoomVersion { get; set; }
     public string? PatchFormat { get; set; }
+
+    public Dictionary<int, string> Sprites => NewSprites;
 }
 
 public sealed class DehackedThing
@@ -39,69 +42,73 @@ public static class DehackedParser
     public static DehackedPatch Parse(string text)
     {
         var patch = new DehackedPatch();
-        var lines = text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n');
-        for (int i = 0; i < lines.Length;)
+        var state = new ParserState(text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n'));
+        while (!state.End)
         {
-            string line = CleanLine(lines[i++]);
+            string line = state.ReadCleanLine();
             if (line.Length == 0) continue;
             string lower = line.ToLowerInvariant();
-            if (lower.StartsWith("thing", StringComparison.Ordinal)) ParseThing(patch, lines, ref i, line);
-            else if (lower.StartsWith("frame", StringComparison.Ordinal)) ParseFrame(patch, lines, ref i, line);
-            else if (lower.StartsWith("[sprites]", StringComparison.Ordinal)) ParseSprites(patch, lines, ref i);
-            else if (lower.StartsWith("text", StringComparison.Ordinal)) ParseText(patch, lines, ref i, line);
+            if (lower.StartsWith("thing", StringComparison.Ordinal)) ParseThing(patch, state, line);
+            else if (lower.StartsWith("frame", StringComparison.Ordinal)) ParseFrame(patch, state, line);
+            else if (lower.StartsWith("[sprites]", StringComparison.Ordinal)) ParseSprites(patch, state);
+            else if (lower.StartsWith("text", StringComparison.Ordinal)) ParseText(patch, state, line);
             else if (lower.StartsWith("doom version", StringComparison.Ordinal)) patch.DoomVersion = ReadValue(line);
             else if (lower.StartsWith("patch format", StringComparison.Ordinal)) patch.PatchFormat = ReadValue(line);
-            else SkipBlock(lines, ref i);
+            else SkipBlock(state);
         }
         return patch;
     }
 
-    private static void ParseThing(DehackedPatch patch, string[] lines, ref int i, string header)
+    private static void ParseThing(DehackedPatch patch, ParserState state, string header)
     {
         var match = ThingHeader.Match(header);
         if (!match.Success) return;
         int number = int.Parse(match.Groups[1].Value);
         string name = match.Groups[2].Success ? match.Groups[2].Value : "<DeHackEd thing " + number + ">";
         var thing = new DehackedThing { Number = number, Name = name };
-        ReadProperties(lines, ref i, thing.Properties, allowEditorKeys: true);
+        ReadProperties(state, thing.Properties, allowEditorKeys: true);
         patch.Things.Add(thing);
     }
 
-    private static void ParseFrame(DehackedPatch patch, string[] lines, ref int i, string header)
+    private static void ParseFrame(DehackedPatch patch, ParserState state, string header)
     {
         var match = FrameHeader.Match(header);
         if (!match.Success) return;
         var frame = new DehackedFrame { Number = int.Parse(match.Groups[1].Value) };
-        ReadProperties(lines, ref i, frame.Properties, allowEditorKeys: false);
+        ReadProperties(state, frame.Properties, allowEditorKeys: false);
         patch.Frames[frame.Number] = frame;
     }
 
-    private static void ParseSprites(DehackedPatch patch, string[] lines, ref int i)
+    private static void ParseSprites(DehackedPatch patch, ParserState state)
     {
-        while (i < lines.Length)
+        while (!state.End)
         {
-            string line = CleanLine(lines[i++]);
+            string line = state.ReadCleanLine();
             if (line.Length == 0) break;
             if (!TryReadKeyValue(line, out string key, out string value)) continue;
-            if (int.TryParse(key, out int index)) patch.Sprites[index] = value;
+            if (value.Length != 4) continue;
+            if (int.TryParse(key, out int index)) patch.NewSprites[index] = value;
+            else if (key.Length == 4) patch.SpriteReplacements[key] = value;
         }
     }
 
-    private static void ParseText(DehackedPatch patch, string[] lines, ref int i, string header)
+    private static void ParseText(DehackedPatch patch, ParserState state, string header)
     {
         var match = TextHeader.Match(header);
-        if (!match.Success || i >= lines.Length) return;
-        string oldText = lines[i++];
-        if (i >= lines.Length) return;
-        string newText = lines[i++];
+        if (!match.Success) return;
+        int oldLength = int.Parse(match.Groups[1].Value);
+        int newLength = int.Parse(match.Groups[2].Value);
+        string oldText = state.ReadChars(oldLength);
+        string newText = state.ReadChars(newLength);
+        state.ConsumeLineBreak();
         patch.Texts[oldText] = newText;
     }
 
-    private static void ReadProperties(string[] lines, ref int i, Dictionary<string, string> properties, bool allowEditorKeys)
+    private static void ReadProperties(ParserState state, Dictionary<string, string> properties, bool allowEditorKeys)
     {
-        while (i < lines.Length)
+        while (!state.End)
         {
-            string line = CleanLine(lines[i++]);
+            string line = state.ReadCleanLine();
             if (line.Length == 0) break;
             if (allowEditorKeys && line.StartsWith("#$", StringComparison.Ordinal)) line = line.Substring(1);
             if (line.StartsWith("#", StringComparison.Ordinal)) continue;
@@ -109,9 +116,9 @@ public static class DehackedParser
         }
     }
 
-    private static void SkipBlock(string[] lines, ref int i)
+    private static void SkipBlock(ParserState state)
     {
-        while (i < lines.Length && CleanLine(lines[i++]).Length > 0) { }
+        while (!state.End && state.ReadCleanLine().Length > 0) { }
     }
 
     private static bool TryReadKeyValue(string line, out string key, out string value)
@@ -150,5 +157,46 @@ public static class DehackedParser
             return nextComment < 0 ? trimmed : trimmed.Substring(0, nextComment).Trim();
         }
         return trimmed.Substring(0, comment).Trim();
+    }
+
+    private sealed class ParserState
+    {
+        private readonly string text;
+        private int position;
+
+        public ParserState(string text)
+        {
+            this.text = text;
+        }
+
+        public bool End => position >= text.Length;
+
+        public string ReadCleanLine()
+        {
+            return CleanLine(ReadRawLine());
+        }
+
+        public string ReadChars(int count)
+        {
+            int available = Math.Min(count, text.Length - position);
+            string value = text.Substring(position, available);
+            position += available;
+            return value;
+        }
+
+        public void ConsumeLineBreak()
+        {
+            if (position < text.Length && text[position] == '\n') position++;
+        }
+
+        private string ReadRawLine()
+        {
+            if (End) return "";
+            int start = position;
+            while (position < text.Length && text[position] != '\n') position++;
+            string line = text.Substring(start, position - start);
+            ConsumeLineBreak();
+            return line;
+        }
     }
 }

@@ -146,7 +146,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## ZDoom And GZDoom Data
 
-- [ ] Complete ANIMDEFS parser behavior.
+- [x] Complete ANIMDEFS parser behavior.
 - [ ] Complete DECORATE parser behavior.
 - [ ] Complete ZScript tokenizer behavior.
 - [ ] Complete ZScript parser behavior.
@@ -174,7 +174,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port Dehacked data model.
 - [x] Port Dehacked thing parsing.
 - [x] Port Dehacked frame parsing.
-- [ ] Port Dehacked parser behavior.
+- [x] Port Dehacked parser behavior.
 - [ ] Integrate Dehacked data into thing definitions and editor display.
 - [ ] Add Dehacked parser and integration tests.
 

@@ -28,7 +28,14 @@ public sealed class AnimationDef
 public sealed record SwitchDef(string OffTexture, string OnTexture);
 
 /// <summary>A named camera texture surface declared by ANIMDEFS.</summary>
-public sealed record CameraTextureDef(string Name, int Width, int Height);
+public sealed record CameraTextureDef(
+    string Name,
+    int Width,
+    int Height,
+    float ScaleX = 1.0f,
+    float ScaleY = 1.0f,
+    bool WorldPanning = false,
+    bool FitTexture = false);
 
 public sealed class Animdefs
 {
@@ -124,7 +131,29 @@ public static class AnimdefsParser
         string name = t[i++];
         int width = ReadInt(t, ref i);
         int height = ReadInt(t, ref i);
-        if (width > 0 && height > 0) result.CameraTextures.Add(new CameraTextureDef(name, width, height));
+        float scaleX = 1.0f;
+        float scaleY = 1.0f;
+        bool fitTexture = false;
+        bool worldPanning = false;
+        if (i < t.Count && t[i].Equals("fit", StringComparison.OrdinalIgnoreCase))
+        {
+            i++;
+            int fitWidth = ReadInt(t, ref i);
+            int fitHeight = ReadInt(t, ref i);
+            if (width > 0 && height > 0 && fitWidth > 0 && fitHeight > 0)
+            {
+                fitTexture = true;
+                scaleX = (float)fitWidth / width;
+                scaleY = (float)fitHeight / height;
+            }
+            if (i < t.Count && t[i].Equals("worldpanning", StringComparison.OrdinalIgnoreCase)) { worldPanning = true; i++; }
+        }
+        else if (i < t.Count && t[i].Equals("worldpanning", StringComparison.OrdinalIgnoreCase))
+        {
+            worldPanning = true;
+            i++;
+        }
+        if (width > 0 && height > 0) result.CameraTextures.Add(new CameraTextureDef(name, width, height, scaleX, scaleY, worldPanning, fitTexture));
         if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
     }
 

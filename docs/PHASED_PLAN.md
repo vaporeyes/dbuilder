@@ -166,7 +166,7 @@ Deliverables:
 - [ ] Complete ANIMDEFS, DECORATE, ZScript, MAPINFO, ZMAPINFO, TEXTURES, and GLDEFS behavior.
 - [x] Port MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, and X11 RGB parsers.
 - [ ] Complete actor structure, inheritance, states, gotos, categories, and DoomEdNum merging.
-- [ ] Port Dehacked data, thing, frame, and parser behavior.
+- [x] Port Dehacked data, thing, frame, and parser behavior.
 - [ ] Integrate parsed metadata into resource lookup, thing definitions, rendering, and editor UI.
 
 Verification:

@@ -39,6 +39,10 @@ public sealed class MapInfo
     /// <summary>Editor number -> actor class name, from the MAPINFO DoomEdNums block (ZScript thing placement).</summary>
     public IReadOnlyDictionary<int, string> DoomEdNums => doomEdNums;
 
+    private readonly Dictionary<int, string> spawnNums = new();
+    /// <summary>Spawn number -> actor class name, from the MAPINFO SpawnNums block.</summary>
+    public IReadOnlyDictionary<int, string> SpawnNums => spawnNums;
+
     /// <summary>Finds a map entry by lump name (case-insensitive), or null.</summary>
     public MapInfoEntry? GetMap(string lump)
     {
@@ -63,7 +67,13 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseDoomEdNums(toks, ref i, mi.doomEdNums);
+                ParseNumberedActors(toks, ref i, mi.doomEdNums);
+                continue;
+            }
+            if (!t.IsString && t.Text.Equals("spawnnums", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                ParseNumberedActors(toks, ref i, mi.spawnNums);
                 continue;
             }
             // Any other directive's brace block (gameinfo, cluster, ...) is skipped wholesale; non-map
@@ -178,8 +188,8 @@ public sealed class MapInfo
         }
     }
 
-    // Parses a "DoomEdNums { <num> = <ClassName> [, args...] ... }" block into the editor-number map.
-    private static void ParseDoomEdNums(List<Tok> toks, ref int i, Dictionary<int, string> map)
+    // Parses a "DoomEdNums" or "SpawnNums" block: <num> = <ClassName> [, args...].
+    private static void ParseNumberedActors(List<Tok> toks, ref int i, Dictionary<int, string> map)
     {
         if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
         i++; // {

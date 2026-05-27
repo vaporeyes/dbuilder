@@ -128,4 +128,27 @@ map 1 ""Winnowing Hall""
         Assert.Equal("2", m.Next);
         Assert.Equal("WINNOWR", m.Music);
     }
+
+    [Fact]
+    public void ParsesDoomEdNumsAndSpawnNums()
+    {
+        const string text = @"
+DoomEdNums
+{
+    3004 = Zombieman
+    32000 = CustomActor, 1, 2
+}
+SpawnNums
+{
+    4 = DoomImp
+    255 = BossBrain
+}";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.Equal("Zombieman", mi.DoomEdNums[3004]);
+        Assert.Equal("CustomActor", mi.DoomEdNums[32000]);
+        Assert.Equal("DoomImp", mi.SpawnNums[4]);
+        Assert.Equal("BossBrain", mi.SpawnNums[255]);
+    }
 }
