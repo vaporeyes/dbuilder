@@ -13,6 +13,19 @@ public enum TexturesType { Texture, Sprite, Graphic, WallTexture, Flat }
 
 public enum TexturesPatchBlendStyle { None, Blend, Tint }
 
+public enum TexturesPatchRenderStyle
+{
+    Copy,
+    Translucent,
+    Add,
+    Subtract,
+    ReverseSubtract,
+    Modulate,
+    CopyAlpha,
+    CopyNewAlpha,
+    Overlay,
+}
+
 /// <summary>A single patch placed within a TEXTURES definition.</summary>
 public sealed class TexturesPatch
 {
@@ -24,6 +37,7 @@ public sealed class TexturesPatch
     public double Alpha { get; set; } = 1.0;
     public int Rotation { get; set; }
     public string? Style { get; set; }
+    public TexturesPatchRenderStyle RenderStyle { get; set; }
     public TexturesPatchBlendStyle BlendStyle { get; set; }
     public byte BlendRed { get; set; }
     public byte BlendGreen { get; set; }
@@ -151,7 +165,13 @@ public static class TexturesParser
                     case "flipy": patch.FlipY = true; break;
                     case "alpha": if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0); break;
                     case "rotate": if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation); break;
-                    case "style": if (i < t.Count) patch.Style = t[i++]; break;
+                    case "style":
+                        if (i < t.Count)
+                        {
+                            patch.Style = t[i++];
+                            patch.RenderStyle = ParseRenderStyle(patch.Style);
+                        }
+                        break;
                     case "blend": ParseBlend(patch, t, ref i); break;
                     default: break; // translation and other patch modifiers are skipped token by token
                 }
@@ -213,6 +233,22 @@ public static class TexturesParser
         rotation %= 360;
         if (rotation < 0) rotation += 360;
         return rotation is 90 or 180 or 270 ? rotation : 0;
+    }
+
+    private static TexturesPatchRenderStyle ParseRenderStyle(string value)
+    {
+        switch (value.ToLowerInvariant())
+        {
+            case "translucent": return TexturesPatchRenderStyle.Translucent;
+            case "add": return TexturesPatchRenderStyle.Add;
+            case "subtract": return TexturesPatchRenderStyle.Subtract;
+            case "reversesubtract": return TexturesPatchRenderStyle.ReverseSubtract;
+            case "modulate": return TexturesPatchRenderStyle.Modulate;
+            case "copyalpha": return TexturesPatchRenderStyle.CopyAlpha;
+            case "copynewalpha": return TexturesPatchRenderStyle.CopyNewAlpha;
+            case "overlay": return TexturesPatchRenderStyle.Overlay;
+            default: return TexturesPatchRenderStyle.Copy;
+        }
     }
 
     private static void SkipCommas(List<string> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }

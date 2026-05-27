@@ -574,22 +574,74 @@ public sealed class ResourceManager : IDisposable
                 ApplyPatchBlend(patch, ref sr, ref sg, ref sb);
 
                 int di = (dy * dw + dx) * 4;
-                if (a == 255)
-                {
-                    dst[di] = sr; dst[di + 1] = sg;
-                    dst[di + 2] = sb; dst[di + 3] = 255;
-                }
-                else
-                {
-                    int ia = 255 - a;
-                    dst[di] = (byte)((sr * a + dst[di] * ia) / 255);
-                    dst[di + 1] = (byte)((sg * a + dst[di + 1] * ia) / 255);
-                    dst[di + 2] = (byte)((sb * a + dst[di + 2] * ia) / 255);
-                    dst[di + 3] = (byte)Math.Max(dst[di + 3], a);
-                }
+                BlendPatchPixel(dst, di, sr, sg, sb, a, patch);
             }
         }
     }
+
+    private static void BlendPatchPixel(byte[] dst, int di, byte sr, byte sg, byte sb, int a, TexturesPatch patch)
+    {
+        byte dr = dst[di];
+        byte dg = dst[di + 1];
+        byte db = dst[di + 2];
+        byte da = dst[di + 3];
+
+        switch (patch.RenderStyle)
+        {
+            case TexturesPatchRenderStyle.Add:
+                dst[di] = (byte)Math.Min(255, dr + sr * a / 255);
+                dst[di + 1] = (byte)Math.Min(255, dg + sg * a / 255);
+                dst[di + 2] = (byte)Math.Min(255, db + sb * a / 255);
+                dst[di + 3] = (byte)Math.Max(da, a);
+                return;
+            case TexturesPatchRenderStyle.Subtract:
+                dst[di] = (byte)Math.Max(0, dr - sr * a / 255);
+                dst[di + 1] = (byte)Math.Max(0, dg - sg * a / 255);
+                dst[di + 2] = (byte)Math.Max(0, db - sb * a / 255);
+                dst[di + 3] = (byte)Math.Max(da, a);
+                return;
+            case TexturesPatchRenderStyle.ReverseSubtract:
+                dst[di] = (byte)Math.Max(0, sr * a / 255 - dr);
+                dst[di + 1] = (byte)Math.Max(0, sg * a / 255 - dg);
+                dst[di + 2] = (byte)Math.Max(0, sb * a / 255 - db);
+                dst[di + 3] = (byte)Math.Max(da, a);
+                return;
+            case TexturesPatchRenderStyle.Modulate:
+                dst[di] = (byte)(dr * sr / 255);
+                dst[di + 1] = (byte)(dg * sg / 255);
+                dst[di + 2] = (byte)(db * sb / 255);
+                dst[di + 3] = (byte)Math.Max(da, a);
+                return;
+            case TexturesPatchRenderStyle.CopyAlpha:
+                dst[di + 3] = (byte)a;
+                return;
+            case TexturesPatchRenderStyle.CopyNewAlpha:
+                dst[di] = sr; dst[di + 1] = sg; dst[di + 2] = sb; dst[di + 3] = (byte)a;
+                return;
+            case TexturesPatchRenderStyle.Overlay:
+                sr = OverlayChannel(dr, sr);
+                sg = OverlayChannel(dg, sg);
+                sb = OverlayChannel(db, sb);
+                break;
+        }
+
+        if (a == 255)
+        {
+            dst[di] = sr; dst[di + 1] = sg;
+            dst[di + 2] = sb; dst[di + 3] = (byte)Math.Max(da, a);
+        }
+        else
+        {
+            int ia = 255 - a;
+            dst[di] = (byte)((sr * a + dr * ia) / 255);
+            dst[di + 1] = (byte)((sg * a + dg * ia) / 255);
+            dst[di + 2] = (byte)((sb * a + db * ia) / 255);
+            dst[di + 3] = (byte)Math.Max(da, a);
+        }
+    }
+
+    private static byte OverlayChannel(byte dst, byte src)
+        => dst < 128 ? (byte)(2 * dst * src / 255) : (byte)(255 - 2 * (255 - dst) * (255 - src) / 255);
 
     private static void MapPatchPixel(int x, int y, int width, int height, TexturesPatch patch, out int sourceX, out int sourceY)
     {

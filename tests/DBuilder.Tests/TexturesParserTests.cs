@@ -112,6 +112,7 @@ Texture META, 8, 8
         Assert.Equal(1.0, def.Patches[0].Alpha);
         Assert.Equal(270, def.Patches[0].Rotation);
         Assert.Equal("Add", def.Patches[0].Style);
+        Assert.Equal(TexturesPatchRenderStyle.Add, def.Patches[0].RenderStyle);
         Assert.Equal(TexturesPatchBlendStyle.Tint, def.Patches[0].BlendStyle);
         Assert.Equal(255, def.Patches[0].BlendRed);
         Assert.Equal(128, def.Patches[0].BlendGreen);

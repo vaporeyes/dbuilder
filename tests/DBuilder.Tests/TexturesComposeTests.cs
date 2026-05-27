@@ -127,4 +127,38 @@ public class TexturesComposeTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void AppliesPatchRenderStylesDuringComposition()
+    {
+        string textures =
+            "WallTexture WSTYLE, 3, 1\n" +
+            "{\n" +
+            "    Patch \"BASE\", 0, 0\n" +
+            "    Patch \"ADD\", 0, 0 { Style Add }\n" +
+            "    Patch \"BASE\", 1, 0\n" +
+            "    Patch \"SUB\", 1, 0 { Style Subtract }\n" +
+            "    Patch \"BASE\", 2, 0\n" +
+            "    Patch \"MOD\", 2, 0 { Style Modulate }\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/BASE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 100, 100, 100, 255))),
+            ("patches/ADD.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 80, 60, 40, 255))),
+            ("patches/SUB.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 30, 40, 50, 255))),
+            ("patches/MOD.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 128, 64, 255, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WSTYLE");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 180, 160, 140, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 70, 60, 50, 255 }, tex.Rgba[4..8]);
+            Assert.Equal(new byte[] { 50, 25, 100, 255 }, tex.Rgba[8..12]);
+        }
+        finally { File.Delete(pk3); }
+    }
 }
