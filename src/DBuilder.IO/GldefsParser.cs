@@ -284,15 +284,12 @@ public static class GldefsParser
         int height = 64;
         bool fullbright = false;
 
-        if (i < t.Count && t[i] == ",") i++;
-        if (i < t.Count && t[i].Equals("color", StringComparison.OrdinalIgnoreCase)) i++;
-
-        if (i < t.Count && TryReadColor(t, ref i, knownColors, out var color))
-        {
-            r = color.R;
-            green = color.G;
-            b = color.B;
-        }
+        if (i >= t.Count || t[i] != ",") return;
+        i++;
+        if (i >= t.Count || !TryReadColorToken(t[i++], knownColors, out var color)) return;
+        r = color.R;
+        green = color.G;
+        b = color.B;
 
         if (i < t.Count && t[i] == ",") i++;
         if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedHeight))
@@ -350,23 +347,11 @@ public static class GldefsParser
         return false;
     }
 
-    private static bool TryReadColor(List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)
+    private static bool TryReadColorToken(string value, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)
     {
         color = default;
-        if (i >= t.Count) return false;
-        string value = t[i];
-        if (i + 2 < t.Count
-            && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float r)
-            && float.TryParse(t[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out float g)
-            && float.TryParse(t[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out float b))
-        {
-            i += 3;
-            color = (r, g, b);
-            return true;
-        }
         if (ZDoomColorParser.TryParse(value, knownColors, out byte red, out byte green, out byte blue))
         {
-            i++;
             color = (red / 255.0f, green / 255.0f, blue / 255.0f);
             return true;
         }

@@ -101,8 +101,8 @@ sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
 glow
 {
     flats { NUKAGE1 NUKAGE2 LAVA1 }
-    texture GLOWTEX color 0.5 0.5 1.0
-    texture GLOWINT color 1 0 0
+    texture GLOWTEX, ""8080ff""
+    texture GLOWINT, ""ff0000""
     texture GLOWHEX, ""#2040ff"", 32, fullbright
 }";
         var g = GldefsParser.Parse(text);
@@ -112,12 +112,32 @@ glow
         Assert.Contains("GLOWHEX", g.GlowTextures);
         Assert.True(g.Glows["NUKAGE1"].CalculateTextureColor);
         Assert.Equal(128, g.Glows["NUKAGE1"].Height);
-        Assert.Equal(0.5f, g.Glows["GLOWTEX"].R, 4);
+        Assert.Equal(0x80 / 255.0f, g.Glows["GLOWTEX"].R, 4);
         Assert.Equal(1.0f, g.Glows["GLOWINT"].R, 4);
         Assert.Equal(0.0f, g.Glows["GLOWINT"].G, 4);
         Assert.Equal(128, g.Glows["GLOWTEX"].Height);
         Assert.Equal(64, g.Glows["GLOWHEX"].Height);
         Assert.True(g.Glows["GLOWHEX"].Fullbright);
+    }
+
+    [Fact]
+    public void SkipsGlowTexturesWithoutCommaColorSyntax()
+    {
+        const string text = @"
+glow
+{
+    texture NOCOMMA ""#2040ff""
+    texture COLORKEY, color
+    texture RGBTRIPLET, 0.5 0.5 1.0
+    texture VALID, ""#2040ff""
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Glows.ContainsKey("NOCOMMA"));
+        Assert.False(g.Glows.ContainsKey("COLORKEY"));
+        Assert.False(g.Glows.ContainsKey("RGBTRIPLET"));
+        Assert.True(g.Glows.ContainsKey("VALID"));
     }
 
     [Fact]
