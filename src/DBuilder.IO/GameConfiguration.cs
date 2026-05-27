@@ -51,7 +51,30 @@ public sealed class ThingTypeInfo
     public int Color { get; init; }
     public int Width { get; init; } = 16;
     public int Height { get; init; } = 16;
+    public double Alpha { get; init; } = 1.0;
+    public string RenderStyle { get; init; } = "normal";
+    public bool Arrow { get; init; }
+    public bool Hangs { get; init; }
+    public int Blocking { get; init; }
+    public int ErrorCheck { get; init; }
+    public bool FixedSize { get; init; }
+    public bool FixedRotation { get; init; }
+    public bool AbsoluteZ { get; init; }
+    public double SpriteScale { get; init; } = 1.0;
+    public bool LockSprite { get; init; }
+    public int ThingLink { get; init; }
+    public bool Optional { get; init; }
+    public bool IsKnown { get; init; } = true;
+    public bool IsNull => Index == 0;
+    public IReadOnlyList<string> AddUniversalFields { get; init; } = Array.Empty<string>();
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
+
+    public bool HasAdditionalUniversalField(string fieldName)
+    {
+        foreach (string field in AddUniversalFields)
+            if (string.Equals(field, fieldName, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
 }
 
 public sealed record ThingCategoryInfo(
@@ -61,6 +84,9 @@ public sealed record ThingCategoryInfo(
     int Color,
     int Width,
     int Height,
+    double Alpha,
+    string RenderStyle,
+    string Sprite,
     bool Sorted,
     int Arrow,
     int Hangs,
@@ -69,6 +95,7 @@ public sealed record ThingCategoryInfo(
     bool FixedSize,
     bool FixedRotation,
     bool AbsoluteZ,
+    double SpriteScale,
     bool Optional);
 
 public sealed class LinedefActionInfo
@@ -363,6 +390,21 @@ public sealed class GameConfiguration
                 Width = width > 0 ? width : existing?.Width ?? 16,
                 Height = height > 0 ? height : existing?.Height ?? 16,
                 Color = existing?.Color ?? 0,
+                Alpha = existing?.Alpha ?? 1.0,
+                RenderStyle = existing?.RenderStyle ?? "normal",
+                Arrow = existing?.Arrow ?? false,
+                Hangs = existing?.Hangs ?? false,
+                Blocking = existing?.Blocking ?? 0,
+                ErrorCheck = existing?.ErrorCheck ?? 0,
+                FixedSize = existing?.FixedSize ?? false,
+                FixedRotation = existing?.FixedRotation ?? false,
+                AbsoluteZ = existing?.AbsoluteZ ?? false,
+                SpriteScale = existing?.SpriteScale ?? 1.0,
+                LockSprite = existing?.LockSprite ?? false,
+                ThingLink = existing?.ThingLink ?? 0,
+                Optional = existing?.Optional ?? false,
+                IsKnown = existing?.IsKnown ?? true,
+                AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
                 Args = existing?.Args ?? System.Array.Empty<ArgInfo>(),
             };
         }
@@ -394,6 +436,21 @@ public sealed class GameConfiguration
         Sprite = sprite,
         Width = info.Width,
         Height = info.Height,
+        Alpha = info.Alpha,
+        RenderStyle = info.RenderStyle,
+        Arrow = info.Arrow,
+        Hangs = info.Hangs,
+        Blocking = info.Blocking,
+        ErrorCheck = info.ErrorCheck,
+        FixedSize = info.FixedSize,
+        FixedRotation = info.FixedRotation,
+        AbsoluteZ = info.AbsoluteZ,
+        SpriteScale = info.SpriteScale,
+        LockSprite = info.LockSprite,
+        ThingLink = info.ThingLink,
+        Optional = info.Optional,
+        IsKnown = info.IsKnown,
+        AddUniversalFields = info.AddUniversalFields,
         Color = info.Color,
         Args = info.Args,
     };
@@ -489,6 +546,9 @@ public sealed class GameConfiguration
             GetInt(cat, "color", parent?.Color ?? 0),
             GetInt(cat, "width", parent?.Width ?? 16),
             GetInt(cat, "height", parent?.Height ?? 16),
+            Math.Clamp(GetDouble(cat, "alpha", parent?.Alpha ?? 1.0), 0.0, 1.0),
+            GetString(cat, "renderstyle", parent?.RenderStyle ?? "normal").ToLowerInvariant(),
+            GetString(cat, "sprite", parent?.Sprite ?? ""),
             GetBoolishInt(cat, "sort", parent?.Sorted ?? false),
             GetInt(cat, "arrow", parent?.Arrow ?? 0),
             GetInt(cat, "hangs", parent?.Hangs ?? 0),
@@ -497,6 +557,7 @@ public sealed class GameConfiguration
             GetBool(cat, "fixedsize", parent?.FixedSize ?? false),
             GetBool(cat, "fixedrotation", parent?.FixedRotation ?? false),
             GetBool(cat, "absolutez", parent?.AbsoluteZ ?? false),
+            GetDouble(cat, "spritescale", parent?.SpriteScale ?? 1.0),
             GetBool(cat, "optional", parent?.Optional ?? false));
         thingCategories[key] = info;
 
@@ -511,11 +572,25 @@ public sealed class GameConfiguration
                     Index = number,
                     Category = key,
                     Title = GetString(child, "title", childKey),
-                    Sprite = GetString(child, "sprite", ""),
+                    Sprite = GetString(child, "sprite", info.Sprite),
                     ClassName = GetString(child, "class", ""),
                     Color = GetInt(child, "color", info.Color),
                     Width = GetInt(child, "width", info.Width),
                     Height = GetInt(child, "height", info.Height),
+                    Alpha = Math.Clamp(GetDouble(child, "alpha", info.Alpha), 0.0, 1.0),
+                    RenderStyle = GetString(child, "renderstyle", info.RenderStyle).ToLowerInvariant(),
+                    Arrow = GetBoolishInt(child, "arrow", info.Arrow != 0),
+                    Hangs = GetBoolishInt(child, "hangs", info.Hangs != 0),
+                    Blocking = GetInt(child, "blocking", info.Blocking),
+                    ErrorCheck = GetInt(child, "error", info.ErrorCheck),
+                    FixedSize = GetBool(child, "fixedsize", info.FixedSize),
+                    FixedRotation = GetBool(child, "fixedrotation", info.FixedRotation),
+                    AbsoluteZ = GetBool(child, "absolutez", info.AbsoluteZ),
+                    SpriteScale = GetDouble(child, "spritescale", info.SpriteScale),
+                    LockSprite = GetBool(child, "locksprite", false),
+                    ThingLink = GetInt(child, "thinglink", 0),
+                    Optional = GetBool(child, "optional", info.Optional),
+                    AddUniversalFields = ParseAddUniversalFields(child),
                     Args = ParseArgs(child),
                 };
             }
@@ -853,6 +928,17 @@ public sealed class GameConfiguration
             _ => fallback,
         };
 
+    private static double GetDouble(IDictionary d, string key, double fallback)
+        => d[key] switch
+        {
+            double db => db,
+            float f => f,
+            int i => i,
+            long l => l,
+            string s when double.TryParse(s.TrimEnd('f', 'F'), NumberStyles.Float, CultureInfo.InvariantCulture, out double p) => p,
+            _ => fallback,
+        };
+
     private static bool GetBoolishInt(IDictionary d, string key, bool fallback)
         => d[key] switch
         {
@@ -863,6 +949,18 @@ public sealed class GameConfiguration
             string s when bool.TryParse(s, out bool p) => p,
             _ => fallback,
         };
+
+    private static IReadOnlyList<string> ParseAddUniversalFields(IDictionary entry)
+    {
+        if (entry["adduniversalfields"] is not IDictionary fields) return Array.Empty<string>();
+        var result = new List<string>();
+        foreach (DictionaryEntry field in fields)
+        {
+            string name = field.Key.ToString()?.ToLowerInvariant() ?? "";
+            if (name.Length > 0 && !result.Contains(name, StringComparer.OrdinalIgnoreCase)) result.Add(name);
+        }
+        return result;
+    }
 
     private static IReadOnlySet<string> ParseTargetClasses(string value)
     {

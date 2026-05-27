@@ -125,11 +125,18 @@ public class GameConfigurationTests
                 monsters
                 {
                     title = "Monsters";
+                    sprite = "TROOA1";
                     color = 12;
                     width = 20;
                     height = 56;
+                    alpha = 0.75;
+                    renderstyle = "Translucent";
                     sort = 1;
+                    arrow = 1;
                     blocking = 1;
+                    error = 2;
+                    fixedrotation = true;
+                    spritescale = 1.5;
 
                     bosses
                     {
@@ -141,6 +148,15 @@ public class GameConfigurationTests
                         {
                             title = "Baron of Hell";
                             sprite = "BOSSA1";
+                            renderstyle = "Add";
+                            absolutez = true;
+                            locksprite = true;
+                            thinglink = 7;
+                            adduniversalfields
+                            {
+                                argspeed = true;
+                                customflag = true;
+                            }
                         }
                     }
                 }
@@ -151,8 +167,15 @@ public class GameConfigurationTests
 
         var monsters = gc.ThingCategories["monsters"];
         Assert.Equal("Monsters", monsters.Title);
+        Assert.Equal("TROOA1", monsters.Sprite);
+        Assert.Equal(0.75, monsters.Alpha);
+        Assert.Equal("translucent", monsters.RenderStyle);
         Assert.True(monsters.Sorted);
+        Assert.Equal(1, monsters.Arrow);
         Assert.Equal(1, monsters.Blocking);
+        Assert.Equal(2, monsters.ErrorCheck);
+        Assert.True(monsters.FixedRotation);
+        Assert.Equal(1.5, monsters.SpriteScale);
 
         var bosses = gc.ThingCategories["monsters.bosses"];
         Assert.Equal("monsters", bosses.ParentKey);
@@ -164,9 +187,21 @@ public class GameConfigurationTests
 
         var baron = gc.GetThing(3003)!;
         Assert.Equal("monsters.bosses", baron.Category);
+        Assert.Equal("add", baron.RenderStyle);
+        Assert.Equal(0.75, baron.Alpha);
+        Assert.True(baron.Arrow);
+        Assert.Equal(1, baron.Blocking);
+        Assert.Equal(2, baron.ErrorCheck);
+        Assert.True(baron.FixedRotation);
+        Assert.True(baron.AbsoluteZ);
+        Assert.Equal(1.5, baron.SpriteScale);
+        Assert.True(baron.LockSprite);
+        Assert.Equal(7, baron.ThingLink);
         Assert.Equal(4, baron.Color);
         Assert.Equal(20, baron.Width);
         Assert.Equal(56, baron.Height);
+        Assert.Contains("argspeed", baron.AddUniversalFields);
+        Assert.True(baron.HasAdditionalUniversalField("CUSTOMFLAG"));
     }
 
     [Fact]
