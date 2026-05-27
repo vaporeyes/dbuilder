@@ -73,13 +73,16 @@ public static class GldefsParser
     public static Gldefs Parse(string text) => Parse(text, includeResolver: null);
 
     public static Gldefs Parse(string text, Func<string, string?>? includeResolver)
+        => Parse(text, includeResolver, knownColors: null);
+
+    public static Gldefs Parse(string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         var g = new Gldefs();
-        ParseInto(g, text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        ParseInto(g, text, includeResolver, knownColors, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         return g;
     }
 
-    private static void ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static void ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         var t = Tokenize(text);
         int i = 0;
@@ -89,22 +92,22 @@ public static class GldefsParser
             if (kw == "$gzdb_skip") break;
             else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
-            else if (kw == "glow") ParseGlow(g, t, ref i);
+            else if (kw == "glow") ParseGlow(g, t, ref i, knownColors);
             else if (kw == "skybox") ParseSkybox(g, t, ref i);
-            else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, parsedIncludes);
+            else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
             else i++; // unknown keyword (skybox/brightmap/material/... handled by skipping its block next)
         }
     }
 
-    private static void ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static void ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         i++; // #include
         if (includeResolver == null || i >= t.Count) return;
         string include = t[i++];
         if (!parsedIncludes.Add(include)) return;
         string? text = includeResolver(include);
-        if (text != null) ParseInto(g, text, includeResolver, parsedIncludes);
+        if (text != null) ParseInto(g, text, includeResolver, knownColors, parsedIncludes);
     }
 
     private static void ParseLight(Gldefs g, string type, List<string> t, ref int i)
@@ -190,7 +193,7 @@ public static class GldefsParser
         g.Objects.Add(obj);
     }
 
-    private static void ParseGlow(Gldefs g, List<string> t, ref int i)
+    private static void ParseGlow(Gldefs g, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         i++; // glow
         if (i >= t.Count || t[i] != "{") return;
@@ -211,13 +214,13 @@ public static class GldefsParser
             }
             else if (p == "texture" && i < t.Count)
             {
-                ParseGlowTexture(g, t, ref i);
+                ParseGlowTexture(g, t, ref i, knownColors);
             }
         }
         if (i < t.Count) i++; // }
     }
 
-    private static void ParseGlowTexture(Gldefs g, List<string> t, ref int i)
+    private static void ParseGlowTexture(Gldefs g, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         string texture = t[i++];
         float r = 1.0f, green = 1.0f, b = 1.0f;
@@ -227,7 +230,7 @@ public static class GldefsParser
         if (i < t.Count && t[i] == ",") i++;
         if (i < t.Count && t[i].Equals("color", StringComparison.OrdinalIgnoreCase)) i++;
 
-        if (i < t.Count && TryReadColor(t, ref i, out var color))
+        if (i < t.Count && TryReadColor(t, ref i, knownColors, out var color))
         {
             r = color.R;
             green = color.G;
@@ -293,20 +296,11 @@ public static class GldefsParser
         return true;
     }
 
-    private static bool TryReadColor(List<string> t, ref int i, out (float R, float G, float B) color)
+    private static bool TryReadColor(List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)
     {
         color = default;
         if (i >= t.Count) return false;
         string value = t[i];
-        if (value.StartsWith('#') && value.Length == 7
-            && int.TryParse(value.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int red)
-            && int.TryParse(value.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int green)
-            && int.TryParse(value.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int blue))
-        {
-            i++;
-            color = (red / 255.0f, green / 255.0f, blue / 255.0f);
-            return true;
-        }
         if (i + 2 < t.Count
             && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float r)
             && float.TryParse(t[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out float g)
@@ -315,6 +309,63 @@ public static class GldefsParser
             i += 3;
             color = (r, g, b);
             return true;
+        }
+        if (TryReadColorString(value, knownColors, out color))
+        {
+            i++;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryReadColorString(string value, IReadOnlyDictionary<string, X11Color>? knownColors, out (float R, float G, float B) color)
+    {
+        color = default;
+        string name = value.Replace(" ", "", StringComparison.Ordinal);
+        bool htmlColor = name.StartsWith('#');
+        if (htmlColor)
+        {
+            name = name.Substring(1);
+            if (name.Length == 3)
+                name = string.Concat(name[0], name[0], name[1], name[1], name[2], name[2]);
+            else if (name.Length != 6)
+            {
+                color = (0.0f, 0.0f, 0.0f);
+                return true;
+            }
+        }
+
+        if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int rgb))
+        {
+            color = (((rgb >> 16) & 0xff) / 255.0f, ((rgb >> 8) & 0xff) / 255.0f, (rgb & 0xff) / 255.0f);
+            return true;
+        }
+
+        if (!htmlColor && TryLookupKnownColor(name, knownColors, out var known))
+        {
+            color = (known.R / 255.0f, known.G / 255.0f, known.B / 255.0f);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryLookupKnownColor(string normalizedName, IReadOnlyDictionary<string, X11Color>? knownColors, out X11Color color)
+    {
+        color = default!;
+        if (knownColors == null) return false;
+        if (knownColors.TryGetValue(normalizedName, out var exact))
+        {
+            color = exact;
+            return true;
+        }
+        foreach (var entry in knownColors)
+        {
+            if (entry.Key.Replace(" ", "", StringComparison.Ordinal).Equals(normalizedName, StringComparison.OrdinalIgnoreCase))
+            {
+                color = entry.Value;
+                return true;
+            }
         }
         return false;
     }

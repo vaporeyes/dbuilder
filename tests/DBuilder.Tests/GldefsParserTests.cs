@@ -90,6 +90,7 @@ glow
 {
     flats { NUKAGE1 NUKAGE2 LAVA1 }
     texture GLOWTEX color 0.5 0.5 1.0
+    texture GLOWINT color 1 0 0
     texture GLOWHEX, ""#2040ff"", 32, fullbright
 }";
         var g = GldefsParser.Parse(text);
@@ -100,9 +101,31 @@ glow
         Assert.True(g.Glows["NUKAGE1"].CalculateTextureColor);
         Assert.Equal(128, g.Glows["NUKAGE1"].Height);
         Assert.Equal(0.5f, g.Glows["GLOWTEX"].R, 4);
+        Assert.Equal(1.0f, g.Glows["GLOWINT"].R, 4);
+        Assert.Equal(0.0f, g.Glows["GLOWINT"].G, 4);
         Assert.Equal(128, g.Glows["GLOWTEX"].Height);
         Assert.Equal(64, g.Glows["GLOWHEX"].Height);
         Assert.True(g.Glows["GLOWHEX"].Fullbright);
+    }
+
+    [Fact]
+    public void ParsesZdTextGlowColorStrings()
+    {
+        const string text = @"
+glow
+{
+    texture GLOWSHORT, ""#28f""
+    texture GLOWBARE, ff4000
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(0x22 / 255.0f, g.Glows["GLOWSHORT"].R, 4);
+        Assert.Equal(0x88 / 255.0f, g.Glows["GLOWSHORT"].G, 4);
+        Assert.Equal(1.0f, g.Glows["GLOWSHORT"].B, 4);
+        Assert.Equal(1.0f, g.Glows["GLOWBARE"].R, 4);
+        Assert.Equal(0x40 / 255.0f, g.Glows["GLOWBARE"].G, 4);
+        Assert.Equal(0.0f, g.Glows["GLOWBARE"].B, 4);
     }
 
     [Fact]

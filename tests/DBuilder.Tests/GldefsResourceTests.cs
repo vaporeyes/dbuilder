@@ -77,4 +77,32 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }
             File.Delete(pk3);
         }
     }
+
+    [Fact]
+    public void ResourceManagerUsesX11ColorsForGlowTextures()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("X11R6RGB", Encoding.ASCII.GetBytes("248 248 255 ghost white\n")),
+            ("GLDEFS.txt", Encoding.ASCII.GetBytes("""
+glow
+{
+    texture GHOST, "ghostwhite"
+}
+""")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var glow = resources.GetGldefs().Glows["GHOST"];
+            Assert.Equal(248 / 255.0f, glow.R, 4);
+            Assert.Equal(248 / 255.0f, glow.G, 4);
+            Assert.Equal(1.0f, glow.B, 4);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
 }

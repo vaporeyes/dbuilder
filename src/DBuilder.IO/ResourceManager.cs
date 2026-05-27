@@ -327,14 +327,29 @@ public sealed class ResourceManager : IDisposable
         if (gldefsBuilt) return;
         gldefsBuilt = true;
         gldefs = new Gldefs();
+        var knownColors = BuildKnownColors();
         foreach (var reader in readers)
         {
             foreach (string text in reader.GetTextLumps("GLDEFS", partialTitleMatch: true))
             {
-                var parsed = GldefsParser.Parse(text, reader.GetTextResource);
+                var parsed = GldefsParser.Parse(text, reader.GetTextResource, knownColors);
                 MergeGldefs(gldefs, parsed);
             }
         }
+    }
+
+    private Dictionary<string, X11Color> BuildKnownColors()
+    {
+        var knownColors = new Dictionary<string, X11Color>(StringComparer.OrdinalIgnoreCase);
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetTextLumps("X11R6RGB", partialTitleMatch: false))
+            {
+                foreach (var color in X11RgbParser.Parse(text).Colors)
+                    knownColors[color.Key] = color.Value;
+            }
+        }
+        return knownColors;
     }
 
     public Gldefs GetGldefs()
