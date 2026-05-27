@@ -353,6 +353,27 @@ map MAP02 ""NewStyle""
     }
 
     [Fact]
+    public void ParsesSpacedMapInfoFadeColors()
+    {
+        const string text = @"
+map MAP01 ""Entryway""
+{
+    fade = ""20 40 60""
+    outsidefog = ""10 20 30""
+    outsidefogdensity = 32
+}";
+
+        var map = MapInfo.Parse(text).GetMap("MAP01")!;
+
+        Assert.Equal("204060", map.Fade);
+        Assert.Equal(((byte)0x20, (byte)0x40, (byte)0x60), map.FadeColor);
+        Assert.True(map.HasFadeColor);
+        Assert.Equal("102030", map.OutsideFog);
+        Assert.Equal(((byte)0x10, (byte)0x20, (byte)0x30), map.OutsideFogColor);
+        Assert.True(map.HasOutsideFogColor);
+    }
+
+    [Fact]
     public void ClearsDoubleSkyWithoutSecondSky()
     {
         const string text = @"

@@ -364,12 +364,12 @@ public sealed class MapInfo
             case "smoothlighting": e.SmoothLighting = true; break;
             case "forceworldpanning": e.ForceWorldPanning = true; break;
             case "fade":
-                e.Fade = First();
+                e.Fade = NormalizeColorToken(First());
                 if (ZDoomColorParser.TryParse(e.Fade, knownColors, out byte fadeRed, out byte fadeGreen, out byte fadeBlue))
                     e.FadeColor = (fadeRed, fadeGreen, fadeBlue);
                 break;
             case "outsidefog":
-                e.OutsideFog = First();
+                e.OutsideFog = NormalizeColorToken(First());
                 if (ZDoomColorParser.TryParse(e.OutsideFog, knownColors, out byte fogRed, out byte fogGreen, out byte fogBlue))
                     e.OutsideFogColor = (fogRed, fogGreen, fogBlue);
                 break;
@@ -383,6 +383,8 @@ public sealed class MapInfo
             default: e.Properties[key] = string.Join(" ", values); break;
         }
     }
+
+    private static string NormalizeColorToken(string value) => value.ToLowerInvariant().Replace(" ", "");
 
     private static int? ClampWallShade(int? value) => value.HasValue ? Math.Clamp(value.Value, -255, 255) : null;
 
