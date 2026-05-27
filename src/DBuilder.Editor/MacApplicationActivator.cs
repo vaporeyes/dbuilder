@@ -20,7 +20,9 @@ internal static class MacApplicationActivator
             IntPtr sharedApplication = objc_msgSend(nsApplication, sel_registerName("sharedApplication"));
             if (sharedApplication == IntPtr.Zero) return;
 
+            objc_msgSend(sharedApplication, sel_registerName("finishLaunching"));
             objc_msgSend(sharedApplication, sel_registerName("setActivationPolicy:"), 0);
+            objc_msgSend(sharedApplication, sel_registerName("unhide:"), 0);
             objc_msgSend(sharedApplication, sel_registerName("activateIgnoringOtherApps:"), true);
 
             IntPtr nsRunningApplication = objc_getClass("NSRunningApplication");

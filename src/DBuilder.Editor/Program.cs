@@ -12,6 +12,8 @@ internal static class Program
     [System.STAThread]
     public static void Main(string[] args)
     {
+        if (MacAppBundleLauncher.TryRelaunch(args)) return;
+
         MacApplicationActivator.Activate();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
@@ -19,5 +21,6 @@ internal static class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new MacOSPlatformOptions { ShowInDock = true })
             .LogToTrace();
 }

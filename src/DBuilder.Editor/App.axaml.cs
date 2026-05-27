@@ -4,6 +4,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 
 namespace DBuilder.Editor;
 
@@ -17,6 +18,14 @@ public partial class App : Application
         {
             string? openPath = desktop.Args is { Length: > 0 } a ? a[0] : null;
             desktop.MainWindow = new MainWindow(openPath);
+            if (desktop is IActivatableLifetime activatable)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    activatable.TryLeaveBackground();
+                    MacApplicationActivator.Activate();
+                }, DispatcherPriority.Loaded);
+            }
         }
         base.OnFrameworkInitializationCompleted();
     }

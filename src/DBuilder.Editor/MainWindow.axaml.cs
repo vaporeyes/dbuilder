@@ -400,8 +400,6 @@ public partial class MainWindow : Window
     {
         MacApplicationActivator.Activate();
         Activate();
-        Topmost = true;
-        Topmost = false;
         Dispatcher.UIThread.Post(() =>
         {
             MacApplicationActivator.Activate();
