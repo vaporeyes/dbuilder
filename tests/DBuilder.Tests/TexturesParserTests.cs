@@ -96,6 +96,12 @@ Texture META, 8, 8
         Alpha 1.5
         Rotate -90
         Style Add
+        Blend 255, 128, 0, 0.5
+    }
+    Patch TNT1A0, 0, 0
+    Patch ""patches/BLUE"", 1, 1
+    {
+        Blend ""#112233""
     }
 }";
 
@@ -106,5 +112,17 @@ Texture META, 8, 8
         Assert.Equal(1.0, def.Patches[0].Alpha);
         Assert.Equal(270, def.Patches[0].Rotation);
         Assert.Equal("Add", def.Patches[0].Style);
+        Assert.Equal(TexturesPatchBlendStyle.Tint, def.Patches[0].BlendStyle);
+        Assert.Equal(255, def.Patches[0].BlendRed);
+        Assert.Equal(128, def.Patches[0].BlendGreen);
+        Assert.Equal(0, def.Patches[0].BlendBlue);
+        Assert.Equal(127, def.Patches[0].BlendAlpha);
+        Assert.True(def.Patches[1].Skip);
+        Assert.Equal(Path.Combine("patches", "BLUE"), def.Patches[2].Name);
+        Assert.Equal(TexturesPatchBlendStyle.Blend, def.Patches[2].BlendStyle);
+        Assert.Equal(0x11, def.Patches[2].BlendRed);
+        Assert.Equal(0x22, def.Patches[2].BlendGreen);
+        Assert.Equal(0x33, def.Patches[2].BlendBlue);
+        Assert.Equal(255, def.Patches[2].BlendAlpha);
     }
 }

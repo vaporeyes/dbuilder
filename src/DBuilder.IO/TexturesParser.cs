@@ -4,11 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace DBuilder.IO;
 
 public enum TexturesType { Texture, Sprite, Graphic, WallTexture, Flat }
+
+public enum TexturesPatchBlendStyle { None, Blend, Tint }
 
 /// <summary>A single patch placed within a TEXTURES definition.</summary>
 public sealed class TexturesPatch
@@ -21,6 +24,12 @@ public sealed class TexturesPatch
     public double Alpha { get; set; } = 1.0;
     public int Rotation { get; set; }
     public string? Style { get; set; }
+    public TexturesPatchBlendStyle BlendStyle { get; set; }
+    public byte BlendRed { get; set; }
+    public byte BlendGreen { get; set; }
+    public byte BlendBlue { get; set; }
+    public byte BlendAlpha { get; set; }
+    public bool Skip { get; set; }
 }
 
 /// <summary>A composite definition from the TEXTURES lump.</summary>
@@ -123,7 +132,13 @@ public static class TexturesParser
         ReadInt(t, ref i, out int x);
         SkipCommas(t, ref i);
         ReadInt(t, ref i, out int y);
-        var patch = new TexturesPatch { Name = name, X = x, Y = y };
+        var patch = new TexturesPatch
+        {
+            Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
+            X = x,
+            Y = y,
+            Skip = name.Equals("TNT1A0", StringComparison.OrdinalIgnoreCase),
+        };
 
         if (i < t.Count && t[i] == "{")
         {
@@ -137,12 +152,60 @@ public static class TexturesParser
                     case "alpha": if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0); break;
                     case "rotate": if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation); break;
                     case "style": if (i < t.Count) patch.Style = t[i++]; break;
-                    default: break; // translation/blend/... skipped token by token
+                    case "blend": ParseBlend(patch, t, ref i); break;
+                    default: break; // translation and other patch modifiers are skipped token by token
                 }
             }
             if (i < t.Count) i++; // }
         }
         def.Patches.Add(patch);
+    }
+
+    private static void ParseBlend(TexturesPatch patch, List<string> t, ref int i)
+    {
+        if (i >= t.Count) return;
+
+        byte red;
+        byte green;
+        byte blue;
+        string token = t[i++];
+        if (byte.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out red))
+        {
+            SkipCommas(t, ref i);
+            if (!ReadByte(t, ref i, out green)) return;
+            SkipCommas(t, ref i);
+            if (!ReadByte(t, ref i, out blue)) return;
+        }
+        else if (!TryParseColor(token, out red, out green, out blue))
+        {
+            return;
+        }
+
+        double blendAlpha = -1.0;
+        if (i < t.Count && t[i] == ",")
+        {
+            i++;
+            ReadDouble(t, ref i, out blendAlpha);
+        }
+
+        if (blendAlpha > 0.0)
+        {
+            patch.BlendAlpha = (byte)Math.Clamp((int)(blendAlpha * 255.0), 1, 254);
+            patch.BlendStyle = TexturesPatchBlendStyle.Tint;
+        }
+        else if (blendAlpha < 0.0)
+        {
+            patch.BlendAlpha = 255;
+            patch.BlendStyle = TexturesPatchBlendStyle.Blend;
+        }
+        else
+        {
+            return;
+        }
+
+        patch.BlendRed = red;
+        patch.BlendGreen = green;
+        patch.BlendBlue = blue;
     }
 
     private static int NormalizeRotation(int rotation)
@@ -169,6 +232,38 @@ public static class TexturesParser
         v = 0;
         if (i < t.Count && double.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out v)) { i++; return true; }
         return false;
+    }
+
+    private static bool ReadByte(List<string> t, ref int i, out byte value)
+    {
+        value = 0;
+        if (i >= t.Count) return false;
+        if (byte.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
+        return false;
+    }
+
+    private static bool TryParseColor(string token, out byte red, out byte green, out byte blue)
+    {
+        red = green = blue = 0;
+        string value = token.Trim();
+        if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
+        if (value.Length == 6 && int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int rgb))
+        {
+            red = (byte)((rgb >> 16) & 0xFF);
+            green = (byte)((rgb >> 8) & 0xFF);
+            blue = (byte)(rgb & 0xFF);
+            return true;
+        }
+
+        switch (value.ToLowerInvariant())
+        {
+            case "black": red = 0; green = 0; blue = 0; return true;
+            case "white": red = 255; green = 255; blue = 255; return true;
+            case "red": red = 255; green = 0; blue = 0; return true;
+            case "green": red = 0; green = 255; blue = 0; return true;
+            case "blue": red = 0; green = 0; blue = 255; return true;
+            default: return false;
+        }
     }
 
     // Tokenizes into words / quoted strings / single-char symbols ({ } ,), skipping // and /* */ comments.
