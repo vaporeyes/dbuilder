@@ -192,6 +192,9 @@ public class GameConfigurationTests
         Assert.Equal("Secret", gc.SectorEffectTitle(9));
         Assert.Equal("Damage and End level", gc.SectorEffectTitle(11));
         Assert.Equal("Unknown (5)", gc.SectorEffectTitle(5));
+        Assert.True(gc.GetSectorEffect(0)!.IsNull);
+        Assert.True(gc.GetSectorEffect(9)!.IsKnown);
+        Assert.False(gc.GetSectorEffect(9)!.IsGeneralized);
     }
 
     [Fact]

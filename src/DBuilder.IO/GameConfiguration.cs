@@ -75,6 +75,9 @@ public sealed class SectorEffectInfo
 {
     public int Index { get; init; }
     public string Title { get; init; } = "";
+    public bool IsKnown { get; init; } = true;
+    public bool IsGeneralized { get; init; }
+    public bool IsNull => Index == 0;
 }
 
 public sealed record StaticLimitsInfo(IReadOnlyDictionary<string, int> Values)
