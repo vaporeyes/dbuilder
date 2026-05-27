@@ -86,6 +86,43 @@ ACTOR Derived : Base 7001 { }";
     }
 
     [Fact]
+    public void ParsesFlagsAndProperties()
+    {
+        const string text = @"
+ACTOR Flagged 7002
+{
+    +SOLID
+    -NOGRAVITY
+    RenderStyle Translucent
+    Alpha 0.5
+    Radius 12
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.False(actor.Flags["NOGRAVITY"]);
+        Assert.Equal("Translucent", actor.Properties["RenderStyle"].Single());
+        Assert.Equal("0.5", actor.Properties["Alpha"].Single());
+        Assert.Equal("12", actor.Properties["radius"].Single());
+    }
+
+    [Fact]
+    public void ChildInheritsFlagsAndPropertiesFromParent()
+    {
+        const string text = @"
+ACTOR Base
+{
+    +SOLID
+    RenderStyle Add
+}
+ACTOR Derived : Base 7003 { -SOLID }";
+        var derived = DecorateParser.Parse(text).First(a => a.ClassName == "Derived");
+
+        Assert.False(derived.Flags["SOLID"]);
+        Assert.Equal("Add", derived.Properties["RenderStyle"].Single());
+    }
+
+    [Fact]
     public void IgnoresFlowKeywordsAsSprites()
     {
         // "goto" is 4 chars but must not be mistaken for a sprite frame.

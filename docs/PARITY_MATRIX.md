@@ -29,7 +29,7 @@ Status values:
 | `Source/Core/Types` | partial | `DBuilder.IO` | Generalized types and game config subsets exist. Full type manager remains. |
 | `Source/Core/VisualModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Picking and 3D helpers exist. Full visual-mode framework remains. |
 | `Source/Core/Windows` | partial | `DBuilder.Editor` | Selected windows exist. Full UDB dialog set remains. |
-| `Source/Core/ZDoom` | partial | `DBuilder.IO` | Several parsers exist, including ANIMDEFS, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, and MAPINFO numbered actor discovery. Full actor, metadata, model rendering, voxel rendering, and Dehacked merge behavior remains. |
+| `Source/Core/ZDoom` | partial | `DBuilder.IO` | Several parsers exist, including ANIMDEFS, DECORATE/ZScript actor metadata, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, TEXTURES metadata, and MAPINFO numbered actor discovery. Full actor semantics, model rendering, voxel rendering, and Dehacked merge behavior remain. |
 | `Source/Native/OpenGL` | partial | `DBuilder.Rendering` | Replaced with Silk.NET abstraction. Full parity not established. |
 
 ## Bundled Plugins

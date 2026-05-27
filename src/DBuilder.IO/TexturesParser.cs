@@ -18,6 +18,9 @@ public sealed class TexturesPatch
     public int Y { get; init; }
     public bool FlipX { get; set; }
     public bool FlipY { get; set; }
+    public double Alpha { get; set; } = 1.0;
+    public int Rotation { get; set; }
+    public string? Style { get; set; }
 }
 
 /// <summary>A composite definition from the TEXTURES lump.</summary>
@@ -31,6 +34,9 @@ public sealed class TexturesDef
     public int OffsetY { get; set; }
     public double ScaleX { get; set; } = 1.0;
     public double ScaleY { get; set; } = 1.0;
+    public bool Optional { get; set; }
+    public bool NullTexture { get; set; }
+    public bool WorldPanning { get; set; }
     public List<TexturesPatch> Patches { get; } = new();
 }
 
@@ -45,7 +51,8 @@ public static class TexturesParser
         while (i < t.Count)
         {
             string word = t[i];
-            if (word == "optional") { i++; if (i >= t.Count) break; word = t[i]; }
+            bool optional = false;
+            if (word.Equals("optional", StringComparison.OrdinalIgnoreCase)) { optional = true; i++; if (i >= t.Count) break; word = t[i]; }
 
             var type = word.ToLowerInvariant() switch
             {
@@ -59,22 +66,28 @@ public static class TexturesParser
             if (type == null) { i++; continue; }
 
             i++; // type
-            var def = ParseDefinition(type.Value, t, ref i);
+            var def = ParseDefinition(type.Value, optional, t, ref i);
             if (def != null) defs.Add(def);
         }
         return defs;
     }
 
-    private static TexturesDef? ParseDefinition(TexturesType type, List<string> t, ref int i)
+    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<string> t, ref int i)
     {
         if (i >= t.Count) return null;
         string name = t[i++];
+        if (name.Equals("optional", StringComparison.OrdinalIgnoreCase))
+        {
+            optional = true;
+            if (i >= t.Count) return null;
+            name = t[i++];
+        }
         SkipCommas(t, ref i);
         if (!ReadInt(t, ref i, out int width)) return null;
         SkipCommas(t, ref i);
         if (!ReadInt(t, ref i, out int height)) return null;
 
-        var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height };
+        var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
 
         if (i < t.Count && t[i] == "{")
         {
@@ -86,6 +99,8 @@ public static class TexturesParser
                 {
                     case "xscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sx)) def.ScaleX = sx; break;
                     case "yscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sy)) def.ScaleY = sy; break;
+                    case "worldpanning": def.WorldPanning = true; break;
+                    case "nulltexture": def.NullTexture = true; break;
                     case "offset":
                     case "offsets":
                         SkipCommas(t, ref i); if (ReadInt(t, ref i, out int ox)) def.OffsetX = ox;
@@ -119,12 +134,22 @@ public static class TexturesParser
                 {
                     case "flipx": patch.FlipX = true; break;
                     case "flipy": patch.FlipY = true; break;
-                    default: break; // rotate/alpha/style/translation/... skipped token by token
+                    case "alpha": if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0); break;
+                    case "rotate": if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation); break;
+                    case "style": if (i < t.Count) patch.Style = t[i++]; break;
+                    default: break; // translation/blend/... skipped token by token
                 }
             }
             if (i < t.Count) i++; // }
         }
         def.Patches.Add(patch);
+    }
+
+    private static int NormalizeRotation(int rotation)
+    {
+        rotation %= 360;
+        if (rotation < 0) rotation += 360;
+        return rotation is 90 or 180 or 270 ? rotation : 0;
     }
 
     private static void SkipCommas(List<string> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }

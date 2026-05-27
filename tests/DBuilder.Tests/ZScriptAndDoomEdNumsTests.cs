@@ -53,6 +53,29 @@ class FancyImp : Actor replaces Imp
     }
 
     [Fact]
+    public void ParsesDefaultAssignmentsFlagsAndProperties()
+    {
+        const string text = @"
+class Assigned : Actor
+{
+    Default
+    {
+        Radius = 12;
+        Height = 34;
+        +SOLID;
+        RenderStyle = Translucent;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal(12, actor.Radius);
+        Assert.Equal(34, actor.Height);
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.Equal("Translucent", actor.Properties["RenderStyle"].Single());
+    }
+
+    [Fact]
     public void ParsesMapInfoDoomEdNums()
     {
         const string text = @"

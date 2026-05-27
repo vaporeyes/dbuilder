@@ -18,6 +18,8 @@ public sealed class ActorInfo
     public int Height { get; set; }   // 0 = unset (inherit)
     public string? Sprite { get; set; }
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Display title: //$Title if given, else the class name.</summary>
     public string Title => EditorKeys.TryGetValue("$title", out var t) && t.Length > 0 ? t : ClassName;
@@ -128,11 +130,49 @@ public static class DecorateParser
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && lw == "states") { pendingStates = true; }
-            else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) actor.Radius = r;
-            else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) actor.Height = h;
+            else if (!inStates && TryParseFlag(tk.Text, actor)) { }
+            else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
+            else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
+            else if (!inStates && LooksLikeProperty(tk.Text, t, i))
+            {
+                actor.Properties[tk.Text] = ReadPropertyValues(tk.Text, t, ref i);
+            }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
         }
+    }
+
+    private static bool TryParseFlag(string word, ActorInfo actor)
+    {
+        if (word.Length <= 1 || word[0] is not ('+' or '-')) return false;
+        actor.Flags[word.Substring(1)] = word[0] == '+';
+        return true;
+    }
+
+    private static bool LooksLikeProperty(string word, List<Tok> t, int next)
+    {
+        if (word.StartsWith('+') || word.StartsWith('-')) return false;
+        if (StateFlow.Contains(word)) return false;
+        if (next >= t.Count) return false;
+        if (t[next].Kind == Kind.Sym && t[next].Text == "=") return next + 1 < t.Count && t[next + 1].Kind is Kind.Word or Kind.Str;
+        if (t[next].Kind == Kind.Sym && t[next].Text is "{" or "}" or ":" or ";") return false;
+        return t[next].Kind is Kind.Word or Kind.Str;
+    }
+
+    private static List<string> ReadPropertyValues(string key, List<Tok> t, ref int i)
+    {
+        var values = new List<string>();
+        int maxValues = key.Equals("scale", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        while (i < t.Count && values.Count < maxValues)
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";") break;
+            if (tk.Kind == Kind.Sym && tk.Text == ",") { i++; continue; }
+            if (tk.Kind is Kind.Word or Kind.Str) values.Add(tk.Text);
+            i++;
+        }
+        return values;
     }
 
     // A spawn-state frame begins with a 4-char sprite name followed by a frame-letters token.
@@ -149,6 +189,7 @@ public static class DecorateParser
     private static bool PeekInt(List<Tok> t, ref int i, out int value)
     {
         value = 0;
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         if (i < t.Count && t[i].Kind == Kind.Word &&
             int.TryParse(t[i].Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
         // Some properties use floats; accept and truncate.
@@ -185,6 +226,10 @@ public static class DecorateParser
                 a.Sprite ??= parent.Sprite;
                 if (a.Radius == 0) a.Radius = parent.Radius;
                 if (a.Height == 0) a.Height = parent.Height;
+                foreach (var kvp in parent.Flags)
+                    if (!a.Flags.ContainsKey(kvp.Key)) a.Flags[kvp.Key] = kvp.Value;
+                foreach (var kvp in parent.Properties)
+                    if (!a.Properties.ContainsKey(kvp.Key)) a.Properties[kvp.Key] = kvp.Value;
                 if (!a.EditorKeys.ContainsKey("$category") && parent.EditorKeys.TryGetValue("$category", out var cat))
                     a.EditorKeys["$category"] = cat;
                 p = parent.ParentName;
@@ -227,12 +272,12 @@ public static class DecorateParser
                 toks.Add(new Tok(Kind.Str, sb.ToString()));
                 continue;
             }
-            if (c is '{' or '}' or ':' or ',' or ';')
+            if (c is '{' or '}' or ':' or ',' or ';' or '=')
             {
                 toks.Add(new Tok(Kind.Sym, c.ToString())); p++; continue;
             }
             int w = p;
-            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] is not ('{' or '}' or ':' or ',' or ';' or '"') &&
+            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] is not ('{' or '}' or ':' or ',' or ';' or '=' or '"') &&
                    !(s[p] == '/' && p + 1 < n && (s[p + 1] == '/' || s[p + 1] == '*'))) p++;
             toks.Add(new Tok(Kind.Word, s.Substring(w, p - w)));
         }

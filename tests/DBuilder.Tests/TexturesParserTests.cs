@@ -51,14 +51,18 @@ WallTexture COMPO, 4, 2
         const string text = @"
 Texture A, 8, 8 { Patch P1, 0, 0 }
 optional Sprite B, 16, 16 { Patch P2, 1, 2 }
-Flat C, 64, 64 { Patch P3, 0, 0 }";
+Flat C, 64, 64 { Patch P3, 0, 0 }
+Texture optional D, 4, 4 { Patch P4, 0, 0 }";
         var defs = TexturesParser.Parse(text);
-        Assert.Equal(3, defs.Count);
+        Assert.Equal(4, defs.Count);
         Assert.Equal(TexturesType.Texture, defs[0].Type);
         Assert.Equal(TexturesType.Sprite, defs[1].Type);
         Assert.Equal("B", defs[1].Name);
+        Assert.True(defs[1].Optional);
         Assert.Equal(TexturesType.Flat, defs[2].Type);
         Assert.Equal(64, defs[2].Width);
+        Assert.True(defs[3].Optional);
+        Assert.Equal("D", defs[3].Name);
     }
 
     [Fact]
@@ -77,5 +81,30 @@ Flat C, 64, 64 { Patch P3, 0, 0 }";
         Assert.Single(defs);
         Assert.Equal(10, defs[0].Width);
         Assert.Empty(defs[0].Patches);
+    }
+
+    [Fact]
+    public void ParsesTextureAndPatchMetadata()
+    {
+        const string text = @"
+Texture META, 8, 8
+{
+    WorldPanning
+    NullTexture
+    Patch P, 0, 0
+    {
+        Alpha 1.5
+        Rotate -90
+        Style Add
+    }
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.True(def.WorldPanning);
+        Assert.True(def.NullTexture);
+        Assert.Equal(1.0, def.Patches[0].Alpha);
+        Assert.Equal(270, def.Patches[0].Rotation);
+        Assert.Equal("Add", def.Patches[0].Style);
     }
 }
