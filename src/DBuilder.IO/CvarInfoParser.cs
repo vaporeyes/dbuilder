@@ -18,11 +18,14 @@ public sealed class CvarDefinition
     public string Name { get; init; } = "";
     public string? DefaultValue { get; set; }
     public bool Archive { get; set; }
+    public string? HandlerClass { get; set; }
+    public List<string> Flags { get; } = new();
 }
 
 public static class CvarInfoParser
 {
-    private static readonly HashSet<string> Scopes = new(StringComparer.OrdinalIgnoreCase) { "server", "user", "nosave" };
+    private static readonly HashSet<string> Scopes = new(StringComparer.OrdinalIgnoreCase) { "server", "user", "nosave", "local" };
+    private static readonly HashSet<string> Flags = new(StringComparer.OrdinalIgnoreCase) { "server", "user", "nosave", "local", "archive", "noarchive", "cheat", "latch" };
     private static readonly HashSet<string> Types = new(StringComparer.OrdinalIgnoreCase) { "bool", "int", "float", "string", "color" };
 
     public static CvarInfo Parse(string text)
@@ -31,19 +34,59 @@ public static class CvarInfoParser
         var t = ZDoomTokenScanner.Tokenize(text);
         for (int i = 0; i < t.Count;)
         {
-            string scope = t[i++];
-            if (!Scopes.Contains(scope) || i >= t.Count) continue;
-
+            string scope = "";
             bool archive = false;
-            if (t[i].Equals("archive", StringComparison.OrdinalIgnoreCase))
+            string? handlerClass = null;
+            bool invalidDeclaration = false;
+            var flags = new List<string>();
+
+            while (i < t.Count && !Types.Contains(t[i]))
             {
-                archive = true;
-                i++;
+                string flag = t[i++];
+                string lower = flag.ToLowerInvariant();
+                if (Scopes.Contains(lower) && scope.Length == 0) scope = lower;
+                if (lower == "archive") archive = true;
+                if (Flags.Contains(lower)) flags.Add(lower);
+                else if (lower.StartsWith("handlerclass", StringComparison.OrdinalIgnoreCase))
+                {
+                    flags.Add("handlerclass");
+                    handlerClass = ReadHandlerClass(t, ref i, flag);
+                }
+                else
+                {
+                    invalidDeclaration = true;
+                    SkipDeclaration(t, ref i);
+                    break;
+                }
             }
-            if (i >= t.Count || !Types.Contains(t[i])) continue;
+
+            if (invalidDeclaration) continue;
+
+            if (scope.Length == 0 || i >= t.Count || !Types.Contains(t[i]))
+            {
+                SkipDeclaration(t, ref i);
+                continue;
+            }
+
             string type = t[i++];
-            if (i >= t.Count) continue;
-            var variable = new CvarDefinition { Scope = scope.ToLowerInvariant(), Type = type.ToLowerInvariant(), Name = t[i++], Archive = archive };
+            if (i >= t.Count)
+            {
+                continue;
+            }
+
+            var variable = new CvarDefinition
+            {
+                Scope = scope,
+                Type = type.ToLowerInvariant(),
+                Name = t[i++],
+                Archive = archive,
+                HandlerClass = handlerClass
+            };
+            foreach (string flag in flags)
+            {
+                variable.Flags.Add(flag);
+            }
+
             if (i < t.Count && t[i] == "=")
             {
                 i++;
@@ -54,5 +97,32 @@ public static class CvarInfoParser
             info.Variables.Add(variable);
         }
         return info;
+    }
+
+    private static void SkipDeclaration(List<string> t, ref int i)
+    {
+        while (i < t.Count && t[i] != ";") i++;
+        if (i < t.Count) i++;
+    }
+
+    private static string? ReadHandlerClass(List<string> t, ref int i, string token)
+    {
+        int open = token.IndexOf('(');
+        if (open >= 0 && token.EndsWith(')') && token.Length > open + 2) return token.Substring(open + 1, token.Length - open - 2);
+        if (open >= 0)
+        {
+            if (i < t.Count)
+            {
+                string handlerClass = t[i++];
+                if (i < t.Count && t[i] == ")") i++;
+                return handlerClass;
+            }
+            return null;
+        }
+        if (i < t.Count && t[i] == "(") i++;
+        if (i >= t.Count) return null;
+        string value = t[i++];
+        if (i < t.Count && t[i] == ")") i++;
+        return value;
     }
 }

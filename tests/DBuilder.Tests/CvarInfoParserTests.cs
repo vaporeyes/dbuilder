@@ -36,4 +36,27 @@ ignored int nope = 0;";
         Assert.Equal("cl_alpha", variable.Name);
         Assert.Null(variable.DefaultValue);
     }
+
+    [Fact]
+    public void ParsesAdditionalFlagsAndHandlerClass()
+    {
+        const string text = @"
+server cheat latch int sv_secret = 3;
+local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
+
+        var info = CvarInfoParser.Parse(text);
+
+        var server = Assert.Single(info.Variables, c => c.Name == "sv_secret");
+        Assert.Equal("server", server.Scope);
+        Assert.Contains("cheat", server.Flags);
+        Assert.Contains("latch", server.Flags);
+        Assert.False(server.Archive);
+
+        var local = Assert.Single(info.Variables, c => c.Name == "ui_mode");
+        Assert.Equal("local", local.Scope);
+        Assert.Contains("noarchive", local.Flags);
+        Assert.Contains("handlerclass", local.Flags);
+        Assert.Equal("UiHandler", local.HandlerClass);
+        Assert.Equal("compact", local.DefaultValue);
+    }
 }
