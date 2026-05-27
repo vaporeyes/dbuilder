@@ -233,6 +233,54 @@ TROOCPOS
     }
 
     [Fact]
+    public void ParsesCompilerDefaultsStaticLimitsAndRequiredArchives()
+    {
+        const string cfg = """
+            defaultsavecompiler = "zdbsp_normal";
+            defaulttestcompiler = "zdbsp_fast";
+            defaultscriptcompiler = "acc";
+            nodebuildersave = "custom_save";
+            nodebuildertest = "custom_test";
+
+            staticlimits
+            {
+                visplanes = 128;
+                drawsegs = 256;
+            }
+
+            requiredarchives
+            {
+                gzdoom
+                {
+                    filename = "gzdoom.pk3";
+                    need_exclude = false;
+                    actors { lump = "DECORATE"; class = "Actor"; }
+                    zscript { lump = "ZSCRIPT"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("zdbsp_normal", gc.DefaultSaveCompiler);
+        Assert.Equal("zdbsp_fast", gc.DefaultTestCompiler);
+        Assert.Equal("acc", gc.DefaultScriptCompiler);
+        Assert.Equal("custom_save", gc.NodeBuilderSave);
+        Assert.Equal("custom_test", gc.NodeBuilderTest);
+        Assert.Equal(128, gc.StaticLimits.Get("visplanes"));
+        Assert.Equal(256, gc.StaticLimits.Get("drawsegs"));
+
+        var archive = Assert.Single(gc.RequiredArchives);
+        Assert.Equal("gzdoom", archive.Name);
+        Assert.Equal("gzdoom.pk3", archive.Filename);
+        Assert.False(archive.NeedExclude);
+        Assert.Equal(2, archive.Entries.Count);
+        var actors = archive.Entries.Single(e => e.Name == "actors");
+        Assert.Equal("DECORATE", actors.Lump);
+        Assert.Equal("Actor", actors.ClassName);
+    }
+
+    [Fact]
     public void LoadsRealDoomConfigWhenAvailable()
     {
         // Opportunistic: only runs when the UDB asset tree is present on this machine.

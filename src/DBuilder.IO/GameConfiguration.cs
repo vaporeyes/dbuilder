@@ -58,6 +58,15 @@ public sealed class SectorEffectInfo
     public string Title { get; init; } = "";
 }
 
+public sealed record StaticLimitsInfo(IReadOnlyDictionary<string, int> Values)
+{
+    public int Get(string name, int fallback = 0) => Values.TryGetValue(name, out int value) ? value : fallback;
+}
+
+public sealed record RequiredArchiveEntry(string Name, string? Lump, string? ClassName);
+
+public sealed record RequiredArchiveInfo(string Name, string Filename, bool NeedExclude, IReadOnlyList<RequiredArchiveEntry> Entries);
+
 public sealed class GameConfiguration
 {
     private readonly Dictionary<int, ThingTypeInfo> things = new();
@@ -72,6 +81,8 @@ public sealed class GameConfiguration
     private readonly List<FlagTranslation> linedefFlagsTranslation = new();
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
     private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<RequiredArchiveInfo> requiredArchives = new();
+    private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
@@ -91,6 +102,14 @@ public sealed class GameConfiguration
 
     /// <summary>Lump name -> map lump description from the maplumpnames block (empty if not configured).</summary>
     public IReadOnlyDictionary<string, MapLumpInfo> MapLumpNames => mapLumpNames;
+
+    public string DefaultSaveCompiler { get; private set; } = "";
+    public string DefaultTestCompiler { get; private set; } = "";
+    public string DefaultScriptCompiler { get; private set; } = "";
+    public string NodeBuilderSave { get; private set; } = "";
+    public string NodeBuilderTest { get; private set; } = "";
+    public StaticLimitsInfo StaticLimits => staticLimits;
+    public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
     public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
@@ -121,6 +140,11 @@ public sealed class GameConfiguration
         var gc = new GameConfiguration();
         if (cfg.Root is IDictionary root)
         {
+            gc.DefaultSaveCompiler = GetString(root, "defaultsavecompiler", "");
+            gc.DefaultTestCompiler = GetString(root, "defaulttestcompiler", "");
+            gc.DefaultScriptCompiler = GetString(root, "defaultscriptcompiler", "");
+            gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
+            gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
@@ -133,6 +157,8 @@ public sealed class GameConfiguration
             if (root["linedefflagstranslation"] is IDictionary lft) gc.ParseFlagTranslations(lft, gc.linedefFlagsTranslation);
             if (root["thingflagstranslation"] is IDictionary tft) gc.ParseFlagTranslations(tft, gc.thingFlagsTranslation);
             if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln);
+            if (root["staticlimits"] is IDictionary sl) gc.staticLimits = ParseStaticLimits(sl);
+            if (root["requiredarchives"] is IDictionary ra) gc.ParseRequiredArchives(ra);
         }
         return gc;
     }
@@ -511,6 +537,46 @@ public sealed class GameConfiguration
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
             if (e.Value is string title)
                 sectorEffects[number] = new SectorEffectInfo { Index = number, Title = title };
+        }
+    }
+
+    private static StaticLimitsInfo ParseStaticLimits(IDictionary block)
+    {
+        var values = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            int value = e.Value switch
+            {
+                int i => i,
+                long l => (int)l,
+                double d => (int)d,
+                string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) => parsed,
+                _ => 0,
+            };
+            if (key.Length > 0) values[key] = value;
+        }
+        return new StaticLimitsInfo(values);
+    }
+
+    private void ParseRequiredArchives(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string name = e.Key.ToString() ?? "";
+            if (e.Value is not IDictionary archive) continue;
+            var entries = new List<RequiredArchiveEntry>();
+            foreach (DictionaryEntry child in archive)
+            {
+                string entryName = child.Key.ToString() ?? "";
+                if (child.Value is not IDictionary entry) continue;
+                entries.Add(new RequiredArchiveEntry(entryName, entry["lump"] as string, entry["class"] as string));
+            }
+            requiredArchives.Add(new RequiredArchiveInfo(
+                name,
+                GetString(archive, "filename", "gzdoom.pk3"),
+                GetBool(archive, "need_exclude", true),
+                entries));
         }
     }
 

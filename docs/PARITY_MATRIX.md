@@ -12,7 +12,7 @@ Status values:
 | --- | --- | --- | --- |
 | `Source/Core/Actions` | missing | `DBuilder.Editor` | Command/action manager not ported. |
 | `Source/Core/Compilers` | missing | none | Compiler discovery and execution not ported. |
-| `Source/Core/Config` | partial | `DBuilder.IO` | Basic configuration parsing exists. Full inheritance, includes, defaults, and type sections remain. |
+| `Source/Core/Config` | partial | `DBuilder.IO` | Basic configuration parsing exists, including build defaults, required archives, static limits, and several type sections. Full inheritance, includes, compiler lists, nodebuilder lists, and remaining type sections remain. |
 | `Source/Core/Controls` | partial | `DBuilder.Editor` | Avalonia dialogs exist for selected workflows only. |
 | `Source/Core/Data` | partial | `DBuilder.IO` | Resource manager exists, but full UDB DataManager parity is incomplete. |
 | `Source/Core/Dehacked` | partial | `DBuilder.IO` | Patch data model, parser behavior, sprite replacements, and thing catalog merge support exist. Full UDB baseline DehackedData table processing remains. |
