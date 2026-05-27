@@ -117,6 +117,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port lump ordering rules.
 - [ ] Port map lump metadata and node-build lump handling.
   - [x] Parse UDB `scriptbuild` map lump metadata.
+  - [x] Add UDB-style bounded find/remove helpers for configured map lumps.
 - [ ] Port WAD map discovery behavior.
 - [ ] Port save behavior for replacing, inserting, and renaming maps.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.

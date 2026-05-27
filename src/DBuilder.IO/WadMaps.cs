@@ -109,6 +109,37 @@ public static class WadMaps
         dst.WriteHeaders();
     }
 
+    /// <summary>
+    /// Finds a configured map lump inside one map block. The scan stops at the first lump that is not
+    /// known by the supplied map-lump table, matching UDB's save/copy boundary behavior.
+    /// </summary>
+    public static int FindSpecificMapLump(WAD wad, string lumpName, int mapHeaderIndex, string mapHeaderName, IReadOnlyDictionary<string, MapLumpInfo> mapLumps)
+    {
+        for (int i = 0; i < mapLumps.Count + 1; i++)
+        {
+            int index = mapHeaderIndex + i;
+            if (index >= wad.Lumps.Count) break;
+
+            string configuredName = NormalizeMapHeaderPlaceholder(wad.Lumps[index].Name, mapHeaderName);
+            if (!mapLumps.ContainsKey(configuredName)) break;
+
+            if (wad.Lumps[index].Name == lumpName) return index;
+        }
+
+        return -1;
+    }
+
+    /// <summary>Removes one configured map lump and returns its former index, or -1 when absent.</summary>
+    public static int RemoveSpecificMapLump(WAD wad, string lumpName, int mapHeaderIndex, string mapHeaderName, IReadOnlyDictionary<string, MapLumpInfo> mapLumps)
+    {
+        int index = FindSpecificMapLump(wad, lumpName, mapHeaderIndex, mapHeaderName, mapLumps);
+        if (index > -1) wad.RemoveAt(index);
+        return index;
+    }
+
+    private static string NormalizeMapHeaderPlaceholder(string lumpName, string mapHeaderName)
+        => lumpName.Contains(mapHeaderName) ? lumpName.Replace(mapHeaderName, "~MAP") : lumpName;
+
     // A lump is a map sub-lump if the game config lists it (port-specific lumps) or it is in the curated
     // built-in set. The config only extends this set, so save-back never fails to clean a standard lump.
     /// <summary>Reads a named sub-lump (e.g. REJECT, BLOCKMAP) belonging to a map marker, or null if absent.</summary>

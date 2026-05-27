@@ -3,6 +3,7 @@
 // ABOUTME: non-zero-length Hexen marker must still be found and loaded with the Hexen (not Doom) loader.
 
 using System.IO;
+using System.Linq;
 using System.Text;
 using DBuilder.IO;
 
@@ -10,6 +11,14 @@ namespace DBuilder.Tests;
 
 public class WadMapsTests
 {
+    private const string MapLumpConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+}";
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -105,5 +114,41 @@ public class WadMapsTests
         // The 16-byte Hexen stride must resolve v1=0, v2=1 (a 14-byte Doom read would corrupt this).
         Assert.Same(map.Vertices[0], map.Linedefs[0].Start);
         Assert.Same(map.Vertices[1], map.Linedefs[0].End);
+    }
+
+    [Fact]
+    public void FindSpecificMapLumpStaysInsideConfiguredMapBlock()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "DECORATE", new byte[0], 2);
+        WriteLump(wad, "LINEDEFS", new byte[0], 3);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(MapLumpConfig);
+        int header = wad.FindLumpIndex("MAP01");
+
+        Assert.Equal(header, WadMaps.FindSpecificMapLump(wad, "MAP01", header, "MAP01", config.MapLumpNames));
+        Assert.Equal(1, WadMaps.FindSpecificMapLump(wad, "THINGS", header, "MAP01", config.MapLumpNames));
+        Assert.Equal(-1, WadMaps.FindSpecificMapLump(wad, "LINEDEFS", header, "MAP01", config.MapLumpNames));
+    }
+
+    [Fact]
+    public void RemoveSpecificMapLumpRemovesConfiguredLumpOnly()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(wad, "LINEDEFS", new byte[] { 2 }, 2);
+        WriteLump(wad, "END", new byte[0], 3);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(MapLumpConfig);
+        int header = wad.FindLumpIndex("MAP01");
+
+        Assert.Equal(1, WadMaps.RemoveSpecificMapLump(wad, "THINGS", header, "MAP01", config.MapLumpNames));
+        Assert.Equal(new[] { "MAP01", "LINEDEFS", "END" }, wad.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(-1, WadMaps.RemoveSpecificMapLump(wad, "END", header, "MAP01", config.MapLumpNames));
     }
 }
