@@ -36,13 +36,13 @@ public sealed class MapInfoEntry
     public string? OutsideFog { get; set; }
     public (byte R, byte G, byte B)? OutsideFogColor { get; set; }
     public bool HasOutsideFogColor => OutsideFogDensity.GetValueOrDefault() > 0 && OutsideFogColor is { } color && (color.R != 0 || color.G != 0 || color.B != 0);
-    public int? FogDensity { get; set; }
-    public int? OutsideFogDensity { get; set; }
-    public int? HorizWallShade { get; set; }
-    public int? VertWallShade { get; set; }
+    public int? FogDensity { get; set; } = 255;
+    public int? OutsideFogDensity { get; set; } = 255;
+    public int? HorizWallShade { get; set; } = -16;
+    public int? VertWallShade { get; set; } = 16;
     public string? LightMode { get; set; }
     public string? LightAttenuationMode { get; set; }
-    public double? PixelRatio { get; set; }
+    public double? PixelRatio { get; set; } = 1.2;
 
     /// <summary>Any property not surfaced as a strong field, value tokens joined by spaces.</summary>
     public Dictionary<string, string> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -366,14 +366,16 @@ public sealed class MapInfo
                 break;
             case "fogdensity": e.FogDensity = Int(); break;
             case "outsidefogdensity": e.OutsideFogDensity = Int(); break;
-            case "horizwallshade": e.HorizWallShade = Int(); break;
-            case "vertwallshade": e.VertWallShade = Int(); break;
+            case "horizwallshade": e.HorizWallShade = ClampWallShade(Int()); break;
+            case "vertwallshade": e.VertWallShade = ClampWallShade(Int()); break;
             case "lightmode": e.LightMode = First(); break;
             case "lightattenuationmode": e.LightAttenuationMode = First(); break;
             case "pixelratio": e.PixelRatio = Double(); break;
             default: e.Properties[key] = string.Join(" ", values); break;
         }
     }
+
+    private static int? ClampWallShade(int? value) => value.HasValue ? Math.Clamp(value.Value, -255, 255) : null;
 
     private static void SkipBlock(List<Tok> toks, ref int i)
     {

@@ -342,4 +342,29 @@ map MAP02 ""Underhalls""
         Assert.Equal(30, map.Par);
         Assert.False(map.DoubleSky);
     }
+
+    [Fact]
+    public void UsesUdbVisualDefaultsAndClampsWallShades()
+    {
+        const string text = @"
+map MAP01 ""Defaults"" { fade = 204060 }
+map MAP02 ""Clamped""
+{
+    horizwallshade = -999
+    vertwallshade = 999
+}";
+
+        var mi = MapInfo.Parse(text);
+        var defaults = mi.GetMap("MAP01")!;
+        var clamped = mi.GetMap("MAP02")!;
+
+        Assert.Equal(255, defaults.FogDensity);
+        Assert.Equal(255, defaults.OutsideFogDensity);
+        Assert.Equal(-16, defaults.HorizWallShade);
+        Assert.Equal(16, defaults.VertWallShade);
+        Assert.Equal(1.2, defaults.PixelRatio);
+        Assert.True(defaults.HasFadeColor);
+        Assert.Equal(-255, clamped.HorizWallShade);
+        Assert.Equal(255, clamped.VertWallShade);
+    }
 }
