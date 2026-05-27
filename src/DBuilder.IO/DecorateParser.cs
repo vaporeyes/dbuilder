@@ -187,6 +187,8 @@ public static class DecorateParser
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && lw == "states") { pendingStates = true; }
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
+            else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
+                                || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
             else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
             else if (!inStates && LooksLikeProperty(tk.Text, t, i))

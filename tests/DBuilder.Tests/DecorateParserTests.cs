@@ -141,6 +141,10 @@ ACTOR CoolMonster 31000
     RenderStyle Add
     Alpha 0.5
     Scale 1.25
+    $Color 4
+    $Angled
+    +SOLID
+    +SPAWNCEILING
     Radius 24
     Height 48
     States { Spawn: COOL A -1 stop }
@@ -157,6 +161,11 @@ ACTOR CoolMonster 31000
         Assert.Equal("add", info.RenderStyle);
         Assert.Equal(0.5, info.Alpha);
         Assert.Equal(1.25, info.SpriteScale);
+        Assert.Equal(4, info.Color);
+        Assert.True(info.Arrow);
+        Assert.True(info.Hangs);
+        Assert.Equal(2, info.Blocking);
+        Assert.Equal(1, info.ErrorCheck);
     }
 
     [Fact]

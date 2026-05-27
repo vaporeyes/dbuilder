@@ -409,6 +409,11 @@ public sealed class GameConfiguration
                 Alpha = ActorAlpha(a),
                 RenderStyle = ActorRenderStyle(a),
                 SpriteScale = ActorSpriteScale(a),
+                Color = ActorColor(a),
+                Arrow = ActorArrow(a),
+                Hangs = ActorFlag(a, "spawnceiling"),
+                Blocking = ActorFlag(a, "solid") ? 2 : 0,
+                ErrorCheck = ActorFlag(a, "solid") ? 1 : 0,
             };
         }
     }
@@ -435,6 +440,22 @@ public sealed class GameConfiguration
         return 1.0;
     }
 
+    private static int ActorColor(ActorInfo actor)
+    {
+        if (!TryActorPropertyInt(actor, "$color", out int color)) return 0;
+        return color == 0 || color > 19 ? 18 : color;
+    }
+
+    private static bool ActorArrow(ActorInfo actor)
+    {
+        if (actor.Properties.ContainsKey("$angled")) return true;
+        if (actor.Properties.ContainsKey("$notangled")) return false;
+        return false;
+    }
+
+    private static bool ActorFlag(ActorInfo actor, string flag)
+        => actor.Flags.TryGetValue(flag, out bool enabled) && enabled;
+
     private static bool TryActorProperty(ActorInfo actor, string name, out string value)
     {
         value = "";
@@ -448,6 +469,13 @@ public sealed class GameConfiguration
         value = 0.0;
         return TryActorProperty(actor, name, out string raw)
             && double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static bool TryActorPropertyInt(ActorInfo actor, string name, out int value)
+    {
+        value = 0;
+        return TryActorProperty(actor, name, out string raw)
+            && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
     }
 
     /// <summary>
