@@ -28,7 +28,7 @@ object ShortRedTorch
         Assert.Equal("pointlight", l.Type);
         Assert.Equal(1.0f, l.R, 4);
         Assert.Equal(0.7f, l.G, 4);
-        Assert.Equal(96f, l.Size, 4);
+        Assert.Equal(192f, l.Size, 4);
         Assert.Equal(32f, l.OffsetZ, 4);
 
         Assert.Single(g.Objects);
@@ -71,8 +71,9 @@ brightmap texture FOO { map FOO_BR }";
         var g = GldefsParser.Parse(text);
         Assert.Single(g.Lights);
         Assert.True(g.Lights.ContainsKey("LAMP"));
-        Assert.Equal(24f, g.Lights["LAMP"].SecondarySize, 4);
-        Assert.Equal(0.5f, g.Lights["LAMP"].Interval, 4);
+        Assert.Equal(128f, g.Lights["LAMP"].Size, 4);
+        Assert.Equal(48f, g.Lights["LAMP"].SecondarySize, 4);
+        Assert.Equal(17f, g.Lights["LAMP"].Interval, 4);
         Assert.True(g.Lights["LAMP"].Subtractive);
         Assert.True(g.Lights["LAMP"].DontLightSelf);
         Assert.True(g.Skyboxes["SKY1"].FlipTop);
@@ -94,5 +95,20 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
         Assert.Single(g.Lights);
         Assert.True(g.Lights.ContainsKey("LAMP_LIGHT"));
         Assert.Equal(0.2f, g.ActorLightColor("LampActor")!.Value.G, 4);
+    }
+
+    [Fact]
+    public void NormalizesFlickerChanceAndSectorScale()
+    {
+        const string text = @"
+flickerlight SPARK { color 1.0 1.0 1.0 size 32 secondarysize 8 chance 0.5 }
+sectorlight SECTOR { color 0.5 0.5 0.5 scale 0.7 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(179f, g.Lights["SPARK"].Interval, 4);
+        Assert.Equal(16f, g.Lights["SPARK"].SecondarySize, 4);
+        Assert.Equal(7f, g.Lights["SECTOR"].Interval, 4);
+        Assert.Equal(0.7f, g.Lights["SECTOR"].Scale, 4);
     }
 }

@@ -47,7 +47,7 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }
             resources.AddResource(newPk3);
 
             Assert.Equal(0.8f, resources.GetGldefs().Lights["SHARED"].R, 4);
-            Assert.Equal(64f, resources.GetGldefs().Lights["SHARED"].Size, 4);
+            Assert.Equal(128f, resources.GetGldefs().Lights["SHARED"].Size, 4);
         }
         finally
         {
