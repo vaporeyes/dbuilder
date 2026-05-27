@@ -140,6 +140,21 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void RequiresQuotesForLongTextureNames()
+    {
+        const string text = @"
+Texture LONGTEXTURE, 8, 8 { Patch P, 0, 0 }
+Texture ""LONGTEXTURE"", 8, 8 { Patch P, 0, 0 }
+Texture SHORT, 8, 8 { Patch P, 0, 0 }";
+
+        var defs = TexturesParser.Parse(text);
+
+        Assert.Equal(2, defs.Count);
+        Assert.Equal("LONGTEXTURE", defs[0].Name);
+        Assert.Equal("SHORT", defs[1].Name);
+    }
+
+    [Fact]
     public void SkipsPatchesWithNonIntegralOffsets()
     {
         const string text = @"
@@ -156,6 +171,24 @@ Texture PATCHES, 8, 8
         Assert.Equal("OK", patch.Name);
         Assert.Equal(2, patch.X);
         Assert.Equal(3, patch.Y);
+    }
+
+    [Fact]
+    public void RequiresQuotesForLongPatchNames()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch LONGPATCH, 0, 0
+    Patch ""LONGPATCH"", 1, 2
+    Patch SHORT, 3, 4
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal(2, def.Patches.Count);
+        Assert.Equal("LONGPATCH", def.Patches[0].Name);
+        Assert.Equal("SHORT", def.Patches[1].Name);
     }
 
     [Fact]

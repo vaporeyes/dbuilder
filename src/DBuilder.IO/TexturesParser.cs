@@ -66,6 +66,8 @@ public sealed class TexturesDef
 
 public static class TexturesParser
 {
+    private const int ClassicImageNameLength = 8;
+
     /// <summary>Parses a TEXTURES lump into its definitions (malformed entries are skipped).</summary>
     public static List<TexturesDef> Parse(string text)
         => Parse(text, knownColors: null);
@@ -105,7 +107,7 @@ public static class TexturesParser
         return defs;
     }
 
-    private static void TrySkipUnknownTopLevelBlock(List<string> t, ref int i)
+    private static void TrySkipUnknownTopLevelBlock(List<Tok> t, ref int i)
     {
         if (i >= t.Count || t[i] != "{") return;
         int depth = 0;
@@ -121,16 +123,19 @@ public static class TexturesParser
         }
     }
 
-    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return null;
-        string name = t[i++];
+        Tok nameToken = t[i++];
+        string name = nameToken.Text;
         if (name.Equals("optional", StringComparison.OrdinalIgnoreCase))
         {
             optional = true;
             if (i >= t.Count) return null;
-            name = t[i++];
+            nameToken = t[i++];
+            name = nameToken.Text;
         }
+        if (IsInvalidLongTextureName(nameToken)) return null;
         if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
         SkipCommas(t, ref i);
         if (!ReadInt(t, ref i, out int width)) return null;
@@ -145,7 +150,7 @@ public static class TexturesParser
             i++; // {
             while (i < t.Count && t[i] != "}")
             {
-                string kw = t[i++].ToLowerInvariant();
+                string kw = t[i++].Text.ToLowerInvariant();
                 switch (kw)
                 {
                     case "xscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sx)) def.ScaleX = NormalizeScale(sx); break;
@@ -168,10 +173,12 @@ public static class TexturesParser
 
     private static double NormalizeScale(double value) => value == 0.0 ? 1.0 : 1.0 / value;
 
-    private static void ParsePatch(TexturesDef def, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static void ParsePatch(TexturesDef def, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return;
-        string name = t[i++];
+        Tok nameToken = t[i++];
+        string name = nameToken.Text;
+        if (IsInvalidLongTextureName(nameToken)) return;
         SkipCommas(t, ref i);
         if (!ReadInt(t, ref i, out int x)) return;
         SkipCommas(t, ref i);
@@ -189,7 +196,7 @@ public static class TexturesParser
             i++; // {
             while (i < t.Count && t[i] != "}")
             {
-                switch (t[i++].ToLowerInvariant())
+                switch (t[i++].Text.ToLowerInvariant())
                 {
                     case "flipx": patch.FlipX = true; break;
                     case "flipy": patch.FlipY = true; break;
@@ -198,7 +205,7 @@ public static class TexturesParser
                     case "style":
                         if (i < t.Count)
                         {
-                            patch.Style = t[i++];
+                            patch.Style = t[i++].Text;
                             patch.RenderStyle = ParseRenderStyle(patch.Style);
                         }
                         break;
@@ -211,7 +218,10 @@ public static class TexturesParser
         def.Patches.Add(patch);
     }
 
-    private static void ParseBlend(TexturesPatch patch, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool IsInvalidLongTextureName(Tok token)
+        => token.Text.Length > ClassicImageNameLength && !token.Quoted;
+
+    private static void ParseBlend(TexturesPatch patch, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i >= t.Count) return;
 
@@ -281,9 +291,9 @@ public static class TexturesParser
         }
     }
 
-    private static void SkipCommas(List<string> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }
+    private static void SkipCommas(List<Tok> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }
 
-    private static bool ReadInt(List<string> t, ref int i, out int v)
+    private static bool ReadInt(List<Tok> t, ref int i, out int v)
     {
         v = 0;
         if (i >= t.Count) return false;
@@ -291,14 +301,14 @@ public static class TexturesParser
         return false;
     }
 
-    private static bool ReadDouble(List<string> t, ref int i, out double v)
+    private static bool ReadDouble(List<Tok> t, ref int i, out double v)
     {
         v = 0;
         if (i < t.Count && double.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out v)) { i++; return true; }
         return false;
     }
 
-    private static bool ReadByte(List<string> t, ref int i, out byte value)
+    private static bool ReadByte(List<Tok> t, ref int i, out byte value)
     {
         value = 0;
         if (i >= t.Count) return false;
@@ -307,9 +317,9 @@ public static class TexturesParser
     }
 
     // Tokenizes into words / quoted strings / single-char symbols ({ } ,), skipping // and /* */ comments.
-    private static List<string> Tokenize(string s)
+    private static List<Tok> Tokenize(string s)
     {
-        var toks = new List<string>();
+        var toks = new List<Tok>();
         int n = s.Length;
         for (int p = 0; p < n;)
         {
@@ -324,15 +334,20 @@ public static class TexturesParser
                 p++;
                 while (p < n && s[p] != '"') { if (s[p] == '\\' && p + 1 < n) { sb.Append(s[p + 1]); p += 2; } else sb.Append(s[p++]); }
                 p++;
-                toks.Add(sb.ToString());
+                toks.Add(new Tok(sb.ToString(), true));
                 continue;
             }
-            if (c == '{' || c == '}' || c == ',') { toks.Add(c.ToString()); p++; continue; }
+            if (c == '{' || c == '}' || c == ',') { toks.Add(new Tok(c.ToString(), false)); p++; continue; }
 
             int b = p;
             while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '{' && s[p] != '}' && s[p] != ',' && s[p] != '"') p++;
-            toks.Add(s.Substring(b, p - b));
+            toks.Add(new Tok(s.Substring(b, p - b), false));
         }
         return toks;
+    }
+
+    private readonly record struct Tok(string Text, bool Quoted)
+    {
+        public static implicit operator string(Tok token) => token.Text;
     }
 }
