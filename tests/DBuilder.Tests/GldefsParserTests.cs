@@ -202,6 +202,27 @@ sectorlight SECTOR { color 0.5 0.5 0.5 scale 0.7 }";
     }
 
     [Fact]
+    public void SkipsLightsWithInvalidRanges()
+    {
+        const string text = @"
+pointlight NEGSIZE { color 1.0 1.0 1.0 size -1 }
+pulselight NEGSECONDARY { color 1.0 1.0 1.0 size 8 secondarysize -1 interval 1 }
+pulselight ZEROINTERVAL { color 1.0 1.0 1.0 size 8 secondarysize 4 interval 0 }
+flickerlight BADCHANCE { color 1.0 1.0 1.0 size 8 secondarysize 4 chance 1.5 }
+sectorlight BADSCALE { color 1.0 1.0 1.0 scale -0.1 }
+pointlight VALID { color 1.0 1.0 1.0 size 8 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("NEGSIZE"));
+        Assert.False(g.Lights.ContainsKey("NEGSECONDARY"));
+        Assert.False(g.Lights.ContainsKey("ZEROINTERVAL"));
+        Assert.False(g.Lights.ContainsKey("BADCHANCE"));
+        Assert.False(g.Lights.ContainsKey("BADSCALE"));
+        Assert.True(g.Lights.ContainsKey("VALID"));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"

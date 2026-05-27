@@ -115,6 +115,7 @@ public static class GldefsParser
         i++; // type
         if (i >= t.Count) return;
         var light = new GldefsLight { Name = t[i++], Type = type };
+        bool invalid = false;
         if (i < t.Count && t[i] == "{")
         {
             i++;
@@ -122,19 +123,44 @@ public static class GldefsParser
             {
                 string p = t[i++].ToLowerInvariant();
                 if (p == "color") { light.R = ClampColor(ReadFloat(t, ref i)); light.G = ClampColor(ReadFloat(t, ref i)); light.B = ClampColor(ReadFloat(t, ref i)); }
-                else if (p == "size") light.Size = ReadFloat(t, ref i) * 2.0f;
-                else if (p == "secondarysize") light.SecondarySize = ReadFloat(t, ref i) * 2.0f;
+                else if (p == "size")
+                {
+                    float size = ReadFloat(t, ref i);
+                    if (size < 0.0f) invalid = true;
+                    else light.Size = size * 2.0f;
+                }
+                else if (p == "secondarysize")
+                {
+                    float secondarySize = ReadFloat(t, ref i);
+                    if (secondarySize < 0.0f) invalid = true;
+                    else light.SecondarySize = secondarySize * 2.0f;
+                }
                 else if (p == "offset") { light.OffsetX = ReadFloat(t, ref i); light.OffsetY = ReadFloat(t, ref i); light.OffsetZ = ReadFloat(t, ref i); }
-                else if (p == "interval") light.Interval = NormalizeInterval(type, ReadFloat(t, ref i));
-                else if (p == "chance") { light.Chance = ReadFloat(t, ref i); if (type == "flickerlight") light.Interval = (int)(light.Chance * 359.0f); }
-                else if (p == "scale") { light.Scale = ReadFloat(t, ref i); if (type == "sectorlight") light.Interval = (int)(light.Scale * 10.0f); }
+                else if (p == "interval")
+                {
+                    float interval = ReadFloat(t, ref i);
+                    if (interval <= 0.0f) invalid = true;
+                    else light.Interval = NormalizeInterval(type, interval);
+                }
+                else if (p == "chance")
+                {
+                    light.Chance = ReadFloat(t, ref i);
+                    if (light.Chance is < 0.0f or > 1.0f) invalid = true;
+                    else if (type == "flickerlight") light.Interval = (int)(light.Chance * 359.0f);
+                }
+                else if (p == "scale")
+                {
+                    light.Scale = ReadFloat(t, ref i);
+                    if (light.Scale is < 0.0f or > 1.0f) invalid = true;
+                    else if (type == "sectorlight") light.Interval = (int)(light.Scale * 10.0f);
+                }
                 else if (p == "subtractive") light.Subtractive = ReadBool(t, ref i);
                 else if (p == "attenuate") light.Attenuate = ReadBool(t, ref i);
                 else if (p == "dontlightself") light.DontLightSelf = ReadBool(t, ref i);
             }
             if (i < t.Count) i++; // }
         }
-        if (light.Name.Length > 0 && ShouldKeepLight(light)) g.Lights[light.Name] = light;
+        if (!invalid && light.Name.Length > 0 && ShouldKeepLight(light)) g.Lights[light.Name] = light;
     }
 
     private static float NormalizeInterval(string type, float interval)
