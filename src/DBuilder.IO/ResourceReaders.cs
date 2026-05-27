@@ -17,6 +17,7 @@ internal interface IResourceReader : IDisposable
     ImageData? GetFlat(string name, DoomPalette? palette);
     ImageData? GetWallTexture(string name, DoomPalette? palette);
     ImageData? GetSprite(string name, DoomPalette? palette);
+    ImageData? GetPatch(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
     /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
@@ -73,6 +74,8 @@ internal sealed class WadResourceReader : IResourceReader
         var pic = DoomPictureReader.Decode(wad, name, palette);
         return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
+
+    public ImageData? GetPatch(string name, DoomPalette? palette) => GetSprite(name, palette);
 
     private Dictionary<string, DoomTextureDef> TexDefs()
     {
@@ -245,6 +248,20 @@ internal abstract class FolderResourceReader : IResourceReader
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
             image = nestedReaders[i].GetSprite(name, palette);
+            if (image != null) return image;
+        }
+
+        return null;
+    }
+
+    public virtual ImageData? GetPatch(string name, DoomPalette? palette)
+    {
+        var image = Decode(Find(name, "patches", "textures", "flats", "sprites", "graphics", ""), palette, preferFlat: false);
+        if (image != null) return image;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            image = nestedReaders[i].GetPatch(name, palette);
             if (image != null) return image;
         }
 
