@@ -126,33 +126,33 @@ public static class GldefsParser
                 else if (p == "size")
                 {
                     float size = ReadFloat(t, ref i);
-                    if (size < 0.0f) invalid = true;
+                    if (type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || size < 0.0f) invalid = true;
                     else light.Size = size * 2.0f;
                 }
                 else if (p == "secondarysize")
                 {
                     float secondarySize = ReadFloat(t, ref i);
-                    if (secondarySize < 0.0f) invalid = true;
+                    if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) invalid = true;
                     else light.SecondarySize = secondarySize * 2.0f;
                 }
                 else if (p == "offset") { light.OffsetX = ReadFloat(t, ref i); light.OffsetY = ReadFloat(t, ref i); light.OffsetZ = ReadFloat(t, ref i); }
                 else if (p == "interval")
                 {
                     float interval = ReadFloat(t, ref i);
-                    if (interval <= 0.0f) invalid = true;
+                    if (!CanHaveInterval(type) || interval <= 0.0f) invalid = true;
                     else light.Interval = NormalizeInterval(type, interval);
                 }
                 else if (p == "chance")
                 {
                     light.Chance = ReadFloat(t, ref i);
-                    if (light.Chance is < 0.0f or > 1.0f) invalid = true;
-                    else if (type == "flickerlight") light.Interval = (int)(light.Chance * 359.0f);
+                    if (!type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase) || light.Chance is < 0.0f or > 1.0f) invalid = true;
+                    else light.Interval = (int)(light.Chance * 359.0f);
                 }
                 else if (p == "scale")
                 {
                     light.Scale = ReadFloat(t, ref i);
-                    if (light.Scale is < 0.0f or > 1.0f) invalid = true;
-                    else if (type == "sectorlight") light.Interval = (int)(light.Scale * 10.0f);
+                    if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) invalid = true;
+                    else light.Interval = (int)(light.Scale * 10.0f);
                 }
                 else if (p == "subtractive") light.Subtractive = ReadBool(t, ref i);
                 else if (p == "attenuate") light.Attenuate = ReadBool(t, ref i);
@@ -162,6 +162,15 @@ public static class GldefsParser
         }
         if (!invalid && light.Name.Length > 0 && ShouldKeepLight(light)) g.Lights[light.Name] = light;
     }
+
+    private static bool CanHaveSecondarySize(string type)
+        => type.Equals("pulselight", StringComparison.OrdinalIgnoreCase)
+        || type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase)
+        || type.Equals("flickerlight2", StringComparison.OrdinalIgnoreCase);
+
+    private static bool CanHaveInterval(string type)
+        => type.Equals("pulselight", StringComparison.OrdinalIgnoreCase)
+        || type.Equals("flickerlight2", StringComparison.OrdinalIgnoreCase);
 
     private static float NormalizeInterval(string type, float interval)
     {

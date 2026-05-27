@@ -223,6 +223,29 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
     }
 
     [Fact]
+    public void SkipsLightsWithPropertiesForWrongLightType()
+    {
+        const string text = @"
+sectorlight SECTORSIZE { color 1.0 1.0 1.0 size 8 scale 0.5 }
+pointlight POINTSECONDARY { color 1.0 1.0 1.0 size 8 secondarysize 4 }
+pointlight POINTINTERVAL { color 1.0 1.0 1.0 size 8 interval 1 }
+pulselight PULSECHANCE { color 1.0 1.0 1.0 size 8 secondarysize 4 interval 1 chance 0.5 }
+pointlight POINTSCALE { color 1.0 1.0 1.0 size 8 scale 0.5 }
+pulselight VALIDPULSE { color 1.0 1.0 1.0 size 8 secondarysize 4 interval 1 }
+sectorlight VALIDSECTOR { color 1.0 1.0 1.0 scale 0.5 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("SECTORSIZE"));
+        Assert.False(g.Lights.ContainsKey("POINTSECONDARY"));
+        Assert.False(g.Lights.ContainsKey("POINTINTERVAL"));
+        Assert.False(g.Lights.ContainsKey("PULSECHANCE"));
+        Assert.False(g.Lights.ContainsKey("POINTSCALE"));
+        Assert.True(g.Lights.ContainsKey("VALIDPULSE"));
+        Assert.True(g.Lights.ContainsKey("VALIDSECTOR"));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"
