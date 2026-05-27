@@ -29,7 +29,7 @@ object ShortRedTorch
         Assert.Equal(1.0f, l.R, 4);
         Assert.Equal(0.7f, l.G, 4);
         Assert.Equal(192f, l.Size, 4);
-        Assert.Equal(32f, l.OffsetZ, 4);
+        Assert.Equal(32f, l.OffsetY, 4);
 
         Assert.Single(g.Objects);
         Assert.Equal("ShortRedTorch", g.Objects[0].ClassName);
@@ -50,6 +50,18 @@ object ShortRedTorch
         Assert.Equal(1.0f, light.R, 4);
         Assert.Equal(0.0f, light.G, 4);
         Assert.Equal(0.5f, light.B, 4);
+    }
+
+    [Fact]
+    public void MapsLightOffsetToUdbCoordinateAxes()
+    {
+        const string text = "pointlight OFFSET { color 1.0 1.0 1.0 size 16 offset 1 2 3 }";
+
+        var light = GldefsParser.Parse(text).Lights["OFFSET"];
+
+        Assert.Equal(1.0f, light.OffsetX, 4);
+        Assert.Equal(2.0f, light.OffsetZ, 4);
+        Assert.Equal(3.0f, light.OffsetY, 4);
     }
 
     [Fact]
