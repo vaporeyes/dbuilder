@@ -53,6 +53,24 @@ ACTOR Thing 5000
     }
 
     [Fact]
+    public void DollarPropertiesPopulateEditorDisplayFields()
+    {
+        const string text = @"
+ACTOR PropertyThing 5001
+{
+    $Title ""Property Thing""
+    $Category ""Property Category""
+    $Sprite ""PROPA0""
+    States { Spawn: TROO A -1 stop }
+}";
+        var a = DecorateParser.Parse(text)[0];
+
+        Assert.Equal("Property Thing", a.Title);
+        Assert.Equal("Property Category", a.Category);
+        Assert.Equal("PROPA0", a.EditorSprite);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];

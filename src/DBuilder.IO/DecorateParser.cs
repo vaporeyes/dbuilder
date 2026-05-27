@@ -23,10 +23,12 @@ public sealed class ActorInfo
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Display title: //$Title if given, else the class name.</summary>
-    public string Title => EditorKeys.TryGetValue("$title", out var t) && t.Length > 0 ? t : ClassName;
+    public string Title => EditorKeys.TryGetValue("$title", out var t) && t.Length > 0 ? t
+        : TryFirstProperty("$title", out t) && t.Length > 0 ? t : ClassName;
 
     /// <summary>Editor category: //$Category if given, else null.</summary>
-    public string? Category => EditorKeys.TryGetValue("$category", out var c) ? c : null;
+    public string? Category => EditorKeys.TryGetValue("$category", out var c) ? c
+        : TryFirstProperty("$category", out c) ? c : null;
 
     /// <summary>Sprite name: //$Sprite if given, else the spawn-state derived sprite (may be null).</summary>
     public string? EditorSprite
@@ -34,8 +36,17 @@ public sealed class ActorInfo
         get
         {
             if (EditorKeys.TryGetValue("$sprite", out var s) && s.Length > 0) return s;
+            if (TryFirstProperty("$sprite", out s) && s.Length > 0) return s;
             return Sprite;
         }
+    }
+
+    private bool TryFirstProperty(string key, out string value)
+    {
+        value = "";
+        if (!Properties.TryGetValue(key, out var values) || values.Count == 0) return false;
+        value = values[0];
+        return true;
     }
 }
 

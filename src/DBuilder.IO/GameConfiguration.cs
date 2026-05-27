@@ -420,7 +420,7 @@ public sealed class GameConfiguration
 
     private static string ActorTitle(ActorInfo actor)
     {
-        if (actor.EditorKeys.TryGetValue("$title", out string? title) && title.Length > 0) return title;
+        if (!string.Equals(actor.Title, actor.ClassName, StringComparison.Ordinal)) return actor.Title;
         if (TryActorProperty(actor, "tag", out string? tag) && !tag.StartsWith("$", StringComparison.Ordinal)) return tag;
         return actor.ClassName;
     }
