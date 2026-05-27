@@ -142,6 +142,24 @@ ACTOR NativeActor 7005
     }
 
     [Fact]
+    public void IgnoresUserVariableDeclarations()
+    {
+        const string text = @"
+ACTOR UserVarActor 7006
+{
+    var int user_score;
+    var float user_values[4];
+    Radius 16
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.False(actor.Properties.ContainsKey("var"));
+        Assert.False(actor.Properties.ContainsKey("user_score"));
+        Assert.False(actor.Properties.ContainsKey("user_values"));
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ScalePopulatesXScaleAndYScaleProperties()
     {
         const string text = "ACTOR Scaled 7004 { Scale 1.5 }";

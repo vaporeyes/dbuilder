@@ -203,6 +203,7 @@ public static class DecorateParser
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("defaultalpha", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
+            else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) SkipUntilSemicolon(t, ref i);
             else if (!inStates && (tk.Text.Equals("action", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))) SkipUntilSemicolon(t, ref i);
             else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
