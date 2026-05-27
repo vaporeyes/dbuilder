@@ -207,4 +207,48 @@ map MAP02 ""Underhalls""
         Assert.Equal(1, map02.Cluster);
         Assert.Equal(45, map02.Par);
     }
+
+    [Fact]
+    public void ParsesVisualDisplayProperties()
+    {
+        const string text = @"
+map MAP01 ""Entryway""
+{
+    sky1 = SKY1, 0.25
+    sky2 = SKY2, -0.5
+    doublesky
+    fade = ""204060""
+    outsidefog = ""102030""
+    fogdensity = 64
+    outsidefogdensity = 32
+    evenlighting
+    smoothlighting
+    forceworldpanning
+    horizwallshade = 8
+    vertwallshade = -16
+    lightmode = 3
+    lightattenuationmode = ""linear""
+    pixelratio = 1.2
+}";
+
+        var map = MapInfo.Parse(text).GetMap("MAP01")!;
+
+        Assert.Equal("SKY1", map.Sky1);
+        Assert.Equal("SKY2", map.Sky2);
+        Assert.Equal(0.25f, map.Sky1ScrollSpeed);
+        Assert.Equal(-0.5f, map.Sky2ScrollSpeed);
+        Assert.True(map.DoubleSky);
+        Assert.True(map.EvenLighting);
+        Assert.True(map.SmoothLighting);
+        Assert.True(map.ForceWorldPanning);
+        Assert.Equal("204060", map.Fade);
+        Assert.Equal("102030", map.OutsideFog);
+        Assert.Equal(64, map.FogDensity);
+        Assert.Equal(32, map.OutsideFogDensity);
+        Assert.Equal(8, map.HorizWallShade);
+        Assert.Equal(-16, map.VertWallShade);
+        Assert.Equal("3", map.LightMode);
+        Assert.Equal("linear", map.LightAttenuationMode);
+        Assert.Equal(1.2, map.PixelRatio);
+    }
 }

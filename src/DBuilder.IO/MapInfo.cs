@@ -20,10 +20,25 @@ public sealed class MapInfoEntry
     public string? Music { get; set; }
     public string? Sky1 { get; set; }
     public string? Sky2 { get; set; }
+    public float? Sky1ScrollSpeed { get; set; }
+    public float? Sky2ScrollSpeed { get; set; }
     public string? TitlePatch { get; set; }
     public int? Cluster { get; set; }
     public int? LevelNum { get; set; }
     public int? Par { get; set; }
+    public bool DoubleSky { get; set; }
+    public bool EvenLighting { get; set; }
+    public bool SmoothLighting { get; set; }
+    public bool ForceWorldPanning { get; set; }
+    public string? Fade { get; set; }
+    public string? OutsideFog { get; set; }
+    public int? FogDensity { get; set; }
+    public int? OutsideFogDensity { get; set; }
+    public int? HorizWallShade { get; set; }
+    public int? VertWallShade { get; set; }
+    public string? LightMode { get; set; }
+    public string? LightAttenuationMode { get; set; }
+    public double? PixelRatio { get; set; }
 
     /// <summary>Any property not surfaced as a strong field, value tokens joined by spaces.</summary>
     public Dictionary<string, string> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -212,10 +227,25 @@ public sealed class MapInfo
             Music = defaults.Music,
             Sky1 = defaults.Sky1,
             Sky2 = defaults.Sky2,
+            Sky1ScrollSpeed = defaults.Sky1ScrollSpeed,
+            Sky2ScrollSpeed = defaults.Sky2ScrollSpeed,
             TitlePatch = defaults.TitlePatch,
             Cluster = defaults.Cluster,
             LevelNum = defaults.LevelNum,
             Par = defaults.Par,
+            DoubleSky = defaults.DoubleSky,
+            EvenLighting = defaults.EvenLighting,
+            SmoothLighting = defaults.SmoothLighting,
+            ForceWorldPanning = defaults.ForceWorldPanning,
+            Fade = defaults.Fade,
+            OutsideFog = defaults.OutsideFog,
+            FogDensity = defaults.FogDensity,
+            OutsideFogDensity = defaults.OutsideFogDensity,
+            HorizWallShade = defaults.HorizWallShade,
+            VertWallShade = defaults.VertWallShade,
+            LightMode = defaults.LightMode,
+            LightAttenuationMode = defaults.LightAttenuationMode,
+            PixelRatio = defaults.PixelRatio,
         };
         foreach (var property in defaults.Properties) entry.Properties[property.Key] = property.Value;
         return entry;
@@ -241,18 +271,34 @@ public sealed class MapInfo
     {
         string First() => values.Count > 0 ? values[0] : "";
         int? Int() => values.Count > 0 && int.TryParse(values[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : null;
+        float? FloatAt(int index) => values.Count > index && float.TryParse(values[index], NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : null;
+        double? Double() => values.Count > 0 && double.TryParse(values[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : null;
 
         switch (key.ToLowerInvariant())
         {
             case "next": e.Next = First(); break;
             case "secretnext": e.SecretNext = First(); break;
             case "music": e.Music = First(); break;
-            case "sky1": e.Sky1 = First(); break;
-            case "sky2": e.Sky2 = First(); break;
+            case "sky1": e.Sky1 = First(); e.Sky1ScrollSpeed = FloatAt(1); break;
+            case "sky2": e.Sky2 = First(); e.Sky2ScrollSpeed = FloatAt(1); break;
+            case "skybox": e.Sky1 = First(); e.Sky1ScrollSpeed = 0; break;
             case "titlepatch": e.TitlePatch = First(); break;
             case "cluster": e.Cluster = Int(); break;
             case "levelnum": e.LevelNum = Int(); break;
             case "par": e.Par = Int(); break;
+            case "doublesky": e.DoubleSky = true; break;
+            case "evenlighting": e.EvenLighting = true; break;
+            case "smoothlighting": e.SmoothLighting = true; break;
+            case "forceworldpanning": e.ForceWorldPanning = true; break;
+            case "fade": e.Fade = First(); break;
+            case "outsidefog": e.OutsideFog = First(); break;
+            case "fogdensity": e.FogDensity = Int(); break;
+            case "outsidefogdensity": e.OutsideFogDensity = Int(); break;
+            case "horizwallshade": e.HorizWallShade = Int(); break;
+            case "vertwallshade": e.VertWallShade = Int(); break;
+            case "lightmode": e.LightMode = First(); break;
+            case "lightattenuationmode": e.LightAttenuationMode = First(); break;
+            case "pixelratio": e.PixelRatio = Double(); break;
             default: e.Properties[key] = string.Join(" ", values); break;
         }
     }
