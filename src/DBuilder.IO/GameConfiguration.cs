@@ -987,6 +987,7 @@ public sealed class GameConfiguration
         {
             string name = e.Key.ToString() ?? "";
             if (e.Value is not IDictionary d) continue;
+            bool scriptBuild = GetBool(d, "scriptbuild", false);
             mapLumpNames[name] = new MapLumpInfo
             {
                 Name = name,
@@ -995,7 +996,8 @@ public sealed class GameConfiguration
                 NodeBuild = GetBool(d, "nodebuild", false),
                 AllowEmpty = GetBool(d, "allowempty", false),
                 Forbidden = GetBool(d, "forbidden", false),
-                Script = d["script"] as string,
+                ScriptBuild = scriptBuild,
+                Script = scriptBuild ? null : d["script"] as string,
             };
         }
     }

@@ -36,13 +36,19 @@ maplumpnames
         required = false;
         script = ""Hexen_ACS.cfg"";
     }
+    ACS
+    {
+        required = false;
+        script = ""Hexen_ACS.cfg"";
+        scriptbuild = true;
+    }
 }";
 
     [Fact]
     public void ParsesLumpProperties()
     {
         var gc = GameConfiguration.FromText(Cfg);
-        Assert.Equal(5, gc.MapLumpNames.Count);
+        Assert.Equal(6, gc.MapLumpNames.Count);
         var things = gc.MapLumpNames["THINGS"];
         Assert.True(things.Required);
         Assert.True(things.NodeBuild);
@@ -58,6 +64,15 @@ maplumpnames
         Assert.True(gc.MapLumpNames["~MAP"].BlindCopy);
         Assert.True(gc.MapLumpNames["BEHAVIOR"].Forbidden);
         Assert.Equal("Hexen_ACS.cfg", gc.MapLumpNames["SCRIPTS"].Script);
+    }
+
+    [Fact]
+    public void ScriptBuildSuppressesStaticScriptConfig()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var lump = gc.MapLumpNames["ACS"];
+        Assert.True(lump.ScriptBuild);
+        Assert.Null(lump.Script);
     }
 
     [Fact]

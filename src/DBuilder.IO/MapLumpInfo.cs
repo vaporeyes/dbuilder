@@ -15,6 +15,7 @@ public sealed class MapLumpInfo
     public bool NodeBuild { get; init; }
     public bool AllowEmpty { get; init; }
     public bool Forbidden { get; init; }
+    public bool ScriptBuild { get; init; }
     /// <summary>Script-config filename for text script lumps (e.g. SCRIPTS), or null.</summary>
     public string? Script { get; init; }
 
