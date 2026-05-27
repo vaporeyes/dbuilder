@@ -350,11 +350,10 @@ public sealed class ResourceManager : IDisposable
         mapInfo = new MapInfo();
         foreach (var reader in readers)
         {
-            foreach (string lumpName in new[] { "MAPINFO", "ZMAPINFO" })
-            {
-                foreach (string text in reader.GetTextLumps(lumpName, partialTitleMatch: false))
-                    mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
-            }
+            var texts = new List<string>(reader.GetTextLumps("ZMAPINFO", partialTitleMatch: false));
+            if (texts.Count == 0) texts.AddRange(reader.GetTextLumps("MAPINFO", partialTitleMatch: false));
+            foreach (string text in texts)
+                mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
         }
     }
 
