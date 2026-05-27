@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 namespace DBuilder.IO;
 
@@ -47,13 +48,15 @@ public static class DecorateParser
     { "goto", "loop", "stop", "wait", "fail", "hold" };
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
-    public static List<ActorInfo> Parse(string text) => ParseActors(text, "actor", headerNum: true);
+    public static List<ActorInfo> Parse(string text, Func<string, string?>? includeResolver = null)
+        => ParseActors(text, "actor", headerNum: true, includeResolver);
 
     /// <summary>
     /// Shared engine for DECORATE ("actor", editor number in the header) and ZScript ("class", no header number).
     /// </summary>
-    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum)
+    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum, Func<string, string?>? includeResolver = null)
     {
+        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         int i = 0;
@@ -68,6 +71,59 @@ public static class DecorateParser
         }
         ResolveInheritance(actors);
         return actors;
+    }
+
+    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen)
+    {
+        if (includeResolver == null) return text;
+
+        using var reader = new StringReader(text);
+        var result = new System.Text.StringBuilder();
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            if (TryReadInclude(line, out string includePath))
+            {
+                string? included = includeResolver(includePath);
+                if (included != null && seen.Add(includePath))
+                {
+                    result.AppendLine(ExpandIncludes(included, includeResolver, seen));
+                    continue;
+                }
+            }
+            result.AppendLine(line);
+        }
+        return result.ToString();
+    }
+
+    private static bool TryReadInclude(string line, out string includePath)
+    {
+        includePath = "";
+        string trimmed = line.TrimStart();
+        int offset;
+        if (trimmed.StartsWith("#include", StringComparison.OrdinalIgnoreCase))
+            offset = "#include".Length;
+        else if (trimmed.StartsWith("include", StringComparison.OrdinalIgnoreCase))
+            offset = "include".Length;
+        else
+            return false;
+
+        if (trimmed.Length > offset && !char.IsWhiteSpace(trimmed[offset])) return false;
+        string rest = trimmed.Substring(offset).TrimStart();
+        if (rest.Length == 0) return false;
+
+        if (rest[0] == '"')
+        {
+            int end = rest.IndexOf('"', 1);
+            if (end <= 1) return false;
+            includePath = rest.Substring(1, end - 1);
+            return true;
+        }
+
+        int length = 0;
+        while (length < rest.Length && !char.IsWhiteSpace(rest[length])) length++;
+        includePath = rest.Substring(0, length);
+        return includePath.Length > 0;
     }
 
     private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum)

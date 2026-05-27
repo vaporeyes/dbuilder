@@ -123,4 +123,24 @@ class MyMonster : Actor
         gc.MergeActors(actors, new System.Collections.Generic.Dictionary<int, string>());
         Assert.Empty(gc.Things);
     }
+
+    [Fact]
+    public void ParsesClassDefinitionsFromIncludes()
+    {
+        const string root = @"
+#include ""zscript/base.zs""
+class IncludedChild : IncludedBase { }";
+        const string included = @"
+class IncludedBase : Actor
+{
+    Default { Height 42; }
+    States { Spawn: INCL A -1; stop; }
+}";
+
+        var actors = ZScriptParser.Parse(root, path => path == "zscript/base.zs" ? included : null);
+
+        var child = actors.Single(a => a.ClassName == "IncludedChild");
+        Assert.Equal("INCLA0", child.EditorSprite);
+        Assert.Equal(42, child.Height);
+    }
 }

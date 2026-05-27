@@ -152,4 +152,25 @@ ACTOR CoolMonster 31000
         Assert.Equal(24, info.Width);
         Assert.Equal(48, info.Height);
     }
+
+    [Fact]
+    public void ParsesActorDefinitionsFromIncludes()
+    {
+        const string root = @"
+#include ""actors/base.dec""
+ACTOR IncludedChild : IncludedBase 31001 { }";
+        const string included = @"
+ACTOR IncludedBase
+{
+    Radius 16
+    States { Spawn: BASE A -1 stop }
+}";
+
+        var actors = DecorateParser.Parse(root, path => path == "actors/base.dec" ? included : null);
+
+        var child = actors.Single(a => a.ClassName == "IncludedChild");
+        Assert.Equal("BASEA0", child.EditorSprite);
+        Assert.Equal(16, child.Radius);
+        Assert.Equal(31001, child.DoomEdNum);
+    }
 }

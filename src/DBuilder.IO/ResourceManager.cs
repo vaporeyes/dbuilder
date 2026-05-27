@@ -753,6 +753,15 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>The text of an exact lump or resource path, searching newest resource first.</summary>
+    public string? GetTextResource(string name)
+    {
+        for (int i = readers.Count - 1; i >= 0; i--)
+            if (readers[i].GetTextResource(name) is { } text)
+                return text;
+        return null;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or null.</summary>
     public DoomPalette? Palette
     {

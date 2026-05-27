@@ -147,13 +147,13 @@ public partial class MainWindow : Window
         int count = 0;
         foreach (var text in decorate)
         {
-            var actors = DecorateParser.Parse(text);
+            var actors = DecorateParser.Parse(text, _resources.GetTextResource);
             _config.MergeActors(actors, doomEdNums);
             foreach (var a in actors) if (a.DoomEdNum >= 0) count++;
         }
         foreach (var text in zscript)
         {
-            var actors = ZScriptParser.Parse(text);
+            var actors = ZScriptParser.Parse(text, _resources.GetTextResource);
             _config.MergeActors(actors, doomEdNums);
             foreach (var a in actors) if (doomEdNums.ContainsValue(a.ClassName)) count++;
         }

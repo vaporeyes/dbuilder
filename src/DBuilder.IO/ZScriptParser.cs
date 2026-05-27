@@ -11,5 +11,6 @@ public static class ZScriptParser
     /// Parses ZScript class definitions into actor info (class/parent/replaces, Default Radius/Height, //$ keys,
     /// spawn-state sprite). DoomEdNum is left unset; assign it from a MAPINFO DoomEdNums map when merging.
     /// </summary>
-    public static List<ActorInfo> Parse(string text) => DecorateParser.ParseActors(text, "class", headerNum: false);
+    public static List<ActorInfo> Parse(string text, System.Func<string, string?>? includeResolver = null)
+        => DecorateParser.ParseActors(text, "class", headerNum: false, includeResolver);
 }
