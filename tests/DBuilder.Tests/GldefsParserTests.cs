@@ -41,6 +41,18 @@ object ShortRedTorch
     }
 
     [Fact]
+    public void ClampsLightColorComponents()
+    {
+        const string text = "pointlight CLAMPED { color 1.5 -0.25 0.5 size 16 }";
+
+        var light = GldefsParser.Parse(text).Lights["CLAMPED"];
+
+        Assert.Equal(1.0f, light.R, 4);
+        Assert.Equal(0.0f, light.G, 4);
+        Assert.Equal(0.5f, light.B, 4);
+    }
+
+    [Fact]
     public void ParsesGlow()
     {
         const string text = @"

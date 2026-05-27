@@ -118,7 +118,7 @@ public static class GldefsParser
             while (i < t.Count && t[i] != "}")
             {
                 string p = t[i++].ToLowerInvariant();
-                if (p == "color") { light.R = ReadFloat(t, ref i); light.G = ReadFloat(t, ref i); light.B = ReadFloat(t, ref i); }
+                if (p == "color") { light.R = ClampColor(ReadFloat(t, ref i)); light.G = ClampColor(ReadFloat(t, ref i)); light.B = ClampColor(ReadFloat(t, ref i)); }
                 else if (p == "size") light.Size = ReadFloat(t, ref i) * 2.0f;
                 else if (p == "secondarysize") light.SecondarySize = ReadFloat(t, ref i) * 2.0f;
                 else if (p == "offset") { light.OffsetX = ReadFloat(t, ref i); light.OffsetY = ReadFloat(t, ref i); light.OffsetZ = ReadFloat(t, ref i); }
@@ -140,6 +140,8 @@ public static class GldefsParser
         if (type.Equals("flickerlight2", StringComparison.OrdinalIgnoreCase)) return (int)(interval * 350.0f);
         return interval;
     }
+
+    private static float ClampColor(float value) => Math.Clamp(value, 0.0f, 1.0f);
 
     private static void ParseObject(Gldefs g, List<string> t, ref int i)
     {
