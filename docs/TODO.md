@@ -199,7 +199,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port node-builder info.
 - [x] Port required archive behavior.
 - [x] Port static limits.
-- [ ] Add parity tests for bundled UDB configuration files.
+- [x] Add parity tests for bundled UDB configuration files.
 
 ## Type Handlers
 
