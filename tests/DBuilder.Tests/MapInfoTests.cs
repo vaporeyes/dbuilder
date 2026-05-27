@@ -106,6 +106,23 @@ map MAP01 ""Entryway""
     }
 
     [Fact]
+    public void ParsesGameInfoSkyFlatName()
+    {
+        const string text = @"
+gameinfo
+{
+    SkyFlatName = ""skyflat""
+    bordertexture = ""GRNROCK""
+}
+map MAP01 ""Entryway"" { next = MAP02 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.Equal("SKYFLAT", mi.SkyFlatName);
+        Assert.Equal("MAP02", mi.GetMap("MAP01")!.Next);
+    }
+
+    [Fact]
     public void UnknownPropertiesLandInDictionary()
     {
         const string text = "map MAP01 \"X\"\n{\n titlepatch = \"CWILV00\"\n flags = \"foo\"\n}";
@@ -168,6 +185,18 @@ DoomEdNums { 9001 = LocalActor }";
         Assert.Equal("MAP02", mi.GetMap("MAP01")!.Next);
         Assert.Equal("IncludedActor", mi.DoomEdNums[9000]);
         Assert.Equal("LocalActor", mi.DoomEdNums[9001]);
+    }
+
+    [Fact]
+    public void MergesIncludedGameInfo()
+    {
+        const string text = @"include ""mapinfo/gameinfo.txt""";
+
+        var mi = MapInfo.Parse(text, include => include == "mapinfo/gameinfo.txt"
+            ? "gameinfo { SkyFlatName = F_SKY2 }"
+            : null);
+
+        Assert.Equal("F_SKY2", mi.SkyFlatName);
     }
 
     [Fact]

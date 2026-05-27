@@ -58,6 +58,9 @@ public sealed class MapInfo
     /// <summary>Spawn number -> actor class name, from the MAPINFO SpawnNums block.</summary>
     public IReadOnlyDictionary<int, string> SpawnNums => spawnNums;
 
+    /// <summary>Sky flat marker name from gameinfo.SkyFlatName, or null when not declared.</summary>
+    public string? SkyFlatName { get; private set; }
+
     /// <summary>Finds a map entry by lump name (case-insensitive), or null.</summary>
     public MapInfoEntry? GetMap(string lump)
     {
@@ -113,6 +116,12 @@ public sealed class MapInfo
                 ParseNumberedActors(toks, ref i, mi.spawnNums);
                 continue;
             }
+            if (!t.IsString && t.Text.Equals("gameinfo", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                ParseGameInfo(toks, ref i, mi);
+                continue;
+            }
             if (!t.IsString && t.Text.Equals("include", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
@@ -131,6 +140,7 @@ public sealed class MapInfo
         maps.AddRange(other.maps);
         foreach (var entry in other.doomEdNums) doomEdNums[entry.Key] = entry.Value;
         foreach (var entry in other.spawnNums) spawnNums[entry.Key] = entry.Value;
+        if (other.SkyFlatName != null) SkyFlatName = other.SkyFlatName;
     }
 
     private static void ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
@@ -140,6 +150,29 @@ public sealed class MapInfo
         if (!parsedIncludes.Add(include)) return;
         string? text = includeResolver(include);
         if (text != null) ParseInto(mi, text, includeResolver, parsedIncludes);
+    }
+
+    private static void ParseGameInfo(List<Tok> toks, ref int i, MapInfo mi)
+    {
+        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
+        i++;
+        while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
+        {
+            string key = toks[i++].Text;
+            if (i < toks.Count && !toks[i].IsString && toks[i].Text == "=") i++;
+
+            var values = new List<string>();
+            while (i < toks.Count && !toks[i].NewLine)
+            {
+                if (!toks[i].IsString && toks[i].Text == "}") break;
+                if (!toks[i].IsString && toks[i].Text == ",") { i++; continue; }
+                values.Add(toks[i++].Text);
+            }
+
+            if (key.Equals("skyflatname", StringComparison.OrdinalIgnoreCase) && values.Count > 0)
+                mi.SkyFlatName = values[0].ToUpperInvariant();
+        }
+        if (i < toks.Count) i++;
     }
 
     // Top-level directives. "cluster"/"clusterdef" are intentionally excluded because old-format maps use
