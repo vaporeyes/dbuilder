@@ -93,6 +93,21 @@ Sprite SPRTA0B0, 16, 16 { Patch P3, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsUnknownTopLevelBlocks()
+    {
+        const string text = @"
+UnknownBlock
+{
+    Texture BAD, 2, 2 { Patch P, 0, 0 }
+}
+Texture OK, 2, 2 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"

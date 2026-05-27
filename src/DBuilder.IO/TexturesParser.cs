@@ -91,13 +91,34 @@ public static class TexturesParser
                 "flat" => TexturesType.Flat,
                 _ => (TexturesType?)null,
             };
-            if (type == null) { i++; continue; }
+            if (type == null)
+            {
+                i++;
+                TrySkipUnknownTopLevelBlock(t, ref i);
+                continue;
+            }
 
             i++; // type
             var def = ParseDefinition(type.Value, optional, t, ref i, knownColors);
             if (def != null) defs.Add(def);
         }
         return defs;
+    }
+
+    private static void TrySkipUnknownTopLevelBlock(List<string> t, ref int i)
+    {
+        if (i >= t.Count || t[i] != "{") return;
+        int depth = 0;
+        while (i < t.Count)
+        {
+            if (t[i] == "{") depth++;
+            else if (t[i] == "}")
+            {
+                depth--;
+                if (depth == 0) { i++; return; }
+            }
+            i++;
+        }
     }
 
     private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
