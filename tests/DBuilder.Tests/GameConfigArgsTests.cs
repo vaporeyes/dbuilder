@@ -16,6 +16,11 @@ enums
         16 = ""Normal"";
         32 = ""Fast"";
     }
+    spawnflags
+    {
+        1 = ""Silent"";
+        2 = ""Fog"";
+    }
 }
 linedeftypes
 {
@@ -26,7 +31,21 @@ linedeftypes
         {
             title = ""Rotate Left"";
             arg0 { title = ""Polyobject Number""; type = 25; }
-            arg1 { title = ""Speed""; type = 11; enum = ""speeds""; default = 16; }
+            arg1
+            {
+                title = ""Speed"";
+                type = 11;
+                enum = ""speeds"";
+                flags = ""spawnflags"";
+                default = 16;
+                tooltip = ""How fast\nit rotates"";
+                targetclasses = ""MapSpot, MapSpotGravity"";
+                renderstyle = ""circle"";
+                minrange = 32;
+                maxrange = 256;
+                str = true;
+                titlestr = ""Speed Name"";
+            }
         }
     }
 }
@@ -63,7 +82,17 @@ thingtypes
         Assert.True(a.Args[0].Used);
         Assert.Equal("Speed", a.Args[1].Title);
         Assert.Equal("speeds", a.Args[1].Enum);
+        Assert.Equal("spawnflags", a.Args[1].Flags);
         Assert.Equal(16, a.Args[1].Default);
+        Assert.Equal(16, a.Args[1].DefaultValue);
+        Assert.Equal("How fast\nit rotates", a.Args[1].ToolTip);
+        Assert.Contains("MapSpot", a.Args[1].TargetClasses);
+        Assert.Contains("MapSpotGravity", a.Args[1].TargetClasses);
+        Assert.Equal("circle", a.Args[1].RenderStyle);
+        Assert.Equal(32, a.Args[1].MinRange);
+        Assert.Equal(256, a.Args[1].MaxRange);
+        Assert.True(a.Args[1].Str);
+        Assert.Equal("Speed Name", a.Args[1].TitleStr);
         Assert.False(a.Args[2].Used); // unused slot
     }
 
@@ -75,6 +104,16 @@ thingtypes
         var e = gc.GetArgEnum(arg);
         Assert.NotNull(e);
         Assert.Equal("Slow", e![0]);
+    }
+
+    [Fact]
+    public void ResolvesArgFlags()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var arg = gc.GetLinedefAction(2)!.Args[1];
+        var flags = gc.GetArgFlags(arg);
+        Assert.NotNull(flags);
+        Assert.Equal("Fog", flags![2]);
     }
 
     [Fact]

@@ -25,9 +25,18 @@ namespace DBuilder.IO;
 public sealed class ArgInfo
 {
     public string Title { get; init; } = "";
+    public string ToolTip { get; init; } = "";
     public int Type { get; init; }
     public string? Enum { get; init; }
+    public string? Flags { get; init; }
     public int Default { get; init; }
+    public object DefaultValue { get; init; } = 0;
+    public IReadOnlySet<string> TargetClasses { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public string RenderStyle { get; init; } = "";
+    public int MinRange { get; init; }
+    public int MaxRange { get; init; }
+    public bool Str { get; init; }
+    public string TitleStr { get; init; } = "";
     /// <summary>True when this arg slot is actually used (has a title).</summary>
     public bool Used => Title.Length > 0;
 }
@@ -512,12 +521,22 @@ public sealed class GameConfiguration
         {
             if (entry["arg" + i] is not IDictionary ad) continue;
             args ??= new ArgInfo[5];
+            string title = GetString(ad, "title", "");
             args[i] = new ArgInfo
             {
-                Title = GetString(ad, "title", ""),
+                Title = title,
+                ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
                 Type = GetInt(ad, "type", 0),
                 Enum = ad["enum"] as string,
+                Flags = ad["flags"] as string,
                 Default = GetInt(ad, "default", 0),
+                DefaultValue = ad["default"] ?? 0,
+                TargetClasses = ParseTargetClasses(GetString(ad, "targetclasses", "")),
+                RenderStyle = GetString(ad, "renderstyle", "").ToLowerInvariant(),
+                MinRange = GetInt(ad, "minrange", 0),
+                MaxRange = GetInt(ad, "maxrange", 0),
+                Str = GetBool(ad, "str", false),
+                TitleStr = GetString(ad, "titlestr", title),
             };
         }
         if (args == null) return Array.Empty<ArgInfo>();
@@ -554,6 +573,9 @@ public sealed class GameConfiguration
     /// <summary>The value-&gt;title map for an arg's enum, or null when the arg has none.</summary>
     public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
         => arg.Enum != null ? GetEnum(arg.Enum) : null;
+
+    public IReadOnlyDictionary<int, string>? GetArgFlags(ArgInfo arg)
+        => arg.Flags != null ? GetEnum(arg.Flags) : null;
 
     /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
     public bool IsMapLump(string name)
@@ -776,4 +798,15 @@ public sealed class GameConfiguration
             string s when bool.TryParse(s, out bool p) => p,
             _ => fallback,
         };
+
+    private static IReadOnlySet<string> ParseTargetClasses(string value)
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string item in value.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            string trimmed = item.Trim();
+            if (trimmed.Length > 0) result.Add(trimmed);
+        }
+        return result;
+    }
 }
