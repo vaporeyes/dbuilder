@@ -401,13 +401,53 @@ public sealed class GameConfiguration
             {
                 Index = num,
                 ClassName = a.ClassName,
-                Title = a.Title,
+                Title = ActorTitle(a),
                 Category = a.Category ?? "Decorate",
                 Sprite = a.EditorSprite ?? "",
                 Width = a.Radius > 0 ? a.Radius : 16,
                 Height = a.Height > 0 ? a.Height : 16,
+                Alpha = ActorAlpha(a),
+                RenderStyle = ActorRenderStyle(a),
+                SpriteScale = ActorSpriteScale(a),
             };
         }
+    }
+
+    private static string ActorTitle(ActorInfo actor)
+    {
+        if (actor.EditorKeys.TryGetValue("$title", out string? title) && title.Length > 0) return title;
+        if (TryActorProperty(actor, "tag", out string? tag) && !tag.StartsWith("$", StringComparison.Ordinal)) return tag;
+        return actor.ClassName;
+    }
+
+    private static double ActorAlpha(ActorInfo actor)
+        => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0) : 1.0;
+
+    private static string ActorRenderStyle(ActorInfo actor)
+        => actor.Properties.ContainsKey("$ignorerenderstyle")
+            ? "normal"
+            : TryActorProperty(actor, "renderstyle", out string? style) ? style.ToLowerInvariant() : "normal";
+
+    private static double ActorSpriteScale(ActorInfo actor)
+    {
+        if (TryActorPropertyDouble(actor, "xscale", out double xscale)) return xscale;
+        if (TryActorPropertyDouble(actor, "scale", out double scale)) return scale;
+        return 1.0;
+    }
+
+    private static bool TryActorProperty(ActorInfo actor, string name, out string value)
+    {
+        value = "";
+        if (!actor.Properties.TryGetValue(name, out var values) || values.Count == 0) return false;
+        value = values[0];
+        return true;
+    }
+
+    private static bool TryActorPropertyDouble(ActorInfo actor, string name, out double value)
+    {
+        value = 0.0;
+        return TryActorProperty(actor, name, out string raw)
+            && double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
     }
 
     /// <summary>

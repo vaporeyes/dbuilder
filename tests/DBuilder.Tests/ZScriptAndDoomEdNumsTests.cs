@@ -99,7 +99,7 @@ map MAP01 ""x"" { }";
 class MyMonster : Actor
 {
     //$Title ""My Monster""
-    Default { Radius 24; Height 48; }
+    Default { Radius 24; Height 48; XScale 0.75; RenderStyle Translucent; Alpha 0.25; }
     States { Spawn: COOL A -1; stop; }
 }";
         var actors = ZScriptParser.Parse(zscript);
@@ -113,6 +113,9 @@ class MyMonster : Actor
         Assert.Equal("My Monster", gc.ThingTitle(9050));
         Assert.Equal("COOLA0", info!.Sprite);
         Assert.Equal(24, info.Width);
+        Assert.Equal("translucent", info.RenderStyle);
+        Assert.Equal(0.25, info.Alpha);
+        Assert.Equal(0.75, info.SpriteScale);
     }
 
     [Fact]

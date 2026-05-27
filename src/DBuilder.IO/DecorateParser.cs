@@ -225,6 +225,10 @@ public static class DecorateParser
             var tk = t[i];
             if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";") break;
             if (tk.Kind == Kind.Sym && tk.Text == ",") { i++; continue; }
+            if (key.Equals("scale", StringComparison.OrdinalIgnoreCase)
+                && values.Count > 0
+                && !double.TryParse(tk.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out _))
+                break;
             if (tk.Kind is Kind.Word or Kind.Str) values.Add(tk.Text);
             i++;
         }

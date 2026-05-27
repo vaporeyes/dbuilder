@@ -137,7 +137,10 @@ ACTOR Derived : Base 7003 { -SOLID }";
         const string text = @"
 ACTOR CoolMonster 31000
 {
-    //$Title ""Cool Monster""
+    Tag ""Cool Tag""
+    RenderStyle Add
+    Alpha 0.5
+    Scale 1.25
     Radius 24
     Height 48
     States { Spawn: COOL A -1 stop }
@@ -147,10 +150,13 @@ ACTOR CoolMonster 31000
 
         var info = gc.GetThing(31000);
         Assert.NotNull(info);
-        Assert.Equal("Cool Monster", gc.ThingTitle(31000));
+        Assert.Equal("Cool Tag", gc.ThingTitle(31000));
         Assert.Equal("COOLA0", info!.Sprite);
         Assert.Equal(24, info.Width);
         Assert.Equal(48, info.Height);
+        Assert.Equal("add", info.RenderStyle);
+        Assert.Equal(0.5, info.Alpha);
+        Assert.Equal(1.25, info.SpriteScale);
     }
 
     [Fact]
