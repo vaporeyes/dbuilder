@@ -86,6 +86,7 @@ public sealed class MapInfo
         while (i < toks.Count)
         {
             var t = toks[i];
+            if (!t.IsString && t.Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (!t.IsString && t.Text.Equals("map", StringComparison.OrdinalIgnoreCase))
             {
                 mi.maps.Add(ParseMap(toks, ref i, defaults));

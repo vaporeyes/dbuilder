@@ -86,7 +86,8 @@ public static class GldefsParser
         while (i < t.Count)
         {
             string kw = t[i].ToLowerInvariant();
-            if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
+            if (kw == "$gzdb_skip") break;
+            else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, t, ref i);
             else if (kw == "skybox") ParseSkybox(g, t, ref i);

@@ -113,4 +113,18 @@ sectorlight SECTOR { color 0.5 0.5 0.5 scale 0.7 }";
         Assert.Equal(7f, g.Lights["SECTOR"].Interval, 4);
         Assert.Equal(0.7f, g.Lights["SECTOR"].Scale, 4);
     }
+
+    [Fact]
+    public void StopsAtGzdbSkipDirective()
+    {
+        const string text = @"
+pointlight BEFORE { color 1 0 0 size 16 }
+$gzdb_skip
+pointlight AFTER { color 0 1 0 size 16 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.True(g.Lights.ContainsKey("BEFORE"));
+        Assert.False(g.Lights.ContainsKey("AFTER"));
+    }
 }

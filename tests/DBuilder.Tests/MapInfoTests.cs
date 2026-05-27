@@ -106,6 +106,20 @@ map MAP01 ""Entryway""
     }
 
     [Fact]
+    public void StopsAtGzdbSkipDirective()
+    {
+        const string text = @"
+map MAP01 ""Before"" { next = MAP02 }
+$gzdb_skip
+map MAP02 ""After"" { next = MAP03 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.NotNull(mi.GetMap("MAP01"));
+        Assert.Null(mi.GetMap("MAP02"));
+    }
+
+    [Fact]
     public void ParsesGameInfoSkyFlatName()
     {
         const string text = @"
