@@ -108,13 +108,13 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseNumberedActors(toks, ref i, mi.doomEdNums);
+                ParseNumberedActors(toks, ref i, mi.doomEdNums, skipZero: true);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("spawnnums", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseNumberedActors(toks, ref i, mi.spawnNums);
+                ParseNumberedActors(toks, ref i, mi.spawnNums, skipZero: false);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("gameinfo", StringComparison.OrdinalIgnoreCase))
@@ -349,7 +349,7 @@ public sealed class MapInfo
     }
 
     // Parses a "DoomEdNums" or "SpawnNums" block: <num> = <ClassName> [, args...].
-    private static void ParseNumberedActors(List<Tok> toks, ref int i, Dictionary<int, string> map)
+    private static void ParseNumberedActors(List<Tok> toks, ref int i, Dictionary<int, string> map, bool skipZero)
     {
         if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
         i++; // {
@@ -358,7 +358,7 @@ public sealed class MapInfo
             if (!toks[i].IsString && int.TryParse(toks[i].Text, out int num)
                 && i + 2 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "=")
             {
-                map[num] = toks[i + 2].Text; // ClassName (extra args after a comma are ignored)
+                if (!skipZero || num != 0) map[num] = toks[i + 2].Text; // ClassName (extra args after a comma are ignored)
                 i += 3;
             }
             else i++;

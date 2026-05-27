@@ -166,6 +166,7 @@ map 1 ""Winnowing Hall""
         const string text = @"
 DoomEdNums
 {
+    0 = IgnoredActor
     3004 = Zombieman
     32000 = CustomActor, 1, 2
 }
@@ -177,6 +178,7 @@ SpawnNums
 
         var mi = MapInfo.Parse(text);
 
+        Assert.False(mi.DoomEdNums.ContainsKey(0));
         Assert.Equal("Zombieman", mi.DoomEdNums[3004]);
         Assert.Equal("CustomActor", mi.DoomEdNums[32000]);
         Assert.Equal("DoomImp", mi.SpawnNums[4]);
