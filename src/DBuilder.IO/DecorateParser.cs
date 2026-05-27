@@ -73,7 +73,8 @@ public static class DecorateParser
         int i = 0;
         while (i < toks.Count)
         {
-            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
+            if ((toks[i].Kind == Kind.Word || toks[i].Kind == Kind.Editor)
+                && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
                 var a = ParseActor(toks, ref i, headerNum);

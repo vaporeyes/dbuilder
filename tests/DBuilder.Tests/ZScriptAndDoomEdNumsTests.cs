@@ -53,6 +53,19 @@ class FancyImp : Actor replaces Imp
     }
 
     [Fact]
+    public void StopsAtGzdbSkipLineComment()
+    {
+        const string text = @"
+class BeforeSkip : Actor { Default { Radius 8; } }
+//$gzdb_skip
+class AfterSkip : Actor { Default { Radius 16; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("BeforeSkip", actor.ClassName);
+    }
+
+    [Fact]
     public void ParsesDefaultAssignmentsFlagsAndProperties()
     {
         const string text = @"
