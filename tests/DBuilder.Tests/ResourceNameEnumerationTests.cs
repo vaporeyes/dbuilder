@@ -55,4 +55,26 @@ public class ResourceNameEnumerationTests
         }
         finally { File.Delete(a); File.Delete(b); }
     }
+
+    [Fact]
+    public void ResourceTextureSetsIncludeTexturesDefinitions()
+    {
+        string textures =
+            "WallTexture SETWALL, 4, 4 { Patch \"P\", 0, 0 }\n" +
+            "Flat SETFLAT, 64, 64 { Patch \"P\", 0, 0 }\n" +
+            "Texture SETBOTH, 8, 8 { Patch \"P\", 0, 0 }\n";
+        string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var set = Assert.Single(rm.GetResourceTextureSets());
+            Assert.True(set.TextureExists("SETWALL"));
+            Assert.True(set.FlatExists("SETFLAT"));
+            Assert.True(set.TextureExists("SETBOTH"));
+            Assert.True(set.FlatExists("SETBOTH"));
+        }
+        finally { File.Delete(pk3); }
+    }
 }

@@ -712,11 +712,17 @@ public sealed class ResourceManager : IDisposable
 
     public IReadOnlyList<ResourceTextureSetInfo> GetResourceTextureSets()
     {
+        EnsureDefs();
         var sets = new List<ResourceTextureSetInfo>(readers.Count);
-        foreach (var reader in readers)
+        for (int readerIndex = 0; readerIndex < readers.Count; readerIndex++)
         {
+            var reader = readers[readerIndex];
             var textures = new List<string>(reader.TextureNames());
             var flats = new List<string>(reader.FlatNames());
+            foreach (var def in wallDefs)
+                if (def.Value.ResourceIndex == readerIndex) textures.Add(def.Key);
+            foreach (var def in flatDefs)
+                if (def.Value.ResourceIndex == readerIndex) flats.Add(def.Key);
             foreach (string text in reader.GetTextLumps("ANIMDEFS", partialTitleMatch: false))
             {
                 foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
