@@ -51,6 +51,10 @@ gen_sectortypes
         64 = ""10 per second"";
         96 = ""20 per second"";
     }
+}
+sectortypes
+{
+    1 = ""Secret"";
 }";
 
     [Fact]
@@ -102,5 +106,30 @@ gen_sectortypes
     {
         var gc = GameConfiguration.FromText(Cfg);
         Assert.Null(gc.DescribeGeneralizedLinedef(11)); // a normal action number
+    }
+
+    [Fact]
+    public void ParsesSectorGeneralizedOptions()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        Assert.Single(gc.GeneralizedSectorEffects);
+        var damage = gc.GeneralizedSectorEffects[0];
+        Assert.Equal("Damage", damage.Name);
+        Assert.Equal(32, damage.BitsStep);
+        Assert.Contains(damage.Bits, bit => bit.Value == 64 && bit.Title == "10 per second");
+    }
+
+    [Fact]
+    public void DecodesGeneralizedSectorEffects()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        Assert.True(gc.IsGeneralizedSectorEffect(32));
+        Assert.False(gc.IsGeneralizedSectorEffect(1));
+        Assert.Equal("Damage: 5 per second", gc.DescribeGeneralizedSectorEffect(32));
+        Assert.Equal("Secret + Damage: 5 per second", gc.SectorEffectTitle(33));
+
+        var data = gc.GetSectorEffectData(33);
+        Assert.Equal(1, data.Effect);
+        Assert.Contains(32, data.GeneralizedBits);
     }
 }

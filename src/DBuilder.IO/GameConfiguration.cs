@@ -189,6 +189,16 @@ public sealed class SectorEffectInfo
     public bool IsNull => Index == 0;
 }
 
+public sealed class SectorEffectDataInfo
+{
+    private readonly HashSet<int> generalizedBits = new();
+
+    public int Effect { get; internal set; }
+    public IReadOnlySet<int> GeneralizedBits => generalizedBits;
+
+    internal void AddGeneralizedBit(int bit) => generalizedBits.Add(bit);
+}
+
 public sealed record StaticLimitsInfo(IReadOnlyDictionary<string, int> Values)
 {
     public int Get(string name, int fallback = 0) => Values.TryGetValue(name, out int value) ? value : fallback;
@@ -262,6 +272,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<string, EnumListInfo> enumLists = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<GeneralizedCategory> genLinedefs = new();
     private readonly List<GeneralizedCategory> genSectors = new();
+    private readonly List<GeneralizedOption> genSectorEffects = new();
     private readonly List<FlagTranslation> linedefFlagsTranslation = new();
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
     private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
@@ -281,6 +292,9 @@ public sealed class GameConfiguration
 
     /// <summary>Boom generalized sector categories parsed from gen_sectortypes (empty if not configured).</summary>
     public IReadOnlyList<GeneralizedCategory> GeneralizedSectors => genSectors;
+
+    /// <summary>Boom generalized sector effect options parsed from gen_sectortypes.</summary>
+    public IReadOnlyList<GeneralizedOption> GeneralizedSectorEffects => genSectorEffects;
 
     /// <summary>Binary linedef flag bit -> UDMF field translations (empty if not configured).</summary>
     public IReadOnlyList<FlagTranslation> LinedefFlagsTranslation => linedefFlagsTranslation;
@@ -347,7 +361,7 @@ public sealed class GameConfiguration
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
             if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
-            if (root["gen_sectortypes"] is IDictionary gs) gc.genSectors.AddRange(GeneralizedCategory.ParseBlock(gs));
+            if (root["gen_sectortypes"] is IDictionary gs) gc.genSectorEffects.AddRange(GeneralizedOption.ParseOptionsBlock(gs));
             if (root["linedefflagstranslation"] is IDictionary lft) gc.ParseFlagTranslations(lft, gc.linedefFlagsTranslation);
             if (root["thingflagstranslation"] is IDictionary tft) gc.ParseFlagTranslations(tft, gc.thingFlagsTranslation);
             if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln);
@@ -549,7 +563,86 @@ public sealed class GameConfiguration
 
     /// <summary>Display title for a sector effect, or "None"/"Unknown".</summary>
     public string SectorEffectTitle(int index)
-        => GetSectorEffect(index)?.Title ?? (index == 0 ? "None" : $"Unknown ({index})");
+    {
+        var effect = GetSectorEffect(index);
+        if (effect != null) return effect.Title;
+        if (index == 0) return "None";
+        return DescribeGeneralizedSectorEffect(index) ?? $"Unknown ({index})";
+    }
+
+    public bool IsGeneralizedSectorEffect(int effect)
+        => IsGeneralizedSectorEffect(effect, genSectorEffects);
+
+    public static bool IsGeneralizedSectorEffect(int effect, IReadOnlyList<GeneralizedOption> options)
+    {
+        if (effect == 0) return false;
+        int current = effect;
+        for (int i = options.Count - 1; i >= 0; i--)
+        {
+            for (int j = options[i].Bits.Count - 1; j >= 0; j--)
+            {
+                GeneralizedBit bit = options[i].Bits[j];
+                if (bit.Value > current) continue;
+                if (bit.Value > 0 && (current & bit.Value) == bit.Value) return true;
+                current -= bit.Value;
+            }
+        }
+
+        return false;
+    }
+
+    public SectorEffectDataInfo GetSectorEffectData(int effect)
+    {
+        var result = new SectorEffectDataInfo();
+        if (effect <= 0) return result;
+
+        int current = effect;
+        for (int i = genSectorEffects.Count - 1; i >= 0; i--)
+        {
+            for (int j = genSectorEffects[i].Bits.Count - 1; j >= 0; j--)
+            {
+                GeneralizedBit bit = genSectorEffects[i].Bits[j];
+                if (bit.Value > 0 && (current & bit.Value) == bit.Value)
+                {
+                    current -= bit.Value;
+                    result.AddGeneralizedBit(bit.Value);
+                }
+            }
+        }
+
+        if (current > 0) result.Effect = current;
+        return result;
+    }
+
+    public string? DescribeGeneralizedSectorEffect(int effect)
+    {
+        if (effect == 0) return "None";
+        string title = "Unknown generalized effect";
+        int matches = 0;
+        int nonGeneralizedEffect = effect;
+
+        for (int i = genSectorEffects.Count - 1; i >= 0; i--)
+        {
+            for (int j = genSectorEffects[i].Bits.Count - 1; j >= 0; j--)
+            {
+                GeneralizedBit bit = genSectorEffects[i].Bits[j];
+                if (bit.Value > 0 && (effect & bit.Value) == bit.Value)
+                {
+                    title = genSectorEffects[i].Name + ": " + bit.Title;
+                    nonGeneralizedEffect -= bit.Value;
+                    matches++;
+                    break;
+                }
+            }
+        }
+
+        if (matches == 0) return null;
+        string generalizedTitle = matches > 1 ? $"Generalized ({matches} effects)" : title;
+        if (nonGeneralizedEffect <= 0) return generalizedTitle;
+        if (sectorEffects.TryGetValue(nonGeneralizedEffect, out var known))
+            return known.Title + " + " + generalizedTitle;
+        return "Unknown effect + " + generalizedTitle;
+    }
 
     /// <summary>Names of the set bits in a linedef flags value, in ascending bit order.</summary>
     public IEnumerable<string> DescribeLinedefFlags(int flags) => DescribeFlags(linedefFlags, flags);

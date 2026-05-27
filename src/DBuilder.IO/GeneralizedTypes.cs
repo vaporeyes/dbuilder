@@ -1,6 +1,7 @@
 // ABOUTME: Config-driven Boom generalized linedef/sector types parsed from gen_linedeftypes / gen_sectortypes blocks.
 // ABOUTME: A category (offset+length) holds options; each option is a bit field of value->title choices that decode a packed number.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,12 +10,18 @@ using System.Text;
 
 namespace DBuilder.IO;
 
-/// <summary>One selectable value within a generalized option: the (already shifted) packed value and its title.</summary>
-public sealed class GeneralizedBit
+/// <summary>One selectable value within a generalized option: the packed value and its title.</summary>
+public sealed class GeneralizedBit : IComparable<GeneralizedBit>
 {
     public int Value { get; }
+    public int Index => Value;
     public string Title { get; }
     public GeneralizedBit(int value, string title) { Value = value; Title = title; }
+
+    public override string ToString() => Title;
+
+    public int CompareTo(GeneralizedBit? other)
+        => other == null ? 1 : Value.CompareTo(other.Value);
 }
 
 /// <summary>A bit field within a generalized category (e.g. "Speed" -> {Slow, Normal, Fast, Turbo}).</summary>
@@ -22,6 +29,7 @@ public sealed class GeneralizedOption
 {
     public string Name { get; }
     public IReadOnlyList<GeneralizedBit> Bits { get; }
+    public int BitsStep { get; }
     /// <summary>Combined mask of all this option's bit values; used to extract the option's selection from a packed number.</summary>
     public int Mask { get; }
 
@@ -29,6 +37,7 @@ public sealed class GeneralizedOption
     {
         Name = name;
         Bits = bits;
+        BitsStep = bits.Count > 1 ? bits[1].Value : 0;
         int mask = 0;
         foreach (var b in bits) mask |= b.Value;
         Mask = mask;
@@ -50,6 +59,17 @@ public sealed class GeneralizedOption
         bits.Sort((a, b) => a.Value.CompareTo(b.Value));
         return new GeneralizedOption(name, bits);
     }
+
+    internal static List<GeneralizedOption> ParseOptionsBlock(IDictionary block)
+    {
+        var options = new List<GeneralizedOption>();
+        foreach (DictionaryEntry entry in block)
+            if (entry.Value is IDictionary dict)
+                options.Add(Parse(entry.Key.ToString() ?? "", dict));
+        return options;
+    }
+
+    public override string ToString() => Name;
 }
 
 /// <summary>
@@ -106,10 +126,14 @@ public sealed class GeneralizedCategory
                 if (e.Value is IDictionary od)
                     options.Add(GeneralizedOption.Parse(e.Key.ToString() ?? "", od));
             }
+            SortOptionsByBitsStep(options);
             cats.Add(new GeneralizedCategory(title, offset, length, options));
         }
         return cats;
     }
+
+    private static void SortOptionsByBitsStep(List<GeneralizedOption> options)
+        => options.Sort((a, b) => a.BitsStep.CompareTo(b.BitsStep));
 
     private static int ReadInt(object? v) => v switch
     {
