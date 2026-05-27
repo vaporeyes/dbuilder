@@ -313,7 +313,8 @@ public sealed class MapInfo
     private static void ReadProperty(List<Tok> toks, ref int i, MapInfoEntry e, bool stopAtBrace, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         string key = toks[i++].Text;
-        if (i < toks.Count && !toks[i].IsString && toks[i].Text == "=") i++;
+        bool hasEquals = i < toks.Count && !toks[i].IsString && toks[i].Text == "=";
+        if (hasEquals) i++;
 
         var values = new List<string>();
         while (i < toks.Count && !toks[i].NewLine)
@@ -323,7 +324,7 @@ public sealed class MapInfo
             if (!toks[i].IsString && toks[i].Text == ",") { i++; continue; }
             values.Add(toks[i++].Text);
         }
-        Apply(e, key, values, knownColors);
+        Apply(e, key, values, hasEquals, knownColors);
     }
 
     private static bool IsInlinePropertyStart(List<Tok> toks, int i)
@@ -331,12 +332,20 @@ public sealed class MapInfo
         return i < toks.Count && !toks[i].IsString && KnownProperties.Contains(toks[i].Text);
     }
 
-    private static void Apply(MapInfoEntry e, string key, List<string> values, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static void Apply(MapInfoEntry e, string key, List<string> values, bool hasEquals, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         string First() => values.Count > 0 ? values[0] : "";
         int? Int() => values.Count > 0 && int.TryParse(values[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : null;
         float? FloatAt(int index) => values.Count > index && float.TryParse(values[index], NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? v : null;
         double? Double() => values.Count > 0 && double.TryParse(values[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : null;
+        bool RequiresEquals() => key.Equals("skybox", StringComparison.OrdinalIgnoreCase)
+                              || key.Equals("fogdensity", StringComparison.OrdinalIgnoreCase)
+                              || key.Equals("outsidefogdensity", StringComparison.OrdinalIgnoreCase)
+                              || key.Equals("lightmode", StringComparison.OrdinalIgnoreCase)
+                              || key.Equals("lightattenuationmode", StringComparison.OrdinalIgnoreCase)
+                              || key.Equals("pixelratio", StringComparison.OrdinalIgnoreCase);
+
+        if (RequiresEquals() && !hasEquals) return;
 
         switch (key.ToLowerInvariant())
         {

@@ -313,6 +313,46 @@ map MAP01 ""Entryway""
     }
 
     [Fact]
+    public void RequiresEqualsForNewFormatOnlyVisualProperties()
+    {
+        const string text = @"
+map MAP01 ""OldStyle""
+{
+    skybox skybox01
+    fogdensity 64
+    outsidefogdensity 32
+    lightmode 3
+    lightattenuationmode linear
+    pixelratio 1.0
+}
+map MAP02 ""NewStyle""
+{
+    skybox = skybox02
+    fogdensity = 64
+    outsidefogdensity = 32
+    lightmode = 3
+    lightattenuationmode = linear
+    pixelratio = 1.0
+}";
+
+        var oldStyle = MapInfo.Parse(text).GetMap("MAP01")!;
+        var newStyle = MapInfo.Parse(text).GetMap("MAP02")!;
+
+        Assert.Null(oldStyle.Sky1);
+        Assert.Equal(255, oldStyle.FogDensity);
+        Assert.Equal(255, oldStyle.OutsideFogDensity);
+        Assert.Null(oldStyle.LightMode);
+        Assert.Null(oldStyle.LightAttenuationMode);
+        Assert.Equal(1.2, oldStyle.PixelRatio);
+        Assert.Equal("SKYBOX02", newStyle.Sky1);
+        Assert.Equal(64, newStyle.FogDensity);
+        Assert.Equal(32, newStyle.OutsideFogDensity);
+        Assert.Equal("3", newStyle.LightMode);
+        Assert.Equal("linear", newStyle.LightAttenuationMode);
+        Assert.Equal(1.0, newStyle.PixelRatio);
+    }
+
+    [Fact]
     public void ClearsDoubleSkyWithoutSecondSky()
     {
         const string text = @"
