@@ -110,6 +110,7 @@ public static class TexturesParser
             if (i >= t.Count) return null;
             name = t[i++];
         }
+        if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
         SkipCommas(t, ref i);
         if (!ReadInt(t, ref i, out int width)) return null;
         SkipCommas(t, ref i);

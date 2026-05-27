@@ -52,19 +52,35 @@ WallTexture COMPO, 4, 2
     {
         const string text = @"
 Texture A, 8, 8 { Patch P1, 0, 0 }
-optional Sprite B, 16, 16 { Patch P2, 1, 2 }
+optional Sprite SPRTA0, 16, 16 { Patch P2, 1, 2 }
 Flat C, 64, 64 { Patch P3, 0, 0 }
 Texture optional D, 4, 4 { Patch P4, 0, 0 }";
         var defs = TexturesParser.Parse(text);
         Assert.Equal(4, defs.Count);
         Assert.Equal(TexturesType.Texture, defs[0].Type);
         Assert.Equal(TexturesType.Sprite, defs[1].Type);
-        Assert.Equal("B", defs[1].Name);
+        Assert.Equal("SPRTA0", defs[1].Name);
         Assert.True(defs[1].Optional);
         Assert.Equal(TexturesType.Flat, defs[2].Type);
         Assert.Equal(64, defs[2].Width);
         Assert.True(defs[3].Optional);
         Assert.Equal("D", defs[3].Name);
+    }
+
+    [Fact]
+    public void SkipsSpriteDefinitionsWithInvalidNameLength()
+    {
+        const string text = @"
+Sprite BAD, 16, 16 { Patch P1, 0, 0 }
+Sprite SPRTA0, 16, 16 { Patch P2, 0, 0 }
+Sprite SPRTA0B0, 16, 16 { Patch P3, 0, 0 }";
+
+        var defs = TexturesParser.Parse(text);
+
+        Assert.Equal(2, defs.Count);
+        Assert.DoesNotContain(defs, d => d.Name == "BAD");
+        Assert.Contains(defs, d => d.Name == "SPRTA0");
+        Assert.Contains(defs, d => d.Name == "SPRTA0B0");
     }
 
     [Fact]
