@@ -154,8 +154,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete TEXTURES parser behavior.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
-- [ ] Port SNDINFO parser.
-- [ ] Port SNDSEQ parser.
+- [x] Port SNDINFO parser.
+- [x] Port SNDSEQ parser.
 - [ ] Port TERRAIN parser.
 - [ ] Port LOCKDEFS parser.
 - [ ] Port DECALDEF parser.
