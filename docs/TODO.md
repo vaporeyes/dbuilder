@@ -136,7 +136,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port TEXTURES lump composite definitions fully.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
 - [ ] Port high-resolution replacements.
-- [ ] Port camera texture images.
+- [x] Port camera texture images.
 - [ ] Port dynamic bitmap images.
 - [ ] Port color and unknown image behavior.
 - [ ] Port voxel image behavior.

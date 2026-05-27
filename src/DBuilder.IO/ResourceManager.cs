@@ -66,6 +66,10 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, TexturesDef> spriteDefs = new(StringComparer.OrdinalIgnoreCase);
     private bool defsBuilt;
 
+    // ANIMDEFS camera textures are virtual images that UDB exposes as both wall textures and flats.
+    private readonly Dictionary<string, CameraTextureDef> cameraTextures = new(StringComparer.OrdinalIgnoreCase);
+    private bool cameraTexturesBuilt;
+
     // ANIMDEFS sequences: each animated name maps to (the ordered frame names, per-frame tics, this name's phase).
     private readonly Dictionary<string, (List<string> Seq, int Tics, int Phase)> flatAnims = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, (List<string> Seq, int Tics, int Phase)> texAnims = new(StringComparer.OrdinalIgnoreCase);
@@ -106,6 +110,8 @@ public sealed class ResourceManager : IDisposable
         flatDefs.Clear();
         spriteDefs.Clear();
         defsBuilt = false;
+        cameraTextures.Clear();
+        cameraTexturesBuilt = false;
         flatAnims.Clear();
         texAnims.Clear();
         animsBuilt = false;
@@ -267,6 +273,66 @@ public sealed class ResourceManager : IDisposable
         }
     }
 
+    private void EnsureCameraTextures()
+    {
+        if (cameraTexturesBuilt) return;
+        cameraTexturesBuilt = true;
+        foreach (var text in GetTextLumps("ANIMDEFS"))
+        {
+            foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
+                cameraTextures[texture.Name] = texture;
+        }
+    }
+
+    private static ImageData CreateCameraTexture(CameraTextureDef texture)
+    {
+        var rgba = new byte[texture.Width * texture.Height * 4];
+        for (int i = 0; i < texture.Width * texture.Height; i++)
+            rgba[i * 4 + 3] = 255;
+
+        int line = Math.Max(1, Math.Min(texture.Width, texture.Height) / 32);
+        int arm = Math.Max(line * 4, Math.Min(texture.Width, texture.Height) / 6);
+        DrawCameraCorner(rgba, texture.Width, texture.Height, 0, 0, line, arm);
+        DrawCameraCorner(rgba, texture.Width, texture.Height, texture.Width - 1, 0, line, arm);
+        DrawCameraCorner(rgba, texture.Width, texture.Height, 0, texture.Height - 1, line, arm);
+        DrawCameraCorner(rgba, texture.Width, texture.Height, texture.Width - 1, texture.Height - 1, line, arm);
+        DrawCameraRec(rgba, texture.Width, texture.Height, line);
+        return new ImageData(texture.Width, texture.Height, rgba);
+    }
+
+    private static void DrawCameraCorner(byte[] rgba, int width, int height, int x, int y, int line, int arm)
+    {
+        int xDirection = x == 0 ? 1 : -1;
+        int yDirection = y == 0 ? 1 : -1;
+        for (int i = 0; i < arm; i++)
+        {
+            for (int t = 0; t < line; t++)
+            {
+                SetCameraPixel(rgba, width, height, x + i * xDirection, y + t * yDirection, 64, 224, 180);
+                SetCameraPixel(rgba, width, height, x + t * xDirection, y + i * yDirection, 64, 224, 180);
+            }
+        }
+    }
+
+    private static void DrawCameraRec(byte[] rgba, int width, int height, int line)
+    {
+        int size = Math.Max(line * 3, Math.Min(width, height) / 14);
+        int margin = Math.Max(line * 2, Math.Min(width, height) / 20);
+        for (int y = margin; y < margin + size; y++)
+            for (int x = margin; x < margin + size; x++)
+                SetCameraPixel(rgba, width, height, x, y, 224, 48, 48);
+    }
+
+    private static void SetCameraPixel(byte[] rgba, int width, int height, int x, int y, byte red, byte green, byte blue)
+    {
+        if ((uint)x >= (uint)width || (uint)y >= (uint)height) return;
+        int i = (y * width + x) * 4;
+        rgba[i] = red;
+        rgba[i + 1] = green;
+        rgba[i + 2] = blue;
+        rgba[i + 3] = 255;
+    }
+
     // Composes a TEXTURES definition into RGBA by blitting each patch (resolved as a raw single image).
     private ImageData? ComposeTextures(TexturesDef def)
     {
@@ -394,25 +460,39 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>All wall-texture names across resources (incl. TEXTURES defs), sorted and de-duplicated.</summary>
-    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames(), wallDefs);
+    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames(), wallDefs, includeCameraTextures: true);
 
     /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
-    public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs);
+    public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true);
 
     public IReadOnlyList<ResourceTextureSetInfo> GetResourceTextureSets()
     {
         var sets = new List<ResourceTextureSetInfo>(readers.Count);
         foreach (var reader in readers)
-            sets.Add(new ResourceTextureSetInfo(reader.DisplayName, reader.TextureNames(), reader.FlatNames()));
+        {
+            var textures = new List<string>(reader.TextureNames());
+            var flats = new List<string>(reader.FlatNames());
+            if (reader.GetTextLump("ANIMDEFS") is { } text)
+            {
+                foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
+                {
+                    textures.Add(texture.Name);
+                    flats.Add(texture.Name);
+                }
+            }
+            sets.Add(new ResourceTextureSetInfo(reader.DisplayName, textures, flats));
+        }
         return sets;
     }
 
-    private List<string> CollectNames(Func<IResourceReader, IEnumerable<string>> select, Dictionary<string, TexturesDef> defs)
+    private List<string> CollectNames(Func<IResourceReader, IEnumerable<string>> select, Dictionary<string, TexturesDef> defs, bool includeCameraTextures)
     {
         EnsureDefs();
+        if (includeCameraTextures) EnsureCameraTextures();
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var r in readers) foreach (var n in select(r)) set.Add(n);
         foreach (var k in defs.Keys) set.Add(k);
+        if (includeCameraTextures) foreach (var k in cameraTextures.Keys) set.Add(k);
         var list = new List<string>(set);
         list.Sort(StringComparer.OrdinalIgnoreCase);
         return list;
@@ -443,10 +523,10 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>Resolves a flat to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetFlat(string name) => Resolve(name, flatCache, flatDefs, static (r, n, p) => r.GetFlat(n, p));
+    public ImageData? GetFlat(string name) => Resolve(name, flatCache, flatDefs, static (r, n, p) => r.GetFlat(n, p), includeCameraTextures: true);
 
     /// <summary>Resolves a wall texture to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTexture(n, p));
+    public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTexture(n, p), includeCameraTextures: true);
 
     /// <summary>Resolves a sprite/patch to RGBA, or null. Tries rotation variants so e.g. TROOA0 finds TROOA1. Cached by name.</summary>
     public ImageData? GetSprite(string name)
@@ -454,11 +534,11 @@ public sealed class ResourceManager : IDisposable
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (spriteCache.TryGetValue(name, out var cached)) return cached;
 
-        ImageData? result = ResolveCore(name, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
+        ImageData? result = ResolveCore(name, spriteDefs, static (r, n, p) => r.GetSprite(n, p), includeCameraTextures: false);
         if (result == null)
             foreach (var variant in RotationVariants(name))
             {
-                result = ResolveCore(variant, spriteDefs, static (r, n, p) => r.GetSprite(n, p));
+                result = ResolveCore(variant, spriteDefs, static (r, n, p) => r.GetSprite(n, p), includeCameraTextures: false);
                 if (result != null) break;
             }
 
@@ -481,19 +561,25 @@ public sealed class ResourceManager : IDisposable
     }
 
     private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
-        Func<IResourceReader, string, DoomPalette?, ImageData?> lookup)
+        Func<IResourceReader, string, DoomPalette?, ImageData?> lookup, bool includeCameraTextures)
     {
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (cache.TryGetValue(name, out var cached)) return cached;
-        var result = ResolveCore(name, defs, lookup);
+        var result = ResolveCore(name, defs, lookup, includeCameraTextures);
         cache[name] = result;
         return result;
     }
 
-    // Resolves a name without caching: a TEXTURES definition first, then newest-resource single-image lookup.
+    // Resolves a name without caching: virtual camera textures first, then TEXTURES definitions and resource images.
     private ImageData? ResolveCore(string name, Dictionary<string, TexturesDef> defs,
-        Func<IResourceReader, string, DoomPalette?, ImageData?> lookup)
+        Func<IResourceReader, string, DoomPalette?, ImageData?> lookup, bool includeCameraTextures)
     {
+        if (includeCameraTextures)
+        {
+            EnsureCameraTextures();
+            if (cameraTextures.TryGetValue(name, out var texture)) return CreateCameraTexture(texture);
+        }
+
         EnsureDefs();
         if (defs.TryGetValue(name, out var def)) return ComposeTextures(def);
 
