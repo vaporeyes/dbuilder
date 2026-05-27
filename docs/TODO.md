@@ -120,6 +120,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style bounded find/remove helpers for configured map lumps.
 - [ ] Port WAD map discovery behavior.
 - [ ] Port save behavior for replacing, inserting, and renaming maps.
+  - [x] Avoid replacing non-map lumps that share the target map name.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 
 ## Resource And Data Management

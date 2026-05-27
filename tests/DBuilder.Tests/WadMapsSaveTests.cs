@@ -77,6 +77,22 @@ public class WadMapsSaveTests
     }
 
     [Fact]
+    public void SaveMapDoesNotReplaceNonMapLumpWithSameName()
+    {
+        using var wad = new WAD(new MemoryStream());
+        var graphic = wad.Insert("MAP01", 0, 3)!;
+        graphic.Stream.Write(new byte[] { 7, 8, 9 }, 0, 3);
+        wad.WriteHeaders();
+
+        WadMaps.SaveMap(wad, "MAP01", SquareMap(), MapFormat.Doom);
+
+        Assert.Equal(new byte[] { 7, 8, 9 }, wad.Lumps[0].Stream.ReadAllBytes());
+        Assert.Equal("MAP01", wad.Lumps[1].Name);
+        Assert.Equal("THINGS", wad.Lumps[2].Name);
+        Assert.Single(WadMaps.Find(wad));
+    }
+
+    [Fact]
     public void SaveBackFlowCopiesWadEditsMapAndReopens()
     {
         // Mirrors the editor's save-back: copy the source WAD into a fresh one, replace the edited map,

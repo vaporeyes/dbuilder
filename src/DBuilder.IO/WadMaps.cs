@@ -71,7 +71,7 @@ public static class WadMaps
         int insertPos;
         byte[]? behavior = null;
 
-        int idx = wad.FindLumpIndex(marker);
+        int idx = FindMapHeaderIndex(wad, marker);
         if (idx >= 0)
         {
             insertPos = idx;
@@ -95,6 +95,18 @@ public static class WadMaps
             default: DoomMapWriter.WriteMap(map, wad, marker, insertPos); break;
         }
         wad.WriteHeaders();
+    }
+
+    private static int FindMapHeaderIndex(WAD wad, string marker)
+    {
+        for (int i = 0; i < wad.Lumps.Count - 1; i++)
+        {
+            if (wad.Lumps[i].Name != marker) continue;
+            string next = wad.Lumps[i + 1].Name;
+            if (next is "THINGS" or "TEXTMAP") return i;
+        }
+
+        return -1;
     }
 
     /// <summary>Copies every lump from <paramref name="src"/> into <paramref name="dst"/> (append order preserved).</summary>
