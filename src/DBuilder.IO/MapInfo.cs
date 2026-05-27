@@ -237,7 +237,14 @@ public sealed class MapInfo
                 ReadProperty(toks, ref i, entry, stopAtBrace: false, knownColors);
         }
 
+        NormalizeEntry(entry);
         return entry;
+    }
+
+    private static void NormalizeEntry(MapInfoEntry entry)
+    {
+        if (entry.DoubleSky && string.IsNullOrEmpty(entry.Sky2))
+            entry.DoubleSky = false;
     }
 
     private static void ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)

@@ -311,4 +311,21 @@ map MAP01 ""Entryway""
         Assert.Equal("SKYBOX01", map.Sky1);
         Assert.Equal(0, map.Sky1ScrollSpeed);
     }
+
+    [Fact]
+    public void ClearsDoubleSkyWithoutSecondSky()
+    {
+        const string text = @"
+map MAP01 ""Entryway"" { doublesky }
+map MAP02 ""Underhalls""
+{
+    sky2 = SKY2
+    doublesky
+}";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.False(mi.GetMap("MAP01")!.DoubleSky);
+        Assert.True(mi.GetMap("MAP02")!.DoubleSky);
+    }
 }
