@@ -125,6 +125,18 @@ ACTOR Flagged 7002
     }
 
     [Fact]
+    public void ScalePopulatesXScaleAndYScaleProperties()
+    {
+        const string text = "ACTOR Scaled 7004 { Scale 1.5 }";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("1.5", actor.Properties["xscale"].Single());
+        Assert.Equal("1.5", actor.Properties["yscale"].Single());
+        Assert.False(actor.Properties.ContainsKey("scale"));
+    }
+
+    [Fact]
     public void ChildInheritsFlagsAndPropertiesFromParent()
     {
         const string text = @"

@@ -206,7 +206,16 @@ public static class DecorateParser
             else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
             else if (!inStates && LooksLikeProperty(tk.Text, t, i))
             {
-                actor.Properties[tk.Text] = ReadPropertyValues(tk.Text, t, ref i);
+                var values = ReadPropertyValues(tk.Text, t, ref i);
+                if (tk.Text.Equals("scale", StringComparison.OrdinalIgnoreCase))
+                {
+                    actor.Properties["xscale"] = values;
+                    actor.Properties["yscale"] = values;
+                }
+                else
+                {
+                    actor.Properties[tk.Text] = values;
+                }
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
