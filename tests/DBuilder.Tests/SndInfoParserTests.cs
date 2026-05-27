@@ -16,13 +16,15 @@ weapons/pistol ""sounds/pistol.wav""
 misc/secret DSSECRET
 $alias player/death misc/death
 # comment
-misc/death ""sounds/death.ogg""";
+misc/death ""sounds/death.ogg""
+weapons/shotgun = DSSHOTGN";
 
         var info = SndInfoParser.Parse(text);
 
         Assert.Equal("sounds/pistol.wav", info.Sounds["weapons/pistol"]);
         Assert.Equal("DSSECRET", info.Sounds["misc/secret"]);
         Assert.Equal("sounds/death.ogg", info.Sounds["misc/death"]);
+        Assert.Equal("DSSHOTGN", info.Sounds["weapons/shotgun"]);
         Assert.Equal("misc/death", info.Aliases["player/death"]);
     }
 
@@ -38,5 +40,15 @@ $volume world/drip 0.5";
 
         Assert.Equal("drip1", info.Sounds["world/drip"]);
         Assert.Empty(info.Aliases);
+    }
+
+    [Fact]
+    public void ParsesRandomGroups()
+    {
+        const string text = @"$random misc/random { sound/a sound/b }";
+
+        var info = SndInfoParser.Parse(text);
+
+        Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/random"]);
     }
 }

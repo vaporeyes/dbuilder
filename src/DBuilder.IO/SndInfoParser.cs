@@ -11,6 +11,7 @@ public sealed class SndInfo
 {
     public Dictionary<string, string> Sounds { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> Aliases { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, List<string>> RandomGroups { get; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 public static class SndInfoParser
@@ -29,11 +30,30 @@ public static class SndInfoParser
                 if (t.Count >= 3) result.Aliases[t[1]] = t[2];
                 continue;
             }
+            if (first.Equals("$random", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseRandom(result, t);
+                continue;
+            }
 
             if (first.StartsWith("$", StringComparison.Ordinal)) continue;
-            if (t.Count >= 2) result.Sounds[first] = t[1];
+            if (t.Count >= 3 && t[1] == "=") result.Sounds[first] = t[2];
+            else if (t.Count >= 2) result.Sounds[first] = t[1];
         }
         return result;
+    }
+
+    private static void ParseRandom(SndInfo result, List<string> tokens)
+    {
+        if (tokens.Count < 4) return;
+        string name = tokens[1];
+        var sounds = new List<string>();
+        for (int i = 2; i < tokens.Count; i++)
+        {
+            if (tokens[i] is "{" or "}") continue;
+            sounds.Add(tokens[i]);
+        }
+        if (name.Length > 0 && sounds.Count > 0) result.RandomGroups[name] = sounds;
     }
 
     private static string StripLineComment(string line)
