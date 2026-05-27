@@ -74,6 +74,7 @@ public static class TexturesParser
         while (i < t.Count)
         {
             string word = t[i];
+            if (word.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             bool optional = false;
             if (word.Equals("optional", StringComparison.OrdinalIgnoreCase)) { optional = true; i++; if (i >= t.Count) break; word = t[i]; }
 
