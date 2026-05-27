@@ -16,6 +16,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
 
@@ -67,6 +69,54 @@ public sealed record RequiredArchiveEntry(string Name, string? Lump, string? Cla
 
 public sealed record RequiredArchiveInfo(string Name, string Filename, bool NeedExclude, IReadOnlyList<RequiredArchiveEntry> Entries);
 
+public sealed class TextureSetInfo
+{
+    private readonly Regex regex;
+
+    public TextureSetInfo(string key, string name, IReadOnlyList<string> filters)
+    {
+        Key = key;
+        Name = name;
+        Filters = filters;
+        regex = BuildRegex(filters);
+    }
+
+    public string Key { get; }
+    public string Name { get; }
+    public IReadOnlyList<string> Filters { get; }
+
+    public bool Matches(string textureName) => regex.IsMatch(textureName.ToUpperInvariant());
+
+    private static Regex BuildRegex(IReadOnlyList<string> filters)
+    {
+        var pattern = new StringBuilder();
+        foreach (string filter in filters)
+        {
+            if (pattern.Length > 0) pattern.Append('|');
+            pattern.Append("(?:\\A");
+            pattern.Append(WildcardToRegex(filter.ToUpperInvariant()));
+            pattern.Append("\\Z)");
+        }
+        if (pattern.Length == 0) pattern.Append("\\Z\\A");
+        return new Regex(pattern.ToString(), RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    }
+
+    private static string WildcardToRegex(string filter)
+    {
+        var pattern = new StringBuilder(filter.Length);
+        foreach (char c in filter)
+        {
+            pattern.Append(c switch
+            {
+                '?' => ".",
+                '*' => ".*?",
+                _ => Regex.Escape(c.ToString()),
+            });
+        }
+        return pattern.ToString();
+    }
+}
+
 public sealed class GameConfiguration
 {
     private readonly Dictionary<int, ThingTypeInfo> things = new();
@@ -82,6 +132,7 @@ public sealed class GameConfiguration
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
     private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<RequiredArchiveInfo> requiredArchives = new();
+    private readonly List<TextureSetInfo> textureSets = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -110,6 +161,7 @@ public sealed class GameConfiguration
     public string NodeBuilderTest { get; private set; } = "";
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
+    public IReadOnlyList<TextureSetInfo> TextureSets => textureSets;
 
     /// <summary>Linedef flag bit value -> display name (e.g. 1 -> "Impassable", 4 -> "Double Sided").</summary>
     public IReadOnlyDictionary<int, string> LinedefFlags => linedefFlags;
@@ -159,6 +211,7 @@ public sealed class GameConfiguration
             if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln);
             if (root["staticlimits"] is IDictionary sl) gc.staticLimits = ParseStaticLimits(sl);
             if (root["requiredarchives"] is IDictionary ra) gc.ParseRequiredArchives(ra);
+            if (root["texturesets"] is IDictionary ts) gc.ParseTextureSets(ts);
         }
         return gc;
     }
@@ -577,6 +630,24 @@ public sealed class GameConfiguration
                 GetString(archive, "filename", "gzdoom.pk3"),
                 GetBool(archive, "need_exclude", true),
                 entries));
+        }
+    }
+
+    private void ParseTextureSets(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (e.Value is not IDictionary set) continue;
+            var filters = new List<string>();
+            foreach (DictionaryEntry child in set)
+            {
+                string childKey = child.Key.ToString() ?? "";
+                if (string.Equals(childKey, "name", StringComparison.OrdinalIgnoreCase)) continue;
+                if (child.Value is not string filter) continue;
+                filters.Add(filter.ToUpperInvariant());
+            }
+            textureSets.Add(new TextureSetInfo(key, GetString(set, "name", "Unnamed Set"), filters));
         }
     }
 

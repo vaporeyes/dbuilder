@@ -281,6 +281,47 @@ TROOCPOS
     }
 
     [Fact]
+    public void ParsesTextureSetsAndMatchesWildcards()
+    {
+        const string cfg = """
+            texturesets
+            {
+                set0
+                {
+                    name = "Rock";
+                    filter0 = "ASHWALL*";
+                    filter1 = "FLAT1_?";
+                    filter2 = "RROCK10";
+                }
+
+                set1
+                {
+                    name = "Switches";
+                    filter0 = "SW1*";
+                    filter1 = "SW2*";
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(2, gc.TextureSets.Count);
+        var rock = gc.TextureSets.Single(s => s.Key == "set0");
+        Assert.Equal("Rock", rock.Name);
+        Assert.Contains("ASHWALL*", rock.Filters);
+        Assert.Contains("FLAT1_?", rock.Filters);
+        Assert.Contains("RROCK10", rock.Filters);
+        Assert.True(rock.Matches("ashwall2"));
+        Assert.True(rock.Matches("FLAT1_3"));
+        Assert.True(rock.Matches("RROCK10"));
+        Assert.False(rock.Matches("FLAT10"));
+
+        var switches = gc.TextureSets.Single(s => s.Name == "Switches");
+        Assert.True(switches.Matches("SW1BRCOM"));
+        Assert.False(switches.Matches("ROCKRED1"));
+    }
+
+    [Fact]
     public void LoadsRealDoomConfigWhenAvailable()
     {
         // Opportunistic: only runs when the UDB asset tree is present on this machine.

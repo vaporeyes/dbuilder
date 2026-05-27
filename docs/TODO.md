@@ -188,9 +188,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port linedef activation info.
 - [ ] Port argument info behavior.
 - [ ] Port sector effect info.
-- [ ] Port texture sets.
+- [x] Port texture sets.
 - [ ] Port resource texture sets.
-- [ ] Port matching texture sets.
+- [x] Port matching texture sets.
 - [ ] Port generalized categories, options, and bits.
 - [ ] Port flag translations.
 - [ ] Port enum lists and enum items.
