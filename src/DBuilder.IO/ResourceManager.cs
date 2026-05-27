@@ -530,13 +530,21 @@ public sealed class ResourceManager : IDisposable
     {
         if (def.Width <= 0 || def.Height <= 0) return null;
         var buf = new byte[def.Width * def.Height * 4]; // transparent
+        if (def.Patches.Count == 0) return def.NullTexture ? new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY) : null;
+
         var pal = Palette;
+        int usablePatches = 0;
+        int loadedPatches = 0;
         foreach (var patch in def.Patches)
         {
             if (patch.Skip) continue;
+            usablePatches++;
             var img = ResolvePatchRaw(patch.Name, pal);
-            if (img != null) Blit(buf, def.Width, def.Height, img, patch);
+            if (img == null) continue;
+            Blit(buf, def.Width, def.Height, img, patch);
+            loadedPatches++;
         }
+        if (!def.NullTexture && usablePatches > 0 && loadedPatches == 0) return null;
         return new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY);
     }
 

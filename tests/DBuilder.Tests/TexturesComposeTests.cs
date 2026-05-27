@@ -218,4 +218,39 @@ public class TexturesComposeTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void MissingRequiredTexturesPatchesDoNotCreateTransparentTexture()
+    {
+        string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes("WallTexture WMISS, 1, 1 { Patch \"MISSING\", 0, 0 }\n")));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Null(rm.GetWallTexture("WMISS"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void NullTextureWithoutPatchesCreatesTransparentTexture()
+    {
+        string textures =
+            "WallTexture WNULL, 1, 1\n" +
+            "{\n" +
+            "    NullTexture\n" +
+            "}\n";
+        string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WNULL");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 0, 0, 0, 0 }, tex!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
 }
