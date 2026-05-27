@@ -2,6 +2,7 @@
 // ABOUTME: Uses synthetic PK3 data to verify path handling and newest-resource priority.
 
 using System.IO;
+using System.Linq;
 using System.Text;
 using DBuilder.IO;
 
@@ -64,6 +65,26 @@ model Zombie
         {
             File.Delete(oldPk3);
             File.Delete(newPk3);
+        }
+    }
+
+    [Fact]
+    public void DiscoversMultipleRootModeldefFiles()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("model Root { Model 0 \"root.md3\" }")),
+            ("MODELDEF.extra", Encoding.ASCII.GetBytes("model Extra { Model 0 \"extra.md3\" }")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            Assert.Equal(new[] { "Extra", "Root" }, resources.GetModelDefs().Select(d => d.ActorName).OrderBy(n => n).ToArray());
+        }
+        finally
+        {
+            File.Delete(pk3);
         }
     }
 }

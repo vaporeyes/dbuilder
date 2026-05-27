@@ -316,7 +316,7 @@ public sealed class ResourceManager : IDisposable
     {
         if (modelDefsBuilt) return;
         modelDefsBuilt = true;
-        foreach (var text in GetTextLumps("MODELDEF"))
+        foreach (var text in GetTextLumps("MODELDEF", partialTitleMatch: true))
             modelDefs.AddRange(ModeldefParser.Parse(text));
     }
 
