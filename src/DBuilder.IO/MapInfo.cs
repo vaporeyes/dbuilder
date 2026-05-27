@@ -51,9 +51,17 @@ public sealed class MapInfo
         return null;
     }
 
-    public static MapInfo Parse(string text)
+    public static MapInfo Parse(string text) => Parse(text, includeResolver: null);
+
+    public static MapInfo Parse(string text, Func<string, string?>? includeResolver)
     {
         var mi = new MapInfo();
+        ParseInto(mi, text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        return mi;
+    }
+
+    private static void ParseInto(MapInfo mi, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
         var toks = Tokenize(text);
         int i = 0;
         while (i < toks.Count)
@@ -76,12 +84,33 @@ public sealed class MapInfo
                 ParseNumberedActors(toks, ref i, mi.spawnNums);
                 continue;
             }
+            if (!t.IsString && t.Text.Equals("include", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                ParseInclude(mi, toks, ref i, includeResolver, parsedIncludes);
+                continue;
+            }
             // Any other directive's brace block (gameinfo, cluster, ...) is skipped wholesale; non-map
             // tokens outside braces are simply ignored.
             if (!t.IsString && t.Text == "{") SkipBlock(toks, ref i);
             else i++;
         }
-        return mi;
+    }
+
+    public void MergeFrom(MapInfo other)
+    {
+        maps.AddRange(other.maps);
+        foreach (var entry in other.doomEdNums) doomEdNums[entry.Key] = entry.Value;
+        foreach (var entry in other.spawnNums) spawnNums[entry.Key] = entry.Value;
+    }
+
+    private static void ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
+        if (includeResolver == null || i >= toks.Count) return;
+        string include = toks[i++].Text;
+        if (!parsedIncludes.Add(include)) return;
+        string? text = includeResolver(include);
+        if (text != null) ParseInto(mi, text, includeResolver, parsedIncludes);
     }
 
     // Top-level directives. "cluster"/"clusterdef" are intentionally excluded because old-format maps use

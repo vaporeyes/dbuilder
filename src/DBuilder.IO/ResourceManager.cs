@@ -65,6 +65,8 @@ public sealed class ResourceManager : IDisposable
     private bool modelDefsBuilt;
     private Gldefs? gldefs;
     private bool gldefsBuilt;
+    private MapInfo? mapInfo;
+    private bool mapInfoBuilt;
 
     // TEXTURES-lump composite definitions, keyed by name per usage (newest resource wins).
     private readonly Dictionary<string, TexturesDef> wallDefs = new(StringComparer.OrdinalIgnoreCase);
@@ -118,6 +120,8 @@ public sealed class ResourceManager : IDisposable
         modelDefsBuilt = false;
         gldefs = null;
         gldefsBuilt = false;
+        mapInfo = null;
+        mapInfoBuilt = false;
         wallDefs.Clear();
         flatDefs.Clear();
         spriteDefs.Clear();
@@ -333,6 +337,28 @@ public sealed class ResourceManager : IDisposable
     {
         EnsureGldefs();
         return gldefs!;
+    }
+
+    private void EnsureMapInfo()
+    {
+        if (mapInfoBuilt) return;
+        mapInfoBuilt = true;
+        mapInfo = new MapInfo();
+        foreach (var reader in readers)
+        {
+            foreach (string lumpName in new[] { "MAPINFO", "ZMAPINFO" })
+            {
+                string? text = reader.GetTextLump(lumpName);
+                if (text == null) continue;
+                mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource));
+            }
+        }
+    }
+
+    public MapInfo GetMapInfo()
+    {
+        EnsureMapInfo();
+        return mapInfo!;
     }
 
     private static void MergeGldefs(Gldefs target, Gldefs source)

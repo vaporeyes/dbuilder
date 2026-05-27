@@ -151,4 +151,22 @@ SpawnNums
         Assert.Equal("DoomImp", mi.SpawnNums[4]);
         Assert.Equal("BossBrain", mi.SpawnNums[255]);
     }
+
+    [Fact]
+    public void ParsesIncludesOnce()
+    {
+        const string text = @"
+include ""mapinfo/maps.txt""
+include ""mapinfo/maps.txt""
+DoomEdNums { 9001 = LocalActor }";
+
+        var mi = MapInfo.Parse(text, include => include == "mapinfo/maps.txt"
+            ? "map MAP01 \"Entryway\" { next = MAP02 }\nDoomEdNums { 9000 = IncludedActor }"
+            : null);
+
+        Assert.Single(mi.Maps);
+        Assert.Equal("MAP02", mi.GetMap("MAP01")!.Next);
+        Assert.Equal("IncludedActor", mi.DoomEdNums[9000]);
+        Assert.Equal("LocalActor", mi.DoomEdNums[9001]);
+    }
 }
