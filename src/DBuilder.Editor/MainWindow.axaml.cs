@@ -53,6 +53,7 @@ public partial class MainWindow : Window
     public MainWindow(string? openPath)
     {
         InitializeComponent();
+        ShowActivated = true;
         MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
         MapView.Picked += _ => UpdateInfo();
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
@@ -399,12 +400,23 @@ public partial class MainWindow : Window
     {
         MacApplicationActivator.Activate();
         Activate();
+        Topmost = true;
+        Topmost = false;
         Dispatcher.UIThread.Post(() =>
         {
             MacApplicationActivator.Activate();
             Activate();
             MapView.Focus();
         }, DispatcherPriority.Loaded);
+        _ = FocusMapViewAfterActivationAsync();
+    }
+
+    private async Task FocusMapViewAfterActivationAsync()
+    {
+        await Task.Delay(250);
+        MacApplicationActivator.Activate();
+        Activate();
+        MapView.Focus();
     }
 
     // Window-level accelerators. The map control bubbles unhandled keys here. Accept both Ctrl (Win/Linux)

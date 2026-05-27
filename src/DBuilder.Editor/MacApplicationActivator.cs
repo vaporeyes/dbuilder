@@ -22,6 +22,14 @@ internal static class MacApplicationActivator
 
             objc_msgSend(sharedApplication, sel_registerName("setActivationPolicy:"), 0);
             objc_msgSend(sharedApplication, sel_registerName("activateIgnoringOtherApps:"), true);
+
+            IntPtr nsRunningApplication = objc_getClass("NSRunningApplication");
+            if (nsRunningApplication == IntPtr.Zero) return;
+
+            IntPtr currentApplication = objc_msgSend(nsRunningApplication, sel_registerName("currentApplication"));
+            if (currentApplication == IntPtr.Zero) return;
+
+            objc_msgSend(currentApplication, sel_registerName("activateWithOptions:"), (nuint)2);
         }
         catch
         {
@@ -40,6 +48,9 @@ internal static class MacApplicationActivator
 
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     private static extern void objc_msgSend(IntPtr receiver, IntPtr selector, nint argument);
+
+    [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
+    private static extern void objc_msgSend(IntPtr receiver, IntPtr selector, nuint argument);
 
     [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
     private static extern void objc_msgSend(IntPtr receiver, IntPtr selector, [MarshalAs(UnmanagedType.I1)] bool argument);
