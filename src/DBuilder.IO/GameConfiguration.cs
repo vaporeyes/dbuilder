@@ -396,30 +396,54 @@ public sealed class GameConfiguration
 
         foreach (var a in actors)
         {
+            if (!string.IsNullOrWhiteSpace(a.Replaces))
+            {
+                int replacedNum = FindThingByClass(a.Replaces);
+                if (replacedNum >= 0 && things.TryGetValue(replacedNum, out var replaced))
+                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced);
+            }
+
             int num = a.DoomEdNum;
             if (num < 0 && classToNum != null && classToNum.TryGetValue(a.ClassName, out int mapped)) num = mapped;
             if (num < 0) continue;
             things.TryGetValue(num, out var existing);
-            things[num] = new ThingTypeInfo
-            {
-                Index = num,
-                ClassName = a.ClassName,
-                Title = ActorTitle(a),
-                Category = a.Category ?? "Decorate",
-                Sprite = a.EditorSprite ?? "",
-                Width = a.Radius > 0 ? a.Radius : 16,
-                Height = a.Height > 0 ? a.Height : 16,
-                Alpha = ActorAlpha(a),
-                RenderStyle = ActorRenderStyle(a),
-                SpriteScale = ActorSpriteScale(a),
-                Color = ActorColor(a),
-                Arrow = ActorArrow(a),
-                Hangs = ActorFlag(a, "spawnceiling"),
-                Blocking = ActorFlag(a, "solid") ? 2 : 0,
-                ErrorCheck = ActorFlag(a, "solid") ? 1 : 0,
-                Args = ActorArgs(a, existing?.Args),
-            };
+            things[num] = BuildThingInfo(a, num, existing);
         }
+    }
+
+    private int FindThingByClass(string className)
+    {
+        foreach (var thing in things)
+            if (string.Equals(thing.Value.ClassName, className, StringComparison.OrdinalIgnoreCase))
+                return thing.Key;
+        return -1;
+    }
+
+    private static ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing)
+    {
+        string title = ActorTitle(actor);
+        bool solid = ActorFlag(actor, "solid");
+        return new ThingTypeInfo
+        {
+            Index = index,
+            ClassName = actor.ClassName,
+            Title = title != actor.ClassName ? title : existing?.Title ?? title,
+            Category = actor.Category ?? existing?.Category ?? "Decorate",
+            Sprite = actor.EditorSprite ?? existing?.Sprite ?? "",
+            Width = actor.Radius > 0 ? actor.Radius : existing?.Width ?? 16,
+            Height = actor.Height > 0 ? actor.Height : existing?.Height ?? 16,
+            Alpha = ActorAlpha(actor, existing),
+            RenderStyle = ActorRenderStyle(actor, existing),
+            SpriteScale = ActorSpriteScale(actor, existing),
+            Color = ActorColor(actor, existing),
+            Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
+                ? ActorArrow(actor)
+                : existing?.Arrow ?? false,
+            Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : existing?.Hangs ?? false,
+            Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : existing?.Blocking ?? 0,
+            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : existing?.ErrorCheck ?? 0,
+            Args = ActorArgs(actor, existing?.Args),
+        };
     }
 
     private static string ActorTitle(ActorInfo actor)
@@ -429,26 +453,26 @@ public sealed class GameConfiguration
         return actor.ClassName;
     }
 
-    private static double ActorAlpha(ActorInfo actor)
+    private static double ActorAlpha(ActorInfo actor, ThingTypeInfo? existing)
         => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0)
             : actor.Properties.ContainsKey("defaultalpha") ? 0.6
-            : 1.0;
+            : existing?.Alpha ?? 1.0;
 
-    private static string ActorRenderStyle(ActorInfo actor)
+    private static string ActorRenderStyle(ActorInfo actor, ThingTypeInfo? existing)
         => actor.Properties.ContainsKey("$ignorerenderstyle")
             ? "normal"
-            : TryActorProperty(actor, "renderstyle", out string? style) ? style.ToLowerInvariant() : "normal";
+            : TryActorProperty(actor, "renderstyle", out string? style) ? style.ToLowerInvariant() : existing?.RenderStyle ?? "normal";
 
-    private static double ActorSpriteScale(ActorInfo actor)
+    private static double ActorSpriteScale(ActorInfo actor, ThingTypeInfo? existing)
     {
         if (TryActorPropertyDouble(actor, "xscale", out double xscale)) return xscale;
         if (TryActorPropertyDouble(actor, "scale", out double scale)) return scale;
-        return 1.0;
+        return existing?.SpriteScale ?? 1.0;
     }
 
-    private static int ActorColor(ActorInfo actor)
+    private static int ActorColor(ActorInfo actor, ThingTypeInfo? existing)
     {
-        if (!TryActorPropertyInt(actor, "$color", out int color)) return 0;
+        if (!TryActorPropertyInt(actor, "$color", out int color)) return existing?.Color ?? 0;
         return color == 0 || color > 19 ? 18 : color;
     }
 

@@ -416,6 +416,48 @@ ACTOR CoolMonster 31000
     }
 
     [Fact]
+    public void MergeActorsAppliesReplacementActorToExistingThingClass()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        color = 4;
+        width = 20;
+        height = 56;
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR FancyImp replaces DoomImp
+{
+    Tag ""Fancy Imp""
+    Radius 24
+    Height 64
+    States { Spawn: FIMP A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(3001);
+        Assert.NotNull(info);
+        Assert.Equal("Fancy Imp", info!.Title);
+        Assert.Equal("FancyImp", info.ClassName);
+        Assert.Equal("FIMPA0", info.Sprite);
+        Assert.Equal(24, info.Width);
+        Assert.Equal(64, info.Height);
+        Assert.Equal("monsters", info.Category);
+        Assert.Equal(4, info.Color);
+    }
+
+    [Fact]
     public void MergeActorsKeepsUnquotedDollarArgumentLineValues()
     {
         const string text = @"
