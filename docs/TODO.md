@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
+  - [x] Parse render style, sidedef/sector flag, portal flag, brightness level, and visplane view-height metadata.
   - [x] Parse compatibility, help, thing angle, sidedef compression, and MODELDEF pitch metadata.
   - [x] Parse map format flag metadata and UDMF feature toggles.
   - [x] Parse testing, map boundary, sky flat, light level, and long texture name settings.

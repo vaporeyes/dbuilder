@@ -278,6 +278,49 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesRenderStyleFlagAndBrightnessMetadata()
+    {
+        const string cfg = """
+            visplaneexplorer
+            {
+                viewheights
+                {
+                    eye = "41";
+                    crouch = "25";
+                }
+            }
+            thingrenderstyles { additive = "Additive"; }
+            linedefrenderstyles { translucent = "Translucent"; }
+            sidedefflags { lightabsolute = "Absolute light"; }
+            sectorflags { secret = "Secret"; }
+            ceilingportalflags { portal_ceil_nopass = "Impassable"; }
+            floorportalflags { portal_floor_norender = "Not rendered"; }
+            sectorrenderstyles { add = "Add"; }
+            sectorportalrenderstyles { translucent = "Translucent"; }
+            sectorbrightness
+            {
+                255;
+                0;
+                128;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("41", gc.VisplaneViewHeights["eye"]);
+        Assert.Equal("25", gc.VisplaneViewHeights["crouch"]);
+        Assert.Equal("Additive", gc.ThingRenderStyles["additive"]);
+        Assert.Equal("Translucent", gc.LinedefRenderStyles["translucent"]);
+        Assert.Equal("Absolute light", gc.SidedefFlags["lightabsolute"]);
+        Assert.Equal("Secret", gc.SectorFlags["secret"]);
+        Assert.Equal("Impassable", gc.CeilingPortalFlags["portal_ceil_nopass"]);
+        Assert.Equal("Not rendered", gc.FloorPortalFlags["portal_floor_norender"]);
+        Assert.Equal("Add", gc.SectorRenderStyles["add"]);
+        Assert.Equal("Translucent", gc.SectorPortalRenderStyles["translucent"]);
+        Assert.Equal(new[] { 0, 128, 255 }, gc.BrightnessLevels);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """

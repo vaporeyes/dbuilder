@@ -282,6 +282,16 @@ public sealed class GameConfiguration
     private readonly Dictionary<string, string> defaultSkyTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, bool> makeDoorFlags = new(StringComparer.Ordinal);
     private readonly List<string> defaultThingFlags = new();
+    private readonly Dictionary<string, string> thingRenderStyles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> linedefRenderStyles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> sidedefFlags = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> sectorFlags = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> ceilingPortalFlags = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> floorPortalFlags = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> sectorRenderStyles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> sectorPortalRenderStyles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> visplaneViewHeights = new(StringComparer.Ordinal);
+    private readonly List<int> brightnessLevels = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -307,6 +317,16 @@ public sealed class GameConfiguration
 
     /// <summary>Lump name -> map lump description from the maplumpnames block (empty if not configured).</summary>
     public IReadOnlyDictionary<string, MapLumpInfo> MapLumpNames => mapLumpNames;
+    public IReadOnlyDictionary<string, string> ThingRenderStyles => thingRenderStyles;
+    public IReadOnlyDictionary<string, string> LinedefRenderStyles => linedefRenderStyles;
+    public IReadOnlyDictionary<string, string> SidedefFlags => sidedefFlags;
+    public IReadOnlyDictionary<string, string> SectorFlags => sectorFlags;
+    public IReadOnlyDictionary<string, string> CeilingPortalFlags => ceilingPortalFlags;
+    public IReadOnlyDictionary<string, string> FloorPortalFlags => floorPortalFlags;
+    public IReadOnlyDictionary<string, string> SectorRenderStyles => sectorRenderStyles;
+    public IReadOnlyDictionary<string, string> SectorPortalRenderStyles => sectorPortalRenderStyles;
+    public IReadOnlyDictionary<string, string> VisplaneViewHeights => visplaneViewHeights;
+    public IReadOnlyList<int> BrightnessLevels => brightnessLevels;
 
     public string DefaultSaveCompiler { get; private set; } = "";
     public string DefaultTestCompiler { get; private set; } = "";
@@ -431,7 +451,10 @@ public sealed class GameConfiguration
             gc.TestShortPaths = GetBool(root, "testshortpaths", false);
             gc.TestLinuxPaths = GetBool(root, "testlinuxpaths", false);
             if (root["visplaneexplorer"] is IDictionary visplane)
+            {
                 gc.VisplaneViewHeightDefault = GetInt(visplane, "viewheightdefault", 41);
+                if (visplane["viewheights"] is IDictionary viewHeights) ParseStringDictionary(viewHeights, gc.visplaneViewHeights);
+            }
             gc.MakeDoorTrack = GetString(root, "makedoortrack", "-");
             gc.MakeDoorDoor = GetString(root, "makedoordoor", "-");
             gc.MakeDoorCeiling = GetString(root, "makedoorceil", "-");
@@ -485,6 +508,15 @@ public sealed class GameConfiguration
             if (root["linedefactivations"] is IDictionary la) gc.ParseLinedefActivations(la);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
             if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
+            if (root["thingrenderstyles"] is IDictionary trs) ParseStringDictionary(trs, gc.thingRenderStyles);
+            if (root["linedefrenderstyles"] is IDictionary lrs) ParseStringDictionary(lrs, gc.linedefRenderStyles);
+            if (root["sidedefflags"] is IDictionary sf) ParseStringDictionary(sf, gc.sidedefFlags);
+            if (root["sectorflags"] is IDictionary sef) ParseStringDictionary(sef, gc.sectorFlags);
+            if (root["ceilingportalflags"] is IDictionary cpf) ParseStringDictionary(cpf, gc.ceilingPortalFlags);
+            if (root["floorportalflags"] is IDictionary fpf) ParseStringDictionary(fpf, gc.floorPortalFlags);
+            if (root["sectorrenderstyles"] is IDictionary srs) ParseStringDictionary(srs, gc.sectorRenderStyles);
+            if (root["sectorportalrenderstyles"] is IDictionary sprs) ParseStringDictionary(sprs, gc.sectorPortalRenderStyles);
+            if (root["sectorbrightness"] is IDictionary sb) gc.ParseBrightnessLevels(sb);
             if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectorEffects.AddRange(GeneralizedOption.ParseOptionsBlock(gs));
@@ -1213,6 +1245,26 @@ public sealed class GameConfiguration
         {
             string flag = e.Key.ToString() ?? "";
             if (flag.Length > 0) defaultThingFlags.Add(flag);
+        }
+    }
+
+    private void ParseBrightnessLevels(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int level))
+                brightnessLevels.Add(level);
+        }
+        brightnessLevels.Sort();
+    }
+
+    private static void ParseStringDictionary(IDictionary block, Dictionary<string, string> destination)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (key.Length > 0) destination[key] = e.Value?.ToString() ?? "";
         }
     }
 
