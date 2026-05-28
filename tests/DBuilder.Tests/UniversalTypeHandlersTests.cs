@@ -406,6 +406,69 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void SectorEffectHandlerCoercesIntegerValuesLikeUdb()
+    {
+        var handler = (SectorEffectTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.SectorEffect, defaultValue: 5);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal(5, handler.DefaultValue);
+        Assert.Equal(5, handler.GetValue());
+        Assert.Equal("5", handler.GetStringValue());
+
+        handler.SetValue("16");
+        Assert.Equal(16, handler.GetIntValue());
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetValue());
+
+        handler.SetValue("not an effect");
+        Assert.Equal(0, handler.GetValue());
+
+        handler.ApplyDefaultValue();
+        Assert.Equal(5, handler.GetValue());
+    }
+
+    [Fact]
+    public void SectorTagHandlerMatchesEnumValuesAndTitlesLikeUdb()
+    {
+        var values = GameConfiguration.FromText("""
+            enums
+            {
+                sectortags
+                {
+                    2 = "2: Secret room";
+                    8 = "8: Exit platform";
+                }
+            }
+            """).GetEnumList("sectortags")!;
+        var handler = (SectorTagTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.SectorTag, defaultValue: 2, enumList: values);
+
+        Assert.True(handler.IsEnumerable);
+        Assert.Equal(2, handler.DefaultValue);
+        Assert.Equal(2, handler.GetValue());
+        Assert.Equal("2: Secret room", handler.GetStringValue());
+        Assert.Same(values, handler.Values);
+
+        handler.SetValue("8");
+        Assert.Equal(8, handler.GetIntValue());
+        Assert.Equal("8: Exit platform", handler.GetStringValue());
+
+        handler.SetValue("2: secret room");
+        Assert.Equal(2, handler.GetValue());
+        Assert.Equal("2: Secret room", handler.GetStringValue());
+
+        handler.SetValue("12");
+        Assert.Equal(12, handler.GetValue());
+        Assert.Equal("12", handler.GetStringValue());
+
+        handler.SetValue("not a tag");
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("not a tag", handler.GetStringValue());
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""

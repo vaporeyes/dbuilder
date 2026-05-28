@@ -277,7 +277,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port thing type and thing class handlers.
 - [x] Port thing tag and thing radius handlers.
 - [x] Port linedef type and linedef tag handlers.
-- [ ] Port sector effect and sector tag handlers.
+- [x] Port sector effect and sector tag handlers.
 - [ ] Port polyobject number handler.
 - [ ] Integrate handlers into property editing UI.
 

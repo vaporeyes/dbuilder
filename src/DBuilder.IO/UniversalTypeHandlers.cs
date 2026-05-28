@@ -549,6 +549,47 @@ public sealed class LinedefTagTypeHandler : TagTypeHandler
     }
 }
 
+public sealed class SectorEffectTypeHandler : UniversalTypeHandler
+{
+    private int value;
+
+    public SectorEffectTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value) => this.value = ToInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToInt(value);
+
+    private static int ToInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
+public sealed class SectorTagTypeHandler : TagTypeHandler
+{
+    public SectorTagTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument, values)
+    {
+    }
+}
+
 public sealed class EnumOptionTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");
