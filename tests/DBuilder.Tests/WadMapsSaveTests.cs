@@ -20,6 +20,17 @@ maplumpnames
     SCRIPTS { required = true; script = ""Hexen_ACS.cfg""; }
 }";
 
+    private const string CustomOrderConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    VERTEXES { required = true; }
+    SECTORS { required = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    SIDEDEFS { required = true; }
+}";
+
     private static MapSet SquareMap()
     {
         var map = new MapSet();
@@ -177,5 +188,24 @@ maplumpnames
         Assert.True(header >= 0);
         Assert.True(WadMaps.FindSpecificMapLump(wad, "SCRIPTS", header, "MAP01", config.MapLumpNames) > header);
         Assert.Empty(WadMaps.ReadMapLump(wad, "MAP01", "SCRIPTS", config)!);
+    }
+
+    [Fact]
+    public void SaveMapOrdersConfiguredLumpsAndPreservesNeighborLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        var before = wad.Insert("CREDIT", 0, 1)!;
+        before.Stream.WriteByte(7);
+        DoomMapWriter.WriteMap(SquareMap(), wad, "MAP01", wad.Lumps.Count);
+        var after = wad.Insert("ENDTXT", wad.Lumps.Count, 1)!;
+        after.Stream.WriteByte(9);
+        var config = GameConfiguration.FromText(CustomOrderConfig);
+
+        WadMaps.SaveMap(wad, "MAP01", SquareMap(), MapFormat.Doom, config);
+
+        Assert.Equal("CREDIT", wad.Lumps[0].Name);
+        Assert.Equal("ENDTXT", wad.Lumps[^1].Name);
+        Assert.Equal(new[] { "MAP01", "VERTEXES", "SECTORS", "THINGS", "LINEDEFS", "SIDEDEFS" },
+            wad.Lumps.Skip(1).Take(6).Select(l => l.Name).ToArray());
     }
 }

@@ -134,6 +134,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port clipboard stream behavior to match UDB exactly.
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
 - [ ] Port lump ordering rules.
+  - [x] Order saved map blocks by configured `maplumpnames` when a game configuration is supplied.
 - [ ] Port map lump metadata and node-build lump handling.
   - [x] Parse UDB `scriptbuild` map lump metadata.
   - [x] Add UDB-style bounded find/remove helpers for configured map lumps.

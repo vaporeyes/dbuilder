@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using DBuilder.Map;
 
@@ -140,8 +141,58 @@ public static class WadMaps
             case MapFormat.Hexen: HexenMapWriter.WriteMap(map, wad, marker, insertPos, behavior); break;
             default: DoomMapWriter.WriteMap(map, wad, marker, insertPos); break;
         }
-        if (config != null) CreateRequiredMapLumps(wad, marker, config);
+        if (config != null)
+        {
+            CreateRequiredMapLumps(wad, marker, config);
+            OrderConfiguredMapLumps(wad, marker, config);
+        }
         wad.WriteHeaders();
+    }
+
+    private sealed record LumpSnapshot(string Name, byte[] Bytes, int OriginalIndex);
+
+    private static void OrderConfiguredMapLumps(WAD wad, string marker, GameConfiguration config)
+    {
+        if (config.MapLumpNames.Count == 0) return;
+
+        int headerIndex = FindMapHeaderIndex(wad, marker);
+        if (headerIndex < 0) return;
+
+        int endIndex = headerIndex;
+        while (endIndex + 1 < wad.Lumps.Count && IsMapSubLump(wad.Lumps[endIndex + 1].Name, config))
+            endIndex++;
+
+        var order = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        int configuredIndex = 0;
+        foreach (var key in config.MapLumpNames.Keys)
+            order[key] = configuredIndex++;
+
+        var snapshots = new List<LumpSnapshot>();
+        for (int i = headerIndex; i <= endIndex; i++)
+            snapshots.Add(new LumpSnapshot(wad.Lumps[i].Name, wad.Lumps[i].Stream.ReadAllBytes(), i - headerIndex));
+
+        var ordered = snapshots
+            .OrderBy(s => ConfiguredLumpOrder(s.Name, marker, order))
+            .ThenBy(s => s.OriginalIndex)
+            .ToArray();
+
+        for (int i = endIndex; i >= headerIndex; i--)
+            wad.RemoveAt(i, false);
+
+        for (int i = 0; i < ordered.Length; i++)
+        {
+            var snapshot = ordered[i];
+            var lump = wad.Insert(snapshot.Name, headerIndex + i, snapshot.Bytes.Length, false)!;
+            if (snapshot.Bytes.Length > 0) lump.Stream.Write(snapshot.Bytes, 0, snapshot.Bytes.Length);
+        }
+    }
+
+    private static int ConfiguredLumpOrder(string lumpName, string marker, Dictionary<string, int> order)
+    {
+        string configuredName = NormalizeMapHeaderPlaceholder(lumpName, marker);
+        if (order.TryGetValue(configuredName, out int index)) return index;
+        if (lumpName == marker) return -1;
+        return int.MaxValue;
     }
 
     private static void CreateRequiredMapLumps(WAD wad, string marker, GameConfiguration config)
