@@ -41,6 +41,7 @@ public static class MapFormatConverter
         {
             if (targetConfig != null) UdmfToBinary(map, targetConfig);
             if (to == MapFormat.Hexen) UdmfLinedefActionsToHexen(map);
+            ClearUdmfOnlyElementData(map);
         }
         else if (from == MapFormat.Doom && to == MapFormat.Hexen && sourceConfig != null && targetConfig != null)
         {
@@ -232,6 +233,37 @@ public static class MapFormatConverter
         if (flags.Contains("checkswitchrange")) bits |= 64;
         if (flags.Contains("firstsideonly")) bits |= 128;
         return bits;
+    }
+
+    private static void ClearUdmfOnlyElementData(MapSet map)
+    {
+        foreach (var l in map.Linedefs)
+        {
+            l.UdmfFlags.Clear();
+            l.Fields.Clear();
+        }
+
+        foreach (var sd in map.Sidedefs)
+            sd.Fields.Clear();
+
+        foreach (var s in map.Sectors)
+        {
+            s.Fields.Clear();
+            s.FloorSlope = default;
+            s.FloorSlopeOffset = double.NaN;
+            s.CeilSlope = default;
+            s.CeilSlopeOffset = double.NaN;
+        }
+
+        foreach (var t in map.Things)
+        {
+            t.UdmfFlags.Clear();
+            t.Fields.Clear();
+            t.Pitch = 0;
+            t.Roll = 0;
+            t.ScaleX = 1.0;
+            t.ScaleY = 1.0;
+        }
     }
 
     private static void ClearDoomUnsupportedArgs(MapSet map)

@@ -130,6 +130,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Convert Hexen `Line_SetIdentification` specials to UDMF line ids and flags.
   - [x] Convert Hexen line-id action args to UDMF ids for supported hardcoded specials.
   - [x] Convert UDMF line ids back to Hexen args for supported hardcoded specials.
+  - [x] Clear UDMF-only element data when converting to binary formats.
 - [ ] Port clipboard stream behavior to match UDB exactly.
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
 - [ ] Port lump ordering rules.

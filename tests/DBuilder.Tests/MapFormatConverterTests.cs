@@ -386,4 +386,51 @@ thingflagstranslation
         Assert.Equal(1 | 8, line.Args[1]);
         Assert.Equal(0, line.Tag);
     }
+
+    [Fact]
+    public void UdmfToBinaryClearsUdmfOnlyElementData()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = SquareWithBlockingLine();
+        var line = map.Linedefs[0];
+        var sector = map.Sectors[0];
+        var sidedef = map.Sidedefs[0];
+        var thing = new Thing(new Vector2D(10, 10), 1)
+        {
+            Pitch = 10,
+            Roll = 20,
+            ScaleX = 2.0,
+            ScaleY = 0.5,
+        };
+        map.Things.Add(thing);
+        line.UdmfFlags.Add("blocking");
+        line.Fields["renderstyle"] = "add";
+        sidedef.Fields["offsetx_mid"] = 8;
+        sector.Fields["lightcolor"] = 255;
+        sector.FloorSlope = new Vector3D(0, 1, 1);
+        sector.FloorSlopeOffset = -32.0;
+        sector.CeilSlope = new Vector3D(0, -1, 1);
+        sector.CeilSlopeOffset = 64.0;
+        thing.UdmfFlags.Add("ambush");
+        thing.Fields["conversation"] = 3;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(1, line.Flags);
+        Assert.Equal(8 | 16, thing.Flags);
+        Assert.Empty(line.UdmfFlags);
+        Assert.Empty(line.Fields);
+        Assert.Empty(sidedef.Fields);
+        Assert.Empty(sector.Fields);
+        Assert.Equal(0, sector.FloorSlope.GetLengthSq());
+        Assert.True(double.IsNaN(sector.FloorSlopeOffset));
+        Assert.Equal(0, sector.CeilSlope.GetLengthSq());
+        Assert.True(double.IsNaN(sector.CeilSlopeOffset));
+        Assert.Empty(thing.UdmfFlags);
+        Assert.Empty(thing.Fields);
+        Assert.Equal(0, thing.Pitch);
+        Assert.Equal(0, thing.Roll);
+        Assert.Equal(1.0, thing.ScaleX);
+        Assert.Equal(1.0, thing.ScaleY);
+    }
 }
