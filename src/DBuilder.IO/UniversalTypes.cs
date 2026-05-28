@@ -98,6 +98,8 @@ public sealed class UniversalTypeRegistry
             UniversalType.Integer when info.Index >= 0 => new IntegerTypeHandler(info, defaultValue, isForArgument),
             UniversalType.Float when info.Index >= 0 => new FloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.Boolean when info.Index >= 0 => new BooleanTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.RandomInteger when info.Index >= 0 => new RandomIntegerTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             _ => new NullTypeHandler(info, defaultValue, isForArgument),
         };
     }

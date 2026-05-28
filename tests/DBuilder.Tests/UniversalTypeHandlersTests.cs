@@ -109,4 +109,59 @@ public class UniversalTypeHandlersTests
         Assert.Equal("abc", handler.GetStringValue());
         Assert.Equal(0, handler.GetIntValue());
     }
+
+    [Fact]
+    public void RandomIntegerHandlerParsesRangesAndStoresAsIntegerType()
+    {
+        var handler = (RandomIntegerTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.RandomInteger, defaultValue: 4);
+
+        Assert.Equal((int)UniversalType.Integer, handler.Index);
+        Assert.Equal("Integer (Random)", handler.TypeName);
+        Assert.Equal(4, handler.DefaultValue);
+
+        handler.SetValue("7 5");
+        Assert.True(handler.HasRandomRange);
+        Assert.Equal(5, handler.Min);
+        Assert.Equal(7, handler.Max);
+
+        for (int i = 0; i < 20; i++)
+        {
+            int value = handler.GetIntValue();
+            Assert.InRange(value, 5, 7);
+        }
+
+        handler.SetValue("6 6");
+        Assert.False(handler.HasRandomRange);
+        Assert.Equal(6, handler.GetIntValue());
+        Assert.Equal("6", handler.GetStringValue());
+    }
+
+    [Fact]
+    public void RandomFloatHandlerParsesRangesAndStoresAsFloatType()
+    {
+        var handler = (RandomFloatTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.RandomFloat, defaultValue: 1);
+
+        Assert.Equal((int)UniversalType.Float, handler.Index);
+        Assert.Equal("Decimal (Random)", handler.TypeName);
+        Assert.Equal(1.0, handler.DefaultValue);
+
+        handler.SetValue("3.5 2.5");
+        Assert.True(handler.HasRandomRange);
+        Assert.Equal(2.5, handler.Min);
+        Assert.Equal(3.5, handler.Max);
+
+        for (int i = 0; i < 20; i++)
+        {
+            double value = (double)handler.GetValue();
+            Assert.InRange(value, 2.5, 3.5);
+            Assert.Equal(value, Math.Round(value, 2));
+        }
+
+        handler.SetValue("6.25 6.25");
+        Assert.False(handler.HasRandomRange);
+        Assert.Equal(6.25, handler.GetValue());
+        Assert.Equal(6, handler.GetIntValue());
+    }
 }

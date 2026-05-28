@@ -16,7 +16,7 @@ public abstract class UniversalTypeHandler
     }
 
     public UniversalTypeInfo TypeInfo { get; }
-    public int Index => TypeInfo.Index;
+    public virtual int Index => TypeInfo.Index;
     public string TypeName => TypeInfo.Name;
     public bool IsCustomUsable => TypeInfo.IsCustomUsable;
     public bool IsForArgument { get; }
@@ -123,6 +123,165 @@ public sealed class BooleanTypeHandler : UniversalTypeHandler
         list.Add(new EnumItemInfo("true", "True"));
         list.Add(new EnumItemInfo("false", "False"));
         return list;
+    }
+}
+
+public sealed class RandomIntegerTypeHandler : UniversalTypeHandler
+{
+    private int value;
+    private bool hasRandomRange;
+    private int min;
+    private int max;
+
+    public RandomIntegerTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override int Index => (int)UniversalType.Integer;
+
+    public bool HasRandomRange => hasRandomRange;
+    public int Min => min;
+    public int Max => max;
+
+    public override void SetValue(object? value)
+    {
+        hasRandomRange = false;
+        if (TryDirectInt(value, out int parsed))
+        {
+            this.value = parsed;
+            return;
+        }
+
+        if (TryParseRange(value, out int parsedMin, out int parsedMax))
+        {
+            min = Math.Min(parsedMin, parsedMax);
+            max = Math.Max(parsedMin, parsedMax);
+            if (min == max)
+            {
+                this.value = min;
+                return;
+            }
+
+            hasRandomRange = true;
+        }
+
+        this.value = 0;
+    }
+
+    public override object GetValue() => GetIntValue();
+
+    public override int GetIntValue() => hasRandomRange ? Random.Shared.Next(min, max + 1) : value;
+
+    public override string GetStringValue() => GetIntValue().ToString(CultureInfo.InvariantCulture);
+
+    protected override object CoerceDefault(object? value)
+        => TryDirectInt(value, out int parsed) ? parsed : 0;
+
+    private static bool TryDirectInt(object? value, out int parsed)
+    {
+        if (value == null)
+        {
+            parsed = 0;
+            return true;
+        }
+        if (value is int or float or double or bool)
+        {
+            parsed = Convert.ToInt32(value, CultureInfo.CurrentCulture);
+            return true;
+        }
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out parsed);
+    }
+
+    private static bool TryParseRange(object? value, out int min, out int max)
+    {
+        min = 0;
+        max = 0;
+        string[] parts = (value?.ToString() ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length == 2
+            && int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.CurrentCulture, out min)
+            && int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.CurrentCulture, out max);
+    }
+}
+
+public sealed class RandomFloatTypeHandler : UniversalTypeHandler
+{
+    private double value;
+    private bool hasRandomRange;
+    private double min;
+    private double max;
+
+    public RandomFloatTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override int Index => (int)UniversalType.Float;
+
+    public bool HasRandomRange => hasRandomRange;
+    public double Min => min;
+    public double Max => max;
+
+    public override void SetValue(object? value)
+    {
+        hasRandomRange = false;
+        if (TryDirectDouble(value, out double parsed))
+        {
+            this.value = parsed;
+            return;
+        }
+
+        if (TryParseRange(value, out double parsedMin, out double parsedMax))
+        {
+            min = Math.Min(parsedMin, parsedMax);
+            max = Math.Max(parsedMin, parsedMax);
+            if (Math.Abs(min - max) < double.Epsilon)
+            {
+                this.value = min;
+                return;
+            }
+
+            hasRandomRange = true;
+        }
+
+        this.value = 0.0;
+    }
+
+    public override object GetValue() => RandomValue();
+
+    public override int GetIntValue() => (int)RandomValue();
+
+    public override string GetStringValue() => RandomValue().ToString(CultureInfo.InvariantCulture);
+
+    protected override object CoerceDefault(object? value)
+        => TryDirectDouble(value, out double parsed) ? parsed : 0.0;
+
+    private double RandomValue()
+        => hasRandomRange ? Math.Round(min + ((max - min) * Random.Shared.NextDouble()), 2) : value;
+
+    private static bool TryDirectDouble(object? value, out double parsed)
+    {
+        if (value == null)
+        {
+            parsed = 0.0;
+            return true;
+        }
+        if (value is int or float or double or bool)
+        {
+            parsed = Convert.ToDouble(value, CultureInfo.CurrentCulture);
+            return true;
+        }
+        return double.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.CurrentCulture, out parsed);
+    }
+
+    private static bool TryParseRange(object? value, out double min, out double max)
+    {
+        min = 0.0;
+        max = 0.0;
+        string[] parts = (value?.ToString() ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length == 2
+            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.CurrentCulture, out min)
+            && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.CurrentCulture, out max);
     }
 }
 
