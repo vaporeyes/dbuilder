@@ -21,6 +21,7 @@ public sealed class ActorInfo
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public List<string> Mixins { get; } = new();
 
     /// <summary>Display title: //$Title if given, else the class name.</summary>
     public string Title => EditorKeys.TryGetValue("$title", out var t) && t.Length > 0 ? t
@@ -72,6 +73,7 @@ public static class DecorateParser
         text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes);
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
+        var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
         int i = 0;
         while (i < toks.Count)
         {
@@ -79,28 +81,43 @@ public static class DecorateParser
                 && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
-                if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase) && IsNonPlaceableZScriptClass(toks, i))
+                if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
-                    SkipDeclaration(toks, ref i);
-                    continue;
+                    var classKind = GetZScriptClassKind(toks, i);
+                    if (classKind == ZScriptClassKind.Extension)
+                    {
+                        SkipDeclaration(toks, ref i);
+                        continue;
+                    }
+
+                    var parsed = ParseActor(toks, ref i, headerNum);
+                    if (parsed == null) continue;
+                    if (classKind == ZScriptClassKind.Mixin) mixins[parsed.ClassName] = parsed;
+                    else actors.Add(parsed);
                 }
-                var a = ParseActor(toks, ref i, headerNum);
-                if (a != null) actors.Add(a);
+                else
+                {
+                    var a = ParseActor(toks, ref i, headerNum);
+                    if (a != null) actors.Add(a);
+                }
             }
             else i++;
         }
+        ApplyMixins(actors, mixins);
         ResolveInheritance(actors);
         return actors;
     }
 
-    private static bool IsNonPlaceableZScriptClass(List<Tok> t, int classIndex)
+    private enum ZScriptClassKind { Actor, Mixin, Extension }
+
+    private static ZScriptClassKind GetZScriptClassKind(List<Tok> t, int classIndex)
     {
         int i = classIndex - 1;
         while (i >= 0 && t[i].Kind == Kind.Sym && t[i].Text == "\n") i--;
-        return i >= 0
-            && t[i].Kind == Kind.Word
-            && (t[i].Text.Equals("mixin", StringComparison.OrdinalIgnoreCase)
-                || t[i].Text.Equals("extend", StringComparison.OrdinalIgnoreCase));
+        if (i < 0 || t[i].Kind != Kind.Word) return ZScriptClassKind.Actor;
+        if (t[i].Text.Equals("mixin", StringComparison.OrdinalIgnoreCase)) return ZScriptClassKind.Mixin;
+        if (t[i].Text.Equals("extend", StringComparison.OrdinalIgnoreCase)) return ZScriptClassKind.Extension;
+        return ZScriptClassKind.Actor;
     }
 
     private static void SkipDeclaration(List<Tok> t, ref int i)
@@ -135,6 +152,36 @@ public static class DecorateParser
 
             i++;
         }
+    }
+
+    private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)
+    {
+        foreach (var actor in actors)
+        {
+            foreach (string mixinName in actor.Mixins)
+            {
+                if (!mixins.TryGetValue(mixinName, out var mixin)) continue;
+                actor.Sprite ??= mixin.Sprite;
+                if (actor.Radius == 0)
+                {
+                    actor.Radius = mixin.Radius;
+                    if (mixin.Properties.TryGetValue("radius", out var radius)) actor.Properties["radius"] = new List<string>(radius);
+                }
+                if (actor.Height == 0)
+                {
+                    actor.Height = mixin.Height;
+                    if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
+                }
+                CopyMixinFlag(actor, mixin, "spawnceiling");
+                CopyMixinFlag(actor, mixin, "solid");
+            }
+        }
+    }
+
+    private static void CopyMixinFlag(ActorInfo actor, ActorInfo mixin, string flag)
+    {
+        if (!actor.Flags.ContainsKey(flag) && mixin.Flags.TryGetValue(flag, out bool enabled))
+            actor.Flags[flag] = enabled;
     }
 
     private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes)
@@ -275,6 +322,11 @@ public static class DecorateParser
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal))) { pendingStates = true; }
+            else if (zscriptBody && depth == 1 && lw == "mixin")
+            {
+                if (i < t.Count && t[i].Kind == Kind.Word) actor.Mixins.Add(t[i++].Text);
+                SkipUntilSemicolon(t, ref i);
+            }
             else if (zscriptBody && depth == 1 && lw != "default") SkipZScriptMember(t, ref i);
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)

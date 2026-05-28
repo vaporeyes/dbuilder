@@ -259,6 +259,34 @@ class RealActor : Actor
     }
 
     [Fact]
+    public void AppliesZScriptMixinEditorDefaultsToConcreteActors()
+    {
+        const string zscript = @"
+mixin class EditorDefaults
+{
+    Default
+    {
+        Radius 32;
+        Height 72;
+        +SOLID;
+    }
+    States { Spawn: MIXN A -1; stop; }
+}
+class MixedActor : Actor
+{
+    mixin EditorDefaults;
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("MixedActor", actor.ClassName);
+        Assert.Equal(32, actor.Radius);
+        Assert.Equal(72, actor.Height);
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.Equal("MIXNA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
