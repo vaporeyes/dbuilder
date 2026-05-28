@@ -3,7 +3,7 @@
 
 namespace DBuilder.IO;
 
-public sealed record UniversalFieldEditorValue(UniversalFieldInfo Field, object? Value);
+public sealed record UniversalFieldEditorValue(UniversalFieldInfo Field, object? Value, EnumListInfo? Values = null);
 
 public static class UniversalFieldEditorValues
 {
@@ -29,7 +29,7 @@ public static class UniversalFieldEditorValues
             object? value = currentFields.TryGetValue(field.Name, out object? current)
                 ? current
                 : field.DefaultValue;
-            result.Add(new UniversalFieldEditorValue(field, value));
+            result.Add(new UniversalFieldEditorValue(field, value, config.GetFieldEnumList(field)));
         }
 
         return result;
@@ -55,6 +55,20 @@ public static class UniversalFieldEditorValues
         var handler = registry.CreateHandler(field.Type, field.DefaultValue, enumList: values);
         handler.SetValue(value);
         return handler;
+    }
+
+    public static UniversalTypeHandler CreateHandler(UniversalFieldEditorValue value)
+    {
+        var registry = new UniversalTypeRegistry();
+        var handler = registry.CreateHandler(value.Field.Type, value.Field.DefaultValue, enumList: value.Values);
+        handler.SetValue(value.Value);
+        return handler;
+    }
+
+    public static UniversalTypeHandler CreateHandlerForInput(UniversalFieldEditorValue value)
+    {
+        var registry = new UniversalTypeRegistry();
+        return registry.CreateHandler(value.Field.Type, value.Field.DefaultValue, enumList: value.Values);
     }
 
     public static UniversalTypeHandler CreateHandler(UniversalFieldInfo field)

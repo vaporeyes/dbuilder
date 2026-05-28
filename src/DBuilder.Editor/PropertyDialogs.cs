@@ -53,26 +53,26 @@ public sealed class ArgEditors
 
 public sealed class UniversalFieldEditors
 {
-    private readonly List<(UniversalFieldInfo Field, TextBox? Box, ComboBox? Combo)> _editors = new();
+    private readonly List<(UniversalFieldEditorValue Value, TextBox? Box, ComboBox? Combo)> _editors = new();
 
-    public void AddBox(UniversalFieldInfo field, TextBox box) => _editors.Add((field, box, null));
+    public void AddBox(UniversalFieldEditorValue value, TextBox box) => _editors.Add((value, box, null));
 
-    public void AddCombo(UniversalFieldInfo field, ComboBox combo) => _editors.Add((field, null, combo));
+    public void AddCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, combo));
 
     public void Apply(Dictionary<string, object> fields)
     {
         foreach (var editor in _editors)
         {
-            var handler = UniversalFieldEditorValues.CreateHandler(editor.Field);
+            var handler = UniversalFieldEditorValues.CreateHandlerForInput(editor.Value);
             if (editor.Combo != null)
             {
                 handler.SetValue(ComboNumber(editor.Combo, 0));
-                fields[editor.Field.Name] = handler.GetValue();
+                fields[editor.Value.Field.Name] = handler.GetValue();
             }
             else if (editor.Box != null)
             {
                 handler.SetValue(editor.Box.Text);
-                fields[editor.Field.Name] = handler.GetValue();
+                fields[editor.Value.Field.Name] = handler.GetValue();
             }
         }
     }
@@ -248,7 +248,7 @@ public abstract class PropertyDialog : Window
         var editors = new UniversalFieldEditors();
         foreach (var item in list)
         {
-            var handler = CreateFieldHandler(item.Field, item.Value);
+            var handler = UniversalFieldEditorValues.CreateHandler(item);
             var options = UniversalValueOptions.ForIntegerEditor(handler);
             if (options.Count > 0)
             {
@@ -256,19 +256,16 @@ public abstract class PropertyDialog : Window
                     item.Field.Name,
                     options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}")),
                     handler.GetIntValue());
-                editors.AddCombo(item.Field, combo);
+                editors.AddCombo(item, combo);
             }
             else
             {
-                editors.AddBox(item.Field, AddField(item.Field.Name, handler.GetStringValue()));
+                editors.AddBox(item, AddField(item.Field.Name, handler.GetStringValue()));
             }
         }
 
         return editors;
     }
-
-    private static UniversalTypeHandler CreateFieldHandler(UniversalFieldInfo field, object? value)
-        => UniversalFieldEditorValues.CreateHandler(field, value);
 
     // Adds a labeled multi-line text area (e.g. for custom UDMF fields), inserted before the buttons row.
     protected TextBox AddTextArea(string label, string value)

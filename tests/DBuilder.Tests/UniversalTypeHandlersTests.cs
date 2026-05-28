@@ -804,6 +804,14 @@ public class UniversalTypeHandlersTests
     public void UniversalFieldEditorValuesSelectConfiguredFieldsAndStripRawDuplicates()
     {
         const string cfg = """
+            enums
+            {
+                species
+                {
+                    0 = "None";
+                    2 = "Friendly";
+                }
+            }
             universalfields
             {
                 thing
@@ -817,11 +825,7 @@ public class UniversalTypeHandlersTests
                     {
                         type = 11;
                         default = 1;
-                        enum
-                        {
-                            0 = "Hostile";
-                            1 = "Friendly";
-                        }
+                        enum = "species";
                     }
                 }
             }
@@ -837,6 +841,7 @@ public class UniversalTypeHandlersTests
 
         Assert.Equal(new[] { "attitude", "health" }, values.Select(value => value.Field.Name));
         Assert.Equal(1, values[0].Value);
+        Assert.Equal("species", values[0].Values!.Name);
         Assert.Equal(75, values[1].Value);
 
         var raw = UniversalFieldEditorValues.WithoutConfiguredFields(fields, values);
@@ -844,9 +849,9 @@ public class UniversalTypeHandlersTests
         Assert.Equal("keep me", raw["comment"]);
 
         var options = UniversalValueOptions.ForIntegerEditor(
-            UniversalFieldEditorValues.CreateHandler(values[0].Field, values[0].Value));
-        Assert.Equal(new[] { 0, 1 }, options.Select(option => option.Value));
-        Assert.Equal(new[] { "Hostile", "Friendly" }, options.Select(option => option.Title));
+            UniversalFieldEditorValues.CreateHandler(values[0]));
+        Assert.Equal(new[] { 0, 2 }, options.Select(option => option.Value));
+        Assert.Equal(new[] { "None", "Friendly" }, options.Select(option => option.Title));
     }
 
     [Fact]
