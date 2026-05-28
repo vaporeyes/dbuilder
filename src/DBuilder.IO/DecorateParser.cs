@@ -107,8 +107,8 @@ public static class DecorateParser
             }
             else i++;
         }
-        ApplyExtensions(actors, extensions);
         ApplyMixins(actors, mixins);
+        ApplyExtensions(actors, extensions, mixins);
         ResolveInheritance(actors);
         return actors;
     }
@@ -162,42 +162,50 @@ public static class DecorateParser
     private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)
     {
         foreach (var actor in actors)
+            ApplyActorMixins(actor, mixins);
+    }
+
+    private static void ApplyActorMixins(ActorInfo actor, Dictionary<string, ActorInfo> mixins)
+    {
+        foreach (string mixinName in actor.Mixins)
         {
-            foreach (string mixinName in actor.Mixins)
+            if (!mixins.TryGetValue(mixinName, out var mixin)) continue;
+            actor.Sprite ??= mixin.Sprite;
+            if (actor.Radius == 0)
             {
-                if (!mixins.TryGetValue(mixinName, out var mixin)) continue;
-                actor.Sprite ??= mixin.Sprite;
-                if (actor.Radius == 0)
-                {
-                    actor.Radius = mixin.Radius;
-                    if (mixin.Properties.TryGetValue("radius", out var radius)) actor.Properties["radius"] = new List<string>(radius);
-                }
-                if (actor.Height == 0)
-                {
-                    actor.Height = mixin.Height;
-                    if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
-                }
-                CopyMixinFlag(actor, mixin, "spawnceiling");
-                CopyMixinFlag(actor, mixin, "solid");
+                actor.Radius = mixin.Radius;
+                if (mixin.Properties.TryGetValue("radius", out var radius)) actor.Properties["radius"] = new List<string>(radius);
             }
+            if (actor.Height == 0)
+            {
+                actor.Height = mixin.Height;
+                if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
+            }
+            CopyMixinFlag(actor, mixin, "spawnceiling");
+            CopyMixinFlag(actor, mixin, "solid");
         }
     }
 
-    private static void ApplyExtensions(List<ActorInfo> actors, Dictionary<string, List<ActorInfo>> extensions)
+    private static void ApplyExtensions(List<ActorInfo> actors, Dictionary<string, List<ActorInfo>> extensions, Dictionary<string, ActorInfo> mixins)
     {
         foreach (var actor in actors)
         {
             if (!extensions.TryGetValue(actor.ClassName, out var actorExtensions)) continue;
             foreach (var extension in actorExtensions)
             {
+                ApplyActorMixins(extension, mixins);
                 actor.Sprite = extension.Sprite ?? actor.Sprite;
                 if (extension.Radius > 0) actor.Radius = extension.Radius;
                 if (extension.Height > 0) actor.Height = extension.Height;
-                foreach (var flag in extension.Flags) actor.Flags[flag.Key] = flag.Value;
-                foreach (var property in extension.Properties) actor.Properties[property.Key] = new List<string>(property.Value);
-                foreach (var editorKey in extension.EditorKeys) actor.EditorKeys[editorKey.Key] = editorKey.Value;
+                CopyExtensionFlag(actor, extension, "spawnceiling");
+                CopyExtensionFlag(actor, extension, "solid");
             }
         }
+    }
+
+    private static void CopyExtensionFlag(ActorInfo actor, ActorInfo extension, string flag)
+    {
+        if (extension.Flags.ContainsKey(flag)) actor.Flags[flag] = true;
     }
 
     private static void CopyMixinFlag(ActorInfo actor, ActorInfo mixin, string flag)

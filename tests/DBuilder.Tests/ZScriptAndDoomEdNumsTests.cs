@@ -311,6 +311,31 @@ extend class BaseActor
     }
 
     [Fact]
+    public void ZScriptExtensionDefaultsOverrideMixinDefaults()
+    {
+        const string zscript = @"
+mixin class BaseMixin
+{
+    Default { Height 40; }
+    States { Spawn: MIXN A -1; stop; }
+}
+class BaseActor : Actor
+{
+    mixin BaseMixin;
+}
+extend class BaseActor
+{
+    Default { Height 64; }
+    States { Spawn: EXTN A -1; stop; }
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal(64, actor.Height);
+        Assert.Equal("EXTNA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
