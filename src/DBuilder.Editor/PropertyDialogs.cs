@@ -51,6 +51,36 @@ public sealed class ArgEditors
     }
 }
 
+public sealed class UniversalFieldEditors
+{
+    private readonly List<(UniversalFieldInfo Field, TextBox? Box, ComboBox? Combo)> _editors = new();
+
+    public void AddBox(UniversalFieldInfo field, TextBox box) => _editors.Add((field, box, null));
+
+    public void AddCombo(UniversalFieldInfo field, ComboBox combo) => _editors.Add((field, null, combo));
+
+    public void Apply(Dictionary<string, object> fields)
+    {
+        foreach (var editor in _editors)
+        {
+            var handler = UniversalFieldEditorValues.CreateHandler(editor.Field);
+            if (editor.Combo != null)
+            {
+                handler.SetValue(ComboNumber(editor.Combo, 0));
+                fields[editor.Field.Name] = handler.GetValue();
+            }
+            else if (editor.Box != null)
+            {
+                handler.SetValue(editor.Box.Text);
+                fields[editor.Field.Name] = handler.GetValue();
+            }
+        }
+    }
+
+    private static int ComboNumber(ComboBox combo, int fallback)
+        => combo.SelectedItem is CatalogItem ci ? ci.Number : fallback;
+}
+
 // Shared helpers for building simple label/input forms without XAML.
 public abstract class PropertyDialog : Window
 {
@@ -207,6 +237,39 @@ public abstract class PropertyDialog : Window
         return editors;
     }
 
+    protected UniversalFieldEditors? AddUniversalFieldEditors(
+        IEnumerable<UniversalFieldEditorValue> fields,
+        out IReadOnlyList<UniversalFieldEditorValue> editorFields)
+    {
+        var list = fields.ToList();
+        editorFields = list;
+        if (list.Count == 0) return null;
+
+        var editors = new UniversalFieldEditors();
+        foreach (var item in list)
+        {
+            var handler = CreateFieldHandler(item.Field, item.Value);
+            var options = UniversalValueOptions.ForIntegerEditor(handler);
+            if (options.Count > 0)
+            {
+                var combo = AddCombo(
+                    item.Field.Name,
+                    options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}")),
+                    handler.GetIntValue());
+                editors.AddCombo(item.Field, combo);
+            }
+            else
+            {
+                editors.AddBox(item.Field, AddField(item.Field.Name, handler.GetStringValue()));
+            }
+        }
+
+        return editors;
+    }
+
+    private static UniversalTypeHandler CreateFieldHandler(UniversalFieldInfo field, object? value)
+        => UniversalFieldEditorValues.CreateHandler(field, value);
+
     // Adds a labeled multi-line text area (e.g. for custom UDMF fields), inserted before the buttons row.
     protected TextBox AddTextArea(string label, string value)
     {
@@ -246,6 +309,7 @@ public sealed class ThingEditDialog : PropertyDialog
     private readonly TextBox _x, _y, _angle, _height, _tag, _action;
     private readonly FlagChecks? _flagChecks;
     private readonly ArgEditors? _args;
+    private readonly UniversalFieldEditors? _fieldEditors;
     private readonly TextBox _custom;
 
     public int ResultType, ResultAngle, ResultTag, ResultAction, ResultFlags;
@@ -272,7 +336,14 @@ public sealed class ThingEditDialog : PropertyDialog
         _args = AddArgEditors(config, config?.GetThing(t.Type)?.Args ?? Array.Empty<ArgInfo>(), t.Args);
         _flagChecks = (config != null && config.ThingFlags.Count > 0) ? AddFlagChecks("Flags", config.ThingFlags, t.Flags) : null;
         ResultFlags = t.Flags; // preserved when no flag config
-        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(t.Fields));
+        var configuredFields = UniversalFieldEditorValues.ForElement(
+            config,
+            "thing",
+            t.Fields,
+            config?.GetThing(t.Type)?.AddUniversalFields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _custom = AddTextArea("Custom UDMF fields",
+            UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(t.Fields, editorFields)));
     }
 
     protected override void OnConfirm()
@@ -287,6 +358,7 @@ public sealed class ThingEditDialog : PropertyDialog
         ResultY = double.TryParse(_y.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var y) ? y : 0;
         ResultHeight = double.TryParse(_height.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var h) ? h : 0;
         ResultFields = UdmfFields.Parse(_custom.Text);
+        _fieldEditors?.Apply(ResultFields);
     }
 }
 
@@ -298,6 +370,7 @@ public sealed class LinedefEditDialog : PropertyDialog
     private readonly FlagChecks? _flagChecks;
     private readonly TextBox? _flagsBox;
     private readonly ArgEditors? _args;
+    private readonly UniversalFieldEditors? _fieldEditors;
     private readonly TextBox _custom;
 
     public int ResultAction, ResultTag, ResultFlags;
@@ -324,7 +397,10 @@ public sealed class LinedefEditDialog : PropertyDialog
             _flagChecks = AddFlagChecks("Flags", config.LinedefFlags, l.Flags);
         else
             _flagsBox = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
-        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(l.Fields));
+        var configuredFields = UniversalFieldEditorValues.ForElement(config, "linedef", l.Fields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _custom = AddTextArea("Custom UDMF fields",
+            UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(l.Fields, editorFields)));
     }
 
     protected override void OnConfirm()
@@ -334,6 +410,7 @@ public sealed class LinedefEditDialog : PropertyDialog
         ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
         if (_args != null) ResultArgs = _args.Read(ResultArgs);
         ResultFields = UdmfFields.Parse(_custom.Text);
+        _fieldEditors?.Apply(ResultFields);
     }
 }
 
@@ -342,6 +419,7 @@ public sealed class SectorEditDialog : PropertyDialog
     private readonly TextBox _floor, _ceil, _floorTex, _ceilTex, _bright, _tag;
     private readonly ComboBox? _specialCombo;
     private readonly TextBox? _specialBox;
+    private readonly UniversalFieldEditors? _fieldEditors;
     private readonly TextBox _custom;
 
     public int ResultFloor, ResultCeil, ResultBright, ResultSpecial, ResultTag;
@@ -365,7 +443,10 @@ public sealed class SectorEditDialog : PropertyDialog
         else _specialBox = AddField("Effect", s.Special.ToString(CultureInfo.InvariantCulture));
 
         _tag = AddField("Tag", s.Tag.ToString(CultureInfo.InvariantCulture));
-        _custom = AddTextArea("Custom UDMF fields", UdmfFields.Format(s.Fields));
+        var configuredFields = UniversalFieldEditorValues.ForElement(config, "sector", s.Fields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _custom = AddTextArea("Custom UDMF fields",
+            UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(s.Fields, editorFields)));
     }
 
     protected override void OnConfirm()
@@ -378,6 +459,7 @@ public sealed class SectorEditDialog : PropertyDialog
         ResultFloorTex = string.IsNullOrWhiteSpace(_floorTex.Text) ? "-" : _floorTex.Text!;
         ResultCeilTex = string.IsNullOrWhiteSpace(_ceilTex.Text) ? "-" : _ceilTex.Text!;
         ResultFields = UdmfFields.Parse(_custom.Text);
+        _fieldEditors?.Apply(ResultFields);
     }
 }
 

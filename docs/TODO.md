@@ -280,6 +280,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port sector effect and sector tag handlers.
 - [x] Port polyobject number handler.
 - [x] Integrate handlers into argument property editors.
+- [x] Integrate handlers into configured universal field editors.
 - [ ] Integrate handlers into property editing UI.
 
 ## Editing Core
