@@ -67,4 +67,30 @@ public class VoxelResourceTests
             File.Delete(pk3);
         }
     }
+
+    [Fact]
+    public void DirectVoxelModelNamesResolveToVoxelPlaceholders()
+    {
+        byte[] voxel = { 13, 14, 15, 16 };
+        string pk3 = TestArtifacts.BuildPk3(("voxels/BAR1.kvx", voxel));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var sprite = resources.GetSprite("BAR1A0");
+
+            Assert.NotNull(sprite);
+            Assert.Equal(64, sprite!.Width);
+            Assert.Equal(64, sprite.Height);
+            Assert.Equal(32, sprite.OffsetX);
+            Assert.Equal(63, sprite.OffsetY);
+            Assert.Equal(255, sprite.Rgba[3]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
 }

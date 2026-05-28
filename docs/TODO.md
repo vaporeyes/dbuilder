@@ -181,7 +181,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port camera texture images.
 - [x] Port dynamic bitmap images.
 - [x] Port color and unknown image behavior.
-- [ ] Port voxel image behavior.
+- [x] Port voxel image behavior.
 - [x] Port model resource discovery.
 - [ ] Port resource cache invalidation and disposal behavior.
   - [x] Clear resource caches and derived metadata when resources are cleared or disposed.
