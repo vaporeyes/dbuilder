@@ -129,6 +129,7 @@ public static class WadMaps
         MapFormatConstraints.ThrowIfInvalid(map, format);
 
         byte[]? behavior = ReadFirstMapLump(wad, marker, "BEHAVIOR", config);
+        var preservedLumps = config != null ? CapturePreservedMapLumps(wad, marker, format, config) : Array.Empty<LumpSnapshot>();
         int insertPos = RemoveMapBlocks(wad, marker, config);
         if (insertPos < 0)
         {
@@ -143,6 +144,8 @@ public static class WadMaps
         }
         if (config != null)
         {
+            RestorePreservedMapLumps(wad, marker, config, preservedLumps);
+            OrderConfiguredMapLumps(wad, marker, config);
             CreateRequiredMapLumps(wad, marker, config);
             OrderConfiguredMapLumps(wad, marker, config);
         }
@@ -150,6 +153,61 @@ public static class WadMaps
     }
 
     private sealed record LumpSnapshot(string Name, byte[] Bytes, int OriginalIndex);
+
+    private static LumpSnapshot[] CapturePreservedMapLumps(WAD wad, string marker, MapFormat format, GameConfiguration config)
+    {
+        int headerIndex = FindMapHeaderIndex(wad, marker);
+        if (headerIndex < 0) return Array.Empty<LumpSnapshot>();
+
+        var snapshots = new List<LumpSnapshot>();
+        int endIndex = headerIndex;
+        while (endIndex + 1 < wad.Lumps.Count && IsMapSubLump(wad.Lumps[endIndex + 1].Name, config))
+            endIndex++;
+
+        for (int i = headerIndex; i <= endIndex; i++)
+        {
+            var lump = wad.Lumps[i];
+            string configuredName = NormalizeMapHeaderPlaceholder(lump.Name, marker);
+            if (!config.MapLumpNames.TryGetValue(configuredName, out var info)) continue;
+            if (!ShouldPreserveExistingMapLump(info, lump.Name, marker, format)) continue;
+
+            snapshots.Add(new LumpSnapshot(lump.Name, lump.Stream.ReadAllBytes(), i - headerIndex));
+        }
+
+        return snapshots.ToArray();
+    }
+
+    private static bool ShouldPreserveExistingMapLump(MapLumpInfo info, string lumpName, string marker, MapFormat format)
+    {
+        if (info.IsMarker) return false;
+        if (IsWriterGeneratedLump(lumpName, marker, format)) return false;
+        return info.BlindCopy || info.Script != null || info.ScriptBuild;
+    }
+
+    private static bool IsWriterGeneratedLump(string lumpName, string marker, MapFormat format)
+        => lumpName == marker || format switch
+        {
+            MapFormat.Udmf => lumpName is "TEXTMAP" or "ENDMAP",
+            MapFormat.Hexen => lumpName is "THINGS" or "LINEDEFS" or "SIDEDEFS" or "VERTEXES" or "SECTORS" or "BEHAVIOR",
+            _ => lumpName is "THINGS" or "LINEDEFS" or "SIDEDEFS" or "VERTEXES" or "SECTORS",
+        };
+
+    private static void RestorePreservedMapLumps(WAD wad, string marker, GameConfiguration config, IReadOnlyList<LumpSnapshot> snapshots)
+    {
+        if (snapshots.Count == 0) return;
+
+        int headerIndex = FindMapHeaderIndex(wad, marker);
+        if (headerIndex < 0) return;
+
+        foreach (var snapshot in snapshots)
+        {
+            if (FindSpecificMapLump(wad, snapshot.Name, headerIndex, marker, config.MapLumpNames) != -1) continue;
+
+            int insertIndex = Math.Min(wad.Lumps.Count, headerIndex + snapshot.OriginalIndex);
+            var lump = wad.Insert(snapshot.Name, insertIndex, snapshot.Bytes.Length, false)!;
+            if (snapshot.Bytes.Length > 0) lump.Stream.Write(snapshot.Bytes, 0, snapshot.Bytes.Length);
+        }
+    }
 
     private static void OrderConfiguredMapLumps(WAD wad, string marker, GameConfiguration config)
     {

@@ -191,6 +191,22 @@ maplumpnames
     }
 
     [Fact]
+    public void SaveMapPreservesConfiguredScriptLumpBytes()
+    {
+        using var wad = new WAD(new MemoryStream());
+        var config = GameConfiguration.FromText(RequiredScriptLumpConfig);
+        DoomMapWriter.WriteMap(SquareMap(), wad, "MAP01", wad.Lumps.Count);
+        int header = wad.FindLumpIndex("MAP01");
+        var scripts = wad.Insert("SCRIPTS", header + 6, 3)!;
+        scripts.Stream.Write(new byte[] { 1, 2, 3 }, 0, 3);
+        wad.WriteHeaders();
+
+        WadMaps.SaveMap(wad, "MAP01", SquareMap(), MapFormat.Doom, config);
+
+        Assert.Equal(new byte[] { 1, 2, 3 }, WadMaps.ReadMapLump(wad, "MAP01", "SCRIPTS", config)!);
+    }
+
+    [Fact]
     public void SaveMapOrdersConfiguredLumpsAndPreservesNeighborLumps()
     {
         using var wad = new WAD(new MemoryStream());
