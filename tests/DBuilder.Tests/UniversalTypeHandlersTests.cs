@@ -1,5 +1,5 @@
-// ABOUTME: Tests primitive UDB universal type handlers for field and argument value conversion.
-// ABOUTME: Protects Boolean, Integer, and Decimal handler behavior before editor UI integration.
+// ABOUTME: Tests UDB universal type handlers for field and argument value conversion.
+// ABOUTME: Protects primitive, random, and text handler behavior before editor UI integration.
 
 using DBuilder.IO;
 
@@ -70,6 +70,29 @@ public class UniversalTypeHandlersTests
 
         handler.SetValue(2);
         Assert.True((bool)handler.GetValue());
+    }
+
+    [Fact]
+    public void StringHandlerStoresTextWithoutQuotesLikeUdb()
+    {
+        var handler = new UniversalTypeRegistry().CreateHandler(UniversalType.String, defaultValue: "\"quoted\"");
+
+        Assert.IsType<StringTypeHandler>(handler);
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal("quoted", handler.DefaultValue);
+        Assert.Equal("quoted", handler.GetValue());
+
+        handler.SetValue("12");
+        Assert.Equal("12", handler.GetValue());
+        Assert.Equal(12, handler.GetIntValue());
+        Assert.Equal("12", handler.GetStringValue());
+
+        handler.SetValue("a \"quoted\" value");
+        Assert.Equal("a quoted value", handler.GetValue());
+        Assert.Equal(0, handler.GetIntValue());
+
+        handler.SetValue(null);
+        Assert.Equal("", handler.GetValue());
     }
 
     [Fact]

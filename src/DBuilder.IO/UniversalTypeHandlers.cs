@@ -21,6 +21,7 @@ public abstract class UniversalTypeHandler
     public bool IsCustomUsable => TypeInfo.IsCustomUsable;
     public bool IsForArgument { get; }
     public object DefaultValue { get; protected set; }
+    public virtual bool IsBrowseable => false;
 
     public abstract void SetValue(object? value);
     public abstract object GetValue();
@@ -124,6 +125,31 @@ public sealed class BooleanTypeHandler : UniversalTypeHandler
         list.Add(new EnumItemInfo("false", "False"));
         return list;
     }
+}
+
+public sealed class StringTypeHandler : UniversalTypeHandler
+{
+    private string value = "";
+
+    public StringTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value)
+        => this.value = value?.ToString()?.Replace("\"", "") ?? "";
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue()
+        => int.TryParse(value, NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+
+    public override string GetStringValue() => value;
+
+    protected override object CoerceDefault(object? value)
+        => value?.ToString()?.Replace("\"", "") ?? "";
 }
 
 public sealed class RandomIntegerTypeHandler : UniversalTypeHandler
