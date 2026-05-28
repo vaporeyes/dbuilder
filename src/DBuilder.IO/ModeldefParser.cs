@@ -91,11 +91,11 @@ public static class ModeldefParser
                     break;
                 case "model":
                     if (ReadInt(t, ref i, out int modelIndex) && i < t.Count)
-                        def.Models.Add(new ModeldefModel(modelIndex, t[i++]));
+                        SetModel(def.Models, new ModeldefModel(modelIndex, t[i++]));
                     break;
                 case "skin":
                     if (ReadInt(t, ref i, out int skinIndex) && i < t.Count)
-                        def.Skins.Add(new ModeldefSkin(skinIndex, t[i++]));
+                        SetSkin(def.Skins, new ModeldefSkin(skinIndex, t[i++]));
                     break;
                 case "surfaceskin":
                     ParseSurfaceSkin(def, t, ref i);
@@ -116,7 +116,46 @@ public static class ModeldefParser
         if (!ReadInt(t, ref i, out int modelIndex)) return;
         if (!ReadInt(t, ref i, out int surfaceIndex)) return;
         if (i >= t.Count) return;
-        def.SurfaceSkins.Add(new ModeldefSurfaceSkin(modelIndex, surfaceIndex, t[i++]));
+        SetSurfaceSkin(def.SurfaceSkins, new ModeldefSurfaceSkin(modelIndex, surfaceIndex, t[i++]));
+    }
+
+    private static void SetModel(List<ModeldefModel> models, ModeldefModel model)
+    {
+        for (int i = 0; i < models.Count; i++)
+        {
+            if (models[i].Index == model.Index)
+            {
+                models[i] = model;
+                return;
+            }
+        }
+        models.Add(model);
+    }
+
+    private static void SetSkin(List<ModeldefSkin> skins, ModeldefSkin skin)
+    {
+        for (int i = 0; i < skins.Count; i++)
+        {
+            if (skins[i].Index == skin.Index)
+            {
+                skins[i] = skin;
+                return;
+            }
+        }
+        skins.Add(skin);
+    }
+
+    private static void SetSurfaceSkin(List<ModeldefSurfaceSkin> skins, ModeldefSurfaceSkin skin)
+    {
+        for (int i = 0; i < skins.Count; i++)
+        {
+            if (skins[i].ModelIndex == skin.ModelIndex && skins[i].SurfaceIndex == skin.SurfaceIndex)
+            {
+                skins[i] = skin;
+                return;
+            }
+        }
+        skins.Add(skin);
     }
 
     private static void ParseFrameIndex(Modeldef def, List<string> t, ref int i)

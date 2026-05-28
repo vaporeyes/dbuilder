@@ -58,6 +58,27 @@ model B
     }
 
     [Fact]
+    public void LaterModelAndSkinIndexesReplaceEarlierOnes()
+    {
+        const string text = @"
+model Repeated
+{
+    Model 0 ""first.md3""
+    Model 0 ""second.md3""
+    Skin 0 ""first.png""
+    Skin 0 ""second.png""
+    SurfaceSkin 0 2 ""first_alt.png""
+    SurfaceSkin 0 2 ""second_alt.png""
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.Equal(new ModeldefModel(0, "second.md3"), def.Models.Single());
+        Assert.Equal(new ModeldefSkin(0, "second.png"), def.Skins.Single());
+        Assert.Equal(new ModeldefSurfaceSkin(0, 2, "second_alt.png"), def.SurfaceSkins.Single());
+    }
+
+    [Fact]
     public void ParsesIncludesOnce()
     {
         const string text = @"
