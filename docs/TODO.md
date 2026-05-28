@@ -161,6 +161,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port structured PK3 reader behavior.
 - [ ] Port directory reader behavior.
 - [ ] Port data location and data location list behavior.
+  - [x] Add UDB-style resource display names for data locations.
 - [ ] Port resource priority and override behavior completely.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.

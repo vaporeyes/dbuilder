@@ -14,6 +14,7 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
 {
     public DataLocationType Type { get; set; }
     public string Location { get; set; } = "";
+    public string InitialLocation { get; set; } = "";
     public bool Option1 { get; set; }
     public bool Option2 { get; set; }
     public bool NotForTesting { get; set; }
@@ -31,6 +32,17 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
     }
 
     public override string ToString() => Location;
+
+    public string GetDisplayName()
+    {
+        return Type switch
+        {
+            DataLocationType.Directory => Location.Substring(Location.LastIndexOf(Path.DirectorySeparatorChar) + 1),
+            DataLocationType.Wad => !string.IsNullOrEmpty(InitialLocation) ? InitialLocation : Path.GetFileName(Location),
+            DataLocationType.Pk3 => Path.GetFileName(Location),
+            _ => "",
+        };
+    }
 
     public int CompareTo(DataLocation? other)
         => string.Compare(Location, other?.Location, StringComparison.OrdinalIgnoreCase);

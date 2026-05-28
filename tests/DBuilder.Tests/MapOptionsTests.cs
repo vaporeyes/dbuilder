@@ -728,6 +728,41 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationDisplayNameMatchesResourceType()
+    {
+        var directory = new DataLocation(DataLocationType.Directory, Path.Combine(Path.GetTempPath(), "resource-dir"));
+        var wad = new DataLocation(DataLocationType.Wad, Path.Combine(Path.GetTempPath(), "base.wad"));
+        var nestedWad = new DataLocation(DataLocationType.Wad, Path.Combine(Path.GetTempPath(), "outer.pk3"))
+        {
+            InitialLocation = "maps/nested.wad",
+        };
+        var pk3 = new DataLocation(DataLocationType.Pk3, Path.Combine(Path.GetTempPath(), "mod.pk3"));
+
+        Assert.Equal("resource-dir", directory.GetDisplayName());
+        Assert.Equal("base.wad", wad.GetDisplayName());
+        Assert.Equal("maps/nested.wad", nestedWad.GetDisplayName());
+        Assert.Equal("mod.pk3", pk3.GetDisplayName());
+    }
+
+    [Fact]
+    public void DataLocationCopiesPreserveInitialLocation()
+    {
+        var source = new DataLocationList
+        {
+            new(DataLocationType.Wad, Path.Combine(Path.GetTempPath(), "outer.pk3"))
+            {
+                InitialLocation = "maps/nested.wad",
+            },
+        };
+
+        var copy = new DataLocationList(source);
+        source[0].InitialLocation = "changed.wad";
+
+        Assert.Equal("maps/nested.wad", copy[0].InitialLocation);
+        Assert.Equal("maps/nested.wad", copy[0].GetDisplayName());
+    }
+
+    [Fact]
     public void MapOptionsResourceHelpersReplaceByFullPathAndReturnCopies()
     {
         var options = new MapOptions();

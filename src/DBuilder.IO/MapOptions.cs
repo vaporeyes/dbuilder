@@ -536,6 +536,7 @@ public sealed class MapOptions
     private static DataLocation CloneLocation(DataLocation source)
     {
         var clone = new DataLocation(source.Type, source.Location, source.Option1, source.Option2, source.NotForTesting);
+        clone.InitialLocation = source.InitialLocation;
         clone.RequiredArchives.AddRange(source.RequiredArchives);
         return clone;
     }

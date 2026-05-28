@@ -96,6 +96,7 @@ public sealed class DataLocationList : List<DataLocation>
     private static DataLocation Clone(DataLocation source)
     {
         var clone = new DataLocation(source.Type, source.Location, source.Option1, source.Option2, source.NotForTesting);
+        clone.InitialLocation = source.InitialLocation;
         clone.RequiredArchives.AddRange(source.RequiredArchives);
         return clone;
     }
