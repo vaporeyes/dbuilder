@@ -154,6 +154,84 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void AngleDegreesHandlerCoercesIntegerAnglesLikeUdb()
+    {
+        var handler = (AngleDegreesTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.AngleDegrees, defaultValue: 90);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.True(handler.HasDynamicImage);
+        Assert.Equal(90, handler.DefaultValue);
+        Assert.Equal(90, handler.GetValue());
+        Assert.Equal("90", handler.GetStringValue());
+        Assert.Equal(2, handler.AnglePreviewIndex);
+
+        handler.SetValue("180");
+        Assert.Equal(180, handler.GetIntValue());
+        Assert.Equal(4, handler.AnglePreviewIndex);
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetValue());
+        Assert.Equal(0, handler.AnglePreviewIndex);
+
+        handler.SetValue("not an angle");
+        Assert.Equal(0, handler.GetValue());
+    }
+
+    [Fact]
+    public void AngleDecimalHandlersCoerceValuesLikeUdb()
+    {
+        var degrees = (AngleDegreesFloatTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.AngleDegreesFloat, defaultValue: "45.5");
+        var radians = (AngleRadiansTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.AngleRadians, defaultValue: Math.PI);
+
+        Assert.True(degrees.IsBrowseable);
+        Assert.True(degrees.HasDynamicImage);
+        Assert.Equal(45.5f, degrees.DefaultValue);
+        Assert.Equal(45.5f, degrees.GetValue());
+        Assert.Equal(45, degrees.GetIntValue());
+        Assert.Equal(1, degrees.AnglePreviewIndex);
+
+        degrees.SetValue("90.25");
+        Assert.Equal(90.25f, degrees.GetValue());
+        Assert.Equal(90, degrees.GetIntValue());
+        Assert.Equal(2, degrees.AnglePreviewIndex);
+
+        Assert.True(radians.IsBrowseable);
+        Assert.True(radians.HasDynamicImage);
+        Assert.Equal(Convert.ToSingle(Math.PI), radians.DefaultValue);
+        Assert.Equal(Convert.ToDouble(Convert.ToSingle(Math.PI)), radians.GetValue());
+        Assert.Equal(3, radians.GetIntValue());
+        Assert.Equal(2, radians.AnglePreviewIndex);
+
+        radians.SetValue("not radians");
+        Assert.Equal(0.0, radians.GetValue());
+        Assert.Equal(6, radians.AnglePreviewIndex);
+    }
+
+    [Fact]
+    public void AngleByteHandlerStoresByteAngleAndPreviewLikeUdb()
+    {
+        var handler = (AngleByteTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.AngleByte, defaultValue: 64);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.True(handler.HasDynamicImage);
+        Assert.Equal(64, handler.GetValue());
+        Assert.Equal("64", handler.GetStringValue());
+        Assert.Equal(2, handler.AnglePreviewIndex);
+
+        handler.SetValue("128");
+        Assert.Equal(128, handler.GetIntValue());
+        Assert.Equal(4, handler.AnglePreviewIndex);
+
+        handler.SetValue(false);
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal(0, handler.AnglePreviewIndex);
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""

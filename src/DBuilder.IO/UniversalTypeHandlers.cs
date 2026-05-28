@@ -22,6 +22,7 @@ public abstract class UniversalTypeHandler
     public bool IsForArgument { get; }
     public object DefaultValue { get; protected set; }
     public virtual bool IsBrowseable => false;
+    public virtual bool HasDynamicImage => false;
     public virtual bool IsEnumerable => false;
     public virtual bool IsLimitedToEnums => false;
 
@@ -228,6 +229,134 @@ public sealed class ColorTypeHandler : UniversalTypeHandler
             return int.TryParse(text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
         return 0;
     }
+}
+
+public class AngleDegreesTypeHandler : UniversalTypeHandler
+{
+    private int value;
+
+    public AngleDegreesTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+    public override bool HasDynamicImage => true;
+    public virtual int AnglePreviewIndex => GetAnglePreviewIndex(value);
+
+    public override void SetValue(object? value) => this.value = ToInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToInt(value);
+
+    public static int GetAnglePreviewIndex(int degrees)
+        => (int)(ClampDegrees(degrees + 22) / 45);
+
+    protected static double ClampDegrees(double degrees)
+    {
+        degrees %= 360;
+        if (degrees < 0) degrees += 360;
+        return degrees;
+    }
+
+    private static int ToInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
+public sealed class AngleDegreesFloatTypeHandler : UniversalTypeHandler
+{
+    private float value;
+
+    public AngleDegreesFloatTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+    public override bool HasDynamicImage => true;
+    public int AnglePreviewIndex => AngleDegreesTypeHandler.GetAnglePreviewIndex((int)Math.Round(value));
+
+    public override void SetValue(object? value) => this.value = ToFloat(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => (int)value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToFloat(value);
+
+    private static float ToFloat(object? value)
+    {
+        if (value == null) return 0.0f;
+        if (value is int or float or double or bool) return Convert.ToSingle(value, CultureInfo.CurrentCulture);
+        return float.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.CurrentCulture, out float parsed) ? parsed : 0.0f;
+    }
+}
+
+public sealed class AngleRadiansTypeHandler : UniversalTypeHandler
+{
+    private double value;
+
+    public AngleRadiansTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+    public override bool HasDynamicImage => true;
+    public int AnglePreviewIndex => AngleDegreesTypeHandler.GetAnglePreviewIndex(RealToDoom(value));
+
+    public override void SetValue(object? value) => this.value = ToFloat(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => (int)value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToFloat(value);
+
+    private static float ToFloat(object? value)
+    {
+        if (value == null) return 0.0f;
+        if (value is int or float or double or bool) return Convert.ToSingle(value, CultureInfo.CurrentCulture);
+        return float.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.CurrentCulture, out float parsed) ? parsed : 0.0f;
+    }
+
+    private static int RealToDoom(double radians)
+        => (int)Math.Round(RadiansToDegrees(NormalizeRadians(radians - (Math.PI * 0.5))));
+
+    private static double RadiansToDegrees(double radians)
+        => radians * 57.295779513082320876798154814105;
+
+    private static double NormalizeRadians(double radians)
+    {
+        double fullCircle = Math.PI * 2;
+        while (radians < 0.0) radians += fullCircle;
+        while (radians >= fullCircle) radians -= fullCircle;
+        return radians;
+    }
+}
+
+public sealed class AngleByteTypeHandler : AngleDegreesTypeHandler
+{
+    public AngleByteTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override int AnglePreviewIndex
+        => GetAnglePreviewIndex((int)Math.Round(GetIntValue() / 256.0 * 360.0));
 }
 
 public sealed class EnumOptionTypeHandler : UniversalTypeHandler
