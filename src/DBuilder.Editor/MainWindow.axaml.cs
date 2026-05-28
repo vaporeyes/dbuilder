@@ -32,8 +32,11 @@ public partial class MainWindow : Window
     private string? _pk3MapArchivePath;
     private string? _iwadPath; // an IWAD (the loaded WAD if it is one, else an added IWAD resource) for Test Map
     private MapFormat _mapFormat = MapFormat.Doom;
+    private MapOptions? _mapOptions;
+    private Configuration? _mapSettings;
     private GameConfiguration? _config;
     private string _configName = "(none)";
+    private string _configFile = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
@@ -181,6 +184,7 @@ public partial class MainWindow : Window
         {
             _config = GameConfiguration.FromFile(path);
             _configName = System.IO.Path.GetFileNameWithoutExtension(path);
+            _configFile = System.IO.Path.GetFileName(path);
             _configIsAuto = auto;
             MapView.GameConfig = _config; // enables thing sprites in the map view
             ApplyResourceConfig();
@@ -203,6 +207,8 @@ public partial class MainWindow : Window
         _pk3Path = null;
         _pk3Maps = null;
         _pk3MapArchivePath = null;
+        _mapOptions = new MapOptions { CurrentName = _mapMarker };
+        _mapSettings = new Configuration(sorted: true);
         _mapFormat = MapFormat.Doom;
         _undo = new UndoManager(map);
         MapView.Map = map;
@@ -273,6 +279,8 @@ public partial class MainWindow : Window
         try
         {
             _resources.AddBaseResource(location);
+            _mapOptions?.AddResource(location);
+            _mapOptions?.WriteResources();
             ApplyResourceConfig();
 
             // Adding the IWAD often reveals the game (a PWAD alone may lack the signature lumps), so re-detect
@@ -362,6 +370,7 @@ public partial class MainWindow : Window
             string nodeStatus = BuildNodesIfConfigured(ref bytes);
 
             System.IO.File.WriteAllBytes(outPath, bytes);
+            SaveCurrentMapOptions(outPath, marker);
             string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
             SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
@@ -397,6 +406,19 @@ public partial class MainWindow : Window
         var result = NodeBuilder.Build(bytes, new NodebuilderConfig(exe, args));
         if (result.Success && result.Output != null) { bytes = result.Output; return "  (nodes built)"; }
         return "  (node build FAILED, saved without nodes)";
+    }
+
+    private void SaveCurrentMapOptions(string wadPath, string marker)
+    {
+        var options = _mapOptions ?? new MapOptions();
+        options.CurrentName = marker;
+        options.ConfigFile = _configFile;
+        options.WriteResources();
+        var root = _mapSettings ?? new Configuration(sorted: true);
+        options.WriteRootOptions(root);
+        root.SaveConfiguration(DbsPath(wadPath));
+        _mapOptions = options;
+        _mapSettings = root;
     }
 
     // Opens the modal Settings dialog and persists changes.
@@ -962,13 +984,6 @@ public partial class MainWindow : Window
             _pk3Maps = null;
             _pk3MapArchivePath = null;
 
-            // Resource manager over the loaded WAD provides flats/textures for the map view.
-            _resources?.Dispose();
-            _resources = new ResourceManager();
-            _resources.AddResource(path);
-            ApplyResourceConfig();
-            MergeActorsFromResources();
-
             _settings.AddRecent(path);
             SaveSettings();
             RebuildRecentMenu();
@@ -1002,6 +1017,8 @@ public partial class MainWindow : Window
             _wadPath = null;
             _pk3Path = path;
             _pk3Maps = maps;
+            _mapOptions = null;
+            _mapSettings = null;
 
             _resources?.Dispose();
             _resources = new ResourceManager();
@@ -1030,6 +1047,9 @@ public partial class MainWindow : Window
             var map = WadMaps.Load(wad, entry);
             if (map is null) { SetStatus($"Failed to load {entry.Name}"); return; }
 
+            _mapOptions = LoadMapOptions(_wadPath, entry.Name, out _mapSettings);
+            int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
+
             _map = map;
             _mapMarker = entry.Name;
             _sourceMapMarker = entry.Name;
@@ -1040,7 +1060,8 @@ public partial class MainWindow : Window
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
             Title = CurrentEditorTitle();
             UpdateInfo();
-            SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
+            string resources = resourceIssues == 0 ? "" : $" ({resourceIssues} map resource(s) missing or unreadable)";
+            SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
@@ -1053,6 +1074,8 @@ public partial class MainWindow : Window
             var map = Pk3Maps.Load(_pk3Path, entry);
             if (map is null) { SetStatus($"Failed to load {entry.Map.Name} from {entry.ArchivePath}"); return; }
 
+            _mapOptions = null;
+            _mapSettings = null;
             _map = map;
             _mapMarker = entry.Map.Name;
             _sourceMapMarker = null;
@@ -1075,6 +1098,53 @@ public partial class MainWindow : Window
         return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string DbsPath(string wadPath) => System.IO.Path.ChangeExtension(wadPath, ".dbs");
+
+    private static MapOptions LoadMapOptions(string wadPath, string mapName, out Configuration root)
+    {
+        string dbsPath = DbsPath(wadPath);
+        try
+        {
+            root = System.IO.File.Exists(dbsPath)
+                ? new Configuration(dbsPath, sorted: true)
+                : new Configuration(sorted: true);
+        }
+        catch
+        {
+            root = new Configuration(sorted: true);
+        }
+
+        var options = new MapOptions();
+        options.ReadRootOptions(root, mapName);
+        options.ReadResources();
+        return options;
+    }
+
+    private int RebuildWadResources(string wadPath, MapOptions options)
+    {
+        _resources?.Dispose();
+        _resources = new ResourceManager();
+        _resources.AddResource(wadPath);
+
+        int failures = 0;
+        foreach (var location in options.GetResources())
+        {
+            try
+            {
+                if (location.IsValid()) _resources.AddBaseResource(location);
+                else failures++;
+            }
+            catch
+            {
+                failures++;
+            }
+        }
+
+        ApplyResourceConfig();
+        MergeActorsFromResources();
+        return failures;
     }
 
     private static MapEntry DisplayEntry(Pk3MapEntry entry)

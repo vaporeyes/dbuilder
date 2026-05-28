@@ -824,6 +824,26 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void MapOptionsRootRoundTripPreservesPerMapResources()
+    {
+        var source = new MapOptions { CurrentName = "MAP01", ConfigFile = "GZDoom_DoomUDMF.cfg" };
+        source.AddResource(new DataLocation(DataLocationType.Pk3, "/tmp/textures.pk3", option1: true, option2: true));
+        source.WriteResources();
+        var root = new Configuration(sorted: true);
+
+        source.WriteRootOptions(root);
+
+        var restored = new MapOptions();
+        restored.ReadRootOptions(root, "MAP01");
+        restored.ReadResources();
+        var location = Assert.Single(restored.GetResources());
+        Assert.Equal("GZDoom_DoomUDMF.cfg", restored.ConfigFile);
+        Assert.Equal(DataLocationType.Pk3, location.Type);
+        Assert.True(location.Option1);
+        Assert.True(location.Option2);
+    }
+
+    [Fact]
     public void DataLocationIsValidChecksTypeSpecificPath()
     {
         string tempFile = Path.GetTempFileName();
