@@ -279,6 +279,7 @@ public sealed class GameConfiguration
     private readonly List<RequiredArchiveInfo> requiredArchives = new();
     private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
+    private readonly Dictionary<string, string> defaultSkyTextures = new(StringComparer.OrdinalIgnoreCase);
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -311,7 +312,13 @@ public sealed class GameConfiguration
     public string NodeBuilderSave { get; private set; } = "";
     public string NodeBuilderTest { get; private set; } = "";
     public string MapNameFormat { get; private set; } = "";
+    public double DefaultTextureScale { get; private set; } = 1.0;
+    public double DefaultFlatScale { get; private set; } = 1.0;
+    public string DefaultWallTexture { get; private set; } = "STARTAN";
+    public string DefaultFloorTexture { get; private set; } = "FLOOR0_1";
+    public string DefaultCeilingTexture { get; private set; } = "CEIL1_1";
     public bool MixTexturesFlats { get; private set; }
+    public IReadOnlyDictionary<string, string> DefaultSkyTextures => defaultSkyTextures;
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
     public IReadOnlyList<LinedefActivationInfo> LinedefActivations => linedefActivations;
@@ -355,7 +362,13 @@ public sealed class GameConfiguration
             gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
             gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
             gc.MapNameFormat = GetString(root, "mapnameformat", "");
+            gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);
+            gc.DefaultFlatScale = GetDouble(root, "defaultflatscale", 1.0);
+            gc.DefaultWallTexture = GetString(root, "defaultwalltexture", "STARTAN");
+            gc.DefaultFloorTexture = GetString(root, "defaultfloortexture", "FLOOR0_1");
+            gc.DefaultCeilingTexture = GetString(root, "defaultceilingtexture", "CEIL1_1");
             gc.MixTexturesFlats = GetBool(root, "mixtexturesflats", false);
+            if (root["defaultskytextures"] is IDictionary dst) gc.ParseDefaultSkyTextures(dst);
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
@@ -1056,6 +1069,21 @@ public sealed class GameConfiguration
 
     public IReadOnlyDictionary<int, string>? GetArgFlags(ArgInfo arg)
         => arg.Flags != null ? GetEnum(arg.Flags) : null;
+
+    private void ParseDefaultSkyTextures(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string skyTexture = e.Key.ToString() ?? "";
+            if (string.IsNullOrWhiteSpace(skyTexture)) continue;
+            string mapsText = e.Value?.ToString() ?? "";
+            foreach (string map in mapsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (map.Length > 0 && !defaultSkyTextures.ContainsKey(map))
+                    defaultSkyTextures[map] = skyTexture;
+            }
+        }
+    }
 
     /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
     public bool IsMapLump(string name)

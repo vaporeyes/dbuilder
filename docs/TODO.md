@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
+  - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

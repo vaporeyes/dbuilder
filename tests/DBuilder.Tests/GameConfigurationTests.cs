@@ -116,6 +116,34 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesTextureDefaultsAndDefaultSkyMappings()
+    {
+        const string cfg = """
+            defaulttexturescale = 0.5;
+            defaultflatscale = 2.0;
+            defaultwalltexture = "STONE2";
+            defaultfloortexture = "FLOOR4_8";
+            defaultceilingtexture = "CEIL3_5";
+            defaultskytextures
+            {
+                SKY1 = "MAP01, MAP02";
+                SKY2 = "E1M1";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(0.5, gc.DefaultTextureScale);
+        Assert.Equal(2.0, gc.DefaultFlatScale);
+        Assert.Equal("STONE2", gc.DefaultWallTexture);
+        Assert.Equal("FLOOR4_8", gc.DefaultFloorTexture);
+        Assert.Equal("CEIL3_5", gc.DefaultCeilingTexture);
+        Assert.Equal("SKY1", gc.DefaultSkyTextures["MAP01"]);
+        Assert.Equal("SKY1", gc.DefaultSkyTextures["MAP02"]);
+        Assert.Equal("SKY2", gc.DefaultSkyTextures["E1M1"]);
+    }
+
+    [Fact]
     public void ThingsInheritCategoryDefaults()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
