@@ -218,6 +218,20 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
         Assert.Equal(0.2f, g.ActorLightColor("LampActor")!.Value.G, 4);
     }
 
+    [Theory]
+    [InlineData("../lights/gldefs.txt")]
+    [InlineData("./lights/gldefs.txt")]
+    [InlineData("lights\\gldefs.txt")]
+    [InlineData("/lights/gldefs.txt")]
+    public void RejectsInvalidIncludePaths(string includePath)
+    {
+        string root = "#include \"" + includePath + "\"";
+
+        var g = GldefsParser.Parse(root, _ => "pointlight BAD { color 1 1 1 size 32 }");
+
+        Assert.Empty(g.Lights);
+    }
+
     [Fact]
     public void ObjectUsesFirstRelevantFrameLight()
     {

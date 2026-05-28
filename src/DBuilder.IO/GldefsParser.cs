@@ -105,9 +105,21 @@ public static class GldefsParser
         i++; // #include
         if (includeResolver == null || i >= t.Count) return;
         string include = t[i++];
+        if (!IsValidIncludePath(include)) return;
         if (!parsedIncludes.Add(include)) return;
         string? text = includeResolver(include);
         if (text != null) ParseInto(g, text, includeResolver, knownColors, parsedIncludes);
+    }
+
+    private static bool IsValidIncludePath(string include)
+    {
+        if (string.IsNullOrWhiteSpace(include)) return false;
+        if (Path.IsPathRooted(include)) return false;
+        if (include.Contains('\\')) return false;
+        return !include.StartsWith("../", StringComparison.Ordinal)
+            && !include.StartsWith("./", StringComparison.Ordinal)
+            && !include.Equals("..", StringComparison.Ordinal)
+            && !include.Equals(".", StringComparison.Ordinal);
     }
 
     private static void ParseLight(Gldefs g, string type, List<string> t, ref int i)
