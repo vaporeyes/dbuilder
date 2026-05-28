@@ -251,8 +251,10 @@ public class UdmfMapWriterTests
         const string udmf = """
             namespace = "ZDoom";
             vertex { x = 0.0; y = 0.0; user_weight = 12.5; locked = true; }
+            vertex { x = 64.0; y = 0.0; }
             sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; lightlevel = 160; lightcolor = 16711680; xscalefloor = 2.0; comment = "lava pit"; secretmarked = true; }
             sidedef { sector = 0; scalex_mid = 1.5; wraps_mid = true; }
+            linedef { v1 = 0; v2 = 1; sidefront = 0; }
             thing { x = 10.0; y = 10.0; type = 1; health = 200; nicename = "boss"; }
             """;
         var map = UdmfMapLoader.Load(udmf, out _)!;

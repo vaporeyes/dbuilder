@@ -220,6 +220,44 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void ReusedSidedefReferenceCreatesIndependentSidedefs()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            vertex { x = 64; y = 0; }
+            vertex { x = 128; y = 0; }
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; }
+            sidedef { sector = 0; texturemiddle = "SHARED"; }
+            linedef { v1 = 0; v2 = 1; sidefront = 0; }
+            linedef { v1 = 1; v2 = 2; sidefront = 0; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(2, map.Sidedefs.Count);
+        Assert.NotSame(map.Linedefs[0].Front, map.Linedefs[1].Front);
+        Assert.Same(map.Linedefs[0], map.Linedefs[0].Front!.Line);
+        Assert.Same(map.Linedefs[1], map.Linedefs[1].Front!.Line);
+        Assert.Equal("SHARED", map.Linedefs[0].Front!.MidTexture);
+        Assert.Equal("SHARED", map.Linedefs[1].Front!.MidTexture);
+    }
+
+    [Fact]
+    public void UnreferencedSidedefsAreSkipped()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; }
+            sidedef { sector = 0; texturemiddle = "ORPHAN"; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
     public void MoreIdsSkipZeroDuplicatesAndDropPrimaryZero()
     {
         const string udmf = """

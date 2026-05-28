@@ -72,16 +72,9 @@ public static class UdmfMapLoader
         // Materialize in dependency order: vertices -> sectors -> sidedefs -> linedefs -> things.
         foreach (var v in vertexEntries) map.Vertices.Add(LoadVertex(v));
         foreach (var s in sectorEntries) map.Sectors.Add(LoadSector(s, map.Sectors.Count));
-        var sidedefLinks = new List<Sidedef?>(sidedefEntries.Count);
-        foreach (var sd in sidedefEntries)
-        {
-            var sidedef = LoadSidedef(sd, map.Sectors);
-            sidedefLinks.Add(sidedef);
-            if (sidedef != null) map.Sidedefs.Add(sidedef);
-        }
         foreach (var ld in linedefEntries)
         {
-            var line = LoadLinedef(ld, map.Vertices, sidedefLinks);
+            var line = LoadLinedef(ld, map.Vertices, sidedefEntries, map.Sectors, map.Sidedefs);
             if (line != null) map.Linedefs.Add(line);
         }
         foreach (var t in thingEntries) map.Things.Add(LoadThing(t));
@@ -155,7 +148,12 @@ public static class UdmfMapLoader
         return sd;
     }
 
-    private static Linedef? LoadLinedef(UniversalCollection c, List<Vertex> verts, IReadOnlyList<Sidedef?> sides)
+    private static Linedef? LoadLinedef(
+        UniversalCollection c,
+        List<Vertex> verts,
+        IReadOnlyList<UniversalCollection> sides,
+        List<Sector> sectors,
+        List<Sidedef> loadedSides)
     {
         int v1 = GetInt(c, "v1");
         int v2 = GetInt(c, "v2");
@@ -178,22 +176,24 @@ public static class UdmfMapLoader
 
         if (sideFront >= 0 && sideFront < sides.Count)
         {
-            var side = sides[sideFront];
+            var side = LoadSidedef(sides[sideFront], sectors);
             if (side != null)
             {
                 line.Front = side;
                 line.Front.Line = line;
                 line.Front.IsFront = true;
+                loadedSides.Add(side);
             }
         }
         if (sideBack >= 0 && sideBack < sides.Count)
         {
-            var side = sides[sideBack];
+            var side = LoadSidedef(sides[sideBack], sectors);
             if (side != null)
             {
                 line.Back = side;
                 line.Back.Line = line;
                 line.Back.IsFront = false;
+                loadedSides.Add(side);
             }
         }
 
