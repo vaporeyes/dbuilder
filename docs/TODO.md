@@ -332,6 +332,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port resource options dialog.
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.
 - [ ] Port config dialog.
+  - [x] Add bundled configuration picker with external cfg browse fallback.
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
 - [x] Port thing statistics dialog.

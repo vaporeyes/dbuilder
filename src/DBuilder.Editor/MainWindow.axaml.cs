@@ -416,16 +416,8 @@ public partial class MainWindow : Window
 
     private async void OnLoadConfig(object? sender, RoutedEventArgs e)
     {
-        var top = GetTopLevel(this);
-        if (top is null) return;
-        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Load Game Configuration",
-            AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("Game config") { Patterns = new[] { "*.cfg" } } },
-        });
-        if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
-            LoadConfig(path);
+        var dlg = new ConfigDialog(ConfigDir, _configName);
+        if (await dlg.ShowDialog<bool>(this) && dlg.SelectedPath is { } path) LoadConfig(path);
     }
 
     protected override void OnOpened(EventArgs e)
