@@ -40,6 +40,7 @@ public static class MapFormatConverter
         else if (!fromBinary && toBinary)
         {
             if (targetConfig != null) UdmfToBinary(map, targetConfig);
+            if (to == MapFormat.Hexen) UdmfLinedefActionsToHexen(map);
         }
         else if (from == MapFormat.Doom && to == MapFormat.Hexen && sourceConfig != null && targetConfig != null)
         {
@@ -142,6 +143,71 @@ public static class MapFormatConverter
         linedef.Args[4] = 0;
     }
 
+    private static void UdmfLinedefActionsToHexen(MapSet map)
+    {
+        foreach (var l in map.Linedefs)
+        {
+            switch (l.Action)
+            {
+                case 208:
+                    SetArgFromTag(l, 0);
+                    l.Args[3] = LineIdFlagsToArg(l.UdmfFlags);
+                    break;
+                case 1:
+                    SetArgFromTag(l, 3);
+                    break;
+                case 5:
+                    SetArgFromTag(l, 4);
+                    break;
+                case 181:
+                    SetArgFromTag(l, 2);
+                    break;
+                case 215:
+                case 222:
+                    SetArgFromTag(l, 0);
+                    break;
+                case 160:
+                    ConvertSector3DFloorToHexen(l);
+                    break;
+                default:
+                    ConvertUdmfLineIdToHexenIdentification(l);
+                    break;
+            }
+
+            l.Tag = 0;
+        }
+    }
+
+    private static void SetArgFromTag(Linedef linedef, int argIndex)
+    {
+        if (linedef.Tag is >= 0 and <= 255)
+            linedef.Args[argIndex] = linedef.Tag;
+    }
+
+    private static void ConvertSector3DFloorToHexen(Linedef linedef)
+    {
+        if (linedef.Args[0] > 255)
+        {
+            linedef.Args[4] = linedef.Args[0] / 256;
+            linedef.Args[0] %= 256;
+        }
+        else if (linedef.Tag is > 0 and <= 255)
+        {
+            linedef.Args[4] = linedef.Tag;
+            linedef.Args[1] |= 8;
+        }
+    }
+
+    private static void ConvertUdmfLineIdToHexenIdentification(Linedef linedef)
+    {
+        if (linedef.Action != 0 || linedef.Tag <= 255) return;
+
+        linedef.Action = 121;
+        linedef.Args[0] = linedef.Tag % 256;
+        linedef.Args[4] = linedef.Tag / 256;
+        linedef.Args[1] = LineIdFlagsToArg(linedef.UdmfFlags);
+    }
+
     private static void AddLineIdFlags(Linedef linedef, int bits)
     {
         if ((bits & 1) == 1) linedef.UdmfFlags.Add("zoneboundary");
@@ -152,6 +218,20 @@ public static class MapFormatConverter
         if ((bits & 32) == 32) linedef.UdmfFlags.Add("midtex3d");
         if ((bits & 64) == 64) linedef.UdmfFlags.Add("checkswitchrange");
         if ((bits & 128) == 128) linedef.UdmfFlags.Add("firstsideonly");
+    }
+
+    private static int LineIdFlagsToArg(HashSet<string> flags)
+    {
+        int bits = 0;
+        if (flags.Contains("zoneboundary")) bits |= 1;
+        if (flags.Contains("jumpover")) bits |= 2;
+        if (flags.Contains("blockfloaters")) bits |= 4;
+        if (flags.Contains("clipmidtex")) bits |= 8;
+        if (flags.Contains("wrapmidtex")) bits |= 16;
+        if (flags.Contains("midtex3d")) bits |= 32;
+        if (flags.Contains("checkswitchrange")) bits |= 64;
+        if (flags.Contains("firstsideonly")) bits |= 128;
+        return bits;
     }
 
     private static void ClearDoomUnsupportedArgs(MapSet map)

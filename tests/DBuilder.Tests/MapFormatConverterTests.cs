@@ -295,4 +295,95 @@ thingflagstranslation
         Assert.Equal(0, line.Args[4]);
         Assert.Equal(0, line.Tag);
     }
+
+    [Theory]
+    [InlineData(1, 3)]
+    [InlineData(5, 4)]
+    [InlineData(181, 2)]
+    [InlineData(215, 0)]
+    [InlineData(222, 0)]
+    public void UdmfTagArgActionsConvertToHexenArgsAndClearTag(int action, int tagArg)
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = action;
+        line.Tag = 77;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(77, line.Args[tagArg]);
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
+    public void UdmfTranslucentLineConvertsLineIdAndFlagsToHexenArgs()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 208;
+        line.Tag = 33;
+        line.UdmfFlags.Add("jumpover");
+        line.UdmfFlags.Add("wrapmidtex");
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(33, line.Args[0]);
+        Assert.Equal(2 | 16, line.Args[3]);
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
+    public void UdmfSector3DFloorSplitsLargeArg0ForHexen()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 160;
+        line.Args[0] = 522;
+        line.Tag = 99;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(10, line.Args[0]);
+        Assert.Equal(2, line.Args[4]);
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
+    public void UdmfSector3DFloorMovesLineIdToArg4ForHexen()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 160;
+        line.Args[0] = 10;
+        line.Tag = 12;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(12, line.Args[4]);
+        Assert.Equal(8, line.Args[1]);
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
+    public void LargeUdmfLineIdWithoutActionConvertsToHexenLineSetIdentification()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Tag = 556;
+        line.UdmfFlags.Add("zoneboundary");
+        line.UdmfFlags.Add("clipmidtex");
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(121, line.Action);
+        Assert.Equal(44, line.Args[0]);
+        Assert.Equal(2, line.Args[4]);
+        Assert.Equal(1 | 8, line.Args[1]);
+        Assert.Equal(0, line.Tag);
+    }
 }
