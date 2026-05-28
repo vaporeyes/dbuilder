@@ -193,7 +193,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete DECORATE parser behavior.
 - [ ] Complete ZScript tokenizer behavior.
 - [ ] Complete ZScript parser behavior.
-- [ ] Complete MAPINFO and ZMAPINFO parser behavior.
+- [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
