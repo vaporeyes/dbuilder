@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace DBuilder.IO;
@@ -155,9 +156,21 @@ public sealed class MapInfo
     {
         if (includeResolver == null || i >= toks.Count) return;
         string include = toks[i++].Text;
+        if (!IsValidIncludePath(include)) return;
         if (!parsedIncludes.Add(include)) return;
         string? text = includeResolver(include);
         if (text != null) ParseInto(mi, text, includeResolver, knownColors, parsedIncludes);
+    }
+
+    private static bool IsValidIncludePath(string include)
+    {
+        if (string.IsNullOrWhiteSpace(include)) return false;
+        if (Path.IsPathRooted(include)) return false;
+        if (include.Contains('\\')) return false;
+        return !include.StartsWith("../", StringComparison.Ordinal)
+            && !include.StartsWith("./", StringComparison.Ordinal)
+            && !include.Equals("..", StringComparison.Ordinal)
+            && !include.Equals(".", StringComparison.Ordinal);
     }
 
     private static void ParseGameInfo(List<Tok> toks, ref int i, MapInfo mi)

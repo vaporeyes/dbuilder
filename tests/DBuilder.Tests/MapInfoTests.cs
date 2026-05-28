@@ -203,6 +203,20 @@ DoomEdNums { 9001 = LocalActor }";
         Assert.Equal("localactor", mi.DoomEdNums[9001]);
     }
 
+    [Theory]
+    [InlineData("../mapinfo/maps.txt")]
+    [InlineData("./mapinfo/maps.txt")]
+    [InlineData("mapinfo\\maps.txt")]
+    [InlineData("/mapinfo/maps.txt")]
+    public void RejectsInvalidIncludePaths(string includePath)
+    {
+        string text = includePath.Contains('\\') ? "include " + includePath : "include \"" + includePath + "\"";
+
+        var mi = MapInfo.Parse(text, _ => "map MAP01 \"Entryway\" { next = MAP02 }");
+
+        Assert.Empty(mi.Maps);
+    }
+
     [Fact]
     public void MergesIncludedGameInfo()
     {
