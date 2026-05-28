@@ -1408,6 +1408,7 @@ public partial class MainWindow : Window
         if (st == 1 && sl == 0 && ss == 0 && sv == 0) ShowThingFields(_map.GetSelectedThings()[0]);
         else if (sl == 1 && st == 0 && ss == 0 && sv == 0) ShowLinedefFields(_map.GetSelectedLinedefs()[0]);
         else if (ss == 1 && st == 0 && sl == 0 && sv == 0) ShowSectorFields(_map.GetSelectedSectors()[0]);
+        else if (sv == 1 && st == 0 && sl == 0 && ss == 0) ShowVertexFields(_map.GetSelectedVertices()[0]);
         else
         {
             ShowText($"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
@@ -1416,6 +1417,20 @@ public partial class MainWindow : Window
     }
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;
+
+    private void ShowVertexFields(Vertex v)
+    {
+        var fields = new List<(string, string)>
+        {
+            ("Position", $"({v.Position.x:0.###}, {v.Position.y:0.###})"),
+            ("Linedefs", v.Linedefs.Count.ToString()),
+            ("Groups", DescribeGroups(v.Groups)),
+            ("Z floor", double.IsNaN(v.ZFloor) ? "-" : v.ZFloor.ToString("0.###")),
+            ("Z ceiling", double.IsNaN(v.ZCeiling) ? "-" : v.ZCeiling.ToString("0.###")),
+            ("Custom fields", v.Fields.Count.ToString()),
+        };
+        ShowFields($"Vertex {_map!.Vertices.IndexOf(v)}", fields);
+    }
 
     private void ShowThingFields(Thing t)
     {
@@ -1466,6 +1481,15 @@ public partial class MainWindow : Window
             ("Effect", $"{s.Special} - {eff}"),
             ("Tag", s.Tag.ToString()),
         });
+    }
+
+    private static string DescribeGroups(int groups)
+    {
+        if (groups == 0) return "-";
+        var result = new List<string>();
+        for (int i = 0; i < MapOptions.SelectionGroupCount; i++)
+            if ((groups & MapSet.GroupMask(i)) != 0) result.Add((i + 1).ToString());
+        return result.Count == 0 ? groups.ToString() : string.Join(", ", result);
     }
 
     // Appends Arg1..Arg5 cells, labeling each with its config arg title when available.
