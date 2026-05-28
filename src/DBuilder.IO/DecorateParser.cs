@@ -58,6 +58,8 @@ public static class DecorateParser
     private static readonly HashSet<string> StateFlow = new(StringComparer.OrdinalIgnoreCase)
     { "goto", "loop", "stop", "wait", "fail", "hold" };
 
+    private static readonly string[] SpriteCheckStates = { "idle", "see", "inactive", "spawn" };
+
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
     public static List<ActorInfo> Parse(string text, Func<string, string?>? includeResolver = null)
         => ParseActors(text, "actor", headerNum: true, includeResolver);
@@ -177,6 +179,10 @@ public static class DecorateParser
         int depth = 1;
         bool pendingStates = false, inStates = false;
         int statesDepth = 0;
+        string? currentState = null;
+        var stateSprites = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        string? firstSprite = null;
+        string? firstNonEmptySprite = null;
 
         while (i < t.Count && depth > 0)
         {
@@ -189,7 +195,11 @@ public static class DecorateParser
             }
             if (tk.Kind == Kind.Sym && tk.Text == "}")
             {
-                if (inStates && depth == statesDepth) inStates = false;
+                if (inStates && depth == statesDepth)
+                {
+                    inStates = false;
+                    currentState = null;
+                }
                 depth--;
                 continue;
             }
@@ -226,9 +236,44 @@ public static class DecorateParser
                 }
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
-                actor.Sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
+            {
+                string sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
+                firstSprite ??= sprite;
+                if (!IsEmptySprite(sprite)) firstNonEmptySprite ??= sprite;
+                if (currentState != null && !stateSprites.ContainsKey(currentState))
+                    stateSprites[currentState] = sprite;
+            }
+            else if (inStates && tk.Kind == Kind.Word && IsStateLabel(t, i))
+            {
+                currentState = tk.Text;
+                i++;
+            }
         }
+
+        actor.Sprite ??= ChooseSprite(stateSprites, firstNonEmptySprite, firstSprite);
     }
+
+    private static bool IsStateLabel(List<Tok> t, int colonIndex)
+        => colonIndex < t.Count
+        && t[colonIndex].Kind == Kind.Sym
+        && t[colonIndex].Text == ":"
+        && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
+
+    private static string? ChooseSprite(Dictionary<string, string> stateSprites, string? firstNonEmptySprite, string? firstSprite)
+    {
+        foreach (string state in SpriteCheckStates)
+            if (stateSprites.TryGetValue(state, out string? sprite) && !IsEmptySprite(sprite))
+                return sprite;
+
+        foreach (string state in SpriteCheckStates)
+            if (stateSprites.TryGetValue(state, out string? sprite))
+                return sprite;
+
+        return firstNonEmptySprite ?? firstSprite;
+    }
+
+    private static bool IsEmptySprite(string sprite)
+        => sprite.StartsWith("TNT1", StringComparison.OrdinalIgnoreCase);
 
     private static void SkipZScriptMember(List<Tok> t, ref int i)
     {

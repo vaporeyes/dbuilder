@@ -262,6 +262,45 @@ ACTOR CastStateThing 8001
     }
 
     [Fact]
+    public void PrefersSpawnStateSpriteOverEarlierNonDisplayState()
+    {
+        const string text = @"
+ACTOR StatePriorityThing 8002
+{
+    States
+    {
+    Death:
+        DEAT A -1 stop
+    Spawn:
+        SPWN A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("SPWNA0", actor.EditorSprite);
+    }
+
+    [Fact]
+    public void PrefersNonEmptyRelevantStateSprite()
+    {
+        const string text = @"
+ACTOR EmptySpawnThing 8003
+{
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        loop
+    See:
+        SEEE A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("SEEEA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {
         const string text = @"
