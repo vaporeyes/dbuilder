@@ -681,6 +681,17 @@ public partial class MainWindow : Window
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
 
+    private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            MapView.CenterOn(dlg.ResultX, dlg.ResultY);
+            MapView.Focus();
+            SetStatus($"Centered on {dlg.ResultX:0.###}, {dlg.ResultY:0.###}.");
+        }
+    }
+
     private async void OnGridSetup(object? sender, RoutedEventArgs e)
     {
         var dlg = new GridSetupDialog(MapView.GridSetupSnapshot());

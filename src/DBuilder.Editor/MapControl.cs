@@ -237,6 +237,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Camera: world-space center + zoom in world-units-per-DIP.
     private double _camX, _camY, _zoom = 1.0;
 
+    public Vec2D ViewCenter => new(_camX, _camY);
+
     /// <summary>Which element class clicks select. Switched with the number keys 1-4.</summary>
     public enum EditMode { Vertices, Linedefs, Sectors, Things }
     private EditMode _editMode = EditMode.Linedefs;
@@ -380,6 +382,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         double availH = Math.Max(1, Bounds.Height);
         _zoom = Math.Max(w / availW, h / availH) * 1.15;
         if (_zoom <= 0) _zoom = 1;
+    }
+
+    public void CenterOn(double x, double y)
+    {
+        _camX = x;
+        _camY = y;
+        RequestNextFrameRendering();
     }
 
     public void MarkGeometryDirty()
