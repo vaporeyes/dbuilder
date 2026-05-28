@@ -117,7 +117,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public GameConfiguration? GameConfig
     {
         get => _gameConfig;
-        set { _gameConfig = value; _geometryDirty = true; RequestNextFrameRendering(); }
+        set { _gameConfig = value; _activeThingsFilter = null; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
     private bool _needsFit;
@@ -127,7 +127,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -162,11 +162,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
     private readonly System.Collections.Generic.HashSet<string> _hiddenThingCategories = new(StringComparer.OrdinalIgnoreCase);
+    private ThingsFilterInfo? _activeThingsFilter;
+    private ThingsFilterResult? _thingsFilterResult;
+    private readonly System.Collections.Generic.HashSet<Thing> _thingsFilterHidden = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The display key for a thing's category (its config category, or "(uncategorized)").</summary>
     public static string ThingCategoryKey(string? category) => string.IsNullOrEmpty(category) ? "(uncategorized)" : category;
 
     public bool IsThingCategoryHidden(string categoryKey) => _hiddenThingCategories.Contains(categoryKey);
+
+    public ThingsFilterInfo? ActiveThingsFilter => _activeThingsFilter;
 
     /// <summary>Shows or hides all things in a category (by <see cref="ThingCategoryKey"/>) and redraws.</summary>
     public void SetThingCategoryHidden(string categoryKey, bool hidden)
@@ -176,9 +181,47 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
-    private bool ThingHidden(Thing t)
+    public void SetActiveThingsFilter(ThingsFilterInfo? filter)
+    {
+        _activeThingsFilter = filter;
+        _thingsFilterResult = null;
+        _thingsFilterHidden.Clear();
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    private bool ThingHidden2D(Thing t)
+        => ThingCategoryHidden(t) || ThingFilterHidden2D(t);
+
+    private bool ThingHidden3D(Thing t)
+        => ThingCategoryHidden(t) || ThingFilterHidden3D(t);
+
+    private bool ThingCategoryHidden(Thing t)
         => _hiddenThingCategories.Count > 0
            && _hiddenThingCategories.Contains(ThingCategoryKey(_gameConfig?.GetThing(t.Type)?.Category));
+
+    private bool ThingFilterHidden2D(Thing t)
+    {
+        EnsureThingsFilterResult();
+        return _thingsFilterHidden.Contains(t);
+    }
+
+    private bool ThingFilterHidden3D(Thing t)
+    {
+        EnsureThingsFilterResult();
+        return _thingsFilterResult != null &&
+               (!_thingsFilterResult.VisualVisibility.TryGetValue(t, out bool visible) || !visible);
+    }
+
+    private void EnsureThingsFilterResult()
+    {
+        if (_activeThingsFilter == null || _map == null || _gameConfig == null || _thingsFilterResult != null) return;
+
+        _thingsFilterResult = ThingsFilterEvaluator.Evaluate(_map, _gameConfig, _activeThingsFilter);
+        _thingsFilterHidden.Clear();
+        foreach (var thing in _thingsFilterResult.HiddenThings) _thingsFilterHidden.Add(thing);
+    }
 
     /// <summary>Toggles a shape-draw tool (off if the same kind is already active). Disables the polyline draw tool.</summary>
     public void SetShapeMode(ShapeKind kind)
@@ -337,7 +380,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_zoom <= 0) _zoom = 1;
     }
 
-    public void MarkGeometryDirty() { _geometryDirty = true; _geo3DDirty = true; _blockmapCache = null; RequestNextFrameRendering(); }
+    public void MarkGeometryDirty()
+    {
+        _thingsFilterResult = null;
+        _thingsFilterHidden.Clear();
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        _blockmapCache = null;
+        RequestNextFrameRendering();
+    }
 
     // ---- GL lifecycle ----
 
@@ -502,7 +553,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in _map.Things)
         {
-            if (ThingHidden(t)) continue;
+            if (ThingHidden3D(t)) continue;
             string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
             if (string.IsNullOrEmpty(sprite)) continue;
             var img = _resources?.GetSprite(sprite!);
@@ -1259,7 +1310,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 const double tickLen = 18;
                 foreach (var t in _map.Things)
                 {
-                    if (ThingHidden(t)) continue;
+                    if (ThingHidden2D(t)) continue;
                     double a = t.Angle * Math.PI / 180.0;
                     int c = t.Selected ? unchecked((int)0xffffee00) : unchecked((int)0xffd0d8e0);
                     var p = t.Position;
@@ -1284,7 +1335,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             const double s = 10;
             foreach (var t in _map.Things)
             {
-                if (ThingHidden(t)) continue;
+                if (ThingHidden2D(t)) continue;
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
@@ -1920,7 +1971,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 foreach (var v in _map.GetVerticesInBox(minX, minY, maxX, maxY)) { v.Selected = true; n++; }
                 break;
             case EditMode.Things:
-                foreach (var t in _map.GetThingsInBox(minX, minY, maxX, maxY)) { t.Selected = true; n++; }
+                foreach (var t in _map.GetThingsInBox(minX, minY, maxX, maxY))
+                {
+                    if (ThingHidden2D(t)) continue;
+                    t.Selected = true;
+                    n++;
+                }
                 break;
             case EditMode.Sectors:
                 foreach (var s in _map.GetSectorsInBox(minX, minY, maxX, maxY)) { s.Selected = true; n++; }
@@ -2401,7 +2457,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (_map.NearestVertex(world, 10 * _zoom) is { } v) v.Selected = true;
                 break;
             case EditMode.Things:
-                if (_map.NearestThing(world, 12 * _zoom) is { } t) t.Selected = true;
+                if (NearestVisibleThing(world, 12 * _zoom) is { } t) t.Selected = true;
                 break;
             case EditMode.Sectors:
                 if (_map.GetSectorAt(world) is { } s) s.Selected = true;
@@ -2412,6 +2468,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         MarkGeometryDirty();
         Changed?.Invoke();
+    }
+
+    private Thing? NearestVisibleThing(Vec2D pos, double maxRange)
+    {
+        if (_map == null) return null;
+
+        Thing? closest = null;
+        double bestSq = maxRange * maxRange;
+        foreach (var t in _map.Things)
+        {
+            if (ThingHidden2D(t)) continue;
+            double dx = t.Position.x - pos.x;
+            double dy = t.Position.y - pos.y;
+            double d = dx * dx + dy * dy;
+            if (d < bestSq) { bestSq = d; closest = t; }
+        }
+        return closest;
     }
 
     private void Pick(Vec2D world, bool additive)

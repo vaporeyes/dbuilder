@@ -680,7 +680,12 @@ public partial class MainWindow : Window
         }
         cats.Sort(StringComparer.OrdinalIgnoreCase);
 
-        var win = new ThingFilterWindow(cats, MapView.IsThingCategoryHidden);
+        var win = new ThingFilterWindow(cats, MapView.IsThingCategoryHidden, _config.ThingsFilters, MapView.ActiveThingsFilter);
+        win.FilterSelected += filter =>
+        {
+            MapView.SetActiveThingsFilter(filter);
+            SetStatus(filter == null ? "Thing filter off." : $"Thing filter: {filter.Name}");
+        };
         win.CategoryToggled += (cat, hidden) => MapView.SetThingCategoryHidden(cat, hidden);
         win.Show(this);
     }

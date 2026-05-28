@@ -294,6 +294,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port grid setup behavior.
 - [ ] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
+  - [x] Integrate configured things filters into the existing thing filter window.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.
 - [ ] Port snapping behavior fully.
