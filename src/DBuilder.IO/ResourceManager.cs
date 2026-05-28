@@ -154,6 +154,7 @@ public sealed class ResourceManager : IDisposable
     // Switch off<->on texture pairs (from SWITCHES/ANIMDEFS); vanilla pairs fall back to the SW1/SW2 convention.
     private readonly Dictionary<string, string> switchPairs = new(StringComparer.OrdinalIgnoreCase);
     private HashSet<string>? textureNameSet;
+    private List<string>? pairedSpriteNames;
     private bool switchesBuilt;
 
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
@@ -201,6 +202,7 @@ public sealed class ResourceManager : IDisposable
         animsBuilt = false;
         switchPairs.Clear();
         textureNameSet = null;
+        pairedSpriteNames = null;
         switchesBuilt = false;
         palette = null;
         paletteResolved = false;
@@ -935,6 +937,12 @@ public sealed class ResourceManager : IDisposable
                 result = ResolveCoreWithHiRes(variant, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
                 if (result != null) break;
             }
+        if (result == null)
+            foreach (var variant in PairedSpriteVariants(name))
+            {
+                result = ResolveCoreWithHiRes(variant, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
+                if (result != null) break;
+            }
         result ??= CreateVoxelSprite(name);
 
         spriteCache[name] = result;
@@ -961,6 +969,42 @@ public sealed class ResourceManager : IDisposable
             if (last != '1') yield return baseName + "1";
             if (last != '0') yield return baseName + "0";
         }
+    }
+
+    private IEnumerable<string> PairedSpriteVariants(string name)
+    {
+        if (name.Length is not (5 or 6)) yield break;
+        if (name.Length == 6 && !char.IsDigit(name[5])) yield break;
+
+        string prefix = name.Substring(0, 4);
+        char frame = char.ToUpperInvariant(name[4]);
+        char? angle = name.Length == 6 ? name[5] : null;
+        var deferred = new List<string>();
+
+        foreach (string spriteName in PairedSpriteNames())
+        {
+            if (!spriteName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+            if (char.ToUpperInvariant(spriteName[6]) != frame) continue;
+            if (angle is { } exactAngle)
+            {
+                if (spriteName[7] == exactAngle) yield return spriteName;
+                else if (exactAngle == '0' && spriteName[7] == '1') deferred.Add(spriteName);
+            }
+            else if (spriteName[7] == '0') yield return spriteName;
+            else if (spriteName[7] == '1') deferred.Add(spriteName);
+        }
+
+        foreach (string spriteName in deferred) yield return spriteName;
+    }
+
+    private IReadOnlyList<string> PairedSpriteNames()
+    {
+        if (pairedSpriteNames != null) return pairedSpriteNames;
+        pairedSpriteNames = new List<string>();
+        foreach (string name in GetSpriteNames())
+            if (name.Length == 8)
+                pairedSpriteNames.Add(name);
+        return pairedSpriteNames;
     }
 
     private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,

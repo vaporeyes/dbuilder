@@ -55,4 +55,40 @@ public class SpriteRotationFallbackTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void FindsSecondFrameInPairedSpriteName()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSA1B1.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 50, 60, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var sprite = rm.GetSprite("POSSB1");
+
+            Assert.NotNull(sprite);
+            Assert.Equal(new byte[] { 40, 50, 60, 255 }, sprite!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void FiveCharNameFindsSecondFrameInPairedSpriteName()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSA1B1.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 70, 80, 90, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var sprite = rm.GetSprite("POSSB");
+
+            Assert.NotNull(sprite);
+            Assert.Equal(new byte[] { 70, 80, 90, 255 }, sprite!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
 }
