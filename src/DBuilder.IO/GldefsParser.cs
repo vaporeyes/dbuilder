@@ -257,7 +257,20 @@ public static class GldefsParser
                 }
             }
         }
-        if (obj.Lights.Count > 0) g.Objects.Add(obj);
+        if (obj.Lights.Count > 0) SetObject(g.Objects, obj);
+    }
+
+    private static void SetObject(List<GldefsObject> objects, GldefsObject obj)
+    {
+        for (int i = 0; i < objects.Count; i++)
+        {
+            if (string.Equals(objects[i].ClassName, obj.ClassName, StringComparison.OrdinalIgnoreCase))
+            {
+                objects[i] = obj;
+                return;
+            }
+        }
+        objects.Add(obj);
     }
 
     private static void ParseGlow(Gldefs g, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)

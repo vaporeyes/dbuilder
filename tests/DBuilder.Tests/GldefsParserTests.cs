@@ -284,6 +284,24 @@ object NestedActor
     }
 
     [Fact]
+    public void LaterObjectDefinitionReplacesEarlierObjectDefinition()
+    {
+        const string text = @"
+pointlight FIRST { color 1 0 0 size 16 }
+pointlight SECOND { color 0 1 0 size 16 }
+object TorchActor { frame TRCHA { light FIRST } }
+object TorchActor { frame TRCHA { light SECOND } }";
+
+        var g = GldefsParser.Parse(text);
+
+        var obj = Assert.Single(g.Objects);
+        Assert.Equal("TorchActor", obj.ClassName);
+        Assert.Equal("SECOND", obj.Lights.Single());
+        Assert.Equal(0.0f, g.ActorLightColor("TorchActor")!.Value.R, 4);
+        Assert.Equal(1.0f, g.ActorLightColor("TorchActor")!.Value.G, 4);
+    }
+
+    [Fact]
     public void NormalizesFlickerChanceAndSectorScale()
     {
         const string text = @"
