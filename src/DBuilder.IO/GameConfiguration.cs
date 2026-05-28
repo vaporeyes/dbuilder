@@ -339,6 +339,10 @@ public sealed class GameConfiguration
     public bool TestShortPaths { get; private set; }
     public bool TestLinuxPaths { get; private set; }
     public bool LineTagIndicatesSectors { get; private set; }
+    public bool DoomThingRotationAngles { get; private set; }
+    public string ActionSpecialHelp { get; private set; } = "";
+    public string ThingClassHelp { get; private set; } = "";
+    public bool SidedefCompressionIgnoresAction { get; private set; }
     public string DecorateGames { get; private set; } = "";
     public string SkyFlatName { get; private set; } = "F_SKY1";
     public int MaxTextureNameLength { get; private set; } = 8;
@@ -358,6 +362,9 @@ public sealed class GameConfiguration
     public bool DistinctSidedefPartBrightness { get; private set; }
     public bool SectorMultiTag { get; private set; }
     public bool SidedefTextureSkewing { get; private set; }
+    public bool BuggyModelDefPitch { get; private set; }
+    public bool FixNegativePatchOffsets { get; private set; }
+    public bool FixMaskedPatchOffsets { get; private set; }
     public double DefaultTextureScale { get; private set; } = 1.0;
     public double DefaultFlatScale { get; private set; } = 1.0;
     public string DefaultWallTexture { get; private set; } = "STARTAN";
@@ -434,6 +441,10 @@ public sealed class GameConfiguration
                 gc.MakeDoorArgs[i] = GetInt(root, "makedoorarg" + i.ToString(CultureInfo.InvariantCulture), 0);
             if (root["makedoorflags"] is IDictionary mdf) gc.ParseMakeDoorFlags(mdf);
             gc.LineTagIndicatesSectors = GetBool(root, "linetagindicatesectors", false);
+            gc.DoomThingRotationAngles = GetBool(root, "doomthingrotationangles", false);
+            gc.ActionSpecialHelp = GetString(root, "actionspecialhelp", "");
+            gc.ThingClassHelp = GetString(root, "thingclasshelp", "");
+            gc.SidedefCompressionIgnoresAction = GetBool(root, "sidedefcompressionignoresaction", false);
             gc.DecorateGames = GetString(root, "decorategames", "");
             gc.SkyFlatName = GetString(root, "skyflatname", "F_SKY1");
             gc.LeftBoundary = GetInt(root, "leftboundary", -32768);
@@ -451,6 +462,12 @@ public sealed class GameConfiguration
             gc.DistinctWallBrightness = GetBool(root, "distinctwallbrightness", false);
             gc.DistinctSidedefPartBrightness = GetBool(root, "distinctsidedefpartbrightness", false);
             gc.SectorMultiTag = GetBool(root, "sectormultitag", false);
+            gc.BuggyModelDefPitch = GetBool(root, "buggymodeldefpitch", false);
+            if (root["compatibility"] is IDictionary compatibility)
+            {
+                gc.FixNegativePatchOffsets = GetBool(compatibility, "fixnegativepatchoffsets", false);
+                gc.FixMaskedPatchOffsets = GetBool(compatibility, "fixmaskedpatchoffsets", false);
+            }
             gc.UseLongTextureNames = GetBool(root, "longtexturenames", false);
             gc.MaxTextureNameLength = gc.UseLongTextureNames ? short.MaxValue : 8;
             gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);

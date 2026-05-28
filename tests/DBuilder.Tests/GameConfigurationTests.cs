@@ -204,6 +204,10 @@ public class GameConfigurationTests
             testshortpaths = true;
             testlinuxpaths = true;
             linetagindicatesectors = true;
+            doomthingrotationangles = true;
+            actionspecialhelp = "https://zdoom.org/wiki/%K";
+            thingclasshelp = "https://zdoom.org/wiki/Classes:%K";
+            sidedefcompressionignoresaction = true;
             decorategames = "doom,heretic";
             skyflatname = "F_SKY2";
             leftboundary = -1024;
@@ -222,6 +226,12 @@ public class GameConfigurationTests
             distinctwallbrightness = true;
             distinctsidedefpartbrightness = true;
             sectormultitag = true;
+            buggymodeldefpitch = true;
+            compatibility
+            {
+                fixnegativepatchoffsets = true;
+                fixmaskedpatchoffsets = true;
+            }
             """;
 
         var gc = GameConfiguration.FromText(cfg);
@@ -230,6 +240,10 @@ public class GameConfigurationTests
         Assert.True(gc.TestShortPaths);
         Assert.True(gc.TestLinuxPaths);
         Assert.True(gc.LineTagIndicatesSectors);
+        Assert.True(gc.DoomThingRotationAngles);
+        Assert.Equal("https://zdoom.org/wiki/%K", gc.ActionSpecialHelp);
+        Assert.Equal("https://zdoom.org/wiki/Classes:%K", gc.ThingClassHelp);
+        Assert.True(gc.SidedefCompressionIgnoresAction);
         Assert.Equal("doom,heretic", gc.DecorateGames);
         Assert.Equal("F_SKY2", gc.SkyFlatName);
         Assert.Equal(-1024, gc.LeftBoundary);
@@ -249,6 +263,9 @@ public class GameConfigurationTests
         Assert.True(gc.DistinctWallBrightness);
         Assert.True(gc.DistinctSidedefPartBrightness);
         Assert.True(gc.SectorMultiTag);
+        Assert.True(gc.BuggyModelDefPitch);
+        Assert.True(gc.FixNegativePatchOffsets);
+        Assert.True(gc.FixMaskedPatchOffsets);
     }
 
     [Fact]
