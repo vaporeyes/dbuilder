@@ -337,7 +337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port center-on-coordinates dialog.
 - [ ] Port error/check results dialog.
 - [ ] Port exception dialog.
-- [ ] Port about dialog.
+- [x] Port about dialog.
 
 ## Rendering
 

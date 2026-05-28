@@ -757,8 +757,11 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
-    private void OnAbout(object? sender, RoutedEventArgs e)
-        => SetStatus("DBuilder - a cross-platform Doom map editor (Avalonia + Silk.NET).");
+    private async void OnAbout(object? sender, RoutedEventArgs e)
+    {
+        await new AboutWindow().ShowDialog(this);
+        MapView.Focus();
+    }
 
     private void OnShortcuts(object? sender, RoutedEventArgs e) => new ShortcutsWindow().Show(this);
 
