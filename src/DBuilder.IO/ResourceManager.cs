@@ -163,8 +163,14 @@ public sealed class ResourceManager : IDisposable
     /// <summary>Opens a WAD or PK3 (zip) file read-only and adds it as a resource (highest priority); the manager disposes it.</summary>
     public void AddResource(string path) => Add(path, asBase: false);
 
+    /// <summary>Opens a UDB resource location and applies its per-resource options.</summary>
+    public void AddResource(DataLocation location) => Add(location, asBase: false);
+
     /// <summary>Adds a resource at the lowest priority (e.g. the base IWAD, beneath an already-loaded PWAD).</summary>
     public void AddBaseResource(string path) => Add(path, asBase: true);
+
+    /// <summary>Adds a UDB resource location at the lowest priority.</summary>
+    public void AddBaseResource(DataLocation location) => Add(location, asBase: true);
 
     private void Add(string path, bool asBase)
     {
@@ -172,6 +178,23 @@ public sealed class ResourceManager : IDisposable
             Directory.Exists(path) ? new DirectoryResourceReader(path)
             : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: Path.GetFileName(path))
             : new WadResourceReader(new WAD(path, openreadonly: true), owns: true);
+        if (asBase) readers.Insert(0, reader); else readers.Add(reader);
+        Invalidate();
+    }
+
+    private void Add(DataLocation location, bool asBase)
+    {
+        IResourceReader reader = location.Type switch
+        {
+            DataLocationType.Directory => new DirectoryResourceReader(location.Location),
+            DataLocationType.Pk3 => new Pk3ResourceReader(
+                File.OpenRead(location.Location),
+                ownsStream: true,
+                displayName: location.GetDisplayName(),
+                rootTextures: location.Option1,
+                rootFlats: location.Option2),
+            _ => new WadResourceReader(new WAD(location.Location, openreadonly: true), owns: true),
+        };
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();
     }

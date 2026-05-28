@@ -166,6 +166,33 @@ public class Pk3ResourceTests
     }
 
     [Fact]
+    public void Pk3RootImagesRequireUdbResourceOptions()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("ROOTFLAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
+            ("ROOTWALL.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))),
+            ("flats/ROOTFLAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 30, 31, 32, 255))),
+            ("textures/ROOTWALL.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 41, 42, 255))));
+        try
+        {
+            using (var rm = new ResourceManager())
+            {
+                rm.AddResource(path);
+                Assert.Equal(new byte[] { 30, 31, 32, 255 }, rm.GetFlat("ROOTFLAT")!.Rgba[0..4]);
+                Assert.Equal(new byte[] { 40, 41, 42, 255 }, rm.GetWallTexture("ROOTWALL")!.Rgba[0..4]);
+            }
+
+            using (var rm = new ResourceManager())
+            {
+                rm.AddResource(new DataLocation(DataLocationType.Pk3, path, option1: true, option2: true));
+                Assert.Equal(new byte[] { 10, 11, 12, 255 }, rm.GetFlat("ROOTFLAT")!.Rgba[0..4]);
+                Assert.Equal(new byte[] { 20, 21, 22, 255 }, rm.GetWallTexture("ROOTWALL")!.Rgba[0..4]);
+            }
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void NestedWadInsidePk3ProvidesPaletteAndFlats()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");

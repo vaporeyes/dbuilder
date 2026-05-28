@@ -221,10 +221,14 @@ internal abstract class FolderResourceReader : IResourceReader
     protected readonly List<IResourceReader> nestedReaders = new();
     private Dictionary<string, DoomTextureDef>? classicTextureDefs;
     private DoomPatchNames? classicPatchNames;
+    private readonly bool rootTextures;
+    private readonly bool rootFlats;
 
-    protected FolderResourceReader(string displayName)
+    protected FolderResourceReader(string displayName, bool rootTextures = false, bool rootFlats = false)
     {
         DisplayName = displayName;
+        this.rootTextures = rootTextures;
+        this.rootFlats = rootFlats;
     }
 
     public string DisplayName { get; }
@@ -283,7 +287,9 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetFlatBase(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "flats", ""), palette, preferFlat: true);
+        var image = rootFlats
+            ? Decode(Find(name, "", "flats"), palette, preferFlat: true)
+            : Decode(Find(name, "flats"), palette, preferFlat: true);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -297,7 +303,9 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetWallTextureBase(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
+        var image = rootTextures
+            ? Decode(Find(name, "", "textures", "patches"), palette, preferFlat: false)
+            : Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
         if (image != null) return image;
 
         image = ComposeClassicTexture(name, palette);
@@ -669,7 +677,8 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     private readonly Stream? ownedStream;
     private readonly List<MemoryStream> nestedStreams = new();
 
-    public Pk3ResourceReader(Stream zipStream, bool ownsStream, string displayName = "PK3 resource") : base(displayName)
+    public Pk3ResourceReader(Stream zipStream, bool ownsStream, string displayName = "PK3 resource", bool rootTextures = false, bool rootFlats = false)
+        : base(displayName, rootTextures, rootFlats)
     {
         ownedStream = ownsStream ? zipStream : null;
         zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
