@@ -74,6 +74,7 @@ public static class DecorateParser
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        var extensions = new Dictionary<string, List<ActorInfo>>(StringComparer.OrdinalIgnoreCase);
         int i = 0;
         while (i < toks.Count)
         {
@@ -84,15 +85,18 @@ public static class DecorateParser
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
                     var classKind = GetZScriptClassKind(toks, i);
-                    if (classKind == ZScriptClassKind.Extension)
-                    {
-                        SkipDeclaration(toks, ref i);
-                        continue;
-                    }
-
                     var parsed = ParseActor(toks, ref i, headerNum);
                     if (parsed == null) continue;
-                    if (classKind == ZScriptClassKind.Mixin) mixins[parsed.ClassName] = parsed;
+                    if (classKind == ZScriptClassKind.Extension)
+                    {
+                        if (!extensions.TryGetValue(parsed.ClassName, out var list))
+                        {
+                            list = new List<ActorInfo>();
+                            extensions[parsed.ClassName] = list;
+                        }
+                        list.Add(parsed);
+                    }
+                    else if (classKind == ZScriptClassKind.Mixin) mixins[parsed.ClassName] = parsed;
                     else actors.Add(parsed);
                 }
                 else
@@ -103,6 +107,7 @@ public static class DecorateParser
             }
             else i++;
         }
+        ApplyExtensions(actors, extensions);
         ApplyMixins(actors, mixins);
         ResolveInheritance(actors);
         return actors;
@@ -174,6 +179,23 @@ public static class DecorateParser
                 }
                 CopyMixinFlag(actor, mixin, "spawnceiling");
                 CopyMixinFlag(actor, mixin, "solid");
+            }
+        }
+    }
+
+    private static void ApplyExtensions(List<ActorInfo> actors, Dictionary<string, List<ActorInfo>> extensions)
+    {
+        foreach (var actor in actors)
+        {
+            if (!extensions.TryGetValue(actor.ClassName, out var actorExtensions)) continue;
+            foreach (var extension in actorExtensions)
+            {
+                actor.Sprite = extension.Sprite ?? actor.Sprite;
+                if (extension.Radius > 0) actor.Radius = extension.Radius;
+                if (extension.Height > 0) actor.Height = extension.Height;
+                foreach (var flag in extension.Flags) actor.Flags[flag.Key] = flag.Value;
+                foreach (var property in extension.Properties) actor.Properties[property.Key] = new List<string>(property.Value);
+                foreach (var editorKey in extension.EditorKeys) actor.EditorKeys[editorKey.Key] = editorKey.Value;
             }
         }
     }

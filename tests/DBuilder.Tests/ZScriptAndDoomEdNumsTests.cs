@@ -287,6 +287,30 @@ class MixedActor : Actor
     }
 
     [Fact]
+    public void AppliesZScriptExtensionDefaultsToTargetClass()
+    {
+        const string zscript = @"
+class BaseActor : Actor
+{
+    Default { Radius 16; Height 32; }
+    States { Spawn: BASE A -1; stop; }
+}
+extend class BaseActor
+{
+    Default { Height 64; +SOLID; }
+    States { Spawn: EXTN A -1; stop; }
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("BaseActor", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+        Assert.Equal(64, actor.Height);
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.Equal("EXTNA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
