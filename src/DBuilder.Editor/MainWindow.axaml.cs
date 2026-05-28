@@ -260,32 +260,37 @@ public partial class MainWindow : Window
         if (top is null) return;
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Add Resource (IWAD / PK3)",
+            Title = "Add Resource (IWAD / PK3 / ZIP)",
             AllowMultiple = false,
-            FileTypeFilter = new[] { new FilePickerFileType("WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip" } } },
+            FileTypeFilter = new[] { new FilePickerFileType("WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip", "*.pke", "*.ipk3", "*.ipk7" } } },
         });
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+
+        var options = new ResourceOptionsDialog(new DataLocation(DataLocation.InferType(path), path));
+        if (!await options.ShowDialog<bool>(this)) return;
+        var location = options.ResultLocation;
+
         try
         {
-            _resources.AddBaseResource(path);
+            _resources.AddBaseResource(location);
             ApplyResourceConfig();
 
             // Adding the IWAD often reveals the game (a PWAD alone may lack the signature lumps), so re-detect
             // the config before merging actors onto it.
-            if (path.EndsWith(".wad", StringComparison.OrdinalIgnoreCase))
+            if (location.Type == DataLocationType.Wad)
             {
                 try
                 {
-                    using var iwad = new WAD(path, openreadonly: true);
+                    using var iwad = new WAD(location.Location, openreadonly: true);
                     if (_configIsAuto) AutoDetectConfig(iwad);
-                    if (iwad.IsIWAD) _iwadPath = path; // remember the IWAD for Test Map
+                    if (iwad.IsIWAD) _iwadPath = location.Location; // remember the IWAD for Test Map
                 }
                 catch { /* not a readable WAD - skip detection, still usable as a resource */ }
             }
 
             MergeActorsFromResources();
             ApplyResourceConfig(); // re-trigger texture cache invalidation + redraw
-            SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
+            SetStatus($"Added resource {location.GetDisplayName()} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
     }

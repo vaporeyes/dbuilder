@@ -329,6 +329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port open map options dialog.
 - [x] Port preferences dialog.
 - [ ] Port resource options dialog.
+  - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.
 - [ ] Port config dialog.
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.

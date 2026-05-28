@@ -39,6 +39,33 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationInferTypeRecognizesArchiveExtensions()
+    {
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pk3"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pk7"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.zip"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pke"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.ipk3"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.ipk7"));
+        Assert.Equal(DataLocationType.Wad, DataLocation.InferType("/tmp/resource.wad"));
+    }
+
+    [Fact]
+    public void DataLocationInferTypePrefersExistingDirectory()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"dbuilder-data-location-type-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            Assert.Equal(DataLocationType.Directory, DataLocation.InferType(dir));
+        }
+        finally
+        {
+            Directory.Delete(dir);
+        }
+    }
+
+    [Fact]
     public void ReadRootOptionsLoadsRootSettingsAndMapConfiguration()
     {
         var wadConfiguration = new Configuration(sorted: true);
