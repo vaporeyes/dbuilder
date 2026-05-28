@@ -419,12 +419,12 @@ public sealed class ThingRadiusTypeHandler : IntegerTypeHandler
     }
 }
 
-public sealed class ThingTagTypeHandler : UniversalTypeHandler
+public class TagTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");
     private EnumItemInfo value = new("0", "0");
 
-    public ThingTagTypeHandler(
+    public TagTypeHandler(
         UniversalTypeInfo typeInfo,
         object? defaultValue = null,
         bool isForArgument = false,
@@ -493,6 +493,59 @@ public sealed class ThingTagTypeHandler : UniversalTypeHandler
         if (value == null) return 0;
         if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
         return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
+public sealed class ThingTagTypeHandler : TagTypeHandler
+{
+    public ThingTagTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument, values)
+    {
+    }
+}
+
+public sealed class LinedefTypeHandler : UniversalTypeHandler
+{
+    private int value;
+
+    public LinedefTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value) => this.value = ToInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToInt(value);
+
+    private static int ToInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
+public sealed class LinedefTagTypeHandler : TagTypeHandler
+{
+    public LinedefTagTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument, values)
+    {
     }
 }
 
