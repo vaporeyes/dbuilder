@@ -21,13 +21,31 @@ public static class MapFormatConverter
     /// (flags share the same int field). A null config skips flag translation.
     /// </summary>
     public static void Convert(MapSet map, MapFormat from, MapFormat to, GameConfiguration? config)
+        => Convert(map, from, to, config, config);
+
+    /// <summary>
+    /// Prepares <paramref name="map"/> for saving as <paramref name="to"/> when source and target formats use
+    /// different game configurations. Doom-to-Hexen conversion routes thing flags through UDMF so Doom's inverted
+    /// single-player bit becomes Hexen's explicit single-player bit.
+    /// </summary>
+    public static void Convert(MapSet map, MapFormat from, MapFormat to, GameConfiguration? sourceConfig, GameConfiguration? targetConfig)
     {
-        if (from == to || config == null) return;
+        if (from == to) return;
         bool fromBinary = IsBinary(from), toBinary = IsBinary(to);
 
-        if (fromBinary && !toBinary) BinaryToUdmf(map, config);
-        else if (!fromBinary && toBinary) UdmfToBinary(map, config);
-        // binary -> binary: int Flags is shared; low flag bits are common across Doom/Hexen, so leave as-is.
+        if (fromBinary && !toBinary)
+        {
+            if (sourceConfig != null) BinaryToUdmf(map, sourceConfig);
+        }
+        else if (!fromBinary && toBinary)
+        {
+            if (targetConfig != null) UdmfToBinary(map, targetConfig);
+        }
+        else if (from == MapFormat.Doom && to == MapFormat.Hexen && sourceConfig != null && targetConfig != null)
+        {
+            DoomThingsToHexen(map, sourceConfig, targetConfig);
+        }
+        // Other binary -> binary conversions leave shared int flags as-is.
     }
 
     private static void BinaryToUdmf(MapSet map, GameConfiguration config)
@@ -46,5 +64,15 @@ public static class MapFormatConverter
             l.Flags = config.LinedefFlagsFromUdmf(l.UdmfFlags);
         foreach (var t in map.Things)
             t.Flags = config.ThingFlagsFromUdmf(t.UdmfFlags);
+    }
+
+    private static void DoomThingsToHexen(MapSet map, GameConfiguration sourceConfig, GameConfiguration targetConfig)
+    {
+        foreach (var t in map.Things)
+        {
+            foreach (var name in sourceConfig.ThingFlagsToUdmf(t.Flags))
+                t.UdmfFlags.Add(name);
+            t.Flags = targetConfig.ThingFlagsFromUdmf(t.UdmfFlags);
+        }
     }
 }

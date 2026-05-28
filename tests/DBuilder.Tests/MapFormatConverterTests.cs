@@ -23,6 +23,15 @@ thingflagstranslation
     16 = ""!single"";
 }";
 
+    private const string HexenCfg = @"
+thingflagstranslation
+{
+    8 = ""ambush"";
+    256 = ""single"";
+    512 = ""coop"";
+    1024 = ""dm"";
+}";
+
     private static MapSet MapWithLine(int lineFlags, int thingFlags)
     {
         var map = new MapSet();
@@ -122,5 +131,31 @@ thingflagstranslation
         Assert.Equal(MapFormat.Udmf, entry.Format);
         var reloaded = WadMaps.Load(wad, entry)!;
         Assert.Contains(reloaded.Linedefs, l => l.UdmfFlags.Contains("blocking"));
+    }
+
+    [Fact]
+    public void DoomToHexenTranslatesThingSingleFlagThroughUdmf()
+    {
+        var doom = GameConfiguration.FromText(Cfg);
+        var hexen = GameConfiguration.FromText(HexenCfg);
+        var map = MapWithLine(0, 8); // ambush set, Doom single-player exclusion bit clear
+
+        MapFormatConverter.Convert(map, MapFormat.Doom, MapFormat.Hexen, doom, hexen);
+
+        Assert.Equal(8 | 256, map.Things[0].Flags);
+        Assert.Contains("single", map.Things[0].UdmfFlags);
+    }
+
+    [Fact]
+    public void DoomToHexenKeepsSingleClearWhenDoomExcludesSinglePlayer()
+    {
+        var doom = GameConfiguration.FromText(Cfg);
+        var hexen = GameConfiguration.FromText(HexenCfg);
+        var map = MapWithLine(0, 8 | 16); // Doom bit 16 means not single-player
+
+        MapFormatConverter.Convert(map, MapFormat.Doom, MapFormat.Hexen, doom, hexen);
+
+        Assert.Equal(8, map.Things[0].Flags);
+        Assert.DoesNotContain("single", map.Things[0].UdmfFlags);
     }
 }
