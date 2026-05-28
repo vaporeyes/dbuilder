@@ -73,7 +73,11 @@ public static class UdmfMapLoader
         foreach (var v in vertexEntries) map.Vertices.Add(LoadVertex(v));
         foreach (var s in sectorEntries) map.Sectors.Add(LoadSector(s, map.Sectors.Count));
         foreach (var sd in sidedefEntries) map.Sidedefs.Add(LoadSidedef(sd, map.Sectors));
-        foreach (var ld in linedefEntries) map.Linedefs.Add(LoadLinedef(ld, map.Vertices, map.Sidedefs));
+        foreach (var ld in linedefEntries)
+        {
+            var line = LoadLinedef(ld, map.Vertices, map.Sidedefs);
+            if (line != null) map.Linedefs.Add(line);
+        }
         foreach (var t in thingEntries) map.Things.Add(LoadThing(t));
 
         map.BuildIndexes();
@@ -143,17 +147,18 @@ public static class UdmfMapLoader
         return sd;
     }
 
-    private static Linedef LoadLinedef(UniversalCollection c, List<Vertex> verts, List<Sidedef> sides)
+    private static Linedef? LoadLinedef(UniversalCollection c, List<Vertex> verts, List<Sidedef> sides)
     {
         int v1 = GetInt(c, "v1");
         int v2 = GetInt(c, "v2");
         int sideFront = GetInt(c, "sidefront", -1);
         int sideBack = GetInt(c, "sideback", -1);
 
-        // Index sanity: clamp into range and skip if invalid - leaves the linedef pointing at the
-        // first vertex which is wrong-but-not-crashy; the caller can flag missing data later.
-        var start = (v1 >= 0 && v1 < verts.Count) ? verts[v1] : verts[0];
-        var end = (v2 >= 0 && v2 < verts.Count) ? verts[v2] : verts[0];
+        if (v1 < 0 || v1 >= verts.Count || v2 < 0 || v2 >= verts.Count) return null;
+
+        var start = verts[v1];
+        var end = verts[v2];
+        if ((start.Position - end.Position).GetLengthSq() <= 0.00000001) return null;
 
         var line = new Linedef(start, end)
         {

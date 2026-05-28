@@ -153,6 +153,37 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void InvalidVertexReferencesSkipLinedef()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            linedef { v1 = 0; v2 = 99; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Single(map.Vertices);
+        Assert.Empty(map.Linedefs);
+    }
+
+    [Fact]
+    public void ZeroLengthLinedefsAreSkipped()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            vertex { x = 0; y = 0; }
+            linedef { v1 = 0; v2 = 1; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
+    }
+
+    [Fact]
     public void MalformedUdmfReturnsNull()
     {
         var map = UdmfMapLoader.Load("namespace = wat;", out var parser);

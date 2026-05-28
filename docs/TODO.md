@@ -109,6 +109,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete Hexen-format map loader parity.
 - [ ] Complete Hexen-format map writer parity.
 - [ ] Complete UDMF map loader parity.
+  - [x] Skip invalid and zero-length UDMF linedefs during load.
 - [ ] Complete UDMF map writer parity.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
