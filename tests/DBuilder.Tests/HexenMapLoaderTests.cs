@@ -10,14 +10,14 @@ namespace DBuilder.Tests;
 
 public class HexenMapLoaderTests
 {
-    private static MemoryStream BuildSyntheticHexenMap()
+    private static MemoryStream BuildSyntheticHexenMap(short secondVertexX = 100, ushort lineV2 = 1)
     {
         // 2 verts, 1 sector, 1 sidedef, 1 linedef, 1 thing.
         var vertexes = new MemoryStream();
         using (var w = new BinaryWriter(vertexes, System.Text.Encoding.ASCII, leaveOpen: true))
         {
             w.Write((short)0);   w.Write((short)0);
-            w.Write((short)100); w.Write((short)0);
+            w.Write(secondVertexX); w.Write((short)0);
         }
 
         var sectors = new MemoryStream();
@@ -47,7 +47,7 @@ public class HexenMapLoaderTests
         using (var w = new BinaryWriter(linedefs, System.Text.Encoding.ASCII, leaveOpen: true))
         {
             w.Write((ushort)0);             // v1
-            w.Write((ushort)1);             // v2
+            w.Write(lineV2);                // v2
             // Blocking + Repeats + SPAC=1 (useract)  =>  0x0001 | 0x0200 | (1<<10) = 0x0001 | 0x0200 | 0x0400 = 0x0601
             w.Write((ushort)(0x0001 | 0x0200 | (1 << 10)));
             w.Write((byte)80);              // action
@@ -144,6 +144,30 @@ public class HexenMapLoaderTests
         Assert.Contains("arg2=3", l.UdmfFlags);
         Assert.DoesNotContain("arg3=0", l.UdmfFlags);
         Assert.DoesNotContain("arg4=0", l.UdmfFlags);
+    }
+
+    [Fact]
+    public void InvalidVertexReferencesSkipLinedef()
+    {
+        var wadBytes = BuildSyntheticHexenMap(lineV2: 99);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = HexenMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
+    }
+
+    [Fact]
+    public void ZeroLengthLinedefsAreSkipped()
+    {
+        var wadBytes = BuildSyntheticHexenMap(secondVertexX: 0);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = HexenMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
     }
 
     [Fact]

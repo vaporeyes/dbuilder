@@ -116,8 +116,9 @@ public static class DoomMapLoader
             short sideRight = r.ReadInt16();
             short sideLeft = r.ReadInt16();
 
-            var start = DoomMapLoaderInternals.SafeVertex(map, v1);
-            var end = DoomMapLoaderInternals.SafeVertex(map, v2);
+            if (!DoomMapLoaderInternals.TryGetValidLinedefVertices(map, v1, v2, out var start, out var end))
+                continue;
+
             var line = new Linedef(start, end)
             {
                 Flags = flags,

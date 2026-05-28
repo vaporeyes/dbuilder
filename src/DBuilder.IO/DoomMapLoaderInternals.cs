@@ -121,6 +121,18 @@ internal static class DoomMapLoaderInternals
         return map.Vertices[idx];
     }
 
+    public static bool TryGetValidLinedefVertices(MapSet map, int startIndex, int endIndex, out Vertex start, out Vertex end)
+    {
+        start = null!;
+        end = null!;
+        if (startIndex < 0 || startIndex >= map.Vertices.Count || endIndex < 0 || endIndex >= map.Vertices.Count)
+            return false;
+
+        start = map.Vertices[startIndex];
+        end = map.Vertices[endIndex];
+        return Vector2D.ManhattanDistance(start.Position, end.Position) > 0.0001;
+    }
+
     public static string ReadFixedString(BinaryReader r, int length)
     {
         byte[] buf = r.ReadBytes(length);

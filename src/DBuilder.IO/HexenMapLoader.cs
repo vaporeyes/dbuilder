@@ -139,8 +139,9 @@ public static class HexenMapLoader
             int s1 = r.ReadUInt16();
             int s2 = r.ReadUInt16();
 
-            var start = DoomMapLoaderInternals.SafeVertex(map, v1);
-            var end = DoomMapLoaderInternals.SafeVertex(map, v2);
+            if (!DoomMapLoaderInternals.TryGetValidLinedefVertices(map, v1, v2, out var start, out var end))
+                continue;
+
             var line = new Linedef(start, end)
             {
                 Flags = flags,

@@ -12,14 +12,14 @@ public class DoomMapLoaderTests
 {
     // Builds a synthetic two-vertex / one-linedef Doom-format map in memory and returns the WAD bytes.
     // Verts (2), Sectors (1), Sidedefs (1), Linedefs (1), Things (1).
-    private static MemoryStream BuildSyntheticDoomMap()
+    private static MemoryStream BuildSyntheticDoomMap(short secondVertexX = 256, short lineV2 = 1)
     {
         // VERTEXES (4 bytes each * 2 = 8)
         var vertexes = new MemoryStream();
         using (var w = new BinaryWriter(vertexes, System.Text.Encoding.ASCII, leaveOpen: true))
         {
             w.Write((short)0);   w.Write((short)0);
-            w.Write((short)256); w.Write((short)0);
+            w.Write(secondVertexX); w.Write((short)0);
         }
 
         // SECTORS (26 bytes * 1 = 26)
@@ -52,7 +52,7 @@ public class DoomMapLoaderTests
         using (var w = new BinaryWriter(linedefs, System.Text.Encoding.ASCII, leaveOpen: true))
         {
             w.Write((short)0);              // v1
-            w.Write((short)1);              // v2
+            w.Write(lineV2);                // v2
             w.Write((short)(0x0001 | 0x0020)); // flags: Blocking + Secret
             w.Write((short)11);             // special
             w.Write((short)42);             // tag
@@ -181,6 +181,30 @@ public class DoomMapLoaderTests
         Assert.Contains("blocking", l.UdmfFlags);
         Assert.Contains("secret",   l.UdmfFlags);
         Assert.DoesNotContain("twosided", l.UdmfFlags); // bit not set
+    }
+
+    [Fact]
+    public void InvalidVertexReferencesSkipLinedef()
+    {
+        var wadBytes = BuildSyntheticDoomMap(lineV2: 99);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
+    }
+
+    [Fact]
+    public void ZeroLengthLinedefsAreSkipped()
+    {
+        var wadBytes = BuildSyntheticDoomMap(secondVertexX: 0);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
     }
 
     [Fact]

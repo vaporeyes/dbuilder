@@ -105,8 +105,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Map IO And Formats
 
 - [ ] Complete Doom-format map loader parity.
+  - [x] Skip invalid and zero-length Doom-format linedefs during load.
 - [ ] Complete Doom-format map writer parity.
 - [ ] Complete Hexen-format map loader parity.
+  - [x] Skip invalid and zero-length Hexen-format linedefs during load.
 - [ ] Complete Hexen-format map writer parity.
 - [ ] Complete UDMF map loader parity.
   - [x] Skip invalid, zero-length, and near-zero UDMF linedefs during load.
