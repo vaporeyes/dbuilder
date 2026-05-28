@@ -139,7 +139,33 @@ public static class WadMaps
             case MapFormat.Hexen: HexenMapWriter.WriteMap(map, wad, marker, insertPos, behavior); break;
             default: DoomMapWriter.WriteMap(map, wad, marker, insertPos); break;
         }
+        if (config != null) CreateRequiredMapLumps(wad, marker, config);
         wad.WriteHeaders();
+    }
+
+    private static void CreateRequiredMapLumps(WAD wad, string marker, GameConfiguration config)
+    {
+        int headerIndex = FindMapHeaderIndex(wad, marker);
+        if (headerIndex < 0) return;
+
+        int insertIndex = headerIndex;
+        foreach (var group in config.MapLumpNames)
+        {
+            if (!group.Value.Required) continue;
+
+            string lumpName = group.Key.Contains("~MAP") ? group.Key.Replace("~MAP", marker) : group.Key;
+            int existingIndex = FindSpecificMapLump(wad, lumpName, headerIndex, marker, config.MapLumpNames);
+            if (existingIndex == -1)
+            {
+                insertIndex++;
+                if (insertIndex > wad.Lumps.Count) insertIndex = wad.Lumps.Count;
+                wad.Insert(lumpName, insertIndex, 0, false);
+            }
+            else
+            {
+                insertIndex = existingIndex;
+            }
+        }
     }
 
     private static byte[]? ReadFirstMapLump(WAD wad, string marker, string lumpName, GameConfiguration? config)

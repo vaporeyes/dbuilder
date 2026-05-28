@@ -11,6 +11,15 @@ namespace DBuilder.Tests;
 
 public class WadMapsSaveTests
 {
+    private const string RequiredScriptLumpConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    SCRIPTS { required = true; script = ""Hexen_ACS.cfg""; }
+}";
+
     private static MapSet SquareMap()
     {
         var map = new MapSet();
@@ -154,5 +163,19 @@ public class WadMapsSaveTests
         Assert.Equal(new[] { "MAP01", "MAP02" }, maps.Select(m => m.Name).ToArray());
         Assert.Single(WadMaps.Load(wad, maps.First(m => m.Name == "MAP01"))!.Things);
         Assert.Equal(4, WadMaps.Load(wad, maps.First(m => m.Name == "MAP02"))!.Vertices.Count);
+    }
+
+    [Fact]
+    public void SaveMapCreatesMissingRequiredConfigLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        var config = GameConfiguration.FromText(RequiredScriptLumpConfig);
+
+        WadMaps.SaveMap(wad, "MAP01", SquareMap(), MapFormat.Doom, config);
+
+        int header = wad.FindLumpIndex("MAP01");
+        Assert.True(header >= 0);
+        Assert.True(WadMaps.FindSpecificMapLump(wad, "SCRIPTS", header, "MAP01", config.MapLumpNames) > header);
+        Assert.Empty(WadMaps.ReadMapLump(wad, "MAP01", "SCRIPTS")!);
     }
 }
