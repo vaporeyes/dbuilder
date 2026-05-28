@@ -851,10 +851,12 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>Resolves a flat to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetFlat(string name) => Resolve(name, flatCache, flatDefs, static (r, n, p) => r.GetFlat(n, p), includeCameraTextures: true);
+    public ImageData? GetFlat(string name)
+        => ResolveWithHiRes(name, flatCache, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
 
     /// <summary>Resolves a wall texture to RGBA, or null. Cached by name.</summary>
-    public ImageData? GetWallTexture(string name) => Resolve(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTexture(n, p), includeCameraTextures: true);
+    public ImageData? GetWallTexture(string name)
+        => ResolveWithHiRes(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
 
     /// <summary>Resolves a sprite/patch to RGBA, or null. Tries rotation variants so e.g. TROOA0 finds TROOA1. Cached by name.</summary>
     public ImageData? GetSprite(string name)
@@ -862,11 +864,11 @@ public sealed class ResourceManager : IDisposable
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (spriteCache.TryGetValue(name, out var cached)) return cached;
 
-        ImageData? result = ResolveCore(name, spriteDefs, static (r, n, p) => r.GetSprite(n, p), includeCameraTextures: false);
+        ImageData? result = ResolveCoreWithHiRes(name, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
         if (result == null)
             foreach (var variant in RotationVariants(name))
             {
-                result = ResolveCore(variant, spriteDefs, static (r, n, p) => r.GetSprite(n, p), includeCameraTextures: false);
+                result = ResolveCoreWithHiRes(variant, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
                 if (result != null) break;
             }
         result ??= CreateVoxelSprite(name);
@@ -907,6 +909,16 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    private ImageData? ResolveWithHiRes(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
+        Func<IResourceReader, string, DoomPalette?, ImageData?> baseLookup, bool includeCameraTextures)
+    {
+        if (string.IsNullOrEmpty(name) || name == "-") return null;
+        if (cache.TryGetValue(name, out var cached)) return cached;
+        var result = ResolveCoreWithHiRes(name, defs, baseLookup, includeCameraTextures);
+        cache[name] = result;
+        return result;
+    }
+
     // Resolves a name without caching: virtual camera textures first, then TEXTURES definitions and resource images.
     private ImageData? ResolveCore(string name, Dictionary<string, TexturesDef> defs,
         Func<IResourceReader, string, DoomPalette?, ImageData?> lookup, bool includeCameraTextures)
@@ -927,6 +939,43 @@ public sealed class ResourceManager : IDisposable
             if (img != null) return img;
         }
         return null;
+    }
+
+    private ImageData? ResolveCoreWithHiRes(string name, Dictionary<string, TexturesDef> defs,
+        Func<IResourceReader, string, DoomPalette?, ImageData?> baseLookup, bool includeCameraTextures)
+    {
+        if (includeCameraTextures)
+        {
+            EnsureCameraTextures();
+            if (cameraTextures.TryGetValue(name, out var texture)) return CreateCameraTexture(texture);
+        }
+
+        EnsureDefs();
+        var pal = Palette;
+        bool hasBase = HasResolvableBase(name, defs, baseLookup, pal);
+        for (int i = readers.Count - 1; i >= 0; i--)
+        {
+            if (defs.TryGetValue(name, out var def) && def.ResourceIndex == i) return ComposeTextures(def);
+
+            var hiRes = hasBase ? readers[i].GetHiRes(name, pal) : null;
+            if (hiRes != null) return hiRes;
+
+            var img = baseLookup(readers[i], name, pal);
+            if (img != null) return img;
+        }
+        return null;
+    }
+
+    private bool HasResolvableBase(string name, Dictionary<string, TexturesDef> defs,
+        Func<IResourceReader, string, DoomPalette?, ImageData?> baseLookup, DoomPalette? pal)
+    {
+        if (defs.ContainsKey(name)) return true;
+
+        for (int i = readers.Count - 1; i >= 0; i--)
+            if (baseLookup(readers[i], name, pal) != null)
+                return true;
+
+        return false;
     }
 
     public void Dispose()

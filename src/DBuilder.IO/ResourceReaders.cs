@@ -17,6 +17,10 @@ internal interface IResourceReader : IDisposable
     ImageData? GetFlat(string name, DoomPalette? palette);
     ImageData? GetWallTexture(string name, DoomPalette? palette);
     ImageData? GetSprite(string name, DoomPalette? palette);
+    ImageData? GetFlatBase(string name, DoomPalette? palette);
+    ImageData? GetWallTextureBase(string name, DoomPalette? palette);
+    ImageData? GetSpriteBase(string name, DoomPalette? palette);
+    ImageData? GetHiRes(string name, DoomPalette? palette);
     ImageData? GetPatch(string name, DoomPalette? palette);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
@@ -84,6 +88,14 @@ internal sealed class WadResourceReader : IResourceReader
         var pic = DoomPictureReader.Decode(wad, name, palette);
         return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
+
+    public ImageData? GetFlatBase(string name, DoomPalette? palette) => GetFlat(name, palette);
+
+    public ImageData? GetWallTextureBase(string name, DoomPalette? palette) => GetWallTexture(name, palette);
+
+    public ImageData? GetSpriteBase(string name, DoomPalette? palette) => GetSprite(name, palette);
+
+    public ImageData? GetHiRes(string name, DoomPalette? palette) => null;
 
     public ImageData? GetPatch(string name, DoomPalette? palette) => GetSprite(name, palette);
 
@@ -247,21 +259,45 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetFlat(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "hires", "flats", ""), palette, preferFlat: true);
+        var image = GetFlatBase(name, palette);
+        if (image == null) return null;
+
+        return GetHiRes(name, palette) ?? image;
+    }
+
+    public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
+    {
+        var image = GetWallTextureBase(name, palette);
+        if (image == null) return null;
+
+        return GetHiRes(name, palette) ?? image;
+    }
+
+    public virtual ImageData? GetSprite(string name, DoomPalette? palette)
+    {
+        var image = GetSpriteBase(name, palette);
+        if (image == null) return null;
+
+        return GetHiRes(name, palette) ?? image;
+    }
+
+    public virtual ImageData? GetFlatBase(string name, DoomPalette? palette)
+    {
+        var image = Decode(Find(name, "flats", ""), palette, preferFlat: true);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedReaders[i].GetFlat(name, palette);
+            image = nestedReaders[i].GetFlatBase(name, palette);
             if (image != null) return image;
         }
 
         return null;
     }
 
-    public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
+    public virtual ImageData? GetWallTextureBase(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "hires", "textures", "patches"), palette, preferFlat: false);
+        var image = Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
         if (image != null) return image;
 
         image = ComposeClassicTexture(name, palette);
@@ -269,26 +305,28 @@ internal abstract class FolderResourceReader : IResourceReader
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedReaders[i].GetWallTexture(name, palette);
+            image = nestedReaders[i].GetWallTextureBase(name, palette);
             if (image != null) return image;
         }
 
         return null;
     }
 
-    public virtual ImageData? GetSprite(string name, DoomPalette? palette)
+    public virtual ImageData? GetSpriteBase(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "hires", "sprites", "graphics", "patches", ""), palette, preferFlat: false);
+        var image = Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedReaders[i].GetSprite(name, palette);
+            image = nestedReaders[i].GetSpriteBase(name, palette);
             if (image != null) return image;
         }
 
         return null;
     }
+
+    public virtual ImageData? GetHiRes(string name, DoomPalette? palette) => Decode(Find(name, "hires"), palette, preferFlat: false);
 
     public virtual ImageData? GetPatch(string name, DoomPalette? palette)
     {
