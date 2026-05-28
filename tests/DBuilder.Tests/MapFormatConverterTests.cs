@@ -187,4 +187,40 @@ thingflagstranslation
         Assert.All(map.Linedefs[0].Args, arg => Assert.Equal(0, arg));
         Assert.All(map.Things[0].Args, arg => Assert.Equal(0, arg));
     }
+
+    [Fact]
+    public void HexenLineSetIdentificationConvertsToUdmfTagAndFlags()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 121;
+        line.Args[0] = 44;
+        line.Args[1] = 1 | 8 | 128;
+        line.Args[4] = 2;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Equal(556, line.Tag);
+        Assert.Equal(0, line.Action);
+        Assert.All(line.Args, arg => Assert.Equal(0, arg));
+        Assert.Contains("zoneboundary", line.UdmfFlags);
+        Assert.Contains("clipmidtex", line.UdmfFlags);
+        Assert.Contains("firstsideonly", line.UdmfFlags);
+    }
+
+    [Fact]
+    public void HexenLineSetIdentificationKeepsTranslatedConfigFlags()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(1, 0);
+        var line = map.Linedefs[0];
+        line.Action = 121;
+        line.Args[0] = 1;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Contains("blocking", line.UdmfFlags);
+        Assert.Equal(1, line.Tag);
+    }
 }

@@ -6,10 +6,9 @@ using DBuilder.Map;
 namespace DBuilder.IO;
 
 /// <summary>
-/// Translates a loaded map's flag representation so a different writer can emit it. Action/args/tags are already
-/// shared across formats; only the flag encoding differs (binary bitfield vs named UDMF flags), so that is what
-/// this converts, using the active game config's flag-translation tables. The fill is additive (it populates the
-/// target representation without discarding the source), so the in-memory map stays valid for the source format too.
+/// Translates a loaded map so a different writer can emit it. Flag encodings are translated via the active game
+/// config's flag-translation tables, and format-specific action/tag encodings are normalized when needed.
+/// The fill is additive where possible so the in-memory map stays valid for the source format too.
 /// </summary>
 public static class MapFormatConverter
 {
@@ -36,6 +35,7 @@ public static class MapFormatConverter
         if (fromBinary && !toBinary)
         {
             if (sourceConfig != null) BinaryToUdmf(map, sourceConfig);
+            if (from == MapFormat.Hexen) HexenLinedefActionsToUdmf(map);
         }
         else if (!fromBinary && toBinary)
         {
@@ -77,6 +77,31 @@ public static class MapFormatConverter
                 t.UdmfFlags.Add(name);
             t.Flags = targetConfig.ThingFlagsFromUdmf(t.UdmfFlags);
         }
+    }
+
+    private static void HexenLinedefActionsToUdmf(MapSet map)
+    {
+        foreach (var l in map.Linedefs)
+        {
+            if (l.Action != 121) continue;
+
+            l.Tag = l.Args[0] + l.Args[4] * 256;
+            AddLineIdFlags(l, l.Args[1]);
+            l.Action = 0;
+            Array.Clear(l.Args, 0, l.Args.Length);
+        }
+    }
+
+    private static void AddLineIdFlags(Linedef linedef, int bits)
+    {
+        if ((bits & 1) == 1) linedef.UdmfFlags.Add("zoneboundary");
+        if ((bits & 2) == 2) linedef.UdmfFlags.Add("jumpover");
+        if ((bits & 4) == 4) linedef.UdmfFlags.Add("blockfloaters");
+        if ((bits & 8) == 8) linedef.UdmfFlags.Add("clipmidtex");
+        if ((bits & 16) == 16) linedef.UdmfFlags.Add("wrapmidtex");
+        if ((bits & 32) == 32) linedef.UdmfFlags.Add("midtex3d");
+        if ((bits & 64) == 64) linedef.UdmfFlags.Add("checkswitchrange");
+        if ((bits & 128) == 128) linedef.UdmfFlags.Add("firstsideonly");
     }
 
     private static void ClearDoomUnsupportedArgs(MapSet map)

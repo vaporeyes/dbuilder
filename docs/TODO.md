@@ -127,6 +127,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port map format conversion behavior.
   - [x] Translate Doom thing flags through UDMF when converting to Hexen format.
   - [x] Clear action arguments when converting to Doom format.
+  - [x] Convert Hexen `Line_SetIdentification` specials to UDMF line ids and flags.
 - [ ] Port clipboard stream behavior to match UDB exactly.
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
 - [ ] Port lump ordering rules.
