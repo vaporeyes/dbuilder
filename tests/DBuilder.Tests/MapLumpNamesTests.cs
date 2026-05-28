@@ -1,6 +1,7 @@
 // ABOUTME: Tests config-driven maplumpnames parsing and the IsMapLump convenience used to drive save-back.
 // ABOUTME: Mirrors the maplumpnames block structure from UDB's Doom_misc.cfg (per-lump required/nodebuild/script flags).
 
+using System.Linq;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
@@ -83,6 +84,14 @@ maplumpnames
         Assert.True(gc.IsMapLump("nodes")); // case-insensitive
         Assert.False(gc.IsMapLump("~MAP")); // marker is not a sub-lump
         Assert.False(gc.IsMapLump("GL_VERT")); // not configured
+    }
+
+    [Fact]
+    public void PreservesConfiguredLumpOrder()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+
+        Assert.Equal(new[] { "~MAP", "THINGS", "NODES", "BEHAVIOR", "SCRIPTS", "ACS" }, gc.MapLumpNames.Keys.ToArray());
     }
 
     [Fact]

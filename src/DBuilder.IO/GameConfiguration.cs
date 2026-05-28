@@ -330,15 +330,15 @@ public sealed class GameConfiguration
     /// <summary>Loads a game configuration file (resolving its include() statements) into catalogs.</summary>
     public static GameConfiguration FromFile(string path)
     {
-        var cfg = new Configuration(path);
+        var cfg = new Configuration(path, true);
         return FromConfiguration(cfg);
     }
 
     /// <summary>Builds catalogs from already-parsed configuration text (no include resolution).</summary>
     public static GameConfiguration FromText(string cfgText)
     {
-        var cfg = new Configuration();
-        cfg.InputConfiguration(cfgText);
+        var cfg = new Configuration(true);
+        cfg.InputConfiguration(cfgText, true);
         return FromConfiguration(cfg);
     }
 

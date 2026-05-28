@@ -28,6 +28,15 @@ maplumpnames
     BEHAVIOR { forbidden = true; }
 }";
 
+    private const string NodeBuildConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; nodebuild = true; allowempty = true; }
+    LINEDEFS { required = true; nodebuild = true; allowempty = false; }
+    REJECT { required = false; nodebuild = true; allowempty = false; }
+}";
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -227,5 +236,37 @@ maplumpnames
         Assert.NotNull(map);
         Assert.Equal("Doom", map!.Namespace);
         Assert.Single(map.Vertices);
+    }
+
+    [Fact]
+    public void RequiredNodeBuildLumpsPresentIgnoresAllowEmptyAndOptional()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(NodeBuildConfig);
+        Assert.False(WadMaps.RequiredNodeBuildLumpsPresent(wad, "MAP01", config));
+
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        wad.WriteHeaders();
+
+        Assert.True(WadMaps.RequiredNodeBuildLumpsPresent(wad, "MAP01", config));
+    }
+
+    [Fact]
+    public void RequiredNodeBuildLumpsPresentUsesUdbBoundedLookup()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "DECORATE", new byte[0], 2);
+        WriteLump(wad, "LINEDEFS", new byte[0], 3);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(NodeBuildConfig);
+
+        Assert.True(WadMaps.RequiredNodeBuildLumpsPresent(wad, "MAP01", config));
     }
 }

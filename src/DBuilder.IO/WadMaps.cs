@@ -1,6 +1,7 @@
 // ABOUTME: Locates map markers in a WAD and loads them with the correct loader (Doom/Hexen/UDMF).
 // ABOUTME: A marker is identified by the lump that immediately follows it (THINGS or TEXTMAP), not by its own length.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using DBuilder.Map;
@@ -254,17 +255,40 @@ public static class WadMaps
         return index;
     }
 
+    /// <summary>
+    /// Verifies that required nodebuilder output lumps are present for one map block.
+    /// Optional and allow-empty nodebuilder lumps do not make the block incomplete, matching UDB.
+    /// </summary>
+    public static bool RequiredNodeBuildLumpsPresent(WAD wad, string marker, GameConfiguration config)
+    {
+        int headerIndex = FindMapHeaderIndex(wad, marker);
+        if (headerIndex < 0) return false;
+
+        foreach (var group in config.MapLumpNames)
+        {
+            var info = group.Value;
+            if (!info.NodeBuild || info.AllowEmpty || !info.Required) continue;
+
+            string lumpName = group.Key.Contains("~MAP") ? group.Key.Replace("~MAP", marker) : group.Key;
+            int endIndex = Math.Min(wad.Lumps.Count - 1, headerIndex + config.MapLumpNames.Count + 2);
+            if (wad.FindLump(lumpName, headerIndex, endIndex) == null)
+                return false;
+        }
+
+        return true;
+    }
+
     private static string NormalizeMapHeaderPlaceholder(string lumpName, string mapHeaderName)
         => lumpName.Contains(mapHeaderName) ? lumpName.Replace(mapHeaderName, "~MAP") : lumpName;
 
     // A lump is a map sub-lump if the game config lists it (port-specific lumps) or it is in the curated
     // built-in set. The config only extends this set, so save-back never fails to clean a standard lump.
     /// <summary>Reads a named sub-lump (e.g. REJECT, BLOCKMAP) belonging to a map marker, or null if absent.</summary>
-    public static byte[]? ReadMapLump(WAD wad, string marker, string lumpName)
+    public static byte[]? ReadMapLump(WAD wad, string marker, string lumpName, GameConfiguration? config = null)
     {
         int idx = FindMapHeaderIndex(wad, marker);
         if (idx < 0) return null;
-        for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name); j++)
+        for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name, config); j++)
             if (wad.Lumps[j].Name == lumpName) return wad.Lumps[j].Stream.ReadAllBytes();
         return null;
     }

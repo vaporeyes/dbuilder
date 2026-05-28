@@ -176,6 +176,6 @@ maplumpnames
         int header = wad.FindLumpIndex("MAP01");
         Assert.True(header >= 0);
         Assert.True(WadMaps.FindSpecificMapLump(wad, "SCRIPTS", header, "MAP01", config.MapLumpNames) > header);
-        Assert.Empty(WadMaps.ReadMapLump(wad, "MAP01", "SCRIPTS")!);
+        Assert.Empty(WadMaps.ReadMapLump(wad, "MAP01", "SCRIPTS", config)!);
     }
 }
