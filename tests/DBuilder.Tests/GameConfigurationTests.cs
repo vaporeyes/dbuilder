@@ -109,6 +109,13 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesMixTexturesFlatsFlag()
+    {
+        var gc = GameConfiguration.FromText("mixtexturesflats = true;");
+        Assert.True(gc.MixTexturesFlats);
+    }
+
+    [Fact]
     public void ThingsInheritCategoryDefaults()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
