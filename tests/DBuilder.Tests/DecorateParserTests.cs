@@ -431,6 +431,9 @@ thingtypes
             title = ""Imp"";
             sprite = ""TROOA1"";
             class = ""DoomImp"";
+            fixedsize = true;
+            fixedrotation = true;
+            absolutez = true;
         }
     }
 }";
@@ -455,6 +458,9 @@ ACTOR FancyImp replaces DoomImp
         Assert.Equal(64, info.Height);
         Assert.Equal("monsters", info.Category);
         Assert.Equal(4, info.Color);
+        Assert.True(info.FixedSize);
+        Assert.True(info.FixedRotation);
+        Assert.True(info.AbsoluteZ);
     }
 
     [Fact]

@@ -458,6 +458,14 @@ public sealed class GameConfiguration
             Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : existing?.Hangs ?? false,
             Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : existing?.Blocking ?? 0,
             ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : existing?.ErrorCheck ?? 0,
+            FixedSize = existing?.FixedSize ?? false,
+            FixedRotation = existing?.FixedRotation ?? false,
+            AbsoluteZ = existing?.AbsoluteZ ?? false,
+            LockSprite = existing?.LockSprite ?? false,
+            ThingLink = existing?.ThingLink ?? 0,
+            Optional = existing?.Optional ?? false,
+            IsKnown = existing?.IsKnown ?? true,
+            AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
             Args = ActorArgs(actor, existing?.Args),
         };
     }
