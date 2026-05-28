@@ -379,6 +379,45 @@ public class ClipboardStreamTests
     }
 
     [Fact]
+    public void InvalidVertexReferencesSkipLinedefAndSidedef()
+    {
+        var ms = BuildMalformedClipboard(lineV2: 99);
+
+        var dst = new MapSet();
+        var result = ClipboardStreamReader.Read(dst, ms);
+
+        Assert.Equal(2, result.VertexCount);
+        Assert.Empty(dst.Linedefs);
+        Assert.Empty(dst.Sidedefs);
+    }
+
+    [Fact]
+    public void ZeroLengthLinedefsAreSkippedWithSidedefs()
+    {
+        var ms = BuildMalformedClipboard(secondVertexX: 0);
+
+        var dst = new MapSet();
+        ClipboardStreamReader.Read(dst, ms);
+
+        Assert.Equal(2, dst.Vertices.Count);
+        Assert.Empty(dst.Linedefs);
+        Assert.Empty(dst.Sidedefs);
+    }
+
+    [Fact]
+    public void InvalidSectorReferencesSkipClipboardSidedef()
+    {
+        var ms = BuildMalformedClipboard(sidedefSector: 99);
+
+        var dst = new MapSet();
+        ClipboardStreamReader.Read(dst, ms);
+
+        Assert.Single(dst.Linedefs);
+        Assert.Empty(dst.Sidedefs);
+        Assert.Null(dst.Linedefs[0].Front);
+    }
+
+    [Fact]
     public void StreamPositionAdvancesPastBlob()
     {
         // After reading, the stream should be positioned at the end of the written data
@@ -391,4 +430,84 @@ public class ClipboardStreamTests
         ClipboardStreamReader.Read(new MapSet(), ms);
         Assert.Equal(written, ms.Position);
     }
+
+    private static MemoryStream BuildMalformedClipboard(int lineV2 = 1, double secondVertexX = 64, int sidedefSector = 0)
+    {
+        var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        w.Write(2); // header vertices
+        w.Write(1); // header sectors
+        w.Write(1); // header linedefs
+        w.Write(0); // header things
+
+        w.Write(2); // vertices
+        WriteVertex(w, 0, 0);
+        WriteVertex(w, secondVertexX, 0);
+
+        w.Write(1); // sectors
+        w.Write(0); // special
+        w.Write(0); // floor height
+        w.Write(64); // ceiling height
+        w.Write(160); // brightness
+        WriteTags(w);
+        WriteString(w, "-");
+        WriteString(w, "-");
+        for (int i = 0; i < 8; i++) w.Write(double.NaN);
+        w.Write(0); // groups
+        WriteCustomFields(w);
+
+        w.Write(1); // sidedefs
+        w.Write(0); // offset x
+        w.Write(0); // offset y
+        w.Write(sidedefSector);
+        WriteString(w, "-");
+        WriteString(w, "MID");
+        WriteString(w, "-");
+        WriteCustomFields(w);
+
+        w.Write(1); // linedefs
+        w.Write(0); // v1
+        w.Write(lineV2);
+        w.Write(0); // sidefront
+        w.Write(-1); // sideback
+        w.Write(0); // action
+        for (int i = 0; i < 5; i++) w.Write(0); // args
+        w.Write(0); // flags
+        WriteTags(w);
+        w.Write(0); // groups
+        w.Write(0); // udmf flags
+        WriteCustomFields(w);
+
+        w.Write(0); // things
+        w.Flush();
+        ms.Position = 0;
+        return ms;
+    }
+
+    private static void WriteVertex(BinaryWriter w, double x, double y)
+    {
+        w.Write(x);
+        w.Write(y);
+        w.Write(double.NaN);
+        w.Write(double.NaN);
+        w.Write(0); // groups
+        WriteCustomFields(w);
+    }
+
+    private static void WriteString(BinaryWriter w, string value)
+    {
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(value);
+        w.Write(bytes.Length);
+        w.Write(bytes);
+    }
+
+    private static void WriteTags(BinaryWriter w, params int[] tags)
+    {
+        w.Write(tags.Length);
+        foreach (int tag in tags) w.Write(tag);
+    }
+
+    private static void WriteCustomFields(BinaryWriter w)
+        => w.Write(0);
 }

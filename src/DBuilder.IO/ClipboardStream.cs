@@ -247,6 +247,7 @@ public static class ClipboardStreamReader
         var newSectors = ReadSectors(map, r);
         var newSidedefs = ReadSidedefs(map, r, newSectors);
         ReadLinedefs(map, r, newVerts, newSidedefs);
+        RemoveUnattachedSidedefs(map, firstSidedef);
         ReadThings(map, r);
 
         map.BuildIndexes();
@@ -365,8 +366,13 @@ public static class ClipboardStreamReader
             var tags = ReadTags(r);
             int groups = r.ReadInt32();
 
-            var start = (v1 >= 0 && v1 < newVerts.Count) ? newVerts[v1] : newVerts[0];
-            var end   = (v2 >= 0 && v2 < newVerts.Count) ? newVerts[v2] : newVerts[0];
+            var udmfFlags = new HashSet<string>(System.StringComparer.Ordinal);
+            ReadUdmfFlagSet(r, udmfFlags);
+            var fields = new Dictionary<string, object>(System.StringComparer.Ordinal);
+            ReadCustomFields(r, fields);
+
+            if (!TryGetValidLinedefVertices(newVerts, v1, v2, out var start, out var end))
+                continue;
 
             var l = new Linedef(start, end)
             {
@@ -379,20 +385,49 @@ public static class ClipboardStreamReader
 
             if (sf >= 0 && sf < newSidedefs.Count)
             {
-                l.Front = newSidedefs[sf];
-                l.Front.Line = l;
-                l.Front.IsFront = true;
+                var side = newSidedefs[sf];
+                if (side.Sector != null)
+                {
+                    l.Front = side;
+                    l.Front.Line = l;
+                    l.Front.IsFront = true;
+                }
             }
             if (sb >= 0 && sb < newSidedefs.Count)
             {
-                l.Back = newSidedefs[sb];
-                l.Back.Line = l;
-                l.Back.IsFront = false;
+                var side = newSidedefs[sb];
+                if (side.Sector != null)
+                {
+                    l.Back = side;
+                    l.Back.Line = l;
+                    l.Back.IsFront = false;
+                }
             }
 
-            ReadUdmfFlagSet(r, l.UdmfFlags);
-            ReadCustomFields(r, l.Fields);
+            foreach (var flag in udmfFlags) l.UdmfFlags.Add(flag);
+            foreach (var field in fields) l.Fields[field.Key] = field.Value;
             map.Linedefs.Add(l);
+        }
+    }
+
+    private static bool TryGetValidLinedefVertices(List<Vertex> verts, int startIndex, int endIndex, out Vertex start, out Vertex end)
+    {
+        start = null!;
+        end = null!;
+        if (startIndex < 0 || startIndex >= verts.Count || endIndex < 0 || endIndex >= verts.Count)
+            return false;
+
+        start = verts[startIndex];
+        end = verts[endIndex];
+        return Vector2D.ManhattanDistance(start.Position, end.Position) > 0.0001;
+    }
+
+    private static void RemoveUnattachedSidedefs(MapSet map, int firstSidedef)
+    {
+        for (int i = map.Sidedefs.Count - 1; i >= firstSidedef; i--)
+        {
+            var side = map.Sidedefs[i];
+            if (side.Line == null || side.Sector == null) map.Sidedefs.RemoveAt(i);
         }
     }
 

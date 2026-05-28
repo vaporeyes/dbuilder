@@ -126,6 +126,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stream-level UDMF writer facade with optional namespace emission.
 - [ ] Port map format conversion behavior.
 - [ ] Port clipboard stream behavior to match UDB exactly.
+  - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
 - [ ] Port lump ordering rules.
 - [ ] Port map lump metadata and node-build lump handling.
   - [x] Parse UDB `scriptbuild` map lump metadata.
