@@ -559,6 +559,50 @@ public partial class MainWindow : Window
         }
     }
 
+    // Opens the named UDMF flags dialog for one selected thing or linedef.
+    private async void OnFlags(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) return;
+
+        if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        {
+            var line = _map.GetSelectedLinedefs()[0];
+            var current = new HashSet<string>(line.UdmfFlags, StringComparer.OrdinalIgnoreCase);
+            if (_config != null) current.UnionWith(_config.LinedefFlagsToUdmf(line.Flags));
+
+            var known = _config?.LinedefFlagsTranslation.SelectMany(flag => flag.Fields) ?? current;
+            var name = $"Linedef {_map.Linedefs.IndexOf(line)}";
+            var dlg = new UdmfFlagsDialog(name, known, current);
+            if (!await dlg.ShowDialog<bool>(this)) return;
+
+            _undo.CreateUndo("Edit linedef flags");
+            ApplyFlags(line.UdmfFlags, dlg.ResultFlags);
+            if (_config != null) line.Flags = _config.LinedefFlagsFromUdmf(line.UdmfFlags);
+            AfterEdit($"{name} flags updated");
+            return;
+        }
+
+        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        {
+            var thing = _map.GetSelectedThings()[0];
+            var current = new HashSet<string>(thing.UdmfFlags, StringComparer.OrdinalIgnoreCase);
+            if (_config != null) current.UnionWith(_config.ThingFlagsToUdmf(thing.Flags));
+
+            var known = _config?.ThingFlagsTranslation.SelectMany(flag => flag.Fields) ?? current;
+            var name = $"Thing {_map.Things.IndexOf(thing)}";
+            var dlg = new UdmfFlagsDialog(name, known, current);
+            if (!await dlg.ShowDialog<bool>(this)) return;
+
+            _undo.CreateUndo("Edit thing flags");
+            ApplyFlags(thing.UdmfFlags, dlg.ResultFlags);
+            if (_config != null) thing.Flags = _config.ThingFlagsFromUdmf(thing.UdmfFlags);
+            AfterEdit($"{name} flags updated");
+            return;
+        }
+
+        SetStatus("Select exactly one linedef or thing to edit flags.");
+    }
+
     // Opens the generic UDMF custom-fields dialog for one selected map element, including vertices.
     private async void OnCustomFields(object? sender, RoutedEventArgs e)
     {
@@ -582,6 +626,13 @@ public partial class MainWindow : Window
     {
         target.Clear();
         foreach (var kv in result) target[kv.Key] = kv.Value;
+    }
+
+    private static void ApplyFlags(HashSet<string> target, IEnumerable<string> result)
+    {
+        target.Clear();
+        foreach (string flag in result)
+            if (!string.IsNullOrWhiteSpace(flag)) target.Add(flag.Trim());
     }
 
     private bool TryGetSingleFieldedSelection(out IFielded element, out string name)

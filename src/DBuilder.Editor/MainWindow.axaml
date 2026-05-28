@@ -49,6 +49,7 @@
                 <MenuItem Header="_Insert Prefab..." Click="OnInsertPrefab" />
                 <Separator />
                 <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
+                <MenuItem Header="_Flags..." Click="OnFlags" />
                 <MenuItem Header="_Custom Fields..." Click="OnCustomFields" />
                 <MenuItem Header="Ta_gs..." Click="OnTagList" />
             </MenuItem>

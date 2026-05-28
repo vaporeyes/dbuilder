@@ -323,6 +323,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port action browser.
 - [x] Port effect browser.
 - [ ] Port flags and bit flags dialogs.
+  - [x] Add selected thing/linedef named UDMF flags dialog.
 - [ ] Port custom fields dialog.
   - [x] Add generic selected-element custom UDMF fields dialog.
 - [ ] Port map options dialog.
