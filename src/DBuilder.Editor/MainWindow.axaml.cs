@@ -73,7 +73,7 @@ public partial class MainWindow : Window
         TryLoadDefaultConfig();
 
         if (openPath != null && System.IO.File.Exists(openPath))
-            LoadArchive(openPath);
+            _ = LoadArchive(openPath, promptForMap: false);
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
@@ -86,9 +86,9 @@ public partial class MainWindow : Window
         {
             var item = new MenuItem { Header = path };
             string captured = path;
-            item.Click += (_, _) =>
+            item.Click += async (_, _) =>
             {
-                if (System.IO.File.Exists(captured)) LoadArchive(captured);
+                if (System.IO.File.Exists(captured)) await LoadArchive(captured, promptForMap: true);
                 else SetStatus($"File not found: {captured}");
             };
             items.Add(item);
@@ -223,7 +223,7 @@ public partial class MainWindow : Window
             FileTypeFilter = new[] { new FilePickerFileType("Doom WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip" } } },
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
-            LoadArchive(path);
+            await LoadArchive(path, promptForMap: true);
     }
 
     // Lets the user pick any map in the currently open WAD (doom2 has 32, hexen 31, ...).
@@ -930,13 +930,13 @@ public partial class MainWindow : Window
 
     private ResourceManager? _resources;
 
-    private void LoadArchive(string path)
+    private async Task LoadArchive(string path, bool promptForMap)
     {
-        if (IsPk3Path(path)) LoadPk3(path);
-        else LoadWad(path);
+        if (IsPk3Path(path)) await LoadPk3(path, promptForMap);
+        else await LoadWad(path, promptForMap);
     }
 
-    private void LoadWad(string path)
+    private async Task LoadWad(string path, bool promptForMap)
     {
         try
         {
@@ -948,6 +948,14 @@ public partial class MainWindow : Window
                 if (wad.IsIWAD) _iwadPath = path; // loaded an IWAD directly - usable as the Test Map base
             }
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
+
+            var selected = maps[0];
+            if (promptForMap && maps.Count > 1)
+            {
+                var dlg = new MapPickerDialog(maps, _mapMarker);
+                if (!await dlg.ShowDialog<bool>(this) || dlg.Selected is not { } picked) return;
+                selected = picked;
+            }
 
             _wadPath = path;
             _pk3Path = null;
@@ -965,19 +973,31 @@ public partial class MainWindow : Window
             SaveSettings();
             RebuildRecentMenu();
 
-            LoadMapEntry(maps[0]);
+            LoadMapEntry(selected);
             if (maps.Count > 1)
-                SetStatus($"Loaded {maps[0].Name} (1 of {maps.Count} maps - File > Open Map to switch)");
+                SetStatus($"Loaded {selected.Name} ({maps.IndexOf(selected) + 1} of {maps.Count} maps - File > Open Map to switch)");
         }
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
 
-    private void LoadPk3(string path)
+    private async Task LoadPk3(string path, bool promptForMap)
     {
         try
         {
             var maps = Pk3Maps.Find(path);
             if (maps.Count == 0) { SetStatus($"No embedded map WAD found in {System.IO.Path.GetFileName(path)}"); return; }
+
+            var selected = maps[0];
+            if (promptForMap && maps.Count > 1)
+            {
+                var displayMaps = new List<MapEntry>();
+                foreach (var pk3Map in maps) displayMaps.Add(DisplayEntry(pk3Map));
+                var dlg = new MapPickerDialog(displayMaps, null);
+                if (!await dlg.ShowDialog<bool>(this) || dlg.Selected is not { } picked) return;
+
+                int index = displayMaps.FindIndex(m => m.Name == picked.Name && m.Format == picked.Format);
+                if (index >= 0) selected = maps[index];
+            }
 
             _wadPath = null;
             _pk3Path = path;
@@ -993,9 +1013,9 @@ public partial class MainWindow : Window
             SaveSettings();
             RebuildRecentMenu();
 
-            LoadPk3MapEntry(maps[0]);
+            LoadPk3MapEntry(selected);
             if (maps.Count > 1)
-                SetStatus($"Loaded {maps[0].Map.Name} from {maps[0].ArchivePath} (1 of {maps.Count} maps - File > Open Map to switch)");
+                SetStatus($"Loaded {selected.Map.Name} from {selected.ArchivePath} ({maps.IndexOf(selected) + 1} of {maps.Count} maps - File > Open Map to switch)");
         }
         catch (Exception ex) { SetStatus($"PK3 load failed: {ex.Message}"); }
     }
