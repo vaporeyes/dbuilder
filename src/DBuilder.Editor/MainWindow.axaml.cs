@@ -567,11 +567,70 @@ public partial class MainWindow : Window
         }
     }
 
+    // Opens the generic UDMF custom-fields dialog for one selected map element, including vertices.
+    private async void OnCustomFields(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) return;
+        if (!TryGetSingleFieldedSelection(out var element, out string name))
+        {
+            SetStatus("Select exactly one vertex, linedef, sector or thing to edit custom fields.");
+            return;
+        }
+
+        var dlg = new CustomFieldsDialog(name, element.Fields);
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        _undo.CreateUndo("Edit custom fields");
+        ApplyFields(element.Fields, dlg.ResultFields);
+        AfterEdit($"{name} custom fields updated");
+    }
+
     // Replaces an element's custom UDMF fields with the dialog's parsed result.
     private static void ApplyFields(Dictionary<string, object> target, Dictionary<string, object> result)
     {
         target.Clear();
         foreach (var kv in result) target[kv.Key] = kv.Value;
+    }
+
+    private bool TryGetSingleFieldedSelection(out IFielded element, out string name)
+    {
+        element = null!;
+        name = "";
+        if (_map is null) return false;
+
+        int total = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
+        if (total != 1) return false;
+
+        if (_map.SelectedVerticesCount == 1)
+        {
+            var vertex = _map.GetSelectedVertices()[0];
+            element = vertex;
+            name = $"Vertex {_map.Vertices.IndexOf(vertex)}";
+            return true;
+        }
+        if (_map.SelectedLinedefsCount == 1)
+        {
+            var line = _map.GetSelectedLinedefs()[0];
+            element = line;
+            name = $"Linedef {_map.Linedefs.IndexOf(line)}";
+            return true;
+        }
+        if (_map.SelectedSectorsCount == 1)
+        {
+            var sector = _map.GetSelectedSectors()[0];
+            element = sector;
+            name = $"Sector {sector.Index}";
+            return true;
+        }
+        if (_map.SelectedThingsCount == 1)
+        {
+            var thing = _map.GetSelectedThings()[0];
+            element = thing;
+            name = $"Thing {_map.Things.IndexOf(thing)}";
+            return true;
+        }
+
+        return false;
     }
 
     private void AfterEdit(string status)
