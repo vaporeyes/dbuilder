@@ -352,6 +352,54 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesThingFlagsCompareMetadata()
+    {
+        const string cfg = """
+            thingflagscompare
+            {
+                skills
+                {
+                    skill1
+                    {
+                        comparemethod = "equal";
+                        invert = true;
+                        requiredgroups = "classes,gamemodes";
+                        ignoredgroups = "coop";
+                        requiredflag = "skill2";
+                        ingnorethisgroupwhenunset = true;
+                    }
+                    skill2;
+                }
+                classes
+                {
+                    optional = true;
+                    fighter;
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(2, gc.ThingFlagsCompare.Count);
+        var skills = gc.ThingFlagsCompare["skills"];
+        Assert.False(skills.IsOptional);
+        Assert.Equal(2, skills.Flags.Count);
+        var skill1 = skills.Flags["skill1"];
+        Assert.Equal("equal", skill1.CompareMethod);
+        Assert.True(skill1.Invert);
+        Assert.Contains("classes", skill1.RequiredGroups);
+        Assert.Contains("gamemodes", skill1.RequiredGroups);
+        Assert.Contains("coop", skill1.IgnoredGroups);
+        Assert.Equal("skill2", skill1.RequiredFlag);
+        Assert.True(skill1.IgnoreGroupWhenUnset);
+        Assert.Equal("and", skills.Flags["skill2"].CompareMethod);
+
+        var classes = gc.ThingFlagsCompare["classes"];
+        Assert.True(classes.IsOptional);
+        Assert.Contains("fighter", classes.Flags.Keys);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """

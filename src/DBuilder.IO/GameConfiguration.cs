@@ -210,6 +210,20 @@ public sealed record RequiredArchiveInfo(string Name, string Filename, bool Need
 
 public sealed record LinedefActivationInfo(string Key, int Index, string Title, bool IsTrigger);
 
+public sealed record ThingFlagCompareInfo(
+    string Flag,
+    string CompareMethod,
+    bool Invert,
+    IReadOnlySet<string> RequiredGroups,
+    IReadOnlySet<string> IgnoredGroups,
+    string RequiredFlag,
+    bool IgnoreGroupWhenUnset);
+
+public sealed record ThingFlagsCompareGroupInfo(
+    string Name,
+    bool IsOptional,
+    IReadOnlyDictionary<string, ThingFlagCompareInfo> Flags);
+
 public sealed class TextureSetInfo
 {
     private readonly Regex regex;
@@ -296,6 +310,7 @@ public sealed class GameConfiguration
     private readonly HashSet<string> internalSoundNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> ignoredDirectories = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> ignoredExtensions = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ThingFlagsCompareGroupInfo> thingFlagsCompare = new(StringComparer.Ordinal);
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -335,6 +350,7 @@ public sealed class GameConfiguration
     public IReadOnlySet<string> InternalSoundNames => internalSoundNames;
     public IReadOnlySet<string> IgnoredDirectories => ignoredDirectories;
     public IReadOnlySet<string> IgnoredExtensions => ignoredExtensions;
+    public IReadOnlyDictionary<string, ThingFlagsCompareGroupInfo> ThingFlagsCompare => thingFlagsCompare;
 
     public string DefaultSaveCompiler { get; private set; } = "";
     public string DefaultTestCompiler { get; private set; } = "";
@@ -520,6 +536,7 @@ public sealed class GameConfiguration
             if (root["linedefactivations"] is IDictionary la) gc.ParseLinedefActivations(la);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
             if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
+            if (root["thingflagscompare"] is IDictionary tfc) gc.ParseThingFlagsCompare(tfc);
             if (root["thingrenderstyles"] is IDictionary trs) ParseStringDictionary(trs, gc.thingRenderStyles);
             if (root["linedefrenderstyles"] is IDictionary lrs) ParseStringDictionary(lrs, gc.linedefRenderStyles);
             if (root["sidedefflags"] is IDictionary sf) ParseStringDictionary(sf, gc.sidedefFlags);
@@ -1260,6 +1277,38 @@ public sealed class GameConfiguration
         }
     }
 
+    private void ParseThingFlagsCompare(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string groupName = e.Key.ToString() ?? "";
+            if (groupName.Length == 0 || e.Value is not IDictionary group) continue;
+            var flags = new Dictionary<string, ThingFlagCompareInfo>(StringComparer.Ordinal);
+
+            foreach (DictionaryEntry child in group)
+            {
+                string flag = child.Key.ToString() ?? "";
+                if (flag.Length == 0 || string.Equals(flag, "optional", StringComparison.OrdinalIgnoreCase)) continue;
+                if (child.Value != null && child.Value is not IDictionary) continue;
+
+                IDictionary? flagBlock = child.Value as IDictionary;
+                flags[flag] = new ThingFlagCompareInfo(
+                    flag,
+                    flagBlock != null ? GetString(flagBlock, "comparemethod", "and") : "and",
+                    flagBlock != null && GetBool(flagBlock, "invert", false),
+                    flagBlock != null ? ParseCommaSet(GetString(flagBlock, "requiredgroups", "")) : new HashSet<string>(),
+                    flagBlock != null ? ParseCommaSet(GetString(flagBlock, "ignoredgroups", "")) : new HashSet<string>(),
+                    flagBlock != null ? GetString(flagBlock, "requiredflag", "") : "",
+                    flagBlock != null && GetBool(flagBlock, "ingnorethisgroupwhenunset", false));
+            }
+
+            thingFlagsCompare[groupName] = new ThingFlagsCompareGroupInfo(
+                groupName,
+                GetBool(group, "optional", false),
+                flags);
+        }
+    }
+
     private void ParseBrightnessLevels(IDictionary block)
     {
         foreach (DictionaryEntry e in block)
@@ -1285,6 +1334,9 @@ public sealed class GameConfiguration
         foreach (string value in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             destination.Add(value);
     }
+
+    private static IReadOnlySet<string> ParseCommaSet(string text)
+        => new HashSet<string>(text.Split(',', StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
 
     /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
     public bool IsMapLump(string name)
