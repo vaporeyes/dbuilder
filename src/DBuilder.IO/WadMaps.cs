@@ -111,7 +111,7 @@ public static class WadMaps
     // The TEXTMAP lump immediately following the marker (so multi-map UDMF wads resolve the right one).
     private static Lump? TextmapAfter(WAD wad, string marker)
     {
-        int idx = wad.FindLumpIndex(marker);
+        int idx = FindMapHeaderIndex(wad, marker);
         if (idx >= 0 && idx + 1 < wad.Lumps.Count && wad.Lumps[idx + 1].Name == "TEXTMAP")
             return wad.Lumps[idx + 1];
         return null;
@@ -236,7 +236,7 @@ public static class WadMaps
     /// <summary>Reads a named sub-lump (e.g. REJECT, BLOCKMAP) belonging to a map marker, or null if absent.</summary>
     public static byte[]? ReadMapLump(WAD wad, string marker, string lumpName)
     {
-        int idx = wad.FindLumpIndex(marker);
+        int idx = FindMapHeaderIndex(wad, marker);
         if (idx < 0) return null;
         for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name); j++)
             if (wad.Lumps[j].Name == lumpName) return wad.Lumps[j].Stream.ReadAllBytes();

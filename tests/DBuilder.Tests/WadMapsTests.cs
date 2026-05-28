@@ -194,4 +194,38 @@ maplumpnames
         Assert.Equal(new[] { "MAP01", "LINEDEFS", "END" }, wad.Lumps.Select(l => l.Name).ToArray());
         Assert.Equal(-1, WadMaps.RemoveSpecificMapLump(wad, "END", header, "MAP01", config.MapLumpNames));
     }
+
+    [Fact]
+    public void ReadMapLumpSkipsNonMapLumpWithSameName()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[] { 9 }, 0);
+        WriteLump(wad, "TITLEPIC", new byte[] { 8 }, 1);
+        WriteLump(wad, "MAP01", new byte[0], 2);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 3);
+        WriteLump(wad, "LINEDEFS", new byte[] { 2 }, 4);
+        wad.WriteHeaders();
+
+        Assert.Equal(new byte[] { 1 }, WadMaps.ReadMapLump(wad, "MAP01", "THINGS"));
+        Assert.Null(WadMaps.ReadMapLump(wad, "MAP01", "TITLEPIC"));
+    }
+
+    [Fact]
+    public void LoadsUdmfTextmapAfterValidatedMarker()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[] { 9 }, 0);
+        WriteLump(wad, "TITLEPIC", new byte[] { 8 }, 1);
+        WriteLump(wad, "TEXTMAP", Encoding.ASCII.GetBytes("namespace = \"Bad\";"), 2);
+        WriteLump(wad, "MAP01", new byte[0], 3);
+        WriteLump(wad, "TEXTMAP", Encoding.ASCII.GetBytes("namespace = \"Doom\"; vertex { x = 1; y = 2; }"), 4);
+        WriteLump(wad, "ENDMAP", new byte[0], 5);
+        wad.WriteHeaders();
+
+        var map = WadMaps.Load(wad, new MapEntry("MAP01", MapFormat.Udmf));
+
+        Assert.NotNull(map);
+        Assert.Equal("Doom", map!.Namespace);
+        Assert.Single(map.Vertices);
+    }
 }
