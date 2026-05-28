@@ -325,6 +325,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port flags and bit flags dialogs.
 - [ ] Port custom fields dialog.
 - [ ] Port map options dialog.
+  - [x] Add basic map marker and UDMF namespace dialog.
 - [ ] Port open map options dialog.
 - [x] Port preferences dialog.
 - [ ] Port resource options dialog.

@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private MapSet? _map;
     private UndoManager? _undo;
     private string? _mapMarker;
+    private string? _sourceMapMarker;
     private string? _wadPath;
     private string? _pk3Path;
     private List<Pk3MapEntry>? _pk3Maps;
@@ -197,11 +198,16 @@ public partial class MainWindow : Window
         var map = new MapSet();
         _map = map;
         _mapMarker = "MAP01";
+        _sourceMapMarker = null;
+        _wadPath = null;
+        _pk3Path = null;
+        _pk3Maps = null;
+        _pk3MapArchivePath = null;
         _mapFormat = MapFormat.Doom;
         _undo = new UndoManager(map);
         MapView.Map = map;
         MapView.Focus();
-        Title = "DBuilder - (new map)";
+        Title = CurrentEditorTitle();
         UpdateInfo();
         SetStatus("New empty map. Draw with D (sector) or Shift+D (lines); I inserts a vertex/thing.");
     }
@@ -339,6 +345,9 @@ public partial class MainWindow : Window
                 {
                     using var src = new WAD(_wadPath, openreadonly: true);
                     WadMaps.CopyAllLumps(src, dst);
+                    if (!string.IsNullOrEmpty(_sourceMapMarker)
+                        && !string.Equals(_sourceMapMarker, marker, StringComparison.OrdinalIgnoreCase))
+                        WadMaps.RenameMap(dst, _sourceMapMarker, marker);
                 }
                 WadMaps.SaveMap(dst, marker, _map, targetFormat, _config);
                 bytes = msOut.ToArray();
@@ -352,6 +361,21 @@ public partial class MainWindow : Window
             SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
         catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
+    }
+
+    private async void OnMapOptions(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            _mapMarker = dlg.ResultMarker;
+            _map.Namespace = dlg.ResultNamespace;
+            Title = CurrentEditorTitle();
+            UpdateInfo();
+            MapView.Focus();
+            SetStatus($"Map options updated: {_mapMarker}.");
+        }
     }
 
     // Runs the external node builder (DBUILDER_NODEBUILDER env, else settings) over the WAD bytes.
@@ -881,12 +905,13 @@ public partial class MainWindow : Window
 
             _map = map;
             _mapMarker = entry.Name;
+            _sourceMapMarker = entry.Name;
             _mapFormat = entry.Format;
             _undo = new UndoManager(map);
 
             MapView.Map = map;
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
-            Title = $"DBuilder - {System.IO.Path.GetFileName(_wadPath)} ({entry.Name})";
+            Title = CurrentEditorTitle();
             UpdateInfo();
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
@@ -903,13 +928,14 @@ public partial class MainWindow : Window
 
             _map = map;
             _mapMarker = entry.Map.Name;
+            _sourceMapMarker = null;
             _mapFormat = entry.Map.Format;
             _pk3MapArchivePath = entry.ArchivePath;
             _undo = new UndoManager(map);
 
             MapView.Map = map;
             MapView.Focus();
-            Title = $"DBuilder - {System.IO.Path.GetFileName(_pk3Path)} ({entry.ArchivePath}:{entry.Map.Name})";
+            Title = CurrentEditorTitle();
             UpdateInfo();
             SetStatus($"Loaded {entry.Map.Name} [{entry.Map.Format}] from {entry.ArchivePath}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
@@ -929,6 +955,15 @@ public partial class MainWindow : Window
 
     private string? CurrentPk3DisplayName()
         => _mapMarker is null || _pk3MapArchivePath is null ? null : $"{_mapMarker} @ {_pk3MapArchivePath}";
+
+    private string CurrentEditorTitle()
+    {
+        if (_wadPath is not null)
+            return $"DBuilder - {System.IO.Path.GetFileName(_wadPath)} ({_mapMarker ?? "MAP01"})";
+        if (_pk3Path is not null)
+            return $"DBuilder - {System.IO.Path.GetFileName(_pk3Path)} ({_pk3MapArchivePath}:{_mapMarker ?? "MAP01"})";
+        return $"DBuilder - ({_mapMarker ?? "new map"})";
+    }
 
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
     private void OnTestMap(object? sender, RoutedEventArgs e)

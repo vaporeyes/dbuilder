@@ -21,6 +21,7 @@
                 <MenuItem Header="Save As _Format..." Click="OnSaveAsFormat" />
                 <Separator />
                 <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
+                <MenuItem Header="Map _Options..." Click="OnMapOptions" />
                 <MenuItem Header="_Settings..." Click="OnSettings" />
                 <Separator />
                 <MenuItem Header="E_xit" Click="OnExit" />
