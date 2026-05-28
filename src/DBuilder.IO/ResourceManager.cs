@@ -872,6 +872,14 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>Disposes all loaded resources and clears cached lookups and derived resource metadata.</summary>
+    public void ClearResources()
+    {
+        foreach (var r in readers) r.Dispose();
+        readers.Clear();
+        Invalidate();
+    }
+
     // Sprite lumps are SPRITE + frame + rotation. A name asked with rotation 0 may exist only as rotation 1
     // (or vice versa), and a 5-char name (no rotation) needs a digit appended.
     private static IEnumerable<string> RotationVariants(string name)
@@ -920,7 +928,6 @@ public sealed class ResourceManager : IDisposable
 
     public void Dispose()
     {
-        foreach (var r in readers) r.Dispose();
-        readers.Clear();
+        ClearResources();
     }
 }

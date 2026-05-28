@@ -178,6 +178,32 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void ClearResourcesDropsCachedImagesNamesPaletteAndColormap()
+    {
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("COLORMAP", ColormapBytes(0)),
+            ("F_START", System.Array.Empty<byte>()),
+            ("FLAT1", SolidFlat(1)),
+            ("F_END", System.Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.NotNull(rm.Palette);
+        Assert.NotNull(rm.Colormap);
+        Assert.NotNull(rm.GetFlat("FLAT1"));
+        Assert.Contains("FLAT1", rm.GetFlatNames());
+
+        rm.ClearResources();
+
+        Assert.Null(rm.Palette);
+        Assert.Null(rm.Colormap);
+        Assert.Null(rm.GetFlat("FLAT1"));
+        Assert.DoesNotContain("FLAT1", rm.GetFlatNames());
+        Assert.False(wad.IsDisposed);
+    }
+
+    [Fact]
     public void SameInstanceReturnedFromCache()
     {
         using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()), ("FLAT9", SolidFlat(9)));
