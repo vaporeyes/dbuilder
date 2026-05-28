@@ -241,6 +241,24 @@ public sealed record UniversalFieldInfo(
     IReadOnlyList<EnumItemInfo> InlineEnumItems,
     IReadOnlyDictionary<string, UniversalFieldAssociationInfo> Associations);
 
+public sealed record ThingsFilterCustomFieldInfo(string Name, int Type, object? Value);
+
+public sealed record ThingsFilterInfo(
+    string Key,
+    string Name,
+    string Category,
+    bool Invert,
+    int DisplayMode,
+    int ThingType,
+    int ThingAngle,
+    int ThingZHeight,
+    int ThingAction,
+    IReadOnlyList<int> ThingArgs,
+    int ThingTag,
+    IReadOnlyList<string> RequiredFields,
+    IReadOnlyList<string> ForbiddenFields,
+    IReadOnlyDictionary<string, ThingsFilterCustomFieldInfo> CustomFields);
+
 public sealed class TextureSetInfo
 {
     private readonly Regex regex;
@@ -329,6 +347,7 @@ public sealed class GameConfiguration
     private readonly HashSet<string> ignoredExtensions = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ThingFlagsCompareGroupInfo> thingFlagsCompare = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Dictionary<string, UniversalFieldInfo>> universalFields = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<ThingsFilterInfo> thingsFilters = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -370,6 +389,7 @@ public sealed class GameConfiguration
     public IReadOnlySet<string> IgnoredExtensions => ignoredExtensions;
     public IReadOnlyDictionary<string, ThingFlagsCompareGroupInfo> ThingFlagsCompare => thingFlagsCompare;
     public IReadOnlyDictionary<string, Dictionary<string, UniversalFieldInfo>> UniversalFields => universalFields;
+    public IReadOnlyList<ThingsFilterInfo> ThingsFilters => thingsFilters;
 
     public string DefaultSaveCompiler { get; private set; } = "";
     public string DefaultTestCompiler { get; private set; } = "";
@@ -557,6 +577,7 @@ public sealed class GameConfiguration
             if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
             if (root["thingflagscompare"] is IDictionary tfc) gc.ParseThingFlagsCompare(tfc);
             if (root["universalfields"] is IDictionary uf) gc.ParseUniversalFields(uf);
+            if (root["thingsfilters"] is IDictionary tfs) gc.ParseThingsFilters(tfs);
             if (root["thingrenderstyles"] is IDictionary trs) ParseStringDictionary(trs, gc.thingRenderStyles);
             if (root["linedefrenderstyles"] is IDictionary lrs) ParseStringDictionary(lrs, gc.linedefRenderStyles);
             if (root["sidedefflags"] is IDictionary sf) ParseStringDictionary(sf, gc.sidedefFlags);
@@ -1385,6 +1406,71 @@ public sealed class GameConfiguration
                 GetBool(association, "consolidateeventlines", false));
         }
         return associations;
+    }
+
+    private void ParseThingsFilters(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (key.Length == 0 || e.Value is not IDictionary filter) continue;
+
+            var args = new int[5];
+            for (int i = 0; i < args.Length; i++)
+                args[i] = GetInt(filter, "arg" + i.ToString(CultureInfo.InvariantCulture), -1);
+
+            var requiredFields = new List<string>();
+            var forbiddenFields = new List<string>();
+            if (filter["fields"] is IDictionary fields) ParseThingsFilterFields(fields, requiredFields, forbiddenFields);
+
+            var customFields = filter["customfieldvalues"] is IDictionary values
+                ? ParseThingsFilterCustomFields(values, filter["customfieldtypes"] as IDictionary)
+                : new Dictionary<string, ThingsFilterCustomFieldInfo>(StringComparer.OrdinalIgnoreCase);
+
+            thingsFilters.Add(new ThingsFilterInfo(
+                key,
+                GetString(filter, "name", "Unnamed filter"),
+                GetString(filter, "category", ""),
+                GetBool(filter, "invert", false),
+                GetInt(filter, "displaymode", 0),
+                GetInt(filter, "type", -1),
+                GetInt(filter, "angle", -1),
+                GetInt(filter, "zheight", int.MinValue),
+                GetInt(filter, "action", -1),
+                args,
+                GetInt(filter, "tag", -1),
+                requiredFields,
+                forbiddenFields,
+                customFields));
+        }
+    }
+
+    private static void ParseThingsFilterFields(IDictionary fields, List<string> requiredFields, List<string> forbiddenFields)
+    {
+        foreach (DictionaryEntry field in fields)
+        {
+            string name = field.Key.ToString() ?? "";
+            if (name.Length == 0 || field.Value is not bool required) continue;
+            if (required)
+                requiredFields.Add(name);
+            else
+                forbiddenFields.Add(name);
+        }
+    }
+
+    private static IReadOnlyDictionary<string, ThingsFilterCustomFieldInfo> ParseThingsFilterCustomFields(
+        IDictionary values,
+        IDictionary? types)
+    {
+        var customFields = new Dictionary<string, ThingsFilterCustomFieldInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry field in values)
+        {
+            string name = field.Key.ToString() ?? "";
+            if (name.Length == 0) continue;
+            int type = types != null ? GetInt(types, name, 0) : 0;
+            customFields[name] = new ThingsFilterCustomFieldInfo(name, type, field.Value);
+        }
+        return customFields;
     }
 
     private void ParseBrightnessLevels(IDictionary block)

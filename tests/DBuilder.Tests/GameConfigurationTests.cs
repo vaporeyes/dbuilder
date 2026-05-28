@@ -475,6 +475,86 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesThingsFilterMetadata()
+    {
+        const string cfg = """
+            thingsfilters
+            {
+                filter0
+                {
+                    name = "Keys only";
+                    category = "keys";
+                    type = -1;
+                    angle = 90;
+                    zheight = 32;
+                    action = 80;
+                    arg0 = 1;
+                    arg3 = 4;
+                    tag = 7;
+                    invert = true;
+                    displaymode = 2;
+
+                    fields
+                    {
+                        skill1 = true;
+                        dm = false;
+                    }
+
+                    customfieldvalues
+                    {
+                        species = "DoomImp";
+                        count = 3;
+                    }
+
+                    customfieldtypes
+                    {
+                        species = 2;
+                        count = 0;
+                    }
+                }
+
+                filter1
+                {
+                    name = "Unnamed action";
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(2, gc.ThingsFilters.Count);
+        var keys = gc.ThingsFilters[0];
+        Assert.Equal("filter0", keys.Key);
+        Assert.Equal("Keys only", keys.Name);
+        Assert.Equal("keys", keys.Category);
+        Assert.True(keys.Invert);
+        Assert.Equal(2, keys.DisplayMode);
+        Assert.Equal(-1, keys.ThingType);
+        Assert.Equal(90, keys.ThingAngle);
+        Assert.Equal(32, keys.ThingZHeight);
+        Assert.Equal(80, keys.ThingAction);
+        Assert.Equal(new[] { 1, -1, -1, 4, -1 }, keys.ThingArgs);
+        Assert.Equal(7, keys.ThingTag);
+        Assert.Contains("skill1", keys.RequiredFields);
+        Assert.Contains("dm", keys.ForbiddenFields);
+        Assert.Equal(2, keys.CustomFields["species"].Type);
+        Assert.Equal("DoomImp", keys.CustomFields["species"].Value);
+        Assert.Equal(0, keys.CustomFields["count"].Type);
+        Assert.Equal(3, keys.CustomFields["count"].Value);
+
+        var defaulted = gc.ThingsFilters[1];
+        Assert.Equal("", defaulted.Category);
+        Assert.False(defaulted.Invert);
+        Assert.Equal(0, defaulted.DisplayMode);
+        Assert.Equal(-1, defaulted.ThingType);
+        Assert.Equal(-1, defaulted.ThingAngle);
+        Assert.Equal(int.MinValue, defaulted.ThingZHeight);
+        Assert.Equal(-1, defaulted.ThingAction);
+        Assert.Equal(new[] { -1, -1, -1, -1, -1 }, defaulted.ThingArgs);
+        Assert.Equal(-1, defaulted.ThingTag);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """
