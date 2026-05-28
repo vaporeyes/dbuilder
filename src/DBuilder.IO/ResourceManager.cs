@@ -391,8 +391,9 @@ public sealed class ResourceManager : IDisposable
     {
         if (modelDefsBuilt) return;
         modelDefsBuilt = true;
-        foreach (var text in GetTextLumps("MODELDEF", partialTitleMatch: true))
-            modelDefs.AddRange(ModeldefParser.Parse(text));
+        foreach (var reader in readers)
+            foreach (string text in reader.GetTextLumps("MODELDEF", partialTitleMatch: true))
+                modelDefs.AddRange(ModeldefParser.Parse(text, reader.GetTextResource));
     }
 
     private void EnsureGldefs()

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace DBuilder.IO;
@@ -23,13 +24,26 @@ public sealed record ModeldefFrame(string Sprite, string Frame, int ModelIndex, 
 
 public static class ModeldefParser
 {
-    public static List<Modeldef> Parse(string text)
+    public static List<Modeldef> Parse(string text) => Parse(text, includeResolver: null);
+
+    public static List<Modeldef> Parse(string text, Func<string, string?>? includeResolver)
     {
         var result = new List<Modeldef>();
+        ParseInto(result, text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        return result;
+    }
+
+    private static void ParseInto(List<Modeldef> result, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
         var t = Tokenize(text);
         int i = 0;
         while (i < t.Count)
         {
+            if (t[i].Equals("#include", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseInclude(result, t, ref i, includeResolver, parsedIncludes);
+                continue;
+            }
             if (!t[i].Equals("model", StringComparison.OrdinalIgnoreCase)) { i++; continue; }
             i++;
             if (i >= t.Count) break;
@@ -39,7 +53,28 @@ public static class ModeldefParser
             ParseBlock(def, t, ref i);
             result.Add(def);
         }
-        return result;
+    }
+
+    private static void ParseInclude(List<Modeldef> result, List<string> t, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    {
+        i++; // #include
+        if (includeResolver == null || i >= t.Count) return;
+        string include = t[i++];
+        if (!IsValidIncludePath(include)) return;
+        if (!parsedIncludes.Add(include)) return;
+        string? text = includeResolver(include);
+        if (text != null) ParseInto(result, text, includeResolver, parsedIncludes);
+    }
+
+    private static bool IsValidIncludePath(string include)
+    {
+        if (string.IsNullOrWhiteSpace(include)) return false;
+        if (Path.IsPathRooted(include)) return false;
+        if (include.Contains('\\')) return false;
+        return !include.StartsWith("../", StringComparison.Ordinal)
+            && !include.StartsWith("./", StringComparison.Ordinal)
+            && !include.Equals("..", StringComparison.Ordinal)
+            && !include.Equals(".", StringComparison.Ordinal);
     }
 
     private static void ParseBlock(Modeldef def, List<string> t, ref int i)

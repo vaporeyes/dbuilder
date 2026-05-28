@@ -54,4 +54,33 @@ model B
         Assert.Equal(new ModeldefModel(1, "b.md2"), defs[1].Models.Single());
         Assert.Equal(new ModeldefFrame("BOSS", "B", 1, 3), defs[1].Frames.Single());
     }
+
+    [Fact]
+    public void ParsesIncludesOnce()
+    {
+        const string text = @"
+#include ""models/defs.txt""
+#include ""models/defs.txt""
+model Local { Model 0 ""local.md3"" }";
+
+        var defs = ModeldefParser.Parse(text, include => include == "models/defs.txt"
+            ? "model Included { Model 0 \"included.md3\" }"
+            : null);
+
+        Assert.Equal(new[] { "Included", "Local" }, defs.Select(d => d.ActorName).ToArray());
+    }
+
+    [Theory]
+    [InlineData("../models/defs.txt")]
+    [InlineData("./models/defs.txt")]
+    [InlineData("models\\defs.txt")]
+    [InlineData("/models/defs.txt")]
+    public void RejectsInvalidIncludePaths(string includePath)
+    {
+        string text = includePath.Contains('\\') ? "#include " + includePath : "#include \"" + includePath + "\"";
+
+        var defs = ModeldefParser.Parse(text, _ => "model Bad { Model 0 \"bad.md3\" }");
+
+        Assert.Empty(defs);
+    }
 }

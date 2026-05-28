@@ -87,4 +87,27 @@ model Zombie
             File.Delete(pk3);
         }
     }
+
+    [Fact]
+    public void ResolvesModeldefIncludesFromSamePk3()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+#include "models/defs.txt"
+model Root { Model 0 "root.md3" }
+""")),
+            ("models/defs.txt", Encoding.ASCII.GetBytes("model Included { Model 0 \"included.md3\" }")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            Assert.Equal(new[] { "Included", "Root" }, resources.GetModelDefs().Select(d => d.ActorName).OrderBy(n => n).ToArray());
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
 }
