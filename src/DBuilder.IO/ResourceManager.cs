@@ -55,6 +55,8 @@ public sealed class ResourceManager : IDisposable
 
     private DoomPalette? palette;
     private bool paletteResolved;
+    private DoomColormap? colormap;
+    private bool colormapResolved;
 
     private readonly Dictionary<string, ImageData?> flatCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> textureCache = new(StringComparer.OrdinalIgnoreCase);
@@ -136,6 +138,8 @@ public sealed class ResourceManager : IDisposable
         switchesBuilt = false;
         palette = null;
         paletteResolved = false;
+        colormap = null;
+        colormapResolved = false;
     }
 
     /// <summary>
@@ -806,6 +810,22 @@ public sealed class ResourceManager : IDisposable
                     palette = readers[i].GetPalette();
             }
             return palette;
+        }
+    }
+
+    /// <summary>The active COLORMAP (first COLORMAP found searching newest resource first), or null.</summary>
+    public DoomColormap? Colormap
+    {
+        get
+        {
+            if (!colormapResolved)
+            {
+                colormapResolved = true;
+                for (int i = readers.Count - 1; i >= 0 && colormap == null; i--)
+                    if (readers[i].GetLumpBytes("COLORMAP") is { } bytes)
+                        colormap = DoomColormapReader.FromBytes(bytes);
+            }
+            return colormap;
         }
     }
 

@@ -23,6 +23,15 @@ public class ResourceManagerTests
         return f;
     }
 
+    private static byte[] ColormapBytes(byte offset)
+    {
+        var bytes = new byte[DoomColormap.LevelSize * DoomColormap.StandardLevelCount];
+        for (int level = 0; level < DoomColormap.StandardLevelCount; level++)
+            for (int index = 0; index < DoomColormap.LevelSize; index++)
+                bytes[level * DoomColormap.LevelSize + index] = (byte)((index + offset) & 0xFF);
+        return bytes;
+    }
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -58,6 +67,38 @@ public class ResourceManagerTests
         Assert.Equal(5, flat.Rgba[1]);
         Assert.Equal(5, flat.Rgba[2]);
         Assert.Equal(255, flat.Rgba[3]);
+    }
+
+    [Fact]
+    public void ResolvesMainColormapNewestResourceFirst()
+    {
+        using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));
+        using var higher = BuildWad(("COLORMAP", ColormapBytes(7)));
+        using var rm = new ResourceManager();
+        rm.AddResource(lower);
+        rm.AddResource(higher);
+
+        var colormap = rm.Colormap;
+
+        Assert.NotNull(colormap);
+        Assert.Equal(DoomColormap.StandardLevelCount, colormap!.LevelCount);
+        Assert.Equal(17, colormap.Lookup(0, 10));
+    }
+
+    [Fact]
+    public void AddingResourceInvalidatesMainColormap()
+    {
+        using var empty = BuildWad(("PLAYPAL", GrayscalePlaypal()));
+        using var withColormap = BuildWad(("COLORMAP", ColormapBytes(3)));
+        using var rm = new ResourceManager();
+        rm.AddResource(empty);
+
+        Assert.Null(rm.Colormap);
+
+        rm.AddResource(withColormap);
+
+        Assert.NotNull(rm.Colormap);
+        Assert.Equal(8, rm.Colormap!.Lookup(0, 5));
     }
 
     [Fact]

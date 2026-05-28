@@ -165,6 +165,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port resource priority and override behavior completely.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
+  - [x] Resolve the active main `COLORMAP` through the resource stack.
 - [ ] Port patch name behavior fully.
 - [ ] Port wall texture composition fully.
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
