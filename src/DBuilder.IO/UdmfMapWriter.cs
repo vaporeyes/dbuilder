@@ -20,9 +20,13 @@ public static class UdmfMapWriter
 {
     /// <summary>Serializes <paramref name="map"/> to a UDMF text string suitable for the TEXTMAP lump body.</summary>
     public static string Write(MapSet map)
+        => Write(map, string.IsNullOrEmpty(map.Namespace) ? "Doom" : map.Namespace);
+
+    /// <summary>Serializes <paramref name="map"/> to UDMF text, optionally omitting the namespace assignment.</summary>
+    public static string Write(MapSet map, string? writeNamespace)
     {
         var sb = new StringBuilder();
-        WriteAssignment(sb, "namespace", string.IsNullOrEmpty(map.Namespace) ? "Doom" : map.Namespace);
+        if (writeNamespace != null) WriteAssignment(sb, "namespace", writeNamespace);
         WriteCustomFields(sb, map.Fields, indent: false);
         sb.AppendLine();
 

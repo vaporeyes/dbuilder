@@ -111,7 +111,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete UDMF map loader parity.
 - [ ] Complete UDMF map writer parity.
 - [ ] Port universal map stream reader behavior.
+  - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.
+  - [x] Add stream-level UDMF writer facade with optional namespace emission.
 - [ ] Port map format conversion behavior.
 - [ ] Port clipboard stream behavior to match UDB exactly.
 - [ ] Port lump ordering rules.

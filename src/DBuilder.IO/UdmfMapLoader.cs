@@ -19,8 +19,11 @@ public static class UdmfMapLoader
     /// inspect <paramref name="parser"/>'s error properties for details.
     /// </summary>
     public static MapSet? Load(string udmfText, out UniversalParser parser)
+        => Load(udmfText, out parser, strictChecking: false);
+
+    public static MapSet? Load(string udmfText, out UniversalParser parser, bool strictChecking)
     {
-        parser = new UniversalParser { StrictChecking = false };
+        parser = new UniversalParser { StrictChecking = strictChecking };
         if (!parser.InputConfiguration(udmfText)) return null;
         return Load(parser.Root);
     }
