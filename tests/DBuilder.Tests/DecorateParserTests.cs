@@ -436,4 +436,18 @@ ACTOR IncludedBase
         Assert.Equal(16, child.Radius);
         Assert.Equal(31001, child.DoomEdNum);
     }
+
+    [Theory]
+    [InlineData("../actors/base.dec")]
+    [InlineData("./actors/base.dec")]
+    [InlineData("actors\\base.dec")]
+    [InlineData("/actors/base.dec")]
+    public void RejectsInvalidIncludePaths(string includePath)
+    {
+        string root = "#include \"" + includePath + "\"";
+
+        var actors = DecorateParser.Parse(root, _ => "ACTOR Bad 32000 { Radius 8 }");
+
+        Assert.Empty(actors);
+    }
 }

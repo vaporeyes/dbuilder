@@ -214,4 +214,34 @@ class IncludedBase : Actor
         Assert.Equal("INCLA0", child.EditorSprite);
         Assert.Equal(42, child.Height);
     }
+
+    [Fact]
+    public void AllowsRelativeClassIncludes()
+    {
+        const string root = @"
+#include ""./base.zs""
+class IncludedChild : IncludedBase { }";
+        const string included = @"
+class IncludedBase : Actor
+{
+    Default { Radius 24; }
+}";
+
+        var actors = ZScriptParser.Parse(root, path => path == "./base.zs" ? included : null);
+
+        var child = actors.Single(a => a.ClassName == "IncludedChild");
+        Assert.Equal(24, child.Radius);
+    }
+
+    [Theory]
+    [InlineData("zscript\\base.zs")]
+    [InlineData("/zscript/base.zs")]
+    public void RejectsInvalidClassIncludePaths(string includePath)
+    {
+        string root = "#include \"" + includePath + "\"";
+
+        var actors = ZScriptParser.Parse(root, _ => "class Bad : Actor { Default { Radius 8; } }");
+
+        Assert.Empty(actors);
+    }
 }

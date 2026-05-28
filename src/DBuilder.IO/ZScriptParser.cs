@@ -12,5 +12,5 @@ public static class ZScriptParser
     /// spawn-state sprite). DoomEdNum is left unset; assign it from a MAPINFO DoomEdNums map when merging.
     /// </summary>
     public static List<ActorInfo> Parse(string text, System.Func<string, string?>? includeResolver = null)
-        => DecorateParser.ParseActors(text, "class", headerNum: false, includeResolver);
+        => DecorateParser.ParseActors(text, "class", headerNum: false, includeResolver, allowRelativeIncludes: true);
 }

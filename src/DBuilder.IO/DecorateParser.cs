@@ -62,14 +62,14 @@ public static class DecorateParser
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
     public static List<ActorInfo> Parse(string text, Func<string, string?>? includeResolver = null)
-        => ParseActors(text, "actor", headerNum: true, includeResolver);
+        => ParseActors(text, "actor", headerNum: true, includeResolver, allowRelativeIncludes: false);
 
     /// <summary>
     /// Shared engine for DECORATE ("actor", editor number in the header) and ZScript ("class", no header number).
     /// </summary>
-    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum, Func<string, string?>? includeResolver = null)
+    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum, Func<string, string?>? includeResolver = null, bool allowRelativeIncludes = false)
     {
-        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes);
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         int i = 0;
@@ -88,7 +88,7 @@ public static class DecorateParser
         return actors;
     }
 
-    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen)
+    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes)
     {
         if (includeResolver == null) return text;
 
@@ -99,16 +99,33 @@ public static class DecorateParser
         {
             if (TryReadInclude(line, out string includePath))
             {
+                if (!IsValidIncludePath(includePath, allowRelativeIncludes))
+                {
+                    result.AppendLine(line);
+                    continue;
+                }
                 string? included = includeResolver(includePath);
                 if (included != null && seen.Add(includePath))
                 {
-                    result.AppendLine(ExpandIncludes(included, includeResolver, seen));
+                    result.AppendLine(ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes));
                     continue;
                 }
             }
             result.AppendLine(line);
         }
         return result.ToString();
+    }
+
+    private static bool IsValidIncludePath(string includePath, bool allowRelativeIncludes)
+    {
+        if (string.IsNullOrWhiteSpace(includePath)) return false;
+        if (Path.IsPathRooted(includePath)) return false;
+        if (includePath.Contains('\\')) return false;
+        if (allowRelativeIncludes) return true;
+        return !includePath.StartsWith("../", StringComparison.Ordinal)
+            && !includePath.StartsWith("./", StringComparison.Ordinal)
+            && !includePath.Equals("..", StringComparison.Ordinal)
+            && !includePath.Equals(".", StringComparison.Ordinal);
     }
 
     private static bool TryReadInclude(string line, out string includePath)
