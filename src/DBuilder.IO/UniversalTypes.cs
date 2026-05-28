@@ -103,6 +103,8 @@ public sealed class UniversalTypeRegistry
             UniversalType.Float when info.Index >= 0 => new FloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.String when info.Index >= 0 => new StringTypeHandler(info, defaultValue, isForArgument),
             UniversalType.Boolean when info.Index >= 0 => new BooleanTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.Texture when info.Index >= 0 => new TextureTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.Flat when info.Index >= 0 => new FlatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.EnumOption when info.Index >= 0 => new EnumOptionTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.EnumBits when info.Index >= 0 => new EnumBitsTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.EnumStrings when info.Index >= 0 => new EnumStringsTypeHandler(info, defaultValue, isForArgument, enumList),

@@ -96,6 +96,34 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void TextureAndFlatHandlersStoreImageNamesLikeUdb()
+    {
+        var texture = (TextureTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.Texture, defaultValue: "STARTAN3");
+        var flat = (FlatTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.Flat, defaultValue: "FLOOR0_1");
+
+        Assert.True(texture.IsBrowseable);
+        Assert.False(texture.BrowseFlats);
+        Assert.Equal("STARTAN3", texture.GetValue());
+        Assert.Equal("STARTAN3", texture.GetStringValue());
+
+        texture.SetValue("\"QUOTED\"");
+        Assert.Equal("\"QUOTED\"", texture.GetValue());
+
+        texture.SetValue(null);
+        Assert.Equal("", texture.GetValue());
+
+        Assert.True(flat.IsBrowseable);
+        Assert.True(flat.BrowseFlats);
+        Assert.Equal("FLOOR0_1", flat.GetValue());
+
+        flat.SetValue(123);
+        Assert.Equal("123", flat.GetValue());
+        Assert.Equal(123, flat.GetIntValue());
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""

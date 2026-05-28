@@ -154,6 +154,51 @@ public sealed class StringTypeHandler : UniversalTypeHandler
         => value?.ToString()?.Replace("\"", "") ?? "";
 }
 
+public abstract class ImageNameTypeHandler : UniversalTypeHandler
+{
+    private string value = "";
+
+    protected ImageNameTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public abstract bool BrowseFlats { get; }
+
+    public override void SetValue(object? value) => this.value = value?.ToString() ?? "";
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue()
+        => int.TryParse(value, NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+
+    public override string GetStringValue() => value;
+
+    protected override object CoerceDefault(object? value) => value?.ToString() ?? "";
+}
+
+public sealed class TextureTypeHandler : ImageNameTypeHandler
+{
+    public TextureTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool BrowseFlats => false;
+}
+
+public sealed class FlatTypeHandler : ImageNameTypeHandler
+{
+    public FlatTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool BrowseFlats => true;
+}
+
 public sealed class EnumOptionTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");

@@ -271,7 +271,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port enum option handler.
 - [x] Port enum bits handler.
 - [x] Port enum strings handler.
-- [ ] Port texture and flat handlers.
+- [x] Port texture and flat handlers.
 - [ ] Port color handler.
 - [ ] Port angle handlers.
 - [ ] Port thing type and thing class handlers.
