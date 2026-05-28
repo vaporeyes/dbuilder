@@ -740,6 +740,9 @@ public sealed class ResourceManager : IDisposable
     /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
     public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true);
 
+    /// <summary>All sprite frame names across resources (incl. TEXTURES Sprite defs), sorted and de-duplicated.</summary>
+    public IReadOnlyList<string> GetSpriteNames() => CollectNames(static r => r.SpriteNames(), spriteDefs, includeCameraTextures: false);
+
     public IReadOnlyList<ResourceTextureSetInfo> GetResourceTextureSets()
     {
         EnsureDefs();

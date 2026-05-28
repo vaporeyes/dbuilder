@@ -171,6 +171,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port patch name behavior fully.
 - [ ] Port wall texture composition fully.
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
+- [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
 - [ ] Port high-resolution replacements.

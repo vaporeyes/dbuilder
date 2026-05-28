@@ -34,6 +34,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> TextureNames();
     /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
     IEnumerable<string> FlatNames();
+    /// <summary>Names of sprite frames this resource provides.</summary>
+    IEnumerable<string> SpriteNames();
     /// <summary>Names of voxel model lumps or files this resource provides.</summary>
     IEnumerable<string> VoxelNames();
     /// <summary>Raw voxel model bytes, or null when this resource does not provide the model.</summary>
@@ -44,6 +46,8 @@ internal interface IResourceReader : IDisposable
 
 internal sealed class WadResourceReader : IResourceReader
 {
+    private static readonly Regex Sprite6 = new(@"^\S{4}[A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
+    private static readonly Regex Sprite8 = new(@"^\S{4}[A-Za-z\[\]\\][0-8][A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex VoxelName = new(@"^\S{4}(([A-Za-z][0-9])?|[A-Za-z]?)$", RegexOptions.Compiled);
     private readonly WAD wad;
     private readonly bool owns;
@@ -137,6 +141,18 @@ internal sealed class WadResourceReader : IResourceReader
         return result;
     }
 
+    public IEnumerable<string> SpriteNames()
+    {
+        bool inSprites = false;
+        foreach (var l in wad.Lumps)
+        {
+            string n = l.Name;
+            if (n is "S_START" or "SS_START") { inSprites = true; continue; }
+            if (n is "S_END" or "SS_END") { inSprites = false; continue; }
+            if (inSprites && IsValidSpriteName(n)) yield return n;
+        }
+    }
+
     public IEnumerable<string> VoxelNames()
     {
         bool inVoxels = false;
@@ -165,6 +181,9 @@ internal sealed class WadResourceReader : IResourceReader
     }
 
     public byte[]? GetModelResourceBytes(string path) => null;
+
+    internal static bool IsValidSpriteName(string name)
+        => (name.Length == 6 && Sprite6.IsMatch(name)) || (name.Length == 8 && Sprite8.IsMatch(name));
 
     internal static bool IsValidVoxelName(string name) => name.Length > 3 && name.Length < 7 && VoxelName.IsMatch(name);
 
@@ -362,6 +381,16 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var name in NamesInFolder("flats/")) yield return name;
         foreach (var reader in nestedReaders)
             foreach (var name in reader.FlatNames())
+                yield return name;
+    }
+
+    public virtual IEnumerable<string> SpriteNames()
+    {
+        foreach (var name in NamesInFolder("sprites/"))
+            if (WadResourceReader.IsValidSpriteName(name))
+                yield return name;
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.SpriteNames())
                 yield return name;
     }
 

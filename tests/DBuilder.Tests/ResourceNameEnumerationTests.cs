@@ -9,6 +9,23 @@ namespace DBuilder.Tests;
 
 public class ResourceNameEnumerationTests
 {
+    private static WAD BuildWad(params (string name, byte[] data)[] lumps)
+    {
+        var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            int pos = 0;
+            foreach (var (name, data) in lumps)
+            {
+                var lump = wad.Insert(name, pos++, data.Length)!;
+                lump.Stream.Write(data, 0, data.Length);
+            }
+            wad.WriteHeaders();
+        }
+        ms.Position = 0;
+        return new WAD(ms, openreadonly: true);
+    }
+
     [Fact]
     public void EnumeratesPk3TextureAndFlatNamesPlusTexturesDefs()
     {
@@ -91,6 +108,55 @@ public class ResourceNameEnumerationTests
             Assert.Contains("FOGMAP", rm.GetTextureNames());
             var set = Assert.Single(rm.GetResourceTextureSets());
             Assert.True(set.TextureExists("FOGMAP"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void EnumeratesSpriteNamesFromWadAndPk3Resources()
+    {
+        using var wad = BuildWad(
+            ("S_START", Array.Empty<byte>()),
+            ("TROOA0", Array.Empty<byte>()),
+            ("NOTSPR", Array.Empty<byte>()),
+            ("BOSSA1B2", Array.Empty<byte>()),
+            ("S_END", Array.Empty<byte>()));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 1, 2, 3, 255))),
+            ("sprites/notasprite.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 4, 5, 6, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(wad);
+            rm.AddResource(pk3);
+
+            var sprites = rm.GetSpriteNames();
+
+            Assert.Contains("TROOA0", sprites);
+            Assert.Contains("BOSSA1B2", sprites);
+            Assert.Contains("POSSA0", sprites);
+            Assert.DoesNotContain("NOTSPR", sprites);
+            Assert.DoesNotContain("NOTASPRITE", sprites);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void EnumeratesSpriteNamesFromTexturesDefinitions()
+    {
+        string textures = "Sprite SPOSA0, 4, 4 { NullTexture }\nGraphic GFXA0, 4, 4 { NullTexture }\n";
+        string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var sprites = rm.GetSpriteNames();
+
+            Assert.Contains("SPOSA0", sprites);
+            Assert.Contains("GFXA0", sprites);
         }
         finally { File.Delete(pk3); }
     }
