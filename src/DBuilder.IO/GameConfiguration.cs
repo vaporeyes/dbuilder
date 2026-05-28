@@ -465,6 +465,7 @@ public sealed class GameConfiguration
     private static ArgInfo[] ActorArgs(ActorInfo actor, ArgInfo[]? existing)
     {
         ArgInfo[]? args = null;
+        bool clearArgs = actor.Properties.ContainsKey("$clearargs");
         for (int i = 0; i < 5; i++)
         {
             string prefix = "$arg" + i.ToString(CultureInfo.InvariantCulture);
@@ -487,8 +488,8 @@ public sealed class GameConfiguration
             };
         }
 
-        if (args == null) return existing ?? Array.Empty<ArgInfo>();
-        for (int i = 0; i < 5; i++) args[i] ??= existing != null && i < existing.Length ? existing[i] : new ArgInfo();
+        if (args == null) return clearArgs ? Array.Empty<ArgInfo>() : existing ?? Array.Empty<ArgInfo>();
+        for (int i = 0; i < 5; i++) args[i] ??= !clearArgs && existing != null && i < existing.Length ? existing[i] : new ArgInfo();
         return args;
     }
 

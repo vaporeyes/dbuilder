@@ -213,6 +213,7 @@ public static class DecorateParser
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
+            else if (!inStates && tk.Text.Equals("$clearargs", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("defaultalpha", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) SkipUntilSemicolon(t, ref i);
             else if (!inStates && (tk.Text.Equals("action", StringComparison.OrdinalIgnoreCase)
@@ -432,7 +433,11 @@ public static class DecorateParser
                 foreach (var kvp in parent.Flags)
                     if (!a.Flags.ContainsKey(kvp.Key)) a.Flags[kvp.Key] = kvp.Value;
                 foreach (var kvp in parent.Properties)
+                {
+                    if (a.Properties.ContainsKey("$clearargs") && kvp.Key.StartsWith("$arg", StringComparison.OrdinalIgnoreCase))
+                        continue;
                     if (!a.Properties.ContainsKey(kvp.Key)) a.Properties[kvp.Key] = kvp.Value;
+                }
                 if (!a.EditorKeys.ContainsKey("$category") && parent.EditorKeys.TryGetValue("$category", out var cat))
                     a.EditorKeys["$category"] = cat;
                 p = parent.ParentName;
