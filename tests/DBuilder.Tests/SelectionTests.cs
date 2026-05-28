@@ -102,6 +102,36 @@ public class SelectionTests
     }
 
     [Fact]
+    public void SelectAllPerTypeOnlySelectsRequestedElementType()
+    {
+        var map = BuildMap();
+
+        map.SelectAllVertices();
+        Assert.Equal(map.Vertices.Count, map.SelectedVerticesCount);
+        Assert.Equal(0, map.SelectedLinedefsCount);
+        Assert.Equal(0, map.SelectedSectorsCount);
+        Assert.Equal(0, map.SelectedThingsCount);
+
+        map.SelectAllThings();
+        Assert.Equal(map.Vertices.Count, map.SelectedVerticesCount);
+        Assert.Equal(map.Things.Count, map.SelectedThingsCount);
+        Assert.Equal(0, map.SelectedLinedefsCount);
+    }
+
+    [Fact]
+    public void InvertSelectedPerTypeOnlyFlipsRequestedElementType()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Selected = true;
+        map.Linedefs[0].Selected = true;
+
+        map.InvertSelectedVertices();
+
+        Assert.Equal(new[] { map.Vertices[1], map.Vertices[2] }, map.GetSelectedVertices());
+        Assert.Equal(new[] { map.Linedefs[0] }, map.GetSelectedLinedefs());
+    }
+
+    [Fact]
     public void SelectMarkedGeometrySetsSelectionForMatchingMarks()
     {
         var map = BuildMap();

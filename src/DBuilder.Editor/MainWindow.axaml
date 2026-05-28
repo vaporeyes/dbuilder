@@ -30,6 +30,8 @@
                 <MenuItem Header="_Redo" Click="OnRedo" />
                 <Separator />
                 <MenuItem Header="_Delete selection" Click="OnDelete" />
+                <MenuItem Header="Select _all" Click="OnSelectAll" />
+                <MenuItem Header="_Invert selection" Click="OnInvertSelection" />
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" Click="OnStitch" />

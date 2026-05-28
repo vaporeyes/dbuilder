@@ -297,6 +297,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Integrate configured things filters into the existing thing filter window.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.
+  - [x] Add active-mode select all and invert selection.
 - [ ] Port snapping behavior fully.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
 - [ ] Port texture alignment tools.

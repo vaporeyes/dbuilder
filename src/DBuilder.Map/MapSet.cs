@@ -635,6 +635,18 @@ public class MapSet : IDisposable
     public void ClearSelectedSectors() { foreach (var s in Sectors) s.Selected = false; }
     public void ClearSelectedThings() { foreach (var t in Things) t.Selected = false; }
 
+    public void SelectAllVertices() => SetSelected(Vertices, true);
+    public void SelectAllLinedefs() => SetSelected(Linedefs, true);
+    public void SelectAllSidedefs() => SetSelected(Sidedefs, true);
+    public void SelectAllSectors() => SetSelected(Sectors, true);
+    public void SelectAllThings() => SetSelected(Things, true);
+
+    public void InvertSelectedVertices() => InvertSelected(Vertices);
+    public void InvertSelectedLinedefs() => InvertSelected(Linedefs);
+    public void InvertSelectedSidedefs() => InvertSelected(Sidedefs);
+    public void InvertSelectedSectors() => InvertSelected(Sectors);
+    public void InvertSelectedThings() => InvertSelected(Things);
+
     /// <summary>Clears the Selected flag on every element of every type.</summary>
     public void ClearAllSelected()
     {
@@ -846,6 +858,16 @@ public class MapSet : IDisposable
         foreach (var it in items)
             if (it.Selected) n++;
         return n;
+    }
+
+    private static void SetSelected<T>(List<T> items, bool selected) where T : ISelectable
+    {
+        foreach (var it in items) it.Selected = selected;
+    }
+
+    private static void InvertSelected<T>(List<T> items) where T : ISelectable
+    {
+        foreach (var it in items) it.Selected = !it.Selected;
     }
 
     private static void AddSelectedToGroup<T>(List<T> items, int mask) where T : IGroupable

@@ -560,6 +560,20 @@ public partial class MainWindow : Window
         UpdateInfo();
     }
 
+    private void OnSelectAll(object? sender, RoutedEventArgs e)
+    {
+        int count = MapView.SelectAllInCurrentMode();
+        UpdateInfo();
+        SetStatus($"Selected {count} {MapView.CurrentEditMode.ToString().ToLowerInvariant()}.");
+    }
+
+    private void OnInvertSelection(object? sender, RoutedEventArgs e)
+    {
+        int count = MapView.InvertSelectionInCurrentMode();
+        UpdateInfo();
+        SetStatus($"Inverted {MapView.CurrentEditMode.ToString().ToLowerInvariant()} selection: {count} selected.");
+    }
+
     // Welds the whole map: merges coincident vertices and splits lines at vertices lying on them.
     private void OnStitch(object? sender, RoutedEventArgs e)
     {

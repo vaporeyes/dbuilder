@@ -390,6 +390,76 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    public int SelectAllInCurrentMode()
+    {
+        if (_map == null) return 0;
+
+        _map.ClearAllSelected();
+        int count = 0;
+        switch (_editMode)
+        {
+            case EditMode.Vertices:
+                _map.SelectAllVertices();
+                count = _map.SelectedVerticesCount;
+                break;
+            case EditMode.Things:
+                foreach (var thing in _map.Things)
+                {
+                    if (ThingHidden2D(thing)) continue;
+                    thing.Selected = true;
+                    count++;
+                }
+                break;
+            case EditMode.Sectors:
+                _map.SelectAllSectors();
+                count = _map.SelectedSectorsCount;
+                break;
+            default:
+                _map.SelectAllLinedefs();
+                count = _map.SelectedLinedefsCount;
+                break;
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        return count;
+    }
+
+    public int InvertSelectionInCurrentMode()
+    {
+        if (_map == null) return 0;
+
+        switch (_editMode)
+        {
+            case EditMode.Vertices:
+                _map.InvertSelectedVertices();
+                break;
+            case EditMode.Things:
+                foreach (var thing in _map.Things)
+                {
+                    if (ThingHidden2D(thing)) continue;
+                    thing.Selected = !thing.Selected;
+                }
+                break;
+            case EditMode.Sectors:
+                _map.InvertSelectedSectors();
+                break;
+            default:
+                _map.InvertSelectedLinedefs();
+                break;
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        return _editMode switch
+        {
+            EditMode.Vertices => _map.SelectedVerticesCount,
+            EditMode.Things => _map.SelectedThingsCount,
+            EditMode.Sectors => _map.SelectedSectorsCount,
+            _ => _map.SelectedLinedefsCount,
+        };
+    }
+
     // ---- GL lifecycle ----
 
     protected override void OnOpenGlInit(GlInterface gl)
