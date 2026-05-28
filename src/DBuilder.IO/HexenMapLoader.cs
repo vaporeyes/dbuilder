@@ -97,6 +97,7 @@ public static class HexenMapLoader
         DoomMapLoaderInternals.ReadSidedefs(sidedefsLump, map);
 
         ReadLinedefs(linedefsLump, map);
+        DoomMapLoaderInternals.RemoveUnattachedSidedefs(map);
         if (thingsLump != null) ReadThings(thingsLump, map);
 
         map.BuildIndexes();

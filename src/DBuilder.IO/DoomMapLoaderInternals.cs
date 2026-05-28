@@ -87,6 +87,7 @@ internal static class DoomMapLoaderInternals
     {
         if (idx < 0 || idx >= map.Sidedefs.Count) return;
         var sd = map.Sidedefs[idx];
+        if (sd.Sector == null) return;
         if (!used.Add(sd)) // already attached to another linedef -> clone it
         {
             var clone = new Sidedef(line, front)
@@ -107,6 +108,9 @@ internal static class DoomMapLoaderInternals
         sd.IsFront = front;
         if (front) line.Front = sd; else line.Back = sd;
     }
+
+    public static void RemoveUnattachedSidedefs(MapSet map)
+        => map.Sidedefs.RemoveAll(side => side.Line == null || side.Sector == null);
 
     public static Vertex SafeVertex(MapSet map, int idx)
     {

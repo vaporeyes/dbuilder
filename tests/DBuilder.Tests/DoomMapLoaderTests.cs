@@ -12,7 +12,7 @@ public class DoomMapLoaderTests
 {
     // Builds a synthetic two-vertex / one-linedef Doom-format map in memory and returns the WAD bytes.
     // Verts (2), Sectors (1), Sidedefs (1), Linedefs (1), Things (1).
-    private static MemoryStream BuildSyntheticDoomMap(short secondVertexX = 256, short lineV2 = 1)
+    private static MemoryStream BuildSyntheticDoomMap(short secondVertexX = 256, short lineV2 = 1, short sidedefSector = 0)
     {
         // VERTEXES (4 bytes each * 2 = 8)
         var vertexes = new MemoryStream();
@@ -44,7 +44,7 @@ public class DoomMapLoaderTests
             w.Write(WriteFixed("UPPER", 8));
             w.Write(WriteFixed("LOWER", 8));
             w.Write(WriteFixed("MIDDLE", 8));
-            w.Write((short)0);   // sector
+            w.Write(sidedefSector); // sector
         }
 
         // LINEDEFS (14 bytes * 1 = 14)
@@ -193,6 +193,7 @@ public class DoomMapLoaderTests
 
         Assert.Equal(2, map.Vertices.Count);
         Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
     }
 
     [Fact]
@@ -205,6 +206,20 @@ public class DoomMapLoaderTests
 
         Assert.Equal(2, map.Vertices.Count);
         Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
+    public void InvalidSectorReferencesSkipSidedef()
+    {
+        var wadBytes = BuildSyntheticDoomMap(sidedefSector: 99);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Single(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+        Assert.Null(map.Linedefs[0].Front);
     }
 
     [Fact]

@@ -72,6 +72,7 @@ public static class DoomMapLoader
         DoomMapLoaderInternals.ReadSectors(sectorsLump, map);
         DoomMapLoaderInternals.ReadSidedefs(sidedefsLump, map);
         ReadLinedefs(linedefsLump, map);
+        DoomMapLoaderInternals.RemoveUnattachedSidedefs(map);
         if (thingsLump != null) ReadThings(thingsLump, map);
 
         map.BuildIndexes();

@@ -88,7 +88,7 @@ public class SharedSidedefTests
         Assert.NotNull(map.Linedefs[1].Front);
         // Each linedef must own its own sidedef (the shared one was cloned).
         Assert.False(ReferenceEquals(map.Linedefs[0].Front, map.Linedefs[1].Front));
-        Assert.Equal(2, map.Sidedefs.Count);                 // 1 original + 1 unpacked clone
+        Assert.Equal(2, map.Sidedefs.Count);                 // two materialized sides from one shared record
         Assert.Same(map.Linedefs[0].Front!.Line, map.Linedefs[0]); // back-ref points at the right line
         Assert.Same(map.Linedefs[1].Front!.Line, map.Linedefs[1]);
         Assert.Equal("WALL", map.Linedefs[1].Front!.MidTexture); // clone copied the texture

@@ -10,7 +10,7 @@ namespace DBuilder.Tests;
 
 public class HexenMapLoaderTests
 {
-    private static MemoryStream BuildSyntheticHexenMap(short secondVertexX = 100, ushort lineV2 = 1)
+    private static MemoryStream BuildSyntheticHexenMap(short secondVertexX = 100, ushort lineV2 = 1, short sidedefSector = 0)
     {
         // 2 verts, 1 sector, 1 sidedef, 1 linedef, 1 thing.
         var vertexes = new MemoryStream();
@@ -39,7 +39,7 @@ public class HexenMapLoaderTests
             w.Write(FixedString("-", 8));
             w.Write(FixedString("-", 8));
             w.Write(FixedString("WALL", 8));
-            w.Write((short)0); // sector
+            w.Write(sidedefSector); // sector
         }
 
         // Hexen linedef: 16 bytes (v1, v2, flags, action byte, args[5], s1, s2)
@@ -156,6 +156,7 @@ public class HexenMapLoaderTests
 
         Assert.Equal(2, map.Vertices.Count);
         Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
     }
 
     [Fact]
@@ -168,6 +169,20 @@ public class HexenMapLoaderTests
 
         Assert.Equal(2, map.Vertices.Count);
         Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
+    public void InvalidSectorReferencesSkipSidedef()
+    {
+        var wadBytes = BuildSyntheticHexenMap(sidedefSector: 99);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = HexenMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Single(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+        Assert.Null(map.Linedefs[0].Front);
     }
 
     [Fact]
