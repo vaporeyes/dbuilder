@@ -328,6 +328,72 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void FirstWallTextureDefinitionWinsWithinResource()
+    {
+        string textures =
+            "WallTexture WDUP, 1, 1 { Patch \"RED\", 0, 0 }\n" +
+            "WallTexture WDUP, 1, 1 { Patch \"BLUE\", 0, 0 }\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 200, 0, 0, 255 }, rm.GetWallTexture("WDUP")!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void TextureDefinitionOverridesEarlierWallTextureDefinition()
+    {
+        string textures =
+            "WallTexture WMIXED, 1, 1 { Patch \"RED\", 0, 0 }\n" +
+            "Texture WMIXED, 1, 1 { Patch \"BLUE\", 0, 0 }\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetWallTexture("WMIXED")!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void LaterResourceWallTextureDefinitionOverridesEarlierResource()
+    {
+        string first = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes("WallTexture WSTACK, 1, 1 { Patch \"RED\", 0, 0 }\n")),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))));
+        string second = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes("WallTexture WSTACK, 1, 1 { Patch \"BLUE\", 0, 0 }\n")),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(first);
+            rm.AddResource(second);
+
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetWallTexture("WSTACK")!.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(first);
+            File.Delete(second);
+        }
+    }
+
+    [Fact]
     public void ResolvesTexturePatchesFromTextureAndFlatFolders()
     {
         string textures =

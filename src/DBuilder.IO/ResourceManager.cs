@@ -353,16 +353,28 @@ public sealed class ResourceManager : IDisposable
                     def.ResourceIndex = readerIndex;
                     switch (def.Type)
                     {
-                        case TexturesType.WallTexture: wallDefs[def.Name] = def; break;
-                        case TexturesType.Flat: flatDefs[def.Name] = def; break;
+                        case TexturesType.WallTexture: SetTexturesDef(wallDefs, def, replaceWithinResource: false); break;
+                        case TexturesType.Flat: SetTexturesDef(flatDefs, def, replaceWithinResource: false); break;
                         case TexturesType.Sprite:
-                        case TexturesType.Graphic: spriteDefs[def.Name] = def; break;
+                        case TexturesType.Graphic: SetTexturesDef(spriteDefs, def, replaceWithinResource: true); break;
                         default: // Texture: usable as both a wall and a flat
-                            wallDefs[def.Name] = def; flatDefs[def.Name] = def; break;
+                            SetTexturesDef(wallDefs, def, replaceWithinResource: true);
+                            SetTexturesDef(flatDefs, def, replaceWithinResource: true);
+                            break;
                     }
                 }
             }
         }
+    }
+
+    private static void SetTexturesDef(Dictionary<string, TexturesDef> defs, TexturesDef def, bool replaceWithinResource)
+    {
+        if (!replaceWithinResource
+            && defs.TryGetValue(def.Name, out var existing)
+            && existing.ResourceIndex == def.ResourceIndex)
+            return;
+
+        defs[def.Name] = def;
     }
 
     private void EnsureCameraTextures()
