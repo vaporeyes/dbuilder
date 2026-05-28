@@ -317,11 +317,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port status bar behavior.
 - [ ] Port dockers and tabbed dock panels.
 - [ ] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
-- [ ] Port thing browser.
-- [ ] Port texture browser.
-- [ ] Port flat browser.
-- [ ] Port action browser.
-- [ ] Port effect browser.
+- [x] Port thing browser.
+- [x] Port texture browser.
+- [x] Port flat browser.
+- [x] Port action browser.
+- [x] Port effect browser.
 - [ ] Port flags and bit flags dialogs.
 - [ ] Port custom fields dialog.
 - [ ] Port map options dialog.
