@@ -199,6 +199,37 @@ public sealed class FlatTypeHandler : ImageNameTypeHandler
     public override bool BrowseFlats => true;
 }
 
+public sealed class ColorTypeHandler : UniversalTypeHandler
+{
+    private int value;
+
+    public ColorTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value) => this.value = ToColorInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString("X6", CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToColorInt(value);
+
+    private static int ToColorInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        if (value is string text)
+            return int.TryParse(text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+        return 0;
+    }
+}
+
 public sealed class EnumOptionTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");

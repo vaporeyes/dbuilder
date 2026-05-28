@@ -124,6 +124,36 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void ColorHandlerParsesAndFormatsColorsLikeUdb()
+    {
+        var handler = new UniversalTypeRegistry().CreateHandler(UniversalType.Color, defaultValue: "00ff80");
+
+        Assert.IsType<ColorTypeHandler>(handler);
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal(0x00FF80, handler.GetValue());
+        Assert.Equal("00FF80", handler.GetStringValue());
+
+        handler.SetValue("ff0000");
+        Assert.Equal(0xFF0000, handler.GetIntValue());
+        Assert.Equal("FF0000", handler.GetStringValue());
+
+        handler.SetValue(255);
+        Assert.Equal(255, handler.GetValue());
+        Assert.Equal("0000FF", handler.GetStringValue());
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetIntValue());
+        Assert.Equal("000001", handler.GetStringValue());
+
+        handler.SetValue("not hex");
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("000000", handler.GetStringValue());
+
+        handler.SetValue(null);
+        Assert.Equal(0, handler.GetValue());
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""
