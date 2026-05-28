@@ -326,10 +326,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port custom fields dialog.
 - [ ] Port map options dialog.
 - [ ] Port open map options dialog.
-- [ ] Port preferences dialog.
+- [x] Port preferences dialog.
 - [ ] Port resource options dialog.
 - [ ] Port config dialog.
-- [ ] Port find and replace dialog.
+- [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
 - [x] Port thing statistics dialog.
 - [ ] Port grid setup dialog.
