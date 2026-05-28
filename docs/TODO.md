@@ -163,6 +163,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.
   - [x] Honor PK3 root texture and root flat resource options.
+  - [x] Honor WAD strict patch resource option for classic texture composition.
 - [ ] Port resource priority and override behavior completely.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.

@@ -9,10 +9,11 @@ public static class DoomWallTextureCompositor
     /// Composes the named wall texture into a Width*Height RGBA8 buffer.  Returns null when any required patch is missing or the def has no usable patches.
     /// Transparent pixels in the source patches and uncovered canvas remain RGBA=0.
     /// </summary>
-    public static byte[]? Compose(DoomTextureDef def, DoomPatchNames pnames, WAD wad, DoomPalette palette)
+    public static byte[]? Compose(DoomTextureDef def, DoomPatchNames pnames, WAD wad, DoomPalette palette, Func<string, Lump?>? findPatch = null)
     {
         if (def.Width <= 0 || def.Height <= 0) return null;
         if (def.Patches.Count == 0) return null;
+        findPatch ??= wad.FindLump;
 
         byte[] canvas = new byte[def.Width * def.Height * 4];
         bool anyPatched = false;
@@ -23,7 +24,7 @@ public static class DoomWallTextureCompositor
             string pname = pnames[patch.PatchIndex];
             if (string.IsNullOrEmpty(pname)) continue;
 
-            var lump = wad.FindLump(pname);
+            var lump = findPatch(pname);
             if (lump == null) continue;
 
             var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);

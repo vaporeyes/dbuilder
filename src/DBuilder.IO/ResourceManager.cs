@@ -207,7 +207,7 @@ public sealed class ResourceManager : IDisposable
                 displayName: location.GetDisplayName(),
                 rootTextures: location.Option1,
                 rootFlats: location.Option2),
-            _ => new WadResourceReader(new WAD(location.Location, openreadonly: true), owns: true),
+            _ => new WadResourceReader(new WAD(location.Location, openreadonly: true), owns: true, strictPatches: location.Option1),
         };
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();

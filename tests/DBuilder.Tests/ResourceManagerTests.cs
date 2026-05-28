@@ -2,6 +2,7 @@
 // ABOUTME: Uses a synthetic WAD with a grayscale PLAYPAL so decoded flat pixels are predictable; an opportunistic test hits a real WAD.
 
 using System.IO;
+using System.Text;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
@@ -49,6 +50,63 @@ public class ResourceManagerTests
         return new WAD(ms, openreadonly: true);
     }
 
+    private static byte[] FixedAscii(string s, int len)
+    {
+        var b = new byte[len];
+        Encoding.ASCII.GetBytes(s, 0, Math.Min(s.Length, len), b, 0);
+        return b;
+    }
+
+    private static byte[] PNames(params string[] names)
+    {
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((uint)names.Length);
+        foreach (string name in names) w.Write(FixedAscii(name, 8));
+        return ms.ToArray();
+    }
+
+    private static byte[] Texture1(string textureName, int width, int height, ushort patchIndex)
+    {
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((uint)1);
+        w.Write((uint)8);
+        w.Write(FixedAscii(textureName, 8));
+        w.Write((ushort)0);
+        w.Write((byte)0);
+        w.Write((byte)0);
+        w.Write((short)width);
+        w.Write((short)height);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write((short)1);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write(patchIndex);
+        w.Write((short)0);
+        w.Write((short)0);
+        return ms.ToArray();
+    }
+
+    private static byte[] DoomPatch(byte index)
+    {
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((short)1);
+        w.Write((short)1);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write((int)12);
+        w.Write((byte)0);
+        w.Write((byte)1);
+        w.Write((byte)0);
+        w.Write(index);
+        w.Write((byte)0);
+        w.Write((byte)0xFF);
+        return ms.ToArray();
+    }
+
     [Fact]
     public void ResolvesPaletteAndFlat()
     {
@@ -67,6 +125,33 @@ public class ResourceManagerTests
         Assert.Equal(5, flat.Rgba[1]);
         Assert.Equal(5, flat.Rgba[2]);
         Assert.Equal(255, flat.Rgba[3]);
+    }
+
+    [Fact]
+    public void WadStrictPatchesRestrictsClassicTexturePatchLookup()
+    {
+        string wadPath = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("PNAMES", PNames("PATCH")),
+            ("TEXTURE1", Texture1("WALL", 1, 1, 0)),
+            ("F_START", Array.Empty<byte>()),
+            ("PATCH", DoomPatch(70)),
+            ("F_END", Array.Empty<byte>()));
+        try
+        {
+            using (var rm = new ResourceManager())
+            {
+                rm.AddResource(wadPath);
+                Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("WALL")!.Rgba[0..4]);
+            }
+
+            using (var rm = new ResourceManager())
+            {
+                rm.AddResource(new DataLocation(DataLocationType.Wad, wadPath, option1: true));
+                Assert.Null(rm.GetWallTexture("WALL"));
+            }
+        }
+        finally { File.Delete(wadPath); }
     }
 
     [Fact]

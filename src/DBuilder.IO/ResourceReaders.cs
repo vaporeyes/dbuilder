@@ -55,12 +55,21 @@ internal sealed class WadResourceReader : IResourceReader
     private static readonly Regex Sprite6 = new(@"^\S{4}[A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex Sprite8 = new(@"^\S{4}[A-Za-z\[\]\\][0-8][A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex VoxelName = new(@"^\S{4}(([A-Za-z][0-9])?|[A-Za-z]?)$", RegexOptions.Compiled);
+    private static readonly (string Start, string End)[] PatchRanges =
+    {
+        ("P_START", "P_END"),
+        ("PP_START", "PP_END"),
+        ("P1_START", "P1_END"),
+        ("P2_START", "P2_END"),
+        ("P3_START", "P3_END"),
+    };
     private readonly WAD wad;
     private readonly bool owns;
+    private readonly bool strictPatches;
     private Dictionary<string, DoomTextureDef>? texDefs;
     private DoomPatchNames? patchNames;
 
-    public WadResourceReader(WAD wad, bool owns) { this.wad = wad; this.owns = owns; }
+    public WadResourceReader(WAD wad, bool owns, bool strictPatches = false) { this.wad = wad; this.owns = owns; this.strictPatches = strictPatches; }
 
     public string DisplayName => string.IsNullOrEmpty(wad.Filename) ? "WAD resource" : Path.GetFileName(wad.Filename);
 
@@ -78,7 +87,7 @@ internal sealed class WadResourceReader : IResourceReader
         if (palette == null) return null;
         var defs = TexDefs();
         if (!defs.TryGetValue(name, out var def)) return null;
-        byte[]? rgba = DoomWallTextureCompositor.Compose(def, PatchNames(), wad, palette);
+        byte[]? rgba = DoomWallTextureCompositor.Compose(def, PatchNames(), wad, palette, FindPatchLump);
         return rgba != null ? new ImageData(def.Width, def.Height, rgba) : null;
     }
 
@@ -97,7 +106,30 @@ internal sealed class WadResourceReader : IResourceReader
 
     public ImageData? GetHiRes(string name, DoomPalette? palette) => null;
 
-    public ImageData? GetPatch(string name, DoomPalette? palette) => GetSprite(name, palette);
+    public ImageData? GetPatch(string name, DoomPalette? palette)
+    {
+        if (palette == null || FindPatchLump(name) is not { } lump) return null;
+        var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
+        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
+    }
+
+    private Lump? FindPatchLump(string name)
+    {
+        foreach (var (startName, endName) in PatchRanges)
+        {
+            int start = wad.FindLumpIndex(startName);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(endName, start + 1);
+                if (end < 0) break;
+                var lump = wad.FindLump(name, start, end);
+                if (lump != null) return lump;
+                start = wad.FindLumpIndex(startName, end + 1);
+            }
+        }
+
+        return strictPatches ? null : wad.FindLump(name);
+    }
 
     private Dictionary<string, DoomTextureDef> TexDefs()
     {
