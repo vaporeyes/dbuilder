@@ -16,6 +16,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
             string? openPath = desktop.Args is { Length: > 0 } a ? a[0] : null;
             desktop.MainWindow = new MainWindow(openPath);
             if (desktop is IActivatableLifetime activatable)
@@ -28,5 +29,18 @@ public partial class App : Application
             }
         }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static async void OnDispatcherUnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        try
+        {
+            if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } owner })
+                await new ExceptionDialog(e.Exception).ShowDialog(owner);
+        }
+        catch
+        {
+        }
     }
 }
