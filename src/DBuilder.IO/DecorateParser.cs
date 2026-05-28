@@ -366,6 +366,9 @@ public static class DecorateParser
 
     private static List<string> ReadPropertyValues(string key, List<Tok> t, ref int i)
     {
+        if (key.StartsWith("$", StringComparison.Ordinal))
+            return ReadDollarPropertyValues(t, ref i);
+
         var values = new List<string>();
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
@@ -384,6 +387,27 @@ public static class DecorateParser
             i++;
         }
         return values;
+    }
+
+    private static List<string> ReadDollarPropertyValues(List<Tok> t, ref int i)
+    {
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        var parts = new List<string>();
+        while (i < t.Count)
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";" or "\n") break;
+            parts.Add(tk.Text);
+            i++;
+        }
+
+        return parts.Count == 0 ? parts : new List<string> { JoinLineValue(parts) };
+    }
+
+    private static string JoinLineValue(List<string> parts)
+    {
+        var value = string.Join(" ", parts);
+        return value.Replace(" ,", ",", StringComparison.Ordinal);
     }
 
     private static bool HasLineTerminator(List<Tok> t, int i)

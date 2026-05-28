@@ -71,6 +71,24 @@ ACTOR PropertyThing 5001
     }
 
     [Fact]
+    public void DollarPropertiesKeepUnquotedLineValues()
+    {
+        const string text = @"
+ACTOR EditorTextThing 5002
+{
+    $Title Fancy Imp
+    $Category Large Monsters
+    $Sprite PROPA0
+    States { Spawn: TROO A -1 stop }
+}";
+        var actor = DecorateParser.Parse(text)[0];
+
+        Assert.Equal("Fancy Imp", actor.Title);
+        Assert.Equal("Large Monsters", actor.Category);
+        Assert.Equal("PROPA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];
@@ -394,6 +412,32 @@ ACTOR CoolMonster 31000
         Assert.Equal(16, info.Args[0].MinRange);
         Assert.Equal(256, info.Args[0].MaxRange);
         Assert.True(info.Args[0].Str);
+        Assert.Equal("Target Name", info.Args[0].TitleStr);
+    }
+
+    [Fact]
+    public void MergeActorsKeepsUnquotedDollarArgumentLineValues()
+    {
+        const string text = @"
+ACTOR LineArgThing 31005
+{
+    $Arg0 Target Thing
+    $Arg0Tooltip Pick target thing
+    $Arg0TargetClasses MapSpot, PatrolPoint
+    $Arg0Str Target Name
+    Radius 24
+    Height 48
+    States { Spawn: COOL A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31005);
+        Assert.NotNull(info);
+        Assert.Equal("Target Thing", info!.Args[0].Title);
+        Assert.Equal("Pick target thing", info.Args[0].ToolTip);
+        Assert.Contains("MapSpot", info.Args[0].TargetClasses);
+        Assert.Contains("PatrolPoint", info.Args[0].TargetClasses);
         Assert.Equal("Target Name", info.Args[0].TitleStr);
     }
 
