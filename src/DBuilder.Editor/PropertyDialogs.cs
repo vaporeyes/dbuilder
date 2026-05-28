@@ -192,10 +192,11 @@ public abstract class PropertyDialog : Window
             var info = meta[i];
             if (!info.Used) continue;
             string label = $"Arg{i}: {info.Title}";
-            var argEnum = config?.GetArgEnum(info);
-            if (argEnum != null)
+            var handler = config?.CreateArgumentHandler(info);
+            var options = handler != null ? UniversalValueOptions.ForIntegerEditor(handler) : Array.Empty<UniversalValueOption>();
+            if (options.Count > 0)
             {
-                var items = argEnum.Select(kv => new CatalogItem(kv.Key, $"{kv.Key} - {kv.Value}"));
+                var items = options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}"));
                 editors.SetCombo(i, AddCombo(label, items, current[i]));
             }
             else

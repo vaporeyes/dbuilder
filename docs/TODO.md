@@ -279,6 +279,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port linedef type and linedef tag handlers.
 - [x] Port sector effect and sector tag handlers.
 - [x] Port polyobject number handler.
+- [x] Integrate handlers into argument property editors.
 - [ ] Integrate handlers into property editing UI.
 
 ## Editing Core

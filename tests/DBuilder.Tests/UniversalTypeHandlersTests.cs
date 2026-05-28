@@ -755,6 +755,52 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void UniversalValueOptionsExposeIntegerEditorChoicesFromHandlers()
+    {
+        const string cfg = """
+            enums
+            {
+                speeds
+                {
+                    8 = "Slow";
+                    16 = "Fast";
+                }
+            }
+            linedeftypes
+            {
+                doors
+                {
+                    1
+                    {
+                        title = "Door";
+                        arg0
+                        {
+                            title = "Repeatable";
+                            type = 3;
+                        }
+                        arg1
+                        {
+                            title = "Speed";
+                            type = 11;
+                            enum = "speeds";
+                        }
+                    }
+                }
+            }
+            """;
+        var config = GameConfiguration.FromText(cfg);
+        var action = config.GetLinedefAction(1)!;
+
+        var boolOptions = UniversalValueOptions.ForIntegerEditor(config.CreateArgumentHandler(action.Args[0]));
+        Assert.Equal(new[] { 1, 0 }, boolOptions.Select(option => option.Value));
+        Assert.Equal(new[] { "True", "False" }, boolOptions.Select(option => option.Title));
+
+        var enumOptions = UniversalValueOptions.ForIntegerEditor(config.CreateArgumentHandler(action.Args[1]));
+        Assert.Equal(new[] { 8, 16 }, enumOptions.Select(option => option.Value));
+        Assert.Equal(new[] { "Slow", "Fast" }, enumOptions.Select(option => option.Title));
+    }
+
+    [Fact]
     public void UnknownHandlerPreservesDisplayValueButReturnsStringValue()
     {
         var handler = new UniversalTypeRegistry().CreateHandler(99, defaultValue: "abc");
