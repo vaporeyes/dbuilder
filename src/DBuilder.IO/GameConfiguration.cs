@@ -391,7 +391,11 @@ public sealed class GameConfiguration
         if (doomEdNums != null)
         {
             classToNum = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var (num, cls) in doomEdNums) classToNum[cls] = num;
+            foreach (var (num, cls) in doomEdNums)
+            {
+                if (cls.Equals("none", StringComparison.OrdinalIgnoreCase)) things.Remove(num);
+                else classToNum[cls] = num;
+            }
         }
 
         foreach (var a in actors)
@@ -408,6 +412,18 @@ public sealed class GameConfiguration
             if (num < 0) continue;
             things.TryGetValue(num, out var existing);
             things[num] = BuildThingInfo(a, num, existing);
+        }
+
+        if (doomEdNums == null) return;
+        foreach (var (num, cls) in doomEdNums)
+        {
+            if (cls.Equals("none", StringComparison.OrdinalIgnoreCase)) continue;
+            if (things.TryGetValue(num, out var existing) && string.Equals(existing.ClassName, cls, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            int sourceNum = FindThingByClass(cls);
+            if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
+                things[num] = CopyThingInfo(source, num);
         }
     }
 
@@ -445,6 +461,34 @@ public sealed class GameConfiguration
             Args = ActorArgs(actor, existing?.Args),
         };
     }
+
+    private static ThingTypeInfo CopyThingInfo(ThingTypeInfo source, int index) => new()
+    {
+        Index = index,
+        ClassName = source.ClassName,
+        Title = source.Title,
+        Category = source.Category,
+        Sprite = source.Sprite,
+        Width = source.Width,
+        Height = source.Height,
+        Alpha = source.Alpha,
+        RenderStyle = source.RenderStyle,
+        SpriteScale = source.SpriteScale,
+        Color = source.Color,
+        Arrow = source.Arrow,
+        Hangs = source.Hangs,
+        Blocking = source.Blocking,
+        ErrorCheck = source.ErrorCheck,
+        FixedSize = source.FixedSize,
+        FixedRotation = source.FixedRotation,
+        AbsoluteZ = source.AbsoluteZ,
+        LockSprite = source.LockSprite,
+        ThingLink = source.ThingLink,
+        Optional = source.Optional,
+        IsKnown = source.IsKnown,
+        AddUniversalFields = source.AddUniversalFields,
+        Args = source.Args,
+    };
 
     private static string ActorTitle(ActorInfo actor)
     {

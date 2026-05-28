@@ -196,6 +196,45 @@ class MyMonster : Actor
     }
 
     [Fact]
+    public void AppliesDoomEdNumOverridesToExistingConfigThings()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        color = 4;
+        width = 20;
+        height = 56;
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+        3002
+        {
+            title = ""Demon"";
+            sprite = ""SARGA1"";
+            class = ""Demon"";
+        }
+    }
+}";
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9050 = DoomImp 3002 = none }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(Array.Empty<ActorInfo>(), doomEdNums);
+
+        var copied = gc.GetThing(9050);
+        Assert.NotNull(copied);
+        Assert.Equal("Imp", copied!.Title);
+        Assert.Equal("DoomImp", copied.ClassName);
+        Assert.Equal("TROOA1", copied.Sprite);
+        Assert.Equal(20, copied.Width);
+        Assert.Null(gc.GetThing(3002));
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
