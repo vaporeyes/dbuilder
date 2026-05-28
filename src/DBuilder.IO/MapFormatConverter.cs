@@ -1,5 +1,5 @@
-// ABOUTME: Converts a map between binary (Doom/Hexen) and UDMF formats by translating the flag representation.
-// ABOUTME: Binary writers read int Flags; the UDMF writer reads named UdmfFlags - this fills the target side from the source.
+// ABOUTME: Converts a map between binary (Doom/Hexen) and UDMF formats by translating flags and action encodings.
+// ABOUTME: Binary writers read int Flags; the UDMF writer reads named UdmfFlags and normalized line ids.
 
 using DBuilder.Map;
 
@@ -83,13 +83,63 @@ public static class MapFormatConverter
     {
         foreach (var l in map.Linedefs)
         {
-            if (l.Action != 121) continue;
+            if (l.Action == 121)
+            {
+                l.Tag = l.Args[0] + l.Args[4] * 256;
+                AddLineIdFlags(l, l.Args[1]);
+                l.Action = 0;
+                Array.Clear(l.Args, 0, l.Args.Length);
+                continue;
+            }
 
-            l.Tag = l.Args[0] + l.Args[4] * 256;
-            AddLineIdFlags(l, l.Args[1]);
-            l.Action = 0;
-            Array.Clear(l.Args, 0, l.Args.Length);
+            switch (l.Action)
+            {
+                case 208:
+                    l.Tag = l.Args[0];
+                    AddLineIdFlags(l, l.Args[3]);
+                    l.Args[3] = 0;
+                    break;
+                case 1:
+                    ConvertArgToTag(l, 3, clearArg: true);
+                    break;
+                case 5:
+                    ConvertArgToTag(l, 4, clearArg: true);
+                    break;
+                case 181:
+                    ConvertArgToTag(l, 2, clearArg: true);
+                    break;
+                case 215:
+                    ConvertArgToTag(l, 0, clearArg: true);
+                    break;
+                case 222:
+                    ConvertArgToTag(l, 0, clearArg: false);
+                    break;
+                case 160:
+                    ConvertSector3DFloorToUdmf(l);
+                    break;
+            }
         }
+    }
+
+    private static void ConvertArgToTag(Linedef linedef, int argIndex, bool clearArg)
+    {
+        linedef.Tag = linedef.Args[argIndex];
+        if (clearArg) linedef.Args[argIndex] = 0;
+    }
+
+    private static void ConvertSector3DFloorToUdmf(Linedef linedef)
+    {
+        if ((linedef.Args[1] & 8) == 8)
+        {
+            linedef.Tag = linedef.Args[4];
+            linedef.Args[1] &= ~8;
+        }
+        else
+        {
+            linedef.Args[0] += linedef.Args[4] * 256;
+        }
+
+        linedef.Args[4] = 0;
     }
 
     private static void AddLineIdFlags(Linedef linedef, int bits)

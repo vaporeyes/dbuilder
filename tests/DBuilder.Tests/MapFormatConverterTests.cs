@@ -223,4 +223,76 @@ thingflagstranslation
         Assert.Contains("blocking", line.UdmfFlags);
         Assert.Equal(1, line.Tag);
     }
+
+    [Theory]
+    [InlineData(1, 3, true)]
+    [InlineData(5, 4, true)]
+    [InlineData(181, 2, true)]
+    [InlineData(215, 0, true)]
+    [InlineData(222, 0, false)]
+    public void HexenTagArgActionsConvertToUdmfTag(int action, int tagArg, bool clearsArg)
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = action;
+        line.Args[tagArg] = 77;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Equal(77, line.Tag);
+        Assert.Equal(clearsArg ? 0 : 77, line.Args[tagArg]);
+    }
+
+    [Fact]
+    public void HexenTranslucentLineConvertsLineIdAndFlagsToUdmf()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 208;
+        line.Args[0] = 33;
+        line.Args[3] = 2 | 16;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Equal(33, line.Tag);
+        Assert.Equal(0, line.Args[3]);
+        Assert.Contains("jumpover", line.UdmfFlags);
+        Assert.Contains("wrapmidtex", line.UdmfFlags);
+    }
+
+    [Fact]
+    public void HexenSector3DFloorUsesArg4AsLineIdWhenFlagIsSet()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 160;
+        line.Args[1] = 8;
+        line.Args[4] = 12;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Equal(12, line.Tag);
+        Assert.Equal(0, line.Args[1]);
+        Assert.Equal(0, line.Args[4]);
+    }
+
+    [Fact]
+    public void HexenSector3DFloorCombinesHighTagIntoArg0WhenLineIdFlagIsClear()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 160;
+        line.Args[0] = 10;
+        line.Args[4] = 2;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Udmf, gc);
+
+        Assert.Equal(522, line.Args[0]);
+        Assert.Equal(0, line.Args[4]);
+        Assert.Equal(0, line.Tag);
+    }
 }
