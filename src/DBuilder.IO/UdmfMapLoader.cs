@@ -72,10 +72,16 @@ public static class UdmfMapLoader
         // Materialize in dependency order: vertices -> sectors -> sidedefs -> linedefs -> things.
         foreach (var v in vertexEntries) map.Vertices.Add(LoadVertex(v));
         foreach (var s in sectorEntries) map.Sectors.Add(LoadSector(s, map.Sectors.Count));
-        foreach (var sd in sidedefEntries) map.Sidedefs.Add(LoadSidedef(sd, map.Sectors));
+        var sidedefLinks = new List<Sidedef?>(sidedefEntries.Count);
+        foreach (var sd in sidedefEntries)
+        {
+            var sidedef = LoadSidedef(sd, map.Sectors);
+            sidedefLinks.Add(sidedef);
+            if (sidedef != null) map.Sidedefs.Add(sidedef);
+        }
         foreach (var ld in linedefEntries)
         {
-            var line = LoadLinedef(ld, map.Vertices, map.Sidedefs);
+            var line = LoadLinedef(ld, map.Vertices, sidedefLinks);
             if (line != null) map.Linedefs.Add(line);
         }
         foreach (var t in thingEntries) map.Things.Add(LoadThing(t));
@@ -130,13 +136,15 @@ public static class UdmfMapLoader
         return s;
     }
 
-    private static Sidedef LoadSidedef(UniversalCollection c, List<Sector> sectors)
+    private static Sidedef? LoadSidedef(UniversalCollection c, List<Sector> sectors)
     {
         int sectorIdx = GetInt(c, "sector");
+        if (sectorIdx < 0 || sectorIdx >= sectors.Count) return null;
+
         var sd = new Sidedef
         {
             // Line is back-filled when the owning linedef is loaded.
-            Sector = (sectorIdx >= 0 && sectorIdx < sectors.Count) ? sectors[sectorIdx] : null,
+            Sector = sectors[sectorIdx],
             OffsetX = GetInt(c, "offsetx"),
             OffsetY = GetInt(c, "offsety"),
             HighTexture = GetString(c, "texturetop", "-"),
@@ -147,7 +155,7 @@ public static class UdmfMapLoader
         return sd;
     }
 
-    private static Linedef? LoadLinedef(UniversalCollection c, List<Vertex> verts, List<Sidedef> sides)
+    private static Linedef? LoadLinedef(UniversalCollection c, List<Vertex> verts, IReadOnlyList<Sidedef?> sides)
     {
         int v1 = GetInt(c, "v1");
         int v2 = GetInt(c, "v2");
@@ -170,15 +178,23 @@ public static class UdmfMapLoader
 
         if (sideFront >= 0 && sideFront < sides.Count)
         {
-            line.Front = sides[sideFront];
-            line.Front.Line = line;
-            line.Front.IsFront = true;
+            var side = sides[sideFront];
+            if (side != null)
+            {
+                line.Front = side;
+                line.Front.Line = line;
+                line.Front.IsFront = true;
+            }
         }
         if (sideBack >= 0 && sideBack < sides.Count)
         {
-            line.Back = sides[sideBack];
-            line.Back.Line = line;
-            line.Back.IsFront = false;
+            var side = sides[sideBack];
+            if (side != null)
+            {
+                line.Back = side;
+                line.Back.Line = line;
+                line.Back.IsFront = false;
+            }
         }
 
         // Collect all bool-true keys other than the index/special/id fields as named UDMF flags.

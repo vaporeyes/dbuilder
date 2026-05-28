@@ -184,6 +184,42 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void InvalidSectorReferencesSkipSidedef()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; }
+            sidedef { sector = 99; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Single(map.Sectors);
+        Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
+    public void LinedefSidedefReferencesUseOriginalSidedefIndices()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            vertex { x = 64; y = 0; }
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; }
+            sidedef { sector = 99; texturemiddle = "BAD"; }
+            sidedef { sector = 0; texturemiddle = "GOOD"; }
+            linedef { v1 = 0; v2 = 1; sidefront = 1; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Single(map.Sidedefs);
+        Assert.Single(map.Linedefs);
+        Assert.Same(map.Sidedefs[0], map.Linedefs[0].Front);
+        Assert.Equal("GOOD", map.Linedefs[0].Front!.MidTexture);
+    }
+
+    [Fact]
     public void MalformedUdmfReturnsNull()
     {
         var map = UdmfMapLoader.Load("namespace = wat;", out var parser);
