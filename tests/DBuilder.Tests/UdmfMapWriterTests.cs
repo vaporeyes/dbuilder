@@ -53,6 +53,25 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void WritesElementsInUdbOrder()
+    {
+        var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
+        var written = UdmfMapWriter.Write(map);
+
+        int vertex = written.IndexOf("vertex // 0", StringComparison.Ordinal);
+        int linedef = written.IndexOf("linedef // 0", StringComparison.Ordinal);
+        int sidedef = written.IndexOf("sidedef // 0", StringComparison.Ordinal);
+        int sector = written.IndexOf("sector // 0", StringComparison.Ordinal);
+        int thing = written.IndexOf("thing // 0", StringComparison.Ordinal);
+
+        Assert.True(vertex >= 0);
+        Assert.True(vertex < linedef);
+        Assert.True(linedef < sidedef);
+        Assert.True(sidedef < sector);
+        Assert.True(sector < thing);
+    }
+
+    [Fact]
     public void RoundTripPreservesTopology()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;

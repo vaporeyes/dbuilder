@@ -34,10 +34,6 @@ public static class UdmfMapWriter
         var sidedefIndex = BuildIndex(map.Sidedefs);
         var sectorIndex  = BuildIndex(map.Sectors);
 
-        for (int i = 0; i < map.Things.Count; i++)
-        {
-            WriteThing(sb, map.Things[i], i);
-        }
         for (int i = 0; i < map.Vertices.Count; i++)
         {
             WriteVertex(sb, map.Vertices[i], i);
@@ -53,6 +49,10 @@ public static class UdmfMapWriter
         for (int i = 0; i < map.Sectors.Count; i++)
         {
             WriteSector(sb, map.Sectors[i], i);
+        }
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            WriteThing(sb, map.Things[i], i);
         }
 
         return sb.ToString();

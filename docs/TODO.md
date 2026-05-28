@@ -114,6 +114,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
   - [x] Materialize UDMF sidedefs from valid linedef references instead of as standalone orphans.
 - [ ] Complete UDMF map writer parity.
+  - [x] Emit UDMF element blocks in UDB order.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.
