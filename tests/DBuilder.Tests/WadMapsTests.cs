@@ -242,6 +242,39 @@ maplumpnames
     }
 
     [Fact]
+    public void RenameMapRenamesValidatedMarkerOnly()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[] { 9 }, 0);
+        WriteLump(wad, "TITLEPIC", new byte[] { 8 }, 1);
+        WriteLump(wad, "MAP01", new byte[0], 2);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 3);
+        WriteLump(wad, "LINEDEFS", new byte[] { 2 }, 4);
+        wad.WriteHeaders();
+
+        Assert.True(WadMaps.RenameMap(wad, "MAP01", "MAP02"));
+
+        Assert.Equal(new[] { "MAP01", "TITLEPIC", "MAP02", "THINGS", "LINEDEFS" }, wad.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(new byte[] { 1 }, WadMaps.ReadMapLump(wad, "MAP02", "THINGS"));
+        Assert.Null(WadMaps.ReadMapLump(wad, "MAP01", "THINGS"));
+    }
+
+    [Fact]
+    public void RenameMapRefusesExistingTargetMap()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(wad, "MAP02", new byte[0], 2);
+        WriteLump(wad, "THINGS", new byte[] { 2 }, 3);
+        wad.WriteHeaders();
+
+        Assert.False(WadMaps.RenameMap(wad, "MAP01", "MAP02"));
+
+        Assert.Equal(new[] { "MAP01", "THINGS", "MAP02", "THINGS" }, wad.Lumps.Select(l => l.Name).ToArray());
+    }
+
+    [Fact]
     public void LoadsUdmfTextmapAfterValidatedMarker()
     {
         using var wad = new WAD(new MemoryStream());

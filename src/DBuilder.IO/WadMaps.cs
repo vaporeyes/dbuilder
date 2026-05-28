@@ -228,6 +228,21 @@ public static class WadMaps
     }
 
     /// <summary>
+    /// Renames a validated map marker without touching non-map lumps that happen to share the same name.
+    /// The rename is refused when the target marker already exists as a map block.
+    /// </summary>
+    public static bool RenameMap(WAD wad, string oldMarker, string newMarker)
+    {
+        int oldHeaderIndex = FindMapHeaderIndex(wad, oldMarker);
+        if (oldHeaderIndex < 0) return false;
+        if (oldMarker == newMarker) return true;
+        if (FindMapHeaderIndex(wad, newMarker) >= 0) return false;
+
+        wad.Lumps[oldHeaderIndex].Rename(newMarker);
+        return true;
+    }
+
+    /// <summary>
     /// Finds a configured map lump inside one map block. The scan stops at the first lump that is not
     /// known by the supplied map-lump table, matching UDB's save/copy boundary behavior.
     /// </summary>

@@ -128,6 +128,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Avoid replacing non-map lumps that share the target map name.
   - [x] Remove duplicate target map blocks before writing replacements.
   - [x] Create missing required config map lumps during save.
+  - [x] Add collision-safe map marker renaming.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 
 ## Resource And Data Management
