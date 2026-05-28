@@ -105,6 +105,7 @@ public sealed class UniversalTypeRegistry
             UniversalType.Boolean when info.Index >= 0 => new BooleanTypeHandler(info, defaultValue, isForArgument),
             UniversalType.EnumOption when info.Index >= 0 => new EnumOptionTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.EnumBits when info.Index >= 0 => new EnumBitsTypeHandler(info, defaultValue, isForArgument, enumList),
+            UniversalType.EnumStrings when info.Index >= 0 => new EnumStringsTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.RandomInteger when info.Index >= 0 => new RandomIntegerTypeHandler(info, defaultValue, isForArgument),
             UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             _ => new NullTypeHandler(info, defaultValue, isForArgument),

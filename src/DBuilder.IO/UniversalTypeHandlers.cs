@@ -265,6 +265,65 @@ public sealed class EnumBitsTypeHandler : UniversalTypeHandler
     }
 }
 
+public sealed class EnumStringsTypeHandler : UniversalTypeHandler
+{
+    private EnumListInfo values = new("");
+    private EnumItemInfo value = new("", "");
+
+    public EnumStringsTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+        this.values = values ?? new EnumListInfo("");
+        SetValue(DefaultValue);
+    }
+
+    public override bool IsBrowseable => true;
+    public override bool IsEnumerable => true;
+    public EnumListInfo Values => values;
+
+    public override void SetValue(object? value)
+    {
+        if (value == null)
+        {
+            this.value = new EnumItemInfo("", "");
+            return;
+        }
+
+        string text = value.ToString() ?? "";
+        foreach (EnumItemInfo item in values.Items)
+        {
+            if (item.Value == text)
+            {
+                this.value = item;
+                return;
+            }
+        }
+
+        foreach (EnumItemInfo item in values.Items)
+        {
+            if (string.Equals(item.Title, text, StringComparison.OrdinalIgnoreCase))
+            {
+                this.value = item;
+                return;
+            }
+        }
+
+        this.value = new EnumItemInfo(text, text);
+    }
+
+    public override object GetValue() => value.Value;
+
+    public override int GetIntValue() => value.GetIntValue();
+
+    public override string GetStringValue() => value.Title;
+
+    protected override object CoerceDefault(object? value) => value?.ToString() ?? "0";
+}
+
 public sealed class RandomIntegerTypeHandler : UniversalTypeHandler
 {
     private int value;

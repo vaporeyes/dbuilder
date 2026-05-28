@@ -179,6 +179,52 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void EnumStringsHandlerMatchesStringValuesAndTitlesLikeUdb()
+    {
+        var values = GameConfiguration.FromText("""
+            enums
+            {
+                renderstyles
+                {
+                    Normal = "Normal";
+                    Translucent = "Translucent";
+                    Add = "Additive";
+                    5 = "Numeric";
+                }
+            }
+            """).GetEnumList("renderstyles")!;
+        var handler = (EnumStringsTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.EnumStrings, defaultValue: "Add", enumList: values);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.True(handler.IsEnumerable);
+        Assert.Equal((int)UniversalType.EnumStrings, handler.Index);
+        Assert.Equal("Add", handler.GetValue());
+        Assert.Equal("Additive", handler.GetStringValue());
+        Assert.Same(values, handler.Values);
+
+        handler.SetValue("Translucent");
+        Assert.Equal("Translucent", handler.GetValue());
+        Assert.Equal("Translucent", handler.GetStringValue());
+
+        handler.SetValue("normal");
+        Assert.Equal("Normal", handler.GetValue());
+        Assert.Equal("Normal", handler.GetStringValue());
+
+        handler.SetValue("5");
+        Assert.Equal("5", handler.GetValue());
+        Assert.Equal(5, handler.GetIntValue());
+
+        handler.SetValue("Unknown");
+        Assert.Equal("Unknown", handler.GetValue());
+        Assert.Equal("Unknown", handler.GetStringValue());
+
+        handler.SetValue(null);
+        Assert.Equal("", handler.GetValue());
+        Assert.Equal("", handler.GetStringValue());
+    }
+
+    [Fact]
     public void RegistryCreatesPrimitiveHandlersForArgsAndUniversalFields()
     {
         var registry = new UniversalTypeRegistry();
@@ -221,6 +267,11 @@ public class UniversalTypeHandlersTests
                     1 = "Silent";
                     2 = "Fog";
                 }
+                renderstyles
+                {
+                    Normal = "Normal";
+                    Add = "Additive";
+                }
             }
             linedeftypes
             {
@@ -242,6 +293,13 @@ public class UniversalTypeHandlersTests
                             type = 12;
                             enum = "flags";
                             default = 3;
+                        }
+                        arg2
+                        {
+                            title = "Render style";
+                            type = 16;
+                            enum = "renderstyles";
+                            default = "Add";
                         }
                     }
                 }
@@ -272,6 +330,10 @@ public class UniversalTypeHandlersTests
         var bitsHandler = (EnumBitsTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[1]);
         Assert.Equal(3, bitsHandler.GetValue());
         Assert.Equal("Fog", bitsHandler.Values.GetByEnumIndex("2")!.Title);
+
+        var stringsHandler = (EnumStringsTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[2]);
+        Assert.Equal("Add", stringsHandler.GetValue());
+        Assert.Equal("Additive", stringsHandler.GetStringValue());
 
         var field = config.UniversalFields["thing"]["attitude"];
         var fieldHandler = (EnumOptionTypeHandler)config.CreateFieldHandler(field);
