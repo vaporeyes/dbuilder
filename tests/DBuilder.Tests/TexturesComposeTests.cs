@@ -9,6 +9,53 @@ namespace DBuilder.Tests;
 
 public class TexturesComposeTests
 {
+    private static byte[] FixedAscii(string s, int len)
+    {
+        var b = new byte[len];
+        var raw = Encoding.ASCII.GetBytes(s);
+        Array.Copy(raw, b, Math.Min(raw.Length, len));
+        return b;
+    }
+
+    private static byte[] BuildPnames(params string[] names)
+    {
+        var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true))
+        {
+            writer.Write((uint)names.Length);
+            foreach (string name in names) writer.Write(FixedAscii(name, 8));
+        }
+        return ms.ToArray();
+    }
+
+    private static byte[] BuildClassicTexture1(string textureName, int width, int height, params (int X, int Y, ushort PatchIndex)[] patches)
+    {
+        var ms = new MemoryStream();
+        using (var writer = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true))
+        {
+            writer.Write((uint)1);
+            writer.Write((uint)8);
+            writer.Write(FixedAscii(textureName, 8));
+            writer.Write((ushort)0);
+            writer.Write((byte)0);
+            writer.Write((byte)0);
+            writer.Write((short)width);
+            writer.Write((short)height);
+            writer.Write((short)0);
+            writer.Write((short)0);
+            writer.Write((short)patches.Length);
+            foreach (var patch in patches)
+            {
+                writer.Write((short)patch.X);
+                writer.Write((short)patch.Y);
+                writer.Write(patch.PatchIndex);
+                writer.Write((short)0);
+                writer.Write((short)0);
+            }
+        }
+        return ms.ToArray();
+    }
+
     [Fact]
     public void ComposesWallTextureFromPatches()
     {
@@ -38,6 +85,32 @@ public class TexturesComposeTests
             Assert.Equal(new byte[] { 200, 0, 0, 255 }, tex.Rgba[4..8]);          // (1,0)
             Assert.Equal(new byte[] { 0, 0, 200, 255 }, tex.Rgba[8..12]);         // (2,0)
             Assert.Equal(new byte[] { 0, 0, 200, 255 }, tex.Rgba[12..16]);        // (3,0)
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void ComposesClassicTexture1FromPk3RootFiles()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("PNAMES", BuildPnames("REDPAT", "BLUPAT")),
+            ("TEXTURE1", BuildClassicTexture1("OLDWALL", 2, 1, (0, 0, 0), (1, 0, 1))),
+            ("patches/REDPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 180, 0, 0, 255))),
+            ("patches/BLUPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 180, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var texture = rm.GetWallTexture("OLDWALL");
+
+            Assert.NotNull(texture);
+            Assert.Equal(2, texture!.Width);
+            Assert.Equal(1, texture.Height);
+            Assert.Equal(new byte[] { 180, 0, 0, 255 }, texture.Rgba[0..4]);
+            Assert.Equal(new byte[] { 0, 0, 180, 255 }, texture.Rgba[4..8]);
+            Assert.Contains("OLDWALL", rm.GetTextureNames());
         }
         finally { File.Delete(pk3); }
     }

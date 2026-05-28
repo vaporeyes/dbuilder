@@ -203,6 +203,8 @@ internal abstract class FolderResourceReader : IResourceReader
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Func<byte[]>> files = new(StringComparer.OrdinalIgnoreCase);
     protected readonly List<IResourceReader> nestedReaders = new();
+    private Dictionary<string, DoomTextureDef>? classicTextureDefs;
+    private DoomPatchNames? classicPatchNames;
 
     protected FolderResourceReader(string displayName)
     {
@@ -256,6 +258,9 @@ internal abstract class FolderResourceReader : IResourceReader
     public virtual ImageData? GetWallTexture(string name, DoomPalette? palette)
     {
         var image = Decode(Find(name, "hires", "textures", "patches"), palette, preferFlat: false);
+        if (image != null) return image;
+
+        image = ComposeClassicTexture(name, palette);
         if (image != null) return image;
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -363,6 +368,7 @@ internal abstract class FolderResourceReader : IResourceReader
     public virtual IEnumerable<string> TextureNames()
     {
         foreach (var name in NamesInFolder("textures/")) yield return name;
+        foreach (var name in ClassicTextureDefs().Keys) yield return name;
         foreach (var reader in nestedReaders)
             foreach (var name in reader.TextureNames())
                 yield return name;
@@ -452,6 +458,78 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var f in folders)
             if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var read)) return read();
         return null;
+    }
+
+    private ImageData? ComposeClassicTexture(string name, DoomPalette? palette)
+    {
+        if (!ClassicTextureDefs().TryGetValue(name, out var def)) return null;
+        if (def.Width <= 0 || def.Height <= 0 || def.Patches.Count == 0) return null;
+
+        var canvas = new byte[def.Width * def.Height * 4];
+        bool anyPatched = false;
+        var pnames = ClassicPatchNames();
+
+        foreach (var patch in def.Patches)
+        {
+            if (patch.PatchIndex < 0 || patch.PatchIndex >= pnames.Length) continue;
+            string patchName = pnames[patch.PatchIndex];
+            if (string.IsNullOrEmpty(patchName)) continue;
+
+            var image = GetPatch(patchName, palette);
+            if (image == null) continue;
+
+            BlitOpaque(canvas, def.Width, def.Height, image, patch.OriginX, patch.OriginY);
+            anyPatched = true;
+        }
+
+        return anyPatched ? new ImageData(def.Width, def.Height, canvas) : null;
+    }
+
+    private Dictionary<string, DoomTextureDef> ClassicTextureDefs()
+    {
+        if (classicTextureDefs != null) return classicTextureDefs;
+
+        classicTextureDefs = new Dictionary<string, DoomTextureDef>(StringComparer.OrdinalIgnoreCase);
+        foreach (string lumpName in new[] { "TEXTURE1", "TEXTURE2" })
+        {
+            var bytes = Find(lumpName, "");
+            if (bytes == null) continue;
+            foreach (var def in DoomTextureListReader.Parse(bytes))
+                classicTextureDefs[def.Name] = def;
+        }
+        return classicTextureDefs;
+    }
+
+    private DoomPatchNames ClassicPatchNames()
+    {
+        if (classicPatchNames != null) return classicPatchNames;
+        var bytes = Find("PNAMES", "");
+        classicPatchNames = bytes != null ? DoomPatchNames.FromBytes(bytes) : DoomPatchNames.Empty;
+        return classicPatchNames;
+    }
+
+    private static void BlitOpaque(byte[] dst, int dstWidth, int dstHeight, ImageData src, int dstX, int dstY)
+    {
+        for (int sy = 0; sy < src.Height; sy++)
+        {
+            int y = dstY + sy;
+            if (y < 0 || y >= dstHeight) continue;
+
+            for (int sx = 0; sx < src.Width; sx++)
+            {
+                int x = dstX + sx;
+                if (x < 0 || x >= dstWidth) continue;
+
+                int si = (sy * src.Width + sx) * 4;
+                if (src.Rgba[si + 3] == 0) continue;
+
+                int di = (y * dstWidth + x) * 4;
+                dst[di] = src.Rgba[si];
+                dst[di + 1] = src.Rgba[si + 1];
+                dst[di + 2] = src.Rgba[si + 2];
+                dst[di + 3] = src.Rgba[si + 3];
+            }
+        }
     }
 
     private IEnumerable<string> LocalTextLumps(string name, bool partialTitleMatch)
