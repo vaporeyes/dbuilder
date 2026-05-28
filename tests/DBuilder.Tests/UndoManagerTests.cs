@@ -85,6 +85,7 @@ public class UndoManagerTests
     {
         var map = BuildMap();
         map.Fields["author"] = "tester";
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("editorstate", new List<UnknownUdmfEntry> { new("view", "2d") }));
         map.Sectors[0].Fields["lightcolor"] = 16711680;
         map.Sectors[0].Tags.Add(9); // now [7, 9]
         map.Vertices[0].Groups = MapSet.GroupMask(1);
@@ -96,6 +97,7 @@ public class UndoManagerTests
         undo.CreateUndo("edit");
         map.Namespace = "ZDoom";
         map.Fields.Clear();
+        map.UnknownUdmfData.Clear();
         map.Sectors[0].Fields.Clear();
         map.Sectors[0].Tags.Clear();
         map.Vertices[0].Groups = 0;
@@ -106,6 +108,8 @@ public class UndoManagerTests
 
         Assert.Equal("Doom", map.Namespace);
         Assert.Equal("tester", map.Fields["author"]);
+        Assert.Equal("editorstate", map.UnknownUdmfData[0].Key);
+        Assert.Equal("2d", map.UnknownUdmfData[0].Children[0].Value);
         Assert.Equal(16711680, (int)map.Sectors[0].Fields["lightcolor"]);
         Assert.Equal(new[] { 7, 9 }, map.Sectors[0].Tags);
         Assert.Equal(MapSet.GroupMask(1), map.Vertices[0].Groups);

@@ -28,6 +28,7 @@ public static class UdmfMapWriter
         var sb = new StringBuilder();
         if (writeNamespace != null) WriteAssignment(sb, "namespace", writeNamespace);
         WriteCustomFields(sb, map.Fields, indent: false);
+        WriteUnknownUdmfData(sb, map.UnknownUdmfData, indentLevel: 0);
         sb.AppendLine();
 
         var vertexIndex  = BuildIndex(map.Vertices);
@@ -234,6 +235,71 @@ public static class UdmfMapWriter
         }
     }
 
+    private static void WriteUnknownUdmfData(StringBuilder sb, IReadOnlyList<UnknownUdmfEntry> entries, int indentLevel)
+    {
+        foreach (var entry in entries)
+        {
+            if (entry.IsCollection)
+            {
+                AppendIndent(sb, indentLevel);
+                sb.Append(entry.Key).AppendLine();
+                AppendIndent(sb, indentLevel);
+                sb.AppendLine("{");
+                WriteUnknownUdmfData(sb, entry.Children, indentLevel + 1);
+                AppendIndent(sb, indentLevel);
+                sb.AppendLine("}");
+            }
+            else
+            {
+                WriteUnknownAssignment(sb, entry, indentLevel);
+            }
+        }
+    }
+
+    private static void WriteUnknownAssignment(StringBuilder sb, UnknownUdmfEntry entry, int indentLevel)
+    {
+        AppendIndent(sb, indentLevel);
+        sb.Append(entry.Key).Append(" = ");
+        switch (entry.Value)
+        {
+            case bool b:
+                sb.Append(b ? "true" : "false");
+                break;
+            case int i:
+                sb.Append(i.ToString(CultureInfo.InvariantCulture));
+                break;
+            case long l:
+                sb.Append(l.ToString(CultureInfo.InvariantCulture));
+                break;
+            case double d:
+                sb.Append(FormatDouble(d));
+                break;
+            case float f:
+                sb.Append(FormatDouble(f));
+                break;
+            case string s:
+                sb.Append('"').Append(EscapeString(s)).Append('"');
+                break;
+            default:
+                sb.Append('"').Append(EscapeString(entry.Value.ToString() ?? "")).Append('"');
+                break;
+        }
+        sb.AppendLine(";");
+    }
+
+    private static void AppendIndent(StringBuilder sb, int indentLevel)
+    {
+        for (int i = 0; i < indentLevel; i++) sb.Append('\t');
+    }
+
+    private static string FormatDouble(double value)
+    {
+        string formatted = value.ToString("R", CultureInfo.InvariantCulture);
+        if (formatted.IndexOf('.') < 0 && formatted.IndexOf('e') < 0 && formatted.IndexOf('E') < 0)
+            formatted += ".0";
+        return formatted;
+    }
+
     private static void WriteAssignment(StringBuilder sb, string key, string value, bool indent = false)
     {
         if (indent) sb.Append('\t');
@@ -251,10 +317,7 @@ public static class UdmfMapWriter
     private static void WriteAssignment(StringBuilder sb, string key, double value, bool indent = false)
     {
         if (indent) sb.Append('\t');
-        string formatted = value.ToString("R", CultureInfo.InvariantCulture);
-        // UniversalParser distinguishes float from int by the decimal point; force one when missing.
-        if (formatted.IndexOf('.') < 0 && formatted.IndexOf('e') < 0 && formatted.IndexOf('E') < 0)
-            formatted += ".0";
+        string formatted = FormatDouble(value);
         sb.Append(key).Append(" = ").Append(formatted).Append(';');
         sb.AppendLine();
     }

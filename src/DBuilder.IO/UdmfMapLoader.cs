@@ -64,7 +64,7 @@ public static class UdmfMapLoader
                     thingEntries.Add(t);
                     break;
                 default:
-                    CollectMapField(map, entry);
+                    CollectUnknownMapData(map, entry);
                     break;
             }
         }
@@ -255,6 +255,31 @@ public static class UdmfMapLoader
             case string s: map.Fields[entry.Key] = s; break;
         }
     }
+
+    private static void CollectUnknownMapData(MapSet map, UniversalEntry entry)
+    {
+        if (entry.Value is UniversalCollection collection)
+            map.UnknownUdmfData.Add(ConvertUnknownEntry(entry.Key, collection));
+        else
+            CollectMapField(map, entry);
+    }
+
+    private static UnknownUdmfEntry ConvertUnknownEntry(string key, UniversalCollection collection)
+    {
+        var children = new List<UnknownUdmfEntry>();
+        foreach (var entry in collection)
+        {
+            if (entry.Value is UniversalCollection childCollection)
+                children.Add(ConvertUnknownEntry(entry.Key, childCollection));
+            else if (IsSupportedUnknownValue(entry.Value))
+                children.Add(new UnknownUdmfEntry(entry.Key, entry.Value));
+        }
+
+        return new UnknownUdmfEntry(key, children);
+    }
+
+    private static bool IsSupportedUnknownValue(object value)
+        => value is bool or int or long or double or float or string;
 
     // Keys handled by typed properties on each element. Anything else (and not a bool flag) is
     // preserved verbatim in the element's Fields dictionary so custom UDMF data survives round trip.

@@ -94,6 +94,7 @@ public sealed class UndoManager
         {
             Namespace = map.Namespace,
             Fields = CopyFields(map.Fields),
+            UnknownUdmfData = CopyUnknownUdmfData(map.UnknownUdmfData),
         };
     }
 
@@ -105,8 +106,10 @@ public sealed class UndoManager
         map.Sectors.Clear();
         map.Things.Clear();
         map.Fields.Clear();
+        map.UnknownUdmfData.Clear();
         map.Namespace = snap.Namespace;
         foreach (var kv in snap.Fields) map.Fields[kv.Key] = kv.Value;
+        foreach (var entry in snap.UnknownUdmfData) map.UnknownUdmfData.Add(entry.Clone());
         using var ms = new MemoryStream(snap.Data);
         ClipboardStreamReader.Read(map, ms); // appends into the now-empty map and rebuilds indexes
     }
@@ -118,12 +121,16 @@ public sealed class UndoManager
         return copy;
     }
 
+    private static List<UnknownUdmfEntry> CopyUnknownUdmfData(List<UnknownUdmfEntry> entries)
+        => entries.Select(entry => entry.Clone()).ToList();
+
     private sealed class Snapshot
     {
         public string Description { get; }
         public byte[] Data { get; }
         public string Namespace { get; init; } = "";
         public Dictionary<string, object> Fields { get; init; } = new(StringComparer.Ordinal);
+        public List<UnknownUdmfEntry> UnknownUdmfData { get; init; } = new();
 
         public Snapshot(string description, byte[] data)
         {

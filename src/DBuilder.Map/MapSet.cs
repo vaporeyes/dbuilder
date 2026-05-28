@@ -21,6 +21,9 @@ public class MapSet : IDisposable
     /// <summary>Top-level custom UDMF map metadata fields preserved across load/write and editor snapshots.</summary>
     public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Top-level UDMF blocks that are not part of the core map element set.</summary>
+    public List<UnknownUdmfEntry> UnknownUdmfData { get; } = new();
+
     /// <summary>
     /// Populates the topology back-references used by Triangulation: Vertex.Linedefs, Sidedef.Other,
     /// Sector.Sidedefs. Call this once after loading; idempotent (clears existing entries first).
@@ -110,6 +113,7 @@ public class MapSet : IDisposable
         Linedefs.Clear();
         Vertices.Clear();
         Fields.Clear();
+        UnknownUdmfData.Clear();
         Namespace = "";
         IsDisposed = true;
     }
@@ -119,6 +123,7 @@ public class MapSet : IDisposable
     {
         var clone = new MapSet { Namespace = Namespace };
         foreach (var kv in Fields) clone.Fields[kv.Key] = kv.Value;
+        foreach (var entry in UnknownUdmfData) clone.UnknownUdmfData.Add(entry.Clone());
         var vertexMap = new Dictionary<Vertex, Vertex>(ReferenceEqualityComparer.Instance);
         var sectorMap = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
         var linedefMap = new Dictionary<Linedef, Linedef>(ReferenceEqualityComparer.Instance);

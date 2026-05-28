@@ -113,6 +113,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
   - [x] Materialize UDMF sidedefs from valid linedef references instead of as standalone orphans.
+  - [x] Preserve unknown top-level UDMF collections through load, clone, undo, and write.
 - [ ] Complete UDMF map writer parity.
   - [x] Emit UDMF element blocks in UDB order.
 - [ ] Port universal map stream reader behavior.

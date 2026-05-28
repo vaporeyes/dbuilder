@@ -508,6 +508,48 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void UnknownTopLevelCollectionsRoundTrip()
+    {
+        const string udmf = """
+            namespace = "ZDoom";
+            editorstate
+            {
+                collapsed = true;
+                label = "kept";
+                nested
+                {
+                    value = 7;
+                }
+            }
+            vertex { x = 0.0; y = 0.0; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        var state = Assert.Single(map.UnknownUdmfData);
+        Assert.Equal("editorstate", state.Key);
+        Assert.Equal(3, state.Children.Count);
+        Assert.Equal("collapsed", state.Children[0].Key);
+        Assert.True((bool)state.Children[0].Value);
+        Assert.Equal("label", state.Children[1].Key);
+        Assert.Equal("kept", state.Children[1].Value);
+        Assert.Equal("nested", state.Children[2].Key);
+        Assert.Equal(7, state.Children[2].Children[0].Value);
+
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("editorstate", written);
+        Assert.Contains("label = \"kept\";", written);
+        Assert.True(written.IndexOf("editorstate", StringComparison.Ordinal) < written.IndexOf("vertex // 0", StringComparison.Ordinal));
+
+        var reloaded = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        var reloadedState = Assert.Single(reloaded.UnknownUdmfData);
+        Assert.Equal("editorstate", reloadedState.Key);
+        Assert.Equal("nested", reloadedState.Children[2].Key);
+        Assert.Equal(7, reloadedState.Children[2].Children[0].Value);
+    }
+
+    [Fact]
     public void UdmfArgsLoadIntoTypedArray()
     {
         const string udmf = """
