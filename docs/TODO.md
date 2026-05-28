@@ -269,7 +269,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port random integer and random float handlers.
 - [x] Port string handler.
 - [x] Port enum option handler.
-- [ ] Port enum bits handler.
+- [x] Port enum bits handler.
 - [ ] Port enum strings handler.
 - [ ] Port texture and flat handlers.
 - [ ] Port color handler.

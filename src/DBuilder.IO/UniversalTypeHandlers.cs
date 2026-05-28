@@ -228,6 +228,43 @@ public sealed class EnumOptionTypeHandler : UniversalTypeHandler
         => value?.ToString() ?? "0";
 }
 
+public sealed class EnumBitsTypeHandler : UniversalTypeHandler
+{
+    private readonly EnumListInfo values;
+    private int value;
+
+    public EnumBitsTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+        this.values = values ?? new EnumListInfo("");
+        SetValue(DefaultValue);
+    }
+
+    public override bool IsBrowseable => true;
+    public EnumListInfo Values => values;
+
+    public override void SetValue(object? value) => this.value = ToInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToInt(value);
+
+    private static int ToInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
 public sealed class RandomIntegerTypeHandler : UniversalTypeHandler
 {
     private int value;

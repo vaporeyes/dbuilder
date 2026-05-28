@@ -141,6 +141,44 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void EnumBitsHandlerCoercesIntegerValuesLikeUdb()
+    {
+        var values = GameConfiguration.FromText("""
+            enums
+            {
+                flags
+                {
+                    1 = "One";
+                    2 = "Two";
+                    4 = "Four";
+                }
+            }
+            """).GetEnumList("flags")!;
+        var handler = (EnumBitsTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.EnumBits, defaultValue: 3, enumList: values);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.False(handler.IsEnumerable);
+        Assert.Equal((int)UniversalType.EnumBits, handler.Index);
+        Assert.Equal(3, handler.DefaultValue);
+        Assert.Equal(3, handler.GetValue());
+        Assert.Same(values, handler.Values);
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetIntValue());
+
+        handler.SetValue("5");
+        Assert.Equal(5, handler.GetValue());
+        Assert.Equal("5", handler.GetStringValue());
+
+        handler.SetValue("not bits");
+        Assert.Equal(0, handler.GetValue());
+
+        handler.ApplyDefaultValue();
+        Assert.Equal(3, handler.GetValue());
+    }
+
+    [Fact]
     public void RegistryCreatesPrimitiveHandlersForArgsAndUniversalFields()
     {
         var registry = new UniversalTypeRegistry();
@@ -168,7 +206,7 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
-    public void GameConfigurationCreatesEnumOptionHandlersFromArgAndFieldMetadata()
+    public void GameConfigurationCreatesEnumHandlersFromArgAndFieldMetadata()
     {
         const string cfg = """
             enums
@@ -177,6 +215,11 @@ public class UniversalTypeHandlersTests
                 {
                     0 = "Slow";
                     16 = "Normal";
+                }
+                flags
+                {
+                    1 = "Silent";
+                    2 = "Fog";
                 }
             }
             linedeftypes
@@ -192,6 +235,13 @@ public class UniversalTypeHandlersTests
                             type = 11;
                             enum = "speeds";
                             default = 16;
+                        }
+                        arg1
+                        {
+                            title = "Flags";
+                            type = 12;
+                            enum = "flags";
+                            default = 3;
                         }
                     }
                 }
@@ -218,6 +268,10 @@ public class UniversalTypeHandlersTests
         var argHandler = (EnumOptionTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[0]);
         Assert.Equal(16, argHandler.GetValue());
         Assert.Equal("Normal", argHandler.GetStringValue());
+
+        var bitsHandler = (EnumBitsTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[1]);
+        Assert.Equal(3, bitsHandler.GetValue());
+        Assert.Equal("Fog", bitsHandler.Values.GetByEnumIndex("2")!.Title);
 
         var field = config.UniversalFields["thing"]["attitude"];
         var fieldHandler = (EnumOptionTypeHandler)config.CreateFieldHandler(field);
