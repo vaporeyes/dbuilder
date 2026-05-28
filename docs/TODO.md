@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
+  - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.

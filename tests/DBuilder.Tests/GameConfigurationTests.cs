@@ -116,6 +116,35 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesEditorBehaviorSettings()
+    {
+        const string cfg = """
+            scaledtextureoffsets = false;
+            formatinterface = "DoomMapSetIO";
+            defaultlinedefactivation = "playercross";
+            generalizedlinedefs = true;
+            generalizedsectors = true;
+            start3dmode = 32000;
+            linedefactivationsfilter = 7;
+            visplaneexplorer
+            {
+                viewheightdefault = 64;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.False(gc.ScaledTextureOffsets);
+        Assert.Equal("DoomMapSetIO", gc.FormatInterface);
+        Assert.Equal("playercross", gc.DefaultLinedefActivationFlag);
+        Assert.True(gc.GeneralizedActions);
+        Assert.True(gc.GeneralizedEffects);
+        Assert.Equal(32000, gc.Start3DModeThingType);
+        Assert.Equal(7, gc.LinedefActivationsFilter);
+        Assert.Equal(64, gc.VisplaneViewHeightDefault);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """

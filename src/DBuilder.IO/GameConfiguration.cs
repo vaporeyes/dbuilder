@@ -312,6 +312,14 @@ public sealed class GameConfiguration
     public string NodeBuilderSave { get; private set; } = "";
     public string NodeBuilderTest { get; private set; } = "";
     public string MapNameFormat { get; private set; } = "";
+    public bool ScaledTextureOffsets { get; private set; } = true;
+    public string FormatInterface { get; private set; } = "";
+    public string DefaultLinedefActivationFlag { get; private set; } = "";
+    public bool GeneralizedActions { get; private set; }
+    public bool GeneralizedEffects { get; private set; }
+    public int Start3DModeThingType { get; private set; }
+    public int LinedefActivationsFilter { get; private set; }
+    public int VisplaneViewHeightDefault { get; private set; } = 41;
     public double DefaultTextureScale { get; private set; } = 1.0;
     public double DefaultFlatScale { get; private set; } = 1.0;
     public string DefaultWallTexture { get; private set; } = "STARTAN";
@@ -362,6 +370,15 @@ public sealed class GameConfiguration
             gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
             gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
             gc.MapNameFormat = GetString(root, "mapnameformat", "");
+            gc.ScaledTextureOffsets = GetBool(root, "scaledtextureoffsets", true);
+            gc.FormatInterface = GetString(root, "formatinterface", "");
+            gc.DefaultLinedefActivationFlag = GetString(root, "defaultlinedefactivation", "");
+            gc.GeneralizedActions = GetBool(root, "generalizedlinedefs", false);
+            gc.GeneralizedEffects = GetBool(root, "generalizedsectors", false);
+            gc.Start3DModeThingType = GetInt(root, "start3dmode", 0);
+            gc.LinedefActivationsFilter = GetInt(root, "linedefactivationsfilter", 0);
+            if (root["visplaneexplorer"] is IDictionary visplane)
+                gc.VisplaneViewHeightDefault = GetInt(visplane, "viewheightdefault", 41);
             gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);
             gc.DefaultFlatScale = GetDouble(root, "defaultflatscale", 1.0);
             gc.DefaultWallTexture = GetString(root, "defaultwalltexture", "STARTAN");
