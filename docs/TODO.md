@@ -293,6 +293,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
 - [ ] Port things filter behavior fully.
+  - [x] Add UI-independent things filter evaluator.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.
 - [ ] Port snapping behavior fully.
