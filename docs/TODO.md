@@ -167,6 +167,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port palette and colormap behavior fully.
   - [x] Resolve the active main `COLORMAP` through the resource stack.
   - [x] Resolve named colormap resources from WAD lumps and PK3 `colormaps/` folders.
+  - [x] Include folder colormap resources in texture name enumeration.
 - [ ] Port patch name behavior fully.
 - [ ] Port wall texture composition fully.
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.

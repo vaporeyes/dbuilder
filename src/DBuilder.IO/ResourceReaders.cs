@@ -28,6 +28,8 @@ internal interface IResourceReader : IDisposable
     byte[]? GetLumpBytes(string name);
     /// <summary>Raw colormap bytes by name, or null when this resource does not provide the colormap.</summary>
     byte[]? GetColormapBytes(string name);
+    /// <summary>Names of colormap images this resource provides.</summary>
+    IEnumerable<string> ColormapNames();
     /// <summary>Names of the wall textures this resource provides (for the texture browser).</summary>
     IEnumerable<string> TextureNames();
     /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
@@ -115,6 +117,8 @@ internal sealed class WadResourceReader : IResourceReader
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public byte[]? GetColormapBytes(string name) => GetLumpBytes(name);
+
+    public IEnumerable<string> ColormapNames() => Array.Empty<string>();
 
     public IEnumerable<string> TextureNames() => TexDefs().Keys;
 
@@ -342,6 +346,14 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var name in NamesInFolder("textures/")) yield return name;
         foreach (var reader in nestedReaders)
             foreach (var name in reader.TextureNames())
+                yield return name;
+    }
+
+    public virtual IEnumerable<string> ColormapNames()
+    {
+        foreach (var name in NamesInFolder("colormaps/")) yield return name;
+        foreach (var reader in nestedReaders)
+            foreach (var name in reader.ColormapNames())
                 yield return name;
     }
 

@@ -734,8 +734,8 @@ public sealed class ResourceManager : IDisposable
         catch { return false; }
     }
 
-    /// <summary>All wall-texture names across resources (incl. TEXTURES defs), sorted and de-duplicated.</summary>
-    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames(), wallDefs, includeCameraTextures: true);
+    /// <summary>All wall-texture names across resources (incl. TEXTURES defs and colormap images), sorted and de-duplicated.</summary>
+    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames().Concat(r.ColormapNames()), wallDefs, includeCameraTextures: true);
 
     /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
     public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true);
@@ -748,6 +748,7 @@ public sealed class ResourceManager : IDisposable
         {
             var reader = readers[readerIndex];
             var textures = new List<string>(reader.TextureNames());
+            textures.AddRange(reader.ColormapNames());
             var flats = new List<string>(reader.FlatNames());
             foreach (var def in wallDefs)
                 if (def.Value.ResourceIndex == readerIndex) textures.Add(def.Key);

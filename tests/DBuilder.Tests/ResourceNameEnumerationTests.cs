@@ -77,4 +77,21 @@ public class ResourceNameEnumerationTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void ColormapFolderNamesAreTextureNames()
+    {
+        string pk3 = TestArtifacts.BuildPk3(("colormaps/FOGMAP.lmp", new byte[DoomColormap.LevelSize]));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Contains("FOGMAP", rm.GetTextureNames());
+            var set = Assert.Single(rm.GetResourceTextureSets());
+            Assert.True(set.TextureExists("FOGMAP"));
+        }
+        finally { File.Delete(pk3); }
+    }
 }
