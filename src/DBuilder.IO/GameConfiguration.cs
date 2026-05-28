@@ -280,6 +280,8 @@ public sealed class GameConfiguration
     private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
     private readonly Dictionary<string, string> defaultSkyTextures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, bool> makeDoorFlags = new(StringComparer.Ordinal);
+    private readonly List<string> defaultThingFlags = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -320,6 +322,14 @@ public sealed class GameConfiguration
     public int Start3DModeThingType { get; private set; }
     public int LinedefActivationsFilter { get; private set; }
     public int VisplaneViewHeightDefault { get; private set; } = 41;
+    public string MakeDoorTrack { get; private set; } = "-";
+    public string MakeDoorDoor { get; private set; } = "-";
+    public string MakeDoorCeiling { get; private set; } = "-";
+    public int MakeDoorAction { get; private set; }
+    public int MakeDoorActivate { get; private set; }
+    public int[] MakeDoorArgs { get; private set; } = new int[5];
+    public IReadOnlyDictionary<string, bool> MakeDoorFlags => makeDoorFlags;
+    public IReadOnlyList<string> DefaultThingFlags => defaultThingFlags;
     public double DefaultTextureScale { get; private set; } = 1.0;
     public double DefaultFlatScale { get; private set; } = 1.0;
     public string DefaultWallTexture { get; private set; } = "STARTAN";
@@ -379,6 +389,14 @@ public sealed class GameConfiguration
             gc.LinedefActivationsFilter = GetInt(root, "linedefactivationsfilter", 0);
             if (root["visplaneexplorer"] is IDictionary visplane)
                 gc.VisplaneViewHeightDefault = GetInt(visplane, "viewheightdefault", 41);
+            gc.MakeDoorTrack = GetString(root, "makedoortrack", "-");
+            gc.MakeDoorDoor = GetString(root, "makedoordoor", "-");
+            gc.MakeDoorCeiling = GetString(root, "makedoorceil", "-");
+            gc.MakeDoorAction = GetInt(root, "makedooraction", 0);
+            gc.MakeDoorActivate = GetInt(root, "makedooractivate", 0);
+            for (int i = 0; i < gc.MakeDoorArgs.Length; i++)
+                gc.MakeDoorArgs[i] = GetInt(root, "makedoorarg" + i.ToString(CultureInfo.InvariantCulture), 0);
+            if (root["makedoorflags"] is IDictionary mdf) gc.ParseMakeDoorFlags(mdf);
             gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);
             gc.DefaultFlatScale = GetDouble(root, "defaultflatscale", 1.0);
             gc.DefaultWallTexture = GetString(root, "defaultwalltexture", "STARTAN");
@@ -393,6 +411,7 @@ public sealed class GameConfiguration
             if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
             if (root["linedefactivations"] is IDictionary la) gc.ParseLinedefActivations(la);
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
+            if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
             if (root["skills"] is IDictionary sk) gc.ParseFlatIntStrings(sk, gc.skills);
             if (root["gen_linedeftypes"] is IDictionary gl) gc.genLinedefs.AddRange(GeneralizedCategory.ParseBlock(gl));
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectorEffects.AddRange(GeneralizedOption.ParseOptionsBlock(gs));
@@ -1099,6 +1118,28 @@ public sealed class GameConfiguration
                 if (map.Length > 0 && !defaultSkyTextures.ContainsKey(map))
                     defaultSkyTextures[map] = skyTexture;
             }
+        }
+    }
+
+    private void ParseMakeDoorFlags(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string flag = e.Key.ToString() ?? "";
+            if (flag.Length == 0) continue;
+            if (flag[0] == '-')
+                makeDoorFlags[flag.TrimStart('-')] = false;
+            else
+                makeDoorFlags[flag] = true;
+        }
+    }
+
+    private void ParseDefaultThingFlags(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string flag = e.Key.ToString() ?? "";
+            if (flag.Length > 0) defaultThingFlags.Add(flag);
         }
     }
 

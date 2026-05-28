@@ -145,6 +145,48 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesMakeDoorAndDefaultThingFlags()
+    {
+        const string cfg = """
+            makedoortrack = "DOORTRAK";
+            makedoordoor = "BIGDOOR2";
+            makedoorceil = "CEIL5_1";
+            makedooraction = 202;
+            makedooractivate = 1024;
+            makedoorarg0 = 0;
+            makedoorarg1 = 16;
+            makedoorarg2 = 150;
+            makedoorarg3 = 34;
+            makedoorarg4 = 1;
+            makedoorflags
+            {
+                playeruse;
+                repeatspecial;
+                -monsteractivate;
+            }
+            defaultthingflags
+            {
+                1;
+                2;
+                skill1;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("DOORTRAK", gc.MakeDoorTrack);
+        Assert.Equal("BIGDOOR2", gc.MakeDoorDoor);
+        Assert.Equal("CEIL5_1", gc.MakeDoorCeiling);
+        Assert.Equal(202, gc.MakeDoorAction);
+        Assert.Equal(1024, gc.MakeDoorActivate);
+        Assert.Equal(new[] { 0, 16, 150, 34, 1 }, gc.MakeDoorArgs);
+        Assert.True(gc.MakeDoorFlags["playeruse"]);
+        Assert.True(gc.MakeDoorFlags["repeatspecial"]);
+        Assert.False(gc.MakeDoorFlags["monsteractivate"]);
+        Assert.Equal(new[] { "1", "2", "skill1" }, gc.DefaultThingFlags);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """
