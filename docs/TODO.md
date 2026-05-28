@@ -299,6 +299,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
 - [ ] Port snapping behavior fully.
+  - [x] Use UDB-compatible grid setup snap math in the editor.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
 - [ ] Port texture alignment tools.
 - [ ] Port stair builder behavior fully.

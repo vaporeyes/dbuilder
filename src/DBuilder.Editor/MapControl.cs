@@ -2,6 +2,8 @@
 // ABOUTME: Bridges Avalonia's GL context to Silk.NET so RenderDevice/Shader/VertexBuffer work unchanged; supports pan/zoom and click-pick.
 
 using System;
+using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using Avalonia;
 using Avalonia.Input;
@@ -251,8 +253,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
-    // Grid: power-of-two world-unit spacing, rendered behind geometry; snap aligns draws/moves to it.
-    private int _gridSize = 64;
+    // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
+    private readonly GridSetup _grid = new();
     private bool _snapToGrid = true;
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
@@ -1620,15 +1622,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Rounds a world point to the nearest grid intersection (identity when snapping is off).
     private Vec2D SnapToGrid(Vec2D w)
     {
-        if (!_snapToGrid || _gridSize <= 0) return w;
-        return new Vec2D(Math.Round(w.x / _gridSize) * _gridSize, Math.Round(w.y / _gridSize) * _gridSize);
+        if (!_snapToGrid || _grid.GridSizeF <= 0) return w;
+        return _grid.SnappedToGrid(w);
     }
 
     // Builds and draws the visible grid as a line list. Skips when cells would be denser than a few pixels.
     private void DrawGrid()
     {
-        if (_device is null || _gridVb is null || _gridSize <= 0) { _gridLineCount = 0; return; }
-        if (_gridSize / _zoom < 4) { _gridLineCount = 0; return; }
+        if (_device is null || _gridVb is null || _grid.GridSizeF <= 0) { _gridLineCount = 0; return; }
+        if (_grid.GridSizeF / _zoom < 4) { _gridLineCount = 0; return; }
 
         double halfW = Bounds.Width * 0.5 * _zoom;
         double halfH = Bounds.Height * 0.5 * _zoom;
@@ -1638,17 +1640,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         const int col = unchecked((int)0xff20242c);   // dim grid
         const int axis = unchecked((int)0xff3a4654);   // brighter x=0 / y=0 axes
         var verts = new System.Collections.Generic.List<FlatVertex>();
-        int x0 = (int)Math.Floor(left / _gridSize), x1 = (int)Math.Ceiling(right / _gridSize);
-        int y0 = (int)Math.Floor(bottom / _gridSize), y1 = (int)Math.Ceiling(top / _gridSize);
+        var corners = new[]
+        {
+            GridLocal(new Vec2D(left, bottom)),
+            GridLocal(new Vec2D(left, top)),
+            GridLocal(new Vec2D(right, bottom)),
+            GridLocal(new Vec2D(right, top)),
+        };
+        double localLeft = corners.Min(c => c.x);
+        double localRight = corners.Max(c => c.x);
+        double localBottom = corners.Min(c => c.y);
+        double localTop = corners.Max(c => c.y);
+        int x0 = (int)Math.Floor(localLeft / _grid.GridSizeF), x1 = (int)Math.Ceiling(localRight / _grid.GridSizeF);
+        int y0 = (int)Math.Floor(localBottom / _grid.GridSizeF), y1 = (int)Math.Ceiling(localTop / _grid.GridSizeF);
         for (int gx = x0; gx <= x1; gx++)
         {
-            double x = gx * (double)_gridSize; int c = gx == 0 ? axis : col;
-            verts.Add(FV(new Vec2D(x, bottom), c)); verts.Add(FV(new Vec2D(x, top), c));
+            double x = gx * _grid.GridSizeF; int c = gx == 0 ? axis : col;
+            verts.Add(FV(GridWorld(new Vec2D(x, localBottom)), c));
+            verts.Add(FV(GridWorld(new Vec2D(x, localTop)), c));
         }
         for (int gy = y0; gy <= y1; gy++)
         {
-            double y = gy * (double)_gridSize; int c = gy == 0 ? axis : col;
-            verts.Add(FV(new Vec2D(left, y), c)); verts.Add(FV(new Vec2D(right, y), c));
+            double y = gy * _grid.GridSizeF; int c = gy == 0 ? axis : col;
+            verts.Add(FV(GridWorld(new Vec2D(localLeft, y)), c));
+            verts.Add(FV(GridWorld(new Vec2D(localRight, y)), c));
         }
 
         _device.SetUniform("useTexture", 0f);
@@ -1658,6 +1673,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetVertexBuffer(_gridVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _gridLineCount);
     }
+
+    private Vec2D GridLocal(Vec2D world)
+    {
+        var origin = new Vec2D(_grid.GridOriginX, _grid.GridOriginY);
+        return (world - origin).GetRotated(-_grid.GridRotate);
+    }
+
+    private Vec2D GridWorld(Vec2D local)
+    {
+        var origin = new Vec2D(_grid.GridOriginX, _grid.GridOriginY);
+        return local.GetRotated(_grid.GridRotate) + origin;
+    }
+
+    private void SetEditorGridSize(double size)
+    {
+        _grid.SetGridSize(size);
+        Picked?.Invoke($"grid {GridSizeLabel()}");
+        MarkGeometryDirty();
+    }
+
+    private string GridSizeLabel()
+        => _grid.GridSizeF % 1.0 == 0.0
+            ? _grid.GridSize.ToString(CultureInfo.InvariantCulture)
+            : _grid.GridSizeF.ToString("0.###", CultureInfo.InvariantCulture);
 
     // Draws the 128-unit blockmap grid over the map (occupied blocks brighter), as a debug overlay.
     private void DrawBlockmap()
@@ -1806,9 +1845,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.D4 or Key.NumPad4: SetEditMode(EditMode.Things); e.Handled = true; return;
                 case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.A: AutoAlignSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {_gridSize})"); e.Handled = true; return;
-                case Key.OemOpenBrackets: _gridSize = Math.Max(8, _gridSize / 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
-                case Key.OemCloseBrackets: _gridSize = Math.Min(1024, _gridSize * 2); Picked?.Invoke($"grid {_gridSize}"); MarkGeometryDirty(); e.Handled = true; return;
+                case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})"); e.Handled = true; return;
+                case Key.OemOpenBrackets: SetEditorGridSize(Math.Max(GridSetup.MinimumGridSize, _grid.GridSizeF * 0.5)); e.Handled = true; return;
+                case Key.OemCloseBrackets: SetEditorGridSize(Math.Min(1024, _grid.GridSizeF * 2.0)); e.Handled = true; return;
                 case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
                 case Key.Escape when InDrawMode: ExitDrawModes(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
@@ -2110,7 +2149,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null || _clipboard == null) { Picked?.Invoke("clipboard empty"); return; }
         EditBegun?.Invoke("Paste");
-        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_gridSize, _gridSize));
+        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize));
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things");
