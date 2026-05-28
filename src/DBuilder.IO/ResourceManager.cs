@@ -61,6 +61,7 @@ public sealed class ResourceManager : IDisposable
     private readonly Dictionary<string, ImageData?> flatCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> textureCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ImageData?> spriteCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, DoomColormap?> colormapCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, VoxelDefinition> voxelDefs = new(StringComparer.OrdinalIgnoreCase);
     private bool voxelDefsBuilt;
     private readonly List<Modeldef> modelDefs = new();
@@ -116,6 +117,7 @@ public sealed class ResourceManager : IDisposable
         flatCache.Clear();
         textureCache.Clear();
         spriteCache.Clear();
+        colormapCache.Clear();
         voxelDefs.Clear();
         voxelDefsBuilt = false;
         modelDefs.Clear();
@@ -827,6 +829,21 @@ public sealed class ResourceManager : IDisposable
             }
             return colormap;
         }
+    }
+
+    /// <summary>Resolves a named colormap resource from WAD lumps or folder resources, newest resource first.</summary>
+    public DoomColormap? GetColormap(string name)
+    {
+        if (string.IsNullOrEmpty(name) || name == "-") return null;
+        if (colormapCache.TryGetValue(name, out var cached)) return cached;
+
+        DoomColormap? result = null;
+        for (int i = readers.Count - 1; i >= 0 && result == null; i--)
+            if (readers[i].GetColormapBytes(name) is { } bytes)
+                result = DoomColormapReader.FromBytes(bytes);
+
+        colormapCache[name] = result;
+        return result;
     }
 
     /// <summary>Resolves a flat to RGBA, or null. Cached by name.</summary>

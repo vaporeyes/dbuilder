@@ -26,6 +26,8 @@ internal interface IResourceReader : IDisposable
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
     byte[]? GetLumpBytes(string name);
+    /// <summary>Raw colormap bytes by name, or null when this resource does not provide the colormap.</summary>
+    byte[]? GetColormapBytes(string name);
     /// <summary>Names of the wall textures this resource provides (for the texture browser).</summary>
     IEnumerable<string> TextureNames();
     /// <summary>Names of the flats this resource provides (for the texture browser).</summary>
@@ -111,6 +113,8 @@ internal sealed class WadResourceReader : IResourceReader
     public string? GetTextResource(string name) => GetTextLump(name);
 
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
+
+    public byte[]? GetColormapBytes(string name) => GetLumpBytes(name);
 
     public IEnumerable<string> TextureNames() => TexDefs().Keys;
 
@@ -308,6 +312,25 @@ internal abstract class FolderResourceReader : IResourceReader
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
             bytes = nestedReaders[i].GetLumpBytes(name);
+            if (bytes != null) return bytes;
+        }
+
+        return null;
+    }
+
+    public virtual byte[]? GetColormapBytes(string name)
+    {
+        string normalized = name.Replace('\\', '/').TrimStart('/');
+        string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
+        string file = Path.GetFileName(normalized);
+        byte[]? bytes = string.IsNullOrWhiteSpace(folder)
+            ? Find(file, "colormaps")
+            : Find(file, "colormaps/" + folder);
+        if (bytes != null) return bytes;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            bytes = nestedReaders[i].GetColormapBytes(name);
             if (bytes != null) return bytes;
         }
 

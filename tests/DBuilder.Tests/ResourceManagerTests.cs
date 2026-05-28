@@ -102,6 +102,43 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void ResolvesNamedColormapFromWadLump()
+    {
+        using var wad = BuildWad(("FOGMAP", ColormapBytes(9)));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        var colormap = rm.GetColormap("FOGMAP");
+
+        Assert.NotNull(colormap);
+        Assert.Equal(11, colormap!.Lookup(0, 2));
+    }
+
+    [Fact]
+    public void ResolvesNamedColormapFromPk3ColormapsFolder()
+    {
+        string lower = TestArtifacts.BuildPk3(("colormaps/FOGMAP.lmp", ColormapBytes(1)));
+        string higher = TestArtifacts.BuildPk3(("colormaps/FOGMAP.lmp", ColormapBytes(4)));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(lower);
+            rm.AddResource(higher);
+
+            var colormap = rm.GetColormap("FOGMAP");
+
+            Assert.NotNull(colormap);
+            Assert.Equal(10, colormap!.Lookup(0, 6));
+        }
+        finally
+        {
+            File.Delete(lower);
+            File.Delete(higher);
+        }
+    }
+
+    [Fact]
     public void MissingFlatReturnsNullAndCaches()
     {
         using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()));
