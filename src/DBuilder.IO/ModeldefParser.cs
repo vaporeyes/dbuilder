@@ -15,11 +15,13 @@ public sealed class Modeldef
     public string Path { get; set; } = "";
     public List<ModeldefModel> Models { get; } = new();
     public List<ModeldefSkin> Skins { get; } = new();
+    public List<ModeldefSurfaceSkin> SurfaceSkins { get; } = new();
     public List<ModeldefFrame> Frames { get; } = new();
 }
 
 public sealed record ModeldefModel(int Index, string File);
 public sealed record ModeldefSkin(int Index, string File);
+public sealed record ModeldefSurfaceSkin(int ModelIndex, int SurfaceIndex, string File);
 public sealed record ModeldefFrame(string Sprite, string Frame, int ModelIndex, int FrameIndex);
 
 public static class ModeldefParser
@@ -95,6 +97,9 @@ public static class ModeldefParser
                     if (ReadInt(t, ref i, out int skinIndex) && i < t.Count)
                         def.Skins.Add(new ModeldefSkin(skinIndex, t[i++]));
                     break;
+                case "surfaceskin":
+                    ParseSurfaceSkin(def, t, ref i);
+                    break;
                 case "frameindex":
                     ParseFrameIndex(def, t, ref i);
                     break;
@@ -104,6 +109,14 @@ public static class ModeldefParser
             }
         }
         if (i < t.Count) i++;
+    }
+
+    private static void ParseSurfaceSkin(Modeldef def, List<string> t, ref int i)
+    {
+        if (!ReadInt(t, ref i, out int modelIndex)) return;
+        if (!ReadInt(t, ref i, out int surfaceIndex)) return;
+        if (i >= t.Count) return;
+        def.SurfaceSkins.Add(new ModeldefSurfaceSkin(modelIndex, surfaceIndex, t[i++]));
     }
 
     private static void ParseFrameIndex(Modeldef def, List<string> t, ref int i)
@@ -125,6 +138,7 @@ public static class ModeldefParser
         => value.Equals("path", StringComparison.OrdinalIgnoreCase)
             || value.Equals("model", StringComparison.OrdinalIgnoreCase)
             || value.Equals("skin", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("surfaceskin", StringComparison.OrdinalIgnoreCase)
             || value.Equals("frameindex", StringComparison.OrdinalIgnoreCase)
             || value.Equals("scale", StringComparison.OrdinalIgnoreCase)
             || value.Equals("offset", StringComparison.OrdinalIgnoreCase)

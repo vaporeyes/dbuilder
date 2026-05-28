@@ -15,6 +15,7 @@ public class ModelResourceTests
     {
         byte[] model = { 1, 2, 3 };
         byte[] skin = { 4, 5, 6 };
+        byte[] surfaceSkin = { 7, 8, 9 };
         string pk3 = TestArtifacts.BuildPk3(
             ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
 model Zombie
@@ -22,11 +23,13 @@ model Zombie
     Path "models/monsters"
     Model 0 "zombie.md3"
     Skin 0 "zombie.png"
+    SurfaceSkin 0 2 "zombie_alt.png"
     FrameIndex POSS A 0 12
 }
 """)),
             ("models/monsters/zombie.md3", model),
-            ("models/monsters/zombie.png", skin));
+            ("models/monsters/zombie.png", skin),
+            ("models/monsters/zombie_alt.png", surfaceSkin));
 
         try
         {
@@ -38,6 +41,7 @@ model Zombie
             Assert.Equal("models/monsters/zombie.md3", ResourceManager.CombineModelPath(def.Path, def.Models[0].File));
             Assert.Equal(model, resources.GetModelResourceBytes(def, def.Models[0].File));
             Assert.Equal(skin, resources.GetModelResourceBytes(def, def.Skins[0].File));
+            Assert.Equal(surfaceSkin, resources.GetModelResourceBytes(def, def.SurfaceSkins[0].File));
         }
         finally
         {

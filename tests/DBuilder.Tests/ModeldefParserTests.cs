@@ -17,6 +17,7 @@ model ZombieMan
     Path ""models/monsters""
     Model 0 ""zombie.md3""
     Skin 0 ""zombie.png""
+    SurfaceSkin 0 2 ""zombie_alt.png""
     Scale 1.0 1.0 1.0
     FrameIndex POSS A 0 12
 }";
@@ -27,6 +28,7 @@ model ZombieMan
         Assert.Equal("models/monsters", def.Path);
         Assert.Equal(new ModeldefModel(0, "zombie.md3"), def.Models.Single());
         Assert.Equal(new ModeldefSkin(0, "zombie.png"), def.Skins.Single());
+        Assert.Equal(new ModeldefSurfaceSkin(0, 2, "zombie_alt.png"), def.SurfaceSkins.Single());
         Assert.Equal(new ModeldefFrame("POSS", "A", 0, 12), def.Frames.Single());
     }
 
