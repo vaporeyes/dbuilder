@@ -287,7 +287,8 @@ public static class GldefsParser
                 while (i < t.Count && t[i] != "}")
                 {
                     string name = t[i++];
-                    g.GlowFlats.Add(name);
+                    if (p == "flats") g.GlowFlats.Add(name);
+                    else g.GlowTextures.Add(name);
                     g.Glows[name] = new GldefsGlow(name, 1.0f, 1.0f, 1.0f, Height: 128, Fullbright: true, CalculateTextureColor: true);
                 }
                 if (i < t.Count) i++; // }

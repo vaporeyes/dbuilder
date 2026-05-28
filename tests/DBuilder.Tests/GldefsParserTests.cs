@@ -101,6 +101,7 @@ sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
 glow
 {
     flats { NUKAGE1 NUKAGE2 LAVA1 }
+    walls { GLOWWALL }
     texture GLOWTEX, ""8080ff""
     texture GLOWINT, ""ff0000""
     texture GLOWHEX, ""#2040ff"", 32, fullbright
@@ -108,8 +109,11 @@ glow
         var g = GldefsParser.Parse(text);
         Assert.Contains("NUKAGE1", g.GlowFlats);
         Assert.Contains("LAVA1", g.GlowFlats);
+        Assert.DoesNotContain("GLOWWALL", g.GlowFlats);
+        Assert.Contains("GLOWWALL", g.GlowTextures);
         Assert.Contains("GLOWTEX", g.GlowTextures);
         Assert.Contains("GLOWHEX", g.GlowTextures);
+        Assert.True(g.Glows["GLOWWALL"].CalculateTextureColor);
         Assert.True(g.Glows["NUKAGE1"].CalculateTextureColor);
         Assert.Equal(128, g.Glows["NUKAGE1"].Height);
         Assert.Equal(0x80 / 255.0f, g.Glows["GLOWTEX"].R, 4);
