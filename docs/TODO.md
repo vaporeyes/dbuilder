@@ -262,8 +262,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Type Handlers
 
-- [ ] Port universal type model.
-- [ ] Port type manager.
+- [x] Port universal type model.
+- [x] Port type manager metadata registry.
 - [ ] Port bool handler.
 - [ ] Port integer and float handlers.
 - [ ] Port random integer and random float handlers.

@@ -350,6 +350,7 @@ public sealed class GameConfiguration
     private readonly List<ThingsFilterInfo> thingsFilters = new();
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
+    public UniversalTypeRegistry Types { get; } = new();
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
     public IReadOnlyDictionary<string, ThingCategoryInfo> ThingCategories => thingCategories;
     public IReadOnlyDictionary<int, LinedefActionInfo> LinedefActions => linedefActions;
