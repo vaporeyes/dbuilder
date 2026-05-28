@@ -179,7 +179,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.
-- [ ] Port dynamic bitmap images.
+- [x] Port dynamic bitmap images.
 - [ ] Port color and unknown image behavior.
 - [ ] Port voxel image behavior.
 - [x] Port model resource discovery.

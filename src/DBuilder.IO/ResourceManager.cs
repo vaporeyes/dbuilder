@@ -20,7 +20,37 @@ namespace DBuilder.IO;
 /// A decoded image: RGBA8 bytes (row-major, 4 bytes per pixel) with dimensions and optional render offsets
 /// (sprite hot-spot: OffsetX from the left, OffsetY from the top; 0,0 means unset/centered).
 /// </summary>
-public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0);
+public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0)
+{
+    public bool IsDynamic { get; init; }
+
+    public static ImageData CreateDynamic(int width, int height, byte[] rgba, int offsetX = 0, int offsetY = 0)
+    {
+        ValidateDimensions(width, height);
+        ValidateRgbaLength(width, height, rgba);
+        return new ImageData(width, height, (byte[])rgba.Clone(), offsetX, offsetY) { IsDynamic = true };
+    }
+
+    public void UpdatePixels(ReadOnlySpan<byte> rgba)
+    {
+        if (!IsDynamic) throw new InvalidOperationException("Only dynamic images can be updated.");
+        if (rgba.Length != Rgba.Length) throw new ArgumentException("Pixel buffer length must match the image dimensions.", nameof(rgba));
+        rgba.CopyTo(Rgba);
+    }
+
+    private static void ValidateDimensions(int width, int height)
+    {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width), "Image width must be positive.");
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height), "Image height must be positive.");
+    }
+
+    private static void ValidateRgbaLength(int width, int height, byte[] rgba)
+    {
+        ArgumentNullException.ThrowIfNull(rgba);
+        int expected = checked(width * height * 4);
+        if (rgba.Length != expected) throw new ArgumentException("Pixel buffer length must match the image dimensions.", nameof(rgba));
+    }
+}
 
 public sealed class ResourceTextureSetInfo
 {
