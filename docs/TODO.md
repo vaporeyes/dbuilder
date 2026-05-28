@@ -122,6 +122,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add config-aware discovery with required and forbidden map lump checks.
 - [ ] Port save behavior for replacing, inserting, and renaming maps.
   - [x] Avoid replacing non-map lumps that share the target map name.
+  - [x] Remove duplicate target map blocks before writing replacements.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 
 ## Resource And Data Management

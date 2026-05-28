@@ -126,22 +126,9 @@ public static class WadMaps
     {
         MapFormatConstraints.ThrowIfInvalid(map, format);
 
-        int insertPos;
-        byte[]? behavior = null;
-
-        int idx = FindMapHeaderIndex(wad, marker);
-        if (idx >= 0)
-        {
-            insertPos = idx;
-            // Capture the existing compiled ACS so a Hexen save keeps its scripts.
-            for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name, config); j++)
-                if (wad.Lumps[j].Name == "BEHAVIOR") { behavior = wad.Lumps[j].Stream.ReadAllBytes(); break; }
-
-            wad.RemoveAt(idx, false);                                   // the marker
-            while (idx < wad.Lumps.Count && IsMapSubLump(wad.Lumps[idx].Name, config))
-                wad.RemoveAt(idx, false);                               // its sub-lumps
-        }
-        else
+        byte[]? behavior = ReadFirstMapLump(wad, marker, "BEHAVIOR", config);
+        int insertPos = RemoveMapBlocks(wad, marker, config);
+        if (insertPos < 0)
         {
             insertPos = wad.Lumps.Count;
         }
@@ -155,9 +142,43 @@ public static class WadMaps
         wad.WriteHeaders();
     }
 
-    private static int FindMapHeaderIndex(WAD wad, string marker)
+    private static byte[]? ReadFirstMapLump(WAD wad, string marker, string lumpName, GameConfiguration? config)
     {
-        for (int i = 0; i < wad.Lumps.Count - 1; i++)
+        int idx = FindMapHeaderIndex(wad, marker);
+        if (idx < 0) return null;
+
+        for (int j = idx + 1; j < wad.Lumps.Count && IsMapSubLump(wad.Lumps[j].Name, config); j++)
+            if (wad.Lumps[j].Name == lumpName) return wad.Lumps[j].Stream.ReadAllBytes();
+        return null;
+    }
+
+    private static int RemoveMapBlocks(WAD wad, string marker, GameConfiguration? config)
+    {
+        int firstRemoved = -1;
+        int scan = 0;
+
+        while (scan < wad.Lumps.Count)
+        {
+            int idx = FindMapHeaderIndex(wad, marker, scan);
+            if (idx < 0) break;
+            if (firstRemoved < 0) firstRemoved = idx;
+
+            wad.RemoveAt(idx, false);
+            while (idx < wad.Lumps.Count && IsMapSubLump(wad.Lumps[idx].Name, config))
+                wad.RemoveAt(idx, false);
+
+            scan = idx;
+        }
+
+        return firstRemoved;
+    }
+
+    private static int FindMapHeaderIndex(WAD wad, string marker)
+        => FindMapHeaderIndex(wad, marker, 0);
+
+    private static int FindMapHeaderIndex(WAD wad, string marker, int start)
+    {
+        for (int i = start; i < wad.Lumps.Count - 1; i++)
         {
             if (wad.Lumps[i].Name != marker) continue;
             string next = wad.Lumps[i + 1].Name;

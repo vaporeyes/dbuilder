@@ -134,4 +134,25 @@ public class WadMapsSaveTests
         Assert.Equal(lumpsBefore, wad.Lumps.Count);
         Assert.Equal(2, WadMaps.Find(wad).Count);
     }
+
+    [Fact]
+    public void SaveMapRemovesDuplicateTargetMapBlocks()
+    {
+        using var wad = new WAD(new MemoryStream());
+        DoomMapWriter.WriteMap(SquareMap(), wad, "MAP01", wad.Lumps.Count);
+        DoomMapWriter.WriteMap(SquareMap(), wad, "MAP01", wad.Lumps.Count);
+        DoomMapWriter.WriteMap(SquareMap(), wad, "MAP02", wad.Lumps.Count);
+        wad.WriteHeaders();
+
+        var loaded = WadMaps.Load(wad, WadMaps.Find(wad).First(m => m.Name == "MAP01"))!;
+        loaded.AddThing(new Vector2D(5, 5), 3001);
+        loaded.BuildIndexes();
+
+        WadMaps.SaveMap(wad, "MAP01", loaded, MapFormat.Doom);
+
+        var maps = WadMaps.Find(wad);
+        Assert.Equal(new[] { "MAP01", "MAP02" }, maps.Select(m => m.Name).ToArray());
+        Assert.Single(WadMaps.Load(wad, maps.First(m => m.Name == "MAP01"))!.Things);
+        Assert.Equal(4, WadMaps.Load(wad, maps.First(m => m.Name == "MAP02"))!.Vertices.Count);
+    }
 }
