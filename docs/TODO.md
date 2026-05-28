@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
+  - [x] Parse map format flag metadata and UDMF feature toggles.
   - [x] Parse testing, map boundary, sky flat, light level, and long texture name settings.
   - [x] Parse make-door defaults and default thing flags.
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.

@@ -317,6 +317,11 @@ public sealed class GameConfiguration
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
     public string DefaultLinedefActivationFlag { get; private set; } = "";
+    public string SingleSidedFlag { get; private set; } = "0";
+    public string DoubleSidedFlag { get; private set; } = "0";
+    public string ImpassableFlag { get; private set; } = "0";
+    public string UpperUnpeggedFlag { get; private set; } = "0";
+    public string LowerUnpeggedFlag { get; private set; } = "0";
     public bool GeneralizedActions { get; private set; }
     public bool GeneralizedEffects { get; private set; }
     public int Start3DModeThingType { get; private set; }
@@ -344,6 +349,15 @@ public sealed class GameConfiguration
     public int BottomBoundary { get; private set; } = -32768;
     public int SafeBoundary { get; private set; } = 32767;
     public bool DoomLightLevels { get; private set; } = true;
+    public bool UseLocalSidedefTextureOffsets { get; private set; }
+    public bool Effect3DFloorSupport { get; private set; }
+    public bool PlaneEquationSupport { get; private set; }
+    public bool VertexHeightSupport { get; private set; }
+    public bool DistinctFloorAndCeilingBrightness { get; private set; }
+    public bool DistinctWallBrightness { get; private set; }
+    public bool DistinctSidedefPartBrightness { get; private set; }
+    public bool SectorMultiTag { get; private set; }
+    public bool SidedefTextureSkewing { get; private set; }
     public double DefaultTextureScale { get; private set; } = 1.0;
     public double DefaultFlatScale { get; private set; } = 1.0;
     public string DefaultWallTexture { get; private set; } = "STARTAN";
@@ -397,6 +411,11 @@ public sealed class GameConfiguration
             gc.ScaledTextureOffsets = GetBool(root, "scaledtextureoffsets", true);
             gc.FormatInterface = GetString(root, "formatinterface", "");
             gc.DefaultLinedefActivationFlag = GetString(root, "defaultlinedefactivation", "");
+            gc.SingleSidedFlag = GetFlagString(root, "singlesidedflag", "0");
+            gc.DoubleSidedFlag = GetFlagString(root, "doublesidedflag", "0");
+            gc.ImpassableFlag = GetFlagString(root, "impassableflag", "0");
+            gc.UpperUnpeggedFlag = GetFlagString(root, "upperunpeggedflag", "0");
+            gc.LowerUnpeggedFlag = GetFlagString(root, "lowerunpeggedflag", "0");
             gc.GeneralizedActions = GetBool(root, "generalizedlinedefs", false);
             gc.GeneralizedEffects = GetBool(root, "generalizedsectors", false);
             gc.Start3DModeThingType = GetInt(root, "start3dmode", 0);
@@ -423,6 +442,15 @@ public sealed class GameConfiguration
             gc.BottomBoundary = GetInt(root, "bottomboundary", -32768);
             gc.SafeBoundary = GetInt(root, "safeboundary", 32767);
             gc.DoomLightLevels = GetBool(root, "doomlightlevels", true);
+            gc.UseLocalSidedefTextureOffsets = GetBool(root, "localsidedeftextureoffsets", false);
+            gc.Effect3DFloorSupport = GetBool(root, "effect3dfloorsupport", false);
+            gc.PlaneEquationSupport = GetBool(root, "planeequationsupport", false);
+            gc.VertexHeightSupport = GetBool(root, "vertexheightsupport", false);
+            gc.SidedefTextureSkewing = GetBool(root, "sidedeftextureskewing", false);
+            gc.DistinctFloorAndCeilingBrightness = GetBool(root, "distinctfloorandceilingbrightness", false);
+            gc.DistinctWallBrightness = GetBool(root, "distinctwallbrightness", false);
+            gc.DistinctSidedefPartBrightness = GetBool(root, "distinctsidedefpartbrightness", false);
+            gc.SectorMultiTag = GetBool(root, "sectormultitag", false);
             gc.UseLongTextureNames = GetBool(root, "longtexturenames", false);
             gc.MaxTextureNameLength = gc.UseLongTextureNames ? short.MaxValue : 8;
             gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);
@@ -1374,6 +1402,15 @@ public sealed class GameConfiguration
 
     private static string GetString(IDictionary d, string key, string fallback)
         => d[key] is string s ? s : fallback;
+
+    private static string GetFlagString(IDictionary d, string key, string fallback)
+        => d[key] switch
+        {
+            int i => i.ToString(CultureInfo.InvariantCulture),
+            long l => l.ToString(CultureInfo.InvariantCulture),
+            string s => s,
+            _ => fallback,
+        };
 
     private static bool GetBool(IDictionary d, string key, bool fallback)
         => d[key] switch

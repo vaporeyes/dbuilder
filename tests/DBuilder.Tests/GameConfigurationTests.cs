@@ -122,6 +122,11 @@ public class GameConfigurationTests
             scaledtextureoffsets = false;
             formatinterface = "DoomMapSetIO";
             defaultlinedefactivation = "playercross";
+            singlesidedflag = 1;
+            doublesidedflag = "twosided";
+            impassableflag = "blocking";
+            upperunpeggedflag = "dontpegtop";
+            lowerunpeggedflag = 16;
             generalizedlinedefs = true;
             generalizedsectors = true;
             start3dmode = 32000;
@@ -137,6 +142,11 @@ public class GameConfigurationTests
         Assert.False(gc.ScaledTextureOffsets);
         Assert.Equal("DoomMapSetIO", gc.FormatInterface);
         Assert.Equal("playercross", gc.DefaultLinedefActivationFlag);
+        Assert.Equal("1", gc.SingleSidedFlag);
+        Assert.Equal("twosided", gc.DoubleSidedFlag);
+        Assert.Equal("blocking", gc.ImpassableFlag);
+        Assert.Equal("dontpegtop", gc.UpperUnpeggedFlag);
+        Assert.Equal("16", gc.LowerUnpeggedFlag);
         Assert.True(gc.GeneralizedActions);
         Assert.True(gc.GeneralizedEffects);
         Assert.Equal(32000, gc.Start3DModeThingType);
@@ -203,6 +213,15 @@ public class GameConfigurationTests
             safeboundary = 1536;
             doomlightlevels = false;
             longtexturenames = true;
+            localsidedeftextureoffsets = true;
+            effect3dfloorsupport = true;
+            planeequationsupport = true;
+            vertexheightsupport = true;
+            sidedeftextureskewing = true;
+            distinctfloorandceilingbrightness = true;
+            distinctwallbrightness = true;
+            distinctsidedefpartbrightness = true;
+            sectormultitag = true;
             """;
 
         var gc = GameConfiguration.FromText(cfg);
@@ -221,6 +240,15 @@ public class GameConfigurationTests
         Assert.False(gc.DoomLightLevels);
         Assert.True(gc.UseLongTextureNames);
         Assert.Equal(short.MaxValue, gc.MaxTextureNameLength);
+        Assert.True(gc.UseLocalSidedefTextureOffsets);
+        Assert.True(gc.Effect3DFloorSupport);
+        Assert.True(gc.PlaneEquationSupport);
+        Assert.True(gc.VertexHeightSupport);
+        Assert.True(gc.SidedefTextureSkewing);
+        Assert.True(gc.DistinctFloorAndCeilingBrightness);
+        Assert.True(gc.DistinctWallBrightness);
+        Assert.True(gc.DistinctSidedefPartBrightness);
+        Assert.True(gc.SectorMultiTag);
     }
 
     [Fact]
