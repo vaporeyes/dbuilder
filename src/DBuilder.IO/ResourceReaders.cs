@@ -506,11 +506,33 @@ internal abstract class FolderResourceReader : IResourceReader
 
     private byte[]? Find(string name, params string[] folders)
     {
+        if (IsPathQualified(name) && TryFindPath(name, out var bytes)) return bytes;
+
         string key = name.ToUpperInvariant();
         foreach (var f in folders)
             if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var read)) return read();
         return null;
     }
+
+    private bool TryFindPath(string path, out byte[] bytes)
+    {
+        string normalized = path.Replace('\\', '/').TrimStart('/');
+        int slash = normalized.LastIndexOf('/');
+        string folder = slash >= 0 ? normalized.Substring(0, slash).ToLowerInvariant() : "";
+        string file = slash >= 0 ? normalized.Substring(slash + 1) : normalized;
+        int dot = file.LastIndexOf('.');
+        string baseName = (dot >= 0 ? file.Substring(0, dot) : file).ToUpperInvariant();
+        if (entries.TryGetValue(folder + "/" + baseName, out var read))
+        {
+            bytes = read();
+            return true;
+        }
+
+        bytes = Array.Empty<byte>();
+        return false;
+    }
+
+    private static bool IsPathQualified(string name) => name.Contains('/') || name.Contains('\\');
 
     private ImageData? ComposeClassicTexture(string name, DoomPalette? palette)
     {

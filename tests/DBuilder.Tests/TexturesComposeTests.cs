@@ -355,6 +355,31 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void ResolvesQuotedTexturePatchPaths()
+    {
+        string textures =
+            "WallTexture WPATH, 1, 1\n" +
+            "{\n" +
+            "    Patch \"graphics/PATHPAT\", 0, 0\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("graphics/PATHPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 12, 34, 56, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WPATH");
+
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 12, 34, 56, 255 }, tex!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void MissingRequiredTexturesPatchesDoNotCreateTransparentTexture()
     {
         string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes("WallTexture WMISS, 1, 1 { Patch \"MISSING\", 0, 0 }\n")));
