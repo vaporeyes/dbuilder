@@ -170,6 +170,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Include folder colormap resources in texture name enumeration.
 - [ ] Port patch name behavior fully.
   - [x] Load root PK3 `PNAMES` for classic `TEXTURE1` and `TEXTURE2` definitions.
+  - [x] Reuse nested-WAD `PNAMES` for folder-resource classic texture definitions.
 - [ ] Port wall texture composition fully.
   - [x] Compose root PK3 classic `TEXTURE1` and `TEXTURE2` wall textures from patch resources.
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.

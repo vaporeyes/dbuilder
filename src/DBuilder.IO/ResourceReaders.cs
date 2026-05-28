@@ -26,6 +26,8 @@ internal interface IResourceReader : IDisposable
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
     byte[]? GetLumpBytes(string name);
+    /// <summary>Patch-name table for classic TEXTURE1/TEXTURE2 composition, or null when absent.</summary>
+    DoomPatchNames? GetPatchNames();
     /// <summary>Raw colormap bytes by name, or null when this resource does not provide the colormap.</summary>
     byte[]? GetColormapBytes(string name);
     /// <summary>Names of colormap images this resource provides.</summary>
@@ -119,6 +121,8 @@ internal sealed class WadResourceReader : IResourceReader
     public string? GetTextResource(string name) => GetTextLump(name);
 
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
+
+    public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
 
     public byte[]? GetColormapBytes(string name) => GetLumpBytes(name);
 
@@ -346,6 +350,16 @@ internal abstract class FolderResourceReader : IResourceReader
         return null;
     }
 
+    public virtual DoomPatchNames? GetPatchNames()
+    {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+            if (nestedReaders[i].GetPatchNames() is { } pnames)
+                return pnames;
+
+        var bytes = Find("PNAMES", "");
+        return bytes != null ? DoomPatchNames.FromBytes(bytes) : null;
+    }
+
     public virtual byte[]? GetColormapBytes(string name)
     {
         string normalized = name.Replace('\\', '/').TrimStart('/');
@@ -503,8 +517,7 @@ internal abstract class FolderResourceReader : IResourceReader
     private DoomPatchNames ClassicPatchNames()
     {
         if (classicPatchNames != null) return classicPatchNames;
-        var bytes = Find("PNAMES", "");
-        classicPatchNames = bytes != null ? DoomPatchNames.FromBytes(bytes) : DoomPatchNames.Empty;
+        classicPatchNames = GetPatchNames() ?? DoomPatchNames.Empty;
         return classicPatchNames;
     }
 

@@ -28,6 +28,19 @@ public class TexturesComposeTests
         return ms.ToArray();
     }
 
+    private static byte[] BuildNestedPnamesWad(params string[] names)
+    {
+        using var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            byte[] pnames = BuildPnames(names);
+            var lump = wad.Insert("PNAMES", 0, pnames.Length)!;
+            lump.Stream.Write(pnames, 0, pnames.Length);
+            wad.WriteHeaders();
+        }
+        return ms.ToArray();
+    }
+
     private static byte[] BuildClassicTexture1(string textureName, int width, int height, params (int X, int Y, ushort PatchIndex)[] patches)
     {
         var ms = new MemoryStream();
@@ -111,6 +124,27 @@ public class TexturesComposeTests
             Assert.Equal(new byte[] { 180, 0, 0, 255 }, texture.Rgba[0..4]);
             Assert.Equal(new byte[] { 0, 0, 180, 255 }, texture.Rgba[4..8]);
             Assert.Contains("OLDWALL", rm.GetTextureNames());
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void ComposesClassicTexture1FromNestedWadPnames()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("resources/pnames.wad", BuildNestedPnamesWad("REDPAT")),
+            ("TEXTURE1", BuildClassicTexture1("NESTWALL", 1, 1, (0, 0, 0))),
+            ("patches/REDPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 90, 10, 20, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var texture = rm.GetWallTexture("NESTWALL");
+
+            Assert.NotNull(texture);
+            Assert.Equal(new byte[] { 90, 10, 20, 255 }, texture!.Rgba[0..4]);
         }
         finally { File.Delete(pk3); }
     }
