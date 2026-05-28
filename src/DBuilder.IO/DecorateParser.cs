@@ -79,6 +79,11 @@ public static class DecorateParser
                 && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
+                if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase) && IsNonPlaceableZScriptClass(toks, i))
+                {
+                    SkipDeclaration(toks, ref i);
+                    continue;
+                }
                 var a = ParseActor(toks, ref i, headerNum);
                 if (a != null) actors.Add(a);
             }
@@ -86,6 +91,50 @@ public static class DecorateParser
         }
         ResolveInheritance(actors);
         return actors;
+    }
+
+    private static bool IsNonPlaceableZScriptClass(List<Tok> t, int classIndex)
+    {
+        int i = classIndex - 1;
+        while (i >= 0 && t[i].Kind == Kind.Sym && t[i].Text == "\n") i--;
+        return i >= 0
+            && t[i].Kind == Kind.Word
+            && (t[i].Text.Equals("mixin", StringComparison.OrdinalIgnoreCase)
+                || t[i].Text.Equals("extend", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void SkipDeclaration(List<Tok> t, ref int i)
+    {
+        while (i < t.Count)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == ";")
+            {
+                i++;
+                return;
+            }
+
+            if (t[i].Kind == Kind.Sym && t[i].Text == "{")
+            {
+                int depth = 0;
+                while (i < t.Count)
+                {
+                    if (t[i].Kind == Kind.Sym && t[i].Text == "{") depth++;
+                    else if (t[i].Kind == Kind.Sym && t[i].Text == "}")
+                    {
+                        depth--;
+                        if (depth == 0)
+                        {
+                            i++;
+                            return;
+                        }
+                    }
+                    i++;
+                }
+                return;
+            }
+
+            i++;
+        }
     }
 
     private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes)

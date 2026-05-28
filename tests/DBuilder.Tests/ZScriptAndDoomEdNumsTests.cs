@@ -235,6 +235,30 @@ thingtypes
     }
 
     [Fact]
+    public void SkipsMixinAndExtensionClassesAsPlaceableActors()
+    {
+        const string zscript = @"
+mixin class HelperMixin
+{
+    Default { Radius 64; }
+}
+extend class DoomImp
+{
+    Default { Radius 96; }
+}
+class RealActor : Actor
+{
+    Default { Radius 24; }
+}";
+
+        var actors = ZScriptParser.Parse(zscript);
+
+        var actor = Assert.Single(actors);
+        Assert.Equal("RealActor", actor.ClassName);
+        Assert.Equal(24, actor.Radius);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
