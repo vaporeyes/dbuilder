@@ -469,6 +469,45 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void PolyobjectNumberHandlerMatchesEnumValuesAndNumericFallbackLikeUdb()
+    {
+        var values = GameConfiguration.FromText("""
+            enums
+            {
+                polyobjects
+                {
+                    1 = "1";
+                    16 = "16";
+                }
+            }
+            """).GetEnumList("polyobjects")!;
+        var handler = (PolyobjectNumberTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.PolyobjectNumber, defaultValue: 16, enumList: values);
+
+        Assert.True(handler.IsEnumerable);
+        Assert.Equal(16, handler.DefaultValue);
+        Assert.Equal(16, handler.GetValue());
+        Assert.Equal("16", handler.GetStringValue());
+        Assert.Same(values, handler.Values);
+
+        handler.SetValue("1");
+        Assert.Equal(1, handler.GetIntValue());
+        Assert.Equal("1", handler.GetStringValue());
+
+        handler.SetValue("24");
+        Assert.Equal(24, handler.GetValue());
+        Assert.Equal("24", handler.GetStringValue());
+
+        handler.SetValue("not a polyobject");
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("not a polyobject", handler.GetStringValue());
+
+        handler.SetValue(null);
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("0", handler.GetStringValue());
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""

@@ -422,7 +422,7 @@ public sealed class ThingRadiusTypeHandler : IntegerTypeHandler
 public class TagTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");
-    private EnumItemInfo value = new("0", "0");
+    protected EnumItemInfo? value = new("0", "0");
 
     public TagTypeHandler(
         UniversalTypeInfo typeInfo,
@@ -484,9 +484,9 @@ public class TagTypeHandler : UniversalTypeHandler
 
     public override object GetValue() => GetIntValue();
 
-    public override int GetIntValue() => value.GetIntValue();
+    public override int GetIntValue() => value?.GetIntValue() ?? 0;
 
-    public override string GetStringValue() => value.Title;
+    public override string GetStringValue() => value?.Title ?? "0: No Tag";
 
     protected override object CoerceDefault(object? value)
     {
@@ -494,6 +494,20 @@ public class TagTypeHandler : UniversalTypeHandler
         if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
         return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
     }
+}
+
+public sealed class PolyobjectNumberTypeHandler : TagTypeHandler
+{
+    public PolyobjectNumberTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument, values)
+    {
+    }
+
+    public override string GetStringValue() => value?.Title ?? "0: 0";
 }
 
 public sealed class ThingTagTypeHandler : TagTypeHandler

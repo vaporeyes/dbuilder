@@ -123,6 +123,7 @@ public sealed class UniversalTypeRegistry
             UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.AngleByte when info.Index >= 0 => new AngleByteTypeHandler(info, defaultValue, isForArgument),
             UniversalType.ThingRadius when info.Index >= 0 => new ThingRadiusTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.PolyobjectNumber when info.Index >= 0 => new PolyobjectNumberTypeHandler(info, defaultValue, isForArgument, enumList),
             _ => new NullTypeHandler(info, defaultValue, isForArgument),
         };
     }
