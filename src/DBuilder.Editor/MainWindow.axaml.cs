@@ -681,6 +681,16 @@ public partial class MainWindow : Window
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
 
+    private async void OnGridSetup(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new GridSetupDialog(MapView.GridSetupSnapshot());
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            MapView.ApplyGridSetup(dlg.ResultSize, dlg.ResultOriginX, dlg.ResultOriginY, dlg.ResultRotation);
+            SetStatus("Grid setup updated.");
+        }
+    }
+
     // Opens a non-modal panel to show/hide thing categories in the 2D view.
     private void OnThingFilter(object? sender, RoutedEventArgs e)
     {

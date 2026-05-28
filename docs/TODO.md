@@ -333,6 +333,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port tag statistics dialog.
 - [ ] Port thing statistics dialog.
 - [ ] Port grid setup dialog.
+  - [x] Add basic grid size, origin, and rotation dialog.
 - [ ] Port center-on-coordinates dialog.
 - [ ] Port error/check results dialog.
 - [ ] Port exception dialog.

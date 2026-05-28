@@ -1693,6 +1693,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
     }
 
+    public GridSetup GridSetupSnapshot()
+    {
+        var grid = new GridSetup();
+        grid.SetGridSize(_grid.GridSizeF);
+        grid.SetGridOrigin(_grid.GridOriginX, _grid.GridOriginY);
+        grid.SetGridRotation(_grid.GridRotate);
+        grid.SetBackground(_grid.BackgroundName, _grid.BackgroundSource);
+        grid.SetBackgroundView(_grid.BackgroundX, _grid.BackgroundY, _grid.BackgroundScaleX, _grid.BackgroundScaleY);
+        return grid;
+    }
+
+    public void ApplyGridSetup(double size, double originX, double originY, double rotation)
+    {
+        _grid.SetGridSize(size);
+        _grid.SetGridOrigin(originX, originY);
+        _grid.SetGridRotation(rotation);
+        Picked?.Invoke($"grid {GridSizeLabel()}");
+        MarkGeometryDirty();
+    }
+
     private string GridSizeLabel()
         => _grid.GridSizeF % 1.0 == 0.0
             ? _grid.GridSize.ToString(CultureInfo.InvariantCulture)

@@ -293,6 +293,9 @@ public abstract class PropertyDialog : Window
     protected static int ParseInt(TextBox box, int fallback)
         => int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v) ? v : fallback;
 
+    protected static double ParseDouble(TextBox box, double fallback)
+        => double.TryParse(box.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : fallback;
+
     protected static int ComboNumber(ComboBox combo, int fallback)
         => combo.SelectedItem is CatalogItem ci ? ci.Number : fallback;
 
