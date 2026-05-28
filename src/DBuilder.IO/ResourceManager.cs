@@ -156,6 +156,20 @@ public sealed class ResourceManager : IDisposable
     private HashSet<string>? textureNameSet;
     private List<string>? pairedSpriteNames;
     private bool switchesBuilt;
+    private bool mixTexturesFlats;
+
+    public bool MixTexturesFlats
+    {
+        get => mixTexturesFlats;
+        set
+        {
+            if (mixTexturesFlats == value) return;
+            mixTexturesFlats = value;
+            flatCache.Clear();
+            textureCache.Clear();
+            textureNameSet = null;
+        }
+    }
 
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
     public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false)); Invalidate(); }
@@ -837,10 +851,20 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>All wall-texture names across resources (incl. TEXTURES defs and colormap images), sorted and de-duplicated.</summary>
-    public IReadOnlyList<string> GetTextureNames() => CollectNames(static r => r.TextureNames().Concat(r.ColormapNames()), wallDefs, includeCameraTextures: true);
+    public IReadOnlyList<string> GetTextureNames()
+    {
+        var names = CollectNames(static r => r.TextureNames().Concat(r.ColormapNames()), wallDefs, includeCameraTextures: true);
+        if (!MixTexturesFlats) return names;
+        return MergeNames(names, CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true));
+    }
 
     /// <summary>All flat names across resources (incl. TEXTURES Flat defs), sorted and de-duplicated.</summary>
-    public IReadOnlyList<string> GetFlatNames() => CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true);
+    public IReadOnlyList<string> GetFlatNames()
+    {
+        var names = CollectNames(static r => r.FlatNames(), flatDefs, includeCameraTextures: true);
+        if (!MixTexturesFlats) return names;
+        return MergeNames(names, CollectNames(static r => r.TextureNames().Concat(r.ColormapNames()), wallDefs, includeCameraTextures: true));
+    }
 
     /// <summary>All sprite frame names across resources (incl. TEXTURES Sprite defs), sorted and de-duplicated.</summary>
     public IReadOnlyList<string> GetSpriteNames() => CollectNames(static r => r.SpriteNames(), spriteDefs, includeCameraTextures: false);
@@ -868,6 +892,7 @@ public sealed class ResourceManager : IDisposable
                 }
             }
             sets.Add(new ResourceTextureSetInfo(reader.DisplayName, textures, flats));
+            if (MixTexturesFlats) sets[^1].MixTexturesAndFlats();
         }
         return sets;
     }
@@ -883,6 +908,14 @@ public sealed class ResourceManager : IDisposable
         var list = new List<string>(set);
         list.Sort(StringComparer.OrdinalIgnoreCase);
         return list;
+    }
+
+    private static IReadOnlyList<string> MergeNames(IEnumerable<string> first, IEnumerable<string> second)
+    {
+        var set = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in first) set.Add(name);
+        foreach (var name in second) set.Add(name);
+        return set.ToList();
     }
 
     /// <summary>The text of a named lump (e.g. DECORATE) from every resource that has one, oldest first.</summary>
@@ -954,11 +987,27 @@ public sealed class ResourceManager : IDisposable
 
     /// <summary>Resolves a flat to RGBA, or null. Cached by name.</summary>
     public ImageData? GetFlat(string name)
-        => ResolveWithHiRes(name, flatCache, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
+    {
+        if (string.IsNullOrEmpty(name) || name == "-") return null;
+        if (flatCache.TryGetValue(name, out var cached)) return cached;
+        var result = ResolveCoreWithHiRes(name, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
+        if (result == null && MixTexturesFlats)
+            result = ResolveCoreWithHiRes(name, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
+        flatCache[name] = result;
+        return result;
+    }
 
     /// <summary>Resolves a wall texture to RGBA, or null. Cached by name.</summary>
     public ImageData? GetWallTexture(string name)
-        => ResolveWithHiRes(name, textureCache, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
+    {
+        if (string.IsNullOrEmpty(name) || name == "-") return null;
+        if (textureCache.TryGetValue(name, out var cached)) return cached;
+        var result = ResolveCoreWithHiRes(name, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
+        if (result == null && MixTexturesFlats)
+            result = ResolveCoreWithHiRes(name, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
+        textureCache[name] = result;
+        return result;
+    }
 
     /// <summary>Resolves a sprite/patch to RGBA, or null. Tries rotation variants so e.g. TROOA0 finds TROOA1. Cached by name.</summary>
     public ImageData? GetSprite(string name)

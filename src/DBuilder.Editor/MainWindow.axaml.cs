@@ -167,6 +167,13 @@ public partial class MainWindow : Window
         if (count > 0) SetStatus($"Loaded {count} actor(s) from DECORATE/ZScript resources.");
     }
 
+    private void ApplyResourceConfig()
+    {
+        if (_resources is null) return;
+        _resources.MixTexturesFlats = _config?.MixTexturesFlats ?? false;
+        MapView.MapResources = _resources;
+    }
+
     private void LoadConfig(string path, bool auto = false)
     {
         try
@@ -175,6 +182,7 @@ public partial class MainWindow : Window
             _configName = System.IO.Path.GetFileNameWithoutExtension(path);
             _configIsAuto = auto;
             MapView.GameConfig = _config; // enables thing sprites in the map view
+            ApplyResourceConfig();
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateInfo();
         }
@@ -254,6 +262,7 @@ public partial class MainWindow : Window
         try
         {
             _resources.AddBaseResource(path);
+            ApplyResourceConfig();
 
             // Adding the IWAD often reveals the game (a PWAD alone may lack the signature lumps), so re-detect
             // the config before merging actors onto it.
@@ -269,7 +278,7 @@ public partial class MainWindow : Window
             }
 
             MergeActorsFromResources();
-            MapView.MapResources = _resources; // re-trigger texture cache invalidation + redraw
+            ApplyResourceConfig(); // re-trigger texture cache invalidation + redraw
             SetStatus($"Added resource {System.IO.Path.GetFileName(path)} (textures/flats/actors refreshed)");
         }
         catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
@@ -745,7 +754,7 @@ public partial class MainWindow : Window
             _resources?.Dispose();
             _resources = new ResourceManager();
             _resources.AddResource(path);
-            MapView.MapResources = _resources;
+            ApplyResourceConfig();
             MergeActorsFromResources();
 
             _settings.AddRecent(path);
@@ -773,7 +782,7 @@ public partial class MainWindow : Window
             _resources?.Dispose();
             _resources = new ResourceManager();
             _resources.AddResource(path);
-            MapView.MapResources = _resources;
+            ApplyResourceConfig();
             MergeActorsFromResources();
 
             _settings.AddRecent(path);

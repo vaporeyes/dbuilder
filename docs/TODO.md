@@ -176,6 +176,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Compose root PK3 classic `TEXTURE1` and `TEXTURE2` wall textures from patch resources.
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
   - [x] Keep root PK3 flat and texture images opt-in through UDB resource options.
+  - [x] Honor config-driven texture and flat namespace mixing for lookups and browsers.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.

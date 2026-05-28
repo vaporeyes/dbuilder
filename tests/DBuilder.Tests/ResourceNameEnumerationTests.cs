@@ -96,6 +96,36 @@ public class ResourceNameEnumerationTests
     }
 
     [Fact]
+    public void MixTexturesFlatsMergesNamesSetsAndLookups()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("textures/TEXONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
+            ("flats/FLATONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.DoesNotContain("FLATONLY", rm.GetTextureNames());
+            Assert.DoesNotContain("TEXONLY", rm.GetFlatNames());
+            Assert.Null(rm.GetWallTexture("FLATONLY"));
+            Assert.Null(rm.GetFlat("TEXONLY"));
+
+            rm.MixTexturesFlats = true;
+
+            Assert.Contains("FLATONLY", rm.GetTextureNames());
+            Assert.Contains("TEXONLY", rm.GetFlatNames());
+            Assert.Equal(new byte[] { 20, 21, 22, 255 }, rm.GetWallTexture("FLATONLY")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 10, 11, 12, 255 }, rm.GetFlat("TEXONLY")!.Rgba[0..4]);
+
+            var set = Assert.Single(rm.GetResourceTextureSets());
+            Assert.True(set.TextureExists("FLATONLY"));
+            Assert.True(set.FlatExists("TEXONLY"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void ColormapFolderNamesAreTextureNames()
     {
         string pk3 = TestArtifacts.BuildPk3(("colormaps/FOGMAP.lmp", new byte[DoomColormap.LevelSize]));
