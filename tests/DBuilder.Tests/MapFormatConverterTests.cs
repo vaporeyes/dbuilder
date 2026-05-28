@@ -158,4 +158,33 @@ thingflagstranslation
         Assert.Equal(8, map.Things[0].Flags);
         Assert.DoesNotContain("single", map.Things[0].UdmfFlags);
     }
+
+    [Fact]
+    public void ConvertingToDoomClearsLinedefAndThingArgs()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        map.Linedefs[0].Args[0] = 7;
+        map.Linedefs[0].Args[4] = 9;
+        map.Things[0].Args[1] = 3;
+        map.Things[0].Args[2] = 5;
+
+        MapFormatConverter.Convert(map, MapFormat.Hexen, MapFormat.Doom, gc);
+
+        Assert.All(map.Linedefs[0].Args, arg => Assert.Equal(0, arg));
+        Assert.All(map.Things[0].Args, arg => Assert.Equal(0, arg));
+    }
+
+    [Fact]
+    public void ConvertingToDoomClearsArgsWithoutConfig()
+    {
+        var map = MapWithLine(0, 0);
+        map.Linedefs[0].Args[0] = 7;
+        map.Things[0].Args[0] = 3;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Doom, null);
+
+        Assert.All(map.Linedefs[0].Args, arg => Assert.Equal(0, arg));
+        Assert.All(map.Things[0].Args, arg => Assert.Equal(0, arg));
+    }
 }

@@ -46,6 +46,9 @@ public static class MapFormatConverter
             DoomThingsToHexen(map, sourceConfig, targetConfig);
         }
         // Other binary -> binary conversions leave shared int flags as-is.
+
+        if (to == MapFormat.Doom)
+            ClearDoomUnsupportedArgs(map);
     }
 
     private static void BinaryToUdmf(MapSet map, GameConfiguration config)
@@ -74,5 +77,13 @@ public static class MapFormatConverter
                 t.UdmfFlags.Add(name);
             t.Flags = targetConfig.ThingFlagsFromUdmf(t.UdmfFlags);
         }
+    }
+
+    private static void ClearDoomUnsupportedArgs(MapSet map)
+    {
+        foreach (var l in map.Linedefs)
+            Array.Clear(l.Args, 0, l.Args.Length);
+        foreach (var t in map.Things)
+            Array.Clear(t.Args, 0, t.Args.Length);
     }
 }
