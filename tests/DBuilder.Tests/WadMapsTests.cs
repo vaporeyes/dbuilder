@@ -48,6 +48,17 @@ maplumpnames
     SCRIPTS { required = false; script = ""Hexen_ACS.cfg""; }
 }";
 
+    private const string CopyConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    NODES { required = false; nodebuild = true; }
+    SCRIPTS { required = false; script = ""Hexen_ACS.cfg""; }
+    ACS { required = false; scriptbuild = true; }
+}";
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -315,5 +326,76 @@ maplumpnames
         WadMaps.RemoveUnneededMapLumps(wad, "MAP01", config, glNodesOnly: true);
 
         Assert.Equal(new[] { "MAP01", "THINGS", "LINEDEFS", "NODES" }, wad.Lumps.Select(l => l.Name).ToArray());
+    }
+
+    [Fact]
+    public void CopyMapLumpsByTypeCopiesSelectedCategoriesAndRenamesMarker()
+    {
+        using var source = new WAD(new MemoryStream());
+        WriteLump(source, "MAP01", new byte[] { 7 }, 0);
+        WriteLump(source, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(source, "LINEDEFS", new byte[] { 2 }, 2);
+        WriteLump(source, "NODES", new byte[] { 3 }, 3);
+        WriteLump(source, "SCRIPTS", new byte[] { 4 }, 4);
+        WriteLump(source, "ACS", new byte[] { 5 }, 5);
+        source.WriteHeaders();
+        using var target = new WAD(new MemoryStream());
+
+        var config = GameConfiguration.FromText(CopyConfig);
+        bool copied = WadMaps.CopyMapLumpsByType(
+            source,
+            "MAP01",
+            target,
+            "MAP02",
+            config,
+            copyRequired: true,
+            copyBlindCopy: true,
+            copyNodeBuild: false,
+            copyScript: true);
+
+        Assert.True(copied);
+        Assert.Equal(new[] { "MAP02", "THINGS", "LINEDEFS", "SCRIPTS", "ACS" }, target.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(new byte[] { 7 }, target.Lumps[0].Stream.ReadAllBytes());
+        Assert.Equal(new byte[] { 4 }, WadMaps.ReadMapLump(target, "MAP02", "SCRIPTS", config));
+        Assert.Null(WadMaps.ReadMapLump(target, "MAP02", "NODES", config));
+    }
+
+    [Fact]
+    public void CopyMapLumpsByTypeReplacesSelectedTargetLumps()
+    {
+        using var source = new WAD(new MemoryStream());
+        WriteLump(source, "MAP01", new byte[] { 7 }, 0);
+        WriteLump(source, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(source, "LINEDEFS", new byte[] { 2 }, 2);
+        WriteLump(source, "NODES", new byte[] { 3 }, 3);
+        source.WriteHeaders();
+        using var target = new WAD(new MemoryStream());
+        WriteLump(target, "CREDIT", new byte[] { 9 }, 0);
+        WriteLump(target, "MAP02", new byte[] { 8 }, 1);
+        WriteLump(target, "THINGS", new byte[] { 8 }, 2);
+        WriteLump(target, "LINEDEFS", new byte[] { 8 }, 3);
+        WriteLump(target, "NODES", new byte[] { 8 }, 4);
+        WriteLump(target, "TAIL", new byte[] { 9 }, 5);
+        target.WriteHeaders();
+
+        var config = GameConfiguration.FromText(CopyConfig);
+        bool copied = WadMaps.CopyMapLumpsByType(
+            source,
+            "MAP01",
+            target,
+            "MAP02",
+            config,
+            copyRequired: true,
+            copyBlindCopy: true,
+            copyNodeBuild: false,
+            copyScript: false,
+            replaceTargetLumps: true);
+
+        Assert.True(copied);
+        Assert.Equal(new[] { "CREDIT", "MAP02", "THINGS", "LINEDEFS", "NODES", "TAIL" }, target.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(new byte[] { 7 }, target.Lumps[1].Stream.ReadAllBytes());
+        Assert.Equal(new byte[] { 1 }, WadMaps.ReadMapLump(target, "MAP02", "THINGS", config));
+        Assert.Equal(new byte[] { 2 }, WadMaps.ReadMapLump(target, "MAP02", "LINEDEFS", config));
+        Assert.Equal(new byte[] { 8 }, WadMaps.ReadMapLump(target, "MAP02", "NODES", config));
     }
 }

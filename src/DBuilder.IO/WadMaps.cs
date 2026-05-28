@@ -256,6 +256,69 @@ public static class WadMaps
     }
 
     /// <summary>
+    /// Copies configured map lumps from one map block to another using UDB's required, blind-copy,
+    /// nodebuilder, and script category switches.
+    /// </summary>
+    public static bool CopyMapLumpsByType(
+        WAD source,
+        string sourceMarker,
+        WAD target,
+        string targetMarker,
+        GameConfiguration config,
+        bool copyRequired,
+        bool copyBlindCopy,
+        bool copyNodeBuild,
+        bool copyScript,
+        bool replaceTargetLumps = false)
+    {
+        int sourceHeaderIndex = FindMapHeaderIndex(source, sourceMarker);
+        if (sourceHeaderIndex < 0) return false;
+
+        int targetHeaderIndex = FindMapHeaderIndex(target, targetMarker);
+        bool replaceExistingTarget = replaceTargetLumps && targetHeaderIndex > -1;
+        if (targetHeaderIndex < 0) targetHeaderIndex = target.Lumps.Count;
+
+        int targetIndex = targetHeaderIndex;
+        foreach (var group in config.MapLumpNames)
+        {
+            if (!ShouldCopyMapLump(group.Value, copyRequired, copyBlindCopy, copyNodeBuild, copyScript)) continue;
+
+            string sourceLumpName = group.Key.Contains("~MAP") ? group.Key.Replace("~MAP", sourceMarker) : group.Key;
+            string targetLumpName = group.Key.Contains("~MAP") ? group.Key.Replace("~MAP", targetMarker) : group.Key;
+            int sourceIndex = FindSpecificMapLump(source, sourceLumpName, sourceHeaderIndex, sourceMarker, config.MapLumpNames);
+            if (sourceIndex < 0) continue;
+
+            if (replaceExistingTarget)
+            {
+                int removedIndex = RemoveSpecificMapLump(target, targetLumpName, targetHeaderIndex, targetMarker, config.MapLumpNames);
+                if (removedIndex > -1) targetIndex = removedIndex;
+                else targetIndex++;
+            }
+            else
+            {
+                targetIndex++;
+            }
+
+            if (targetIndex > target.Lumps.Count) targetIndex = target.Lumps.Count;
+            Lump lump = source.Lumps[sourceIndex];
+            Lump copied = target.Insert(targetLumpName, targetIndex, lump.Length, false)!;
+            lump.CopyTo(copied);
+
+            if (!replaceExistingTarget) targetIndex++;
+        }
+
+        target.WriteHeaders();
+        target.Compress();
+        return true;
+    }
+
+    private static bool ShouldCopyMapLump(MapLumpInfo info, bool required, bool blindCopy, bool nodeBuild, bool script)
+        => (info.Required && required)
+            || (info.BlindCopy && blindCopy)
+            || (info.NodeBuild && nodeBuild)
+            || ((info.Script != null || info.ScriptBuild) && script);
+
+    /// <summary>
     /// Verifies that required nodebuilder output lumps are present for one map block.
     /// Optional and allow-empty nodebuilder lumps do not make the block incomplete, matching UDB.
     /// </summary>
