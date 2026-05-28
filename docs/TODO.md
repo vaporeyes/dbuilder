@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Game Configuration
 
 - [ ] Complete game configuration parsing parity.
+  - [x] Parse universal field metadata.
   - [x] Parse thing flag comparison metadata.
   - [x] Parse damage type, internal sound, ignored directory, and ignored extension metadata.
   - [x] Parse render style, sidedef/sector flag, portal flag, brightness level, and visplane view-height metadata.

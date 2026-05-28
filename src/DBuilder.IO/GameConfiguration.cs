@@ -224,6 +224,23 @@ public sealed record ThingFlagsCompareGroupInfo(
     bool IsOptional,
     IReadOnlyDictionary<string, ThingFlagCompareInfo> Flags);
 
+public sealed record UniversalFieldAssociationInfo(
+    string Property,
+    string Modify,
+    bool NeverShowEventLines,
+    bool ConsolidateEventLines);
+
+public sealed record UniversalFieldInfo(
+    string Element,
+    string Name,
+    int Type,
+    object? DefaultValue,
+    bool ThingTypeSpecific,
+    bool Managed,
+    string? EnumName,
+    IReadOnlyList<EnumItemInfo> InlineEnumItems,
+    IReadOnlyDictionary<string, UniversalFieldAssociationInfo> Associations);
+
 public sealed class TextureSetInfo
 {
     private readonly Regex regex;
@@ -311,6 +328,7 @@ public sealed class GameConfiguration
     private readonly HashSet<string> ignoredDirectories = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> ignoredExtensions = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ThingFlagsCompareGroupInfo> thingFlagsCompare = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Dictionary<string, UniversalFieldInfo>> universalFields = new(StringComparer.OrdinalIgnoreCase);
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -351,6 +369,7 @@ public sealed class GameConfiguration
     public IReadOnlySet<string> IgnoredDirectories => ignoredDirectories;
     public IReadOnlySet<string> IgnoredExtensions => ignoredExtensions;
     public IReadOnlyDictionary<string, ThingFlagsCompareGroupInfo> ThingFlagsCompare => thingFlagsCompare;
+    public IReadOnlyDictionary<string, Dictionary<string, UniversalFieldInfo>> UniversalFields => universalFields;
 
     public string DefaultSaveCompiler { get; private set; } = "";
     public string DefaultTestCompiler { get; private set; } = "";
@@ -537,6 +556,7 @@ public sealed class GameConfiguration
             if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
             if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
             if (root["thingflagscompare"] is IDictionary tfc) gc.ParseThingFlagsCompare(tfc);
+            if (root["universalfields"] is IDictionary uf) gc.ParseUniversalFields(uf);
             if (root["thingrenderstyles"] is IDictionary trs) ParseStringDictionary(trs, gc.thingRenderStyles);
             if (root["linedefrenderstyles"] is IDictionary lrs) ParseStringDictionary(lrs, gc.linedefRenderStyles);
             if (root["sidedefflags"] is IDictionary sf) ParseStringDictionary(sf, gc.sidedefFlags);
@@ -1307,6 +1327,64 @@ public sealed class GameConfiguration
                 GetBool(group, "optional", false),
                 flags);
         }
+    }
+
+    private void ParseUniversalFields(IDictionary block)
+    {
+        foreach (DictionaryEntry elementEntry in block)
+        {
+            string element = elementEntry.Key.ToString() ?? "";
+            if (element.Length == 0 || elementEntry.Value is not IDictionary fieldsBlock) continue;
+            var fields = new Dictionary<string, UniversalFieldInfo>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DictionaryEntry fieldEntry in fieldsBlock)
+            {
+                string name = fieldEntry.Key.ToString() ?? "";
+                if (name.Length == 0 || fieldEntry.Value is not IDictionary fieldBlock) continue;
+                string normalizedName = name.ToLowerInvariant();
+                fields[normalizedName] = new UniversalFieldInfo(
+                    element,
+                    normalizedName,
+                    GetInt(fieldBlock, "type", 0),
+                    fieldBlock["default"],
+                    GetBool(fieldBlock, "thingtypespecific", false),
+                    GetBool(fieldBlock, "managed", true),
+                    fieldBlock["enum"] is string enumName ? enumName : null,
+                    fieldBlock["enum"] is IDictionary inlineEnum ? ParseInlineEnum(inlineEnum) : Array.Empty<EnumItemInfo>(),
+                    fieldBlock["associations"] is IDictionary associations ? ParseUniversalFieldAssociations(associations) : new Dictionary<string, UniversalFieldAssociationInfo>());
+            }
+
+            universalFields[element] = fields;
+        }
+    }
+
+    private static IReadOnlyList<EnumItemInfo> ParseInlineEnum(IDictionary block)
+    {
+        var items = new List<EnumItemInfo>();
+        foreach (DictionaryEntry e in block)
+        {
+            string value = e.Key.ToString() ?? "";
+            if (value.Length > 0) items.Add(new EnumItemInfo(value, e.Value?.ToString() ?? value));
+        }
+        items.Sort();
+        return items;
+    }
+
+    private static IReadOnlyDictionary<string, UniversalFieldAssociationInfo> ParseUniversalFieldAssociations(IDictionary block)
+    {
+        var associations = new Dictionary<string, UniversalFieldAssociationInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry e in block)
+        {
+            if (e.Value is not IDictionary association) continue;
+            string property = GetString(association, "property", "");
+            if (property.Length == 0) continue;
+            associations[property] = new UniversalFieldAssociationInfo(
+                property,
+                GetString(association, "modify", ""),
+                GetBool(association, "nevershoweventlines", false),
+                GetBool(association, "consolidateeventlines", false));
+        }
+        return associations;
     }
 
     private void ParseBrightnessLevels(IDictionary block)

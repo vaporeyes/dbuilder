@@ -400,6 +400,81 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesUniversalFieldMetadata()
+    {
+        const string cfg = """
+            universalfields
+            {
+                linedef
+                {
+                    automapstyle
+                    {
+                        type = 11;
+                        default = 0;
+                        enum
+                        {
+                            0 = "Default";
+                            1 = "One-sided wall";
+                        }
+                    }
+                }
+                sector
+                {
+                    portalfloor
+                    {
+                        type = 0;
+                        default = 0;
+                        managed = false;
+                        associations
+                        {
+                            0
+                            {
+                                property = "portalfloor";
+                                modify = "abs";
+                                nevershoweventlines = true;
+                                consolidateeventlines = true;
+                            }
+                        }
+                    }
+                }
+                thing
+                {
+                    species
+                    {
+                        type = 2;
+                        default = "DoomImp";
+                        thingtypespecific = true;
+                        enum = "thingtypes";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var automap = gc.UniversalFields["linedef"]["automapstyle"];
+        Assert.Equal("automapstyle", automap.Name);
+        Assert.Equal(11, automap.Type);
+        Assert.Equal(0, automap.DefaultValue);
+        Assert.True(automap.Managed);
+        Assert.Null(automap.EnumName);
+        Assert.Equal("Default", automap.InlineEnumItems[0].Title);
+        Assert.Equal("One-sided wall", automap.InlineEnumItems[1].Title);
+
+        var portal = gc.UniversalFields["sector"]["portalfloor"];
+        Assert.False(portal.Managed);
+        var association = portal.Associations["portalfloor"];
+        Assert.Equal("abs", association.Modify);
+        Assert.True(association.NeverShowEventLines);
+        Assert.True(association.ConsolidateEventLines);
+
+        var species = gc.UniversalFields["thing"]["species"];
+        Assert.True(species.ThingTypeSpecific);
+        Assert.Equal("thingtypes", species.EnumName);
+        Assert.Equal("DoomImp", species.DefaultValue);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """
