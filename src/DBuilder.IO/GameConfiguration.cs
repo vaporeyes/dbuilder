@@ -330,6 +330,20 @@ public sealed class GameConfiguration
     public int[] MakeDoorArgs { get; private set; } = new int[5];
     public IReadOnlyDictionary<string, bool> MakeDoorFlags => makeDoorFlags;
     public IReadOnlyList<string> DefaultThingFlags => defaultThingFlags;
+    public string TestParameters { get; private set; } = "";
+    public bool TestShortPaths { get; private set; }
+    public bool TestLinuxPaths { get; private set; }
+    public bool LineTagIndicatesSectors { get; private set; }
+    public string DecorateGames { get; private set; } = "";
+    public string SkyFlatName { get; private set; } = "F_SKY1";
+    public int MaxTextureNameLength { get; private set; } = 8;
+    public bool UseLongTextureNames { get; private set; }
+    public int LeftBoundary { get; private set; } = -32768;
+    public int RightBoundary { get; private set; } = 32767;
+    public int TopBoundary { get; private set; } = 32767;
+    public int BottomBoundary { get; private set; } = -32768;
+    public int SafeBoundary { get; private set; } = 32767;
+    public bool DoomLightLevels { get; private set; } = true;
     public double DefaultTextureScale { get; private set; } = 1.0;
     public double DefaultFlatScale { get; private set; } = 1.0;
     public string DefaultWallTexture { get; private set; } = "STARTAN";
@@ -387,6 +401,9 @@ public sealed class GameConfiguration
             gc.GeneralizedEffects = GetBool(root, "generalizedsectors", false);
             gc.Start3DModeThingType = GetInt(root, "start3dmode", 0);
             gc.LinedefActivationsFilter = GetInt(root, "linedefactivationsfilter", 0);
+            gc.TestParameters = GetString(root, "testparameters", "");
+            gc.TestShortPaths = GetBool(root, "testshortpaths", false);
+            gc.TestLinuxPaths = GetBool(root, "testlinuxpaths", false);
             if (root["visplaneexplorer"] is IDictionary visplane)
                 gc.VisplaneViewHeightDefault = GetInt(visplane, "viewheightdefault", 41);
             gc.MakeDoorTrack = GetString(root, "makedoortrack", "-");
@@ -397,6 +414,17 @@ public sealed class GameConfiguration
             for (int i = 0; i < gc.MakeDoorArgs.Length; i++)
                 gc.MakeDoorArgs[i] = GetInt(root, "makedoorarg" + i.ToString(CultureInfo.InvariantCulture), 0);
             if (root["makedoorflags"] is IDictionary mdf) gc.ParseMakeDoorFlags(mdf);
+            gc.LineTagIndicatesSectors = GetBool(root, "linetagindicatesectors", false);
+            gc.DecorateGames = GetString(root, "decorategames", "");
+            gc.SkyFlatName = GetString(root, "skyflatname", "F_SKY1");
+            gc.LeftBoundary = GetInt(root, "leftboundary", -32768);
+            gc.RightBoundary = GetInt(root, "rightboundary", 32767);
+            gc.TopBoundary = GetInt(root, "topboundary", 32767);
+            gc.BottomBoundary = GetInt(root, "bottomboundary", -32768);
+            gc.SafeBoundary = GetInt(root, "safeboundary", 32767);
+            gc.DoomLightLevels = GetBool(root, "doomlightlevels", true);
+            gc.UseLongTextureNames = GetBool(root, "longtexturenames", false);
+            gc.MaxTextureNameLength = gc.UseLongTextureNames ? short.MaxValue : 8;
             gc.DefaultTextureScale = GetDouble(root, "defaulttexturescale", 1.0);
             gc.DefaultFlatScale = GetDouble(root, "defaultflatscale", 1.0);
             gc.DefaultWallTexture = GetString(root, "defaultwalltexture", "STARTAN");

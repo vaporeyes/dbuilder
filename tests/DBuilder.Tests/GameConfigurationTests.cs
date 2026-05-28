@@ -187,6 +187,52 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesMapFormatAndTestingSettings()
+    {
+        const string cfg = """
+            testparameters = "-iwad doom2.wad";
+            testshortpaths = true;
+            testlinuxpaths = true;
+            linetagindicatesectors = true;
+            decorategames = "doom,heretic";
+            skyflatname = "F_SKY2";
+            leftboundary = -1024;
+            rightboundary = 2048;
+            topboundary = 4096;
+            bottomboundary = -2048;
+            safeboundary = 1536;
+            doomlightlevels = false;
+            longtexturenames = true;
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("-iwad doom2.wad", gc.TestParameters);
+        Assert.True(gc.TestShortPaths);
+        Assert.True(gc.TestLinuxPaths);
+        Assert.True(gc.LineTagIndicatesSectors);
+        Assert.Equal("doom,heretic", gc.DecorateGames);
+        Assert.Equal("F_SKY2", gc.SkyFlatName);
+        Assert.Equal(-1024, gc.LeftBoundary);
+        Assert.Equal(2048, gc.RightBoundary);
+        Assert.Equal(4096, gc.TopBoundary);
+        Assert.Equal(-2048, gc.BottomBoundary);
+        Assert.Equal(1536, gc.SafeBoundary);
+        Assert.False(gc.DoomLightLevels);
+        Assert.True(gc.UseLongTextureNames);
+        Assert.Equal(short.MaxValue, gc.MaxTextureNameLength);
+    }
+
+    [Fact]
+    public void DefaultsToClassicTextureNameLength()
+    {
+        var gc = GameConfiguration.FromText("");
+
+        Assert.False(gc.UseLongTextureNames);
+        Assert.Equal(8, gc.MaxTextureNameLength);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """
