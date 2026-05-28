@@ -272,17 +272,23 @@ public static class UdmfMapLoader
         { "x", "y", "height", "type", "angle", "pitch", "roll", "scalex", "scaley", "scale",
           "special", "id", "arg0", "arg1", "arg2", "arg3", "arg4" };
 
-    // Appends ZDoom "moreids" (space-separated extra tags) onto a Tags list seeded with the primary id.
-    // Tags[0] is the id read from the typed property; moreids contributes Tags[1..].
+    // Appends unique nonzero ZDoom "moreids" tags onto a Tags list seeded with the primary id.
+    // Tags[0] is the id read from the typed property, unless that primary id is zero and extras exist.
     private static void AppendMoreIds(UniversalCollection c, List<int> tags)
     {
         string more = GetString(c, "moreids", "");
         if (string.IsNullOrWhiteSpace(more)) return;
         foreach (var token in more.Split(new[] { ' ', '\t', ',' }, System.StringSplitOptions.RemoveEmptyEntries))
         {
-            if (int.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int id))
+            if (int.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int id)
+                && id != 0
+                && !tags.Contains(id))
+            {
                 tags.Add(id);
+            }
         }
+
+        if (tags.Count > 1 && tags[0] == 0) tags.RemoveAt(0);
     }
 
     // Copies non-managed entries into the destination Fields dictionary, normalizing the boxed value to one of

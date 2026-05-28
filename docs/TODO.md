@@ -111,6 +111,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete UDMF map loader parity.
   - [x] Skip invalid and zero-length UDMF linedefs during load.
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
+  - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
 - [ ] Complete UDMF map writer parity.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
