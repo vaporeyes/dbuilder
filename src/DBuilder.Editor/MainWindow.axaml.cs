@@ -681,6 +681,36 @@ public partial class MainWindow : Window
 
     private void OnFit(object? sender, RoutedEventArgs e) { MapView.FitToMap(); MapView.MarkGeometryDirty(); }
 
+    private void OnTagStatistics(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var win = new TagStatisticsWindow(MapSearch.UsedTagStatistics(_map));
+        win.TagActivated += (tag, mode) =>
+        {
+            if (_map is null) return;
+            var r = MapSearch.Find(_map, FindCategory.Tag, tag.ToString());
+            MapView.RevealSelection(mode ?? MapControl.EditMode.Linedefs, r.Focus);
+            UpdateInfo();
+            SetStatus($"Tag {tag}: {r.Count} element(s).");
+        };
+        win.Show(this);
+    }
+
+    private void OnThingStatistics(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var win = new ThingStatisticsWindow(MapSearch.ThingTypeStatistics(_map), _config);
+        win.ThingTypeActivated += type =>
+        {
+            if (_map is null) return;
+            var r = MapSearch.Find(_map, FindCategory.ThingType, type.ToString());
+            MapView.RevealSelection(MapControl.EditMode.Things, r.Focus);
+            UpdateInfo();
+            SetStatus($"Thing type {type}: {r.Count} thing(s).");
+        };
+        win.Show(this);
+    }
+
     private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
     {
         var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter);

@@ -53,6 +53,8 @@
             <MenuItem Header="_View">
                 <MenuItem Header="_Fit to map" Click="OnFit" />
                 <MenuItem Header="_Go To Coordinates..." Click="OnGoToCoordinates" />
+                <MenuItem Header="View Used _Tags..." Click="OnTagStatistics" />
+                <MenuItem Header="View Thing _Types..." Click="OnThingStatistics" />
                 <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
                 <MenuItem Header="Thing _Filter..." Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />

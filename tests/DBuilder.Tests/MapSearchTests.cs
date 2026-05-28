@@ -142,6 +142,41 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void UsedTagStatisticsSplitsCountsByElementType()
+    {
+        var map = Build();
+        map.Sectors[0].Tags.Add(7);
+        map.Linedefs[0].Tags.Add(7);
+        map.Things[0].Tag = 7;
+
+        var tags = MapSearch.UsedTagStatistics(map);
+
+        Assert.Equal(new[] { 5, 7 }, tags.ConvertAll(t => t.Tag));
+        var tag5 = tags.First(t => t.Tag == 5);
+        Assert.Equal(1, tag5.Sectors);
+        Assert.Equal(1, tag5.Linedefs);
+        Assert.Equal(1, tag5.Things);
+        Assert.Equal(3, tag5.Total);
+
+        var tag7 = tags.First(t => t.Tag == 7);
+        Assert.Equal(1, tag7.Sectors);
+        Assert.Equal(1, tag7.Linedefs);
+        Assert.Equal(1, tag7.Things);
+    }
+
+    [Fact]
+    public void ThingTypeStatisticsCountsTypesAscending()
+    {
+        var map = Build();
+
+        var types = MapSearch.ThingTypeStatistics(map);
+
+        Assert.Equal(new[] { 9, 3001 }, types.ConvertAll(t => t.Type));
+        Assert.Equal(1, types.First(t => t.Type == 9).Count);
+        Assert.Equal(2, types.First(t => t.Type == 3001).Count);
+    }
+
+    [Fact]
     public void NextFreeTagSkipsUsed()
     {
         var map = Build();

@@ -14,6 +14,15 @@ public enum FindCategory { ThingType, LinedefAction, SectorEffect, Tag, Texture,
 /// <summary>Outcome of a find: how many matched and a representative location to center on.</summary>
 public readonly record struct SearchResult(int Count, Vector2D? Focus);
 
+/// <summary>Per-tag usage counts split by element class for statistics UI.</summary>
+public readonly record struct TagStatistic(int Tag, int Sectors, int Linedefs, int Things)
+{
+    public int Total => Sectors + Linedefs + Things;
+}
+
+/// <summary>Per-thing-type usage count for statistics UI.</summary>
+public readonly record struct ThingTypeStatistic(int Type, int Count);
+
 public static class MapSearch
 {
     /// <summary>True for categories whose value is a string (texture/flat names); the rest are integers.</summary>
@@ -129,6 +138,49 @@ public static class MapSearch
         var list = new List<(int, int)>();
         foreach (var kv in counts) list.Add((kv.Key, kv.Value));
         list.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+        return list;
+    }
+
+    /// <summary>All positive tags in use with separate sector, linedef and thing counts.</summary>
+    public static List<TagStatistic> UsedTagStatistics(MapSet map)
+    {
+        var sectors = new Dictionary<int, int>();
+        var linedefs = new Dictionary<int, int>();
+        var things = new Dictionary<int, int>();
+
+        static void Add(Dictionary<int, int> counts, int tag)
+        {
+            if (tag != 0) counts[tag] = counts.TryGetValue(tag, out int c) ? c + 1 : 1;
+        }
+
+        foreach (var s in map.Sectors) foreach (int tag in MapElementTags.PositiveTags(s)) Add(sectors, tag);
+        foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(linedefs, tag);
+        foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(things, tag);
+
+        var tags = new SortedSet<int>(sectors.Keys);
+        tags.UnionWith(linedefs.Keys);
+        tags.UnionWith(things.Keys);
+
+        var list = new List<TagStatistic>();
+        foreach (int tag in tags)
+        {
+            sectors.TryGetValue(tag, out int sectorCount);
+            linedefs.TryGetValue(tag, out int linedefCount);
+            things.TryGetValue(tag, out int thingCount);
+            list.Add(new TagStatistic(tag, sectorCount, linedefCount, thingCount));
+        }
+        return list;
+    }
+
+    /// <summary>Thing type usage counts, ascending by thing type.</summary>
+    public static List<ThingTypeStatistic> ThingTypeStatistics(MapSet map)
+    {
+        var counts = new SortedDictionary<int, int>();
+        foreach (var thing in map.Things)
+            counts[thing.Type] = counts.TryGetValue(thing.Type, out int c) ? c + 1 : 1;
+
+        var list = new List<ThingTypeStatistic>();
+        foreach (var kv in counts) list.Add(new ThingTypeStatistic(kv.Key, kv.Value));
         return list;
     }
 
