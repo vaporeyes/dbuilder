@@ -1,0 +1,112 @@
+// ABOUTME: Tests primitive UDB universal type handlers for field and argument value conversion.
+// ABOUTME: Protects Boolean, Integer, and Decimal handler behavior before editor UI integration.
+
+using DBuilder.IO;
+
+namespace DBuilder.Tests;
+
+public class UniversalTypeHandlersTests
+{
+    [Fact]
+    public void IntegerHandlerCoercesValuesLikeUdb()
+    {
+        var handler = new UniversalTypeRegistry().CreateHandler(UniversalType.Integer, defaultValue: 7);
+
+        Assert.IsType<IntegerTypeHandler>(handler);
+        Assert.Equal(7, handler.DefaultValue);
+        Assert.Equal(7, handler.GetIntValue());
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetValue());
+
+        handler.SetValue("42");
+        Assert.Equal(42, handler.GetIntValue());
+        Assert.Equal("42", handler.GetStringValue());
+
+        handler.SetValue("not an integer");
+        Assert.Equal(0, handler.GetIntValue());
+
+        handler.ApplyDefaultValue();
+        Assert.Equal(7, handler.GetIntValue());
+    }
+
+    [Fact]
+    public void FloatHandlerCoercesValuesLikeUdb()
+    {
+        var handler = new UniversalTypeRegistry().CreateHandler(UniversalType.Float, defaultValue: 1);
+
+        Assert.IsType<FloatTypeHandler>(handler);
+        Assert.Equal(1.0, handler.DefaultValue);
+        Assert.Equal(1.0, handler.GetValue());
+
+        handler.SetValue("2.5");
+        Assert.Equal(2.5, handler.GetValue());
+        Assert.Equal(2, handler.GetIntValue());
+
+        handler.SetValue(false);
+        Assert.Equal(0.0, handler.GetValue());
+
+        handler.SetValue("not a decimal");
+        Assert.Equal(0.0, handler.GetValue());
+    }
+
+    [Fact]
+    public void BooleanHandlerCoercesValuesAndExposesEnumValuesLikeUdb()
+    {
+        var handler = (BooleanTypeHandler)new UniversalTypeRegistry().CreateHandler(UniversalType.Boolean);
+
+        Assert.True(handler.IsEnumerable);
+        Assert.True(handler.IsLimitedToEnums);
+        Assert.Equal("True", handler.Values.GetByEnumIndex("true")!.Title);
+        Assert.Equal("False", handler.Values.GetByEnumIndex("false")!.Title);
+
+        handler.SetValue("true");
+        Assert.True((bool)handler.GetValue());
+        Assert.Equal(1, handler.GetIntValue());
+        Assert.Equal("True", handler.GetStringValue());
+
+        handler.SetValue("1");
+        Assert.False((bool)handler.GetValue());
+
+        handler.SetValue(2);
+        Assert.True((bool)handler.GetValue());
+    }
+
+    [Fact]
+    public void RegistryCreatesPrimitiveHandlersForArgsAndUniversalFields()
+    {
+        var registry = new UniversalTypeRegistry();
+        var arg = new ArgInfo { Type = (int)UniversalType.Integer, DefaultValue = 9 };
+        var argHandler = registry.CreateArgumentHandler(arg);
+
+        Assert.True(argHandler.IsForArgument);
+        Assert.Equal(9, argHandler.GetIntValue());
+
+        var field = new UniversalFieldInfo(
+            "thing",
+            "health",
+            (int)UniversalType.Boolean,
+            true,
+            false,
+            true,
+            null,
+            Array.Empty<EnumItemInfo>(),
+            new Dictionary<string, UniversalFieldAssociationInfo>());
+        var fieldHandler = registry.CreateFieldHandler(field);
+
+        Assert.False(fieldHandler.IsForArgument);
+        Assert.IsType<BooleanTypeHandler>(fieldHandler);
+        Assert.True((bool)fieldHandler.GetValue());
+    }
+
+    [Fact]
+    public void UnknownHandlerPreservesDisplayValueButReturnsStringValue()
+    {
+        var handler = new UniversalTypeRegistry().CreateHandler(99, defaultValue: "abc");
+
+        Assert.IsType<NullTypeHandler>(handler);
+        Assert.Equal("abc", handler.GetValue());
+        Assert.Equal("abc", handler.GetStringValue());
+        Assert.Equal(0, handler.GetIntValue());
+    }
+}

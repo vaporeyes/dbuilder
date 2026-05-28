@@ -90,6 +90,27 @@ public sealed class UniversalTypeRegistry
 
     public bool IsKnown(UniversalType type) => IsKnown((int)type);
 
+    public UniversalTypeHandler CreateHandler(int index, object? defaultValue = null, bool isForArgument = false)
+    {
+        var info = Get(index);
+        return info.Type switch
+        {
+            UniversalType.Integer when info.Index >= 0 => new IntegerTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.Float when info.Index >= 0 => new FloatTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.Boolean when info.Index >= 0 => new BooleanTypeHandler(info, defaultValue, isForArgument),
+            _ => new NullTypeHandler(info, defaultValue, isForArgument),
+        };
+    }
+
+    public UniversalTypeHandler CreateHandler(UniversalType type, object? defaultValue = null, bool isForArgument = false)
+        => CreateHandler((int)type, defaultValue, isForArgument);
+
+    public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
+        => CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true);
+
+    public UniversalTypeHandler CreateFieldHandler(UniversalFieldInfo field)
+        => CreateHandler(field.Type, field.DefaultValue, isForArgument: false);
+
     private void Register(UniversalType type, string name, bool customUsable)
     {
         var info = new UniversalTypeInfo((int)type, type, name, customUsable);
