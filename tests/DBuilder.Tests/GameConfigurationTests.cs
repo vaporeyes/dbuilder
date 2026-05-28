@@ -321,6 +321,37 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesMetadataStringSets()
+    {
+        const string cfg = """
+            damagetypes = "BFGSplash Drowning Slime";
+            internalsoundnames = "*death *pain75 misc/i_pkup";
+            ignoreddirectories = ".svn .git";
+            ignoredextensions = "wad pk3 zip";
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Contains("bfgsplash", gc.DamageTypes);
+        Assert.Contains("Drowning", gc.DamageTypes);
+        Assert.Contains("*pain75", gc.InternalSoundNames);
+        Assert.Contains("misc/i_pkup", gc.InternalSoundNames);
+        Assert.Contains(".GIT", gc.IgnoredDirectories);
+        Assert.Contains("PK3", gc.IgnoredExtensions);
+    }
+
+    [Fact]
+    public void DefaultsDamageTypesToNone()
+    {
+        var gc = GameConfiguration.FromText("");
+
+        Assert.Contains("None", gc.DamageTypes);
+        Assert.Empty(gc.InternalSoundNames);
+        Assert.Empty(gc.IgnoredDirectories);
+        Assert.Empty(gc.IgnoredExtensions);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """

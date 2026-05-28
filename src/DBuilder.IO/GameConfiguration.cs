@@ -292,6 +292,10 @@ public sealed class GameConfiguration
     private readonly Dictionary<string, string> sectorPortalRenderStyles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> visplaneViewHeights = new(StringComparer.Ordinal);
     private readonly List<int> brightnessLevels = new();
+    private readonly HashSet<string> damageTypes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> internalSoundNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> ignoredDirectories = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> ignoredExtensions = new(StringComparer.OrdinalIgnoreCase);
     private StaticLimitsInfo staticLimits = new(new Dictionary<string, int>());
 
     public IReadOnlyDictionary<int, ThingTypeInfo> Things => things;
@@ -327,6 +331,10 @@ public sealed class GameConfiguration
     public IReadOnlyDictionary<string, string> SectorPortalRenderStyles => sectorPortalRenderStyles;
     public IReadOnlyDictionary<string, string> VisplaneViewHeights => visplaneViewHeights;
     public IReadOnlyList<int> BrightnessLevels => brightnessLevels;
+    public IReadOnlySet<string> DamageTypes => damageTypes;
+    public IReadOnlySet<string> InternalSoundNames => internalSoundNames;
+    public IReadOnlySet<string> IgnoredDirectories => ignoredDirectories;
+    public IReadOnlySet<string> IgnoredExtensions => ignoredExtensions;
 
     public string DefaultSaveCompiler { get; private set; } = "";
     public string DefaultTestCompiler { get; private set; } = "";
@@ -498,6 +506,10 @@ public sealed class GameConfiguration
             gc.DefaultWallTexture = GetString(root, "defaultwalltexture", "STARTAN");
             gc.DefaultFloorTexture = GetString(root, "defaultfloortexture", "FLOOR0_1");
             gc.DefaultCeilingTexture = GetString(root, "defaultceilingtexture", "CEIL1_1");
+            ParseStringSet(GetString(root, "damagetypes", "None"), gc.damageTypes);
+            ParseStringSet(GetString(root, "internalsoundnames", ""), gc.internalSoundNames);
+            ParseStringSet(GetString(root, "ignoreddirectories", ""), gc.ignoredDirectories);
+            ParseStringSet(GetString(root, "ignoredextensions", ""), gc.ignoredExtensions);
             gc.MixTexturesFlats = GetBool(root, "mixtexturesflats", false);
             if (root["defaultskytextures"] is IDictionary dst) gc.ParseDefaultSkyTextures(dst);
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
@@ -1266,6 +1278,12 @@ public sealed class GameConfiguration
             string key = e.Key.ToString() ?? "";
             if (key.Length > 0) destination[key] = e.Value?.ToString() ?? "";
         }
+    }
+
+    private static void ParseStringSet(string text, HashSet<string> destination)
+    {
+        foreach (string value in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            destination.Add(value);
     }
 
     /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
