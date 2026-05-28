@@ -125,6 +125,21 @@ ACTOR Flagged 7002
     }
 
     [Fact]
+    public void ParsesGamePropertyValuesUntilLineEnd()
+    {
+        const string text = @"
+ACTOR GameScoped 7003
+{
+    Game Doom, Heretic
+    Radius 16
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal(new[] { "Doom", "Heretic" }, actor.Properties["Game"]);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void IgnoresActionAndNativeDeclarations()
     {
         const string text = @"

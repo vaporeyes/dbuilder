@@ -369,11 +369,12 @@ public static class DecorateParser
         var values = new List<string>();
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
+            : HasLineTerminator(t, i) ? int.MaxValue
             : key.Equals("scale", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         while (i < t.Count && values.Count < maxValues)
         {
             var tk = t[i];
-            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";") break;
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";" or "\n") break;
             if (tk.Kind == Kind.Sym && tk.Text == ",") { i++; continue; }
             if (key.Equals("scale", StringComparison.OrdinalIgnoreCase)
                 && values.Count > 0
@@ -385,13 +386,24 @@ public static class DecorateParser
         return values;
     }
 
+    private static bool HasLineTerminator(List<Tok> t, int i)
+    {
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "\n") return true;
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or ";") return false;
+        }
+        return false;
+    }
+
     private static bool HasSemicolonTerminator(List<Tok> t, int i)
     {
         while (i < t.Count)
         {
             var tk = t[i++];
             if (tk.Kind == Kind.Sym && tk.Text == ";") return true;
-            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}") return false;
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or "\n") return false;
         }
         return false;
     }
@@ -469,6 +481,13 @@ public static class DecorateParser
         for (int p = 0; p < n;)
         {
             char c = s[p];
+            if (c is '\r' or '\n')
+            {
+                if (c == '\r' && p + 1 < n && s[p + 1] == '\n') p++;
+                p++;
+                toks.Add(new Tok(Kind.Sym, "\n"));
+                continue;
+            }
             if (char.IsWhiteSpace(c)) { p++; continue; }
 
             if (c == '/' && p + 1 < n && s[p + 1] == '/')
