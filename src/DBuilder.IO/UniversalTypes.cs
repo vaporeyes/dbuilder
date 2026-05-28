@@ -90,7 +90,11 @@ public sealed class UniversalTypeRegistry
 
     public bool IsKnown(UniversalType type) => IsKnown((int)type);
 
-    public UniversalTypeHandler CreateHandler(int index, object? defaultValue = null, bool isForArgument = false)
+    public UniversalTypeHandler CreateHandler(
+        int index,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? enumList = null)
     {
         var info = Get(index);
         return info.Type switch
@@ -99,14 +103,19 @@ public sealed class UniversalTypeRegistry
             UniversalType.Float when info.Index >= 0 => new FloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.String when info.Index >= 0 => new StringTypeHandler(info, defaultValue, isForArgument),
             UniversalType.Boolean when info.Index >= 0 => new BooleanTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.EnumOption when info.Index >= 0 => new EnumOptionTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.RandomInteger when info.Index >= 0 => new RandomIntegerTypeHandler(info, defaultValue, isForArgument),
             UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             _ => new NullTypeHandler(info, defaultValue, isForArgument),
         };
     }
 
-    public UniversalTypeHandler CreateHandler(UniversalType type, object? defaultValue = null, bool isForArgument = false)
-        => CreateHandler((int)type, defaultValue, isForArgument);
+    public UniversalTypeHandler CreateHandler(
+        UniversalType type,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? enumList = null)
+        => CreateHandler((int)type, defaultValue, isForArgument, enumList);
 
     public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
         => CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true);

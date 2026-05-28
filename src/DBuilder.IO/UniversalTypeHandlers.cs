@@ -22,6 +22,8 @@ public abstract class UniversalTypeHandler
     public bool IsForArgument { get; }
     public object DefaultValue { get; protected set; }
     public virtual bool IsBrowseable => false;
+    public virtual bool IsEnumerable => false;
+    public virtual bool IsLimitedToEnums => false;
 
     public abstract void SetValue(object? value);
     public abstract object GetValue();
@@ -97,8 +99,8 @@ public sealed class BooleanTypeHandler : UniversalTypeHandler
     {
     }
 
-    public bool IsEnumerable => true;
-    public bool IsLimitedToEnums => true;
+    public override bool IsEnumerable => true;
+    public override bool IsLimitedToEnums => true;
     public EnumListInfo Values => values;
 
     public override void SetValue(object? value) => this.value = ToBool(value);
@@ -150,6 +152,80 @@ public sealed class StringTypeHandler : UniversalTypeHandler
 
     protected override object CoerceDefault(object? value)
         => value?.ToString()?.Replace("\"", "") ?? "";
+}
+
+public sealed class EnumOptionTypeHandler : UniversalTypeHandler
+{
+    private EnumListInfo values = new("");
+    private EnumItemInfo value = new("0", "NULL");
+
+    public EnumOptionTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+        this.values = values ?? new EnumListInfo("");
+        SetValue(DefaultValue);
+    }
+
+    public override bool IsBrowseable => true;
+    public override bool IsEnumerable => true;
+    public EnumListInfo Values => values;
+
+    public override void SetValue(object? value)
+    {
+        if (value == null)
+        {
+            this.value = new EnumItemInfo("0", "NULL");
+            return;
+        }
+
+        if (value is int or float or double or bool)
+        {
+            int intValue = Convert.ToInt32(value, CultureInfo.CurrentCulture);
+            foreach (EnumItemInfo item in values.Items)
+            {
+                if (item.GetIntValue() == intValue)
+                {
+                    this.value = item;
+                    return;
+                }
+            }
+        }
+
+        string text = value.ToString() ?? "";
+        foreach (EnumItemInfo item in values.Items)
+        {
+            if (item.Value == text)
+            {
+                this.value = item;
+                return;
+            }
+        }
+
+        foreach (EnumItemInfo item in values.Items)
+        {
+            if (string.Equals(item.Title, text, StringComparison.OrdinalIgnoreCase))
+            {
+                this.value = item;
+                return;
+            }
+        }
+
+        var dummy = new EnumItemInfo(text, text);
+        this.value = new EnumItemInfo(dummy.GetIntValue().ToString(CultureInfo.InvariantCulture), text);
+    }
+
+    public override object GetValue() => GetIntValue();
+
+    public override int GetIntValue() => value.GetIntValue();
+
+    public override string GetStringValue() => value.Title;
+
+    protected override object CoerceDefault(object? value)
+        => value?.ToString() ?? "0";
 }
 
 public sealed class RandomIntegerTypeHandler : UniversalTypeHandler

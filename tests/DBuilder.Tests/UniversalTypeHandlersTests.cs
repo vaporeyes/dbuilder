@@ -96,6 +96,51 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
+    {
+        var values = GameConfiguration.FromText("""
+            enums
+            {
+                speeds
+                {
+                    0 = "Slow";
+                    16 = "Normal";
+                    32 = "Fast";
+                }
+            }
+            """).GetEnumList("speeds")!;
+        var handler = (EnumOptionTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.EnumOption, defaultValue: 16, enumList: values);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.True(handler.IsEnumerable);
+        Assert.Equal((int)UniversalType.EnumOption, handler.Index);
+        Assert.Equal(16, handler.GetValue());
+        Assert.Equal("Normal", handler.GetStringValue());
+        Assert.Same(values, handler.Values);
+
+        handler.SetValue(32.0);
+        Assert.Equal(32, handler.GetIntValue());
+        Assert.Equal("Fast", handler.GetStringValue());
+
+        handler.SetValue("0");
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("Slow", handler.GetStringValue());
+
+        handler.SetValue("normal");
+        Assert.Equal(16, handler.GetValue());
+        Assert.Equal("Normal", handler.GetStringValue());
+
+        handler.SetValue("not listed");
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("not listed", handler.GetStringValue());
+
+        handler.SetValue(null);
+        Assert.Equal(0, handler.GetValue());
+        Assert.Equal("NULL", handler.GetStringValue());
+    }
+
+    [Fact]
     public void RegistryCreatesPrimitiveHandlersForArgsAndUniversalFields()
     {
         var registry = new UniversalTypeRegistry();
@@ -120,6 +165,65 @@ public class UniversalTypeHandlersTests
         Assert.False(fieldHandler.IsForArgument);
         Assert.IsType<BooleanTypeHandler>(fieldHandler);
         Assert.True((bool)fieldHandler.GetValue());
+    }
+
+    [Fact]
+    public void GameConfigurationCreatesEnumOptionHandlersFromArgAndFieldMetadata()
+    {
+        const string cfg = """
+            enums
+            {
+                speeds
+                {
+                    0 = "Slow";
+                    16 = "Normal";
+                }
+            }
+            linedeftypes
+            {
+                doors
+                {
+                    1
+                    {
+                        title = "Door";
+                        arg0
+                        {
+                            title = "Speed";
+                            type = 11;
+                            enum = "speeds";
+                            default = 16;
+                        }
+                    }
+                }
+            }
+            universalfields
+            {
+                thing
+                {
+                    attitude
+                    {
+                        type = 11;
+                        default = 1;
+                        enum
+                        {
+                            0 = "Hostile";
+                            1 = "Friendly";
+                        }
+                    }
+                }
+            }
+            """;
+        var config = GameConfiguration.FromText(cfg);
+
+        var argHandler = (EnumOptionTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[0]);
+        Assert.Equal(16, argHandler.GetValue());
+        Assert.Equal("Normal", argHandler.GetStringValue());
+
+        var field = config.UniversalFields["thing"]["attitude"];
+        var fieldHandler = (EnumOptionTypeHandler)config.CreateFieldHandler(field);
+        Assert.Equal(1, fieldHandler.GetValue());
+        Assert.Equal("Friendly", fieldHandler.GetStringValue());
+        Assert.Equal("Hostile", config.GetFieldEnumList(field)!.GetByEnumIndex("0")!.Title);
     }
 
     [Fact]

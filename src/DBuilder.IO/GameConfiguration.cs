@@ -1282,6 +1282,24 @@ public sealed class GameConfiguration
     public IReadOnlyDictionary<int, string>? GetArgFlags(ArgInfo arg)
         => arg.Flags != null ? GetEnum(arg.Flags) : null;
 
+    public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
+        => Types.CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true, GetArgEnumList(arg));
+
+    public UniversalTypeHandler CreateFieldHandler(UniversalFieldInfo field)
+        => Types.CreateHandler(field.Type, field.DefaultValue, isForArgument: false, GetFieldEnumList(field));
+
+    public EnumListInfo? GetFieldEnumList(UniversalFieldInfo field)
+    {
+        if (field.InlineEnumItems.Count > 0)
+        {
+            var list = new EnumListInfo(field.Name);
+            foreach (EnumItemInfo item in field.InlineEnumItems) list.Add(item);
+            return list;
+        }
+
+        return field.EnumName != null ? GetEnumList(field.EnumName) : null;
+    }
+
     private void ParseDefaultSkyTextures(IDictionary block)
     {
         foreach (DictionaryEntry e in block)
