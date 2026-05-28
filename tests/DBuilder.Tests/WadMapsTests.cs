@@ -19,6 +19,24 @@ maplumpnames
     LINEDEFS { required = true; }
 }";
 
+    private const string EpisodeMapNameConfig = @"
+mapnameformat = ""ExMy"";
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+}";
+
+    private const string NoEpisodeMapNameConfig = @"
+mapnameformat = ""MAPxy"";
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+}";
+
     private const string DoomMapLumpConfig = @"
 maplumpnames
 {
@@ -170,6 +188,42 @@ maplumpnames
         wad.WriteHeaders();
 
         var maps = WadMaps.Find(wad, config);
+        var entry = Assert.Single(maps);
+        Assert.Equal("MAP01", entry.Name);
+        Assert.Equal(MapFormat.Doom, entry.Format);
+    }
+
+    [Fact]
+    public void ConfiguredFindHonorsEpisodeMapNameFormat()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "E1M1", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "MAP01", new byte[0], 3);
+        WriteLump(wad, "THINGS", new byte[0], 4);
+        WriteLump(wad, "LINEDEFS", new byte[0], 5);
+        wad.WriteHeaders();
+
+        var maps = WadMaps.Find(wad, GameConfiguration.FromText(EpisodeMapNameConfig));
+        var entry = Assert.Single(maps);
+        Assert.Equal("E1M1", entry.Name);
+        Assert.Equal(MapFormat.Doom, entry.Format);
+    }
+
+    [Fact]
+    public void ConfiguredFindHonorsNoEpisodeMapNameFormat()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "E1M1", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "MAP01", new byte[0], 3);
+        WriteLump(wad, "THINGS", new byte[0], 4);
+        WriteLump(wad, "LINEDEFS", new byte[0], 5);
+        wad.WriteHeaders();
+
+        var maps = WadMaps.Find(wad, GameConfiguration.FromText(NoEpisodeMapNameConfig));
         var entry = Assert.Single(maps);
         Assert.Equal("MAP01", entry.Name);
         Assert.Equal(MapFormat.Doom, entry.Format);

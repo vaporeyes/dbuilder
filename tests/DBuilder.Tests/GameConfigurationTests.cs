@@ -102,6 +102,13 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesMapNameFormat()
+    {
+        var gc = GameConfiguration.FromText("mapnameformat = \"ExMy\";");
+        Assert.Equal("ExMy", gc.MapNameFormat);
+    }
+
+    [Fact]
     public void ThingsInheritCategoryDefaults()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

@@ -310,6 +310,7 @@ public sealed class GameConfiguration
     public string DefaultScriptCompiler { get; private set; } = "";
     public string NodeBuilderSave { get; private set; } = "";
     public string NodeBuilderTest { get; private set; } = "";
+    public string MapNameFormat { get; private set; } = "";
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
     public IReadOnlyList<LinedefActivationInfo> LinedefActivations => linedefActivations;
@@ -352,6 +353,7 @@ public sealed class GameConfiguration
             gc.DefaultScriptCompiler = GetString(root, "defaultscriptcompiler", "");
             gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
             gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
+            gc.MapNameFormat = GetString(root, "mapnameformat", "");
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);

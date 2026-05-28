@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using DBuilder.Map;
 
 namespace DBuilder.IO;
@@ -16,6 +17,9 @@ public sealed record MapEntry(string Name, MapFormat Format);
 
 public static class WadMaps
 {
+    private static readonly Regex EpisodeMapName = new("^E[1-9]M[1-9]$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex NoEpisodeMapName = new("^MAP[0-9][0-9]$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     /// <summary>
     /// Returns every map in the WAD in directory order. A map marker is any lump immediately followed by
     /// THINGS (binary) or TEXTMAP (UDMF). The marker's own length is NOT tested: Doom markers are zero-length
@@ -50,6 +54,7 @@ public static class WadMaps
 
         for (int i = 0; i < wad.Lumps.Count - 1; i++)
         {
+            if (MapNameFormatMismatch(config.MapNameFormat, wad.Lumps[i].Name)) continue;
             if (config.MapLumpNames.ContainsKey(wad.Lumps[i].Name)) continue;
 
             int found = 0;
@@ -75,6 +80,12 @@ public static class WadMaps
         }
 
         return result;
+    }
+
+    private static bool MapNameFormatMismatch(string mapNameFormat, string lumpName)
+    {
+        return (mapNameFormat == "MAPxy" && EpisodeMapName.IsMatch(lumpName))
+            || (mapNameFormat == "ExMy" && NoEpisodeMapName.IsMatch(lumpName));
     }
 
     private static int CountRequiredMapLumps(IReadOnlyDictionary<string, MapLumpInfo> mapLumps)
