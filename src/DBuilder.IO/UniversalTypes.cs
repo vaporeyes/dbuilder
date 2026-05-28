@@ -112,6 +112,8 @@ public sealed class UniversalTypeRegistry
             UniversalType.EnumBits when info.Index >= 0 => new EnumBitsTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.EnumStrings when info.Index >= 0 => new EnumStringsTypeHandler(info, defaultValue, isForArgument, enumList),
             UniversalType.AngleDegreesFloat when info.Index >= 0 => new AngleDegreesFloatTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.ThingType when info.Index >= 0 => new ThingTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.ThingClass when info.Index >= 0 => new ThingClassTypeHandler(info, defaultValue, isForArgument),
             UniversalType.RandomInteger when info.Index >= 0 => new RandomIntegerTypeHandler(info, defaultValue, isForArgument),
             UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.AngleByte when info.Index >= 0 => new AngleByteTypeHandler(info, defaultValue, isForArgument),

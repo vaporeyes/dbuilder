@@ -232,6 +232,53 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void ThingTypeHandlerCoercesIntegerValuesLikeUdb()
+    {
+        var handler = (ThingTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.ThingType, defaultValue: 3001);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal(3001, handler.DefaultValue);
+        Assert.Equal(3001, handler.GetValue());
+        Assert.Equal("3001", handler.GetStringValue());
+
+        handler.SetValue("2001");
+        Assert.Equal(2001, handler.GetIntValue());
+
+        handler.SetValue(true);
+        Assert.Equal(1, handler.GetValue());
+
+        handler.SetValue("not a thing type");
+        Assert.Equal(0, handler.GetValue());
+
+        handler.ApplyDefaultValue();
+        Assert.Equal(3001, handler.GetValue());
+    }
+
+    [Fact]
+    public void ThingClassHandlerStoresClassNamesLikeUdb()
+    {
+        var handler = (ThingClassTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.ThingClass, defaultValue: "DoomImp");
+
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal("DoomImp", handler.DefaultValue);
+        Assert.Equal("DoomImp", handler.GetValue());
+        Assert.Equal("DoomImp", handler.GetStringValue());
+
+        handler.SetValue("\"QuotedClass\"");
+        Assert.Equal("\"QuotedClass\"", handler.GetValue());
+
+        handler.SetValue(3001);
+        Assert.Equal("3001", handler.GetValue());
+
+        handler.SetValue(null);
+        Assert.Equal("", handler.GetValue());
+
+        Assert.Throws<NotSupportedException>(() => handler.GetIntValue());
+    }
+
+    [Fact]
     public void EnumOptionHandlerMatchesValueTitleAndNumericFallbackLikeUdb()
     {
         var values = GameConfiguration.FromText("""

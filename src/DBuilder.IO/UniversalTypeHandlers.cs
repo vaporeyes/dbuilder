@@ -359,6 +359,58 @@ public sealed class AngleByteTypeHandler : AngleDegreesTypeHandler
         => GetAnglePreviewIndex((int)Math.Round(GetIntValue() / 256.0 * 360.0));
 }
 
+public sealed class ThingTypeHandler : UniversalTypeHandler
+{
+    private int value;
+
+    public ThingTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value) => this.value = ToInt(value);
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue() => value;
+
+    public override string GetStringValue() => value.ToString(CultureInfo.CurrentCulture);
+
+    protected override object CoerceDefault(object? value) => ToInt(value);
+
+    private static int ToInt(object? value)
+    {
+        if (value == null) return 0;
+        if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
+        return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
+    }
+}
+
+public sealed class ThingClassTypeHandler : UniversalTypeHandler
+{
+    private string value = "";
+
+    public ThingClassTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+
+    public override bool IsBrowseable => true;
+
+    public override void SetValue(object? value) => this.value = value?.ToString() ?? "";
+
+    public override object GetValue() => value;
+
+    public override int GetIntValue()
+        => throw new NotSupportedException("Thing class values do not support integer conversion.");
+
+    public override string GetStringValue() => value;
+
+    protected override object CoerceDefault(object? value) => value?.ToString() ?? "";
+}
+
 public sealed class EnumOptionTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");
