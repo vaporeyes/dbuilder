@@ -31,6 +31,40 @@ public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX =
         return new ImageData(width, height, (byte[])rgba.Clone(), offsetX, offsetY) { IsDynamic = true };
     }
 
+    public static ImageData CreateSolidColor(int width, int height, byte red, byte green, byte blue, byte alpha = 255)
+    {
+        ValidateDimensions(width, height);
+        var rgba = new byte[checked(width * height * 4)];
+        for (int i = 0; i < rgba.Length; i += 4)
+        {
+            rgba[i] = red;
+            rgba[i + 1] = green;
+            rgba[i + 2] = blue;
+            rgba[i + 3] = alpha;
+        }
+
+        return new ImageData(width, height, rgba);
+    }
+
+    public static ImageData CreateUnknown(int width = 64, int height = 64)
+    {
+        ValidateDimensions(width, height);
+        var rgba = new byte[checked(width * height * 4)];
+        int tile = Math.Max(1, Math.Min(width, height) / 8);
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                bool accent = ((x / tile) + (y / tile)) % 2 == 0;
+                int i = (y * width + x) * 4;
+                rgba[i] = accent ? (byte)224 : (byte)32;
+                rgba[i + 1] = accent ? (byte)32 : (byte)32;
+                rgba[i + 2] = accent ? (byte)224 : (byte)32;
+                rgba[i + 3] = 255;
+            }
+
+        return new ImageData(width, height, rgba);
+    }
+
     public void UpdatePixels(ReadOnlySpan<byte> rgba)
     {
         if (!IsDynamic) throw new InvalidOperationException("Only dynamic images can be updated.");

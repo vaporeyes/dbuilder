@@ -8,6 +8,28 @@ namespace DBuilder.Tests;
 public class ImageDataTests
 {
     [Fact]
+    public void SolidColorImageFillsEveryPixel()
+    {
+        var image = ImageData.CreateSolidColor(2, 1, 10, 20, 30, 40);
+
+        Assert.False(image.IsDynamic);
+        Assert.Equal(2, image.Width);
+        Assert.Equal(1, image.Height);
+        Assert.Equal(new byte[] { 10, 20, 30, 40, 10, 20, 30, 40 }, image.Rgba);
+    }
+
+    [Fact]
+    public void UnknownImageCreatesOpaqueCheckerPattern()
+    {
+        var image = ImageData.CreateUnknown(8, 8);
+
+        Assert.Equal(8, image.Width);
+        Assert.Equal(8, image.Height);
+        Assert.Equal(new byte[] { 224, 32, 224, 255 }, image.Rgba[0..4]);
+        Assert.Equal(new byte[] { 32, 32, 32, 255 }, image.Rgba[4..8]);
+    }
+
+    [Fact]
     public void DynamicImageCopiesInitialPixelsAndAllowsSameSizeUpdate()
     {
         byte[] initial = { 1, 2, 3, 4 };

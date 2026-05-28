@@ -180,7 +180,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.
 - [x] Port dynamic bitmap images.
-- [ ] Port color and unknown image behavior.
+- [x] Port color and unknown image behavior.
 - [ ] Port voxel image behavior.
 - [x] Port model resource discovery.
 - [ ] Port resource cache invalidation and disposal behavior.
