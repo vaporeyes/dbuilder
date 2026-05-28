@@ -37,6 +37,17 @@ maplumpnames
     REJECT { required = false; nodebuild = true; allowempty = false; }
 }";
 
+    private const string CleanupConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    NODES { required = true; nodebuild = true; }
+    GL_NODES { required = false; nodebuild = true; }
+    SCRIPTS { required = false; script = ""Hexen_ACS.cfg""; }
+}";
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -268,5 +279,41 @@ maplumpnames
         var config = GameConfiguration.FromText(NodeBuildConfig);
 
         Assert.True(WadMaps.RequiredNodeBuildLumpsPresent(wad, "MAP01", config));
+    }
+
+    [Fact]
+    public void RemoveUnneededMapLumpsRemovesNodebuilderAndUnknownLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "NODES", new byte[0], 3);
+        WriteLump(wad, "GL_NODES", new byte[0], 4);
+        WriteLump(wad, "SCRIPTS", new byte[0], 5);
+        WriteLump(wad, "EXTRA", new byte[0], 6);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(CleanupConfig);
+        WadMaps.RemoveUnneededMapLumps(wad, "MAP01", config, glNodesOnly: false);
+
+        Assert.Equal(new[] { "MAP01", "THINGS", "LINEDEFS", "SCRIPTS" }, wad.Lumps.Select(l => l.Name).ToArray());
+    }
+
+    [Fact]
+    public void RemoveUnneededMapLumpsCanRemoveOnlyGlNodebuilderLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "NODES", new byte[0], 3);
+        WriteLump(wad, "GL_NODES", new byte[0], 4);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(CleanupConfig);
+        WadMaps.RemoveUnneededMapLumps(wad, "MAP01", config, glNodesOnly: true);
+
+        Assert.Equal(new[] { "MAP01", "THINGS", "LINEDEFS", "NODES" }, wad.Lumps.Select(l => l.Name).ToArray());
     }
 }

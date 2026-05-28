@@ -278,6 +278,29 @@ public static class WadMaps
         return true;
     }
 
+    /// <summary>
+    /// Removes lumps not required by the configured map format from a WAD that only contains one map block.
+    /// Nodebuilder lumps are removed because they are recreated during save, matching UDB temporary-map cleanup.
+    /// </summary>
+    public static void RemoveUnneededMapLumps(WAD wad, string marker, GameConfiguration config, bool glNodesOnly)
+    {
+        var requiredLumps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var group in config.MapLumpNames)
+        {
+            if (group.Value.NodeBuild && (!glNodesOnly || group.Key.ToUpperInvariant().StartsWith("GL_", StringComparison.Ordinal)))
+                continue;
+
+            string lumpName = group.Key.Contains("~MAP") ? group.Key.Replace("~MAP", marker) : group.Key;
+            requiredLumps.Add(lumpName);
+        }
+
+        var toRemove = new List<Lump>();
+        foreach (var lump in wad.Lumps)
+            if (!requiredLumps.Contains(lump.Name)) toRemove.Add(lump);
+
+        foreach (var lump in toRemove) wad.Remove(lump);
+    }
+
     private static string NormalizeMapHeaderPlaceholder(string lumpName, string mapHeaderName)
         => lumpName.Contains(mapHeaderName) ? lumpName.Replace(mapHeaderName, "~MAP") : lumpName;
 

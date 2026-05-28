@@ -119,6 +119,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse UDB `scriptbuild` map lump metadata.
   - [x] Add UDB-style bounded find/remove helpers for configured map lumps.
   - [x] Add UDB-style required nodebuilder lump completeness checks.
+  - [x] Add UDB-style temporary-map cleanup for nodebuilder-generated lumps.
 - [ ] Port WAD map discovery behavior.
   - [x] Add config-aware discovery with required and forbidden map lump checks.
   - [x] Avoid non-map marker-name collisions when reading map sub-lumps.
