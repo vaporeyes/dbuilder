@@ -184,6 +184,22 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void NearZeroLengthLinedefsAreSkipped()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            vertex { x = 0.00005; y = 0; }
+            linedef { v1 = 0; v2 = 1; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(2, map.Vertices.Count);
+        Assert.Empty(map.Linedefs);
+    }
+
+    [Fact]
     public void InvalidSectorReferencesSkipSidedef()
     {
         const string udmf = """

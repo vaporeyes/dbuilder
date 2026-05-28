@@ -109,7 +109,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete Hexen-format map loader parity.
 - [ ] Complete Hexen-format map writer parity.
 - [ ] Complete UDMF map loader parity.
-  - [x] Skip invalid and zero-length UDMF linedefs during load.
+  - [x] Skip invalid, zero-length, and near-zero UDMF linedefs during load.
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
   - [x] Materialize UDMF sidedefs from valid linedef references instead of as standalone orphans.

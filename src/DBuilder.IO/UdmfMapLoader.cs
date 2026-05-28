@@ -164,7 +164,7 @@ public static class UdmfMapLoader
 
         var start = verts[v1];
         var end = verts[v2];
-        if ((start.Position - end.Position).GetLengthSq() <= 0.00000001) return null;
+        if (Vector2D.ManhattanDistance(start.Position, end.Position) <= 0.0001) return null;
 
         var line = new Linedef(start, end)
         {
