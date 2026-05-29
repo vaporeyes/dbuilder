@@ -556,6 +556,7 @@ public partial class MainWindow : Window
         options.ConfigFile = _configFile;
         options.WriteResources();
         options.WriteDrawingOptions();
+        options.WriteExternalCommandSettings();
         var root = _mapSettings ?? new Configuration(sorted: true);
         options.WriteRootOptions(root);
         root.SaveConfiguration(DbsPath(wadPath));
@@ -1498,6 +1499,7 @@ public partial class MainWindow : Window
         options.ReadRootOptions(root, mapName);
         options.ReadResources();
         options.ReadDrawingOptions(_config?.UseLongTextureNames ?? false);
+        options.ReadExternalCommandSettings();
         return options;
     }
 

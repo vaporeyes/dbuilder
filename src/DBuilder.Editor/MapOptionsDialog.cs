@@ -27,6 +27,10 @@ public sealed class MapOptionsDialog : PropertyDialog
     private readonly CheckBox _overrideCeilingHeight;
     private readonly CheckBox _overrideBrightness;
     private readonly CheckBox _useLongTextureNames;
+    private readonly TextBox _reloadResourcePreCommand;
+    private readonly TextBox _reloadResourcePostCommand;
+    private readonly TextBox _testPreCommand;
+    private readonly TextBox _testPostCommand;
     private readonly bool _longTextureNamesSupported;
 
     public string ResultMarker { get; private set; }
@@ -70,6 +74,10 @@ public sealed class MapOptionsDialog : PropertyDialog
         _overrideBrightness = AddCheckBox("Override brightness", options.OverrideBrightness);
         _useLongTextureNames = AddCheckBox("Use long texture names", longTextureNamesSupported && options.UseLongTextureNames);
         _useLongTextureNames.IsEnabled = longTextureNamesSupported;
+        _reloadResourcePreCommand = AddField("Before reload resources", options.ReloadResourcePreCommand.Commands);
+        _reloadResourcePostCommand = AddField("After reload resources", options.ReloadResourcePostCommand.Commands);
+        _testPreCommand = AddField("Before test map", options.TestPreCommand.Commands);
+        _testPostCommand = AddField("After test map", options.TestPostCommand.Commands);
     }
 
     public void ApplyTo(MapOptions options)
@@ -91,6 +99,10 @@ public sealed class MapOptionsDialog : PropertyDialog
         options.OverrideCeilingHeight = _overrideCeilingHeight.IsChecked == true;
         options.OverrideBrightness = _overrideBrightness.IsChecked == true;
         options.UseLongTextureNames = _longTextureNamesSupported && _useLongTextureNames.IsChecked == true;
+        options.ReloadResourcePreCommand.Commands = _reloadResourcePreCommand.Text?.Trim() ?? "";
+        options.ReloadResourcePostCommand.Commands = _reloadResourcePostCommand.Text?.Trim() ?? "";
+        options.TestPreCommand.Commands = _testPreCommand.Text?.Trim() ?? "";
+        options.TestPostCommand.Commands = _testPostCommand.Text?.Trim() ?? "";
     }
 
     protected override void OnConfirm()
