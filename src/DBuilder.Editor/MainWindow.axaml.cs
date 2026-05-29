@@ -306,6 +306,35 @@ public partial class MainWindow : Window
             LoadMapEntry(entry);
     }
 
+    private async void OnReloadMap(object? sender, RoutedEventArgs e)
+    {
+        if (_wadPath is null && _pk3Path is null)
+        {
+            SetStatus("No open map to reload.");
+            return;
+        }
+        if (!await ConfirmDiscardDirtyMap()) return;
+
+        if (_wadPath is not null)
+        {
+            string path = _wadPath;
+            string mapName = _mapMarker ?? "MAP01";
+            await LoadWad(path, promptForMap: false, preferredMapName: mapName);
+            return;
+        }
+
+        if (_pk3Path is not null && _mapMarker is not null)
+        {
+            var map = new RecentMapReference
+            {
+                Path = _pk3Path,
+                MapName = _mapMarker,
+                ArchivePath = _pk3MapArchivePath,
+            };
+            await LoadPk3(_pk3Path, promptForMap: false, recentMap: map);
+        }
+    }
+
     // Adds a base resource (IWAD or PK3) beneath the current map's WAD so its textures/flats/sprites resolve.
     private async void OnAddResource(object? sender, RoutedEventArgs e)
     {

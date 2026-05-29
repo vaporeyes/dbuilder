@@ -16,6 +16,7 @@
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
                 <MenuItem Header="Open _Recent" x:Name="OpenRecentMenu" />
                 <MenuItem Header="Open _Map..." Click="OnOpenMap" />
+                <MenuItem Header="_Reload Map" Click="OnReloadMap" />
                 <MenuItem Header="Add _Resource (IWAD/PK3)..." Click="OnAddResource" />
                 <MenuItem Header="_Save WAD" Click="OnSave" />
                 <MenuItem Header="Save WAD _As..." Click="OnSaveAs" />
@@ -129,6 +130,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <Button Content="Open" Click="OnOpen" />
                     <Button Content="Map" Click="OnOpenMap" />
+                    <Button Content="Reload" Click="OnReloadMap" />
                     <Button Content="Save" Click="OnSave" />
                     <Button Content="Undo" Click="OnUndo" />
                     <Button Content="Redo" Click="OnRedo" />
