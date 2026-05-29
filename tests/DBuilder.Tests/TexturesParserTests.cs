@@ -108,6 +108,21 @@ Texture OK, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsUnknownTopLevelBlocksWithArguments()
+    {
+        const string text = @"
+UnknownBlock SomeArg
+{
+    Texture BAD, 2, 2 { Patch P, 0, 0 }
+}
+Texture OK, 2, 2 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipDirective()
     {
         const string text = @"

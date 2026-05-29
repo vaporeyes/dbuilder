@@ -109,7 +109,13 @@ public static class TexturesParser
 
     private static void TrySkipUnknownTopLevelBlock(List<Tok> t, ref int i)
     {
-        if (i >= t.Count || t[i] != "{") return;
+        while (i < t.Count && t[i] != "{")
+        {
+            if (IsTopLevelTypeToken(t[i].Text)) return;
+            i++;
+        }
+        if (i >= t.Count) return;
+
         int depth = 0;
         while (i < t.Count)
         {
@@ -121,6 +127,17 @@ public static class TexturesParser
             }
             i++;
         }
+    }
+
+    private static bool IsTopLevelTypeToken(string word)
+    {
+        return word.Equals("texture", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("sprite", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("graphic", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("walltexture", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("flat", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("optional", StringComparison.OrdinalIgnoreCase)
+            || word.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase);
     }
 
     private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)

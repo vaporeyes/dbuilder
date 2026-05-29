@@ -324,6 +324,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete ZScript parser behavior.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
+  - [x] Skip unknown top-level TEXTURES blocks with arguments.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
