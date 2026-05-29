@@ -251,6 +251,30 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestThingSquareRangeUsesThingSizeAndTieBreaksSmaller()
+    {
+        var large = new Thing(new Vector2D(4, 0), 1) { Size = 8 };
+        var small = new Thing(new Vector2D(0, 4), 2) { Size = 4 };
+        var sizeExtendsIntoRange = new Thing(new Vector2D(8, 0), 3) { Size = 4 };
+        var selection = new[] { large, sizeExtendsIntoRange, small };
+
+        Assert.Same(small, MapSet.NearestThingSquareRange(selection, new Vector2D(0, 0), maxRange: 5));
+        Assert.Same(sizeExtendsIntoRange, MapSet.NearestThingSquareRange(new[] { sizeExtendsIntoRange }, new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(MapSet.NearestThingSquareRange(Array.Empty<Thing>(), new Vector2D(0, 0), maxRange: 5));
+    }
+
+    [Fact]
+    public void NearestThingSquareRangeSearchesMapThings()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(100, 0), 1);
+        var near = map.AddThing(new Vector2D(4, 0), 2);
+
+        Assert.Same(near, map.NearestThingSquareRange(new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(map.NearestThingSquareRange(new Vector2D(0, 0), maxRange: 3));
+    }
+
+    [Fact]
     public void ThingDistanceHelpersMatchUdbSurface()
     {
         var thing = new Thing(new Vector2D(3, 4), 3001);

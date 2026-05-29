@@ -40,6 +40,12 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     /// <summary>UDMF vertical scale multiplier. Default 1.0 (unscaled).</summary>
     public double ScaleY { get; set; } = 1.0;
 
+    /// <summary>Editor display radius from thing type metadata. Not serialized in map data.</summary>
+    public double Size { get; set; }
+
+    /// <summary>Whether the thing keeps a fixed screen size in 2D rendering. Not serialized in map data.</summary>
+    public bool FixedSize { get; set; }
+
     public int Flags { get; set; }
     public int Tag { get; set; }
     public int Action { get; set; }

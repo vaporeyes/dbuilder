@@ -262,6 +262,8 @@ public class MapSet : IDisposable
                 Roll = thing.Roll,
                 ScaleX = thing.ScaleX,
                 ScaleY = thing.ScaleY,
+                Size = thing.Size,
+                FixedSize = thing.FixedSize,
                 Flags = thing.Flags,
                 Tag = thing.Tag,
                 Action = thing.Action,
@@ -1820,6 +1822,34 @@ public class MapSet : IDisposable
         }
         return closest;
     }
+
+    /// <summary>Nearest thing inside a square range, ranked by Manhattan distance and then smaller display size.</summary>
+    public static Thing? NearestThingSquareRange(ICollection<Thing> selection, Vector2D pos, double maxRange)
+    {
+        var range = RectangleF.FromLTRB(
+            (float)(pos.x - maxRange),
+            (float)(pos.y - maxRange),
+            (float)(pos.x + maxRange),
+            (float)(pos.y + maxRange));
+        Thing? closest = null;
+        double best = double.MaxValue;
+        double bestSize = double.MaxValue;
+        foreach (var t in selection)
+        {
+            double x = t.Position.x;
+            double y = t.Position.y;
+            double size = t.Size;
+            if (x < range.Left - size || x > range.Right + size || y < range.Top - size || y > range.Bottom + size) continue;
+
+            double d = Math.Abs(x - pos.x) + Math.Abs(y - pos.y);
+            if (d < best || (d == best && size < bestSize)) { best = d; bestSize = size; closest = t; }
+        }
+        return closest;
+    }
+
+    /// <summary>Nearest map thing inside a square range, ranked by Manhattan distance and then smaller display size.</summary>
+    public Thing? NearestThingSquareRange(Vector2D pos, double maxRange)
+        => NearestThingSquareRange(Things, pos, maxRange);
 
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
