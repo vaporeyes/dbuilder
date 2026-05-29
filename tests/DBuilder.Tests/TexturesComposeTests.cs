@@ -435,13 +435,31 @@ public class TexturesComposeTests
             ("flats/FLTPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 50, 60, 70, 255))));
         try
         {
-            using var rm = new ResourceManager();
+            using var rm = new ResourceManager { MixTexturesFlats = true };
             rm.AddResource(pk3);
 
             var tex = rm.GetWallTexture("WFOLDERS");
             Assert.NotNull(tex);
             Assert.Equal(new byte[] { 20, 30, 40, 255 }, tex!.Rgba[0..4]);
             Assert.Equal(new byte[] { 50, 60, 70, 255 }, tex.Rgba[4..8]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void SeparateTextureNamespacesRestrictTexturePatchesToPatchFolder()
+    {
+        string textures = "WallTexture WSTRICT, 1, 1 { Patch \"TEXPAT\", 0, 0 }\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("textures/TEXPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 30, 40, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Null(rm.GetWallTexture("WSTRICT"));
         }
         finally { File.Delete(pk3); }
     }

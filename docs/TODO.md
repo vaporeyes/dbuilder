@@ -303,6 +303,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
   - [x] Resolve composite patches through mixed wall/flat base namespaces.
+  - [x] Honor namespace mixing when resolving PK3 composite patch folders.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.

@@ -58,7 +58,7 @@ public class DirectoryResourceTests
         string dir = BuildResourceDir();
         try
         {
-            using var rm = new ResourceManager();
+            using var rm = new ResourceManager { MixTexturesFlats = true };
             rm.AddResource(dir);
 
             Assert.Equal(new byte[] { 11, 22, 33, 255 }, rm.GetFlat("DFLOOR")!.Rgba[0..4]);

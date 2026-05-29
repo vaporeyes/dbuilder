@@ -706,7 +706,7 @@ public sealed class ResourceManager : IDisposable
     {
         for (int i = readers.Count - 1; i >= 0; i--)
         {
-            var img = readers[i].GetPatch(name, pal);
+            var img = readers[i].GetPatch(name, pal, MixTexturesFlats);
             if (img != null) return img;
         }
         if (!MixTexturesFlats) return null;

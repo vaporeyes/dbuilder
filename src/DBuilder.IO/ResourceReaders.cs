@@ -21,7 +21,7 @@ internal interface IResourceReader : IDisposable
     ImageData? GetWallTextureBase(string name, DoomPalette? palette);
     ImageData? GetSpriteBase(string name, DoomPalette? palette);
     ImageData? GetHiRes(string name, DoomPalette? palette);
-    ImageData? GetPatch(string name, DoomPalette? palette);
+    ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
     /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
@@ -106,7 +106,7 @@ internal sealed class WadResourceReader : IResourceReader
 
     public ImageData? GetHiRes(string name, DoomPalette? palette) => null;
 
-    public ImageData? GetPatch(string name, DoomPalette? palette)
+    public ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
     {
         if (palette == null || FindPatchLump(name) is not { } lump) return null;
         var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
@@ -368,16 +368,19 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetHiRes(string name, DoomPalette? palette) => Decode(Find(name, "hires"), palette, preferFlat: false);
 
-    public virtual ImageData? GetPatch(string name, DoomPalette? palette)
+    public virtual ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
     {
-        var image = Decode(Find(name, "patches", "textures", "flats", "sprites", "graphics", ""), palette, preferFlat: false);
-        if (image != null) return image;
-
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedReaders[i].GetPatch(name, palette);
-            if (image != null) return image;
+            var nestedImage = nestedReaders[i].GetPatch(name, palette, includeMixedNamespaces);
+            if (nestedImage != null) return nestedImage;
         }
+
+        string[] folders = includeMixedNamespaces
+            ? new[] { "patches", "textures", "flats", "sprites", "graphics" }
+            : new[] { "patches" };
+        var image = Decode(Find(name, folders), palette, preferFlat: false);
+        if (image != null) return image;
 
         return null;
     }
@@ -589,7 +592,7 @@ internal abstract class FolderResourceReader : IResourceReader
             string patchName = pnames[patch.PatchIndex];
             if (string.IsNullOrEmpty(patchName)) continue;
 
-            var image = GetPatch(patchName, palette);
+            var image = GetPatch(patchName, palette, includeMixedNamespaces: false);
             if (image == null) continue;
 
             BlitOpaque(canvas, def.Width, def.Height, image, patch.OriginX, patch.OriginY);
