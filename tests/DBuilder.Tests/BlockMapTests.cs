@@ -233,6 +233,43 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void GetBlockAtReturnsCellContentsForPosition()
+    {
+        var (map, sector) = SquareSector(0, 0, 64);
+        var thing = map.AddThing(new Vector2D(20, 20), 3001);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        var cell = bm.GetBlockAt(new Vector2D(20, 20));
+
+        Assert.NotNull(cell);
+        Assert.Contains(thing, cell.Value.Things);
+        Assert.Contains(sector, cell.Value.Sectors);
+        Assert.Contains(map.Vertices[0], cell.Value.Vertices);
+        Assert.NotEmpty(cell.Value.Lines);
+        Assert.Null(bm.GetBlockAt(new Vector2D(-1000, -1000)));
+    }
+
+    [Fact]
+    public void ClearRemovesIndexedContentsButKeepsRange()
+    {
+        var (map, _) = SquareSector(0, 0, 64);
+        map.AddThing(new Vector2D(20, 20), 3001);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        bm.Clear();
+
+        Assert.True(bm.IsInRange(new Vector2D(20, 20)));
+        var cell = bm.GetBlockAt(new Vector2D(20, 20));
+        Assert.NotNull(cell);
+        Assert.Empty(cell.Value.Lines);
+        Assert.Empty(cell.Value.Things);
+        Assert.Empty(cell.Value.Sectors);
+        Assert.Empty(cell.Value.Vertices);
+    }
+
+    [Fact]
     public void AddMethodsPopulateExistingBlockMapRange()
     {
         var map = new MapSet();

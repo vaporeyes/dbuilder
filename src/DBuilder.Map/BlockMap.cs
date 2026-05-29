@@ -7,6 +7,12 @@ using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
+public readonly record struct BlockMapCell(
+    IReadOnlyList<Linedef> Lines,
+    IReadOnlyList<Thing> Things,
+    IReadOnlyList<Sector> Sectors,
+    IReadOnlyList<Vertex> Vertices);
+
 /// <summary>
 /// A fixed-cell-size spatial acceleration grid built once from a MapSet snapshot. Rebuild it after the map
 /// geometry changes. Points (vertices, things) bucket into a single cell; sectors bucket by bounds; linedefs
@@ -59,6 +65,25 @@ public sealed class BlockMap
 
     public IReadOnlyList<Vertex> GetVerticesAt(int col, int row)
         => IsCellInRange(col, row) ? vertCells[Index(col, row)] : Array.Empty<Vertex>();
+
+    /// <summary>Returns a view of the block containing <paramref name="pos"/>, or null when outside range.</summary>
+    public BlockMapCell? GetBlockAt(Vector2D pos)
+    {
+        var (col, row) = GetCellCoordinates(pos);
+        return IsCellInRange(col, row) ? GetCell(col, row) : null;
+    }
+
+    /// <summary>Clears all indexed elements while preserving the fixed blockmap range.</summary>
+    public void Clear()
+    {
+        for (int i = 0; i < lineCells.Length; i++)
+        {
+            lineCells[i].Clear();
+            sectorCells[i].Clear();
+            thingCells[i].Clear();
+            vertCells[i].Clear();
+        }
+    }
 
     /// <summary>Returns cropped cell coordinates covered by the square range, matching UDB's GetSquareRange.</summary>
     public IReadOnlyList<(int Col, int Row)> GetCellRange(double left, double top, double width, double height)
@@ -121,6 +146,11 @@ public sealed class BlockMap
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
     private int CellY(double y) => Math.Clamp((int)Math.Floor((y - originY) / blockSize), 0, rows - 1);
     private int Index(int cx, int cy) => cy * cols + cx;
+    private BlockMapCell GetCell(int col, int row)
+    {
+        int index = Index(col, row);
+        return new BlockMapCell(lineCells[index], thingCells[index], sectorCells[index], vertCells[index]);
+    }
 
     private IEnumerable<(int Col, int Row)> LineCellCoordinates(Vector2D start, Vector2D end)
     {
