@@ -332,6 +332,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve semicolon-terminated ZScript default expressions as single property values.
   - [x] Skip top-level ZScript struct contents when discovering actor classes.
   - [x] Skip parsed ZScript classes with known non-Actor ancestry.
+  - [x] Parse ZScript includes after the containing file.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.

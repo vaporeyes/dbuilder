@@ -460,6 +460,35 @@ class IncludedBase : Actor
     }
 
     [Fact]
+    public void ParsesZScriptIncludesAfterContainingFile()
+    {
+        const string root = @"
+#include ""zscript/included.zs""
+class RootActor : Actor { Default { Radius 8; } }";
+        const string included = "class IncludedActor : Actor { Default { Radius 16; } }";
+
+        var actors = ZScriptParser.Parse(root, path => path == "zscript/included.zs" ? included : null);
+
+        Assert.Collection(actors,
+            actor => Assert.Equal("RootActor", actor.ClassName),
+            actor => Assert.Equal("IncludedActor", actor.ClassName));
+    }
+
+    [Fact]
+    public void ParsesDeferredZScriptIncludesBeforeGzdbSkip()
+    {
+        const string root = @"
+#include ""zscript/included.zs""
+//$gzdb_skip
+class HiddenActor : Actor { Default { Radius 128; } }";
+        const string included = "class IncludedActor : Actor { Default { Radius 16; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(root, path => path == "zscript/included.zs" ? included : null));
+
+        Assert.Equal("IncludedActor", actor.ClassName);
+    }
+
+    [Fact]
     public void AllowsRelativeClassIncludes()
     {
         const string root = @"

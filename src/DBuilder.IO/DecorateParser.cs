@@ -92,7 +92,8 @@ public static class DecorateParser
         bool allowRelativeIncludes = false,
         ISet<string>? damageTypes = null)
     {
-        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes);
+        bool deferIncludes = keyword.Equals("class", StringComparison.OrdinalIgnoreCase);
+        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes, deferIncludes);
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
@@ -415,16 +416,28 @@ public static class DecorateParser
             actor.Flags[flag] = enabled;
     }
 
-    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes)
+    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes, bool deferIncludes)
     {
         if (includeResolver == null) return text;
 
         using var reader = new StringReader(text);
         var result = new System.Text.StringBuilder();
+        var deferred = deferIncludes ? new System.Text.StringBuilder() : null;
+        bool emittedDeferred = false;
+        bool stopCollectingDeferred = false;
         string? line;
         while ((line = reader.ReadLine()) != null)
         {
-            if (TryReadInclude(line, out string includePath))
+            if (deferred != null && !emittedDeferred && IsGzdbSkipLine(line))
+            {
+                result.Append(deferred);
+                emittedDeferred = true;
+                stopCollectingDeferred = true;
+                result.AppendLine(line);
+                continue;
+            }
+
+            if (!stopCollectingDeferred && TryReadInclude(line, out string includePath))
             {
                 if (!IsValidIncludePath(includePath, allowRelativeIncludes))
                 {
@@ -434,13 +447,24 @@ public static class DecorateParser
                 string? included = includeResolver(includePath);
                 if (included != null && seen.Add(includePath))
                 {
-                    result.AppendLine(ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes));
+                    string expanded = ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes, deferIncludes);
+                    if (deferred != null) deferred.AppendLine(expanded);
+                    else result.AppendLine(expanded);
                     continue;
                 }
             }
             result.AppendLine(line);
         }
+        if (deferred != null && !emittedDeferred) result.Append(deferred);
         return result.ToString();
+    }
+
+    private static bool IsGzdbSkipLine(string line)
+    {
+        string trimmed = line.TrimStart();
+        if (trimmed.StartsWith("//", StringComparison.Ordinal))
+            trimmed = trimmed.Substring(2).TrimStart();
+        return trimmed.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsValidIncludePath(string includePath, bool allowRelativeIncludes)
