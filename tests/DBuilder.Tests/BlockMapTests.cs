@@ -119,6 +119,56 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void NearestLinedefRangeLargeRangeMatchesBoundedNearestDistance()
+    {
+        var map = RandomMap(5150);
+        var bm = new BlockMap(map, 128);
+        var rng = new Random(44);
+
+        for (int i = 0; i < 300; i++)
+        {
+            var p = new Vector2D(rng.Next(-300, 2300), rng.Next(-300, 2300));
+            double range = rng.Next(129, 380);
+            var brute = map.NearestLinedef(p, range);
+            var fast = bm.NearestLinedefRange(p, range);
+
+            if (brute == null)
+            {
+                Assert.Null(fast);
+                continue;
+            }
+
+            Assert.NotNull(fast);
+            Assert.Equal(SegDistSq(brute, p), SegDistSq(fast!, p), 6);
+        }
+    }
+
+    [Fact]
+    public void NearestLinedefRangeSmallRangeUsesCenterAndCornerBlocks()
+    {
+        var map = new MapSet();
+        var near = map.AddLinedef(map.AddVertex(new Vector2D(60, 60)), map.AddVertex(new Vector2D(60, 70)));
+        map.AddLinedef(map.AddVertex(new Vector2D(120, 60)), map.AddVertex(new Vector2D(120, 70)));
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        var found = bm.NearestLinedefRange(new Vector2D(63, 63), 8);
+
+        Assert.Same(near, found);
+    }
+
+    [Fact]
+    public void NearestLinedefRangeReturnsNullForNegativeRange()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        Assert.Null(bm.NearestLinedefRange(new Vector2D(0, 0), -1));
+    }
+
+    [Fact]
     public void RangeQueryReturnsSupersetOfNearest()
     {
         var map = RandomMap(2024);

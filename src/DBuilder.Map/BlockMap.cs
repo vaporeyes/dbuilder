@@ -169,6 +169,36 @@ public sealed class BlockMap
         => Nearest(lineCells, pos, maxRange, static (l, p) => SegmentDistanceSq(l, p));
 
     /// <summary>
+    /// Finds the nearest linedef within a bounded range using UDB's candidate block selection rule.
+    /// Small ranges test the center and four corner blocks; larger ranges test the full square block range.
+    /// </summary>
+    public Linedef? NearestLinedefRange(Vector2D pos, double maxRange)
+    {
+        if (maxRange < 0) return null;
+
+        double bestSq = maxRange * maxRange;
+        Linedef? best = null;
+        var processed = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+
+        foreach (var (col, row) in LinedefRangeCandidateCells(pos, maxRange))
+        {
+            foreach (var line in GetLinedefsAt(col, row))
+            {
+                if (!processed.Add(line)) continue;
+
+                double distance = SegmentDistanceSq(line, pos);
+                if (distance < bestSq)
+                {
+                    best = line;
+                    bestSq = distance;
+                }
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>
     /// Returns the sector containing <paramref name="pos"/> using the same nearest-linedef side rule as
     /// <see cref="MapSet.GetSectorAt"/>, accelerated by this blockmap's linedef grid.
     /// </summary>
@@ -221,6 +251,32 @@ public sealed class BlockMap
             for (int cx = cx0; cx <= cx1; cx++)
                 foreach (var item in cells[Index(cx, cy)]) set.Add(item);
         return set;
+    }
+
+    private IEnumerable<(int Col, int Row)> LinedefRangeCandidateCells(Vector2D pos, double maxRange)
+    {
+        if (maxRange <= blockSize)
+        {
+            var cells = new (int Col, int Row)[]
+            {
+                GetCellCoordinates(pos),
+                GetCellCoordinates(new Vector2D(pos.x + maxRange, pos.y + maxRange)),
+                GetCellCoordinates(new Vector2D(pos.x + maxRange, pos.y - maxRange)),
+                GetCellCoordinates(new Vector2D(pos.x - maxRange, pos.y + maxRange)),
+                GetCellCoordinates(new Vector2D(pos.x - maxRange, pos.y - maxRange)),
+            };
+            var seen = new HashSet<(int Col, int Row)>();
+            foreach (var cell in cells)
+            {
+                if (!IsCellInRange(cell.Col, cell.Row)) continue;
+                if (seen.Add(cell)) yield return cell;
+            }
+
+            yield break;
+        }
+
+        foreach (var cell in GetCellRange(pos.x - maxRange, pos.y - maxRange, maxRange * 2, maxRange * 2))
+            yield return cell;
     }
 
     // Expanding-ring nearest search: process the center cell, then successive Chebyshev shells, stopping once
