@@ -2,6 +2,7 @@
 // ABOUTME: Covers include-file normalization, nodebuilder profile defaults and nodebuilder config conversion.
 
 using DBuilder.IO;
+using System.IO;
 
 namespace DBuilder.Tests;
 
@@ -70,5 +71,63 @@ public class CompilerConfigurationTests
         var inplace = parsed.Nodebuilders["zdbsp_inplace"];
         Assert.Equal("<untitled configuration>", inplace.Title);
         Assert.False(inplace.HasSpecialOutputFile);
+    }
+
+    [Fact]
+    public void LoadsDirectoryAndResolvesNodebuilderExecutable()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compilers_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "zdbsp.cfg"), """
+                compilers
+                {
+                    zdbsp
+                    {
+                        interface = "NodesCompiler";
+                        program = "zdbsp";
+                    }
+                }
+
+                nodebuilders
+                {
+                    zdbsp_fast
+                    {
+                        compiler = "zdbsp";
+                        parameters = "-R -o%FO %FI";
+                    }
+                }
+                """);
+
+            var parsed = CompilerConfiguration.FromDirectory(dir);
+            var config = parsed.ResolveNodebuilderConfig("zdbsp_fast");
+
+            Assert.Equal(new NodebuilderConfig(Path.Combine(dir, "zdbsp"), "-R -o%FO %FI"), config);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolveNodebuilderUsesExecutableOverride()
+    {
+        const string cfg = """
+            nodebuilders
+            {
+                zdbsp_fast
+                {
+                    compiler = "zdbsp";
+                    parameters = "-R -o%FO %FI";
+                }
+            }
+            """;
+
+        var parsed = CompilerConfiguration.FromText(cfg);
+        var config = parsed.ResolveNodebuilderConfig("zdbsp_fast", "/usr/local/bin/zdbsp");
+
+        Assert.Equal(new NodebuilderConfig("/usr/local/bin/zdbsp", "-R -o%FO %FI"), config);
     }
 }

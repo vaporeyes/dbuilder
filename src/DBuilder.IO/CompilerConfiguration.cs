@@ -4,6 +4,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace DBuilder.IO;
 
@@ -36,6 +38,17 @@ public sealed class CompilerConfiguration
     public IReadOnlyDictionary<string, CompilerInfo> Compilers => compilers;
     public IReadOnlyDictionary<string, NodebuilderInfo> Nodebuilders => nodebuilders;
 
+    public static CompilerConfiguration FromDirectory(string path)
+    {
+        var result = new CompilerConfiguration();
+        if (!Directory.Exists(path)) return result;
+
+        foreach (string file in Directory.EnumerateFiles(path, "*.cfg").OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
+            result.MergeFrom(FromFile(file));
+
+        return result;
+    }
+
     public static CompilerConfiguration FromFile(string path)
     {
         var cfg = new Configuration(path);
@@ -58,6 +71,27 @@ public sealed class CompilerConfiguration
             if (root["nodebuilders"] is IDictionary nodebuilderBlock) result.ParseNodebuilders(nodebuilderBlock, fileName);
         }
         return result;
+    }
+
+    public void MergeFrom(CompilerConfiguration other)
+    {
+        foreach (var compiler in other.compilers)
+            compilers[compiler.Key] = compiler.Value;
+        foreach (var nodebuilder in other.nodebuilders)
+            nodebuilders[nodebuilder.Key] = nodebuilder.Value;
+    }
+
+    public NodebuilderConfig? ResolveNodebuilderConfig(string nodebuilderName, string? executableOverride = null)
+    {
+        if (!nodebuilders.TryGetValue(nodebuilderName, out var nodebuilder)) return null;
+
+        string executable = executableOverride ?? "";
+        if (string.IsNullOrWhiteSpace(executable)
+            && compilers.TryGetValue(nodebuilder.CompilerName, out var compiler)
+            && !string.IsNullOrWhiteSpace(compiler.ProgramFile))
+            executable = Path.Combine(compiler.Path, compiler.ProgramFile);
+
+        return string.IsNullOrWhiteSpace(executable) ? null : nodebuilder.ToConfig(executable);
     }
 
     private void ParseCompilers(IDictionary block, string fileName, string path)

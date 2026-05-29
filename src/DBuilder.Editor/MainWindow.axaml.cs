@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private MapOptions? _mapOptions;
     private Configuration? _mapSettings;
     private GameConfiguration? _config;
+    private CompilerConfiguration _compilerConfig = new();
     private string _configName = "(none)";
     private string _configFile = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
@@ -45,8 +46,9 @@ public partial class MainWindow : Window
     private bool _allowDirtyClose;
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
-    private const string DefaultConfigDir =
-        "/Users/jsh/dev/projects/claude_directed_5/UltimateDoomBuilder/Assets/Common/Configurations";
+    private static string DefaultConfigDir =>
+        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "dev", "repos", "UltimateDoomBuilder", "Assets", "Common", "Configurations");
 
     // Standard macOS GZDoom install, used by Test Map when no port is configured.
     private const string DefaultGzdoomPath = "/Applications/GZDoom.app/Contents/MacOS/gzdoom";
@@ -56,6 +58,18 @@ public partial class MainWindow : Window
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
+
+    private string NodebuilderConfigDir
+    {
+        get
+        {
+            string platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" : "Linux";
+            string? assetsRoot = AssetsRootFromConfigDir(ConfigDir);
+            return assetsRoot is null
+                ? ""
+                : System.IO.Path.Combine(assetsRoot, platform, "Compilers", "Nodebuilders");
+        }
+    }
 
     public MainWindow() : this(null) { }
 
@@ -86,6 +100,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        ReloadCompilerConfiguration();
         RebuildSelectionGroupsMenu();
         RebuildRecentMenu();
         TryLoadDefaultConfig();
@@ -97,6 +112,18 @@ public partial class MainWindow : Window
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
+
+    private static string? AssetsRootFromConfigDir(string configDir)
+    {
+        var dir = new System.IO.DirectoryInfo(configDir);
+        if (!dir.Exists || dir.Name != "Configurations" || dir.Parent?.Name != "Common") return null;
+        return dir.Parent.Parent?.FullName;
+    }
+
+    private void ReloadCompilerConfiguration()
+    {
+        _compilerConfig = CompilerConfiguration.FromDirectory(NodebuilderConfigDir);
+    }
 
     // Rebuilds the File > Open Recent submenu from persisted recent map and file lists.
     private void RebuildRecentMenu()
@@ -628,7 +655,7 @@ public partial class MainWindow : Window
             }
 
             // Optionally rebuild nodes via an external builder (BSP/BLOCKMAP/REJECT), making the save playable.
-            string nodeStatus = BuildNodesIfConfigured(ref bytes);
+            string nodeStatus = BuildNodesIfConfigured(ref bytes, forTesting: false);
 
             System.IO.File.WriteAllBytes(outPath, bytes);
             SaveCurrentMapOptions(outPath, marker);
@@ -668,18 +695,54 @@ public partial class MainWindow : Window
 
     // Runs the external node builder (DBUILDER_NODEBUILDER env, else settings) over the WAD bytes.
     // Returns a short status suffix; on failure the original (node-less) bytes are kept.
-    private string BuildNodesIfConfigured(ref byte[] bytes)
+    private string BuildNodesIfConfigured(ref byte[] bytes, bool forTesting)
     {
         string? exe = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER");
         if (string.IsNullOrWhiteSpace(exe)) exe = _settings.NodeBuilderPath;
-        if (string.IsNullOrWhiteSpace(exe)) return "  (no nodes - set a node builder in Settings or DBUILDER_NODEBUILDER)";
-        if (!System.IO.File.Exists(exe)) return $"  (node builder not found: {exe})";
 
-        string args = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER_ARGS")
-            ?? (string.IsNullOrWhiteSpace(_settings.NodeBuilderArgs) ? "-o \"%FO\" \"%FI\"" : _settings.NodeBuilderArgs!);
-        var result = NodeBuilder.Build(bytes, new NodebuilderConfig(exe, args));
+        string? args = Environment.GetEnvironmentVariable("DBUILDER_NODEBUILDER_ARGS")
+            ?? (string.IsNullOrWhiteSpace(_settings.NodeBuilderArgs) ? null : _settings.NodeBuilderArgs);
+
+        NodebuilderConfig? cfg = null;
+        string profile = NodebuilderProfileName(forTesting);
+        if (!string.IsNullOrWhiteSpace(profile))
+        {
+            if (!string.IsNullOrWhiteSpace(exe))
+                cfg = _compilerConfig.ResolveNodebuilderConfig(profile, exe);
+            else if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                cfg = _compilerConfig.ResolveNodebuilderConfig(profile);
+        }
+
+        if (cfg is null)
+        {
+            if (string.IsNullOrWhiteSpace(exe)) return "  (no nodes - set a node builder in Settings or DBUILDER_NODEBUILDER)";
+            cfg = new NodebuilderConfig(exe, args ?? "-o \"%FO\" \"%FI\"");
+        }
+        else if (!string.IsNullOrWhiteSpace(args))
+        {
+            cfg = cfg with { Parameters = args };
+        }
+
+        if (!System.IO.File.Exists(cfg.Executable)) return $"  (node builder not found: {cfg.Executable})";
+
+        var result = NodeBuilder.Build(bytes, cfg);
         if (result.Success && result.Output != null) { bytes = result.Output; return "  (nodes built)"; }
         return "  (node build FAILED, saved without nodes)";
+    }
+
+    private string NodebuilderProfileName(bool forTesting)
+    {
+        if (_config is null) return "";
+        if (forTesting)
+            return FirstNonBlank(_config.NodeBuilderTest, _config.DefaultTestCompiler, _config.NodeBuilderSave, _config.DefaultSaveCompiler);
+        return FirstNonBlank(_config.NodeBuilderSave, _config.DefaultSaveCompiler);
+    }
+
+    private static string FirstNonBlank(params string[] values)
+    {
+        foreach (string value in values)
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        return "";
     }
 
     private void SaveCurrentMapOptions(string wadPath, string marker)
@@ -711,6 +774,7 @@ public partial class MainWindow : Window
         _settings.TestPortArgs = dlg.TestPortArgs;
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
+        ReloadCompilerConfiguration();
         SaveSettings();
         SetStatus("Settings saved.");
     }
@@ -1857,7 +1921,7 @@ public partial class MainWindow : Window
             byte[] bytes;
             var ms = new System.IO.MemoryStream();
             using (var dst = new WAD(ms)) { WadMaps.SaveMap(dst, _mapMarker, _map, _mapFormat, _config); bytes = ms.ToArray(); }
-            BuildNodesIfConfigured(ref bytes); // GZDoom can build nodes itself, but use the configured builder when present
+            BuildNodesIfConfigured(ref bytes, forTesting: true); // GZDoom can build nodes itself, but use the configured builder when present
 
             string temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"dbuilder_test_{_mapMarker}.wad");
             System.IO.File.WriteAllBytes(temp, bytes);
