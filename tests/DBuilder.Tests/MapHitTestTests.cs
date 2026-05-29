@@ -139,6 +139,18 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestLinedefRangeSearchesSelectionWithinRange()
+    {
+        var near = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(10, 0)));
+        var far = new Linedef(new Vertex(new Vector2D(100, 0)), new Vertex(new Vector2D(110, 0)));
+        var selection = new[] { far, near };
+
+        Assert.Same(near, MapSet.NearestLinedefRange(selection, new Vector2D(5, 3), maxRange: 4));
+        Assert.Null(MapSet.NearestLinedefRange(selection, new Vector2D(5, 3), maxRange: 2));
+        Assert.Null(MapSet.NearestLinedefRange(Array.Empty<Linedef>(), new Vector2D(5, 3), maxRange: 4));
+    }
+
+    [Fact]
     public void GetSectorAtReturnsSectorForInteriorPoint()
     {
         var (map, sector) = BuildSquare(100);

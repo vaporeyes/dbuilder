@@ -1812,6 +1812,20 @@ public class MapSet : IDisposable
         return closest;
     }
 
+    /// <summary>Nearest linedef to <paramref name="pos"/> from the supplied selection within <paramref name="maxRange"/>, or null.</summary>
+    public static Linedef? NearestLinedefRange(ICollection<Linedef> selection, Vector2D pos, double maxRange)
+    {
+        Linedef? closest = null;
+        double bestSq = double.MaxValue;
+        double maxRangeSq = maxRange * maxRange;
+        foreach (var l in selection)
+        {
+            double d = l.SafeDistanceToSq(pos, bounded: true);
+            if (d < bestSq && d <= maxRangeSq) { bestSq = d; closest = l; }
+        }
+        return closest;
+    }
+
     private Linedef? NearestLinedef(Vector2D pos, double maxRange, Linedef? ignoredLine)
     {
         Linedef? closest = null;
