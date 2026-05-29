@@ -287,6 +287,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port editing manager behavior.
 - [ ] Port edit mode lifecycle behavior.
+  - [x] Add menu and toolbar commands for switching edit modes.
 - [ ] Port classic mode behavior.
 - [ ] Port copy/paste manager behavior fully.
   - [x] Add menu commands for selection copy and paste.

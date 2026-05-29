@@ -67,6 +67,12 @@
                 <MenuItem Header="_Insert at Cursor" Click="OnInsertAtCursor" />
             </MenuItem>
             <MenuItem Header="_View">
+                <MenuItem Header="_Edit Mode">
+                    <MenuItem Header="_Vertices" Click="OnModeVertices" />
+                    <MenuItem Header="_Linedefs" Click="OnModeLinedefs" />
+                    <MenuItem Header="_Sectors" Click="OnModeSectors" />
+                    <MenuItem Header="_Things" Click="OnModeThings" />
+                </MenuItem>
                 <MenuItem Header="_Fit to map" Click="OnFit" />
                 <MenuItem Header="_Go To Coordinates..." Click="OnGoToCoordinates" />
                 <MenuItem Header="View Used _Tags..." Click="OnTagStatistics" />
@@ -118,6 +124,10 @@
                 <Button Content="Delete" Click="OnDelete" />
                 <Button Content="Fit" Click="OnFit" />
                 <Button Content="3D" Click="OnToggle3DMode" />
+                <Button Content="Vtx" Click="OnModeVertices" />
+                <Button Content="Line" Click="OnModeLinedefs" />
+                <Button Content="Sec" Click="OnModeSectors" />
+                <Button Content="Thing" Click="OnModeThings" />
             </StackPanel>
         </Border>
 

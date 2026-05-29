@@ -778,6 +778,19 @@ public partial class MainWindow : Window
         SetStatus($"Inverted {MapView.CurrentEditMode.ToString().ToLowerInvariant()} selection: {count} selected.");
     }
 
+    private void OnModeVertices(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Vertices);
+    private void OnModeLinedefs(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Linedefs);
+    private void OnModeSectors(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Sectors);
+    private void OnModeThings(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Things);
+
+    private void SetEditMode(MapControl.EditMode mode)
+    {
+        MapView.SetCurrentEditMode(mode);
+        SetStatus($"Mode: {mode}");
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
     private void RebuildSelectionGroupsMenu()
     {
         var groups = new List<MenuItem>();

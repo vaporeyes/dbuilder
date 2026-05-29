@@ -289,6 +289,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    public void SetCurrentEditMode(EditMode mode) => SetEditMode(mode);
+
     public bool Toggle3DMode()
     {
         _mode3D = !_mode3D;
