@@ -157,6 +157,8 @@ public static class DecorateParser
         ApplyMixins(actors, mixins);
         ApplyExtensions(actors, extensions, mixins);
         ResolveInheritance(actors);
+        if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
+            FilterZScriptActorClasses(actors);
         return actors;
     }
 
@@ -826,6 +828,24 @@ public static class DecorateParser
                 p = parent.ParentName;
             }
         }
+    }
+
+    private static void FilterZScriptActorClasses(List<ActorInfo> actors)
+    {
+        var byName = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var actor in actors) byName[actor.ClassName] = actor;
+
+        actors.RemoveAll(actor => !IsZScriptActorClass(actor, byName, new HashSet<string>(StringComparer.OrdinalIgnoreCase)));
+    }
+
+    private static bool IsZScriptActorClass(ActorInfo actor, Dictionary<string, ActorInfo> byName, HashSet<string> seen)
+    {
+        if (actor.ClassName.Equals("Actor", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.IsNullOrEmpty(actor.ParentName)) return false;
+        if (actor.ParentName.Equals("Actor", StringComparison.OrdinalIgnoreCase)) return true;
+        if (!seen.Add(actor.ClassName)) return false;
+        return !byName.TryGetValue(actor.ParentName, out var parent)
+            || IsZScriptActorClass(parent, byName, seen);
     }
 
     private static List<Tok> Tokenize(string s)

@@ -81,10 +81,9 @@ class SpacedCommentActor : Actor
     {
         const string text = "class Foo;\nclass Bar : Actor abstract { Default { Radius 8; } }";
         var actors = ZScriptParser.Parse(text);
-        Assert.Equal(2, actors.Count);
-        Assert.Equal("Foo", actors[0].ClassName);
-        Assert.Equal("Bar", actors[1].ClassName);
-        Assert.Equal(8, actors[1].Radius);
+        var actor = Assert.Single(actors);
+        Assert.Equal("Bar", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
     }
 
     [Fact]
@@ -217,6 +216,35 @@ class RealActor : Actor
 
         Assert.Equal("RealActor", actor.ClassName);
         Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
+    public void SkipsZScriptClassesWithKnownNonActorAncestry()
+    {
+        const string text = @"
+class HelperBase
+{
+    int Value;
+}
+class HelperChild : HelperBase
+{
+    Default { Radius 128; }
+}
+class InventoryChild : Inventory
+{
+    Default { Radius 12; }
+}
+class RealActor : Actor
+{
+    Default { Radius 16; }
+}";
+
+        var actors = ZScriptParser.Parse(text);
+
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "HelperBase");
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "HelperChild");
+        Assert.Contains(actors, actor => actor.ClassName == "InventoryChild");
+        Assert.Contains(actors, actor => actor.ClassName == "RealActor");
     }
 
     [Fact]
