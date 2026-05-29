@@ -768,7 +768,7 @@ public sealed class GameConfiguration
     private static ArgInfo[] ActorArgs(ActorInfo actor, ArgInfo[]? existing)
     {
         ArgInfo[]? args = null;
-        bool clearArgs = actor.Properties.ContainsKey("$clearargs");
+        bool clearArgs = actor.Properties.ContainsKey("$clearargs") || actor.Properties.ContainsKey("skip_super");
         for (int i = 0; i < 5; i++)
         {
             string prefix = "$arg" + i.ToString(CultureInfo.InvariantCulture);

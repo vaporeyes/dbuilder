@@ -318,6 +318,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Complete ANIMDEFS parser behavior.
 - [ ] Complete DECORATE parser behavior.
   - [x] Parse separated DECORATE flag sign tokens.
+  - [x] Honor `skip_super` for DECORATE custom argument inheritance.
 - [ ] Complete ZScript tokenizer behavior.
 - [ ] Complete ZScript parser behavior.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.

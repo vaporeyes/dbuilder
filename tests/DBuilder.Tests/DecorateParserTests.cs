@@ -310,6 +310,30 @@ ACTOR ArgChild : ArgBase 7010
     }
 
     [Fact]
+    public void SkipSuperPreventsChildFromInheritingParentArgs()
+    {
+        const string text = @"
+ACTOR ArgBase
+{
+    $Arg0 ""Inherited Target""
+}
+ACTOR ArgChild : ArgBase 7011
+{
+    skip_super
+    States { Spawn: ARGC A -1 stop }
+}";
+        var child = DecorateParser.Parse(text).Single(a => a.ClassName == "ArgChild");
+
+        Assert.True(child.Properties.ContainsKey("skip_super"));
+        Assert.False(child.Properties.ContainsKey("$Arg0"));
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(new[] { child });
+
+        Assert.Empty(gc.GetThing(7011)!.Args);
+    }
+
+    [Fact]
     public void IgnoresFlowKeywordsAsSprites()
     {
         // "goto" is 4 chars but must not be mistaken for a sprite frame.
