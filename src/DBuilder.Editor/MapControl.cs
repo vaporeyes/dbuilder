@@ -2305,7 +2305,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool SnapToGridEnabled => _snapToGrid;
     public event Action? DrawModeChanged;
 
-    private void ToggleDrawMode(bool linesOnly = false)
+    public void ToggleDrawMode(bool linesOnly = false)
     {
         // Re-pressing the same draw key exits; switching kind restarts with the new kind.
         if (_drawMode && _drawLinesOnly == linesOnly) _drawMode = false;

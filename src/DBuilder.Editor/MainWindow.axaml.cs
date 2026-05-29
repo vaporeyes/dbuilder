@@ -926,8 +926,19 @@ public partial class MainWindow : Window
         catch (Exception ex) { SetStatus($"Insert prefab failed: {ex.Message}"); }
     }
 
+    private void OnDrawSector(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: false, "sector");
+    private void OnDrawLines(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: true, "lines-only");
     private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
     private void OnDrawEllipse(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Ellipse, "ellipse");
+
+    private void ToggleDrawMode(bool linesOnly, string name)
+    {
+        MapView.ToggleDrawMode(linesOnly);
+        MapView.Focus();
+        SetStatus(MapView.DrawMode
+            ? $"Draw {name}: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
+            : "Draw mode off.");
+    }
 
     private void ToggleShape(MapControl.ShapeKind kind, string name)
     {

@@ -70,6 +70,8 @@
                 <MenuItem Header="Show _Nodes" Click="OnToggleNodes" />
             </MenuItem>
             <MenuItem Header="_Draw">
+                <MenuItem Header="Draw _Sector" Click="OnDrawSector" />
+                <MenuItem Header="Draw _Lines Only" Click="OnDrawLines" />
                 <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />
                 <MenuItem Header="Draw _Ellipse" Click="OnDrawEllipse" />
             </MenuItem>
