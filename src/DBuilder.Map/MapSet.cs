@@ -1770,7 +1770,7 @@ public class MapSet : IDisposable
         foreach (var l in Linedefs)
         {
             if (ReferenceEquals(l, ignoredLine)) continue;
-            double d = LinedefDistanceSq(l, pos);
+            double d = l.SafeDistanceToSq(pos, bounded: true);
             if (d < bestSq) { bestSq = d; closest = l; }
         }
         return closest;
@@ -1872,20 +1872,6 @@ public class MapSet : IDisposable
 
     private static bool InBox(Vector2D p, double minX, double minY, double maxX, double maxY)
         => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY;
-
-    // Bounded point-to-segment squared distance, guarding against zero-length (degenerate) linedefs.
-    private static double LinedefDistanceSq(Linedef l, Vector2D pos)
-    {
-        var a = l.Start.Position;
-        var b = l.End.Position;
-        double lenSq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
-        if (lenSq < 1e-12)
-        {
-            double dx0 = pos.x - a.x, dy0 = pos.y - a.y;
-            return dx0 * dx0 + dy0 * dy0;
-        }
-        return Line2D.GetDistanceToLineSq(a, b, pos, bounded: true);
-    }
 
     /// <summary>Axis-aligned bounding box of the vertex set; (0,0,0,0) when empty.</summary>
     public (double minX, double minY, double maxX, double maxY) Bounds()

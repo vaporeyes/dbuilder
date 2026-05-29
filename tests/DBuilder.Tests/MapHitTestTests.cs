@@ -86,6 +86,21 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void NearestLinedefUsesUdbSafeDistanceForEndpointTies()
+    {
+        var map = new MapSet();
+        var center = map.AddVertex(new Vector2D(0, 0));
+        var horizontal = map.AddLinedef(center, map.AddVertex(new Vector2D(10, 0)));
+        var vertical = map.AddLinedef(center, map.AddVertex(new Vector2D(0, 10)));
+
+        var nearest = map.NearestLinedef(new Vector2D(-5, 0));
+
+        Assert.Same(vertical, nearest);
+        Assert.True(horizontal.DistanceToSq(new Vector2D(-5, 0), bounded: true) == vertical.DistanceToSq(new Vector2D(-5, 0), bounded: true));
+        Assert.True(vertical.SafeDistanceToSq(new Vector2D(-5, 0), bounded: true) < horizontal.SafeDistanceToSq(new Vector2D(-5, 0), bounded: true));
+    }
+
+    [Fact]
     public void GetSectorAtReturnsSectorForInteriorPoint()
     {
         var (map, sector) = BuildSquare(100);

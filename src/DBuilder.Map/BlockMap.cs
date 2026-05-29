@@ -535,11 +535,5 @@ public sealed class BlockMap
 
     // Bounded point-to-segment squared distance, guarding against zero-length (degenerate) linedefs.
     private static double SegmentDistanceSq(Linedef l, Vector2D pos)
-    {
-        var a = l.Start.Position;
-        var b = l.End.Position;
-        double lenSq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
-        if (lenSq < 1e-12) return DistSq(a, pos);
-        return Line2D.GetDistanceToLineSq(a, b, pos, bounded: true);
-    }
+        => l.SafeDistanceToSq(pos, bounded: true);
 }

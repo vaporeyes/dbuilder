@@ -31,8 +31,7 @@ public class BlockMapTests
 
     private static double SegDistSq(Linedef l, Vector2D p)
     {
-        var a = l.Start.Position; var b = l.End.Position;
-        return Line2D.GetDistanceToLineSq(a, b, p, bounded: true);
+        return l.SafeDistanceToSq(p, bounded: true);
     }
 
     [Fact]
