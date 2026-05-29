@@ -1519,6 +1519,62 @@ public class MapSet : IDisposable
     public bool ContainsSector(Sector sector) => IndexOfSector(sector) >= 0;
     public bool ContainsThing(Thing thing) => IndexOfThing(thing) >= 0;
 
+    /// <summary>Returns the first positive tag not used by any tagged map element, or 0 when none is available.</summary>
+    public int GetNewTag(int maxTag = int.MaxValue)
+        => GetNewTag(Array.Empty<int>(), maxTag);
+
+    /// <summary>Returns the first positive tag not used by the map or the supplied extra used tags.</summary>
+    public int GetNewTag(IEnumerable<int> moreUsedTags, int maxTag = int.MaxValue)
+    {
+        var used = CollectUsedTags(markedOnly: false);
+        foreach (int tag in moreUsedTags)
+            if (tag > 0) used.Add(tag);
+
+        return FirstUnusedTag(used, maxTag);
+    }
+
+    /// <summary>Returns the first positive tag not used by marked geometry when <paramref name="markedOnly"/> is true.</summary>
+    public int GetNewTag(bool markedOnly, int maxTag = int.MaxValue)
+        => FirstUnusedTag(CollectUsedTags(markedOnly), maxTag);
+
+    /// <summary>Returns up to <paramref name="count"/> positive tags not used by any tagged map element.</summary>
+    public List<int> GetMultipleNewTags(int count, int maxTag = int.MaxValue)
+    {
+        var result = new List<int>(Math.Max(0, count));
+        if (count <= 0) return result;
+
+        var used = CollectUsedTags(markedOnly: false);
+        for (int tag = 1; tag <= maxTag && result.Count < count; tag++)
+        {
+            if (used.Contains(tag)) continue;
+            result.Add(tag);
+            used.Add(tag);
+        }
+        return result;
+    }
+
+    private HashSet<int> CollectUsedTags(bool markedOnly)
+    {
+        var used = new HashSet<int>();
+        foreach (var line in Linedefs)
+            if (!markedOnly || line.Marked)
+                foreach (int tag in MapElementTags.PositiveTags(line)) used.Add(tag);
+        foreach (var sector in Sectors)
+            if (!markedOnly || sector.Marked)
+                foreach (int tag in MapElementTags.PositiveTags(sector)) used.Add(tag);
+        foreach (var thing in Things)
+            if (!markedOnly || thing.Marked)
+                foreach (int tag in MapElementTags.PositiveTags(thing)) used.Add(tag);
+        return used;
+    }
+
+    private static int FirstUnusedTag(HashSet<int> used, int maxTag)
+    {
+        for (int tag = 1; tag <= maxTag; tag++)
+            if (!used.Contains(tag)) return tag;
+        return 0;
+    }
+
     // ============================================================
     // Selection-driven edit operations.
     // ============================================================

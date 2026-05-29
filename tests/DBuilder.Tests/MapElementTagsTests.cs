@@ -58,4 +58,45 @@ public class MapElementTagsTests
 
         Assert.Equal(new[] { 0 }, sector.Tags);
     }
+
+    [Fact]
+    public void MapSetGetNewTagReturnsFirstUnusedPositiveTag()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(0, 0), 3001).Tag = 1;
+        var sector = map.AddSector();
+        sector.Tags.AddRange(new[] { 2, 4 });
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tags.Add(5);
+
+        Assert.Equal(3, map.GetNewTag(maxTag: 8));
+        Assert.Equal(6, map.GetNewTag(new[] { 3 }, maxTag: 8));
+    }
+
+    [Fact]
+    public void MapSetGetNewTagCanScopeToMarkedGeometry()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(0, 0), 3001).Tag = 1;
+        var marked = map.AddSector();
+        marked.Tag = 1;
+        marked.Marked = true;
+        var unmarked = map.AddSector();
+        unmarked.Tag = 2;
+
+        Assert.Equal(3, map.GetNewTag(maxTag: 4));
+        Assert.Equal(2, map.GetNewTag(markedOnly: true, maxTag: 4));
+    }
+
+    [Fact]
+    public void MapSetGetMultipleNewTagsSkipsUsedAndStopsAtLimit()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(0, 0), 3001).Tag = 1;
+        map.AddSector().Tag = 3;
+
+        Assert.Equal(new[] { 2, 4, 5 }, map.GetMultipleNewTags(3, maxTag: 5));
+        Assert.Equal(new[] { 2 }, map.GetMultipleNewTags(3, maxTag: 2));
+        Assert.Empty(map.GetMultipleNewTags(0, maxTag: 5));
+    }
 }
