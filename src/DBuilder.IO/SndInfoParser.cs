@@ -22,8 +22,10 @@ public static class SndInfoParser
     {
         var result = new SndInfo();
         TerrainBaseGame? conditionalGame = null;
-        foreach (string rawLine in text.Replace("\r\n", "\n").Split('\n'))
+        string[] lines = text.Replace("\r\n", "\n").Split('\n');
+        for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
         {
+            string rawLine = lines[lineIndex];
             var t = Tokenize(StripLineComment(rawLine));
             if (t.Count == 0) continue;
 
@@ -47,6 +49,7 @@ public static class SndInfoParser
             }
             if (first.Equals("$random", StringComparison.OrdinalIgnoreCase))
             {
+                CollectRandomTokens(lines, ref lineIndex, t);
                 ParseRandom(result, t);
                 continue;
             }
@@ -56,6 +59,15 @@ public static class SndInfoParser
             else if (t.Count >= 2) result.Sounds[first] = t[1];
         }
         return result;
+    }
+
+    private static void CollectRandomTokens(string[] lines, ref int lineIndex, List<string> tokens)
+    {
+        while (!tokens.Contains("}") && lineIndex + 1 < lines.Length)
+        {
+            lineIndex++;
+            tokens.AddRange(Tokenize(StripLineComment(lines[lineIndex])));
+        }
     }
 
     private static bool TryReadConditional(string token, out TerrainBaseGame game)
@@ -115,9 +127,15 @@ public static class SndInfoParser
                 toks.Add(sb.ToString());
                 continue;
             }
+            if (c is '{' or '}')
+            {
+                toks.Add(c.ToString());
+                p++;
+                continue;
+            }
 
             int b = p;
-            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '"') p++;
+            while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '"' && s[p] != '{' && s[p] != '}') p++;
             toks.Add(s.Substring(b, p - b));
         }
         return toks;

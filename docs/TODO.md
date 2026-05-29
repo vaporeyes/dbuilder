@@ -347,6 +347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require quoted long GLDEFS glow texture names.
   - [x] Skip unknown top-level GLDEFS blocks with arguments.
 - [x] Port SNDINFO parser.
+  - [x] Parse multiline `$random` groups.
 - [x] Port SNDSEQ parser.
 - [x] Port TERRAIN parser.
 - [x] Port LOCKDEFS parser.

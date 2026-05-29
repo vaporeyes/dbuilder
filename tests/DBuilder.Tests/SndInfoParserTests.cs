@@ -53,6 +53,34 @@ $volume world/drip 0.5";
     }
 
     [Fact]
+    public void ParsesMultilineRandomGroups()
+    {
+        const string text = """
+$random misc/random
+{
+    sound/a
+    sound/b // inline comment
+}
+world/drip drip1
+""";
+
+        var info = SndInfoParser.Parse(text);
+
+        Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/random"]);
+        Assert.Equal("drip1", info.Sounds["world/drip"]);
+    }
+
+    [Fact]
+    public void ParsesRandomGroupBracesWithoutWhitespace()
+    {
+        const string text = "$random misc/random {sound/a sound/b}";
+
+        var info = SndInfoParser.Parse(text);
+
+        Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/random"]);
+    }
+
+    [Fact]
     public void AppliesBaseGameConditionals()
     {
         const string text = @"
