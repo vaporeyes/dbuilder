@@ -337,6 +337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require integral GLDEFS light radius fields.
   - [x] Require quoted long GLDEFS skybox names.
   - [x] Require quoted long GLDEFS glow texture names.
+  - [x] Skip unknown top-level GLDEFS blocks with arguments.
 - [x] Port SNDINFO parser.
 - [x] Port SNDSEQ parser.
 - [x] Port TERRAIN parser.

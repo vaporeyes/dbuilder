@@ -97,8 +97,16 @@ public static class GldefsParser
             else if (kw == "skybox") ParseSkybox(g, tokens, ref i);
             else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
-            else i++; // unknown keyword (skybox/brightmap/material/... handled by skipping its block next)
+            else TrySkipUnknownTopLevelBlock(t, ref i);
         }
+    }
+
+    private static void TrySkipUnknownTopLevelBlock(List<string> t, ref int i)
+    {
+        i++;
+        while (i < t.Count && t[i] != "{") i++;
+
+        if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
     }
 
     private static void ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
