@@ -285,6 +285,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add texture and flat browser buttons to property dialogs.
   - [x] Add thing, linedef action, and sector effect browsers to configured property fields.
   - [x] Add thing, linedef action, and sector effect browsers to argument editors.
+  - [x] Add checkbox editors for configured enum-bit property fields.
 
 ## Editing Core
 

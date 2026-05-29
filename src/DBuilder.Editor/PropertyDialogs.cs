@@ -53,11 +53,13 @@ public sealed class ArgEditors
 
 public sealed class UniversalFieldEditors
 {
-    private readonly List<(UniversalFieldEditorValue Value, TextBox? Box, ComboBox? Combo)> _editors = new();
+    private readonly List<(UniversalFieldEditorValue Value, TextBox? Box, ComboBox? Combo, FlagChecks? Flags)> _editors = new();
 
-    public void AddBox(UniversalFieldEditorValue value, TextBox box) => _editors.Add((value, box, null));
+    public void AddBox(UniversalFieldEditorValue value, TextBox box) => _editors.Add((value, box, null, null));
 
-    public void AddCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, combo));
+    public void AddCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, combo, null));
+
+    public void AddFlags(UniversalFieldEditorValue value, FlagChecks flags) => _editors.Add((value, null, null, flags));
 
     public void Apply(Dictionary<string, object> fields)
     {
@@ -67,6 +69,11 @@ public sealed class UniversalFieldEditors
             if (editor.Combo != null)
             {
                 handler.SetValue(ComboNumber(editor.Combo, 0));
+                fields[editor.Value.Field.Name] = handler.GetValue();
+            }
+            else if (editor.Flags != null)
+            {
+                handler.SetValue(editor.Flags.Value);
                 fields[editor.Value.Field.Name] = handler.GetValue();
             }
             else if (editor.Box != null)
@@ -310,6 +317,10 @@ public abstract class PropertyDialog : Window
                     handler.GetIntValue());
                 editors.AddCombo(item, combo);
             }
+            else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
+            {
+                editors.AddFlags(item, AddFlagChecks(item.Field.Name, bitDefs, handler.GetIntValue()));
+            }
             else if (config != null && handler is ThingTypeHandler)
             {
                 var combo = AddComboWithBrowse(
@@ -355,6 +366,15 @@ public abstract class PropertyDialog : Window
         }
 
         return editors;
+    }
+
+    private static IReadOnlyDictionary<int, string> EnumBitDefinitions(EnumListInfo values)
+    {
+        var result = new SortedDictionary<int, string>();
+        foreach (var item in values.Items)
+            if (int.TryParse(item.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+                result[bit] = item.Title;
+        return result;
     }
 
     // Adds a labeled multi-line text area (e.g. for custom UDMF fields), inserted before the buttons row.
