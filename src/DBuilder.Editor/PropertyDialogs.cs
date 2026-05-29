@@ -249,6 +249,36 @@ public abstract class PropertyDialog : Window
                 var items = options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}"));
                 editors.SetCombo(i, AddCombo(label, items, current[i]));
             }
+            else if (config != null && handler is ThingTypeHandler)
+            {
+                editors.SetCombo(i, AddComboWithBrowse(
+                    label,
+                    config.Things.Values.Select(thing => new CatalogItem(thing.Index, $"{thing.Index} - {thing.Title}")),
+                    current[i],
+                    "Browse Things",
+                    () => CatalogBrowse.Things(config)));
+            }
+            else if (config != null && handler is LinedefTypeHandler)
+            {
+                var items = config.LinedefActions.Values
+                    .Select(action => new CatalogItem(action.Index, $"{action.Index} - {action.Title}"))
+                    .Prepend(new CatalogItem(0, "0 - None"));
+                editors.SetCombo(i, AddComboWithBrowse(
+                    label,
+                    items,
+                    current[i],
+                    "Browse Linedef Actions",
+                    () => CatalogBrowse.LinedefActions(config)));
+            }
+            else if (config != null && handler is SectorEffectTypeHandler)
+            {
+                editors.SetCombo(i, AddComboWithBrowse(
+                    label,
+                    config.SectorEffects.Values.Select(effect => new CatalogItem(effect.Index, $"{effect.Index} - {effect.Title}")),
+                    current[i],
+                    "Browse Sector Effects",
+                    () => CatalogBrowse.SectorEffects(config)));
+            }
             else
             {
                 editors.SetBox(i, AddField(label, current[i].ToString(CultureInfo.InvariantCulture)));
