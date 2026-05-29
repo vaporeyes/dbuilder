@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
 
 namespace DBuilder.IO;
 
@@ -20,6 +21,8 @@ public sealed record AutoSaveEntry(AutoSaveKey Key, string SnapshotPath, DateTim
 
 public static class AutoSaveStore
 {
+    public const int DefaultMaxSnapshots = 25;
+
     public static string DefaultDirectory => Path.Combine(Settings.DefaultPathDirectory, "Autosave");
 
     public static string PathFor(AutoSaveKey key, string? directory = null)
@@ -76,6 +79,27 @@ public static class AutoSaveStore
 
         entries.Sort((a, b) => b.LastWriteTime.CompareTo(a.LastWriteTime));
         return entries;
+    }
+
+    public static int Prune(int maxSnapshots = DefaultMaxSnapshots, string? directory = null)
+    {
+        if (maxSnapshots < 0) throw new ArgumentOutOfRangeException(nameof(maxSnapshots));
+
+        int deleted = 0;
+        foreach (var entry in List(directory).Skip(maxSnapshots))
+        {
+            try
+            {
+                if (File.Exists(entry.SnapshotPath)) File.Delete(entry.SnapshotPath);
+                string metadataPath = entry.SnapshotPath + ".txt";
+                if (File.Exists(metadataPath)) File.Delete(metadataPath);
+                deleted++;
+            }
+            catch
+            {
+            }
+        }
+        return deleted;
     }
 
     public static string MetadataText(AutoSaveKey key)

@@ -2031,7 +2031,8 @@ public partial class MainWindow : Window
                 bytes = ms.ToArray();
             }
 
-            AutoSaveStore.Write(key, bytes);
+            if (AutoSaveStore.Write(key, bytes) is not null)
+                AutoSaveStore.Prune();
         }
         catch (Exception ex)
         {
