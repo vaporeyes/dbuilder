@@ -324,6 +324,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## 2D Editor UI
 
 - [ ] Port main window layout parity or define a documented Avalonia replacement.
+  - [x] Make the toolbar horizontally scrollable when commands exceed the window width.
 - [ ] Port menu layout and all menu actions.
   - [x] Add view-layer menu commands for sector fills and things visibility.
 - [ ] Port toolbar layout and all toolbar actions.

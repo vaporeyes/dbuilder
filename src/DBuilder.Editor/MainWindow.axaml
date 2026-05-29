@@ -115,31 +115,33 @@
 
         <!-- Toolbar -->
         <Border Grid.Row="1" Background="#202530" Padding="4" BorderBrush="#10000000" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <Button Content="Open" Click="OnOpen" />
-                <Button Content="Map" Click="OnOpenMap" />
-                <Button Content="Save" Click="OnSave" />
-                <Button Content="Undo" Click="OnUndo" />
-                <Button Content="Redo" Click="OnRedo" />
-                <Button Content="Delete" Click="OnDelete" />
-                <Button Content="Fit" Click="OnFit" />
-                <Button Content="3D" Click="OnToggle3DMode" />
-                <Button Content="Vtx" Click="OnModeVertices" />
-                <Button Content="Line" Click="OnModeLinedefs" />
-                <Button Content="Sec" Click="OnModeSectors" />
-                <Button Content="Thing" Click="OnModeThings" />
-                <Button Content="Make" Click="OnMakeSectorAtCursor" />
-                <Button Content="Draw" Click="OnDrawSector" />
-                <Button Content="Lines" Click="OnDrawLines" />
-                <Button Content="Curve" Click="OnDrawCurve" />
-                <Button Content="Rect" Click="OnDrawRectangle" />
-                <Button Content="Ellipse" Click="OnDrawEllipse" />
-                <Button Content="Check" Click="OnCheckMap" />
-                <Button Content="Clean" Click="OnCleanUpGeometry" />
-                <Button Content="Test" Click="OnTestMap" />
-                <Button Content="Stairs" Click="OnBuildStairs" />
-                <Button Content="Slopes" Click="OnApplySlopes" />
-            </StackPanel>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Button Content="Open" Click="OnOpen" />
+                    <Button Content="Map" Click="OnOpenMap" />
+                    <Button Content="Save" Click="OnSave" />
+                    <Button Content="Undo" Click="OnUndo" />
+                    <Button Content="Redo" Click="OnRedo" />
+                    <Button Content="Delete" Click="OnDelete" />
+                    <Button Content="Fit" Click="OnFit" />
+                    <Button Content="3D" Click="OnToggle3DMode" />
+                    <Button Content="Vtx" Click="OnModeVertices" />
+                    <Button Content="Line" Click="OnModeLinedefs" />
+                    <Button Content="Sec" Click="OnModeSectors" />
+                    <Button Content="Thing" Click="OnModeThings" />
+                    <Button Content="Make" Click="OnMakeSectorAtCursor" />
+                    <Button Content="Draw" Click="OnDrawSector" />
+                    <Button Content="Lines" Click="OnDrawLines" />
+                    <Button Content="Curve" Click="OnDrawCurve" />
+                    <Button Content="Rect" Click="OnDrawRectangle" />
+                    <Button Content="Ellipse" Click="OnDrawEllipse" />
+                    <Button Content="Check" Click="OnCheckMap" />
+                    <Button Content="Clean" Click="OnCleanUpGeometry" />
+                    <Button Content="Test" Click="OnTestMap" />
+                    <Button Content="Stairs" Click="OnBuildStairs" />
+                    <Button Content="Slopes" Click="OnApplySlopes" />
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <!-- Central map view -->
