@@ -30,9 +30,11 @@ public readonly record struct GeometryStitchResult(
     int VertexLineSplits,
     int LineLineSplits,
     int RemovedLoopedLinedefs,
+    int JoinedOverlappingLinedefs,
     int FlippedBackwardLinedefs)
 {
-    public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs + FlippedBackwardLinedefs;
+    public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs +
+        JoinedOverlappingLinedefs + FlippedBackwardLinedefs;
 }
 
 public class MapSet : IDisposable
@@ -768,9 +770,86 @@ public class MapSet : IDisposable
 
         int lineLineSplits = SplitLinesByLines(fixedLines, changedLines);
         int removedLooped = RemoveLoopedLinedefs(changedLines);
+        int joinedOverlapping = JoinOverlappingLinedefs(changedLines);
         int flippedBackward = FlipBackwardLinedefs(changedLines);
 
-        return new GeometryStitchResult(joinedVertices, vertexLineSplits, lineLineSplits, removedLooped, flippedBackward);
+        return new GeometryStitchResult(
+            joinedVertices,
+            vertexLineSplits,
+            lineLineSplits,
+            removedLooped,
+            joinedOverlapping,
+            flippedBackward);
+    }
+
+    /// <summary>
+    /// Joins overlapping linedefs in the supplied collection when they share both endpoints.
+    /// Missing sidedefs are transferred to the kept line. Returns the number of linedefs removed.
+    /// </summary>
+    public int JoinOverlappingLinedefs(ICollection<Linedef> lines)
+    {
+        int removed = 0;
+        bool joined;
+        do
+        {
+            joined = false;
+            foreach (var keep in lines.ToArray())
+            {
+                foreach (var remove in lines.ToArray())
+                {
+                    if (ReferenceEquals(keep, remove)) continue;
+                    if (keep.IsDisposed || remove.IsDisposed) continue;
+
+                    bool sameDirection = ReferenceEquals(keep.Start, remove.Start) && ReferenceEquals(keep.End, remove.End);
+                    bool oppositeDirection = ReferenceEquals(keep.Start, remove.End) && ReferenceEquals(keep.End, remove.Start);
+                    if (!sameDirection && !oppositeDirection) continue;
+
+                    MergeOverlappingLinedef(keep, remove, oppositeDirection);
+                    while (lines.Remove(remove))
+                    {
+                    }
+                    removed++;
+                    joined = true;
+                    break;
+                }
+
+                if (joined) break;
+            }
+        } while (joined);
+
+        return removed;
+    }
+
+    private void MergeOverlappingLinedef(Linedef keep, Linedef remove, bool oppositeDirection)
+    {
+        var sourceFront = oppositeDirection ? remove.Back : remove.Front;
+        var sourceBack = oppositeDirection ? remove.Front : remove.Back;
+
+        TransferSidedef(keep, isFront: true, sourceFront);
+        TransferSidedef(keep, isFront: false, sourceBack);
+
+        remove.Front = null;
+        remove.Back = null;
+        if (Linedefs.Remove(remove)) DisposeElement(remove);
+    }
+
+    private void TransferSidedef(Linedef targetLine, bool isFront, Sidedef? source)
+    {
+        if (source == null) return;
+
+        var target = isFront ? targetLine.Front : targetLine.Back;
+        if (target != null)
+        {
+            RemoveSidedef(source);
+            return;
+        }
+
+        if (source.Line.Front == source) source.Line.Front = null;
+        if (source.Line.Back == source) source.Line.Back = null;
+        source.Line = targetLine;
+        source.IsFront = isFront;
+        if (isFront) targetLine.Front = source;
+        else targetLine.Back = source;
     }
 
     /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>

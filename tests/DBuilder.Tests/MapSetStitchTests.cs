@@ -232,4 +232,69 @@ public class MapSetStitchTests
         Assert.NotNull(line.Front);
         Assert.Null(line.Back);
     }
+
+    [Fact]
+    public void JoinOverlappingLinedefsRemovesDuplicateAndTransfersMissingSide()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var keep = map.AddLinedef(start, end);
+        var duplicate = map.AddLinedef(start, end);
+        var front = map.AddSidedef(keep, true, frontSector);
+        var back = map.AddSidedef(duplicate, false, backSector);
+        var changed = new HashSet<Linedef> { keep, duplicate };
+
+        int removed = map.JoinOverlappingLinedefs(changed);
+
+        Assert.Equal(1, removed);
+        Assert.Single(map.Linedefs);
+        Assert.Equal(new[] { keep }, changed);
+        Assert.Same(front, keep.Front);
+        Assert.Same(back, keep.Back);
+        Assert.Same(keep, back.Line);
+        Assert.True(duplicate.IsDisposed);
+    }
+
+    [Fact]
+    public void JoinOverlappingLinedefsMapsOppositeDirectionSides()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var keep = map.AddLinedef(start, end);
+        var duplicate = map.AddLinedef(end, start);
+        var front = map.AddSidedef(duplicate, true, backSector);
+        var back = map.AddSidedef(duplicate, false, frontSector);
+        var changed = new HashSet<Linedef> { keep, duplicate };
+
+        int removed = map.JoinOverlappingLinedefs(changed);
+
+        Assert.Equal(1, removed);
+        Assert.Same(back, keep.Front);
+        Assert.Same(front, keep.Back);
+        Assert.True(back.IsFront);
+        Assert.False(front.IsFront);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryReportsJoinedOverlappingLines()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var first = map.AddLinedef(start, end);
+        var second = map.AddLinedef(start, end);
+        first.Selected = true;
+        second.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(0.5);
+
+        Assert.Equal(1, result.JoinedOverlappingLinedefs);
+        Assert.Single(map.Linedefs);
+    }
 }
