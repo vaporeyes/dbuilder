@@ -57,6 +57,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port program configuration loading and persistence.
   - [x] Persist and restore the main editor window placement.
 - [ ] Port preferences categories and persistence.
+  - [x] Persist and apply the editor status history limit preference.
 - [ ] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.

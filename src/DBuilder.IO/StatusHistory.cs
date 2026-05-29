@@ -13,7 +13,7 @@ public sealed class StatusHistory
     private readonly List<StatusHistoryEntry> _entries = new();
     private readonly Func<DateTimeOffset> _clock;
 
-    public int Capacity { get; }
+    public int Capacity { get; private set; }
 
     public IReadOnlyList<StatusHistoryEntry> Entries => _entries;
 
@@ -22,6 +22,13 @@ public sealed class StatusHistory
         if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
         Capacity = capacity;
         _clock = clock ?? (() => DateTimeOffset.Now);
+    }
+
+    public void SetCapacity(int capacity)
+    {
+        if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
+        Capacity = capacity;
+        if (_entries.Count > Capacity) _entries.RemoveRange(Capacity, _entries.Count - Capacity);
     }
 
     public void Add(string message)

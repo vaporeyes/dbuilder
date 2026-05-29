@@ -83,6 +83,7 @@ public class SettingsTests
                 ConfigDir = "/cfg",
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
+                StatusHistoryLimit = 250,
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -96,6 +97,8 @@ public class SettingsTests
             Assert.Equal("/cfg", loaded.ConfigDir);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
+            Assert.Equal(250, loaded.StatusHistoryLimit);
+            Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -122,5 +125,13 @@ public class SettingsTests
         File.WriteAllText(path, "{ this is not valid json ");
         try { Assert.Empty(Settings.Load(path).RecentFiles); }
         finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void NormalizedStatusHistoryLimitClampsToSupportedRange()
+    {
+        Assert.Equal(Settings.DefaultStatusHistoryLimit, new Settings().NormalizedStatusHistoryLimit);
+        Assert.Equal(Settings.MinStatusHistoryLimit, new Settings { StatusHistoryLimit = 1 }.NormalizedStatusHistoryLimit);
+        Assert.Equal(Settings.MaxStatusHistoryLimit, new Settings { StatusHistoryLimit = 5000 }.NormalizedStatusHistoryLimit);
     }
 }

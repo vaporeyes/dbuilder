@@ -11,6 +11,9 @@ namespace DBuilder.IO;
 public sealed class Settings
 {
     public const int MaxRecent = 10;
+    public const int DefaultStatusHistoryLimit = 100;
+    public const int MinStatusHistoryLimit = 10;
+    public const int MaxStatusHistoryLimit = 1000;
 
     public string? ConfigDir { get; set; }
     public string? NodeBuilderPath { get; set; }
@@ -18,12 +21,16 @@ public sealed class Settings
     public string? TestPort { get; set; }
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
+    public int? StatusHistoryLimit { get; set; }
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
     public double? WindowHeight { get; set; }
     public List<string> RecentFiles { get; set; } = new();
     public List<RecentMapReference> RecentMaps { get; set; } = new();
+
+    public int NormalizedStatusHistoryLimit =>
+        Math.Clamp(StatusHistoryLimit ?? DefaultStatusHistoryLimit, MinStatusHistoryLimit, MaxStatusHistoryLimit);
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)

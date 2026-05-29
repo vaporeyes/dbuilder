@@ -107,6 +107,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
         ReloadCompilerConfiguration();
         RebuildSelectionGroupsMenu();
@@ -836,6 +837,8 @@ public partial class MainWindow : Window
         _settings.TestPortArgs = dlg.TestPortArgs;
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
+        _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
+        _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ReloadCompilerConfiguration();
         SaveSettings();
         SetStatus("Settings saved.");
