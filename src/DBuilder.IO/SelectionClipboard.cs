@@ -85,6 +85,18 @@ public static class SelectionClipboard
     }
 
     /// <summary>
+    /// Duplicates the current selection in-place by serializing the dependency closure and appending a pasted copy.
+    /// Returns null when no selectable elements are selected.
+    /// </summary>
+    public static PasteResult? DuplicateSelection(MapSet map, Vector2D offset, Action? beforePaste = null)
+    {
+        var data = CopySelection(map);
+        if (data is null) return null;
+        beforePaste?.Invoke();
+        return Paste(map, data, offset);
+    }
+
+    /// <summary>
     /// Pastes a buffer so the pasted geometry's lower-left corner lands at <paramref name="anchor"/> (origin
     /// independent - used for prefab insertion at the cursor). Returns the appended slice.
     /// </summary>

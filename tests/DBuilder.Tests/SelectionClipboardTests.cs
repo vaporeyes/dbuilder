@@ -148,4 +148,40 @@ public class SelectionClipboardTests
         Assert.Equal(4, dst.Sectors[0].Sidedefs.Count);
         Assert.Equal(res.LinedefCount, dst.Linedefs.Count);
     }
+
+    [Fact]
+    public void DuplicateSelectionCopiesSelectionAndRunsPrePasteHook()
+    {
+        var map = new MapSet();
+        var thing = map.AddThing(new Vector2D(10, 20), 3001);
+        thing.Selected = true;
+        bool beforePaste = false;
+
+        var res = SelectionClipboard.DuplicateSelection(map, new Vector2D(32, 16), () =>
+        {
+            beforePaste = true;
+            Assert.Single(map.Things);
+            Assert.True(thing.Selected);
+        });
+
+        Assert.NotNull(res);
+        Assert.True(beforePaste);
+        Assert.Equal(2, map.Things.Count);
+        Assert.Equal(1, res.Value.ThingCount);
+        Assert.False(thing.Selected);
+        Assert.True(map.Things[res.Value.FirstThing].Selected);
+        Assert.Equal(new Vector2D(42, 36), map.Things[res.Value.FirstThing].Position);
+    }
+
+    [Fact]
+    public void DuplicateSelectionWithNoSelectionReturnsNullAndSkipsHook()
+    {
+        var (map, _) = SquareSector();
+        bool beforePaste = false;
+
+        var res = SelectionClipboard.DuplicateSelection(map, new Vector2D(32, 16), () => beforePaste = true);
+
+        Assert.Null(res);
+        Assert.False(beforePaste);
+    }
 }

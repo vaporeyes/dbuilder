@@ -1021,8 +1021,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (CountSelection() == 0) { SetStatus("Nothing selected to duplicate."); return; }
 
-        MapView.CopySelection();
-        RunClipboardEdit(MapView.PasteClipboard());
+        RunClipboardEdit(MapView.DuplicateSelection());
     }
 
     private void RunClipboardEdit(string status)

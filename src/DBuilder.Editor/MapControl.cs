@@ -2425,6 +2425,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    /// <summary>Duplicates the current selection one grid cell away without replacing the clipboard buffer.</summary>
+    public string DuplicateSelection()
+    {
+        if (_map == null) return "No map loaded.";
+        var res = SelectionClipboard.DuplicateSelection(
+            _map,
+            new Vec2D(_grid.GridSize, _grid.GridSize),
+            () => EditBegun?.Invoke("Duplicate selection"));
+        if (res is null)
+        {
+            const string empty = "nothing selected to duplicate";
+            Picked?.Invoke(empty);
+            return empty;
+        }
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = $"duplicated {res.Value.LinedefCount} lines, {res.Value.SectorCount} sectors, {res.Value.ThingCount} things";
+        Picked?.Invoke(status);
+        return status;
+    }
+
     /// <summary>Serializes the current selection for saving as a prefab, or null when nothing is selected.</summary>
     public byte[]? GetSelectionPrefab() => _map == null ? null : SelectionClipboard.CopySelection(_map);
 
