@@ -2,6 +2,7 @@
 // ABOUTME: Mirrors HexenMapLoaderTests synthetic fixture so the writer can be validated as the literal inverse of the loader.
 
 using System.IO;
+using System.Linq;
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -173,6 +174,23 @@ public class HexenMapWriterTests
         Assert.Equal(t_o.Flags,    t_r.Flags);
         Assert.Equal(t_o.Args[0], t_r.Args[0]);
         Assert.Equal(t_o.Args[1], t_r.Args[1]);
+    }
+
+    [Fact]
+    public void WriteMapEmitsHexenMapBlockOrder()
+    {
+        var map = LoadSynthetic();
+
+        using var wad = new WAD(new MemoryStream());
+        HexenMapWriter.WriteMap(map, wad, "MAP01", 0, behaviorBytes: new byte[] { 0x41, 0x43, 0x53, 0x00 });
+
+        Assert.Equal(
+            new[] { "MAP01", "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SECTORS", "REJECT", "BLOCKMAP", "BEHAVIOR" },
+            wad.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(0, wad.Lumps[6].Length);
+        Assert.Equal(0, wad.Lumps[7].Length);
+        Assert.Equal(new byte[] { 0x41, 0x43, 0x53, 0x00 }, wad.Lumps[8].Stream.ReadAllBytes());
+        Assert.True(HexenMapLoader.IsHexenFormat(wad, "MAP01"));
     }
 
     [Fact]

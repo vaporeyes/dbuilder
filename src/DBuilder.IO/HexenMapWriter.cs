@@ -1,5 +1,5 @@
-// ABOUTME: Hexen-binary map writer - inverse of HexenMapLoader. 16-byte LINEDEFS with args[5], 20-byte THINGS with tid/z/args.
-// ABOUTME: VERTEXES/SIDEDEFS/SECTORS lumps reuse Doom format via DoomMapWriter; a BEHAVIOR lump is emitted to mark the map as Hexen.
+// ABOUTME: Hexen-binary map writer - inverse of HexenMapLoader. Produces Hexen map lumps from a MapSet.
+// ABOUTME: VERTEXES/SIDEDEFS/SECTORS lumps reuse Doom format via DoomMapWriter; BEHAVIOR marks the map as Hexen.
 
 /*
  * Hexen/ZDoom binary format:
@@ -25,8 +25,8 @@ public static class HexenMapWriter
     public const int ThingRecordSize = 20;
 
     /// <summary>
-    /// Writes the map's six lumps (THINGS, LINEDEFS, SIDEDEFS, VERTEXES, SECTORS, BEHAVIOR) into <paramref name="wad"/>
-    /// preceded by a zero-length <paramref name="markerName"/> marker at <paramref name="insertPos"/>.
+    /// Writes the map's lumps (THINGS, LINEDEFS, SIDEDEFS, VERTEXES, SECTORS, REJECT, BLOCKMAP, BEHAVIOR)
+    /// into <paramref name="wad"/> preceded by a zero-length <paramref name="markerName"/> marker at <paramref name="insertPos"/>.
     /// The BEHAVIOR lump is emitted with <paramref name="behaviorBytes"/> (compiled ACS) or an empty payload when null.
     /// </summary>
     public static void WriteMap(MapSet map, WAD wad, string markerName, int insertPos, byte[]? behaviorBytes = null)
@@ -46,6 +46,8 @@ public static class HexenMapWriter
         InsertLump(wad, "SIDEDEFS", sidedefsBytes, pos++);
         InsertLump(wad, "VERTEXES", vertexesBytes, pos++);
         InsertLump(wad, "SECTORS",  sectorsBytes,  pos++);
+        InsertLump(wad, "REJECT",   System.Array.Empty<byte>(), pos++);
+        InsertLump(wad, "BLOCKMAP", System.Array.Empty<byte>(), pos++);
         InsertLump(wad, "BEHAVIOR", behaviorBytes ?? System.Array.Empty<byte>(), pos++);
         wad.WriteHeaders();
     }
