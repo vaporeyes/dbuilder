@@ -14,7 +14,14 @@ public sealed record EditorCommandDescriptor(
     string Id,
     string Title,
     string DefaultGesture,
-    EditorCommandScope Scope);
+    EditorCommandScope Scope,
+    bool AllowKeys = true,
+    bool AllowMouse = true,
+    bool AllowScroll = false,
+    bool DisregardShift = false,
+    bool DisregardAccelerator = false,
+    bool DisregardAlt = false,
+    bool Repeat = false);
 
 public sealed record EditorShortcutBinding(
     string CommandId,
@@ -26,20 +33,6 @@ public sealed record EditorShortcutBinding(
 
 public static class EditorCommandCatalog
 {
-    private static readonly HashSet<string> RepeatableCommandIds = new(StringComparer.Ordinal)
-    {
-        "map2d.grid-down",
-        "map2d.grid-up",
-        "map2d.zoom-in",
-        "map2d.zoom-out",
-        "map3d.brightness-down",
-        "map3d.brightness-up",
-        "map3d.nudge-offset-left",
-        "map3d.nudge-offset-right",
-        "map3d.nudge-offset-up",
-        "map3d.nudge-offset-down",
-    };
-
     public static IReadOnlyList<EditorCommandDescriptor> All { get; } = new[]
     {
         new EditorCommandDescriptor("window.undo", "Undo", "Ctrl/Cmd+Z", EditorCommandScope.Window),
@@ -55,12 +48,12 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.fit", "Fit map to view", "R", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.edit-properties", "Edit properties", "Double-click", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.split-line", "Split the nearest line", "Right-click", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.zoom-in", "Zoom in", "+", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.zoom-out", "Zoom out", "-", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.zoom-in", "Zoom in", "+", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
+        new EditorCommandDescriptor("map2d.zoom-out", "Zoom out", "-", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.mode-vertices", "Vertices mode", "1", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.mode-linedefs", "Linedefs mode", "2", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.mode-sectors", "Sectors mode", "3", EditorCommandScope.Map2D),
@@ -77,8 +70,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.align-textures-x", "Align textures X", "A", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.align-textures-y", "Align textures Y", "Shift+A", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.toggle-grid-snap", "Toggle grid snap", "G", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.grid-down", "Decrease grid size", "[", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.grid-up", "Increase grid size", "]", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.grid-down", "Decrease grid size", "[", EditorCommandScope.Map2D, Repeat: true),
+        new EditorCommandDescriptor("map2d.grid-up", "Increase grid size", "]", EditorCommandScope.Map2D, Repeat: true),
         new EditorCommandDescriptor("map2d.finish-draw", "Finish drawing", "Enter", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.cancel-draw", "Cancel drawing", "Esc", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.toggle-3d", "Enter 3D mode", "Tab", EditorCommandScope.Map2D),
@@ -87,20 +80,20 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.look", "Look around", "Arrows / drag", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.move-height", "Move up / down", "Q / E", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.walk-mode", "Toggle walk mode (gravity)", "G", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.target-height", "Raise/lower floor, ceiling or thing Z (Shift = by 1)", "Wheel", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.target-height", "Raise/lower floor, ceiling or thing Z (Shift = by 1)", "Wheel", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.drag-height", "Move a thing or drag a surface height", "Right-drag", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.brightness-down", "Sector brightness down", "[", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.brightness-up", "Sector brightness up", "]", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.brightness-down", "Sector brightness down", "[", EditorCommandScope.Map3D, Repeat: true),
+        new EditorCommandDescriptor("map3d.brightness-up", "Sector brightness up", "]", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.copy-texture", "Copy texture", "C", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.apply-texture", "Apply texture", "V", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.browse-texture", "Browse textures", "T", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.align-texture-x", "Align texture X", "A", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.align-texture-y", "Align texture Y", "Shift+A", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.nudge-offset", "Nudge texture offset", "Shift+arrows", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.nudge-offset-left", "Nudge texture offset left", "Shift+Left", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.nudge-offset-right", "Nudge texture offset right", "Shift+Right", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.nudge-offset-up", "Nudge texture offset up", "Shift+Up", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.nudge-offset-down", "Nudge texture offset down", "Shift+Down", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.nudge-offset-left", "Nudge texture offset left", "Shift+Left", EditorCommandScope.Map3D, Repeat: true),
+        new EditorCommandDescriptor("map3d.nudge-offset-right", "Nudge texture offset right", "Shift+Right", EditorCommandScope.Map3D, Repeat: true),
+        new EditorCommandDescriptor("map3d.nudge-offset-up", "Nudge texture offset up", "Shift+Up", EditorCommandScope.Map3D, Repeat: true),
+        new EditorCommandDescriptor("map3d.nudge-offset-down", "Nudge texture offset down", "Shift+Down", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.reset-offsets", "Reset texture offsets", "O", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.select-target", "Select surfaces", "Click", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.clear-target", "Clear selection", "Esc", EditorCommandScope.Map3D),
@@ -181,6 +174,9 @@ public static class EditorCommandCatalog
     public static IReadOnlyList<EditorCommandDescriptor> ByScope(EditorCommandScope scope)
         => All.Where(command => command.Scope == scope).ToArray();
 
+    public static EditorCommandDescriptor? Find(string commandId)
+        => All.FirstOrDefault(command => string.Equals(command.Id, commandId, StringComparison.Ordinal));
+
     public static string GestureText(string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
     {
         var gestures = bindings
@@ -195,7 +191,7 @@ public static class EditorCommandCatalog
 
     public static string CommandHint(string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
     {
-        var command = All.FirstOrDefault(item => string.Equals(item.Id, commandId, StringComparison.Ordinal));
+        var command = Find(commandId);
         if (command is null) return commandId;
         string gesture = GestureText(commandId, bindings);
         return gesture == "-" ? command.Title : $"{gesture} {command.Title}";
@@ -402,7 +398,7 @@ public static class EditorCommandCatalog
         return null;
     }
 
-    public static bool IsRepeatable(string commandId) => RepeatableCommandIds.Contains(commandId);
+    public static bool IsRepeatable(string commandId) => Find(commandId)?.Repeat ?? false;
 
     public static string ShortcutPressKey(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
         => $"{scope}:{NormalizeKey(key)}:{accelerator}:{shift}:{alt}";

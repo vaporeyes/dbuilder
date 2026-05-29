@@ -26,7 +26,40 @@ public class EditorCommandCatalogTests
         {
             Assert.False(string.IsNullOrWhiteSpace(command.Title));
             Assert.False(string.IsNullOrWhiteSpace(command.DefaultGesture));
+            Assert.True(command.AllowKeys || command.AllowMouse || command.AllowScroll);
         });
+    }
+
+    [Fact]
+    public void CommandMetadataExposesUdbStyleShortcutOptions()
+    {
+        var zoomIn = EditorCommandCatalog.Find("map2d.zoom-in");
+        var select = EditorCommandCatalog.Find("map2d.select");
+        var save = EditorCommandCatalog.Find("window.save");
+        var targetHeight = EditorCommandCatalog.Find("map3d.target-height");
+
+        Assert.NotNull(zoomIn);
+        Assert.True(zoomIn.AllowKeys);
+        Assert.True(zoomIn.AllowMouse);
+        Assert.True(zoomIn.AllowScroll);
+        Assert.True(zoomIn.Repeat);
+        Assert.False(zoomIn.DisregardShift);
+        Assert.False(zoomIn.DisregardAccelerator);
+        Assert.False(zoomIn.DisregardAlt);
+
+        Assert.NotNull(select);
+        Assert.True(select.AllowMouse);
+        Assert.False(select.AllowScroll);
+
+        Assert.NotNull(save);
+        Assert.True(save.AllowKeys);
+        Assert.True(save.AllowMouse);
+        Assert.False(save.AllowScroll);
+        Assert.False(save.Repeat);
+
+        Assert.NotNull(targetHeight);
+        Assert.True(targetHeight.AllowScroll);
+        Assert.False(targetHeight.Repeat);
     }
 
     [Fact]
