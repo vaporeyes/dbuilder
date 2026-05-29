@@ -557,6 +557,7 @@ public partial class MainWindow : Window
         options.WriteResources();
         options.WriteDrawingOptions();
         options.WriteExternalCommandSettings();
+        options.WriteGridSetup(MapView.GridSetupSnapshot());
         var root = _mapSettings ?? new Configuration(sorted: true);
         options.WriteRootOptions(root);
         root.SaveConfiguration(DbsPath(wadPath));
@@ -1436,6 +1437,7 @@ public partial class MainWindow : Window
             _undo = new UndoManager(map);
 
             MapView.Map = map;
+            ApplyMapGridSetup(_mapOptions);
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
             Title = CurrentEditorTitle();
             UpdateInfo();
@@ -1501,6 +1503,13 @@ public partial class MainWindow : Window
         options.ReadDrawingOptions(_config?.UseLongTextureNames ?? false);
         options.ReadExternalCommandSettings();
         return options;
+    }
+
+    private void ApplyMapGridSetup(MapOptions options)
+    {
+        var grid = new GridSetup(_mapFormat == MapFormat.Udmf);
+        options.ReadGridSetup(grid);
+        MapView.ApplyGridSetup(grid.GridSizeF, grid.GridOriginX, grid.GridOriginY, grid.GridRotate);
     }
 
     private int RebuildWadResources(string wadPath, MapOptions options)
