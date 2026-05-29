@@ -75,6 +75,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port begin/end action attributes or an equivalent command registration system.
   - [x] Add a stable editor command descriptor catalog with default gestures and scopes.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
+  - [x] Resolve 2D map keyboard shortcuts through stable command ids.
 - [ ] Port configurable key bindings.
 - [ ] Port mouse input abstractions.
 - [ ] Port special key handling.

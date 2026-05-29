@@ -30,6 +30,14 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void DefaultShortcutsReferenceKnownCommands()
+    {
+        var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
+
+        Assert.All(EditorCommandCatalog.DefaultShortcuts, shortcut => Assert.Contains(shortcut.CommandId, commandIds));
+    }
+
+    [Fact]
     public void ScopeLookupPreservesCatalogOrder()
     {
         var map2D = EditorCommandCatalog.ByScope(EditorCommandScope.Map2D);
@@ -55,5 +63,22 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S", accelerator: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S"));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S", accelerator: true, shift: true));
+    }
+
+    [Fact]
+    public void DefaultShortcutsResolveMap2DCommands()
+    {
+        Assert.Equal("map2d.toggle-sector-fills", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S"));
+        Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
+        Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
+        Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
+        Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
+        Assert.Equal("map2d.toggle-3d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Tab"));
+    }
+
+    [Fact]
+    public void DefaultShortcutsResolveMap3DToggle()
+    {
+        Assert.Equal("map3d.toggle-2d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Tab"));
     }
 }

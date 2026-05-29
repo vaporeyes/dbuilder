@@ -1927,27 +1927,31 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (e.Key == Key.Tab)
+        bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        string key = e.Key.ToString();
+        if (EditorCommandCatalog.ResolveShortcut(_mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D, key, accel, shift, alt) is { } commandId
+            && RunMapCommand(commandId))
         {
-            Toggle3DMode();
             e.Handled = true;
             return;
         }
+
         if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
         // 3D brightness on the targeted sector: [ darker, ] brighter.
         if (_mode3D && e.Key == Key.OemOpenBrackets) { AdjustTargetBrightness3D(-8); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.OemCloseBrackets) { AdjustTargetBrightness3D(8); e.Handled = true; return; }
         // 3D texture copy/apply (plain C/V; Ctrl/Cmd+C/V stay 2D selection copy/paste at the window level).
-        bool mod = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
-        if (_mode3D && !mod && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
-        if (_mode3D && !mod && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
-        if (_mode3D && !mod && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
+        if (_mode3D && !accel && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
+        if (_mode3D && !accel && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
+        if (_mode3D && !accel && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.Enter) { OpenTargetDialog3D(); e.Handled = true; return; }
         if (_mode3D && e.Key == Key.Escape) { ClearSelection3D(); e.Handled = true; return; }
-        if (_mode3D && !mod && e.Key == Key.O) { ResetTargetOffsets3D(); e.Handled = true; return; }
+        if (_mode3D && !accel && e.Key == Key.O) { ResetTargetOffsets3D(); e.Handled = true; return; }
         if (_mode3D && (e.Key == Key.Delete || e.Key == Key.Back)) { DeleteTargetThing3D(); e.Handled = true; return; }
         // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
-        if (_mode3D && !mod && e.Key == Key.T && _target3D != null)
+        if (_mode3D && !accel && e.Key == Key.T && _target3D != null)
         {
             BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
             e.Handled = true;
@@ -1957,35 +1961,92 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_mode3D && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && IsArrow(e.Key)) { NudgeTargetOffset3D(e.Key); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
-        // Let Ctrl/Cmd shortcuts (undo/redo/save) bubble up to the window instead of triggering view toggles.
-        bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
-        if (!_mode3D && !accel)
-        {
-            switch (e.Key)
-            {
-                case Key.S: ToggleSectorFills(); e.Handled = true; return;
-                case Key.T: ToggleThings(); e.Handled = true; return;
-                case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
-                case Key.D: ToggleDrawMode(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
-                case Key.I or Key.Insert: InsertAtCursor(); e.Handled = true; return;
-                case Key.D1 or Key.NumPad1: SetEditMode(EditMode.Vertices); e.Handled = true; return;
-                case Key.D2 or Key.NumPad2: SetEditMode(EditMode.Linedefs); e.Handled = true; return;
-                case Key.D3 or Key.NumPad3: SetEditMode(EditMode.Sectors); e.Handled = true; return;
-                case Key.D4 or Key.NumPad4: SetEditMode(EditMode.Things); e.Handled = true; return;
-                case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.A: AutoAlignSelectedTextures(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.G: ToggleSnapToGrid(); e.Handled = true; return;
-                case Key.OemOpenBrackets: ChangeGridSize(larger: false); e.Handled = true; return;
-                case Key.OemCloseBrackets: ChangeGridSize(larger: true); e.Handled = true; return;
-                case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
-                case Key.Escape when InDrawMode: ExitDrawModes(); e.Handled = true; return;
-                case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;
-                case Key.OemPlus or Key.Add: ZoomBy(0.8); e.Handled = true; return;     // zoom in
-                case Key.OemMinus or Key.Subtract: ZoomBy(1.25); e.Handled = true; return; // zoom out
-            }
-        }
         base.OnKeyDown(e);
+    }
+
+    private bool RunMapCommand(string commandId)
+    {
+        switch (commandId)
+        {
+            case "map2d.toggle-3d":
+            case "map3d.toggle-2d":
+                Toggle3DMode();
+                return true;
+            case "map2d.toggle-sector-fills":
+                ToggleSectorFills();
+                return true;
+            case "map2d.toggle-things":
+                ToggleThings();
+                return true;
+            case "map2d.toggle-thing-arrows":
+                ThingArrows = !ThingArrows;
+                return true;
+            case "map2d.draw-sector":
+                ToggleDrawMode(linesOnly: false);
+                return true;
+            case "map2d.draw-lines":
+                ToggleDrawMode(linesOnly: true);
+                return true;
+            case "map2d.make-sector":
+                MakeSectorAtCursor();
+                return true;
+            case "map2d.insert":
+                InsertAtCursor();
+                return true;
+            case "map2d.mode-vertices":
+                SetEditMode(EditMode.Vertices);
+                return true;
+            case "map2d.mode-linedefs":
+                SetEditMode(EditMode.Linedefs);
+                return true;
+            case "map2d.mode-sectors":
+                SetEditMode(EditMode.Sectors);
+                return true;
+            case "map2d.mode-things":
+                SetEditMode(EditMode.Things);
+                return true;
+            case "map2d.flip":
+                FlipSelected(sidedefs: false);
+                return true;
+            case "map2d.flip-sidedefs":
+                FlipSelected(sidedefs: true);
+                return true;
+            case "map2d.align-textures-x":
+                AutoAlignSelectedTextures(vertical: false);
+                return true;
+            case "map2d.align-textures-y":
+                AutoAlignSelectedTextures(vertical: true);
+                return true;
+            case "map2d.toggle-grid-snap":
+                ToggleSnapToGrid();
+                return true;
+            case "map2d.grid-down":
+                ChangeGridSize(larger: false);
+                return true;
+            case "map2d.grid-up":
+                ChangeGridSize(larger: true);
+                return true;
+            case "map2d.finish-draw":
+                if (!_drawMode) return false;
+                FinishDraw();
+                return true;
+            case "map2d.cancel-draw":
+                if (!InDrawMode) return false;
+                ExitDrawModes();
+                return true;
+            case "map2d.fit":
+                FitToMap();
+                MarkGeometryDirty();
+                return true;
+            case "map2d.zoom-in":
+                ZoomBy(0.8);
+                return true;
+            case "map2d.zoom-out":
+                ZoomBy(1.25);
+                return true;
+            default:
+                return false;
+        }
     }
 
     protected override void OnKeyUp(KeyEventArgs e)
