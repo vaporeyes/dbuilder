@@ -79,6 +79,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve discrete 3D map keyboard shortcuts through stable command ids.
 - [ ] Port configurable key bindings.
   - [x] Persist shortcut overrides and merge them with default command bindings.
+  - [x] Show effective shortcut bindings in the shortcuts reference window.
 - [ ] Port mouse input abstractions.
 - [ ] Port special key handling.
 - [ ] Port command hints and contextual help.

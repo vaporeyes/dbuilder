@@ -129,4 +129,30 @@ public class EditorCommandCatalogTests
 
         Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Z", accelerator: true));
     }
+
+    [Fact]
+    public void GestureTextUsesEffectiveBindings()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+        });
+
+        Assert.Equal("F5", EditorCommandCatalog.GestureText("window.save", bindings));
+        Assert.Equal("Ctrl/Cmd+Z", EditorCommandCatalog.GestureText("window.undo", bindings));
+    }
+
+    [Fact]
+    public void GestureTextFormatsModifiersAndDisplayKeys()
+    {
+        var binding = new EditorShortcutBinding("map2d.grid-down", EditorCommandScope.Map2D, "OemOpenBrackets", Shift: true);
+
+        Assert.Equal("Shift+[", EditorCommandCatalog.GestureText(binding));
+    }
+
+    [Fact]
+    public void GestureTextShowsMissingCommandsAsUnset()
+    {
+        Assert.Equal("-", EditorCommandCatalog.GestureText("missing.command", EditorCommandCatalog.DefaultShortcuts));
+    }
 }

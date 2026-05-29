@@ -10,8 +10,11 @@ namespace DBuilder.Editor;
 
 public sealed class ShortcutsWindow : Window
 {
-    public ShortcutsWindow()
+    private readonly IReadOnlyList<EditorShortcutBinding> _bindings;
+
+    public ShortcutsWindow(IReadOnlyList<EditorShortcutBinding>? bindings = null)
     {
+        _bindings = bindings ?? EditorCommandCatalog.DefaultShortcuts;
         Title = "Keyboard & Mouse Shortcuts";
         Width = 560;
         Height = 620;
@@ -29,7 +32,7 @@ public sealed class ShortcutsWindow : Window
         Content = new ScrollViewer { Content = stack };
     }
 
-    private static Control Section(string title, IReadOnlyList<EditorCommandDescriptor> rows)
+    private Control Section(string title, IReadOnlyList<EditorCommandDescriptor> rows)
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
         panel.Children.Add(new TextBlock
@@ -40,7 +43,7 @@ public sealed class ShortcutsWindow : Window
         foreach (var command in rows)
         {
             var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("150,*"), Margin = new Avalonia.Thickness(0, 1) };
-            grid.Children.Add(new TextBlock { Text = command.DefaultGesture, Foreground = Brushes.Khaki, FontSize = 12 });
+            grid.Children.Add(new TextBlock { Text = EditorCommandCatalog.GestureText(command.Id, _bindings), Foreground = Brushes.Khaki, FontSize = 12 });
             var d = new TextBlock { Text = command.Title, Foreground = new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)), FontSize = 12, TextWrapping = TextWrapping.Wrap };
             Grid.SetColumn(d, 1);
             grid.Children.Add(d);

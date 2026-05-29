@@ -162,6 +162,44 @@ public static class EditorCommandCatalog
     public static IReadOnlyList<EditorCommandDescriptor> ByScope(EditorCommandScope scope)
         => All.Where(command => command.Scope == scope).ToArray();
 
+    public static string GestureText(string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        var gestures = bindings
+            .Where(binding => string.Equals(binding.CommandId, commandId, StringComparison.Ordinal))
+            .Select(GestureText)
+            .Where(text => text.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return gestures.Length == 0 ? "-" : string.Join(" / ", gestures);
+    }
+
+    public static string GestureText(EditorShortcutBinding binding)
+    {
+        if (string.IsNullOrWhiteSpace(binding.Key)) return "";
+        var parts = new List<string>();
+        if (binding.Accelerator) parts.Add("Ctrl/Cmd");
+        if (binding.Alt) parts.Add("Alt");
+        if (binding.Shift) parts.Add("Shift");
+        parts.Add(DisplayKey(binding.Key));
+        return string.Join("+", parts);
+    }
+
+    private static string DisplayKey(string key) => key switch
+    {
+        "OemOpenBrackets" => "[",
+        "OemCloseBrackets" => "]",
+        "OemPlus" => "+",
+        "Add" => "+",
+        "OemMinus" => "-",
+        "Subtract" => "-",
+        "D1" => "1",
+        "D2" => "2",
+        "D3" => "3",
+        "D4" => "4",
+        _ => key,
+    };
+
     public static IReadOnlyList<EditorShortcutBinding> EffectiveShortcuts(IEnumerable<EditorShortcutBinding>? overrides)
     {
         if (overrides is null) return DefaultShortcuts;

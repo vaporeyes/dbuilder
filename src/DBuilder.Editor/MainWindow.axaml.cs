@@ -1639,7 +1639,7 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
-    private void OnShortcuts(object? sender, RoutedEventArgs e) => new ShortcutsWindow().Show(this);
+    private void OnShortcuts(object? sender, RoutedEventArgs e) => new ShortcutsWindow(_shortcutBindings).Show(this);
 
     // ---- Map loading ----
 
