@@ -85,6 +85,7 @@
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Check Map" Click="OnCheckMap" />
+                <MenuItem Header="_Clean Up Geometry" Click="OnCleanUpGeometry" />
                 <MenuItem Header="_Test Map" Click="OnTestMap" />
                 <MenuItem Header="Sound _Propagation" Click="OnSoundPropagation" />
                 <MenuItem Header="Build _Stairs..." Click="OnBuildStairs" />

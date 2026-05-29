@@ -313,6 +313,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sound propagation editing behavior fully.
 - [ ] Port 3D floor editing behavior fully.
 - [ ] Port geometry cleanup tools.
+  - [x] Add menu command for reference, unused sector, and unused vertex cleanup.
 - [ ] Port map analysis and map check integration.
 
 ## 2D Editor UI
