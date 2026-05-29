@@ -112,17 +112,10 @@ public sealed class BlockMap
             vertCells[i] = new List<Vertex>();
         }
 
-        foreach (var sector in map.Sectors)
-            AddSector(sector);
-        foreach (var v in map.Vertices)
-            vertCells[Index(CellX(v.Position.x), CellY(v.Position.y))].Add(v);
-        foreach (var t in map.Things)
-            thingCells[Index(CellX(t.Position.x), CellY(t.Position.y))].Add(t);
-        foreach (var line in map.Linedefs)
-        {
-            foreach (var (col, row) in LineCellCoordinates(line.Start.Position, line.End.Position))
-                lineCells[Index(col, row)].Add(line);
-        }
+        AddSectors(map.Sectors);
+        AddVertices(map.Vertices);
+        AddThings(map.Things);
+        AddLinedefs(map.Linedefs);
     }
 
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
@@ -175,6 +168,28 @@ public sealed class BlockMap
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(lineCells, pos, maxRange, static (l, p) => SegmentDistanceSq(l, p));
+
+    /// <summary>Adds a set of linedefs to the fixed blockmap range.</summary>
+    public void AddLinedefs(IEnumerable<Linedef> lines)
+    {
+        foreach (var line in lines) AddLinedef(line);
+    }
+
+    /// <summary>Adds a linedef to every crossed block in the fixed blockmap range.</summary>
+    public void AddLinedef(Linedef line)
+    {
+        if (!BoxIntersectsRange(
+            Math.Min(line.Start.Position.x, line.End.Position.x),
+            Math.Min(line.Start.Position.y, line.End.Position.y),
+            Math.Max(line.Start.Position.x, line.End.Position.x),
+            Math.Max(line.Start.Position.y, line.End.Position.y)))
+        {
+            return;
+        }
+
+        foreach (var (col, row) in LineCellCoordinates(line.Start.Position, line.End.Position))
+            lineCells[Index(col, row)].Add(line);
+    }
 
     /// <summary>
     /// Finds the nearest linedef within a bounded range using UDB's candidate block selection rule.
@@ -234,9 +249,35 @@ public sealed class BlockMap
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(thingCells, pos, maxRange, static (t, p) => DistSq(t.Position, p));
 
+    /// <summary>Adds a set of things to the fixed blockmap range.</summary>
+    public void AddThings(IEnumerable<Thing> things)
+    {
+        foreach (var thing in things) AddThing(thing);
+    }
+
+    /// <summary>Adds a thing to its containing block when it is inside the fixed blockmap range.</summary>
+    public void AddThing(Thing thing)
+    {
+        var (col, row) = GetCellCoordinates(thing.Position);
+        if (IsCellInRange(col, row)) thingCells[Index(col, row)].Add(thing);
+    }
+
     /// <summary>Nearest vertex to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
     public Vertex? NearestVertex(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(vertCells, pos, maxRange, static (v, p) => DistSq(v.Position, p));
+
+    /// <summary>Adds a set of vertices to the fixed blockmap range.</summary>
+    public void AddVertices(IEnumerable<Vertex> vertices)
+    {
+        foreach (var vertex in vertices) AddVertex(vertex);
+    }
+
+    /// <summary>Adds a vertex to its containing block when it is inside the fixed blockmap range.</summary>
+    public void AddVertex(Vertex vertex)
+    {
+        var (col, row) = GetCellCoordinates(vertex.Position);
+        if (IsCellInRange(col, row)) vertCells[Index(col, row)].Add(vertex);
+    }
 
     /// <summary>All distinct linedefs in cells overlapped by the square of half-size <paramref name="range"/> around pos.</summary>
     public IReadOnlyCollection<Linedef> GetLinedefsNear(Vector2D pos, double range)
@@ -245,6 +286,27 @@ public sealed class BlockMap
     /// <summary>All distinct sectors in cells overlapped by the square of half-size <paramref name="range"/> around pos.</summary>
     public IReadOnlyCollection<Sector> GetSectorsNear(Vector2D pos, double range)
         => Gather(sectorCells, pos, range);
+
+    /// <summary>Adds a set of sectors to the fixed blockmap range.</summary>
+    public void AddSectors(IEnumerable<Sector> sectors)
+    {
+        foreach (var sector in sectors) AddSector(sector);
+    }
+
+    /// <summary>Adds a sector to every block overlapped by its bounds in the fixed blockmap range.</summary>
+    public void AddSector(Sector sector)
+    {
+        if (!TryGetSectorBounds(sector, out double minX, out double minY, out double maxX, out double maxY)) return;
+        if (!BoxIntersectsRange(minX, minY, maxX, maxY)) return;
+
+        int cx0 = CellX(minX);
+        int cy0 = CellY(minY);
+        int cx1 = CellX(maxX);
+        int cy1 = CellY(maxY);
+        for (int cx = cx0; cx <= cx1; cx++)
+            for (int cy = cy0; cy <= cy1; cy++)
+                sectorCells[Index(cx, cy)].Add(sector);
+    }
 
     /// <summary>Returns sectors in the point's block whose traced polygon contains <paramref name="pos"/>.</summary>
     public IReadOnlyCollection<Sector> GetContainingSectors(Vector2D pos)
@@ -335,19 +397,6 @@ public sealed class BlockMap
             yield return cell;
     }
 
-    private void AddSector(Sector sector)
-    {
-        if (!TryGetSectorBounds(sector, out double minX, out double minY, out double maxX, out double maxY)) return;
-
-        int cx0 = CellX(minX);
-        int cy0 = CellY(minY);
-        int cx1 = CellX(maxX);
-        int cy1 = CellY(maxY);
-        for (int cx = cx0; cx <= cx1; cx++)
-            for (int cy = cy0; cy <= cy1; cy++)
-                sectorCells[Index(cx, cy)].Add(sector);
-    }
-
     private static bool TryGetSectorBounds(
         Sector sector,
         out double minX,
@@ -371,6 +420,13 @@ public sealed class BlockMap
         }
 
         return any;
+    }
+
+    private bool BoxIntersectsRange(double minX, double minY, double maxX, double maxY)
+    {
+        double right = originX + cols * blockSize;
+        double bottom = originY + rows * blockSize;
+        return maxX >= originX && maxY >= originY && minX <= right && minY <= bottom;
     }
 
     private static bool SectorContainsPoint(Sector sector, Vector2D pos)

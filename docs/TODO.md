@@ -171,6 +171,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add sector block buckets and sector range queries.
   - [x] Add blockmap sector containment queries.
   - [x] Link things to containing sectors from blockmap sector candidates.
+  - [x] Expose UDB-style blockmap population methods for map element sets.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.

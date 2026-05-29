@@ -233,6 +233,61 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void AddMethodsPopulateExistingBlockMapRange()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(0, 0));
+        map.AddVertex(new Vector2D(128, 128));
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        var vertex = new Vertex(new Vector2D(32, 32));
+        var thing = new Thing(new Vector2D(96, 96), 3001);
+        var line = new Linedef(new Vertex(new Vector2D(0, 64)), new Vertex(new Vector2D(128, 64)));
+        var sectorMap = new MapSet();
+        var sector = AddSquareSector(sectorMap, 32, 32, 32);
+        sectorMap.BuildIndexes();
+
+        bm.AddVertex(vertex);
+        bm.AddThing(thing);
+        bm.AddLinedef(line);
+        bm.AddSector(sector);
+
+        Assert.Contains(vertex, bm.GetVerticesAt(0, 0));
+        Assert.Contains(thing, bm.GetThingsAt(1, 1));
+        Assert.Contains(line, bm.GetLinedefsAt(0, 1));
+        Assert.Contains(line, bm.GetLinedefsAt(1, 1));
+        Assert.Contains(line, bm.GetLinedefsAt(2, 1));
+        Assert.Contains(sector, bm.GetSectorsAt(0, 0));
+    }
+
+    [Fact]
+    public void AddMethodsIgnoreItemsOutsideExistingBlockMapRange()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(0, 0));
+        map.AddVertex(new Vector2D(128, 128));
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+        var vertex = new Vertex(new Vector2D(1000, 1000));
+        var thing = new Thing(new Vector2D(1000, 1000), 3001);
+        var line = new Linedef(new Vertex(new Vector2D(1000, 1000)), new Vertex(new Vector2D(1100, 1100)));
+        var sectorMap = new MapSet();
+        var sector = AddSquareSector(sectorMap, 1000, 1000, 64);
+        sectorMap.BuildIndexes();
+
+        bm.AddVertices(new[] { vertex });
+        bm.AddThings(new[] { thing });
+        bm.AddLinedefs(new[] { line });
+        bm.AddSectors(new[] { sector });
+
+        Assert.DoesNotContain(vertex, bm.GetVerticesNear(new Vector2D(128, 128), 256));
+        Assert.DoesNotContain(thing, bm.GetThingsNear(new Vector2D(128, 128), 256));
+        Assert.DoesNotContain(line, bm.GetLinedefsNear(new Vector2D(128, 128), 256));
+        Assert.DoesNotContain(sector, bm.GetSectorsNear(new Vector2D(128, 128), 256));
+    }
+
+    [Fact]
     public void SectorCellsUseSectorBounds()
     {
         var (map, sector) = SquareSector(0, 0, 128);
