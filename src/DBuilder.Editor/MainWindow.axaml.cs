@@ -491,8 +491,8 @@ public partial class MainWindow : Window
                 case Avalonia.Input.Key.Z: OnUndo(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.Y: OnRedo(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.S: OnSave(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.C: MapView.CopySelection(); UpdateInfo(); e.Handled = true; return;
-                case Avalonia.Input.Key.V: MapView.PasteClipboard(); UpdateInfo(); e.Handled = true; return;
+                case Avalonia.Input.Key.C: OnCopy(this, new RoutedEventArgs()); e.Handled = true; return;
+                case Avalonia.Input.Key.V: OnPaste(this, new RoutedEventArgs()); e.Handled = true; return;
             }
         }
         if (e.Key == Avalonia.Input.Key.Delete || e.Key == Avalonia.Input.Key.Back)
@@ -525,6 +525,17 @@ public partial class MainWindow : Window
     private void OnRedo(object? sender, RoutedEventArgs e)
     {
         if (_undo?.Redo() == true) { MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Redo"); }
+    }
+
+    private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
+
+    private void OnPaste(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PasteClipboard());
+
+    private void RunClipboardEdit(string status)
+    {
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(status);
     }
 
     private void OnDelete(object? sender, RoutedEventArgs e)

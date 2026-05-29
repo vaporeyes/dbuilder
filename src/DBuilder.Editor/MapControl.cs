@@ -2200,24 +2200,39 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private static byte[]? _clipboard;
 
     /// <summary>Copies the current selection (with its dependency closure) to the clipboard.</summary>
-    public void CopySelection()
+    public string CopySelection()
     {
-        if (_map == null) return;
+        if (_map == null) return "No map loaded.";
         var buf = SelectionClipboard.CopySelection(_map);
-        if (buf == null) { Picked?.Invoke("nothing selected to copy"); return; }
+        if (buf == null)
+        {
+            const string empty = "nothing selected to copy";
+            Picked?.Invoke(empty);
+            return empty;
+        }
         _clipboard = buf;
-        Picked?.Invoke("copied selection");
+        const string status = "copied selection";
+        Picked?.Invoke(status);
+        return status;
     }
 
     /// <summary>Pastes the clipboard one grid cell from the originals and selects the result (undoable).</summary>
-    public void PasteClipboard()
+    public string PasteClipboard()
     {
-        if (_map == null || _clipboard == null) { Picked?.Invoke("clipboard empty"); return; }
+        if (_map == null) return "No map loaded.";
+        if (_clipboard == null)
+        {
+            const string empty = "clipboard empty";
+            Picked?.Invoke(empty);
+            return empty;
+        }
         EditBegun?.Invoke("Paste");
         var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize));
         MarkGeometryDirty();
         Changed?.Invoke();
-        Picked?.Invoke($"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things");
+        string status = $"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things";
+        Picked?.Invoke(status);
+        return status;
     }
 
     /// <summary>Serializes the current selection for saving as a prefab, or null when nothing is selected.</summary>
