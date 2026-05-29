@@ -459,35 +459,44 @@ public partial class MainWindow : Window
 
     private async void OnSave(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat);
 
+    private async void OnSaveAs(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat, forcePicker: true);
+
     // Prompts for a target map format and saves a converted copy (flags translated via the game config).
     private async void OnSaveAsFormat(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("Nothing to save."); return; }
         var dlg = new FormatPickerDialog(_mapFormat);
-        if (await dlg.ShowDialog<bool>(this)) await DoSave(dlg.ResultFormat);
+        if (await dlg.ShowDialog<bool>(this)) await DoSave(dlg.ResultFormat, forcePicker: true);
     }
 
-    private async System.Threading.Tasks.Task DoSave(MapFormat targetFormat)
+    private async System.Threading.Tasks.Task DoSave(MapFormat targetFormat, bool forcePicker = false)
     {
         if (_map is null) { SetStatus("Nothing to save."); return; }
-        var top = GetTopLevel(this);
-        if (top is null) return;
-        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        string? outPath = !forcePicker && _wadPath is not null && targetFormat == _mapFormat ? _wadPath : null;
+        if (outPath is null)
         {
-            Title = "Save WAD As",
-            SuggestedFileName = _wadPath != null
-                ? System.IO.Path.GetFileNameWithoutExtension(_wadPath) + ".edited.wad"
-                : (_mapMarker ?? "MAP01") + ".wad",
-            DefaultExtension = "wad",
-            FileTypeChoices = new[] { new FilePickerFileType("Doom WAD") { Patterns = new[] { "*.wad" } } },
-        });
-        if (file?.TryGetLocalPath() is not { } outPath) return;
+            var top = GetTopLevel(this);
+            if (top is null) return;
+            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save WAD As",
+                SuggestedFileName = _wadPath != null
+                    ? System.IO.Path.GetFileNameWithoutExtension(_wadPath) + ".edited.wad"
+                    : (_mapMarker ?? "MAP01") + ".wad",
+                DefaultExtension = "wad",
+                FileTypeChoices = new[] { new FilePickerFileType("Doom WAD") { Patterns = new[] { "*.wad" } } },
+            });
+            if (file?.TryGetLocalPath() is not { } selectedPath) return;
+            outPath = selectedPath;
+        }
+
         try
         {
             string marker = _mapMarker ?? "MAP01";
+            bool savedCurrentFormat = targetFormat == _mapFormat;
             // When exporting to a different format, translate the flag representation the target writer reads.
             // The fill is additive, so the in-memory map remains valid in its original format afterwards.
-            if (targetFormat != _mapFormat)
+            if (!savedCurrentFormat)
                 MapFormatConverter.Convert(_map, _mapFormat, targetFormat, _config);
 
             // Build the result in memory (so saving over the source WAD is safe), replacing just this map's
@@ -513,6 +522,14 @@ public partial class MainWindow : Window
 
             System.IO.File.WriteAllBytes(outPath, bytes);
             SaveCurrentMapOptions(outPath, marker);
+            if (savedCurrentFormat)
+            {
+                _wadPath = outPath;
+                _pk3Path = null;
+                _pk3Maps = null;
+                _pk3MapArchivePath = null;
+                _sourceMapMarker = marker;
+            }
             ClearMapDirty();
             string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
             SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");

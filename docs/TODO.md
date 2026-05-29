@@ -35,6 +35,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Track dirty map state in the editor title across edits, loads, and saves.
   - [x] Prompt before discarding dirty map changes on new, open, or exit.
   - [x] Prompt before switching maps in an opened archive with dirty changes.
+  - [x] Save opened WAD maps back to their source path without forcing Save As.
 - [ ] Port autosave and recovery behavior.
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
