@@ -59,6 +59,17 @@ public class SelectionTests
     }
 
     [Fact]
+    public void GetSidedefsFromSelectedLinedefsUsesLinedefSelection()
+    {
+        var map = BuildTwoSidedMap();
+        map.Linedefs[0].Selected = true;
+        map.Sidedefs[2].Selected = true;
+
+        Assert.Equal(new[] { map.Sidedefs[0], map.Sidedefs[1] }, map.GetSidedefsFromSelectedLinedefs(selected: true));
+        Assert.Equal(new[] { map.Sidedefs[2] }, map.GetSidedefsFromSelectedLinedefs(selected: false));
+    }
+
+    [Fact]
     public void CountsMatchSelection()
     {
         var map = BuildMap();
@@ -198,5 +209,22 @@ public class SelectionTests
         // Snapshot restore rebuilds fresh element instances with default (unselected) state.
         Assert.Equal(0, map.SelectedVerticesCount);
         Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+    }
+
+    private static MapSet BuildTwoSidedMap()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var back = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(64, 0));
+        var v2 = map.AddVertex(new Vector2D(128, 0));
+        var twoSided = map.AddLinedef(v0, v1);
+        var oneSided = map.AddLinedef(v1, v2);
+        map.AddSidedef(twoSided, true, front);
+        map.AddSidedef(twoSided, false, back);
+        map.AddSidedef(oneSided, true, front);
+        map.BuildIndexes();
+        return map;
     }
 }

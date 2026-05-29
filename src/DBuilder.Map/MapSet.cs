@@ -644,6 +644,18 @@ public class MapSet : IDisposable
     public List<Sector> GetSelectedSectors(bool selected) => FilterSelected(Sectors, selected);
     public List<Thing> GetSelectedThings(bool selected) => FilterSelected(Things, selected);
 
+    public List<Sidedef> GetSidedefsFromSelectedLinedefs(bool selected)
+    {
+        var result = new List<Sidedef>();
+        foreach (var line in Linedefs)
+        {
+            if (line.Selected != selected) continue;
+            if (line.Front != null) result.Add(line.Front);
+            if (line.Back != null) result.Add(line.Back);
+        }
+        return result;
+    }
+
     public int SelectedVerticesCount => Count(Vertices);
     public int SelectedLinedefsCount => Count(Linedefs);
     public int SelectedSidedefsCount => Count(Sidedefs);
