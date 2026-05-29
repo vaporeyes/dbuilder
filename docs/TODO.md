@@ -286,6 +286,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor PK3 root texture and root flat resource options.
   - [x] Honor WAD strict patch resource option for classic texture composition.
 - [ ] Port resource priority and override behavior completely.
+  - [x] Let later GLDEFS resources override actor light associations.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
   - [x] Resolve the active main `COLORMAP` through the resource stack.

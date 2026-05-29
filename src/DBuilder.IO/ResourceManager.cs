@@ -505,11 +505,25 @@ public sealed class ResourceManager : IDisposable
     private static void MergeGldefs(Gldefs target, Gldefs source)
     {
         foreach (var light in source.Lights) target.Lights[light.Key] = light.Value;
-        target.Objects.AddRange(source.Objects);
+        foreach (var obj in source.Objects) SetGldefsObject(target.Objects, obj);
         target.GlowFlats.AddRange(source.GlowFlats);
         target.GlowTextures.AddRange(source.GlowTextures);
         foreach (var glow in source.Glows) target.Glows[glow.Key] = glow.Value;
         foreach (var skybox in source.Skyboxes) target.Skyboxes[skybox.Key] = skybox.Value;
+    }
+
+    private static void SetGldefsObject(List<GldefsObject> objects, GldefsObject obj)
+    {
+        for (int i = 0; i < objects.Count; i++)
+        {
+            if (string.Equals(objects[i].ClassName, obj.ClassName, StringComparison.OrdinalIgnoreCase))
+            {
+                objects[i] = obj;
+                return;
+            }
+        }
+
+        objects.Add(obj);
     }
 
     /// <summary>MODELDEF blocks discovered from loaded resources, oldest resource first.</summary>

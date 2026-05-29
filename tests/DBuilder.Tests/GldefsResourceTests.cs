@@ -57,6 +57,37 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }
     }
 
     [Fact]
+    public void LaterGldefsResourcesOverrideObjectLightAssociations()
+    {
+        string oldPk3 = TestArtifacts.BuildPk3(("GLDEFS.txt", Encoding.ASCII.GetBytes("""
+pointlight OLD_LIGHT { color 0.1 0.1 0.1 size 16 }
+object SharedActor { frame SHAR { light OLD_LIGHT } }
+""")));
+        string newPk3 = TestArtifacts.BuildPk3(("GLDEFS.txt", Encoding.ASCII.GetBytes("""
+pointlight NEW_LIGHT { color 0.8 0.7 0.6 size 32 }
+object SharedActor { frame SHAR { light NEW_LIGHT } }
+""")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(oldPk3);
+            resources.AddResource(newPk3);
+
+            var gldefs = resources.GetGldefs();
+            var obj = Assert.Single(gldefs.Objects);
+            Assert.Equal("SharedActor", obj.ClassName);
+            Assert.Equal("NEW_LIGHT", Assert.Single(obj.Lights));
+            Assert.Equal(0.8f, gldefs.ActorLightColor("SharedActor")!.Value.R, 4);
+        }
+        finally
+        {
+            File.Delete(oldPk3);
+            File.Delete(newPk3);
+        }
+    }
+
+    [Fact]
     public void ResourceManagerParsesMultipleGldefsFilesFromPk3()
     {
         string pk3 = TestArtifacts.BuildPk3(
