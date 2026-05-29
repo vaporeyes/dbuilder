@@ -784,12 +784,6 @@ public sealed class ResourceManager : IDisposable
                 dst[di + 2] = (byte)(db * sb / 255);
                 dst[di + 3] = (byte)Math.Max(da, a);
                 return;
-            case TexturesPatchRenderStyle.CopyAlpha:
-                dst[di + 3] = (byte)a;
-                return;
-            case TexturesPatchRenderStyle.CopyNewAlpha:
-                dst[di] = sr; dst[di + 1] = sg; dst[di + 2] = sb; dst[di + 3] = (byte)a;
-                return;
         }
 
         if (a == 255)
@@ -809,20 +803,27 @@ public sealed class ResourceManager : IDisposable
 
     private static TexturesPatchRenderStyle NormalizePatchRenderStyle(TexturesPatch patch)
     {
-        if (patch.RenderStyle == TexturesPatchRenderStyle.Overlay) return TexturesPatchRenderStyle.Copy;
-
-        if (patch.Alpha == 1.0 && patch.RenderStyle is TexturesPatchRenderStyle.Translucent
+        if (patch.RenderStyle is TexturesPatchRenderStyle.Overlay
             or TexturesPatchRenderStyle.CopyAlpha
             or TexturesPatchRenderStyle.CopyNewAlpha)
+            return TexturesPatchRenderStyle.Copy;
+
+        if (patch.Alpha == 1.0 && patch.RenderStyle == TexturesPatchRenderStyle.Translucent)
             return TexturesPatchRenderStyle.Copy;
 
         return patch.RenderStyle;
     }
 
     private static int PatchAlpha(TexturesPatch patch, TexturesPatchRenderStyle renderStyle)
-        => renderStyle == TexturesPatchRenderStyle.Copy && patch.RenderStyle != TexturesPatchRenderStyle.Copy
-            ? 255
-            : (int)Math.Round(Math.Clamp(patch.Alpha, 0.0, 1.0) * 255.0);
+        => UsesPatchAlpha(renderStyle)
+            ? (int)Math.Round(Math.Clamp(patch.Alpha, 0.0, 1.0) * 255.0)
+            : 255;
+
+    private static bool UsesPatchAlpha(TexturesPatchRenderStyle renderStyle)
+        => renderStyle is TexturesPatchRenderStyle.Translucent
+            or TexturesPatchRenderStyle.Add
+            or TexturesPatchRenderStyle.Subtract
+            or TexturesPatchRenderStyle.ReverseSubtract;
 
     private static void MapPatchPixel(int x, int y, int width, int height, TexturesPatch patch, out int sourceX, out int sourceY)
     {

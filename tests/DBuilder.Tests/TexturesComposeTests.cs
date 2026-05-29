@@ -200,7 +200,7 @@ public class TexturesComposeTests
     public void AppliesPatchAlphaBlendAndSkipMetadata()
     {
         string textures =
-            "WallTexture WMETA, 1, 1\n" +
+            "WallTexture WMETA, 2, 1\n" +
             "{\n" +
             "    Patch \"BASE\", 0, 0\n" +
             "    Patch \"TNT1A0\", 0, 0\n" +
@@ -209,11 +209,16 @@ public class TexturesComposeTests
             "        Alpha 0.5\n" +
             "        Blend 255, 0, 0\n" +
             "    }\n" +
+            "    Patch \"WHITE\", 1, 0\n" +
+            "    {\n" +
+            "        Alpha 0.5\n" +
+            "        Style Translucent\n" +
+            "    }\n" +
             "}\n";
 
         string pk3 = TestArtifacts.BuildPk3(
             ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
-            ("patches/BASE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 100, 100, 100, 255))),
+            ("patches/BASE.png", TestArtifacts.Png(2, 1, TestArtifacts.SolidRgba(2, 1, 100, 100, 100, 255))),
             ("patches/TNT1A0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 255, 0, 255))),
             ("patches/WHITE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 255, 255, 255, 255))));
         try
@@ -223,7 +228,8 @@ public class TexturesComposeTests
 
             var tex = rm.GetWallTexture("WMETA");
             Assert.NotNull(tex);
-            Assert.Equal(new byte[] { 177, 49, 49, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 255, 0, 0, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 177, 177, 177, 255 }, tex.Rgba[4..8]);
         }
         finally { File.Delete(pk3); }
     }
