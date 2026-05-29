@@ -45,7 +45,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.delete", "Remove selection", "Delete", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
 
-        new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),
@@ -95,7 +95,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.nudge-offset-up", "Nudge texture offset up", "Shift+Up", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.nudge-offset-down", "Nudge texture offset down", "Shift+Down", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.reset-offsets", "Reset texture offsets", "O", EditorCommandScope.Map3D),
-        new EditorCommandDescriptor("map3d.select-target", "Select surfaces", "Click", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.select-target", "Select surfaces", "Click", EditorCommandScope.Map3D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map3d.clear-target", "Clear selection", "Esc", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.edit-properties", "Edit properties", "Enter", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.delete-target", "Remove targeted thing", "Delete", EditorCommandScope.Map3D),
@@ -385,10 +385,11 @@ public static class EditorCommandCatalog
         for (int i = bindings.Count - 1; i >= 0; i--)
         {
             var shortcut = bindings[i];
+            var command = Find(shortcut.CommandId);
             if (shortcut.Scope == scope
-                && shortcut.Accelerator == accelerator
-                && shortcut.Shift == shift
-                && shortcut.Alt == alt
+                && ModifierMatches(shortcut.Accelerator, accelerator, command?.DisregardAccelerator ?? false)
+                && ModifierMatches(shortcut.Shift, shift, command?.DisregardShift ?? false)
+                && ModifierMatches(shortcut.Alt, alt, command?.DisregardAlt ?? false)
                 && string.Equals(NormalizeKey(shortcut.Key), NormalizeKey(key), StringComparison.OrdinalIgnoreCase))
             {
                 return shortcut.CommandId;
@@ -397,6 +398,9 @@ public static class EditorCommandCatalog
 
         return null;
     }
+
+    private static bool ModifierMatches(bool expected, bool actual, bool disregard)
+        => disregard || expected == actual;
 
     public static bool IsRepeatable(string commandId) => Find(commandId)?.Repeat ?? false;
 

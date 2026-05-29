@@ -50,6 +50,9 @@ public class EditorCommandCatalogTests
         Assert.NotNull(select);
         Assert.True(select.AllowMouse);
         Assert.False(select.AllowScroll);
+        Assert.True(select.DisregardShift);
+        Assert.True(select.DisregardAccelerator);
+        Assert.True(select.DisregardAlt);
 
         Assert.NotNull(save);
         Assert.True(save.AllowKeys);
@@ -96,6 +99,9 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S", accelerator: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S"));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S", accelerator: true, shift: true));
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add", shift: true));
+        Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton, accelerator: true, shift: true, alt: true));
+        Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton, accelerator: true, shift: true, alt: true));
     }
 
     [Fact]
