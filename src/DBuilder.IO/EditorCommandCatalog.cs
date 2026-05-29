@@ -185,6 +185,59 @@ public static class EditorCommandCatalog
         return string.Join("+", parts);
     }
 
+    public static string OverrideText(IEnumerable<EditorShortcutBinding> overrides)
+        => string.Join("; ", overrides.Select(binding => $"{binding.CommandId}={GestureText(binding)}"));
+
+    public static List<EditorShortcutBinding> ParseOverrideText(string? text)
+    {
+        var result = new List<EditorShortcutBinding>();
+        if (string.IsNullOrWhiteSpace(text)) return result;
+
+        var byId = All.ToDictionary(command => command.Id, StringComparer.Ordinal);
+        foreach (string rawEntry in text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            int equals = rawEntry.IndexOf('=');
+            if (equals <= 0 || equals == rawEntry.Length - 1) continue;
+
+            string commandId = rawEntry[..equals].Trim();
+            string gesture = rawEntry[(equals + 1)..].Trim();
+            if (!byId.TryGetValue(commandId, out var command)) continue;
+            if (!TryParseGesture(commandId, command.Scope, gesture, out var binding)) continue;
+            result.Add(binding);
+        }
+
+        return result;
+    }
+
+    public static bool TryParseGesture(string commandId, EditorCommandScope scope, string gesture, out EditorShortcutBinding binding)
+    {
+        binding = new EditorShortcutBinding(commandId, scope, "");
+        if (string.IsNullOrWhiteSpace(gesture)) return false;
+
+        bool accelerator = false, shift = false, alt = false;
+        string key = "";
+        foreach (string rawPart in gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string part = rawPart.Trim();
+            if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)
+                || part.Equals("Cmd", StringComparison.OrdinalIgnoreCase)
+                || part.Equals("Command", StringComparison.OrdinalIgnoreCase)
+                || part.Equals("Ctrl/Cmd", StringComparison.OrdinalIgnoreCase))
+                accelerator = true;
+            else if (part.Equals("Shift", StringComparison.OrdinalIgnoreCase))
+                shift = true;
+            else if (part.Equals("Alt", StringComparison.OrdinalIgnoreCase)
+                || part.Equals("Option", StringComparison.OrdinalIgnoreCase))
+                alt = true;
+            else
+                key = ParseDisplayKey(part);
+        }
+
+        if (key.Length == 0) return false;
+        binding = new EditorShortcutBinding(commandId, scope, key, accelerator, shift, alt);
+        return true;
+    }
+
     private static string DisplayKey(string key) => key switch
     {
         "OemOpenBrackets" => "[",
@@ -197,6 +250,19 @@ public static class EditorCommandCatalog
         "D2" => "2",
         "D3" => "3",
         "D4" => "4",
+        _ => key,
+    };
+
+    private static string ParseDisplayKey(string key) => key switch
+    {
+        "[" => "OemOpenBrackets",
+        "]" => "OemCloseBrackets",
+        "+" => "OemPlus",
+        "-" => "OemMinus",
+        "1" => "D1",
+        "2" => "D2",
+        "3" => "D3",
+        "4" => "D4",
         _ => key,
     };
 

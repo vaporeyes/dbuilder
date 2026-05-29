@@ -847,6 +847,8 @@ public partial class MainWindow : Window
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
+        _settings.ShortcutOverrides = dlg.ShortcutOverrides;
+        ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ReloadCompilerConfiguration();
         SaveSettings();

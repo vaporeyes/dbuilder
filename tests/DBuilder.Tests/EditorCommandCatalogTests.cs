@@ -155,4 +155,36 @@ public class EditorCommandCatalogTests
     {
         Assert.Equal("-", EditorCommandCatalog.GestureText("missing.command", EditorCommandCatalog.DefaultShortcuts));
     }
+
+    [Fact]
+    public void ParseOverrideTextReadsCommandGestures()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "F5");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "R" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets");
+    }
+
+    [Fact]
+    public void ParseOverrideTextSkipsInvalidEntries()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText("missing.command=F5; window.save=; malformed");
+
+        Assert.Empty(overrides);
+    }
+
+    [Fact]
+    public void OverrideTextRoundTripsParseableGestures()
+    {
+        var overrides = new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+            new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "R", Shift: true),
+        };
+
+        var parsed = EditorCommandCatalog.ParseOverrideText(EditorCommandCatalog.OverrideText(overrides));
+
+        Assert.Equal(overrides, parsed);
+    }
 }

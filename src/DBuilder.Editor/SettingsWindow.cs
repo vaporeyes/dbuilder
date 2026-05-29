@@ -8,10 +8,11 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _statusHistoryLimit;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _statusHistoryLimit, _shortcutOverrides;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs;
     public int? StatusHistoryLimit;
+    public List<EditorShortcutBinding> ShortcutOverrides = new();
 
     public SettingsWindow(Settings s) : base("Settings", "Leave a field blank to use the built-in default.")
     {
@@ -23,6 +24,7 @@ public sealed class SettingsWindow : PropertyDialog
         _nodePath  = AddField("Node builder", s.NodeBuilderPath ?? "");
         _nodeArgs  = AddField("Node builder args", s.NodeBuilderArgs ?? "");
         _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
+        _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
     }
 
     protected override void OnConfirm()
@@ -34,6 +36,7 @@ public sealed class SettingsWindow : PropertyDialog
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
+        ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
     }
 
     private static string? NullIfBlank(string? t) => string.IsNullOrWhiteSpace(t) ? null : t.Trim();
