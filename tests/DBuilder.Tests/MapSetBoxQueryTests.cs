@@ -3,6 +3,7 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -88,5 +89,47 @@ public class MapSetBoxQueryTests
         Assert.Contains(corner, map.GetVerticesInBox(0, 0, 100, 100));
         // A zero-area box catches a point sitting exactly on it.
         Assert.Contains(corner, map.GetVerticesInBox(100, 100, 100, 100));
+    }
+
+    [Fact]
+    public void AreaHelpersCreateAndIncreaseBounds()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(-16, 8));
+        var b = map.AddVertex(new Vector2D(24, 32));
+        var c = map.AddVertex(new Vector2D(64, -4));
+        var line = map.AddLinedef(b, c);
+        var thing = map.AddThing(new Vector2D(80, 96), 3001);
+
+        var area = MapSet.CreateArea(new[] { a, b });
+        Assert.Equal(new RectangleF(-16, 8, 40, 24), area);
+
+        area = MapSet.IncreaseArea(area, new[] { line });
+        Assert.Equal(new RectangleF(-16, -4, 80, 36), area);
+
+        area = MapSet.IncreaseArea(area, new[] { thing });
+        Assert.Equal(new RectangleF(-16, -4, 96, 100), area);
+
+        area = MapSet.IncreaseArea(area, new Vector2D(-32, 128));
+        Assert.Equal(new RectangleF(-32, -4, 112, 132), area);
+    }
+
+    [Fact]
+    public void FilterByAreaUsesCohenSutherlandLineRejectionAndInclusiveVertices()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(-10, 50));
+        var b = map.AddVertex(new Vector2D(110, 50));
+        var c = map.AddVertex(new Vector2D(-10, -10));
+        var d = map.AddVertex(new Vector2D(-20, -20));
+        var e = map.AddVertex(new Vector2D(0, 0));
+        var f = map.AddVertex(new Vector2D(100, 100));
+        var crossing = map.AddLinedef(a, b);
+        var outside = map.AddLinedef(c, d);
+        var area = new RectangleF(0, 0, 100, 100);
+
+        Assert.Equal(0x05, MapSet.GetCSFieldBits(c.Position, area));
+        Assert.Equal(new[] { crossing }, MapSet.FilterByArea(new[] { crossing, outside }, ref area));
+        Assert.Equal(new[] { e, f }, MapSet.FilterByArea(new[] { a, b, c, d, e, f }, ref area));
     }
 }

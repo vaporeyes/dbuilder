@@ -3,6 +3,7 @@
 
 namespace DBuilder.Map;
 
+using System.Drawing;
 using DBuilder.Geometry;
 
 /// <summary>Counts the contents of a one-based selection group for UI labels and summaries.</summary>
@@ -1355,5 +1356,131 @@ public class MapSet : IDisposable
             if (v.Position.y > maxY) maxY = v.Position.y;
         }
         return (minX, minY, maxX, maxY);
+    }
+
+    public static RectangleF CreateEmptyArea()
+    {
+        return new RectangleF(float.MaxValue / 2, float.MaxValue / 2, -float.MaxValue, -float.MaxValue);
+    }
+
+    public static RectangleF CreateArea(ICollection<Vertex> vertices)
+    {
+        RectangleF area = CreateEmptyArea();
+        return IncreaseArea(area, vertices);
+    }
+
+    public static RectangleF CreateArea(ICollection<Linedef> linedefs)
+    {
+        RectangleF area = CreateEmptyArea();
+        return IncreaseArea(area, linedefs);
+    }
+
+    public static RectangleF IncreaseArea(RectangleF area, ICollection<Vertex> vertices)
+    {
+        float left = area.Left;
+        float top = area.Top;
+        float right = area.Right;
+        float bottom = area.Bottom;
+
+        foreach (var vertex in vertices)
+            AdjustArea(vertex.Position, ref left, ref top, ref right, ref bottom);
+
+        return new RectangleF(left, top, right - left, bottom - top);
+    }
+
+    public static RectangleF IncreaseArea(RectangleF area, ICollection<Linedef> linedefs)
+    {
+        float left = area.Left;
+        float top = area.Top;
+        float right = area.Right;
+        float bottom = area.Bottom;
+
+        foreach (var line in linedefs)
+        {
+            AdjustArea(line.Start.Position, ref left, ref top, ref right, ref bottom);
+            AdjustArea(line.End.Position, ref left, ref top, ref right, ref bottom);
+        }
+
+        return new RectangleF(left, top, right - left, bottom - top);
+    }
+
+    public static RectangleF IncreaseArea(RectangleF area, ICollection<Thing> things)
+    {
+        float left = area.Left;
+        float top = area.Top;
+        float right = area.Right;
+        float bottom = area.Bottom;
+
+        foreach (var thing in things)
+            AdjustArea(thing.Position, ref left, ref top, ref right, ref bottom);
+
+        return new RectangleF(left, top, right - left, bottom - top);
+    }
+
+    public static RectangleF IncreaseArea(RectangleF area, ICollection<Vector2D> vertices)
+    {
+        float left = area.Left;
+        float top = area.Top;
+        float right = area.Right;
+        float bottom = area.Bottom;
+
+        foreach (var vertex in vertices)
+            AdjustArea(vertex, ref left, ref top, ref right, ref bottom);
+
+        return new RectangleF(left, top, right - left, bottom - top);
+    }
+
+    public static RectangleF IncreaseArea(RectangleF area, Vector2D vertex)
+    {
+        float left = area.Left;
+        float top = area.Top;
+        float right = area.Right;
+        float bottom = area.Bottom;
+        AdjustArea(vertex, ref left, ref top, ref right, ref bottom);
+        return new RectangleF(left, top, right - left, bottom - top);
+    }
+
+    public static int GetCSFieldBits(Vector2D vertex, RectangleF area)
+    {
+        int bits = 0;
+        if (vertex.y < area.Top) bits |= 0x01;
+        if (vertex.y > area.Bottom) bits |= 0x02;
+        if (vertex.x < area.Left) bits |= 0x04;
+        if (vertex.x > area.Right) bits |= 0x08;
+        return bits;
+    }
+
+    public static HashSet<Linedef> FilterByArea(ICollection<Linedef> linedefs, ref RectangleF area)
+    {
+        var result = new HashSet<Linedef>();
+        foreach (var line in linedefs)
+        {
+            if ((GetCSFieldBits(line.Start.Position, area) & GetCSFieldBits(line.End.Position, area)) == 0)
+                result.Add(line);
+        }
+        return result;
+    }
+
+    public static ICollection<Vertex> FilterByArea(ICollection<Vertex> vertices, ref RectangleF area)
+    {
+        var result = new List<Vertex>(vertices.Count);
+        foreach (var vertex in vertices)
+        {
+            if (vertex.Position.x < area.Left || vertex.Position.x > area.Right ||
+                vertex.Position.y < area.Top || vertex.Position.y > area.Bottom)
+            {
+                continue;
+            }
+            result.Add(vertex);
+        }
+        return result;
+    }
+
+    private static void AdjustArea(Vector2D vertex, ref float left, ref float top, ref float right, ref float bottom)
+    {
+        if (vertex.x < left) left = (float)vertex.x;
+        if (vertex.x > right) right = (float)vertex.x;
+        if (vertex.y < top) top = (float)vertex.y;
+        if (vertex.y > bottom) bottom = (float)vertex.y;
     }
 }
