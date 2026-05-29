@@ -1923,8 +1923,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
         or Key.Up or Key.Down or Key.Left or Key.Right;
 
-    private static bool IsArrow(Key k) => k is Key.Left or Key.Right or Key.Up or Key.Down;
-
     protected override void OnKeyDown(KeyEventArgs e)
     {
         bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
@@ -1938,27 +1936,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }
-        // 3D brightness on the targeted sector: [ darker, ] brighter.
-        if (_mode3D && e.Key == Key.OemOpenBrackets) { AdjustTargetBrightness3D(-8); e.Handled = true; return; }
-        if (_mode3D && e.Key == Key.OemCloseBrackets) { AdjustTargetBrightness3D(8); e.Handled = true; return; }
-        // 3D texture copy/apply (plain C/V; Ctrl/Cmd+C/V stay 2D selection copy/paste at the window level).
-        if (_mode3D && !accel && e.Key == Key.C) { CopyTexture3D(); e.Handled = true; return; }
-        if (_mode3D && !accel && e.Key == Key.V) { ApplyTexture3D(); e.Handled = true; return; }
-        if (_mode3D && !accel && e.Key == Key.A) { AutoAlignTarget3D(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return; }
-        if (_mode3D && e.Key == Key.Enter) { OpenTargetDialog3D(); e.Handled = true; return; }
-        if (_mode3D && e.Key == Key.Escape) { ClearSelection3D(); e.Handled = true; return; }
-        if (_mode3D && !accel && e.Key == Key.O) { ResetTargetOffsets3D(); e.Handled = true; return; }
-        if (_mode3D && (e.Key == Key.Delete || e.Key == Key.Back)) { DeleteTargetThing3D(); e.Handled = true; return; }
-        // Open the texture/flat browser for the current target (flats for floor/ceiling, textures for walls).
-        if (_mode3D && !accel && e.Key == Key.T && _target3D != null)
-        {
-            BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
-            e.Handled = true;
-            return;
-        }
-        // Shift+arrows nudge the targeted wall's texture offset (plain arrows remain camera look).
-        if (_mode3D && e.KeyModifiers.HasFlag(KeyModifiers.Shift) && IsArrow(e.Key)) { NudgeTargetOffset3D(e.Key); e.Handled = true; return; }
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
 
         base.OnKeyDown(e);
@@ -2043,6 +2020,56 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.zoom-out":
                 ZoomBy(1.25);
+                return true;
+            case "map3d.walk-mode":
+                _walkMode = !_walkMode;
+                RequestNextFrameRendering();
+                return true;
+            case "map3d.brightness-down":
+                AdjustTargetBrightness3D(-8);
+                return true;
+            case "map3d.brightness-up":
+                AdjustTargetBrightness3D(8);
+                return true;
+            case "map3d.copy-texture":
+                CopyTexture3D();
+                return true;
+            case "map3d.apply-texture":
+                ApplyTexture3D();
+                return true;
+            case "map3d.align-texture-x":
+                AutoAlignTarget3D(vertical: false);
+                return true;
+            case "map3d.align-texture-y":
+                AutoAlignTarget3D(vertical: true);
+                return true;
+            case "map3d.edit-properties":
+                OpenTargetDialog3D();
+                return true;
+            case "map3d.clear-target":
+                ClearSelection3D();
+                return true;
+            case "map3d.reset-offsets":
+                ResetTargetOffsets3D();
+                return true;
+            case "map3d.delete-target":
+                DeleteTargetThing3D();
+                return true;
+            case "map3d.browse-texture":
+                if (_target3D is null) return false;
+                BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
+                return true;
+            case "map3d.nudge-offset-left":
+                NudgeTargetOffset3D(Key.Left);
+                return true;
+            case "map3d.nudge-offset-right":
+                NudgeTargetOffset3D(Key.Right);
+                return true;
+            case "map3d.nudge-offset-up":
+                NudgeTargetOffset3D(Key.Up);
+                return true;
+            case "map3d.nudge-offset-down":
+                NudgeTargetOffset3D(Key.Down);
                 return true;
             default:
                 return false;
