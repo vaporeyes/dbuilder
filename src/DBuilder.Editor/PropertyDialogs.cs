@@ -263,6 +263,10 @@ public abstract class PropertyDialog : Window
             {
                 editors.SetCombo(i, AddCombo(label, AngleDegreeItems(), current[i]));
             }
+            else if (handler is AngleByteTypeHandler)
+            {
+                editors.SetCombo(i, AddCombo(label, AngleByteItems(), current[i]));
+            }
             else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
             {
                 editors.SetFlags(i, AddFlagChecks(label, bitDefs, current[i]));
@@ -332,6 +336,10 @@ public abstract class PropertyDialog : Window
             {
                 editors.AddCombo(item, AddCombo(item.Field.Name, AngleDegreeItems(), handler.GetIntValue()));
             }
+            else if (handler is AngleByteTypeHandler)
+            {
+                editors.AddCombo(item, AddCombo(item.Field.Name, AngleByteItems(), handler.GetIntValue()));
+            }
             else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
             {
                 editors.AddFlags(item, AddFlagChecks(item.Field.Name, bitDefs, handler.GetIntValue()));
@@ -394,6 +402,19 @@ public abstract class PropertyDialog : Window
             new CatalogItem(225, "225 - Southwest"),
             new CatalogItem(270, "270 - South"),
             new CatalogItem(315, "315 - Southeast"),
+        };
+
+    private static IEnumerable<CatalogItem> AngleByteItems()
+        => new[]
+        {
+            new CatalogItem(0, "0 - East"),
+            new CatalogItem(32, "32 - Northeast"),
+            new CatalogItem(64, "64 - North"),
+            new CatalogItem(96, "96 - Northwest"),
+            new CatalogItem(128, "128 - West"),
+            new CatalogItem(160, "160 - Southwest"),
+            new CatalogItem(192, "192 - South"),
+            new CatalogItem(224, "224 - Southeast"),
         };
 
     private static IReadOnlyDictionary<int, string> EnumBitDefinitions(EnumListInfo values)
