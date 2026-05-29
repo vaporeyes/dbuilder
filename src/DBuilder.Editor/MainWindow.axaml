@@ -20,9 +20,9 @@
                 <MenuItem Header="_Reload Map" Click="OnReloadMap" />
                 <MenuItem Header="_Close Map" Click="OnCloseMap" />
                 <MenuItem Header="Add _Resource (IWAD/PK3)..." Click="OnAddResource" />
-                <MenuItem Header="_Save WAD" Click="OnSave" />
-                <MenuItem Header="Save WAD _As..." Click="OnSaveAs" />
-                <MenuItem Header="Save As _Format..." Click="OnSaveAsFormat" />
+                <MenuItem Header="_Save WAD" x:Name="SaveMenuItem" Click="OnSave" />
+                <MenuItem Header="Save WAD _As..." x:Name="SaveAsMenuItem" Click="OnSaveAs" />
+                <MenuItem Header="Save As _Format..." x:Name="SaveAsFormatMenuItem" Click="OnSaveAsFormat" />
                 <Separator />
                 <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
                 <MenuItem Header="Map _Options..." Click="OnMapOptions" />
@@ -31,15 +31,15 @@
                 <MenuItem Header="E_xit" Click="OnExit" />
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Header="_Undo" Click="OnUndo" />
-                <MenuItem Header="_Redo" Click="OnRedo" />
+                <MenuItem Header="_Undo" x:Name="UndoMenuItem" Click="OnUndo" />
+                <MenuItem Header="_Redo" x:Name="RedoMenuItem" Click="OnRedo" />
                 <Separator />
                 <MenuItem Header="Cu_t" Click="OnCut" />
                 <MenuItem Header="_Copy" Click="OnCopy" />
                 <MenuItem Header="_Paste" Click="OnPaste" />
                 <MenuItem Header="D_uplicate" Click="OnDuplicate" />
                 <Separator />
-                <MenuItem Header="_Delete selection" Click="OnDelete" />
+                <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
                 <MenuItem Header="Select _all" Click="OnSelectAll" />
                 <MenuItem Header="_Invert selection" Click="OnInvertSelection" />
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
@@ -137,10 +137,10 @@
                     <Button Content="Map" Click="OnOpenMap" />
                     <Button Content="Reload" Click="OnReloadMap" />
                     <Button Content="Close" Click="OnCloseMap" />
-                    <Button Content="Save" Click="OnSave" />
-                    <Button Content="Undo" Click="OnUndo" />
-                    <Button Content="Redo" Click="OnRedo" />
-                    <Button Content="Delete" Click="OnDelete" />
+                    <Button Content="Save" x:Name="SaveButton" Click="OnSave" />
+                    <Button Content="Undo" x:Name="UndoButton" Click="OnUndo" />
+                    <Button Content="Redo" x:Name="RedoButton" Click="OnRedo" />
+                    <Button Content="Delete" x:Name="DeleteButton" Click="OnDelete" />
                     <Button Content="Fit" Click="OnFit" />
                     <Button Content="3D" Click="OnToggle3DMode" />
                     <Button Content="Vtx" Click="OnModeVertices" />

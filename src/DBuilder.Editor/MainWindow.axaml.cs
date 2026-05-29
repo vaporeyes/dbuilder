@@ -118,6 +118,7 @@ public partial class MainWindow : Window
             _ = LoadArchive(openPath, promptForMap: false);
 
         UpdateStatusDetails();
+        UpdateCommandAvailability();
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
@@ -1984,6 +1985,7 @@ public partial class MainWindow : Window
     {
         _undo?.CreateUndo(description);
         MarkMapDirty();
+        UpdateCommandAvailability();
     }
 
     private void MarkMapDirty()
@@ -1999,6 +2001,7 @@ public partial class MainWindow : Window
         _mapDirty = false;
         _autosavePending = false;
         Title = CurrentEditorTitle();
+        UpdateCommandAvailability();
     }
 
     private void ScheduleAutosave()
@@ -2377,6 +2380,7 @@ public partial class MainWindow : Window
 
     private void UpdateInfo()
     {
+        UpdateCommandAvailability();
         if (_map is null) { ShowText("No map loaded."); PreviewPanel.Children.Clear(); return; }
         int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
         UpdatePreviews(sv, sl, ss, st);
@@ -2399,6 +2403,27 @@ public partial class MainWindow : Window
                      (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : ""));
         }
     }
+
+    private void UpdateCommandAvailability()
+    {
+        bool hasMap = _map is not null;
+        bool hasSelection = hasMap && CountSelection() > 0;
+        bool canUndo = _undo?.CanUndo == true;
+        bool canRedo = _undo?.CanRedo == true;
+
+        SetEnabled(SaveMenuItem, hasMap);
+        SetEnabled(SaveAsMenuItem, hasMap);
+        SetEnabled(SaveAsFormatMenuItem, hasMap);
+        SetEnabled(SaveButton, hasMap);
+        SetEnabled(DeleteMenuItem, hasSelection);
+        SetEnabled(DeleteButton, hasSelection);
+        SetEnabled(UndoMenuItem, canUndo);
+        SetEnabled(UndoButton, canUndo);
+        SetEnabled(RedoMenuItem, canRedo);
+        SetEnabled(RedoButton, canRedo);
+    }
+
+    private static void SetEnabled(Control control, bool enabled) => control.IsEnabled = enabled;
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;
 
