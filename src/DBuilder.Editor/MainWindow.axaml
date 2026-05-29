@@ -81,6 +81,7 @@
                 <MenuItem Header="_Go To Coordinates..." Click="OnGoToCoordinates" />
                 <MenuItem Header="View Used _Tags..." Click="OnTagStatistics" />
                 <MenuItem Header="View Thing _Types..." Click="OnThingStatistics" />
+                <MenuItem Header="View _Status History..." Click="OnStatusHistory" />
                 <MenuItem Header="_Browsers">
                     <MenuItem Header="_Textures..." Click="OnBrowseWallTextures" />
                     <MenuItem Header="_Flats..." Click="OnBrowseFlats" />

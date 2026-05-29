@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private string? _pk3MapArchivePath;
     private string? _iwadPath; // an IWAD (the loaded WAD if it is one, else an added IWAD resource) for Test Map
     private MapFormat _mapFormat = MapFormat.Doom;
+    private readonly StatusHistory _statusHistory = new();
     private MapOptions? _mapOptions;
     private Configuration? _mapSettings;
     private GameConfiguration? _config;
@@ -1477,6 +1478,9 @@ public partial class MainWindow : Window
         win.Show(this);
     }
 
+    private void OnStatusHistory(object? sender, RoutedEventArgs e)
+        => new StatusHistoryWindow(_statusHistory.Entries).Show(this);
+
     private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
     {
         var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter);
@@ -2348,7 +2352,11 @@ public partial class MainWindow : Window
 
     // ---- UI helpers ----
 
-    private void SetStatus(string text) => StatusText.Text = text;
+    private void SetStatus(string text)
+    {
+        StatusText.Text = text;
+        _statusHistory.Add(text);
+    }
 
     private void UpdateStatusDetails()
     {
