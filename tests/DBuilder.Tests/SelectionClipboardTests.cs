@@ -132,6 +132,24 @@ public class SelectionClipboardTests
     }
 
     [Fact]
+    public void CopySelectedSidedefPullsInLineVerticesAndSector()
+    {
+        var (map, _) = SquareSector();
+        map.Sidedefs[0].Selected = true;
+
+        var buf = SelectionClipboard.CopySelection(map)!;
+        var res = SelectionClipboard.Paste(map, buf, new Vector2D(0, 200));
+
+        Assert.Equal(1, res.LinedefCount);
+        Assert.Equal(2, res.VertexCount);
+        Assert.Equal(1, res.SidedefCount);
+        Assert.Equal(1, res.SectorCount);
+        Assert.NotNull(map.Linedefs[res.FirstLinedef].Front);
+        Assert.Same(map.Sidedefs[res.FirstSidedef], map.Linedefs[res.FirstLinedef].Front);
+        Assert.True(map.Sidedefs[res.FirstSidedef].Selected);
+    }
+
+    [Fact]
     public void PasteIntoDifferentMap()
     {
         var (src, s) = SquareSector();
@@ -144,7 +162,7 @@ public class SelectionClipboardTests
         Assert.Equal(4, dst.Vertices.Count);
         Assert.Equal(4, dst.Linedefs.Count);
         Assert.Equal(4, dst.Sidedefs.Count);
-        Assert.Equal(1, dst.Sectors.Count);
+        Assert.Single(dst.Sectors);
         Assert.Equal(4, dst.Sectors[0].Sidedefs.Count);
         Assert.Equal(res.LinedefCount, dst.Linedefs.Count);
     }
@@ -160,7 +178,7 @@ public class SelectionClipboardTests
         var res = SelectionClipboard.DuplicateSelection(map, new Vector2D(32, 16), () =>
         {
             beforePaste = true;
-            Assert.Single(map.Things);
+            Assert.Same(thing, Assert.Single(map.Things));
             Assert.True(thing.Selected);
         });
 

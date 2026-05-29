@@ -122,6 +122,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
   - [x] Duplicate selected elements without replacing the editor clipboard buffer.
+  - [x] Copy standalone selected sidedefs with their linedef, vertices, and sector.
 - [x] Port in-memory selection groups and group metadata.
 - [x] Preserve selection groups through clipboard and undo snapshots.
 - [x] Port map-options-backed selection group persistence.

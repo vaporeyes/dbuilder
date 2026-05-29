@@ -26,6 +26,12 @@ public static class SelectionClipboard
         foreach (var t in map.Things) if (t.Selected) things.Add(t);
         foreach (var v in map.Vertices) if (v.Selected) vertices.Add(v);
 
+        foreach (var sd in map.Sidedefs)
+        {
+            if (!sd.Selected) continue;
+            AddSidedef(sd, vertices, sidedefs, sectors, linedefs);
+        }
+
         foreach (var l in map.Linedefs)
         {
             if (!l.Selected) continue;
@@ -44,7 +50,7 @@ public static class SelectionClipboard
             }
         }
 
-        if (vertices.Count + sectors.Count + linedefs.Count + things.Count == 0) return null;
+        if (vertices.Count + sectors.Count + linedefs.Count + sidedefs.Count + things.Count == 0) return null;
 
         using var ms = new MemoryStream();
         ClipboardStreamWriter.Write(vertices.Items, linedefs.Items, sidedefs.Items, sectors.Items, things.Items, ms);
@@ -59,6 +65,18 @@ public static class SelectionClipboard
         vertices.Add(l.End);
         if (l.Front != null) { sidedefs.Add(l.Front); if (l.Front.Sector != null) sectors.Add(l.Front.Sector); }
         if (l.Back != null) { sidedefs.Add(l.Back); if (l.Back.Sector != null) sectors.Add(l.Back.Sector); }
+    }
+
+    private static void AddSidedef(Sidedef sd, OrderedSet<Vertex> vertices, OrderedSet<Sidedef> sidedefs,
+        OrderedSet<Sector> sectors, OrderedSet<Linedef> linedefs)
+    {
+        sidedefs.Add(sd);
+        if (sd.Sector != null) sectors.Add(sd.Sector);
+        if (sd.Line == null) return;
+
+        linedefs.Add(sd.Line);
+        vertices.Add(sd.Line.Start);
+        vertices.Add(sd.Line.End);
     }
 
     /// <summary>
@@ -78,6 +96,7 @@ public static class SelectionClipboard
         map.ClearAllSelected();
         for (int i = result.FirstVertex; i < result.FirstVertex + result.VertexCount; i++) map.Vertices[i].Selected = true;
         for (int i = result.FirstLinedef; i < result.FirstLinedef + result.LinedefCount; i++) map.Linedefs[i].Selected = true;
+        for (int i = result.FirstSidedef; i < result.FirstSidedef + result.SidedefCount; i++) map.Sidedefs[i].Selected = true;
         for (int i = result.FirstSector; i < result.FirstSector + result.SectorCount; i++) map.Sectors[i].Selected = true;
         for (int i = result.FirstThing; i < result.FirstThing + result.ThingCount; i++) map.Things[i].Selected = true;
 
