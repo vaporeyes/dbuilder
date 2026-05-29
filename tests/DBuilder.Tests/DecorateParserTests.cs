@@ -143,6 +143,23 @@ ACTOR Flagged 7002
     }
 
     [Fact]
+    public void ParsesSeparatedFlagSignTokens()
+    {
+        const string text = @"
+ACTOR SeparatedFlags 7004
+{
+    + SOLID
+    - NOGRAVITY
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.False(actor.Flags["NOGRAVITY"]);
+        Assert.False(actor.Properties.ContainsKey("+"));
+        Assert.False(actor.Properties.ContainsKey("-"));
+    }
+
+    [Fact]
     public void ParsesGamePropertyValuesUntilLineEnd()
     {
         const string text = @"

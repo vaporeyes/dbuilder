@@ -359,6 +359,7 @@ public static class DecorateParser
             }
             else if (zscriptBody && depth == 1 && lw != "default") SkipZScriptMember(t, ref i);
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
+            else if (!inStates && TryParseSeparatedFlag(tk.Text, t, ref i, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("$notangled", StringComparison.OrdinalIgnoreCase))) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("$clearargs", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
@@ -482,6 +483,14 @@ public static class DecorateParser
     {
         if (word.Length <= 1 || word[0] is not ('+' or '-')) return false;
         actor.Flags[word.Substring(1)] = word[0] == '+';
+        return true;
+    }
+
+    private static bool TryParseSeparatedFlag(string word, List<Tok> t, ref int i, ActorInfo actor)
+    {
+        if (word is not ("+" or "-")) return false;
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+        actor.Flags[t[i++].Text] = word == "+";
         return true;
     }
 
