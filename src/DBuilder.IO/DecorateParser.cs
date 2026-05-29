@@ -649,6 +649,9 @@ public static class DecorateParser
         var values = new List<string>();
         bool isGameProperty = key.Equals("game", StringComparison.OrdinalIgnoreCase);
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        if (HasSemicolonTerminator(t, i))
+            return ReadSemicolonPropertyValues(key, t, ref i, isGameProperty);
+
         int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
             : HasLineTerminator(t, i) ? int.MaxValue
             : key.Equals("scale", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
@@ -666,6 +669,42 @@ public static class DecorateParser
             i++;
         }
         return values;
+    }
+
+    private static List<string> ReadSemicolonPropertyValues(string key, List<Tok> t, ref int i, bool isGameProperty)
+    {
+        var values = new List<string>();
+        var parts = new List<string>();
+        bool scale = key.Equals("scale", StringComparison.OrdinalIgnoreCase);
+
+        while (i < t.Count)
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or "\n") break;
+            if (tk.Kind == Kind.Sym && tk.Text is "," or ";")
+            {
+                AddExpressionValue(values, parts, isGameProperty);
+                parts.Clear();
+                i++;
+                if (tk.Text == ";") break;
+                continue;
+            }
+
+            parts.Add(tk.Text);
+            i++;
+        }
+
+        AddExpressionValue(values, parts, isGameProperty);
+
+        if (scale && values.Count == 1) values.Add(values[0]);
+        return values;
+    }
+
+    private static void AddExpressionValue(List<string> values, List<string> parts, bool lower)
+    {
+        if (parts.Count == 0) return;
+        string value = JoinLineValue(parts);
+        values.Add(lower ? value.ToLowerInvariant() : value);
     }
 
     private static List<string> ReadDollarPropertyValues(List<Tok> t, ref int i)

@@ -326,6 +326,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
 - [ ] Complete ZScript parser behavior.
+  - [x] Preserve semicolon-terminated ZScript default expressions as single property values.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.

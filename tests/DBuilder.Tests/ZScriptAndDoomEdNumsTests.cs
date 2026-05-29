@@ -144,6 +144,25 @@ class MultiValueDefault : Actor
     }
 
     [Fact]
+    public void KeepsZScriptDefaultExpressionsAsSingleValues()
+    {
+        const string text = @"
+class ExpressionDefault : Actor
+{
+    Default
+    {
+        Alpha 0.5 + 0.25;
+        DamageFactor ""Fire"", 1.0 / 2.0;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal(new[] { "0.5 + 0.25" }, actor.Properties["Alpha"]);
+        Assert.Equal(new[] { "Fire", "1.0 / 2.0" }, actor.Properties["DamageFactor"]);
+    }
+
+    [Fact]
     public void SkipsZScriptClassBodyMembersOutsideDefaultsAndStates()
     {
         const string text = @"
