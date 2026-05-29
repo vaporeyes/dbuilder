@@ -16,6 +16,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -1454,13 +1455,21 @@ public partial class MainWindow : Window
     {
         string name = _config?.ThingTitle(t.Type) ?? $"type {t.Type}";
         string action = _config?.LinedefActionTitle(t.Action) ?? (t.Action == 0 ? "None" : $"action {t.Action}");
+        string flags = _config != null ? string.Join(", ", _config.DescribeThingFlags(t.Flags)) : $"0x{t.Flags:X4}";
+        if (flags.Length == 0) flags = "none";
         var fields = new List<(string, string)>
         {
             ("Type", $"{t.Type} - {name}"),
             ("Action", $"{t.Action} - {action}"),
             ("Position", $"({t.Position.x:0}, {t.Position.y:0}, {t.Height:0})"),
             ("Angle", $"{t.Angle}°"),
+            ("Pitch / roll", $"{t.Pitch}° / {t.Roll}°"),
+            ("Scale", $"{t.ScaleX:0.###} x {t.ScaleY:0.###}"),
             ("Tag", t.Tag.ToString()),
+            ("Flags", flags),
+            ("UDMF flags", DescribeStringSet(t.UdmfFlags)),
+            ("Groups", DescribeGroups(t.Groups)),
+            ("Custom fields", t.Fields.Count.ToString()),
         };
         if (HasArgs) AddArgFields(fields, t.Args, _config?.GetThing(t.Type)?.Args);
         ShowFields($"Thing {_map!.Things.IndexOf(t)}", fields);
@@ -1475,12 +1484,20 @@ public partial class MainWindow : Window
         var fields = new List<(string, string)>
         {
             ("Action", $"{l.Action} - {act}"),
-            ("Tag", l.Tag.ToString()),
-            ("Length", $"{length:0}"),
+            ("Tags", DescribeTags(l.Tags)),
+            ("Length", $"{length:0.###}"),
+            ("Angle", $"{Angle2D.RadToDeg(l.Angle):0.#}°"),
             ("Sides", l.Back != null ? "two-sided" : "one-sided"),
             ("Front sector", l.Front?.Sector is { } fs ? fs.Index.ToString() : "-"),
             ("Back sector", l.Back?.Sector is { } bs ? bs.Index.ToString() : "-"),
+            ("Front textures", DescribeSideTextures(l.Front)),
+            ("Back textures", DescribeSideTextures(l.Back)),
+            ("Front offsets", DescribeSideOffsets(l.Front)),
+            ("Back offsets", DescribeSideOffsets(l.Back)),
             ("Flags", flags),
+            ("UDMF flags", DescribeStringSet(l.UdmfFlags)),
+            ("Groups", DescribeGroups(l.Groups)),
+            ("Custom fields", l.Fields.Count.ToString()),
         };
         if (HasArgs) AddArgFields(fields, l.Args, _config?.GetLinedefAction(l.Action)?.Args);
         ShowFields($"Linedef {_map!.Linedefs.IndexOf(l)}", fields);
@@ -1497,8 +1514,21 @@ public partial class MainWindow : Window
             ("Ceiling texture", s.CeilTexture),
             ("Brightness", s.Brightness.ToString()),
             ("Effect", $"{s.Special} - {eff}"),
-            ("Tag", s.Tag.ToString()),
+            ("Tags", DescribeTags(s.Tags)),
+            ("Sidedefs", s.Sidedefs.Count.ToString()),
+            ("Groups", DescribeGroups(s.Groups)),
+            ("Floor slope", DescribeSlope(s.HasFloorSlope, s.FloorSlope, s.FloorSlopeOffset)),
+            ("Ceiling slope", DescribeSlope(s.HasCeilSlope, s.CeilSlope, s.CeilSlopeOffset)),
+            ("Custom fields", s.Fields.Count.ToString()),
         });
+    }
+
+    private static string DescribeTags(IReadOnlyList<int> tags) => tags.Count == 0 ? "0" : string.Join(", ", tags);
+
+    private static string DescribeStringSet(IEnumerable<string> names)
+    {
+        var values = names.Where(name => !string.IsNullOrWhiteSpace(name)).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
+        return values.Length == 0 ? "none" : string.Join(", ", values);
     }
 
     private static string DescribeGroups(int groups)
@@ -1508,6 +1538,19 @@ public partial class MainWindow : Window
         for (int i = 0; i < MapOptions.SelectionGroupCount; i++)
             if ((groups & MapSet.GroupMask(i)) != 0) result.Add((i + 1).ToString());
         return result.Count == 0 ? groups.ToString() : string.Join(", ", result);
+    }
+
+    private static string DescribeSideTextures(Sidedef? side)
+        => side == null ? "-" : $"U:{side.HighTexture} M:{side.MidTexture} L:{side.LowTexture}";
+
+    private static string DescribeSideOffsets(Sidedef? side)
+        => side == null ? "-" : $"{side.OffsetX}, {side.OffsetY}";
+
+    private static string DescribeSlope(bool active, DBuilder.Geometry.Vector3D normal, double offset)
+    {
+        if (!active) return "flat";
+        string d = double.IsNaN(offset) ? "-" : offset.ToString("0.###", CultureInfo.InvariantCulture);
+        return $"({normal.x:0.###}, {normal.y:0.###}, {normal.z:0.###}) d {d}";
     }
 
     // Appends Arg1..Arg5 cells, labeling each with its config arg title when available.
