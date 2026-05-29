@@ -314,6 +314,56 @@ public class SelectionTests
     }
 
     [Fact]
+    public void ConvertSelectionToVerticesSelectsLineAndSectorVertices()
+    {
+        var map = BuildClosedSectorMap();
+        map.Linedefs[0].Selected = true;
+        map.Sectors[0].Selected = true;
+
+        map.ConvertSelection(SelectionType.Vertices);
+
+        Assert.Equal(map.Vertices, map.GetSelectedVertices());
+        Assert.Empty(map.GetSelectedLinedefs());
+        Assert.Empty(map.GetSelectedSectors());
+    }
+
+    [Fact]
+    public void ConvertSelectionToLinedefsUsesStableVertexPairsAndSelectedSectors()
+    {
+        var map = BuildClosedSectorMap();
+        map.Vertices[0].Selected = true;
+        map.Vertices[1].Selected = true;
+        map.Sectors[0].Selected = true;
+
+        map.ConvertSelection(SelectionType.Linedefs);
+
+        Assert.Equal(map.Linedefs, map.GetSelectedLinedefs());
+        Assert.Empty(map.GetSelectedVertices());
+        Assert.Empty(map.GetSelectedSectors());
+    }
+
+    [Fact]
+    public void ConvertSelectionToSectorsSelectsClosedSelectedLineSectors()
+    {
+        var map = BuildClosedSectorMap();
+        foreach (var line in map.Linedefs) line.Selected = true;
+
+        map.ConvertSelection(SelectionType.Sectors);
+
+        Assert.Equal(new[] { map.Sectors[0] }, map.GetSelectedSectors());
+        Assert.Equal(map.Linedefs, map.GetSelectedLinedefs());
+        Assert.Empty(map.GetSelectedVertices());
+    }
+
+    [Fact]
+    public void ConvertSelectionRejectsUnsupportedTargets()
+    {
+        var map = BuildMap();
+
+        Assert.Throws<ArgumentException>(() => map.ConvertSelection(SelectionType.Things));
+    }
+
+    [Fact]
     public void SelectionPicksUpHitTestResults()
     {
         // The intended editor flow: hit-test then flag the result selected.

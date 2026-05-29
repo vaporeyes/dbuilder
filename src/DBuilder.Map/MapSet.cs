@@ -703,6 +703,74 @@ public class MapSet : IDisposable
     public void SelectMarkedSectors(bool mark, bool select) => SelectMarked(Sectors, mark, select);
     public void SelectMarkedThings(bool mark, bool select) => SelectMarked(Things, mark, select);
 
+    public void ConvertSelection(SelectionType target) => ConvertSelection(SelectionType.All, target);
+
+    public void ConvertSelection(SelectionType source, SelectionType target)
+    {
+        ClearAllMarked(false);
+
+        switch (target)
+        {
+            case SelectionType.Vertices:
+                if (InSelectionType(source, SelectionType.Linedefs)) MarkSelectedLinedefs(selected: true, mark: true);
+                if (InSelectionType(source, SelectionType.Sectors)) MarkSelectedSectors(selected: true, mark: true);
+                foreach (var vertex in GetVerticesFromLinesMarks(mark: true)) vertex.Selected = true;
+                foreach (var vertex in GetVerticesFromSectorsMarks(mark: true)) vertex.Selected = true;
+                ClearSelectedSectors();
+                ClearSelectedLinedefs();
+                break;
+
+            case SelectionType.Linedefs:
+                if (InSelectionType(source, SelectionType.Vertices)) MarkSelectedVertices(selected: true, mark: true);
+                if (!InSelectionType(source, SelectionType.Linedefs)) ClearSelectedLinedefs();
+                foreach (var line in LinedefsFromMarkedVertices(includeUnmarked: false, includeStable: true, includeUnstable: false))
+                    line.Selected = true;
+                if (InSelectionType(source, SelectionType.Sectors))
+                {
+                    foreach (var sector in Sectors)
+                    {
+                        if (!sector.Selected) continue;
+                        foreach (var side in sector.Sidedefs) side.Line.Selected = true;
+                    }
+                }
+                ClearSelectedSectors();
+                ClearSelectedVertices();
+                break;
+
+            case SelectionType.Sectors:
+                if (InSelectionType(source, SelectionType.Vertices)) MarkSelectedVertices(selected: true, mark: true);
+                if (!InSelectionType(source, SelectionType.Linedefs)) ClearSelectedLinedefs();
+                foreach (var line in LinedefsFromMarkedVertices(includeUnmarked: false, includeStable: true, includeUnstable: false))
+                    line.Selected = true;
+                ClearMarkedSectors(true);
+                foreach (var line in Linedefs)
+                {
+                    if (line.Selected) continue;
+                    if (line.Front?.Sector != null) line.Front.Sector.Marked = false;
+                    if (line.Back?.Sector != null) line.Back.Sector.Marked = false;
+                }
+                ClearSelectedLinedefs();
+                ClearSelectedVertices();
+                foreach (var sector in Sectors)
+                {
+                    if ((InSelectionType(source, SelectionType.Sectors) && sector.Selected) ||
+                        (sector.Marked && sector.Sidedefs.Count > 0))
+                    {
+                        sector.Selected = true;
+                        foreach (var side in sector.Sidedefs) side.Line.Selected = true;
+                    }
+                    else if (!InSelectionType(source, SelectionType.Sectors))
+                    {
+                        sector.Selected = false;
+                    }
+                }
+                break;
+
+            default:
+                throw new ArgumentException("Unsupported selection target conversion", nameof(target));
+        }
+    }
+
     // ============================================================
     // Selection groups.
     // ============================================================
@@ -1123,6 +1191,8 @@ public class MapSet : IDisposable
         foreach (var it in items)
             if (it.Marked == mark) it.Selected = select;
     }
+
+    private static bool InSelectionType(SelectionType value, SelectionType bits) => (value & bits) == bits;
 
     private static void MarkSelected<T>(List<T> items, bool selected, bool mark) where T : ISelectable, IMarkable
     {
