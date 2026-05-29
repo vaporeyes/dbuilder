@@ -349,6 +349,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
 - [x] Port SNDSEQ parser.
+  - [x] Parse sequence groups and UDB sorted sound sequence names.
 - [x] Port TERRAIN parser.
 - [x] Port LOCKDEFS parser.
 - [x] Port DECALDEF parser.

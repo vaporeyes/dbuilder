@@ -11,6 +11,18 @@ namespace DBuilder.IO;
 public sealed class SndSeq
 {
     public List<SndSeqSequence> Sequences { get; } = new();
+    public List<string> SequenceGroups { get; } = new();
+
+    public List<string> GetSoundSequences()
+    {
+        var groups = new List<string>(SequenceGroups);
+        groups.Sort(StringComparer.Ordinal);
+        var sequences = new List<string>();
+        foreach (var sequence in Sequences) sequences.Add(sequence.Name);
+        sequences.Sort(StringComparer.Ordinal);
+        groups.AddRange(sequences);
+        return groups;
+    }
 }
 
 public sealed class SndSeqSequence
@@ -28,13 +40,26 @@ public static class SndSeqParser
         var result = new SndSeq();
         var t = Tokenize(text);
         SndSeqSequence? current = null;
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < t.Count;)
         {
             string token = t[i++];
             if (token.StartsWith(":", StringComparison.Ordinal))
             {
-                current = new SndSeqSequence { Name = token.Substring(1) };
-                result.Sequences.Add(current);
+                string name = token.TrimStart(':');
+                if (name.Length > 0 && names.Add(name))
+                {
+                    current = new SndSeqSequence { Name = name };
+                    result.Sequences.Add(current);
+                }
+                else current = null;
+                continue;
+            }
+            if (token.StartsWith("[", StringComparison.Ordinal))
+            {
+                string name = token.TrimStart('[');
+                if (name.Length > 0 && names.Add(name)) result.SequenceGroups.Add(name);
+                current = null;
                 continue;
             }
             if (current == null) continue;

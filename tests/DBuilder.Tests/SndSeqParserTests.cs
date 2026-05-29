@@ -48,4 +48,23 @@ end";
         Assert.Equal(new SndSeqCommand("delayrand", Value: 12), parsed.Sequences[1].Commands[0]);
         Assert.Equal(new SndSeqCommand("stopsound", "world/lift"), parsed.Sequences[1].Commands[1]);
     }
+
+    [Fact]
+    public void ParsesGroupsAndUdbSortedSequenceNames()
+    {
+        const string text = @"
+:Zeta
+end
+[Doors
+[doors
+:Alpha
+end
+[Platforms";
+
+        var parsed = SndSeqParser.Parse(text);
+
+        Assert.Equal(new[] { "Doors", "Platforms" }, parsed.SequenceGroups.ToArray());
+        Assert.Equal(new[] { "Zeta", "Alpha" }, parsed.Sequences.Select(s => s.Name).ToArray());
+        Assert.Equal(new[] { "Doors", "Platforms", "Alpha", "Zeta" }, parsed.GetSoundSequences());
+    }
 }
