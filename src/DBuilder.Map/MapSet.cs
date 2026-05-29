@@ -886,6 +886,23 @@ public class MapSet : IDisposable
         return result;
     }
 
+    public List<Linedef> LinedefsFromMarkedVertices(bool includeUnmarked, bool includeStable, bool includeUnstable)
+    {
+        var result = new List<Linedef>();
+        foreach (var line in Linedefs)
+        {
+            bool startMarked = line.Start.Marked;
+            bool endMarked = line.End.Marked;
+            if ((includeStable && startMarked && endMarked) ||
+                (includeUnstable && startMarked != endMarked) ||
+                (includeUnmarked && !startMarked && !endMarked))
+            {
+                result.Add(line);
+            }
+        }
+        return result;
+    }
+
     // ============================================================
     // Element lookup.
     // ============================================================

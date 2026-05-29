@@ -249,6 +249,31 @@ public class SelectionTests
     }
 
     [Fact]
+    public void LinedefsFromMarkedVerticesClassifiesStableUnstableAndUnmarkedLines()
+    {
+        var map = BuildTwoSidedMap();
+        map.Vertices[0].Marked = true;
+        map.Vertices[1].Marked = true;
+
+        Assert.Equal(new[] { map.Linedefs[0] }, map.LinedefsFromMarkedVertices(
+            includeUnmarked: false,
+            includeStable: true,
+            includeUnstable: false));
+        Assert.Equal(new[] { map.Linedefs[1] }, map.LinedefsFromMarkedVertices(
+            includeUnmarked: false,
+            includeStable: false,
+            includeUnstable: true));
+        Assert.Empty(map.LinedefsFromMarkedVertices(
+            includeUnmarked: true,
+            includeStable: false,
+            includeUnstable: false));
+        Assert.Equal(map.Linedefs, map.LinedefsFromMarkedVertices(
+            includeUnmarked: true,
+            includeStable: true,
+            includeUnstable: true));
+    }
+
+    [Fact]
     public void SelectionPicksUpHitTestResults()
     {
         // The intended editor flow: hit-test then flag the result selected.
