@@ -88,6 +88,33 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     public void Move(Vector2D newPosition)
         => Position = newPosition;
 
+    public void Move(Vector3D newPosition)
+    {
+        Position = new Vector2D(newPosition.x, newPosition.y);
+        Height = newPosition.z;
+    }
+
+    public void Move(double x, double y, double zOffset)
+        => Move(new Vector3D(x, y, zOffset));
+
+    public void Rotate(double realAngle)
+        => Angle = Angle2D.RealToDoom(realAngle);
+
+    public void Rotate(int doomAngle)
+        => Angle = doomAngle;
+
+    public void SetPitch(int pitch)
+        => Pitch = ClampAngle(pitch);
+
+    public void SetRoll(int roll)
+        => Roll = ClampAngle(roll);
+
+    public void SetScale(double scaleX, double scaleY)
+    {
+        ScaleX = scaleX;
+        ScaleY = scaleY;
+    }
+
     public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         int decimals = usePrecisePosition ? Math.Max(0, vertexDecimals) : 0;
@@ -95,5 +122,11 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
             Math.Round(Position.x, decimals),
             Math.Round(Position.y, decimals)));
         Height = Math.Round(Height, decimals);
+    }
+
+    private static int ClampAngle(int angle)
+    {
+        int normalized = angle % 360;
+        return normalized < 0 ? normalized + 360 : normalized;
     }
 }

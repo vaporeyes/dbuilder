@@ -319,6 +319,35 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void Thing3DMoveRotationAndScaleHelpersMatchUdbSurface()
+    {
+        var thing = new Thing(new Vector2D(1, 2), 3001);
+
+        thing.Move(new Vector3D(3, 4, 5));
+
+        Assert.Equal(new Vector2D(3, 4), thing.Position);
+        Assert.Equal(5, thing.Height, 1e-9);
+
+        thing.Move(6, 7, 8);
+        thing.Rotate(180);
+        thing.SetPitch(450);
+        thing.SetRoll(-90);
+        thing.SetScale(1.25, 0.75);
+
+        Assert.Equal(new Vector2D(6, 7), thing.Position);
+        Assert.Equal(8, thing.Height, 1e-9);
+        Assert.Equal(180, thing.Angle);
+        Assert.Equal(90, thing.Pitch);
+        Assert.Equal(270, thing.Roll);
+        Assert.Equal(1.25, thing.ScaleX, 1e-9);
+        Assert.Equal(0.75, thing.ScaleY, 1e-9);
+
+        thing.Rotate(Angle2D.DoomToReal(90));
+
+        Assert.Equal(90, thing.Angle);
+    }
+
+    [Fact]
     public void SnapAllToAccuracySnapsVerticesAndThings()
     {
         var map = new MapSet();
