@@ -274,6 +274,46 @@ public class SelectionTests
     }
 
     [Fact]
+    public void MarkAllSelectedGeometryMarksDirectGeometryAndLineVertexExpansion()
+    {
+        var map = BuildTwoSidedMap();
+        map.Vertices[0].Selected = true;
+        map.Vertices[1].Selected = true;
+        map.Linedefs[1].Selected = true;
+        map.AddThing(new Vector2D(32, 16), 3001).Selected = true;
+
+        map.MarkAllSelectedGeometry(
+            mark: true,
+            linedefsFromVertices: true,
+            verticesFromLinedefs: true,
+            sectorsFromLinedefs: false,
+            sidedefsFromSectors: false);
+
+        Assert.Equal(map.Vertices, map.GetMarkedVertices());
+        Assert.Equal(map.Linedefs, map.GetMarkedLinedefs());
+        Assert.Equal(new[] { map.Sidedefs[0], map.Sidedefs[1], map.Sidedefs[2] }, map.GetMarkedSidedefs());
+        Assert.Empty(map.GetMarkedSectors());
+        Assert.Equal(map.Things, map.GetMarkedThings());
+    }
+
+    [Fact]
+    public void MarkAllSelectedGeometryCanMarkSectorsAndSidedefsFromClosedSelectedLines()
+    {
+        var map = BuildClosedSectorMap();
+        foreach (var line in map.Linedefs) line.Selected = true;
+
+        map.MarkAllSelectedGeometry(
+            mark: true,
+            linedefsFromVertices: false,
+            verticesFromLinedefs: false,
+            sectorsFromLinedefs: true,
+            sidedefsFromSectors: true);
+
+        Assert.Equal(new[] { map.Sectors[0] }, map.GetMarkedSectors());
+        Assert.Equal(map.Sidedefs, map.GetMarkedSidedefs());
+    }
+
+    [Fact]
     public void SelectionPicksUpHitTestResults()
     {
         // The intended editor flow: hit-test then flag the result selected.
@@ -315,6 +355,26 @@ public class SelectionTests
         map.AddSidedef(twoSided, true, front);
         map.AddSidedef(twoSided, false, back);
         map.AddSidedef(oneSided, true, front);
+        map.BuildIndexes();
+        return map;
+    }
+
+    private static MapSet BuildClosedSectorMap()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(64, 0));
+        var v2 = map.AddVertex(new Vector2D(64, 64));
+        var v3 = map.AddVertex(new Vector2D(0, 64));
+        var l0 = map.AddLinedef(v0, v1);
+        var l1 = map.AddLinedef(v1, v2);
+        var l2 = map.AddLinedef(v2, v3);
+        var l3 = map.AddLinedef(v3, v0);
+        map.AddSidedef(l0, true, sector);
+        map.AddSidedef(l1, true, sector);
+        map.AddSidedef(l2, true, sector);
+        map.AddSidedef(l3, true, sector);
         map.BuildIndexes();
         return map;
     }

@@ -903,6 +903,50 @@ public class MapSet : IDisposable
         return result;
     }
 
+    public void MarkAllSelectedGeometry(
+        bool mark,
+        bool linedefsFromVertices,
+        bool verticesFromLinedefs,
+        bool sectorsFromLinedefs,
+        bool sidedefsFromSectors)
+    {
+        ClearAllMarked(!mark);
+
+        MarkSelectedVertices(selected: true, mark);
+        MarkSelectedLinedefs(selected: true, mark);
+
+        if (linedefsFromVertices)
+        {
+            foreach (var line in LinedefsFromMarkedVertices(includeUnmarked: !mark, includeStable: mark, includeUnstable: !mark))
+                line.Marked = mark;
+        }
+
+        if (verticesFromLinedefs)
+        {
+            foreach (var vertex in GetVerticesFromLinesMarks(mark))
+                vertex.Marked = mark;
+        }
+
+        if (sectorsFromLinedefs)
+        {
+            ClearMarkedSectors(mark);
+            foreach (var line in Linedefs)
+            {
+                if (line.Selected) continue;
+                if (line.Front?.Sector != null) line.Front.Sector.Marked = !mark;
+                if (line.Back?.Sector != null) line.Back.Sector.Marked = !mark;
+            }
+        }
+
+        MarkSelectedSectors(selected: true, mark);
+        MarkSelectedThings(selected: true, mark);
+
+        if (sidedefsFromSectors)
+            MarkSidedefsFromSectors(matchMark: true, setMark: mark);
+        else
+            MarkSidedefsFromLinedefs(matchMark: true, setMark: mark);
+    }
+
     // ============================================================
     // Element lookup.
     // ============================================================
