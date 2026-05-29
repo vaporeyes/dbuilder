@@ -769,6 +769,11 @@ public class MapSet : IDisposable
     public List<Sector> GetMarkedSectors(bool marked) => FilterMarked(Sectors, marked);
     public List<Thing> GetMarkedThings(bool marked) => FilterMarked(Things, marked);
 
+    public void MarkSelectedVertices(bool selected, bool mark) => MarkSelected(Vertices, selected, mark);
+    public void MarkSelectedLinedefs(bool selected, bool mark) => MarkSelected(Linedefs, selected, mark);
+    public void MarkSelectedSectors(bool selected, bool mark) => MarkSelected(Sectors, selected, mark);
+    public void MarkSelectedThings(bool selected, bool mark) => MarkSelected(Things, selected, mark);
+
     public int MarkedVerticesCount => CountMarked(Vertices);
     public int MarkedLinedefsCount => CountMarked(Linedefs);
     public int MarkedSidedefsCount => CountMarked(Sidedefs);
@@ -814,6 +819,22 @@ public class MapSet : IDisposable
         InvertMarkedSidedefs();
         InvertMarkedSectors();
         InvertMarkedThings();
+    }
+
+    public void MarkSidedefsFromLinedefs(bool matchMark, bool setMark)
+    {
+        foreach (var line in Linedefs)
+        {
+            if (line.Marked != matchMark) continue;
+            if (line.Front != null) line.Front.Marked = setMark;
+            if (line.Back != null) line.Back.Marked = setMark;
+        }
+    }
+
+    public void MarkSidedefsFromSectors(bool matchMark, bool setMark)
+    {
+        foreach (var side in Sidedefs)
+            if (side.Sector?.Marked == matchMark) side.Marked = setMark;
     }
 
     // ============================================================
@@ -991,6 +1012,12 @@ public class MapSet : IDisposable
     {
         foreach (var it in items)
             if (it.Marked == mark) it.Selected = select;
+    }
+
+    private static void MarkSelected<T>(List<T> items, bool selected, bool mark) where T : ISelectable, IMarkable
+    {
+        foreach (var it in items)
+            if (it.Selected == selected) it.Marked = mark;
     }
 
     // ============================================================

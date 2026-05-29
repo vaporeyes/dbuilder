@@ -183,6 +183,51 @@ public class SelectionTests
     }
 
     [Fact]
+    public void MarkSelectedHelpersSetMarksBySelectionState()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Selected = true;
+        map.Linedefs[0].Selected = true;
+        map.Sectors[0].Selected = true;
+        map.Things[0].Selected = true;
+
+        map.MarkSelectedVertices(selected: true, mark: true);
+        map.MarkSelectedLinedefs(selected: true, mark: true);
+        map.MarkSelectedSectors(selected: true, mark: true);
+        map.MarkSelectedThings(selected: true, mark: true);
+
+        Assert.Equal(new[] { map.Vertices[0] }, map.GetMarkedVertices());
+        Assert.Equal(new[] { map.Linedefs[0] }, map.GetMarkedLinedefs());
+        Assert.Equal(new[] { map.Sectors[0] }, map.GetMarkedSectors());
+        Assert.Equal(new[] { map.Things[0] }, map.GetMarkedThings());
+
+        map.MarkSelectedVertices(selected: false, mark: true);
+
+        Assert.Equal(map.Vertices, map.GetMarkedVertices());
+    }
+
+    [Fact]
+    public void MarkSidedefsFromLinedefsAndSectorsPropagatesMarks()
+    {
+        var map = BuildTwoSidedMap();
+        map.Linedefs[0].Marked = true;
+        map.Sectors[0].Marked = true;
+
+        map.MarkSidedefsFromLinedefs(matchMark: true, setMark: true);
+
+        Assert.True(map.Sidedefs[0].Marked);
+        Assert.True(map.Sidedefs[1].Marked);
+        Assert.False(map.Sidedefs[2].Marked);
+
+        map.ClearMarkedSidedefs();
+        map.MarkSidedefsFromSectors(matchMark: true, setMark: true);
+
+        Assert.True(map.Sidedefs[0].Marked);
+        Assert.False(map.Sidedefs[1].Marked);
+        Assert.True(map.Sidedefs[2].Marked);
+    }
+
+    [Fact]
     public void SelectionPicksUpHitTestResults()
     {
         // The intended editor flow: hit-test then flag the result selected.
