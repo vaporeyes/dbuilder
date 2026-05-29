@@ -12,6 +12,8 @@ This document maps current DBuilder projects to the Ultimate Doom Builder source
 
 `DBuilder.slnx` includes the editor, core libraries, demos, spikes, and tests during the port. Demo and spike projects stay in the main solution for now because they exercise rendering, texture loading, and map-viewing surfaces that do not yet have complete automated coverage.
 
+Update checks are intentionally replaced with the policy in `docs/UPDATE_POLICY.md` until DBuilder has packaged, signed release artifacts and a stable release feed.
+
 ## Project Map
 
 | DBuilder project | UDB source areas | Notes |

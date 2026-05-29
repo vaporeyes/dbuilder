@@ -43,7 +43,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] List and recover autosave snapshots from the File menu.
   - [x] Prompt for recoverable autosave snapshots when the editor starts.
 - [ ] Port launcher and external command execution behavior.
-- [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
+- [x] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
 - [ ] Port toast, status, and notification behavior.
