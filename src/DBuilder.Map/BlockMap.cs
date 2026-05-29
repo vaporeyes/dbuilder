@@ -1,4 +1,4 @@
-// ABOUTME: Uniform-grid spatial index over a MapSet for fast nearest/range queries on linedefs, things and vertices.
+// ABOUTME: Uniform-grid spatial index over a MapSet for fast nearest/range queries on linedefs, sectors, things and vertices.
 // ABOUTME: Linedefs are bucketed through crossed cells; queries expand outward ring by ring.
 
 using System;
@@ -9,14 +9,15 @@ namespace DBuilder.Map;
 
 /// <summary>
 /// A fixed-cell-size spatial acceleration grid built once from a MapSet snapshot. Rebuild it after the map
-/// geometry changes. Points (vertices, things) bucket into a single cell; linedefs bucket into every cell
-/// their segment crosses, matching UDB's block traversal behavior.
+/// geometry changes. Points (vertices, things) bucket into a single cell; sectors bucket by bounds; linedefs
+/// bucket into every cell their segment crosses, matching UDB's block traversal behavior.
 /// </summary>
 public sealed class BlockMap
 {
     private readonly double originX, originY, blockSize;
     private readonly int cols, rows;
     private readonly List<Linedef>[] lineCells;
+    private readonly List<Sector>[] sectorCells;
     private readonly List<Thing>[] thingCells;
     private readonly List<Vertex>[] vertCells;
 
@@ -49,6 +50,9 @@ public sealed class BlockMap
 
     public IReadOnlyList<Linedef> GetLinedefsAt(int col, int row)
         => IsCellInRange(col, row) ? lineCells[Index(col, row)] : Array.Empty<Linedef>();
+
+    public IReadOnlyList<Sector> GetSectorsAt(int col, int row)
+        => IsCellInRange(col, row) ? sectorCells[Index(col, row)] : Array.Empty<Sector>();
 
     public IReadOnlyList<Thing> GetThingsAt(int col, int row)
         => IsCellInRange(col, row) ? thingCells[Index(col, row)] : Array.Empty<Thing>();
@@ -97,15 +101,19 @@ public sealed class BlockMap
 
         int cells = cols * rows;
         lineCells = new List<Linedef>[cells];
+        sectorCells = new List<Sector>[cells];
         thingCells = new List<Thing>[cells];
         vertCells = new List<Vertex>[cells];
         for (int i = 0; i < cells; i++)
         {
             lineCells[i] = new List<Linedef>();
+            sectorCells[i] = new List<Sector>();
             thingCells[i] = new List<Thing>();
             vertCells[i] = new List<Vertex>();
         }
 
+        foreach (var sector in map.Sectors)
+            AddSector(sector);
         foreach (var v in map.Vertices)
             vertCells[Index(CellX(v.Position.x), CellY(v.Position.y))].Add(v);
         foreach (var t in map.Things)
@@ -234,6 +242,10 @@ public sealed class BlockMap
     public IReadOnlyCollection<Linedef> GetLinedefsNear(Vector2D pos, double range)
         => Gather(lineCells, pos, range);
 
+    /// <summary>All distinct sectors in cells overlapped by the square of half-size <paramref name="range"/> around pos.</summary>
+    public IReadOnlyCollection<Sector> GetSectorsNear(Vector2D pos, double range)
+        => Gather(sectorCells, pos, range);
+
     /// <summary>All distinct things in cells overlapping the square of half-size <paramref name="range"/> around pos.</summary>
     public IReadOnlyCollection<Thing> GetThingsNear(Vector2D pos, double range)
         => Gather(thingCells, pos, range);
@@ -277,6 +289,44 @@ public sealed class BlockMap
 
         foreach (var cell in GetCellRange(pos.x - maxRange, pos.y - maxRange, maxRange * 2, maxRange * 2))
             yield return cell;
+    }
+
+    private void AddSector(Sector sector)
+    {
+        if (!TryGetSectorBounds(sector, out double minX, out double minY, out double maxX, out double maxY)) return;
+
+        int cx0 = CellX(minX);
+        int cy0 = CellY(minY);
+        int cx1 = CellX(maxX);
+        int cy1 = CellY(maxY);
+        for (int cx = cx0; cx <= cx1; cx++)
+            for (int cy = cy0; cy <= cy1; cy++)
+                sectorCells[Index(cx, cy)].Add(sector);
+    }
+
+    private static bool TryGetSectorBounds(
+        Sector sector,
+        out double minX,
+        out double minY,
+        out double maxX,
+        out double maxY)
+    {
+        minX = minY = double.PositiveInfinity;
+        maxX = maxY = double.NegativeInfinity;
+        bool any = false;
+
+        foreach (var side in sector.Sidedefs)
+        {
+            var start = side.Line.Start.Position;
+            var end = side.Line.End.Position;
+            minX = Math.Min(minX, Math.Min(start.x, end.x));
+            minY = Math.Min(minY, Math.Min(start.y, end.y));
+            maxX = Math.Max(maxX, Math.Max(start.x, end.x));
+            maxY = Math.Max(maxY, Math.Max(start.y, end.y));
+            any = true;
+        }
+
+        return any;
     }
 
     // Expanding-ring nearest search: process the center cell, then successive Chebyshev shells, stopping once

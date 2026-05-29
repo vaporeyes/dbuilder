@@ -168,6 +168,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Bucket linedefs by crossed block cells instead of bounding boxes.
   - [x] Expose UDB-style square-range and line-cell traversal queries.
   - [x] Add UDB-style bounded nearest-linedef block query.
+  - [x] Add sector block buckets and sector range queries.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.

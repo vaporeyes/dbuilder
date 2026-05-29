@@ -233,6 +233,35 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void SectorCellsUseSectorBounds()
+    {
+        var (map, sector) = SquareSector(0, 0, 128);
+        var other = map.AddSector();
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        Assert.Contains(sector, bm.GetSectorsAt(0, 0));
+        Assert.Contains(sector, bm.GetSectorsAt(1, 1));
+        Assert.Contains(sector, bm.GetSectorsAt(2, 2));
+        Assert.DoesNotContain(other, bm.GetSectorsAt(0, 0));
+    }
+
+    [Fact]
+    public void SectorRangeQueryReturnsDistinctSectors()
+    {
+        var (map, first) = SquareSector(0, 0, 64);
+        var second = AddSquareSector(map, 96, 0, 64);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        var sectors = bm.GetSectorsNear(new Vector2D(80, 32), 96);
+
+        Assert.Contains(first, sectors);
+        Assert.Contains(second, sectors);
+        Assert.Equal(2, sectors.Count);
+    }
+
+    [Fact]
     public void CellRangeCropsToBlockMapBounds()
     {
         var map = new MapSet();
@@ -292,5 +321,27 @@ public class BlockMapTests
         Assert.Empty(bm.GetLinedefsAt(0, 1));
         Assert.Empty(bm.GetLinedefsAt(1, 1));
         Assert.Empty(bm.GetLinedefsAt(2, 1));
+    }
+
+    private static (MapSet Map, Sector Sector) SquareSector(double x, double y, double size)
+    {
+        var map = new MapSet();
+        var sector = AddSquareSector(map, x, y, size);
+        return (map, sector);
+    }
+
+    private static Sector AddSquareSector(MapSet map, double x, double y, double size)
+    {
+        var sector = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(x, y));
+        var v1 = map.AddVertex(new Vector2D(x + size, y));
+        var v2 = map.AddVertex(new Vector2D(x + size, y + size));
+        var v3 = map.AddVertex(new Vector2D(x, y + size));
+
+        map.AddSidedef(map.AddLinedef(v1, v0), true, sector);
+        map.AddSidedef(map.AddLinedef(v0, v3), true, sector);
+        map.AddSidedef(map.AddLinedef(v3, v2), true, sector);
+        map.AddSidedef(map.AddLinedef(v2, v1), true, sector);
+        return sector;
     }
 }
