@@ -1863,7 +1863,7 @@ public partial class MainWindow : Window
             System.IO.File.WriteAllBytes(temp, bytes);
 
             string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS")
-                ?? (string.IsNullOrWhiteSpace(_settings.TestPortArgs) ? SourcePort.DefaultArgsTemplate : _settings.TestPortArgs!);
+                ?? TestArgsTemplate();
             var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker);
 
             var psi = new System.Diagnostics.ProcessStartInfo(port!) { UseShellExecute = false };
@@ -1881,6 +1881,13 @@ public partial class MainWindow : Window
             SetStatus($"Testing {_mapMarker} in {System.IO.Path.GetFileNameWithoutExtension(port)} (iwad: {System.IO.Path.GetFileName(iwad)}).");
         }
         catch (Exception ex) { SetStatus($"Test Map failed: {ex.Message}"); }
+    }
+
+    private string TestArgsTemplate()
+    {
+        if (!string.IsNullOrWhiteSpace(_settings.TestPortArgs)) return _settings.TestPortArgs!;
+        if (!string.IsNullOrWhiteSpace(_config?.TestParameters)) return _config.TestParameters;
+        return SourcePort.DefaultArgsTemplate;
     }
 
     private FindReplaceWindow? _findWindow;

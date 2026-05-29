@@ -1,7 +1,8 @@
-// ABOUTME: Builds a source-port (GZDoom/etc) command line for Test Map from an argument template with %IWAD/%FO/%MAP tokens.
-// ABOUTME: Splits the template into tokens honoring double quotes so paths with spaces stay intact, then substitutes.
+// ABOUTME: Builds a source-port command line for Test Map from DBuilder or UDB argument templates.
+// ABOUTME: Splits templates honoring double quotes, substitutes map/file tokens, and drops empty optional args.
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Text;
 
 namespace DBuilder.IO;
@@ -17,6 +18,7 @@ public static class SourcePort
     /// </summary>
     public static List<string> BuildArgs(string template, string iwad, string file, string map)
     {
+        var (l, l1, l2) = WarpTokens(map);
         var tokens = new List<string>();
         var cur = new StringBuilder();
         bool inQuote = false, has = false;
@@ -28,8 +30,39 @@ public static class SourcePort
         }
         if (has) tokens.Add(cur.ToString());
 
-        for (int i = 0; i < tokens.Count; i++)
-            tokens[i] = tokens[i].Replace("%IWAD", iwad).Replace("%FO", file).Replace("%MAP", map);
+        for (int i = tokens.Count - 1; i >= 0; i--)
+        {
+            string token = tokens[i]
+                .Replace("%IWAD", iwad)
+                .Replace("%WP", iwad)
+                .Replace("%FO", file)
+                .Replace("%F", file)
+                .Replace("%MAP", map)
+                .Replace("%L1", l1)
+                .Replace("%L2", l2)
+                .Replace("%L", l)
+                .Replace("%AP", "")
+                .Replace("%S", "3")
+                .Replace("%NM", "");
+            if (token.Length == 0) tokens.RemoveAt(i);
+            else tokens[i] = token;
+        }
         return tokens;
+    }
+
+    private static (string L, string L1, string L2) WarpTokens(string map)
+    {
+        var exmx = Regex.Match(map, @"^E(?<e>\d+)M(?<m>\d+)$", RegexOptions.IgnoreCase);
+        if (exmx.Success)
+            return (map, exmx.Groups["e"].Value, exmx.Groups["m"].Value);
+
+        var mapxx = Regex.Match(map, @"^MAP(?<n>\d+)$", RegexOptions.IgnoreCase);
+        if (mapxx.Success)
+        {
+            string number = mapxx.Groups["n"].Value.PadLeft(2, '0');
+            return (map, number[..^1], number[^1..]);
+        }
+
+        return (map, map, "");
     }
 }

@@ -39,4 +39,29 @@ public class SourcePortTests
         var args = SourcePort.BuildArgs("-warp   %MAP", "i.wad", "m.wad", "5");
         Assert.Equal(new[] { "-warp", "5" }, args);
     }
+
+    [Fact]
+    public void UdbModernTemplateSubstitutesConfiguredTokens()
+    {
+        var args = SourcePort.BuildArgs("-iwad \"%WP\" -skill \"%S\" -file \"%AP\" \"%F\" +map %L %NM",
+            "doom2.wad", "edit.wad", "MAP07");
+
+        Assert.Equal(new[] { "-iwad", "doom2.wad", "-skill", "3", "-file", "edit.wad", "+map", "MAP07" }, args);
+    }
+
+    [Fact]
+    public void UdbVanillaMapxxTemplateBuildsTwoDigitWarp()
+    {
+        var args = SourcePort.BuildArgs("-warp %L1%L2", "doom2.wad", "edit.wad", "MAP11");
+
+        Assert.Equal(new[] { "-warp", "11" }, args);
+    }
+
+    [Fact]
+    public void UdbVanillaExmxTemplateBuildsEpisodeAndMapWarp()
+    {
+        var args = SourcePort.BuildArgs("-warp %L1 %L2", "doom.wad", "edit.wad", "E2M8");
+
+        Assert.Equal(new[] { "-warp", "2", "8" }, args);
+    }
 }
