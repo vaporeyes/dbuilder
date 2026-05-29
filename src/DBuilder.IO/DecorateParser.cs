@@ -659,9 +659,10 @@ public static class DecorateParser
             if (c == '/' && p + 1 < n && s[p + 1] == '/')
             {
                 // "//$..." carries editor metadata; a plain "//" is a comment.
-                if (p + 2 < n && s[p + 2] == '$')
+                int start = p + 2;
+                while (start < n && s[start] is ' ' or '\t' or '\u00A0') start++;
+                if (start < n && s[start] == '$')
                 {
-                    int start = p + 2;
                     int e = start;
                     while (e < n && s[e] != '\n' && s[e] != '\r') e++;
                     toks.Add(new Tok(Kind.Editor, s.Substring(start, e - start)));

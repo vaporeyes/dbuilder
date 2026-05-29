@@ -320,6 +320,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse separated DECORATE flag sign tokens.
   - [x] Honor `skip_super` for DECORATE custom argument inheritance.
 - [ ] Complete ZScript tokenizer behavior.
+  - [x] Parse spaced ZScript editor line comments.
 - [ ] Complete ZScript parser behavior.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.

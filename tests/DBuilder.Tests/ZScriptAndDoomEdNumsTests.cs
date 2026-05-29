@@ -42,6 +42,21 @@ class FancyImp : Actor replaces Imp
     }
 
     [Fact]
+    public void ParsesSpacedZScriptEditorLineComments()
+    {
+        const string text = @"
+class SpacedCommentActor : Actor
+{
+    // $Title ""Spaced Comment Actor""
+    Default { Radius 16; }
+}";
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("Spaced Comment Actor", actor.Title);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void HandlesForwardDeclarationAndModifiers()
     {
         const string text = "class Foo;\nclass Bar : Actor abstract { Default { Radius 8; } }";
