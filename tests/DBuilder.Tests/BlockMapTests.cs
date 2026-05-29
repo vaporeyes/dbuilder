@@ -286,6 +286,18 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void IsInRangeUsesExclusiveWorldRange()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+
+        Assert.True(bm.IsInRange(new Vector2D(0, 0)));
+        Assert.True(bm.IsInRange(new Vector2D(127.999, 127.999)));
+        Assert.False(bm.IsInRange(new Vector2D(128, 64)));
+        Assert.False(bm.IsInRange(new Vector2D(64, 128)));
+        Assert.NotNull(bm.GetBlockAt(new Vector2D(128, 64)));
+    }
+
+    [Fact]
     public void AddMethodsPopulateExistingBlockMapRange()
     {
         var map = new MapSet();

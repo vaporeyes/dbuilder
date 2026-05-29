@@ -21,7 +21,7 @@ public readonly record struct BlockMapCell(
 /// </summary>
 public sealed class BlockMap
 {
-    private readonly double originX, originY, blockSize;
+    private readonly double originX, originY, rangeRight, rangeBottom, blockSize;
     private readonly int cols, rows;
     private readonly List<Linedef>[] lineCells;
     private readonly List<Sector>[] sectorCells;
@@ -52,10 +52,7 @@ public sealed class BlockMap
         => col >= 0 && row >= 0 && col < cols && row < rows;
 
     public bool IsInRange(Vector2D pos)
-    {
-        var (col, row) = GetCellCoordinates(pos);
-        return IsCellInRange(col, row);
-    }
+        => pos.x >= originX && pos.x < rangeRight && pos.y >= originY && pos.y < rangeBottom;
 
     public IReadOnlyList<Linedef> GetLinedefsAt(int col, int row)
         => IsCellInRange(col, row) ? lineCells[Index(col, row)] : Array.Empty<Linedef>();
@@ -135,6 +132,8 @@ public sealed class BlockMap
         originY = Math.Min(bounds.MinY, bounds.MaxY);
         double maxX = Math.Max(bounds.MinX, bounds.MaxX);
         double maxY = Math.Max(bounds.MinY, bounds.MaxY);
+        rangeRight = maxX;
+        rangeBottom = maxY;
         cols = Math.Max(1, (int)Math.Floor((maxX - originX) / this.blockSize) + 1);
         rows = Math.Max(1, (int)Math.Floor((maxY - originY) / this.blockSize) + 1);
 
@@ -165,7 +164,7 @@ public sealed class BlockMap
             if (t.Position.y > maxY) maxY = t.Position.y;
         }
 
-        return new BlockMapBounds(minX, minY, maxX, maxY);
+        return new BlockMapBounds(minX, minY, Math.BitIncrement(maxX), Math.BitIncrement(maxY));
     }
 
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
