@@ -84,7 +84,8 @@ public static class GldefsParser
 
     private static void ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
-        var t = Tokenize(text);
+        var tokens = Tokenize(text);
+        var t = tokens.Text;
         int i = 0;
         while (i < t.Count)
         {
@@ -93,7 +94,7 @@ public static class GldefsParser
             else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, t, ref i, knownColors);
-            else if (kw == "skybox") ParseSkybox(g, t, ref i);
+            else if (kw == "skybox") ParseSkybox(g, tokens, ref i);
             else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
             else i++; // unknown keyword (skybox/brightmap/material/... handled by skipping its block next)
@@ -348,24 +349,27 @@ public static class GldefsParser
         g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
     }
 
-    private static void ParseSkybox(Gldefs g, List<string> t, ref int i)
+    private static void ParseSkybox(Gldefs g, TokenStream t, ref int i)
     {
         i++; // skybox
-        if (i >= t.Count) return;
-        var skybox = new GldefsSkybox { Name = t[i++].ToUpperInvariant() };
-        if (i < t.Count && t[i].Equals("fliptop", StringComparison.OrdinalIgnoreCase))
+        if (i >= t.Text.Count || IsInvalidLongTextureName(t, i)) return;
+        var skybox = new GldefsSkybox { Name = t.Text[i++].ToUpperInvariant() };
+        if (i < t.Text.Count && t.Text[i].Equals("fliptop", StringComparison.OrdinalIgnoreCase))
         {
             skybox.FlipTop = true;
             i++;
         }
-        if (i < t.Count && t[i] == "{")
+        if (i < t.Text.Count && t.Text[i] == "{")
         {
             i++;
-            while (i < t.Count && t[i] != "}") skybox.Textures.Add(t[i++]);
-            if (i < t.Count) i++;
+            while (i < t.Text.Count && t.Text[i] != "}") skybox.Textures.Add(t.Text[i++]);
+            if (i < t.Text.Count) i++;
         }
         if (skybox.Name.Length > 0 && (skybox.Textures.Count == 3 || skybox.Textures.Count == 6)) g.Skyboxes[skybox.Name] = skybox;
     }
+
+    private static bool IsInvalidLongTextureName(TokenStream t, int i)
+        => t.Text[i].Length > 8 && !t.Quoted[i];
 
     private static float ReadFloat(List<string> t, ref int i)
     {
@@ -420,9 +424,10 @@ public static class GldefsParser
         }
     }
 
-    private static List<string> Tokenize(string s)
+    private static TokenStream Tokenize(string s)
     {
         var toks = new List<string>();
+        var quoted = new List<bool>();
         int n = s.Length;
         for (int p = 0; p < n;)
         {
@@ -430,12 +435,15 @@ public static class GldefsParser
             if (char.IsWhiteSpace(c)) { p++; continue; }
             if (c == '/' && p + 1 < n && s[p + 1] == '/') { p += 2; while (p < n && s[p] != '\n') p++; continue; }
             if (c == '/' && p + 1 < n && s[p + 1] == '*') { p += 2; while (p + 1 < n && !(s[p] == '*' && s[p + 1] == '/')) p++; p += 2; continue; }
-            if (c == '"') { var sb = new StringBuilder(); p++; while (p < n && s[p] != '"') sb.Append(s[p++]); p++; toks.Add(sb.ToString()); continue; }
-            if (c == '{' || c == '}' || c == ',') { toks.Add(c.ToString()); p++; continue; }
+            if (c == '"') { var sb = new StringBuilder(); p++; while (p < n && s[p] != '"') sb.Append(s[p++]); p++; toks.Add(sb.ToString()); quoted.Add(true); continue; }
+            if (c == '{' || c == '}' || c == ',') { toks.Add(c.ToString()); quoted.Add(false); p++; continue; }
             int b = p;
             while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '{' && s[p] != '}' && s[p] != ',' && s[p] != '"') p++;
             toks.Add(s.Substring(b, p - b));
+            quoted.Add(false);
         }
-        return toks;
+        return new TokenStream(toks, quoted);
     }
+
+    private sealed record TokenStream(List<string> Text, List<bool> Quoted);
 }

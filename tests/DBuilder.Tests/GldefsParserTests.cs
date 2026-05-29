@@ -206,6 +206,21 @@ brightmap texture FOO { map FOO_BR }";
     }
 
     [Fact]
+    public void RequiresQuotesForLongSkyboxNames()
+    {
+        const string text = @"
+skybox LONGSKYBOX { SKY1 SKY2 SKY3 }
+skybox ""LONGSKYBOX"" { SKY1 SKY2 SKY3 }
+skybox SHORTSKY { SKY1 SKY2 SKY3 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(2, g.Skyboxes.Count);
+        Assert.True(g.Skyboxes.ContainsKey("LONGSKYBOX"));
+        Assert.True(g.Skyboxes.ContainsKey("SHORTSKY"));
+    }
+
+    [Fact]
     public void ParsesIncludesOnce()
     {
         const string root = @"
