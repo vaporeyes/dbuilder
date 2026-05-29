@@ -346,7 +346,12 @@ public partial class MainWindow : Window
     }
 
     private async void OnBrowseThingsCatalog(object? sender, RoutedEventArgs e)
-        => await ShowCatalog("Browse Things", cfg => CatalogBrowse.Things(cfg), "Thing");
+        => await ShowCatalog("Browse Things", cfg => CatalogBrowse.Things(cfg), "Thing", MapView.InsertThingType,
+            (number, title) =>
+            {
+                MapView.InsertThingType = number;
+                SetStatus($"Insert thing type: {number} - {title}");
+            });
 
     private async void OnBrowseActionsCatalog(object? sender, RoutedEventArgs e)
         => await ShowCatalog("Browse Linedef Actions", cfg => CatalogBrowse.LinedefActions(cfg), "Linedef action");
@@ -354,12 +359,20 @@ public partial class MainWindow : Window
     private async void OnBrowseEffectsCatalog(object? sender, RoutedEventArgs e)
         => await ShowCatalog("Browse Sector Effects", cfg => CatalogBrowse.SectorEffects(cfg), "Sector effect");
 
-    private async Task ShowCatalog(string title, Func<GameConfiguration, List<BrowseEntry>> entries, string label)
+    private async Task ShowCatalog(
+        string title,
+        Func<GameConfiguration, List<BrowseEntry>> entries,
+        string label,
+        int current = 0,
+        Action<int, string>? onSelected = null)
     {
         if (_config is null) { SetStatus("No game configuration loaded."); return; }
-        var dlg = new BrowserDialog(title, entries(_config), current: 0);
+        var dlg = new BrowserDialog(title, entries(_config), current);
         if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
-            SetStatus($"{label} selected: {n} - {dlg.SelectedTitle}");
+        {
+            if (onSelected != null) onSelected(n, dlg.SelectedTitle);
+            else SetStatus($"{label} selected: {n} - {dlg.SelectedTitle}");
+        }
         MapView.Focus();
     }
 

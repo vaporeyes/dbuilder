@@ -311,6 +311,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.
   - [x] Add menu command for curve line drawing.
+  - [x] Let the thing browser choose the insert-at-cursor thing type.
 - [ ] Port texture alignment tools.
   - [x] Add menu commands for selected wall texture auto-alignment.
 - [ ] Port stair builder behavior fully.
