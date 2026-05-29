@@ -330,6 +330,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
+  - [x] Require integral GLDEFS light radius fields.
 - [x] Port SNDINFO parser.
 - [x] Port SNDSEQ parser.
 - [x] Port TERRAIN parser.

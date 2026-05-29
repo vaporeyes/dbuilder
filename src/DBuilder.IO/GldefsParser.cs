@@ -137,13 +137,13 @@ public static class GldefsParser
                 if (p == "color") { light.R = ClampColor(ReadFloat(t, ref i)); light.G = ClampColor(ReadFloat(t, ref i)); light.B = ClampColor(ReadFloat(t, ref i)); }
                 else if (p == "size")
                 {
-                    float size = ReadFloat(t, ref i);
+                    if (!TryReadInt(t, ref i, out int size)) { invalid = true; continue; }
                     if (type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || size < 0.0f) invalid = true;
                     else light.Size = size * 2.0f;
                 }
                 else if (p == "secondarysize")
                 {
-                    float secondarySize = ReadFloat(t, ref i);
+                    if (!TryReadInt(t, ref i, out int secondarySize)) { invalid = true; continue; }
                     if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) invalid = true;
                     else light.SecondarySize = secondarySize * 2.0f;
                 }
@@ -371,6 +371,19 @@ public static class GldefsParser
     {
         if (i < t.Count && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float v)) { i++; return v; }
         return 0;
+    }
+
+    private static bool TryReadInt(List<string> t, ref int i, out int value)
+    {
+        value = 0;
+        if (i >= t.Count) return false;
+        if (int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        {
+            i++;
+            return true;
+        }
+        i++;
+        return false;
     }
 
     private static bool TryReadIntFlag(List<string> t, ref int i, out bool value)

@@ -342,6 +342,21 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
     }
 
     [Fact]
+    public void SkipsLightsWithNonIntegralSizes()
+    {
+        const string text = @"
+pointlight FRACTIONALSIZE { color 1.0 1.0 1.0 size 8.5 }
+pulselight FRACTIONALSECONDARY { color 1.0 1.0 1.0 size 8 secondarysize 4.5 interval 1 }
+pointlight VALID { color 1.0 1.0 1.0 size 8 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("FRACTIONALSIZE"));
+        Assert.False(g.Lights.ContainsKey("FRACTIONALSECONDARY"));
+        Assert.True(g.Lights.ContainsKey("VALID"));
+    }
+
+    [Fact]
     public void SkipsLightsWithPropertiesForWrongLightType()
     {
         const string text = @"
