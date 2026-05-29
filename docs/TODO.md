@@ -287,6 +287,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add thing, linedef action, and sector effect browsers to argument editors.
   - [x] Add checkbox editors for configured enum-bit property fields.
   - [x] Add checkbox editors for configured enum-bit argument fields.
+  - [x] Add preset editors for configured degree-angle property and argument fields.
 
 ## Editing Core
 

@@ -259,6 +259,10 @@ public abstract class PropertyDialog : Window
                 var items = options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}"));
                 editors.SetCombo(i, AddCombo(label, items, current[i]));
             }
+            else if (handler?.GetType() == typeof(AngleDegreesTypeHandler))
+            {
+                editors.SetCombo(i, AddCombo(label, AngleDegreeItems(), current[i]));
+            }
             else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
             {
                 editors.SetFlags(i, AddFlagChecks(label, bitDefs, current[i]));
@@ -324,6 +328,10 @@ public abstract class PropertyDialog : Window
                     handler.GetIntValue());
                 editors.AddCombo(item, combo);
             }
+            else if (handler.GetType() == typeof(AngleDegreesTypeHandler))
+            {
+                editors.AddCombo(item, AddCombo(item.Field.Name, AngleDegreeItems(), handler.GetIntValue()));
+            }
             else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
             {
                 editors.AddFlags(item, AddFlagChecks(item.Field.Name, bitDefs, handler.GetIntValue()));
@@ -374,6 +382,19 @@ public abstract class PropertyDialog : Window
 
         return editors;
     }
+
+    private static IEnumerable<CatalogItem> AngleDegreeItems()
+        => new[]
+        {
+            new CatalogItem(0, "0 - East"),
+            new CatalogItem(45, "45 - Northeast"),
+            new CatalogItem(90, "90 - North"),
+            new CatalogItem(135, "135 - Northwest"),
+            new CatalogItem(180, "180 - West"),
+            new CatalogItem(225, "225 - Southwest"),
+            new CatalogItem(270, "270 - South"),
+            new CatalogItem(315, "315 - Southeast"),
+        };
 
     private static IReadOnlyDictionary<int, string> EnumBitDefinitions(EnumListInfo values)
     {
