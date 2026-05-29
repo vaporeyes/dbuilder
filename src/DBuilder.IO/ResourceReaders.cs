@@ -735,7 +735,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 nestedStreams.Add(ms);
                 nestedReaders.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true));
             }
-            else if (LooksLikeNestedZip(e.FullName))
+            else if (ArchivePath.IsPk3FamilyPath(e.FullName))
             {
                 using var s = e.Open();
                 var ms = new MemoryStream();
@@ -745,15 +745,6 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false, displayName: e.FullName));
             }
         }
-    }
-
-    private static bool LooksLikeNestedZip(string path)
-    {
-        string ext = Path.GetExtension(path);
-        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pkz", StringComparison.OrdinalIgnoreCase);
     }
 
     public override void Dispose()

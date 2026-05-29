@@ -54,7 +54,7 @@ public static class Pk3Maps
                 foreach (var map in FindMaps(entry))
                     result.Add(new Pk3MapEntry(archivePath, map));
             }
-            else if (LooksLikeNestedZip(entry.FullName))
+            else if (ArchivePath.IsPk3FamilyPath(entry.FullName))
             {
                 using var nested = OpenNestedZip(entry);
                 Find(nested, archivePath, result);
@@ -99,7 +99,7 @@ public static class Pk3Maps
         string outerPath = archivePath.Substring(0, separator);
         string innerPath = archivePath.Substring(separator + 1);
         var outerEntry = zip.GetEntry(outerPath);
-        if (outerEntry == null || !LooksLikeNestedZip(outerEntry.FullName)) return null;
+        if (outerEntry == null || !ArchivePath.IsPk3FamilyPath(outerEntry.FullName)) return null;
 
         using var nested = OpenNestedZip(outerEntry);
         return ReadArchiveBytes(nested, innerPath);
@@ -108,12 +108,4 @@ public static class Pk3Maps
     private static bool IsWadPath(string path)
         => Path.GetExtension(path).Equals(".wad", StringComparison.OrdinalIgnoreCase);
 
-    private static bool LooksLikeNestedZip(string path)
-    {
-        string ext = Path.GetExtension(path);
-        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pkz", StringComparison.OrdinalIgnoreCase);
-    }
 }

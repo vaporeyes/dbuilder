@@ -79,6 +79,29 @@ public class Pk3MapsTests
         }
     }
 
+    [Fact]
+    public void FindsAndLoadsMapsInNestedIpk3Entries()
+    {
+        string pk3 = TestArtifacts.BuildPk3(("archives/nested.ipk3", BuildNestedPk3WithMap()));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            Assert.Equal("archives/nested.ipk3!maps/map02.wad", entry.ArchivePath);
+            Assert.Equal("MAP02", entry.Map.Name);
+
+            var map = Pk3Maps.Load(pk3, entry);
+
+            Assert.NotNull(map);
+            Assert.Equal("ZDoom", map!.Namespace);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
     private static byte[] BuildUdmfWad(string marker)
     {
         using var ms = new MemoryStream();

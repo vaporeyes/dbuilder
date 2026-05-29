@@ -838,8 +838,8 @@ public sealed class ResourceManager : IDisposable
 
     private static bool LooksLikeZip(string path)
     {
+        if (ArchivePath.IsPk3FamilyPath(path)) return true;
         string ext = Path.GetExtension(path).ToLowerInvariant();
-        if (ext is ".pk3" or ".pk7" or ".zip" or ".pkz") return true;
         if (ext == ".wad") return false;
         // Fall back to the file signature ("PK\x03\x04").
         try

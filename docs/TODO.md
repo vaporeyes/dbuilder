@@ -279,6 +279,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port PK3 reader resource behavior.
 - [ ] Port structured PK3 reader behavior.
   - [x] Discover and load maps from nested PK3 archives.
+  - [x] Recognize UDB PK3-family archive extensions in nested archive readers.
 - [ ] Port directory reader behavior.
 - [ ] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.

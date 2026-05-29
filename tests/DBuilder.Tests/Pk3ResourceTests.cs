@@ -234,4 +234,21 @@ public class Pk3ResourceTests
         }
         finally { File.Delete(path); }
     }
+
+    [Fact]
+    public void NestedIpk3InsidePk3ProvidesFolderResources()
+    {
+        string path = TestArtifacts.BuildPk3(("archives/nested.ipk3", BuildNestedResourcePk3()));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            var flat = rm.GetFlat("NESTPK3");
+            Assert.NotNull(flat);
+            Assert.Equal(new byte[] { 33, 44, 55, 255 }, flat!.Rgba[0..4]);
+            Assert.Contains("NESTPK3", rm.GetFlatNames());
+        }
+        finally { File.Delete(path); }
+    }
 }
