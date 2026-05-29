@@ -305,6 +305,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.
+  - [x] Add menu command for curve line drawing.
 - [ ] Port texture alignment tools.
   - [x] Add menu commands for selected wall texture auto-alignment.
 - [ ] Port stair builder behavior fully.

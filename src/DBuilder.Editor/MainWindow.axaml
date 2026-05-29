@@ -79,6 +79,7 @@
                 <MenuItem Header="_Make Sector at Cursor" Click="OnMakeSectorAtCursor" />
                 <MenuItem Header="Draw _Sector" Click="OnDrawSector" />
                 <MenuItem Header="Draw _Lines Only" Click="OnDrawLines" />
+                <MenuItem Header="Draw _Curve" Click="OnDrawCurve" />
                 <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />
                 <MenuItem Header="Draw _Ellipse" Click="OnDrawEllipse" />
             </MenuItem>

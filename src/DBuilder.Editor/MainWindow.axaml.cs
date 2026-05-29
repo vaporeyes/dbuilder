@@ -928,6 +928,7 @@ public partial class MainWindow : Window
 
     private void OnDrawSector(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: false, "sector");
     private void OnDrawLines(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: true, "lines-only");
+    private void OnDrawCurve(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: true, "curve", curve: true);
     private void OnMakeSectorAtCursor(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MakeSectorAtCursor());
     private void OnInsertAtCursor(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.InsertAtCursor());
     private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
@@ -940,9 +941,9 @@ public partial class MainWindow : Window
         SetStatus(status);
     }
 
-    private void ToggleDrawMode(bool linesOnly, string name)
+    private void ToggleDrawMode(bool linesOnly, string name, bool curve = false)
     {
-        MapView.ToggleDrawMode(linesOnly);
+        MapView.ToggleDrawMode(linesOnly, curve);
         MapView.Focus();
         SetStatus(MapView.DrawMode
             ? $"Draw {name}: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."

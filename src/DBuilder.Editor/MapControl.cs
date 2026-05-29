@@ -163,8 +163,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector
     // (or, in lines-only mode, just the linedefs of the drawn polyline).
+    private const int DrawCurveSegmentLength = 16;
     private bool _drawMode;
     private bool _drawLinesOnly; // Shift+D: lay plain linedefs instead of building a sector
+    private bool _drawCurve;     // Curve mode smooths the placed control points into linedefs
     private bool _drawClosed;    // set when the user closes the polyline by clicking the first point
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
     private Vec2D _drawCursor;
@@ -2349,11 +2351,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool SnapToGridEnabled => _snapToGrid;
     public event Action? DrawModeChanged;
 
-    public void ToggleDrawMode(bool linesOnly = false)
+    public void ToggleDrawMode(bool linesOnly = false, bool curve = false)
     {
         // Re-pressing the same draw key exits; switching kind restarts with the new kind.
-        if (_drawMode && _drawLinesOnly == linesOnly) _drawMode = false;
-        else { _drawMode = true; _drawLinesOnly = linesOnly; _shapeKind = ShapeKind.None; } // draw and shape are exclusive
+        if (_drawMode && _drawLinesOnly == linesOnly && _drawCurve == curve) _drawMode = false;
+        else
+        {
+            _drawMode = true;
+            _drawLinesOnly = linesOnly;
+            _drawCurve = curve;
+            _shapeKind = ShapeKind.None;
+        } // draw and shape are exclusive
         _drawPoints.Clear();
         _drawClosed = false;
         _drawDirty = true;
@@ -2369,6 +2377,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         bool was = InDrawMode;
         _drawMode = false;
+        _drawCurve = false;
         _shapeKind = ShapeKind.None;
         _drawPoints.Clear();
         _drawClosed = false;
@@ -2425,10 +2434,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int min = _drawLinesOnly ? 2 : 3;
         if (_drawPoints.Count < min) { CancelDraw(); return; }
 
+        var points = MaterializedDrawPoints(includeCursor: false);
+        if (points.Count < min) { CancelDraw(); return; }
+
         // Materialize the drawn points as vertices, reusing any that snapped exactly onto existing ones.
-        var verts = new System.Collections.Generic.List<Vertex>(_drawPoints.Count);
-        EditBegun?.Invoke(_drawLinesOnly ? "Draw lines" : "Draw sector");
-        foreach (var p in _drawPoints)
+        var verts = new System.Collections.Generic.List<Vertex>(points.Count);
+        EditBegun?.Invoke(_drawCurve ? "Draw curve" : _drawLinesOnly ? "Draw lines" : "Draw sector");
+        foreach (var p in points)
         {
             var existing = _map.NearestVertex(p, 0.01);
             verts.Add(existing ?? _map.AddVertex(p));
@@ -2437,7 +2449,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_drawLinesOnly)
         {
             for (int i = 0; i < verts.Count - 1; i++) _map.AddLinedef(verts[i], verts[i + 1]);
-            if (_drawClosed && verts.Count >= 3) _map.AddLinedef(verts[^1], verts[0]);
+            if (_drawClosed && verts.Count >= 3 && !SamePoint(verts[0].Position, verts[^1].Position))
+                _map.AddLinedef(verts[^1], verts[0]);
         }
         else
         {
@@ -2450,10 +2463,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _drawPoints.Clear();
         _drawClosed = false;
+        _drawCurve = false;
         _drawDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
     }
+
+    private System.Collections.Generic.List<Vec2D> MaterializedDrawPoints(bool includeCursor)
+    {
+        var control = new System.Collections.Generic.List<Vec2D>(_drawPoints);
+        if (includeCursor && (control.Count == 0 || !SamePoint(control[^1], _drawCursor))) control.Add(_drawCursor);
+        if (!_drawCurve) return control;
+
+        if (_drawClosed && control.Count >= 3 && !SamePoint(control[0], control[^1])) control.Add(control[0]);
+        return CurveTools.CurveThroughPoints(control, 0.5f, 0.75f, DrawCurveSegmentLength).Shape;
+    }
+
+    private static bool SamePoint(Vec2D a, Vec2D b)
+        => Math.Abs(a.x - b.x) < 0.001 && Math.Abs(a.y - b.y) < 0.001;
 
     // Builds the in-progress draw overlay: placed-point segments + a preview segment to the cursor.
     private void RebuildDrawPreview()
@@ -2464,14 +2491,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         const int col = unchecked((int)0xff40ff80);   // bright green polyline
         const int preview = unchecked((int)0xff80ff40);
         var verts = new System.Collections.Generic.List<FlatVertex>();
-        for (int i = 0; i < _drawPoints.Count - 1; i++)
+        var points = MaterializedDrawPoints(includeCursor: _drawCurve);
+        for (int i = 0; i < points.Count - 1; i++)
         {
-            verts.Add(FV(_drawPoints[i], col));
-            verts.Add(FV(_drawPoints[i + 1], col));
+            verts.Add(FV(points[i], col));
+            verts.Add(FV(points[i + 1], col));
         }
-        // Preview segment from the last placed point to the (snapped) cursor.
-        verts.Add(FV(_drawPoints[^1], preview));
-        verts.Add(FV(_drawCursor, preview));
+        if (!_drawCurve)
+        {
+            // Preview segment from the last placed point to the (snapped) cursor.
+            verts.Add(FV(_drawPoints[^1], preview));
+            verts.Add(FV(_drawCursor, preview));
+        }
 
         _device.SetBufferData(_drawVb, verts.ToArray());
         _drawLineCount = verts.Count / 2;
