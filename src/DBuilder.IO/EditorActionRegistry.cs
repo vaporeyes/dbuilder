@@ -43,6 +43,20 @@ public sealed class EndEditorActionAttribute : EditorActionAttribute
     public override EditorActionPhase Phase => EditorActionPhase.End;
 }
 
+public sealed class EditorActionContext
+{
+    private bool _exclusiveRequested;
+
+    public bool ExclusiveRequested => _exclusiveRequested;
+
+    public bool RequestExclusiveInvocation()
+    {
+        if (_exclusiveRequested) return false;
+        _exclusiveRequested = true;
+        return true;
+    }
+}
+
 public sealed record EditorActionBinding(
     string CommandId,
     EditorActionPhase Phase,
@@ -51,9 +65,12 @@ public sealed record EditorActionBinding(
     bool BaseAction,
     string Library)
 {
-    public bool Invoke()
+    public bool Invoke(EditorActionContext? context = null)
     {
-        object? result = Method.Invoke(Target, Array.Empty<object>());
+        object?[] args = Method.GetParameters().Length == 0
+            ? Array.Empty<object?>()
+            : new object?[] { context ?? new EditorActionContext() };
+        object? result = Method.Invoke(Target, args);
         return result is not bool handled || handled;
     }
 }
@@ -82,7 +99,9 @@ public static class EditorActionRegistry
         {
             if (target is null && !method.IsStatic) continue;
             if (target is not null && method.IsStatic) continue;
-            if (method.GetParameters().Length != 0) continue;
+            var parameters = method.GetParameters();
+            if (parameters.Length > 1) continue;
+            if (parameters.Length == 1 && parameters[0].ParameterType != typeof(EditorActionContext)) continue;
             if (method.ReturnType != typeof(void) && method.ReturnType != typeof(bool)) continue;
 
             foreach (var attribute in method.GetCustomAttributes<EditorActionAttribute>(true))
@@ -142,8 +161,13 @@ public sealed class EditorActionDispatcher
         if (!groups.TryGetValue(commandId, out var bindings)) return false;
 
         bool handled = false;
+        var context = new EditorActionContext();
         foreach (var binding in bindings)
-            handled |= binding.Invoke();
+        {
+            handled |= binding.Invoke(context);
+            if (context.ExclusiveRequested) break;
+        }
+
         return handled;
     }
 }

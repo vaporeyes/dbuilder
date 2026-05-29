@@ -89,6 +89,32 @@ public class EditorActionRegistryTests
         Assert.False(dispatcher.Begin("map2d.cancel-draw"));
     }
 
+    [Fact]
+    public void DispatcherStopsPhaseAfterExclusiveRequest()
+    {
+        var exclusive = new ExclusiveActionTarget("exclusive");
+        var skipped = new OrderedActionTarget("skipped");
+        var dispatcher = EditorActionDispatcher.FromTargets(exclusive, skipped);
+
+        Assert.True(dispatcher.Begin("map2d.draw-sector"));
+        Assert.True(dispatcher.End("map2d.draw-sector"));
+
+        Assert.Equal(new[] { "exclusive:begin", "exclusive:end" }, exclusive.Events);
+        Assert.Empty(skipped.Events);
+    }
+
+    [Fact]
+    public void DirectInvokeProvidesContextForContextAwareBindings()
+    {
+        var target = new ExclusiveActionTarget("direct");
+        var binding = Assert.Single(EditorActionRegistry.Discover(target), item => item.Phase == EditorActionPhase.Begin);
+        var context = new EditorActionContext();
+
+        Assert.True(binding.Invoke(context));
+        Assert.True(context.ExclusiveRequested);
+        Assert.False(context.RequestExclusiveInvocation());
+    }
+
     private sealed class ActionTarget
     {
         public int Invocations { get; private set; }
@@ -133,6 +159,32 @@ public class EditorActionRegistryTests
         public int WrongReturnType()
         {
             return 1;
+        }
+    }
+
+    private sealed class ExclusiveActionTarget
+    {
+        private readonly string _name;
+
+        public ExclusiveActionTarget(string name)
+        {
+            _name = name;
+        }
+
+        public List<string> Events { get; } = new();
+
+        [BeginEditorAction("map2d.draw-sector")]
+        public void Begin(EditorActionContext context)
+        {
+            Events.Add($"{_name}:begin");
+            Assert.True(context.RequestExclusiveInvocation());
+        }
+
+        [EndEditorAction("map2d.draw-sector")]
+        public void End(EditorActionContext context)
+        {
+            Events.Add($"{_name}:end");
+            Assert.True(context.RequestExclusiveInvocation());
         }
     }
 
