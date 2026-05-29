@@ -1755,6 +1755,28 @@ public class MapSet : IDisposable
         return closest;
     }
 
+    /// <summary>Nearest vertex inside a square range, ranked by Manhattan distance like UDB.</summary>
+    public static Vertex? NearestVertexSquareRange(ICollection<Vertex> selection, Vector2D pos, double maxRange)
+    {
+        var range = RectangleF.FromLTRB(
+            (float)(pos.x - maxRange),
+            (float)(pos.y - maxRange),
+            (float)(pos.x + maxRange),
+            (float)(pos.y + maxRange));
+        Vertex? closest = null;
+        double best = double.MaxValue;
+        foreach (var v in selection)
+        {
+            double x = v.Position.x;
+            double y = v.Position.y;
+            if (x < range.Left || x > range.Right || y < range.Top || y > range.Bottom) continue;
+
+            double d = Math.Abs(x - pos.x) + Math.Abs(y - pos.y);
+            if (d < best) { best = d; closest = v; }
+        }
+        return closest;
+    }
+
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/> units, or null if none.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
     {

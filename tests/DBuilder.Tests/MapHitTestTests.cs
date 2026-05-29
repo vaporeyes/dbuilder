@@ -67,6 +67,18 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestVertexSquareRangeUsesSquareBoundsAndManhattanDistance()
+    {
+        var diagonal = new Vertex(new Vector2D(4, 4));
+        var outsideSquare = new Vertex(new Vector2D(6, 0));
+        var selection = new[] { outsideSquare, diagonal };
+
+        Assert.Same(diagonal, MapSet.NearestVertexSquareRange(selection, new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(MapSet.NearestVertexSquareRange(selection, new Vector2D(0, 0), maxRange: 3));
+        Assert.Null(MapSet.NearestVertexSquareRange(Array.Empty<Vertex>(), new Vector2D(0, 0), maxRange: 5));
+    }
+
+    [Fact]
     public void VertexDistanceHelpersMatchUdbSurface()
     {
         var vertex = new Vertex(new Vector2D(3, 4));
