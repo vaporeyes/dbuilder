@@ -46,7 +46,16 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         => MapSet.NearestLinedef(Linedefs, pos);
 
     public void Move(Vector2D newPosition)
-        => Position = newPosition;
+    {
+        if (Position == newPosition) return;
+
+        Position = newPosition;
+        foreach (var line in Linedefs)
+            line.Angle = Linedef.ComputeAngle(line.Start, line.End);
+    }
+
+    public void Move(double x, double y)
+        => Move(new Vector2D(x, y));
 
     public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {

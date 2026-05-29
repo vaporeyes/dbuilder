@@ -115,6 +115,21 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void VertexMoveRefreshesAttachedLinedefAngles()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(10, 0));
+        var line = map.AddLinedef(start, end);
+        map.BuildIndexes();
+
+        end.Move(0, 10);
+
+        Assert.Equal(new Vector2D(0, 10), end.Position);
+        Assert.Equal(Linedef.ComputeAngle(start, end), line.Angle);
+    }
+
+    [Fact]
     public void VertexNearestLinedefSearchesAttachedLines()
     {
         var map = new MapSet();
