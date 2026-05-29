@@ -330,6 +330,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add view-layer menu commands for sector fills and things visibility.
   - [x] Add browser menu commands for textures, flats, things, linedef actions, and sector effects.
   - [x] Let action and effect browser picks apply to selected map elements.
+  - [x] Let flat browser picks apply to selected sector floors and ceilings.
 - [ ] Port toolbar layout and all toolbar actions.
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.

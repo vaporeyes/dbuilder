@@ -345,6 +345,41 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private async void OnBrowseFloorFlats(object? sender, RoutedEventArgs e)
+        => await ApplyFlatToSelectedSectors(ceiling: false);
+
+    private async void OnBrowseCeilingFlats(object? sender, RoutedEventArgs e)
+        => await ApplyFlatToSelectedSectors(ceiling: true);
+
+    private async Task ApplyFlatToSelectedSectors(bool ceiling)
+    {
+        if (_resources is null) { SetStatus("No resources loaded for flats."); return; }
+        if (_map is null || _undo is null || _map.SelectedSectorsCount == 0)
+        {
+            SetStatus("Select one or more sectors before applying flats.");
+            return;
+        }
+
+        var sectors = _map.GetSelectedSectors();
+        var dlg = new TextureBrowserDialog(_resources, flats: true)
+        {
+            Title = ceiling ? "Set Ceiling Flats" : "Set Floor Flats",
+        };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
+        {
+            _undo.CreateUndo(ceiling ? "Set ceiling flat" : "Set floor flat");
+            foreach (var sector in sectors)
+            {
+                if (ceiling) sector.CeilTexture = name;
+                else sector.FloorTexture = name;
+            }
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            SetStatus($"Set {sectors.Count} {(ceiling ? "ceiling" : "floor")} flat(s) to {name}.");
+        }
+        MapView.Focus();
+    }
+
     private async void OnBrowseThingsCatalog(object? sender, RoutedEventArgs e)
         => await ShowCatalog("Browse Things", cfg => CatalogBrowse.Things(cfg), "Thing", MapView.InsertThingType,
             (number, title) =>

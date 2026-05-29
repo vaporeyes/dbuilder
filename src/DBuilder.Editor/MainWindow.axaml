@@ -80,6 +80,8 @@
                 <MenuItem Header="_Browsers">
                     <MenuItem Header="_Textures..." Click="OnBrowseWallTextures" />
                     <MenuItem Header="_Flats..." Click="OnBrowseFlats" />
+                    <MenuItem Header="Set Selected _Floor Flats..." Click="OnBrowseFloorFlats" />
+                    <MenuItem Header="Set Selected _Ceiling Flats..." Click="OnBrowseCeilingFlats" />
                     <MenuItem Header="_Things..." Click="OnBrowseThingsCatalog" />
                     <MenuItem Header="_Linedef Actions..." Click="OnBrowseActionsCatalog" />
                     <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
