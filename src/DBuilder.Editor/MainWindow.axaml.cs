@@ -354,10 +354,14 @@ public partial class MainWindow : Window
             });
 
     private async void OnBrowseActionsCatalog(object? sender, RoutedEventArgs e)
-        => await ShowCatalog("Browse Linedef Actions", cfg => CatalogBrowse.LinedefActions(cfg), "Linedef action");
+        => await ShowCatalog("Browse Linedef Actions", cfg => CatalogBrowse.LinedefActions(cfg), "Linedef action",
+            CurrentLinedefAction(),
+            (number, title) => ApplyActionToSelectedLinedefs(number, title));
 
     private async void OnBrowseEffectsCatalog(object? sender, RoutedEventArgs e)
-        => await ShowCatalog("Browse Sector Effects", cfg => CatalogBrowse.SectorEffects(cfg), "Sector effect");
+        => await ShowCatalog("Browse Sector Effects", cfg => CatalogBrowse.SectorEffects(cfg), "Sector effect",
+            CurrentSectorEffect(),
+            (number, title) => ApplyEffectToSelectedSectors(number, title));
 
     private async Task ShowCatalog(
         string title,
@@ -374,6 +378,44 @@ public partial class MainWindow : Window
             else SetStatus($"{label} selected: {n} - {dlg.SelectedTitle}");
         }
         MapView.Focus();
+    }
+
+    private int CurrentLinedefAction()
+        => _map?.GetSelectedLinedefs().FirstOrDefault()?.Action ?? 0;
+
+    private int CurrentSectorEffect()
+        => _map?.GetSelectedSectors().FirstOrDefault()?.Special ?? 0;
+
+    private void ApplyActionToSelectedLinedefs(int action, string title)
+    {
+        if (_map is null || _undo is null || _map.SelectedLinedefsCount == 0)
+        {
+            SetStatus($"Linedef action selected: {action} - {title}");
+            return;
+        }
+
+        var lines = _map.GetSelectedLinedefs();
+        _undo.CreateUndo("Set linedef action");
+        foreach (var line in lines) line.Action = action;
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Set {lines.Count} linedef action(s) to {action} - {title}");
+    }
+
+    private void ApplyEffectToSelectedSectors(int effect, string title)
+    {
+        if (_map is null || _undo is null || _map.SelectedSectorsCount == 0)
+        {
+            SetStatus($"Sector effect selected: {effect} - {title}");
+            return;
+        }
+
+        var sectors = _map.GetSelectedSectors();
+        _undo.CreateUndo("Set sector effect");
+        foreach (var sector in sectors) sector.Special = effect;
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Set {sectors.Count} sector effect(s) to {effect} - {title}");
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat);
