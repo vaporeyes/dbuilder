@@ -238,6 +238,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve unknown top-level UDMF collections through load, clone, undo, and write.
 - [ ] Complete UDMF map writer parity.
   - [x] Emit UDMF element blocks in UDB order.
+  - [x] Escape UDMF string control characters during writes.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.

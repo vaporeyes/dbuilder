@@ -590,4 +590,18 @@ public class UdmfMapWriterTests
         Assert.Equal("WITH\"QUOTE", r!.Sectors[0].FloorTexture);
         Assert.Equal("BACK\\SLASH", r.Sectors[0].CeilTexture);
     }
+
+    [Fact]
+    public void ControlCharactersInStringsAreEscaped()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Fields["comment"] = "line1\nline2\tTabbed\rReturn";
+
+        var text = UdmfMapWriter.Write(map);
+
+        Assert.Contains("comment = \"line1\\nline2\\tTabbed\\rReturn\";", text);
+        var reloaded = UdmfMapLoader.Load(text, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal("line1\nline2\tTabbed\rReturn", reloaded.Fields["comment"]);
+    }
 }
