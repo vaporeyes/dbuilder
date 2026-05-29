@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private string _configFile = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
     private bool _mapDirty;
+    private bool _allowDirtyClose;
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
     private const string DefaultConfigDir =
@@ -212,8 +213,10 @@ public partial class MainWindow : Window
     // ---- File ----
 
     // Starts a fresh empty map. Keeps any open WAD's resources so textures still resolve while editing.
-    private void OnNewMap(object? sender, RoutedEventArgs e)
+    private async void OnNewMap(object? sender, RoutedEventArgs e)
     {
+        if (!await ConfirmDiscardDirtyMap()) return;
+
         var map = new MapSet();
         _map = map;
         _mapMarker = "MAP01";
@@ -654,7 +657,26 @@ public partial class MainWindow : Window
         base.OnKeyDown(e);
     }
 
-    private void OnExit(object? sender, RoutedEventArgs e) => Close();
+    private async void OnExit(object? sender, RoutedEventArgs e)
+    {
+        if (!await ConfirmDiscardDirtyMap()) return;
+        _allowDirtyClose = true;
+        Close();
+    }
+
+    protected override async void OnClosing(WindowClosingEventArgs e)
+    {
+        if (_allowDirtyClose || !_mapDirty)
+        {
+            base.OnClosing(e);
+            return;
+        }
+
+        e.Cancel = true;
+        if (!await ConfirmDiscardDirtyMap()) return;
+        _allowDirtyClose = true;
+        Close();
+    }
 
     // ---- Edit ----
 
@@ -1347,6 +1369,8 @@ public partial class MainWindow : Window
 
     private async Task LoadArchive(string path, bool promptForMap)
     {
+        if (!await ConfirmDiscardDirtyMap()) return;
+
         if (IsPk3Path(path)) await LoadPk3(path, promptForMap);
         else await LoadWad(path, promptForMap);
     }
@@ -1584,6 +1608,13 @@ public partial class MainWindow : Window
     {
         _mapDirty = false;
         Title = CurrentEditorTitle();
+    }
+
+    private async Task<bool> ConfirmDiscardDirtyMap()
+    {
+        if (!_mapDirty) return true;
+        var dlg = new UnsavedChangesDialog(_mapMarker ?? "current map");
+        return await dlg.ShowDialog<bool>(this);
     }
 
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
