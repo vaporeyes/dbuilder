@@ -42,6 +42,26 @@ class FancyImp : Actor replaces Imp
     }
 
     [Fact]
+    public void SkipsZScriptPlaceholderStateSprites()
+    {
+        const string text = @"
+class PlaceholderSpriteActor : Actor
+{
+    States
+    {
+    Spawn:
+        ---- A 0;
+        #### A 0;
+        REAL A -1;
+        stop;
+    }
+}";
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("REALA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesSpacedZScriptEditorLineComments()
     {
         const string text = @"

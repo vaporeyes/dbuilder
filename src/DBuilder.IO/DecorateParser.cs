@@ -418,13 +418,19 @@ public static class DecorateParser
 
         foreach (string state in SpriteCheckStates)
             if (stateSprites.TryGetValue(state, out string? sprite))
-                return sprite;
+                if (!IsInvalidPlaceholderSprite(sprite))
+                    return sprite;
 
         return firstNonEmptySprite ?? firstSprite;
     }
 
     private static bool IsEmptySprite(string sprite)
-        => sprite.StartsWith("TNT1", StringComparison.OrdinalIgnoreCase);
+        => sprite.StartsWith("TNT1", StringComparison.OrdinalIgnoreCase)
+        || IsInvalidPlaceholderSprite(sprite);
+
+    private static bool IsInvalidPlaceholderSprite(string sprite)
+        => sprite.StartsWith("----", StringComparison.OrdinalIgnoreCase)
+        || sprite.Contains('#', StringComparison.Ordinal);
 
     private static void SkipZScriptMember(List<Tok> t, ref int i)
     {

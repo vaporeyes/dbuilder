@@ -399,6 +399,25 @@ ACTOR EmptySpawnThing 8003
     }
 
     [Fact]
+    public void SkipsPlaceholderStateSprites()
+    {
+        const string text = @"
+ACTOR PlaceholderSpriteThing 8004
+{
+    States
+    {
+    Spawn:
+        ---- A 0
+        #### A 0
+        REAL A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("REALA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {
         const string text = @"

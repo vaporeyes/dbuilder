@@ -305,6 +305,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve composite patches through mixed wall/flat base namespaces.
   - [x] Honor namespace mixing when resolving PK3 composite patch folders.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
+  - [x] Skip placeholder actor state sprites when choosing editor sprites.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.
 - [x] Port dynamic bitmap images.
@@ -344,6 +345,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port X11 RGB parser.
 - [ ] Port actor structure behavior for DECORATE and ZScript.
 - [ ] Port state, goto, and inheritance behavior.
+  - [x] Ignore placeholder state sprites for actor editor previews.
 - [ ] Port category and DoomEdNum merging behavior fully.
 - [ ] Add parser fixtures from real-world mod patterns.
 
