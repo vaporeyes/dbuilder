@@ -27,6 +27,7 @@ public sealed class MapOptionsDialog : PropertyDialog
     private readonly CheckBox _overrideCeilingHeight;
     private readonly CheckBox _overrideBrightness;
     private readonly CheckBox _useLongTextureNames;
+    private readonly TextBox _scriptCompiler;
     private readonly TextBox _reloadResourcePreCommand;
     private readonly TextBox _reloadResourcePostCommand;
     private readonly TextBox _testPreCommand;
@@ -74,6 +75,7 @@ public sealed class MapOptionsDialog : PropertyDialog
         _overrideBrightness = AddCheckBox("Override brightness", options.OverrideBrightness);
         _useLongTextureNames = AddCheckBox("Use long texture names", longTextureNamesSupported && options.UseLongTextureNames);
         _useLongTextureNames.IsEnabled = longTextureNamesSupported;
+        _scriptCompiler = AddField("Script compiler", options.ScriptCompiler);
         _reloadResourcePreCommand = AddField("Before reload resources", options.ReloadResourcePreCommand.Commands);
         _reloadResourcePostCommand = AddField("After reload resources", options.ReloadResourcePostCommand.Commands);
         _testPreCommand = AddField("Before test map", options.TestPreCommand.Commands);
@@ -99,6 +101,7 @@ public sealed class MapOptionsDialog : PropertyDialog
         options.OverrideCeilingHeight = _overrideCeilingHeight.IsChecked == true;
         options.OverrideBrightness = _overrideBrightness.IsChecked == true;
         options.UseLongTextureNames = _longTextureNamesSupported && _useLongTextureNames.IsChecked == true;
+        options.ScriptCompiler = _scriptCompiler.Text?.Trim() ?? "";
         options.ReloadResourcePreCommand.Commands = _reloadResourcePreCommand.Text?.Trim() ?? "";
         options.ReloadResourcePostCommand.Commands = _reloadResourcePostCommand.Text?.Trim() ?? "";
         options.TestPreCommand.Commands = _testPreCommand.Text?.Trim() ?? "";
