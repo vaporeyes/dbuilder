@@ -16,6 +16,23 @@ public sealed record ExternalCommandResult(bool Success, string Message)
     public static ExternalCommandResult Fail(string message) => new(false, message);
 }
 
+public static class ExternalCommandLaunch
+{
+    public static ProcessStartInfo CreateStartInfo(ExternalCommandInvocation invocation)
+    {
+        var startInfo = new ProcessStartInfo(invocation.FileName)
+        {
+            UseShellExecute = false,
+            RedirectStandardError = true,
+        };
+        if (!string.IsNullOrWhiteSpace(invocation.WorkingDirectory))
+            startInfo.WorkingDirectory = invocation.WorkingDirectory;
+        foreach (string argument in invocation.Arguments)
+            startInfo.ArgumentList.Add(argument);
+        return startInfo;
+    }
+}
+
 public static class ExternalCommand
 {
     public static List<ExternalCommandInvocation> BuildInvocations(ExternalCommandSettings settings)
@@ -37,15 +54,7 @@ public static class ExternalCommand
 
         foreach (var invocation in invocations)
         {
-            var startInfo = new ProcessStartInfo(invocation.FileName)
-            {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-            };
-            if (!string.IsNullOrWhiteSpace(invocation.WorkingDirectory))
-                startInfo.WorkingDirectory = invocation.WorkingDirectory;
-            foreach (string argument in invocation.Arguments)
-                startInfo.ArgumentList.Add(argument);
+            var startInfo = ExternalCommandLaunch.CreateStartInfo(invocation);
 
             try
             {

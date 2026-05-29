@@ -48,4 +48,21 @@ public class ExternalCommandTests
 
         Assert.Empty(ExternalCommand.BuildInvocations(settings));
     }
+
+    [Fact]
+    public void CreateStartInfoUsesDBuilderLaunchDefaults()
+    {
+        var invocation = new ExternalCommandInvocation(
+            "/tools/buildnodes",
+            new[] { "-o", "out.wad", "in.wad" },
+            "/tmp/project");
+
+        var startInfo = ExternalCommandLaunch.CreateStartInfo(invocation);
+
+        Assert.Equal("/tools/buildnodes", startInfo.FileName);
+        Assert.False(startInfo.UseShellExecute);
+        Assert.True(startInfo.RedirectStandardError);
+        Assert.Equal("/tmp/project", startInfo.WorkingDirectory);
+        Assert.Equal(new[] { "-o", "out.wad", "in.wad" }, startInfo.ArgumentList);
+    }
 }
