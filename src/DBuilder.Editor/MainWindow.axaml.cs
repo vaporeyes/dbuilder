@@ -2407,23 +2407,47 @@ public partial class MainWindow : Window
     private void UpdateCommandAvailability()
     {
         bool hasMap = _map is not null;
+        bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
+        bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
+        bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
+        bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
 
-        SetEnabled(SaveMenuItem, hasMap);
-        SetEnabled(SaveAsMenuItem, hasMap);
-        SetEnabled(SaveAsFormatMenuItem, hasMap);
-        SetEnabled(SaveButton, hasMap);
-        SetEnabled(DeleteMenuItem, hasSelection);
-        SetEnabled(DeleteButton, hasSelection);
-        SetEnabled(UndoMenuItem, canUndo);
-        SetEnabled(UndoButton, canUndo);
-        SetEnabled(RedoMenuItem, canRedo);
-        SetEnabled(RedoButton, canRedo);
+        SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
+        SetEnabled(hasMap,
+            CloseMapMenuItem, MapOptionsMenuItem, PasteMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
+            SelectNoneMenuItem, StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, FlagsMenuItem,
+            CustomFieldsMenuItem, TagsMenuItem, InsertAtCursorMenuItem, VerticesModeMenuItem,
+            LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
+            GoToCoordinatesMenuItem, TagStatisticsMenuItem, ThingStatisticsMenuItem, Toggle3DModeMenuItem,
+            ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
+            Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
+            MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
+            DrawRectangleMenuItem, DrawEllipseMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
+            RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
+            SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
+            SectorsModeButton, ThingsModeButton, MakeSectorAtCursorButton, DrawSectorButton,
+            DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, CheckMapButton,
+            CleanUpGeometryButton, TestMapButton, BuildStairsButton, ApplySlopesButton);
+        SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
+        SetEnabled(hasSelection,
+            CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, TransformSelectionMenuItem,
+            FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
+            ScaleUpMenuItem, ScaleDownMenuItem, AlignTexturesMenuItem, AlignHorizontalMenuItem,
+            AlignVerticalMenuItem, SavePrefabMenuItem, DeleteButton);
+        SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
+        SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
+        SetEnabled(canUndo, UndoMenuItem, UndoButton);
+        SetEnabled(canRedo, RedoMenuItem, RedoButton);
     }
 
-    private static void SetEnabled(Control control, bool enabled) => control.IsEnabled = enabled;
+    private static void SetEnabled(bool enabled, params Control[] controls)
+    {
+        foreach (var control in controls) control.IsEnabled = enabled;
+    }
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;
 

@@ -16,16 +16,16 @@
                 <MenuItem Header="_Open WAD..." Click="OnOpen" />
                 <MenuItem Header="Open _Recent" x:Name="OpenRecentMenu" />
                 <MenuItem Header="_Recover Autosave..." Click="OnRecoverAutosave" />
-                <MenuItem Header="Open _Map..." Click="OnOpenMap" />
-                <MenuItem Header="_Reload Map" Click="OnReloadMap" />
-                <MenuItem Header="_Close Map" Click="OnCloseMap" />
+                <MenuItem Header="Open _Map..." x:Name="OpenMapMenuItem" Click="OnOpenMap" />
+                <MenuItem Header="_Reload Map" x:Name="ReloadMapMenuItem" Click="OnReloadMap" />
+                <MenuItem Header="_Close Map" x:Name="CloseMapMenuItem" Click="OnCloseMap" />
                 <MenuItem Header="Add _Resource (IWAD/PK3)..." Click="OnAddResource" />
                 <MenuItem Header="_Save WAD" x:Name="SaveMenuItem" Click="OnSave" />
                 <MenuItem Header="Save WAD _As..." x:Name="SaveAsMenuItem" Click="OnSaveAs" />
                 <MenuItem Header="Save As _Format..." x:Name="SaveAsFormatMenuItem" Click="OnSaveAsFormat" />
                 <Separator />
                 <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
-                <MenuItem Header="Map _Options..." Click="OnMapOptions" />
+                <MenuItem Header="Map _Options..." x:Name="MapOptionsMenuItem" Click="OnMapOptions" />
                 <MenuItem Header="_Settings..." Click="OnSettings" />
                 <Separator />
                 <MenuItem Header="E_xit" Click="OnExit" />
@@ -34,94 +34,94 @@
                 <MenuItem Header="_Undo" x:Name="UndoMenuItem" Click="OnUndo" />
                 <MenuItem Header="_Redo" x:Name="RedoMenuItem" Click="OnRedo" />
                 <Separator />
-                <MenuItem Header="Cu_t" Click="OnCut" />
-                <MenuItem Header="_Copy" Click="OnCopy" />
-                <MenuItem Header="_Paste" Click="OnPaste" />
-                <MenuItem Header="D_uplicate" Click="OnDuplicate" />
+                <MenuItem Header="Cu_t" x:Name="CutMenuItem" Click="OnCut" />
+                <MenuItem Header="_Copy" x:Name="CopyMenuItem" Click="OnCopy" />
+                <MenuItem Header="_Paste" x:Name="PasteMenuItem" Click="OnPaste" />
+                <MenuItem Header="D_uplicate" x:Name="DuplicateMenuItem" Click="OnDuplicate" />
                 <Separator />
                 <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
-                <MenuItem Header="Select _all" Click="OnSelectAll" />
-                <MenuItem Header="_Invert selection" Click="OnInvertSelection" />
-                <MenuItem Header="Select _none" Click="OnSelectNone" />
+                <MenuItem Header="Select _all" x:Name="SelectAllMenuItem" Click="OnSelectAll" />
+                <MenuItem Header="_Invert selection" x:Name="InvertSelectionMenuItem" Click="OnInvertSelection" />
+                <MenuItem Header="Select _none" x:Name="SelectNoneMenuItem" Click="OnSelectNone" />
                 <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />
                 <Separator />
-                <MenuItem Header="Stitch _geometry" Click="OnStitch" />
-                <MenuItem Header="_Join sectors" Click="OnJoinSectors" />
-                <MenuItem Header="Mer_ge sectors" Click="OnMergeSectors" />
-                <MenuItem Header="_Transform selection">
-                    <MenuItem Header="Flip _Horizontal" Click="OnFlipH" />
-                    <MenuItem Header="Flip _Vertical" Click="OnFlipV" />
-                    <MenuItem Header="Rotate 90 C_W" Click="OnRotateCW" />
-                    <MenuItem Header="Rotate 90 CC_W" Click="OnRotateCCW" />
-                    <MenuItem Header="Scale _Up" Click="OnScaleUp" />
-                    <MenuItem Header="Scale _Down" Click="OnScaleDown" />
+                <MenuItem Header="Stitch _geometry" x:Name="StitchMenuItem" Click="OnStitch" />
+                <MenuItem Header="_Join sectors" x:Name="JoinSectorsMenuItem" Click="OnJoinSectors" />
+                <MenuItem Header="Mer_ge sectors" x:Name="MergeSectorsMenuItem" Click="OnMergeSectors" />
+                <MenuItem Header="_Transform selection" x:Name="TransformSelectionMenuItem">
+                    <MenuItem Header="Flip _Horizontal" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />
+                    <MenuItem Header="Flip _Vertical" x:Name="FlipVerticalMenuItem" Click="OnFlipV" />
+                    <MenuItem Header="Rotate 90 C_W" x:Name="RotateCwMenuItem" Click="OnRotateCW" />
+                    <MenuItem Header="Rotate 90 CC_W" x:Name="RotateCcwMenuItem" Click="OnRotateCCW" />
+                    <MenuItem Header="Scale _Up" x:Name="ScaleUpMenuItem" Click="OnScaleUp" />
+                    <MenuItem Header="Scale _Down" x:Name="ScaleDownMenuItem" Click="OnScaleDown" />
                 </MenuItem>
-                <MenuItem Header="_Align textures">
-                    <MenuItem Header="Align _Horizontal" Click="OnAlignTexturesX" />
-                    <MenuItem Header="Align _Vertical" Click="OnAlignTexturesY" />
+                <MenuItem Header="_Align textures" x:Name="AlignTexturesMenuItem">
+                    <MenuItem Header="Align _Horizontal" x:Name="AlignHorizontalMenuItem" Click="OnAlignTexturesX" />
+                    <MenuItem Header="Align _Vertical" x:Name="AlignVerticalMenuItem" Click="OnAlignTexturesY" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Save _Prefab..." Click="OnSavePrefab" />
-                <MenuItem Header="_Insert Prefab..." Click="OnInsertPrefab" />
+                <MenuItem Header="Save _Prefab..." x:Name="SavePrefabMenuItem" Click="OnSavePrefab" />
+                <MenuItem Header="_Insert Prefab..." x:Name="InsertPrefabMenuItem" Click="OnInsertPrefab" />
                 <Separator />
-                <MenuItem Header="_Find &amp; Replace..." Click="OnFindReplace" />
-                <MenuItem Header="_Flags..." Click="OnFlags" />
-                <MenuItem Header="_Custom Fields..." Click="OnCustomFields" />
-                <MenuItem Header="Ta_gs..." Click="OnTagList" />
-                <MenuItem Header="_Insert at Cursor" Click="OnInsertAtCursor" />
+                <MenuItem Header="_Find &amp; Replace..." x:Name="FindReplaceMenuItem" Click="OnFindReplace" />
+                <MenuItem Header="_Flags..." x:Name="FlagsMenuItem" Click="OnFlags" />
+                <MenuItem Header="_Custom Fields..." x:Name="CustomFieldsMenuItem" Click="OnCustomFields" />
+                <MenuItem Header="Ta_gs..." x:Name="TagsMenuItem" Click="OnTagList" />
+                <MenuItem Header="_Insert at Cursor" x:Name="InsertAtCursorMenuItem" Click="OnInsertAtCursor" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Edit Mode">
-                    <MenuItem Header="_Vertices" Click="OnModeVertices" />
-                    <MenuItem Header="_Linedefs" Click="OnModeLinedefs" />
-                    <MenuItem Header="_Sectors" Click="OnModeSectors" />
-                    <MenuItem Header="_Things" Click="OnModeThings" />
+                    <MenuItem Header="_Vertices" x:Name="VerticesModeMenuItem" Click="OnModeVertices" />
+                    <MenuItem Header="_Linedefs" x:Name="LinedefsModeMenuItem" Click="OnModeLinedefs" />
+                    <MenuItem Header="_Sectors" x:Name="SectorsModeMenuItem" Click="OnModeSectors" />
+                    <MenuItem Header="_Things" x:Name="ThingsModeMenuItem" Click="OnModeThings" />
                 </MenuItem>
-                <MenuItem Header="_Fit to map" Click="OnFit" />
-                <MenuItem Header="_Go To Coordinates..." Click="OnGoToCoordinates" />
-                <MenuItem Header="View Used _Tags..." Click="OnTagStatistics" />
-                <MenuItem Header="View Thing _Types..." Click="OnThingStatistics" />
+                <MenuItem Header="_Fit to map" x:Name="FitMenuItem" Click="OnFit" />
+                <MenuItem Header="_Go To Coordinates..." x:Name="GoToCoordinatesMenuItem" Click="OnGoToCoordinates" />
+                <MenuItem Header="View Used _Tags..." x:Name="TagStatisticsMenuItem" Click="OnTagStatistics" />
+                <MenuItem Header="View Thing _Types..." x:Name="ThingStatisticsMenuItem" Click="OnThingStatistics" />
                 <MenuItem Header="View _Status History..." Click="OnStatusHistory" />
                 <MenuItem Header="View _Error Log..." Click="OnErrorLog" />
                 <MenuItem Header="_Browsers">
                     <MenuItem Header="_Textures..." Click="OnBrowseWallTextures" />
                     <MenuItem Header="_Flats..." Click="OnBrowseFlats" />
-                    <MenuItem Header="Set Selected _Floor Flats..." Click="OnBrowseFloorFlats" />
-                    <MenuItem Header="Set Selected _Ceiling Flats..." Click="OnBrowseCeilingFlats" />
+                    <MenuItem Header="Set Selected _Floor Flats..." x:Name="BrowseFloorFlatsMenuItem" Click="OnBrowseFloorFlats" />
+                    <MenuItem Header="Set Selected _Ceiling Flats..." x:Name="BrowseCeilingFlatsMenuItem" Click="OnBrowseCeilingFlats" />
                     <MenuItem Header="_Things..." Click="OnBrowseThingsCatalog" />
                     <MenuItem Header="_Linedef Actions..." Click="OnBrowseActionsCatalog" />
                     <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
                 </MenuItem>
-                <MenuItem Header="Toggle _3D Mode" Click="OnToggle3DMode" />
-                <MenuItem Header="Show Sector _Fills" Click="OnToggleSectorFills" />
-                <MenuItem Header="Show _Things" Click="OnToggleThings" />
-                <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
-                <MenuItem Header="Show _3D Floors" Click="OnToggle3DFloors" />
-                <MenuItem Header="Thing _Filter..." Click="OnThingFilter" />
+                <MenuItem Header="Toggle _3D Mode" x:Name="Toggle3DModeMenuItem" Click="OnToggle3DMode" />
+                <MenuItem Header="Show Sector _Fills" x:Name="ToggleSectorFillsMenuItem" Click="OnToggleSectorFills" />
+                <MenuItem Header="Show _Things" x:Name="ToggleThingsMenuItem" Click="OnToggleThings" />
+                <MenuItem Header="Things as _arrows" x:Name="ToggleThingArrowsMenuItem" Click="OnToggleThingArrows" />
+                <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" Click="OnToggle3DFloors" />
+                <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
                 <MenuItem Header="_Snap to Grid" Click="OnToggleSnapToGrid" />
                 <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
                 <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />
-                <MenuItem Header="Show _Blockmap" Click="OnToggleBlockmap" />
-                <MenuItem Header="Show _Nodes" Click="OnToggleNodes" />
+                <MenuItem Header="Show _Blockmap" x:Name="ToggleBlockmapMenuItem" Click="OnToggleBlockmap" />
+                <MenuItem Header="Show _Nodes" x:Name="ToggleNodesMenuItem" Click="OnToggleNodes" />
             </MenuItem>
             <MenuItem Header="_Draw">
-                <MenuItem Header="_Make Sector at Cursor" Click="OnMakeSectorAtCursor" />
-                <MenuItem Header="Draw _Sector" Click="OnDrawSector" />
-                <MenuItem Header="Draw _Lines Only" Click="OnDrawLines" />
-                <MenuItem Header="Draw _Curve" Click="OnDrawCurve" />
-                <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />
-                <MenuItem Header="Draw _Ellipse" Click="OnDrawEllipse" />
+                <MenuItem Header="_Make Sector at Cursor" x:Name="MakeSectorAtCursorMenuItem" Click="OnMakeSectorAtCursor" />
+                <MenuItem Header="Draw _Sector" x:Name="DrawSectorMenuItem" Click="OnDrawSector" />
+                <MenuItem Header="Draw _Lines Only" x:Name="DrawLinesMenuItem" Click="OnDrawLines" />
+                <MenuItem Header="Draw _Curve" x:Name="DrawCurveMenuItem" Click="OnDrawCurve" />
+                <MenuItem Header="Draw _Rectangle" x:Name="DrawRectangleMenuItem" Click="OnDrawRectangle" />
+                <MenuItem Header="Draw _Ellipse" x:Name="DrawEllipseMenuItem" Click="OnDrawEllipse" />
             </MenuItem>
             <MenuItem Header="_Tools">
-                <MenuItem Header="_Check Map" Click="OnCheckMap" />
-                <MenuItem Header="_Clean Up Geometry" Click="OnCleanUpGeometry" />
-                <MenuItem Header="_Reload Resources" Click="OnReloadResources" />
-                <MenuItem Header="_Test Map" Click="OnTestMap" />
-                <MenuItem Header="Sound _Propagation" Click="OnSoundPropagation" />
-                <MenuItem Header="Build _Stairs..." Click="OnBuildStairs" />
-                <MenuItem Header="Apply S_lopes (specials)" Click="OnApplySlopes" />
-                <MenuItem Header="Re_ject Viewer" Click="OnRejectViewer" />
+                <MenuItem Header="_Check Map" x:Name="CheckMapMenuItem" Click="OnCheckMap" />
+                <MenuItem Header="_Clean Up Geometry" x:Name="CleanUpGeometryMenuItem" Click="OnCleanUpGeometry" />
+                <MenuItem Header="_Reload Resources" x:Name="ReloadResourcesMenuItem" Click="OnReloadResources" />
+                <MenuItem Header="_Test Map" x:Name="TestMapMenuItem" Click="OnTestMap" />
+                <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />
+                <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
+                <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
+                <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Shortcuts..." Click="OnShortcuts" />
@@ -134,31 +134,31 @@
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <Button Content="Open" Click="OnOpen" />
-                    <Button Content="Map" Click="OnOpenMap" />
-                    <Button Content="Reload" Click="OnReloadMap" />
-                    <Button Content="Close" Click="OnCloseMap" />
+                    <Button Content="Map" x:Name="OpenMapButton" Click="OnOpenMap" />
+                    <Button Content="Reload" x:Name="ReloadMapButton" Click="OnReloadMap" />
+                    <Button Content="Close" x:Name="CloseMapButton" Click="OnCloseMap" />
                     <Button Content="Save" x:Name="SaveButton" Click="OnSave" />
                     <Button Content="Undo" x:Name="UndoButton" Click="OnUndo" />
                     <Button Content="Redo" x:Name="RedoButton" Click="OnRedo" />
                     <Button Content="Delete" x:Name="DeleteButton" Click="OnDelete" />
-                    <Button Content="Fit" Click="OnFit" />
-                    <Button Content="3D" Click="OnToggle3DMode" />
-                    <Button Content="Vtx" Click="OnModeVertices" />
-                    <Button Content="Line" Click="OnModeLinedefs" />
-                    <Button Content="Sec" Click="OnModeSectors" />
-                    <Button Content="Thing" Click="OnModeThings" />
-                    <Button Content="Make" Click="OnMakeSectorAtCursor" />
-                    <Button Content="Draw" Click="OnDrawSector" />
-                    <Button Content="Lines" Click="OnDrawLines" />
-                    <Button Content="Curve" Click="OnDrawCurve" />
-                    <Button Content="Rect" Click="OnDrawRectangle" />
-                    <Button Content="Ellipse" Click="OnDrawEllipse" />
-                    <Button Content="Check" Click="OnCheckMap" />
-                    <Button Content="Clean" Click="OnCleanUpGeometry" />
-                    <Button Content="Res" Click="OnReloadResources" />
-                    <Button Content="Test" Click="OnTestMap" />
-                    <Button Content="Stairs" Click="OnBuildStairs" />
-                    <Button Content="Slopes" Click="OnApplySlopes" />
+                    <Button Content="Fit" x:Name="FitButton" Click="OnFit" />
+                    <Button Content="3D" x:Name="Toggle3DModeButton" Click="OnToggle3DMode" />
+                    <Button Content="Vtx" x:Name="VerticesModeButton" Click="OnModeVertices" />
+                    <Button Content="Line" x:Name="LinedefsModeButton" Click="OnModeLinedefs" />
+                    <Button Content="Sec" x:Name="SectorsModeButton" Click="OnModeSectors" />
+                    <Button Content="Thing" x:Name="ThingsModeButton" Click="OnModeThings" />
+                    <Button Content="Make" x:Name="MakeSectorAtCursorButton" Click="OnMakeSectorAtCursor" />
+                    <Button Content="Draw" x:Name="DrawSectorButton" Click="OnDrawSector" />
+                    <Button Content="Lines" x:Name="DrawLinesButton" Click="OnDrawLines" />
+                    <Button Content="Curve" x:Name="DrawCurveButton" Click="OnDrawCurve" />
+                    <Button Content="Rect" x:Name="DrawRectangleButton" Click="OnDrawRectangle" />
+                    <Button Content="Ellipse" x:Name="DrawEllipseButton" Click="OnDrawEllipse" />
+                    <Button Content="Check" x:Name="CheckMapButton" Click="OnCheckMap" />
+                    <Button Content="Clean" x:Name="CleanUpGeometryButton" Click="OnCleanUpGeometry" />
+                    <Button Content="Res" x:Name="ReloadResourcesButton" Click="OnReloadResources" />
+                    <Button Content="Test" x:Name="TestMapButton" Click="OnTestMap" />
+                    <Button Content="Stairs" x:Name="BuildStairsButton" Click="OnBuildStairs" />
+                    <Button Content="Slopes" x:Name="ApplySlopesButton" Click="OnApplySlopes" />
                 </StackPanel>
             </ScrollViewer>
         </Border>

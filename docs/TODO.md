@@ -79,6 +79,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port command hints and contextual help.
 - [ ] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
+  - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
 - [ ] Port repeatable actions and action state updates.
 - [ ] Port command availability rules for selection, mode, and map state.
 
