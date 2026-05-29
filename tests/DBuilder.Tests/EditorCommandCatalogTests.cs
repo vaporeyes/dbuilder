@@ -157,6 +157,35 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void CommandHintCombinesEffectiveGestureAndTitle()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map2d.draw-sector", EditorCommandScope.Map2D, "F6"),
+        });
+
+        Assert.Equal("F6 Draw sector", EditorCommandCatalog.CommandHint("map2d.draw-sector", bindings));
+        Assert.Equal("1 / NumPad1 Vertices mode", EditorCommandCatalog.CommandHint("map2d.mode-vertices", bindings));
+    }
+
+    [Fact]
+    public void CommandHintFallsBackForUnknownCommands()
+    {
+        Assert.Equal("missing.command", EditorCommandCatalog.CommandHint("missing.command", EditorCommandCatalog.DefaultShortcuts));
+    }
+
+    [Fact]
+    public void CommandHintsJoinsMultipleCommands()
+    {
+        string hints = EditorCommandCatalog.CommandHints(
+            EditorCommandCatalog.DefaultShortcuts,
+            "map2d.draw-sector",
+            "map2d.insert");
+
+        Assert.Equal("D Draw sector; I / Insert Insert vertex or thing", hints);
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsCommandGestures()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[");

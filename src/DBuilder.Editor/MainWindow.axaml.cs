@@ -343,7 +343,7 @@ public partial class MainWindow : Window
         MapView.Focus();
         MarkMapDirty();
         UpdateInfo();
-        SetStatus("New empty map. Draw with D (sector) or Shift+D (lines); I inserts a vertex/thing.");
+        SetStatus("New empty map. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
     }
 
     private async void OnOpen(object? sender, RoutedEventArgs e)
@@ -1450,7 +1450,7 @@ public partial class MainWindow : Window
         MapView.ToggleDrawMode(linesOnly, curve);
         MapView.Focus();
         SetStatus(MapView.DrawMode
-            ? $"Draw {name}: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
+            ? $"Draw {name}: click to place vertices, click the first point or {CommandHint("map2d.finish-draw")} to close, {CommandHint("map2d.cancel-draw")} or right-click to cancel."
             : "Draw mode off.");
     }
 
@@ -2381,6 +2381,10 @@ public partial class MainWindow : Window
         _statusHistory.Add(text);
     }
 
+    private string CommandHint(string commandId) => EditorCommandCatalog.CommandHint(commandId, _shortcutBindings);
+
+    private string CommandHints(params string[] commandIds) => EditorCommandCatalog.CommandHints(_shortcutBindings, commandIds);
+
     private void UpdateStatusDetails()
     {
         ModeText.Text = MapView.In3DMode
@@ -2403,7 +2407,7 @@ public partial class MainWindow : Window
         if (sv + sl + ss + st == 0)
         {
             ShowText($"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode} (1 verts, 2 lines, 3 sectors, 4 things).   Tab toggles 3D.   See Help > Shortcuts for all controls.");
+                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode}.   {CommandHints("map2d.mode-vertices", "map2d.mode-linedefs", "map2d.mode-sectors", "map2d.mode-things")}.   {CommandHint("map2d.toggle-3d")}.   See Help > Shortcuts for all controls.");
             return;
         }
 

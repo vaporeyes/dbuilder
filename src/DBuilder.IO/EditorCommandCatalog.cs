@@ -174,6 +174,17 @@ public static class EditorCommandCatalog
         return gestures.Length == 0 ? "-" : string.Join(" / ", gestures);
     }
 
+    public static string CommandHint(string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        var command = All.FirstOrDefault(item => string.Equals(item.Id, commandId, StringComparison.Ordinal));
+        if (command is null) return commandId;
+        string gesture = GestureText(commandId, bindings);
+        return gesture == "-" ? command.Title : $"{gesture} {command.Title}";
+    }
+
+    public static string CommandHints(IReadOnlyList<EditorShortcutBinding> bindings, params string[] commandIds)
+        => string.Join("; ", commandIds.Select(commandId => CommandHint(commandId, bindings)));
+
     public static string GestureText(EditorShortcutBinding binding)
     {
         if (string.IsNullOrWhiteSpace(binding.Key)) return "";
