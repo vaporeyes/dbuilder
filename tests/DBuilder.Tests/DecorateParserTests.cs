@@ -396,6 +396,27 @@ ACTOR UserVarActor 7006
     }
 
     [Fact]
+    public void SkipsTopLevelEnumNativeAndConstDeclarations()
+    {
+        const string text = @"
+enum HelperEnum
+{
+    actor HiddenActor { Radius 128 }
+};
+native actor NativeActor { Radius 64 };
+const actor ConstActor { Radius 32 };
+ACTOR RealActor 7012
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("RealActor", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void MonsterDirectiveSetsActorFlags()
     {
         const string text = "ACTOR MonsterActor 7007 { Monster }";

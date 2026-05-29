@@ -121,7 +121,13 @@ public static class DecorateParser
                 SkipLine(toks, ref i);
                 continue;
             }
-            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
+            if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
+                && IsSkippedDecorateTopLevelDeclaration(toks[i].Text))
+            {
+                SkipUntilSemicolon(toks, ref i);
+            }
+            else if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
@@ -272,6 +278,11 @@ public static class DecorateParser
     private static bool IsSkippedZScriptTopLevelDeclaration(string word)
         => word.Equals("struct", StringComparison.OrdinalIgnoreCase)
         || word.Equals("enum", StringComparison.OrdinalIgnoreCase)
+        || word.Equals("const", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSkippedDecorateTopLevelDeclaration(string word)
+        => word.Equals("enum", StringComparison.OrdinalIgnoreCase)
+        || word.Equals("native", StringComparison.OrdinalIgnoreCase)
         || word.Equals("const", StringComparison.OrdinalIgnoreCase);
 
     private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)
