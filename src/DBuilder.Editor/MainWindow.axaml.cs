@@ -554,6 +554,8 @@ public partial class MainWindow : Window
         var options = _mapOptions ?? new MapOptions();
         options.CurrentName = marker;
         options.ConfigFile = _configFile;
+        options.ViewPosition = MapView.ViewCenter;
+        options.ViewScale = MapView.ViewScale;
         options.WriteResources();
         options.WriteDrawingOptions();
         options.WriteExternalCommandSettings();
@@ -1438,6 +1440,7 @@ public partial class MainWindow : Window
 
             MapView.Map = map;
             ApplyMapGridSetup(_mapOptions);
+            MapView.RestoreView(_mapOptions.ViewPosition, _mapOptions.ViewScale);
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
             Title = CurrentEditorTitle();
             UpdateInfo();

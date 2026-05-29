@@ -272,6 +272,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private double _camX, _camY, _zoom = 1.0;
 
     public Vec2D ViewCenter => new(_camX, _camY);
+    public double ViewScale => _zoom;
 
     /// <summary>Which element class clicks select. Switched with the number keys 1-4.</summary>
     public enum EditMode { Vertices, Linedefs, Sectors, Things }
@@ -444,6 +445,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _camX = x;
         _camY = y;
+        RequestNextFrameRendering();
+    }
+
+    public void RestoreView(Vec2D center, double scale)
+    {
+        bool restored = false;
+        if (!double.IsNaN(center.x) && !double.IsNaN(center.y))
+        {
+            _camX = center.x;
+            _camY = center.y;
+            restored = true;
+        }
+
+        if (!double.IsNaN(scale) && scale > 0)
+        {
+            _zoom = Math.Clamp(scale, 0.02, 200);
+            restored = true;
+        }
+
+        if (restored) _needsFit = false;
         RequestNextFrameRendering();
     }
 
