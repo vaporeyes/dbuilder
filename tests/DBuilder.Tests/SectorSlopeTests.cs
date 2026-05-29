@@ -10,6 +10,80 @@ namespace DBuilder.Tests;
 public class SectorSlopeTests
 {
     [Fact]
+    public void SectorUpdateAndTextureSettersMatchUdbSurface()
+    {
+        var sector = new Sector();
+        var floorSlope = new Vector3D(0, 1, -1).GetNormal();
+        var ceilSlope = new Vector3D(0, -1, 1).GetNormal();
+
+        sector.Update(
+            floorHeight: 8,
+            ceilHeight: 128,
+            floorTexture: "",
+            ceilTexture: null,
+            special: 9,
+            flags: new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["secret"] = true,
+                ["hidden"] = false,
+            },
+            tags: new List<int> { 7, 11 },
+            brightness: 192,
+            floorSlopeOffset: 3.5,
+            floorSlope: floorSlope,
+            ceilSlopeOffset: -2.25,
+            ceilSlope: ceilSlope);
+
+        Assert.Equal(8, sector.FloorHeight);
+        Assert.Equal(128, sector.CeilHeight);
+        Assert.Equal("-", sector.FloorTexture);
+        Assert.Equal("-", sector.CeilTexture);
+        Assert.Equal(9, sector.Special);
+        Assert.Equal(192, sector.Brightness);
+        Assert.Equal(new[] { 7, 11 }, sector.Tags);
+        Assert.Contains("secret", sector.UdmfFlags);
+        Assert.DoesNotContain("hidden", sector.UdmfFlags);
+        Assert.Equal(3.5, sector.FloorSlopeOffset, 1e-9);
+        Assert.Equal(floorSlope, sector.FloorSlope);
+        Assert.Equal(-2.25, sector.CeilSlopeOffset, 1e-9);
+        Assert.Equal(ceilSlope, sector.CeilSlope);
+
+        sector.SetFloorTexture(null);
+        sector.SetCeilTexture("CEIL1");
+
+        Assert.Equal("-", sector.FloorTexture);
+        Assert.Equal("CEIL1", sector.CeilTexture);
+    }
+
+    [Fact]
+    public void SectorClassicUpdateSetsSingleTagAndClearsUdmfSlopeState()
+    {
+        var sector = new Sector
+        {
+            FloorSlope = new Vector3D(0, 1, -1),
+            FloorSlopeOffset = 4,
+            CeilSlope = new Vector3D(0, 1, 1),
+            CeilSlopeOffset = 5,
+        };
+        sector.UdmfFlags.Add("secret");
+
+        sector.Update(0, 64, "FLOOR1", "", 3, 12, 144);
+
+        Assert.Equal(0, sector.FloorHeight);
+        Assert.Equal(64, sector.CeilHeight);
+        Assert.Equal("FLOOR1", sector.FloorTexture);
+        Assert.Equal("-", sector.CeilTexture);
+        Assert.Equal(3, sector.Special);
+        Assert.Equal(12, sector.Tag);
+        Assert.Equal(144, sector.Brightness);
+        Assert.Empty(sector.UdmfFlags);
+        Assert.False(sector.HasFloorSlope);
+        Assert.False(sector.HasCeilSlope);
+        Assert.True(double.IsNaN(sector.FloorSlopeOffset));
+        Assert.True(double.IsNaN(sector.CeilSlopeOffset));
+    }
+
+    [Fact]
     public void FlatSectorReturnsConstantHeight()
     {
         var s = new Sector { FloorHeight = 32, CeilHeight = 128 };

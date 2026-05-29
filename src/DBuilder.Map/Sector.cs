@@ -72,6 +72,61 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
             ? new Plane(CeilSlope, double.IsNaN(CeilSlopeOffset) ? 0.0 : CeilSlopeOffset).GetZ(pos)
             : CeilHeight;
 
+    public void Update(int floorHeight, int ceilHeight, string? floorTexture, string? ceilTexture, int special, int tag, int brightness)
+        => Update(
+            floorHeight,
+            ceilHeight,
+            floorTexture,
+            ceilTexture,
+            special,
+            new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+            new List<int> { tag },
+            brightness,
+            double.NaN,
+            new Vector3D(),
+            double.NaN,
+            new Vector3D());
+
+    public void Update(
+        int floorHeight,
+        int ceilHeight,
+        string? floorTexture,
+        string? ceilTexture,
+        int special,
+        Dictionary<string, bool> flags,
+        List<int> tags,
+        int brightness,
+        double floorSlopeOffset,
+        Vector3D floorSlope,
+        double ceilSlopeOffset,
+        Vector3D ceilSlope)
+    {
+        FloorHeight = floorHeight;
+        CeilHeight = ceilHeight;
+        FloorTexture = NormalizeTextureName(floorTexture);
+        CeilTexture = NormalizeTextureName(ceilTexture);
+        Special = special;
+        Brightness = brightness;
+
+        Tags.Clear();
+        Tags.AddRange(tags);
+
+        UdmfFlags.Clear();
+        foreach (var flag in flags)
+            if (flag.Value) UdmfFlags.Add(flag.Key);
+
+        FloorSlopeOffset = floorSlopeOffset;
+        FloorSlope = floorSlope;
+        CeilSlopeOffset = ceilSlopeOffset;
+        CeilSlope = ceilSlope;
+    }
+
+    public void SetFloorTexture(string? name)
+        => FloorTexture = NormalizeTextureName(name);
+
+    public void SetCeilTexture(string? name)
+        => CeilTexture = NormalizeTextureName(name);
+
     /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
     public List<Sidedef> Sidedefs { get; } = new();
 
@@ -80,4 +135,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
 
     /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
     public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
+
+    private static string NormalizeTextureName(string? name)
+        => string.IsNullOrEmpty(name) ? "-" : name;
 }
