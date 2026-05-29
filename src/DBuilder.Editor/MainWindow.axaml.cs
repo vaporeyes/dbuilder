@@ -262,7 +262,7 @@ public partial class MainWindow : Window
             if (await pk3Dialog.ShowDialog<bool>(this) && pk3Dialog.Selected is { } selected)
             {
                 int index = displayMaps.FindIndex(m => m.Name == selected.Name && m.Format == selected.Format);
-                if (index >= 0) LoadPk3MapEntry(_pk3Maps[index]);
+                if (index >= 0 && await ConfirmDiscardDirtyMap()) LoadPk3MapEntry(_pk3Maps[index]);
             }
             return;
         }
@@ -272,7 +272,7 @@ public partial class MainWindow : Window
         if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
 
         var dlg = new MapPickerDialog(maps, _mapMarker);
-        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } entry)
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } entry && await ConfirmDiscardDirtyMap())
             LoadMapEntry(entry);
     }
 

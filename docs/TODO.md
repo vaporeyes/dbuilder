@@ -34,6 +34,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port map manager behavior, including open, close, reload, save, save-as, and dirty-state rules.
   - [x] Track dirty map state in the editor title across edits, loads, and saves.
   - [x] Prompt before discarding dirty map changes on new, open, or exit.
+  - [x] Prompt before switching maps in an opened archive with dirty changes.
 - [ ] Port autosave and recovery behavior.
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
