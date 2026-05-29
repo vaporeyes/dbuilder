@@ -183,6 +183,33 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void CellRangeCropsToBlockMapBounds()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 128)));
+        map.BuildIndexes();
+
+        var bm = new BlockMap(map, 64);
+
+        var cells = bm.GetCellRange(-64, -64, 160, 160);
+
+        Assert.Equal(new[] { (0, 0), (0, 1), (1, 0), (1, 1) }, cells);
+    }
+
+    [Fact]
+    public void LineCellCoordinatesExposeTraversalOrder()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 128)));
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        var cells = bm.GetLineCellCoordinates(new Vector2D(0, 0), new Vector2D(128, 128));
+
+        Assert.Equal(new[] { (0, 0), (0, 1), (1, 1), (1, 2), (2, 2) }, cells);
+    }
+
+    [Fact]
     public void LinedefCellsFollowCrossedBlocksInsteadOfBoundingBox()
     {
         var map = new MapSet();

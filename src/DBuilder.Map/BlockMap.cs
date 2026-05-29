@@ -1,5 +1,5 @@
 // ABOUTME: Uniform-grid spatial index over a MapSet for fast nearest/range queries on linedefs, things and vertices.
-// ABOUTME: Linedefs are bucketed conservatively by their bounding-cell rectangle; queries expand outward ring by ring.
+// ABOUTME: Linedefs are bucketed through crossed cells; queries expand outward ring by ring.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace DBuilder.Map;
 /// <summary>
 /// A fixed-cell-size spatial acceleration grid built once from a MapSet snapshot. Rebuild it after the map
 /// geometry changes. Points (vertices, things) bucket into a single cell; linedefs bucket into every cell
-/// their bounding box overlaps, so range/nearest queries never miss a candidate.
+/// their segment crosses, matching UDB's block traversal behavior.
 /// </summary>
 public sealed class BlockMap
 {
@@ -56,6 +56,26 @@ public sealed class BlockMap
     public IReadOnlyList<Vertex> GetVerticesAt(int col, int row)
         => IsCellInRange(col, row) ? vertCells[Index(col, row)] : Array.Empty<Vertex>();
 
+    /// <summary>Returns cropped cell coordinates covered by the square range, matching UDB's GetSquareRange.</summary>
+    public IReadOnlyList<(int Col, int Row)> GetCellRange(double left, double top, double width, double height)
+    {
+        int cx0 = CellX(left);
+        int cy0 = CellY(top);
+        int cx1 = CellX(left + width);
+        int cy1 = CellY(top + height);
+        var cells = new List<(int Col, int Row)>((cx1 - cx0 + 1) * (cy1 - cy0 + 1));
+
+        for (int cx = cx0; cx <= cx1; cx++)
+            for (int cy = cy0; cy <= cy1; cy++)
+                cells.Add((cx, cy));
+
+        return cells;
+    }
+
+    /// <summary>Returns the cell coordinates crossed by a line segment, matching UDB's GetLineBlocks traversal.</summary>
+    public IReadOnlyList<(int Col, int Row)> GetLineCellCoordinates(Vector2D start, Vector2D end)
+        => LineCellCoordinates(start, end).ToArray();
+
     public BlockMap(MapSet map, double blockSize = 128.0)
     {
         this.blockSize = blockSize > 0 ? blockSize : 128.0;
@@ -92,8 +112,8 @@ public sealed class BlockMap
             thingCells[Index(CellX(t.Position.x), CellY(t.Position.y))].Add(t);
         foreach (var line in map.Linedefs)
         {
-            foreach (int cell in LineCellIndices(line.Start.Position, line.End.Position))
-                lineCells[cell].Add(line);
+            foreach (var (col, row) in LineCellCoordinates(line.Start.Position, line.End.Position))
+                lineCells[Index(col, row)].Add(line);
         }
     }
 
@@ -101,14 +121,14 @@ public sealed class BlockMap
     private int CellY(double y) => Math.Clamp((int)Math.Floor((y - originY) / blockSize), 0, rows - 1);
     private int Index(int cx, int cy) => cy * cols + cx;
 
-    private IEnumerable<int> LineCellIndices(Vector2D start, Vector2D end)
+    private IEnumerable<(int Col, int Row)> LineCellCoordinates(Vector2D start, Vector2D end)
     {
         int cx = CellX(start.x);
         int cy = CellY(start.y);
         int endX = CellX(end.x);
         int endY = CellY(end.y);
 
-        yield return Index(cx, cy);
+        yield return (cx, cy);
         if (cx == endX && cy == endY) yield break;
 
         double dx = end.x - start.x;
@@ -134,7 +154,7 @@ public sealed class BlockMap
                 tMaxY += tDeltaY;
             }
 
-            if (IsCellInRange(cx, cy)) yield return Index(cx, cy);
+            if (IsCellInRange(cx, cy)) yield return (cx, cy);
         }
     }
 
@@ -180,7 +200,7 @@ public sealed class BlockMap
     public Vertex? NearestVertex(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(vertCells, pos, maxRange, static (v, p) => DistSq(v.Position, p));
 
-    /// <summary>All distinct linedefs whose bounding box overlaps the square of half-size <paramref name="range"/> around pos.</summary>
+    /// <summary>All distinct linedefs in cells overlapped by the square of half-size <paramref name="range"/> around pos.</summary>
     public IReadOnlyCollection<Linedef> GetLinedefsNear(Vector2D pos, double range)
         => Gather(lineCells, pos, range);
 

@@ -166,6 +166,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Collapse replace-mode bridge vertices created by split stitching.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
   - [x] Bucket linedefs by crossed block cells instead of bounding boxes.
+  - [x] Expose UDB-style square-range and line-cell traversal queries.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.
