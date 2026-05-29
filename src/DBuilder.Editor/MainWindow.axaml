@@ -72,10 +72,10 @@
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Edit Mode">
-                    <MenuItem Header="_Vertices" x:Name="VerticesModeMenuItem" Click="OnModeVertices" />
-                    <MenuItem Header="_Linedefs" x:Name="LinedefsModeMenuItem" Click="OnModeLinedefs" />
-                    <MenuItem Header="_Sectors" x:Name="SectorsModeMenuItem" Click="OnModeSectors" />
-                    <MenuItem Header="_Things" x:Name="ThingsModeMenuItem" Click="OnModeThings" />
+                    <MenuItem Header="_Vertices" x:Name="VerticesModeMenuItem" ToggleType="CheckBox" Click="OnModeVertices" />
+                    <MenuItem Header="_Linedefs" x:Name="LinedefsModeMenuItem" ToggleType="CheckBox" Click="OnModeLinedefs" />
+                    <MenuItem Header="_Sectors" x:Name="SectorsModeMenuItem" ToggleType="CheckBox" Click="OnModeSectors" />
+                    <MenuItem Header="_Things" x:Name="ThingsModeMenuItem" ToggleType="CheckBox" Click="OnModeThings" />
                 </MenuItem>
                 <MenuItem Header="_Fit to map" x:Name="FitMenuItem" Click="OnFit" />
                 <MenuItem Header="_Go To Coordinates..." x:Name="GoToCoordinatesMenuItem" Click="OnGoToCoordinates" />

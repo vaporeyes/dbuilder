@@ -2434,16 +2434,25 @@ public partial class MainWindow : Window
         bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
+        bool hasExactlyOneSelection = hasMap && CountSelection() == 1;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
+        bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
+        bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
+        bool hasSingleFlagSelection =
+            _map is not null &&
+            ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&
+              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0) ||
+             (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 &&
+              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0));
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PasteMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
-            SelectNoneMenuItem, StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, FlagsMenuItem,
-            CustomFieldsMenuItem, TagsMenuItem, InsertAtCursorMenuItem, VerticesModeMenuItem,
+            StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
+            InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, TagStatisticsMenuItem, ThingStatisticsMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
@@ -2458,12 +2467,17 @@ public partial class MainWindow : Window
             CleanUpGeometryButton, TestMapButton, BuildStairsButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
-            CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, TransformSelectionMenuItem,
+            CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
+            SavePrefabMenuItem, DeleteButton);
+        SetEnabled(hasTransformableSelection,
+            TransformSelectionMenuItem,
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
-            ScaleUpMenuItem, ScaleDownMenuItem, AlignTexturesMenuItem, AlignHorizontalMenuItem,
-            AlignVerticalMenuItem, SavePrefabMenuItem, DeleteButton);
+            ScaleUpMenuItem, ScaleDownMenuItem);
+        SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
+        SetEnabled(hasSingleFlagSelection, FlagsMenuItem);
+        SetEnabled(hasExactlyOneSelection, CustomFieldsMenuItem);
         SetEnabled(canUndo, UndoMenuItem, UndoButton);
         SetEnabled(canRedo, RedoMenuItem, RedoButton);
         UpdateCommandCheckedState();
@@ -2471,6 +2485,10 @@ public partial class MainWindow : Window
 
     private void UpdateCommandCheckedState()
     {
+        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode);
+        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode);
+        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode);
+        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode);
         SetChecked(Toggle3DModeMenuItem, MapView.In3DMode);
         SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
         SetChecked(ToggleThingsMenuItem, MapView.ShowThings);

@@ -91,6 +91,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
 - [ ] Port command availability rules for selection, mode, and map state.
+  - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
 
 ## Plugin Architecture
 
