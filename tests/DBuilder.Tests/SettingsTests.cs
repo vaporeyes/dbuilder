@@ -38,6 +38,41 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AddRecentMapMovesToFrontAndDedupes()
+    {
+        var s = new Settings();
+        s.AddRecentMap("/maps/a.wad", "MAP01");
+        s.AddRecentMap("/maps/a.wad", "MAP02");
+        s.AddRecentMap("/MAPS/A.WAD", "map01");
+
+        Assert.Equal(2, s.RecentMaps.Count);
+        Assert.Equal("/MAPS/A.WAD", s.RecentMaps[0].Path);
+        Assert.Equal("map01", s.RecentMaps[0].MapName);
+        Assert.Equal("MAP02", s.RecentMaps[1].MapName);
+    }
+
+    [Fact]
+    public void AddRecentMapSeparatesPk3ArchiveEntries()
+    {
+        var s = new Settings();
+        s.AddRecentMap("/mods/a.pk3", "MAP01", "maps/a.wad");
+        s.AddRecentMap("/mods/a.pk3", "MAP01", "maps/b.wad");
+
+        Assert.Equal(2, s.RecentMaps.Count);
+        Assert.Equal("maps/b.wad", s.RecentMaps[0].ArchivePath);
+        Assert.Equal("maps/a.wad", s.RecentMaps[1].ArchivePath);
+    }
+
+    [Fact]
+    public void AddRecentMapCapsAtMax()
+    {
+        var s = new Settings();
+        for (int i = 0; i < Settings.MaxRecent + 5; i++) s.AddRecentMap("/maps/a.wad", $"MAP{i:00}");
+        Assert.Equal(Settings.MaxRecent, s.RecentMaps.Count);
+        Assert.Equal($"MAP{Settings.MaxRecent + 4:00}", s.RecentMaps[0].MapName);
+    }
+
+    [Fact]
     public void SaveAndLoadRoundTrips()
     {
         string path = Path.Combine(Path.GetTempPath(), $"dbuilder_settings_{System.Guid.NewGuid():N}.json");
@@ -45,6 +80,7 @@ public class SettingsTests
         {
             var s = new Settings { ConfigDir = "/cfg", TestPort = "/gz", TestIwad = "/iwad.wad" };
             s.AddRecent("/x.wad");
+            s.AddRecentMap("/x.wad", "MAP01");
             Assert.True(s.Save(path));
 
             var loaded = Settings.Load(path);
@@ -52,6 +88,7 @@ public class SettingsTests
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Contains("/x.wad", loaded.RecentFiles);
+            Assert.Contains(loaded.RecentMaps, m => m.Path == "/x.wad" && m.MapName == "MAP01");
         }
         finally { if (File.Exists(path)) File.Delete(path); }
     }

@@ -97,10 +97,20 @@ public partial class MainWindow : Window
 
     private void SaveSettings() => _settings.Save(_settingsPath);
 
-    // Rebuilds the File > Open Recent submenu from the persisted recent-files list.
+    // Rebuilds the File > Open Recent submenu from persisted recent map and file lists.
     private void RebuildRecentMenu()
     {
-        var items = new List<MenuItem>();
+        var items = new List<object>();
+        foreach (var map in _settings.RecentMaps)
+        {
+            var item = new MenuItem { Header = RecentMapHeader(map) };
+            var captured = map;
+            item.Click += async (_, _) => await LoadRecentMap(captured);
+            items.Add(item);
+        }
+        if (_settings.RecentMaps.Count > 0 && _settings.RecentFiles.Count > 0)
+            items.Add(new Separator());
+
         foreach (var path in _settings.RecentFiles)
         {
             var item = new MenuItem { Header = path };
@@ -115,6 +125,26 @@ public partial class MainWindow : Window
         if (items.Count == 0)
             items.Add(new MenuItem { Header = "(none)", IsEnabled = false });
         OpenRecentMenu.ItemsSource = items;
+    }
+
+    private static string RecentMapHeader(RecentMapReference map)
+    {
+        string fileName = System.IO.Path.GetFileName(map.Path);
+        string mapName = string.IsNullOrWhiteSpace(map.ArchivePath) ? map.MapName : $"{map.ArchivePath}:{map.MapName}";
+        return $"{fileName} ({mapName})";
+    }
+
+    private async Task LoadRecentMap(RecentMapReference map)
+    {
+        if (!await ConfirmDiscardDirtyMap()) return;
+        if (!System.IO.File.Exists(map.Path))
+        {
+            SetStatus($"File not found: {map.Path}");
+            return;
+        }
+
+        if (IsPk3Path(map.Path)) await LoadPk3(map.Path, promptForMap: false, recentMap: map);
+        else await LoadWad(map.Path, promptForMap: false, preferredMapName: map.MapName);
     }
 
     // Attempts to load a game config on startup from DBUILDER_GAMECONFIG, else a known UDB asset path.
@@ -1392,7 +1422,7 @@ public partial class MainWindow : Window
         else await LoadWad(path, promptForMap);
     }
 
-    private async Task LoadWad(string path, bool promptForMap)
+    private async Task LoadWad(string path, bool promptForMap, string? preferredMapName = null)
     {
         try
         {
@@ -1406,7 +1436,17 @@ public partial class MainWindow : Window
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
 
             var selected = maps[0];
-            if (promptForMap && maps.Count > 1)
+            if (!string.IsNullOrWhiteSpace(preferredMapName))
+            {
+                var preferred = maps.FirstOrDefault(m => string.Equals(m.Name, preferredMapName, StringComparison.OrdinalIgnoreCase));
+                if (preferred is null)
+                {
+                    SetStatus($"Recent map not found: {preferredMapName} in {System.IO.Path.GetFileName(path)}");
+                    return;
+                }
+                selected = preferred;
+            }
+            else if (promptForMap && maps.Count > 1)
             {
                 var dlg = new MapPickerDialog(maps, _mapMarker);
                 if (!await dlg.ShowDialog<bool>(this) || dlg.Selected is not { } picked) return;
@@ -1418,10 +1458,6 @@ public partial class MainWindow : Window
             _pk3Maps = null;
             _pk3MapArchivePath = null;
 
-            _settings.AddRecent(path);
-            SaveSettings();
-            RebuildRecentMenu();
-
             LoadMapEntry(selected);
             if (maps.Count > 1)
                 SetStatus($"Loaded {selected.Name} ({maps.IndexOf(selected) + 1} of {maps.Count} maps - File > Open Map to switch)");
@@ -1429,7 +1465,7 @@ public partial class MainWindow : Window
         catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
     }
 
-    private async Task LoadPk3(string path, bool promptForMap)
+    private async Task LoadPk3(string path, bool promptForMap, RecentMapReference? recentMap = null)
     {
         try
         {
@@ -1437,7 +1473,20 @@ public partial class MainWindow : Window
             if (maps.Count == 0) { SetStatus($"No embedded map WAD found in {System.IO.Path.GetFileName(path)}"); return; }
 
             var selected = maps[0];
-            if (promptForMap && maps.Count > 1)
+            if (recentMap is not null)
+            {
+                var preferred = maps.FirstOrDefault(m =>
+                    string.Equals(m.Map.Name, recentMap.MapName, StringComparison.OrdinalIgnoreCase)
+                    && (string.IsNullOrWhiteSpace(recentMap.ArchivePath)
+                        || string.Equals(m.ArchivePath, recentMap.ArchivePath, StringComparison.OrdinalIgnoreCase)));
+                if (preferred is null)
+                {
+                    SetStatus($"Recent map not found: {RecentMapHeader(recentMap)}");
+                    return;
+                }
+                selected = preferred;
+            }
+            else if (promptForMap && maps.Count > 1)
             {
                 var displayMaps = new List<MapEntry>();
                 foreach (var pk3Map in maps) displayMaps.Add(DisplayEntry(pk3Map));
@@ -1459,10 +1508,6 @@ public partial class MainWindow : Window
             _resources.AddResource(path);
             ApplyResourceConfig();
             MergeActorsFromResources();
-
-            _settings.AddRecent(path);
-            SaveSettings();
-            RebuildRecentMenu();
 
             LoadPk3MapEntry(selected);
             if (maps.Count > 1)
@@ -1495,6 +1540,7 @@ public partial class MainWindow : Window
             MapView.RestoreView(_mapOptions.ViewPosition, _mapOptions.ViewScale);
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
             ClearMapDirty();
+            RememberRecentMap(_wadPath, entry.Name);
             UpdateInfo();
             string resources = resourceIssues == 0 ? "" : $" ({resourceIssues} map resource(s) missing or unreadable)";
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
@@ -1522,10 +1568,19 @@ public partial class MainWindow : Window
             MapView.Map = map;
             MapView.Focus();
             ClearMapDirty();
+            RememberRecentMap(_pk3Path, entry.Map.Name, entry.ArchivePath);
             UpdateInfo();
             SetStatus($"Loaded {entry.Map.Name} [{entry.Map.Format}] from {entry.ArchivePath}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
         catch (Exception ex) { SetStatus($"PK3 map load failed: {ex.Message}"); }
+    }
+
+    private void RememberRecentMap(string path, string mapName, string? archivePath = null)
+    {
+        _settings.AddRecent(path);
+        _settings.AddRecentMap(path, mapName, archivePath);
+        SaveSettings();
+        RebuildRecentMenu();
     }
 
     private static bool IsPk3Path(string path)

@@ -42,6 +42,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port error logging and error display behavior.
 - [ ] Port toast, status, and notification behavior.
 - [ ] Port recent file and recent map behavior to match UDB.
+  - [x] Persist and reopen specific recent maps from WAD and PK3 archives.
 - [ ] Port file lock checks and save conflict handling.
 - [ ] Port program configuration loading and persistence.
 - [ ] Port preferences categories and persistence.
