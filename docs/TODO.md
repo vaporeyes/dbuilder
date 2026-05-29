@@ -154,6 +154,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style looped linedef removal helper.
   - [x] Add UDB-style cross-collection vertex joining helper.
   - [x] Add UDB-style scoped split-lines-by-vertices helper.
+  - [x] Add UDB-style split-lines-by-lines helper.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

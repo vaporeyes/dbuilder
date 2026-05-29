@@ -136,4 +136,52 @@ public class MapSetStitchTests
         Assert.Contains(line, changed);
         Assert.Contains(changed, changedLine => !ReferenceEquals(changedLine, line));
     }
+
+    [Fact]
+    public void SplitLinesByLinesSplitsIntersectingFixedAndChangedLines()
+    {
+        var map = new MapSet();
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var changedLine = map.AddLinedef(map.AddVertex(new Vector2D(50, -50)), map.AddVertex(new Vector2D(50, 50)));
+        var fixedLines = new HashSet<Linedef> { fixedLine };
+        var changedLines = new HashSet<Linedef> { changedLine };
+
+        int splits = map.SplitLinesByLines(fixedLines, changedLines);
+
+        Assert.Equal(1, splits);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Equal(3, changedLines.Count);
+        Assert.Contains(map.Vertices, vertex => vertex.Position == new Vector2D(50, 0));
+        Assert.Contains(changedLines, line => !ReferenceEquals(line, changedLine));
+        Assert.DoesNotContain(fixedLine, changedLines);
+    }
+
+    [Fact]
+    public void SplitLinesByLinesReusesExistingIntersectionVertex()
+    {
+        var map = new MapSet();
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var changedLine = map.AddLinedef(map.AddVertex(new Vector2D(50, -50)), map.AddVertex(new Vector2D(50, 50)));
+        var existing = map.AddVertex(new Vector2D(50, 0));
+
+        int splits = map.SplitLinesByLines(new[] { fixedLine }, new HashSet<Linedef> { changedLine });
+
+        Assert.Equal(1, splits);
+        Assert.Equal(5, map.Vertices.Count);
+        Assert.Contains(map.Linedefs, line => ReferenceEquals(line.Start, existing) || ReferenceEquals(line.End, existing));
+    }
+
+    [Fact]
+    public void SplitLinesByLinesSkipsSharedEndpoints()
+    {
+        var map = new MapSet();
+        var shared = map.AddVertex(new Vector2D(50, 0));
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), shared);
+        var changedLine = map.AddLinedef(shared, map.AddVertex(new Vector2D(50, 50)));
+
+        int splits = map.SplitLinesByLines(new[] { fixedLine }, new HashSet<Linedef> { changedLine });
+
+        Assert.Equal(0, splits);
+        Assert.Equal(2, map.Linedefs.Count);
+    }
 }

@@ -666,6 +666,60 @@ public class MapSet : IDisposable
         return total;
     }
 
+    /// <summary>
+    /// Splits intersecting linedefs from <paramref name="lines"/> and <paramref name="changedLines"/>.
+    /// New halves are added to <paramref name="changedLines"/>. Returns the number of intersections split.
+    /// </summary>
+    public int SplitLinesByLines(ICollection<Linedef> lines, ICollection<Linedef> changedLines)
+    {
+        if (lines.Count == 0 || changedLines.Count == 0) return 0;
+
+        int splits = 0;
+        bool split;
+        do
+        {
+            split = false;
+            var allLines = lines.Concat(changedLines).Distinct().ToArray();
+            for (int i = 0; i < allLines.Length && !split; i++)
+            {
+                for (int j = i + 1; j < allLines.Length; j++)
+                {
+                    var first = allLines[i];
+                    var second = allLines[j];
+                    if (!changedLines.Contains(first) && !changedLines.Contains(second)) continue;
+                    if (ReferenceEquals(first, second)) continue;
+                    if (first.IsDisposed || second.IsDisposed) continue;
+                    if (first.Start.Position == second.Start.Position) continue;
+                    if (first.Start.Position == second.End.Position) continue;
+                    if (first.End.Position == second.Start.Position) continue;
+                    if (first.End.Position == second.End.Position) continue;
+
+                    var intersection = Line2D.GetIntersectionPoint(
+                        new Line2D(first.Start.Position, first.End.Position),
+                        new Line2D(second.Start.Position, second.End.Position),
+                        bounded: true);
+                    if (double.IsNaN(intersection.x)) continue;
+                    if (first.Start.Position == intersection || first.End.Position == intersection) continue;
+                    if (second.Start.Position == intersection || second.End.Position == intersection) continue;
+
+                    var splitVertex = Vertices.FirstOrDefault(v => v.Position == intersection);
+                    if (splitVertex == null) splitVertex = AddVertex(intersection);
+
+                    var firstNewLine = SplitLinedefAt(first, splitVertex);
+                    var secondNewLine = SplitLinedefAt(second, splitVertex);
+                    if (!changedLines.Contains(firstNewLine)) changedLines.Add(firstNewLine);
+                    if (!changedLines.Contains(secondNewLine)) changedLines.Add(secondNewLine);
+
+                    splits++;
+                    split = true;
+                    break;
+                }
+            }
+        } while (split);
+
+        return splits;
+    }
+
     /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>
     public int RemoveUnusedVertices()
     {
