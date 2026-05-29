@@ -57,6 +57,7 @@
                 <MenuItem Header="_Flags..." Click="OnFlags" />
                 <MenuItem Header="_Custom Fields..." Click="OnCustomFields" />
                 <MenuItem Header="Ta_gs..." Click="OnTagList" />
+                <MenuItem Header="_Insert at Cursor" Click="OnInsertAtCursor" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Fit to map" Click="OnFit" />
@@ -75,6 +76,7 @@
                 <MenuItem Header="Show _Nodes" Click="OnToggleNodes" />
             </MenuItem>
             <MenuItem Header="_Draw">
+                <MenuItem Header="_Make Sector at Cursor" Click="OnMakeSectorAtCursor" />
                 <MenuItem Header="Draw _Sector" Click="OnDrawSector" />
                 <MenuItem Header="Draw _Lines Only" Click="OnDrawLines" />
                 <MenuItem Header="Draw _Rectangle" Click="OnDrawRectangle" />

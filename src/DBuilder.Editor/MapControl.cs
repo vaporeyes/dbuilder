@@ -2276,9 +2276,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Insert tool (I): in Things mode drops a thing at the snapped cursor; otherwise inserts a vertex,
     // splitting the nearest line if the cursor is close to one, else placing a free vertex. Undoable.
-    private void InsertAtCursor()
+    public string InsertAtCursor()
     {
-        if (_map == null) return;
+        if (_map == null) return "No map loaded.";
         var pos = SnapToGrid(_cursorWorld);
 
         if (_editMode == EditMode.Things)
@@ -2290,8 +2290,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _map.BuildIndexes();
             MarkGeometryDirty();
             Changed?.Invoke();
-            Picked?.Invoke($"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})");
-            return;
+            string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
+            Picked?.Invoke(status);
+            return status;
         }
 
         var line = _map.NearestLinedef(_cursorWorld, 8 * _zoom);
@@ -2302,34 +2303,43 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _map.BuildIndexes();
             MarkGeometryDirty();
             Changed?.Invoke();
-            Picked?.Invoke("split linedef");
+            const string status = "split linedef";
+            Picked?.Invoke(status);
+            return status;
         }
-        else
-        {
-            EditBegun?.Invoke("Insert vertex");
-            _map.ClearAllSelected();
-            var v = _map.AddVertex(pos);
-            v.Selected = true;
-            _map.BuildIndexes();
-            MarkGeometryDirty();
-            Changed?.Invoke();
-            Picked?.Invoke($"inserted vertex at ({pos.x:0}, {pos.y:0})");
-        }
+
+        EditBegun?.Invoke("Insert vertex");
+        _map.ClearAllSelected();
+        var v = _map.AddVertex(pos);
+        v.Selected = true;
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string vertexStatus = $"inserted vertex at ({pos.x:0}, {pos.y:0})";
+        Picked?.Invoke(vertexStatus);
+        return vertexStatus;
     }
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).
-    private void MakeSectorAtCursor()
+    public string MakeSectorAtCursor()
     {
-        if (_map == null || _map.Linedefs.Count == 0) return;
+        if (_map == null || _map.Linedefs.Count == 0) return "No linedefs to trace.";
         var path = Tools.FindPotentialSectorAt(_map, _cursorWorld); // hole-aware
-        if (path == null || path.Count < 3) { Picked?.Invoke("no enclosing loop here"); return; }
+        if (path == null || path.Count < 3)
+        {
+            const string message = "no enclosing loop here";
+            Picked?.Invoke(message);
+            return message;
+        }
 
         EditBegun?.Invoke("Make sector");
         SectorBuilder.CreateSectorFromSides(_map, path);
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
-        Picked?.Invoke($"made sector from {path.Count} lines");
+        string status = $"made sector from {path.Count} lines";
+        Picked?.Invoke(status);
+        return status;
     }
 
     // ---- Draw-geometry tool ----
