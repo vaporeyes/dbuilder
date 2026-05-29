@@ -262,6 +262,28 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void ContainingSectorsFiltersCellCandidatesByPolygon()
+    {
+        var (map, sector) = SquareSector(0, 0, 128);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        Assert.Equal(new[] { sector }, bm.GetContainingSectors(new Vector2D(32, 32)));
+        Assert.Empty(bm.GetContainingSectors(new Vector2D(200, 32)));
+    }
+
+    [Fact]
+    public void ContainingSectorReturnsSingleMatchingSector()
+    {
+        var (map, sector) = SquareSector(0, 0, 128);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        Assert.Same(sector, bm.GetContainingSector(new Vector2D(64, 64)));
+        Assert.Null(bm.GetContainingSector(new Vector2D(-16, 64)));
+    }
+
+    [Fact]
     public void CellRangeCropsToBlockMapBounds()
     {
         var map = new MapSet();

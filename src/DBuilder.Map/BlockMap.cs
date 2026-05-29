@@ -246,6 +246,50 @@ public sealed class BlockMap
     public IReadOnlyCollection<Sector> GetSectorsNear(Vector2D pos, double range)
         => Gather(sectorCells, pos, range);
 
+    /// <summary>Returns sectors in the point's block whose traced polygon contains <paramref name="pos"/>.</summary>
+    public IReadOnlyCollection<Sector> GetContainingSectors(Vector2D pos)
+    {
+        var (col, row) = GetCellCoordinates(pos);
+        if (!IsCellInRange(col, row)) return Array.Empty<Sector>();
+
+        var sectors = new List<Sector>();
+        foreach (var sector in GetSectorsAt(col, row))
+            if (SectorContainsPoint(sector, pos)) sectors.Add(sector);
+        return sectors;
+    }
+
+    /// <summary>
+    /// Returns the containing sector for a point using UDB's blockmap sector candidate behavior.
+    /// Multiple containing sectors are disambiguated by the nearest candidate linedef side.
+    /// </summary>
+    public Sector? GetContainingSector(Vector2D pos)
+    {
+        var sectors = GetContainingSectors(pos);
+        if (sectors.Count == 0) return null;
+        if (sectors.Count == 1) return sectors.First();
+
+        var candidateLines = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (var sector in sectors)
+            foreach (var side in sector.Sidedefs)
+                candidateLines.Add(side.Line);
+
+        Linedef? nearest = null;
+        double nearestDistance = double.MaxValue;
+        foreach (var line in candidateLines)
+        {
+            double distance = SegmentDistanceSq(line, pos);
+            if (distance >= nearestDistance) continue;
+
+            nearest = line;
+            nearestDistance = distance;
+        }
+
+        if (nearest == null) return null;
+
+        bool front = Line2D.GetSideOfLine(nearest.Start.Position, nearest.End.Position, pos) <= 0;
+        return (front ? nearest.Front : nearest.Back)?.Sector;
+    }
+
     /// <summary>All distinct things in cells overlapping the square of half-size <paramref name="range"/> around pos.</summary>
     public IReadOnlyCollection<Thing> GetThingsNear(Vector2D pos, double range)
         => Gather(thingCells, pos, range);
@@ -327,6 +371,14 @@ public sealed class BlockMap
         }
 
         return any;
+    }
+
+    private static bool SectorContainsPoint(Sector sector, Vector2D pos)
+    {
+        var path = new SidedefsTracePath();
+        foreach (var side in sector.Sidedefs)
+            path.Add(side);
+        return path.Count > 2 && path.CheckIsClosed() && path.MakePolygon().Intersect(pos);
     }
 
     // Expanding-ring nearest search: process the center cell, then successive Chebyshev shells, stopping once
