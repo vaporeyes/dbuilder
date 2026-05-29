@@ -1005,6 +1005,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnToggleSnapToGrid(object? sender, RoutedEventArgs e)
+    {
+        SetStatus(MapView.ToggleSnapToGrid());
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
+    private void OnGridSizeDown(object? sender, RoutedEventArgs e) => ChangeGridSize(larger: false);
+    private void OnGridSizeUp(object? sender, RoutedEventArgs e) => ChangeGridSize(larger: true);
+
+    private void ChangeGridSize(bool larger)
+    {
+        SetStatus(MapView.ChangeGridSize(larger));
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
     // Opens a non-modal panel to show/hide thing categories in the 2D view.
     private void OnThingFilter(object? sender, RoutedEventArgs e)
     {

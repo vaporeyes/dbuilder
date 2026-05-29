@@ -1702,6 +1702,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
     }
 
+    public string ToggleSnapToGrid()
+    {
+        _snapToGrid = !_snapToGrid;
+        string status = $"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string ChangeGridSize(bool larger)
+    {
+        double size = larger
+            ? Math.Min(1024, _grid.GridSizeF * 2.0)
+            : Math.Max(GridSetup.MinimumGridSize, _grid.GridSizeF * 0.5);
+        SetEditorGridSize(size);
+        return $"grid {GridSizeLabel()}";
+    }
+
     public GridSetup GridSetupSnapshot()
     {
         var grid = new GridSetup();
@@ -1874,9 +1891,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.D4 or Key.NumPad4: SetEditMode(EditMode.Things); e.Handled = true; return;
                 case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.A: AutoAlignSelectedTextures(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})"); e.Handled = true; return;
-                case Key.OemOpenBrackets: SetEditorGridSize(Math.Max(GridSetup.MinimumGridSize, _grid.GridSizeF * 0.5)); e.Handled = true; return;
-                case Key.OemCloseBrackets: SetEditorGridSize(Math.Min(1024, _grid.GridSizeF * 2.0)); e.Handled = true; return;
+                case Key.G: ToggleSnapToGrid(); e.Handled = true; return;
+                case Key.OemOpenBrackets: ChangeGridSize(larger: false); e.Handled = true; return;
+                case Key.OemCloseBrackets: ChangeGridSize(larger: true); e.Handled = true; return;
                 case Key.Enter when _drawMode: FinishDraw(); e.Handled = true; return;
                 case Key.Escape when InDrawMode: ExitDrawModes(); e.Handled = true; return;
                 case Key.R: FitToMap(); MarkGeometryDirty(); e.Handled = true; return;

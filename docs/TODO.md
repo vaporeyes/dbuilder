@@ -301,6 +301,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands to add, select, and clear selection groups.
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.
+  - [x] Add menu commands for snap toggle and grid-size stepping.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
 - [ ] Port texture alignment tools.

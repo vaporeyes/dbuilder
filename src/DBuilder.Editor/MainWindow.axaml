@@ -66,6 +66,9 @@
                 <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
                 <MenuItem Header="Thing _Filter..." Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
+                <MenuItem Header="_Snap to Grid" Click="OnToggleSnapToGrid" />
+                <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
+                <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />
                 <MenuItem Header="Show _Blockmap" Click="OnToggleBlockmap" />
                 <MenuItem Header="Show _Nodes" Click="OnToggleNodes" />
             </MenuItem>
