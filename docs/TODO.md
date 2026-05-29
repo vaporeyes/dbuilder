@@ -50,6 +50,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port program configuration loading and persistence.
 - [ ] Port preferences categories and persistence.
 - [ ] Port pre-command and post-command support.
+  - [x] Execute configured before/after Test Map commands.
 - [ ] Port game testing flow with configurable source ports.
 - [ ] Port node-builder discovery, configuration, and execution flow.
 
