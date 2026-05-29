@@ -287,7 +287,7 @@ public static class DecorateParser
     private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum)
     {
         i++; // keyword
-        if (i >= t.Count || t[i].Kind != Kind.Word) return null;
+        if (i >= t.Count || !IsNameToken(t[i])) return null;
         var actor = new ActorInfo { ClassName = t[i++].Text };
 
         // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' (body) or ';' (forward declaration).
@@ -297,12 +297,12 @@ public static class DecorateParser
             if (tk.Kind == Kind.Sym && tk.Text == ":")
             {
                 i++;
-                if (i < t.Count && t[i].Kind == Kind.Word) actor.ParentName = t[i++].Text;
+                if (i < t.Count && IsNameToken(t[i])) actor.ParentName = t[i++].Text;
             }
             else if (tk.Kind == Kind.Word && tk.Text.Equals("replaces", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                if (i < t.Count && t[i].Kind == Kind.Word) actor.Replaces = t[i++].Text;
+                if (i < t.Count && IsNameToken(t[i])) actor.Replaces = t[i++].Text;
             }
             else if (headerNum && tk.Kind == Kind.Word && tk.Text == "-")
             {
@@ -321,6 +321,8 @@ public static class DecorateParser
         ParseBody(actor, t, ref i, zscriptBody: !headerNum);
         return actor;
     }
+
+    private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
 
     private static void ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody)
     {

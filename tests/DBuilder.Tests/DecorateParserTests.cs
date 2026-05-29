@@ -113,6 +113,23 @@ ACTOR EditorTextThing 5002
     }
 
     [Fact]
+    public void ParsesQuotedHeaderClassNames()
+    {
+        const string text = @"
+ACTOR ""QuotedChild"" : ""QuotedBase"" replaces ""OldThing"" 6001
+{
+    Radius 16
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("QuotedChild", actor.ClassName);
+        Assert.Equal("QuotedBase", actor.ParentName);
+        Assert.Equal("OldThing", actor.Replaces);
+        Assert.Equal(6001, actor.DoomEdNum);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ChildInheritsSpriteAndSizeFromParent()
     {
         const string text = @"
