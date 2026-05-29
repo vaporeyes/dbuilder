@@ -7,6 +7,8 @@ using DBuilder.Geometry;
 
 public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, IMultiTaggedMapElement
 {
+    public const double SidePointDistance = 0.01;
+
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
     public double Angle { get; set; }
@@ -80,4 +82,25 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         if (Front != null) Front.IsFront = true;
         if (Back != null) Back.IsFront = false;
     }
+
+    public Vector2D GetSidePoint(bool front)
+    {
+        var delta = End.Position - Start.Position;
+        double length = delta.GetLength();
+        double lengthInv = length > 0.0 ? 1.0 / length : 1.0 / 0.0000000001;
+        double nx = delta.x * lengthInv * SidePointDistance;
+        double ny = delta.y * lengthInv * SidePointDistance;
+
+        if (front)
+        {
+            nx = -nx;
+            ny = -ny;
+        }
+
+        return new Vector2D(
+            Start.Position.x + delta.x * 0.5 - ny,
+            Start.Position.y + delta.y * 0.5 + nx);
+    }
+
+    public Vector2D GetCenterPoint() => Start.Position + (End.Position - Start.Position) * 0.5;
 }

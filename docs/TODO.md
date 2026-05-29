@@ -149,6 +149,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
+  - [x] Add UDB-style linedef center and side-point helpers.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

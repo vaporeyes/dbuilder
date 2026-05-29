@@ -72,6 +72,40 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void GetCenterPointReturnsLineMidpoint()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(-10, 8));
+        var b = map.AddVertex(new Vector2D(30, 24));
+        var line = map.AddLinedef(a, b);
+
+        Assert.Equal(new Vector2D(10, 16), line.GetCenterPoint());
+    }
+
+    [Fact]
+    public void GetSidePointOffsetsFromLineCenter()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var line = map.AddLinedef(a, b);
+
+        Assert.Equal(new Vector2D(50, -0.01), line.GetSidePoint(front: true));
+        Assert.Equal(new Vector2D(50, 0.01), line.GetSidePoint(front: false));
+    }
+
+    [Fact]
+    public void GetSidePointHandlesDegenerateLinesLikeUdb()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(16, 32));
+        var line = map.AddLinedef(a, a);
+
+        Assert.Equal(a.Position, line.GetSidePoint(front: true));
+        Assert.Equal(a.Position, line.GetSidePoint(front: false));
+    }
+
+    [Fact]
     public void FlipSelectedLinedefsOnlyTouchesSelection()
     {
         var map = new MapSet();
