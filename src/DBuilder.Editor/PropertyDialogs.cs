@@ -260,6 +260,7 @@ public abstract class PropertyDialog : Window
     protected UniversalFieldEditors? AddUniversalFieldEditors(
         IEnumerable<UniversalFieldEditorValue> fields,
         out IReadOnlyList<UniversalFieldEditorValue> editorFields,
+        GameConfiguration? config = null,
         ResourceManager? resources = null)
     {
         var list = fields.ToList();
@@ -277,6 +278,39 @@ public abstract class PropertyDialog : Window
                     item.Field.Name,
                     options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}")),
                     handler.GetIntValue());
+                editors.AddCombo(item, combo);
+            }
+            else if (config != null && handler is ThingTypeHandler)
+            {
+                var combo = AddComboWithBrowse(
+                    item.Field.Name,
+                    config.Things.Values.Select(thing => new CatalogItem(thing.Index, $"{thing.Index} - {thing.Title}")),
+                    handler.GetIntValue(),
+                    "Browse Things",
+                    () => CatalogBrowse.Things(config));
+                editors.AddCombo(item, combo);
+            }
+            else if (config != null && handler is LinedefTypeHandler)
+            {
+                var items = config.LinedefActions.Values
+                    .Select(action => new CatalogItem(action.Index, $"{action.Index} - {action.Title}"))
+                    .Prepend(new CatalogItem(0, "0 - None"));
+                var combo = AddComboWithBrowse(
+                    item.Field.Name,
+                    items,
+                    handler.GetIntValue(),
+                    "Browse Linedef Actions",
+                    () => CatalogBrowse.LinedefActions(config));
+                editors.AddCombo(item, combo);
+            }
+            else if (config != null && handler is SectorEffectTypeHandler)
+            {
+                var combo = AddComboWithBrowse(
+                    item.Field.Name,
+                    config.SectorEffects.Values.Select(effect => new CatalogItem(effect.Index, $"{effect.Index} - {effect.Title}")),
+                    handler.GetIntValue(),
+                    "Browse Sector Effects",
+                    () => CatalogBrowse.SectorEffects(config));
                 editors.AddCombo(item, combo);
             }
             else if (resources != null && handler is ImageNameTypeHandler imageName)
@@ -367,7 +401,7 @@ public sealed class ThingEditDialog : PropertyDialog
             "thing",
             t.Fields,
             config?.GetThing(t.Type)?.AddUniversalFields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, config, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(t.Fields, editorFields)));
     }
@@ -424,7 +458,7 @@ public sealed class LinedefEditDialog : PropertyDialog
         else
             _flagsBox = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
         var configuredFields = UniversalFieldEditorValues.ForElement(config, "linedef", l.Fields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, config, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(l.Fields, editorFields)));
     }
@@ -474,7 +508,7 @@ public sealed class SectorEditDialog : PropertyDialog
 
         _tag = AddField("Tag", s.Tag.ToString(CultureInfo.InvariantCulture));
         var configuredFields = UniversalFieldEditorValues.ForElement(config, "sector", s.Fields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, config, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(s.Fields, editorFields)));
     }
