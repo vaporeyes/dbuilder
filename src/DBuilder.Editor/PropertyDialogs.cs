@@ -135,6 +135,26 @@ public abstract class PropertyDialog : Window
         return box;
     }
 
+    // Adds a labeled text box with a texture/flat browser button.
+    protected TextBox AddTextureField(string label, string value, ResourceManager resources, bool flats, string title)
+    {
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*,Auto") };
+        grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
+        var box = new TextBox { Text = value };
+        Grid.SetColumn(box, 1);
+        grid.Children.Add(box);
+        var browse = new Button { Content = "...", MinWidth = 34, Margin = new Avalonia.Thickness(4, 0, 0, 0) };
+        browse.Click += async (_, _) =>
+        {
+            var dlg = new TextureBrowserDialog(resources, flats) { Title = title };
+            if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } selected) box.Text = selected;
+        };
+        Grid.SetColumn(browse, 2);
+        grid.Children.Add(browse);
+        _rows.Children.Insert(_rows.Children.Count - 1, grid);
+        return box;
+    }
+
     // Adds a labeled dropdown of catalog items, sorted by number, preselecting the current value
     // (and preserving an unknown current value as a synthetic first entry).
     protected ComboBox AddCombo(string label, IEnumerable<CatalogItem> items, int current)
@@ -239,7 +259,8 @@ public abstract class PropertyDialog : Window
 
     protected UniversalFieldEditors? AddUniversalFieldEditors(
         IEnumerable<UniversalFieldEditorValue> fields,
-        out IReadOnlyList<UniversalFieldEditorValue> editorFields)
+        out IReadOnlyList<UniversalFieldEditorValue> editorFields,
+        ResourceManager? resources = null)
     {
         var list = fields.ToList();
         editorFields = list;
@@ -257,6 +278,11 @@ public abstract class PropertyDialog : Window
                     options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}")),
                     handler.GetIntValue());
                 editors.AddCombo(item, combo);
+            }
+            else if (resources != null && handler is ImageNameTypeHandler imageName)
+            {
+                var title = imageName.BrowseFlats ? "Browse Flats" : "Browse Textures";
+                editors.AddBox(item, AddTextureField(item.Field.Name, handler.GetStringValue(), resources, imageName.BrowseFlats, title));
             }
             else
             {
@@ -317,7 +343,7 @@ public sealed class ThingEditDialog : PropertyDialog
     public int[] ResultArgs;
     public Dictionary<string, object> ResultFields = new();
 
-    public ThingEditDialog(Thing t, GameConfiguration? config) : base("Edit Thing")
+    public ThingEditDialog(Thing t, GameConfiguration? config, ResourceManager? resources = null) : base("Edit Thing")
     {
         ResultArgs = (int[])t.Args.Clone();
         if (config != null && config.Things.Count > 0)
@@ -341,7 +367,7 @@ public sealed class ThingEditDialog : PropertyDialog
             "thing",
             t.Fields,
             config?.GetThing(t.Type)?.AddUniversalFields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(t.Fields, editorFields)));
     }
@@ -377,7 +403,7 @@ public sealed class LinedefEditDialog : PropertyDialog
     public int[] ResultArgs;
     public Dictionary<string, object> ResultFields = new();
 
-    public LinedefEditDialog(Linedef l, GameConfiguration? config) : base("Edit Linedef")
+    public LinedefEditDialog(Linedef l, GameConfiguration? config, ResourceManager? resources = null) : base("Edit Linedef")
     {
         ResultArgs = (int[])l.Args.Clone();
         if (config != null && config.LinedefActions.Count > 0)
@@ -398,7 +424,7 @@ public sealed class LinedefEditDialog : PropertyDialog
         else
             _flagsBox = AddField("Flags (int)", l.Flags.ToString(CultureInfo.InvariantCulture));
         var configuredFields = UniversalFieldEditorValues.ForElement(config, "linedef", l.Fields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(l.Fields, editorFields)));
     }
@@ -426,12 +452,16 @@ public sealed class SectorEditDialog : PropertyDialog
     public string ResultFloorTex = "-", ResultCeilTex = "-";
     public Dictionary<string, object> ResultFields = new();
 
-    public SectorEditDialog(Sector s, GameConfiguration? config) : base("Edit Sector")
+    public SectorEditDialog(Sector s, GameConfiguration? config, ResourceManager? resources = null) : base("Edit Sector")
     {
         _floor = AddField("Floor height", s.FloorHeight.ToString(CultureInfo.InvariantCulture));
         _ceil = AddField("Ceiling height", s.CeilHeight.ToString(CultureInfo.InvariantCulture));
-        _floorTex = AddField("Floor texture", s.FloorTexture);
-        _ceilTex = AddField("Ceiling texture", s.CeilTexture);
+        _floorTex = resources != null
+            ? AddTextureField("Floor texture", s.FloorTexture, resources, flats: true, "Browse Floor Flat")
+            : AddField("Floor texture", s.FloorTexture);
+        _ceilTex = resources != null
+            ? AddTextureField("Ceiling texture", s.CeilTexture, resources, flats: true, "Browse Ceiling Flat")
+            : AddField("Ceiling texture", s.CeilTexture);
         _bright = AddField("Brightness", s.Brightness.ToString(CultureInfo.InvariantCulture));
 
         if (config != null && config.SectorEffects.Count > 0)
@@ -444,7 +474,7 @@ public sealed class SectorEditDialog : PropertyDialog
 
         _tag = AddField("Tag", s.Tag.ToString(CultureInfo.InvariantCulture));
         var configuredFields = UniversalFieldEditorValues.ForElement(config, "sector", s.Fields);
-        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, resources);
         _custom = AddTextArea("Custom UDMF fields",
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(s.Fields, editorFields)));
     }

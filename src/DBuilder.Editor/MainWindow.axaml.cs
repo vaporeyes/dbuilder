@@ -714,7 +714,7 @@ public partial class MainWindow : Window
         if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0)
         {
             var t = _map.GetSelectedThings()[0];
-            var dlg = new ThingEditDialog(t, _config);
+            var dlg = new ThingEditDialog(t, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
                 _undo.CreateUndo("Edit thing");
@@ -730,7 +730,7 @@ public partial class MainWindow : Window
         else if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSectorsCount == 0)
         {
             var l = _map.GetSelectedLinedefs()[0];
-            var dlg = new LinedefEditDialog(l, _config);
+            var dlg = new LinedefEditDialog(l, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
                 _undo.CreateUndo("Edit linedef");
@@ -743,7 +743,7 @@ public partial class MainWindow : Window
         else if (_map.SelectedSectorsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0)
         {
             var s = _map.GetSelectedSectors()[0];
-            var dlg = new SectorEditDialog(s, _config);
+            var dlg = new SectorEditDialog(s, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
                 _undo.CreateUndo("Edit sector");

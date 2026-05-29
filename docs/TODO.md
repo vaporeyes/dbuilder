@@ -282,6 +282,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Integrate handlers into argument property editors.
 - [x] Integrate handlers into configured universal field editors.
 - [ ] Integrate handlers into property editing UI.
+  - [x] Add texture and flat browser buttons to property dialogs.
 
 ## Editing Core
 
