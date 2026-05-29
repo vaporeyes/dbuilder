@@ -5,6 +5,25 @@ namespace DBuilder.Map;
 
 using DBuilder.Geometry;
 
+/// <summary>Counts the contents of a one-based selection group for UI labels and summaries.</summary>
+public readonly record struct SelectionGroupInfo(int Index, int SectorCount, int LinedefCount, int VertexCount, int ThingCount)
+{
+    public bool Empty => SectorCount == 0 && LinedefCount == 0 && VertexCount == 0 && ThingCount == 0;
+
+    public override string ToString()
+    {
+        if (Empty) return $"{Index}: Empty";
+
+        var parts = new List<string>();
+        if (SectorCount > 0) parts.Add($"{SectorCount} {(SectorCount == 1 ? "sector" : "sectors")}");
+        if (LinedefCount > 0) parts.Add($"{LinedefCount} {(LinedefCount == 1 ? "line" : "lines")}");
+        if (VertexCount > 0) parts.Add($"{VertexCount} {(VertexCount == 1 ? "vertex" : "vertices")}");
+        if (ThingCount > 0) parts.Add($"{ThingCount} {(ThingCount == 1 ? "thing" : "things")}");
+
+        return $"{Index}: {string.Join(", ", parts)}";
+    }
+}
+
 public class MapSet : IDisposable
 {
     public List<Vertex> Vertices { get; } = new();
@@ -709,6 +728,17 @@ public class MapSet : IDisposable
     public void SelectSectorsByGroup(int groupMask) => SelectByGroup(Sectors, groupMask);
     public void SelectThingsByGroup(int groupMask) => SelectByGroup(Things, groupMask);
 
+    public SelectionGroupInfo GetGroupInfo(int groupIndex)
+    {
+        int mask = GroupMask(groupIndex);
+        return new SelectionGroupInfo(
+            groupIndex + 1,
+            CountInGroup(Sectors, mask),
+            CountInGroup(Linedefs, mask),
+            CountInGroup(Vertices, mask),
+            CountInGroup(Things, mask));
+    }
+
     // ============================================================
     // Marking.
     // ============================================================
@@ -911,6 +941,14 @@ public class MapSet : IDisposable
     private static void SelectByGroup<T>(List<T> items, int mask) where T : IGroupable
     {
         foreach (var it in items) it.Selected = (it.Groups & mask) != 0;
+    }
+
+    private static int CountInGroup<T>(List<T> items, int mask) where T : IGroupable
+    {
+        int n = 0;
+        foreach (var it in items)
+            if ((it.Groups & mask) != 0) n++;
+        return n;
     }
 
     private static List<T> FilterMarked<T>(List<T> items) where T : IMarkable

@@ -64,6 +64,39 @@ public class SelectionGroupTests
     }
 
     [Fact]
+    public void GetGroupInfoReportsGroupCountsAndLabel()
+    {
+        var map = BuildMap();
+        int target = MapSet.GroupMask(4);
+        map.Vertices[0].Groups = target;
+        map.Linedefs[0].Groups = target;
+        map.Sectors[0].Groups = target;
+        map.Things[0].Groups = target;
+
+        var info = map.GetGroupInfo(4);
+
+        Assert.Equal(5, info.Index);
+        Assert.Equal(1, info.SectorCount);
+        Assert.Equal(1, info.LinedefCount);
+        Assert.Equal(1, info.VertexCount);
+        Assert.Equal(1, info.ThingCount);
+        Assert.False(info.Empty);
+        Assert.Equal("5: 1 sector, 1 line, 1 vertex, 1 thing", info.ToString());
+    }
+
+    [Fact]
+    public void GetGroupInfoReportsEmptyGroups()
+    {
+        var map = BuildMap();
+
+        var info = map.GetGroupInfo(5);
+
+        Assert.Equal(6, info.Index);
+        Assert.True(info.Empty);
+        Assert.Equal("6: Empty", info.ToString());
+    }
+
+    [Fact]
     public void GroupIndexMustFitSignedBitmask()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => MapSet.GroupMask(-1));
