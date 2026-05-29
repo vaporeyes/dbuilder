@@ -62,7 +62,7 @@ public static class CvarInfoParser
 
             if (invalidDeclaration) continue;
 
-            if (scope.Length == 0 || i >= t.Count || !Types.Contains(t[i]))
+            if (i >= t.Count || !Types.Contains(t[i]))
             {
                 SkipDeclaration(t, ref i);
                 continue;

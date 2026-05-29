@@ -356,6 +356,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port VOXELDEF parser.
 - [x] Port IWADINFO parser.
 - [x] Port CVARINFO parser.
+  - [x] Allow UDB-style flag-only CVARINFO prefixes before types.
 - [x] Port REVERBS parser.
 - [x] Port X11 RGB parser.
 - [ ] Port actor structure behavior for DECORATE and ZScript.

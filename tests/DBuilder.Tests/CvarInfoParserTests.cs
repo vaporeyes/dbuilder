@@ -59,4 +59,17 @@ local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
         Assert.Equal("UiHandler", local.HandlerClass);
         Assert.Equal("compact", local.DefaultValue);
     }
+
+    [Fact]
+    public void AllowsRecognizedFlagPrefixesWithoutScope()
+    {
+        const string text = @"noarchive int loose_cvar = 1;";
+
+        var variable = Assert.Single(CvarInfoParser.Parse(text).Variables);
+
+        Assert.Equal("", variable.Scope);
+        Assert.Equal("loose_cvar", variable.Name);
+        Assert.Contains("noarchive", variable.Flags);
+        Assert.Equal("1", variable.DefaultValue);
+    }
 }
