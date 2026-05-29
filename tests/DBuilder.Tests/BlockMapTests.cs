@@ -181,4 +181,39 @@ public class BlockMapTests
         Assert.Contains(thing, bm.GetThingsAt(0, 0));
         Assert.Empty(bm.GetLinedefsAt(-1, 0));
     }
+
+    [Fact]
+    public void LinedefCellsFollowCrossedBlocksInsteadOfBoundingBox()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 128)));
+        map.BuildIndexes();
+
+        var bm = new BlockMap(map, 64);
+
+        Assert.Contains(line, bm.GetLinedefsAt(0, 0));
+        Assert.Contains(line, bm.GetLinedefsAt(1, 1));
+        Assert.Contains(line, bm.GetLinedefsAt(2, 2));
+        Assert.DoesNotContain(line, bm.GetLinedefsAt(1, 0));
+        Assert.DoesNotContain(line, bm.GetLinedefsAt(2, 0));
+        Assert.DoesNotContain(line, bm.GetLinedefsAt(0, 2));
+    }
+
+    [Fact]
+    public void HorizontalLinedefCellsIncludeOnlyTraversedRow()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(160, 0)));
+        map.AddVertex(new Vector2D(0, 96));
+        map.BuildIndexes();
+
+        var bm = new BlockMap(map, 64);
+
+        Assert.Contains(line, bm.GetLinedefsAt(0, 0));
+        Assert.Contains(line, bm.GetLinedefsAt(1, 0));
+        Assert.Contains(line, bm.GetLinedefsAt(2, 0));
+        Assert.Empty(bm.GetLinedefsAt(0, 1));
+        Assert.Empty(bm.GetLinedefsAt(1, 1));
+        Assert.Empty(bm.GetLinedefsAt(2, 1));
+    }
 }

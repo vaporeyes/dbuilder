@@ -90,21 +90,59 @@ public sealed class BlockMap
             vertCells[Index(CellX(v.Position.x), CellY(v.Position.y))].Add(v);
         foreach (var t in map.Things)
             thingCells[Index(CellX(t.Position.x), CellY(t.Position.y))].Add(t);
-        foreach (var l in map.Linedefs)
+        foreach (var line in map.Linedefs)
         {
-            var a = l.Start.Position;
-            var b = l.End.Position;
-            int cx0 = CellX(Math.Min(a.x, b.x)), cx1 = CellX(Math.Max(a.x, b.x));
-            int cy0 = CellY(Math.Min(a.y, b.y)), cy1 = CellY(Math.Max(a.y, b.y));
-            for (int cy = cy0; cy <= cy1; cy++)
-                for (int cx = cx0; cx <= cx1; cx++)
-                    lineCells[Index(cx, cy)].Add(l);
+            foreach (int cell in LineCellIndices(line.Start.Position, line.End.Position))
+                lineCells[cell].Add(line);
         }
     }
 
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
     private int CellY(double y) => Math.Clamp((int)Math.Floor((y - originY) / blockSize), 0, rows - 1);
     private int Index(int cx, int cy) => cy * cols + cx;
+
+    private IEnumerable<int> LineCellIndices(Vector2D start, Vector2D end)
+    {
+        int cx = CellX(start.x);
+        int cy = CellY(start.y);
+        int endX = CellX(end.x);
+        int endY = CellY(end.y);
+
+        yield return Index(cx, cy);
+        if (cx == endX && cy == endY) yield break;
+
+        double dx = end.x - start.x;
+        double dy = end.y - start.y;
+        int stepX = Math.Sign(dx);
+        int stepY = Math.Sign(dy);
+        double tMaxX = stepX == 0 ? double.PositiveInfinity : FirstGridT(start.x, dx, cx, stepX, originX);
+        double tMaxY = stepY == 0 ? double.PositiveInfinity : FirstGridT(start.y, dy, cy, stepY, originY);
+        double tDeltaX = stepX == 0 ? double.PositiveInfinity : blockSize / Math.Abs(dx);
+        double tDeltaY = stepY == 0 ? double.PositiveInfinity : blockSize / Math.Abs(dy);
+        int guard = cols + rows + 2;
+
+        while ((cx != endX || cy != endY) && guard-- > 0)
+        {
+            if (tMaxX < tMaxY)
+            {
+                cx += stepX;
+                tMaxX += tDeltaX;
+            }
+            else
+            {
+                cy += stepY;
+                tMaxY += tDeltaY;
+            }
+
+            if (IsCellInRange(cx, cy)) yield return Index(cx, cy);
+        }
+    }
+
+    private double FirstGridT(double start, double delta, int cell, int step, double origin)
+    {
+        double boundary = origin + (step > 0 ? cell + 1 : cell) * blockSize;
+        return (boundary - start) / delta;
+    }
 
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
