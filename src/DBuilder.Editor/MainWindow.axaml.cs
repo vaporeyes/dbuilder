@@ -429,6 +429,35 @@ public partial class MainWindow : Window
     private async void OnBrowseCeilingFlats(object? sender, RoutedEventArgs e)
         => await ApplyFlatToSelectedSectors(ceiling: true);
 
+    private void OnReloadResources(object? sender, RoutedEventArgs e)
+    {
+        if (_wadPath is null || _mapOptions is null)
+        {
+            SetStatus("Open a WAD map to reload resources.");
+            return;
+        }
+
+        var preResult = ExternalCommand.Run(_mapOptions.ReloadResourcePreCommand, "Before reload resources");
+        if (!preResult.Success)
+        {
+            SetStatus(preResult.Message);
+            return;
+        }
+
+        int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
+        var postResult = ExternalCommand.Run(_mapOptions.ReloadResourcePostCommand, "After reload resources");
+        if (!postResult.Success)
+        {
+            SetStatus(postResult.Message);
+            return;
+        }
+
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        string issues = resourceIssues == 0 ? "" : $" ({resourceIssues} resource(s) missing or unreadable)";
+        SetStatus($"Resources reloaded{issues}.");
+    }
+
     private async Task ApplyFlatToSelectedSectors(bool ceiling)
     {
         if (_resources is null) { SetStatus("No resources loaded for flats."); return; }

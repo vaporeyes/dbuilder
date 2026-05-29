@@ -113,6 +113,7 @@
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Check Map" Click="OnCheckMap" />
                 <MenuItem Header="_Clean Up Geometry" Click="OnCleanUpGeometry" />
+                <MenuItem Header="_Reload Resources" Click="OnReloadResources" />
                 <MenuItem Header="_Test Map" Click="OnTestMap" />
                 <MenuItem Header="Sound _Propagation" Click="OnSoundPropagation" />
                 <MenuItem Header="Build _Stairs..." Click="OnBuildStairs" />
@@ -151,6 +152,7 @@
                     <Button Content="Ellipse" Click="OnDrawEllipse" />
                     <Button Content="Check" Click="OnCheckMap" />
                     <Button Content="Clean" Click="OnCleanUpGeometry" />
+                    <Button Content="Res" Click="OnReloadResources" />
                     <Button Content="Test" Click="OnTestMap" />
                     <Button Content="Stairs" Click="OnBuildStairs" />
                     <Button Content="Slopes" Click="OnApplySlopes" />
