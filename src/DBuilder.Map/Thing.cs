@@ -1,5 +1,5 @@
-// ABOUTME: Skeleton of UDB's Map.Thing - positioned actor with type, angle, flags.
-// ABOUTME: Subset needed for map I/O and visualization; omits UDB's selection, marks, args, custom fields.
+// ABOUTME: Skeleton of UDB's Map.Thing - positioned actor with type, angle, flags and transient sector link.
+// ABOUTME: Keeps editor-only selection, group, args, UDMF fields and blockmap sector determination behavior.
 
 namespace DBuilder.Map;
 
@@ -20,6 +20,9 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
 
     /// <summary>Transient editor selection group membership bitmask.</summary>
     public int Groups { get; set; }
+
+    /// <summary>Transient containing sector link. Recomputed from geometry and not serialized.</summary>
+    public Sector? Sector { get; set; }
 
     public double Height { get; set; } // UDMF Z; Doom-format things have no height
     public int Type { get; set; }
@@ -56,5 +59,17 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         Position = position;
         Type = type;
         Angle = angle;
+    }
+
+    /// <summary>Determines the containing sector from a map-wide spatial query.</summary>
+    public void DetermineSector(MapSet map)
+    {
+        Sector = map.GetSectorAt(Position);
+    }
+
+    /// <summary>Determines the containing sector from blockmap sector candidates.</summary>
+    public void DetermineSector(BlockMap blockMap)
+    {
+        Sector = blockMap.GetContainingSector(Position);
     }
 }

@@ -45,6 +45,7 @@ public class MapSetCloneTests
         Assert.Same(clone.Sectors[0], clone.Sidedefs[0].Sector);
         Assert.Same(clone.Sectors[1], clone.Sidedefs[1].Sector);
         Assert.Same(clone.Sidedefs[1], clone.Sidedefs[0].Other);
+        Assert.Same(clone.Sectors[0], clone.Things[0].Sector);
     }
 
     [Fact]
@@ -138,6 +139,7 @@ public class MapSetCloneTests
         var thing = map.AddThing(new Vector2D(64, 32), 3001);
         thing.Selected = true;
         thing.Groups = MapSet.GroupMask(4);
+        thing.Sector = frontSector;
         thing.SetArg(1, 33);
         thing.SetField("health", 200);
         map.BuildIndexes();

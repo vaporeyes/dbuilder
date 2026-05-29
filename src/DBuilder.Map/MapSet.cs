@@ -265,6 +265,7 @@ public class MapSet : IDisposable
                 Flags = thing.Flags,
                 Tag = thing.Tag,
                 Action = thing.Action,
+                Sector = thing.Sector == null ? null : sectorMap[thing.Sector],
             };
             CopyArgs(thing, copy);
             foreach (var flag in thing.UdmfFlags) copy.UdmfFlags.Add(flag);

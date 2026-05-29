@@ -284,6 +284,34 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void ThingDetermineSectorUsesBlockMapContainingSector()
+    {
+        var (map, sector) = SquareSector(0, 0, 128);
+        var inside = map.AddThing(new Vector2D(64, 64), 3001);
+        var outside = map.AddThing(new Vector2D(-16, 64), 3001);
+        map.BuildIndexes();
+        var bm = new BlockMap(map, 64);
+
+        inside.DetermineSector(bm);
+        outside.DetermineSector(bm);
+
+        Assert.Same(sector, inside.Sector);
+        Assert.Null(outside.Sector);
+    }
+
+    [Fact]
+    public void ThingDetermineSectorUsesMapSetSectorQuery()
+    {
+        var (map, sector) = SquareSector(0, 0, 128);
+        var thing = map.AddThing(new Vector2D(64, 64), 3001);
+        map.BuildIndexes();
+
+        thing.DetermineSector(map);
+
+        Assert.Same(sector, thing.Sector);
+    }
+
+    [Fact]
     public void CellRangeCropsToBlockMapBounds()
     {
         var map = new MapSet();
