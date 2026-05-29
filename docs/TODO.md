@@ -83,6 +83,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Edit shortcut overrides from the settings dialog using stable command ids.
 - [ ] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
+  - [x] Normalize mouse buttons as UDB-style button command keys.
 - [ ] Port special key handling.
   - [x] Normalize configurable shortcut aliases for escape, delete and backspace keys.
   - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.

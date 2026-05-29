@@ -72,6 +72,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
+        Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
+        Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
         Assert.Equal("map2d.zoom-out", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
@@ -91,6 +93,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
+        Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left"));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
@@ -128,6 +131,17 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorPointerInput.ScrollRight, EditorPointerInput.WheelKey(2, 1));
         Assert.Equal(EditorPointerInput.ScrollLeft, EditorPointerInput.WheelKey(-2, 1));
         Assert.Null(EditorPointerInput.WheelKey(0, 0));
+    }
+
+    [Fact]
+    public void MouseButtonsNormalizeToUdbButtonKeys()
+    {
+        Assert.Equal(EditorPointerInput.LeftButton, EditorPointerInput.ButtonKey(EditorPointerButton.Left));
+        Assert.Equal(EditorPointerInput.MiddleButton, EditorPointerInput.ButtonKey(EditorPointerButton.Middle));
+        Assert.Equal(EditorPointerInput.RightButton, EditorPointerInput.ButtonKey(EditorPointerButton.Right));
+        Assert.Equal(EditorPointerInput.ExtendedButton1, EditorPointerInput.ButtonKey(EditorPointerButton.XButton1));
+        Assert.Equal(EditorPointerInput.ExtendedButton2, EditorPointerInput.ButtonKey(EditorPointerButton.XButton2));
+        Assert.Null(EditorPointerInput.ButtonKey(EditorPointerButton.None));
     }
 
     [Fact]
@@ -204,6 +218,16 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void GestureTextFormatsUdbStyleMouseButtonKeys()
+    {
+        Assert.Equal("LButton", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.select", EditorCommandScope.Map2D, EditorPointerInput.LeftButton)));
+        Assert.Equal("MButton", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.pan", EditorCommandScope.Map2D, EditorPointerInput.MiddleButton)));
+        Assert.Equal("RButton", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.split-line", EditorCommandScope.Map2D, EditorPointerInput.RightButton)));
+        Assert.Equal("XButton1", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, EditorPointerInput.ExtendedButton1)));
+        Assert.Equal("XButton2", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, EditorPointerInput.ExtendedButton2)));
+    }
+
+    [Fact]
     public void GestureTextFormatsSpecialKeys()
     {
         Assert.Equal("Esc", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape")));
@@ -267,6 +291,18 @@ public class EditorCommandCatalogTests
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "Subtract");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemCloseBrackets");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
+    }
+
+    [Fact]
+    public void ParseOverrideTextReadsUdbStyleMouseButtonKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.select=LButton; map2d.pan=Alt+MButton; map2d.split-line=Ctrl+Shift+RButton; map3d.select-target=XButton1");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.select" && b.Key == EditorPointerInput.LeftButton);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.pan" && b.Key == EditorPointerInput.MiddleButton && b.Alt);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.split-line" && b.Key == EditorPointerInput.RightButton && b.Accelerator && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.select-target" && b.Key == EditorPointerInput.ExtendedButton1);
     }
 
     [Fact]

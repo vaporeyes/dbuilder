@@ -122,6 +122,8 @@ public static class EditorCommandCatalog
         new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Back"),
         new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape"),
 
+        new EditorShortcutBinding("map2d.select", EditorCommandScope.Map2D, EditorPointerInput.LeftButton),
+        new EditorShortcutBinding("map2d.split-line", EditorCommandScope.Map2D, EditorPointerInput.RightButton),
         new EditorShortcutBinding("map2d.toggle-sector-fills", EditorCommandScope.Map2D, "S"),
         new EditorShortcutBinding("map2d.toggle-things", EditorCommandScope.Map2D, "T"),
         new EditorShortcutBinding("map2d.toggle-thing-arrows", EditorCommandScope.Map2D, "Y"),
@@ -168,6 +170,7 @@ public static class EditorCommandCatalog
         new EditorShortcutBinding("map3d.reset-offsets", EditorCommandScope.Map3D, "O"),
         new EditorShortcutBinding("map3d.delete-target", EditorCommandScope.Map3D, "Delete"),
         new EditorShortcutBinding("map3d.delete-target", EditorCommandScope.Map3D, "Back"),
+        new EditorShortcutBinding("map3d.select-target", EditorCommandScope.Map3D, EditorPointerInput.LeftButton),
         new EditorShortcutBinding("map3d.browse-texture", EditorCommandScope.Map3D, "T"),
         new EditorShortcutBinding("map3d.nudge-offset-left", EditorCommandScope.Map3D, "Left", Shift: true),
         new EditorShortcutBinding("map3d.nudge-offset-right", EditorCommandScope.Map3D, "Right", Shift: true),
@@ -309,6 +312,11 @@ public static class EditorCommandCatalog
         "D2" => "2",
         "D3" => "3",
         "D4" => "4",
+        EditorPointerInput.LeftButton => EditorPointerInput.LeftButton,
+        EditorPointerInput.MiddleButton => EditorPointerInput.MiddleButton,
+        EditorPointerInput.RightButton => EditorPointerInput.RightButton,
+        EditorPointerInput.ExtendedButton1 => EditorPointerInput.ExtendedButton1,
+        EditorPointerInput.ExtendedButton2 => EditorPointerInput.ExtendedButton2,
         _ => key,
     };
 
@@ -323,6 +331,11 @@ public static class EditorCommandCatalog
         if (key.Equals("NumPad.", StringComparison.OrdinalIgnoreCase)) return "Decimal";
         if (key.Equals("NumPad*", StringComparison.OrdinalIgnoreCase)) return "Multiply";
         if (key.Equals("NumPad/", StringComparison.OrdinalIgnoreCase)) return "Divide";
+        if (key.Equals("LButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.LeftButton;
+        if (key.Equals("MButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.MiddleButton;
+        if (key.Equals("RButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.RightButton;
+        if (key.Equals("XButton1", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ExtendedButton1;
+        if (key.Equals("XButton2", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ExtendedButton2;
 
         return key switch
         {
