@@ -335,6 +335,19 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnCloseMap(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null)
+        {
+            SetStatus("No map loaded.");
+            return;
+        }
+        if (!await ConfirmDiscardDirtyMap()) return;
+
+        CloseCurrentMap();
+        SetStatus("Map closed.");
+    }
+
     // Adds a base resource (IWAD or PK3) beneath the current map's WAD so its textures/flats/sprites resolve.
     private async void OnAddResource(object? sender, RoutedEventArgs e)
     {
@@ -1612,6 +1625,28 @@ public partial class MainWindow : Window
         RebuildRecentMenu();
     }
 
+    private void CloseCurrentMap()
+    {
+        _map = null;
+        _undo = null;
+        _mapMarker = null;
+        _sourceMapMarker = null;
+        _wadPath = null;
+        _pk3Path = null;
+        _pk3Maps = null;
+        _pk3MapArchivePath = null;
+        _iwadPath = null;
+        _mapOptions = null;
+        _mapSettings = null;
+        _resources?.Dispose();
+        _resources = null;
+        MapView.MapResources = null;
+        MapView.Map = null;
+        ClearMapDirty();
+        UpdateInfo();
+        UpdateStatusDetails();
+    }
+
     private static bool IsPk3Path(string path)
     {
         string ext = System.IO.Path.GetExtension(path);
@@ -1684,6 +1719,7 @@ public partial class MainWindow : Window
 
     private string CurrentEditorTitle()
     {
+        if (_map is null) return "DBuilder";
         string dirty = _mapDirty ? "*" : "";
         if (_wadPath is not null)
             return $"DBuilder{dirty} - {System.IO.Path.GetFileName(_wadPath)} ({_mapMarker ?? "MAP01"})";

@@ -37,6 +37,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prompt before switching maps in an opened archive with dirty changes.
   - [x] Save opened WAD maps back to their source path without forcing Save As.
   - [x] Reload the current WAD or PK3 map from disk with dirty-change confirmation.
+  - [x] Close the current map and release active archive resources with dirty-change confirmation.
 - [ ] Port autosave and recovery behavior.
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
