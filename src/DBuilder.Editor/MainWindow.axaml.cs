@@ -518,11 +518,14 @@ public partial class MainWindow : Window
     private async void OnMapOptions(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace);
+        _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
+        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace, _mapOptions, _config?.UseLongTextureNames ?? false);
         if (await dlg.ShowDialog<bool>(this))
         {
             _mapMarker = dlg.ResultMarker;
             _map.Namespace = dlg.ResultNamespace;
+            _mapOptions.CurrentName = _mapMarker;
+            dlg.ApplyTo(_mapOptions);
             Title = CurrentEditorTitle();
             UpdateInfo();
             MapView.Focus();
@@ -552,6 +555,7 @@ public partial class MainWindow : Window
         options.CurrentName = marker;
         options.ConfigFile = _configFile;
         options.WriteResources();
+        options.WriteDrawingOptions();
         var root = _mapSettings ?? new Configuration(sorted: true);
         options.WriteRootOptions(root);
         root.SaveConfiguration(DbsPath(wadPath));
@@ -1476,7 +1480,7 @@ public partial class MainWindow : Window
 
     private static string DbsPath(string wadPath) => System.IO.Path.ChangeExtension(wadPath, ".dbs");
 
-    private static MapOptions LoadMapOptions(string wadPath, string mapName, out Configuration root)
+    private MapOptions LoadMapOptions(string wadPath, string mapName, out Configuration root)
     {
         string dbsPath = DbsPath(wadPath);
         try
@@ -1493,6 +1497,7 @@ public partial class MainWindow : Window
         var options = new MapOptions();
         options.ReadRootOptions(root, mapName);
         options.ReadResources();
+        options.ReadDrawingOptions(_config?.UseLongTextureNames ?? false);
         return options;
     }
 

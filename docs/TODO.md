@@ -358,6 +358,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add generic selected-element custom UDMF fields dialog.
 - [ ] Port map options dialog.
   - [x] Add basic map marker and UDMF namespace dialog.
+  - [x] Add drawing default fields to the map options dialog.
 - [ ] Port open map options dialog.
   - [x] Prompt for initial map selection when opening multi-map WAD or PK3 archives.
 - [x] Port preferences dialog.
