@@ -84,6 +84,49 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void JoinVerticesAcrossCollectionsKeepsFirstSetByDefault()
+    {
+        var map = new MapSet();
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.25, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(movingVertex, end);
+        var fixedSet = new List<Vertex> { fixedVertex };
+        var movingSet = new List<Vertex> { movingVertex };
+
+        int joins = map.JoinVertices(fixedSet, movingSet, keepSecond: false, joinDistance: 1.0);
+
+        Assert.Equal(1, joins);
+        Assert.Same(fixedVertex, line.Start);
+        Assert.Contains(fixedVertex, map.Vertices);
+        Assert.DoesNotContain(movingVertex, map.Vertices);
+        Assert.Empty(movingSet);
+        Assert.True(movingVertex.IsDisposed);
+    }
+
+    [Fact]
+    public void JoinVerticesAcrossCollectionsCanKeepSecondSet()
+    {
+        var map = new MapSet();
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.25, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(fixedVertex, end);
+        var fixedSet = new List<Vertex> { fixedVertex };
+        var movingSet = new List<Vertex> { movingVertex };
+
+        int joins = map.JoinVertices(fixedSet, movingSet, keepSecond: true, joinDistance: 1.0);
+
+        Assert.Equal(1, joins);
+        Assert.Same(movingVertex, line.Start);
+        Assert.Equal(new Vector2D(0, 0), movingVertex.Position);
+        Assert.DoesNotContain(fixedVertex, map.Vertices);
+        Assert.Contains(movingVertex, map.Vertices);
+        Assert.Empty(fixedSet);
+        Assert.True(fixedVertex.IsDisposed);
+    }
+
+    [Fact]
     public void GetSectorsFromLinedefsReturnsOnlyFullyBoundedSectors()
     {
         var map = BuildTwoAdjacentSquares();

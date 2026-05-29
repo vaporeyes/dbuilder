@@ -539,6 +539,50 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// Joins nearby vertices from two collections. Only vertices that appear in different collections are joined.
+    /// Vertices from the second collection are moved to the first collection vertex before joining.
+    /// </summary>
+    public int JoinVertices(ICollection<Vertex> set1, ICollection<Vertex> set2, bool keepSecond, double joinDistance)
+    {
+        double joinDistanceSquared = joinDistance * joinDistance;
+        int joins = 0;
+        bool joined;
+        do
+        {
+            joined = false;
+            foreach (var first in set1.ToArray())
+            {
+                foreach (var second in set2.ToArray())
+                {
+                    if (ReferenceEquals(first, second)) continue;
+                    if (Vector2D.DistanceSq(first.Position, second.Position) > joinDistanceSquared) continue;
+
+                    second.Position = first.Position;
+                    if (keepSecond)
+                    {
+                        JoinVertices(second, first);
+                        set1.Remove(first);
+                        set2.Remove(first);
+                    }
+                    else
+                    {
+                        JoinVertices(first, second);
+                        set1.Remove(second);
+                        set2.Remove(second);
+                    }
+                    joins++;
+                    joined = true;
+                    break;
+                }
+
+                if (joined) break;
+            }
+        } while (joined);
+
+        return joins;
+    }
+
+    /// <summary>
     /// Removes linedefs whose endpoints are the same vertex or occupy the same position.
     /// Returns the number of unique linedefs removed. Call BuildIndexes() afterward.
     /// </summary>
