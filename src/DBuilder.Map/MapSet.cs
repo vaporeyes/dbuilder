@@ -837,6 +837,55 @@ public class MapSet : IDisposable
             if (side.Sector?.Marked == matchMark) side.Marked = setMark;
     }
 
+    public List<Vertex> GetVerticesFromLinesMarks(bool mark)
+    {
+        var result = new List<Vertex>();
+        foreach (var vertex in Vertices)
+        {
+            foreach (var line in vertex.Linedefs)
+            {
+                if (line.Marked != mark) continue;
+                result.Add(vertex);
+                break;
+            }
+        }
+        return result;
+    }
+
+    public List<Vertex> GetVerticesFromAllLinesMarks(bool mark)
+    {
+        var result = new List<Vertex>();
+        foreach (var vertex in Vertices)
+        {
+            bool qualified = true;
+            foreach (var line in vertex.Linedefs)
+            {
+                if (line.Marked == mark) continue;
+                qualified = false;
+                break;
+            }
+            if (qualified) result.Add(vertex);
+        }
+        return result;
+    }
+
+    public List<Vertex> GetVerticesFromSectorsMarks(bool mark)
+    {
+        var result = new List<Vertex>();
+        foreach (var vertex in Vertices)
+        {
+            foreach (var line in vertex.Linedefs)
+            {
+                if (line.Front?.Sector?.Marked == mark || line.Back?.Sector?.Marked == mark)
+                {
+                    result.Add(vertex);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     // ============================================================
     // Element lookup.
     // ============================================================

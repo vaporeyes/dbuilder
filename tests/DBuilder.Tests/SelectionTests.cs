@@ -228,6 +228,27 @@ public class SelectionTests
     }
 
     [Fact]
+    public void GetVerticesFromLinesMarksUsesAnyOrAllTouchingLines()
+    {
+        var map = BuildTwoSidedMap();
+        map.Linedefs[0].Marked = true;
+
+        Assert.Equal(new[] { map.Vertices[0], map.Vertices[1] }, map.GetVerticesFromLinesMarks(mark: true));
+        Assert.Equal(new[] { map.Vertices[0] }, map.GetVerticesFromAllLinesMarks(mark: true));
+        Assert.Equal(new[] { map.Vertices[2] }, map.GetVerticesFromAllLinesMarks(mark: false));
+    }
+
+    [Fact]
+    public void GetVerticesFromSectorsMarksUsesTouchingLineSectors()
+    {
+        var map = BuildTwoSidedMap();
+        map.Sectors[1].Marked = true;
+
+        Assert.Equal(new[] { map.Vertices[0], map.Vertices[1] }, map.GetVerticesFromSectorsMarks(mark: true));
+        Assert.Equal(map.Vertices, map.GetVerticesFromSectorsMarks(mark: false));
+    }
+
+    [Fact]
     public void SelectionPicksUpHitTestResults()
     {
         // The intended editor flow: hit-test then flag the result selected.
