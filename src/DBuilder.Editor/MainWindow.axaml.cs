@@ -494,6 +494,7 @@ public partial class MainWindow : Window
                 case Avalonia.Input.Key.X: OnCut(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.C: OnCopy(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.V: OnPaste(this, new RoutedEventArgs()); e.Handled = true; return;
+                case Avalonia.Input.Key.D: OnDuplicate(this, new RoutedEventArgs()); e.Handled = true; return;
             }
         }
         if (e.Key == Avalonia.Input.Key.Delete || e.Key == Avalonia.Input.Key.Back)
@@ -546,6 +547,15 @@ public partial class MainWindow : Window
     private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
 
     private void OnPaste(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PasteClipboard());
+
+    private void OnDuplicate(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (CountSelection() == 0) { SetStatus("Nothing selected to duplicate."); return; }
+
+        MapView.CopySelection();
+        RunClipboardEdit(MapView.PasteClipboard());
+    }
 
     private void RunClipboardEdit(string status)
     {

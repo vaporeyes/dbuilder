@@ -33,6 +33,7 @@
                 <MenuItem Header="Cu_t" Click="OnCut" />
                 <MenuItem Header="_Copy" Click="OnCopy" />
                 <MenuItem Header="_Paste" Click="OnPaste" />
+                <MenuItem Header="D_uplicate" Click="OnDuplicate" />
                 <Separator />
                 <MenuItem Header="_Delete selection" Click="OnDelete" />
                 <MenuItem Header="Select _all" Click="OnSelectAll" />

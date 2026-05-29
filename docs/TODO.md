@@ -291,6 +291,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port copy/paste manager behavior fully.
   - [x] Add menu commands for selection copy and paste.
   - [x] Add menu command for selection cut.
+  - [x] Add menu command for duplicate selection.
 - [ ] Port undo manager behavior fully.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
