@@ -28,6 +28,7 @@ public sealed class Settings
     public double? WindowHeight { get; set; }
     public List<string> RecentFiles { get; set; } = new();
     public List<RecentMapReference> RecentMaps { get; set; } = new();
+    public List<EditorShortcutBinding> ShortcutOverrides { get; set; } = new();
 
     public int NormalizedStatusHistoryLimit =>
         Math.Clamp(StatusHistoryLimit ?? DefaultStatusHistoryLimit, MinStatusHistoryLimit, MaxStatusHistoryLimit);
@@ -87,6 +88,7 @@ public sealed class Settings
             var settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new Settings();
             settings.RecentFiles ??= new();
             settings.RecentMaps ??= new();
+            settings.ShortcutOverrides ??= new();
             return settings;
         }
         catch { return new Settings(); }

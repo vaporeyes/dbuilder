@@ -93,4 +93,40 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left"));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
     }
+
+    [Fact]
+    public void EffectiveShortcutsReplaceDefaultBindingsForCommand()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+        });
+
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "S", accelerator: true));
+        Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "F5"));
+    }
+
+    [Fact]
+    public void EffectiveShortcutsIgnoreUnknownOrBlankOverrides()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("missing.command", EditorCommandScope.Window, "F5"),
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, ""),
+        });
+
+        Assert.Same(EditorCommandCatalog.DefaultShortcuts, bindings);
+        Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "S", accelerator: true));
+    }
+
+    [Fact]
+    public void EffectiveShortcutsLetOverridesWinConflicts()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "Z", Accelerator: true),
+        });
+
+        Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Z", accelerator: true));
+    }
 }

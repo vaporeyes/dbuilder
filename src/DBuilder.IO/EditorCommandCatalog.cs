@@ -162,10 +162,37 @@ public static class EditorCommandCatalog
     public static IReadOnlyList<EditorCommandDescriptor> ByScope(EditorCommandScope scope)
         => All.Where(command => command.Scope == scope).ToArray();
 
-    public static string? ResolveShortcut(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
+    public static IReadOnlyList<EditorShortcutBinding> EffectiveShortcuts(IEnumerable<EditorShortcutBinding>? overrides)
     {
-        foreach (var shortcut in DefaultShortcuts)
+        if (overrides is null) return DefaultShortcuts;
+
+        var known = All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
+        var validOverrides = overrides
+            .Where(binding => known.Contains(binding.CommandId) && !string.IsNullOrWhiteSpace(binding.Key))
+            .ToArray();
+        if (validOverrides.Length == 0) return DefaultShortcuts;
+
+        var replaced = validOverrides.Select(binding => binding.CommandId).ToHashSet(StringComparer.Ordinal);
+        return DefaultShortcuts
+            .Where(binding => !replaced.Contains(binding.CommandId))
+            .Concat(validOverrides)
+            .ToArray();
+    }
+
+    public static string? ResolveShortcut(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
+        => ResolveShortcut(DefaultShortcuts, scope, key, accelerator, shift, alt);
+
+    public static string? ResolveShortcut(
+        IReadOnlyList<EditorShortcutBinding> bindings,
+        EditorCommandScope scope,
+        string key,
+        bool accelerator = false,
+        bool shift = false,
+        bool alt = false)
+    {
+        for (int i = bindings.Count - 1; i >= 0; i--)
         {
+            var shortcut = bindings[i];
             if (shortcut.Scope == scope
                 && shortcut.Accelerator == accelerator
                 && shortcut.Shift == shift

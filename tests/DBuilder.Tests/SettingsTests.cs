@@ -88,6 +88,10 @@ public class SettingsTests
                 WindowY = 80,
                 WindowWidth = 1280,
                 WindowHeight = 900,
+                ShortcutOverrides = new()
+                {
+                    new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+                },
             };
             s.AddRecent("/x.wad");
             s.AddRecentMap("/x.wad", "MAP01");
@@ -105,6 +109,7 @@ public class SettingsTests
             Assert.Equal(900, loaded.WindowHeight);
             Assert.Contains("/x.wad", loaded.RecentFiles);
             Assert.Contains(loaded.RecentMaps, m => m.Path == "/x.wad" && m.MapName == "MAP01");
+            Assert.Contains(loaded.ShortcutOverrides, b => b.CommandId == "window.save" && b.Key == "F5");
         }
         finally { if (File.Exists(path)) File.Delete(path); }
     }
@@ -115,6 +120,7 @@ public class SettingsTests
         var s = Settings.Load(Path.Combine(Path.GetTempPath(), "definitely_missing_dbuilder_settings.json"));
         Assert.NotNull(s);
         Assert.Empty(s.RecentFiles);
+        Assert.Empty(s.ShortcutOverrides);
         Assert.Null(s.ConfigDir);
     }
 

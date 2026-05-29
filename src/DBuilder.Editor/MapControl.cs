@@ -26,6 +26,8 @@ namespace DBuilder.Editor;
 
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
+    public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
+
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
     // reach it by default. Claim only points actually inside the control's bounds - returning true for
     // ALL points made the map swallow clicks meant for the surrounding menu/toolbar chrome.
@@ -1929,7 +1931,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
         string key = e.Key.ToString();
-        if (EditorCommandCatalog.ResolveShortcut(_mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D, key, accel, shift, alt) is { } commandId
+        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D, key, accel, shift, alt) is { } commandId
             && RunMapCommand(commandId))
         {
             e.Handled = true;

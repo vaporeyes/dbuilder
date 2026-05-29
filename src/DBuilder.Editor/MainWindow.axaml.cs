@@ -60,6 +60,7 @@ public partial class MainWindow : Window
 
     private Settings _settings = new();
     private readonly string _settingsPath = Settings.DefaultPath;
+    private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -107,6 +108,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
         ReloadCompilerConfiguration();
@@ -122,6 +124,12 @@ public partial class MainWindow : Window
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
+
+    private void ApplyShortcutBindings()
+    {
+        _shortcutBindings = EditorCommandCatalog.EffectiveShortcuts(_settings.ShortcutOverrides);
+        MapView.ShortcutBindings = _shortcutBindings;
+    }
 
     private void ApplyWindowPlacement()
     {
@@ -887,7 +895,7 @@ public partial class MainWindow : Window
         bool shift = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Alt);
         string key = e.Key.ToString();
-        if (EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, key, accel, shift, alt) is { } commandId
+        if (EditorCommandCatalog.ResolveShortcut(_shortcutBindings, EditorCommandScope.Window, key, accel, shift, alt) is { } commandId
             && RunWindowCommand(commandId))
         {
             e.Handled = true;
