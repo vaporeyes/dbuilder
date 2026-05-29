@@ -1350,7 +1350,7 @@ public partial class MainWindow : Window
         var selectedVertices = _map.SelectedGeometryVertices();
         if (selectedVertices.Count > 0)
         {
-            GeometryStitchResult result = _map.StitchSelectedGeometry(0.5);
+            GeometryStitchResult result = _map.StitchSelectedGeometry(_settings.NormalizedMergeGeometryMode, 0.5);
             _map.BuildIndexes();
             MapView.MarkGeometryDirty();
             UpdateInfo();

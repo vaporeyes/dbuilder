@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using DBuilder.Map;
 
 namespace DBuilder.IO;
 
@@ -22,6 +23,7 @@ public sealed class Settings
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
     public int? StatusHistoryLimit { get; set; }
+    public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -32,6 +34,9 @@ public sealed class Settings
 
     public int NormalizedStatusHistoryLimit =>
         Math.Clamp(StatusHistoryLimit ?? DefaultStatusHistoryLimit, MinStatusHistoryLimit, MaxStatusHistoryLimit);
+
+    public MergeGeometryMode NormalizedMergeGeometryMode =>
+        Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)

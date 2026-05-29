@@ -4,6 +4,7 @@
 using System.IO;
 using System.Linq;
 using DBuilder.IO;
+using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
@@ -84,6 +85,7 @@ public class SettingsTests
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 StatusHistoryLimit = 250,
+                MergeGeometryMode = MergeGeometryMode.Merge,
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -103,6 +105,8 @@ public class SettingsTests
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
+            Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);
+            Assert.Equal(MergeGeometryMode.Merge, loaded.NormalizedMergeGeometryMode);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -122,6 +126,15 @@ public class SettingsTests
         Assert.Empty(s.RecentFiles);
         Assert.Empty(s.ShortcutOverrides);
         Assert.Null(s.ConfigDir);
+        Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
+    }
+
+    [Fact]
+    public void InvalidMergeGeometryModeFallsBackToReplace()
+    {
+        var s = new Settings { MergeGeometryMode = (MergeGeometryMode)99 };
+
+        Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
     }
 
     [Fact]

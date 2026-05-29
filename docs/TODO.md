@@ -161,6 +161,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector lookup for contained linedefs.
   - [x] Add UDB-style outer sidedef correction for lines inside sectors.
   - [x] Add UDB-style merge geometry mode surface for selected stitching.
+  - [x] Persist and apply UDB-style merge geometry mode setting.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.
