@@ -1,8 +1,9 @@
-// ABOUTME: Skeleton of UDB's Map.Linedef expanded with binary-record fields needed for map I/O.
-// ABOUTME: Still omits the full UDB surface (marks, selection, blockmap, length cache, args[5], owner sector linkage).
+// ABOUTME: Skeleton of UDB's Map.Linedef expanded with binary-record fields and geometry helpers.
+// ABOUTME: Keeps selection, marks, args, tags, UDMF fields, sidedef links and UDB-style line measurements.
 
 namespace DBuilder.Map;
 
+using System.Drawing;
 using DBuilder.Geometry;
 
 public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, IMultiTaggedMapElement
@@ -26,6 +27,22 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     public int Groups { get; set; }
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
+    public Line2D Line => new(Start.Position, End.Position);
+    public double LengthSq => (End.Position - Start.Position).GetLengthSq();
+    public double Length => Math.Sqrt(LengthSq);
+    public double LengthInv => Length > 0.0 ? 1.0 / Length : 1.0 / 0.0000000001;
+    public int AngleDeg => (int)(Angle * Angle2D.PIDEG);
+    public RectangleF Rect
+    {
+        get
+        {
+            double left = Math.Min(Start.Position.x, End.Position.x);
+            double top = Math.Min(Start.Position.y, End.Position.y);
+            double right = Math.Max(Start.Position.x, End.Position.x);
+            double bottom = Math.Max(Start.Position.y, End.Position.y);
+            return new RectangleF((float)left, (float)top, (float)(right - left), (float)(bottom - top));
+        }
+    }
 
     // Binary record fields (Doom + UDMF).
     public int Flags { get; set; }
@@ -103,4 +120,48 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     }
 
     public Vector2D GetCenterPoint() => Start.Position + (End.Position - Start.Position) * 0.5;
+
+    public Vector2D NearestOnLine(Vector2D pos)
+    {
+        double u = Line2D.GetNearestOnLine(Start.Position, End.Position, pos);
+        if (u < 0.0) u = 0.0;
+        else if (u > 1.0) u = 1.0;
+        return Line2D.GetCoordinatesAt(Start.Position, End.Position, u);
+    }
+
+    public double DistanceToSq(Vector2D pos, bool bounded)
+        => Line2D.GetDistanceToLineSq(Start.Position, End.Position, pos, bounded);
+
+    public double DistanceTo(Vector2D pos, bool bounded)
+        => Math.Sqrt(DistanceToSq(pos, bounded));
+
+    public double SafeDistanceToSq(Vector2D pos, bool bounded)
+    {
+        Vector2D start = Start.Position;
+        Vector2D end = End.Position;
+        double deltaX = end.x - start.x;
+        double deltaY = end.y - start.y;
+        double lengthSq = deltaX * deltaX + deltaY * deltaY;
+        double length = Math.Sqrt(lengthSq);
+        double lengthInv = length > 0.0 ? 1.0 / length : 1.0 / 0.0000000001;
+        double lengthSqInv = lengthSq > 0.0 ? 1.0 / lengthSq : 1.0 / 0.0000000001;
+
+        double u = ((pos.x - start.x) * deltaX + (pos.y - start.y) * deltaY) * lengthSqInv;
+        if (bounded)
+        {
+            u = lengthInv > 1.0
+                ? Math.Max(0.0, Math.Min(1.0, u))
+                : Math.Max(lengthInv, Math.Min(1.0 - lengthInv, u));
+        }
+
+        double distanceX = pos.x - (start.x + u * deltaX);
+        double distanceY = pos.y - (start.y + u * deltaY);
+        return distanceX * distanceX + distanceY * distanceY;
+    }
+
+    public double SafeDistanceTo(Vector2D pos, bool bounded)
+        => Math.Sqrt(SafeDistanceToSq(pos, bounded));
+
+    public double SideOfLine(Vector2D pos)
+        => Line2D.GetSideOfLine(Start.Position, End.Position, pos);
 }

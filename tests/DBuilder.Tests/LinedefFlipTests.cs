@@ -106,6 +106,53 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void GeometryPropertiesMatchUdbLineSurface()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(-4, 2));
+        var b = map.AddVertex(new Vector2D(8, 7));
+        var line = map.AddLinedef(a, b);
+
+        Assert.Equal(new Line2D(a.Position, b.Position).v1, line.Line.v1);
+        Assert.Equal(new Line2D(a.Position, b.Position).v2, line.Line.v2);
+        Assert.Equal(169, line.LengthSq, 1e-9);
+        Assert.Equal(13, line.Length, 1e-9);
+        Assert.Equal(1.0 / 13.0, line.LengthInv, 1e-9);
+        Assert.Equal((int)(line.Angle * Angle2D.PIDEG), line.AngleDeg);
+        Assert.Equal(-4, line.Rect.Left);
+        Assert.Equal(2, line.Rect.Top);
+        Assert.Equal(12, line.Rect.Width);
+        Assert.Equal(5, line.Rect.Height);
+    }
+
+    [Fact]
+    public void GeometryMethodsMatchLine2DBehavior()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var line = map.AddLinedef(a, b);
+
+        Assert.Equal(new Vector2D(10, 0), line.NearestOnLine(new Vector2D(15, 4)));
+        Assert.Equal(25, line.DistanceToSq(new Vector2D(15, 0), bounded: true), 1e-9);
+        Assert.Equal(5, line.DistanceTo(new Vector2D(15, 0), bounded: true), 1e-9);
+        Assert.Equal(0, line.DistanceTo(new Vector2D(15, 0), bounded: false), 1e-9);
+        Assert.True(line.SideOfLine(new Vector2D(5, 1)) > 0);
+        Assert.True(line.SideOfLine(new Vector2D(5, -1)) < 0);
+    }
+
+    [Fact]
+    public void SafeDistanceAvoidsEqualEndpointDistanceForLongLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var line = map.AddLinedef(a, b);
+
+        Assert.True(line.SafeDistanceToSq(new Vector2D(-5, 0), bounded: true) > line.DistanceToSq(new Vector2D(-5, 0), bounded: true));
+    }
+
+    [Fact]
     public void FlipSelectedLinedefsOnlyTouchesSelection()
     {
         var map = new MapSet();

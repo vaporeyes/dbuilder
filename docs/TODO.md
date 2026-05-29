@@ -191,6 +191,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port label placement behavior fully.
 - [ ] Port sector geometry validation.
 - [ ] Port line intersection, snapping, nearest-point, and hit-test helpers.
+  - [x] Add UDB-style linedef geometry measurement helpers.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats
