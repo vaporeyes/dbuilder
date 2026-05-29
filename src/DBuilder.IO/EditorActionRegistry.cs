@@ -99,3 +99,51 @@ public static class EditorActionRegistry
         }
     }
 }
+
+public sealed class EditorActionDispatcher
+{
+    private readonly Dictionary<string, EditorActionBinding[]> _beginBindings;
+    private readonly Dictionary<string, EditorActionBinding[]> _endBindings;
+
+    public EditorActionDispatcher(IEnumerable<EditorActionBinding> bindings)
+    {
+        ArgumentNullException.ThrowIfNull(bindings);
+        var bindingList = bindings.ToArray();
+        Bindings = bindingList;
+        _beginBindings = Group(bindingList, EditorActionPhase.Begin);
+        _endBindings = Group(bindingList, EditorActionPhase.End);
+    }
+
+    public IReadOnlyList<EditorActionBinding> Bindings { get; }
+
+    public static EditorActionDispatcher FromTargets(params object[] targets)
+        => new(EditorActionRegistry.Discover(targets));
+
+    public bool Begin(string commandId) => Invoke(_beginBindings, commandId);
+
+    public bool End(string commandId) => Invoke(_endBindings, commandId);
+
+    public IReadOnlyList<EditorActionBinding> BindingsFor(string commandId, EditorActionPhase phase)
+    {
+        var groups = phase == EditorActionPhase.Begin ? _beginBindings : _endBindings;
+        return groups.TryGetValue(commandId, out var bindings) ? bindings : Array.Empty<EditorActionBinding>();
+    }
+
+    private static Dictionary<string, EditorActionBinding[]> Group(
+        IReadOnlyList<EditorActionBinding> bindings,
+        EditorActionPhase phase)
+        => bindings
+            .Where(binding => binding.Phase == phase)
+            .GroupBy(binding => binding.CommandId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
+
+    private static bool Invoke(Dictionary<string, EditorActionBinding[]> groups, string commandId)
+    {
+        if (!groups.TryGetValue(commandId, out var bindings)) return false;
+
+        bool handled = false;
+        foreach (var binding in bindings)
+            handled |= binding.Invoke();
+        return handled;
+    }
+}
