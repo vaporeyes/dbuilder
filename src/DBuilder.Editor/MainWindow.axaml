@@ -128,6 +128,12 @@
                 <Button Content="Line" Click="OnModeLinedefs" />
                 <Button Content="Sec" Click="OnModeSectors" />
                 <Button Content="Thing" Click="OnModeThings" />
+                <Button Content="Make" Click="OnMakeSectorAtCursor" />
+                <Button Content="Draw" Click="OnDrawSector" />
+                <Button Content="Lines" Click="OnDrawLines" />
+                <Button Content="Curve" Click="OnDrawCurve" />
+                <Button Content="Rect" Click="OnDrawRectangle" />
+                <Button Content="Ellipse" Click="OnDrawEllipse" />
             </StackPanel>
         </Border>
 
