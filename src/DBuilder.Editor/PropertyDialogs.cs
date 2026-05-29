@@ -35,8 +35,10 @@ public sealed class ArgEditors
 {
     private readonly ComboBox?[] _combos = new ComboBox?[5];
     private readonly TextBox?[] _boxes = new TextBox?[5];
+    private readonly FlagChecks?[] _flags = new FlagChecks?[5];
     public void SetCombo(int i, ComboBox c) => _combos[i] = c;
     public void SetBox(int i, TextBox b) => _boxes[i] = b;
+    public void SetFlags(int i, FlagChecks flags) => _flags[i] = flags;
 
     // Reads the edited args, falling back to the prior value for any arg without an editor.
     public int[] Read(int[] fallback)
@@ -45,6 +47,7 @@ public sealed class ArgEditors
         for (int i = 0; i < 5; i++)
         {
             if (_combos[i]?.SelectedItem is CatalogItem ci) result[i] = ci.Number;
+            else if (_flags[i] is { } flags) result[i] = flags.Value;
             else if (_boxes[i] is { } box && int.TryParse(box.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)) result[i] = v;
         }
         return result;
@@ -255,6 +258,10 @@ public abstract class PropertyDialog : Window
             {
                 var items = options.Select(option => new CatalogItem(option.Value, $"{option.Value} - {option.Title}"));
                 editors.SetCombo(i, AddCombo(label, items, current[i]));
+            }
+            else if (handler is EnumBitsTypeHandler bits && EnumBitDefinitions(bits.Values) is { Count: > 0 } bitDefs)
+            {
+                editors.SetFlags(i, AddFlagChecks(label, bitDefs, current[i]));
             }
             else if (config != null && handler is ThingTypeHandler)
             {
