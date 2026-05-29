@@ -539,6 +539,35 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// Removes linedefs whose endpoints are the same vertex or occupy the same position.
+    /// Returns the number of unique linedefs removed. Call BuildIndexes() afterward.
+    /// </summary>
+    public int RemoveLoopedLinedefs(ICollection<Linedef> linedefs)
+    {
+        int removed = 0;
+        bool removedLine;
+        do
+        {
+            removedLine = false;
+            foreach (var line in linedefs.ToArray())
+            {
+                if (!ReferenceEquals(line.Start, line.End) && line.Start.Position != line.End.Position) continue;
+
+                if (Linedefs.Contains(line)) RemoveLinedef(line);
+                else DisposeElement(line);
+                while (linedefs.Remove(line))
+                {
+                }
+                removed++;
+                removedLine = true;
+                break;
+            }
+        } while (removedLine);
+
+        return removed;
+    }
+
+    /// <summary>
     /// Splits any linedef that passes through a vertex (a T-junction) at that vertex, welding drawn or pasted
     /// geometry onto existing walls. A vertex within <paramref name="distance"/> of a line's interior (not at an
     /// endpoint) triggers a split. Returns the number of splits performed. Call BuildIndexes() afterward.

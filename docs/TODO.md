@@ -151,6 +151,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
   - [x] Add UDB-style linedef center and side-point helpers.
   - [x] Add UDB-style backward linedef flipping helper.
+  - [x] Add UDB-style looped linedef removal helper.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

@@ -143,6 +143,41 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void RemoveLoopedLinedefsRemovesSameVertexLinesAndSidedefs()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var loop = map.AddLinedef(a, a);
+        var side = map.AddSidedef(loop, true, sector);
+        var valid = map.AddLinedef(a, b);
+
+        int removed = map.RemoveLoopedLinedefs(map.Linedefs);
+
+        Assert.Equal(1, removed);
+        Assert.Equal(new[] { valid }, map.Linedefs);
+        Assert.DoesNotContain(side, map.Sidedefs);
+        Assert.True(loop.IsDisposed);
+        Assert.True(side.IsDisposed);
+    }
+
+    [Fact]
+    public void RemoveLoopedLinedefsRemovesSamePositionLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(0, 0));
+        var loop = map.AddLinedef(a, b);
+
+        int removed = map.RemoveLoopedLinedefs(map.Linedefs);
+
+        Assert.Equal(1, removed);
+        Assert.Empty(map.Linedefs);
+        Assert.True(loop.IsDisposed);
+    }
+
+    [Fact]
     public void RemoveUnusedVerticesDropsOrphans()
     {
         var map = new MapSet();
