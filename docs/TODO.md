@@ -328,6 +328,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add view-layer menu commands for sector fills and things visibility.
 - [ ] Port toolbar layout and all toolbar actions.
   - [x] Add toolbar buttons for draw mode and shape tools.
+  - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.
 - [ ] Port status bar behavior.
   - [x] Add persistent mode, snap/grid, and coordinate status fields.
 - [ ] Port dockers and tabbed dock panels.

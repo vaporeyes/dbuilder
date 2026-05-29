@@ -134,6 +134,11 @@
                 <Button Content="Curve" Click="OnDrawCurve" />
                 <Button Content="Rect" Click="OnDrawRectangle" />
                 <Button Content="Ellipse" Click="OnDrawEllipse" />
+                <Button Content="Check" Click="OnCheckMap" />
+                <Button Content="Clean" Click="OnCleanUpGeometry" />
+                <Button Content="Test" Click="OnTestMap" />
+                <Button Content="Stairs" Click="OnBuildStairs" />
+                <Button Content="Slopes" Click="OnApplySlopes" />
             </StackPanel>
         </Border>
 
