@@ -157,6 +157,51 @@ ACTOR NestedRegionThing 5007
     }
 
     [Fact]
+    public void RegionEditorKeysProvideThingDefaults()
+    {
+        const string text = @"
+#region Region Defaults
+//$Color 4
+//$Sprite ""BALLA0""
+ACTOR RegionDefaultThing 5008
+{
+    Radius 16
+}
+#endregion";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var thing = gc.GetThing(5008);
+        Assert.NotNull(thing);
+        Assert.Equal("Region Defaults", thing!.Category);
+        Assert.Equal(4, thing.Color);
+        Assert.Equal("BALLA0", thing.Sprite);
+    }
+
+    [Fact]
+    public void ActorEditorKeysOverrideRegionEditorKeys()
+    {
+        const string text = @"
+#region Region Defaults
+//$Color 4
+//$Sprite ""BALLA0""
+ACTOR RegionOverrideDefaults 5009
+{
+    $Color 6
+    //$Sprite ""ACTRA0""
+    Radius 16
+}
+#endregion";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var thing = gc.GetThing(5009);
+        Assert.NotNull(thing);
+        Assert.Equal(6, thing!.Color);
+        Assert.Equal("ACTRA0", thing.Sprite);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];

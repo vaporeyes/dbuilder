@@ -672,7 +672,7 @@ public sealed class GameConfiguration
             ClassName = actor.ClassName,
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
             Category = actor.Category ?? existing?.Category ?? "Decorate",
-            Sprite = actor.EditorSprite ?? existing?.Sprite ?? "",
+            Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? existing?.Sprite ?? "",
             Width = actor.Radius > 0 ? actor.Radius : existing?.Width ?? 16,
             Height = actor.Height > 0 ? actor.Height : existing?.Height ?? 16,
             Alpha = ActorAlpha(actor, existing),
@@ -751,7 +751,9 @@ public sealed class GameConfiguration
 
     private static int ActorColor(ActorInfo actor, ThingTypeInfo? existing)
     {
-        if (!TryActorPropertyInt(actor, "$color", out int color)) return existing?.Color ?? 0;
+        if (!TryActorPropertyInt(actor, "$color", out int color)
+            && !TryActorRegionPropertyInt(actor, "$color", out color))
+            return existing?.Color ?? 0;
         return color == 0 || color > 19 ? 18 : color;
     }
 
@@ -764,6 +766,17 @@ public sealed class GameConfiguration
 
     private static bool ActorFlag(ActorInfo actor, string flag)
         => actor.Flags.TryGetValue(flag, out bool enabled) && enabled;
+
+    private static string? ActorRegionProperty(ActorInfo actor, string key)
+        => actor.RegionProperties.TryGetValue(key, out var values) && values.Count > 0 ? values[0] : null;
+
+    private static bool TryActorRegionPropertyInt(ActorInfo actor, string key, out int value)
+    {
+        value = 0;
+        return actor.RegionProperties.TryGetValue(key, out var values)
+            && values.Count > 0
+            && int.TryParse(values[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+    }
 
     private static ArgInfo[] ActorArgs(ActorInfo actor, ArgInfo[]? existing)
     {

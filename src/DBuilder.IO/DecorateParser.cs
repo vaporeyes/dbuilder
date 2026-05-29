@@ -19,6 +19,7 @@ public sealed class ActorInfo
     public int Height { get; set; }   // 0 = unset (inherit)
     public string? Sprite { get; set; }
     public string? RegionCategory { get; set; }
+    public Dictionary<string, List<string>> RegionProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -78,16 +79,32 @@ public static class DecorateParser
         var extensions = new Dictionary<string, List<ActorInfo>>(StringComparer.OrdinalIgnoreCase);
         var regions = new List<string>();
         var regionPartCounts = new List<int>();
+        var regionProperties = new List<Dictionary<string, List<string>>>();
         int i = 0;
         while (i < toks.Count)
         {
             if ((toks[i].Kind == Kind.Word || toks[i].Kind == Kind.Editor)
                 && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
+            if (toks[i].Kind == Kind.Editor)
+            {
+                if (regionProperties.Count > 0)
+                    ParseRegionEditorKey(toks[i].Text, regionProperties[^1]);
+                i++;
+                continue;
+            }
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#region", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
                 string title = ReadLineValue(toks, ref i);
-                regionPartCounts.Add(AddRegionParts(regions, title));
+                int count = AddRegionParts(regions, title);
+                regionPartCounts.Add(count);
+                if (count > 0)
+                {
+                    var props = regionProperties.Count > 0
+                        ? CopyProperties(regionProperties[^1])
+                        : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                    regionProperties.Add(props);
+                }
                 continue;
             }
             else if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#endregion", StringComparison.OrdinalIgnoreCase))
@@ -98,6 +115,8 @@ public static class DecorateParser
                     int count = regionPartCounts[^1];
                     regionPartCounts.RemoveAt(regionPartCounts.Count - 1);
                     if (count <= regions.Count) regions.RemoveRange(regions.Count - count, count);
+                    if (count > 0 && regionProperties.Count > 0)
+                        regionProperties.RemoveAt(regionProperties.Count - 1);
                 }
                 SkipLine(toks, ref i);
                 continue;
@@ -107,7 +126,7 @@ public static class DecorateParser
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
                     var classKind = GetZScriptClassKind(toks, i);
-                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions));
+                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
                     if (parsed == null) continue;
                     if (classKind == ZScriptClassKind.Extension)
                     {
@@ -123,7 +142,7 @@ public static class DecorateParser
                 }
                 else
                 {
-                    var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions));
+                    var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
                     if (a != null) actors.Add(a);
                 }
             }
@@ -137,6 +156,28 @@ public static class DecorateParser
 
     private static string? CurrentRegionCategory(List<string> regions)
         => regions.Count == 0 ? null : string.Join(".", regions);
+
+    private static Dictionary<string, List<string>>? CurrentRegionProperties(List<Dictionary<string, List<string>>> regionProperties)
+        => regionProperties.Count == 0 ? null : regionProperties[^1];
+
+    private static Dictionary<string, List<string>> CopyProperties(Dictionary<string, List<string>> source)
+    {
+        var copy = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in source)
+            copy[kvp.Key] = new List<string>(kvp.Value);
+        return copy;
+    }
+
+    private static void ParseRegionEditorKey(string text, Dictionary<string, List<string>> properties)
+    {
+        text = text.Trim();
+        int sp = 0;
+        while (sp < text.Length && !char.IsWhiteSpace(text[sp])) sp++;
+        string key = text.Substring(0, sp);
+        string value = text.Substring(sp).Trim();
+        if (value.Length >= 2 && value[0] == '"' && value[^1] == '"') value = value.Substring(1, value.Length - 2);
+        properties[key] = value.Length == 0 ? new List<string>() : new List<string> { value };
+    }
 
     private static int AddRegionParts(List<string> regions, string title)
     {
@@ -345,11 +386,21 @@ public static class DecorateParser
         return includePath.Length > 0;
     }
 
-    private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum, string? regionCategory)
+    private static ActorInfo? ParseActor(
+        List<Tok> t,
+        ref int i,
+        bool headerNum,
+        string? regionCategory,
+        Dictionary<string, List<string>>? regionProperties)
     {
         i++; // keyword
         if (i >= t.Count || !IsNameToken(t[i])) return null;
         var actor = new ActorInfo { ClassName = t[i++].Text, RegionCategory = regionCategory };
+        if (regionProperties != null)
+        {
+            foreach (var kvp in regionProperties)
+                actor.RegionProperties[kvp.Key] = new List<string>(kvp.Value);
+        }
 
         // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' (body) or ';' (forward declaration).
         while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))

@@ -354,6 +354,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port category and DoomEdNum merging behavior fully.
   - [x] Use DECORATE `#region` titles as default actor categories.
   - [x] Split DECORATE `#region` category paths on separators.
+  - [x] Apply DECORATE `#region` editor defaults for color and sprite.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked
