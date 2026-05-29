@@ -267,6 +267,46 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void ChangeIndexHelpersReorderOwnedElements()
+    {
+        var map = BuildTwoRooms();
+        var thing0 = map.AddThing(new Vector2D(16, 16), 3004);
+        var thing1 = map.AddThing(new Vector2D(32, 16), 3005);
+        var vertex = map.Vertices[0];
+        var line = map.Linedefs[0];
+        var side = map.Sidedefs[0];
+        var sector = map.Sectors[0];
+
+        Assert.True(map.ChangeVertexIndex(vertex, 2));
+        Assert.True(map.ChangeLinedefIndex(line, 1));
+        Assert.True(map.ChangeSidedefIndex(side, 2));
+        Assert.True(map.ChangeSectorIndex(sector, 1));
+        Assert.True(map.ChangeThingIndex(thing0, 1));
+
+        Assert.Same(vertex, map.Vertices[2]);
+        Assert.Same(line, map.Linedefs[1]);
+        Assert.Same(side, map.Sidedefs[2]);
+        Assert.Same(sector, map.Sectors[1]);
+        Assert.Same(thing0, map.Things[1]);
+        Assert.Same(thing1, map.Things[0]);
+        Assert.Equal(0, map.Sectors[0].Index);
+        Assert.Equal(1, map.Sectors[1].Index);
+    }
+
+    [Fact]
+    public void ChangeIndexHelpersRejectForeignAndOutOfRangeElements()
+    {
+        var map = BuildTwoRooms();
+        var vertex = map.Vertices[0];
+
+        Assert.False(map.ChangeVertexIndex(new Vertex(new Vector2D(0, 0)), 0));
+        Assert.False(map.ChangeVertexIndex(vertex, -1));
+        Assert.False(map.ChangeVertexIndex(vertex, map.Vertices.Count));
+        Assert.True(map.ChangeVertexIndex(vertex, 0));
+        Assert.Same(vertex, map.Vertices[0]);
+    }
+
+    [Fact]
     public void SelectedSidedefsCountMatchesSelectedSidedefs()
     {
         var map = BuildTwoRooms();

@@ -1519,6 +1519,36 @@ public class MapSet : IDisposable
     public bool ContainsSector(Sector sector) => IndexOfSector(sector) >= 0;
     public bool ContainsThing(Thing thing) => IndexOfThing(thing) >= 0;
 
+    public bool ChangeVertexIndex(Vertex vertex, int newIndex)
+        => ChangeIndex(Vertices, vertex, newIndex);
+
+    public bool ChangeLinedefIndex(Linedef linedef, int newIndex)
+        => ChangeIndex(Linedefs, linedef, newIndex);
+
+    public bool ChangeSidedefIndex(Sidedef sidedef, int newIndex)
+        => ChangeIndex(Sidedefs, sidedef, newIndex);
+
+    public bool ChangeSectorIndex(Sector sector, int newIndex)
+    {
+        bool changed = ChangeIndex(Sectors, sector, newIndex);
+        if (changed) ReindexSectors();
+        return changed;
+    }
+
+    public bool ChangeThingIndex(Thing thing, int newIndex)
+        => ChangeIndex(Things, thing, newIndex);
+
+    private static bool ChangeIndex<T>(List<T> list, T item, int newIndex) where T : class
+    {
+        int oldIndex = list.IndexOf(item);
+        if (oldIndex < 0 || newIndex < 0 || newIndex >= list.Count) return false;
+        if (oldIndex == newIndex) return true;
+
+        list.RemoveAt(oldIndex);
+        list.Insert(newIndex, item);
+        return true;
+    }
+
     /// <summary>Returns the first positive tag not used by any tagged map element, or 0 when none is available.</summary>
     public int GetNewTag(int maxTag = int.MaxValue)
         => GetNewTag(Array.Empty<int>(), maxTag);
