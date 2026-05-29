@@ -184,4 +184,52 @@ public class MapSetStitchTests
         Assert.Equal(0, splits);
         Assert.Equal(2, map.Linedefs.Count);
     }
+
+    [Fact]
+    public void StitchSelectedGeometryJoinsSelectedVerticesToFixedVertices()
+    {
+        var map = new MapSet();
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.25, 0));
+        movingVertex.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(0.5);
+
+        Assert.Equal(1, result.JoinedVertices);
+        Assert.Equal(new Vector2D(0, 0), movingVertex.Position);
+        Assert.Contains(movingVertex, map.Vertices);
+        Assert.DoesNotContain(fixedVertex, map.Vertices);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometrySplitsSelectedLinesAgainstFixedLines()
+    {
+        var map = new MapSet();
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var movingLine = map.AddLinedef(map.AddVertex(new Vector2D(50, -50)), map.AddVertex(new Vector2D(50, 50)));
+        movingLine.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(0.5);
+
+        Assert.Equal(1, result.LineLineSplits);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Contains(map.Vertices, vertex => vertex.Position == new Vector2D(50, 0));
+        Assert.Contains(map.Linedefs, line => ReferenceEquals(line.Start, fixedLine.Start) && line.End.Position == new Vector2D(50, 0));
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryFlipsBackwardSelectedLines()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var sector = map.AddSector();
+        map.AddSidedef(line, false, sector);
+        line.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(0.5);
+
+        Assert.Equal(1, result.FlippedBackwardLinedefs);
+        Assert.NotNull(line.Front);
+        Assert.Null(line.Back);
+    }
 }

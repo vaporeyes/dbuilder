@@ -25,6 +25,16 @@ public readonly record struct SelectionGroupInfo(int Index, int SectorCount, int
     }
 }
 
+public readonly record struct GeometryStitchResult(
+    int JoinedVertices,
+    int VertexLineSplits,
+    int LineLineSplits,
+    int RemovedLoopedLinedefs,
+    int FlippedBackwardLinedefs)
+{
+    public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs + FlippedBackwardLinedefs;
+}
+
 public class MapSet : IDisposable
 {
     public List<Vertex> Vertices { get; } = new();
@@ -718,6 +728,49 @@ public class MapSet : IDisposable
         } while (split);
 
         return splits;
+    }
+
+    /// <summary>
+    /// Stitches selected geometry against unselected geometry by joining nearby vertices, splitting crossed lines,
+    /// removing looped changed lines, and correcting backward changed lines. Call BuildIndexes() afterward.
+    /// </summary>
+    public GeometryStitchResult StitchSelectedGeometry(double stitchDistance = 1.0)
+    {
+        var movingVertices = SelectedGeometryVertices();
+        if (movingVertices.Count == 0) return default;
+
+        var fixedVertices = new HashSet<Vertex>(
+            Vertices.Where(vertex => !movingVertices.Contains(vertex)),
+            ReferenceEqualityComparer.Instance);
+        int joinedVertices = JoinVertices(fixedVertices, movingVertices, keepSecond: true, joinDistance: stitchDistance);
+
+        movingVertices = new HashSet<Vertex>(
+            movingVertices.Where(vertex => !vertex.IsDisposed),
+            ReferenceEqualityComparer.Instance);
+        fixedVertices = new HashSet<Vertex>(
+            Vertices.Where(vertex => !movingVertices.Contains(vertex)),
+            ReferenceEqualityComparer.Instance);
+
+        var movingLines = new HashSet<Linedef>(
+            Linedefs.Where(line => movingVertices.Contains(line.Start) || movingVertices.Contains(line.End)),
+            ReferenceEqualityComparer.Instance);
+        var fixedLines = new HashSet<Linedef>(
+            Linedefs.Where(line => !movingVertices.Contains(line.Start) && !movingVertices.Contains(line.End)),
+            ReferenceEqualityComparer.Instance);
+        var changedLines = new HashSet<Linedef>(movingLines, ReferenceEqualityComparer.Instance);
+
+        int vertexLineSplits = 0;
+        vertexLineSplits += SplitLinesByVertices(movingLines, fixedVertices, stitchDistance, changedLines);
+        fixedLines = new HashSet<Linedef>(
+            fixedLines.Where(line => !line.IsDisposed),
+            ReferenceEqualityComparer.Instance);
+        vertexLineSplits += SplitLinesByVertices(fixedLines, movingVertices, stitchDistance, changedLines);
+
+        int lineLineSplits = SplitLinesByLines(fixedLines, changedLines);
+        int removedLooped = RemoveLoopedLinedefs(changedLines);
+        int flippedBackward = FlipBackwardLinedefs(changedLines);
+
+        return new GeometryStitchResult(joinedVertices, vertexLineSplits, lineLineSplits, removedLooped, flippedBackward);
     }
 
     /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>
