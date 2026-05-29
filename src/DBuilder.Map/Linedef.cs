@@ -107,6 +107,51 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         Angle = ComputeAngle(Start, End);
     }
 
+    public void AttachFront(Sidedef? sidedef)
+        => AttachSidedef(sidedef, front: true);
+
+    public void AttachBack(Sidedef? sidedef)
+        => AttachSidedef(sidedef, front: false);
+
+    public void DetachSidedef(Sidedef sidedef)
+    {
+        if (ReferenceEquals(Front, sidedef)) Front = null;
+        else if (ReferenceEquals(Back, sidedef)) Back = null;
+        else return;
+
+        sidedef.Line = null!;
+        sidedef.Other = null;
+        if (Front != null) Front.Other = Back;
+        if (Back != null) Back.Other = Front;
+    }
+
+    private void AttachSidedef(Sidedef? sidedef, bool front)
+    {
+        var old = front ? Front : Back;
+        if (ReferenceEquals(old, sidedef)) return;
+
+        if (old != null)
+        {
+            old.Line = null!;
+            old.Other = null;
+        }
+
+        if (sidedef?.Line != null && !ReferenceEquals(sidedef.Line, this))
+            sidedef.Line.DetachSidedef(sidedef);
+
+        if (front) Front = sidedef;
+        else Back = sidedef;
+
+        if (sidedef != null)
+        {
+            sidedef.Line = this;
+            sidedef.IsFront = front;
+        }
+
+        if (Front != null) Front.Other = Back;
+        if (Back != null) Back.Other = Front;
+    }
+
     /// <summary>Reverses the line direction by swapping its vertices (sidedefs stay attached, so the
     /// line now faces the other way). Call MapSet.BuildIndexes() afterwards to refresh vertex back-refs.</summary>
     public void FlipVertices()

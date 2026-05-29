@@ -97,6 +97,42 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void LinedefAttachAndDetachSidedefsKeepReferencesConsistent()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var otherLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+        var front = new Sidedef(line, true);
+        var back = new Sidedef(line, false);
+
+        line.AttachFront(front);
+        line.AttachBack(back);
+
+        Assert.Same(front, line.Front);
+        Assert.Same(back, line.Back);
+        Assert.Same(line, front.Line);
+        Assert.Same(line, back.Line);
+        Assert.True(front.IsFront);
+        Assert.False(back.IsFront);
+        Assert.Same(back, front.Other);
+        Assert.Same(front, back.Other);
+
+        otherLine.AttachBack(front);
+
+        Assert.Null(line.Front);
+        Assert.Same(front, otherLine.Back);
+        Assert.Same(otherLine, front.Line);
+        Assert.False(front.IsFront);
+        Assert.Null(back.Other);
+        Assert.Same(back, line.Back);
+
+        line.DetachSidedef(back);
+
+        Assert.Null(line.Back);
+        Assert.Null(back.Other);
+    }
+
+    [Fact]
     public void RemoveVertexCascadesToTouchingLinedefs()
     {
         var map = BuildTwoRooms();

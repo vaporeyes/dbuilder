@@ -167,6 +167,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Remove fully contained interior linedefs during replace-mode stitching.
   - [x] Collapse replace-mode bridge vertices created by split stitching.
   - [x] Add UDB-style linedef vertex reassignment helpers.
+  - [x] Add UDB-style linedef sidedef attachment helpers.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
   - [x] Bucket linedefs by crossed block cells instead of bounding boxes.
   - [x] Expose UDB-style square-range and line-cell traversal queries.
