@@ -73,6 +73,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port UDB action manager.
 - [ ] Port begin/end action attributes or an equivalent command registration system.
+  - [x] Add a stable editor command descriptor catalog with default gestures and scopes.
 - [ ] Port configurable key bindings.
 - [ ] Port mouse input abstractions.
 - [ ] Port special key handling.
