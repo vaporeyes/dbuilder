@@ -2,6 +2,7 @@
 // ABOUTME: Builds temporary PK3 files with UDMF maps and confirms the loader delegates through WadMaps.
 
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using DBuilder.IO;
 
@@ -54,6 +55,30 @@ public class Pk3MapsTests
         }
     }
 
+    [Fact]
+    public void FindsAndLoadsMapsInNestedPk3Entries()
+    {
+        string pk3 = TestArtifacts.BuildPk3(("archives/nested.pk3", BuildNestedPk3WithMap()));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            Assert.Equal("archives/nested.pk3!maps/map02.wad", entry.ArchivePath);
+            Assert.Equal("MAP02", entry.Map.Name);
+
+            var map = Pk3Maps.Load(pk3, entry);
+
+            Assert.NotNull(map);
+            Assert.Equal("ZDoom", map!.Namespace);
+            Assert.Equal(7, map.Sectors[0].Tag);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
     private static byte[] BuildUdmfWad(string marker)
     {
         using var ms = new MemoryStream();
@@ -78,6 +103,19 @@ public class Pk3MapsTests
                 """));
             WriteLump(wad, "ENDMAP", Array.Empty<byte>());
             wad.WriteHeaders();
+        }
+
+        return ms.ToArray();
+    }
+
+    private static byte[] BuildNestedPk3WithMap()
+    {
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using var stream = zip.CreateEntry("maps/map02.wad").Open();
+            byte[] wadBytes = BuildUdmfWad("MAP02");
+            stream.Write(wadBytes, 0, wadBytes.Length);
         }
 
         return ms.ToArray();

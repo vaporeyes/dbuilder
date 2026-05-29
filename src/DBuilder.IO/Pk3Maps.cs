@@ -10,6 +10,8 @@ public sealed record Pk3MapEntry(string ArchivePath, MapEntry Map);
 
 public static class Pk3Maps
 {
+    private const char NestedArchiveSeparator = '!';
+
     public static List<Pk3MapEntry> Find(string path)
     {
         using var zip = ZipFile.OpenRead(path);
@@ -19,13 +21,7 @@ public static class Pk3Maps
     public static List<Pk3MapEntry> Find(ZipArchive zip)
     {
         var result = new List<Pk3MapEntry>();
-        foreach (var entry in zip.Entries)
-        {
-            if (!IsWadEntry(entry)) continue;
-            foreach (var map in FindMaps(entry))
-                result.Add(new Pk3MapEntry(entry.FullName, map));
-        }
-
+        Find(zip, archivePrefix: "", result);
         return result;
     }
 
@@ -37,10 +33,33 @@ public static class Pk3Maps
 
     public static MapSet? Load(ZipArchive zip, Pk3MapEntry entry)
     {
-        var wadEntry = zip.GetEntry(entry.ArchivePath);
-        if (wadEntry == null) return null;
-        using var wad = OpenWad(wadEntry);
+        byte[]? bytes = ReadArchiveBytes(zip, entry.ArchivePath);
+        if (bytes == null) return null;
+        using var wad = OpenWad(bytes, entry.ArchivePath);
         return WadMaps.Load(wad, entry.Map);
+    }
+
+    private static void Find(ZipArchive zip, string archivePrefix, List<Pk3MapEntry> result)
+    {
+        foreach (var entry in zip.Entries)
+        {
+            if (entry.FullName.EndsWith("/", StringComparison.Ordinal)) continue;
+
+            string archivePath = archivePrefix.Length == 0
+                ? entry.FullName
+                : archivePrefix + NestedArchiveSeparator + entry.FullName;
+
+            if (IsWadPath(entry.FullName))
+            {
+                foreach (var map in FindMaps(entry))
+                    result.Add(new Pk3MapEntry(archivePath, map));
+            }
+            else if (LooksLikeNestedZip(entry.FullName))
+            {
+                using var nested = OpenNestedZip(entry);
+                Find(nested, archivePath, result);
+            }
+        }
     }
 
     private static IEnumerable<MapEntry> FindMaps(ZipArchiveEntry entry)
@@ -51,13 +70,50 @@ public static class Pk3Maps
 
     private static WAD OpenWad(ZipArchiveEntry entry)
     {
-        var ms = new MemoryStream();
-        using (var stream = entry.Open()) stream.CopyTo(ms);
-        ms.Position = 0;
-        return new WAD(ms, openreadonly: true, virtualFilename: entry.FullName);
+        return OpenWad(ReadEntryBytes(entry), entry.FullName);
     }
 
-    private static bool IsWadEntry(ZipArchiveEntry entry)
-        => !entry.FullName.EndsWith("/", StringComparison.Ordinal)
-            && Path.GetExtension(entry.FullName).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+    private static WAD OpenWad(byte[] bytes, string virtualFilename)
+        => new(new MemoryStream(bytes), openreadonly: true, virtualFilename: virtualFilename);
+
+    private static ZipArchive OpenNestedZip(ZipArchiveEntry entry)
+        => new(new MemoryStream(ReadEntryBytes(entry)), ZipArchiveMode.Read);
+
+    private static byte[] ReadEntryBytes(ZipArchiveEntry entry)
+    {
+        using var stream = entry.Open();
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        return ms.ToArray();
+    }
+
+    private static byte[]? ReadArchiveBytes(ZipArchive zip, string archivePath)
+    {
+        int separator = archivePath.IndexOf(NestedArchiveSeparator);
+        if (separator < 0)
+        {
+            var entry = zip.GetEntry(archivePath);
+            return entry == null ? null : ReadEntryBytes(entry);
+        }
+
+        string outerPath = archivePath.Substring(0, separator);
+        string innerPath = archivePath.Substring(separator + 1);
+        var outerEntry = zip.GetEntry(outerPath);
+        if (outerEntry == null || !LooksLikeNestedZip(outerEntry.FullName)) return null;
+
+        using var nested = OpenNestedZip(outerEntry);
+        return ReadArchiveBytes(nested, innerPath);
+    }
+
+    private static bool IsWadPath(string path)
+        => Path.GetExtension(path).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+
+    private static bool LooksLikeNestedZip(string path)
+    {
+        string ext = Path.GetExtension(path);
+        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".pkz", StringComparison.OrdinalIgnoreCase);
+    }
 }
