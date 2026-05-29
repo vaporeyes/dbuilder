@@ -329,6 +329,40 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnBrowseWallTextures(object? sender, RoutedEventArgs e)
+    {
+        if (_resources is null) { SetStatus("No resources loaded for textures."); return; }
+        var dlg = new TextureBrowserDialog(_resources, flats: false) { Title = "Browse Textures" };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name) SetStatus($"Texture selected: {name}");
+        MapView.Focus();
+    }
+
+    private async void OnBrowseFlats(object? sender, RoutedEventArgs e)
+    {
+        if (_resources is null) { SetStatus("No resources loaded for flats."); return; }
+        var dlg = new TextureBrowserDialog(_resources, flats: true) { Title = "Browse Flats" };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name) SetStatus($"Flat selected: {name}");
+        MapView.Focus();
+    }
+
+    private async void OnBrowseThingsCatalog(object? sender, RoutedEventArgs e)
+        => await ShowCatalog("Browse Things", cfg => CatalogBrowse.Things(cfg), "Thing");
+
+    private async void OnBrowseActionsCatalog(object? sender, RoutedEventArgs e)
+        => await ShowCatalog("Browse Linedef Actions", cfg => CatalogBrowse.LinedefActions(cfg), "Linedef action");
+
+    private async void OnBrowseEffectsCatalog(object? sender, RoutedEventArgs e)
+        => await ShowCatalog("Browse Sector Effects", cfg => CatalogBrowse.SectorEffects(cfg), "Sector effect");
+
+    private async Task ShowCatalog(string title, Func<GameConfiguration, List<BrowseEntry>> entries, string label)
+    {
+        if (_config is null) { SetStatus("No game configuration loaded."); return; }
+        var dlg = new BrowserDialog(title, entries(_config), current: 0);
+        if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
+            SetStatus($"{label} selected: {n} - {dlg.SelectedTitle}");
+        MapView.Focus();
+    }
+
     private async void OnSave(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat);
 
     // Prompts for a target map format and saves a converted copy (flags translated via the game config).

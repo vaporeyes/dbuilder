@@ -77,6 +77,13 @@
                 <MenuItem Header="_Go To Coordinates..." Click="OnGoToCoordinates" />
                 <MenuItem Header="View Used _Tags..." Click="OnTagStatistics" />
                 <MenuItem Header="View Thing _Types..." Click="OnThingStatistics" />
+                <MenuItem Header="_Browsers">
+                    <MenuItem Header="_Textures..." Click="OnBrowseWallTextures" />
+                    <MenuItem Header="_Flats..." Click="OnBrowseFlats" />
+                    <MenuItem Header="_Things..." Click="OnBrowseThingsCatalog" />
+                    <MenuItem Header="_Linedef Actions..." Click="OnBrowseActionsCatalog" />
+                    <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
+                </MenuItem>
                 <MenuItem Header="Toggle _3D Mode" Click="OnToggle3DMode" />
                 <MenuItem Header="Show Sector _Fills" Click="OnToggleSectorFills" />
                 <MenuItem Header="Show _Things" Click="OnToggleThings" />
