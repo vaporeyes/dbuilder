@@ -40,6 +40,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Close the current map and release active archive resources with dirty-change confirmation.
 - [ ] Port autosave and recovery behavior.
   - [x] Write recoverable autosave WAD snapshots for dirty editor maps.
+  - [x] List and recover autosave snapshots from the File menu.
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.

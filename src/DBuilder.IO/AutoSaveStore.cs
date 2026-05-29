@@ -2,6 +2,7 @@
 // ABOUTME: Creates deterministic per-map autosave file names from source archive and map identifiers.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,6 +15,8 @@ public sealed record AutoSaveKey(string SourcePath, string MapName, string? Arch
         ? $"{Path.GetFileName(SourcePath)}:{MapName}"
         : $"{Path.GetFileName(SourcePath)}:{ArchivePath}:{MapName}";
 }
+
+public sealed record AutoSaveEntry(AutoSaveKey Key, string SnapshotPath, DateTimeOffset LastWriteTime, string DisplayName);
 
 public static class AutoSaveStore
 {
@@ -59,6 +62,22 @@ public static class AutoSaveStore
         }
     }
 
+    public static List<AutoSaveEntry> List(string? directory = null)
+    {
+        directory ??= DefaultDirectory;
+        var entries = new List<AutoSaveEntry>();
+        if (!Directory.Exists(directory)) return entries;
+
+        foreach (string path in Directory.EnumerateFiles(directory, "*.wad"))
+        {
+            var entry = ReadEntry(path);
+            if (entry is not null) entries.Add(entry);
+        }
+
+        entries.Sort((a, b) => b.LastWriteTime.CompareTo(a.LastWriteTime));
+        return entries;
+    }
+
     public static string MetadataText(AutoSaveKey key)
     {
         var text = new StringBuilder();
@@ -68,6 +87,35 @@ public static class AutoSaveStore
         text.AppendLine($"display={key.DisplayName}");
         text.AppendLine($"utc={DateTimeOffset.UtcNow:O}");
         return text.ToString();
+    }
+
+    private static AutoSaveEntry? ReadEntry(string path)
+    {
+        try
+        {
+            string metadataPath = path + ".txt";
+            if (!File.Exists(metadataPath)) return null;
+
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string line in File.ReadAllLines(metadataPath))
+            {
+                int equals = line.IndexOf('=');
+                if (equals <= 0) continue;
+                values[line[..equals]] = line[(equals + 1)..];
+            }
+
+            if (!values.TryGetValue("source", out string? source) || string.IsNullOrWhiteSpace(source)) return null;
+            if (!values.TryGetValue("map", out string? map) || string.IsNullOrWhiteSpace(map)) return null;
+            values.TryGetValue("archive", out string? archive);
+            values.TryGetValue("display", out string? display);
+            var key = new AutoSaveKey(source, map, archive);
+            return new AutoSaveEntry(key, path, File.GetLastWriteTimeUtc(path),
+                string.IsNullOrWhiteSpace(display) ? key.DisplayName : display);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static string KeyText(AutoSaveKey key)

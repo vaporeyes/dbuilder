@@ -50,4 +50,24 @@ public class AutoSaveStoreTests
         Assert.False(File.Exists(path));
         Assert.False(File.Exists(path + ".txt"));
     }
+
+    [Fact]
+    public void ListReturnsEntriesFromMetadataNewestFirst()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_autosave_" + Guid.NewGuid().ToString("N"));
+        var oldKey = new AutoSaveKey("/maps/old.wad", "MAP01");
+        var newKey = new AutoSaveKey("/maps/new.wad", "MAP02");
+        string oldPath = AutoSaveStore.Write(oldKey, new byte[] { 1 }, dir)!;
+        string newPath = AutoSaveStore.Write(newKey, new byte[] { 2 }, dir)!;
+        File.SetLastWriteTimeUtc(oldPath, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        File.SetLastWriteTimeUtc(newPath, new DateTime(2024, 2, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var entries = AutoSaveStore.List(dir);
+
+        Assert.Equal(2, entries.Count);
+        Assert.Equal(newKey, entries[0].Key);
+        Assert.Equal(newPath, entries[0].SnapshotPath);
+        Assert.Equal(oldKey, entries[1].Key);
+        Assert.Equal("old.wad:MAP01", entries[1].DisplayName);
+    }
 }

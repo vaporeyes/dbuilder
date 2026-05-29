@@ -46,6 +46,7 @@ public partial class MainWindow : Window
     private bool _allowDirtyClose;
     private bool _autosavePending;
     private string _untitledAutosaveId = Guid.NewGuid().ToString("N");
+    private AutoSaveKey? _activeAutosaveKey;
     private readonly DispatcherTimer _autosaveTimer = new() { Interval = TimeSpan.FromSeconds(30) };
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
@@ -289,6 +290,7 @@ public partial class MainWindow : Window
         _map = map;
         _mapMarker = "MAP01";
         _sourceMapMarker = null;
+        _activeAutosaveKey = null;
         _untitledAutosaveId = Guid.NewGuid().ToString("N");
         _wadPath = null;
         _sourceWadStamp = null;
@@ -318,6 +320,21 @@ public partial class MainWindow : Window
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
             await LoadArchive(path, promptForMap: true);
+    }
+
+    private async void OnRecoverAutosave(object? sender, RoutedEventArgs e)
+    {
+        var entries = AutoSaveStore.List();
+        if (entries.Count == 0)
+        {
+            SetStatus("No autosave snapshots found.");
+            return;
+        }
+
+        var dlg = new AutoSaveRecoveryDialog(entries);
+        if (!await dlg.ShowDialog<bool>(this) || dlg.Selected is not { } selected) return;
+        if (!await ConfirmDiscardDirtyMap()) return;
+        LoadRecoveredAutosave(selected);
     }
 
     // Lets the user pick any map in the currently open WAD (doom2 has 32, hexen 31, ...).
@@ -1579,6 +1596,56 @@ public partial class MainWindow : Window
         else await LoadWad(path, promptForMap);
     }
 
+    private void LoadRecoveredAutosave(AutoSaveEntry autosave)
+    {
+        try
+        {
+            using var wad = new WAD(autosave.SnapshotPath, openreadonly: true);
+            var maps = WadMaps.Find(wad);
+            var entry = maps.FirstOrDefault(m => string.Equals(m.Name, autosave.Key.MapName, StringComparison.OrdinalIgnoreCase))
+                ?? maps.FirstOrDefault();
+            if (entry is null)
+            {
+                SetStatus($"Autosave contains no recoverable map: {autosave.DisplayName}");
+                return;
+            }
+
+            var map = WadMaps.Load(wad, entry);
+            if (map is null)
+            {
+                SetStatus($"Failed to recover autosave map: {autosave.DisplayName}");
+                return;
+            }
+
+            _resources?.Dispose();
+            _resources = null;
+            _mapOptions = new MapOptions { CurrentName = entry.Name };
+            _mapSettings = new Configuration(sorted: true);
+            _map = map;
+            _mapMarker = entry.Name;
+            _sourceMapMarker = null;
+            _wadPath = null;
+            _sourceWadStamp = null;
+            _pk3Path = null;
+            _pk3Maps = null;
+            _pk3MapArchivePath = null;
+            _activeAutosaveKey = autosave.Key;
+            _mapFormat = entry.Format;
+            _undo = new UndoManager(map);
+
+            MapView.MapResources = null;
+            MapView.Map = map;
+            MapView.Focus();
+            _mapDirty = true;
+            _autosavePending = false;
+            Title = CurrentEditorTitle();
+            UpdateInfo();
+            UpdateStatusDetails();
+            SetStatus($"Recovered autosave {autosave.DisplayName}. Use Save WAD As to keep it.");
+        }
+        catch (Exception ex) { LogAndSetStatus(ex, "Recover autosave failed"); }
+    }
+
     private async Task LoadWad(string path, bool promptForMap, string? preferredMapName = null)
     {
         try
@@ -1691,6 +1758,7 @@ public partial class MainWindow : Window
             _map = map;
             _mapMarker = entry.Name;
             _sourceMapMarker = entry.Name;
+            _activeAutosaveKey = null;
             _mapFormat = entry.Format;
             _undo = new UndoManager(map);
 
@@ -1720,6 +1788,7 @@ public partial class MainWindow : Window
             _map = map;
             _mapMarker = entry.Map.Name;
             _sourceMapMarker = null;
+            _activeAutosaveKey = null;
             _mapFormat = entry.Map.Format;
             _pk3MapArchivePath = entry.ArchivePath;
             _undo = new UndoManager(map);
@@ -1754,6 +1823,7 @@ public partial class MainWindow : Window
         _pk3Maps = null;
         _pk3MapArchivePath = null;
         _iwadPath = null;
+        _activeAutosaveKey = null;
         _mapOptions = null;
         _mapSettings = null;
         _resources?.Dispose();
@@ -1928,6 +1998,7 @@ public partial class MainWindow : Window
 
     private AutoSaveKey? CurrentAutosaveKey()
     {
+        if (_activeAutosaveKey is not null) return _activeAutosaveKey;
         if (_mapMarker is null) return null;
         string source = _wadPath ?? _pk3Path ?? $"untitled:{_untitledAutosaveId}";
         return new AutoSaveKey(source, _mapMarker, _pk3MapArchivePath);
@@ -1938,6 +2009,7 @@ public partial class MainWindow : Window
         _autosavePending = false;
         var key = CurrentAutosaveKey();
         if (key is not null) AutoSaveStore.Delete(key);
+        _activeAutosaveKey = null;
     }
 
     private async Task<bool> ConfirmDiscardDirtyMap()
