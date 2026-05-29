@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private string? _mapMarker;
     private string? _sourceMapMarker;
     private string? _wadPath;
+    private FileSaveStamp? _sourceWadStamp;
     private string? _pk3Path;
     private List<Pk3MapEntry>? _pk3Maps;
     private string? _pk3MapArchivePath;
@@ -252,6 +253,7 @@ public partial class MainWindow : Window
         _mapMarker = "MAP01";
         _sourceMapMarker = null;
         _wadPath = null;
+        _sourceWadStamp = null;
         _pk3Path = null;
         _pk3Maps = null;
         _pk3MapArchivePath = null;
@@ -566,6 +568,13 @@ public partial class MainWindow : Window
         {
             string marker = _mapMarker ?? "MAP01";
             bool savedCurrentFormat = targetFormat == _mapFormat;
+            bool savingActiveSource = savedCurrentFormat && IsSamePath(outPath, _wadPath);
+            if (savingActiveSource && FileSaveStamp.HasChanged(_wadPath, _sourceWadStamp))
+            {
+                SetStatus("Save blocked: the source WAD changed on disk. Reload the map or use Save WAD As.");
+                return;
+            }
+
             // When exporting to a different format, translate the flag representation the target writer reads.
             // The fill is additive, so the in-memory map remains valid in its original format afterwards.
             if (!savedCurrentFormat)
@@ -601,6 +610,7 @@ public partial class MainWindow : Window
                 _pk3Maps = null;
                 _pk3MapArchivePath = null;
                 _sourceMapMarker = marker;
+                UpdateSourceWadStamp();
             }
             ClearMapDirty();
             string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
@@ -1496,6 +1506,7 @@ public partial class MainWindow : Window
             }
 
             _wadPath = path;
+            UpdateSourceWadStamp();
             _pk3Path = null;
             _pk3Maps = null;
             _pk3MapArchivePath = null;
@@ -1540,6 +1551,7 @@ public partial class MainWindow : Window
             }
 
             _wadPath = null;
+            _sourceWadStamp = null;
             _pk3Path = path;
             _pk3Maps = maps;
             _mapOptions = null;
@@ -1632,6 +1644,7 @@ public partial class MainWindow : Window
         _mapMarker = null;
         _sourceMapMarker = null;
         _wadPath = null;
+        _sourceWadStamp = null;
         _pk3Path = null;
         _pk3Maps = null;
         _pk3MapArchivePath = null;
@@ -1653,6 +1666,27 @@ public partial class MainWindow : Window
         return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsSamePath(string? a, string? b)
+    {
+        if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+        try
+        {
+            return string.Equals(
+                System.IO.Path.GetFullPath(a),
+                System.IO.Path.GetFullPath(b),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private void UpdateSourceWadStamp()
+    {
+        _sourceWadStamp = FileSaveStamp.TryRead(_wadPath, out var stamp) ? stamp : null;
     }
 
     private static string DbsPath(string wadPath) => System.IO.Path.ChangeExtension(wadPath, ".dbs");
