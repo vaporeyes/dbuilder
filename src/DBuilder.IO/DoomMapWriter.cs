@@ -1,4 +1,4 @@
-// ABOUTME: Doom-binary map writer - inverse of DoomMapLoader. Produces VERTEXES/SIDEDEFS/SECTORS/LINEDEFS/THINGS bytes from a MapSet.
+// ABOUTME: Doom-binary map writer - inverse of DoomMapLoader. Produces Doom map lumps from a MapSet.
 // ABOUTME: Vertex/sidedef/sector indices are resolved against the MapSet's list ordering via a one-pass dictionary build so writes stay O(n) overall.
 
 /*
@@ -26,9 +26,9 @@ public static class DoomMapWriter
     public const int ThingRecordSize = 10;
 
     /// <summary>
-    /// Writes the map's five core lumps into <paramref name="wad"/> as a Doom-format map block.  Inserts
+    /// Writes the map's core lumps into <paramref name="wad"/> as a Doom-format map block.  Inserts
     /// a zero-length <paramref name="markerName"/> lump at <paramref name="insertPos"/> followed by THINGS,
-    /// LINEDEFS, SIDEDEFS, VERTEXES, SECTORS - the canonical Doom order.
+    /// LINEDEFS, SIDEDEFS, VERTEXES, SECTORS, REJECT, BLOCKMAP - the canonical Doom order.
     /// </summary>
     public static void WriteMap(MapSet map, WAD wad, string markerName, int insertPos)
     {
@@ -47,6 +47,8 @@ public static class DoomMapWriter
         InsertLump(wad, "SIDEDEFS", sidedefsBytes, pos++);
         InsertLump(wad, "VERTEXES", vertexesBytes, pos++);
         InsertLump(wad, "SECTORS",  sectorsBytes,  pos++);
+        InsertLump(wad, "REJECT",   System.Array.Empty<byte>(), pos++);
+        InsertLump(wad, "BLOCKMAP", System.Array.Empty<byte>(), pos++);
         wad.WriteHeaders();
     }
 

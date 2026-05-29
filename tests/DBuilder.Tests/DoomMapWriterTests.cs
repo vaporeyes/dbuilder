@@ -175,6 +175,21 @@ public class DoomMapWriterTests
     }
 
     [Fact]
+    public void WriteMapEmitsDoomMapBlockOrder()
+    {
+        var map = LoadSynthetic();
+
+        using var wad = new WAD(new MemoryStream());
+        DoomMapWriter.WriteMap(map, wad, "MAP01", 0);
+
+        Assert.Equal(
+            new[] { "MAP01", "THINGS", "LINEDEFS", "SIDEDEFS", "VERTEXES", "SECTORS", "REJECT", "BLOCKMAP" },
+            wad.Lumps.Select(l => l.Name).ToArray());
+        Assert.Equal(0, wad.Lumps[6].Length);
+        Assert.Equal(0, wad.Lumps[7].Length);
+    }
+
+    [Fact]
     public void RoundTripPreservesTopology()
     {
         var map = LoadSynthetic();

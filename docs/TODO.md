@@ -224,6 +224,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid and zero-length Doom-format linedefs during load.
   - [x] Materialize Doom-format sidedefs from valid linedef references instead of as standalone orphans.
 - [ ] Complete Doom-format map writer parity.
+  - [x] Emit empty REJECT and BLOCKMAP lumps for Doom-format map writes.
 - [ ] Complete Hexen-format map loader parity.
   - [x] Skip invalid and zero-length Hexen-format linedefs during load.
   - [x] Materialize Hexen-format sidedefs from valid linedef references instead of as standalone orphans.
