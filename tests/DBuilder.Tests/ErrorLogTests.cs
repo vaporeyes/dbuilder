@@ -38,4 +38,36 @@ public class ErrorLogTests
         Assert.Contains("ApplicationException", crash);
         Assert.Contains("crash", File.ReadAllText(logPath));
     }
+
+    [Fact]
+    public void ReadRecentTextReturnsTailOfLog()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_error_tail_" + Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(dir, "DBuilder.log");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(path, "0123456789");
+
+        string text = ErrorLog.ReadRecentText(path, maxCharacters: 4);
+
+        Assert.Equal("6789", text);
+    }
+
+    [Fact]
+    public void ListReportPathsReturnsNewestDBuilderReports()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_error_reports_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        string oldPath = Path.Combine(dir, "DBuilder.log");
+        string newPath = Path.Combine(dir, "DBuilderCrash.txt");
+        string ignoredPath = Path.Combine(dir, "Other.log");
+        File.WriteAllText(oldPath, "old");
+        File.WriteAllText(newPath, "new");
+        File.WriteAllText(ignoredPath, "ignored");
+        File.SetLastWriteTimeUtc(oldPath, new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        File.SetLastWriteTimeUtc(newPath, new DateTime(2024, 2, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        string[] paths = ErrorLog.ListReportPaths(dir);
+
+        Assert.Equal(new[] { newPath, oldPath }, paths);
+    }
 }

@@ -47,6 +47,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
+  - [x] Expose recent error log and crash report files from the View menu.
 - [ ] Port toast, status, and notification behavior.
   - [x] Keep a bounded status history and expose it from the View menu.
 - [ ] Port recent file and recent map behavior to match UDB.

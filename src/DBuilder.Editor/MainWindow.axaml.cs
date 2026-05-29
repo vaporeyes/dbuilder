@@ -1481,6 +1481,9 @@ public partial class MainWindow : Window
     private void OnStatusHistory(object? sender, RoutedEventArgs e)
         => new StatusHistoryWindow(_statusHistory.Entries).Show(this);
 
+    private void OnErrorLog(object? sender, RoutedEventArgs e)
+        => new ErrorLogWindow().Show(this);
+
     private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
     {
         var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter);
