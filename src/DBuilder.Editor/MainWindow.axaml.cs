@@ -1051,6 +1051,20 @@ public partial class MainWindow : Window
         SetStatus($"Blockmap overlay {(MapView.ShowBlockmap ? "on" : "off")}.");
     }
 
+    private void OnToggleSectorFills(object? sender, RoutedEventArgs e)
+    {
+        bool shown = MapView.ToggleSectorFills();
+        SetStatus($"Sector fills {(shown ? "shown" : "hidden")}.");
+        MapView.Focus();
+    }
+
+    private void OnToggleThings(object? sender, RoutedEventArgs e)
+    {
+        bool shown = MapView.ToggleThings();
+        SetStatus($"Things {(shown ? "shown" : "hidden")}.");
+        MapView.Focus();
+    }
+
     // Toggles the BSP node partition overlay, reading and parsing the map's NODES lump on enable.
     private void OnToggleNodes(object? sender, RoutedEventArgs e)
     {

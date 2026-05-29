@@ -136,6 +136,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showFills = true;
     private bool _showThings = true;
 
+    public bool ShowSectorFills => _showFills;
+    public bool ShowThings => _showThings;
+
+    public bool ToggleSectorFills()
+    {
+        _showFills = !_showFills;
+        RequestNextFrameRendering();
+        return _showFills;
+    }
+
+    public bool ToggleThings()
+    {
+        _showThings = !_showThings;
+        RequestNextFrameRendering();
+        return _showThings;
+    }
+
     private bool _thingArrows;
     /// <summary>When true, things draw as Doom-Builder-style colored discs with a direction arrow instead of sprites.</summary>
     public bool ThingArrows
@@ -1879,8 +1896,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             switch (e.Key)
             {
-                case Key.S: _showFills = !_showFills; e.Handled = true; RequestNextFrameRendering(); return;
-                case Key.T: _showThings = !_showThings; e.Handled = true; RequestNextFrameRendering(); return;
+                case Key.S: ToggleSectorFills(); e.Handled = true; return;
+                case Key.T: ToggleThings(); e.Handled = true; return;
                 case Key.Y: ThingArrows = !ThingArrows; e.Handled = true; return; // sprites <-> arrows
                 case Key.D: ToggleDrawMode(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.M: MakeSectorAtCursor(); e.Handled = true; return;
