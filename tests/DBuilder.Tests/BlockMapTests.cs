@@ -2,6 +2,7 @@
 // ABOUTME: Builds a seeded pseudo-random map and asserts identical nearest distances for many sample points.
 
 using System;
+using System.Drawing;
 using DBuilder.Geometry;
 using DBuilder.Map;
 
@@ -267,6 +268,21 @@ public class BlockMapTests
         Assert.Empty(cell.Value.Things);
         Assert.Empty(cell.Value.Sectors);
         Assert.Empty(cell.Value.Vertices);
+    }
+
+    [Fact]
+    public void ExplicitRangeConstructorCreatesEmptyBlockMapForPopulation()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var thing = new Thing(new Vector2D(32, 32), 3001);
+        var outside = new Thing(new Vector2D(256, 256), 3001);
+
+        bm.AddThings(new[] { thing, outside });
+
+        Assert.Equal(3, bm.Columns);
+        Assert.Equal(3, bm.Rows);
+        Assert.Same(thing, bm.NearestThing(new Vector2D(30, 30)));
+        Assert.DoesNotContain(outside, bm.GetThingsNear(new Vector2D(128, 128), 256));
     }
 
     [Fact]

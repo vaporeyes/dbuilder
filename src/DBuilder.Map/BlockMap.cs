@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -26,6 +27,8 @@ public sealed class BlockMap
     private readonly List<Sector>[] sectorCells;
     private readonly List<Thing>[] thingCells;
     private readonly List<Vertex>[] vertCells;
+
+    private readonly record struct BlockMapBounds(double MinX, double MinY, double MaxX, double MaxY);
 
     public double BlockSize => blockSize;
     public int Columns => cols;
@@ -105,24 +108,35 @@ public sealed class BlockMap
     public IReadOnlyList<(int Col, int Row)> GetLineCellCoordinates(Vector2D start, Vector2D end)
         => LineCellCoordinates(start, end).ToArray();
 
+    public BlockMap(RectangleF range, double blockSize = 128.0)
+        : this(new BlockMapBounds(range.Left, range.Top, range.Right, range.Bottom), blockSize)
+    {
+    }
+
+    public BlockMap(double left, double top, double width, double height, double blockSize = 128.0)
+        : this(new BlockMapBounds(left, top, left + width, top + height), blockSize)
+    {
+    }
+
     public BlockMap(MapSet map, double blockSize = 128.0)
+        : this(GetMapBounds(map), blockSize)
+    {
+        AddSectors(map.Sectors);
+        AddVertices(map.Vertices);
+        AddThings(map.Things);
+        AddLinedefs(map.Linedefs);
+    }
+
+    private BlockMap(BlockMapBounds bounds, double blockSize)
     {
         this.blockSize = blockSize > 0 ? blockSize : 128.0;
 
-        var (minX, minY, maxX, maxY) = map.Bounds();
-        // Things can sit outside the vertex hull, so widen the extents to include them.
-        foreach (var t in map.Things)
-        {
-            if (t.Position.x < minX) minX = t.Position.x;
-            if (t.Position.y < minY) minY = t.Position.y;
-            if (t.Position.x > maxX) maxX = t.Position.x;
-            if (t.Position.y > maxY) maxY = t.Position.y;
-        }
-
-        originX = minX;
-        originY = minY;
-        cols = Math.Max(1, (int)Math.Floor((maxX - minX) / this.blockSize) + 1);
-        rows = Math.Max(1, (int)Math.Floor((maxY - minY) / this.blockSize) + 1);
+        originX = Math.Min(bounds.MinX, bounds.MaxX);
+        originY = Math.Min(bounds.MinY, bounds.MaxY);
+        double maxX = Math.Max(bounds.MinX, bounds.MaxX);
+        double maxY = Math.Max(bounds.MinY, bounds.MaxY);
+        cols = Math.Max(1, (int)Math.Floor((maxX - originX) / this.blockSize) + 1);
+        rows = Math.Max(1, (int)Math.Floor((maxY - originY) / this.blockSize) + 1);
 
         int cells = cols * rows;
         lineCells = new List<Linedef>[cells];
@@ -137,10 +151,21 @@ public sealed class BlockMap
             vertCells[i] = new List<Vertex>();
         }
 
-        AddSectors(map.Sectors);
-        AddVertices(map.Vertices);
-        AddThings(map.Things);
-        AddLinedefs(map.Linedefs);
+    }
+
+    private static BlockMapBounds GetMapBounds(MapSet map)
+    {
+        var (minX, minY, maxX, maxY) = map.Bounds();
+        // Things can sit outside the vertex hull, so widen the extents to include them.
+        foreach (var t in map.Things)
+        {
+            if (t.Position.x < minX) minX = t.Position.x;
+            if (t.Position.y < minY) minY = t.Position.y;
+            if (t.Position.x > maxX) maxX = t.Position.x;
+            if (t.Position.y > maxY) maxY = t.Position.y;
+        }
+
+        return new BlockMapBounds(minX, minY, maxX, maxY);
     }
 
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
