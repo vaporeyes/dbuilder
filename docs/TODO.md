@@ -358,6 +358,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port CVARINFO parser.
   - [x] Allow UDB-style flag-only CVARINFO prefixes before types.
 - [x] Port REVERBS parser.
+  - [x] Use UDB-style ordinal names and sorted environment order.
 - [x] Port X11 RGB parser.
 - [ ] Port actor structure behavior for DECORATE and ZScript.
   - [x] Treat separated negative DECORATE editor numbers as non-placeable.

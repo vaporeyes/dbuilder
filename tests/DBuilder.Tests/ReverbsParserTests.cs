@@ -38,4 +38,19 @@ Cave 4 5";
         Assert.Single(reverbs.Environments);
         Assert.Equal(new ReverbDefinition("Cave", 4, 5), reverbs.Environments["Cave"]);
     }
+
+    [Fact]
+    public void UsesUdbOrdinalNamesAndSortedOrder()
+    {
+        const string text = @"
+cave 4 0
+Hall 3 0
+Cave 2 0";
+
+        var reverbs = ReverbsParser.Parse(text);
+
+        Assert.Equal(new[] { "Cave", "Hall", "cave" }, reverbs.Environments.Keys.ToArray());
+        Assert.Equal(new ReverbDefinition("cave", 4, 0), reverbs.Environments["cave"]);
+        Assert.Equal(new ReverbDefinition("Cave", 2, 0), reverbs.Environments["Cave"]);
+    }
 }
