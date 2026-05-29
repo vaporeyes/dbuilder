@@ -1736,9 +1736,7 @@ public class MapSet : IDisposable
         double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
         foreach (var v in Vertices)
         {
-            double dx = v.Position.x - pos.x;
-            double dy = v.Position.y - pos.y;
-            double d = dx * dx + dy * dy;
+            double d = v.DistanceToSq(pos);
             if (d < bestSq) { bestSq = d; closest = v; }
         }
         return closest;

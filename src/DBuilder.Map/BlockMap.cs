@@ -318,7 +318,7 @@ public sealed class BlockMap
 
     /// <summary>Nearest vertex to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
     public Vertex? NearestVertex(Vector2D pos, double maxRange = double.MaxValue)
-        => Nearest(vertCells, pos, maxRange, static (v, p) => DistSq(v.Position, p));
+        => Nearest(vertCells, pos, maxRange, static (v, p) => v.DistanceToSq(p));
 
     /// <summary>Adds a set of vertices to the fixed blockmap range.</summary>
     public void AddVertices(IEnumerable<Vertex> vertices)

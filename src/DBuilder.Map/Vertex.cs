@@ -1,5 +1,5 @@
-// ABOUTME: Skeleton of UDB's Map.Vertex with the Linedefs back-ref needed for triangulation.
-// ABOUTME: Full Vertex (selection state, marks, owners list) gets filled in when the Map module is ported in earnest.
+// ABOUTME: Skeleton of UDB's Map.Vertex with selection state, UDMF fields and linedef back-references.
+// ABOUTME: Provides UDB-style vertex distance helpers used by hit-testing and nearest-element queries.
 
 namespace DBuilder.Map;
 
@@ -35,4 +35,10 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     public Vertex() { }
     public Vertex(Vector2D position) { Position = position; }
+
+    public double DistanceToSq(Vector2D pos)
+        => Vector2D.DistanceSq(pos, Position);
+
+    public double DistanceTo(Vector2D pos)
+        => Vector2D.Distance(pos, Position);
 }

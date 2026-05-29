@@ -56,6 +56,15 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void VertexDistanceHelpersMatchUdbSurface()
+    {
+        var vertex = new Vertex(new Vector2D(3, 4));
+
+        Assert.Equal(25, vertex.DistanceToSq(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(5, vertex.DistanceTo(new Vector2D(0, 0)), 1e-9);
+    }
+
+    [Fact]
     public void NearestLinedefFindsClosestEdge()
     {
         var (map, _) = BuildSquare(100);
