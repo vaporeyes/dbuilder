@@ -347,6 +347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port actor structure behavior for DECORATE and ZScript.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
+  - [x] Allow DECORATE flow keyword sprite names when followed by frames.
 - [ ] Port category and DoomEdNum merging behavior fully.
 - [ ] Add parser fixtures from real-world mod patterns.
 

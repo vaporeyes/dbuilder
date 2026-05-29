@@ -584,7 +584,7 @@ public static class DecorateParser
     // A spawn-state frame begins with a 4-char sprite name followed by a frame-letters token.
     private static bool LooksLikeSpriteFrame(string word, List<Tok> t, int next)
     {
-        if (word.Length != 4 || StateFlow.Contains(word)) return false;
+        if (word.Length != 4 || word.Equals("goto", StringComparison.OrdinalIgnoreCase)) return false;
         if (next >= t.Count || t[next].Kind != Kind.Word) return false;
         string frames = t[next].Text;
         foreach (char c in frames)

@@ -418,6 +418,23 @@ ACTOR PlaceholderSpriteThing 8004
     }
 
     [Fact]
+    public void AllowsFlowKeywordStateSpriteNames()
+    {
+        const string text = @"
+ACTOR FlowSpriteThing 8005
+{
+    States
+    {
+    Spawn:
+        FAIL A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("FAILA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {
         const string text = @"
