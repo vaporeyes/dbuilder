@@ -26,6 +26,20 @@ public sealed record EditorShortcutBinding(
 
 public static class EditorCommandCatalog
 {
+    private static readonly HashSet<string> RepeatableCommandIds = new(StringComparer.Ordinal)
+    {
+        "map2d.grid-down",
+        "map2d.grid-up",
+        "map2d.zoom-in",
+        "map2d.zoom-out",
+        "map3d.brightness-down",
+        "map3d.brightness-up",
+        "map3d.nudge-offset-left",
+        "map3d.nudge-offset-right",
+        "map3d.nudge-offset-up",
+        "map3d.nudge-offset-down",
+    };
+
     public static IReadOnlyList<EditorCommandDescriptor> All { get; } = new[]
     {
         new EditorCommandDescriptor("window.undo", "Undo", "Ctrl/Cmd+Z", EditorCommandScope.Window),
@@ -372,6 +386,14 @@ public static class EditorCommandCatalog
 
         return null;
     }
+
+    public static bool IsRepeatable(string commandId) => RepeatableCommandIds.Contains(commandId);
+
+    public static string ShortcutPressKey(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
+        => $"{scope}:{NormalizeKey(key)}:{accelerator}:{shift}:{alt}";
+
+    public static string ShortcutReleasePrefix(EditorCommandScope scope, string key)
+        => $"{scope}:{NormalizeKey(key)}:";
 
     private static string NormalizeKey(string key) => ParseDisplayKey(key);
 }

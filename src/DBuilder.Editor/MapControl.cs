@@ -2,6 +2,7 @@
 // ABOUTME: Bridges Avalonia's GL context to Silk.NET so RenderDevice/Shader/VertexBuffer work unchanged; supports pan/zoom and click-pick.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -1928,6 +1929,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     private bool _selectionDoneOnPress;
+    private readonly HashSet<string> _pressedMapShortcuts = new(StringComparer.Ordinal);
 
     private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
         or Key.Up or Key.Down or Key.Left or Key.Right;
@@ -1938,11 +1940,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
         string key = e.Key.ToString();
-        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D, key, accel, shift, alt) is { } commandId
-            && RunMapCommand(commandId))
+        var scope = _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D;
+        string pressKey = EditorCommandCatalog.ShortcutPressKey(scope, key, accel, shift, alt);
+        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, scope, key, accel, shift, alt) is { } commandId)
         {
-            e.Handled = true;
-            return;
+            if (!ShouldRunMapShortcut(commandId, pressKey))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (RunMapCommand(commandId))
+            {
+                e.Handled = true;
+                return;
+            }
         }
 
         if (_mode3D && IsFlyKey(e.Key)) { _heldKeys.Add(e.Key); e.Handled = true; return; }
@@ -2085,10 +2097,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    private bool ShouldRunMapShortcut(string commandId, string pressKey)
+    {
+        bool repeated = !_pressedMapShortcuts.Add(pressKey);
+        return !repeated || EditorCommandCatalog.IsRepeatable(commandId);
+    }
+
     protected override void OnKeyUp(KeyEventArgs e)
     {
+        RemovePressedMapShortcut(e.Key.ToString());
         if (_heldKeys.Remove(e.Key)) e.Handled = true;
         else base.OnKeyUp(e);
+    }
+
+    private void RemovePressedMapShortcut(string key)
+    {
+        string map2D = EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, key);
+        string map3D = EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map3D, key);
+        _pressedMapShortcuts.RemoveWhere(pressKey =>
+            pressKey.StartsWith(map2D, StringComparison.Ordinal) ||
+            pressKey.StartsWith(map3D, StringComparison.Ordinal));
     }
 
     private void Reset3DCamera()

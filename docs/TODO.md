@@ -92,6 +92,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
 - [ ] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
+  - [x] Suppress repeated keydown dispatch for non-repeatable commands.
 - [ ] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
 

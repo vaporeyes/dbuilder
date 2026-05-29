@@ -61,6 +61,7 @@ public partial class MainWindow : Window
     private Settings _settings = new();
     private readonly string _settingsPath = Settings.DefaultPath;
     private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
+    private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -902,14 +903,41 @@ public partial class MainWindow : Window
         bool shift = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Alt);
         string key = e.Key.ToString();
-        if (EditorCommandCatalog.ResolveShortcut(_shortcutBindings, EditorCommandScope.Window, key, accel, shift, alt) is { } commandId
-            && RunWindowCommand(commandId))
+        string pressKey = EditorCommandCatalog.ShortcutPressKey(EditorCommandScope.Window, key, accel, shift, alt);
+        if (EditorCommandCatalog.ResolveShortcut(_shortcutBindings, EditorCommandScope.Window, key, accel, shift, alt) is { } commandId)
         {
-            e.Handled = true;
-            return;
+            if (!ShouldRunWindowShortcut(commandId, pressKey))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (RunWindowCommand(commandId))
+            {
+                e.Handled = true;
+                return;
+            }
         }
 
         base.OnKeyDown(e);
+    }
+
+    protected override void OnKeyUp(Avalonia.Input.KeyEventArgs e)
+    {
+        RemovePressedWindowShortcut(e.Key.ToString());
+        base.OnKeyUp(e);
+    }
+
+    private bool ShouldRunWindowShortcut(string commandId, string pressKey)
+    {
+        bool repeated = !_pressedWindowShortcuts.Add(pressKey);
+        return !repeated || EditorCommandCatalog.IsRepeatable(commandId);
+    }
+
+    private void RemovePressedWindowShortcut(string key)
+    {
+        string keyPrefix = EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Window, key);
+        _pressedWindowShortcuts.RemoveWhere(pressKey => pressKey.StartsWith(keyPrefix, StringComparison.Ordinal));
     }
 
     private bool RunWindowCommand(string commandId)

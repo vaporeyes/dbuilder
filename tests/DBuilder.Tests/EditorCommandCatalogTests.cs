@@ -95,6 +95,30 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void RepeatableCommandMetadataMatchesAdjustmentActions()
+    {
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoom-in"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.grid-up"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
+
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.toggle-3d"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-sector"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
+    }
+
+    [Fact]
+    public void ShortcutPressKeysUseNormalizedKeyNames()
+    {
+        Assert.Equal(
+            EditorCommandCatalog.ShortcutPressKey(EditorCommandScope.Window, "Escape"),
+            EditorCommandCatalog.ShortcutPressKey(EditorCommandScope.Window, "Esc"));
+        Assert.Equal(
+            EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "OemPlus"),
+            EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "+"));
+    }
+
+    [Fact]
     public void EffectiveShortcutsReplaceDefaultBindingsForCommand()
     {
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
