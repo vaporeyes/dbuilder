@@ -125,4 +125,43 @@ public class LinedefFlipTests
         Assert.Same(b, l2.Start); // untouched
         Assert.Same(c, l2.End);
     }
+
+    [Fact]
+    public void FlipBackwardLinedefsFlipsLinesWithOnlyBackSide()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var sector = map.AddSector();
+        var line = map.AddLinedef(a, b);
+        var back = map.AddSidedef(line, false, sector);
+
+        int flips = MapSet.FlipBackwardLinedefs(new[] { line });
+
+        Assert.Equal(1, flips);
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+        Assert.Same(back, line.Front);
+        Assert.Null(line.Back);
+        Assert.True(back.IsFront);
+    }
+
+    [Fact]
+    public void FlipBackwardLinedefsIgnoresLinesWithFrontSides()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var sector = map.AddSector();
+        var line = map.AddLinedef(a, b);
+        var front = map.AddSidedef(line, true, sector);
+
+        int flips = MapSet.FlipBackwardLinedefs(new[] { line });
+
+        Assert.Equal(0, flips);
+        Assert.Same(a, line.Start);
+        Assert.Same(b, line.End);
+        Assert.Same(front, line.Front);
+        Assert.Null(line.Back);
+    }
 }

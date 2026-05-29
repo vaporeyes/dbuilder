@@ -1104,6 +1104,19 @@ public class MapSet : IDisposable
         return n;
     }
 
+    public static int FlipBackwardLinedefs(ICollection<Linedef> linedefs)
+    {
+        int flips = 0;
+        foreach (var line in linedefs)
+        {
+            if (line.Back == null || line.Front != null) continue;
+            line.FlipVertices();
+            line.FlipSidedefs();
+            flips++;
+        }
+        return flips;
+    }
+
     /// <summary>
     /// Deletes all currently selected elements in dependency-safe order: things, then sectors (orphaning
     /// their sidedefs), then linedefs (with their sidedefs), then vertices (cascading any remaining lines).
