@@ -166,6 +166,18 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void GetSectorContainingIgnoresCandidateLineAlreadyInMap()
+    {
+        var (map, sector) = BuildSquare(100);
+        var line = map.AddLinedef(
+            map.AddVertex(new Vector2D(20, 20)),
+            map.AddVertex(new Vector2D(80, 80)));
+        map.AddSidedef(line, true, sector);
+
+        Assert.Same(sector, map.GetSectorContaining(line));
+    }
+
+    [Fact]
     public void GetSectorContainingReturnsNullForLineCrossingBoundary()
     {
         var (map, _) = BuildSquare(100);

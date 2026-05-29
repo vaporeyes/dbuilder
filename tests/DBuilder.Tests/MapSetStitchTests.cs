@@ -297,4 +297,68 @@ public class MapSetStitchTests
         Assert.Equal(1, result.JoinedOverlappingLinedefs);
         Assert.Single(map.Linedefs);
     }
+
+    [Fact]
+    public void CorrectOuterSidedefsAddsMissingBackSideInsideSector()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        var front = map.AddSidedef(line, true, sector);
+        front.MidTexture = "STONE";
+        front.OffsetX = 12;
+
+        int created = map.CorrectOuterSidedefs(new[] { line });
+
+        Assert.Equal(1, created);
+        Assert.NotNull(line.Back);
+        Assert.Same(sector, line.Back!.Sector);
+        Assert.Equal("STONE", line.Back.MidTexture);
+        Assert.Equal(12, line.Back.OffsetX);
+    }
+
+    [Fact]
+    public void CorrectOuterSidedefsAddsMissingFrontSideInsideSector()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        var back = map.AddSidedef(line, false, sector);
+        back.MidTexture = "BRICK";
+
+        int created = map.CorrectOuterSidedefs(new[] { line });
+
+        Assert.Equal(1, created);
+        Assert.NotNull(line.Front);
+        Assert.Same(sector, line.Front!.Sector);
+        Assert.Equal("BRICK", line.Front.MidTexture);
+    }
+
+    [Fact]
+    public void CorrectOuterSidedefsSkipsLineCrossingSectorBoundary()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(160, 32)));
+        map.AddSidedef(line, true, sector);
+
+        int created = map.CorrectOuterSidedefs(new[] { line });
+
+        Assert.Equal(0, created);
+        Assert.Null(line.Back);
+    }
+
+    private static (MapSet map, Sector sector) BuildSquare(double size)
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(size, 0));
+        var v2 = map.AddVertex(new Vector2D(size, size));
+        var v3 = map.AddVertex(new Vector2D(0, size));
+
+        map.AddSidedef(map.AddLinedef(v1, v0), true, sector);
+        map.AddSidedef(map.AddLinedef(v0, v3), true, sector);
+        map.AddSidedef(map.AddLinedef(v3, v2), true, sector);
+        map.AddSidedef(map.AddLinedef(v2, v1), true, sector);
+        map.BuildIndexes();
+        return (map, sector);
+    }
 }

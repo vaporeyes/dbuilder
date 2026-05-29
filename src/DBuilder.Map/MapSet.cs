@@ -820,6 +820,41 @@ public class MapSet : IDisposable
         return removed;
     }
 
+    /// <summary>
+    /// Adds missing front/back sidedefs to changed lines that are fully inside an existing sector.
+    /// New sides copy properties from the line's existing side. Returns the number of sides created.
+    /// </summary>
+    public int CorrectOuterSidedefs(ICollection<Linedef> changedLines)
+    {
+        int created = 0;
+        foreach (var line in changedLines)
+        {
+            if (line.Front != null && line.Back != null) continue;
+
+            var containingSector = GetSectorContaining(line);
+            if (containingSector == null) continue;
+
+            var source = line.Front ?? line.Back;
+            if (source == null) continue;
+
+            if (line.Front == null)
+            {
+                var side = AddSidedef(line, true, containingSector);
+                CopySidedefProperties(source, side);
+                created++;
+            }
+
+            if (line.Back == null)
+            {
+                var side = AddSidedef(line, false, containingSector);
+                CopySidedefProperties(source, side);
+                created++;
+            }
+        }
+
+        return created;
+    }
+
     private void MergeOverlappingLinedef(Linedef keep, Linedef remove, bool oppositeDirection)
     {
         var sourceFront = oppositeDirection ? remove.Back : remove.Front;
@@ -1585,11 +1620,15 @@ public class MapSet : IDisposable
 
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
+        => NearestLinedef(pos, maxRange, ignoredLine: null);
+
+    private Linedef? NearestLinedef(Vector2D pos, double maxRange, Linedef? ignoredLine)
     {
         Linedef? closest = null;
         double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
         foreach (var l in Linedefs)
         {
+            if (ReferenceEquals(l, ignoredLine)) continue;
             double d = LinedefDistanceSq(l, pos);
             if (d < bestSq) { bestSq = d; closest = l; }
         }
@@ -1615,7 +1654,12 @@ public class MapSet : IDisposable
     /// </summary>
     public Sector? GetSectorAt(Vector2D pos)
     {
-        var line = NearestLinedef(pos);
+        return GetSectorAt(pos, ignoredLine: null);
+    }
+
+    private Sector? GetSectorAt(Vector2D pos, Linedef? ignoredLine)
+    {
+        var line = NearestLinedef(pos, double.MaxValue, ignoredLine);
         if (line == null) return null;
         bool front = Line2D.GetSideOfLine(line.Start.Position, line.End.Position, pos) < 0;
         // The facing side determines the sector. A null facing side means the point is in the void
@@ -1629,10 +1673,11 @@ public class MapSet : IDisposable
     /// </summary>
     public Sector? GetSectorContaining(Linedef line)
     {
-        var start = GetSectorAt(line.Start.Position);
+        Linedef? ignoredLine = Linedefs.Contains(line) ? line : null;
+        var start = GetSectorAt(line.Start.Position, ignoredLine);
         if (start == null) return null;
-        if (!ReferenceEquals(start, GetSectorAt(line.GetCenterPoint()))) return null;
-        if (!ReferenceEquals(start, GetSectorAt(line.End.Position))) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.GetCenterPoint(), ignoredLine))) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.End.Position, ignoredLine))) return null;
         return start;
     }
 
