@@ -353,6 +353,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse quoted DECORATE state sprite and frame tokens.
 - [ ] Port category and DoomEdNum merging behavior fully.
   - [x] Use DECORATE `#region` titles as default actor categories.
+  - [x] Split DECORATE `#region` category paths on separators.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

@@ -77,6 +77,7 @@ public static class DecorateParser
         var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
         var extensions = new Dictionary<string, List<ActorInfo>>(StringComparer.OrdinalIgnoreCase);
         var regions = new List<string>();
+        var regionPartCounts = new List<int>();
         int i = 0;
         while (i < toks.Count)
         {
@@ -86,13 +87,18 @@ public static class DecorateParser
             {
                 i++;
                 string title = ReadLineValue(toks, ref i);
-                if (title.Length > 0) regions.Add(title);
+                regionPartCounts.Add(AddRegionParts(regions, title));
                 continue;
             }
             else if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#endregion", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                if (regions.Count > 0) regions.RemoveAt(regions.Count - 1);
+                if (regionPartCounts.Count > 0)
+                {
+                    int count = regionPartCounts[^1];
+                    regionPartCounts.RemoveAt(regionPartCounts.Count - 1);
+                    if (count <= regions.Count) regions.RemoveRange(regions.Count - count, count);
+                }
                 SkipLine(toks, ref i);
                 continue;
             }
@@ -131,6 +137,21 @@ public static class DecorateParser
 
     private static string? CurrentRegionCategory(List<string> regions)
         => regions.Count == 0 ? null : string.Join(".", regions);
+
+    private static int AddRegionParts(List<string> regions, string title)
+    {
+        int count = 0;
+        foreach (string part in title.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string trimmed = part.Trim();
+            if (trimmed.Length > 0)
+            {
+                regions.Add(trimmed);
+                count++;
+            }
+        }
+        return count;
+    }
 
     private static string ReadLineValue(List<Tok> t, ref int i)
     {

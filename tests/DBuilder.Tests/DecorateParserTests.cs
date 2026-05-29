@@ -120,6 +120,43 @@ ACTOR RegionOverrideThing 5004
     }
 
     [Fact]
+    public void RegionCategorySplitsPathSeparators()
+    {
+        const string text = @"
+#region Monsters/Bosses
+ACTOR BaronThing 5005
+{
+    Radius 16
+}
+#endregion
+ACTOR PlainThing 5006
+{
+    Radius 8
+}";
+        var actors = DecorateParser.Parse(text);
+
+        Assert.Equal("Monsters.Bosses", actors.Single(a => a.ClassName == "BaronThing").Category);
+        Assert.Null(actors.Single(a => a.ClassName == "PlainThing").Category);
+    }
+
+    [Fact]
+    public void NestedRegionCategoriesAreCombined()
+    {
+        const string text = @"
+#region Monsters
+#region Bosses
+ACTOR NestedRegionThing 5007
+{
+    Radius 16
+}
+#endregion
+#endregion";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("Monsters.Bosses", actor.Category);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];
