@@ -79,6 +79,17 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void NearestVertexSquareRangeSearchesMapVertices()
+    {
+        var map = new MapSet();
+        var diagonal = map.AddVertex(new Vector2D(4, 4));
+        map.AddVertex(new Vector2D(6, 0));
+
+        Assert.Same(diagonal, map.NearestVertexSquareRange(new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(map.NearestVertexSquareRange(new Vector2D(0, 0), maxRange: 3));
+    }
+
+    [Fact]
     public void VertexDistanceHelpersMatchUdbSurface()
     {
         var vertex = new Vertex(new Vector2D(3, 4));
@@ -160,6 +171,17 @@ public class MapHitTestTests
         Assert.Same(near, MapSet.NearestLinedefRange(selection, new Vector2D(5, 3), maxRange: 4));
         Assert.Null(MapSet.NearestLinedefRange(selection, new Vector2D(5, 3), maxRange: 2));
         Assert.Null(MapSet.NearestLinedefRange(Array.Empty<Linedef>(), new Vector2D(5, 3), maxRange: 4));
+    }
+
+    [Fact]
+    public void NearestLinedefRangeSearchesMapLinedefs()
+    {
+        var map = new MapSet();
+        var near = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(10, 0)));
+        map.AddLinedef(map.AddVertex(new Vector2D(100, 0)), map.AddVertex(new Vector2D(110, 0)));
+
+        Assert.Same(near, map.NearestLinedefRange(new Vector2D(5, 3), maxRange: 4));
+        Assert.Null(map.NearestLinedefRange(new Vector2D(5, 3), maxRange: 2));
     }
 
     [Fact]

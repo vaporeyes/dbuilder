@@ -1777,6 +1777,10 @@ public class MapSet : IDisposable
         return closest;
     }
 
+    /// <summary>Nearest map vertex inside a square range, ranked by Manhattan distance like UDB.</summary>
+    public Vertex? NearestVertexSquareRange(Vector2D pos, double maxRange)
+        => NearestVertexSquareRange(Vertices, pos, maxRange);
+
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/> units, or null if none.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
     {
@@ -1847,6 +1851,10 @@ public class MapSet : IDisposable
         }
         return closest;
     }
+
+    /// <summary>Nearest map linedef to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
+    public Linedef? NearestLinedefRange(Vector2D pos, double maxRange)
+        => NearestLinedefRange(Linedefs, pos, maxRange);
 
     private Linedef? NearestLinedef(Vector2D pos, double maxRange, Linedef? ignoredLine)
     {
