@@ -62,6 +62,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port game testing flow with configurable source ports.
   - [x] Use loaded game configuration test parameter templates when no user override is set.
   - [x] Include non-excluded map resources in Test Map launch parameters.
+  - [x] Build testable source-port launch plans for Test Map.
 - [ ] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
 

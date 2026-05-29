@@ -73,4 +73,14 @@ public class SourcePortTests
 
         Assert.Equal(new[] { "-warp", "2", "8" }, args);
     }
+
+    [Fact]
+    public void CreateStartInfoUsesDBuilderLaunchDefaults()
+    {
+        var startInfo = SourcePort.CreateStartInfo("/ports/gzdoom", new[] { "-iwad", "doom2.wad", "-file", "edit.wad" });
+
+        Assert.Equal("/ports/gzdoom", startInfo.FileName);
+        Assert.False(startInfo.UseShellExecute);
+        Assert.Equal(new[] { "-iwad", "doom2.wad", "-file", "edit.wad" }, startInfo.ArgumentList);
+    }
 }

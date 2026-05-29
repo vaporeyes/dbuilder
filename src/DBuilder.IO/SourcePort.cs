@@ -2,6 +2,7 @@
 // ABOUTME: Splits templates honoring double quotes, substitutes map/file tokens, and drops empty optional args.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Text;
 
@@ -50,6 +51,14 @@ public static class SourcePort
             else tokens[i] = token;
         }
         return tokens;
+    }
+
+    public static ProcessStartInfo CreateStartInfo(string executable, IEnumerable<string> arguments)
+    {
+        var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+        foreach (string argument in arguments)
+            startInfo.ArgumentList.Add(argument);
+        return startInfo;
     }
 
     private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles)

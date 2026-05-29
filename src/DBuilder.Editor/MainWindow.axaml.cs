@@ -2107,9 +2107,7 @@ public partial class MainWindow : Window
                 ?? TestArgsTemplate();
             var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker, TestResourcePaths());
 
-            var psi = new System.Diagnostics.ProcessStartInfo(port!) { UseShellExecute = false };
-            foreach (var a in args) psi.ArgumentList.Add(a);
-            System.Diagnostics.Process.Start(psi);
+            System.Diagnostics.Process.Start(SourcePort.CreateStartInfo(port!, args));
             if (_mapOptions?.TestPostCommand is { } postCommand)
             {
                 var postResult = ExternalCommand.Run(postCommand, "After test map");
