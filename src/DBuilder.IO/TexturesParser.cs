@@ -202,7 +202,7 @@ public static class TexturesParser
         if (!ReadInt(t, ref i, out int y)) return;
         var patch = new TexturesPatch
         {
-            Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
+            Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).ToUpperInvariant(),
             X = x,
             Y = y,
             Skip = name.Equals("TNT1A0", StringComparison.OrdinalIgnoreCase),

@@ -337,6 +337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
   - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.
   - [x] Apply TEXTURES patch alpha only for UDB-supported render styles.
+  - [x] Normalize TEXTURES patch lump names to uppercase.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

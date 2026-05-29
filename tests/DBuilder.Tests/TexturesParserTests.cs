@@ -222,7 +222,7 @@ Texture META, 8, 8
         Blend 255, 128, 0, 0.5
     }
     Patch TNT1A0, 0, 0
-    Patch ""patches/BLUE"", 1, 1
+    Patch ""patches/Blue"", 1, 1
     {
         Blend ""#112233""
     }
@@ -246,7 +246,7 @@ Texture META, 8, 8
         Assert.Equal(0, def.Patches[0].BlendBlue);
         Assert.Equal(127, def.Patches[0].BlendAlpha);
         Assert.True(def.Patches[1].Skip);
-        Assert.Equal(Path.Combine("patches", "BLUE"), def.Patches[2].Name);
+        Assert.Equal(Path.Combine("PATCHES", "BLUE"), def.Patches[2].Name);
         Assert.Equal(TexturesPatchBlendStyle.Blend, def.Patches[2].BlendStyle);
         Assert.Equal(0x11, def.Patches[2].BlendRed);
         Assert.Equal(0x22, def.Patches[2].BlendGreen);
