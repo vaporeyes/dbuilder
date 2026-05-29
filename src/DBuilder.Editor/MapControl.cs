@@ -27,6 +27,7 @@ namespace DBuilder.Editor;
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
+    public event Action? ActionStateChanged;
 
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
     // reach it by default. Claim only points actually inside the control's bounds - returning true for
@@ -145,6 +146,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ToggleSectorFills()
     {
         _showFills = !_showFills;
+        ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showFills;
     }
@@ -152,6 +154,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ToggleThings()
     {
         _showThings = !_showThings;
+        ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showThings;
     }
@@ -161,7 +164,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ThingArrows
     {
         get => _thingArrows;
-        set { _thingArrows = value; _geometryDirty = true; RequestNextFrameRendering(); }
+        set { _thingArrows = value; _geometryDirty = true; ActionStateChanged?.Invoke(); RequestNextFrameRendering(); }
     }
 
     private bool _show3DFloors = true;
@@ -174,6 +177,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (_show3DFloors == value) return;
             _show3DFloors = value;
             _geo3DDirty = true;
+            ActionStateChanged?.Invoke();
             RequestNextFrameRendering();
         }
     }
@@ -266,6 +270,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _shapeKind = _shapeKind == kind ? ShapeKind.None : kind;
         if (_shapeKind != ShapeKind.None) { _drawMode = false; _drawPoints.Clear(); _drawDirty = true; }
+        ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
     }
     private bool _invalidateTextures; // dispose cached GL textures on the render thread (context current)
@@ -310,6 +315,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _drag3DTarget = null;
         }
         ModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _mode3D;
     }
@@ -328,7 +334,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ShowBlockmap
     {
         get => _showBlockmap;
-        set { _showBlockmap = value; RequestNextFrameRendering(); }
+        set { _showBlockmap = value; ActionStateChanged?.Invoke(); RequestNextFrameRendering(); }
     }
 
     private GlVertexBuffer? _nodesVb;
@@ -340,7 +346,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ShowNodes
     {
         get => _showNodes;
-        set { _showNodes = value; _nodesDirty = true; RequestNextFrameRendering(); }
+        set { _showNodes = value; _nodesDirty = true; ActionStateChanged?.Invoke(); RequestNextFrameRendering(); }
     }
     private bool _nodesDirty;
 
@@ -1788,6 +1794,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _snapToGrid = !_snapToGrid;
         string status = $"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})";
+        ActionStateChanged?.Invoke();
         Picked?.Invoke(status);
         return status;
     }
@@ -2518,6 +2525,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>True when the draw-geometry tool is active (host can reflect it in the status bar).</summary>
     public bool DrawMode => _drawMode;
+    public bool DrawLinesOnly => _drawLinesOnly;
+    public bool DrawCurve => _drawCurve;
     public bool SnapToGridEnabled => _snapToGrid;
     public event Action? DrawModeChanged;
 
@@ -2536,6 +2545,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawClosed = false;
         _drawDirty = true;
         DrawModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
     }
 
@@ -2554,6 +2564,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawDirty = true;
         _drawLineCount = 0; // drop the green preview immediately
         if (was) DrawModeChanged?.Invoke();
+        if (was) ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
     }
 

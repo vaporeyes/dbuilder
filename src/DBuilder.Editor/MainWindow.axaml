@@ -92,26 +92,26 @@
                     <MenuItem Header="_Linedef Actions..." Click="OnBrowseActionsCatalog" />
                     <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
                 </MenuItem>
-                <MenuItem Header="Toggle _3D Mode" x:Name="Toggle3DModeMenuItem" Click="OnToggle3DMode" />
-                <MenuItem Header="Show Sector _Fills" x:Name="ToggleSectorFillsMenuItem" Click="OnToggleSectorFills" />
-                <MenuItem Header="Show _Things" x:Name="ToggleThingsMenuItem" Click="OnToggleThings" />
-                <MenuItem Header="Things as _arrows" x:Name="ToggleThingArrowsMenuItem" Click="OnToggleThingArrows" />
-                <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" Click="OnToggle3DFloors" />
+                <MenuItem Header="Toggle _3D Mode" x:Name="Toggle3DModeMenuItem" ToggleType="CheckBox" Click="OnToggle3DMode" />
+                <MenuItem Header="Show Sector _Fills" x:Name="ToggleSectorFillsMenuItem" ToggleType="CheckBox" Click="OnToggleSectorFills" />
+                <MenuItem Header="Show _Things" x:Name="ToggleThingsMenuItem" ToggleType="CheckBox" Click="OnToggleThings" />
+                <MenuItem Header="Things as _arrows" x:Name="ToggleThingArrowsMenuItem" ToggleType="CheckBox" Click="OnToggleThingArrows" />
+                <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" ToggleType="CheckBox" Click="OnToggle3DFloors" />
                 <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
-                <MenuItem Header="_Snap to Grid" Click="OnToggleSnapToGrid" />
+                <MenuItem Header="_Snap to Grid" x:Name="ToggleSnapToGridMenuItem" ToggleType="CheckBox" Click="OnToggleSnapToGrid" />
                 <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
                 <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />
-                <MenuItem Header="Show _Blockmap" x:Name="ToggleBlockmapMenuItem" Click="OnToggleBlockmap" />
-                <MenuItem Header="Show _Nodes" x:Name="ToggleNodesMenuItem" Click="OnToggleNodes" />
+                <MenuItem Header="Show _Blockmap" x:Name="ToggleBlockmapMenuItem" ToggleType="CheckBox" Click="OnToggleBlockmap" />
+                <MenuItem Header="Show _Nodes" x:Name="ToggleNodesMenuItem" ToggleType="CheckBox" Click="OnToggleNodes" />
             </MenuItem>
             <MenuItem Header="_Draw">
                 <MenuItem Header="_Make Sector at Cursor" x:Name="MakeSectorAtCursorMenuItem" Click="OnMakeSectorAtCursor" />
-                <MenuItem Header="Draw _Sector" x:Name="DrawSectorMenuItem" Click="OnDrawSector" />
-                <MenuItem Header="Draw _Lines Only" x:Name="DrawLinesMenuItem" Click="OnDrawLines" />
-                <MenuItem Header="Draw _Curve" x:Name="DrawCurveMenuItem" Click="OnDrawCurve" />
-                <MenuItem Header="Draw _Rectangle" x:Name="DrawRectangleMenuItem" Click="OnDrawRectangle" />
-                <MenuItem Header="Draw _Ellipse" x:Name="DrawEllipseMenuItem" Click="OnDrawEllipse" />
+                <MenuItem Header="Draw _Sector" x:Name="DrawSectorMenuItem" ToggleType="CheckBox" Click="OnDrawSector" />
+                <MenuItem Header="Draw _Lines Only" x:Name="DrawLinesMenuItem" ToggleType="CheckBox" Click="OnDrawLines" />
+                <MenuItem Header="Draw _Curve" x:Name="DrawCurveMenuItem" ToggleType="CheckBox" Click="OnDrawCurve" />
+                <MenuItem Header="Draw _Rectangle" x:Name="DrawRectangleMenuItem" ToggleType="CheckBox" Click="OnDrawRectangle" />
+                <MenuItem Header="Draw _Ellipse" x:Name="DrawEllipseMenuItem" ToggleType="CheckBox" Click="OnDrawEllipse" />
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Check Map" x:Name="CheckMapMenuItem" Click="OnCheckMap" />

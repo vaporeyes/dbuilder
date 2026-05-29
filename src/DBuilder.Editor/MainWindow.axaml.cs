@@ -95,6 +95,11 @@ public partial class MainWindow : Window
             UpdateInfo();
             UpdateStatusDetails();
         };
+        MapView.ActionStateChanged += () =>
+        {
+            UpdateCommandAvailability();
+            UpdateStatusDetails();
+        };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
         Opened += OnOpened;
@@ -2461,12 +2466,32 @@ public partial class MainWindow : Window
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(canUndo, UndoMenuItem, UndoButton);
         SetEnabled(canRedo, RedoMenuItem, RedoButton);
+        UpdateCommandCheckedState();
+    }
+
+    private void UpdateCommandCheckedState()
+    {
+        SetChecked(Toggle3DModeMenuItem, MapView.In3DMode);
+        SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
+        SetChecked(ToggleThingsMenuItem, MapView.ShowThings);
+        SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
+        SetChecked(Toggle3DFloorsMenuItem, MapView.Show3DFloors);
+        SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
+        SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
+        SetChecked(ToggleNodesMenuItem, MapView.ShowNodes);
+        SetChecked(DrawSectorMenuItem, MapView.DrawMode && !MapView.DrawLinesOnly && !MapView.DrawCurve);
+        SetChecked(DrawLinesMenuItem, MapView.DrawMode && MapView.DrawLinesOnly && !MapView.DrawCurve);
+        SetChecked(DrawCurveMenuItem, MapView.DrawMode && MapView.DrawCurve);
+        SetChecked(DrawRectangleMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Rectangle);
+        SetChecked(DrawEllipseMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Ellipse);
     }
 
     private static void SetEnabled(bool enabled, params Control[] controls)
     {
         foreach (var control in controls) control.IsEnabled = enabled;
     }
+
+    private static void SetChecked(MenuItem item, bool isChecked) => item.IsChecked = isChecked;
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;
 
