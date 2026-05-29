@@ -2853,20 +2853,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        // Trackpads report scroll on either axis; use whichever has the larger magnitude.
-        double delta = Math.Abs(e.Delta.Y) >= Math.Abs(e.Delta.X) ? e.Delta.Y : e.Delta.X;
-        if (delta == 0) return;
+        if (EditorPointerInput.WheelKey(e.Delta.X, e.Delta.Y) is not { } wheelKey) return;
 
         // In 3D, the wheel raises/lowers the targeted floor/ceiling (Shift = fine 1-unit step).
         if (_mode3D)
         {
             int step = e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? 1 : 8;
-            AdjustTarget3D(delta > 0 ? step : -step);
+            AdjustTarget3D(wheelKey is EditorPointerInput.ScrollUp or EditorPointerInput.ScrollRight ? step : -step);
             e.Handled = true;
             return;
         }
 
-        ZoomBy(delta > 0 ? 0.85 : 1.0 / 0.85);
+        bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, wheelKey, accel, shift, alt) is { } commandId
+            && RunMapCommand(commandId))
+        {
+            e.Handled = true;
+            return;
+        }
+
+        ZoomBy(wheelKey is EditorPointerInput.ScrollUp or EditorPointerInput.ScrollRight ? 0.85 : 1.0 / 0.85);
         e.Handled = true;
     }
 

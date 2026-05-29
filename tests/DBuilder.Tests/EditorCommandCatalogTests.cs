@@ -73,6 +73,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
+        Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
+        Assert.Equal("map2d.zoom-out", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
         Assert.Equal("map2d.toggle-3d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Tab"));
     }
 
@@ -116,6 +118,16 @@ public class EditorCommandCatalogTests
         Assert.Equal(
             EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "OemPlus"),
             EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "+"));
+    }
+
+    [Fact]
+    public void WheelInputNormalizesToUdbScrollKeys()
+    {
+        Assert.Equal(EditorPointerInput.ScrollUp, EditorPointerInput.WheelKey(0, 1));
+        Assert.Equal(EditorPointerInput.ScrollDown, EditorPointerInput.WheelKey(0, -1));
+        Assert.Equal(EditorPointerInput.ScrollRight, EditorPointerInput.WheelKey(2, 1));
+        Assert.Equal(EditorPointerInput.ScrollLeft, EditorPointerInput.WheelKey(-2, 1));
+        Assert.Null(EditorPointerInput.WheelKey(0, 0));
     }
 
     [Fact]
