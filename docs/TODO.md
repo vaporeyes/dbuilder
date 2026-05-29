@@ -32,6 +32,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port UDB `General` application orchestration.
 - [ ] Port map manager behavior, including open, close, reload, save, save-as, and dirty-state rules.
+  - [x] Track dirty map state in the editor title across edits, loads, and saves.
 - [ ] Port autosave and recovery behavior.
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.

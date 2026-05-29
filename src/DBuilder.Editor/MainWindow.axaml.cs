@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private string _configName = "(none)";
     private string _configFile = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
+    private bool _mapDirty;
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
     private const string DefaultConfigDir =
@@ -62,7 +63,7 @@ public partial class MainWindow : Window
         ShowActivated = true;
         MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
         MapView.Picked += _ => { UpdateInfo(); UpdateStatusDetails(); };
-        MapView.EditBegun += desc => _undo?.CreateUndo(desc);
+        MapView.EditBegun += desc => CreateUndo(desc);
         MapView.Changed += UpdateInfo;
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
@@ -227,7 +228,7 @@ public partial class MainWindow : Window
         _undo = new UndoManager(map);
         MapView.Map = map;
         MapView.Focus();
-        Title = CurrentEditorTitle();
+        MarkMapDirty();
         UpdateInfo();
         SetStatus("New empty map. Draw with D (sector) or Shift+D (lines); I inserts a vertex/thing.");
     }
@@ -367,7 +368,7 @@ public partial class MainWindow : Window
         };
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
         {
-            _undo.CreateUndo(ceiling ? "Set ceiling flat" : "Set floor flat");
+            CreateUndo(ceiling ? "Set ceiling flat" : "Set floor flat");
             foreach (var sector in sectors)
             {
                 if (ceiling) sector.CeilTexture = name;
@@ -430,7 +431,7 @@ public partial class MainWindow : Window
         }
 
         var lines = _map.GetSelectedLinedefs();
-        _undo.CreateUndo("Set linedef action");
+        CreateUndo("Set linedef action");
         foreach (var line in lines) line.Action = action;
         MapView.MarkGeometryDirty();
         UpdateInfo();
@@ -446,7 +447,7 @@ public partial class MainWindow : Window
         }
 
         var sectors = _map.GetSelectedSectors();
-        _undo.CreateUndo("Set sector effect");
+        CreateUndo("Set sector effect");
         foreach (var sector in sectors) sector.Special = effect;
         MapView.MarkGeometryDirty();
         UpdateInfo();
@@ -509,6 +510,7 @@ public partial class MainWindow : Window
 
             System.IO.File.WriteAllBytes(outPath, bytes);
             SaveCurrentMapOptions(outPath, marker);
+            ClearMapDirty();
             string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
             SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
@@ -526,7 +528,7 @@ public partial class MainWindow : Window
             _map.Namespace = dlg.ResultNamespace;
             _mapOptions.CurrentName = _mapMarker;
             dlg.ApplyTo(_mapOptions);
-            Title = CurrentEditorTitle();
+            MarkMapDirty();
             UpdateInfo();
             MapView.Focus();
             SetStatus($"Map options updated: {_mapMarker}.");
@@ -658,12 +660,12 @@ public partial class MainWindow : Window
 
     private void OnUndo(object? sender, RoutedEventArgs e)
     {
-        if (_undo?.Undo() == true) { MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Undo"); }
+        if (_undo?.Undo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Undo"); }
     }
 
     private void OnRedo(object? sender, RoutedEventArgs e)
     {
-        if (_undo?.Redo() == true) { MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Redo"); }
+        if (_undo?.Redo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Redo"); }
     }
 
     private void OnCut(object? sender, RoutedEventArgs e)
@@ -673,7 +675,7 @@ public partial class MainWindow : Window
         if (selected == 0) { SetStatus("Nothing selected to cut."); return; }
 
         MapView.CopySelection();
-        _undo.CreateUndo("Cut selection");
+        CreateUndo("Cut selection");
         int removed = _map.DeleteSelection();
         MapView.MarkGeometryDirty();
         UpdateInfo();
@@ -706,7 +708,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         int sel = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
         if (sel == 0) { SetStatus("Nothing selected to delete."); return; }
-        _undo.CreateUndo("Delete selection");
+        CreateUndo("Delete selection");
         int removed = _map.DeleteSelection();
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
@@ -725,7 +727,7 @@ public partial class MainWindow : Window
             var dlg = new ThingEditDialog(t, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
-                _undo.CreateUndo("Edit thing");
+                CreateUndo("Edit thing");
                 t.Type = dlg.ResultType; t.Angle = dlg.ResultAngle; t.Tag = dlg.ResultTag; t.Action = dlg.ResultAction;
                 t.Flags = dlg.ResultFlags;
                 Array.Copy(dlg.ResultArgs, t.Args, t.Args.Length);
@@ -741,7 +743,7 @@ public partial class MainWindow : Window
             var dlg = new LinedefEditDialog(l, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
-                _undo.CreateUndo("Edit linedef");
+                CreateUndo("Edit linedef");
                 l.Action = dlg.ResultAction; l.Tag = dlg.ResultTag; l.Flags = dlg.ResultFlags;
                 Array.Copy(dlg.ResultArgs, l.Args, l.Args.Length);
                 ApplyFields(l.Fields, dlg.ResultFields);
@@ -754,7 +756,7 @@ public partial class MainWindow : Window
             var dlg = new SectorEditDialog(s, _config, _resources);
             if (await dlg.ShowDialog<bool>(this))
             {
-                _undo.CreateUndo("Edit sector");
+                CreateUndo("Edit sector");
                 s.FloorHeight = dlg.ResultFloor; s.CeilHeight = dlg.ResultCeil;
                 s.FloorTexture = dlg.ResultFloorTex; s.CeilTexture = dlg.ResultCeilTex;
                 s.Brightness = dlg.ResultBright; s.Special = dlg.ResultSpecial; s.Tag = dlg.ResultTag;
@@ -780,7 +782,7 @@ public partial class MainWindow : Window
             var dlg = new UdmfFlagsDialog(name, known, current);
             if (!await dlg.ShowDialog<bool>(this)) return;
 
-            _undo.CreateUndo("Edit linedef flags");
+            CreateUndo("Edit linedef flags");
             ApplyFlags(line.UdmfFlags, dlg.ResultFlags);
             if (_config != null) line.Flags = _config.LinedefFlagsFromUdmf(line.UdmfFlags);
             AfterEdit($"{name} flags updated");
@@ -798,7 +800,7 @@ public partial class MainWindow : Window
             var dlg = new UdmfFlagsDialog(name, known, current);
             if (!await dlg.ShowDialog<bool>(this)) return;
 
-            _undo.CreateUndo("Edit thing flags");
+            CreateUndo("Edit thing flags");
             ApplyFlags(thing.UdmfFlags, dlg.ResultFlags);
             if (_config != null) thing.Flags = _config.ThingFlagsFromUdmf(thing.UdmfFlags);
             AfterEdit($"{name} flags updated");
@@ -821,7 +823,7 @@ public partial class MainWindow : Window
         var dlg = new CustomFieldsDialog(name, element.Fields);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
-        _undo.CreateUndo("Edit custom fields");
+        CreateUndo("Edit custom fields");
         ApplyFields(element.Fields, dlg.ResultFields);
         AfterEdit($"{name} custom fields updated");
     }
@@ -956,7 +958,7 @@ public partial class MainWindow : Window
         int selected = CountSelection();
         if (selected == 0) { SetStatus("Select elements before adding them to a group."); return; }
 
-        _undo?.CreateUndo($"Add selection to group {groupIndex + 1}");
+        CreateUndo($"Add selection to group {groupIndex + 1}");
         _map.AddSelectionToGroup(groupIndex);
         _mapOptions?.WriteSelectionGroups(_map);
         MapView.MarkGeometryDirty();
@@ -986,7 +988,7 @@ public partial class MainWindow : Window
         int grouped = CountGroup(mask);
         if (grouped == 0) { SetStatus($"Group {groupIndex + 1} is empty."); return; }
 
-        _undo?.CreateUndo($"Clear group {groupIndex + 1}");
+        CreateUndo($"Clear group {groupIndex + 1}");
         _map.ClearGroup(mask);
         _mapOptions?.WriteSelectionGroups(_map);
         MapView.MarkGeometryDirty();
@@ -1016,7 +1018,7 @@ public partial class MainWindow : Window
     private void OnStitch(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
-        _undo.CreateUndo("Stitch geometry");
+        CreateUndo("Stitch geometry");
         int merged = _map.MergeOverlappingVertices(0.5);
         int split = _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
@@ -1054,7 +1056,7 @@ public partial class MainWindow : Window
             SetStatus("Select elements to transform first.");
             return;
         }
-        _undo.CreateUndo(desc);
+        CreateUndo(desc);
         SelectionTransform.Apply(_map, op);
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
@@ -1071,7 +1073,7 @@ public partial class MainWindow : Window
             SetStatus("Select elements to transform first.");
             return;
         }
-        _undo.CreateUndo(desc);
+        CreateUndo(desc);
         SelectionTransform.Scale(_map, factor);
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
@@ -1086,7 +1088,7 @@ public partial class MainWindow : Window
         var sel = _map.GetSelectedSectors();
         if (sel.Count < 2) { SetStatus("Select 2 or more sectors to join/merge."); return; }
 
-        _undo.CreateUndo(merge ? "Merge sectors" : "Join sectors");
+        CreateUndo(merge ? "Merge sectors" : "Join sectors");
         var keep = merge ? _map.MergeSectors(sel) : _map.JoinSectors(sel);
         _map.BuildIndexes();
         if (keep != null) { _map.ClearAllSelected(); keep.Selected = true; }
@@ -1223,6 +1225,7 @@ public partial class MainWindow : Window
             grid.SetBackgroundView(dlg.ResultBackgroundX, dlg.ResultBackgroundY,
                 dlg.ResultBackgroundScaleX, dlg.ResultBackgroundScaleY);
             MapView.ApplyGridSetup(grid);
+            MarkMapDirty();
             UpdateStatusDetails();
             SetStatus("Grid setup updated.");
         }
@@ -1241,6 +1244,7 @@ public partial class MainWindow : Window
     private void ChangeGridSize(bool larger)
     {
         SetStatus(MapView.ChangeGridSize(larger));
+        MarkMapDirty();
         UpdateStatusDetails();
         MapView.Focus();
     }
@@ -1449,7 +1453,7 @@ public partial class MainWindow : Window
             ApplyMapGridSetup(_mapOptions);
             MapView.RestoreView(_mapOptions.ViewPosition, _mapOptions.ViewScale);
             MapView.Focus(); // so Tab toggles 3D immediately instead of traversing the menu bar
-            Title = CurrentEditorTitle();
+            ClearMapDirty();
             UpdateInfo();
             string resources = resourceIssues == 0 ? "" : $" ({resourceIssues} map resource(s) missing or unreadable)";
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
@@ -1476,7 +1480,7 @@ public partial class MainWindow : Window
 
             MapView.Map = map;
             MapView.Focus();
-            Title = CurrentEditorTitle();
+            ClearMapDirty();
             UpdateInfo();
             SetStatus($"Loaded {entry.Map.Name} [{entry.Map.Format}] from {entry.ArchivePath}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
@@ -1555,11 +1559,31 @@ public partial class MainWindow : Window
 
     private string CurrentEditorTitle()
     {
+        string dirty = _mapDirty ? "*" : "";
         if (_wadPath is not null)
-            return $"DBuilder - {System.IO.Path.GetFileName(_wadPath)} ({_mapMarker ?? "MAP01"})";
+            return $"DBuilder{dirty} - {System.IO.Path.GetFileName(_wadPath)} ({_mapMarker ?? "MAP01"})";
         if (_pk3Path is not null)
-            return $"DBuilder - {System.IO.Path.GetFileName(_pk3Path)} ({_pk3MapArchivePath}:{_mapMarker ?? "MAP01"})";
-        return $"DBuilder - ({_mapMarker ?? "new map"})";
+            return $"DBuilder{dirty} - {System.IO.Path.GetFileName(_pk3Path)} ({_pk3MapArchivePath}:{_mapMarker ?? "MAP01"})";
+        return $"DBuilder{dirty} - ({_mapMarker ?? "new map"})";
+    }
+
+    private void CreateUndo(string description)
+    {
+        _undo?.CreateUndo(description);
+        MarkMapDirty();
+    }
+
+    private void MarkMapDirty()
+    {
+        if (_map is null) return;
+        _mapDirty = true;
+        Title = CurrentEditorTitle();
+    }
+
+    private void ClearMapDirty()
+    {
+        _mapDirty = false;
+        Title = CurrentEditorTitle();
     }
 
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
@@ -1632,7 +1656,7 @@ public partial class MainWindow : Window
         win.ReplaceRequested += () =>
         {
             if (_map is null || _undo is null) return;
-            _undo.CreateUndo("Find & replace");
+            CreateUndo("Find & replace");
             int n = MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
             win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
@@ -1699,7 +1723,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _undo.CreateUndo("Clean up geometry");
+        CreateUndo("Clean up geometry");
         var result = CleanUpGeometry(_map);
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
@@ -1750,7 +1774,7 @@ public partial class MainWindow : Window
     private void OnApplySlopes(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
-        _undo.CreateUndo("Apply slopes");
+        CreateUndo("Apply slopes");
         int n = SlopeEffects.ApplyAll(_map);
         MapView.MarkGeometryDirty();
         UpdateInfo();
@@ -1769,7 +1793,7 @@ public partial class MainWindow : Window
         var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
-        _undo.CreateUndo("Build stairs");
+        CreateUndo("Build stairs");
         int n = StairBuilder.Apply(sel, dlg.ResultStart, dlg.ResultStep, dlg.ResultMoveCeiling);
         MapView.MarkGeometryDirty();
         UpdateInfo();
@@ -2102,7 +2126,7 @@ public partial class MainWindow : Window
         var dlg = new TextureBrowserDialog(_resources, flats: false) { Title = title };
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
         {
-            _undo.CreateUndo("Change texture");
+            CreateUndo("Change texture");
             apply(name);
             MapView.MarkGeometryDirty();
             UpdateInfo();
@@ -2117,7 +2141,7 @@ public partial class MainWindow : Window
         var dlg = new TextureBrowserDialog(_resources, flats: true) { Title = ceiling ? "Browse Ceiling Flat" : "Browse Floor Flat" };
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
         {
-            _undo.CreateUndo("Change flat");
+            CreateUndo("Change flat");
             if (ceiling) s.CeilTexture = name; else s.FloorTexture = name;
             MapView.MarkGeometryDirty();
             UpdateInfo();
@@ -2132,7 +2156,7 @@ public partial class MainWindow : Window
         var dlg = new BrowserDialog("Browse Things", CatalogBrowse.Things(_config), t.Type);
         if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
         {
-            _undo.CreateUndo("Change thing type");
+            CreateUndo("Change thing type");
             t.Type = n;
             MapView.InsertThingType = n;
             MapView.MarkGeometryDirty();
