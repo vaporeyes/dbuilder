@@ -10,6 +10,23 @@ namespace DBuilder.Tests;
 
 public class ToolsTraceTests
 {
+    [Fact]
+    public void PointInPolygonUsesUdbCrossingRule()
+    {
+        var polygon = new[]
+        {
+            new Vector2D(0, 0),
+            new Vector2D(10, 0),
+            new Vector2D(10, 10),
+            new Vector2D(0, 10),
+        };
+
+        Assert.True(Tools.PointInPolygon(polygon, new Vector2D(5, 5)));
+        Assert.False(Tools.PointInPolygon(polygon, new Vector2D(15, 5)));
+        Assert.True(Tools.PointInPolygon(polygon, new Vector2D(10, 5)));
+        Assert.False(Tools.PointInPolygon(polygon, new Vector2D(5, 0)));
+    }
+
     // Builds a closed polygon of linedefs (front sidedef inward, CW winding) and returns the map.
     private static (MapSet map, List<Linedef> lines) BuildPolygon(Vector2D[] cwLoop)
     {

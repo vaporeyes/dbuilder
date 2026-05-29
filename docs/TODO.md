@@ -183,6 +183,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Compare every `DBuilder.Geometry` type with the UDB equivalent and close behavior gaps.
 - [ ] Port remaining geometry helpers from UDB `Geometry/Tools.cs`.
+  - [x] Add UDB-style point-in-polygon helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
 - [ ] Port curve tools and interpolation behavior fully.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.

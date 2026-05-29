@@ -17,6 +17,39 @@ namespace DBuilder.Map;
 
 public static class Tools
 {
+    /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
+    public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)
+    {
+        if (polygon.Count == 0) return false;
+
+        Vector2D previous = default;
+        bool foundPrevious = false;
+        foreach (var vertex in polygon)
+        {
+            previous = vertex;
+            foundPrevious = true;
+        }
+        if (!foundPrevious) return false;
+
+        uint crossings = 0;
+        foreach (var current in polygon)
+        {
+            double minY = System.Math.Min(previous.y, current.y);
+            double maxY = System.Math.Max(previous.y, current.y);
+            double maxX = System.Math.Max(previous.x, current.x);
+
+            if (point.y > minY && point.y <= maxY && point.x <= maxX && previous.y != current.y)
+            {
+                double xIntersection = (point.y - previous.y) * (current.x - previous.x) / (current.y - previous.y) + previous.x;
+                if (previous.x == current.x || point.x <= xIntersection) crossings++;
+            }
+
+            previous = current;
+        }
+
+        return (crossings & 1U) != 0;
+    }
+
     /// <summary>
     /// Finds the linedef sides bounding the sector that would contain <paramref name="pos"/>: traces the loop
     /// of the nearest linedef on the side facing the point (retracing outward if that loop is itself a hole),
