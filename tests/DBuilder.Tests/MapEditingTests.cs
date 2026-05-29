@@ -133,6 +133,37 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void SidedefSettersKeepLineSectorAndAngleConsistent()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var otherLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+        var sector = map.AddSector();
+        var side = new Sidedef(line, true);
+
+        side.SetSector(sector);
+        side.SetLinedef(line, front: true);
+
+        Assert.Same(sector, side.Sector);
+        Assert.Same(side, line.Front);
+        Assert.True(side.IsFront);
+        Assert.Equal(line.Angle, side.Angle);
+
+        side.SetLinedef(otherLine, front: false);
+
+        Assert.Null(line.Front);
+        Assert.Same(side, otherLine.Back);
+        Assert.False(side.IsFront);
+        Assert.Equal(Angle2D.Normalized(otherLine.Angle + Angle2D.PI), side.Angle);
+
+        side.SetLinedef(null, front: true);
+
+        Assert.Null(otherLine.Back);
+        Assert.Null(side.Other);
+        Assert.True(side.IsFront);
+    }
+
+    [Fact]
     public void RemoveVertexCascadesToTouchingLinedefs()
     {
         var map = BuildTwoRooms();

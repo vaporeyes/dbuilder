@@ -3,11 +3,14 @@
 
 namespace DBuilder.Map;
 
+using DBuilder.Geometry;
+
 public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
 {
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
     public bool IsFront { get; set; }
+    public double Angle => IsFront ? Line.Angle : Angle2D.Normalized(Line.Angle + Angle2D.PI);
 
     /// <summary>True after this element has been removed from its owning map.</summary>
     public bool IsDisposed { get; set; }
@@ -39,6 +42,30 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
     {
         Line = line;
         IsFront = isFront;
+    }
+
+    public void SetSector(Sector? sector)
+        => Sector = sector;
+
+    public void SetLinedef(Linedef? linedef, bool front)
+    {
+        if (Line != null)
+            Line.DetachSidedef(this);
+
+        if (linedef == null)
+        {
+            Line = null!;
+            Other = null;
+            IsFront = front;
+        }
+        else if (front)
+        {
+            linedef.AttachFront(this);
+        }
+        else
+        {
+            linedef.AttachBack(this);
+        }
     }
 
     public string GetTexture(SidedefPart part) => part switch
