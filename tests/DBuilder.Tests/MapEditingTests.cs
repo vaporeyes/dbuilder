@@ -74,6 +74,29 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void LinedefSetVerticesUpdatesBackReferencesAndAngle()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var c = map.AddVertex(new Vector2D(0, 10));
+        var d = map.AddVertex(new Vector2D(10, 10));
+        var line = map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        line.SetStartVertex(c);
+        line.SetEndVertex(d);
+
+        Assert.DoesNotContain(line, a.Linedefs);
+        Assert.DoesNotContain(line, b.Linedefs);
+        Assert.Contains(line, c.Linedefs);
+        Assert.Contains(line, d.Linedefs);
+        Assert.Same(c, line.Start);
+        Assert.Same(d, line.End);
+        Assert.Equal(Linedef.ComputeAngle(c, d), line.Angle);
+    }
+
+    [Fact]
     public void RemoveVertexCascadesToTouchingLinedefs()
     {
         var map = BuildTwoRooms();

@@ -83,6 +83,30 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     // Match UDB's Linedef.Angle convention via Vector2D.GetAngle on the delta.
     public static double ComputeAngle(Vertex start, Vertex end) => (end.Position - start.Position).GetAngle();
 
+    public void SetStartVertex(Vertex vertex)
+    {
+        if (ReferenceEquals(Start, vertex)) return;
+
+        var old = Start;
+        Start = vertex;
+        if (!ReferenceEquals(old, End)) old.Linedefs.Remove(this);
+        if (!vertex.Linedefs.Contains(this)) vertex.Linedefs.Add(this);
+        if (!End.Linedefs.Contains(this)) End.Linedefs.Add(this);
+        Angle = ComputeAngle(Start, End);
+    }
+
+    public void SetEndVertex(Vertex vertex)
+    {
+        if (ReferenceEquals(End, vertex)) return;
+
+        var old = End;
+        End = vertex;
+        if (!ReferenceEquals(old, Start)) old.Linedefs.Remove(this);
+        if (!vertex.Linedefs.Contains(this)) vertex.Linedefs.Add(this);
+        if (!Start.Linedefs.Contains(this)) Start.Linedefs.Add(this);
+        Angle = ComputeAngle(Start, End);
+    }
+
     /// <summary>Reverses the line direction by swapping its vertices (sidedefs stay attached, so the
     /// line now faces the other way). Call MapSet.BuildIndexes() afterwards to refresh vertex back-refs.</summary>
     public void FlipVertices()
