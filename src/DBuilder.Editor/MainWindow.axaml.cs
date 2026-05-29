@@ -78,6 +78,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        RebuildSelectionGroupsMenu();
         RebuildRecentMenu();
         TryLoadDefaultConfig();
 
@@ -733,6 +734,95 @@ public partial class MainWindow : Window
         int count = MapView.InvertSelectionInCurrentMode();
         UpdateInfo();
         SetStatus($"Inverted {MapView.CurrentEditMode.ToString().ToLowerInvariant()} selection: {count} selected.");
+    }
+
+    private void RebuildSelectionGroupsMenu()
+    {
+        var groups = new List<MenuItem>();
+        for (int i = 0; i < MapOptions.SelectionGroupCount; i++)
+        {
+            int groupIndex = i;
+            int display = i + 1;
+            var group = new MenuItem { Header = $"Group {display}" };
+            group.ItemsSource = new[]
+            {
+                MenuCommand("_Add selection", () => AddSelectionToGroup(groupIndex)),
+                MenuCommand("_Select group", () => SelectGroup(groupIndex)),
+                MenuCommand("_Clear group", () => ClearGroup(groupIndex)),
+            };
+            groups.Add(group);
+        }
+
+        SelectionGroupsMenu.ItemsSource = groups;
+    }
+
+    private static MenuItem MenuCommand(string header, Action action)
+    {
+        var item = new MenuItem { Header = header };
+        item.Click += (_, _) => action();
+        return item;
+    }
+
+    private void AddSelectionToGroup(int groupIndex)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        int selected = CountSelection();
+        if (selected == 0) { SetStatus("Select elements before adding them to a group."); return; }
+
+        _undo?.CreateUndo($"Add selection to group {groupIndex + 1}");
+        _map.AddSelectionToGroup(groupIndex);
+        _mapOptions?.WriteSelectionGroups(_map);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Added {selected} selected element(s) to group {groupIndex + 1}.");
+    }
+
+    private void SelectGroup(int groupIndex)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        int mask = MapSet.GroupMask(groupIndex);
+        _map.SelectVerticesByGroup(mask);
+        _map.SelectLinedefsByGroup(mask);
+        _map.SelectSectorsByGroup(mask);
+        _map.SelectThingsByGroup(mask);
+
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus($"Selected {CountSelection()} element(s) from group {groupIndex + 1}.");
+    }
+
+    private void ClearGroup(int groupIndex)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        int mask = MapSet.GroupMask(groupIndex);
+        int grouped = CountGroup(mask);
+        if (grouped == 0) { SetStatus($"Group {groupIndex + 1} is empty."); return; }
+
+        _undo?.CreateUndo($"Clear group {groupIndex + 1}");
+        _map.ClearGroup(mask);
+        _mapOptions?.WriteSelectionGroups(_map);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Cleared {grouped} element(s) from group {groupIndex + 1}.");
+    }
+
+    private int CountSelection()
+        => _map is null ? 0 : _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
+
+    private int CountGroup(int mask)
+        => _map is null ? 0 :
+            CountGroup(_map.Vertices, mask) +
+            CountGroup(_map.Linedefs, mask) +
+            CountGroup(_map.Sectors, mask) +
+            CountGroup(_map.Things, mask);
+
+    private static int CountGroup<T>(IEnumerable<T> items, int mask) where T : IGroupable
+    {
+        int count = 0;
+        foreach (var item in items)
+            if ((item.Groups & mask) != 0) count++;
+        return count;
     }
 
     // Welds the whole map: merges coincident vertices and splits lines at vertices lying on them.

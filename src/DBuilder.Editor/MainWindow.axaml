@@ -34,6 +34,7 @@
                 <MenuItem Header="Select _all" Click="OnSelectAll" />
                 <MenuItem Header="_Invert selection" Click="OnInvertSelection" />
                 <MenuItem Header="Select _none" Click="OnSelectNone" />
+                <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" Click="OnStitch" />
                 <MenuItem Header="_Join sectors" Click="OnJoinSectors" />
