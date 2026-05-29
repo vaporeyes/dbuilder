@@ -374,6 +374,61 @@ public class MapSetStitchTests
         Assert.Same(sector, line.Back!.Sector);
     }
 
+    [Fact]
+    public void RemoveLinedefsInsideSectorsRemovesFullyContainedLine()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        var changed = new HashSet<Linedef> { line };
+
+        int removed = map.RemoveLinedefsInsideSectors(new[] { line }, new[] { sector }, changed);
+
+        Assert.Equal(1, removed);
+        Assert.True(line.IsDisposed);
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.Empty(changed);
+    }
+
+    [Fact]
+    public void RemoveLinedefsInsideSectorsKeepsLineReferencingChangedSector()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        map.AddSidedef(line, true, sector);
+
+        int removed = map.RemoveLinedefsInsideSectors(new[] { line }, new[] { sector });
+
+        Assert.Equal(0, removed);
+        Assert.Contains(line, map.Linedefs);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryReplaceRemovesInteriorLinesFromReplacedSector()
+    {
+        var (map, sector) = BuildSquare(128);
+        var interior = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        SelectSectorBoundary(sector);
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Replace, 0.5);
+
+        Assert.Equal(1, result.RemovedInteriorLinedefs);
+        Assert.True(interior.IsDisposed);
+        Assert.DoesNotContain(interior, map.Linedefs);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryMergeKeepsInteriorLinesInReplacedSector()
+    {
+        var (map, sector) = BuildSquare(128);
+        var interior = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        SelectSectorBoundary(sector);
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Merge, 0.5);
+
+        Assert.Equal(0, result.RemovedInteriorLinedefs);
+        Assert.Contains(interior, map.Linedefs);
+    }
+
     private static (MapSet map, Sector sector) BuildSquare(double size)
     {
         var map = new MapSet();
@@ -389,5 +444,16 @@ public class MapSetStitchTests
         map.AddSidedef(map.AddLinedef(v2, v1), true, sector);
         map.BuildIndexes();
         return (map, sector);
+    }
+
+    private static void SelectSectorBoundary(Sector sector)
+    {
+        sector.Selected = true;
+        foreach (var side in sector.Sidedefs)
+        {
+            side.Line.Selected = true;
+            side.Line.Start.Selected = true;
+            side.Line.End.Selected = true;
+        }
     }
 }

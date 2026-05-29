@@ -30,12 +30,13 @@ public readonly record struct GeometryStitchResult(
     int VertexLineSplits,
     int LineLineSplits,
     int RemovedLoopedLinedefs,
+    int RemovedInteriorLinedefs,
     int JoinedOverlappingLinedefs,
     int CorrectedOuterSidedefs,
     int FlippedBackwardLinedefs)
 {
     public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs +
-        JoinedOverlappingLinedefs + CorrectedOuterSidedefs + FlippedBackwardLinedefs;
+        RemovedInteriorLinedefs + JoinedOverlappingLinedefs + CorrectedOuterSidedefs + FlippedBackwardLinedefs;
 }
 
 public class MapSet : IDisposable
@@ -764,6 +765,9 @@ public class MapSet : IDisposable
         var movingLines = new HashSet<Linedef>(
             Linedefs.Where(line => movingVertices.Contains(line.Start) || movingVertices.Contains(line.End)),
             ReferenceEqualityComparer.Instance);
+        var replacedSectors = mergeMode == MergeGeometryMode.Replace
+            ? GetSectorsFromLinedefs(movingLines)
+            : new HashSet<Sector>();
         var fixedLines = new HashSet<Linedef>(
             Linedefs.Where(line => !movingVertices.Contains(line.Start) && !movingVertices.Contains(line.End)),
             ReferenceEqualityComparer.Instance);
@@ -778,6 +782,12 @@ public class MapSet : IDisposable
 
         int lineLineSplits = SplitLinesByLines(fixedLines, changedLines);
         int removedLooped = RemoveLoopedLinedefs(changedLines);
+        int removedInterior = mergeMode == MergeGeometryMode.Replace
+            ? RemoveLinedefsInsideSectors(
+                new HashSet<Linedef>(fixedLines.Concat(changedLines), ReferenceEqualityComparer.Instance),
+                replacedSectors,
+                changedLines)
+            : 0;
         int joinedOverlapping = JoinOverlappingLinedefs(changedLines);
         int correctedOuter = mergeMode == MergeGeometryMode.Classic ? 0 : CorrectOuterSidedefs(changedLines);
         int flippedBackward = FlipBackwardLinedefs(changedLines);
@@ -787,6 +797,7 @@ public class MapSet : IDisposable
             vertexLineSplits,
             lineLineSplits,
             removedLooped,
+            removedInterior,
             joinedOverlapping,
             correctedOuter,
             flippedBackward);
@@ -865,6 +876,49 @@ public class MapSet : IDisposable
         return created;
     }
 
+    /// <summary>
+    /// Removes linedefs whose start, midpoint and end are fully inside changed sectors and whose sides do not
+    /// already reference those sectors. This is used by UDB-style replace geometry stitching.
+    /// </summary>
+    public int RemoveLinedefsInsideSectors(
+        ICollection<Linedef> lines,
+        IEnumerable<Sector> sectors,
+        ICollection<Linedef>? changedLines = null)
+    {
+        var sectorSet = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance);
+        if (lines.Count == 0 || sectorSet.Count == 0) return 0;
+
+        int removed = 0;
+        foreach (var line in lines.ToArray())
+        {
+            if (line.IsDisposed || line.Start == null || line.End == null) continue;
+            if (line.Front?.Sector != null && sectorSet.Contains(line.Front.Sector)) continue;
+            if (line.Back?.Sector != null && sectorSet.Contains(line.Back.Sector)) continue;
+
+            foreach (var sector in sectorSet)
+            {
+                if (!SectorContainsLine(sector, line)) continue;
+
+                while (!lines.IsReadOnly && lines.Remove(line))
+                {
+                }
+
+                if (changedLines != null)
+                {
+                    while (!changedLines.IsReadOnly && changedLines.Remove(line))
+                    {
+                    }
+                }
+
+                RemoveLinedef(line);
+                removed++;
+                break;
+            }
+        }
+
+        return removed;
+    }
+
     private void MergeOverlappingLinedef(Linedef keep, Linedef remove, bool oppositeDirection)
     {
         var sourceFront = oppositeDirection ? remove.Back : remove.Front;
@@ -895,6 +949,13 @@ public class MapSet : IDisposable
         source.IsFront = isFront;
         if (isFront) targetLine.Front = source;
         else targetLine.Back = source;
+    }
+
+    private bool SectorContainsLine(Sector sector, Linedef line)
+    {
+        return ReferenceEquals(sector, GetSectorAt(line.Start.Position, line)) &&
+            ReferenceEquals(sector, GetSectorAt(line.GetCenterPoint(), line)) &&
+            ReferenceEquals(sector, GetSectorAt(line.End.Position, line));
     }
 
     /// <summary>Removes vertices not referenced by any linedef. Returns the number removed.</summary>
