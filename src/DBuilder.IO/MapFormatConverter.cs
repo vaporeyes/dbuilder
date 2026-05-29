@@ -244,10 +244,14 @@ public static class MapFormatConverter
         }
 
         foreach (var sd in map.Sidedefs)
+        {
+            sd.UdmfFlags.Clear();
             sd.Fields.Clear();
+        }
 
         foreach (var s in map.Sectors)
         {
+            s.UdmfFlags.Clear();
             s.Fields.Clear();
             s.FloorSlope = default;
             s.FloorSlopeOffset = double.NaN;

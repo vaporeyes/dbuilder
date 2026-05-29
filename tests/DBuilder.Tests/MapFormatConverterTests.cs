@@ -405,7 +405,9 @@ thingflagstranslation
         map.Things.Add(thing);
         line.UdmfFlags.Add("blocking");
         line.Fields["renderstyle"] = "add";
+        sidedef.UdmfFlags.Add("lightabsolute");
         sidedef.Fields["offsetx_mid"] = 8;
+        sector.UdmfFlags.Add("secret");
         sector.Fields["lightcolor"] = 255;
         sector.FloorSlope = new Vector3D(0, 1, 1);
         sector.FloorSlopeOffset = -32.0;
@@ -420,7 +422,9 @@ thingflagstranslation
         Assert.Equal(8 | 16, thing.Flags);
         Assert.Empty(line.UdmfFlags);
         Assert.Empty(line.Fields);
+        Assert.Empty(sidedef.UdmfFlags);
         Assert.Empty(sidedef.Fields);
+        Assert.Empty(sector.UdmfFlags);
         Assert.Empty(sector.Fields);
         Assert.Equal(0, sector.FloorSlope.GetLengthSq());
         Assert.True(double.IsNaN(sector.FloorSlopeOffset));
