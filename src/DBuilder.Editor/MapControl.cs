@@ -1819,6 +1819,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
     }
 
+    public void ApplyGridSetup(GridSetup grid)
+    {
+        _grid.SetGridSize(grid.GridSizeF);
+        _grid.SetGridOrigin(grid.GridOriginX, grid.GridOriginY);
+        _grid.SetGridRotation(grid.GridRotate);
+        _grid.SetBackground(grid.BackgroundName, grid.BackgroundSource);
+        _grid.SetBackgroundView(grid.BackgroundX, grid.BackgroundY, grid.BackgroundScaleX, grid.BackgroundScaleY);
+        Picked?.Invoke($"grid {GridSizeLabel()}");
+        MarkGeometryDirty();
+    }
+
     private string GridSizeLabel()
         => _grid.GridSizeF % 1.0 == 0.0
             ? _grid.GridSize.ToString(CultureInfo.InvariantCulture)

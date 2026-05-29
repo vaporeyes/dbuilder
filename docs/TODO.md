@@ -378,6 +378,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.
   - [x] Persist grid setup through UDB-compatible map options.
+  - [x] Add grid background metadata fields.
 - [x] Port center-on-coordinates dialog.
 - [x] Port error/check results dialog.
 - [x] Port exception dialog.

@@ -1215,7 +1215,14 @@ public partial class MainWindow : Window
         var dlg = new GridSetupDialog(MapView.GridSetupSnapshot());
         if (await dlg.ShowDialog<bool>(this))
         {
-            MapView.ApplyGridSetup(dlg.ResultSize, dlg.ResultOriginX, dlg.ResultOriginY, dlg.ResultRotation);
+            var grid = new GridSetup(_mapFormat == MapFormat.Udmf);
+            grid.SetGridSize(dlg.ResultSize);
+            grid.SetGridOrigin(dlg.ResultOriginX, dlg.ResultOriginY);
+            grid.SetGridRotation(dlg.ResultRotation);
+            grid.SetBackground(dlg.ResultBackground, dlg.ResultBackgroundSource);
+            grid.SetBackgroundView(dlg.ResultBackgroundX, dlg.ResultBackgroundY,
+                dlg.ResultBackgroundScaleX, dlg.ResultBackgroundScaleY);
+            MapView.ApplyGridSetup(grid);
             UpdateStatusDetails();
             SetStatus("Grid setup updated.");
         }
@@ -1512,7 +1519,7 @@ public partial class MainWindow : Window
     {
         var grid = new GridSetup(_mapFormat == MapFormat.Udmf);
         options.ReadGridSetup(grid);
-        MapView.ApplyGridSetup(grid.GridSizeF, grid.GridOriginX, grid.GridOriginY, grid.GridRotate);
+        MapView.ApplyGridSetup(grid);
     }
 
     private int RebuildWadResources(string wadPath, MapOptions options)
