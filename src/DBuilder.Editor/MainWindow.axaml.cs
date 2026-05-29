@@ -65,7 +65,12 @@ public partial class MainWindow : Window
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
         MapView.Changed += UpdateInfo;
         MapView.EditRequested += OnEditSelected;
-        MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); UpdateStatusDetails(); };
+        MapView.ModeChanged += () =>
+        {
+            SetStatus(MapView.In3DMode ? "Mode: 3D" : $"Mode: {MapView.CurrentEditMode}");
+            UpdateInfo();
+            UpdateStatusDetails();
+        };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
         MapView.DrawModeChanged += () =>
@@ -1131,6 +1136,14 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggle3DMode(object? sender, RoutedEventArgs e)
+    {
+        bool active = MapView.Toggle3DMode();
+        SetStatus(active ? "Mode: 3D" : $"Mode: {MapView.CurrentEditMode}");
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
     // Toggles the BSP node partition overlay, reading and parsing the map's NODES lump on enable.
     private void OnToggleNodes(object? sender, RoutedEventArgs e)
     {
@@ -1650,7 +1663,9 @@ public partial class MainWindow : Window
 
     private void UpdateStatusDetails()
     {
-        ModeText.Text = MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
+        ModeText.Text = MapView.In3DMode
+            ? "Mode: 3D"
+            : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
         var grid = MapView.GridSetupSnapshot();
         string gridSize = grid.GridSizeF % 1.0 == 0.0
             ? grid.GridSize.ToString(CultureInfo.InvariantCulture)

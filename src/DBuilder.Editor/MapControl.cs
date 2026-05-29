@@ -74,6 +74,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // 3D fly-mode state (toggled with Tab). Geometry built lazily into textured buckets.
     private bool _mode3D;
+    public bool In3DMode => _mode3D;
     private bool _walkMode;          // G toggles: camera snaps to floor + eye height instead of free flight
     private const double EyeHeight = 41; // Doom player view height above the floor
     private bool _geo3DDirty = true;
@@ -286,6 +287,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ModeChanged?.Invoke();
         Picked?.Invoke($"mode: {m}");
         RequestNextFrameRendering();
+    }
+
+    public bool Toggle3DMode()
+    {
+        _mode3D = !_mode3D;
+        if (_mode3D)
+        {
+            if (!_cam3DInit) { Reset3DCamera(); _cam3DInit = true; }
+            _lastTime = _clock.Elapsed.TotalSeconds;
+        }
+        else
+        {
+            _sel3D.Clear();
+            _heldKeys.Clear();
+            _look3D = false;
+            _drag3DTarget = null;
+        }
+        ModeChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _mode3D;
     }
 
     // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
@@ -1874,15 +1895,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (e.Key == Key.Tab)
         {
-            _mode3D = !_mode3D;
-            if (_mode3D)
-            {
-                if (!_cam3DInit) { Reset3DCamera(); _cam3DInit = true; }
-                _lastTime = _clock.Elapsed.TotalSeconds;
-            }
-            else _sel3D.Clear(); // drop the 3D selection when returning to 2D
+            Toggle3DMode();
             e.Handled = true;
-            RequestNextFrameRendering();
             return;
         }
         if (_mode3D && e.Key == Key.G) { _walkMode = !_walkMode; e.Handled = true; RequestNextFrameRendering(); return; }

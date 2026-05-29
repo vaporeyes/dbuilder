@@ -385,6 +385,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Visual Modes And 3D Editing
 
 - [ ] Port visual mode lifecycle behavior.
+  - [x] Add menu and toolbar commands for toggling 3D visual mode.
 - [ ] Port visual camera behavior.
 - [ ] Port visual geometry behavior.
 - [ ] Port visual sector behavior.
