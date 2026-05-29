@@ -74,6 +74,7 @@
                 <MenuItem Header="Show Sector _Fills" Click="OnToggleSectorFills" />
                 <MenuItem Header="Show _Things" Click="OnToggleThings" />
                 <MenuItem Header="Things as _arrows" Click="OnToggleThingArrows" />
+                <MenuItem Header="Show _3D Floors" Click="OnToggle3DFloors" />
                 <MenuItem Header="Thing _Filter..." Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
                 <MenuItem Header="_Snap to Grid" Click="OnToggleSnapToGrid" />

@@ -398,6 +398,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
 - [ ] Port brightness editing behavior.
 - [ ] Port 3D floors visual editing.
+  - [x] Add a view toggle for resolved 3D floor slabs.
 - [ ] Port slopes visual editing.
 - [ ] Port model and voxel display.
 - [ ] Port dynamic light and glowing flat display behavior.

@@ -161,6 +161,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set { _thingArrows = value; _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
+    private bool _show3DFloors = true;
+    /// <summary>When true, visual mode renders resolved GZDoom 3D floor slabs.</summary>
+    public bool Show3DFloors
+    {
+        get => _show3DFloors;
+        set
+        {
+            if (_show3DFloors == value) return;
+            _show3DFloors = value;
+            _geo3DDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+
     // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector
     // (or, in lines-only mode, just the linedefs of the drawn polyline).
     private const int DrawCurveSegmentLength = 16;
@@ -1147,35 +1161,38 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
         }
 
-        // GZDoom 3D floors: render each control sector's slab (top + bottom flats and side walls) into target sectors.
-        var tdf = DBuilder.Map.ThreeDFloors.Resolve(_map);
-        foreach (var (sector, floors) in tdf)
+        if (_show3DFloors)
         {
-            if (sector.Sidedefs.Count == 0) continue;
-            Triangulation tri;
-            try { tri = Triangulation.Create(sector); }
-            catch { continue; }
-            if (tri.Vertices.Count == 0) continue;
-
-            foreach (var f in floors)
+            // GZDoom 3D floors: render each control sector's slab into target sectors.
+            var tdf = DBuilder.Map.ThreeDFloors.Resolve(_map);
+            foreach (var (sector, floors) in tdf)
             {
-                if (f.Alpha == 0 || f.Top <= f.Bottom) continue;
-                int tc = Gray(f.Brightness, 1.0), bc = Gray(f.Brightness, 0.85);
-                var topL = Bucket(floorB, GetFlatTexture(f.TopFlat) != null ? f.TopFlat : "");
-                var botL = Bucket(ceilB, GetFlatTexture(f.BottomFlat) != null ? f.BottomFlat : "");
-                for (int i = 0; i < tri.Vertices.Count; i++)
-                {
-                    var p = tri.Vertices[i];
-                    topL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Top, w = 1, c = tc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
-                    botL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Bottom, w = 1, c = bc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
-                }
+                if (sector.Sidedefs.Count == 0) continue;
+                Triangulation tri;
+                try { tri = Triangulation.Create(sector); }
+                catch { continue; }
+                if (tri.Vertices.Count == 0) continue;
 
-                // Slab side walls around the target sector's perimeter.
-                foreach (var sd in sector.Sidedefs)
+                foreach (var f in floors)
                 {
-                    if (sd.Line == null) continue;
-                    PushWall(wallB, sd.Line.Start.Position, sd.Line.End.Position,
-                        f.Bottom, f.Bottom, f.Top, f.Top, f.SideTexture, f.Brightness, 0, 0, WallPeg.Top, 0, 0, Gray);
+                    if (f.Alpha == 0 || f.Top <= f.Bottom) continue;
+                    int tc = Gray(f.Brightness, 1.0), bc = Gray(f.Brightness, 0.85);
+                    var topL = Bucket(floorB, GetFlatTexture(f.TopFlat) != null ? f.TopFlat : "");
+                    var botL = Bucket(ceilB, GetFlatTexture(f.BottomFlat) != null ? f.BottomFlat : "");
+                    for (int i = 0; i < tri.Vertices.Count; i++)
+                    {
+                        var p = tri.Vertices[i];
+                        topL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Top, w = 1, c = tc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+                        botL.Add(new FlatVertex { x = (float)p.x, y = (float)p.y, z = (float)f.Bottom, w = 1, c = bc, u = (float)(p.x / 64.0), v = (float)(p.y / 64.0) });
+                    }
+
+                    // Slab side walls around the target sector's perimeter.
+                    foreach (var sd in sector.Sidedefs)
+                    {
+                        if (sd.Line == null) continue;
+                        PushWall(wallB, sd.Line.Start.Position, sd.Line.End.Position,
+                            f.Bottom, f.Bottom, f.Top, f.Top, f.SideTexture, f.Brightness, 0, 0, WallPeg.Top, 0, 0, Gray);
+                    }
                 }
             }
         }

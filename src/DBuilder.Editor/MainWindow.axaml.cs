@@ -1157,6 +1157,13 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggle3DFloors(object? sender, RoutedEventArgs e)
+    {
+        MapView.Show3DFloors = !MapView.Show3DFloors;
+        SetStatus($"3D floors {(MapView.Show3DFloors ? "shown" : "hidden")}.");
+        MapView.Focus();
+    }
+
     private async void OnAbout(object? sender, RoutedEventArgs e)
     {
         await new AboutWindow().ShowDialog(this);
