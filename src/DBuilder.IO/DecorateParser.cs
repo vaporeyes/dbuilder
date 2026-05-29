@@ -146,6 +146,12 @@ public static class DecorateParser
                     if (a != null) actors.Add(a);
                 }
             }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
+                && IsSkippedZScriptTopLevelDeclaration(toks[i].Text))
+            {
+                SkipDeclaration(toks, ref i);
+            }
             else i++;
         }
         ApplyMixins(actors, mixins);
@@ -260,6 +266,11 @@ public static class DecorateParser
             i++;
         }
     }
+
+    private static bool IsSkippedZScriptTopLevelDeclaration(string word)
+        => word.Equals("struct", StringComparison.OrdinalIgnoreCase)
+        || word.Equals("enum", StringComparison.OrdinalIgnoreCase)
+        || word.Equals("const", StringComparison.OrdinalIgnoreCase);
 
     private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)
     {

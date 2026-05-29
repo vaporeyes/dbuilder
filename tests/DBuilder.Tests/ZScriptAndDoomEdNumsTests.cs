@@ -198,6 +198,28 @@ class MemberActor : Actor
     }
 
     [Fact]
+    public void SkipsTopLevelZScriptStructContents()
+    {
+        const string text = @"
+struct HelperStruct
+{
+    class NotAnActor : Actor
+    {
+        Default { Radius 128; }
+    }
+}
+class RealActor : Actor
+{
+    Default { Radius 16; }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("RealActor", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ParsesMapInfoDoomEdNums()
     {
         const string text = @"
