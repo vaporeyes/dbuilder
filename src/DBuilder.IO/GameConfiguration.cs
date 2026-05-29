@@ -607,6 +607,13 @@ public sealed class GameConfiguration
     /// </summary>
     public void MergeActors(IEnumerable<ActorInfo> actors) => MergeActors(actors, null);
 
+    public void MergeDamageTypes(IEnumerable<string> names)
+    {
+        foreach (string name in names)
+            if (!string.IsNullOrWhiteSpace(name))
+                damageTypes.Add(name);
+    }
+
     /// <summary>
     /// Merges actors, assigning an editor number from <paramref name="doomEdNums"/> (MAPINFO num -&gt; class) when
     /// the actor itself has none (the ZScript case, where the class header carries no DoomEdNum).

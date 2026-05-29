@@ -417,6 +417,41 @@ ACTOR RealActor 7012
     }
 
     [Fact]
+    public void ParsesTopLevelDamageTypes()
+    {
+        const string text = @"
+DamageType Fire
+{
+    Factor = 0.5
+}
+DamageType ""Ice""
+{
+}
+ACTOR RealActor 7013
+{
+    Radius 16
+}";
+
+        var data = DecorateParser.ParseDocument(text);
+
+        Assert.Contains("Fire", data.DamageTypes);
+        Assert.Contains("Ice", data.DamageTypes);
+        Assert.Equal("RealActor", data.Actors.Single().ClassName);
+    }
+
+    [Fact]
+    public void MergeDamageTypesAddsDecorateTypesToConfiguration()
+    {
+        var config = GameConfiguration.FromText("damagetypes = \"None\";");
+        var data = DecorateParser.ParseDocument("DamageType Fire { }");
+
+        config.MergeDamageTypes(data.DamageTypes);
+
+        Assert.Contains("None", config.DamageTypes);
+        Assert.Contains("Fire", config.DamageTypes);
+    }
+
+    [Fact]
     public void MonsterDirectiveSetsActorFlags()
     {
         const string text = "ACTOR MonsterActor 7007 { Monster }";

@@ -284,8 +284,10 @@ public partial class MainWindow : Window
         int count = 0;
         foreach (var text in decorate)
         {
-            var actors = DecorateParser.Parse(text, _resources.GetTextResource);
+            var decorateData = DecorateParser.ParseDocument(text, _resources.GetTextResource);
+            var actors = decorateData.Actors;
             _config.MergeActors(actors, doomEdNums);
+            _config.MergeDamageTypes(decorateData.DamageTypes);
             foreach (var a in actors) if (a.DoomEdNum >= 0) count++;
         }
         foreach (var text in zscript)

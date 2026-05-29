@@ -53,6 +53,12 @@ public sealed class ActorInfo
     }
 }
 
+public sealed class DecorateParseResult
+{
+    public List<ActorInfo> Actors { get; } = new();
+    public HashSet<string> DamageTypes { get; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
 public static class DecorateParser
 {
     private enum Kind { Word, Str, Sym, Editor }
@@ -65,12 +71,26 @@ public static class DecorateParser
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
     public static List<ActorInfo> Parse(string text, Func<string, string?>? includeResolver = null)
-        => ParseActors(text, "actor", headerNum: true, includeResolver, allowRelativeIncludes: false);
+        => ParseDocument(text, includeResolver).Actors;
+
+    /// <summary>Parses a DECORATE lump into actors and editor-visible metadata.</summary>
+    public static DecorateParseResult ParseDocument(string text, Func<string, string?>? includeResolver = null)
+    {
+        var result = new DecorateParseResult();
+        result.Actors.AddRange(ParseActors(text, "actor", headerNum: true, includeResolver, allowRelativeIncludes: false, result.DamageTypes));
+        return result;
+    }
 
     /// <summary>
     /// Shared engine for DECORATE ("actor", editor number in the header) and ZScript ("class", no header number).
     /// </summary>
-    internal static List<ActorInfo> ParseActors(string text, string keyword, bool headerNum, Func<string, string?>? includeResolver = null, bool allowRelativeIncludes = false)
+    internal static List<ActorInfo> ParseActors(
+        string text,
+        string keyword,
+        bool headerNum,
+        Func<string, string?>? includeResolver = null,
+        bool allowRelativeIncludes = false,
+        ISet<string>? damageTypes = null)
     {
         text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes);
         var toks = Tokenize(text);
@@ -122,6 +142,12 @@ public static class DecorateParser
                 continue;
             }
             if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
+                && toks[i].Text.Equals("damagetype", StringComparison.OrdinalIgnoreCase))
+            {
+                ParseDamageType(toks, ref i, damageTypes);
+            }
+            else if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
                 && IsSkippedDecorateTopLevelDeclaration(toks[i].Text))
             {
@@ -284,6 +310,42 @@ public static class DecorateParser
         => word.Equals("enum", StringComparison.OrdinalIgnoreCase)
         || word.Equals("native", StringComparison.OrdinalIgnoreCase)
         || word.Equals("const", StringComparison.OrdinalIgnoreCase);
+
+    private static void ParseDamageType(List<Tok> t, ref int i, ISet<string>? damageTypes)
+    {
+        i++;
+        if (i >= t.Count || !IsNameToken(t[i])) return;
+        string name = t[i++].Text;
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return;
+        SkipBlock(t, ref i);
+        if (name.Length > 0) damageTypes?.Add(name);
+    }
+
+    private static void SkipNewlines(List<Tok> t, ref int i)
+    {
+        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+    }
+
+    private static void SkipBlock(List<Tok> t, ref int i)
+    {
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return;
+        int depth = 0;
+        while (i < t.Count)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == "{") depth++;
+            else if (t[i].Kind == Kind.Sym && t[i].Text == "}")
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    i++;
+                    return;
+                }
+            }
+            i++;
+        }
+    }
 
     private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)
     {
