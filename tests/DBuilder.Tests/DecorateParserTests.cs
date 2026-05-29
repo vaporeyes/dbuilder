@@ -89,6 +89,37 @@ ACTOR EditorTextThing 5002
     }
 
     [Fact]
+    public void RegionProvidesDefaultCategory()
+    {
+        const string text = @"
+#region Imp Balls
+ACTOR RegionThing 5003
+{
+    Radius 16
+}
+#endregion";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("Imp Balls", actor.Category);
+    }
+
+    [Fact]
+    public void DollarCategoryOverridesRegionCategory()
+    {
+        const string text = @"
+#region Imp Balls
+ACTOR RegionOverrideThing 5004
+{
+    //$Category ""Explicit Category""
+    Radius 16
+}
+#endregion";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("Explicit Category", actor.Category);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];

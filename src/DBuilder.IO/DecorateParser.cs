@@ -18,6 +18,7 @@ public sealed class ActorInfo
     public int Radius { get; set; }   // 0 = unset (inherit)
     public int Height { get; set; }   // 0 = unset (inherit)
     public string? Sprite { get; set; }
+    public string? RegionCategory { get; set; }
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -29,7 +30,7 @@ public sealed class ActorInfo
 
     /// <summary>Editor category: //$Category if given, else null.</summary>
     public string? Category => EditorKeys.TryGetValue("$category", out var c) ? c
-        : TryFirstProperty("$category", out c) ? c : null;
+        : TryFirstProperty("$category", out c) ? c : RegionCategory;
 
     /// <summary>Sprite name: //$Sprite if given, else the spawn-state derived sprite (may be null).</summary>
     public string? EditorSprite
@@ -75,17 +76,32 @@ public static class DecorateParser
         var actors = new List<ActorInfo>();
         var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
         var extensions = new Dictionary<string, List<ActorInfo>>(StringComparer.OrdinalIgnoreCase);
+        var regions = new List<string>();
         int i = 0;
         while (i < toks.Count)
         {
             if ((toks[i].Kind == Kind.Word || toks[i].Kind == Kind.Editor)
                 && toks[i].Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
+            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#region", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                string title = ReadLineValue(toks, ref i);
+                if (title.Length > 0) regions.Add(title);
+                continue;
+            }
+            else if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#endregion", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                if (regions.Count > 0) regions.RemoveAt(regions.Count - 1);
+                SkipLine(toks, ref i);
+                continue;
+            }
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals(keyword, StringComparison.OrdinalIgnoreCase))
             {
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
                     var classKind = GetZScriptClassKind(toks, i);
-                    var parsed = ParseActor(toks, ref i, headerNum);
+                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions));
                     if (parsed == null) continue;
                     if (classKind == ZScriptClassKind.Extension)
                     {
@@ -101,7 +117,7 @@ public static class DecorateParser
                 }
                 else
                 {
-                    var a = ParseActor(toks, ref i, headerNum);
+                    var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions));
                     if (a != null) actors.Add(a);
                 }
             }
@@ -111,6 +127,30 @@ public static class DecorateParser
         ApplyExtensions(actors, extensions, mixins);
         ResolveInheritance(actors);
         return actors;
+    }
+
+    private static string? CurrentRegionCategory(List<string> regions)
+        => regions.Count == 0 ? null : string.Join(".", regions);
+
+    private static string ReadLineValue(List<Tok> t, ref int i)
+    {
+        var parts = new List<string>();
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "\n") break;
+            parts.Add(tk.Text);
+        }
+        return JoinLineValue(parts).Trim();
+    }
+
+    private static void SkipLine(List<Tok> t, ref int i)
+    {
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "\n") return;
+        }
     }
 
     private enum ZScriptClassKind { Actor, Mixin, Extension }
@@ -284,11 +324,11 @@ public static class DecorateParser
         return includePath.Length > 0;
     }
 
-    private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum)
+    private static ActorInfo? ParseActor(List<Tok> t, ref int i, bool headerNum, string? regionCategory)
     {
         i++; // keyword
         if (i >= t.Count || !IsNameToken(t[i])) return null;
-        var actor = new ActorInfo { ClassName = t[i++].Text };
+        var actor = new ActorInfo { ClassName = t[i++].Text, RegionCategory = regionCategory };
 
         // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' (body) or ';' (forward declaration).
         while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
