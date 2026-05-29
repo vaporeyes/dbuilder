@@ -93,7 +93,7 @@ public static class GldefsParser
             if (kw == "$gzdb_skip") break;
             else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
-            else if (kw == "glow") ParseGlow(g, t, ref i, knownColors);
+            else if (kw == "glow") ParseGlow(g, tokens, ref i, knownColors);
             else if (kw == "skybox") ParseSkybox(g, tokens, ref i);
             else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes);
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
@@ -274,8 +274,9 @@ public static class GldefsParser
         objects.Add(obj);
     }
 
-    private static void ParseGlow(Gldefs g, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static void ParseGlow(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
+        var t = tokens.Text;
         i++; // glow
         if (i >= t.Count || t[i] != "{") return;
         i++;
@@ -296,14 +297,16 @@ public static class GldefsParser
             }
             else if (p == "texture" && i < t.Count)
             {
-                ParseGlowTexture(g, t, ref i, knownColors);
+                ParseGlowTexture(g, tokens, ref i, knownColors);
             }
         }
         if (i < t.Count) i++; // }
     }
 
-    private static void ParseGlowTexture(Gldefs g, List<string> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static void ParseGlowTexture(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
+        var t = tokens.Text;
+        if (IsInvalidLongTextureName(tokens, i)) { i++; return; }
         string texture = t[i++];
         float r = 1.0f, green = 1.0f, b = 1.0f;
         int height = 64;

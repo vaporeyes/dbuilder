@@ -336,6 +336,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Route `glow` wall groups into texture glow metadata.
   - [x] Require integral GLDEFS light radius fields.
   - [x] Require quoted long GLDEFS skybox names.
+  - [x] Require quoted long GLDEFS glow texture names.
 - [x] Port SNDINFO parser.
 - [x] Port SNDSEQ parser.
 - [x] Port TERRAIN parser.

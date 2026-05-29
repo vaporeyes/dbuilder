@@ -154,7 +154,7 @@ glow
     texture BADHEIGHTFLAG, ""#2040ff"", 32, bogus
     texture MISSINGFLAG, ""#2040ff"", 32,
     texture HEIGHT, ""#2040ff"", 32
-    texture FULLBRIGHT, ""#2040ff"", fullbright
+    texture ""FULLBRIGHT"", ""#2040ff"", fullbright
 }";
 
         var g = GldefsParser.Parse(text);
@@ -172,7 +172,7 @@ glow
         const string text = @"
 glow
 {
-    texture GLOWSHORT, ""#28f""
+    texture ""GLOWSHORT"", ""#28f""
     texture GLOWBARE, ff4000
 }";
 
@@ -218,6 +218,25 @@ skybox SHORTSKY { SKY1 SKY2 SKY3 }";
         Assert.Equal(2, g.Skyboxes.Count);
         Assert.True(g.Skyboxes.ContainsKey("LONGSKYBOX"));
         Assert.True(g.Skyboxes.ContainsKey("SHORTSKY"));
+    }
+
+    [Fact]
+    public void RequiresQuotesForLongGlowTextureNames()
+    {
+        const string text = @"
+glow
+{
+    texture LONGGLOWBAD, ""#2040ff""
+    texture ""LONGGLOWOK"", ""#2040ff""
+    texture SHORTTEX, ""#2040ff""
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(2, g.Glows.Count);
+        Assert.False(g.Glows.ContainsKey("LONGGLOWBAD"));
+        Assert.True(g.Glows.ContainsKey("LONGGLOWOK"));
+        Assert.True(g.Glows.ContainsKey("SHORTTEX"));
     }
 
     [Fact]
