@@ -105,6 +105,21 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ShortcutResolutionRespectsCommandInputKindOptions()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, EditorPointerInput.ScrollUp),
+            new EditorShortcutBinding("map2d.zoom-in", EditorCommandScope.Map2D, EditorPointerInput.ScrollDown),
+            new EditorShortcutBinding("map2d.select", EditorCommandScope.Map2D, "F5"),
+        });
+
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
+        Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
+        Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, "F5"));
+    }
+
+    [Fact]
     public void DefaultShortcutsResolveMap2DCommands()
     {
         Assert.Equal("map2d.toggle-sector-fills", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S"));
@@ -181,6 +196,10 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorPointerInput.ExtendedButton1, EditorPointerInput.ButtonKey(EditorPointerButton.XButton1));
         Assert.Equal(EditorPointerInput.ExtendedButton2, EditorPointerInput.ButtonKey(EditorPointerButton.XButton2));
         Assert.Null(EditorPointerInput.ButtonKey(EditorPointerButton.None));
+        Assert.True(EditorPointerInput.IsButtonKey(EditorPointerInput.LeftButton));
+        Assert.False(EditorPointerInput.IsButtonKey(EditorPointerInput.ScrollUp));
+        Assert.True(EditorPointerInput.IsScrollKey(EditorPointerInput.ScrollUp));
+        Assert.False(EditorPointerInput.IsScrollKey(EditorPointerInput.LeftButton));
     }
 
     [Fact]

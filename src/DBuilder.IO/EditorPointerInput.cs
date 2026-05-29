@@ -35,6 +35,19 @@ public static class EditorPointerInput
         _ => null,
     };
 
+    public static bool IsButtonKey(string key)
+        => string.Equals(key, LeftButton, StringComparison.Ordinal)
+            || string.Equals(key, MiddleButton, StringComparison.Ordinal)
+            || string.Equals(key, RightButton, StringComparison.Ordinal)
+            || string.Equals(key, ExtendedButton1, StringComparison.Ordinal)
+            || string.Equals(key, ExtendedButton2, StringComparison.Ordinal);
+
+    public static bool IsScrollKey(string key)
+        => string.Equals(key, ScrollUp, StringComparison.Ordinal)
+            || string.Equals(key, ScrollDown, StringComparison.Ordinal)
+            || string.Equals(key, ScrollLeft, StringComparison.Ordinal)
+            || string.Equals(key, ScrollRight, StringComparison.Ordinal);
+
     public static string? WheelKey(double x, double y)
     {
         if (x == 0 && y == 0) return null;

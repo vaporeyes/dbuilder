@@ -75,6 +75,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port begin/end action attributes or an equivalent command registration system.
   - [x] Add a stable editor command descriptor catalog with default gestures and scopes.
   - [x] Add UDB-style shortcut option metadata to command descriptors.
+  - [x] Enforce UDB-style key, mouse, and scroll shortcut option metadata during command resolution.
   - [x] Honor UDB-style modifier-disregard shortcut options during command resolution.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.

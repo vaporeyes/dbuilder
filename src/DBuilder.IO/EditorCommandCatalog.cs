@@ -387,6 +387,7 @@ public static class EditorCommandCatalog
             var shortcut = bindings[i];
             var command = Find(shortcut.CommandId);
             if (shortcut.Scope == scope
+                && InputKindAllowed(command, key)
                 && ModifierMatches(shortcut.Accelerator, accelerator, command?.DisregardAccelerator ?? false)
                 && ModifierMatches(shortcut.Shift, shift, command?.DisregardShift ?? false)
                 && ModifierMatches(shortcut.Alt, alt, command?.DisregardAlt ?? false)
@@ -397,6 +398,15 @@ public static class EditorCommandCatalog
         }
 
         return null;
+    }
+
+    private static bool InputKindAllowed(EditorCommandDescriptor? command, string key)
+    {
+        if (command is null) return false;
+        string normalized = NormalizeKey(key);
+        if (EditorPointerInput.IsScrollKey(normalized)) return command.AllowScroll;
+        if (EditorPointerInput.IsButtonKey(normalized)) return command.AllowMouse;
+        return command.AllowKeys;
     }
 
     private static bool ModifierMatches(bool expected, bool actual, bool disregard)
