@@ -202,6 +202,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style static nearest vertex square-range query.
   - [x] Add UDB-style map-wide nearest range wrappers.
   - [x] Add UDB-style nearest thing square-range query.
+  - [x] Add UDB-style move and accuracy snapping helpers.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats

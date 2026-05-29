@@ -44,4 +44,15 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     public Linedef? NearestLinedef(Vector2D pos)
         => MapSet.NearestLinedef(Linedefs, pos);
+
+    public void Move(Vector2D newPosition)
+        => Position = newPosition;
+
+    public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
+    {
+        int decimals = usePrecisePosition ? Math.Max(0, vertexDecimals) : 0;
+        Move(new Vector2D(
+            Math.Round(Position.x, decimals),
+            Math.Round(Position.y, decimals)));
+    }
 }

@@ -1575,6 +1575,13 @@ public class MapSet : IDisposable
         return 0;
     }
 
+    /// <summary>Snaps vertex and thing coordinates to the active map format accuracy.</summary>
+    public void SnapAllToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
+    {
+        foreach (var vertex in Vertices) vertex.SnapToAccuracy(vertexDecimals, usePrecisePosition);
+        foreach (var thing in Things) thing.SnapToAccuracy(vertexDecimals, usePrecisePosition);
+    }
+
     // ============================================================
     // Selection-driven edit operations.
     // ============================================================

@@ -99,6 +99,22 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void VertexMoveAndSnapToAccuracyMatchUdbSurface()
+    {
+        var vertex = new Vertex(new Vector2D(1.2345, -9.8765));
+
+        vertex.Move(new Vector2D(2.3456, -8.7654));
+        Assert.Equal(new Vector2D(2.3456, -8.7654), vertex.Position);
+
+        vertex.SnapToAccuracy(vertexDecimals: 2);
+        Assert.Equal(new Vector2D(2.35, -8.77), vertex.Position);
+
+        vertex.Move(new Vector2D(2.3456, -8.7654));
+        vertex.SnapToAccuracy(vertexDecimals: 2, usePrecisePosition: false);
+        Assert.Equal(new Vector2D(2, -9), vertex.Position);
+    }
+
+    [Fact]
     public void VertexNearestLinedefSearchesAttachedLines()
     {
         var map = new MapSet();
@@ -281,6 +297,40 @@ public class MapHitTestTests
 
         Assert.Equal(25, thing.DistanceToSq(new Vector2D(0, 0)), 1e-9);
         Assert.Equal(5, thing.DistanceTo(new Vector2D(0, 0)), 1e-9);
+    }
+
+    [Fact]
+    public void ThingMoveAndSnapToAccuracyMatchUdbSurface()
+    {
+        var thing = new Thing(new Vector2D(1.2345, -9.8765), 3001) { Height = 16.555 };
+
+        thing.Move(new Vector2D(2.3456, -8.7654));
+        Assert.Equal(new Vector2D(2.3456, -8.7654), thing.Position);
+
+        thing.SnapToAccuracy(vertexDecimals: 2);
+        Assert.Equal(new Vector2D(2.35, -8.77), thing.Position);
+        Assert.Equal(16.56, thing.Height, 1e-9);
+
+        thing.Move(new Vector2D(2.3456, -8.7654));
+        thing.Height = 16.555;
+        thing.SnapToAccuracy(vertexDecimals: 2, usePrecisePosition: false);
+        Assert.Equal(new Vector2D(2, -9), thing.Position);
+        Assert.Equal(17, thing.Height, 1e-9);
+    }
+
+    [Fact]
+    public void SnapAllToAccuracySnapsVerticesAndThings()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(1.2345, -9.8765));
+        var thing = map.AddThing(new Vector2D(2.3456, -8.7654), 3001);
+        thing.Height = 16.555;
+
+        map.SnapAllToAccuracy(vertexDecimals: 1);
+
+        Assert.Equal(new Vector2D(1.2, -9.9), vertex.Position);
+        Assert.Equal(new Vector2D(2.3, -8.8), thing.Position);
+        Assert.Equal(16.6, thing.Height, 1e-9);
     }
 
     [Fact]
