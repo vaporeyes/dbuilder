@@ -94,6 +94,34 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         else UdmfFlags.Remove(flagName);
     }
 
+    public void CopyPropertiesTo(Thing thing)
+    {
+        thing.Position = Position;
+        thing.Selected = Selected;
+        thing.Marked = Marked;
+        thing.Groups = Groups;
+        thing.Height = Height;
+        thing.Type = Type;
+        thing.Angle = Angle;
+        thing.Pitch = Pitch;
+        thing.Roll = Roll;
+        thing.ScaleX = ScaleX;
+        thing.ScaleY = ScaleY;
+        thing.Size = Size;
+        thing.FixedSize = FixedSize;
+        thing.Flags = Flags;
+        thing.Tag = Tag;
+        thing.Action = Action;
+
+        Array.Clear(thing.Args);
+        Array.Copy(Args, thing.Args, Args.Length);
+
+        thing.UdmfFlags.Clear();
+        foreach (var flag in UdmfFlags) thing.UdmfFlags.Add(flag);
+
+        CopyFieldsTo(thing);
+    }
+
     public void Move(Vector2D newPosition)
         => Position = newPosition;
 
@@ -172,5 +200,12 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     {
         int normalized = angle % 360;
         return normalized < 0 ? normalized + 360 : normalized;
+    }
+
+    private void CopyFieldsTo(IFielded element)
+    {
+        element.Fields.Clear();
+        foreach (var field in Fields)
+            element.Fields[field.Key] = field.Value;
     }
 }

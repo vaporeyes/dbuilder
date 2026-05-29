@@ -53,6 +53,22 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         else UdmfFlags.Remove(flagName);
     }
 
+    public void CopyPropertiesTo(Sidedef sidedef)
+    {
+        sidedef.Selected = Selected;
+        sidedef.Marked = Marked;
+        sidedef.OffsetX = OffsetX;
+        sidedef.OffsetY = OffsetY;
+        sidedef.HighTexture = HighTexture;
+        sidedef.MidTexture = MidTexture;
+        sidedef.LowTexture = LowTexture;
+
+        sidedef.UdmfFlags.Clear();
+        foreach (var flag in UdmfFlags) sidedef.UdmfFlags.Add(flag);
+
+        CopyFieldsTo(sidedef);
+    }
+
     public void SetSector(Sector? sector)
         => Sector = sector;
 
@@ -212,4 +228,11 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
 
     private static string NormalizeTextureName(string? name)
         => string.IsNullOrEmpty(name) ? "-" : name;
+
+    private void CopyFieldsTo(IFielded element)
+    {
+        element.Fields.Clear();
+        foreach (var field in Fields)
+            element.Fields[field.Key] = field.Value;
+    }
 }

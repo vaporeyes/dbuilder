@@ -81,6 +81,31 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
         else UdmfFlags.Remove(flagName);
     }
 
+    public void CopyPropertiesTo(Sector sector)
+    {
+        sector.Selected = Selected;
+        sector.Marked = Marked;
+        sector.Groups = Groups;
+        sector.FloorHeight = FloorHeight;
+        sector.CeilHeight = CeilHeight;
+        sector.FloorTexture = FloorTexture;
+        sector.CeilTexture = CeilTexture;
+        sector.Brightness = Brightness;
+        sector.Special = Special;
+        sector.FloorSlope = FloorSlope;
+        sector.FloorSlopeOffset = FloorSlopeOffset;
+        sector.CeilSlope = CeilSlope;
+        sector.CeilSlopeOffset = CeilSlopeOffset;
+
+        sector.Tags.Clear();
+        sector.Tags.AddRange(Tags);
+
+        sector.UdmfFlags.Clear();
+        foreach (var flag in UdmfFlags) sector.UdmfFlags.Add(flag);
+
+        CopyFieldsTo(sector);
+    }
+
     public void Update(int floorHeight, int ceilHeight, string? floorTexture, string? ceilTexture, int special, int tag, int brightness)
         => Update(
             floorHeight,
@@ -147,4 +172,11 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
 
     private static string NormalizeTextureName(string? name)
         => string.IsNullOrEmpty(name) ? "-" : name;
+
+    private void CopyFieldsTo(IFielded element)
+    {
+        element.Fields.Clear();
+        foreach (var field in Fields)
+            element.Fields[field.Key] = field.Value;
+    }
 }

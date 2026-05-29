@@ -99,6 +99,53 @@ public class MapSetCloneTests
         Assert.Equal(new Vector2D(64, 32), clone.Things[0].Position);
     }
 
+    [Fact]
+    public void CopyPropertiesToCopiesElementDataWithoutTopologyLinks()
+    {
+        var sample = BuildSample();
+        var vertex = new Vertex();
+        var line = new Linedef();
+        var side = new Sidedef();
+        var sector = new Sector();
+        var thing = new Thing();
+
+        sample.Vertices[0].CopyPropertiesTo(vertex);
+        sample.Linedefs[0].CopyPropertiesTo(line);
+        sample.Sidedefs[0].CopyPropertiesTo(side);
+        sample.Sectors[0].CopyPropertiesTo(sector);
+        sample.Things[0].CopyPropertiesTo(thing);
+
+        Assert.Equal(sample.Vertices[0].Position, vertex.Position);
+        Assert.Equal(sample.Vertices[0].Groups, vertex.Groups);
+        Assert.Equal(sample.Vertices[0].ZFloor, vertex.ZFloor);
+        Assert.Empty(vertex.Linedefs);
+
+        Assert.Equal(sample.Linedefs[0].Flags, line.Flags);
+        Assert.Equal(sample.Linedefs[0].Action, line.Action);
+        Assert.Equal(sample.Linedefs[0].Activate, line.Activate);
+        Assert.Equal(sample.Linedefs[0].Args, line.Args);
+        Assert.Equal(sample.Linedefs[0].Tags, line.Tags);
+        Assert.Contains("blocking", line.UdmfFlags);
+        Assert.Null(line.Front);
+        Assert.Null(line.Back);
+
+        Assert.Equal(sample.Sidedefs[0].OffsetX, side.OffsetX);
+        Assert.Equal(sample.Sidedefs[0].MidTexture, side.MidTexture);
+        Assert.Contains("lightabsolute", side.UdmfFlags);
+        Assert.Null(side.Sector);
+
+        Assert.Equal(sample.Sectors[0].FloorTexture, sector.FloorTexture);
+        Assert.Equal(sample.Sectors[0].Tags, sector.Tags);
+        Assert.Contains("secret", sector.UdmfFlags);
+        Assert.Empty(sector.Sidedefs);
+
+        Assert.Equal(sample.Things[0].Position, thing.Position);
+        Assert.Equal(sample.Things[0].Type, thing.Type);
+        Assert.Equal(sample.Things[0].Args, thing.Args);
+        Assert.Equal(200, thing.GetField<int>("health"));
+        Assert.Null(thing.Sector);
+    }
+
     private static MapSet BuildSample()
     {
         var map = new MapSet { Namespace = "Doom" };

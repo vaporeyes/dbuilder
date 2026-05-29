@@ -45,6 +45,17 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     public Linedef? NearestLinedef(Vector2D pos)
         => MapSet.NearestLinedef(Linedefs, pos);
 
+    public void CopyPropertiesTo(Vertex vertex)
+    {
+        vertex.Position = Position;
+        vertex.Selected = Selected;
+        vertex.Marked = Marked;
+        vertex.Groups = Groups;
+        vertex.ZCeiling = ZCeiling;
+        vertex.ZFloor = ZFloor;
+        CopyFieldsTo(vertex);
+    }
+
     public void Move(Vector2D newPosition)
     {
         if (Position == newPosition) return;
@@ -63,5 +74,12 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         Move(new Vector2D(
             Math.Round(Position.x, decimals),
             Math.Round(Position.y, decimals)));
+    }
+
+    private void CopyFieldsTo(IFielded element)
+    {
+        element.Fields.Clear();
+        foreach (var field in Fields)
+            element.Fields[field.Key] = field.Value;
     }
 }

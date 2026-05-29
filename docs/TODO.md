@@ -134,6 +134,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style element index change helpers.
 - [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
+  - [x] Add UDB-style map element property copy helpers.
   - [x] Duplicate selected elements without replacing the editor clipboard buffer.
   - [x] Copy standalone selected sidedefs with their linedef, vertices, and sector.
   - [x] Preserve sidedef UDMF flags through clone, UDMF, and clipboard round-trips.

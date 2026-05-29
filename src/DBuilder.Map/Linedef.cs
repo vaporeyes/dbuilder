@@ -93,6 +93,27 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         else UdmfFlags.Remove(flagName);
     }
 
+    public void CopyPropertiesTo(Linedef linedef)
+    {
+        linedef.Selected = Selected;
+        linedef.Marked = Marked;
+        linedef.Groups = Groups;
+        linedef.Flags = Flags;
+        linedef.Action = Action;
+        linedef.Activate = Activate;
+
+        linedef.Tags.Clear();
+        linedef.Tags.AddRange(Tags);
+
+        Array.Clear(linedef.Args);
+        Array.Copy(Args, linedef.Args, Args.Length);
+
+        linedef.UdmfFlags.Clear();
+        foreach (var flag in UdmfFlags) linedef.UdmfFlags.Add(flag);
+
+        CopyFieldsTo(linedef);
+    }
+
     public void Update(Dictionary<string, bool> flags, ushort rawFlags, int activate, List<int> tags, int action, int[] args)
     {
         UdmfFlags.Clear();
@@ -260,4 +281,11 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     public double SideOfLine(Vector2D pos)
         => Line2D.GetSideOfLine(Start.Position, End.Position, pos);
+
+    private void CopyFieldsTo(IFielded element)
+    {
+        element.Fields.Clear();
+        foreach (var field in Fields)
+            element.Fields[field.Key] = field.Value;
+    }
 }
