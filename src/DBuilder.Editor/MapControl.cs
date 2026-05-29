@@ -2295,6 +2295,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>True when the draw-geometry tool is active (host can reflect it in the status bar).</summary>
     public bool DrawMode => _drawMode;
+    public bool SnapToGridEnabled => _snapToGrid;
     public event Action? DrawModeChanged;
 
     private void ToggleDrawMode(bool linesOnly = false)

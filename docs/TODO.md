@@ -315,6 +315,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port menu layout and all menu actions.
 - [ ] Port toolbar layout and all toolbar actions.
 - [ ] Port status bar behavior.
+  - [x] Add persistent mode, snap/grid, and coordinate status fields.
 - [ ] Port dockers and tabbed dock panels.
 - [ ] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.

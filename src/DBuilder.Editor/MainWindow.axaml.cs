@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -59,16 +60,20 @@ public partial class MainWindow : Window
         InitializeComponent();
         ShowActivated = true;
         MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
-        MapView.Picked += _ => UpdateInfo();
+        MapView.Picked += _ => { UpdateInfo(); UpdateStatusDetails(); };
         MapView.EditBegun += desc => _undo?.CreateUndo(desc);
         MapView.Changed += UpdateInfo;
         MapView.EditRequested += OnEditSelected;
-        MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); };
+        MapView.ModeChanged += () => { SetStatus($"Mode: {MapView.CurrentEditMode}"); UpdateInfo(); UpdateStatusDetails(); };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
-        MapView.DrawModeChanged += () => SetStatus(MapView.DrawMode
-            ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
-            : "Draw mode off.");
+        MapView.DrawModeChanged += () =>
+        {
+            SetStatus(MapView.DrawMode
+                ? "Draw mode: click to place vertices, click the first point or Enter to close, Esc/right-click to cancel."
+                : "Draw mode off.");
+            UpdateStatusDetails();
+        };
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
@@ -77,6 +82,8 @@ public partial class MainWindow : Window
 
         if (openPath != null && System.IO.File.Exists(openPath))
             _ = LoadArchive(openPath, promptForMap: false);
+
+        UpdateStatusDetails();
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
@@ -881,6 +888,7 @@ public partial class MainWindow : Window
         if (await dlg.ShowDialog<bool>(this))
         {
             MapView.ApplyGridSetup(dlg.ResultSize, dlg.ResultOriginX, dlg.ResultOriginY, dlg.ResultRotation);
+            UpdateStatusDetails();
             SetStatus("Grid setup updated.");
         }
     }
@@ -1390,6 +1398,16 @@ public partial class MainWindow : Window
     // ---- UI helpers ----
 
     private void SetStatus(string text) => StatusText.Text = text;
+
+    private void UpdateStatusDetails()
+    {
+        ModeText.Text = MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
+        var grid = MapView.GridSetupSnapshot();
+        string gridSize = grid.GridSizeF % 1.0 == 0.0
+            ? grid.GridSize.ToString(CultureInfo.InvariantCulture)
+            : grid.GridSizeF.ToString("0.###", CultureInfo.InvariantCulture);
+        GridText.Text = $"{(MapView.SnapToGridEnabled ? "Snap" : "Free")}: {gridSize}";
+    }
 
     private void UpdateInfo()
     {
