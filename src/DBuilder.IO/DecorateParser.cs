@@ -517,6 +517,7 @@ public static class DecorateParser
             return ReadDollarPropertyValues(t, ref i);
 
         var values = new List<string>();
+        bool isGameProperty = key.Equals("game", StringComparison.OrdinalIgnoreCase);
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
             : HasLineTerminator(t, i) ? int.MaxValue
@@ -530,7 +531,8 @@ public static class DecorateParser
                 && values.Count > 0
                 && !double.TryParse(tk.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out _))
                 break;
-            if (tk.Kind is Kind.Word or Kind.Str) values.Add(tk.Text);
+            if (tk.Kind is Kind.Word or Kind.Str)
+                values.Add(isGameProperty ? tk.Text.ToLowerInvariant() : tk.Text);
             i++;
         }
         return values;

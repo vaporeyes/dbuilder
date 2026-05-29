@@ -322,6 +322,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete DECORATE parser behavior.
   - [x] Parse separated DECORATE flag sign tokens.
   - [x] Honor `skip_super` for DECORATE custom argument inheritance.
+  - [x] Normalize DECORATE `Game` property values.
 - [ ] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
 - [ ] Complete ZScript parser behavior.

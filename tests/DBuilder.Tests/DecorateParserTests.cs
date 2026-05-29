@@ -170,7 +170,7 @@ ACTOR GameScoped 7003
 }";
         var actor = DecorateParser.Parse(text).Single();
 
-        Assert.Equal(new[] { "Doom", "Heretic" }, actor.Properties["Game"]);
+        Assert.Equal(new[] { "doom", "heretic" }, actor.Properties["Game"]);
         Assert.Equal(16, actor.Radius);
     }
 
