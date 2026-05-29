@@ -163,6 +163,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style merge geometry mode surface for selected stitching.
   - [x] Persist and apply UDB-style merge geometry mode setting.
   - [x] Remove fully contained interior linedefs during replace-mode stitching.
+  - [x] Collapse replace-mode bridge vertices created by split stitching.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

@@ -31,12 +31,14 @@ public readonly record struct GeometryStitchResult(
     int LineLineSplits,
     int RemovedLoopedLinedefs,
     int RemovedInteriorLinedefs,
+    int RemovedBridgeVertices,
     int JoinedOverlappingLinedefs,
     int CorrectedOuterSidedefs,
     int FlippedBackwardLinedefs)
 {
     public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs +
-        RemovedInteriorLinedefs + JoinedOverlappingLinedefs + CorrectedOuterSidedefs + FlippedBackwardLinedefs;
+        RemovedInteriorLinedefs + RemovedBridgeVertices + JoinedOverlappingLinedefs + CorrectedOuterSidedefs +
+        FlippedBackwardLinedefs;
 }
 
 public class MapSet : IDisposable
@@ -643,7 +645,8 @@ public class MapSet : IDisposable
         ICollection<Linedef> lines,
         ICollection<Vertex> vertices,
         double distance,
-        ICollection<Linedef>? changedLines = null)
+        ICollection<Linedef>? changedLines = null,
+        ICollection<Vertex>? splitVertices = null)
     {
         double epsSq = distance * distance;
         int total = 0, pass, guard = 0;
@@ -667,6 +670,7 @@ public class MapSet : IDisposable
                     if (Line2D.GetDistanceToLineSq(a, b, p, bounded: true) > epsSq) continue;
                     var newLine = SplitLinedefAt(l, v);
                     if (!ReferenceEquals(lines, Linedefs) && !lines.Contains(newLine)) lines.Add(newLine);
+                    splitVertices?.Add(v);
                     if (changedLines != null)
                     {
                         if (!changedLines.Contains(l)) changedLines.Add(l);
@@ -684,7 +688,10 @@ public class MapSet : IDisposable
     /// Splits intersecting linedefs from <paramref name="lines"/> and <paramref name="changedLines"/>.
     /// New halves are added to <paramref name="changedLines"/>. Returns the number of intersections split.
     /// </summary>
-    public int SplitLinesByLines(ICollection<Linedef> lines, ICollection<Linedef> changedLines)
+    public int SplitLinesByLines(
+        ICollection<Linedef> lines,
+        ICollection<Linedef> changedLines,
+        ICollection<Vertex>? splitVertices = null)
     {
         if (lines.Count == 0 || changedLines.Count == 0) return 0;
 
@@ -718,6 +725,7 @@ public class MapSet : IDisposable
 
                     var splitVertex = Vertices.FirstOrDefault(v => v.Position == intersection);
                     if (splitVertex == null) splitVertex = AddVertex(intersection);
+                    splitVertices?.Add(splitVertex);
 
                     var firstNewLine = SplitLinedefAt(first, splitVertex);
                     var secondNewLine = SplitLinedefAt(second, splitVertex);
@@ -772,15 +780,16 @@ public class MapSet : IDisposable
             Linedefs.Where(line => !movingVertices.Contains(line.Start) && !movingVertices.Contains(line.End)),
             ReferenceEqualityComparer.Instance);
         var changedLines = new HashSet<Linedef>(movingLines, ReferenceEqualityComparer.Instance);
+        var splitVertices = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
 
         int vertexLineSplits = 0;
-        vertexLineSplits += SplitLinesByVertices(movingLines, fixedVertices, stitchDistance, changedLines);
+        vertexLineSplits += SplitLinesByVertices(movingLines, fixedVertices, stitchDistance, changedLines, splitVertices);
         fixedLines = new HashSet<Linedef>(
             fixedLines.Where(line => !line.IsDisposed),
             ReferenceEqualityComparer.Instance);
-        vertexLineSplits += SplitLinesByVertices(fixedLines, movingVertices, stitchDistance, changedLines);
+        vertexLineSplits += SplitLinesByVertices(fixedLines, movingVertices, stitchDistance, changedLines, splitVertices);
 
-        int lineLineSplits = SplitLinesByLines(fixedLines, changedLines);
+        int lineLineSplits = SplitLinesByLines(fixedLines, changedLines, splitVertices);
         int removedLooped = RemoveLoopedLinedefs(changedLines);
         int removedInterior = mergeMode == MergeGeometryMode.Replace
             ? RemoveLinedefsInsideSectors(
@@ -789,6 +798,12 @@ public class MapSet : IDisposable
                 changedLines)
             : 0;
         int joinedOverlapping = JoinOverlappingLinedefs(changedLines);
+        int removedBridgeVertices = mergeMode == MergeGeometryMode.Replace
+            ? RemoveBridgeVertices(
+                splitVertices.Where(vertex => !movingVertices.Contains(vertex)).ToArray(),
+                new HashSet<Linedef>(fixedLines.Concat(changedLines), ReferenceEqualityComparer.Instance),
+                changedLines)
+            : 0;
         int correctedOuter = mergeMode == MergeGeometryMode.Classic ? 0 : CorrectOuterSidedefs(changedLines);
         int flippedBackward = FlipBackwardLinedefs(changedLines);
 
@@ -798,6 +813,7 @@ public class MapSet : IDisposable
             lineLineSplits,
             removedLooped,
             removedInterior,
+            removedBridgeVertices,
             joinedOverlapping,
             correctedOuter,
             flippedBackward);
@@ -914,6 +930,59 @@ public class MapSet : IDisposable
                 removed++;
                 break;
             }
+        }
+
+        return removed;
+    }
+
+    /// <summary>
+    /// Collapses split-created vertices that only bridge two linedefs by extending one linedef through the
+    /// vertex, removing the other linedef, and removing the vertex. This matches UDB replace-mode cleanup.
+    /// </summary>
+    public int RemoveBridgeVertices(
+        IEnumerable<Vertex> vertices,
+        ICollection<Linedef>? lines = null,
+        ICollection<Linedef>? changedLines = null)
+    {
+        int removed = 0;
+        var candidates = new HashSet<Vertex>(vertices, ReferenceEqualityComparer.Instance);
+        foreach (var vertex in candidates.ToArray())
+        {
+            if (vertex.IsDisposed || !Vertices.Contains(vertex)) continue;
+
+            var incident = Linedefs
+                .Where(line => !line.IsDisposed && (ReferenceEquals(line.Start, vertex) || ReferenceEquals(line.End, vertex)))
+                .Take(3)
+                .ToArray();
+            if (incident.Length != 2) continue;
+
+            var keep = incident[0];
+            var remove = incident[1];
+            var far = ReferenceEquals(remove.Start, vertex) ? remove.End : remove.Start;
+            if (ReferenceEquals(far, vertex)) continue;
+
+            if (ReferenceEquals(keep.Start, vertex)) keep.Start = far;
+            else if (ReferenceEquals(keep.End, vertex)) keep.End = far;
+            else continue;
+            keep.Angle = Linedef.ComputeAngle(keep.Start, keep.End);
+
+            if (lines != null)
+            {
+                while (!lines.IsReadOnly && lines.Remove(remove))
+                {
+                }
+            }
+
+            if (changedLines != null)
+            {
+                while (!changedLines.IsReadOnly && changedLines.Remove(remove))
+                {
+                }
+            }
+
+            RemoveLinedef(remove);
+            if (Vertices.Remove(vertex)) DisposeElement(vertex);
+            removed++;
         }
 
         return removed;

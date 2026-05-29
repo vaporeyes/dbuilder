@@ -429,6 +429,60 @@ public class MapSetStitchTests
         Assert.Contains(interior, map.Linedefs);
     }
 
+    [Fact]
+    public void RemoveBridgeVerticesCollapsesTwoLineSplitVertex()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var bridge = map.AddVertex(new Vector2D(50, 0));
+        var end = map.AddVertex(new Vector2D(100, 0));
+        var first = map.AddLinedef(start, bridge);
+        var second = map.AddLinedef(bridge, end);
+        var changed = new HashSet<Linedef> { first, second };
+
+        int removed = map.RemoveBridgeVertices(new[] { bridge }, changed, changed);
+
+        Assert.Equal(1, removed);
+        Assert.True(bridge.IsDisposed);
+        Assert.True(second.IsDisposed);
+        Assert.Single(map.Linedefs);
+        Assert.Same(start, first.Start);
+        Assert.Same(end, first.End);
+        Assert.Equal(new[] { first }, changed);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryReplaceCollapsesFixedSplitVertex()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        map.AddVertex(new Vector2D(50, 0));
+        line.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Replace, 0.5);
+
+        Assert.Equal(1, result.VertexLineSplits);
+        Assert.Equal(1, result.RemovedBridgeVertices);
+        Assert.Single(map.Linedefs);
+        Assert.Equal(new Vector2D(0, 0), line.Start.Position);
+        Assert.Equal(new Vector2D(100, 0), line.End.Position);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryMergeKeepsFixedSplitVertex()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        map.AddVertex(new Vector2D(50, 0));
+        line.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Merge, 0.5);
+
+        Assert.Equal(1, result.VertexLineSplits);
+        Assert.Equal(0, result.RemovedBridgeVertices);
+        Assert.Equal(2, map.Linedefs.Count);
+    }
+
     private static (MapSet map, Sector sector) BuildSquare(double size)
     {
         var map = new MapSet();
