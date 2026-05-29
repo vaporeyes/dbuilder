@@ -32,7 +32,7 @@ public sealed class MapOptionsDialog : PropertyDialog
     public string ResultMarker { get; private set; }
     public string ResultNamespace { get; private set; }
 
-    public MapOptionsDialog(string marker, string mapNamespace, MapOptions options, bool longTextureNamesSupported)
+    public MapOptionsDialog(string marker, string mapNamespace, MapOptions options, bool longTextureNamesSupported, ResourceManager? resources = null)
         : base("Map Options", "Basic map identity options for the currently loaded map.")
     {
         ResultMarker = MapNameRules.NormalizeMarker(marker);
@@ -41,11 +41,22 @@ public sealed class MapOptionsDialog : PropertyDialog
 
         _marker = AddField("Map marker", ResultMarker);
         _namespace = AddField("UDMF namespace", mapNamespace);
-        _floorTexture = AddField("Default floor", options.DefaultFloorTexture);
-        _ceilingTexture = AddField("Default ceiling", options.DefaultCeilingTexture);
-        _topTexture = AddField("Default upper", options.DefaultTopTexture);
-        _wallTexture = AddField("Default middle", options.DefaultWallTexture);
-        _bottomTexture = AddField("Default lower", options.DefaultBottomTexture);
+        if (resources is null)
+        {
+            _floorTexture = AddField("Default floor", options.DefaultFloorTexture);
+            _ceilingTexture = AddField("Default ceiling", options.DefaultCeilingTexture);
+            _topTexture = AddField("Default upper", options.DefaultTopTexture);
+            _wallTexture = AddField("Default middle", options.DefaultWallTexture);
+            _bottomTexture = AddField("Default lower", options.DefaultBottomTexture);
+        }
+        else
+        {
+            _floorTexture = AddTextureField("Default floor", options.DefaultFloorTexture, resources, flats: true, "Browse Default Floor");
+            _ceilingTexture = AddTextureField("Default ceiling", options.DefaultCeilingTexture, resources, flats: true, "Browse Default Ceiling");
+            _topTexture = AddTextureField("Default upper", options.DefaultTopTexture, resources, flats: false, "Browse Default Upper Texture");
+            _wallTexture = AddTextureField("Default middle", options.DefaultWallTexture, resources, flats: false, "Browse Default Middle Texture");
+            _bottomTexture = AddTextureField("Default lower", options.DefaultBottomTexture, resources, flats: false, "Browse Default Lower Texture");
+        }
         _floorHeight = AddField("Floor height", options.CustomFloorHeight.ToString(System.Globalization.CultureInfo.InvariantCulture));
         _ceilingHeight = AddField("Ceiling height", options.CustomCeilingHeight.ToString(System.Globalization.CultureInfo.InvariantCulture));
         _brightness = AddField("Brightness", options.CustomBrightness.ToString(System.Globalization.CultureInfo.InvariantCulture));

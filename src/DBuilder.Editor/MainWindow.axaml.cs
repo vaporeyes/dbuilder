@@ -519,7 +519,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
-        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace, _mapOptions, _config?.UseLongTextureNames ?? false);
+        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace, _mapOptions, _config?.UseLongTextureNames ?? false, _resources);
         if (await dlg.ShowDialog<bool>(this))
         {
             _mapMarker = dlg.ResultMarker;

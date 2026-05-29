@@ -360,6 +360,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add basic map marker and UDMF namespace dialog.
   - [x] Add drawing default fields to the map options dialog.
   - [x] Add drawing override toggles to the map options dialog.
+  - [x] Add texture and flat browser buttons to map drawing defaults.
 - [ ] Port open map options dialog.
   - [x] Prompt for initial map selection when opening multi-map WAD or PK3 archives.
 - [x] Port preferences dialog.
