@@ -49,6 +49,41 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void UnstableLinedefsFromVerticesReturnsLinesWithOneEndpointInSet()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(128, 0));
+        var ab = map.AddLinedef(a, b);
+        var bc = map.AddLinedef(b, c);
+        map.BuildIndexes();
+
+        var unstable = MapSet.UnstableLinedefsFromVertices(new[] { a, b });
+
+        Assert.Equal(new[] { bc }, unstable);
+        Assert.DoesNotContain(ab, unstable);
+    }
+
+    [Fact]
+    public void UnstableLinedefsFromVerticesKeepsLinesTouchingOneSelectedVertex()
+    {
+        var map = new MapSet();
+        var center = map.AddVertex(new Vector2D(0, 0));
+        var left = map.AddVertex(new Vector2D(-64, 0));
+        var right = map.AddVertex(new Vector2D(64, 0));
+        var up = map.AddVertex(new Vector2D(0, 64));
+        var leftLine = map.AddLinedef(center, left);
+        var rightLine = map.AddLinedef(center, right);
+        var upLine = map.AddLinedef(center, up);
+        map.BuildIndexes();
+
+        var unstable = MapSet.UnstableLinedefsFromVertices(new[] { center });
+
+        Assert.Equal(new[] { leftLine, rightLine, upLine }, unstable);
+    }
+
+    [Fact]
     public void MergeOverlappingVerticesCollapsesNearbyPoints()
     {
         var map = new MapSet();

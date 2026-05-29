@@ -972,6 +972,19 @@ public class MapSet : IDisposable
         return result;
     }
 
+    public static ICollection<Linedef> UnstableLinedefsFromVertices(ICollection<Vertex> vertices)
+    {
+        var lines = new Dictionary<Linedef, Linedef>();
+        foreach (var vertex in vertices)
+        {
+            foreach (var line in vertex.Linedefs)
+            {
+                if (!lines.Remove(line)) lines.Add(line, line);
+            }
+        }
+        return new List<Linedef>(lines.Values);
+    }
+
     public void MarkAllSelectedGeometry(
         bool mark,
         bool linedefsFromVertices,

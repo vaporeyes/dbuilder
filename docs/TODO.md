@@ -128,6 +128,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style all-selected-geometry marking orchestration.
   - [x] Add UDB-style selection conversion across vertices, linedefs, and sectors.
   - [x] Add UDB-style area creation and filtering helpers.
+  - [x] Add UDB-style unstable linedef lookup from vertices.
 - [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
   - [x] Duplicate selected elements without replacing the editor clipboard buffer.
