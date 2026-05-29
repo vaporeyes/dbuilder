@@ -348,6 +348,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
+  - [x] Parse quoted DECORATE state sprite and frame tokens.
 - [ ] Port category and DoomEdNum merging behavior fully.
 - [ ] Add parser fixtures from real-world mod patterns.
 

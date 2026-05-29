@@ -435,6 +435,23 @@ ACTOR FlowSpriteThing 8005
     }
 
     [Fact]
+    public void ParsesQuotedStateSpriteAndFrameTokens()
+    {
+        const string text = @"
+ACTOR QuotedSpriteThing 8006
+{
+    States
+    {
+    Spawn:
+        ""QTSP"" ""A"" -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("QTSPA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {
         const string text = @"

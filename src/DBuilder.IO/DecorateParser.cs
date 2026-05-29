@@ -347,7 +347,18 @@ public static class DecorateParser
                 continue;
             }
             if (tk.Kind == Kind.Editor) { ParseEditorKey(tk.Text, actor.EditorKeys); continue; }
-            if (tk.Kind != Kind.Word) continue;
+            if (tk.Kind != Kind.Word)
+            {
+                if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
+                {
+                    string sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
+                    firstSprite ??= sprite;
+                    if (!IsEmptySprite(sprite)) firstNonEmptySprite ??= sprite;
+                    if (currentState != null && !stateSprites.ContainsKey(currentState))
+                        stateSprites[currentState] = sprite;
+                }
+                continue;
+            }
 
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
@@ -585,7 +596,7 @@ public static class DecorateParser
     private static bool LooksLikeSpriteFrame(string word, List<Tok> t, int next)
     {
         if (word.Length != 4 || word.Equals("goto", StringComparison.OrdinalIgnoreCase)) return false;
-        if (next >= t.Count || t[next].Kind != Kind.Word) return false;
+        if (next >= t.Count || t[next].Kind is not (Kind.Word or Kind.Str)) return false;
         string frames = t[next].Text;
         foreach (char c in frames)
             if (!(char.IsLetter(c) || c is '#' or '-' or '_' or '[' or ']' or '\\' or '^')) return false;
