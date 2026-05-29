@@ -156,6 +156,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style scoped split-lines-by-vertices helper.
   - [x] Add UDB-style split-lines-by-lines helper.
   - [x] Add UDB-style selected geometry stitch orchestration.
+  - [x] Wire editor stitch action to selected geometry stitching.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

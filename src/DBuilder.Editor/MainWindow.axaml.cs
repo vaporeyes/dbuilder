@@ -1342,11 +1342,22 @@ public partial class MainWindow : Window
         return count;
     }
 
-    // Welds the whole map: merges coincident vertices and splits lines at vertices lying on them.
+    // Stitches selected geometry against the rest of the map, or welds the whole map when nothing is selected.
     private void OnStitch(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
         CreateUndo("Stitch geometry");
+        var selectedVertices = _map.SelectedGeometryVertices();
+        if (selectedVertices.Count > 0)
+        {
+            GeometryStitchResult result = _map.StitchSelectedGeometry(0.5);
+            _map.BuildIndexes();
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            SetStatus($"Stitched selection: {result.JoinedVertices} vertices joined, {result.VertexLineSplits + result.LineLineSplits} lines split.");
+            return;
+        }
+
         int merged = _map.MergeOverlappingVertices(0.5);
         int split = _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
