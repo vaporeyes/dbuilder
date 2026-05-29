@@ -392,6 +392,7 @@ thingflagstranslation
     {
         var gc = GameConfiguration.FromText(Cfg);
         var map = SquareWithBlockingLine();
+        var vertex = map.Vertices[0];
         var line = map.Linedefs[0];
         var sector = map.Sectors[0];
         var sidedef = map.Sidedefs[0];
@@ -403,6 +404,9 @@ thingflagstranslation
             ScaleY = 0.5,
         };
         map.Things.Add(thing);
+        vertex.ZCeiling = 96.0;
+        vertex.ZFloor = -16.0;
+        vertex.Fields["comment"] = "slope anchor";
         line.UdmfFlags.Add("blocking");
         line.Fields["renderstyle"] = "add";
         sidedef.UdmfFlags.Add("lightabsolute");
@@ -424,6 +428,9 @@ thingflagstranslation
 
         Assert.Equal(1, line.Flags);
         Assert.Equal(8 | 16, thing.Flags);
+        Assert.True(double.IsNaN(vertex.ZCeiling));
+        Assert.True(double.IsNaN(vertex.ZFloor));
+        Assert.Empty(vertex.Fields);
         Assert.Empty(line.UdmfFlags);
         Assert.Empty(line.Fields);
         Assert.Empty(sidedef.UdmfFlags);

@@ -237,6 +237,13 @@ public static class MapFormatConverter
 
     private static void ClearUdmfOnlyElementData(MapSet map)
     {
+        foreach (var v in map.Vertices)
+        {
+            v.Fields.Clear();
+            v.ZCeiling = double.NaN;
+            v.ZFloor = double.NaN;
+        }
+
         foreach (var l in map.Linedefs)
         {
             l.UdmfFlags.Clear();
