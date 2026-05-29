@@ -95,6 +95,7 @@ public partial class MainWindow : Window
         };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
+        Opened += OnOpened;
         MapView.DrawModeChanged += () =>
         {
             SetStatus(MapView.DrawMode
@@ -117,6 +118,13 @@ public partial class MainWindow : Window
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
+
+    private async void OnOpened(object? sender, EventArgs e)
+    {
+        Opened -= OnOpened;
+        var entries = AutoSaveStore.List();
+        if (entries.Count > 0) await PromptRecoverAutosave(entries);
+    }
 
     private void LogAndSetStatus(Exception exception, string context)
     {
@@ -331,6 +339,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        await PromptRecoverAutosave(entries);
+    }
+
+    private async Task PromptRecoverAutosave(IReadOnlyList<AutoSaveEntry> entries)
+    {
         var dlg = new AutoSaveRecoveryDialog(entries);
         if (!await dlg.ShowDialog<bool>(this) || dlg.Selected is not { } selected) return;
         if (!await ConfirmDiscardDirtyMap()) return;
