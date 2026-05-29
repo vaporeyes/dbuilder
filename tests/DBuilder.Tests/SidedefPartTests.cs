@@ -33,6 +33,49 @@ public class SidedefPartTests
     }
 
     [Fact]
+    public void SidedefUpdateAndNamedTextureSettersMatchUdbSurface()
+    {
+        var side = new Sidedef();
+
+        side.Update(
+            offsetX: 8,
+            offsetY: -4,
+            highTexture: "",
+            midTexture: null,
+            lowTexture: "LOW",
+            flags: new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["clipmidtex"] = true,
+                ["wrapmidtex"] = false,
+            });
+
+        Assert.Equal(8, side.OffsetX);
+        Assert.Equal(-4, side.OffsetY);
+        Assert.Equal("-", side.HighTexture);
+        Assert.Equal("-", side.MidTexture);
+        Assert.Equal("LOW", side.LowTexture);
+        Assert.Contains("clipmidtex", side.UdmfFlags);
+        Assert.DoesNotContain("wrapmidtex", side.UdmfFlags);
+
+        side.SetTextureHigh("UP");
+        side.SetTextureMid("");
+        side.SetTextureLow(null);
+
+        Assert.Equal("UP", side.HighTexture);
+        Assert.Equal("-", side.MidTexture);
+        Assert.Equal("-", side.LowTexture);
+
+        side.Update(1, 2, "HI", "MID", "");
+
+        Assert.Equal(1, side.OffsetX);
+        Assert.Equal(2, side.OffsetY);
+        Assert.Equal("HI", side.HighTexture);
+        Assert.Equal("MID", side.MidTexture);
+        Assert.Equal("-", side.LowTexture);
+        Assert.Empty(side.UdmfFlags);
+    }
+
+    [Fact]
     public void OneSidedWallRequiresMiddleTextureOnly()
     {
         var map = new MapSet();

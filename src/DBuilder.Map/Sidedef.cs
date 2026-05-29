@@ -68,6 +68,37 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         }
     }
 
+    public void Update(int offsetX, int offsetY, string? highTexture, string? midTexture, string? lowTexture)
+        => Update(offsetX, offsetY, highTexture, midTexture, lowTexture, new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase));
+
+    public void Update(
+        int offsetX,
+        int offsetY,
+        string? highTexture,
+        string? midTexture,
+        string? lowTexture,
+        Dictionary<string, bool> flags)
+    {
+        OffsetX = offsetX;
+        OffsetY = offsetY;
+        SetTextureHigh(highTexture);
+        SetTextureMid(midTexture);
+        SetTextureLow(lowTexture);
+
+        UdmfFlags.Clear();
+        foreach (var flag in flags)
+            if (flag.Value) UdmfFlags.Add(flag.Key);
+    }
+
+    public void SetTextureHigh(string? name)
+        => HighTexture = NormalizeTextureName(name);
+
+    public void SetTextureMid(string? name)
+        => MidTexture = NormalizeTextureName(name);
+
+    public void SetTextureLow(string? name)
+        => LowTexture = NormalizeTextureName(name);
+
     public string GetTexture(SidedefPart part) => part switch
     {
         SidedefPart.Upper => HighTexture,
@@ -78,17 +109,16 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
 
     public void SetTexture(SidedefPart part, string? name)
     {
-        string texture = string.IsNullOrEmpty(name) ? "-" : name;
         switch (part)
         {
             case SidedefPart.Upper:
-                HighTexture = texture;
+                SetTextureHigh(name);
                 break;
             case SidedefPart.Middle:
-                MidTexture = texture;
+                SetTextureMid(name);
                 break;
             case SidedefPart.Lower:
-                LowTexture = texture;
+                SetTextureLow(name);
                 break;
         }
     }
@@ -170,4 +200,7 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         double h2 = Other.Sector.GetFloorZ(end) - Sector.GetFloorZ(end);
         return System.Math.Max(0, System.Math.Max(h1, h2));
     }
+
+    private static string NormalizeTextureName(string? name)
+        => string.IsNullOrEmpty(name) ? "-" : name;
 }

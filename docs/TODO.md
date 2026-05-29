@@ -211,6 +211,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style thing 3D move, rotation, pitch, roll, and scale helpers.
   - [x] Add UDB-style sector update and flat texture setter helpers.
   - [x] Add UDB-style linedef update helper.
+  - [x] Add UDB-style sidedef update and texture setter helpers.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats
