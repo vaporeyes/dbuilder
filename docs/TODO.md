@@ -355,6 +355,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use DECORATE `#region` titles as default actor categories.
   - [x] Split DECORATE `#region` category paths on separators.
   - [x] Apply DECORATE `#region` editor defaults for color and sprite.
+  - [x] Apply DECORATE `#region` editor defaults for thing behavior flags.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

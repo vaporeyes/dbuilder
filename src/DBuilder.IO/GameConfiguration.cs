@@ -681,13 +681,13 @@ public sealed class GameConfiguration
             Color = ActorColor(actor, existing),
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
                 ? ActorArrow(actor)
-                : existing?.Arrow ?? false,
+                : ActorRegionPropertyBoolish(actor, "$arrow") ?? existing?.Arrow ?? false,
             Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : existing?.Hangs ?? false,
             Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : existing?.Blocking ?? 0,
-            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : existing?.ErrorCheck ?? 0,
-            FixedSize = existing?.FixedSize ?? false,
-            FixedRotation = existing?.FixedRotation ?? false,
-            AbsoluteZ = existing?.AbsoluteZ ?? false,
+            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? existing?.ErrorCheck ?? 0,
+            FixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? existing?.FixedSize ?? false,
+            FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? existing?.FixedRotation ?? false,
+            AbsoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? existing?.AbsoluteZ ?? false,
             LockSprite = existing?.LockSprite ?? false,
             ThingLink = existing?.ThingLink ?? 0,
             Optional = existing?.Optional ?? false,
@@ -776,6 +776,22 @@ public sealed class GameConfiguration
         return actor.RegionProperties.TryGetValue(key, out var values)
             && values.Count > 0
             && int.TryParse(values[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static int? ActorRegionPropertyInt(ActorInfo actor, string key)
+        => TryActorRegionPropertyInt(actor, key, out int value) ? value : null;
+
+    private static bool? ActorRegionPropertyBool(ActorInfo actor, string key)
+    {
+        string? value = ActorRegionProperty(actor, key);
+        if (value == null) return null;
+        return value.Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool? ActorRegionPropertyBoolish(ActorInfo actor, string key)
+    {
+        if (!TryActorRegionPropertyInt(actor, key, out int value)) return null;
+        return value != 0;
     }
 
     private static ArgInfo[] ActorArgs(ActorInfo actor, ArgInfo[]? existing)

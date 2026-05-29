@@ -202,6 +202,53 @@ ACTOR RegionOverrideDefaults 5009
     }
 
     [Fact]
+    public void RegionEditorKeysProvideThingBehaviorDefaults()
+    {
+        const string text = @"
+#region Region Defaults
+//$Arrow 1
+//$Error 2
+//$FixedSize true
+//$FixedRotation true
+//$AbsoluteZ true
+ACTOR RegionBehaviorThing 5010
+{
+    Radius 16
+}
+#endregion";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var thing = gc.GetThing(5010);
+        Assert.NotNull(thing);
+        Assert.True(thing!.Arrow);
+        Assert.Equal(2, thing.ErrorCheck);
+        Assert.True(thing.FixedSize);
+        Assert.True(thing.FixedRotation);
+        Assert.True(thing.AbsoluteZ);
+    }
+
+    [Fact]
+    public void ActorAngledOverridesRegionArrowDefault()
+    {
+        const string text = @"
+#region Region Defaults
+//$Arrow 1
+ACTOR RegionArrowOverrideThing 5011
+{
+    $NotAngled
+    Radius 16
+}
+#endregion";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var thing = gc.GetThing(5011);
+        Assert.NotNull(thing);
+        Assert.False(thing!.Arrow);
+    }
+
+    [Fact]
     public void TitleFallsBackToClassName()
     {
         var a = DecorateParser.Parse("ACTOR Gadget 6000 { }")[0];
