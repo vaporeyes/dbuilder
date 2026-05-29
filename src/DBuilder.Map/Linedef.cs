@@ -47,6 +47,7 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     // Binary record fields (Doom + UDMF).
     public int Flags { get; set; }
     public int Action { get; set; }
+    public int Activate { get; set; }
 
     /// <summary>All tags (UDMF id + moreids). Authoritative; <see cref="Tag"/> is a convenience over the first entry.</summary>
     public List<int> Tags { get; } = new();
@@ -82,6 +83,23 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     // Match UDB's Linedef.Angle convention via Vector2D.GetAngle on the delta.
     public static double ComputeAngle(Vertex start, Vertex end) => (end.Position - start.Position).GetAngle();
+
+    public void Update(Dictionary<string, bool> flags, ushort rawFlags, int activate, List<int> tags, int action, int[] args)
+    {
+        UdmfFlags.Clear();
+        foreach (var flag in flags)
+            if (flag.Value) UdmfFlags.Add(flag.Key);
+
+        Flags = rawFlags;
+        Activate = activate;
+        Action = action;
+
+        Tags.Clear();
+        Tags.AddRange(tags);
+
+        Array.Clear(Args);
+        Array.Copy(args, Args, Math.Min(args.Length, Args.Length));
+    }
 
     public void SetStartVertex(Vertex vertex)
     {

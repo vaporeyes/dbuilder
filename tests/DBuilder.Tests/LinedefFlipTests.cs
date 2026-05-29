@@ -142,6 +142,47 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void LinedefUpdateHelperMatchesUdbSurface()
+    {
+        var line = new Linedef();
+
+        line.Update(
+            new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["blocking"] = true,
+                ["secret"] = false,
+            },
+            rawFlags: 17,
+            activate: 3,
+            tags: new List<int> { 5, 9 },
+            action: 80,
+            args: new[] { 1, 2, 3, 4, 5, 6 });
+
+        Assert.Equal(17, line.Flags);
+        Assert.Equal(3, line.Activate);
+        Assert.Equal(80, line.Action);
+        Assert.Equal(new[] { 5, 9 }, line.Tags);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, line.Args);
+        Assert.Contains("blocking", line.UdmfFlags);
+        Assert.DoesNotContain("secret", line.UdmfFlags);
+
+        line.Update(
+            new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+            rawFlags: 0,
+            activate: 0,
+            tags: new List<int>(),
+            action: 0,
+            args: new[] { 7, 8 });
+
+        Assert.Equal(0, line.Flags);
+        Assert.Equal(0, line.Activate);
+        Assert.Equal(0, line.Action);
+        Assert.Empty(line.Tags);
+        Assert.Equal(new[] { 7, 8, 0, 0, 0 }, line.Args);
+        Assert.Empty(line.UdmfFlags);
+    }
+
+    [Fact]
     public void SafeDistanceAvoidsEqualEndpointDistanceForLongLines()
     {
         var map = new MapSet();

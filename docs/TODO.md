@@ -210,6 +210,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style vertex numeric move and attached-line angle refresh behavior.
   - [x] Add UDB-style thing 3D move, rotation, pitch, roll, and scale helpers.
   - [x] Add UDB-style sector update and flat texture setter helpers.
+  - [x] Add UDB-style linedef update helper.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats

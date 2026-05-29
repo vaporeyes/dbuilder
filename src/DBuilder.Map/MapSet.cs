@@ -215,6 +215,7 @@ public class MapSet : IDisposable
                 Groups = line.Groups,
                 Flags = line.Flags,
                 Action = line.Action,
+                Activate = line.Activate,
             };
             copy.Tags.AddRange(line.Tags);
             CopyArgs(line, copy);
@@ -471,7 +472,7 @@ public class MapSet : IDisposable
         double firstHalfLen = (v.Position - l.Start.Position).GetLength();
         var oldEnd = l.End;
 
-        var newLine = new Linedef(v, oldEnd) { Flags = l.Flags, Action = l.Action };
+        var newLine = new Linedef(v, oldEnd) { Flags = l.Flags, Action = l.Action, Activate = l.Activate };
         newLine.Tags.Clear();
         newLine.Tags.AddRange(l.Tags);
         for (int i = 0; i < newLine.Args.Length; i++) newLine.Args[i] = l.Args[i];

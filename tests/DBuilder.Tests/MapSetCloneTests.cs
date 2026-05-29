@@ -68,6 +68,7 @@ public class MapSetCloneTests
         Assert.Contains("secret", clone.Sectors[0].UdmfFlags);
         Assert.Equal(new[] { 4, 12 }, clone.Sectors[0].Tags);
         Assert.Equal(9, clone.Linedefs[0].GetArg(2));
+        Assert.Equal(2, clone.Linedefs[0].Activate);
         Assert.Contains("blocking", clone.Linedefs[0].UdmfFlags);
         Assert.Equal("MID", clone.Sidedefs[0].MidTexture);
         Assert.Contains("lightabsolute", clone.Sidedefs[0].UdmfFlags);
@@ -125,6 +126,7 @@ public class MapSetCloneTests
         line.Groups = MapSet.GroupMask(2);
         line.Flags = 1;
         line.Action = 80;
+        line.Activate = 2;
         line.SetArg(2, 9);
         line.UdmfFlags.Add("blocking");
 
