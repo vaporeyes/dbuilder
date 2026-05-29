@@ -406,7 +406,11 @@ thingflagstranslation
         line.UdmfFlags.Add("blocking");
         line.Fields["renderstyle"] = "add";
         sidedef.UdmfFlags.Add("lightabsolute");
-        sidedef.Fields["offsetx_mid"] = 8;
+        sidedef.MidTexture = "STARTAN";
+        sidedef.OffsetX = 4;
+        sidedef.OffsetY = 8;
+        sidedef.Fields["offsetx_mid"] = 3.0;
+        sidedef.Fields["offsety_mid"] = -2.0;
         sector.UdmfFlags.Add("secret");
         sector.Fields["lightcolor"] = 255;
         sector.FloorSlope = new Vector3D(0, 1, 1);
@@ -424,6 +428,8 @@ thingflagstranslation
         Assert.Empty(line.Fields);
         Assert.Empty(sidedef.UdmfFlags);
         Assert.Empty(sidedef.Fields);
+        Assert.Equal(7, sidedef.OffsetX);
+        Assert.Equal(6, sidedef.OffsetY);
         Assert.Empty(sector.UdmfFlags);
         Assert.Empty(sector.Fields);
         Assert.Equal(0, sector.FloorSlope.GetLengthSq());

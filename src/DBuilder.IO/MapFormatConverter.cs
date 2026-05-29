@@ -245,6 +245,7 @@ public static class MapFormatConverter
 
         foreach (var sd in map.Sidedefs)
         {
+            ApplySidedefTextureOffsets(sd);
             sd.UdmfFlags.Clear();
             sd.Fields.Clear();
         }
@@ -268,6 +269,38 @@ public static class MapFormatConverter
             t.ScaleX = 1.0;
             t.ScaleY = 1.0;
         }
+    }
+
+    private static void ApplySidedefTextureOffsets(Sidedef side)
+    {
+        if (side.MidTexture != "-" && side.MiddleRequired())
+        {
+            side.OffsetX += FieldAsInt(side, "offsetx_mid");
+            side.OffsetY += FieldAsInt(side, "offsety_mid");
+        }
+        else if (side.HighTexture != "-" && side.HighRequired())
+        {
+            side.OffsetX += FieldAsInt(side, "offsetx_top");
+            side.OffsetY += FieldAsInt(side, "offsety_top");
+        }
+        else if (side.LowTexture != "-" && side.LowRequired())
+        {
+            side.OffsetX += FieldAsInt(side, "offsetx_bottom");
+            side.OffsetY += FieldAsInt(side, "offsety_bottom");
+        }
+    }
+
+    private static int FieldAsInt(IFielded element, string key)
+    {
+        if (!element.Fields.TryGetValue(key, out var value)) return 0;
+        return value switch
+        {
+            int i => i,
+            long l => (int)l,
+            float f => (int)f,
+            double d => (int)d,
+            _ => 0,
+        };
     }
 
     private static void ClearDoomUnsupportedArgs(MapSet map)
