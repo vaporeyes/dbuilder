@@ -115,6 +115,41 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         ScaleY = scaleY;
     }
 
+    public void Update(
+        int type,
+        double x,
+        double y,
+        double zOffset,
+        int angle,
+        int pitch,
+        int roll,
+        double scaleX,
+        double scaleY,
+        Dictionary<string, bool> flags,
+        ushort rawFlags,
+        int tag,
+        int action,
+        int[] args)
+    {
+        Type = type;
+        Angle = angle;
+        Pitch = pitch;
+        Roll = roll;
+        ScaleX = scaleX == 0.0 ? 1.0 : scaleX;
+        ScaleY = scaleY == 0.0 ? 1.0 : scaleY;
+        Flags = rawFlags;
+        Tag = tag;
+        Action = action;
+
+        UdmfFlags.Clear();
+        foreach (var flag in flags)
+            if (flag.Value) UdmfFlags.Add(flag.Key);
+
+        Array.Clear(Args);
+        Array.Copy(args, Args, Math.Min(args.Length, Args.Length));
+        Move(x, y, zOffset);
+    }
+
     public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         int decimals = usePrecisePosition ? Math.Max(0, vertexDecimals) : 0;

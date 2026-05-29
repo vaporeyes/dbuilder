@@ -363,6 +363,56 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void ThingUpdateHelperMatchesUdbSurface()
+    {
+        var thing = new Thing(new Vector2D(1, 2), 3001);
+
+        thing.Update(
+            type: 3002,
+            x: 10,
+            y: 20,
+            zOffset: 32,
+            angle: 90,
+            pitch: 15,
+            roll: 345,
+            scaleX: 0,
+            scaleY: 1.5,
+            flags: new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["skill1"] = true,
+                ["ambush"] = false,
+            },
+            rawFlags: 33,
+            tag: 7,
+            action: 80,
+            args: new[] { 1, 2, 3, 4, 5, 6 });
+
+        Assert.Equal(3002, thing.Type);
+        Assert.Equal(new Vector2D(10, 20), thing.Position);
+        Assert.Equal(32, thing.Height, 1e-9);
+        Assert.Equal(90, thing.Angle);
+        Assert.Equal(15, thing.Pitch);
+        Assert.Equal(345, thing.Roll);
+        Assert.Equal(1.0, thing.ScaleX, 1e-9);
+        Assert.Equal(1.5, thing.ScaleY, 1e-9);
+        Assert.Equal(33, thing.Flags);
+        Assert.Equal(7, thing.Tag);
+        Assert.Equal(80, thing.Action);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, thing.Args);
+        Assert.Contains("skill1", thing.UdmfFlags);
+        Assert.DoesNotContain("ambush", thing.UdmfFlags);
+
+        thing.Update(1, -1, -2, -3, 0, 0, 0, 2, 0, new Dictionary<string, bool>(), 0, 0, 0, new[] { 9 });
+
+        Assert.Equal(new Vector2D(-1, -2), thing.Position);
+        Assert.Equal(-3, thing.Height, 1e-9);
+        Assert.Equal(2, thing.ScaleX, 1e-9);
+        Assert.Equal(1, thing.ScaleY, 1e-9);
+        Assert.Equal(new[] { 9, 0, 0, 0, 0 }, thing.Args);
+        Assert.Empty(thing.UdmfFlags);
+    }
+
+    [Fact]
     public void SnapAllToAccuracySnapsVerticesAndThings()
     {
         var map = new MapSet();
