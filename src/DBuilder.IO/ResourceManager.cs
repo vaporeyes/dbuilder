@@ -709,6 +709,14 @@ public sealed class ResourceManager : IDisposable
             var img = readers[i].GetPatch(name, pal);
             if (img != null) return img;
         }
+        if (!MixTexturesFlats) return null;
+
+        for (int i = readers.Count - 1; i >= 0; i--)
+        {
+            var img = readers[i].GetWallTextureBase(name, pal) ?? readers[i].GetFlatBase(name, pal);
+            if (img != null) return img;
+        }
+
         return null;
     }
 

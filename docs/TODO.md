@@ -302,6 +302,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor config-driven texture and flat namespace mixing for lookups and browsers.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
+  - [x] Resolve composite patches through mixed wall/flat base namespaces.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.

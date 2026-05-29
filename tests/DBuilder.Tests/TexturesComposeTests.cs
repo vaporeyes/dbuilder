@@ -103,6 +103,32 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void TexturesPatchFallsBackToFlatWhenNamespacesAreMixed()
+    {
+        string textures = "WallTexture WFLAT, 1, 1 { Patch \"FLTPAT\", 0, 0 }\n";
+        string wad = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", TestArtifacts.GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("FLTPAT", TestArtifacts.SolidFlat(42)),
+            ("F_END", Array.Empty<byte>()),
+            ("TEXTURES", Encoding.ASCII.GetBytes(textures)));
+
+        try
+        {
+            using var rm = new ResourceManager { MixTexturesFlats = true };
+            rm.AddResource(wad);
+
+            var texture = rm.GetWallTexture("WFLAT");
+
+            Assert.NotNull(texture);
+            Assert.Equal(1, texture!.Width);
+            Assert.Equal(1, texture.Height);
+            Assert.Equal(new byte[] { 42, 42, 42, 255 }, texture.Rgba[0..4]);
+        }
+        finally { File.Delete(wad); }
+    }
+
+    [Fact]
     public void ComposesClassicTexture1FromPk3RootFiles()
     {
         string pk3 = TestArtifacts.BuildPk3(
