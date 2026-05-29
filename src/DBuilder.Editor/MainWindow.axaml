@@ -45,6 +45,10 @@
                     <MenuItem Header="Rotate 90 C_W" Click="OnRotateCW" />
                     <MenuItem Header="Rotate 90 CC_W" Click="OnRotateCCW" />
                 </MenuItem>
+                <MenuItem Header="_Align textures">
+                    <MenuItem Header="Align _Horizontal" Click="OnAlignTexturesX" />
+                    <MenuItem Header="Align _Vertical" Click="OnAlignTexturesY" />
+                </MenuItem>
                 <Separator />
                 <MenuItem Header="Save _Prefab..." Click="OnSavePrefab" />
                 <MenuItem Header="_Insert Prefab..." Click="OnInsertPrefab" />

@@ -303,6 +303,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use UDB-compatible grid setup snap math in the editor.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
 - [ ] Port texture alignment tools.
+  - [x] Add menu commands for selected wall texture auto-alignment.
 - [ ] Port stair builder behavior fully.
 - [ ] Port slope editing behavior fully.
 - [ ] Port sound propagation editing behavior fully.

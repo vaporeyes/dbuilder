@@ -1873,7 +1873,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 case Key.D3 or Key.NumPad3: SetEditMode(EditMode.Sectors); e.Handled = true; return;
                 case Key.D4 or Key.NumPad4: SetEditMode(EditMode.Things); e.Handled = true; return;
                 case Key.F: FlipSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
-                case Key.A: AutoAlignSelected(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
+                case Key.A: AutoAlignSelectedTextures(e.KeyModifiers.HasFlag(KeyModifiers.Shift)); e.Handled = true; return;
                 case Key.G: _snapToGrid = !_snapToGrid; Picked?.Invoke($"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})"); e.Handled = true; return;
                 case Key.OemOpenBrackets: SetEditorGridSize(Math.Max(GridSetup.MinimumGridSize, _grid.GridSizeF * 0.5)); e.Handled = true; return;
                 case Key.OemCloseBrackets: SetEditorGridSize(Math.Min(1024, _grid.GridSizeF * 2.0)); e.Handled = true; return;
@@ -2199,12 +2199,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Auto-aligns textures along the wall run from the first selected linedef's front side (A = X, Shift+A = Y), undoable.
-    private void AutoAlignSelected(bool vertical)
+    public string AutoAlignSelectedTextures(bool vertical)
     {
-        if (_map == null) return;
+        if (_map == null) return "No map loaded.";
         Linedef? start = null;
         foreach (var l in _map.Linedefs) if (l.Selected && l.Front != null) { start = l; break; }
-        if (start?.Front == null) { Picked?.Invoke("select a linedef with a front sidedef to align"); return; }
+        if (start?.Front == null)
+        {
+            const string message = "select a linedef with a front sidedef to align";
+            Picked?.Invoke(message);
+            return message;
+        }
 
         string tex = SidedefTextureAlignment.PrimaryTexture(start.Front);
         var img = _resources?.GetWallTexture(tex);
@@ -2215,7 +2220,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             : SidedefTextureAlignment.AutoAlignX(start.Front, img?.Width ?? 0);
         MarkGeometryDirty();
         Changed?.Invoke();
-        Picked?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {(vertical ? "vertically" : "horizontally")} (tex {tex})");
+        string status = $"aligned {n} sidedef{(n == 1 ? "" : "s")} {(vertical ? "vertically" : "horizontally")} (tex {tex})";
+        Picked?.Invoke(status);
+        return status;
     }
 
     // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.

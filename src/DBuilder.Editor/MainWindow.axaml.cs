@@ -845,6 +845,16 @@ public partial class MainWindow : Window
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
     private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate 90 CW");
     private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
+    private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
+    private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
+
+    private void AlignTextures(bool vertical)
+    {
+        string status = MapView.AutoAlignSelectedTextures(vertical);
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(status);
+    }
 
     // Applies a flip/rotate to the current selection about its center, undoable.
     private void Transform(SelectionTransform.Op op, string desc)
