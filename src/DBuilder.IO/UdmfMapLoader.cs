@@ -144,6 +144,11 @@ public static class UdmfMapLoader
             MidTexture = GetString(c, "texturemiddle", "-"),
             LowTexture = GetString(c, "texturebottom", "-"),
         };
+        foreach (var entry in c)
+        {
+            if (entry.Value is bool b && b && !SidedefManagedFields.Contains(entry.Key))
+                sd.UdmfFlags.Add(entry.Key);
+        }
         CollectCustomFields(c, sd.Fields, SidedefManagedFields, preserveBoolFields: true);
         return sd;
     }

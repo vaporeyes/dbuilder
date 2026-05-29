@@ -200,6 +200,7 @@ public class MapSet : IDisposable
                 MidTexture = side.MidTexture,
                 LowTexture = side.LowTexture,
             };
+            foreach (var flag in side.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(side, copy);
             clone.Sidedefs.Add(copy);
             sidedefMap[side] = copy;

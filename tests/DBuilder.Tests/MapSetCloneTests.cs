@@ -68,6 +68,7 @@ public class MapSetCloneTests
         Assert.Equal(9, clone.Linedefs[0].GetArg(2));
         Assert.Contains("blocking", clone.Linedefs[0].UdmfFlags);
         Assert.Equal("MID", clone.Sidedefs[0].MidTexture);
+        Assert.Contains("lightabsolute", clone.Sidedefs[0].UdmfFlags);
         Assert.Equal(200, clone.Things[0].GetField<int>("health"));
         Assert.Equal(33, clone.Things[0].GetArg(1));
     }
@@ -128,6 +129,7 @@ public class MapSetCloneTests
         front.Selected = true;
         front.MidTexture = "MID";
         front.OffsetX = 16;
+        front.UdmfFlags.Add("lightabsolute");
         var back = map.AddSidedef(line, false, backSector);
         back.LowTexture = "LOW";
 

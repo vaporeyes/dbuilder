@@ -136,7 +136,8 @@ public static class UdmfMapWriter
         WriteIfNotDefault(sb, "texturetop",    sd.HighTexture, "-");
         WriteIfNotDefault(sb, "texturemiddle", sd.MidTexture,  "-");
         WriteIfNotDefault(sb, "texturebottom", sd.LowTexture,  "-");
-        WriteCustomFields(sb, sd.Fields);
+        WriteUdmfFlags(sb, sd.UdmfFlags);
+        WriteCustomFields(sb, sd.Fields, excludeKeys: sd.UdmfFlags);
         sb.AppendLine("}");
         sb.AppendLine();
     }
@@ -208,10 +209,12 @@ public static class UdmfMapWriter
         WriteAssignment(sb, "moreids", extra.ToString(), indent: true);
     }
 
-    private static void WriteCustomFields(StringBuilder sb, Dictionary<string, object> fields, bool indent = true)
+    private static void WriteCustomFields(StringBuilder sb, Dictionary<string, object> fields, bool indent = true,
+        ISet<string>? excludeKeys = null)
     {
         foreach (var kv in fields)
         {
+            if (excludeKeys != null && excludeKeys.Contains(kv.Key)) continue;
             switch (kv.Value)
             {
                 case bool b:   WriteAssignment(sb, kv.Key, b, indent); break;

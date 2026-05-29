@@ -31,6 +31,7 @@ public class ClipboardStreamTests
             l.Args[0] = 11; l.Args[3] = 99;
             l.UdmfFlags.Add("blocking");
             var front = new Sidedef(l, true) { Sector = secFront, HighTexture = "HI", MidTexture = "MID", LowTexture = "LO", OffsetX = 4, OffsetY = 8 };
+            front.UdmfFlags.Add("lightabsolute");
             l.Front = front;
             map.Sidedefs.Add(front);
             if (secBack != null)
@@ -113,6 +114,7 @@ public class ClipboardStreamTests
             Assert.Equal(src.Sidedefs[i].HighTexture, dst.Sidedefs[i].HighTexture);
             Assert.Equal(src.Sidedefs[i].MidTexture,  dst.Sidedefs[i].MidTexture);
             Assert.Equal(src.Sidedefs[i].LowTexture,  dst.Sidedefs[i].LowTexture);
+            Assert.Equal(src.Sidedefs[i].UdmfFlags.OrderBy(s => s), dst.Sidedefs[i].UdmfFlags.OrderBy(s => s));
         }
 
         // Linedefs - args, flags, vertex refs, sidedef refs
@@ -464,6 +466,7 @@ public class ClipboardStreamTests
         WriteString(w, "-");
         WriteString(w, "MID");
         WriteString(w, "-");
+        w.Write(0); // sidedef udmf flags
         WriteCustomFields(w);
 
         w.Write(1); // linedefs

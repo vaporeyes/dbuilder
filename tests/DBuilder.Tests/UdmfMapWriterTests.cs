@@ -90,6 +90,10 @@ public class UdmfMapWriterTests
             Assert.Equal(lo.UdmfFlags.OrderBy(s => s), lr.UdmfFlags.OrderBy(s => s));
         }
 
+        map.Sidedefs[0].UdmfFlags.Add("lightabsolute");
+        var withSidedefFlag = UdmfMapLoader.Load(UdmfMapWriter.Write(map), out _)!;
+        Assert.Contains("lightabsolute", withSidedefFlag.Sidedefs[0].UdmfFlags);
+
         var s0 = map.Sectors[0];
         var sr = r.Sectors[0];
         Assert.Equal(s0.FloorHeight,  sr.FloorHeight);
