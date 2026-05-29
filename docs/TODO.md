@@ -158,6 +158,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected geometry stitch orchestration.
   - [x] Wire editor stitch action to selected geometry stitching.
   - [x] Add UDB-style overlapping linedef joining to stitch cleanup.
+  - [x] Add UDB-style sector lookup for contained linedefs.
 - [ ] Port blockmap behavior and queries to full UDB behavior.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.

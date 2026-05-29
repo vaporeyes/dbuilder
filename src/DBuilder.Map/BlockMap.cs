@@ -122,6 +122,18 @@ public sealed class BlockMap
         return (front ? line.Front : line.Back)?.Sector;
     }
 
+    /// <summary>
+    /// Returns the sector that contains a linedef's start, midpoint, and end, or null when it crosses a boundary.
+    /// </summary>
+    public Sector? GetSectorContaining(Linedef line)
+    {
+        var start = GetSectorAt(line.Start.Position);
+        if (start == null) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.GetCenterPoint()))) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.End.Position))) return null;
+        return start;
+    }
+
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
         => Nearest(thingCells, pos, maxRange, static (t, p) => DistSq(t.Position, p));

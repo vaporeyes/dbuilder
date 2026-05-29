@@ -1624,6 +1624,18 @@ public class MapSet : IDisposable
         return side?.Sector;
     }
 
+    /// <summary>
+    /// Returns the sector that contains a linedef's start, midpoint, and end, or null when it crosses a boundary.
+    /// </summary>
+    public Sector? GetSectorContaining(Linedef line)
+    {
+        var start = GetSectorAt(line.Start.Position);
+        if (start == null) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.GetCenterPoint()))) return null;
+        if (!ReferenceEquals(start, GetSectorAt(line.End.Position))) return null;
+        return start;
+    }
+
     /// <summary>Vertices whose position falls within the axis-aligned box (inclusive).</summary>
     public List<Vertex> GetVerticesInBox(double minX, double minY, double maxX, double maxY)
     {

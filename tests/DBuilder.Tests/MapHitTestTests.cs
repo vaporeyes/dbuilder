@@ -153,4 +153,39 @@ public class MapHitTestTests
         Assert.Same(right, map.GetSectorAt(new Vector2D(60, 50)));
         Assert.Same(left, map.GetSectorAt(new Vector2D(40, 50)));
     }
+
+    [Fact]
+    public void GetSectorContainingReturnsSectorForLineFullyInside()
+    {
+        var (map, sector) = BuildSquare(100);
+        var line = new Linedef(
+            new Vertex(new Vector2D(20, 20)),
+            new Vertex(new Vector2D(80, 80)));
+
+        Assert.Same(sector, map.GetSectorContaining(line));
+    }
+
+    [Fact]
+    public void GetSectorContainingReturnsNullForLineCrossingBoundary()
+    {
+        var (map, _) = BuildSquare(100);
+        var line = new Linedef(
+            new Vertex(new Vector2D(50, 50)),
+            new Vertex(new Vector2D(150, 50)));
+
+        Assert.Null(map.GetSectorContaining(line));
+    }
+
+    [Fact]
+    public void BlockMapGetSectorContainingMatchesMapSet()
+    {
+        var (map, sector) = BuildSquare(100);
+        var blockMap = new BlockMap(map, 64);
+        var line = new Linedef(
+            new Vertex(new Vector2D(20, 20)),
+            new Vertex(new Vector2D(80, 20)));
+
+        Assert.Same(sector, blockMap.GetSectorContaining(line));
+        Assert.Same(map.GetSectorContaining(line), blockMap.GetSectorContaining(line));
+    }
 }
