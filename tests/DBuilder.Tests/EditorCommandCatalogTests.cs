@@ -151,6 +151,13 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void GestureTextFormatsSpecialKeys()
+    {
+        Assert.Equal("Esc", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape")));
+        Assert.Equal("Backspace", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Back")));
+    }
+
+    [Fact]
     public void GestureTextShowsMissingCommandsAsUnset()
     {
         Assert.Equal("-", EditorCommandCatalog.GestureText("missing.command", EditorCommandCatalog.DefaultShortcuts));
@@ -188,11 +195,25 @@ public class EditorCommandCatalogTests
     [Fact]
     public void ParseOverrideTextReadsCommandGestures()
     {
-        var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[");
+        var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[; window.cancel-draw=Esc");
 
         Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "F5");
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "R" && b.Shift);
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets");
+        Assert.Contains(overrides, b => b.CommandId == "window.cancel-draw" && b.Key == "Escape");
+    }
+
+    [Fact]
+    public void SpecialKeyAliasesResolveToAvaloniaKeyNames()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Esc"),
+            new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Backspace"),
+        });
+
+        Assert.Equal("window.cancel-draw", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Escape"));
+        Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Back"));
     }
 
     [Fact]

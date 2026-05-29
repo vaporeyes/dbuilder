@@ -257,6 +257,8 @@ public static class EditorCommandCatalog
         "Add" => "+",
         "OemMinus" => "-",
         "Subtract" => "-",
+        "Escape" => "Esc",
+        "Back" => "Backspace",
         "D1" => "1",
         "D2" => "2",
         "D3" => "3",
@@ -264,18 +266,25 @@ public static class EditorCommandCatalog
         _ => key,
     };
 
-    private static string ParseDisplayKey(string key) => key switch
+    private static string ParseDisplayKey(string key)
     {
-        "[" => "OemOpenBrackets",
-        "]" => "OemCloseBrackets",
-        "+" => "OemPlus",
-        "-" => "OemMinus",
-        "1" => "D1",
-        "2" => "D2",
-        "3" => "D3",
-        "4" => "D4",
-        _ => key,
-    };
+        if (key.Equals("Esc", StringComparison.OrdinalIgnoreCase)) return "Escape";
+        if (key.Equals("Del", StringComparison.OrdinalIgnoreCase)) return "Delete";
+        if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
+
+        return key switch
+        {
+            "[" => "OemOpenBrackets",
+            "]" => "OemCloseBrackets",
+            "+" => "OemPlus",
+            "-" => "OemMinus",
+            "1" => "D1",
+            "2" => "D2",
+            "3" => "D3",
+            "4" => "D4",
+            _ => key,
+        };
+    }
 
     public static IReadOnlyList<EditorShortcutBinding> EffectiveShortcuts(IEnumerable<EditorShortcutBinding>? overrides)
     {
@@ -312,7 +321,7 @@ public static class EditorCommandCatalog
                 && shortcut.Accelerator == accelerator
                 && shortcut.Shift == shift
                 && shortcut.Alt == alt
-                && string.Equals(shortcut.Key, key, StringComparison.OrdinalIgnoreCase))
+                && string.Equals(NormalizeKey(shortcut.Key), NormalizeKey(key), StringComparison.OrdinalIgnoreCase))
             {
                 return shortcut.CommandId;
             }
@@ -320,4 +329,6 @@ public static class EditorCommandCatalog
 
         return null;
     }
+
+    private static string NormalizeKey(string key) => ParseDisplayKey(key);
 }
