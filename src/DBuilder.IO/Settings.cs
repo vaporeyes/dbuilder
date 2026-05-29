@@ -18,6 +18,10 @@ public sealed class Settings
     public string? TestPort { get; set; }
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
+    public double? WindowX { get; set; }
+    public double? WindowY { get; set; }
+    public double? WindowWidth { get; set; }
+    public double? WindowHeight { get; set; }
     public List<string> RecentFiles { get; set; } = new();
     public List<RecentMapReference> RecentMaps { get; set; } = new();
 

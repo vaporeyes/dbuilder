@@ -78,7 +78,16 @@ public class SettingsTests
         string path = Path.Combine(Path.GetTempPath(), $"dbuilder_settings_{System.Guid.NewGuid():N}.json");
         try
         {
-            var s = new Settings { ConfigDir = "/cfg", TestPort = "/gz", TestIwad = "/iwad.wad" };
+            var s = new Settings
+            {
+                ConfigDir = "/cfg",
+                TestPort = "/gz",
+                TestIwad = "/iwad.wad",
+                WindowX = 120,
+                WindowY = 80,
+                WindowWidth = 1280,
+                WindowHeight = 900,
+            };
             s.AddRecent("/x.wad");
             s.AddRecentMap("/x.wad", "MAP01");
             Assert.True(s.Save(path));
@@ -87,6 +96,10 @@ public class SettingsTests
             Assert.Equal("/cfg", loaded.ConfigDir);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
+            Assert.Equal(120, loaded.WindowX);
+            Assert.Equal(80, loaded.WindowY);
+            Assert.Equal(1280, loaded.WindowWidth);
+            Assert.Equal(900, loaded.WindowHeight);
             Assert.Contains("/x.wad", loaded.RecentFiles);
             Assert.Contains(loaded.RecentMaps, m => m.Path == "/x.wad" && m.MapName == "MAP01");
         }

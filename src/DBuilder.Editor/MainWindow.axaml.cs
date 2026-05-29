@@ -106,6 +106,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        ApplyWindowPlacement();
         ReloadCompilerConfiguration();
         RebuildSelectionGroupsMenu();
         RebuildRecentMenu();
@@ -118,6 +119,24 @@ public partial class MainWindow : Window
     }
 
     private void SaveSettings() => _settings.Save(_settingsPath);
+
+    private void ApplyWindowPlacement()
+    {
+        if (_settings.WindowWidth is { } width && double.IsFinite(width) && width >= 640) Width = width;
+        if (_settings.WindowHeight is { } height && double.IsFinite(height) && height >= 480) Height = height;
+        if (_settings.WindowX is { } x && _settings.WindowY is { } y && double.IsFinite(x) && double.IsFinite(y))
+            Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
+    }
+
+    private void SaveWindowPlacement()
+    {
+        if (WindowState != WindowState.Normal) return;
+        _settings.WindowX = Position.X;
+        _settings.WindowY = Position.Y;
+        _settings.WindowWidth = Width;
+        _settings.WindowHeight = Height;
+        SaveSettings();
+    }
 
     private async void OnOpened(object? sender, EventArgs e)
     {
@@ -902,6 +921,7 @@ public partial class MainWindow : Window
     {
         if (_allowDirtyClose || !_mapDirty)
         {
+            SaveWindowPlacement();
             base.OnClosing(e);
             return;
         }
