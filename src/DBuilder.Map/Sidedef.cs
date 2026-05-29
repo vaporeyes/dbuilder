@@ -44,6 +44,15 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         IsFront = isFront;
     }
 
+    public bool IsFlagSet(string flagName)
+        => UdmfFlags.Contains(flagName);
+
+    public void SetFlag(string flagName, bool value)
+    {
+        if (value) UdmfFlags.Add(flagName);
+        else UdmfFlags.Remove(flagName);
+    }
+
     public void SetSector(Sector? sector)
         => Sector = sector;
 

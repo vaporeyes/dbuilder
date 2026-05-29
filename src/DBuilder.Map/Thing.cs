@@ -85,6 +85,15 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     public double DistanceTo(Vector2D pos)
         => Vector2D.Distance(pos, Position);
 
+    public bool IsFlagSet(string flagName)
+        => UdmfFlags.Contains(flagName);
+
+    public void SetFlag(string flagName, bool value)
+    {
+        if (value) UdmfFlags.Add(flagName);
+        else UdmfFlags.Remove(flagName);
+    }
+
     public void Move(Vector2D newPosition)
         => Position = newPosition;
 

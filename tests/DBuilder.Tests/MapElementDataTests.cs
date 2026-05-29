@@ -131,4 +131,37 @@ public class MapElementDataTests
         Assert.Throws<ArgumentOutOfRangeException>(() => thing.GetArg(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() => thing.SetArg(5, 1));
     }
+
+    [Fact]
+    public void NamedFlagHelpersMatchUdbSurface()
+    {
+        var line = new Linedef();
+        var side = new Sidedef();
+        var sector = new Sector();
+        var thing = new Thing(new Vector2D(0, 0), 3001);
+
+        line.SetFlag("blocking", true);
+        side.SetFlag("clipmidtex", true);
+        sector.SetFlag("secret", true);
+        thing.SetFlag("skill1", true);
+
+        Assert.True(line.IsFlagSet("blocking"));
+        Assert.True(side.IsFlagSet("clipmidtex"));
+        Assert.True(sector.IsFlagSet("secret"));
+        Assert.True(thing.IsFlagSet("skill1"));
+
+        line.SetFlag("blocking", false);
+        side.SetFlag("clipmidtex", false);
+        sector.SetFlag("secret", false);
+        thing.SetFlag("skill1", false);
+
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.False(side.IsFlagSet("clipmidtex"));
+        Assert.False(sector.IsFlagSet("secret"));
+        Assert.False(thing.IsFlagSet("skill1"));
+        Assert.Empty(line.UdmfFlags);
+        Assert.Empty(side.UdmfFlags);
+        Assert.Empty(sector.UdmfFlags);
+        Assert.Empty(thing.UdmfFlags);
+    }
 }

@@ -84,6 +84,15 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     // Match UDB's Linedef.Angle convention via Vector2D.GetAngle on the delta.
     public static double ComputeAngle(Vertex start, Vertex end) => (end.Position - start.Position).GetAngle();
 
+    public bool IsFlagSet(string flagName)
+        => UdmfFlags.Contains(flagName);
+
+    public void SetFlag(string flagName, bool value)
+    {
+        if (value) UdmfFlags.Add(flagName);
+        else UdmfFlags.Remove(flagName);
+    }
+
     public void Update(Dictionary<string, bool> flags, ushort rawFlags, int activate, List<int> tags, int action, int[] args)
     {
         UdmfFlags.Clear();

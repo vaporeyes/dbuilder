@@ -72,6 +72,15 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
             ? new Plane(CeilSlope, double.IsNaN(CeilSlopeOffset) ? 0.0 : CeilSlopeOffset).GetZ(pos)
             : CeilHeight;
 
+    public bool IsFlagSet(string flagName)
+        => UdmfFlags.Contains(flagName);
+
+    public void SetFlag(string flagName, bool value)
+    {
+        if (value) UdmfFlags.Add(flagName);
+        else UdmfFlags.Remove(flagName);
+    }
+
     public void Update(int floorHeight, int ceilHeight, string? floorTexture, string? ceilTexture, int special, int tag, int brightness)
         => Update(
             floorHeight,
