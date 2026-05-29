@@ -882,6 +882,8 @@ public partial class MainWindow : Window
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
     private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate 90 CW");
     private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
+    private void OnScaleUp(object? sender, RoutedEventArgs e) => ScaleSelection(2.0, "Scale up");
+    private void OnScaleDown(object? sender, RoutedEventArgs e) => ScaleSelection(0.5, "Scale down");
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
 
@@ -904,6 +906,23 @@ public partial class MainWindow : Window
         }
         _undo.CreateUndo(desc);
         SelectionTransform.Apply(_map, op);
+        _map.BuildIndexes();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"{desc} applied.");
+    }
+
+    // Scales the current selection about its center, undoable.
+    private void ScaleSelection(double factor, string desc)
+    {
+        if (_map is null || _undo is null) return;
+        if (_map.SelectedGeometryVertices().Count == 0 && _map.SelectedThingsCount == 0)
+        {
+            SetStatus("Select elements to transform first.");
+            return;
+        }
+        _undo.CreateUndo(desc);
+        SelectionTransform.Scale(_map, factor);
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
         UpdateInfo();

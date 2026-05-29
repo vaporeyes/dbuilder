@@ -49,6 +49,8 @@
                     <MenuItem Header="Flip _Vertical" Click="OnFlipV" />
                     <MenuItem Header="Rotate 90 C_W" Click="OnRotateCW" />
                     <MenuItem Header="Rotate 90 CC_W" Click="OnRotateCCW" />
+                    <MenuItem Header="Scale _Up" Click="OnScaleUp" />
+                    <MenuItem Header="Scale _Down" Click="OnScaleDown" />
                 </MenuItem>
                 <MenuItem Header="_Align textures">
                     <MenuItem Header="Align _Horizontal" Click="OnAlignTexturesX" />
