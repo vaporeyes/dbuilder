@@ -151,6 +151,23 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void GestureTextFormatsUdbStylePunctuationAndNumpadKeys()
+    {
+        Assert.Equal("~", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemTilde")));
+        Assert.Equal(";", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemSemicolon")));
+        Assert.Equal("'", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemQuotes")));
+        Assert.Equal(",", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemComma")));
+        Assert.Equal(".", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemPeriod")));
+        Assert.Equal("?", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemQuestion")));
+        Assert.Equal("\\", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "OemBackslash")));
+        Assert.Equal("NumPad+", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.zoom-in", EditorCommandScope.Map2D, "Add")));
+        Assert.Equal("NumPad-", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.zoom-out", EditorCommandScope.Map2D, "Subtract")));
+        Assert.Equal("NumPad.", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "Decimal")));
+        Assert.Equal("NumPad*", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "Multiply")));
+        Assert.Equal("NumPad/", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "Divide")));
+    }
+
+    [Fact]
     public void GestureTextFormatsSpecialKeys()
     {
         Assert.Equal("Esc", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape")));
@@ -201,6 +218,19 @@ public class EditorCommandCatalogTests
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "R" && b.Shift);
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets");
         Assert.Contains(overrides, b => b.CommandId == "window.cancel-draw" && b.Key == "Escape");
+    }
+
+    [Fact]
+    public void ParseOverrideTextReadsUdbStylePunctuationAndNumpadKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.fit=~; map2d.zoom-in=NumPad+; map2d.zoom-out=NumPad-; map3d.brightness-up=]; map3d.brightness-down=+");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-in" && b.Key == "Add");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "Subtract");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemCloseBrackets");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
     }
 
     [Fact]

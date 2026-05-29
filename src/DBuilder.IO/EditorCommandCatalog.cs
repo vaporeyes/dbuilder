@@ -227,7 +227,7 @@ public static class EditorCommandCatalog
 
         bool accelerator = false, shift = false, alt = false;
         string key = "";
-        foreach (string rawPart in gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (string rawPart in SplitGestureParts(gesture))
         {
             string part = rawPart.Trim();
             if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)
@@ -249,16 +249,46 @@ public static class EditorCommandCatalog
         return true;
     }
 
+    private static IEnumerable<string> SplitGestureParts(string gesture)
+    {
+        string text = gesture.Trim();
+        if (text.Equals("+", StringComparison.OrdinalIgnoreCase))
+        {
+            yield return "+";
+            yield break;
+        }
+
+        const string numpadPlus = "NumPad+";
+        if (text.EndsWith(numpadPlus, StringComparison.OrdinalIgnoreCase))
+            text = text[..^numpadPlus.Length] + "Add";
+        else if (text.EndsWith("+", StringComparison.Ordinal))
+            text = text[..^1] + "+OemPlus";
+
+        foreach (string part in text.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            yield return part;
+    }
+
     private static string DisplayKey(string key) => key switch
     {
         "OemOpenBrackets" => "[",
         "OemCloseBrackets" => "]",
+        "OemTilde" => "~",
+        "OemSemicolon" => ";",
+        "OemQuotes" => "'",
+        "OemComma" => ",",
+        "OemPeriod" => ".",
+        "OemQuestion" => "?",
+        "OemBackslash" => "\\",
         "OemPlus" => "+",
-        "Add" => "+",
+        "Add" => "NumPad+",
         "OemMinus" => "-",
-        "Subtract" => "-",
+        "Subtract" => "NumPad-",
+        "Decimal" => "NumPad.",
+        "Multiply" => "NumPad*",
+        "Divide" => "NumPad/",
         "Escape" => "Esc",
         "Back" => "Backspace",
+        "CapsLock" => "CapsLock",
         "D1" => "1",
         "D2" => "2",
         "D3" => "3",
@@ -271,11 +301,24 @@ public static class EditorCommandCatalog
         if (key.Equals("Esc", StringComparison.OrdinalIgnoreCase)) return "Escape";
         if (key.Equals("Del", StringComparison.OrdinalIgnoreCase)) return "Delete";
         if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
+        if (key.Equals("CapsLock", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
+        if (key.Equals("NumPad+", StringComparison.OrdinalIgnoreCase)) return "Add";
+        if (key.Equals("NumPad-", StringComparison.OrdinalIgnoreCase)) return "Subtract";
+        if (key.Equals("NumPad.", StringComparison.OrdinalIgnoreCase)) return "Decimal";
+        if (key.Equals("NumPad*", StringComparison.OrdinalIgnoreCase)) return "Multiply";
+        if (key.Equals("NumPad/", StringComparison.OrdinalIgnoreCase)) return "Divide";
 
         return key switch
         {
             "[" => "OemOpenBrackets",
             "]" => "OemCloseBrackets",
+            "~" => "OemTilde",
+            ";" => "OemSemicolon",
+            "'" => "OemQuotes",
+            "," => "OemComma",
+            "." => "OemPeriod",
+            "?" => "OemQuestion",
+            "\\" => "OemBackslash",
             "+" => "OemPlus",
             "-" => "OemMinus",
             "1" => "D1",

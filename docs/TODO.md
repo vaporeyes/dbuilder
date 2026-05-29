@@ -84,6 +84,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port mouse input abstractions.
 - [ ] Port special key handling.
   - [x] Normalize configurable shortcut aliases for escape, delete and backspace keys.
+  - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
 - [ ] Port toolbar/menu command synchronization.
