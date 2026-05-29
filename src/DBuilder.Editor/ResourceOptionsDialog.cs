@@ -13,6 +13,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
     private readonly CheckBox _strictPatches;
     private readonly CheckBox _rootTextures;
     private readonly CheckBox _rootFlats;
+    private readonly CheckBox _notForTesting;
 
     public DataLocation ResultLocation { get; private set; }
 
@@ -30,6 +31,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         _strictPatches = AddCheckBox("Strict WAD patch namespace", _type == DataLocationType.Wad && location.Option1);
         _rootTextures = AddCheckBox("Load root textures", _type == DataLocationType.Pk3 && location.Option1);
         _rootFlats = AddCheckBox("Load root flats", _type == DataLocationType.Pk3 && location.Option2);
+        _notForTesting = AddCheckBox("Exclude from Test Map launch", location.NotForTesting);
 
         _strictPatches.IsVisible = _type == DataLocationType.Wad;
         _rootTextures.IsVisible = _type == DataLocationType.Pk3;
@@ -46,6 +48,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
             location.Option1 = _rootTextures.IsChecked == true;
             location.Option2 = _rootFlats.IsChecked == true;
         }
+        location.NotForTesting = _notForTesting.IsChecked == true;
         ResultLocation = location;
     }
 

@@ -1864,7 +1864,7 @@ public partial class MainWindow : Window
 
             string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS")
                 ?? TestArgsTemplate();
-            var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker);
+            var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker, TestResourcePaths());
 
             var psi = new System.Diagnostics.ProcessStartInfo(port!) { UseShellExecute = false };
             foreach (var a in args) psi.ArgumentList.Add(a);
@@ -1888,6 +1888,15 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(_settings.TestPortArgs)) return _settings.TestPortArgs!;
         if (!string.IsNullOrWhiteSpace(_config?.TestParameters)) return _config.TestParameters;
         return SourcePort.DefaultArgsTemplate;
+    }
+
+    private IEnumerable<string> TestResourcePaths()
+    {
+        if (_mapOptions is null) yield break;
+        foreach (var location in _mapOptions.GetResources())
+        {
+            if (!location.NotForTesting && location.IsValid()) yield return location.Location;
+        }
     }
 
     private FindReplaceWindow? _findWindow;

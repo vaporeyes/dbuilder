@@ -54,6 +54,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Execute configured before/after Reload Resources commands.
 - [ ] Port game testing flow with configurable source ports.
   - [x] Use loaded game configuration test parameter templates when no user override is set.
+  - [x] Include non-excluded map resources in Test Map launch parameters.
 - [ ] Port node-builder discovery, configuration, and execution flow.
 
 ## Actions, Commands, And Input

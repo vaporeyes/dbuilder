@@ -50,6 +50,15 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbAdditionalFilesExpandAsSeparateFileArguments()
+    {
+        var args = SourcePort.BuildArgs("-file \"%AP\" \"%F\"",
+            "doom2.wad", "edit.wad", "MAP01", new[] { "textures.pk3", "/tmp/music pack.wad" });
+
+        Assert.Equal(new[] { "-file", "textures.pk3", "/tmp/music pack.wad", "edit.wad" }, args);
+    }
+
+    [Fact]
     public void UdbVanillaMapxxTemplateBuildsTwoDigitWarp()
     {
         var args = SourcePort.BuildArgs("-warp %L1%L2", "doom2.wad", "edit.wad", "MAP11");

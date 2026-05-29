@@ -16,9 +16,12 @@ public static class SourcePort
     /// Splits <paramref name="template"/> into argument tokens (double quotes group spaces) and substitutes
     /// %IWAD (iwad path), %FO (the map PWAD path) and %MAP (the map marker).
     /// </summary>
-    public static List<string> BuildArgs(string template, string iwad, string file, string map)
+    public static List<string> BuildArgs(string template, string iwad, string file, string map, IEnumerable<string>? additionalFiles = null)
     {
         var (l, l1, l2) = WarpTokens(map);
+        string additional = BuildAdditionalFiles(additionalFiles);
+        template = template.Replace("\"%AP\"", additional).Replace("%AP", additional);
+
         var tokens = new List<string>();
         var cur = new StringBuilder();
         bool inQuote = false, has = false;
@@ -41,7 +44,6 @@ public static class SourcePort
                 .Replace("%L1", l1)
                 .Replace("%L2", l2)
                 .Replace("%L", l)
-                .Replace("%AP", "")
                 .Replace("%S", "3")
                 .Replace("%NM", "");
             if (token.Length == 0) tokens.RemoveAt(i);
@@ -49,6 +51,22 @@ public static class SourcePort
         }
         return tokens;
     }
+
+    private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles)
+    {
+        if (additionalFiles is null) return "";
+
+        var result = new List<string>();
+        foreach (string file in additionalFiles)
+        {
+            if (string.IsNullOrWhiteSpace(file)) continue;
+            result.Add(Quote(file));
+        }
+        return string.Join(" ", result);
+    }
+
+    private static string Quote(string value)
+        => "\"" + value.Replace("\"", "\\\"") + "\"";
 
     private static (string L, string L1, string L2) WarpTokens(string map)
     {
