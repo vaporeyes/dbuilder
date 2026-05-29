@@ -345,6 +345,35 @@ public class MapSetStitchTests
         Assert.Null(line.Back);
     }
 
+    [Fact]
+    public void StitchSelectedGeometryClassicDoesNotCorrectOuterSidedefs()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        map.AddSidedef(line, true, sector);
+        line.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Classic, 0.5);
+
+        Assert.Equal(0, result.CorrectedOuterSidedefs);
+        Assert.Null(line.Back);
+    }
+
+    [Fact]
+    public void StitchSelectedGeometryMergeCorrectsOuterSidedefs()
+    {
+        var (map, sector) = BuildSquare(128);
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
+        map.AddSidedef(line, true, sector);
+        line.Selected = true;
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(MergeGeometryMode.Merge, 0.5);
+
+        Assert.Equal(1, result.CorrectedOuterSidedefs);
+        Assert.NotNull(line.Back);
+        Assert.Same(sector, line.Back!.Sector);
+    }
+
     private static (MapSet map, Sector sector) BuildSquare(double size)
     {
         var map = new MapSet();

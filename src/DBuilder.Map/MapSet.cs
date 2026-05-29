@@ -31,10 +31,11 @@ public readonly record struct GeometryStitchResult(
     int LineLineSplits,
     int RemovedLoopedLinedefs,
     int JoinedOverlappingLinedefs,
+    int CorrectedOuterSidedefs,
     int FlippedBackwardLinedefs)
 {
     public int TotalChanges => JoinedVertices + VertexLineSplits + LineLineSplits + RemovedLoopedLinedefs +
-        JoinedOverlappingLinedefs + FlippedBackwardLinedefs;
+        JoinedOverlappingLinedefs + CorrectedOuterSidedefs + FlippedBackwardLinedefs;
 }
 
 public class MapSet : IDisposable
@@ -737,6 +738,13 @@ public class MapSet : IDisposable
     /// removing looped changed lines, and correcting backward changed lines. Call BuildIndexes() afterward.
     /// </summary>
     public GeometryStitchResult StitchSelectedGeometry(double stitchDistance = 1.0)
+        => StitchSelectedGeometry(MergeGeometryMode.Classic, stitchDistance);
+
+    /// <summary>
+    /// Stitches selected geometry against unselected geometry using the requested UDB merge-geometry mode.
+    /// Non-classic modes also try to restore missing outer sidedefs for changed lines inside existing sectors.
+    /// </summary>
+    public GeometryStitchResult StitchSelectedGeometry(MergeGeometryMode mergeMode, double stitchDistance = 1.0)
     {
         var movingVertices = SelectedGeometryVertices();
         if (movingVertices.Count == 0) return default;
@@ -771,6 +779,7 @@ public class MapSet : IDisposable
         int lineLineSplits = SplitLinesByLines(fixedLines, changedLines);
         int removedLooped = RemoveLoopedLinedefs(changedLines);
         int joinedOverlapping = JoinOverlappingLinedefs(changedLines);
+        int correctedOuter = mergeMode == MergeGeometryMode.Classic ? 0 : CorrectOuterSidedefs(changedLines);
         int flippedBackward = FlipBackwardLinedefs(changedLines);
 
         return new GeometryStitchResult(
@@ -779,6 +788,7 @@ public class MapSet : IDisposable
             lineLineSplits,
             removedLooped,
             joinedOverlapping,
+            correctedOuter,
             flippedBackward);
     }
 
