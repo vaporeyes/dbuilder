@@ -1,10 +1,13 @@
 // ABOUTME: Avalonia Application subclass - wires the desktop lifetime to the main window.
 // ABOUTME: Passes any command-line file argument through so the editor can open a WAD on launch.
 
+using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using DBuilder.IO;
 
 namespace DBuilder.Editor;
 
@@ -16,6 +19,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
             Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
             string? openPath = desktop.Args is { Length: > 0 } a ? a[0] : null;
             desktop.MainWindow = new MainWindow(openPath);
@@ -42,5 +47,17 @@ public partial class App : Application
         catch
         {
         }
+    }
+
+    private static void OnAppDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+            ErrorLog.WriteCrashReport(exception);
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        ErrorLog.Append(e.Exception, "Unobserved task exception");
+        e.SetObserved();
     }
 }

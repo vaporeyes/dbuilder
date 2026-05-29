@@ -2,8 +2,6 @@
 // ABOUTME: Gives users readable failure details when Avalonia reports an unhandled UI-thread exception.
 
 using System;
-using System.IO;
-using System.Text;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -20,7 +18,7 @@ public sealed class ExceptionDialog : Window
         Height = 520;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        string? reportPath = WriteReport(exception);
+        string? reportPath = ErrorLog.WriteCrashReport(exception);
         var root = new DockPanel { Margin = new Avalonia.Thickness(14) };
 
         var header = new StackPanel { Spacing = 6 };
@@ -66,32 +64,4 @@ public sealed class ExceptionDialog : Window
         Content = root;
     }
 
-    private static string? WriteReport(Exception exception)
-    {
-        try
-        {
-            string settingsDir = Path.GetDirectoryName(Settings.DefaultPath) ?? Environment.CurrentDirectory;
-            Directory.CreateDirectory(settingsDir);
-            string path = Path.Combine(settingsDir, "DBuilderCrash.txt");
-            File.WriteAllText(path, ReportText(exception));
-            return path;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static string ReportText(Exception exception)
-    {
-        var text = new StringBuilder();
-        text.AppendLine("***********SYSTEM INFO***********");
-        text.AppendLine($"OS: {Environment.OSVersion}");
-        text.AppendLine($"Runtime: {Environment.Version}");
-        text.AppendLine($"Process: {(Environment.Is64BitProcess ? "x64" : "x86")}");
-        text.AppendLine();
-        text.AppendLine("********EXCEPTION DETAILS********");
-        text.AppendLine(exception.ToString());
-        return text.ToString();
-    }
 }

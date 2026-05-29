@@ -42,6 +42,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port launcher and external command execution behavior.
 - [ ] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.
+  - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
 - [ ] Port toast, status, and notification behavior.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.

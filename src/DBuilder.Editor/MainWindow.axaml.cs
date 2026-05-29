@@ -113,6 +113,12 @@ public partial class MainWindow : Window
 
     private void SaveSettings() => _settings.Save(_settingsPath);
 
+    private void LogAndSetStatus(Exception exception, string context)
+    {
+        ErrorLog.Append(exception, context);
+        SetStatus($"{context}: {exception.Message}");
+    }
+
     private static string? AssetsRootFromConfigDir(string configDir)
     {
         var dir = new System.IO.DirectoryInfo(configDir);
@@ -265,7 +271,7 @@ public partial class MainWindow : Window
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateInfo();
         }
-        catch (Exception ex) { SetStatus($"Config load failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Config load failed"); }
     }
 
     // ---- File ----
@@ -419,7 +425,7 @@ public partial class MainWindow : Window
             ApplyResourceConfig(); // re-trigger texture cache invalidation + redraw
             SetStatus($"Added resource {location.GetDisplayName()} (textures/flats/actors refreshed)");
         }
-        catch (Exception ex) { SetStatus($"Add resource failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Add resource failed"); }
     }
 
     // Opens the texture/flat browser for the current 3D target and applies the pick to it.
@@ -672,7 +678,7 @@ public partial class MainWindow : Window
             string converted = targetFormat != _mapFormat ? $" (converted from {_mapFormat})" : "";
             SetStatus($"Saved {marker} [{targetFormat}]{converted} to {System.IO.Path.GetFileName(outPath)}{nodeStatus}");
         }
-        catch (Exception ex) { SetStatus($"Save failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Save failed"); }
     }
 
     private async void OnMapOptions(object? sender, RoutedEventArgs e)
@@ -1328,7 +1334,7 @@ public partial class MainWindow : Window
         });
         if (file?.TryGetLocalPath() is not { } path) return;
         try { System.IO.File.WriteAllBytes(path, data); SetStatus($"Saved prefab to {System.IO.Path.GetFileName(path)}."); }
-        catch (Exception ex) { SetStatus($"Save prefab failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Save prefab failed"); }
     }
 
     // Inserts a .prefab file at the cursor (undoable via the EditBegun hook).
@@ -1345,7 +1351,7 @@ public partial class MainWindow : Window
         });
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
         try { MapView.InsertPrefab(System.IO.File.ReadAllBytes(path)); UpdateInfo(); MapView.Focus(); }
-        catch (Exception ex) { SetStatus($"Insert prefab failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Insert prefab failed"); }
     }
 
     private void OnDrawSector(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: false, "sector");
@@ -1608,7 +1614,7 @@ public partial class MainWindow : Window
             if (maps.Count > 1)
                 SetStatus($"Loaded {selected.Name} ({maps.IndexOf(selected) + 1} of {maps.Count} maps - File > Open Map to switch)");
         }
-        catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Load failed"); }
     }
 
     private async Task LoadPk3(string path, bool promptForMap, RecentMapReference? recentMap = null)
@@ -1660,7 +1666,7 @@ public partial class MainWindow : Window
             if (maps.Count > 1)
                 SetStatus($"Loaded {selected.Map.Name} from {selected.ArchivePath} ({maps.IndexOf(selected) + 1} of {maps.Count} maps - File > Open Map to switch)");
         }
-        catch (Exception ex) { SetStatus($"PK3 load failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "PK3 load failed"); }
     }
 
     // Loads a specific map from the currently open WAD into the editor.
@@ -1692,7 +1698,7 @@ public partial class MainWindow : Window
             string resources = resourceIssues == 0 ? "" : $" ({resourceIssues} map resource(s) missing or unreadable)";
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
         }
-        catch (Exception ex) { SetStatus($"Load failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Load failed"); }
     }
 
     private void LoadPk3MapEntry(Pk3MapEntry entry)
@@ -1719,7 +1725,7 @@ public partial class MainWindow : Window
             UpdateInfo();
             SetStatus($"Loaded {entry.Map.Name} [{entry.Map.Format}] from {entry.ArchivePath}: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things");
         }
-        catch (Exception ex) { SetStatus($"PK3 map load failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "PK3 map load failed"); }
     }
 
     private void RememberRecentMap(string path, string mapName, string? archivePath = null)
@@ -1944,7 +1950,7 @@ public partial class MainWindow : Window
             }
             SetStatus($"Testing {_mapMarker} in {System.IO.Path.GetFileNameWithoutExtension(port)} (iwad: {System.IO.Path.GetFileName(iwad)}).");
         }
-        catch (Exception ex) { SetStatus($"Test Map failed: {ex.Message}"); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Test Map failed"); }
     }
 
     private string TestArgsTemplate()
