@@ -41,4 +41,7 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     public double DistanceTo(Vector2D pos)
         => Vector2D.Distance(pos, Position);
+
+    public Linedef? NearestLinedef(Vector2D pos)
+        => MapSet.NearestLinedef(Linedefs, pos);
 }

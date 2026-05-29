@@ -65,6 +65,24 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void VertexNearestLinedefSearchesAttachedLines()
+    {
+        var map = new MapSet();
+        var center = map.AddVertex(new Vector2D(0, 0));
+        var horizontal = map.AddLinedef(center, map.AddVertex(new Vector2D(10, 0)));
+        var vertical = map.AddLinedef(center, map.AddVertex(new Vector2D(0, 10)));
+        var detached = map.AddLinedef(map.AddVertex(new Vector2D(-5, 0)), map.AddVertex(new Vector2D(-5, 10)));
+        map.BuildIndexes();
+
+        Assert.Contains(horizontal, center.Linedefs);
+        Assert.Contains(vertical, center.Linedefs);
+        Assert.DoesNotContain(detached, center.Linedefs);
+        Assert.Same(vertical, center.NearestLinedef(new Vector2D(-5, 0)));
+        Assert.Same(vertical, MapSet.NearestLinedef(center.Linedefs, new Vector2D(-5, 0)));
+        Assert.Null(MapSet.NearestLinedef(Array.Empty<Linedef>(), new Vector2D(0, 0)));
+    }
+
+    [Fact]
     public void NearestLinedefFindsClosestEdge()
     {
         var (map, _) = BuildSquare(100);
