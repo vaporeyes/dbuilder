@@ -329,6 +329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
+  - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

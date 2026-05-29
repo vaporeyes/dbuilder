@@ -324,6 +324,35 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void NormalizesPatchRenderStylesLikeUdb()
+    {
+        string textures =
+            "WallTexture WNORM, 2, 1\n" +
+            "{\n" +
+            "    Patch \"RED\", 0, 0\n" +
+            "    Patch \"BLUE\", 0, 0 { Style CopyAlpha }\n" +
+            "    Patch \"GREEN\", 1, 0 { Style Overlay Alpha 0.5 }\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))),
+            ("patches/GREEN.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 200, 0, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WNORM");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 0, 200, 0, 255 }, tex.Rgba[4..8]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void LoadsMultipleRootTexturesFilesFromPk3()
     {
         string first =

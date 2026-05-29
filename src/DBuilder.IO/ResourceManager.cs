@@ -724,7 +724,8 @@ public sealed class ResourceManager : IDisposable
     {
         int outWidth = patch.Rotation is 90 or 270 ? src.Height : src.Width;
         int outHeight = patch.Rotation is 90 or 270 ? src.Width : src.Height;
-        int patchAlpha = (int)Math.Round(Math.Clamp(patch.Alpha, 0.0, 1.0) * 255.0);
+        var renderStyle = NormalizePatchRenderStyle(patch);
+        int patchAlpha = PatchAlpha(patch, renderStyle);
 
         for (int sy = 0; sy < outHeight; sy++)
         {
@@ -745,19 +746,19 @@ public sealed class ResourceManager : IDisposable
                 ApplyPatchBlend(patch, ref sr, ref sg, ref sb);
 
                 int di = (dy * dw + dx) * 4;
-                BlendPatchPixel(dst, di, sr, sg, sb, a, patch);
+                BlendPatchPixel(dst, di, sr, sg, sb, a, patch, renderStyle);
             }
         }
     }
 
-    private static void BlendPatchPixel(byte[] dst, int di, byte sr, byte sg, byte sb, int a, TexturesPatch patch)
+    private static void BlendPatchPixel(byte[] dst, int di, byte sr, byte sg, byte sb, int a, TexturesPatch patch, TexturesPatchRenderStyle renderStyle)
     {
         byte dr = dst[di];
         byte dg = dst[di + 1];
         byte db = dst[di + 2];
         byte da = dst[di + 3];
 
-        switch (patch.RenderStyle)
+        switch (renderStyle)
         {
             case TexturesPatchRenderStyle.Add:
                 dst[di] = (byte)Math.Min(255, dr + sr * a / 255);
@@ -789,11 +790,6 @@ public sealed class ResourceManager : IDisposable
             case TexturesPatchRenderStyle.CopyNewAlpha:
                 dst[di] = sr; dst[di + 1] = sg; dst[di + 2] = sb; dst[di + 3] = (byte)a;
                 return;
-            case TexturesPatchRenderStyle.Overlay:
-                sr = OverlayChannel(dr, sr);
-                sg = OverlayChannel(dg, sg);
-                sb = OverlayChannel(db, sb);
-                break;
         }
 
         if (a == 255)
@@ -811,8 +807,22 @@ public sealed class ResourceManager : IDisposable
         }
     }
 
-    private static byte OverlayChannel(byte dst, byte src)
-        => dst < 128 ? (byte)(2 * dst * src / 255) : (byte)(255 - 2 * (255 - dst) * (255 - src) / 255);
+    private static TexturesPatchRenderStyle NormalizePatchRenderStyle(TexturesPatch patch)
+    {
+        if (patch.RenderStyle == TexturesPatchRenderStyle.Overlay) return TexturesPatchRenderStyle.Copy;
+
+        if (patch.Alpha == 1.0 && patch.RenderStyle is TexturesPatchRenderStyle.Translucent
+            or TexturesPatchRenderStyle.CopyAlpha
+            or TexturesPatchRenderStyle.CopyNewAlpha)
+            return TexturesPatchRenderStyle.Copy;
+
+        return patch.RenderStyle;
+    }
+
+    private static int PatchAlpha(TexturesPatch patch, TexturesPatchRenderStyle renderStyle)
+        => renderStyle == TexturesPatchRenderStyle.Copy && patch.RenderStyle != TexturesPatchRenderStyle.Copy
+            ? 255
+            : (int)Math.Round(Math.Clamp(patch.Alpha, 0.0, 1.0) * 255.0);
 
     private static void MapPatchPixel(int x, int y, int width, int height, TexturesPatch patch, out int sourceX, out int sourceY)
     {
