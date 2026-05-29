@@ -491,6 +491,7 @@ public partial class MainWindow : Window
                 case Avalonia.Input.Key.Z: OnUndo(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.Y: OnRedo(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.S: OnSave(this, new RoutedEventArgs()); e.Handled = true; return;
+                case Avalonia.Input.Key.X: OnCut(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.C: OnCopy(this, new RoutedEventArgs()); e.Handled = true; return;
                 case Avalonia.Input.Key.V: OnPaste(this, new RoutedEventArgs()); e.Handled = true; return;
             }
@@ -525,6 +526,21 @@ public partial class MainWindow : Window
     private void OnRedo(object? sender, RoutedEventArgs e)
     {
         if (_undo?.Redo() == true) { MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Redo"); }
+    }
+
+    private void OnCut(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        int selected = CountSelection();
+        if (selected == 0) { SetStatus("Nothing selected to cut."); return; }
+
+        MapView.CopySelection();
+        _undo.CreateUndo("Cut selection");
+        int removed = _map.DeleteSelection();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus($"Cut {removed} element(s).");
     }
 
     private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
