@@ -84,6 +84,34 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void GetSectorsFromLinedefsReturnsOnlyFullyBoundedSectors()
+    {
+        var map = BuildTwoAdjacentSquares();
+        var left = map.Sectors[0];
+        var right = map.Sectors[1];
+        var leftLines = left.Sidedefs.Select(side => side.Line).ToArray();
+
+        Assert.Equal(new[] { left }, map.GetSectorsFromLinedefs(leftLines));
+        Assert.DoesNotContain(right, map.GetSectorsFromLinedefs(leftLines));
+        Assert.Empty(map.GetSectorsFromLinedefs(leftLines.Take(3)));
+    }
+
+    [Fact]
+    public void GetUnselectedSectorsFromLinedefsExcludesSelectedSectors()
+    {
+        var map = BuildTwoAdjacentSquares();
+        var left = map.Sectors[0];
+        var right = map.Sectors[1];
+        var lines = map.Linedefs.ToArray();
+        left.Selected = true;
+
+        var unselected = map.GetUnselectedSectorsFromLinedefs(lines);
+
+        Assert.Equal(new[] { right }, unselected);
+        Assert.DoesNotContain(left, unselected);
+    }
+
+    [Fact]
     public void MergeOverlappingVerticesCollapsesNearbyPoints()
     {
         var map = new MapSet();
@@ -229,5 +257,31 @@ public class GeometryCleanupTests
 
         undo.Undo();
         Assert.Equal(3, map.Vertices.Count);
+    }
+
+    private static MapSet BuildTwoAdjacentSquares()
+    {
+        var map = new MapSet();
+        var left = map.AddSector();
+        var right = map.AddSector();
+        var v00 = map.AddVertex(new Vector2D(0, 0));
+        var v10 = map.AddVertex(new Vector2D(64, 0));
+        var v20 = map.AddVertex(new Vector2D(128, 0));
+        var v01 = map.AddVertex(new Vector2D(0, 64));
+        var v11 = map.AddVertex(new Vector2D(64, 64));
+        var v21 = map.AddVertex(new Vector2D(128, 64));
+
+        map.AddSidedef(map.AddLinedef(v00, v10), true, left);
+        var shared = map.AddLinedef(v10, v11);
+        map.AddSidedef(shared, true, left);
+        map.AddSidedef(shared, false, right);
+        map.AddSidedef(map.AddLinedef(v11, v01), true, left);
+        map.AddSidedef(map.AddLinedef(v01, v00), true, left);
+
+        map.AddSidedef(map.AddLinedef(v10, v20), true, right);
+        map.AddSidedef(map.AddLinedef(v20, v21), true, right);
+        map.AddSidedef(map.AddLinedef(v21, v11), true, right);
+        map.BuildIndexes();
+        return map;
     }
 }

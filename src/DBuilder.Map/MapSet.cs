@@ -985,6 +985,16 @@ public class MapSet : IDisposable
         return new List<Linedef>(lines.Values);
     }
 
+    public HashSet<Sector> GetUnselectedSectorsFromLinedefs(IEnumerable<Linedef> linedefs)
+    {
+        return GetSectorsFromLinedefs(linedefs, excludeSelected: true);
+    }
+
+    public HashSet<Sector> GetSectorsFromLinedefs(IEnumerable<Linedef> linedefs)
+    {
+        return GetSectorsFromLinedefs(linedefs, excludeSelected: false);
+    }
+
     public void MarkAllSelectedGeometry(
         bool mark,
         bool linedefsFromVertices,
@@ -1207,6 +1217,37 @@ public class MapSet : IDisposable
     }
 
     private static bool InSelectionType(SelectionType value, SelectionType bits) => (value & bits) == bits;
+
+    private HashSet<Sector> GetSectorsFromLinedefs(IEnumerable<Linedef> linedefs, bool excludeSelected)
+    {
+        var result = new HashSet<Sector>();
+        var sectorsBySides = new Dictionary<Sector, HashSet<Sidedef>>();
+
+        foreach (var line in linedefs)
+        {
+            AddSideSector(line.Front, sectorsBySides, excludeSelected);
+            AddSideSector(line.Back, sectorsBySides, excludeSelected);
+        }
+
+        foreach (var group in sectorsBySides)
+        {
+            if (group.Key.Sidedefs.Count == group.Value.Count) result.Add(group.Key);
+        }
+
+        return result;
+    }
+
+    private static void AddSideSector(Sidedef? side, Dictionary<Sector, HashSet<Sidedef>> sectorsBySides, bool excludeSelected)
+    {
+        if (side?.Sector == null) return;
+        if (excludeSelected && side.Sector.Selected) return;
+        if (!sectorsBySides.TryGetValue(side.Sector, out var sides))
+        {
+            sides = new HashSet<Sidedef>();
+            sectorsBySides.Add(side.Sector, sides);
+        }
+        sides.Add(side);
+    }
 
     private static void MarkSelected<T>(List<T> items, bool selected, bool mark) where T : ISelectable, IMarkable
     {
