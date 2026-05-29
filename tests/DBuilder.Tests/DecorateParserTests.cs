@@ -179,6 +179,28 @@ ACTOR RegionDefaultThing 5008
     }
 
     [Fact]
+    public void RegionDollarPropertiesProvideThingDefaults()
+    {
+        const string text = @"
+#region Region Defaults
+$Color 4
+$Sprite ""BALLA0""
+ACTOR RegionDollarDefaultThing 5012
+{
+    Radius 16
+}
+#endregion";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var thing = gc.GetThing(5012);
+        Assert.NotNull(thing);
+        Assert.Equal("Region Defaults", thing!.Category);
+        Assert.Equal(4, thing.Color);
+        Assert.Equal("BALLA0", thing.Sprite);
+    }
+
+    [Fact]
     public void ActorEditorKeysOverrideRegionEditorKeys()
     {
         const string text = @"

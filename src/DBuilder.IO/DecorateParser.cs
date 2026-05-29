@@ -112,6 +112,19 @@ public static class DecorateParser
                 i++;
                 continue;
             }
+            if (toks[i].Kind == Kind.Word && toks[i].Text.StartsWith("$", StringComparison.Ordinal))
+            {
+                if (regionProperties.Count > 0)
+                {
+                    string editorLine = ReadLineValue(toks, ref i);
+                    ParseRegionEditorKey(editorLine, regionProperties[^1]);
+                }
+                else
+                {
+                    SkipLine(toks, ref i);
+                }
+                continue;
+            }
             if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#region", StringComparison.OrdinalIgnoreCase))
             {
                 i++;

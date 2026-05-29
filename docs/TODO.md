@@ -325,6 +325,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize DECORATE `Game` property values.
   - [x] Skip top-level DECORATE enum, native, and const declarations.
   - [x] Merge top-level DECORATE `DamageType` definitions into configuration metadata.
+  - [x] Apply top-level DECORATE `$` region properties as thing defaults.
 - [ ] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
 - [ ] Complete ZScript parser behavior.
