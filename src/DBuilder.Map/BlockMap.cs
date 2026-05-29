@@ -301,7 +301,7 @@ public sealed class BlockMap
 
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
-        => Nearest(thingCells, pos, maxRange, static (t, p) => DistSq(t.Position, p));
+        => Nearest(thingCells, pos, maxRange, static (t, p) => t.DistanceToSq(p));
 
     /// <summary>Adds a set of things to the fixed blockmap range.</summary>
     public void AddThings(IEnumerable<Thing> things)

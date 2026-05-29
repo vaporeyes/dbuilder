@@ -193,6 +193,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port line intersection, snapping, nearest-point, and hit-test helpers.
   - [x] Add UDB-style linedef geometry measurement helpers.
   - [x] Use UDB safe linedef distance for nearest-line queries.
+  - [x] Add UDB-style thing distance helpers.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats

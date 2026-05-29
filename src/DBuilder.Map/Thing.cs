@@ -72,4 +72,10 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     {
         Sector = blockMap.GetContainingSector(Position);
     }
+
+    public double DistanceToSq(Vector2D pos)
+        => Vector2D.DistanceSq(pos, Position);
+
+    public double DistanceTo(Vector2D pos)
+        => Vector2D.Distance(pos, Position);
 }

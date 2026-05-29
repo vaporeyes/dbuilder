@@ -1751,9 +1751,7 @@ public class MapSet : IDisposable
         double bestSq = maxRange == double.MaxValue ? double.MaxValue : maxRange * maxRange;
         foreach (var t in Things)
         {
-            double dx = t.Position.x - pos.x;
-            double dy = t.Position.y - pos.y;
-            double d = dx * dx + dy * dy;
+            double d = t.DistanceToSq(pos);
             if (d < bestSq) { bestSq = d; closest = t; }
         }
         return closest;

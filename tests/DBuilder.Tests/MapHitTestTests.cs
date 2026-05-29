@@ -153,6 +153,15 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void ThingDistanceHelpersMatchUdbSurface()
+    {
+        var thing = new Thing(new Vector2D(3, 4), 3001);
+
+        Assert.Equal(25, thing.DistanceToSq(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(5, thing.DistanceTo(new Vector2D(0, 0)), 1e-9);
+    }
+
+    [Fact]
     public void GetSectorAtTwoSidedDividerPicksCorrectSector()
     {
         var map = new MapSet();
