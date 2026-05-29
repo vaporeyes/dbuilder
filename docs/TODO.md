@@ -196,6 +196,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style thing distance helpers.
   - [x] Add UDB-style vertex distance helpers.
   - [x] Add UDB-style vertex attached-line nearest query.
+  - [x] Add UDB-style static nearest vertex and thing selection queries.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats

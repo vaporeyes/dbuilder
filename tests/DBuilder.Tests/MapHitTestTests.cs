@@ -56,6 +56,17 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestVertexSearchesSelection()
+    {
+        var near = new Vertex(new Vector2D(3, 4));
+        var far = new Vertex(new Vector2D(100, 0));
+        var selection = new[] { far, near };
+
+        Assert.Same(near, MapSet.NearestVertex(selection, new Vector2D(0, 0)));
+        Assert.Null(MapSet.NearestVertex(Array.Empty<Vertex>(), new Vector2D(0, 0)));
+    }
+
+    [Fact]
     public void VertexDistanceHelpersMatchUdbSurface()
     {
         var vertex = new Vertex(new Vector2D(3, 4));
@@ -177,6 +188,20 @@ public class MapHitTestTests
         Assert.Same(t1, map.NearestThing(new Vector2D(95, 2)));
         Assert.Null(map.NearestThing(new Vector2D(50, 50), maxRange: 10));
         Assert.Null(new MapSet().NearestThing(new Vector2D(0, 0)));
+    }
+
+    [Fact]
+    public void StaticNearestThingSearchesSelection()
+    {
+        var source = new Thing(new Vector2D(0, 0), 1);
+        var near = new Thing(new Vector2D(3, 4), 2);
+        var far = new Thing(new Vector2D(100, 0), 3);
+        var selection = new[] { source, far, near };
+
+        Assert.Same(near, MapSet.NearestThing(selection, new Vector2D(4, 4)));
+        Assert.Same(near, MapSet.NearestThing(selection, source));
+        Assert.Null(MapSet.NearestThing(new[] { source }, source));
+        Assert.Null(MapSet.NearestThing(Array.Empty<Thing>(), new Vector2D(0, 0)));
     }
 
     [Fact]

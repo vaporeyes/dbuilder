@@ -1742,6 +1742,19 @@ public class MapSet : IDisposable
         return closest;
     }
 
+    /// <summary>Nearest vertex to <paramref name="pos"/> from the supplied selection, or null when the selection is empty.</summary>
+    public static Vertex? NearestVertex(ICollection<Vertex> selection, Vector2D pos)
+    {
+        Vertex? closest = null;
+        double bestSq = double.MaxValue;
+        foreach (var v in selection)
+        {
+            double d = v.DistanceToSq(pos);
+            if (d < bestSq) { bestSq = d; closest = v; }
+        }
+        return closest;
+    }
+
     /// <summary>Nearest thing to <paramref name="pos"/> within <paramref name="maxRange"/> units, or null if none.</summary>
     public Thing? NearestThing(Vector2D pos, double maxRange = double.MaxValue)
     {
@@ -1750,6 +1763,33 @@ public class MapSet : IDisposable
         foreach (var t in Things)
         {
             double d = t.DistanceToSq(pos);
+            if (d < bestSq) { bestSq = d; closest = t; }
+        }
+        return closest;
+    }
+
+    /// <summary>Nearest thing to <paramref name="pos"/> from the supplied selection, or null when the selection is empty.</summary>
+    public static Thing? NearestThing(ICollection<Thing> selection, Vector2D pos)
+    {
+        Thing? closest = null;
+        double bestSq = double.MaxValue;
+        foreach (var t in selection)
+        {
+            double d = t.DistanceToSq(pos);
+            if (d < bestSq) { bestSq = d; closest = t; }
+        }
+        return closest;
+    }
+
+    /// <summary>Nearest thing to <paramref name="thing"/> from the supplied selection, excluding <paramref name="thing"/> itself.</summary>
+    public static Thing? NearestThing(ICollection<Thing> selection, Thing thing)
+    {
+        Thing? closest = null;
+        double bestSq = double.MaxValue;
+        foreach (var t in selection)
+        {
+            if (ReferenceEquals(t, thing)) continue;
+            double d = t.DistanceToSq(thing.Position);
             if (d < bestSq) { bestSq = d; closest = t; }
         }
         return closest;
