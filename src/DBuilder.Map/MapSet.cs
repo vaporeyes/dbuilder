@@ -164,6 +164,7 @@ public class MapSet : IDisposable
                 CeilSlopeOffset = sector.CeilSlopeOffset,
             };
             copy.Tags.AddRange(sector.Tags);
+            foreach (var flag in sector.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(sector, copy);
             clone.Sectors.Add(copy);
             sectorMap[sector] = copy;

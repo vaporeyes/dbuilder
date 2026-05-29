@@ -102,6 +102,10 @@ public class UdmfMapWriterTests
         Assert.Equal(s0.CeilTexture,  sr.CeilTexture);
         Assert.Equal(s0.Brightness,   sr.Brightness);
 
+        map.Sectors[0].UdmfFlags.Add("secret");
+        var withSectorFlag = UdmfMapLoader.Load(UdmfMapWriter.Write(map), out _)!;
+        Assert.Contains("secret", withSectorFlag.Sectors[0].UdmfFlags);
+
         for (int i = 0; i < map.Things.Count; i++)
         {
             Assert.Equal(map.Things[i].Position, r.Things[i].Position);

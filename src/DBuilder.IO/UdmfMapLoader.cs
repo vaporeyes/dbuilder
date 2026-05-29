@@ -125,6 +125,11 @@ public static class UdmfMapLoader
             s.CeilSlopeOffset = GetDouble(c, "ceilingplane_d", double.NaN);
         }
 
+        foreach (var entry in c)
+        {
+            if (entry.Value is bool b && b && !SectorManagedFields.Contains(entry.Key))
+                s.UdmfFlags.Add(entry.Key);
+        }
         CollectCustomFields(c, s.Fields, SectorManagedFields, preserveBoolFields: true);
         return s;
     }

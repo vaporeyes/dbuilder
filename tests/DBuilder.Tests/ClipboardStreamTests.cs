@@ -16,6 +16,7 @@ public class ClipboardStreamTests
     {
         var map = new MapSet { Namespace = "Doom" };
         var sA = new Sector { Index = 0, FloorHeight = 0, CeilHeight = 128, FloorTexture = "FLOOR1", CeilTexture = "CEIL1", Brightness = 192, Tag = 7 };
+        sA.UdmfFlags.Add("secret");
         var sB = new Sector { Index = 1, FloorHeight = 8, CeilHeight = 120, FloorTexture = "FLOOR2", CeilTexture = "CEIL2", Brightness = 160, Special = 9 };
         map.Sectors.Add(sA); map.Sectors.Add(sB);
 
@@ -104,6 +105,7 @@ public class ClipboardStreamTests
             Assert.Equal(so.Brightness,   sd.Brightness);
             Assert.Equal(so.Special,      sd.Special);
             Assert.Equal(so.Tag,          sd.Tag);
+            Assert.Equal(so.UdmfFlags.OrderBy(s => s), sd.UdmfFlags.OrderBy(s => s));
         }
 
         // Sidedefs back-link to their cloned sectors
@@ -457,6 +459,7 @@ public class ClipboardStreamTests
         WriteString(w, "-");
         for (int i = 0; i < 8; i++) w.Write(double.NaN);
         w.Write(0); // groups
+        w.Write(0); // sector udmf flags
         WriteCustomFields(w);
 
         w.Write(1); // sidedefs

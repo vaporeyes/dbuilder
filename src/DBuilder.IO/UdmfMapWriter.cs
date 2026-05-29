@@ -120,7 +120,8 @@ public static class UdmfMapWriter
             WriteAssignment(sb, "ceilingplane_d", double.IsNaN(s.CeilSlopeOffset) ? 0.0 : s.CeilSlopeOffset, indent: true);
         }
 
-        WriteCustomFields(sb, s.Fields);
+        WriteUdmfFlags(sb, s.UdmfFlags);
+        WriteCustomFields(sb, s.Fields, excludeKeys: s.UdmfFlags);
         sb.AppendLine("}");
         sb.AppendLine();
     }

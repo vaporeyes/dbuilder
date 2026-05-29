@@ -14,7 +14,8 @@
  *   sectors:   int32 count; per sector: int32 special, hfloor, hceil, bright; tags;
  *                                       str floortex, str ceiltex;
  *                                       double floorSlopeOffset, fSlope.x/y/z,
- *                                              ceilSlopeOffset, cSlope.x/y/z; int32 groups; customFields
+ *                                              ceilSlopeOffset, cSlope.x/y/z; int32 groups;
+ *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   sidedefs:  int32 count; per sidedef: int32 offx, offy, sectorId; str hi, mid, lo;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   linedefs:  int32 count; per linedef: int32 v1, v2, sidefront, sideback, action,
@@ -109,6 +110,7 @@ public static class ClipboardStreamWriter
             w.Write(s.CeilSlopeOffset);
             w.Write(s.CeilSlope.x); w.Write(s.CeilSlope.y); w.Write(s.CeilSlope.z);
             w.Write(s.Groups);
+            WriteUdmfFlagSet(w, s.UdmfFlags);
             WriteCustomFields(w, s.Fields);
         }
     }
@@ -317,6 +319,7 @@ public static class ClipboardStreamReader
             };
             s.Groups = r.ReadInt32();
             s.Tags.AddRange(tags);
+            ReadUdmfFlagSet(r, s.UdmfFlags);
             ReadCustomFields(r, s.Fields);
             map.Sectors.Add(s);
             list.Add(s);

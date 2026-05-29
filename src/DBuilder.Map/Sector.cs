@@ -75,6 +75,9 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
     public List<Sidedef> Sidedefs { get; } = new();
 
+    // UDMF-specific named flags collected as a string set so sector options survive clone and clipboard round-trips.
+    public HashSet<string> UdmfFlags { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Custom UDMF fields (non-standard keys) preserved verbatim. Values are int/double/bool/string.</summary>
     public Dictionary<string, object> Fields { get; } = new(StringComparer.Ordinal);
 }

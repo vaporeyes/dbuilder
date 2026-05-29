@@ -64,6 +64,7 @@ public class MapSetCloneTests
         Assert.Equal(MapSet.GroupMask(4), clone.Things[0].Groups);
         Assert.Equal(-8.0, clone.Vertices[0].ZFloor);
         Assert.Equal(16711680, clone.Sectors[0].GetField<int>("lightcolor"));
+        Assert.Contains("secret", clone.Sectors[0].UdmfFlags);
         Assert.Equal(new[] { 4, 12 }, clone.Sectors[0].Tags);
         Assert.Equal(9, clone.Linedefs[0].GetArg(2));
         Assert.Contains("blocking", clone.Linedefs[0].UdmfFlags);
@@ -108,6 +109,7 @@ public class MapSetCloneTests
         frontSector.Groups = MapSet.GroupMask(3);
         frontSector.Tag = 4;
         frontSector.Tags.Add(12);
+        frontSector.UdmfFlags.Add("secret");
         frontSector.SetField("lightcolor", 16711680);
         var backSector = map.AddSector();
         backSector.Marked = true;
