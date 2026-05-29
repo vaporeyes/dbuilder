@@ -7,3 +7,18 @@ public interface IGroupable : ISelectable
 {
     int Groups { get; set; }
 }
+
+public static class GroupableExtensions
+{
+    public static void AddToGroup(this IGroupable element, int groupsMask)
+        => element.Groups |= groupsMask;
+
+    public static void RemoveFromGroup(this IGroupable element, int groupsMask)
+        => element.Groups &= ~groupsMask;
+
+    public static void SelectByGroup(this IGroupable element, int groupsMask)
+        => element.Selected = element.IsInGroup(groupsMask);
+
+    public static bool IsInGroup(this IGroupable element, int groupsMask)
+        => (element.Groups & groupsMask) != 0;
+}

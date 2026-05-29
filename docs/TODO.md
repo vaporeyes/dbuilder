@@ -132,6 +132,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector lookup from complete linedef sets.
   - [x] Add UDB-style new-tag allocation helpers.
   - [x] Add UDB-style element index change helpers.
+  - [x] Add UDB-style selection group helpers on groupable elements.
 - [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
   - [x] Add UDB-style map element property copy helpers.

@@ -29,6 +29,29 @@ public class SelectionGroupTests
     }
 
     [Fact]
+    public void GroupableElementHelpersMatchUdbSurface()
+    {
+        var vertex = new Vertex(new Vector2D(0, 0));
+        int first = MapSet.GroupMask(1);
+        int second = MapSet.GroupMask(2);
+
+        vertex.AddToGroup(first | second);
+
+        Assert.True(vertex.IsInGroup(first));
+        Assert.True(vertex.IsInGroup(second));
+
+        vertex.RemoveFromGroup(first);
+        vertex.SelectByGroup(first);
+
+        Assert.False(vertex.IsInGroup(first));
+        Assert.False(vertex.Selected);
+
+        vertex.SelectByGroup(second);
+
+        Assert.True(vertex.Selected);
+    }
+
+    [Fact]
     public void SelectByGroupUpdatesOnlyTheRequestedElementType()
     {
         var map = BuildMap();
