@@ -733,20 +733,45 @@ public class MapSet : IDisposable
     public int MarkedSectorsCount => CountMarked(Sectors);
     public int MarkedThingsCount => CountMarked(Things);
 
-    public void ClearMarkedVertices() { foreach (var v in Vertices) v.Marked = false; }
-    public void ClearMarkedLinedefs() { foreach (var l in Linedefs) l.Marked = false; }
-    public void ClearMarkedSidedefs() { foreach (var s in Sidedefs) s.Marked = false; }
-    public void ClearMarkedSectors() { foreach (var s in Sectors) s.Marked = false; }
-    public void ClearMarkedThings() { foreach (var t in Things) t.Marked = false; }
+    public void ClearMarkedVertices() => ClearMarkedVertices(false);
+    public void ClearMarkedLinedefs() => ClearMarkedLinedefs(false);
+    public void ClearMarkedSidedefs() => ClearMarkedSidedefs(false);
+    public void ClearMarkedSectors() => ClearMarkedSectors(false);
+    public void ClearMarkedThings() => ClearMarkedThings(false);
+
+    public void ClearMarkedVertices(bool mark) { foreach (var v in Vertices) v.Marked = mark; }
+    public void ClearMarkedLinedefs(bool mark) { foreach (var l in Linedefs) l.Marked = mark; }
+    public void ClearMarkedSidedefs(bool mark) { foreach (var s in Sidedefs) s.Marked = mark; }
+    public void ClearMarkedSectors(bool mark) { foreach (var s in Sectors) s.Marked = mark; }
+    public void ClearMarkedThings(bool mark) { foreach (var t in Things) t.Marked = mark; }
 
     /// <summary>Clears the Marked flag on every element of every type.</summary>
-    public void ClearAllMarked()
+    public void ClearAllMarked() => ClearAllMarked(false);
+
+    /// <summary>Sets the Marked flag on every element of every type to <paramref name="mark"/>.</summary>
+    public void ClearAllMarked(bool mark)
     {
-        ClearMarkedVertices();
-        ClearMarkedLinedefs();
-        ClearMarkedSidedefs();
-        ClearMarkedSectors();
-        ClearMarkedThings();
+        ClearMarkedVertices(mark);
+        ClearMarkedLinedefs(mark);
+        ClearMarkedSidedefs(mark);
+        ClearMarkedSectors(mark);
+        ClearMarkedThings(mark);
+    }
+
+    public void InvertMarkedVertices() { foreach (var v in Vertices) v.Marked = !v.Marked; }
+    public void InvertMarkedLinedefs() { foreach (var l in Linedefs) l.Marked = !l.Marked; }
+    public void InvertMarkedSidedefs() { foreach (var s in Sidedefs) s.Marked = !s.Marked; }
+    public void InvertMarkedSectors() { foreach (var s in Sectors) s.Marked = !s.Marked; }
+    public void InvertMarkedThings() { foreach (var t in Things) t.Marked = !t.Marked; }
+
+    /// <summary>Inverts the Marked flag on every element of every type.</summary>
+    public void InvertAllMarked()
+    {
+        InvertMarkedVertices();
+        InvertMarkedLinedefs();
+        InvertMarkedSidedefs();
+        InvertMarkedSectors();
+        InvertMarkedThings();
     }
 
     // ============================================================

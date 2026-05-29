@@ -276,4 +276,34 @@ public class MapEditingTests
         Assert.Equal(2, map.SelectedSidedefsCount);
         Assert.Equal(new[] { map.Sidedefs[0], map.Sidedefs[2] }, map.GetSelectedSidedefs());
     }
+
+    [Fact]
+    public void MarkHelpersCanSetAndInvertAllElementTypes()
+    {
+        var map = BuildTwoRooms();
+        var thing = map.AddThing(new Vector2D(16, 16), 3004);
+
+        map.ClearAllMarked(true);
+
+        Assert.True(map.Vertices[0].Marked);
+        Assert.True(map.Linedefs[0].Marked);
+        Assert.True(map.Sidedefs[0].Marked);
+        Assert.True(map.Sectors[0].Marked);
+        Assert.True(thing.Marked);
+
+        map.Vertices[0].Marked = false;
+        map.Linedefs[0].Marked = false;
+        map.Sidedefs[0].Marked = false;
+        map.Sectors[0].Marked = false;
+        thing.Marked = false;
+
+        map.InvertAllMarked();
+
+        Assert.True(map.Vertices[0].Marked);
+        Assert.True(map.Linedefs[0].Marked);
+        Assert.True(map.Sidedefs[0].Marked);
+        Assert.True(map.Sectors[0].Marked);
+        Assert.True(thing.Marked);
+        Assert.False(map.Vertices[1].Marked);
+    }
 }
