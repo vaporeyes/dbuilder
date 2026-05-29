@@ -44,6 +44,9 @@ public partial class MainWindow : Window
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
     private bool _mapDirty;
     private bool _allowDirtyClose;
+    private bool _autosavePending;
+    private string _untitledAutosaveId = Guid.NewGuid().ToString("N");
+    private readonly DispatcherTimer _autosaveTimer = new() { Interval = TimeSpan.FromSeconds(30) };
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
     private static string DefaultConfigDir =>
@@ -77,6 +80,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ShowActivated = true;
+        _autosaveTimer.Tick += (_, _) => WriteAutosaveIfPending();
         MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
         MapView.Picked += _ => { UpdateInfo(); UpdateStatusDetails(); };
         MapView.EditBegun += desc => CreateUndo(desc);
@@ -285,6 +289,7 @@ public partial class MainWindow : Window
         _map = map;
         _mapMarker = "MAP01";
         _sourceMapMarker = null;
+        _untitledAutosaveId = Guid.NewGuid().ToString("N");
         _wadPath = null;
         _sourceWadStamp = null;
         _pk3Path = null;
@@ -665,6 +670,7 @@ public partial class MainWindow : Window
 
             System.IO.File.WriteAllBytes(outPath, bytes);
             SaveCurrentMapOptions(outPath, marker);
+            DeleteCurrentAutosave();
             if (savedCurrentFormat)
             {
                 _wadPath = outPath;
@@ -1871,20 +1877,76 @@ public partial class MainWindow : Window
     {
         if (_map is null) return;
         _mapDirty = true;
+        ScheduleAutosave();
         Title = CurrentEditorTitle();
     }
 
     private void ClearMapDirty()
     {
         _mapDirty = false;
+        _autosavePending = false;
         Title = CurrentEditorTitle();
+    }
+
+    private void ScheduleAutosave()
+    {
+        _autosavePending = true;
+        if (!_autosaveTimer.IsEnabled) _autosaveTimer.Start();
+    }
+
+    private void WriteAutosaveIfPending()
+    {
+        if (!_autosavePending || !_mapDirty)
+        {
+            _autosaveTimer.Stop();
+            return;
+        }
+
+        _autosavePending = false;
+        try
+        {
+            var key = CurrentAutosaveKey();
+            if (key is null || _map is null || _mapMarker is null) return;
+
+            byte[] bytes;
+            using (var ms = new System.IO.MemoryStream())
+            {
+                using (var wad = new WAD(ms))
+                {
+                    WadMaps.SaveMap(wad, _mapMarker, _map, _mapFormat, _config);
+                }
+                bytes = ms.ToArray();
+            }
+
+            AutoSaveStore.Write(key, bytes);
+        }
+        catch (Exception ex)
+        {
+            ErrorLog.Append(ex, "Autosave failed");
+        }
+    }
+
+    private AutoSaveKey? CurrentAutosaveKey()
+    {
+        if (_mapMarker is null) return null;
+        string source = _wadPath ?? _pk3Path ?? $"untitled:{_untitledAutosaveId}";
+        return new AutoSaveKey(source, _mapMarker, _pk3MapArchivePath);
+    }
+
+    private void DeleteCurrentAutosave()
+    {
+        _autosavePending = false;
+        var key = CurrentAutosaveKey();
+        if (key is not null) AutoSaveStore.Delete(key);
     }
 
     private async Task<bool> ConfirmDiscardDirtyMap()
     {
         if (!_mapDirty) return true;
         var dlg = new UnsavedChangesDialog(_mapMarker ?? "current map");
-        return await dlg.ShowDialog<bool>(this);
+        bool discard = await dlg.ShowDialog<bool>(this);
+        if (discard) DeleteCurrentAutosave();
+        return discard;
     }
 
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.

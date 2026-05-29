@@ -52,10 +52,18 @@ public sealed class Settings
     {
         get
         {
+            return Path.Combine(DefaultPathDirectory, "settings.json");
+        }
+    }
+
+    public static string DefaultPathDirectory
+    {
+        get
+        {
             string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             if (string.IsNullOrEmpty(baseDir))
                 baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config");
-            return Path.Combine(baseDir, "DBuilder", "settings.json");
+            return Path.Combine(baseDir, "DBuilder");
         }
     }
 

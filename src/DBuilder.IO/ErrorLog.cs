@@ -9,7 +9,7 @@ namespace DBuilder.IO;
 
 public static class ErrorLog
 {
-    public static string DefaultDirectory => Path.GetDirectoryName(Settings.DefaultPath) ?? Environment.CurrentDirectory;
+    public static string DefaultDirectory => Settings.DefaultPathDirectory;
     public static string DefaultLogPath => Path.Combine(DefaultDirectory, "DBuilder.log");
     public static string DefaultCrashReportPath => Path.Combine(DefaultDirectory, "DBuilderCrash.txt");
 
