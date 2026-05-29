@@ -38,4 +38,22 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.select", map2D[0].Id);
         Assert.Equal(EditorCommandScope.Map2D, map2D[^1].Scope);
     }
+
+    [Fact]
+    public void DefaultShortcutsResolveWindowAccelerators()
+    {
+        Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S", accelerator: true));
+        Assert.Equal("window.duplicate", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "d", accelerator: true));
+        Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Delete"));
+        Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Back"));
+        Assert.Equal("window.cancel-draw", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Escape"));
+    }
+
+    [Fact]
+    public void DefaultShortcutsRespectScopeAndModifiers()
+    {
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S", accelerator: true));
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S"));
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S", accelerator: true, shift: true));
+    }
 }

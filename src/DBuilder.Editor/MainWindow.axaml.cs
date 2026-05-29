@@ -884,35 +884,40 @@ public partial class MainWindow : Window
     {
         bool accel = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control)
                   || e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Meta);
-        if (accel)
+        bool shift = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift);
+        bool alt = e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Alt);
+        string key = e.Key.ToString();
+        if (EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, key, accel, shift, alt) is { } commandId
+            && RunWindowCommand(commandId))
         {
-            switch (e.Key)
-            {
-                case Avalonia.Input.Key.Z: OnUndo(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.Y: OnRedo(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.S: OnSave(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.X: OnCut(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.C: OnCopy(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.V: OnPaste(this, new RoutedEventArgs()); e.Handled = true; return;
-                case Avalonia.Input.Key.D: OnDuplicate(this, new RoutedEventArgs()); e.Handled = true; return;
-            }
-        }
-        if (e.Key == Avalonia.Input.Key.Delete || e.Key == Avalonia.Input.Key.Back)
-        {
-            OnDelete(this, new RoutedEventArgs());
             e.Handled = true;
             return;
         }
-        // Escape always exits a draw tool, even if focus left the map view (e.g. after using a menu).
-        if (e.Key == Avalonia.Input.Key.Escape && MapView.InDrawMode)
-        {
-            MapView.ExitDrawModes();
-            MapView.Focus();
-            SetStatus("Draw mode off.");
-            e.Handled = true;
-            return;
-        }
+
         base.OnKeyDown(e);
+    }
+
+    private bool RunWindowCommand(string commandId)
+    {
+        switch (commandId)
+        {
+            case "window.undo": OnUndo(this, new RoutedEventArgs()); return true;
+            case "window.redo": OnRedo(this, new RoutedEventArgs()); return true;
+            case "window.save": OnSave(this, new RoutedEventArgs()); return true;
+            case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
+            case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
+            case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
+            case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
+            case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.cancel-draw":
+                if (!MapView.InDrawMode) return false;
+                MapView.ExitDrawModes();
+                MapView.Focus();
+                SetStatus("Draw mode off.");
+                return true;
+            default:
+                return false;
+        }
     }
 
     private async void OnExit(object? sender, RoutedEventArgs e)

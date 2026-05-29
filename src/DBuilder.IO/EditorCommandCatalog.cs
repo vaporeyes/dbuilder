@@ -16,6 +16,14 @@ public sealed record EditorCommandDescriptor(
     string DefaultGesture,
     EditorCommandScope Scope);
 
+public sealed record EditorShortcutBinding(
+    string CommandId,
+    EditorCommandScope Scope,
+    string Key,
+    bool Accelerator = false,
+    bool Shift = false,
+    bool Alt = false);
+
 public static class EditorCommandCatalog
 {
     public static IReadOnlyList<EditorCommandDescriptor> All { get; } = new[]
@@ -79,6 +87,37 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.toggle-2d", "Back to 2D mode", "Tab", EditorCommandScope.Map3D),
     };
 
+    public static IReadOnlyList<EditorShortcutBinding> DefaultShortcuts { get; } = new[]
+    {
+        new EditorShortcutBinding("window.undo", EditorCommandScope.Window, "Z", Accelerator: true),
+        new EditorShortcutBinding("window.redo", EditorCommandScope.Window, "Y", Accelerator: true),
+        new EditorShortcutBinding("window.save", EditorCommandScope.Window, "S", Accelerator: true),
+        new EditorShortcutBinding("window.cut", EditorCommandScope.Window, "X", Accelerator: true),
+        new EditorShortcutBinding("window.copy", EditorCommandScope.Window, "C", Accelerator: true),
+        new EditorShortcutBinding("window.paste", EditorCommandScope.Window, "V", Accelerator: true),
+        new EditorShortcutBinding("window.duplicate", EditorCommandScope.Window, "D", Accelerator: true),
+        new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Delete"),
+        new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Back"),
+        new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape"),
+    };
+
     public static IReadOnlyList<EditorCommandDescriptor> ByScope(EditorCommandScope scope)
         => All.Where(command => command.Scope == scope).ToArray();
+
+    public static string? ResolveShortcut(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
+    {
+        foreach (var shortcut in DefaultShortcuts)
+        {
+            if (shortcut.Scope == scope
+                && shortcut.Accelerator == accelerator
+                && shortcut.Shift == shift
+                && shortcut.Alt == alt
+                && string.Equals(shortcut.Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                return shortcut.CommandId;
+            }
+        }
+
+        return null;
+    }
 }
