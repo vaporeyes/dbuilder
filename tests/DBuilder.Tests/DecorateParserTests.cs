@@ -104,6 +104,15 @@ ACTOR EditorTextThing 5002
     }
 
     [Fact]
+    public void SeparatedNegativeEditorNumberLeavesDoomEdNumNegative()
+    {
+        var actor = DecorateParser.Parse("ACTOR AbstractBase - 1 { Radius 16 }")[0];
+
+        Assert.True(actor.DoomEdNum < 0);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ChildInheritsSpriteAndSizeFromParent()
     {
         const string text = @"

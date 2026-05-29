@@ -345,6 +345,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port REVERBS parser.
 - [x] Port X11 RGB parser.
 - [ ] Port actor structure behavior for DECORATE and ZScript.
+  - [x] Treat separated negative DECORATE editor numbers as non-placeable.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.

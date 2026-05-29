@@ -304,6 +304,11 @@ public static class DecorateParser
                 i++;
                 if (i < t.Count && t[i].Kind == Kind.Word) actor.Replaces = t[i++].Text;
             }
+            else if (headerNum && tk.Kind == Kind.Word && tk.Text == "-")
+            {
+                i++;
+                if (i < t.Count && t[i].Kind == Kind.Word) i++;
+            }
             else if (headerNum && tk.Kind == Kind.Word && int.TryParse(tk.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n))
             {
                 actor.DoomEdNum = n; i++;
