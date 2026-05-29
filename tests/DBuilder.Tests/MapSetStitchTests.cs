@@ -94,4 +94,46 @@ public class MapSetStitchTests
         Assert.Equal(2, n);
         Assert.Equal(4, map.Linedefs.Count);
     }
+
+    [Fact]
+    public void SplitLinesByVerticesSplitsOnlyProvidedLines()
+    {
+        var map = new MapSet();
+        var first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var second = map.AddLinedef(map.AddVertex(new Vector2D(0, 80)), map.AddVertex(new Vector2D(100, 80)));
+        var secondStart = second.Start;
+        var secondEnd = second.End;
+        var firstMid = map.AddVertex(new Vector2D(50, 0));
+        map.AddVertex(new Vector2D(50, 80));
+        var lines = new HashSet<Linedef> { first };
+        var vertices = new[] { firstMid };
+        var changed = new HashSet<Linedef>();
+
+        int splits = map.SplitLinesByVertices(lines, vertices, 0.5, changed);
+
+        Assert.Equal(1, splits);
+        Assert.Equal(3, map.Linedefs.Count);
+        Assert.Equal(2, lines.Count);
+        Assert.Contains(first, changed);
+        Assert.Contains(lines, line => !ReferenceEquals(line, first));
+        Assert.Same(secondStart, second.Start);
+        Assert.Same(secondEnd, second.End);
+        Assert.DoesNotContain(second, changed);
+    }
+
+    [Fact]
+    public void SplitLinesByVerticesReportsBothLineHalves()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var mid = map.AddVertex(new Vector2D(50, 0));
+        var changed = new List<Linedef>();
+
+        int splits = map.SplitLinesByVertices(map.Linedefs, new[] { mid }, 0.5, changed);
+
+        Assert.Equal(1, splits);
+        Assert.Equal(2, changed.Count);
+        Assert.Contains(line, changed);
+        Assert.Contains(changed, changedLine => !ReferenceEquals(changedLine, line));
+    }
 }

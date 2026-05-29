@@ -618,18 +618,32 @@ public class MapSet : IDisposable
     /// </summary>
     public int SplitLinedefsAtVertices(double distance = 1.0)
     {
+        return SplitLinesByVertices(Linedefs, Vertices, distance);
+    }
+
+    /// <summary>
+    /// Splits the supplied linedefs at supplied vertices when a vertex lies on a linedef interior.
+    /// New linedefs are added to <paramref name="lines"/> and both halves are added to <paramref name="changedLines"/>.
+    /// </summary>
+    public int SplitLinesByVertices(
+        ICollection<Linedef> lines,
+        ICollection<Vertex> vertices,
+        double distance,
+        ICollection<Linedef>? changedLines = null)
+    {
         double epsSq = distance * distance;
         int total = 0, pass, guard = 0;
         do
         {
             pass = 0;
-            foreach (var v in Vertices)
+            foreach (var v in vertices.ToArray())
             {
                 var p = v.Position;
-                // Linedefs grows as we split; a newly created half has v as an endpoint, so it is skipped here.
-                for (int i = 0; i < Linedefs.Count; i++)
+                // Lines grows as we split; a newly created half has v as an endpoint, so it is skipped here.
+                var scan = lines as IList<Linedef> ?? lines.ToList();
+                for (int i = 0; i < scan.Count; i++)
                 {
-                    var l = Linedefs[i];
+                    var l = scan[i];
                     if (ReferenceEquals(l.Start, v) || ReferenceEquals(l.End, v)) continue;
                     var a = l.Start.Position;
                     var b = l.End.Position;
@@ -637,7 +651,13 @@ public class MapSet : IDisposable
                     double u = Line2D.GetNearestOnLine(a, b, p);
                     if (u <= 1e-6 || u >= 1 - 1e-6) continue; // at/near an endpoint - not an interior split
                     if (Line2D.GetDistanceToLineSq(a, b, p, bounded: true) > epsSq) continue;
-                    SplitLinedefAt(l, v);
+                    var newLine = SplitLinedefAt(l, v);
+                    if (!ReferenceEquals(lines, Linedefs) && !lines.Contains(newLine)) lines.Add(newLine);
+                    if (changedLines != null)
+                    {
+                        if (!changedLines.Contains(l)) changedLines.Add(l);
+                        if (!changedLines.Contains(newLine)) changedLines.Add(newLine);
+                    }
                     pass++;
                 }
             }
