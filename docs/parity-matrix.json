@@ -7,7 +7,7 @@
       "udbArea": "Source/Core/Config",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Game configuration parsing and thing catalog metadata are partial. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, non-solid error-check preservation, DistanceCheck preservation for undefined CVARs, and unknown preview sprite fallback."
+      "notes": "Game configuration parsing and thing catalog metadata are partial. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, UDB stuck-inside error checks for solid actors, non-solid error-check preservation, DistanceCheck preservation for undefined CVARs, and unknown preview sprite fallback."
     },
     { "udbArea": "Source/Core/Controls", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
     { "udbArea": "Source/Core/Data", "status": "partial", "dbuilderLocation": "DBuilder.IO" },

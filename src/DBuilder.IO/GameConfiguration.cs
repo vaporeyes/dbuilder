@@ -788,7 +788,7 @@ public sealed class GameConfiguration
             blocking = solid ? (blocking > 0 ? blocking : 2) : 0;
         }
         int errorCheck = ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0;
-        if (blocking > 0) errorCheck = 1;
+        if (blocking > 0) errorCheck = 2;
         return new ThingTypeInfo
         {
             Index = index,

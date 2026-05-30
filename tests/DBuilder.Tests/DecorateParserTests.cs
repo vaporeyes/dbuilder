@@ -1147,7 +1147,7 @@ ACTOR CoolMonster 31000
         Assert.True(info.Arrow);
         Assert.True(info.Hangs);
         Assert.Equal(2, info.Blocking);
-        Assert.Equal(1, info.ErrorCheck);
+        Assert.Equal(2, info.ErrorCheck);
         Assert.Equal("Target", info.Args[0].Title);
         Assert.Equal(14, info.Args[0].Type);
         Assert.Equal(7, info.Args[0].Default);
@@ -1637,6 +1637,24 @@ ACTOR CustomErrorThing 31019
         Assert.NotNull(info);
         Assert.Equal(0, info!.Blocking);
         Assert.Equal(2, info.ErrorCheck);
+    }
+
+    [Fact]
+    public void MergeActorsUsesStuckErrorCheckWhenActorIsSolid()
+    {
+        const string decorate = @"
+ACTOR SolidErrorThing 31022
+{
+    +SOLID
+    States { Spawn: SERR A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31022);
+        Assert.NotNull(info);
+        Assert.Equal(2, info!.ErrorCheck);
     }
 
     [Fact]
