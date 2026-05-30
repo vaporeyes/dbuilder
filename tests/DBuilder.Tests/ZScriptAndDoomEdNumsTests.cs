@@ -131,7 +131,11 @@ class DuplicateFinal : Actor final final { Default { Radius 32; } }
 class DuplicateScope : Actor ui play { Default { Radius 24; } }
 class DuplicateVersion : Actor version(""4.8"") version(""4.9"") { Default { Radius 20; } }
 class MissingModifierArgument : Actor deprecated { Default { Radius 16; } }
-class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8"", ""Other"") unsafe(Actor) sealed(ValidChild) { Default { Radius 8; } }";
+class NumericVersion : Actor version(4.8) { Default { Radius 14; } }
+class UnsafeString : Actor unsafe(""Actor"") { Default { Radius 12; } }
+class DeprecatedMissingComma : Actor deprecated(""4.8"" ""Other"") { Default { Radius 10; } }
+class SealedString : Actor sealed(""Child"") { Default { Radius 9; } }
+class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8"", ""Other"") unsafe(Actor) sealed(ValidChild, OtherChild) { Default { Radius 8; } }";
 
         var actor = Assert.Single(ZScriptParser.Parse(text));
 

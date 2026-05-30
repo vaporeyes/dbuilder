@@ -671,13 +671,15 @@ public static class DecorateParser
             {
                 if (hasVersion) return SkipInvalidActorDeclaration(t, ref i);
                 hasVersion = true;
-                if (!SkipZScriptHeaderModifierArgument(t, ref i)) return SkipInvalidActorDeclaration(t, ref i);
+                if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
+                    || !ValidateZScriptHeaderModifierArguments("version", arguments))
+                    return SkipInvalidActorDeclaration(t, ref i);
             }
-            else if (!headerNum && tk.Kind == Kind.Word && (IsZScriptHeaderModifier(tk.Text, "deprecated")
-                || IsZScriptHeaderModifier(tk.Text, "unsafe")
-                || IsZScriptHeaderModifier(tk.Text, "sealed")))
+            else if (!headerNum && tk.Kind == Kind.Word && TryGetZScriptHeaderParameterizedModifier(tk.Text, out string modifier))
             {
-                if (!SkipZScriptHeaderModifierArgument(t, ref i)) return SkipInvalidActorDeclaration(t, ref i);
+                if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
+                    || !ValidateZScriptHeaderModifierArguments(modifier, arguments))
+                    return SkipInvalidActorDeclaration(t, ref i);
             }
             else if (headerNum)
             {
@@ -708,19 +710,76 @@ public static class DecorateParser
         => token.Equals(modifier, StringComparison.OrdinalIgnoreCase)
         || token.StartsWith(modifier + "(", StringComparison.OrdinalIgnoreCase);
 
-    private static bool SkipZScriptHeaderModifierArgument(List<Tok> t, ref int i)
+    private static bool TryGetZScriptHeaderParameterizedModifier(string token, out string modifier)
     {
+        foreach (string candidate in new[] { "deprecated", "unsafe", "sealed" })
+        {
+            if (!IsZScriptHeaderModifier(token, candidate)) continue;
+            modifier = candidate;
+            return true;
+        }
+
+        modifier = "";
+        return false;
+    }
+
+    private static bool TryReadZScriptHeaderModifierArguments(List<Tok> t, ref int i, out List<Tok> arguments)
+    {
+        arguments = new List<Tok>();
         bool hasOpen = false;
         while (i < t.Count)
         {
             var tk = t[i];
             if (tk.Kind == Kind.Sym && tk.Text is "{" or ";") return false;
-            if (tk.Text.Contains('(')) hasOpen = true;
+            string text = tk.Text;
+            if (!hasOpen)
+            {
+                int open = text.IndexOf('(');
+                if (open < 0)
+                {
+                    i++;
+                    continue;
+                }
+
+                hasOpen = true;
+                text = text[(open + 1)..];
+            }
+
+            int close = text.IndexOf(')');
+            string value = close >= 0 ? text[..close] : text;
+            if (value.Length > 0) arguments.Add(new Tok(tk.Kind, value));
             i++;
-            if (hasOpen && tk.Text.Contains(')')) return true;
+            if (close >= 0) return true;
         }
 
         return false;
+    }
+
+    private static bool ValidateZScriptHeaderModifierArguments(string modifier, List<Tok> arguments)
+    {
+        arguments.RemoveAll(t => t.Kind == Kind.Sym && t.Text == "\n");
+        if (modifier.Equals("version", StringComparison.OrdinalIgnoreCase))
+            return arguments.Count == 1 && arguments[0].Kind == Kind.Str;
+        if (modifier.Equals("unsafe", StringComparison.OrdinalIgnoreCase))
+            return arguments.Count == 1 && arguments[0].Kind == Kind.Word && arguments[0].Text.Length > 0;
+        if (modifier.Equals("deprecated", StringComparison.OrdinalIgnoreCase))
+            return arguments.Count == 3
+                && arguments[0].Kind == Kind.Str
+                && arguments[1].Kind == Kind.Sym
+                && arguments[1].Text == ","
+                && arguments[2].Kind == Kind.Str;
+        if (!modifier.Equals("sealed", StringComparison.OrdinalIgnoreCase)) return false;
+        if (arguments.Count == 0 || arguments.Count % 2 == 0) return false;
+        for (int j = 0; j < arguments.Count; j++)
+        {
+            if (j % 2 == 0)
+            {
+                if (arguments[j].Kind != Kind.Word || arguments[j].Text.Length == 0) return false;
+            }
+            else if (arguments[j].Kind != Kind.Sym || arguments[j].Text != ",") return false;
+        }
+
+        return true;
     }
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;

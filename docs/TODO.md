@@ -368,6 +368,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep the first ZScript actor class when a class is duplicated.
   - [x] Reject invalid ZScript class parent and replacement header ordering.
   - [x] Reject unexpected and duplicated ZScript class header modifiers.
+  - [x] Validate ZScript class header modifier arguments.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
