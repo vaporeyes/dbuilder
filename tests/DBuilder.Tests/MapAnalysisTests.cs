@@ -309,6 +309,18 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ObsoleteThingTypeFlaggedWithMessage()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 31007);
+        var ctx = new MapCheckContext { ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ObsoleteThingType);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("Use ReplacementThing instead", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);

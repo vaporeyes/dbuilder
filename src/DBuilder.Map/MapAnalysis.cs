@@ -26,6 +26,7 @@ public enum MapIssueKind
     MissingFlat,
     UnknownFlat,
     UnknownThingType,
+    ObsoleteThingType,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -49,6 +50,8 @@ public sealed class MapCheckContext
     public Func<string, bool>? IsSkyFlat { get; init; }
     /// <summary>Returns true when a thing editor number is known to the game config.</summary>
     public Func<int, bool>? ThingTypeKnown { get; init; }
+    /// <summary>Returns an obsolete warning for a known thing type, or null when the thing type is current.</summary>
+    public Func<int, string?>? ThingObsoleteMessage { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -198,6 +201,15 @@ public static class MapAnalysis
                 if (!ctx.ThingTypeKnown(t.Type))
                     issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingType,
                         $"Thing type {t.Type} is not in the game config.") { Target = t, Focus = t.Position });
+
+        if (ctx.ThingObsoleteMessage != null)
+            foreach (var t in map.Things)
+            {
+                string? message = ctx.ThingObsoleteMessage(t.Type);
+                if (!string.IsNullOrWhiteSpace(message))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ObsoleteThingType,
+                        $"Thing type {t.Type} is obsolete: {message}") { Target = t, Focus = t.Position });
+            }
 
         if (ctx.ActionKnown != null)
         {

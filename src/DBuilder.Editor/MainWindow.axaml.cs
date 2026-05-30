@@ -2406,11 +2406,17 @@ public partial class MainWindow : Window
             flatExists = n => flatSet.Contains(n);
         }
         Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
+        Func<int, string?>? thingObsoleteMessage = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
         {
             thingKnown = n => _config.GetThing(n) != null;
+            thingObsoleteMessage = n =>
+            {
+                var thing = _config.GetThing(n);
+                return thing?.IsObsolete == true ? thing.ObsoleteMessage : null;
+            };
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2440,6 +2446,7 @@ public partial class MainWindow : Window
             FlatExists = flatExists,
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
+            ThingObsoleteMessage = thingObsoleteMessage,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
