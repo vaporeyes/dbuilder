@@ -640,14 +640,15 @@ public sealed class GameConfiguration
             {
                 int replacedNum = FindThingByClass(a.Replaces);
                 if (replacedNum >= 0 && things.TryGetValue(replacedNum, out var replaced))
-                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced);
+                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null);
             }
 
             int num = a.DoomEdNum;
             if (num < 0 && classToNum != null && classToNum.TryGetValue(a.ClassName, out int mapped)) num = mapped;
             if (num < 0) continue;
             things.TryGetValue(num, out var existing);
-            things[num] = BuildThingInfo(a, num, existing);
+            var inherited = existing == null && a.ParentName != null ? FindThingInfoByClass(a.ParentName) : null;
+            things[num] = BuildThingInfo(a, num, existing, inherited);
         }
 
         if (doomEdNums == null) return;
@@ -671,39 +672,46 @@ public sealed class GameConfiguration
         return -1;
     }
 
-    private static ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing)
+    private ThingTypeInfo? FindThingInfoByClass(string className)
+    {
+        int index = FindThingByClass(className);
+        return index >= 0 && things.TryGetValue(index, out var thing) ? thing : null;
+    }
+
+    private static ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited)
     {
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
+        var fallback = existing ?? inherited;
         return new ThingTypeInfo
         {
             Index = index,
             ClassName = actor.ClassName,
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
-            Category = actor.Category ?? existing?.Category ?? "Decorate",
-            Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? existing?.Sprite ?? "",
-            LightName = actor.LightName ?? existing?.LightName ?? "",
-            Width = actor.Radius > 0 ? actor.Radius : existing?.Width ?? 16,
-            Height = actor.Height > 0 ? actor.Height : existing?.Height ?? 16,
-            Alpha = ActorAlpha(actor, existing),
-            RenderStyle = ActorRenderStyle(actor, existing),
-            SpriteScale = ActorSpriteScale(actor, existing),
-            Color = ActorColor(actor, existing),
+            Category = actor.Category ?? fallback?.Category ?? "Decorate",
+            Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
+            LightName = actor.LightName ?? fallback?.LightName ?? "",
+            Width = actor.Radius > 0 ? actor.Radius : fallback?.Width ?? 16,
+            Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
+            Alpha = ActorAlpha(actor, fallback),
+            RenderStyle = ActorRenderStyle(actor, fallback),
+            SpriteScale = ActorSpriteScale(actor, fallback),
+            Color = ActorColor(actor, fallback),
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
                 ? ActorArrow(actor)
-                : ActorRegionPropertyBoolish(actor, "$arrow") ?? existing?.Arrow ?? false,
-            Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : existing?.Hangs ?? false,
-            Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : existing?.Blocking ?? 0,
-            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? existing?.ErrorCheck ?? 0,
-            FixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? existing?.FixedSize ?? false,
-            FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? existing?.FixedRotation ?? false,
-            AbsoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? existing?.AbsoluteZ ?? false,
+                : ActorRegionPropertyBoolish(actor, "$arrow") ?? fallback?.Arrow ?? false,
+            Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : fallback?.Hangs ?? false,
+            Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : fallback?.Blocking ?? 0,
+            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0,
+            FixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? fallback?.FixedSize ?? false,
+            FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? fallback?.FixedRotation ?? false,
+            AbsoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false,
             LockSprite = existing?.LockSprite ?? false,
             ThingLink = existing?.ThingLink ?? 0,
             Optional = existing?.Optional ?? false,
             IsKnown = existing?.IsKnown ?? true,
             AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
-            Args = ActorArgs(actor, existing?.Args),
+            Args = ActorArgs(actor, fallback?.Args),
         };
     }
 

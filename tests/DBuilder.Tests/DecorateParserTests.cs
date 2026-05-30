@@ -947,6 +947,49 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsInheritsConfiguredParentThingDefaults()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        color = 4;
+        width = 20;
+        height = 56;
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+            fixedsize = true;
+            arg0
+            {
+                title = ""Patrol Target"";
+                type = 25;
+            }
+        }
+    }
+}";
+        const string decorate = "ACTOR FancyImp : DoomImp 31006 { }";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31006);
+        Assert.NotNull(info);
+        Assert.Equal("FancyImp", info!.Title);
+        Assert.Equal("monsters", info.Category);
+        Assert.Equal("TROOA1", info.Sprite);
+        Assert.Equal(20, info.Width);
+        Assert.Equal(56, info.Height);
+        Assert.Equal(4, info.Color);
+        Assert.True(info.FixedSize);
+        Assert.Equal("Patrol Target", info.Args[0].Title);
+        Assert.Equal(25, info.Args[0].Type);
+    }
+
+    [Fact]
     public void MergeActorsKeepsUnquotedDollarArgumentLineValues()
     {
         const string text = @"

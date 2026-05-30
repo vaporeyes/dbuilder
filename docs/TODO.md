@@ -397,6 +397,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Split DECORATE `#region` category paths on separators.
   - [x] Apply DECORATE `#region` editor defaults for color and sprite.
   - [x] Apply DECORATE `#region` editor defaults for thing behavior flags.
+  - [x] Inherit configured parent thing defaults when merging DECORATE and ZScript actors.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked
