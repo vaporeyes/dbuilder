@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -36,6 +37,7 @@ public enum MapIssueKind
     ThingOutsideMap,
     ThingStuckInLinedef,
     ThingStuckInThing,
+    InvalidPolyobject,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -71,6 +73,10 @@ public sealed class MapCheckContext
     public Func<Thing, Thing, bool>? ThingFlagsOverlap { get; init; }
     /// <summary>Returns UDB unused-thing warnings from thingflagscompare metadata.</summary>
     public Func<Thing, IReadOnlyList<string>>? ThingUnusedWarnings { get; init; }
+    /// <summary>Returns the configured action id for a linedef action number, or null when unavailable.</summary>
+    public Func<int, string?>? LinedefActionId { get; init; }
+    /// <summary>Returns the configured class name for a thing type, or null when unavailable.</summary>
+    public Func<int, string?>? ThingClassName { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -87,6 +93,8 @@ public sealed class MapCheckContext
     public IReadOnlySet<string>? TriggerActivationFlags { get; init; }
     /// <summary>Enable UDMF-only missing activation checks.</summary>
     public bool CheckMissingActivations { get; init; }
+    /// <summary>Enable Hexen/UDMF polyobject reference checks.</summary>
+    public bool CheckPolyobjects { get; init; }
     /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
     public string? DoubleSidedFlag { get; init; }
     /// <summary>Configured linedef flag that marks a line as impassable.</summary>
@@ -139,6 +147,7 @@ public static class MapAnalysis
             CheckTextures(map, ctx, issues);
             CheckFlats(map, ctx, issues);
             CheckThingsAndActions(map, ctx, issues);
+            CheckPolyobjects(map, ctx, issues);
             CheckOverlappingLinedefs(map, issues);
             CheckShortLinedefs(map, ctx, issues);
             CheckOffGridVertices(map, ctx, vertexIndex, issues);
@@ -422,6 +431,135 @@ public static class MapAnalysis
                Line2D.GetIntersection(a, b, maxX, minY, maxX, maxY) ||
                Line2D.GetIntersection(a, b, maxX, maxY, minX, maxY) ||
                Line2D.GetIntersection(a, b, minX, maxY, minX, minY);
+    }
+
+    private static void CheckPolyobjects(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (!ctx.CheckPolyobjects || ctx.LinedefActionId == null || ctx.ThingClassName == null) return;
+
+        const string polyobjStartLine = "Polyobj_StartLine";
+        const string polyobjExplicitLine = "Polyobj_ExplicitLine";
+        var allActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            polyobjStartLine, polyobjExplicitLine,
+            "Polyobj_RotateLeft", "Polyobj_RotateRight",
+            "Polyobj_Move", "Polyobj_MoveTimes8",
+            "Polyobj_DoorSwing", "Polyobj_DoorSlide",
+            "Polyobj_OR_MoveToSpot", "Polyobj_MoveToSpot",
+            "Polyobj_Stop", "Polyobj_MoveTo",
+            "Polyobj_OR_MoveTo", "Polyobj_OR_RotateLeft",
+            "Polyobj_OR_RotateRight", "Polyobj_OR_Move",
+            "Polyobj_OR_MoveTimes8",
+        };
+
+        var polyLines = new Dictionary<string, Dictionary<int, List<(int Index, Linedef Line)>>>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var line = map.Linedefs[i];
+            string? id = line.Action > 0 ? ctx.LinedefActionId(line.Action) : null;
+            if (id == null || !allActions.Contains(id)) continue;
+
+            if (!polyLines.TryGetValue(id, out var byNumber))
+            {
+                byNumber = new Dictionary<int, List<(int, Linedef)>>();
+                polyLines[id] = byNumber;
+            }
+
+            if (!byNumber.TryGetValue(line.Args[0], out var lines))
+            {
+                lines = new List<(int, Linedef)>();
+                byNumber[line.Args[0]] = lines;
+            }
+
+            lines.Add((i, line));
+        }
+
+        var anchors = new Dictionary<int, List<(int Index, Thing Thing)>>();
+        var startSpots = new Dictionary<int, List<(int Index, Thing Thing)>>();
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            var thing = map.Things[i];
+            string? className = ctx.ThingClassName(thing.Type)?.ToLowerInvariant();
+            if (className == "$polyanchor") Add(anchors, thing.Angle, i, thing);
+            else if (className is "$polyspawn" or "$polyspawncrush" or "$polyspawnhurt") Add(startSpots, thing.Angle, i, thing);
+        }
+
+        foreach (var group in polyLines)
+            foreach (var linesByNumber in group.Value)
+                if (!startSpots.ContainsKey(linesByNumber.Key))
+                    AddPolyLineIssue(issues, linesByNumber.Value, $"\"{group.Key}\" action targets non-existing Polyobject Start Spot ({linesByNumber.Key}).");
+
+        if (polyLines.TryGetValue(polyobjStartLine, out var startLines))
+            foreach (var linesByNumber in startLines)
+            {
+                if (linesByNumber.Value.Count > 1)
+                    AddPolyLineIssue(issues, linesByNumber.Value, $"Several \"{polyobjStartLine}\" actions have the same Polyobject Number assigned ({linesByNumber.Key}).");
+
+                foreach (var line in linesByNumber.Value)
+                    CheckMirror(linesByNumber.Key, line.Line.Args[1], line, polyobjStartLine);
+            }
+
+        if (polyLines.TryGetValue(polyobjExplicitLine, out var explicitLines))
+            foreach (var linesByNumber in explicitLines)
+                foreach (var line in linesByNumber.Value)
+                    CheckMirror(linesByNumber.Key, line.Line.Args[2], line, polyobjExplicitLine);
+
+        foreach (var group in anchors)
+        {
+            if (!startSpots.ContainsKey(group.Key))
+                AddPolyThingIssue(issues, group.Value, $"Polyobject {(group.Value.Count > 1 ? "Anchors target" : "Anchor targets")} non-existing Polyobject Start Spot ({group.Key}).");
+            if (group.Value.Count > 1)
+                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Anchors target the same Polyobject Start Spot ({group.Key}).");
+        }
+
+        foreach (var group in startSpots)
+        {
+            if (!anchors.ContainsKey(group.Key))
+                AddPolyThingIssue(issues, group.Value, $"Polyobject Start {(group.Value.Count > 1 ? "Spots are not targeted" : "Spot " + group.Key.ToString(CultureInfo.InvariantCulture) + " is not targeted")} by any Polyobject Anchor.");
+            if (group.Value.Count > 1)
+                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Start Spots have the same Polyobject number ({group.Key}).");
+        }
+
+        void CheckMirror(int polyNumber, int mirrorNumber, (int Index, Linedef Line) line, string actionId)
+        {
+            if (mirrorNumber <= 0) return;
+            if (!startSpots.ContainsKey(mirrorNumber))
+                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action has non-existing Mirror Polyobject Number assigned ({mirrorNumber}).");
+            if (mirrorNumber == polyNumber)
+                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action has the same Polyobject and Mirror Polyobject numbers assigned ({mirrorNumber}).");
+        }
+
+        static void Add(Dictionary<int, List<(int Index, Thing Thing)>> map, int number, int index, Thing thing)
+        {
+            if (!map.TryGetValue(number, out var things))
+            {
+                things = new List<(int, Thing)>();
+                map[number] = things;
+            }
+            things.Add((index, thing));
+        }
+    }
+
+    private static void AddPolyLineIssue(List<MapIssue> issues, IEnumerable<(int Index, Linedef Line)> lines, string message)
+    {
+        var first = lines.FirstOrDefault();
+        if (first.Line == null) return;
+        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
+        {
+            Target = first.Line,
+            Focus = new Vector2D((first.Line.Start.Position.x + first.Line.End.Position.x) * 0.5, (first.Line.Start.Position.y + first.Line.End.Position.y) * 0.5),
+        });
+    }
+
+    private static void AddPolyThingIssue(List<MapIssue> issues, IEnumerable<(int Index, Thing Thing)> things, string message)
+    {
+        var first = things.FirstOrDefault();
+        if (first.Thing == null) return;
+        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
+        {
+            Target = first.Thing,
+            Focus = first.Thing.Position,
+        });
     }
 
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.

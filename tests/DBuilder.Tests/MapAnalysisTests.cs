@@ -610,6 +610,61 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void PolyobjectLineTargetingMissingStartSpotIsFlagged()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 1;
+        line.Args[0] = 7;
+        var ctx = new MapCheckContext
+        {
+            CheckPolyobjects = true,
+            LinedefActionId = action => action == 1 ? "Polyobj_StartLine" : null,
+            ThingClassName = _ => null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
+        Assert.Same(line, issue.Target);
+        Assert.Contains("non-existing Polyobject Start Spot (7)", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PolyobjectStartSpotWithoutAnchorIsFlagged()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(64, 64), 9300);
+        thing.Angle = 7;
+        var ctx = new MapCheckContext
+        {
+            CheckPolyobjects = true,
+            LinedefActionId = _ => null,
+            ThingClassName = type => type == 9300 ? "$polyspawn" : null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("not targeted", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PolyobjectAnchorAndStartSpotWithSameNumberAreValid()
+    {
+        var map = Square(true);
+        var start = map.AddThing(new Vector2D(64, 64), 9300);
+        start.Angle = 7;
+        var anchor = map.AddThing(new Vector2D(96, 64), 9301);
+        anchor.Angle = 7;
+        var ctx = new MapCheckContext
+        {
+            CheckPolyobjects = true,
+            LinedefActionId = _ => null,
+            ThingClassName = type => type == 9300 ? "$polyspawn" : type == 9301 ? "$polyanchor" : null,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);

@@ -2412,6 +2412,7 @@ public partial class MainWindow : Window
         Func<int, int?>? thingHeight = null;
         Func<Thing, Thing, bool>? thingFlagsOverlap = null;
         Func<Thing, IReadOnlyList<string>>? thingUnusedWarnings = null;
+        Func<int, string?>? linedefActionId = null, thingClassName = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2427,6 +2428,8 @@ public partial class MainWindow : Window
             thingHeight = n => _config.GetThing(n)?.Height;
             thingFlagsOverlap = (a, b) => ThingFlagsOverlap(_config, a, b);
             thingUnusedWarnings = t => CheckThingFlags(_config, t.UdmfFlags);
+            linedefActionId = a => _config.GetLinedefAction(a)?.Id;
+            thingClassName = n => _config.GetThing(n)?.ClassName;
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2462,6 +2465,8 @@ public partial class MainWindow : Window
             ThingHeight = thingHeight,
             ThingFlagsOverlap = thingFlagsOverlap,
             ThingUnusedWarnings = thingUnusedWarnings,
+            LinedefActionId = linedefActionId,
+            ThingClassName = thingClassName,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
@@ -2470,6 +2475,7 @@ public partial class MainWindow : Window
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,
+            CheckPolyobjects = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             DoubleSidedFlag = _config?.DoubleSidedFlag,
             ImpassableFlag = _config?.ImpassableFlag,
             SafeBoundary = _config?.SafeBoundary ?? 0,
