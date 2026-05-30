@@ -239,6 +239,52 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnusedUpperAndLowerTexturesAreFlaggedWhenWallPartsAreNotRequired()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.FloorHeight = 0;
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        line.Front!.HighTexture = "UNUSEDHI";
+        line.Front!.LowTexture = "UNUSEDLO";
+        map.BuildIndexes();
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext()).Where(i => i.Kind == MapIssueKind.UnusedTexture).ToArray();
+
+        Assert.Contains(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
+        Assert.Contains(issues, i => i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void RequiredUpperTextureActionDoesNotFlagUpperTextureUnused()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = 271;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        line.Front!.HighTexture = "SKYTRANSFER";
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { ActionRequiresUpperTexture = action => action == 271 };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedTexture);
+    }
+
+    [Fact]
     public void UnknownFlatAndMissingFlatFlagged()
     {
         var map = Square(true);

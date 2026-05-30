@@ -22,6 +22,7 @@ public enum MapIssueKind
     // Context-aware checks (require a MapCheckContext):
     MissingTexture,
     UnknownTexture,
+    UnusedTexture,
     MissingFlat,
     UnknownFlat,
     UnknownThingType,
@@ -154,6 +155,16 @@ public static class MapAnalysis
                     if (!IsBlank(name) && !ctx.TextureExists(name) && ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
                         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture,
                             $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.") { Target = l, Focus = mid });
+
+            if (!IsBlank(side.HighTexture) &&
+                !side.HighRequired() &&
+                ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true)
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture,
+                    $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.") { Target = l, Focus = mid });
+
+            if (!IsBlank(side.LowTexture) && !side.LowRequired())
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture,
+                    $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.") { Target = l, Focus = mid });
         }
     }
 
