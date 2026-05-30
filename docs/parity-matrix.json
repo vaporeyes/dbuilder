@@ -54,7 +54,7 @@
       "udbArea": "Source/Core/ZDoom",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, DoomEdNum, and actor merge behaviors. TEXTURES, GLDEFS, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, MAPINFO, and ZMAPINFO all have focused parser coverage. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
+      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, DoomEdNum, and actor merge behaviors. TEXTURES, GLDEFS, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, MAPINFO, and ZMAPINFO all have focused parser coverage, including TEXTURES default-scale composition metadata. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
     },
     { "udbArea": "Source/Native/OpenGL", "status": "partial", "dbuilderLocation": "DBuilder.Rendering" }
   ],

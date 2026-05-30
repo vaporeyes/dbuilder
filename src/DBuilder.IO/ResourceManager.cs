@@ -17,10 +17,11 @@ using System.IO;
 namespace DBuilder.IO;
 
 /// <summary>
-/// A decoded image: RGBA8 bytes (row-major, 4 bytes per pixel) with dimensions and optional render offsets
-/// (sprite hot-spot: OffsetX from the left, OffsetY from the top; 0,0 means unset/centered).
+/// A decoded image: RGBA8 bytes (row-major, 4 bytes per pixel) with dimensions, optional render offsets,
+/// and effective image scale metadata. Sprite hot-spot: OffsetX from the left, OffsetY from the top;
+/// 0,0 means unset/centered.
 /// </summary>
-public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0)
+public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX = 0, int OffsetY = 0, double ScaleX = 1.0, double ScaleY = 1.0)
 {
     public bool IsDynamic { get; init; }
 
@@ -703,7 +704,8 @@ public sealed class ResourceManager : IDisposable
     {
         if (def.Width <= 0 || def.Height <= 0) return null;
         var buf = new byte[def.Width * def.Height * 4]; // transparent
-        if (def.Patches.Count == 0) return def.NullTexture ? new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY) : null;
+        var scale = TexturesScale(def);
+        if (def.Patches.Count == 0) return def.NullTexture ? new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY, scale.X, scale.Y) : null;
 
         var pal = Palette;
         int usablePatches = 0;
@@ -718,7 +720,13 @@ public sealed class ResourceManager : IDisposable
             loadedPatches++;
         }
         if (!def.NullTexture && usablePatches > 0 && loadedPatches == 0) return null;
-        return new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY);
+        return new ImageData(def.Width, def.Height, buf, def.OffsetX, def.OffsetY, scale.X, scale.Y);
+    }
+
+    private (double X, double Y) TexturesScale(TexturesDef def)
+    {
+        double fallback = configuration?.DefaultTextureScale ?? 1.0;
+        return (def.ScaleX == 0.0 ? fallback : def.ScaleX, def.ScaleY == 0.0 ? fallback : def.ScaleY);
     }
 
     // Resolves a patch as a single image across resources (never via TEXTURES defs, so composition can't recurse).

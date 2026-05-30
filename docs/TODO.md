@@ -386,6 +386,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require integral TEXTURES patch rotation values.
   - [x] Reject leading commas before TEXTURES definition scale and offset values.
   - [x] Reject unnamed TEXTURES definitions and patches like UDB.
+  - [x] Apply configured default texture scale when TEXTURES definitions omit scale or set zero scale.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

@@ -103,6 +103,39 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void TexturesDefinitionsUseConfiguredDefaultScaleWhenScaleIsZero()
+    {
+        string textures =
+            "WallTexture DEFSCAL, 1, 1 { Patch \"PAT\", 0, 0 }\n" +
+            "WallTexture ZEROSCAL, 1, 1 { XScale 0 YScale 0 Patch \"PAT\", 0, 0 }\n" +
+            "WallTexture EXPSCAL, 1, 1 { XScale 2 YScale 0.5 Patch \"PAT\", 0, 0 }\n";
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/PAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 20, 30, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager(GameConfiguration.FromText("defaulttexturescale = 0.25;"));
+            rm.AddResource(pk3);
+
+            var defaultScale = rm.GetWallTexture("DEFSCAL");
+            var zeroScale = rm.GetWallTexture("ZEROSCAL");
+            var explicitScale = rm.GetWallTexture("EXPSCAL");
+
+            Assert.NotNull(defaultScale);
+            Assert.NotNull(zeroScale);
+            Assert.NotNull(explicitScale);
+            Assert.Equal(0.25, defaultScale!.ScaleX, 6);
+            Assert.Equal(0.25, defaultScale.ScaleY, 6);
+            Assert.Equal(0.25, zeroScale!.ScaleX, 6);
+            Assert.Equal(0.25, zeroScale.ScaleY, 6);
+            Assert.Equal(0.5, explicitScale!.ScaleX, 6);
+            Assert.Equal(2.0, explicitScale.ScaleY, 6);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void TexturesPatchFallsBackToFlatWhenNamespacesAreMixed()
     {
         string textures = "WallTexture WFLAT, 1, 1 { Patch \"FLTPAT\", 0, 0 }\n";

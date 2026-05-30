@@ -55,8 +55,8 @@ public sealed class TexturesDef
     public int Height { get; init; }
     public int OffsetX { get; set; }
     public int OffsetY { get; set; }
-    public double ScaleX { get; set; } = 1.0;
-    public double ScaleY { get; set; } = 1.0;
+    public double ScaleX { get; set; }
+    public double ScaleY { get; set; }
     public bool Optional { get; set; }
     public bool NullTexture { get; set; }
     public bool WorldPanning { get; set; }
@@ -219,7 +219,7 @@ public static class TexturesParser
         return invalid ? null : def;
     }
 
-    private static double NormalizeScale(double value) => value == 0.0 ? 1.0 : 1.0 / value;
+    private static double NormalizeScale(double value) => value == 0.0 ? 0.0 : 1.0 / value;
 
     private static void ParsePatch(TexturesDef def, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
