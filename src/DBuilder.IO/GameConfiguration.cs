@@ -722,7 +722,7 @@ public sealed class GameConfiguration
             {
                 int replacedNum = FindThingByClass(a.Replaces);
                 if (replacedNum >= 0 && things.TryGetValue(replacedNum, out var replaced))
-                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null, cvars);
+                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null, cvars, allowExistingCategoryOverride: true);
             }
 
             int num = a.DoomEdNum;
@@ -784,7 +784,13 @@ public sealed class GameConfiguration
         return index >= 0 && things.TryGetValue(index, out var thing) ? thing : null;
     }
 
-    private ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited, CvarInfo? cvars)
+    private ThingTypeInfo BuildThingInfo(
+        ActorInfo actor,
+        int index,
+        ThingTypeInfo? existing,
+        ThingTypeInfo? inherited,
+        CvarInfo? cvars,
+        bool allowExistingCategoryOverride = false)
     {
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
@@ -809,7 +815,7 @@ public sealed class GameConfiguration
             Index = index,
             ClassName = actor.ClassName,
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
-            Category = actor.Category ?? fallback?.Category ?? "Decorate",
+            Category = ActorCategory(actor, existing, inherited, allowExistingCategoryOverride),
             Sprite = fallback?.LockSprite == true
                 ? UnknownThingSpriteIfEmpty(fallback.Sprite)
                 : UnknownThingSpriteIfEmpty(actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite),
@@ -938,6 +944,37 @@ public sealed class GameConfiguration
         if (!string.Equals(actor.Title, actor.ClassName, StringComparison.Ordinal)) return actor.Title;
         if (TryActorProperty(actor, "tag", out string? tag) && !tag.StartsWith("$", StringComparison.Ordinal)) return tag;
         return actor.ClassName;
+    }
+
+    private static string ActorCategory(ActorInfo actor, ThingTypeInfo? existing, ThingTypeInfo? inherited, bool allowExistingCategoryOverride)
+    {
+        if (existing != null)
+        {
+            if (allowExistingCategoryOverride && TryExplicitActorCategory(actor, out string category))
+                return category;
+
+            return existing.Category;
+        }
+
+        return actor.Category ?? inherited?.Category ?? "Decorate";
+    }
+
+    private static bool TryExplicitActorCategory(ActorInfo actor, out string category)
+    {
+        if (actor.EditorKeys.TryGetValue("$category", out string? editorCategory) && editorCategory.Length > 0)
+        {
+            category = editorCategory;
+            return true;
+        }
+
+        if (actor.Properties.TryGetValue("$category", out var values) && values.Count > 0 && values[0].Length > 0)
+        {
+            category = values[0];
+            return true;
+        }
+
+        category = "";
+        return false;
     }
 
     private double ActorAlpha(ActorInfo actor, ThingTypeInfo? existing)

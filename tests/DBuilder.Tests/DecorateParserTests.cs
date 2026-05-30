@@ -1427,6 +1427,69 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsRecategorizesReplacementActorWithExplicitCategory()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR FancyImp replaces DoomImp
+{
+    //$Category ""bosses""
+    States { Spawn: FIMP A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(3001);
+        Assert.NotNull(info);
+        Assert.Equal("bosses", info!.Category);
+    }
+
+    [Fact]
+    public void MergeActorsKeepsReplacementCategoryWhenOnlyRegionProvidesCategory()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        const string decorate = @"
+#region Bosses
+ACTOR FancyImp replaces DoomImp
+{
+    States { Spawn: FIMP A -1 stop }
+}
+#endregion";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(3001);
+        Assert.NotNull(info);
+        Assert.Equal("monsters", info!.Category);
+    }
+
+    [Fact]
     public void MergeActorsPreservesExistingSpriteWhenThingLocksSprite()
     {
         const string cfg = @"

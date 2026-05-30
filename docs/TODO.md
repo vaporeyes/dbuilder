@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1493 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1495 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -495,6 +495,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Filter DECORATE actors by game metadata and configured supported games.
   - [x] Apply MAPINFO `DoomEdNums` `none` removals after actor merging.
   - [x] Apply MAPINFO `DoomEdNums` overrides from archived unsupported actors like UDB.
+  - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked
