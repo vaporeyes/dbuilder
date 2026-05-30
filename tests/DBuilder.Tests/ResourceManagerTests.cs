@@ -233,6 +233,30 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void Pk3NestedWadNamedColormapOverridesFolderColormap()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("FOGMAP", ColormapBytes(7)));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("colormaps/FOGMAP.lmp", ColormapBytes(1)),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var colormap = rm.GetColormap("FOGMAP");
+
+            Assert.NotNull(colormap);
+            Assert.Equal(17, colormap!.Lookup(0, 10));
+        }
+        finally
+        {
+            File.Delete(pk3);
+            File.Delete(nestedWad);
+        }
+    }
+
+    [Fact]
     public void AddingResourceInvalidatesMainColormap()
     {
         using var empty = BuildWad(("PLAYPAL", GrayscalePlaypal()));

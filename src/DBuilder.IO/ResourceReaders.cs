@@ -433,21 +433,19 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual byte[]? GetColormapBytes(string name)
     {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedBytes = nestedReaders[i].GetColormapBytes(name);
+            if (nestedBytes != null) return nestedBytes;
+        }
+
         string normalized = name.Replace('\\', '/').TrimStart('/');
         string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
         string file = Path.GetFileName(normalized);
         byte[]? bytes = string.IsNullOrWhiteSpace(folder)
             ? Find(file, "colormaps")
             : Find(file, "colormaps/" + folder);
-        if (bytes != null) return bytes;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            bytes = nestedReaders[i].GetColormapBytes(name);
-            if (bytes != null) return bytes;
-        }
-
-        return null;
+        return bytes;
     }
 
     public virtual IEnumerable<string> TextureNames()
