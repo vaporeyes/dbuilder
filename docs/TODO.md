@@ -390,7 +390,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore TEXTURES `Graphic` definitions like UDB.
   - [x] Consume unknown top-level TEXTURES declarations like UDB.
 - [x] Port MODELDEF parser.
-- [ ] Port GLDEFS parser fully.
+- [x] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
   - [x] Require integral GLDEFS light radius fields.
   - [x] Require quoted long GLDEFS skybox names.
