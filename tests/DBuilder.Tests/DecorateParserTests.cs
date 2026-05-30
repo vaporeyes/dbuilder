@@ -817,6 +817,32 @@ ACTOR CastStateThing 8001
     }
 
     [Fact]
+    public void RejectsStateBlocksWithUnknownCastTypesLikeUdb()
+    {
+        const string text = @"
+ACTOR InvalidCastStateThing 8002
+{
+    States(Actor, Bogus)
+    {
+    Spawn:
+        CSTT A -1 stop
+    }
+}
+ACTOR ValidAfterInvalidCast 8003
+{
+    States
+    {
+    Spawn:
+        GOOD A -1 stop
+    }
+}";
+        var actor = Assert.Single(DecorateParser.Parse(text));
+
+        Assert.Equal("ValidAfterInvalidCast", actor.ClassName);
+        Assert.Equal("GOODA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void PrefersSpawnStateSpriteOverEarlierNonDisplayState()
     {
         const string text = @"

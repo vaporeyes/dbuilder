@@ -700,8 +700,7 @@ public static class DecorateParser
 
         if (i >= t.Count || t[i].Text != "{") return actor; // no body (e.g. forward declaration)
         i++; // '{'
-        ParseBody(actor, t, ref i, zscriptBody: !headerNum);
-        return actor;
+        return ParseBody(actor, t, ref i, zscriptBody: !headerNum) ? actor : null;
     }
 
     private static ActorInfo? SkipInvalidActorDeclaration(List<Tok> t, ref int i)
@@ -793,7 +792,7 @@ public static class DecorateParser
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
 
-    private static void ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody)
+    private static bool ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody)
     {
         int depth = 1;
         bool pendingStates = false, inStates = false;
@@ -849,6 +848,11 @@ public static class DecorateParser
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal)))
             {
+                if (!zscriptBody && !TryConsumeDecorateStateCasts(tk.Text, t, ref i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
                 pendingUserVariableMetadata.Clear();
                 pendingStates = true;
             }
@@ -928,7 +932,60 @@ public static class DecorateParser
             actor.LightName = sprite?.LightName;
             actor.StateBright = sprite?.Bright == true;
         }
+        return true;
     }
+
+    private static void SkipRemainingActorBody(List<Tok> t, ref int i, int depth)
+    {
+        while (i < t.Count && depth > 0)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == "{") depth++;
+            else if (t[i].Kind == Kind.Sym && t[i].Text == "}") depth--;
+            i++;
+        }
+    }
+
+    private static bool TryConsumeDecorateStateCasts(string statesToken, List<Tok> t, ref int i)
+    {
+        int open = statesToken.IndexOf('(', StringComparison.Ordinal);
+        if (open < 0) return true;
+
+        var parts = new List<string>();
+        string remainder = statesToken[(open + 1)..];
+        if (remainder.Length > 0) parts.Add(remainder);
+        while (!ContainsClosingParen(parts) && i < t.Count)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == "{") return false;
+            parts.Add(t[i++].Text);
+        }
+
+        string text = string.Concat(parts);
+        int close = text.IndexOf(')', StringComparison.Ordinal);
+        if (close < 0) return false;
+
+        string casts = text[..close];
+        if (string.IsNullOrWhiteSpace(casts)) return false;
+        foreach (string cast in casts.Split(','))
+        {
+            string normalized = cast.Trim();
+            if (!IsDecorateStateCastType(normalized)) return false;
+        }
+        return true;
+    }
+
+    private static bool ContainsClosingParen(List<string> parts)
+    {
+        foreach (string part in parts)
+            if (part.IndexOf(')') >= 0)
+                return true;
+        return false;
+    }
+
+    private static bool IsDecorateStateCastType(string value)
+        => value.Equals("actor", StringComparison.OrdinalIgnoreCase)
+        || value.Equals("overlay", StringComparison.OrdinalIgnoreCase)
+        || value.Equals("weapon", StringComparison.OrdinalIgnoreCase)
+        || value.Equals("item", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsStateLabel(List<Tok> t, int colonIndex)
         => colonIndex < t.Count
