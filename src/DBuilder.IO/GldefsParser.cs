@@ -236,6 +236,10 @@ public static class GldefsParser
                     if (TryReadIntFlag(t, ref i, out bool dontLightSelf)) light.DontLightSelf = dontLightSelf;
                     else invalid = true;
                 }
+                else
+                {
+                    invalid = true;
+                }
             }
             if (i < t.Count) i++; // }
         }

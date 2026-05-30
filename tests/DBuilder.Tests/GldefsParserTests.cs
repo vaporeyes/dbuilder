@@ -548,6 +548,19 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
     }
 
     [Fact]
+    public void SkipsLightsWithUnknownProperties()
+    {
+        const string text = @"
+pointlight UNKNOWN { color 1.0 1.0 1.0 size 8 mystery 1 }
+pointlight VALID { color 1.0 1.0 1.0 size 8 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("UNKNOWN"));
+        Assert.True(g.Lights.ContainsKey("VALID"));
+    }
+
+    [Fact]
     public void SkipsUnknownTopLevelBlocksWithArguments()
     {
         const string text = @"
