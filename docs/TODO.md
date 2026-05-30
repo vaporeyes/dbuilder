@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1441 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1442 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -226,6 +226,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Materialize Doom-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Doom-format binary map element loads to UDB format limits.
   - [x] Preserve unsigned Doom-format binary ids and references above signed-short range.
+  - [x] Preserve unsigned Doom-format thing flags above signed-short range.
 - [ ] Complete Doom-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Doom-format map writes.
 - [ ] Complete Hexen-format map loader parity.

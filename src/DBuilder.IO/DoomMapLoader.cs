@@ -158,7 +158,7 @@ public static class DoomMapLoader
             short y = r.ReadInt16();
             short angle = r.ReadInt16();
             short type = r.ReadInt16();
-            short flags = r.ReadInt16();
+            ushort flags = r.ReadUInt16();
 
             var t = new Thing
             {

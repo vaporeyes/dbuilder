@@ -12,7 +12,7 @@ public class DoomMapLoaderTests
 {
     // Builds a synthetic two-vertex / one-linedef Doom-format map in memory and returns the WAD bytes.
     // Verts (2), Sectors (1), Sidedefs (1), Linedefs (1), Things (1).
-    private static MemoryStream BuildSyntheticDoomMap(short secondVertexX = 256, short lineV2 = 1, short sidedefSector = 0)
+    private static MemoryStream BuildSyntheticDoomMap(short secondVertexX = 256, short lineV2 = 1, short sidedefSector = 0, ushort thingFlags = 0x000F)
     {
         // VERTEXES (4 bytes each * 2 = 8)
         var vertexes = new MemoryStream();
@@ -68,7 +68,7 @@ public class DoomMapLoaderTests
             w.Write((short)64);             // y
             w.Write((short)90);             // angle
             w.Write((short)3001);           // type (imp)
-            w.Write((short)(0x0001 | 0x0002 | 0x0004 | 0x0008)); // skill1+2 + skill3 + skill4+5 + ambush
+            w.Write(thingFlags); // skill1+2 + skill3 + skill4+5 + ambush by default
         }
 
         var wadBytes = new MemoryStream();
@@ -345,6 +345,19 @@ public class DoomMapLoaderTests
         Assert.Contains("single", t.UdmfFlags);
         Assert.Contains("dm",     t.UdmfFlags);
         Assert.Contains("coop",   t.UdmfFlags);
+    }
+
+    [Fact]
+    public void ThingFlagsAboveSignedShortRangeArePreserved()
+    {
+        var wadBytes = BuildSyntheticDoomMap(thingFlags: 0x800F);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(0x800F, map.Things[0].Flags);
+        Assert.Contains("skill1", map.Things[0].UdmfFlags);
+        Assert.Contains("ambush", map.Things[0].UdmfFlags);
     }
 
     [Fact]
