@@ -154,9 +154,9 @@ public static class TexturesParser
         }
         if (IsInvalidLongTextureName(nameToken)) return null;
         if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
-        SkipCommas(t, ref i);
+        if (!ReadComma(t, ref i)) return null;
         if (!ReadInt(t, ref i, out int width)) return null;
-        SkipCommas(t, ref i);
+        if (!ReadComma(t, ref i)) return null;
         if (!ReadInt(t, ref i, out int height)) return null;
 
         var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
@@ -177,7 +177,7 @@ public static class TexturesParser
                     case "offset":
                     case "offsets":
                         SkipCommas(t, ref i); if (ReadInt(t, ref i, out int ox)) def.OffsetX = ox;
-                        SkipCommas(t, ref i); if (ReadInt(t, ref i, out int oy)) def.OffsetY = oy;
+                        if (ReadComma(t, ref i) && ReadInt(t, ref i, out int oy)) def.OffsetY = oy;
                         break;
                     case "patch": ParsePatch(def, t, ref i, knownColors); break;
                     default: break; // unknown single-token flag/value; skip
@@ -196,9 +196,9 @@ public static class TexturesParser
         Tok nameToken = t[i++];
         string name = nameToken.Text;
         if (IsInvalidLongTextureName(nameToken)) return;
-        SkipCommas(t, ref i);
+        if (!ReadComma(t, ref i)) return;
         if (!ReadInt(t, ref i, out int x)) return;
-        SkipCommas(t, ref i);
+        if (!ReadComma(t, ref i)) return;
         if (!ReadInt(t, ref i, out int y)) return;
         var patch = new TexturesPatch
         {
@@ -309,6 +309,13 @@ public static class TexturesParser
     }
 
     private static void SkipCommas(List<Tok> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }
+
+    private static bool ReadComma(List<Tok> t, ref int i)
+    {
+        if (i >= t.Count || t[i] != ",") return false;
+        i++;
+        return true;
+    }
 
     private static bool ReadInt(List<Tok> t, ref int i, out int v)
     {

@@ -340,6 +340,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.
   - [x] Apply TEXTURES patch alpha only for UDB-supported render styles.
   - [x] Normalize TEXTURES patch lump names to uppercase.
+  - [x] Require UDB-style comma separators in TEXTURES definitions and patches.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
