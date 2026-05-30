@@ -1235,11 +1235,42 @@ class IncludedBase : Actor
     }
 
     [Fact]
+    public void AllowsTopLevelZScriptVersionDeclaration()
+    {
+        const string text = @"
+version ""4.8""
+class VersionedActor : Actor
+{
+    Default { Radius 8; }
+}";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("VersionedActor", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void UnknownTopLevelPreprocessorDirectiveStopsZScriptParsing()
     {
         const string text = @"
 #library ""helpers""
 class AfterUnknownDirective : Actor
+{
+    Default { Radius 8; }
+}";
+
+        var actors = ZScriptParser.Parse(text);
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
+    public void UnknownTopLevelZScriptIdentifierStopsParsing()
+    {
+        const string text = @"
+library ""helpers""
+class AfterUnknownIdentifier : Actor
 {
     Default { Radius 8; }
 }";

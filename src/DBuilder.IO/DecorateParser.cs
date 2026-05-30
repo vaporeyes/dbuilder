@@ -229,7 +229,25 @@ public static class DecorateParser
             }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
+                && toks[i].Text.Equals("version", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!TrySkipZScriptVersionDeclaration(toks, ref i)) break;
+            }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
+                && IsZScriptClassPrefix(toks[i].Text))
+            {
+                if (!HasValidZScriptPrefixedDeclaration(toks, i)) break;
+                i++;
+            }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
                 && toks[i].Text.StartsWith("#", StringComparison.Ordinal))
+            {
+                break;
+            }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word)
             {
                 break;
             }
@@ -364,6 +382,31 @@ public static class DecorateParser
         => word.Equals("struct", StringComparison.OrdinalIgnoreCase)
         || word.Equals("enum", StringComparison.OrdinalIgnoreCase)
         || word.Equals("const", StringComparison.OrdinalIgnoreCase);
+
+    private static bool TrySkipZScriptVersionDeclaration(List<Tok> t, ref int i)
+    {
+        i++;
+        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+        if (i >= t.Count || t[i].Kind != Kind.Str) return false;
+        i++;
+        return true;
+    }
+
+    private static bool IsZScriptClassPrefix(string word)
+        => word.Equals("extend", StringComparison.OrdinalIgnoreCase)
+        || word.Equals("mixin", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasValidZScriptPrefixedDeclaration(List<Tok> t, int i)
+    {
+        string prefix = t[i].Text;
+        i++;
+        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+        if (prefix.Equals("extend", StringComparison.OrdinalIgnoreCase))
+            return t[i].Text.Equals("class", StringComparison.OrdinalIgnoreCase)
+                || t[i].Text.Equals("struct", StringComparison.OrdinalIgnoreCase);
+        return t[i].Text.Equals("class", StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool IsSkippedDecorateTopLevelDeclaration(string word)
         => word.Equals("enum", StringComparison.OrdinalIgnoreCase)
