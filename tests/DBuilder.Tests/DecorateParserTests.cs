@@ -1118,6 +1118,31 @@ ACTOR NoArgRenderStyleThing 31010
     }
 
     [Fact]
+    public void MergeActorsParsesInlineActorArgEnum()
+    {
+        const string text = @"
+ACTOR InlineArgEnumThing 31011
+{
+    $Arg0 ""Mode""
+    $Arg0Type 11
+    $Arg0Enum { 0 = ""Off""; 1 = ""On""; }
+    Radius 24
+    Height 48
+    States { Spawn: IARG A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31011);
+        Assert.NotNull(info);
+        var enumMap = gc.GetArgEnum(info!.Args[0]);
+        Assert.NotNull(enumMap);
+        Assert.Null(info.Args[0].Enum);
+        Assert.Equal("Off", enumMap![0]);
+        Assert.Equal("On", enumMap[1]);
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"

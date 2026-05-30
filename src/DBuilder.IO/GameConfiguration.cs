@@ -1001,13 +1001,16 @@ public sealed class GameConfiguration
             bool hasRenderStyle = renderStyle.Length > 0;
             int minRange = hasRenderStyle ? ActorPropertyInt(actor, prefix + "minrange") : 0;
             int maxRange = hasRenderStyle ? ActorPropertyInt(actor, prefix + "maxrange") : 0;
+            string enumValue = ActorProperty(actor, prefix + "enum");
+            var inlineEnum = ParseActorArgInlineEnum(enumValue);
             args[i] = new ArgInfo
             {
                 Title = title,
                 Used = true,
                 ToolTip = ActorArgToolTip(actor, prefix, renderStyle, minRange, maxRange),
                 Type = type,
-                Enum = EmptyToNull(ActorProperty(actor, prefix + "enum")),
+                Enum = inlineEnum.Count > 0 ? null : EmptyToNull(enumValue),
+                InlineEnumItems = inlineEnum,
                 Default = ActorPropertyInt(actor, prefix + "default"),
                 DefaultValue = ActorPropertyInt(actor, prefix + "default"),
                 TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")) : EmptyTargetClasses,
@@ -1025,6 +1028,16 @@ public sealed class GameConfiguration
         if (args == null) return clearArgs ? Array.Empty<ArgInfo>() : existing ?? Array.Empty<ArgInfo>();
         for (int i = 0; i < 5; i++) args[i] ??= !clearArgs && existing != null && i < existing.Length ? existing[i] : new ArgInfo();
         return args;
+    }
+
+    private static IReadOnlyList<EnumItemInfo> ParseActorArgInlineEnum(string value)
+    {
+        value = value.Trim();
+        if (!value.StartsWith("{", StringComparison.Ordinal)) return Array.Empty<EnumItemInfo>();
+
+        var cfg = new Configuration(true);
+        if (!cfg.InputConfiguration("enum " + value, true)) return Array.Empty<EnumItemInfo>();
+        return cfg.ReadSetting("enum", (IDictionary?)null) is IDictionary block ? ParseInlineEnum(block) : Array.Empty<EnumItemInfo>();
     }
 
     private static string ActorArgRenderStyle(ActorInfo actor, string prefix)

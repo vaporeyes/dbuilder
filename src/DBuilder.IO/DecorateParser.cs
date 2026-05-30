@@ -982,6 +982,7 @@ public static class DecorateParser
         if (StateFlow.Contains(word)) return false;
         if (next >= t.Count) return false;
         if (t[next].Kind == Kind.Sym && t[next].Text == "=") return next + 1 < t.Count && t[next + 1].Kind is Kind.Word or Kind.Str;
+        if (word.StartsWith("$", StringComparison.Ordinal) && t[next].Kind == Kind.Sym && t[next].Text == "{") return true;
         if (t[next].Kind == Kind.Sym && t[next].Text is "{" or "}" or ":" or ";") return false;
         return t[next].Kind is Kind.Word or Kind.Str;
     }
@@ -1290,6 +1291,9 @@ public static class DecorateParser
     private static List<string> ReadDollarPropertyValues(List<Tok> t, ref int i)
     {
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "{")
+            return new List<string> { ReadInlineBlockValue(t, ref i) };
+
         var parts = new List<string>();
         while (i < t.Count)
         {
@@ -1301,6 +1305,24 @@ public static class DecorateParser
 
         return parts.Count == 0 ? parts : new List<string> { JoinLineValue(parts) };
     }
+
+    private static string ReadInlineBlockValue(List<Tok> t, ref int i)
+    {
+        var parts = new List<string>();
+        int depth = 0;
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            parts.Add(ConfigValueToken(tk));
+            if (tk.Kind == Kind.Sym && tk.Text == "{") depth++;
+            else if (tk.Kind == Kind.Sym && tk.Text == "}" && --depth <= 0) break;
+        }
+
+        return JoinLineValue(parts);
+    }
+
+    private static string ConfigValueToken(Tok token)
+        => token.Kind == Kind.Str ? "\"" + token.Text.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"" : token.Text;
 
     private static string JoinLineValue(List<string> parts)
     {
