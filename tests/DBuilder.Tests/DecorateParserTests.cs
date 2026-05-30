@@ -332,6 +332,26 @@ ACTOR GoodHeader 6004
     }
 
     [Fact]
+    public void KeepsFirstDecorateActorWhenClassIsDuplicated()
+    {
+        const string text = @"
+ACTOR DuplicateThing 6005
+{
+    Radius 16
+}
+ACTOR DuplicateThing 6006
+{
+    Radius 64
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("DuplicateThing", actor.ClassName);
+        Assert.Equal(6005, actor.DoomEdNum);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void SeparatedNegativeEditorNumberLeavesDoomEdNumNegative()
     {
         var actor = DecorateParser.Parse("ACTOR AbstractBase - 1 { Radius 16 }")[0];

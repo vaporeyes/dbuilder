@@ -208,7 +208,7 @@ public static class DecorateParser
                 else
                 {
                     var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
-                    if (a != null) actors.Add(a);
+                    if (a != null && !ContainsActorClass(actors, a.ClassName)) actors.Add(a);
                 }
             }
             else if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
@@ -230,6 +230,14 @@ public static class DecorateParser
         if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
             FilterZScriptActorClasses(actors);
         return actors;
+    }
+
+    private static bool ContainsActorClass(List<ActorInfo> actors, string className)
+    {
+        foreach (var actor in actors)
+            if (actor.ClassName.Equals(className, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
     }
 
     private static string? CurrentRegionCategory(List<string> regions)
