@@ -1152,7 +1152,7 @@ ACTOR CoolMonster 31000
         Assert.Equal(14, info.Args[0].Type);
         Assert.Equal(7, info.Args[0].Default);
         Assert.Equal(7, info.Args[0].DefaultValue);
-        Assert.Equal("Pick target\nby tid" + Environment.NewLine + Environment.NewLine + "Expected range: 16 - 256", info.Args[0].ToolTip);
+        Assert.Equal("Pick target" + Environment.NewLine + "by tid" + Environment.NewLine + Environment.NewLine + "Expected range: 16 - 256", info.Args[0].ToolTip);
         Assert.Contains("MapSpot", info.Args[0].TargetClasses);
         Assert.Contains("PatrolPoint", info.Args[0].TargetClasses);
         Assert.Equal("circle", info.Args[0].RenderStyle);

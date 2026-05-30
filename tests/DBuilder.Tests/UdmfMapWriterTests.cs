@@ -713,12 +713,16 @@ public class UdmfMapWriterTests
 
     private static string Block(string text, string header)
     {
+        text = NormalizeLineEndings(text);
         int start = text.IndexOf(header, StringComparison.Ordinal);
         Assert.True(start >= 0);
         int next = text.IndexOf("\n\n", start, StringComparison.Ordinal);
         Assert.True(next > start);
         return text[start..next];
     }
+
+    private static string NormalizeLineEndings(string text)
+        => text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
 
     private static void AssertInOrder(string text, params string[] fragments)
     {
