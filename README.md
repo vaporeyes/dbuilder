@@ -20,7 +20,7 @@ When visible editor behavior changes, replace the screenshots in `assets` and up
 
 ## Screenshots
 
-The README screenshots live in `assets` so they can be reviewed and replaced without changing the docs structure.
+The README screenshots use the checked-in images under `assets`. Replace those files when visible editor behavior changes, then update this README and `docs/TODO.md` in the same slice.
 
 ### Loaded Map
 
