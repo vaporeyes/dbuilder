@@ -399,6 +399,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve actor argument render helper colors.
   - [x] Discover scalar actor `user_` variables as typed additional thing fields.
   - [x] Apply ZScript `$UserDefaultValue` metadata to actor `user_` fields.
+  - [x] Apply ZScript `$UserReinterpret Color` metadata to integer actor `user_` fields.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.

@@ -1041,7 +1041,8 @@ public static class DecorateParser
         if (!TryUserVariableType(typeName, out var type)) return false;
         if (i >= t.Count || t[i].Kind != Kind.Word) return false;
 
-        object? defaultValue = TryActorUserVariableDefault(metadata, type, out var parsedDefault) ? parsedDefault : null;
+        UniversalType effectiveType = ReinterpretUserVariableType(metadata, type);
+        object? defaultValue = TryActorUserVariableDefault(metadata, type, effectiveType, out var parsedDefault) ? parsedDefault : null;
         var variables = new List<(string Name, bool IsArray)>();
         bool expectName = true;
         while (i < t.Count)
@@ -1052,7 +1053,7 @@ public static class DecorateParser
                 i++;
                 foreach (var variable in variables)
                     if (!variable.IsArray && IsUserVariableName(variable.Name) && !actor.UserVariables.ContainsKey(variable.Name))
-                        actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, type, defaultValue);
+                        actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, effectiveType, defaultValue);
                 return true;
             }
 
@@ -1146,18 +1147,25 @@ public static class DecorateParser
 
     private static bool TryActorUserVariableDefault(
         Dictionary<string, string> metadata,
-        UniversalType type,
+        UniversalType declaredType,
+        UniversalType effectiveType,
         out object? value)
     {
         value = null;
         if (!metadata.TryGetValue("$userdefaultvalue", out string? raw)) return false;
 
-        switch (type)
+        switch (declaredType)
         {
             case UniversalType.Integer:
                 if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int integer))
                 {
                     value = integer;
+                    return true;
+                }
+                if (effectiveType == UniversalType.Color
+                    && ZDoomColorParser.TryParse(raw, knownColors: null, out byte red, out byte green, out byte blue))
+                {
+                    value = red << 16 | green << 8 | blue;
                     return true;
                 }
                 return false;
@@ -1181,6 +1189,17 @@ public static class DecorateParser
             default:
                 return false;
         }
+    }
+
+    private static UniversalType ReinterpretUserVariableType(
+        Dictionary<string, string> metadata,
+        UniversalType declaredType)
+    {
+        if (declaredType != UniversalType.Integer) return declaredType;
+        return metadata.TryGetValue("$userreinterpret", out string? reinterpret)
+            && reinterpret.Trim().Equals("color", StringComparison.OrdinalIgnoreCase)
+            ? UniversalType.Color
+            : declaredType;
     }
 
     private static List<string> ReadSemicolonPropertyValues(string key, List<Tok> t, ref int i, bool isGameProperty)
