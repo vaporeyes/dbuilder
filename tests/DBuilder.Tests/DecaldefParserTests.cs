@@ -68,4 +68,30 @@ decalgroup BloodPool 99
         Assert.Contains(group.Entries, e => e.DecalName == "BloodA" && e.Weight == 3);
         Assert.Contains(group.Entries, e => e.DecalName == "BloodB" && e.Weight == 1);
     }
+
+    [Fact]
+    public void BuildsUdbStyleDecalLookupById()
+    {
+        const string text = @"
+decal OldBlood 42 { pic OLD }
+decalgroup BloodGroup 7 { Blood 1 }
+decal Blood 42 { pic BLOD }
+decalgroup Replaced 9 { Blood 1 }
+decal Replaced 10 { pic REPL }";
+
+        var defs = DecaldefParser.Parse(text);
+        var lookup = defs.GetDecalDefsById();
+
+        Assert.Equal("Blood", lookup[42].Name);
+        Assert.False(lookup[42].IsGroup);
+        Assert.Equal("42: Blood", lookup[42].Description);
+        Assert.Equal("BloodGroup", lookup[7].Name);
+        Assert.True(lookup[7].IsGroup);
+        Assert.Equal("7: BloodGroup", lookup[7].Description);
+        Assert.False(lookup.ContainsKey(9));
+        Assert.Equal("Replaced", lookup[10].Name);
+        Assert.False(lookup[10].IsGroup);
+        Assert.True(defs.Decals.ContainsKey("Replaced"));
+        Assert.False(defs.Groups.ContainsKey("Replaced"));
+    }
 }

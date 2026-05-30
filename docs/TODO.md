@@ -354,6 +354,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port TERRAIN parser.
 - [x] Port LOCKDEFS parser.
 - [x] Port DECALDEF parser.
+  - [x] Expose UDB-style DECALDEF ID lookup.
 - [x] Port VOXELDEF parser.
 - [x] Port IWADINFO parser.
 - [x] Port CVARINFO parser.

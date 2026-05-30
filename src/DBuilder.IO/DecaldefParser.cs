@@ -9,9 +9,45 @@ namespace DBuilder.IO;
 
 public sealed class DecalDefs
 {
+    private readonly List<DecalIdDefinition> idDefinitions = new();
+
     public Dictionary<string, DecalDefinition> Decals { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, DecalGroupDefinition> Groups { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<DecalGenerator> Generators { get; } = new();
+
+    public Dictionary<int, DecalIdDefinition> GetDecalDefsById()
+    {
+        var result = new Dictionary<int, DecalIdDefinition>();
+        foreach (var definition in idDefinitions)
+            result[definition.Id] = definition;
+        return result;
+    }
+
+    internal void SetDecal(DecalDefinition decal)
+    {
+        Decals[decal.Name] = decal;
+        Groups.Remove(decal.Name);
+        SetIdDefinition(decal.Name, decal.Id, isGroup: false);
+    }
+
+    internal void SetGroup(DecalGroupDefinition group)
+    {
+        Groups[group.Name] = group;
+        Decals.Remove(group.Name);
+        SetIdDefinition(group.Name, group.Id, isGroup: true);
+    }
+
+    private void SetIdDefinition(string name, int? id, bool isGroup)
+    {
+        idDefinitions.RemoveAll(definition => definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (id is int value)
+            idDefinitions.Add(new DecalIdDefinition(value, name, isGroup));
+    }
+}
+
+public sealed record DecalIdDefinition(int Id, string Name, bool IsGroup)
+{
+    public string Description => Id.ToString(CultureInfo.InvariantCulture) + ": " + Name;
 }
 
 public sealed class DecalDefinition
@@ -77,7 +113,7 @@ public static class DecaldefParser
             }
             if (i < t.Count) i++;
         }
-        if (decal.Name.Length > 0) defs.Decals[decal.Name] = decal;
+        if (decal.Name.Length > 0) defs.SetDecal(decal);
     }
 
     private static void ParseDecalGroup(DecalDefs defs, List<string> t, ref int i)
@@ -95,7 +131,7 @@ public static class DecaldefParser
             }
             if (i < t.Count) i++;
         }
-        if (group.Name.Length > 0) defs.Groups[group.Name] = group;
+        if (group.Name.Length > 0) defs.SetGroup(group);
     }
 
     private static void ParseGenerator(DecalDefs defs, List<string> t, ref int i)
