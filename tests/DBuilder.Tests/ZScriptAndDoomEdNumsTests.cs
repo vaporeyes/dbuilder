@@ -351,6 +351,27 @@ class NegativeDefaultThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsClampsSmallRadiusToFixedEditorSize()
+    {
+        const string zscript = @"
+class SmallRadiusZThing : Actor
+{
+    Default { Radius 1; Height 48; }
+    States { Spawn: SZRD A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9053 = SmallRadiusZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9053);
+        Assert.NotNull(info);
+        Assert.Equal(14, info!.Width);
+        Assert.Equal(48, info.Height);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

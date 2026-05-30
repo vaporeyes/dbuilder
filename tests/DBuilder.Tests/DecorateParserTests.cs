@@ -966,6 +966,25 @@ ACTOR NegativePropertyThing 31001
     }
 
     [Fact]
+    public void MergeActorsClampsSmallActorRadiusToFixedEditorSize()
+    {
+        const string text = @"
+ACTOR SmallRadiusThing 31002
+{
+    Radius 1
+    Height 48
+    States { Spawn: SRAD A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31002);
+        Assert.NotNull(info);
+        Assert.Equal(14, info!.Width);
+        Assert.Equal(48, info.Height);
+    }
+
+    [Fact]
     public void MergeActorsAppliesReplacementActorToExistingThingClass()
     {
         const string cfg = @"

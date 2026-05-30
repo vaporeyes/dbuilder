@@ -384,6 +384,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse quoted DECORATE actor header class names.
   - [x] Honor DECORATE `skip_super` for parsed parent inheritance.
   - [x] Parse separated negative actor numeric properties for catalog metadata.
+  - [x] Clamp very small actor radii to UDB's fixed editor size.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.

@@ -311,6 +311,8 @@ public sealed class TextureSetInfo
 
 public sealed class GameConfiguration
 {
+    private const int ThingFixedSize = 14;
+
     private readonly Dictionary<int, ThingTypeInfo> things = new();
     private readonly Dictionary<string, ThingCategoryInfo> thingCategories = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, LinedefActionInfo> linedefActions = new();
@@ -691,7 +693,7 @@ public sealed class GameConfiguration
             Category = actor.Category ?? fallback?.Category ?? "Decorate",
             Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
             LightName = actor.LightName ?? fallback?.LightName ?? "",
-            Width = actor.Radius > 0 ? actor.Radius : fallback?.Width ?? 16,
+            Width = ActorWidth(actor, fallback),
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
@@ -755,6 +757,12 @@ public sealed class GameConfiguration
         => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0)
             : actor.Properties.ContainsKey("defaultalpha") ? 0.6
             : existing?.Alpha ?? 1.0;
+
+    private static int ActorWidth(ActorInfo actor, ThingTypeInfo? existing)
+    {
+        if (actor.Radius <= 0) return existing?.Width ?? 16;
+        return actor.Radius < 4 ? ThingFixedSize : actor.Radius;
+    }
 
     private static string ActorRenderStyle(ActorInfo actor, ThingTypeInfo? existing)
         => actor.Properties.ContainsKey("$ignorerenderstyle")
