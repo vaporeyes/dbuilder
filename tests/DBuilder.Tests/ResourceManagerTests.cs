@@ -205,6 +205,34 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void Pk3NestedWadFlatOverridesFolderFlat()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("SAMEFLAT", SolidFlat(77)),
+            ("F_END", Array.Empty<byte>()));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("flats/SAMEFLAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var flat = rm.GetFlat("SAMEFLAT");
+
+            Assert.NotNull(flat);
+            Assert.Equal(new byte[] { 77, 77, 77, 255 }, flat!.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+            File.Delete(nestedWad);
+        }
+    }
+
+    [Fact]
     public void AddingResourceInvalidatesMainColormap()
     {
         using var empty = BuildWad(("PLAYPAL", GrayscalePlaypal()));

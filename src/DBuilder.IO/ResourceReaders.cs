@@ -316,37 +316,33 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetFlatBase(string name, DoomPalette? palette)
     {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedImage = nestedReaders[i].GetFlatBase(name, palette);
+            if (nestedImage != null) return nestedImage;
+        }
+
         var image = rootFlats
             ? Decode(Find(name, "", "flats"), palette, preferFlat: true)
             : Decode(Find(name, "flats"), palette, preferFlat: true);
-        if (image != null) return image;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            image = nestedReaders[i].GetFlatBase(name, palette);
-            if (image != null) return image;
-        }
-
-        return null;
+        return image;
     }
 
     public virtual ImageData? GetWallTextureBase(string name, DoomPalette? palette)
     {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedImage = nestedReaders[i].GetWallTextureBase(name, palette);
+            if (nestedImage != null) return nestedImage;
+        }
+
         var image = rootTextures
             ? Decode(Find(name, "", "textures", "patches"), palette, preferFlat: false)
             : Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
         if (image != null) return image;
 
         image = ComposeClassicTexture(name, palette);
-        if (image != null) return image;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            image = nestedReaders[i].GetWallTextureBase(name, palette);
-            if (image != null) return image;
-        }
-
-        return null;
+        return image;
     }
 
     public virtual ImageData? GetSpriteBase(string name, DoomPalette? palette)

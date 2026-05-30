@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1450 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1451 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -300,6 +300,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor WAD strict patch resource option for classic texture composition.
 - [ ] Port resource priority and override behavior completely.
   - [x] Let later GLDEFS resources override actor light associations.
+  - [x] Let nested WAD flat and texture resources take priority over folder resources within a PK3 like UDB.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
   - [x] Resolve the active main `COLORMAP` through the resource stack.
