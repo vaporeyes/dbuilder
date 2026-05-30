@@ -770,9 +770,26 @@ public sealed class GameConfiguration
             RollSprite = rollSprite,
             RollCenter = rollSprite && ActorFlag(actor, "rollcenter"),
             FlagsRename = existing?.FlagsRename ?? EmptyFlagsRename,
-            AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
+            AddUniversalFields = ActorAdditionalUniversalFields(actor, fallback),
             Args = ActorArgs(actor, fallback?.Args),
         };
+    }
+
+    private static IReadOnlyList<string> ActorAdditionalUniversalFields(ActorInfo actor, ThingTypeInfo? fallback)
+    {
+        if (actor.UserVariables.Count == 0) return fallback?.AddUniversalFields ?? Array.Empty<string>();
+
+        var fields = new List<string>();
+        if (fallback != null)
+        {
+            foreach (string field in fallback.AddUniversalFields)
+                if (!fields.Contains(field, StringComparer.OrdinalIgnoreCase)) fields.Add(field);
+        }
+
+        foreach (var variable in actor.UserVariables.Values)
+            if (!fields.Contains(variable.Name, StringComparer.OrdinalIgnoreCase)) fields.Add(variable.Name);
+
+        return fields;
     }
 
     private static ThingTypeInfo CopyThingInfo(ThingTypeInfo source, int index) => new()

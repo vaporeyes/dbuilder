@@ -190,6 +190,8 @@ class MemberActor : Actor
     flagdef CUSTOMFLAG: bflags, 7;
     const int LocalConst = 3;
     int user_value;
+    float user_speed;
+    int user_values[4];
     void Helper()
     {
         int local_value;
@@ -212,6 +214,16 @@ class MemberActor : Actor
         Assert.False(actor.Properties.ContainsKey("flagdef"));
         Assert.False(actor.Properties.ContainsKey("int"));
         Assert.False(actor.Properties.ContainsKey("void"));
+        Assert.True(actor.UserVariables.ContainsKey("user_value"));
+        Assert.True(actor.UserVariables.ContainsKey("user_speed"));
+        Assert.False(actor.UserVariables.ContainsKey("user_values"));
+
+        var gc = new GameConfiguration();
+        gc.MergeActors(new[] { actor }, new Dictionary<int, string> { [9001] = "MemberActor" });
+        var thing = gc.GetThing(9001)!;
+        Assert.True(thing.HasAdditionalUniversalField("user_value"));
+        Assert.True(thing.HasAdditionalUniversalField("user_speed"));
+        Assert.False(thing.HasAdditionalUniversalField("user_values"));
     }
 
     [Fact]

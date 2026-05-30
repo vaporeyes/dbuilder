@@ -433,12 +433,13 @@ ACTOR NativeActor 7005
     }
 
     [Fact]
-    public void IgnoresUserVariableDeclarations()
+    public void ParsesScalarUserVariableDeclarationsAsAdditionalFields()
     {
         const string text = @"
 ACTOR UserVarActor 7006
 {
     var int user_score;
+    var float user_speed;
     var float user_values[4];
     Radius 16
 }";
@@ -446,8 +447,19 @@ ACTOR UserVarActor 7006
 
         Assert.False(actor.Properties.ContainsKey("var"));
         Assert.False(actor.Properties.ContainsKey("user_score"));
+        Assert.False(actor.Properties.ContainsKey("user_speed"));
         Assert.False(actor.Properties.ContainsKey("user_values"));
+        Assert.True(actor.UserVariables.ContainsKey("user_score"));
+        Assert.True(actor.UserVariables.ContainsKey("user_speed"));
+        Assert.False(actor.UserVariables.ContainsKey("user_values"));
         Assert.Equal(16, actor.Radius);
+
+        var gc = new GameConfiguration();
+        gc.MergeActors(new[] { actor });
+        var thing = gc.GetThing(7006)!;
+        Assert.True(thing.HasAdditionalUniversalField("user_score"));
+        Assert.True(thing.HasAdditionalUniversalField("user_speed"));
+        Assert.False(thing.HasAdditionalUniversalField("user_values"));
     }
 
     [Fact]

@@ -12,6 +12,8 @@ internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, 
 
 internal readonly record struct StateGotoTarget(string? ClassName, string StateName, int SpriteOffset);
 
+public sealed record ActorUserVariable(string Name, UniversalType Type);
+
 /// <summary>An actor definition parsed from DECORATE. DoomEdNum &lt; 0 means it has no editor (placeable) number.</summary>
 public sealed class ActorInfo
 {
@@ -29,6 +31,7 @@ public sealed class ActorInfo
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, ActorUserVariable> UserVariables { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Mixins { get; } = new();
     internal Dictionary<string, StateSpriteCandidate> StateSprites { get; } = new(StringComparer.OrdinalIgnoreCase);
     internal Dictionary<string, List<StateSpriteCandidate>> StateFrames { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -397,6 +400,7 @@ public static class DecorateParser
                 actor.Height = mixin.Height;
                 if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
             }
+            CopyUserVariables(actor, mixin);
             CopyMixinFlag(actor, mixin, "spawnceiling");
             CopyMixinFlag(actor, mixin, "solid");
         }
@@ -418,6 +422,7 @@ public static class DecorateParser
                 }
                 if (extension.Radius > 0) actor.Radius = extension.Radius;
                 if (extension.Height > 0) actor.Height = extension.Height;
+                CopyUserVariables(actor, extension);
                 CopyExtensionFlag(actor, extension, "spawnceiling");
                 CopyExtensionFlag(actor, extension, "solid");
             }
@@ -433,6 +438,12 @@ public static class DecorateParser
     {
         if (!actor.Flags.ContainsKey(flag) && mixin.Flags.TryGetValue(flag, out bool enabled))
             actor.Flags[flag] = enabled;
+    }
+
+    private static void CopyUserVariables(ActorInfo actor, ActorInfo source)
+    {
+        foreach (var variable in source.UserVariables.Values)
+            if (!actor.UserVariables.ContainsKey(variable.Name)) actor.UserVariables[variable.Name] = variable;
     }
 
     private static bool HasSpawnState(ActorInfo actor)
@@ -639,7 +650,10 @@ public static class DecorateParser
                 if (i < t.Count && t[i].Kind == Kind.Word) actor.Mixins.Add(t[i++].Text);
                 SkipUntilSemicolon(t, ref i);
             }
-            else if (zscriptBody && depth == 1 && lw != "default") SkipZScriptMember(t, ref i);
+            else if (zscriptBody && depth == 1 && lw != "default")
+            {
+                if (!TryParseZScriptUserVariables(actor, tk.Text, t, ref i)) SkipZScriptMember(t, ref i);
+            }
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && TryParseSeparatedFlag(tk.Text, t, ref i, actor)) { }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
@@ -647,7 +661,7 @@ public static class DecorateParser
             else if (!inStates && tk.Text.Equals("$clearargs", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("skip_super", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("defaultalpha", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
-            else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) SkipUntilSemicolon(t, ref i);
+            else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) ParseDecorateUserVariable(actor, t, ref i);
             else if (!inStates && (tk.Text.Equals("action", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))) SkipUntilSemicolon(t, ref i);
             else if (!inStates && tk.Text.Equals("monster", StringComparison.OrdinalIgnoreCase)) ApplyMonsterFlags(actor);
@@ -973,6 +987,128 @@ public static class DecorateParser
         return values;
     }
 
+    private static void ParseDecorateUserVariable(ActorInfo actor, List<Tok> t, ref int i)
+    {
+        if (i + 1 >= t.Count)
+        {
+            SkipUntilSemicolon(t, ref i);
+            return;
+        }
+
+        if (!TryUserVariableType(t[i].Text, out var type))
+        {
+            SkipUntilSemicolon(t, ref i);
+            return;
+        }
+
+        i++;
+        if (i >= t.Count || t[i].Kind != Kind.Word)
+        {
+            SkipUntilSemicolon(t, ref i);
+            return;
+        }
+
+        string name = t[i++].Text;
+        bool isArray = i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[";
+        if (!isArray && IsUserVariableName(name) && !actor.UserVariables.ContainsKey(name))
+            actor.UserVariables[name] = new ActorUserVariable(name, type);
+
+        SkipUntilSemicolon(t, ref i);
+    }
+
+    private static bool TryParseZScriptUserVariables(ActorInfo actor, string typeName, List<Tok> t, ref int i)
+    {
+        if (!TryUserVariableType(typeName, out var type)) return false;
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+
+        var variables = new List<(string Name, bool IsArray)>();
+        bool expectName = true;
+        while (i < t.Count)
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text == ";")
+            {
+                i++;
+                foreach (var variable in variables)
+                    if (!variable.IsArray && IsUserVariableName(variable.Name) && !actor.UserVariables.ContainsKey(variable.Name))
+                        actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, type);
+                return true;
+            }
+
+            if (tk.Kind == Kind.Sym && tk.Text == "(") return false;
+            if (tk.Kind == Kind.Sym && tk.Text == ",")
+            {
+                expectName = true;
+                i++;
+                continue;
+            }
+
+            if (expectName && tk.Kind == Kind.Word)
+            {
+                string name = tk.Text;
+                i++;
+                bool isArray = false;
+                if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[")
+                {
+                    isArray = true;
+                    SkipBracketedExpression(t, ref i);
+                }
+                variables.Add((name, isArray));
+                expectName = false;
+                continue;
+            }
+
+            i++;
+        }
+
+        return true;
+    }
+
+    private static void SkipBracketedExpression(List<Tok> t, ref int i)
+    {
+        int depth = 0;
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "[") depth++;
+            else if (tk.Kind == Kind.Sym && tk.Text == "]" && --depth <= 0) return;
+        }
+    }
+
+    private static bool TryUserVariableType(string typeName, out UniversalType type)
+    {
+        if (typeName.Equals("int", StringComparison.OrdinalIgnoreCase))
+        {
+            type = UniversalType.Integer;
+            return true;
+        }
+
+        if (typeName.Equals("float", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("double", StringComparison.OrdinalIgnoreCase))
+        {
+            type = UniversalType.Float;
+            return true;
+        }
+
+        if (typeName.Equals("bool", StringComparison.OrdinalIgnoreCase))
+        {
+            type = UniversalType.Boolean;
+            return true;
+        }
+
+        if (typeName.Equals("string", StringComparison.OrdinalIgnoreCase))
+        {
+            type = UniversalType.String;
+            return true;
+        }
+
+        type = UniversalType.Integer;
+        return false;
+    }
+
+    private static bool IsUserVariableName(string name)
+        => name.StartsWith("user_", StringComparison.OrdinalIgnoreCase);
+
     private static List<string> ReadSemicolonPropertyValues(string key, List<Tok> t, ref int i, bool isGameProperty)
     {
         var values = new List<string>();
@@ -1135,6 +1271,7 @@ public static class DecorateParser
                         continue;
                     if (!a.Properties.ContainsKey(kvp.Key)) a.Properties[kvp.Key] = kvp.Value;
                 }
+                CopyUserVariables(a, parent);
                 if (!a.EditorKeys.ContainsKey("$category") && parent.EditorKeys.TryGetValue("$category", out var cat))
                     a.EditorKeys["$category"] = cat;
                 p = parent.ParentName;
