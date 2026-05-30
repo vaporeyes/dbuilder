@@ -1403,6 +1403,38 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsPreservesExistingSpriteWhenThingLocksSprite()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+            locksprite = true;
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR FancyImp replaces DoomImp
+{
+    States { Spawn: FIMP A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(3001);
+        Assert.NotNull(info);
+        Assert.True(info!.LockSprite);
+        Assert.Equal("TROOA1", info.Sprite);
+    }
+
+    [Fact]
     public void MergeActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
     {
         const string cfg = @"

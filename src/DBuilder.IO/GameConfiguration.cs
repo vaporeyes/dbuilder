@@ -786,7 +786,9 @@ public sealed class GameConfiguration
             ClassName = actor.ClassName,
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
             Category = actor.Category ?? fallback?.Category ?? "Decorate",
-            Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
+            Sprite = fallback?.LockSprite == true
+                ? fallback.Sprite
+                : actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
             LightName = actor.LightName ?? fallback?.LightName ?? "",
             Width = SafeThingWidth(actorWidth, fixedSize),
             RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
