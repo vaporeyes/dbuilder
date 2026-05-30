@@ -204,11 +204,12 @@ glow
     }
 
     [Fact]
-    public void SkipsGlowTexturesWithoutCommaColorSyntax()
+    public void InvalidGlowTextureSyntaxStopsParsingLikeUdb()
     {
         const string text = @"
 glow
 {
+    flats { BEFORE }
     texture NOCOMMA ""#2040ff""
     texture COLORKEY, color
     texture RGBTRIPLET, 0.5 0.5 1.0
@@ -217,14 +218,15 @@ glow
 
         var g = GldefsParser.Parse(text);
 
+        Assert.Contains("BEFORE", g.GlowFlats);
         Assert.False(g.Glows.ContainsKey("NOCOMMA"));
         Assert.False(g.Glows.ContainsKey("COLORKEY"));
         Assert.False(g.Glows.ContainsKey("RGBTRIPLET"));
-        Assert.True(g.Glows.ContainsKey("VALID"));
+        Assert.False(g.Glows.ContainsKey("VALID"));
     }
 
     [Fact]
-    public void RequiresValidGlowTextureCommaSuffix()
+    public void InvalidGlowTextureCommaSuffixStopsParsingLikeUdb()
     {
         const string text = @"
 glow
@@ -241,12 +243,28 @@ glow
         Assert.False(g.Glows.ContainsKey("BADFLAG"));
         Assert.False(g.Glows.ContainsKey("BADHEIGHTFLAG"));
         Assert.False(g.Glows.ContainsKey("MISSINGFLAG"));
+        Assert.False(g.Glows.ContainsKey("HEIGHT"));
+        Assert.False(g.Glows.ContainsKey("FULLBRIGHT"));
+    }
+
+    [Fact]
+    public void ParsesGlowTextureHeightAndFullbright()
+    {
+        const string text = @"
+glow
+{
+    texture HEIGHT, ""#2040ff"", 32
+    texture ""FULLBRIGHT"", ""#2040ff"", fullbright
+}";
+
+        var g = GldefsParser.Parse(text);
+
         Assert.Equal(64, g.Glows["HEIGHT"].Height);
         Assert.True(g.Glows["FULLBRIGHT"].Fullbright);
     }
 
     [Fact]
-    public void SkipsUnnamedGlowEntries()
+    public void EmptyGlowTextureNamesStopParsingLikeUdb()
     {
         const string text = @"
 glow
@@ -264,7 +282,7 @@ glow
         Assert.False(g.Glows.ContainsKey(""));
         Assert.Contains("VALIDFLAT", g.GlowFlats);
         Assert.Contains("VALIDWALL", g.GlowTextures);
-        Assert.True(g.Glows.ContainsKey("VALIDTEX"));
+        Assert.False(g.Glows.ContainsKey("VALIDTEX"));
     }
 
     [Fact]
@@ -348,7 +366,7 @@ pointlight AFTER { color 1 1 1 size 16 }";
     }
 
     [Fact]
-    public void RequiresQuotesForLongGlowTextureNames()
+    public void UnquotedLongGlowTextureNamesStopParsingLikeUdb()
     {
         const string text = @"
 glow
@@ -360,8 +378,22 @@ glow
 
         var g = GldefsParser.Parse(text);
 
+        Assert.Empty(g.Glows);
+    }
+
+    [Fact]
+    public void ParsesQuotedLongGlowTextureNames()
+    {
+        const string text = @"
+glow
+{
+    texture ""LONGGLOWOK"", ""#2040ff""
+    texture SHORTTEX, ""#2040ff""
+}";
+
+        var g = GldefsParser.Parse(text);
+
         Assert.Equal(2, g.Glows.Count);
-        Assert.False(g.Glows.ContainsKey("LONGGLOWBAD"));
         Assert.True(g.Glows.ContainsKey("LONGGLOWOK"));
         Assert.True(g.Glows.ContainsKey("SHORTTEX"));
     }

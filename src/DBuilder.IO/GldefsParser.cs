@@ -113,7 +113,10 @@ public static class GldefsParser
             if (kw == "$gzdb_skip") break;
             else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
-            else if (kw == "glow") ParseGlow(g, tokens, ref i, knownColors);
+            else if (kw == "glow")
+            {
+                if (!ParseGlow(g, tokens, ref i, knownColors)) return false;
+            }
             else if (kw == "skybox")
             {
                 if (!ParseSkybox(g, tokens, ref i)) return false;
@@ -345,11 +348,11 @@ public static class GldefsParser
         objects.Add(obj);
     }
 
-    private static void ParseGlow(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseGlow(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         var t = tokens.Text;
         i++; // glow
-        if (i >= t.Count || t[i] != "{") return;
+        if (i >= t.Count || t[i] != "{") return false;
         i++;
         while (i < t.Count && t[i] != "}")
         {
@@ -369,25 +372,34 @@ public static class GldefsParser
             }
             else if (p == "texture" && i < t.Count)
             {
-                ParseGlowTexture(g, tokens, ref i, knownColors);
+                if (!ParseGlowTexture(g, tokens, ref i, knownColors)) return false;
+            }
+            else if (p == "texture")
+            {
+                return false;
+            }
+            else if (p is "flats" or "walls")
+            {
+                return false;
             }
         }
         if (i < t.Count) i++; // }
+        return true;
     }
 
-    private static void ParseGlowTexture(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseGlowTexture(Gldefs g, TokenStream tokens, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         var t = tokens.Text;
-        if (IsInvalidLongTextureName(tokens, i)) { i++; return; }
+        if (IsInvalidLongTextureName(tokens, i)) return false;
         string texture = t[i++];
-        if (string.IsNullOrEmpty(texture)) return;
+        if (string.IsNullOrEmpty(texture)) return false;
         float r = 1.0f, green = 1.0f, b = 1.0f;
         int height = 64;
         bool fullbright = false;
 
-        if (i >= t.Count || t[i] != ",") return;
+        if (i >= t.Count || t[i] != ",") return false;
         i++;
-        if (i >= t.Count || !TryReadColorToken(t[i++], knownColors, out var color)) return;
+        if (i >= t.Count || !TryReadColorToken(t[i++], knownColors, out var color)) return false;
         r = color.R;
         green = color.G;
         b = color.B;
@@ -395,7 +407,7 @@ public static class GldefsParser
         if (i < t.Count && t[i] == ",")
         {
             i++;
-            if (i >= t.Count) return;
+            if (i >= t.Count) return false;
 
             string token = t[i];
             if (int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedHeight))
@@ -405,24 +417,25 @@ public static class GldefsParser
                 if (i < t.Count && t[i] == ",")
                 {
                     i++;
-                    if (i >= t.Count) return;
+                    if (i >= t.Count) return false;
                     token = t[i];
                 }
                 else
                 {
                     g.GlowTextures.Add(texture);
                     g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
-                    return;
+                    return true;
                 }
             }
 
-            if (!token.Equals("fullbright", StringComparison.OrdinalIgnoreCase)) return;
+            if (!token.Equals("fullbright", StringComparison.OrdinalIgnoreCase)) return false;
             fullbright = true;
             i++;
         }
 
         g.GlowTextures.Add(texture);
         g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
+        return true;
     }
 
     private static bool ParseSkybox(Gldefs g, TokenStream t, ref int i)
