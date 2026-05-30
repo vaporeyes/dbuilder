@@ -468,6 +468,48 @@ class HereticAlphaZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsPreservesGZDoomRenderFlags()
+    {
+        const string zscript = @"
+class WallSpriteZThing : Actor
+{
+    Default { +BRIGHT; +WALLSPRITE; +ROLLCENTER; +FORCEXYBILLBOARD; Radius 24; Height 48; }
+    States { Spawn: WSPZ A -1; stop; }
+}
+
+class FlatSpriteZThing : Actor
+{
+    Default { +FLATSPRITE; -ROLLSPRITE; Radius 24; Height 48; }
+    States { Spawn: FSPZ A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("""
+            DoomEdNums
+            {
+                9058 = WallSpriteZThing
+                9059 = FlatSpriteZThing
+            }
+            """).DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var wall = gc.GetThing(9058);
+        Assert.NotNull(wall);
+        Assert.True(wall!.Bright);
+        Assert.True(wall.XYBillboard);
+        Assert.Equal(ThingRenderMode.WallSprite, wall.RenderMode);
+        Assert.True(wall.RollSprite);
+        Assert.True(wall.RollCenter);
+
+        var flat = gc.GetThing(9059);
+        Assert.NotNull(flat);
+        Assert.Equal(ThingRenderMode.FlatSprite, flat!.RenderMode);
+        Assert.False(flat.RollSprite);
+        Assert.False(flat.RollCenter);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

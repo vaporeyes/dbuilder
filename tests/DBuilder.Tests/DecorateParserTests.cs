@@ -1126,6 +1126,47 @@ ACTOR HereticAlphaThing 31008
     }
 
     [Fact]
+    public void MergeActorsPreservesGZDoomRenderFlags()
+    {
+        const string text = @"
+ACTOR WallSpriteThing 31009
+{
+    +BRIGHT
+    +WALLSPRITE
+    +ROLLCENTER
+    +FORCEXYBILLBOARD
+    Radius 24
+    Height 48
+    States { Spawn: WSPR A -1 stop }
+}
+
+ACTOR FlatSpriteThing 31010
+{
+    +FLATSPRITE
+    -ROLLSPRITE
+    Radius 24
+    Height 48
+    States { Spawn: FSPR A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var wall = gc.GetThing(31009);
+        Assert.NotNull(wall);
+        Assert.True(wall!.Bright);
+        Assert.True(wall.XYBillboard);
+        Assert.Equal(ThingRenderMode.WallSprite, wall.RenderMode);
+        Assert.True(wall.RollSprite);
+        Assert.True(wall.RollCenter);
+
+        var flat = gc.GetThing(31010);
+        Assert.NotNull(flat);
+        Assert.Equal(ThingRenderMode.FlatSprite, flat!.RenderMode);
+        Assert.False(flat.RollSprite);
+        Assert.False(flat.RollCenter);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"

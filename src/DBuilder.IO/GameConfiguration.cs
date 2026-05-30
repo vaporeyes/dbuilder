@@ -77,6 +77,15 @@ public sealed class EnumListInfo
     }
 }
 
+public enum ThingRenderMode
+{
+    Normal,
+    Model,
+    Voxel,
+    WallSprite,
+    FlatSprite,
+}
+
 public sealed class ThingTypeInfo
 {
     public int Index { get; init; }
@@ -90,6 +99,7 @@ public sealed class ThingTypeInfo
     public int Height { get; init; } = 16;
     public double Alpha { get; init; } = 1.0;
     public string RenderStyle { get; init; } = "normal";
+    public bool Bright { get; init; }
     public bool Arrow { get; init; }
     public bool Hangs { get; init; }
     public int Blocking { get; init; }
@@ -104,6 +114,10 @@ public sealed class ThingTypeInfo
     public bool IsKnown { get; init; } = true;
     public bool IsObsolete { get; init; }
     public string ObsoleteMessage { get; init; } = "";
+    public bool XYBillboard { get; init; }
+    public ThingRenderMode RenderMode { get; init; }
+    public bool RollSprite { get; init; }
+    public bool RollCenter { get; init; }
     public bool IsNull => Index == 0;
     public IReadOnlyList<string> AddUniversalFields { get; init; } = Array.Empty<string>();
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
@@ -702,6 +716,8 @@ public sealed class GameConfiguration
         bool absoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false;
         bool hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : SafeThingHangs(fallback?.Hangs ?? false, absoluteZ);
         bool isObsolete = TryActorProperty(actor, "$obsolete", out string obsoleteMessage);
+        ThingRenderMode renderMode = ActorRenderMode(actor, fallback);
+        bool rollSprite = ActorRollSprite(actor, renderMode, fallback);
         return new ThingTypeInfo
         {
             Index = index,
@@ -714,6 +730,7 @@ public sealed class GameConfiguration
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
+            Bright = ActorFlag(actor, "bright") || fallback?.Bright == true,
             SpriteScale = ActorSpriteScale(actor, fallback),
             Color = isObsolete ? 4 : ActorColor(actor, fallback),
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
@@ -731,6 +748,10 @@ public sealed class GameConfiguration
             IsKnown = existing?.IsKnown ?? true,
             IsObsolete = isObsolete || fallback?.IsObsolete == true,
             ObsoleteMessage = isObsolete ? obsoleteMessage : fallback?.ObsoleteMessage ?? "",
+            XYBillboard = ActorFlag(actor, "forcexybillboard"),
+            RenderMode = renderMode,
+            RollSprite = rollSprite,
+            RollCenter = rollSprite && ActorFlag(actor, "rollcenter"),
             AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
             Args = ActorArgs(actor, fallback?.Args),
         };
@@ -748,6 +769,7 @@ public sealed class GameConfiguration
         Height = source.Height,
         Alpha = source.Alpha,
         RenderStyle = source.RenderStyle,
+        Bright = source.Bright,
         SpriteScale = source.SpriteScale,
         Color = source.Color,
         Arrow = source.Arrow,
@@ -763,6 +785,10 @@ public sealed class GameConfiguration
         IsKnown = source.IsKnown,
         IsObsolete = source.IsObsolete,
         ObsoleteMessage = source.ObsoleteMessage,
+        XYBillboard = source.XYBillboard,
+        RenderMode = source.RenderMode,
+        RollSprite = source.RollSprite,
+        RollCenter = source.RollCenter,
         AddUniversalFields = source.AddUniversalFields,
         Args = source.Args,
     };
@@ -825,6 +851,20 @@ public sealed class GameConfiguration
 
     private static bool ActorFlag(ActorInfo actor, string flag)
         => actor.Flags.TryGetValue(flag, out bool enabled) && enabled;
+
+    private static ThingRenderMode ActorRenderMode(ActorInfo actor, ThingTypeInfo? existing)
+    {
+        if (ActorFlag(actor, "wallsprite")) return ThingRenderMode.WallSprite;
+        if (ActorFlag(actor, "flatsprite")) return ThingRenderMode.FlatSprite;
+        return existing?.RenderMode ?? ThingRenderMode.Normal;
+    }
+
+    private static bool ActorRollSprite(ActorInfo actor, ThingRenderMode renderMode, ThingTypeInfo? existing)
+    {
+        if (actor.Flags.TryGetValue("rollsprite", out bool enabled)) return enabled;
+        if (renderMode is ThingRenderMode.WallSprite or ThingRenderMode.FlatSprite) return true;
+        return existing?.RollSprite ?? false;
+    }
 
     private static string? ActorRegionProperty(ActorInfo actor, string key)
         => actor.RegionProperties.TryGetValue(key, out var values) && values.Count > 0 ? values[0] : null;
@@ -974,6 +1014,7 @@ public sealed class GameConfiguration
                 Color = existing?.Color ?? 0,
                 Alpha = existing?.Alpha ?? 1.0,
                 RenderStyle = existing?.RenderStyle ?? "normal",
+                Bright = existing?.Bright ?? false,
                 Arrow = existing?.Arrow ?? false,
                 Hangs = existing?.Hangs ?? false,
                 Blocking = existing?.Blocking ?? 0,
@@ -988,6 +1029,10 @@ public sealed class GameConfiguration
                 IsKnown = existing?.IsKnown ?? true,
                 IsObsolete = existing?.IsObsolete ?? false,
                 ObsoleteMessage = existing?.ObsoleteMessage ?? "",
+                XYBillboard = existing?.XYBillboard ?? false,
+                RenderMode = existing?.RenderMode ?? ThingRenderMode.Normal,
+                RollSprite = existing?.RollSprite ?? false,
+                RollCenter = existing?.RollCenter ?? false,
                 AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
                 Args = existing?.Args ?? System.Array.Empty<ArgInfo>(),
             };
@@ -1023,6 +1068,7 @@ public sealed class GameConfiguration
         Height = info.Height,
         Alpha = info.Alpha,
         RenderStyle = info.RenderStyle,
+        Bright = info.Bright,
         Arrow = info.Arrow,
         Hangs = info.Hangs,
         Blocking = info.Blocking,
@@ -1037,6 +1083,10 @@ public sealed class GameConfiguration
         IsKnown = info.IsKnown,
         IsObsolete = info.IsObsolete,
         ObsoleteMessage = info.ObsoleteMessage,
+        XYBillboard = info.XYBillboard,
+        RenderMode = info.RenderMode,
+        RollSprite = info.RollSprite,
+        RollCenter = info.RollCenter,
         AddUniversalFields = info.AddUniversalFields,
         Color = info.Color,
         Args = info.Args,
