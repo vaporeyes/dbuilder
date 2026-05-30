@@ -389,6 +389,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB thing catalog safety for fixed-size radii and absolute-Z hanging things.
   - [x] Honor `$IgnoreRenderStyle` by preserving inherited render style.
   - [x] Preserve `$Obsolete` actor metadata and red catalog color.
+  - [x] Apply Heretic `DefaultAlpha` from the game configuration base game.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
@@ -428,6 +429,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse compatibility, help, thing angle, sidedef compression, and MODELDEF pitch metadata.
   - [x] Parse map format flag metadata and UDMF feature toggles.
   - [x] Parse testing, map boundary, sky flat, light level, and long texture name settings.
+  - [x] Parse and normalize base game settings.
   - [x] Parse make-door defaults and default thing flags.
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.

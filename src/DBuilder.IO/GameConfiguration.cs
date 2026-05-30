@@ -314,6 +314,15 @@ public sealed class TextureSetInfo
 public sealed class GameConfiguration
 {
     private const int ThingFixedSize = 14;
+    private const string UnknownBaseGame = "UNKNOWN_GAME";
+    private static readonly HashSet<string> KnownBaseGames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "doom",
+        "heretic",
+        "hexen",
+        "strife",
+        "chex",
+    };
 
     private readonly Dictionary<int, ThingTypeInfo> things = new();
     private readonly Dictionary<string, ThingCategoryInfo> thingCategories = new(StringComparer.OrdinalIgnoreCase);
@@ -403,6 +412,7 @@ public sealed class GameConfiguration
     public string DefaultScriptCompiler { get; private set; } = "";
     public string NodeBuilderSave { get; private set; } = "";
     public string NodeBuilderTest { get; private set; } = "";
+    public string BaseGame { get; private set; } = UnknownBaseGame;
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
@@ -504,6 +514,7 @@ public sealed class GameConfiguration
             gc.DefaultScriptCompiler = GetString(root, "defaultscriptcompiler", "");
             gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
             gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
+            gc.BaseGame = NormalizeBaseGame(GetString(root, "basegame", ""));
             gc.MapNameFormat = GetString(root, "mapnameformat", "");
             gc.ScaledTextureOffsets = GetBool(root, "scaledtextureoffsets", true);
             gc.FormatInterface = GetString(root, "formatinterface", "");
@@ -682,7 +693,7 @@ public sealed class GameConfiguration
         return index >= 0 && things.TryGetValue(index, out var thing) ? thing : null;
     }
 
-    private static ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited)
+    private ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited)
     {
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
@@ -763,10 +774,13 @@ public sealed class GameConfiguration
         return actor.ClassName;
     }
 
-    private static double ActorAlpha(ActorInfo actor, ThingTypeInfo? existing)
+    private double ActorAlpha(ActorInfo actor, ThingTypeInfo? existing)
         => TryActorPropertyDouble(actor, "alpha", out double alpha) ? Math.Clamp(alpha, 0.0, 1.0)
-            : actor.Properties.ContainsKey("defaultalpha") ? 0.6
+            : actor.Properties.ContainsKey("defaultalpha") ? DefaultActorAlpha()
             : existing?.Alpha ?? 1.0;
+
+    private double DefaultActorAlpha()
+        => BaseGame.Equals("heretic", StringComparison.OrdinalIgnoreCase) ? 0.4 : 0.6;
 
     private static int ActorWidth(ActorInfo actor, ThingTypeInfo? existing)
     {
@@ -916,6 +930,13 @@ public sealed class GameConfiguration
         => TryActorPropertyInt(actor, name, out int value) ? value : 0;
 
     private static string? EmptyToNull(string value) => value.Length == 0 ? null : value;
+
+    private static string NormalizeBaseGame(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return UnknownBaseGame;
+        string normalized = value.ToLowerInvariant();
+        return KnownBaseGames.Contains(normalized) ? normalized : UnknownBaseGame;
+    }
 
     /// <summary>
     /// Applies parsed DeHackEd display data to the thing catalog. This only uses patch-local data that does not

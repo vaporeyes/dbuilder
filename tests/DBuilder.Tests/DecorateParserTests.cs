@@ -1106,6 +1106,26 @@ ACTOR ObsoleteThing 31007
     }
 
     [Fact]
+    public void MergeActorsUsesHereticDefaultAlpha()
+    {
+        const string text = @"
+ACTOR HereticAlphaThing 31008
+{
+    DefaultAlpha
+    Radius 24
+    Height 48
+    States { Spawn: HERA A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("basegame = \"Heretic\";");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31008);
+        Assert.NotNull(info);
+        Assert.Equal("heretic", gc.BaseGame);
+        Assert.Equal(0.4, info!.Alpha);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"

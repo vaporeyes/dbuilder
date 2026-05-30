@@ -447,6 +447,27 @@ class ObsoleteZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsUsesHereticDefaultAlpha()
+    {
+        const string zscript = @"
+class HereticAlphaZThing : Actor
+{
+    Default { DefaultAlpha; Radius 24; Height 48; }
+    States { Spawn: HAZT A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9057 = HereticAlphaZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("basegame = \"Heretic\";");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9057);
+        Assert.NotNull(info);
+        Assert.Equal("heretic", gc.BaseGame);
+        Assert.Equal(0.4, info!.Alpha);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"
