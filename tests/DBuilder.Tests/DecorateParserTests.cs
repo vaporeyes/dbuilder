@@ -1511,6 +1511,31 @@ ACTOR ConfiguredBrightThing 31016
     }
 
     [Fact]
+    public void MergeActorsRecalculatesLightNameFromActorState()
+    {
+        const string litDecorate = @"
+ACTOR ConfiguredLightThing 31017
+{
+    States { Spawn: LITE A -1 Light(""LITE_LIGHT"") stop }
+}";
+        const string dimDecorate = @"
+ACTOR ConfiguredLightThing 31017
+{
+    States { Spawn: DIMM A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(litDecorate));
+        Assert.Equal("LITE_LIGHT", gc.GetThing(31017)!.LightName);
+
+        gc.MergeActors(DecorateParser.Parse(dimDecorate));
+
+        var info = gc.GetThing(31017);
+        Assert.NotNull(info);
+        Assert.Equal("", info!.LightName);
+    }
+
+    [Fact]
     public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string text = @"

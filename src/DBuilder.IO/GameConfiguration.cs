@@ -789,7 +789,7 @@ public sealed class GameConfiguration
             Sprite = fallback?.LockSprite == true
                 ? fallback.Sprite
                 : actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
-            LightName = actor.LightName ?? fallback?.LightName ?? "",
+            LightName = actor.LightName ?? "",
             Width = SafeThingWidth(actorWidth, fixedSize),
             RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
             DistanceCheckSq = ActorDistanceCheckSq(actor, fallback, cvars),
