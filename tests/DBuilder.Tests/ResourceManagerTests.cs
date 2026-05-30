@@ -295,6 +295,37 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadConfiguredPatchRangesPrioritizeClassicTexturePatches()
+    {
+        var config = GameConfiguration.FromText("""
+            patches
+            {
+                art { start = "PT_START"; end = "PT_END"; }
+            }
+            """);
+        string wadPath = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("PNAMES", PNames("PATCH")),
+            ("TEXTURE1", Texture1(("UNUSED", 1, 1, 0), ("WALL", 1, 1, 0))),
+            ("PATCH", DoomPatch(1)),
+            ("PT_START", Array.Empty<byte>()),
+            ("PATCH", DoomPatch(70)),
+            ("PT_END", Array.Empty<byte>()));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(wadPath);
+
+            Assert.Equal(1, rm.GetWallTexture("WALL")!.Rgba[0]);
+
+            rm.Configuration = config;
+
+            Assert.Equal(70, rm.GetWallTexture("WALL")!.Rgba[0]);
+        }
+        finally { File.Delete(wadPath); }
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));

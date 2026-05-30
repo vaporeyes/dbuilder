@@ -127,6 +127,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private Lump? FindPatchLump(string name)
     {
+        var configuredPatch = FindInRanges(name, ConfiguredPatchRanges());
+        if (configuredPatch != null) return configuredPatch;
+
         foreach (var (startName, endName) in PatchRanges)
         {
             int start = wad.FindLumpIndex(startName);
@@ -226,6 +229,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private IReadOnlyList<ResourceRangeInfo> ConfiguredSpriteRanges()
         => configProvider()?.SpriteRanges ?? Array.Empty<ResourceRangeInfo>();
+
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredPatchRanges()
+        => configProvider()?.PatchRanges ?? Array.Empty<ResourceRangeInfo>();
 
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
