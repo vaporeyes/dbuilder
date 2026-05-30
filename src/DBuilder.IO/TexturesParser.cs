@@ -192,19 +192,16 @@ public static class TexturesParser
                 switch (kw)
                 {
                     case "xscale":
-                        SkipCommas(t, ref i);
                         if (ReadDouble(t, ref i, out double sx)) def.ScaleX = NormalizeScale(sx);
                         else invalid = true;
                         break;
                     case "yscale":
-                        SkipCommas(t, ref i);
                         if (ReadDouble(t, ref i, out double sy)) def.ScaleY = NormalizeScale(sy);
                         else invalid = true;
                         break;
                     case "worldpanning": def.WorldPanning = true; break;
                     case "nulltexture": def.NullTexture = true; break;
                     case "offset":
-                        SkipCommas(t, ref i);
                         if (ReadInt(t, ref i, out int ox) && ReadComma(t, ref i) && ReadInt(t, ref i, out int oy))
                         {
                             def.OffsetX = ox;
@@ -348,8 +345,6 @@ public static class TexturesParser
             default: return TexturesPatchRenderStyle.Copy;
         }
     }
-
-    private static void SkipCommas(List<Tok> t, ref int i) { while (i < t.Count && t[i] == ",") i++; }
 
     private static bool ReadComma(List<Tok> t, ref int i)
     {

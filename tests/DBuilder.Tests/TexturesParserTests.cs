@@ -210,6 +210,24 @@ Texture OK, 8, 8 { Offset 3, 4 Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void RejectsLeadingCommasBeforeDefinitionScaleAndOffsetValues()
+    {
+        const string text = @"
+Texture BADX, 8, 8 { XScale, 2.0 Patch P, 0, 0 }
+Texture BADY, 8, 8 { YScale, 0.5 Patch P, 0, 0 }
+Texture BADOFFSET, 8, 8 { Offset, 1, 2 Patch P, 0, 0 }
+Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Offset 3, 4 Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+        Assert.Equal(0.5, def.ScaleX, 6);
+        Assert.Equal(2.0, def.ScaleY, 6);
+        Assert.Equal(3, def.OffsetX);
+        Assert.Equal(4, def.OffsetY);
+    }
+
+    [Fact]
     public void RequiresCommasInDefinitionSize()
     {
         const string text = @"
