@@ -126,6 +126,69 @@ public class DoomMapLoaderTests
         return wadBytes;
     }
 
+    private static MemoryStream BuildDoomMapWithUnsignedIds()
+    {
+        const int highVertexIndex = 40000;
+        var vertexes = new MemoryStream((highVertexIndex + 1) * 4);
+        using (var w = new BinaryWriter(vertexes, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            for (int i = 0; i <= highVertexIndex; i++)
+            {
+                w.Write((short)i);
+                w.Write((short)0);
+            }
+        }
+
+        var sectors = new MemoryStream();
+        using (var w = new BinaryWriter(sectors, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            w.Write((short)0);
+            w.Write((short)128);
+            w.Write(WriteFixed("FLOOR1", 8));
+            w.Write(WriteFixed("CEIL1", 8));
+            w.Write((short)160);
+            w.Write((ushort)50000);
+            w.Write((ushort)50001);
+        }
+
+        var sidedefs = new MemoryStream();
+        using (var w = new BinaryWriter(sidedefs, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            w.Write((short)0);
+            w.Write((short)0);
+            w.Write(WriteFixed("UPPER", 8));
+            w.Write(WriteFixed("LOWER", 8));
+            w.Write(WriteFixed("MIDDLE", 8));
+            w.Write((ushort)0);
+        }
+
+        var linedefs = new MemoryStream();
+        using (var w = new BinaryWriter(linedefs, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            w.Write((ushort)0);
+            w.Write((ushort)highVertexIndex);
+            w.Write((ushort)0x8001);
+            w.Write((ushort)50002);
+            w.Write((ushort)50003);
+            w.Write((ushort)0);
+            w.Write(ushort.MaxValue);
+        }
+
+        var wadBytes = new MemoryStream();
+        using (var wad = new WAD(wadBytes))
+        {
+            wad.Insert("MAP01", 0, 0);
+            WriteLump(wad, "VERTEXES", vertexes.ToArray(), 1);
+            WriteLump(wad, "LINEDEFS", linedefs.ToArray(), 2);
+            WriteLump(wad, "SIDEDEFS", sidedefs.ToArray(), 3);
+            WriteLump(wad, "SECTORS", sectors.ToArray(), 4);
+            wad.WriteHeaders();
+        }
+
+        wadBytes.Position = 0;
+        return wadBytes;
+    }
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -301,6 +364,23 @@ public class DoomMapLoaderTests
         var map = DoomMapLoader.Load(wad, "MAP01")!;
 
         Assert.Equal(ushort.MaxValue, map.Vertices.Count);
+    }
+
+    [Fact]
+    public void UnsignedBinaryFieldsAboveSignedShortRangeArePreserved()
+    {
+        var wadBytes = BuildDoomMapWithUnsignedIds();
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Single(map.Linedefs);
+        Assert.Same(map.Vertices[40000], map.Linedefs[0].End);
+        Assert.Equal(0x8001, map.Linedefs[0].Flags);
+        Assert.Equal(50002, map.Linedefs[0].Action);
+        Assert.Equal(50003, map.Linedefs[0].Tag);
+        Assert.Equal(50000, map.Sectors[0].Special);
+        Assert.Equal(50001, map.Sectors[0].Tag);
     }
 
     [Fact]

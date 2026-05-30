@@ -109,13 +109,13 @@ public static class DoomMapLoader
         var used = new HashSet<Sidedef>();
         for (int i = 0; i < n; i++)
         {
-            short v1 = r.ReadInt16();
-            short v2 = r.ReadInt16();
-            short flags = r.ReadInt16();
-            short special = r.ReadInt16();
-            short tag = r.ReadInt16();
-            short sideRight = r.ReadInt16();
-            short sideLeft = r.ReadInt16();
+            int v1 = r.ReadUInt16();
+            int v2 = r.ReadUInt16();
+            ushort flags = r.ReadUInt16();
+            int special = r.ReadUInt16();
+            int tag = r.ReadUInt16();
+            int sideRight = r.ReadUInt16();
+            int sideLeft = r.ReadUInt16();
 
             if (!DoomMapLoaderInternals.TryGetValidLinedefVertices(map, v1, v2, out var start, out var end))
                 continue;

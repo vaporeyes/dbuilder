@@ -37,8 +37,8 @@ internal static class DoomMapLoaderInternals
             string floorTex = ReadFixedString(r, 8);
             string ceilTex  = ReadFixedString(r, 8);
             short light = r.ReadInt16();
-            short special = r.ReadInt16();
-            short tag = r.ReadInt16();
+            int special = r.ReadUInt16();
+            int tag = r.ReadUInt16();
 
             map.Sectors.Add(new Sector
             {
@@ -66,7 +66,7 @@ internal static class DoomMapLoaderInternals
             string upper = ReadFixedString(r, 8);
             string lower = ReadFixedString(r, 8);
             string middle = ReadFixedString(r, 8);
-            short sectorIdx = r.ReadInt16();
+            int sectorIdx = r.ReadUInt16();
 
             map.Sidedefs.Add(new Sidedef
             {
