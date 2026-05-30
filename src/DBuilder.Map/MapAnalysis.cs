@@ -38,6 +38,8 @@ public enum MapIssueKind
     ThingStuckInLinedef,
     ThingStuckInThing,
     InvalidPolyobject,
+    UnknownLinedefScript,
+    UnknownThingScript,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -77,6 +79,10 @@ public sealed class MapCheckContext
     public Func<int, string?>? LinedefActionId { get; init; }
     /// <summary>Returns the configured class name for a thing type, or null when unavailable.</summary>
     public Func<int, string?>? ThingClassName { get; init; }
+    /// <summary>Returns true when an ACS script number exists in the loaded map scripts.</summary>
+    public Func<int, bool>? ScriptNumberExists { get; init; }
+    /// <summary>Returns true when a named ACS script exists in the loaded map scripts.</summary>
+    public Func<string, bool>? ScriptNameExists { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -95,6 +101,10 @@ public sealed class MapCheckContext
     public bool CheckMissingActivations { get; init; }
     /// <summary>Enable Hexen/UDMF polyobject reference checks.</summary>
     public bool CheckPolyobjects { get; init; }
+    /// <summary>Enable Hexen/UDMF unknown ACS script reference checks.</summary>
+    public bool CheckScripts { get; init; }
+    /// <summary>Enable UDMF named script checks through arg0str fields.</summary>
+    public bool CheckNamedScripts { get; init; }
     /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
     public string? DoubleSidedFlag { get; init; }
     /// <summary>Configured linedef flag that marks a line as impassable.</summary>
@@ -252,6 +262,7 @@ public static class MapAnalysis
 
         CheckThingsOutsideMap(map, ctx, issues);
         CheckUnusedThings(map, ctx, issues);
+        CheckUnknownScripts(map, ctx, issues);
 
         if (ctx.ActionKnown != null)
         {
@@ -299,6 +310,60 @@ public static class MapAnalysis
             }
     }
 
+    private static void CheckUnknownScripts(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (!ctx.CheckScripts || (ctx.ScriptNumberExists == null && ctx.ScriptNameExists == null)) return;
+
+        var acsSpecials = new HashSet<int> { 80, 81, 82, 83, 84, 85, 226 };
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var line = map.Linedefs[i];
+            if (!acsSpecials.Contains(line.Action)) continue;
+
+            bool named = false;
+            string scriptName = "";
+            if (ctx.CheckNamedScripts)
+                named = TryGetStringField(line.Fields, "arg0str", out scriptName);
+            if (named)
+            {
+                if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript,
+                        $"Linedef {i} references unknown ACS script name \"{scriptName}\".")
+                        { Target = line, Focus = LinedefMidpoint(line) });
+            }
+            else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(line.Args[0]))
+            {
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript,
+                    $"Linedef {i} references unknown ACS script number \"{line.Args[0]}\".")
+                    { Target = line, Focus = LinedefMidpoint(line) });
+            }
+        }
+
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            var thing = map.Things[i];
+            if (!acsSpecials.Contains(thing.Action)) continue;
+
+            bool named = false;
+            string scriptName = "";
+            if (ctx.CheckNamedScripts)
+                named = TryGetStringField(thing.Fields, "arg0str", out scriptName);
+            if (named)
+            {
+                if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingScript,
+                        $"Thing {i} references unknown ACS script name \"{scriptName}\".")
+                        { Target = thing, Focus = thing.Position });
+            }
+            else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(thing.Args[0]))
+            {
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingScript,
+                    $"Thing {i} references unknown ACS script number \"{thing.Args[0]}\".")
+                    { Target = thing, Focus = thing.Position });
+            }
+        }
+    }
+
     private static void CheckUnusedThings(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
         if (ctx.ThingUnusedWarnings == null) return;
@@ -314,6 +379,21 @@ public static class MapAnalysis
                 { Target = t, Focus = t.Position });
         }
     }
+
+    private static bool TryGetStringField(IReadOnlyDictionary<string, object> fields, string key, out string value)
+    {
+        if (fields.TryGetValue(key, out var raw))
+        {
+            value = raw?.ToString() ?? "";
+            return true;
+        }
+
+        value = "";
+        return false;
+    }
+
+    private static Vector2D LinedefMidpoint(Linedef line)
+        => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {

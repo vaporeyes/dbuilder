@@ -665,6 +665,66 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void LinedefReferencingUnknownAcsScriptNumberIsFlagged()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 12;
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            ScriptNumberExists = number => number == 1,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownLinedefScript);
+        Assert.Same(line, issue.Target);
+        Assert.Contains("unknown ACS script number \"12\"", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ThingReferencingUnknownNamedAcsScriptIsFlagged()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Action = 80;
+        thing.Fields["arg0str"] = "OpenDoor";
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            CheckNamedScripts = true,
+            ScriptNameExists = name => name == "KnownScript",
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingScript);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("unknown ACS script name \"OpenDoor\"", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void KnownAcsScriptReferencesAreValid()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 12;
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Action = 80;
+        thing.Fields["arg0str"] = "OpenDoor";
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            CheckNamedScripts = true,
+            ScriptNumberExists = number => number == 12,
+            ScriptNameExists = name => name == "OpenDoor",
+        };
+
+        var issues = MapAnalysis.Check(map, ctx);
+        Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.UnknownLinedefScript);
+        Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.UnknownThingScript);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);

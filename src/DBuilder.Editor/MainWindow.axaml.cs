@@ -2476,6 +2476,8 @@ public partial class MainWindow : Window
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,
             CheckPolyobjects = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
+            CheckScripts = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
+            CheckNamedScripts = _mapFormat == MapFormat.Udmf,
             DoubleSidedFlag = _config?.DoubleSidedFlag,
             ImpassableFlag = _config?.ImpassableFlag,
             SafeBoundary = _config?.SafeBoundary ?? 0,
