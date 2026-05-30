@@ -985,6 +985,25 @@ ACTOR SmallRadiusThing 31002
     }
 
     [Fact]
+    public void MergeActorsNormalizesZeroSpriteScale()
+    {
+        const string text = @"
+ACTOR ZeroScaleThing 31003
+{
+    Scale 0
+    Radius 24
+    Height 48
+    States { Spawn: ZSCL A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31003);
+        Assert.NotNull(info);
+        Assert.Equal(1.0, info!.SpriteScale);
+    }
+
+    [Fact]
     public void MergeActorsAppliesReplacementActorToExistingThingClass()
     {
         const string cfg = @"

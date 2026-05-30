@@ -372,6 +372,26 @@ class SmallRadiusZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsNormalizesZeroSpriteScale()
+    {
+        const string zscript = @"
+class ZeroScaleZThing : Actor
+{
+    Default { Radius 24; Height 48; Scale 0; }
+    States { Spawn: ZZSC A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9054 = ZeroScaleZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9054);
+        Assert.NotNull(info);
+        Assert.Equal(1.0, info!.SpriteScale);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

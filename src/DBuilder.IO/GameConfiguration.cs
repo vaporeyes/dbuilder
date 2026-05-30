@@ -771,10 +771,12 @@ public sealed class GameConfiguration
 
     private static double ActorSpriteScale(ActorInfo actor, ThingTypeInfo? existing)
     {
-        if (TryActorPropertyDouble(actor, "xscale", out double xscale)) return xscale;
-        if (TryActorPropertyDouble(actor, "scale", out double scale)) return scale;
+        if (TryActorPropertyDouble(actor, "xscale", out double xscale)) return NormalizeActorSpriteScale(xscale);
+        if (TryActorPropertyDouble(actor, "scale", out double scale)) return NormalizeActorSpriteScale(scale);
         return existing?.SpriteScale ?? 1.0;
     }
+
+    private static double NormalizeActorSpriteScale(double scale) => scale == 0.0 ? 1.0 : scale;
 
     private static int ActorColor(ActorInfo actor, ThingTypeInfo? existing)
     {
