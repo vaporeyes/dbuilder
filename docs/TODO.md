@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1445 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1447 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -242,12 +242,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
   - [x] Materialize UDMF sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Preserve unknown top-level UDMF collections through load, clone, undo, and write.
+  - [x] Preserve UDMF custom and map fields larger than signed 32-bit integers.
 - [ ] Complete UDMF map writer parity.
   - [x] Emit UDMF element blocks in UDB order.
   - [x] Escape UDMF string control characters during writes.
   - [x] Emit missing UDMF sidedef references as `-1` like UDB.
   - [x] Emit UDMF sector core fields even when they match defaults.
   - [x] Emit UDMF thing angle even when it is zero.
+  - [x] Emit UDMF custom and map fields larger than signed 32-bit integers without truncation.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.

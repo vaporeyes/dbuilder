@@ -339,6 +339,51 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void LongCustomFieldsRoundTripThroughLoadWriteLoad()
+    {
+        const long largeValue = 4294967296L;
+        const string udmf = """
+            namespace = "ZDoom";
+            vertex { x = 0.0; y = 0.0; user_large = 4294967296; }
+            sector { heightfloor = 0; heightceiling = 64; texturefloor = "A"; textureceiling = "B"; lightlevel = 160; user_large = 4294967296; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(largeValue, Assert.IsType<long>(map.Vertices[0].Fields["user_large"]));
+        Assert.Equal(largeValue, Assert.IsType<long>(map.Sectors[0].Fields["user_large"]));
+
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("user_large = 4294967296;", written);
+
+        var reloaded = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal(largeValue, Assert.IsType<long>(reloaded.Vertices[0].Fields["user_large"]));
+        Assert.Equal(largeValue, Assert.IsType<long>(reloaded.Sectors[0].Fields["user_large"]));
+    }
+
+    [Fact]
+    public void LongMapFieldsRoundTripThroughLoadWriteLoad()
+    {
+        const long largeValue = 4294967296L;
+        const string udmf = """
+            namespace = "ZDoom";
+            user_large = 4294967296;
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(largeValue, Assert.IsType<long>(map.Fields["user_large"]));
+
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("user_large = 4294967296;", written);
+
+        var reloaded = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal(largeValue, Assert.IsType<long>(reloaded.Fields["user_large"]));
+    }
+
+    [Fact]
     public void ManagedFieldsNotDuplicatedIntoCustomFields()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;

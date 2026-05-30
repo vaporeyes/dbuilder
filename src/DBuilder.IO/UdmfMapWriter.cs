@@ -220,7 +220,7 @@ public static class UdmfMapWriter
             {
                 case bool b:   WriteAssignment(sb, kv.Key, b, indent); break;
                 case int i:    WriteAssignment(sb, kv.Key, i, indent); break;
-                case long l:   WriteAssignment(sb, kv.Key, (int)l, indent); break;
+                case long l:   WriteAssignment(sb, kv.Key, l, indent); break;
                 case double d: WriteAssignment(sb, kv.Key, d, indent); break;
                 case float f:  WriteAssignment(sb, kv.Key, (double)f, indent); break;
                 case string s: WriteAssignment(sb, kv.Key, s, indent); break;
@@ -312,6 +312,13 @@ public static class UdmfMapWriter
     }
 
     private static void WriteAssignment(StringBuilder sb, string key, int value, bool indent = false)
+    {
+        if (indent) sb.Append('\t');
+        sb.Append(key).Append(" = ").Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');
+        sb.AppendLine();
+    }
+
+    private static void WriteAssignment(StringBuilder sb, string key, long value, bool indent = false)
     {
         if (indent) sb.Append('\t');
         sb.Append(key).Append(" = ").Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');

@@ -261,6 +261,7 @@ public static class UdmfMapLoader
         {
             case bool b: map.Fields[entry.Key] = b; break;
             case int i: map.Fields[entry.Key] = i; break;
+            case long l: map.Fields[entry.Key] = l; break;
             case double d: map.Fields[entry.Key] = d; break;
             case string s: map.Fields[entry.Key] = s; break;
         }
@@ -338,7 +339,7 @@ public static class UdmfMapLoader
                 case bool b when preserveBoolFields: fields[e.Key] = b; break;
                 case bool: continue;
                 case int i: fields[e.Key] = i; break;
-                case long l: fields[e.Key] = (int)l; break;
+                case long l: fields[e.Key] = l; break;
                 case double d: fields[e.Key] = d; break;
                 case float f: fields[e.Key] = (double)f; break;
                 case string s: fields[e.Key] = s; break;
