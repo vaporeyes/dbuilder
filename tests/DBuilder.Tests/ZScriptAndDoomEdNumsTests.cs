@@ -145,6 +145,28 @@ class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8
     }
 
     [Fact]
+    public void RejectsZScriptClassesThatViolateFinalOrSealedInheritance()
+    {
+        const string text = @"
+class FinalBase : Actor final { Default { Radius 16; } }
+class FinalChild : FinalBase { Default { Radius 32; } }
+class SealedBase : Actor sealed(AllowedChild) { Default { Radius 24; } }
+class BlockedChild : SealedBase { Default { Radius 48; } }
+class BlockedGrandChild : BlockedChild { Default { Radius 64; } }
+class AllowedChild : SealedBase { Default { Radius 8; } }";
+
+        var actors = ZScriptParser.Parse(text);
+
+        Assert.Contains(actors, actor => actor.ClassName == "FinalBase");
+        Assert.Contains(actors, actor => actor.ClassName == "SealedBase");
+        var allowed = Assert.Single(actors, actor => actor.ClassName == "AllowedChild");
+        Assert.Equal(8, allowed.Radius);
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "FinalChild");
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "BlockedChild");
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "BlockedGrandChild");
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"

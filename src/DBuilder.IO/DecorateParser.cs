@@ -33,6 +33,8 @@ public sealed class ActorInfo
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, ActorUserVariable> UserVariables { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Mixins { get; } = new();
+    internal bool IsFinal { get; set; }
+    internal List<string> PermittedInheritedClassNames { get; } = new();
     internal Dictionary<string, StateSpriteCandidate> StateSprites { get; } = new(StringComparer.OrdinalIgnoreCase);
     internal Dictionary<string, List<StateSpriteCandidate>> StateFrames { get; } = new(StringComparer.OrdinalIgnoreCase);
     internal Dictionary<string, StateGotoTarget> StateGotos { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -257,6 +259,8 @@ public static class DecorateParser
         ApplyExtensions(actors, extensions, mixins);
         if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase))
             RemoveActorsWithInvalidUserVariableShadows(actors);
+        else
+            RemoveActorsWithInvalidZScriptInheritance(actors);
         ResolveInheritance(actors);
         if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
             FilterZScriptActorClasses(actors);
@@ -545,6 +549,40 @@ public static class DecorateParser
         return false;
     }
 
+    private static void RemoveActorsWithInvalidZScriptInheritance(List<ActorInfo> actors)
+    {
+        var byName = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var actor in actors) byName[actor.ClassName] = actor;
+        var valid = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        actors.RemoveAll(actor => !HasValidZScriptInheritance(actor, byName, valid, new HashSet<string>(StringComparer.OrdinalIgnoreCase)));
+    }
+
+    private static bool HasValidZScriptInheritance(
+        ActorInfo actor,
+        Dictionary<string, ActorInfo> byName,
+        Dictionary<string, bool> valid,
+        HashSet<string> seen)
+    {
+        if (valid.TryGetValue(actor.ClassName, out bool cached)) return cached;
+        if (!seen.Add(actor.ClassName)) return valid[actor.ClassName] = false;
+        if (string.IsNullOrEmpty(actor.ParentName)) return valid[actor.ClassName] = true;
+        if (!byName.TryGetValue(actor.ParentName, out var parent)) return valid[actor.ClassName] = true;
+        bool parentAllowsChild = !parent.IsFinal
+            && (parent.PermittedInheritedClassNames.Count == 0
+                || ContainsName(parent.PermittedInheritedClassNames, actor.ClassName));
+        if (!parentAllowsChild) return valid[actor.ClassName] = false;
+        bool result = HasValidZScriptInheritance(parent, byName, valid, seen);
+        return valid[actor.ClassName] = result;
+    }
+
+    private static bool ContainsName(List<string> names, string value)
+    {
+        foreach (string name in names)
+            if (name.Equals(value, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
     private static bool HasSpawnState(ActorInfo actor)
         => actor.StateSprites.ContainsKey("spawn") || actor.StateGotos.ContainsKey("spawn");
 
@@ -735,6 +773,7 @@ public static class DecorateParser
             {
                 if (hasFinal) return SkipInvalidActorDeclaration(t, ref i);
                 hasFinal = true;
+                actor.IsFinal = true;
                 i++;
             }
             else if (!headerNum && tk.Kind == Kind.Word && IsZScriptHeaderScopeModifier(tk.Text))
@@ -756,6 +795,11 @@ public static class DecorateParser
                 if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
                     || !ValidateZScriptHeaderModifierArguments(modifier, arguments))
                     return SkipInvalidActorDeclaration(t, ref i);
+                if (modifier.Equals("sealed", StringComparison.OrdinalIgnoreCase))
+                {
+                    actor.PermittedInheritedClassNames.Clear();
+                    actor.PermittedInheritedClassNames.AddRange(GetZScriptSealedPermittedClassNames(arguments));
+                }
             }
             else if (headerNum)
             {
@@ -855,6 +899,13 @@ public static class DecorateParser
         }
 
         return true;
+    }
+
+    private static IEnumerable<string> GetZScriptSealedPermittedClassNames(List<Tok> arguments)
+    {
+        foreach (var argument in arguments)
+            if (argument.Kind == Kind.Word)
+                yield return argument.Text;
     }
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
