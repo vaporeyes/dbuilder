@@ -332,6 +332,34 @@ ACTOR GoodHeader 6004
     }
 
     [Fact]
+    public void SkipsDecorateActorsWithEmptyHeaderNames()
+    {
+        const string text = @"
+ACTOR """" 6005
+{
+    Radius 64
+}
+ACTOR EmptyParent : """" 6006
+{
+    Radius 32
+}
+ACTOR EmptyReplacement replaces """" 6007
+{
+    Radius 24
+}
+ACTOR GoodHeader 6008
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("GoodHeader", actor.ClassName);
+        Assert.Equal(6008, actor.DoomEdNum);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void KeepsFirstDecorateActorWhenClassIsDuplicated()
     {
         const string text = @"

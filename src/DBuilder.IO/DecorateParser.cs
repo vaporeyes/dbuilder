@@ -572,6 +572,11 @@ public static class DecorateParser
         i++; // keyword
         if (i >= t.Count || !IsNameToken(t[i])) return null;
         string className = t[i++].Text;
+        if (className.Length == 0)
+        {
+            SkipDeclaration(t, ref i);
+            return null;
+        }
         var actor = new ActorInfo
         {
             ClassName = className,
@@ -595,12 +600,22 @@ public static class DecorateParser
             else if (tk.Kind == Kind.Sym && tk.Text == ":")
             {
                 i++;
-                if (i < t.Count && IsNameToken(t[i])) actor.ParentName = t[i++].Text;
+                if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.ParentName = t[i++].Text;
+                else
+                {
+                    SkipDeclaration(t, ref i);
+                    return null;
+                }
             }
             else if (tk.Kind == Kind.Word && tk.Text.Equals("replaces", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                if (i < t.Count && IsNameToken(t[i])) actor.Replaces = t[i++].Text;
+                if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.Replaces = t[i++].Text;
+                else
+                {
+                    SkipDeclaration(t, ref i);
+                    return null;
+                }
             }
             else if (tk.Kind == Kind.Word && tk.Text.StartsWith("$", StringComparison.Ordinal))
             {
