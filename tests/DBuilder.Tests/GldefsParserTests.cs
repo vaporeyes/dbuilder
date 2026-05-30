@@ -341,7 +341,7 @@ glow
     }
 
     [Fact]
-    public void ParsesIncludesOnce()
+    public void DuplicateIncludesStopParsingLikeUdb()
     {
         const string root = @"
 #include ""lights/gldefs.txt""
@@ -354,7 +354,7 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
 
         Assert.Single(g.Lights);
         Assert.True(g.Lights.ContainsKey("LAMP_LIGHT"));
-        Assert.Equal(0.2f, g.ActorLightColor("LampActor")!.Value.G, 4);
+        Assert.Null(g.ActorLightColor("LampActor"));
     }
 
     [Theory]
@@ -364,7 +364,7 @@ object LampActor { frame LAMP { light LAMP_LIGHT } }";
     [InlineData("/lights/gldefs.txt")]
     public void RejectsInvalidIncludePaths(string includePath)
     {
-        string root = "#include \"" + includePath + "\"";
+        string root = "#include \"" + includePath + "\"\npointlight VALID { color 1 1 1 size 32 }";
 
         var g = GldefsParser.Parse(root, _ => "pointlight BAD { color 1 1 1 size 32 }");
 

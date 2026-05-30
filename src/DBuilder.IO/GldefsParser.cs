@@ -102,7 +102,7 @@ public static class GldefsParser
         return g;
     }
 
-    private static void ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
+    private static bool ParseInto(Gldefs g, string text, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         var tokens = Tokenize(text);
         var t = tokens.Text;
@@ -115,10 +115,14 @@ public static class GldefsParser
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, tokens, ref i, knownColors);
             else if (kw == "skybox") ParseSkybox(g, tokens, ref i);
-            else if (kw == "#include") ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes);
+            else if (kw == "#include")
+            {
+                if (!ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes)) return false;
+            }
             else if (t[i] == "{") SkipBlock(t, ref i); // stray block
             else TrySkipUnknownTopLevelBlock(t, ref i);
         }
+        return true;
     }
 
     private static void TrySkipUnknownTopLevelBlock(List<string> t, ref int i)
@@ -129,15 +133,16 @@ public static class GldefsParser
         if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
     }
 
-    private static void ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
+    private static bool ParseInclude(Gldefs g, List<string> t, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
         i++; // #include
-        if (includeResolver == null || i >= t.Count) return;
+        if (i >= t.Count) return false;
         string include = t[i++];
-        if (!IsValidIncludePath(include)) return;
-        if (!parsedIncludes.Add(include)) return;
+        if (!IsValidIncludePath(include)) return false;
+        if (!parsedIncludes.Add(include)) return false;
+        if (includeResolver == null) return true;
         string? text = includeResolver(include);
-        if (text != null) ParseInto(g, text, includeResolver, knownColors, parsedIncludes);
+        return text == null || ParseInto(g, text, includeResolver, knownColors, parsedIncludes);
     }
 
     private static bool IsValidIncludePath(string include)

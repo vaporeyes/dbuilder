@@ -406,6 +406,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip GLDEFS light definitions with unknown properties.
   - [x] Skip unnamed GLDEFS glow entries like UDB.
   - [x] Skip unnamed GLDEFS object blocks like UDB.
+  - [x] Stop GLDEFS parsing on duplicate or invalid includes like UDB.
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
   - [x] Reject mixed old and new SNDINFO assignment formats per file.
