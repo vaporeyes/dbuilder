@@ -280,17 +280,14 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual DoomPalette? GetPalette()
     {
-        var b = Find("PLAYPAL", "");
-        var palette = b != null ? DoomPalette.FromBytes(b) : null;
-        if (palette != null) return palette;
-
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            palette = nestedReaders[i].GetPalette();
+            var palette = nestedReaders[i].GetPalette();
             if (palette != null) return palette;
         }
 
-        return null;
+        var b = Find("PLAYPAL", "");
+        return b != null ? DoomPalette.FromBytes(b) : null;
     }
 
     public virtual ImageData? GetFlat(string name, DoomPalette? palette)
@@ -419,16 +416,13 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual byte[]? GetLumpBytes(string name)
     {
-        var bytes = Find(name, "");
-        if (bytes != null) return bytes;
-
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            bytes = nestedReaders[i].GetLumpBytes(name);
+            var bytes = nestedReaders[i].GetLumpBytes(name);
             if (bytes != null) return bytes;
         }
 
-        return null;
+        return Find(name, "");
     }
 
     public virtual DoomPatchNames? GetPatchNames()

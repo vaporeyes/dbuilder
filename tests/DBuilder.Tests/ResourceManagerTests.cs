@@ -17,6 +17,13 @@ public class ResourceManagerTests
         return p;
     }
 
+    private static byte[] SolidPlaypal(byte red, byte green, byte blue)
+    {
+        var p = new byte[768];
+        for (int i = 0; i < 256; i++) { p[i * 3] = red; p[i * 3 + 1] = green; p[i * 3 + 2] = blue; }
+        return p;
+    }
+
     private static byte[] SolidFlat(byte index)
     {
         var f = new byte[DoomFlatReader.RawSize];
@@ -168,6 +175,33 @@ public class ResourceManagerTests
         Assert.NotNull(colormap);
         Assert.Equal(DoomColormap.StandardLevelCount, colormap!.LevelCount);
         Assert.Equal(17, colormap.Lookup(0, 10));
+    }
+
+    [Fact]
+    public void Pk3NestedWadPaletteAndColormapOverrideRootLumps()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", SolidPlaypal(7, 8, 9)),
+            ("COLORMAP", ColormapBytes(7)));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("PLAYPAL", SolidPlaypal(1, 2, 3)),
+            ("COLORMAP", ColormapBytes(1)),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.NotNull(rm.Palette);
+            Assert.Equal(0xFF070809u, rm.Palette!.Colors[0]);
+            Assert.NotNull(rm.Colormap);
+            Assert.Equal(17, rm.Colormap!.Lookup(0, 10));
+        }
+        finally
+        {
+            File.Delete(pk3);
+            File.Delete(nestedWad);
+        }
     }
 
     [Fact]
