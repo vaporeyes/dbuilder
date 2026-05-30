@@ -346,6 +346,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require quoted long GLDEFS skybox names.
   - [x] Require quoted long GLDEFS glow texture names.
   - [x] Skip unknown top-level GLDEFS blocks with arguments.
+  - [x] Model GLDEFS light render style as UDB's single last-wins style.
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
 - [x] Port SNDSEQ parser.

@@ -427,13 +427,32 @@ pointlight MISSING { color 1.0 1.0 1.0 size 8 attenuate }";
         Assert.True(g.Lights.ContainsKey("FALSEFLAGS"));
         Assert.False(g.Lights["FALSEFLAGS"].Subtractive);
         Assert.False(g.Lights["FALSEFLAGS"].Attenuate);
+        Assert.Equal(GldefsLightRenderStyle.Normal, g.Lights["FALSEFLAGS"].RenderStyle);
         Assert.False(g.Lights["FALSEFLAGS"].DontLightSelf);
         Assert.True(g.Lights.ContainsKey("TRUEFLAGS"));
-        Assert.True(g.Lights["TRUEFLAGS"].Subtractive);
+        Assert.False(g.Lights["TRUEFLAGS"].Subtractive);
         Assert.True(g.Lights["TRUEFLAGS"].Attenuate);
+        Assert.Equal(GldefsLightRenderStyle.Attenuated, g.Lights["TRUEFLAGS"].RenderStyle);
         Assert.True(g.Lights["TRUEFLAGS"].DontLightSelf);
         Assert.False(g.Lights.ContainsKey("BADBOOL"));
         Assert.False(g.Lights.ContainsKey("MISSING"));
+    }
+
+    [Fact]
+    public void UsesLastLightRenderStyleFlagLikeUdb()
+    {
+        const string text = @"
+pointlight SUBTRACTIVE { color 1.0 1.0 1.0 size 8 attenuate 1 subtractive 1 }
+pointlight NORMALIZED { color 1.0 1.0 1.0 size 8 subtractive 1 attenuate 0 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Equal(GldefsLightRenderStyle.Subtractive, g.Lights["SUBTRACTIVE"].RenderStyle);
+        Assert.True(g.Lights["SUBTRACTIVE"].Subtractive);
+        Assert.False(g.Lights["SUBTRACTIVE"].Attenuate);
+        Assert.Equal(GldefsLightRenderStyle.Normal, g.Lights["NORMALIZED"].RenderStyle);
+        Assert.False(g.Lights["NORMALIZED"].Subtractive);
+        Assert.False(g.Lights["NORMALIZED"].Attenuate);
     }
 
     [Fact]

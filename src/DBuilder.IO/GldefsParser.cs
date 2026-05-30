@@ -9,6 +9,13 @@ using System.Text;
 namespace DBuilder.IO;
 
 /// <summary>A dynamic light definition (pointlight/pulselight/flickerlight/...) with its color and size.</summary>
+public enum GldefsLightRenderStyle
+{
+    Normal,
+    Subtractive,
+    Attenuated,
+}
+
 public sealed class GldefsLight
 {
     public string Name { get; init; } = "";
@@ -24,8 +31,21 @@ public sealed class GldefsLight
     public float Interval { get; set; }
     public float Chance { get; set; }
     public float Scale { get; set; }
-    public bool Subtractive { get; set; }
-    public bool Attenuate { get; set; }
+    public GldefsLightRenderStyle RenderStyle { get; set; } = GldefsLightRenderStyle.Normal;
+    public bool Subtractive
+    {
+        get => RenderStyle == GldefsLightRenderStyle.Subtractive;
+        set => RenderStyle = value
+            ? GldefsLightRenderStyle.Subtractive
+            : GldefsLightRenderStyle.Normal;
+    }
+    public bool Attenuate
+    {
+        get => RenderStyle == GldefsLightRenderStyle.Attenuated;
+        set => RenderStyle = value
+            ? GldefsLightRenderStyle.Attenuated
+            : GldefsLightRenderStyle.Normal;
+    }
     public bool DontLightSelf { get; set; }
 }
 
