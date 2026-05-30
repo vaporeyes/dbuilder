@@ -766,6 +766,28 @@ ACTOR OffsetGotoThing 8009
     }
 
     [Fact]
+    public void TrimsEmptyFramesBeforeResolvingGotoSpriteOffset()
+    {
+        const string text = @"
+ACTOR TrimmedGotoThing 8010
+{
+    States
+    {
+    Ready:
+        TNT1 A 0
+        PICK A -1
+    Death:
+        DEAD A -1 stop
+    Spawn:
+        goto Ready
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("PICKA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void SkipsPlaceholderStateSprites()
     {
         const string text = @"

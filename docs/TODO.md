@@ -375,6 +375,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve `Light()` state-frame names in actor and thing metadata.
   - [x] Resolve relevant state `goto` targets when choosing actor editor previews.
   - [x] Honor `goto` sprite offsets when choosing actor editor previews.
+  - [x] Trim leading empty state frames before resolving `goto` preview targets.
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
   - [x] Parse quoted DECORATE state sprite and frame tokens.
 - [ ] Port category and DoomEdNum merging behavior fully.

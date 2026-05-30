@@ -676,6 +676,8 @@ public static class DecorateParser
             }
         }
 
+        TrimStateFrames(actor, stateSprites);
+
         foreach (var stateSprite in stateSprites)
             actor.StateSprites[stateSprite.Key] = stateSprite.Value;
 
@@ -724,6 +726,16 @@ public static class DecorateParser
             actor.StateFrames[stateName] = frames;
         }
         frames.Add(sprite);
+    }
+
+    private static void TrimStateFrames(ActorInfo actor, Dictionary<string, StateSpriteCandidate> stateSprites)
+    {
+        foreach (var state in actor.StateFrames)
+        {
+            int firstNonEmpty = state.Value.FindIndex(sprite => !sprite.IsEmpty);
+            if (firstNonEmpty > 0) state.Value.RemoveRange(0, firstNonEmpty);
+            if (state.Value.Count > 0) stateSprites[state.Key] = state.Value[0];
+        }
     }
 
     private static bool TryReadStateGoto(List<Tok> t, ref int i, out StateGotoTarget target)
