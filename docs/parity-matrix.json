@@ -1,8 +1,18 @@
 {
   "statusValues": ["ported", "partial", "missing"],
   "core": [
-    { "udbArea": "Source/Core/Actions", "status": "missing", "dbuilderLocation": "DBuilder.Editor" },
-    { "udbArea": "Source/Core/Compilers", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbArea": "Source/Core/Actions",
+      "status": "missing",
+      "dbuilderLocation": "DBuilder.Editor",
+      "notes": "Command and action-manager parity is not implemented. Editor menu and toolbar commands exist only as direct shell wiring."
+    },
+    {
+      "udbArea": "Source/Core/Compilers",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Compiler and nodebuilder configuration metadata is parsed. Full nodebuilder execution, script compiler execution, error parsing, and editor integration remain incomplete."
+    },
     {
       "udbArea": "Source/Core/Config",
       "status": "partial",
@@ -10,8 +20,18 @@
       "notes": "Game configuration parsing and thing catalog metadata are partial. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, UDB stuck-inside error checks for solid actors, non-solid error-check preservation, DistanceCheck preservation for undefined CVARs, and unknown preview sprite fallback."
     },
     { "udbArea": "Source/Core/Controls", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
-    { "udbArea": "Source/Core/Data", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
-    { "udbArea": "Source/Core/Dehacked", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
+    {
+      "udbArea": "Source/Core/Data",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Resource list serialization, WAD, PK3, nested PK3, directory, mixed priority stack, palette, colormap, sprite, texture, flat, hires, voxel, and model discovery behavior have focused coverage. Full UDB DataManager parity remains incomplete."
+    },
+    {
+      "udbArea": "Source/Core/Dehacked",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Patch data model, thing parsing, frame parsing, sprite replacements, parser behavior, and thing catalog merge support exist. Full UDB baseline DehackedData table processing remains incomplete."
+    },
     { "udbArea": "Source/Core/Editing", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.Map" },
     { "udbArea": "Source/Core/General", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.IO" },
     { "udbArea": "Source/Core/Geometry", "status": "partial", "dbuilderLocation": "DBuilder.Geometry;DBuilder.Map" },
@@ -21,7 +41,12 @@
     { "udbArea": "Source/Core/Plugins", "status": "missing", "dbuilderLocation": null },
     { "udbArea": "Source/Core/Properties", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
     { "udbArea": "Source/Core/Rendering", "status": "partial", "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor" },
-    { "udbArea": "Source/Core/Resources", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
+    {
+      "udbArea": "Source/Core/Resources",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
+    },
     { "udbArea": "Source/Core/Types", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
     { "udbArea": "Source/Core/VisualModes", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.Map" },
     { "udbArea": "Source/Core/Windows", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
@@ -29,7 +54,7 @@
       "udbArea": "Source/Core/ZDoom",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, and DoomEdNum behaviors. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
+      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, DoomEdNum, and actor merge behaviors. TEXTURES, GLDEFS, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, MAPINFO, and ZMAPINFO all have focused parser coverage. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
     },
     { "udbArea": "Source/Native/OpenGL", "status": "partial", "dbuilderLocation": "DBuilder.Rendering" }
   ],
