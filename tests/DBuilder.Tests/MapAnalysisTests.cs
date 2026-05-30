@@ -196,6 +196,41 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CrossingLinedefsFlagged()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 100));
+        var c = map.AddVertex(new Vector2D(0, 100));
+        var d = map.AddVertex(new Vector2D(100, 0));
+        map.AddLinedef(a, b);
+        map.AddLinedef(c, d);
+        map.BuildIndexes();
+
+        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+    }
+
+    [Fact]
+    public void CrossingLinedefsInSameSectorOnAllSidesAreAllowed()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 100));
+        var c = map.AddVertex(new Vector2D(0, 100));
+        var d = map.AddVertex(new Vector2D(100, 0));
+        var first = map.AddLinedef(a, b);
+        var second = map.AddLinedef(c, d);
+        map.AddSidedef(first, true, sector);
+        map.AddSidedef(first, false, sector);
+        map.AddSidedef(second, true, sector);
+        map.AddSidedef(second, false, sector);
+        map.BuildIndexes();
+
+        Assert.False(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+    }
+
+    [Fact]
     public void ShortLinedefFlagged()
     {
         var map = new MapSet();

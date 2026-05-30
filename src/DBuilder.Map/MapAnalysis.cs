@@ -173,7 +173,7 @@ public static class MapAnalysis
             }
     }
 
-    // Two linedefs sharing both endpoints (same positions) overlap; report each extra one once.
+    // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.
     private static void CheckOverlappingLinedefs(MapSet map, List<MapIssue> issues)
     {
         var seen = new HashSet<(long, long, long, long)>();
@@ -187,10 +187,33 @@ public static class MapAnalysis
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedef {i} overlaps another linedef (same endpoints).")
                     { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+
+            for (int j = 0; j < i; j++)
+            {
+                var other = map.Linedefs[j];
+                if (!l.Line.GetIntersection(other.Line, out double uLine, out double uOther)) continue;
+                if (uLine <= 0.0 || uLine >= 1.0 || uOther <= 0.0 || uOther >= 1.0) continue;
+                if (ReferencesSameSectorOnAllSides(l, other)) continue;
+
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
+                    $"Linedef {i} crosses linedef {j}.")
+                    { Target = l, Focus = l.Line.GetCoordinatesAt(uLine) });
+                break;
+            }
         }
 
         static (long, long) Key(Vector2D p) => ((long)Math.Round(p.x * 1000), (long)Math.Round(p.y * 1000));
         static int Compare((long, long) a, (long, long) b) => a.Item1 != b.Item1 ? a.Item1.CompareTo(b.Item1) : a.Item2.CompareTo(b.Item2);
+    }
+
+    private static bool ReferencesSameSectorOnAllSides(Linedef a, Linedef b)
+    {
+        Sector? sector = a.Front?.Sector ?? a.Back?.Sector ?? b.Front?.Sector ?? b.Back?.Sector;
+        return sector != null &&
+               a.Front?.Sector == sector &&
+               a.Back?.Sector == sector &&
+               b.Front?.Sector == sector &&
+               b.Back?.Sector == sector;
     }
 
     private static void CheckShortLinedefs(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
