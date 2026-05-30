@@ -41,7 +41,7 @@ lock 1 Doom
     [Fact]
     public void SkipsUnknownLockBlocks()
     {
-        const string text = @"lock Red { unknown { nested { value } } message ""red"" }";
+        const string text = @"lock 1 { unknown { nested { value } } message ""red"" }";
 
         var defs = LockdefsParser.Parse(text);
 
@@ -62,5 +62,35 @@ lock 2 { $title ""Replacement Lock"" }";
         Assert.True(defs.ClearLocks);
         Assert.Equal("2", lockDef.Id);
         Assert.Equal("Replacement Lock", lockDef.Title);
+    }
+
+    [Fact]
+    public void SkipsLocksWithInvalidNumbers()
+    {
+        const string text = @"
+lock 0 { $title ""Zero"" }
+lock -1 { $title ""Negative"" }
+lock Named { $title ""Named"" }
+lock 3 { $title ""Valid"" }";
+
+        var lockDef = Assert.Single(LockdefsParser.Parse(text).Locks);
+
+        Assert.Equal("3", lockDef.Id);
+        Assert.Equal("Valid", lockDef.Title);
+    }
+
+    [Fact]
+    public void RequiresByteRangeMapColorComponents()
+    {
+        const string text = @"
+lock 1 { $title ""Low"" mapcolor -1 0 0 }
+lock 2 { $title ""High"" mapcolor 0 256 0 }
+lock 3 { $title ""Valid"" mapcolor 255 128 0 }";
+
+        var defs = LockdefsParser.Parse(text);
+
+        Assert.Null(defs.Locks.Single(l => l.Id == "1").MapColor);
+        Assert.Null(defs.Locks.Single(l => l.Id == "2").MapColor);
+        Assert.Equal((255, 128, 0), defs.Locks.Single(l => l.Id == "3").MapColor);
     }
 }

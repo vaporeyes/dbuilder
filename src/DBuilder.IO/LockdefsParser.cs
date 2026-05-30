@@ -44,7 +44,13 @@ public static class LockdefsParser
 
     private static void ParseLock(LockDefs defs, List<string> t, ref int i)
     {
-        var lockDef = new LockDefinition { Id = t[i++] };
+        if (!ReadPositiveLockId(t, ref i, out string lockId))
+        {
+            SkipLockRemainder(t, ref i);
+            return;
+        }
+
+        var lockDef = new LockDefinition { Id = lockId };
         if (i < t.Count && t[i] != "{") lockDef.Game = t[i++];
         if (i < t.Count && t[i] == "{")
         {
@@ -64,10 +70,38 @@ public static class LockdefsParser
         if (lockDef.Id.Length > 0) defs.Locks.Add(lockDef);
     }
 
+    private static bool ReadPositiveLockId(List<string> t, ref int i, out string lockId)
+    {
+        lockId = "";
+        if (i >= t.Count) return false;
+        string token = t[i++];
+        if (!int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id) || id < 1) return false;
+        lockId = token;
+        return true;
+    }
+
+    private static void SkipLockRemainder(List<string> t, ref int i)
+    {
+        while (i < t.Count && t[i] != "{") i++;
+        if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
+    }
+
     private static (int R, int G, int B)? ReadMapColor(List<string> t, ref int i)
     {
-        if (ReadInt(t, ref i, out int r) && ReadInt(t, ref i, out int g) && ReadInt(t, ref i, out int b)) return (r, g, b);
+        if (ReadByteRangeInt(t, ref i, out int r)
+            && ReadByteRangeInt(t, ref i, out int g)
+            && ReadByteRangeInt(t, ref i, out int b))
+            return (r, g, b);
         return null;
+    }
+
+    private static bool ReadByteRangeInt(List<string> t, ref int i, out int value)
+    {
+        value = 0;
+        if (i >= t.Count || t[i] is "{" or "}") return false;
+        string token = t[i++];
+        return int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value)
+            && value is >= 0 and <= 255;
     }
 
     private static LockKeyGroup ReadKeyGroup(string mode, List<string> t, ref int i)
@@ -81,13 +115,6 @@ public static class LockdefsParser
         }
         if (i < t.Count) i++;
         return new LockKeyGroup(mode, keys);
-    }
-
-    private static bool ReadInt(List<string> t, ref int i, out int value)
-    {
-        value = 0;
-        if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
-        return false;
     }
 
     private static void SkipBlock(List<string> t, ref int i)
