@@ -213,6 +213,9 @@ internal sealed class WadResourceReader : IResourceReader
     private IReadOnlyList<ResourceRangeInfo> ConfiguredFlatRanges()
         => configProvider()?.FlatRanges ?? Array.Empty<ResourceRangeInfo>();
 
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredColormapRanges()
+        => configProvider()?.ColormapRanges ?? Array.Empty<ResourceRangeInfo>();
+
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
     public string? GetTextLump(string name)
@@ -237,9 +240,13 @@ internal sealed class WadResourceReader : IResourceReader
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
 
-    public byte[]? GetColormapBytes(string name) => GetLumpBytes(name);
+    public byte[]? GetColormapBytes(string name)
+    {
+        var rangeLump = FindInRanges(name, ConfiguredColormapRanges());
+        return rangeLump != null ? rangeLump.Stream.ReadAllBytes() : GetLumpBytes(name);
+    }
 
-    public IEnumerable<string> ColormapNames() => Array.Empty<string>();
+    public IEnumerable<string> ColormapNames() => NamesInRanges(ConfiguredColormapRanges());
 
     public IEnumerable<string> TextureNames()
     {

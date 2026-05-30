@@ -244,6 +244,31 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadConfiguredColormapRangesProvideAndPrioritizeNamedColormaps()
+    {
+        var config = GameConfiguration.FromText("""
+            colormaps
+            {
+                fog { start = "C_START"; end = "C_END"; }
+            }
+            """);
+        using var wad = BuildWad(
+            ("FOGMAP", ColormapBytes(1)),
+            ("C_START", Array.Empty<byte>()),
+            ("FOGMAP", ColormapBytes(7)),
+            ("C_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Equal(11, rm.GetColormap("FOGMAP")!.Lookup(0, 10));
+
+        rm.Configuration = config;
+
+        Assert.Equal(17, rm.GetColormap("FOGMAP")!.Lookup(0, 10));
+        Assert.Contains("FOGMAP", rm.GetTextureNames());
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));
