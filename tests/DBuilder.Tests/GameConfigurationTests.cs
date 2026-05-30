@@ -583,9 +583,29 @@ public class GameConfigurationTests
     }
 
     [Fact]
-    public void ParsesColormapRanges()
+    public void ParsesResourceRanges()
     {
         const string cfg = """
+            textures
+            {
+                walls { start = "TX_START"; end = "TX_END"; }
+            }
+            hires
+            {
+                detail { start = "HI_START"; end = "HI_END"; }
+            }
+            flats
+            {
+                floors { start = "F_START"; end = "F_END"; }
+            }
+            patches
+            {
+                art { start = "P_START"; end = "P_END"; }
+            }
+            sprites
+            {
+                actors { start = "S_START"; end = "S_END"; }
+            }
             colormaps
             {
                 standard1
@@ -598,14 +618,28 @@ public class GameConfigurationTests
                     start = "ONLY_START";
                 }
             }
+            voxels
+            {
+                models { start = "VX_START"; end = "VX_END"; }
+            }
             """;
 
         var gc = GameConfiguration.FromText(cfg);
 
-        var range = Assert.Single(gc.ColormapRanges);
-        Assert.Equal("standard1", range.Name);
-        Assert.Equal("C_START", range.Start);
-        Assert.Equal("C_END", range.End);
+        AssertRange(Assert.Single(gc.TextureRanges), "walls", "TX_START", "TX_END");
+        AssertRange(Assert.Single(gc.HiResRanges), "detail", "HI_START", "HI_END");
+        AssertRange(Assert.Single(gc.FlatRanges), "floors", "F_START", "F_END");
+        AssertRange(Assert.Single(gc.PatchRanges), "art", "P_START", "P_END");
+        AssertRange(Assert.Single(gc.SpriteRanges), "actors", "S_START", "S_END");
+        AssertRange(Assert.Single(gc.ColormapRanges), "standard1", "C_START", "C_END");
+        AssertRange(Assert.Single(gc.VoxelRanges), "models", "VX_START", "VX_END");
+    }
+
+    private static void AssertRange(ResourceRangeInfo range, string name, string start, string end)
+    {
+        Assert.Equal(name, range.Name);
+        Assert.Equal(start, range.Start);
+        Assert.Equal(end, range.End);
     }
 
     [Fact]

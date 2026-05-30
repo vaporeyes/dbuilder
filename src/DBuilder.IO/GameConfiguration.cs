@@ -23,7 +23,7 @@ namespace DBuilder.IO;
 
 public sealed record ArgColor(byte R, byte G, byte B, byte A);
 
-public sealed record ColormapRangeInfo(string Name, string Start, string End);
+public sealed record ResourceRangeInfo(string Name, string Start, string End);
 
 /// <summary>Metadata for one of a linedef action's / thing's 5 args: display name, type code, enum reference, default.</summary>
 public sealed class ArgInfo
@@ -372,7 +372,13 @@ public sealed class GameConfiguration
     private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
     private readonly Dictionary<string, string> defaultSkyTextures = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<ColormapRangeInfo> colormapRanges = new();
+    private readonly List<ResourceRangeInfo> textureRanges = new();
+    private readonly List<ResourceRangeInfo> hiResRanges = new();
+    private readonly List<ResourceRangeInfo> flatRanges = new();
+    private readonly List<ResourceRangeInfo> patchRanges = new();
+    private readonly List<ResourceRangeInfo> spriteRanges = new();
+    private readonly List<ResourceRangeInfo> colormapRanges = new();
+    private readonly List<ResourceRangeInfo> voxelRanges = new();
     private readonly Dictionary<string, bool> makeDoorFlags = new(StringComparer.Ordinal);
     private readonly List<string> defaultThingFlags = new();
     private readonly Dictionary<string, string> thingRenderStyles = new(StringComparer.Ordinal);
@@ -501,7 +507,13 @@ public sealed class GameConfiguration
     public string DefaultCeilingTexture { get; private set; } = "CEIL1_1";
     public bool MixTexturesFlats { get; private set; }
     public IReadOnlyDictionary<string, string> DefaultSkyTextures => defaultSkyTextures;
-    public IReadOnlyList<ColormapRangeInfo> ColormapRanges => colormapRanges;
+    public IReadOnlyList<ResourceRangeInfo> TextureRanges => textureRanges;
+    public IReadOnlyList<ResourceRangeInfo> HiResRanges => hiResRanges;
+    public IReadOnlyList<ResourceRangeInfo> FlatRanges => flatRanges;
+    public IReadOnlyList<ResourceRangeInfo> PatchRanges => patchRanges;
+    public IReadOnlyList<ResourceRangeInfo> SpriteRanges => spriteRanges;
+    public IReadOnlyList<ResourceRangeInfo> ColormapRanges => colormapRanges;
+    public IReadOnlyList<ResourceRangeInfo> VoxelRanges => voxelRanges;
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
     public IReadOnlyList<LinedefActivationInfo> LinedefActivations => linedefActivations;
@@ -615,7 +627,13 @@ public sealed class GameConfiguration
             ParseStringSet(GetString(root, "ignoredextensions", ""), gc.ignoredExtensions);
             gc.MixTexturesFlats = GetBool(root, "mixtexturesflats", false);
             if (root["defaultskytextures"] is IDictionary dst) gc.ParseDefaultSkyTextures(dst);
-            if (root["colormaps"] is IDictionary cmr) gc.ParseColormapRanges(cmr);
+            if (root["textures"] is IDictionary txr) gc.ParseResourceRanges(txr, gc.textureRanges);
+            if (root["hires"] is IDictionary hir) gc.ParseResourceRanges(hir, gc.hiResRanges);
+            if (root["flats"] is IDictionary flr) gc.ParseResourceRanges(flr, gc.flatRanges);
+            if (root["patches"] is IDictionary par) gc.ParseResourceRanges(par, gc.patchRanges);
+            if (root["sprites"] is IDictionary spr) gc.ParseResourceRanges(spr, gc.spriteRanges);
+            if (root["colormaps"] is IDictionary cmr) gc.ParseResourceRanges(cmr, gc.colormapRanges);
+            if (root["voxels"] is IDictionary vxr) gc.ParseResourceRanges(vxr, gc.voxelRanges);
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
@@ -1737,7 +1755,7 @@ public sealed class GameConfiguration
         }
     }
 
-    private void ParseColormapRanges(IDictionary block)
+    private void ParseResourceRanges(IDictionary block, List<ResourceRangeInfo> ranges)
     {
         foreach (DictionaryEntry e in block)
         {
@@ -1746,7 +1764,7 @@ public sealed class GameConfiguration
             string start = GetString(range, "start", "");
             string end = GetString(range, "end", "");
             if (start.Length == 0 || end.Length == 0) continue;
-            colormapRanges.Add(new ColormapRangeInfo(name, start, end));
+            ranges.Add(new ResourceRangeInfo(name, start, end));
         }
     }
 

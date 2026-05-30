@@ -462,6 +462,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.
   - [x] Parse colormap range metadata.
+  - [x] Parse texture, flat, patch, sprite, hires, and voxel range metadata.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
