@@ -94,6 +94,7 @@ public static class ThingsFilterEvaluator
     private static bool MatchesCustomField(Thing thing, ThingsFilterCustomFieldInfo custom)
     {
         if (!thing.Fields.TryGetValue(custom.Name, out var actual)) return false;
+        if (InferUniversalType(actual) != custom.Type) return false;
 
         var registry = new UniversalTypeRegistry();
         var expectedHandler = registry.CreateHandler(custom.Type);
@@ -103,4 +104,15 @@ public static class ThingsFilterEvaluator
 
         return Equals(expectedHandler.GetValue(), actualHandler.GetValue());
     }
+
+    private static int InferUniversalType(object? value) => value switch
+    {
+        bool => (int)UniversalType.Boolean,
+        int => (int)UniversalType.Integer,
+        long => (int)UniversalType.Integer,
+        float => (int)UniversalType.Float,
+        double => (int)UniversalType.Float,
+        string => (int)UniversalType.String,
+        _ => (int)UniversalType.String,
+    };
 }

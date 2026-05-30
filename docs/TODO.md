@@ -534,6 +534,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
   - [x] Integrate configured things filters into the existing thing filter window.
+  - [x] Match UDB strict custom field type checks in things filters.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.

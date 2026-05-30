@@ -95,7 +95,7 @@ public class ThingsFilterEvaluatorTests
         var match = map.AddThing(new Vector2D(0, 0), 3001);
         match.UdmfFlags.Add("skill1");
         match.Fields["species"] = "DoomImp";
-        match.Fields["count"] = 3.0;
+        match.Fields["count"] = 3;
         var forbidden = map.AddThing(new Vector2D(64, 0), 3001);
         forbidden.UdmfFlags.Add("skill1");
         forbidden.UdmfFlags.Add("dm");
@@ -104,7 +104,7 @@ public class ThingsFilterEvaluatorTests
         var wrongCustom = map.AddThing(new Vector2D(128, 0), 3001);
         wrongCustom.UdmfFlags.Add("skill1");
         wrongCustom.Fields["species"] = "DoomImp";
-        wrongCustom.Fields["count"] = 4;
+        wrongCustom.Fields["count"] = 3.0;
 
         var result = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[0]);
 
