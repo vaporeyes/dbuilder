@@ -391,6 +391,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve `$Obsolete` actor metadata and red catalog color.
   - [x] Apply Heretic `DefaultAlpha` from the game configuration base game.
   - [x] Preserve GZDoom actor render flags in thing metadata.
+  - [x] Preserve actor render radius before fixed-size safety.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.

@@ -96,6 +96,7 @@ public sealed class ThingTypeInfo
     public string ClassName { get; init; } = "";
     public int Color { get; init; }
     public int Width { get; init; } = 16;
+    public double RenderRadius { get; init; } = 10.0;
     public int Height { get; init; } = 16;
     public double Alpha { get; init; } = 1.0;
     public string RenderStyle { get; init; } = "normal";
@@ -718,6 +719,7 @@ public sealed class GameConfiguration
         bool isObsolete = TryActorProperty(actor, "$obsolete", out string obsoleteMessage);
         ThingRenderMode renderMode = ActorRenderMode(actor, fallback);
         bool rollSprite = ActorRollSprite(actor, renderMode, fallback);
+        int actorWidth = ActorWidth(actor, fallback);
         return new ThingTypeInfo
         {
             Index = index,
@@ -726,7 +728,8 @@ public sealed class GameConfiguration
             Category = actor.Category ?? fallback?.Category ?? "Decorate",
             Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
             LightName = actor.LightName ?? fallback?.LightName ?? "",
-            Width = SafeThingWidth(ActorWidth(actor, fallback), fixedSize),
+            Width = SafeThingWidth(actorWidth, fixedSize),
+            RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
@@ -766,6 +769,7 @@ public sealed class GameConfiguration
         Sprite = source.Sprite,
         LightName = source.LightName,
         Width = source.Width,
+        RenderRadius = source.RenderRadius,
         Height = source.Height,
         Alpha = source.Alpha,
         RenderStyle = source.RenderStyle,
@@ -812,6 +816,14 @@ public sealed class GameConfiguration
     {
         if (actor.Radius <= 0) return existing?.Width ?? 16;
         return actor.Radius;
+    }
+
+    private static double ActorRenderRadius(ActorInfo actor, int actorWidth, ThingTypeInfo? existing)
+    {
+        if (TryActorPropertyDouble(actor, "renderradius", out double renderRadius) && renderRadius != 0.0)
+            return renderRadius;
+        if (TryActorProperty(actor, "radius", out _)) return actorWidth;
+        return existing?.RenderRadius ?? actorWidth;
     }
 
     private static int SafeThingWidth(int width, bool fixedSize)
@@ -1010,6 +1022,7 @@ public sealed class GameConfiguration
                 Category = category,
                 Sprite = sprite,
                 Width = width > 0 ? width : existing?.Width ?? 16,
+                RenderRadius = existing?.RenderRadius ?? 10.0,
                 Height = height > 0 ? height : existing?.Height ?? 16,
                 Color = existing?.Color ?? 0,
                 Alpha = existing?.Alpha ?? 1.0,
@@ -1065,6 +1078,7 @@ public sealed class GameConfiguration
         Sprite = sprite,
         LightName = info.LightName,
         Width = info.Width,
+        RenderRadius = info.RenderRadius,
         Height = info.Height,
         Alpha = info.Alpha,
         RenderStyle = info.RenderStyle,

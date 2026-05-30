@@ -1167,6 +1167,39 @@ ACTOR FlatSpriteThing 31010
     }
 
     [Fact]
+    public void MergeActorsPreservesRenderRadiusBeforeFixedSizeSafety()
+    {
+        const string text = @"
+ACTOR ExplicitRenderRadiusThing 31011
+{
+    Radius 24
+    RenderRadius 40
+    Height 48
+    States { Spawn: RRAD A -1 stop }
+}
+
+ACTOR ZeroRenderRadiusThing 31012
+{
+    Radius 1
+    RenderRadius 0
+    Height 48
+    States { Spawn: ZRRD A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var explicitRadius = gc.GetThing(31011);
+        Assert.NotNull(explicitRadius);
+        Assert.Equal(24, explicitRadius!.Width);
+        Assert.Equal(40.0, explicitRadius.RenderRadius);
+
+        var zeroRadius = gc.GetThing(31012);
+        Assert.NotNull(zeroRadius);
+        Assert.Equal(14, zeroRadius!.Width);
+        Assert.Equal(1.0, zeroRadius.RenderRadius);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"

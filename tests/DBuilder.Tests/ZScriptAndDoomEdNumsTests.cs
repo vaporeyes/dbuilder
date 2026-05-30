@@ -510,6 +510,44 @@ class FlatSpriteZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsPreservesRenderRadiusBeforeFixedSizeSafety()
+    {
+        const string zscript = @"
+class ExplicitRenderRadiusZThing : Actor
+{
+    Default { Radius 24; RenderRadius 40; Height 48; }
+    States { Spawn: RRZS A -1; stop; }
+}
+
+class ZeroRenderRadiusZThing : Actor
+{
+    Default { Radius 1; RenderRadius 0; Height 48; }
+    States { Spawn: ZRZS A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("""
+            DoomEdNums
+            {
+                9062 = ExplicitRenderRadiusZThing
+                9063 = ZeroRenderRadiusZThing
+            }
+            """).DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var explicitRadius = gc.GetThing(9062);
+        Assert.NotNull(explicitRadius);
+        Assert.Equal(24, explicitRadius!.Width);
+        Assert.Equal(40.0, explicitRadius.RenderRadius);
+
+        var zeroRadius = gc.GetThing(9063);
+        Assert.NotNull(zeroRadius);
+        Assert.Equal(14, zeroRadius!.Width);
+        Assert.Equal(1.0, zeroRadius.RenderRadius);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"
