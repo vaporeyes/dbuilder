@@ -188,7 +188,19 @@ public static class GldefsParser
                     if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) invalid = true;
                     else light.SecondarySize = secondarySize * 2.0f;
                 }
-                else if (p == "offset") { light.OffsetX = ReadFloat(t, ref i); light.OffsetZ = ReadFloat(t, ref i); light.OffsetY = ReadFloat(t, ref i); }
+                else if (p == "offset")
+                {
+                    if (!TryReadFloat(t, ref i, out float offsetX)
+                        || !TryReadFloat(t, ref i, out float offsetZ)
+                        || !TryReadFloat(t, ref i, out float offsetY))
+                    {
+                        invalid = true;
+                        continue;
+                    }
+                    light.OffsetX = offsetX;
+                    light.OffsetZ = offsetZ;
+                    light.OffsetY = offsetY;
+                }
                 else if (p == "interval")
                 {
                     float interval = ReadFloat(t, ref i);

@@ -78,6 +78,19 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
     }
 
     [Fact]
+    public void SkipsLightsWithNonNumericOffsetComponents()
+    {
+        const string text = @"
+pointlight BAD { color 1.0 0.5 0.25 size 16 offset 1 bogus 3 }
+pointlight GOOD { color 0.1 0.2 0.3 size 16 offset 1 2 3 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BAD"));
+        Assert.True(g.Lights.ContainsKey("GOOD"));
+    }
+
+    [Fact]
     public void SkipsBlackLights()
     {
         const string text = @"

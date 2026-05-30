@@ -355,6 +355,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip unknown top-level GLDEFS blocks with arguments.
   - [x] Model GLDEFS light render style as UDB's single last-wins style.
   - [x] Require numeric GLDEFS light color components.
+  - [x] Require numeric GLDEFS light offset components.
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
 - [x] Port SNDSEQ parser.
