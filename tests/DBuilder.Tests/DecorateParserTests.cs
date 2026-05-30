@@ -1090,6 +1090,25 @@ ACTOR GlowThing 31004
     }
 
     [Fact]
+    public void MergeActorsUsesSelectedStateFrameBrightKeyword()
+    {
+        const string decorate = @"
+ACTOR BrightStateThing 31015
+{
+    Radius 24
+    Height 48
+    States { Spawn: BRTS A -1 bright stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31015);
+        Assert.NotNull(info);
+        Assert.True(info!.Bright);
+    }
+
+    [Fact]
     public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string text = @"

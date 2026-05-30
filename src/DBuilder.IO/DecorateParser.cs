@@ -1,5 +1,5 @@
 // ABOUTME: Parser for the ZDoom DECORATE lump - extracts actor (thing-type) definitions for the editor.
-// ABOUTME: Captures class/parent/replaces/DoomEdNum, //$ editor keys, Radius/Height, spawn sprite, and state light names.
+// ABOUTME: Captures class/parent/replaces/DoomEdNum, //$ editor keys, Radius/Height, spawn sprite, and state metadata.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.IO;
 
 namespace DBuilder.IO;
 
-internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, string? LightName);
+internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, string? LightName, bool Bright);
 
 internal readonly record struct StateGotoTarget(string? ClassName, string StateName, int SpriteOffset);
 
@@ -23,6 +23,7 @@ public sealed class ActorInfo
     public int Height { get; set; }   // 0 = unset (inherit)
     public string? Sprite { get; set; }
     public string? LightName { get; set; }
+    public bool StateBright { get; set; }
     public string? RegionCategory { get; set; }
     public Dictionary<string, List<string>> RegionProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -686,6 +687,7 @@ public static class DecorateParser
             var sprite = ChooseSprite(stateSprites, firstNonEmptySprite, firstSprite);
             actor.Sprite = sprite?.Name;
             actor.LightName = sprite?.LightName;
+            actor.StateBright = sprite?.Bright == true;
         }
     }
 
@@ -701,7 +703,8 @@ public static class DecorateParser
         return new StateSpriteCandidate(
             sprite,
             IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1),
-            FindStateFrameLightName(t, frameIndex + 2));
+            FindStateFrameLightName(t, frameIndex + 2),
+            HasStateFrameBright(t, frameIndex + 2));
     }
 
     private static StateSpriteCandidate? ChooseSprite(Dictionary<string, StateSpriteCandidate> stateSprites, StateSpriteCandidate? firstNonEmptySprite, StateSpriteCandidate? firstSprite)
@@ -815,6 +818,17 @@ public static class DecorateParser
         }
 
         return null;
+    }
+
+    private static bool HasStateFrameBright(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is "\n" or "{" or "}" or ";") return false;
+            if (t[i].Kind == Kind.Word && t[i].Text.Equals("bright", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
     }
 
     private static string? ReadInlineLightName(string token)
@@ -1073,6 +1087,7 @@ public static class DecorateParser
             {
                 a.Sprite = sprite.Value.Name;
                 a.LightName = sprite.Value.LightName;
+                a.StateBright = sprite.Value.Bright;
             }
         }
 
@@ -1085,10 +1100,14 @@ public static class DecorateParser
             while (p != null && byName.TryGetValue(p, out var parent) && seen.Add(p))
             {
                 var parentSprite = RootActorStateSprite(parent)
-                    ?? new StateSpriteCandidate(parent.Sprite ?? "", parent.Sprite == null || IsEmptySprite(parent.Sprite), parent.LightName);
+                    ?? new StateSpriteCandidate(parent.Sprite ?? "", parent.Sprite == null || IsEmptySprite(parent.Sprite), parent.LightName, parent.StateBright);
                 if (!parentSprite.IsEmpty)
                 {
-                    a.Sprite ??= parentSprite.Name;
+                    if (a.Sprite == null)
+                    {
+                        a.Sprite = parentSprite.Name;
+                        a.StateBright = parentSprite.Bright;
+                    }
                     a.LightName ??= parentSprite.LightName;
                 }
                 if (a.Radius == 0) a.Radius = parent.Radius;
@@ -1131,7 +1150,7 @@ public static class DecorateParser
     private static StateSpriteCandidate? RootActorStateSprite(ActorInfo actor)
     {
         if (!actor.ClassName.Equals("Actor", StringComparison.OrdinalIgnoreCase)) return null;
-        return actor.StateSprites.TryGetValue("spawn", out var sprite) ? sprite : new StateSpriteCandidate("", true, null);
+        return actor.StateSprites.TryGetValue("spawn", out var sprite) ? sprite : new StateSpriteCandidate("", true, null, false);
     }
 
     private static bool HasNonEmptyRelevantStateSprite(ActorInfo actor)

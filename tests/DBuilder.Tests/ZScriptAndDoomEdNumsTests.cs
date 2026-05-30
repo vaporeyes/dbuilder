@@ -461,6 +461,26 @@ class GlowZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsUsesSelectedStateFrameBrightKeyword()
+    {
+        const string zscript = @"
+class BrightStateZThing : Actor
+{
+    Default { Radius 24; Height 48; }
+    States { Spawn: BRTZ A -1 Bright; Stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9066 = BrightStateZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9066);
+        Assert.NotNull(info);
+        Assert.True(info!.Bright);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

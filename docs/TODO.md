@@ -327,6 +327,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Merge top-level DECORATE `DamageType` definitions into configuration metadata.
   - [x] Apply top-level DECORATE `$` region properties as thing defaults.
   - [x] Parse DECORATE actor-header `$` properties.
+  - [x] Preserve selected state-frame `bright` metadata for thing catalog entries.
 - [ ] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
   - [x] Parse single-quoted ZScript name tokens.

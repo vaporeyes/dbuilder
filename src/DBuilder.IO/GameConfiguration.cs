@@ -747,7 +747,7 @@ public sealed class GameConfiguration
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
-            Bright = ActorFlag(actor, "bright") || fallback?.Bright == true,
+            Bright = actor.StateBright || ActorFlag(actor, "bright") || fallback?.Bright == true,
             SpriteScale = ActorSpriteScale(actor, fallback),
             Color = isObsolete ? 4 : ActorColor(actor, fallback),
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
