@@ -266,6 +266,8 @@ class MemberActor : Actor
     version(""4.10"") int user_versioned;
     version(4.10) int user_bad_version;
     deprecated(""4.8"",) int user_bad_deprecated;
+    action int user_action;
+    virtual int user_virtual;
     float[] user_type_values;
     void Helper()
     {
@@ -299,6 +301,8 @@ class MemberActor : Actor
         Assert.True(actor.UserVariables.ContainsKey("user_versioned"));
         Assert.False(actor.UserVariables.ContainsKey("user_bad_version"));
         Assert.False(actor.UserVariables.ContainsKey("user_bad_deprecated"));
+        Assert.False(actor.UserVariables.ContainsKey("user_action"));
+        Assert.False(actor.UserVariables.ContainsKey("user_virtual"));
         Assert.False(actor.UserVariables.ContainsKey("user_values"));
         Assert.False(actor.UserVariables.ContainsKey("user_values[4]"));
         Assert.False(actor.UserVariables.ContainsKey("user_type_values"));

@@ -86,6 +86,11 @@ public static class DecorateParser
         "virtualscope", "version", "const", "abstract", "norollback"
     };
 
+    private static readonly HashSet<string> ZScriptMethodOnlyModifiers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "action", "virtual", "override", "final", "abstract"
+    };
+
     private static readonly string[] SpriteCheckStates = { "idle", "see", "inactive", "spawn" };
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
@@ -1388,6 +1393,12 @@ public static class DecorateParser
         }
 
         if (!ZScriptFieldModifiers.Contains(token)) return false;
+        if (ZScriptMethodOnlyModifiers.Contains(token))
+        {
+            valid = false;
+            return true;
+        }
+
         if (token.Equals("version", StringComparison.OrdinalIgnoreCase))
             valid = i < t.Count && ConsumeZScriptVersionArguments(t[i++].Text, t, ref i);
         else if (token.Equals("deprecated", StringComparison.OrdinalIgnoreCase)
