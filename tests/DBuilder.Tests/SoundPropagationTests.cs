@@ -15,7 +15,12 @@ public class SoundPropagationTests
     {
         var map = new MapSet();
         var sectors = new Sector[count];
-        for (int i = 0; i < count; i++) sectors[i] = map.AddSector();
+        for (int i = 0; i < count; i++)
+        {
+            sectors[i] = map.AddSector();
+            sectors[i].FloorHeight = 0;
+            sectors[i].CeilHeight = 128;
+        }
 
         for (int i = 0; i < count - 1; i++)
         {
@@ -68,5 +73,39 @@ public class SoundPropagationTests
         Assert.Equal(1, reach[s[1]]);
         Assert.Equal(1, reach[s[2]]);      // open line
         Assert.Equal(2, reach[s[0]]);      // across the block line
+    }
+
+    [Fact]
+    public void ClosedDoorHeightBlocksSound()
+    {
+        var (map, s) = Chain(3, new[] { false, false });
+        s[0].FloorHeight = 0;
+        s[0].CeilHeight = 64;
+        s[1].FloorHeight = 64;
+        s[1].CeilHeight = 128;
+        s[2].FloorHeight = 0;
+        s[2].CeilHeight = 128;
+
+        var reach = SoundPropagation.Reachable(map, s[0]);
+
+        Assert.True(reach.ContainsKey(s[0]));
+        Assert.False(reach.ContainsKey(s[1]));
+        Assert.False(reach.ContainsKey(s[2]));
+    }
+
+    [Fact]
+    public void InvalidSectorHeightBlocksSound()
+    {
+        var (map, s) = Chain(2, new[] { false });
+        s[0].FloorHeight = 64;
+        s[0].CeilHeight = 64;
+        s[1].FloorHeight = 0;
+        s[1].CeilHeight = 128;
+
+        var reach = SoundPropagation.Reachable(map, s[0]);
+
+        Assert.True(SoundPropagation.IsBlockedByHeight(map.Linedefs[0]));
+        Assert.Single(reach);
+        Assert.True(reach.ContainsKey(s[0]));
     }
 }

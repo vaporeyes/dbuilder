@@ -30,6 +30,7 @@ public static class SoundPropagation
             {
                 var line = sd.Line;
                 if (line?.Front == null || line.Back == null) continue; // single-sided lines block sound entirely
+                if (IsBlockedByHeight(line)) continue;
 
                 var other = ReferenceEquals(line.Front.Sector, sec) ? line.Back.Sector : line.Front.Sector;
                 if (other == null || ReferenceEquals(other, sec)) continue;
@@ -44,5 +45,18 @@ public static class SoundPropagation
                 }
             }
         }
+    }
+
+    /// <summary>True when a two-sided linedef has no vertical sound opening between its sectors.</summary>
+    public static bool IsBlockedByHeight(Linedef line)
+    {
+        if (line.Front?.Sector == null || line.Back?.Sector == null) return false;
+
+        Sector front = line.Front.Sector;
+        Sector back = line.Back.Sector;
+        return front.CeilHeight <= back.FloorHeight
+            || front.FloorHeight >= back.CeilHeight
+            || back.CeilHeight <= back.FloorHeight
+            || front.CeilHeight <= front.FloorHeight;
     }
 }
