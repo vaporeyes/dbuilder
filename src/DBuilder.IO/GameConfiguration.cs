@@ -340,6 +340,8 @@ public sealed class TextureSetInfo
 
 public sealed class GameConfiguration
 {
+    private const string UnknownThingSprite = "internal:unknownthing";
+
     private const int ThingFixedSize = 14;
     private const string UnknownBaseGame = "UNKNOWN_GAME";
     private static readonly IReadOnlySet<string> EmptyTargetClasses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -794,8 +796,8 @@ public sealed class GameConfiguration
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
             Category = actor.Category ?? fallback?.Category ?? "Decorate",
             Sprite = fallback?.LockSprite == true
-                ? fallback.Sprite
-                : actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
+                ? UnknownThingSpriteIfEmpty(fallback.Sprite)
+                : UnknownThingSpriteIfEmpty(actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite),
             LightName = actor.LightName ?? "",
             Width = SafeThingWidth(actorWidth, fixedSize),
             RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
@@ -830,6 +832,9 @@ public sealed class GameConfiguration
             Args = ActorArgs(actor, fallback?.Args),
         };
     }
+
+    private static string UnknownThingSpriteIfEmpty(string? sprite)
+        => string.IsNullOrEmpty(sprite) ? UnknownThingSprite : sprite;
 
     private static IReadOnlyList<string> ActorAdditionalUniversalFields(ActorInfo actor, ThingTypeInfo? fallback)
     {

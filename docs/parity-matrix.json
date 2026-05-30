@@ -3,7 +3,12 @@
   "core": [
     { "udbArea": "Source/Core/Actions", "status": "missing", "dbuilderLocation": "DBuilder.Editor" },
     { "udbArea": "Source/Core/Compilers", "status": "missing", "dbuilderLocation": null },
-    { "udbArea": "Source/Core/Config", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
+    {
+      "udbArea": "Source/Core/Config",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Game configuration parsing and thing catalog metadata are partial. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, non-solid error-check preservation, and unknown preview sprite fallback."
+    },
     { "udbArea": "Source/Core/Controls", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
     { "udbArea": "Source/Core/Data", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
     { "udbArea": "Source/Core/Dehacked", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
@@ -20,7 +25,12 @@
     { "udbArea": "Source/Core/Types", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
     { "udbArea": "Source/Core/VisualModes", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.Map" },
     { "udbArea": "Source/Core/Windows", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
-    { "udbArea": "Source/Core/ZDoom", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
+    {
+      "udbArea": "Source/Core/ZDoom",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, and DoomEdNum behaviors. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
+    },
     { "udbArea": "Source/Native/OpenGL", "status": "partial", "dbuilderLocation": "DBuilder.Rendering" }
   ],
   "plugins": [

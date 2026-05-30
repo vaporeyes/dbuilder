@@ -1435,6 +1435,24 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsUsesUnknownThingSpriteWhenActorHasNoPreview()
+    {
+        const string decorate = @"
+ACTOR NoPreviewThing 31020
+{
+    Radius 24
+    Height 48
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31020);
+        Assert.NotNull(info);
+        Assert.Equal("internal:unknownthing", info!.Sprite);
+    }
+
+    [Fact]
     public void MergeActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
     {
         const string cfg = @"
