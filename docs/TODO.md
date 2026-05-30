@@ -411,6 +411,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Trim leading empty state frames before resolving `goto` preview targets.
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
   - [x] Parse quoted DECORATE state sprite and frame tokens.
+  - [x] Resolve DECORATE single-colon class-qualified `goto` targets.
   - [x] Stop ZScript frame `Light()` scans at semicolon boundaries.
   - [x] Avoid inheriting non-Spawn state sprites from root `Actor`.
   - [x] Prefer inherited relevant state sprites before unrelated child states.

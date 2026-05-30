@@ -716,7 +716,7 @@ public static class DecorateParser
             }
             else if (inStates && currentState != null && lw == "goto")
             {
-                if (TryReadStateGoto(t, ref i, out var target))
+                if (TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target))
                     actor.StateGotos[currentState] = target;
             }
             else if (inStates && tk.Kind == Kind.Word && IsStateLabel(t, i))
@@ -790,7 +790,7 @@ public static class DecorateParser
         }
     }
 
-    private static bool TryReadStateGoto(List<Tok> t, ref int i, out StateGotoTarget target)
+    private static bool TryReadStateGoto(List<Tok> t, ref int i, bool allowSingleColonClassTarget, out StateGotoTarget target)
     {
         target = default;
         if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
@@ -803,6 +803,12 @@ public static class DecorateParser
         {
             i += 2;
             if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
+            className = first;
+            stateName = t[i++].Text;
+        }
+        else if (allowSingleColonClassTarget && i + 1 < t.Count && t[i].Text == ":" && t[i + 1].Kind is Kind.Word or Kind.Str)
+        {
+            i++;
             className = first;
             stateName = t[i++].Text;
         }

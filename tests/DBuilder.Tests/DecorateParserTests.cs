@@ -805,6 +805,29 @@ ACTOR GotoChild : GotoBase 8008
     }
 
     [Fact]
+    public void UsesSingleColonDecorateGotoTargetForRelevantStateSprite()
+    {
+        const string text = @"
+ACTOR SingleColonGotoBase
+{
+    States { Spawn: BASE A -1 stop }
+}
+ACTOR SingleColonGotoChild : SingleColonGotoBase 8012
+{
+    States
+    {
+    Death:
+        DEAD A -1 stop
+    Spawn:
+        goto Super:Spawn
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single(a => a.ClassName == "SingleColonGotoChild");
+
+        Assert.Equal("BASEA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void InheritsRelevantParentStateSpriteBeforeUnrelatedChildState()
     {
         const string text = @"
