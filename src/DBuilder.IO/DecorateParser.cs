@@ -450,7 +450,7 @@ public static class DecorateParser
     private static void CopyUserVariables(ActorInfo actor, ActorInfo source)
     {
         foreach (var variable in source.UserVariables.Values)
-            if (!actor.UserVariables.ContainsKey(variable.Name)) actor.UserVariables[variable.Name] = variable;
+            actor.UserVariables[variable.Name] = variable;
     }
 
     private static bool HasSpawnState(ActorInfo actor)

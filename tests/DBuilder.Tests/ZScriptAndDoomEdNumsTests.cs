@@ -301,6 +301,35 @@ class RealActor : Actor
     }
 
     [Fact]
+    public void InheritedZScriptUserVariablesOverrideShadowingChildFields()
+    {
+        const string text = @"
+class ParentUserActor : Actor
+{
+    //$UserDefaultValue 5
+    int user_value;
+}
+class ChildUserActor : ParentUserActor
+{
+    //$UserDefaultValue 1.5
+    float user_value;
+}";
+
+        var child = ZScriptParser.Parse(text).Single(actor => actor.ClassName == "ChildUserActor");
+
+        Assert.True(child.UserVariables.ContainsKey("user_value"));
+        Assert.Equal(UniversalType.Integer, child.UserVariables["user_value"].Type);
+        Assert.Equal(5, child.UserVariables["user_value"].DefaultValue);
+
+        var gc = new GameConfiguration();
+        gc.MergeActors(new[] { child }, new Dictionary<int, string> { [9101] = "ChildUserActor" });
+        var thing = gc.GetThing(9101)!;
+        Assert.True(thing.HasAdditionalUniversalField("user_value"));
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_value"].Type);
+        Assert.Equal(5, gc.UniversalFields["thing"]["user_value"].DefaultValue);
+    }
+
+    [Fact]
     public void SkipsZScriptClassesWithKnownNonActorAncestry()
     {
         const string text = @"
