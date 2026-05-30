@@ -167,6 +167,19 @@ class AllowedChild : SealedBase { Default { Radius 8; } }";
     }
 
     [Fact]
+    public void RejectsZScriptClassesThatInheritFromThemselves()
+    {
+        const string text = @"
+class SelfParent : SelfParent { Default { Radius 64; } }
+class ValidAfterSelfParent : Actor { Default { Radius 8; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("ValidAfterSelfParent", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"

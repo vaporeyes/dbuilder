@@ -566,6 +566,8 @@ public static class DecorateParser
         if (valid.TryGetValue(actor.ClassName, out bool cached)) return cached;
         if (!seen.Add(actor.ClassName)) return valid[actor.ClassName] = false;
         if (string.IsNullOrEmpty(actor.ParentName)) return valid[actor.ClassName] = true;
+        if (actor.ParentName.Equals(actor.ClassName, StringComparison.OrdinalIgnoreCase))
+            return valid[actor.ClassName] = false;
         if (!byName.TryGetValue(actor.ParentName, out var parent)) return valid[actor.ClassName] = true;
         bool parentAllowsChild = !parent.IsFinal
             && (parent.PermittedInheritedClassNames.Count == 0
