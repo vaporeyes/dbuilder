@@ -997,20 +997,23 @@ public sealed class GameConfiguration
             args ??= new ArgInfo[5];
             int type = ActorPropertyInt(actor, prefix + "type");
             if (!Enum.IsDefined(typeof(UniversalType), type)) type = 0;
+            string renderStyle = ActorArgRenderStyle(actor, prefix);
+            int minRange = ActorPropertyInt(actor, prefix + "minrange");
+            int maxRange = ActorPropertyInt(actor, prefix + "maxrange");
             args[i] = new ArgInfo
             {
                 Title = title,
                 Used = true,
-                ToolTip = ActorProperty(actor, prefix + "tooltip").Replace("\\n", Environment.NewLine),
+                ToolTip = ActorArgToolTip(actor, prefix, renderStyle, minRange, maxRange),
                 Type = type,
                 Enum = EmptyToNull(ActorProperty(actor, prefix + "enum")),
                 Default = ActorPropertyInt(actor, prefix + "default"),
                 DefaultValue = ActorPropertyInt(actor, prefix + "default"),
                 TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")) : EmptyTargetClasses,
-                RenderStyle = ActorProperty(actor, prefix + "renderstyle").ToLowerInvariant(),
+                RenderStyle = renderStyle,
                 RenderColor = ActorArgColor(actor, prefix + "rendercolor", alpha: 192),
-                MinRange = ActorPropertyInt(actor, prefix + "minrange"),
-                MaxRange = ActorPropertyInt(actor, prefix + "maxrange"),
+                MinRange = minRange,
+                MaxRange = maxRange,
                 MinRangeColor = ActorArgColor(actor, prefix + "minrangecolor", alpha: 96),
                 MaxRangeColor = ActorArgColor(actor, prefix + "maxrangecolor", alpha: 96),
                 Str = actor.Properties.ContainsKey(prefix + "str"),
@@ -1021,6 +1024,23 @@ public sealed class GameConfiguration
         if (args == null) return clearArgs ? Array.Empty<ArgInfo>() : existing ?? Array.Empty<ArgInfo>();
         for (int i = 0; i < 5; i++) args[i] ??= !clearArgs && existing != null && i < existing.Length ? existing[i] : new ArgInfo();
         return args;
+    }
+
+    private static string ActorArgRenderStyle(ActorInfo actor, string prefix)
+    {
+        string renderStyle = ActorProperty(actor, prefix + "renderstyle").ToLowerInvariant();
+        return renderStyle is "circle" or "rectangle" ? renderStyle : "";
+    }
+
+    private static string ActorArgToolTip(ActorInfo actor, string prefix, string renderStyle, int minRange, int maxRange)
+    {
+        string tooltip = ActorProperty(actor, prefix + "tooltip").Replace("\\n", Environment.NewLine);
+        if (renderStyle.Length == 0 || (minRange <= 0 && maxRange <= 0)) return tooltip;
+
+        if (tooltip.Length > 0) tooltip += Environment.NewLine + Environment.NewLine;
+        if (minRange > 0 && maxRange > 0) return tooltip + "Expected range: " + minRange.ToString(CultureInfo.InvariantCulture) + " - " + maxRange.ToString(CultureInfo.InvariantCulture);
+        if (minRange > 0) return tooltip + "Minimum: " + minRange.ToString(CultureInfo.InvariantCulture);
+        return tooltip + "Maximum: " + maxRange.ToString(CultureInfo.InvariantCulture);
     }
 
     private static bool TryActorProperty(ActorInfo actor, string name, out string value)
