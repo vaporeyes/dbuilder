@@ -246,6 +246,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Emit UDMF element blocks in UDB order.
   - [x] Escape UDMF string control characters during writes.
   - [x] Emit missing UDMF sidedef references as `-1` like UDB.
+  - [x] Emit UDMF sector core fields even when they match defaults.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.

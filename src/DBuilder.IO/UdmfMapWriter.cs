@@ -95,11 +95,11 @@ public static class UdmfMapWriter
     {
         sb.Append("sector // ").Append(index).AppendLine();
         sb.AppendLine("{");
-        WriteIfNonzero(sb, "heightfloor",   s.FloorHeight);
-        WriteIfNonzero(sb, "heightceiling", s.CeilHeight);
-        WriteIfNotDefault(sb, "texturefloor",   s.FloorTexture, "-");
-        WriteIfNotDefault(sb, "textureceiling", s.CeilTexture,  "-");
-        if (s.Brightness != 160) WriteAssignment(sb, "lightlevel", s.Brightness, indent: true);
+        WriteAssignment(sb, "heightfloor", s.FloorHeight, indent: true);
+        WriteAssignment(sb, "heightceiling", s.CeilHeight, indent: true);
+        WriteAssignment(sb, "texturefloor", s.FloorTexture, indent: true);
+        WriteAssignment(sb, "textureceiling", s.CeilTexture, indent: true);
+        WriteAssignment(sb, "lightlevel", s.Brightness, indent: true);
         WriteIfNonzero(sb, "special", s.Special);
         WriteIfNonzero(sb, "id",      s.Tag);
         WriteMoreIds(sb, s.Tags);

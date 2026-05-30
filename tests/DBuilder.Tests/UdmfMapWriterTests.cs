@@ -115,18 +115,17 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
-    public void DefaultsAreOmitted()
+    public void SectorCoreFieldsAreAlwaysEmittedLikeUdb()
     {
-        // An empty-ish sector should emit only the block header + braces (no zero/default assignments).
         var map = new MapSet { Namespace = "Doom" };
         map.Sectors.Add(new Sector { Index = 0, FloorTexture = "-", CeilTexture = "-", Brightness = 160 });
 
         var text = UdmfMapWriter.Write(map);
-        Assert.DoesNotContain("heightfloor", text);
-        Assert.DoesNotContain("heightceiling", text);
-        Assert.DoesNotContain("texturefloor", text);
-        Assert.DoesNotContain("textureceiling", text);
-        Assert.DoesNotContain("lightlevel", text);
+        Assert.Contains("heightfloor = 0;", text);
+        Assert.Contains("heightceiling = 0;", text);
+        Assert.Contains("texturefloor = \"-\";", text);
+        Assert.Contains("textureceiling = \"-\";", text);
+        Assert.Contains("lightlevel = 160;", text);
         Assert.DoesNotContain("special", text);
     }
 
