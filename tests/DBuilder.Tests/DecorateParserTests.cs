@@ -702,6 +702,25 @@ ACTOR ZeroDurationSpawnThing 8006
     }
 
     [Fact]
+    public void ParsesStateFrameLightNameFromSelectedSprite()
+    {
+        const string text = @"
+ACTOR LitThing 8007
+{
+    States
+    {
+    Spawn:
+        LITE A -1 Light(""LITE_LIGHT"")
+        stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("LITEA0", actor.EditorSprite);
+        Assert.Equal("LITE_LIGHT", actor.LightName);
+    }
+
+    [Fact]
     public void SkipsPlaceholderStateSprites()
     {
         const string text = @"

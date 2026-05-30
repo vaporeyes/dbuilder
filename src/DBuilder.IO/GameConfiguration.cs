@@ -83,6 +83,7 @@ public sealed class ThingTypeInfo
     public string Title { get; init; } = "";
     public string Category { get; init; } = "";
     public string Sprite { get; init; } = "";
+    public string LightName { get; init; } = "";
     public string ClassName { get; init; } = "";
     public int Color { get; init; }
     public int Width { get; init; } = 16;
@@ -123,6 +124,7 @@ public sealed record ThingCategoryInfo(
     double Alpha,
     string RenderStyle,
     string Sprite,
+    string LightName,
     bool Sorted,
     int Arrow,
     int Hangs,
@@ -680,6 +682,7 @@ public sealed class GameConfiguration
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
             Category = actor.Category ?? existing?.Category ?? "Decorate",
             Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? existing?.Sprite ?? "",
+            LightName = actor.LightName ?? existing?.LightName ?? "",
             Width = actor.Radius > 0 ? actor.Radius : existing?.Width ?? 16,
             Height = actor.Height > 0 ? actor.Height : existing?.Height ?? 16,
             Alpha = ActorAlpha(actor, existing),
@@ -711,6 +714,7 @@ public sealed class GameConfiguration
         Title = source.Title,
         Category = source.Category,
         Sprite = source.Sprite,
+        LightName = source.LightName,
         Width = source.Width,
         Height = source.Height,
         Alpha = source.Alpha,
@@ -940,6 +944,7 @@ public sealed class GameConfiguration
         Title = info.Title,
         Category = info.Category,
         Sprite = sprite,
+        LightName = info.LightName,
         Width = info.Width,
         Height = info.Height,
         Alpha = info.Alpha,
@@ -1134,6 +1139,7 @@ public sealed class GameConfiguration
             Math.Clamp(GetDouble(cat, "alpha", parent?.Alpha ?? 1.0), 0.0, 1.0),
             GetString(cat, "renderstyle", parent?.RenderStyle ?? "normal").ToLowerInvariant(),
             GetString(cat, "sprite", parent?.Sprite ?? ""),
+            GetString(cat, "light", parent?.LightName ?? ""),
             GetBoolishInt(cat, "sort", parent?.Sorted ?? false),
             GetInt(cat, "arrow", parent?.Arrow ?? 0),
             GetInt(cat, "hangs", parent?.Hangs ?? 0),
@@ -1158,6 +1164,7 @@ public sealed class GameConfiguration
                     Category = key,
                     Title = GetString(child, "title", childKey),
                     Sprite = GetString(child, "sprite", info.Sprite),
+                    LightName = GetString(child, "light", info.LightName),
                     ClassName = GetString(child, "class", ""),
                     Color = GetInt(child, "color", info.Color),
                     Width = GetInt(child, "width", info.Width),

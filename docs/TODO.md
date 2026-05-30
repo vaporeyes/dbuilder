@@ -372,6 +372,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
+  - [x] Preserve `Light()` state-frame names in actor and thing metadata.
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
   - [x] Parse quoted DECORATE state sprite and frame tokens.
 - [ ] Port category and DoomEdNum merging behavior fully.

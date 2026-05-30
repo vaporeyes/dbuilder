@@ -1,5 +1,5 @@
 // ABOUTME: Parser for the ZDoom DECORATE lump - extracts actor (thing-type) definitions for the editor.
-// ABOUTME: Captures class/parent/replaces/DoomEdNum, //$ editor keys, Radius/Height, and the spawn-state sprite.
+// ABOUTME: Captures class/parent/replaces/DoomEdNum, //$ editor keys, Radius/Height, spawn sprite, and state light names.
 
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ public sealed class ActorInfo
     public int Radius { get; set; }   // 0 = unset (inherit)
     public int Height { get; set; }   // 0 = unset (inherit)
     public string? Sprite { get; set; }
+    public string? LightName { get; set; }
     public string? RegionCategory { get; set; }
     public Dictionary<string, List<string>> RegionProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> EditorKeys { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -571,8 +572,8 @@ public static class DecorateParser
         int statesDepth = 0;
         string? currentState = null;
         var stateSprites = new Dictionary<string, SpriteCandidate>(StringComparer.OrdinalIgnoreCase);
-        string? firstSprite = null;
-        string? firstNonEmptySprite = null;
+        SpriteCandidate? firstSprite = null;
+        SpriteCandidate? firstNonEmptySprite = null;
 
         while (i < t.Count && depth > 0)
         {
@@ -599,8 +600,8 @@ public static class DecorateParser
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 {
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
-                    firstSprite ??= sprite.Name;
-                    if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite.Name;
+                    firstSprite ??= sprite;
+                    if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
                     if (currentState != null && !stateSprites.ContainsKey(currentState))
                         stateSprites[currentState] = sprite;
                 }
@@ -647,8 +648,8 @@ public static class DecorateParser
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
             {
                 var sprite = BuildSpriteCandidate(tk.Text, t, i);
-                firstSprite ??= sprite.Name;
-                if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite.Name;
+                firstSprite ??= sprite;
+                if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
                 if (currentState != null && !stateSprites.ContainsKey(currentState))
                     stateSprites[currentState] = sprite;
             }
@@ -659,7 +660,12 @@ public static class DecorateParser
             }
         }
 
-        actor.Sprite ??= ChooseSprite(stateSprites, firstNonEmptySprite, firstSprite);
+        if (actor.Sprite == null)
+        {
+            var sprite = ChooseSprite(stateSprites, firstNonEmptySprite, firstSprite);
+            actor.Sprite = sprite?.Name;
+            actor.LightName = sprite?.LightName;
+        }
     }
 
     private static bool IsStateLabel(List<Tok> t, int colonIndex)
@@ -668,24 +674,27 @@ public static class DecorateParser
         && t[colonIndex].Text == ":"
         && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
 
-    private readonly record struct SpriteCandidate(string Name, bool IsEmpty);
+    private readonly record struct SpriteCandidate(string Name, bool IsEmpty, string? LightName);
 
     private static SpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
     {
         string sprite = spriteName.ToUpperInvariant() + char.ToUpperInvariant(t[frameIndex].Text[0]) + "0";
-        return new SpriteCandidate(sprite, IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1));
+        return new SpriteCandidate(
+            sprite,
+            IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1),
+            FindStateFrameLightName(t, frameIndex + 2));
     }
 
-    private static string? ChooseSprite(Dictionary<string, SpriteCandidate> stateSprites, string? firstNonEmptySprite, string? firstSprite)
+    private static SpriteCandidate? ChooseSprite(Dictionary<string, SpriteCandidate> stateSprites, SpriteCandidate? firstNonEmptySprite, SpriteCandidate? firstSprite)
     {
         foreach (string state in SpriteCheckStates)
             if (stateSprites.TryGetValue(state, out var sprite) && !sprite.IsEmpty)
-                return sprite.Name;
+                return sprite;
 
         foreach (string state in SpriteCheckStates)
             if (stateSprites.TryGetValue(state, out var sprite))
                 if (!IsInvalidPlaceholderSprite(sprite.Name))
-                    return sprite.Name;
+                    return sprite;
 
         return firstNonEmptySprite ?? firstSprite;
     }
@@ -698,6 +707,47 @@ public static class DecorateParser
             durationText += t[durationIndex + 1].Text;
         return int.TryParse(durationText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int duration)
             && duration == 0;
+    }
+
+    private static string? FindStateFrameLightName(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is "\n" or "{" or "}") return null;
+            if (t[i].Kind != Kind.Word) continue;
+
+            string token = t[i].Text;
+            if (token.StartsWith("Light(", StringComparison.OrdinalIgnoreCase))
+            {
+                string? inlineLight = ReadInlineLightName(token);
+                if (inlineLight != null) return inlineLight;
+                if (i + 1 < t.Count && t[i + 1].Kind is Kind.Word or Kind.Str) return t[i + 1].Text;
+            }
+            if (!token.Equals("Light", StringComparison.OrdinalIgnoreCase)) continue;
+
+            if (i + 1 < t.Count)
+            {
+                string next = t[i + 1].Text;
+                if (next.StartsWith("(", StringComparison.Ordinal)) return ReadInlineLightName(next);
+            }
+
+            if (i + 2 < t.Count && t[i + 1].Text == "(" && t[i + 2].Kind is Kind.Word or Kind.Str)
+                return t[i + 2].Text;
+        }
+
+        return null;
+    }
+
+    private static string? ReadInlineLightName(string token)
+    {
+        int open = token.IndexOf('(');
+        if (open < 0) return null;
+        string value = token[(open + 1)..].Trim();
+        int close = value.IndexOf(')');
+        if (close >= 0) value = value[..close].Trim();
+        if (value.Length >= 2 && value[0] is '"' or '\'' && value[^1] == value[0])
+            value = value[1..^1];
+        return value.Length == 0 ? null : value;
     }
 
     private static bool IsEmptySprite(string sprite)
@@ -931,7 +981,7 @@ public static class DecorateParser
         keys[key] = value;
     }
 
-    // Fills missing Sprite/Category/Radius/Height from the nearest ancestor that defines them.
+    // Fills missing Sprite/LightName/Category/Radius/Height from the nearest ancestor that defines them.
     private static void ResolveInheritance(List<ActorInfo> actors)
     {
         var byName = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
@@ -945,6 +995,7 @@ public static class DecorateParser
             while (p != null && byName.TryGetValue(p, out var parent) && seen.Add(p))
             {
                 a.Sprite ??= parent.Sprite;
+                a.LightName ??= parent.LightName;
                 if (a.Radius == 0) a.Radius = parent.Radius;
                 if (a.Height == 0) a.Height = parent.Height;
                 foreach (var kvp in parent.Flags)

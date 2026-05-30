@@ -309,6 +309,25 @@ class MyMonster : Actor
     }
 
     [Fact]
+    public void MergesZScriptStateLightName()
+    {
+        const string zscript = @"
+class LitZScriptThing : Actor
+{
+    States { Spawn: LITZ A -1 Light(""LITZ_LIGHT""); stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var gc = GameConfiguration.FromText("");
+
+        gc.MergeActors(actors, new Dictionary<int, string> { [9060] = "LitZScriptThing" });
+
+        var info = gc.GetThing(9060);
+        Assert.NotNull(info);
+        Assert.Equal("LITZA0", info!.Sprite);
+        Assert.Equal("LITZ_LIGHT", info.LightName);
+    }
+
+    [Fact]
     public void ActorWithoutNumberIsSkippedWhenNoMapping()
     {
         var actors = ZScriptParser.Parse("class Lonely : Actor { Default { Radius 8; } }");
