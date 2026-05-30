@@ -1558,6 +1558,37 @@ ACTOR ObsoleteThing 31007
     }
 
     [Fact]
+    public void MergeActorsPreservesConfiguredBlockingWhenActorIsSolid()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        31018
+        {
+            title = ""Custom Blocking Thing"";
+            class = ""CustomBlockingThing"";
+            blocking = 1;
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR CustomBlockingThing 31018
+{
+    +SOLID
+    States { Spawn: BLCK A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31018);
+        Assert.NotNull(info);
+        Assert.Equal(1, info!.Blocking);
+    }
+
+    [Fact]
     public void MergeActorsUsesHereticDefaultAlpha()
     {
         const string text = @"

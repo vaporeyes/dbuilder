@@ -780,6 +780,11 @@ public sealed class GameConfiguration
         ThingRenderMode renderMode = ActorRenderMode(actor, fallback);
         bool rollSprite = ActorRollSprite(actor, renderMode, fallback);
         int actorWidth = ActorWidth(actor, fallback);
+        int blocking = fallback?.Blocking ?? 0;
+        if (actor.Flags.ContainsKey("solid"))
+        {
+            blocking = solid ? (blocking > 0 ? blocking : 2) : 0;
+        }
         return new ThingTypeInfo
         {
             Index = index,
@@ -803,7 +808,7 @@ public sealed class GameConfiguration
                 ? ActorArrow(actor)
                 : ActorRegionPropertyBoolish(actor, "$arrow") ?? fallback?.Arrow ?? false,
             Hangs = hangs,
-            Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : fallback?.Blocking ?? 0,
+            Blocking = blocking,
             ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0,
             FixedSize = fixedSize,
             FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? fallback?.FixedRotation ?? false,
