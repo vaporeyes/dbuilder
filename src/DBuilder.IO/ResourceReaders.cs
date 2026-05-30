@@ -233,6 +233,9 @@ internal sealed class WadResourceReader : IResourceReader
     private IReadOnlyList<ResourceRangeInfo> ConfiguredPatchRanges()
         => configProvider()?.PatchRanges ?? Array.Empty<ResourceRangeInfo>();
 
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredVoxelRanges()
+        => configProvider()?.VoxelRanges ?? Array.Empty<ResourceRangeInfo>();
+
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
     public string? GetTextLump(string name)
@@ -312,11 +315,17 @@ internal sealed class WadResourceReader : IResourceReader
             if (n is "VX_END" or "V_END") { inVoxels = false; continue; }
             if (inVoxels && IsValidVoxelName(n)) yield return n;
         }
+        foreach (var name in NamesInRanges(ConfiguredVoxelRanges()))
+            if (IsValidVoxelName(name))
+                yield return name;
     }
 
     public byte[]? GetVoxelBytes(string name)
     {
         string shortName = VoxelLookupName(name);
+        var rangeLump = FindInRanges(shortName, ConfiguredVoxelRanges());
+        if (rangeLump != null) return rangeLump.Stream.ReadAllBytes();
+
         bool inVoxels = false;
         foreach (var l in wad.Lumps)
         {

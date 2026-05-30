@@ -39,6 +39,43 @@ public class VoxelResourceTests
     }
 
     [Fact]
+    public void ConfiguredWadVoxelRangesProvideAndPrioritizeVoxelModels()
+    {
+        var config = GameConfiguration.FromText("""
+            voxels
+            {
+                models { start = "VM_START"; end = "VM_END"; }
+            }
+            """);
+        byte[] fallbackVoxel = { 1, 2, 3, 4 };
+        byte[] configuredVoxel = { 9, 8, 7, 6 };
+        string wad = TestArtifacts.BuildPwadFile(
+            ("VX_START", []),
+            ("BAR1", fallbackVoxel),
+            ("VX_END", []),
+            ("VM_START", []),
+            ("BAR1", configuredVoxel),
+            ("VM_END", []));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            Assert.Equal(fallbackVoxel, resources.GetVoxelBytes("BAR1"));
+
+            resources.Configuration = config;
+
+            Assert.Contains("BAR1", resources.GetVoxelNames());
+            Assert.Equal(configuredVoxel, resources.GetVoxelBytes("BAR1"));
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
+
+    [Fact]
     public void VoxeldefMappedSpritesResolveToVoxelPlaceholders()
     {
         byte[] voxel = { 9, 10, 11, 12 };
