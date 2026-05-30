@@ -2407,6 +2407,7 @@ public partial class MainWindow : Window
         }
         Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
         Func<int, string?>? thingObsoleteMessage = null;
+        Func<int, int?>? thingErrorCheck = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2417,6 +2418,7 @@ public partial class MainWindow : Window
                 var thing = _config.GetThing(n);
                 return thing?.IsObsolete == true ? thing.ObsoleteMessage : null;
             };
+            thingErrorCheck = n => _config.GetThing(n)?.ErrorCheck;
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2447,6 +2449,7 @@ public partial class MainWindow : Window
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
             ThingObsoleteMessage = thingObsoleteMessage,
+            ThingErrorCheck = thingErrorCheck,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,

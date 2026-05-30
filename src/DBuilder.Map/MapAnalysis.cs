@@ -31,6 +31,7 @@ public enum MapIssueKind
     UnknownFlat,
     UnknownThingType,
     ObsoleteThingType,
+    ThingOutsideMap,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -56,6 +57,8 @@ public sealed class MapCheckContext
     public Func<int, bool>? ThingTypeKnown { get; init; }
     /// <summary>Returns an obsolete warning for a known thing type, or null when the thing type is current.</summary>
     public Func<int, string?>? ThingObsoleteMessage { get; init; }
+    /// <summary>Returns UDB thing error-check mode for a thing type, or null when unavailable.</summary>
+    public Func<int, int?>? ThingErrorCheck { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -224,6 +227,8 @@ public static class MapAnalysis
                         $"Thing type {t.Type} is obsolete: {message}") { Target = t, Focus = t.Position });
             }
 
+        CheckThingsOutsideMap(map, ctx, issues);
+
         if (ctx.ActionKnown != null)
         {
             for (int i = 0; i < map.Linedefs.Count; i++)
@@ -268,6 +273,26 @@ public static class MapAnalysis
                         $"Linedef {i} has an action with no activation.")
                         { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
             }
+    }
+
+    private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (ctx.ThingErrorCheck == null || map.Linedefs.Count == 0) return;
+
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            var t = map.Things[i];
+            if ((ctx.ThingErrorCheck(t.Type) ?? 0) < 1) continue;
+
+            var l = map.NearestLinedef(t.Position);
+            if (l == null) continue;
+
+            bool outside = l.SideOfLine(t.Position) <= 0.0 ? l.Front == null : l.Back == null;
+            if (outside)
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingOutsideMap,
+                    $"Thing {i} type {t.Type} is outside the map at {t.Position.x.ToString("0.###", CultureInfo.InvariantCulture)}, {t.Position.y.ToString("0.###", CultureInfo.InvariantCulture)}.")
+                    { Target = t, Focus = t.Position });
+        }
     }
 
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.

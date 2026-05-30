@@ -416,6 +416,38 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ThingOutsideMapFlaggedWhenTypeRequiresInsideCheck()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(-32, 50), 3004);
+        var ctx = new MapCheckContext { ThingErrorCheck = type => type == 3004 ? 1 : 0 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingOutsideMap);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("outside the map", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ThingOutsideMapIgnoredWhenTypeDoesNotRequireInsideCheck()
+    {
+        var map = Square(true);
+        map.AddThing(new Vector2D(-32, 50), 14);
+        var ctx = new MapCheckContext { ThingErrorCheck = _ => 0 };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingOutsideMap);
+    }
+
+    [Fact]
+    public void ThingInsideMapIsNotFlaggedByOutsideCheck()
+    {
+        var map = Square(true);
+        map.AddThing(new Vector2D(50, 50), 3004);
+        var ctx = new MapCheckContext { ThingErrorCheck = _ => 1 };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingOutsideMap);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);
