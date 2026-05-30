@@ -109,6 +109,18 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesGameAndEngineNames()
+    {
+        var gc = GameConfiguration.FromText("""
+            game = "Doom: Doom 2";
+            engine = "GZDoom";
+            """);
+
+        Assert.Equal("Doom: Doom 2", gc.GameName);
+        Assert.Equal("GZDoom", gc.EngineName);
+    }
+
+    [Fact]
     public void ParsesMixTexturesFlatsFlag()
     {
         var gc = GameConfiguration.FromText("mixtexturesflats = true;");

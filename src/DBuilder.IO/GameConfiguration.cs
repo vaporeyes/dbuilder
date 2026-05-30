@@ -447,6 +447,8 @@ public sealed class GameConfiguration
     public string DefaultScriptCompiler { get; private set; } = "";
     public string NodeBuilderSave { get; private set; } = "";
     public string NodeBuilderTest { get; private set; } = "";
+    public string GameName { get; private set; } = "<unnamed game>";
+    public string EngineName { get; private set; } = "";
     public string BaseGame { get; private set; } = UnknownBaseGame;
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
@@ -551,6 +553,8 @@ public sealed class GameConfiguration
         var gc = new GameConfiguration();
         if (cfg.Root is IDictionary root)
         {
+            gc.GameName = GetString(root, "game", "<unnamed game>");
+            gc.EngineName = GetString(root, "engine", "");
             gc.DefaultSaveCompiler = GetString(root, "defaultsavecompiler", "");
             gc.DefaultTestCompiler = GetString(root, "defaulttestcompiler", "");
             gc.DefaultScriptCompiler = GetString(root, "defaultscriptcompiler", "");
