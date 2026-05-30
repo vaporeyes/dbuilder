@@ -105,6 +105,25 @@ class SpacedCommentActor : Actor
     }
 
     [Fact]
+    public void KeepsFirstZScriptActorWhenClassIsDuplicated()
+    {
+        const string text = @"
+class DuplicateZThing : Actor
+{
+    Default { Radius 16; }
+}
+class DuplicateZThing : Actor
+{
+    Default { Radius 64; }
+}";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("DuplicateZThing", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipLineComment()
     {
         const string text = @"
