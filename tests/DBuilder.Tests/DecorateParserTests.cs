@@ -460,6 +460,13 @@ ACTOR UserVarActor 7006
         Assert.True(thing.HasAdditionalUniversalField("user_score"));
         Assert.True(thing.HasAdditionalUniversalField("user_speed"));
         Assert.False(thing.HasAdditionalUniversalField("user_values"));
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_score"].Type);
+        Assert.Equal((int)UniversalType.Float, gc.UniversalFields["thing"]["user_speed"].Type);
+
+        var fields = UniversalFieldEditorValues.ForElement(gc, "thing", new Dictionary<string, object>(), thing.AddUniversalFields);
+        Assert.Contains(fields, field => field.Field.Name == "user_score");
+        Assert.Contains(fields, field => field.Field.Name == "user_speed");
+        Assert.DoesNotContain(fields, field => field.Field.Name == "user_values");
     }
 
     [Fact]

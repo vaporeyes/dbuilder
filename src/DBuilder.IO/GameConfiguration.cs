@@ -726,6 +726,7 @@ public sealed class GameConfiguration
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
         var fallback = existing ?? inherited;
+        RegisterActorUserVariableFields(actor);
         bool fixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? fallback?.FixedSize ?? false;
         bool absoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false;
         bool hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : SafeThingHangs(fallback?.Hangs ?? false, absoluteZ);
@@ -790,6 +791,32 @@ public sealed class GameConfiguration
             if (!fields.Contains(variable.Name, StringComparer.OrdinalIgnoreCase)) fields.Add(variable.Name);
 
         return fields;
+    }
+
+    private void RegisterActorUserVariableFields(ActorInfo actor)
+    {
+        if (actor.UserVariables.Count == 0) return;
+        if (!universalFields.TryGetValue("thing", out var fields))
+        {
+            fields = new Dictionary<string, UniversalFieldInfo>(StringComparer.OrdinalIgnoreCase);
+            universalFields["thing"] = fields;
+        }
+
+        foreach (var variable in actor.UserVariables.Values)
+        {
+            string name = variable.Name.ToLowerInvariant();
+            if (fields.ContainsKey(name)) continue;
+            fields[name] = new UniversalFieldInfo(
+                "thing",
+                name,
+                (int)variable.Type,
+                null,
+                ThingTypeSpecific: true,
+                Managed: true,
+                EnumName: null,
+                InlineEnumItems: Array.Empty<EnumItemInfo>(),
+                Associations: new Dictionary<string, UniversalFieldAssociationInfo>());
+        }
     }
 
     private static ThingTypeInfo CopyThingInfo(ThingTypeInfo source, int index) => new()

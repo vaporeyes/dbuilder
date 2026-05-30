@@ -224,6 +224,13 @@ class MemberActor : Actor
         Assert.True(thing.HasAdditionalUniversalField("user_value"));
         Assert.True(thing.HasAdditionalUniversalField("user_speed"));
         Assert.False(thing.HasAdditionalUniversalField("user_values"));
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_value"].Type);
+        Assert.Equal((int)UniversalType.Float, gc.UniversalFields["thing"]["user_speed"].Type);
+
+        var fields = UniversalFieldEditorValues.ForElement(gc, "thing", new Dictionary<string, object>(), thing.AddUniversalFields);
+        Assert.Contains(fields, field => field.Field.Name == "user_value");
+        Assert.Contains(fields, field => field.Field.Name == "user_speed");
+        Assert.DoesNotContain(fields, field => field.Field.Name == "user_values");
     }
 
     [Fact]
