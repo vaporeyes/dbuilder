@@ -839,6 +839,24 @@ class MixedActor : Actor
     }
 
     [Fact]
+    public void ZScriptMixinWithoutSpawnStateDoesNotSupplyEditorSprite()
+    {
+        const string zscript = @"
+mixin class DeathOnlyMixin
+{
+    States { Death: MIXD A -1; Stop; }
+}
+class MixedActor : Actor
+{
+    mixin DeathOnlyMixin;
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void AppliesZScriptExtensionDefaultsToTargetClass()
     {
         const string zscript = @"
@@ -860,6 +878,24 @@ extend class BaseActor
         Assert.Equal(64, actor.Height);
         Assert.True(actor.Flags["SOLID"]);
         Assert.Equal("EXTNA0", actor.EditorSprite);
+    }
+
+    [Fact]
+    public void ZScriptExtensionWithoutSpawnStateDoesNotReplaceEditorSprite()
+    {
+        const string zscript = @"
+class BaseActor : Actor
+{
+    States { Spawn: BASE A -1; Stop; }
+}
+extend class BaseActor
+{
+    States { Death: EXTD A -1; Stop; }
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("BASEA0", actor.EditorSprite);
     }
 
     [Fact]

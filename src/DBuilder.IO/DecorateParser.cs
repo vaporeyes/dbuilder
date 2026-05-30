@@ -381,7 +381,12 @@ public static class DecorateParser
         foreach (string mixinName in actor.Mixins)
         {
             if (!mixins.TryGetValue(mixinName, out var mixin)) continue;
-            actor.Sprite ??= mixin.Sprite;
+            if (actor.StateSprites.Count == 0 && actor.StateGotos.Count == 0 && HasSpawnState(mixin))
+            {
+                actor.Sprite ??= mixin.Sprite;
+                actor.LightName ??= mixin.LightName;
+                actor.StateBright = actor.StateBright || mixin.StateBright;
+            }
             if (actor.Radius == 0)
             {
                 actor.Radius = mixin.Radius;
@@ -405,7 +410,12 @@ public static class DecorateParser
             foreach (var extension in actorExtensions)
             {
                 ApplyActorMixins(extension, mixins);
-                actor.Sprite = extension.Sprite ?? actor.Sprite;
+                if (HasSpawnState(extension))
+                {
+                    actor.Sprite = extension.Sprite ?? actor.Sprite;
+                    actor.LightName = extension.LightName ?? actor.LightName;
+                    actor.StateBright = extension.StateBright;
+                }
                 if (extension.Radius > 0) actor.Radius = extension.Radius;
                 if (extension.Height > 0) actor.Height = extension.Height;
                 CopyExtensionFlag(actor, extension, "spawnceiling");
@@ -424,6 +434,9 @@ public static class DecorateParser
         if (!actor.Flags.ContainsKey(flag) && mixin.Flags.TryGetValue(flag, out bool enabled))
             actor.Flags[flag] = enabled;
     }
+
+    private static bool HasSpawnState(ActorInfo actor)
+        => actor.StateSprites.ContainsKey("spawn") || actor.StateGotos.ContainsKey("spawn");
 
     private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes, bool deferIncludes)
     {
