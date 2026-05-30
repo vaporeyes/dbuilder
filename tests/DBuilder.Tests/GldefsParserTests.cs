@@ -53,7 +53,7 @@ object ShortRedTorch
     }
 
     [Fact]
-    public void SkipsLightsWithNonNumericColorComponents()
+    public void InvalidLightColorStopsParsingLikeUdb()
     {
         const string text = @"
 pointlight BAD { color 1.0 0.5 bogus size 16 }
@@ -61,8 +61,7 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("BAD"));
-        Assert.True(g.Lights.ContainsKey("GOOD"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
@@ -90,7 +89,7 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
     }
 
     [Fact]
-    public void SkipsLightsWithNonNumericOffsetComponents()
+    public void InvalidLightOffsetStopsParsingLikeUdb()
     {
         const string text = @"
 pointlight BAD { color 1.0 0.5 0.25 size 16 offset 1 bogus 3 }
@@ -98,8 +97,7 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 offset 1 2 3 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("BAD"));
-        Assert.True(g.Lights.ContainsKey("GOOD"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
@@ -133,7 +131,7 @@ sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
     }
 
     [Fact]
-    public void SkipsAnimatedLightsWithNonNumericInterval()
+    public void InvalidAnimatedLightIntervalStopsParsingLikeUdb()
     {
         const string text = @"
 pulselight BADPULSE { color 0.1 0.1 0.1 size 16 secondarysize 8 interval bogus }
@@ -142,13 +140,11 @@ pulselight GOOD { color 0.1 0.2 0.3 size 16 secondarysize 8 interval 0.5 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("BADPULSE"));
-        Assert.False(g.Lights.ContainsKey("BADFLICKER"));
-        Assert.True(g.Lights.ContainsKey("GOOD"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
-    public void SkipsFlickerLightsWithNonNumericChance()
+    public void InvalidFlickerLightChanceStopsParsingLikeUdb()
     {
         const string text = @"
 flickerlight BAD { color 0.1 0.1 0.1 size 16 chance bogus }
@@ -156,12 +152,11 @@ flickerlight GOOD { color 0.1 0.2 0.3 size 16 chance 0.5 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("BAD"));
-        Assert.True(g.Lights.ContainsKey("GOOD"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
-    public void SkipsSectorLightsWithNonNumericScale()
+    public void InvalidSectorLightScaleStopsParsingLikeUdb()
     {
         const string text = @"
 sectorlight BAD { color 0.1 0.1 0.1 scale bogus }
@@ -169,8 +164,7 @@ sectorlight GOOD { color 0.1 0.2 0.3 scale 0.5 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("BAD"));
-        Assert.True(g.Lights.ContainsKey("GOOD"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
@@ -529,7 +523,7 @@ sectorlight SECTOR { color 0.5 0.5 0.5 scale 0.7 }";
     }
 
     [Fact]
-    public void SkipsLightsWithInvalidRanges()
+    public void InvalidLightRangesStopParsingLikeUdb()
     {
         const string text = @"
 pointlight NEGSIZE { color 1.0 1.0 1.0 size -1 }
@@ -541,16 +535,11 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("NEGSIZE"));
-        Assert.False(g.Lights.ContainsKey("NEGSECONDARY"));
-        Assert.False(g.Lights.ContainsKey("ZEROINTERVAL"));
-        Assert.False(g.Lights.ContainsKey("BADCHANCE"));
-        Assert.False(g.Lights.ContainsKey("BADSCALE"));
-        Assert.True(g.Lights.ContainsKey("VALID"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
-    public void SkipsLightsWithNonIntegralSizes()
+    public void NonIntegralLightSizesStopParsingLikeUdb()
     {
         const string text = @"
 pointlight FRACTIONALSIZE { color 1.0 1.0 1.0 size 8.5 }
@@ -559,13 +548,11 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("FRACTIONALSIZE"));
-        Assert.False(g.Lights.ContainsKey("FRACTIONALSECONDARY"));
-        Assert.True(g.Lights.ContainsKey("VALID"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]
-    public void SkipsLightsWithPropertiesForWrongLightType()
+    public void LightPropertiesForWrongTypeStopParsingLikeUdb()
     {
         const string text = @"
 sectorlight SECTORSIZE { color 1.0 1.0 1.0 size 8 scale 0.5 }
@@ -578,13 +565,7 @@ sectorlight VALIDSECTOR { color 1.0 1.0 1.0 scale 0.5 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("SECTORSIZE"));
-        Assert.False(g.Lights.ContainsKey("POINTSECONDARY"));
-        Assert.False(g.Lights.ContainsKey("POINTINTERVAL"));
-        Assert.False(g.Lights.ContainsKey("PULSECHANCE"));
-        Assert.False(g.Lights.ContainsKey("POINTSCALE"));
-        Assert.True(g.Lights.ContainsKey("VALIDPULSE"));
-        Assert.True(g.Lights.ContainsKey("VALIDSECTOR"));
+        Assert.Empty(g.Lights);
     }
 
     [Fact]

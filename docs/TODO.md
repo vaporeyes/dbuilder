@@ -409,6 +409,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop GLDEFS parsing on duplicate or invalid includes like UDB.
   - [x] Stop GLDEFS parsing on invalid skybox declarations like UDB.
   - [x] Stop GLDEFS parsing on invalid glow declarations like UDB.
+  - [x] Stop GLDEFS parsing on invalid light declarations like UDB.
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
   - [x] Reject mixed old and new SNDINFO assignment formats per file.

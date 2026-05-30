@@ -111,7 +111,10 @@ public static class GldefsParser
         {
             string kw = t[i].ToLowerInvariant();
             if (kw == "$gzdb_skip") break;
-            else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
+            else if (LightTypes.Contains(kw))
+            {
+                if (!ParseLight(g, kw, t, ref i)) return false;
+            }
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow")
             {
@@ -162,99 +165,97 @@ public static class GldefsParser
             && !include.Equals(".", StringComparison.Ordinal);
     }
 
-    private static void ParseLight(Gldefs g, string type, List<string> t, ref int i)
+    private static bool ParseLight(Gldefs g, string type, List<string> t, ref int i)
     {
         i++; // type
-        if (i >= t.Count) return;
+        if (i >= t.Count) return false;
         var light = new GldefsLight { Name = t[i++], Type = type };
-        bool invalid = false;
-        if (i < t.Count && t[i] == "{")
+        if (light.Name.Length == 0) return false;
+        if (i >= t.Count || t[i] != "{") return false;
+
+        i++;
+        while (i < t.Count && t[i] != "}")
         {
-            i++;
-            while (i < t.Count && t[i] != "}")
+            string p = t[i++].ToLowerInvariant();
+            if (p == "color")
             {
-                string p = t[i++].ToLowerInvariant();
-                if (p == "color")
+                if (!TryReadFloat(t, ref i, out float red)
+                    || !TryReadFloat(t, ref i, out float green)
+                    || !TryReadFloat(t, ref i, out float blue))
                 {
-                    if (!TryReadFloat(t, ref i, out float red)
-                        || !TryReadFloat(t, ref i, out float green)
-                        || !TryReadFloat(t, ref i, out float blue))
-                    {
-                        invalid = true;
-                        continue;
-                    }
-                    light.R = ClampColor(red);
-                    light.G = ClampColor(green);
-                    light.B = ClampColor(blue);
+                    return false;
                 }
-                else if (p == "size")
-                {
-                    if (!TryReadInt(t, ref i, out int size)) { invalid = true; continue; }
-                    if (type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || size < 0.0f) invalid = true;
-                    else light.Size = size * 2.0f;
-                }
-                else if (p == "secondarysize")
-                {
-                    if (!TryReadSignedInt(t, ref i, out int secondarySize)) { invalid = true; continue; }
-                    if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) invalid = true;
-                    else light.SecondarySize = secondarySize * 2.0f;
-                }
-                else if (p == "offset")
-                {
-                    if (!TryReadSignedFloat(t, ref i, out float offsetX)
-                        || !TryReadSignedFloat(t, ref i, out float offsetZ)
-                        || !TryReadSignedFloat(t, ref i, out float offsetY))
-                    {
-                        invalid = true;
-                        continue;
-                    }
-                    light.OffsetX = offsetX;
-                    light.OffsetZ = offsetZ;
-                    light.OffsetY = offsetY;
-                }
-                else if (p == "interval")
-                {
-                    if (!TryReadSignedFloat(t, ref i, out float interval)) { invalid = true; continue; }
-                    if (!CanHaveInterval(type) || interval <= 0.0f) invalid = true;
-                    else light.Interval = NormalizeInterval(type, interval);
-                }
-                else if (p == "chance")
-                {
-                    if (!TryReadSignedFloat(t, ref i, out float chance)) { invalid = true; continue; }
-                    light.Chance = chance;
-                    if (!type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase) || light.Chance is < 0.0f or > 1.0f) invalid = true;
-                    else light.Interval = (int)(light.Chance * 359.0f);
-                }
-                else if (p == "scale")
-                {
-                    if (!TryReadSignedFloat(t, ref i, out float scale)) { invalid = true; continue; }
-                    light.Scale = scale;
-                    if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) invalid = true;
-                    else light.Interval = (int)(light.Scale * 10.0f);
-                }
-                else if (p == "subtractive")
-                {
-                    if (TryReadIntFlag(t, ref i, out bool subtractive)) light.Subtractive = subtractive;
-                    else invalid = true;
-                }
-                else if (p == "attenuate")
-                {
-                    if (TryReadIntFlag(t, ref i, out bool attenuate)) light.Attenuate = attenuate;
-                    else invalid = true;
-                }
-                else if (p == "dontlightself")
-                {
-                    if (TryReadIntFlag(t, ref i, out bool dontLightSelf)) light.DontLightSelf = dontLightSelf;
-                    else invalid = true;
-                }
-                else
-                {
-                    // UDB ignores unknown GLDEFS light properties and keeps scanning the light block.
-                }
+                light.R = ClampColor(red);
+                light.G = ClampColor(green);
+                light.B = ClampColor(blue);
             }
-            if (i < t.Count) i++; // }
+            else if (p == "size")
+            {
+                if (!TryReadInt(t, ref i, out int size)) return false;
+                if (type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || size < 0.0f) return false;
+                light.Size = size * 2.0f;
+            }
+            else if (p == "secondarysize")
+            {
+                if (!TryReadSignedInt(t, ref i, out int secondarySize)) return false;
+                if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) return false;
+                light.SecondarySize = secondarySize * 2.0f;
+            }
+            else if (p == "offset")
+            {
+                if (!TryReadSignedFloat(t, ref i, out float offsetX)
+                    || !TryReadSignedFloat(t, ref i, out float offsetZ)
+                    || !TryReadSignedFloat(t, ref i, out float offsetY))
+                {
+                    return false;
+                }
+                light.OffsetX = offsetX;
+                light.OffsetZ = offsetZ;
+                light.OffsetY = offsetY;
+            }
+            else if (p == "interval")
+            {
+                if (!TryReadSignedFloat(t, ref i, out float interval)) return false;
+                if (!CanHaveInterval(type) || interval <= 0.0f) return false;
+                light.Interval = NormalizeInterval(type, interval);
+            }
+            else if (p == "chance")
+            {
+                if (!TryReadSignedFloat(t, ref i, out float chance)) return false;
+                light.Chance = chance;
+                if (!type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase) || light.Chance is < 0.0f or > 1.0f) return false;
+                light.Interval = (int)(light.Chance * 359.0f);
+            }
+            else if (p == "scale")
+            {
+                if (!TryReadSignedFloat(t, ref i, out float scale)) return false;
+                light.Scale = scale;
+                if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) return false;
+                light.Interval = (int)(light.Scale * 10.0f);
+            }
+            else if (p == "subtractive")
+            {
+                if (!TryReadIntFlag(t, ref i, out bool subtractive)) return false;
+                light.Subtractive = subtractive;
+            }
+            else if (p == "attenuate")
+            {
+                if (!TryReadIntFlag(t, ref i, out bool attenuate)) return false;
+                light.Attenuate = attenuate;
+            }
+            else if (p == "dontlightself")
+            {
+                if (!TryReadIntFlag(t, ref i, out bool dontLightSelf)) return false;
+                light.DontLightSelf = dontLightSelf;
+            }
+            else
+            {
+                // UDB ignores unknown GLDEFS light properties and keeps scanning the light block.
+            }
         }
-        if (!invalid && light.Name.Length > 0 && ShouldKeepLight(light)) g.Lights[light.Name] = light;
+        if (i < t.Count) i++; // }
+        if (ShouldKeepLight(light)) g.Lights[light.Name] = light;
+        return true;
     }
 
     private static bool CanHaveSecondarySize(string type)
