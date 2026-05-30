@@ -348,6 +348,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore top-level TEXTURES `optional` prefixes like UDB.
   - [x] Require numeric TEXTURES scale values.
   - [x] Require UDB-style TEXTURES offset values.
+  - [x] Require numeric TEXTURES patch blend alpha values.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

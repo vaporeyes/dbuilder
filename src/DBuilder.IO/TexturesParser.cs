@@ -295,7 +295,7 @@ public static class TexturesParser
         if (i < t.Count && t[i] == ",")
         {
             i++;
-            ReadDouble(t, ref i, out blendAlpha);
+            if (!ReadDouble(t, ref i, out blendAlpha)) return;
         }
 
         if (blendAlpha > 0.0)
