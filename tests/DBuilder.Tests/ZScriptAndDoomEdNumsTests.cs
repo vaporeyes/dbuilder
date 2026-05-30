@@ -180,6 +180,26 @@ class ValidAfterSelfParent : Actor { Default { Radius 8; } }";
     }
 
     [Fact]
+    public void ValidatesTopLevelZScriptConstDeclarations()
+    {
+        const string valid = @"
+const ActorRadius = 8;
+class ConstAfterValid : Actor { Default { Radius 16; } }";
+        const string missingEquals = @"
+const MissingEquals 8;
+class AfterMissingEquals : Actor { Default { Radius 32; } }";
+        const string missingSemicolon = @"
+const MissingSemicolon = 8
+class AfterMissingSemicolon : Actor { Default { Radius 64; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(valid));
+
+        Assert.Equal("ConstAfterValid", actor.ClassName);
+        Assert.Empty(ZScriptParser.Parse(missingEquals));
+        Assert.Empty(ZScriptParser.Parse(missingSemicolon));
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"

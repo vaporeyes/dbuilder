@@ -231,6 +231,12 @@ public static class DecorateParser
             }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
+                && toks[i].Text.Equals("const", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!TrySkipZScriptConstDeclaration(toks, ref i)) break;
+            }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
                 && toks[i].Text.Equals("version", StringComparison.OrdinalIgnoreCase))
             {
                 if (!TrySkipZScriptVersionDeclaration(toks, ref i)) break;
@@ -384,13 +390,34 @@ public static class DecorateParser
 
     private static bool IsSkippedZScriptTopLevelDeclaration(string word)
         => word.Equals("struct", StringComparison.OrdinalIgnoreCase)
-        || word.Equals("enum", StringComparison.OrdinalIgnoreCase)
-        || word.Equals("const", StringComparison.OrdinalIgnoreCase);
+        || word.Equals("enum", StringComparison.OrdinalIgnoreCase);
+
+    private static bool TrySkipZScriptConstDeclaration(List<Tok> t, ref int i)
+    {
+        i++;
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+        i++;
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "=") return false;
+        i++;
+        while (i < t.Count)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == ";")
+            {
+                i++;
+                return true;
+            }
+            i++;
+        }
+
+        return false;
+    }
 
     private static bool TrySkipZScriptVersionDeclaration(List<Tok> t, ref int i)
     {
         i++;
-        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+        SkipNewlines(t, ref i);
         if (i >= t.Count || t[i].Kind != Kind.Str) return false;
         i++;
         return true;
@@ -404,7 +431,7 @@ public static class DecorateParser
     {
         string prefix = t[i].Text;
         i++;
-        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+        SkipNewlines(t, ref i);
         if (i >= t.Count || t[i].Kind != Kind.Word) return false;
         if (prefix.Equals("extend", StringComparison.OrdinalIgnoreCase))
             return t[i].Text.Equals("class", StringComparison.OrdinalIgnoreCase)
