@@ -97,6 +97,7 @@ public sealed class ThingTypeInfo
     public int Color { get; init; }
     public int Width { get; init; } = 16;
     public double RenderRadius { get; init; } = 10.0;
+    public double DistanceCheckSq { get; init; } = double.MaxValue;
     public int Height { get; init; } = 16;
     public double Alpha { get; init; } = 1.0;
     public string RenderStyle { get; init; } = "normal";
@@ -651,6 +652,9 @@ public sealed class GameConfiguration
     /// the actor itself has none (the ZScript case, where the class header carries no DoomEdNum).
     /// </summary>
     public void MergeActors(IEnumerable<ActorInfo> actors, IReadOnlyDictionary<int, string>? doomEdNums)
+        => MergeActors(actors, doomEdNums, null);
+
+    public void MergeActors(IEnumerable<ActorInfo> actors, IReadOnlyDictionary<int, string>? doomEdNums, CvarInfo? cvars)
     {
         // Invert num->class to class->num so each actor can look up its own number.
         Dictionary<string, int>? classToNum = null;
@@ -670,7 +674,7 @@ public sealed class GameConfiguration
             {
                 int replacedNum = FindThingByClass(a.Replaces);
                 if (replacedNum >= 0 && things.TryGetValue(replacedNum, out var replaced))
-                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null);
+                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null, cvars);
             }
 
             int num = a.DoomEdNum;
@@ -678,7 +682,7 @@ public sealed class GameConfiguration
             if (num < 0) continue;
             things.TryGetValue(num, out var existing);
             var inherited = existing == null && a.ParentName != null ? FindThingInfoByClass(a.ParentName) : null;
-            things[num] = BuildThingInfo(a, num, existing, inherited);
+            things[num] = BuildThingInfo(a, num, existing, inherited, cvars);
         }
 
         if (doomEdNums == null) return;
@@ -708,7 +712,7 @@ public sealed class GameConfiguration
         return index >= 0 && things.TryGetValue(index, out var thing) ? thing : null;
     }
 
-    private ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited)
+    private ThingTypeInfo BuildThingInfo(ActorInfo actor, int index, ThingTypeInfo? existing, ThingTypeInfo? inherited, CvarInfo? cvars)
     {
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
@@ -730,6 +734,7 @@ public sealed class GameConfiguration
             LightName = actor.LightName ?? fallback?.LightName ?? "",
             Width = SafeThingWidth(actorWidth, fixedSize),
             RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
+            DistanceCheckSq = ActorDistanceCheckSq(actor, fallback, cvars),
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
@@ -770,6 +775,7 @@ public sealed class GameConfiguration
         LightName = source.LightName,
         Width = source.Width,
         RenderRadius = source.RenderRadius,
+        DistanceCheckSq = source.DistanceCheckSq,
         Height = source.Height,
         Alpha = source.Alpha,
         RenderStyle = source.RenderStyle,
@@ -824,6 +830,25 @@ public sealed class GameConfiguration
             return renderRadius;
         if (TryActorProperty(actor, "radius", out _)) return actorWidth;
         return existing?.RenderRadius ?? actorWidth;
+    }
+
+    private static double ActorDistanceCheckSq(ActorInfo actor, ThingTypeInfo? existing, CvarInfo? cvars)
+    {
+        if (!TryActorProperty(actor, "distancecheck", out string cvarName))
+            return existing?.DistanceCheckSq ?? double.MaxValue;
+        if (cvars == null) return double.MaxValue;
+
+        foreach (var cvar in cvars.Variables)
+        {
+            if (!cvar.Name.Equals(cvarName, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!cvar.Type.Equals("int", StringComparison.OrdinalIgnoreCase)) return double.MaxValue;
+            if (cvar.DefaultValue == null) return 0.0;
+            return int.TryParse(cvar.DefaultValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+                ? (double)value * value
+                : double.MaxValue;
+        }
+
+        return double.MaxValue;
     }
 
     private static int SafeThingWidth(int width, bool fixedSize)
@@ -1023,6 +1048,7 @@ public sealed class GameConfiguration
                 Sprite = sprite,
                 Width = width > 0 ? width : existing?.Width ?? 16,
                 RenderRadius = existing?.RenderRadius ?? 10.0,
+                DistanceCheckSq = existing?.DistanceCheckSq ?? double.MaxValue,
                 Height = height > 0 ? height : existing?.Height ?? 16,
                 Color = existing?.Color ?? 0,
                 Alpha = existing?.Alpha ?? 1.0,
@@ -1079,6 +1105,7 @@ public sealed class GameConfiguration
         LightName = info.LightName,
         Width = info.Width,
         RenderRadius = info.RenderRadius,
+        DistanceCheckSq = info.DistanceCheckSq,
         Height = info.Height,
         Alpha = info.Alpha,
         RenderStyle = info.RenderStyle,

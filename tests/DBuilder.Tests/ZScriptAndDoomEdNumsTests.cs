@@ -548,6 +548,43 @@ class ZeroRenderRadiusZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsResolvesDistanceCheckFromIntegerCvar()
+    {
+        const string zscript = @"
+class DistanceCheckZThing : Actor
+{
+    Default { DistanceCheck db_check_distance; Radius 24; Height 48; }
+    States { Spawn: DCZT A -1; stop; }
+}
+
+class MissingDistanceCheckZThing : Actor
+{
+    Default { DistanceCheck missing_distance; Radius 24; Height 48; }
+    States { Spawn: MDZT A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("""
+            DoomEdNums
+            {
+                9064 = DistanceCheckZThing
+                9065 = MissingDistanceCheckZThing
+            }
+            """).DoomEdNums;
+        var cvars = CvarInfoParser.Parse("server int db_check_distance = 32;");
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums, cvars);
+
+        var info = gc.GetThing(9064);
+        Assert.NotNull(info);
+        Assert.Equal(1024.0, info!.DistanceCheckSq);
+
+        var missing = gc.GetThing(9065);
+        Assert.NotNull(missing);
+        Assert.Equal(double.MaxValue, missing!.DistanceCheckSq);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

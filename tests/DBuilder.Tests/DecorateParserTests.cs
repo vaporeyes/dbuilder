@@ -1200,6 +1200,42 @@ ACTOR ZeroRenderRadiusThing 31012
     }
 
     [Fact]
+    public void MergeActorsResolvesDistanceCheckFromIntegerCvar()
+    {
+        const string text = @"
+ACTOR DistanceCheckThing 31013
+{
+    DistanceCheck db_check_distance
+    Radius 24
+    Height 48
+    States { Spawn: DIST A -1 stop }
+}
+
+ACTOR FloatDistanceCheckThing 31014
+{
+    DistanceCheck db_float_distance
+    Radius 24
+    Height 48
+    States { Spawn: FDST A -1 stop }
+}";
+        var cvars = CvarInfoParser.Parse("""
+            server int db_check_distance = 64;
+            server float db_float_distance = 64.0;
+            """);
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text), doomEdNums: null, cvars);
+
+        var info = gc.GetThing(31013);
+        Assert.NotNull(info);
+        Assert.Equal(4096.0, info!.DistanceCheckSq);
+
+        var invalid = gc.GetThing(31014);
+        Assert.NotNull(invalid);
+        Assert.Equal(double.MaxValue, invalid!.DistanceCheckSq);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"
