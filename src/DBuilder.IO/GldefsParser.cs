@@ -249,7 +249,7 @@ public static class GldefsParser
                 }
                 else
                 {
-                    invalid = true;
+                    // UDB ignores unknown GLDEFS light properties and keeps scanning the light block.
                 }
             }
             if (i < t.Count) i++; // }

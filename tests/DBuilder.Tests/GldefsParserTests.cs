@@ -643,7 +643,7 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
     }
 
     [Fact]
-    public void SkipsLightsWithUnknownProperties()
+    public void IgnoresUnknownLightPropertiesLikeUdb()
     {
         const string text = @"
 pointlight UNKNOWN { color 1.0 1.0 1.0 size 8 mystery 1 }
@@ -651,7 +651,7 @@ pointlight VALID { color 1.0 1.0 1.0 size 8 }";
 
         var g = GldefsParser.Parse(text);
 
-        Assert.False(g.Lights.ContainsKey("UNKNOWN"));
+        Assert.True(g.Lights.ContainsKey("UNKNOWN"));
         Assert.True(g.Lights.ContainsKey("VALID"));
     }
 

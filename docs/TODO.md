@@ -403,7 +403,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require numeric GLDEFS flicker light chance values.
   - [x] Require numeric GLDEFS sector light scale values.
   - [x] Require numeric GLDEFS animated light interval values.
-  - [x] Skip GLDEFS light definitions with unknown properties.
+  - [x] Ignore unknown GLDEFS light properties like UDB.
   - [x] Skip unnamed GLDEFS glow entries like UDB.
   - [x] Skip unnamed GLDEFS object blocks like UDB.
   - [x] Stop GLDEFS parsing on duplicate or invalid includes like UDB.
