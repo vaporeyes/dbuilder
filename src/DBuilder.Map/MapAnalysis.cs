@@ -19,6 +19,7 @@ public enum MapIssueKind
     LinedefNotSingleSided,
     MapTooBig,
     OverlappingVertices,
+    VertexOverlappingLinedef,
     UnusedVertex,
     EmptySector,
     UnclosedSector,
@@ -112,6 +113,7 @@ public static class MapAnalysis
         if (ctx != null)
             CheckMapSize(map, ctx, issues);
         CheckOverlappingVertices(map, issues);
+        CheckVerticesOverlappingLinedefs(map, vertexIndex, issues);
         CheckUnusedVertices(map, vertexIndex, issues);
         CheckSectors(map, issues);
 
@@ -436,6 +438,24 @@ public static class MapAnalysis
                     $"{list.Count} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)}).")
                     { Target = v0, Focus = p });
             }
+    }
+
+    private static void CheckVerticesOverlappingLinedefs(MapSet map, Dictionary<Vertex, int> vertexIndex, List<MapIssue> issues)
+    {
+        foreach (var v in map.Vertices)
+        {
+            for (int lineIndex = 0; lineIndex < map.Linedefs.Count; lineIndex++)
+            {
+                var l = map.Linedefs[lineIndex];
+                if (ReferenceEquals(v, l.Start) || ReferenceEquals(v, l.End)) continue;
+                if (l.LengthSq < 1e-9) continue;
+                if (Math.Round(l.Line.GetDistanceToLine(v.Position, bounded: true), 3) != 0.0) continue;
+
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef,
+                    $"Vertex {vertexIndex[v]} overlaps linedef {lineIndex} without splitting it.")
+                    { Target = v, Focus = v.Position });
+            }
+        }
     }
 
     private static void CheckUnusedVertices(MapSet map, Dictionary<Vertex, int> vertexIndex, List<MapIssue> issues)

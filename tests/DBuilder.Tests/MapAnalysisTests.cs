@@ -159,6 +159,34 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void DetectsVertexOverlappingLinedefWithoutSplittingIt()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        var vertex = map.AddVertex(new Vector2D(64, 0));
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
+        Assert.Same(vertex, issue.Target);
+        Assert.Contains("linedef 0", issue.Message, StringComparison.Ordinal);
+        Assert.Same(line, map.Linedefs[0]);
+    }
+
+    [Fact]
+    public void LinedefEndpointDoesNotCountAsVertexOverlappingLinedef()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
+    }
+
+    [Fact]
     public void DetectsUnusedVertex()
     {
         var map = Square(true);
