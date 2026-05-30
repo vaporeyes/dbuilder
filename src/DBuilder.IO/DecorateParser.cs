@@ -183,7 +183,7 @@ public static class DecorateParser
                 && toks[i].Kind == Kind.Word
                 && toks[i].Text.Equals("damagetype", StringComparison.OrdinalIgnoreCase))
             {
-                ParseDamageType(toks, ref i, damageTypes);
+                if (!ParseDamageType(toks, ref i, damageTypes)) break;
             }
             else if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
@@ -362,15 +362,16 @@ public static class DecorateParser
         || word.Equals("native", StringComparison.OrdinalIgnoreCase)
         || word.Equals("const", StringComparison.OrdinalIgnoreCase);
 
-    private static void ParseDamageType(List<Tok> t, ref int i, ISet<string>? damageTypes)
+    private static bool ParseDamageType(List<Tok> t, ref int i, ISet<string>? damageTypes)
     {
         i++;
-        if (i >= t.Count || !IsNameToken(t[i])) return;
+        if (i >= t.Count || !IsNameToken(t[i])) return false;
         string name = t[i++].Text;
         SkipNewlines(t, ref i);
-        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return;
+        if (name.Length == 0 || i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
         SkipBlock(t, ref i);
-        if (name.Length > 0) damageTypes?.Add(name);
+        damageTypes?.Add(name);
+        return true;
     }
 
     private static void SkipNewlines(List<Tok> t, ref int i)

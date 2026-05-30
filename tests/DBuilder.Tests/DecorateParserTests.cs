@@ -611,6 +611,22 @@ ACTOR RealActor 7013
     }
 
     [Fact]
+    public void InvalidDamageTypeStopsDecorateParsing()
+    {
+        const string text = @"
+DamageType Broken
+ACTOR AfterBrokenDamageType 7014
+{
+    Radius 16
+}";
+
+        var data = DecorateParser.ParseDocument(text);
+
+        Assert.Empty(data.DamageTypes);
+        Assert.Empty(data.Actors);
+    }
+
+    [Fact]
     public void MergeDamageTypesAddsDecorateTypesToConfiguration()
     {
         var config = GameConfiguration.FromText("damagetypes = \"None\";");
