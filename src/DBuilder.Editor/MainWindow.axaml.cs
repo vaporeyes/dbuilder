@@ -2406,6 +2406,7 @@ public partial class MainWindow : Window
             flatExists = n => flatSet.Contains(n);
         }
         Func<int, bool>? thingKnown = null, actionKnown = null, actionRequiresActivation = null;
+        Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
         {
@@ -2413,6 +2414,17 @@ public partial class MainWindow : Window
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
+            ignoreUnknownTexture = (a, part) =>
+            {
+                var exemptions = _config.GetLinedefAction(a)?.ErrorChecker;
+                return part switch
+                {
+                    SidedefPart.Upper => exemptions?.IgnoreUpperTexture == true,
+                    SidedefPart.Middle => exemptions?.IgnoreMiddleTexture == true,
+                    SidedefPart.Lower => exemptions?.IgnoreLowerTexture == true,
+                    _ => false,
+                };
+            };
             actionRequiresActivation = a => _config.GetLinedefAction(a)?.RequiresActivation == true;
             triggerActivationFlags = _config.LinedefActivations
                 .Where(a => a.IsTrigger)
@@ -2425,6 +2437,7 @@ public partial class MainWindow : Window
             FlatExists = flatExists,
             ThingTypeKnown = thingKnown,
             ActionKnown = actionKnown,
+            IgnoreUnknownTexture = ignoreUnknownTexture,
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,

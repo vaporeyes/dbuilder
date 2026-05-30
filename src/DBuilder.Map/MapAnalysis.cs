@@ -46,6 +46,8 @@ public sealed class MapCheckContext
     public Func<int, bool>? ThingTypeKnown { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
+    /// <summary>Returns true when an action deliberately uses unresolved names in the given texture slot.</summary>
+    public Func<int, SidedefPart, bool>? IgnoreUnknownTexture { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
     public Func<int, bool>? ActionRequiresActivation { get; init; }
     /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
@@ -137,8 +139,13 @@ public static class MapAnalysis
             }
 
             if (ctx.TextureExists != null)
-                foreach (var (slot, name) in new[] { ("upper", side.HighTexture), ("middle", side.MidTexture), ("lower", side.LowTexture) })
-                    if (!IsBlank(name) && !ctx.TextureExists(name))
+                foreach (var (slot, part, name) in new[]
+                {
+                    ("upper", SidedefPart.Upper, side.HighTexture),
+                    ("middle", SidedefPart.Middle, side.MidTexture),
+                    ("lower", SidedefPart.Lower, side.LowTexture),
+                })
+                    if (!IsBlank(name) && !ctx.TextureExists(name) && ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
                         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture,
                             $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.") { Target = l, Focus = mid });
         }

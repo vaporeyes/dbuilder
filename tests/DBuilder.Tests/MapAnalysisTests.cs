@@ -164,6 +164,25 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownTextureHonorsActionSlotExemption()
+    {
+        var map = Square(true);
+        map.Linedefs[0].Action = 209;
+        map.Linedefs[0].Front!.HighTexture = "TRANSFER_HEIGHTS_CONTROL";
+        map.Linedefs[0].Front!.MidTexture = "NOPE99";
+        var ctx = new MapCheckContext
+        {
+            TextureExists = _ => false,
+            IgnoreUnknownTexture = (action, part) => action == 209 && part == SidedefPart.Upper,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.UnknownTexture).ToArray();
+
+        Assert.DoesNotContain(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
+        Assert.Contains(issues, i => i.Message.Contains("middle texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnknownFlatAndMissingFlatFlagged()
     {
         var map = Square(true);
