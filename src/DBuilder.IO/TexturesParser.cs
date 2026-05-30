@@ -172,6 +172,7 @@ public static class TexturesParser
             nameToken = t[i++];
             name = nameToken.Text;
         }
+        if (string.IsNullOrEmpty(name)) return null;
         if (IsInvalidLongTextureName(nameToken)) return null;
         if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
         if (!ReadComma(t, ref i)) return null;
@@ -225,6 +226,7 @@ public static class TexturesParser
         if (i >= t.Count) return;
         Tok nameToken = t[i++];
         string name = nameToken.Text;
+        if (string.IsNullOrEmpty(name)) return;
         if (IsInvalidLongTextureName(nameToken)) return;
         if (!ReadComma(t, ref i)) return;
         if (!ReadInt(t, ref i, out int x)) return;

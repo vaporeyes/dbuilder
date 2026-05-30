@@ -241,6 +241,18 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsDefinitionsWithEmptyNames()
+    {
+        const string text = @"
+Texture """", 8, 8 { Patch P, 0, 0 }
+Texture OK, 8, 8 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
     public void RequiresQuotesForLongTextureNames()
     {
         const string text = @"
@@ -403,6 +415,24 @@ Texture PATCHES, 8, 8
         Assert.Equal(2, def.Patches.Count);
         Assert.Equal("LONGPATCH", def.Patches[0].Name);
         Assert.Equal("SHORT", def.Patches[1].Name);
+    }
+
+    [Fact]
+    public void SkipsPatchesWithEmptyNames()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch """", 0, 0
+    Patch OK, 1, 2
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(1, patch.X);
+        Assert.Equal(2, patch.Y);
     }
 
     [Fact]
