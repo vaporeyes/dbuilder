@@ -307,7 +307,7 @@ brightmap texture FOO { map FOO_BR }";
     }
 
     [Fact]
-    public void RequiresQuotesForLongSkyboxNames()
+    public void UnquotedLongSkyboxNamesStopParsingLikeUdb()
     {
         const string text = @"
 skybox LONGSKYBOX { SKY1 SKY2 SKY3 }
@@ -316,9 +316,35 @@ skybox SHORTSKY { SKY1 SKY2 SKY3 }";
 
         var g = GldefsParser.Parse(text);
 
+        Assert.Empty(g.Skyboxes);
+    }
+
+    [Fact]
+    public void ParsesQuotedLongSkyboxNames()
+    {
+        const string text = @"
+skybox ""LONGSKYBOX"" { SKY1 SKY2 SKY3 }
+skybox SHORTSKY { SKY1 SKY2 SKY3 }";
+
+        var g = GldefsParser.Parse(text);
+
         Assert.Equal(2, g.Skyboxes.Count);
         Assert.True(g.Skyboxes.ContainsKey("LONGSKYBOX"));
         Assert.True(g.Skyboxes.ContainsKey("SHORTSKY"));
+    }
+
+    [Fact]
+    public void InvalidSkyboxTextureCountsStopParsingLikeUdb()
+    {
+        const string text = @"
+skybox BAD { SKY1 SKY2 }
+skybox VALID { SKY1 SKY2 SKY3 }
+pointlight AFTER { color 1 1 1 size 16 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Empty(g.Skyboxes);
+        Assert.Empty(g.Lights);
     }
 
     [Fact]

@@ -114,7 +114,10 @@ public static class GldefsParser
             else if (LightTypes.Contains(kw)) ParseLight(g, kw, t, ref i);
             else if (kw == "object") ParseObject(g, t, ref i);
             else if (kw == "glow") ParseGlow(g, tokens, ref i, knownColors);
-            else if (kw == "skybox") ParseSkybox(g, tokens, ref i);
+            else if (kw == "skybox")
+            {
+                if (!ParseSkybox(g, tokens, ref i)) return false;
+            }
             else if (kw == "#include")
             {
                 if (!ParseInclude(g, t, ref i, includeResolver, knownColors, parsedIncludes)) return false;
@@ -422,23 +425,26 @@ public static class GldefsParser
         g.Glows[texture] = new GldefsGlow(texture, r, green, b, height * 2, fullbright);
     }
 
-    private static void ParseSkybox(Gldefs g, TokenStream t, ref int i)
+    private static bool ParseSkybox(Gldefs g, TokenStream t, ref int i)
     {
         i++; // skybox
-        if (i >= t.Text.Count || IsInvalidLongTextureName(t, i)) return;
+        if (i >= t.Text.Count || IsInvalidLongTextureName(t, i)) return false;
         var skybox = new GldefsSkybox { Name = t.Text[i++].ToUpperInvariant() };
+        if (skybox.Name.Length == 0) return false;
         if (i < t.Text.Count && t.Text[i].Equals("fliptop", StringComparison.OrdinalIgnoreCase))
         {
             skybox.FlipTop = true;
             i++;
         }
-        if (i < t.Text.Count && t.Text[i] == "{")
-        {
-            i++;
-            while (i < t.Text.Count && t.Text[i] != "}") skybox.Textures.Add(t.Text[i++]);
-            if (i < t.Text.Count) i++;
-        }
-        if (skybox.Name.Length > 0 && (skybox.Textures.Count == 3 || skybox.Textures.Count == 6)) g.Skyboxes[skybox.Name] = skybox;
+        if (i >= t.Text.Count || t.Text[i] != "{") return false;
+
+        i++;
+        while (i < t.Text.Count && t.Text[i] != "}") skybox.Textures.Add(t.Text[i++]);
+        if (i < t.Text.Count) i++;
+
+        if (skybox.Textures.Count != 3 && skybox.Textures.Count != 6) return false;
+        g.Skyboxes[skybox.Name] = skybox;
+        return true;
     }
 
     private static bool IsInvalidLongTextureName(TokenStream t, int i)
