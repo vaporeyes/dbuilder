@@ -721,6 +721,29 @@ ACTOR LitThing 8007
     }
 
     [Fact]
+    public void UsesGotoTargetForRelevantStateSprite()
+    {
+        const string text = @"
+ACTOR GotoBase
+{
+    States { Spawn: BASE A -1 stop }
+}
+ACTOR GotoChild : GotoBase 8008
+{
+    States
+    {
+    Death:
+        DEAD A -1 stop
+    Spawn:
+        goto Super::Spawn
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single(a => a.ClassName == "GotoChild");
+
+        Assert.Equal("BASEA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void SkipsPlaceholderStateSprites()
     {
         const string text = @"

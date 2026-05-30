@@ -8,6 +8,10 @@ using System.IO;
 
 namespace DBuilder.IO;
 
+internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, string? LightName);
+
+internal readonly record struct StateGotoTarget(string? ClassName, string StateName);
+
 /// <summary>An actor definition parsed from DECORATE. DoomEdNum &lt; 0 means it has no editor (placeable) number.</summary>
 public sealed class ActorInfo
 {
@@ -25,6 +29,8 @@ public sealed class ActorInfo
     public Dictionary<string, bool> Flags { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Mixins { get; } = new();
+    internal Dictionary<string, StateSpriteCandidate> StateSprites { get; } = new(StringComparer.OrdinalIgnoreCase);
+    internal Dictionary<string, StateGotoTarget> StateGotos { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Display title: //$Title if given, else the class name.</summary>
     public string Title => EditorKeys.TryGetValue("$title", out var t) && t.Length > 0 ? t
@@ -571,9 +577,9 @@ public static class DecorateParser
         bool pendingStates = false, inStates = false;
         int statesDepth = 0;
         string? currentState = null;
-        var stateSprites = new Dictionary<string, SpriteCandidate>(StringComparer.OrdinalIgnoreCase);
-        SpriteCandidate? firstSprite = null;
-        SpriteCandidate? firstNonEmptySprite = null;
+        var stateSprites = new Dictionary<string, StateSpriteCandidate>(StringComparer.OrdinalIgnoreCase);
+        StateSpriteCandidate? firstSprite = null;
+        StateSpriteCandidate? firstNonEmptySprite = null;
 
         while (i < t.Count && depth > 0)
         {
@@ -653,12 +659,20 @@ public static class DecorateParser
                 if (currentState != null && !stateSprites.ContainsKey(currentState))
                     stateSprites[currentState] = sprite;
             }
+            else if (inStates && currentState != null && lw == "goto")
+            {
+                if (TryReadStateGoto(t, ref i, out var target))
+                    actor.StateGotos[currentState] = target;
+            }
             else if (inStates && tk.Kind == Kind.Word && IsStateLabel(t, i))
             {
                 currentState = tk.Text;
                 i++;
             }
         }
+
+        foreach (var stateSprite in stateSprites)
+            actor.StateSprites[stateSprite.Key] = stateSprite.Value;
 
         if (actor.Sprite == null)
         {
@@ -674,18 +688,16 @@ public static class DecorateParser
         && t[colonIndex].Text == ":"
         && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
 
-    private readonly record struct SpriteCandidate(string Name, bool IsEmpty, string? LightName);
-
-    private static SpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
+    private static StateSpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
     {
         string sprite = spriteName.ToUpperInvariant() + char.ToUpperInvariant(t[frameIndex].Text[0]) + "0";
-        return new SpriteCandidate(
+        return new StateSpriteCandidate(
             sprite,
             IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1),
             FindStateFrameLightName(t, frameIndex + 2));
     }
 
-    private static SpriteCandidate? ChooseSprite(Dictionary<string, SpriteCandidate> stateSprites, SpriteCandidate? firstNonEmptySprite, SpriteCandidate? firstSprite)
+    private static StateSpriteCandidate? ChooseSprite(Dictionary<string, StateSpriteCandidate> stateSprites, StateSpriteCandidate? firstNonEmptySprite, StateSpriteCandidate? firstSprite)
     {
         foreach (string state in SpriteCheckStates)
             if (stateSprites.TryGetValue(state, out var sprite) && !sprite.IsEmpty)
@@ -697,6 +709,29 @@ public static class DecorateParser
                     return sprite;
 
         return firstNonEmptySprite ?? firstSprite;
+    }
+
+    private static bool TryReadStateGoto(List<Tok> t, ref int i, out StateGotoTarget target)
+    {
+        target = default;
+        if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
+
+        string first = t[i++].Text;
+        string? className = null;
+        string stateName = first;
+        if (i + 1 < t.Count && t[i].Text == ":" && t[i + 1].Text == ":")
+        {
+            i += 2;
+            if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
+            className = first;
+            stateName = t[i++].Text;
+        }
+
+        int offsetIndex = stateName.IndexOf('+', StringComparison.Ordinal);
+        if (offsetIndex >= 0) stateName = stateName[..offsetIndex];
+        if (stateName.Length == 0) return false;
+        target = new StateGotoTarget(className, stateName);
+        return true;
     }
 
     private static bool IsZeroDurationFrame(List<Tok> t, int durationIndex)
@@ -989,6 +1024,16 @@ public static class DecorateParser
 
         foreach (var a in actors)
         {
+            var sprite = ResolveRelevantGotoSprite(a, byName, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+            if (sprite != null)
+            {
+                a.Sprite = sprite.Value.Name;
+                a.LightName = sprite.Value.LightName;
+            }
+        }
+
+        foreach (var a in actors)
+        {
             if (a.Sprite != null && a.Radius != 0 && a.Height != 0 && a.Category != null) continue;
             var p = a.ParentName;
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { a.ClassName };
@@ -1012,6 +1057,54 @@ public static class DecorateParser
                 p = parent.ParentName;
             }
         }
+    }
+
+    private static StateSpriteCandidate? ResolveRelevantGotoSprite(
+        ActorInfo actor,
+        Dictionary<string, ActorInfo> byName,
+        HashSet<string> seen)
+    {
+        if (HasNonEmptyRelevantStateSprite(actor)) return null;
+
+        foreach (string state in SpriteCheckStates)
+        {
+            var sprite = ResolveStateGotoSprite(actor, state, byName, new HashSet<string>(seen, StringComparer.OrdinalIgnoreCase));
+            if (sprite is { IsEmpty: false }) return sprite;
+        }
+
+        return null;
+    }
+
+    private static bool HasNonEmptyRelevantStateSprite(ActorInfo actor)
+    {
+        foreach (string state in SpriteCheckStates)
+            if (actor.StateSprites.TryGetValue(state, out var sprite) && !sprite.IsEmpty)
+                return true;
+        return false;
+    }
+
+    private static StateSpriteCandidate? ResolveStateGotoSprite(
+        ActorInfo actor,
+        string stateName,
+        Dictionary<string, ActorInfo> byName,
+        HashSet<string> seen)
+    {
+        string key = actor.ClassName + "::" + stateName;
+        if (!seen.Add(key)) return null;
+
+        if (!actor.StateGotos.TryGetValue(stateName, out var target)) return null;
+
+        ActorInfo? targetActor = actor;
+        if (target.ClassName != null)
+        {
+            string? className = target.ClassName.Equals("super", StringComparison.OrdinalIgnoreCase)
+                ? actor.ParentName
+                : target.ClassName;
+            if (className == null || !byName.TryGetValue(className, out targetActor)) return null;
+        }
+
+        if (targetActor.StateSprites.TryGetValue(target.StateName, out var sprite)) return sprite;
+        return ResolveStateGotoSprite(targetActor, target.StateName, byName, seen);
     }
 
     private static void FilterZScriptActorClasses(List<ActorInfo> actors)
