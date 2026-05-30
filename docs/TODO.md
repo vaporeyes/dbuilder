@@ -494,6 +494,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Inherit configured parent thing defaults when merging DECORATE and ZScript actors.
   - [x] Filter DECORATE actors by game metadata and configured supported games.
   - [x] Apply MAPINFO `DoomEdNums` `none` removals after actor merging.
+  - [x] Apply MAPINFO `DoomEdNums` overrides from archived unsupported actors like UDB.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

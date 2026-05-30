@@ -1292,6 +1292,30 @@ ACTOR NeutralGameThing 31014
     }
 
     [Fact]
+    public void MergeActorsAppliesDoomEdNumsOverridesFromUnsupportedActors()
+    {
+        const string text = @"
+ACTOR HereticOnlyOverrideThing
+{
+    Game Heretic
+    Radius 24
+    Height 48
+    //$Title ""Heretic Override""
+    States { Spawn: HOVR A -1 stop }
+}";
+        var gc = GameConfiguration.FromText(@"decorategames = ""doom"";");
+        gc.MergeActors(DecorateParser.Parse(text), new Dictionary<int, string>
+        {
+            [32000] = "HereticOnlyOverrideThing"
+        });
+
+        var info = gc.GetThing(32000);
+        Assert.NotNull(info);
+        Assert.Equal("HereticOnlyOverrideThing", info!.ClassName);
+        Assert.Equal("Heretic Override", info.Title);
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"

@@ -697,6 +697,12 @@ public sealed class GameConfiguration
 
     public void MergeActors(IEnumerable<ActorInfo> actors, IReadOnlyDictionary<int, string>? doomEdNums, CvarInfo? cvars)
     {
+        var allActors = new List<ActorInfo>(actors);
+        var allActorsByClass = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var actor in allActors)
+            if (!allActorsByClass.ContainsKey(actor.ClassName))
+                allActorsByClass[actor.ClassName] = actor;
+
         // Invert num->class to class->num so each actor can look up its own number.
         Dictionary<string, int>? classToNum = null;
         if (doomEdNums != null)
@@ -708,7 +714,7 @@ public sealed class GameConfiguration
             }
         }
 
-        foreach (var a in actors)
+        foreach (var a in allActors)
         {
             if (!ActorSupportedByDecorateGames(a)) continue;
 
@@ -740,7 +746,16 @@ public sealed class GameConfiguration
 
             int sourceNum = FindThingByClass(cls);
             if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
+            {
                 things[num] = CopyThingInfo(source, num);
+                continue;
+            }
+
+            if (allActorsByClass.TryGetValue(cls, out var actor))
+            {
+                var inherited = actor.ParentName != null ? FindThingInfoByClass(actor.ParentName) : null;
+                things[num] = BuildThingInfo(actor, num, existing: null, inherited, cvars);
+            }
         }
     }
 
