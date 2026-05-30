@@ -43,4 +43,25 @@ FOO = new.kvx { Scale = 2 }";
         Assert.Equal("NEW.KVX", entry.ModelName);
         Assert.Equal(2f, entry.Scale);
     }
+
+    [Fact]
+    public void SkipsDefinitionsWithMalformedNumericSettings()
+    {
+        const string text = @"
+BADANGLE = badangle.kvx { AngleOffset bogus Scale = 1 }
+BADANGLESYNTAX = badanglesyntax.kvx { AngleOffset 90 Scale = 1 }
+BADSCALE = badscale.kvx { Scale bogus }
+BADSCALESYNTAX = badscalesyntax.kvx { Scale 2 }
+GOOD = good.kvx { AngleOffset = -45 Scale = 2 }";
+
+        var voxeldef = VoxeldefParser.Parse(text);
+
+        Assert.False(voxeldef.Entries.ContainsKey("BADANGLE"));
+        Assert.False(voxeldef.Entries.ContainsKey("BADANGLESYNTAX"));
+        Assert.False(voxeldef.Entries.ContainsKey("BADSCALE"));
+        Assert.False(voxeldef.Entries.ContainsKey("BADSCALESYNTAX"));
+        Assert.Equal("GOOD.KVX", voxeldef.Entries["GOOD"].ModelName);
+        Assert.Equal(-45f, voxeldef.Entries["GOOD"].AngleOffset);
+        Assert.Equal(2f, voxeldef.Entries["GOOD"].Scale);
+    }
 }

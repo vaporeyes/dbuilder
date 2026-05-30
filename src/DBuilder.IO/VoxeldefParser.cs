@@ -47,8 +47,8 @@ public static class VoxeldefParser
             else if (token == "{")
             {
                 var definition = new VoxelDefinition { ModelName = modelName };
-                ParseSettings(definition, t, ref i);
-                if (definition.ModelName.Length > 0)
+                bool valid = ParseSettings(definition, t, ref i);
+                if (valid && definition.ModelName.Length > 0)
                 {
                     foreach (string sprite in sprites) result.Entries[sprite] = definition;
                 }
@@ -64,15 +64,23 @@ public static class VoxeldefParser
         return result;
     }
 
-    private static void ParseSettings(VoxelDefinition definition, List<string> t, ref int i)
+    private static bool ParseSettings(VoxelDefinition definition, List<string> t, ref int i)
     {
+        bool valid = true;
         while (i < t.Count && t[i] != "}")
         {
             string prop = t[i++].ToLowerInvariant();
-            if (i < t.Count && t[i] == "=") i++;
             if (prop == "overridepalette") definition.OverridePalette = true;
-            else if (prop == "angleoffset" && ReadFloat(t, ref i, out float angle)) definition.AngleOffset = angle;
-            else if (prop == "scale" && ReadFloat(t, ref i, out float scale)) definition.Scale = scale;
+            else if (prop == "angleoffset")
+            {
+                if (ReadEquals(t, ref i) && ReadFloat(t, ref i, out float angle)) definition.AngleOffset = angle;
+                else valid = false;
+            }
+            else if (prop == "scale")
+            {
+                if (ReadEquals(t, ref i) && ReadFloat(t, ref i, out float scale)) definition.Scale = scale;
+                else valid = false;
+            }
             else if (prop == "spin" || prop == "droppedspin" || prop == "placedspin")
             {
                 definition.Spin = prop;
@@ -81,6 +89,7 @@ public static class VoxeldefParser
             else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
         if (i < t.Count) i++;
+        return valid;
     }
 
     private static void AddSprite(List<string> sprites, string value)
@@ -93,6 +102,13 @@ public static class VoxeldefParser
         value = 0;
         if (i < t.Count && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out value)) { i++; return true; }
         return false;
+    }
+
+    private static bool ReadEquals(List<string> t, ref int i)
+    {
+        if (i >= t.Count || t[i] != "=") return false;
+        i++;
+        return true;
     }
 
     private static void SkipBlock(List<string> t, ref int i)
