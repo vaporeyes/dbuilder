@@ -203,7 +203,7 @@ public static class GldefsParser
                 }
                 else if (p == "interval")
                 {
-                    float interval = ReadFloat(t, ref i);
+                    if (!TryReadFloat(t, ref i, out float interval)) { invalid = true; continue; }
                     if (!CanHaveInterval(type) || interval <= 0.0f) invalid = true;
                     else light.Interval = NormalizeInterval(type, interval);
                 }

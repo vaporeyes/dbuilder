@@ -361,6 +361,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require numeric GLDEFS light offset components.
   - [x] Require numeric GLDEFS flicker light chance values.
   - [x] Require numeric GLDEFS sector light scale values.
+  - [x] Require numeric GLDEFS animated light interval values.
 - [x] Port SNDINFO parser.
   - [x] Parse multiline `$random` groups.
 - [x] Port SNDSEQ parser.

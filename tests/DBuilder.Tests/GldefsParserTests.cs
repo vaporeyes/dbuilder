@@ -121,6 +121,21 @@ sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
     }
 
     [Fact]
+    public void SkipsAnimatedLightsWithNonNumericInterval()
+    {
+        const string text = @"
+pulselight BADPULSE { color 0.1 0.1 0.1 size 16 secondarysize 8 interval bogus }
+flickerlight2 BADFLICKER { color 0.1 0.1 0.1 size 16 secondarysize 8 interval bogus }
+pulselight GOOD { color 0.1 0.2 0.3 size 16 secondarysize 8 interval 0.5 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BADPULSE"));
+        Assert.False(g.Lights.ContainsKey("BADFLICKER"));
+        Assert.True(g.Lights.ContainsKey("GOOD"));
+    }
+
+    [Fact]
     public void SkipsFlickerLightsWithNonNumericChance()
     {
         const string text = @"
