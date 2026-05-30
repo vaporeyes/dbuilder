@@ -388,6 +388,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject unnamed TEXTURES definitions and patches like UDB.
   - [x] Apply configured default texture scale when TEXTURES definitions omit scale or set zero scale.
   - [x] Ignore TEXTURES `Graphic` definitions like UDB.
+  - [x] Consume unknown top-level TEXTURES declarations like UDB.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

@@ -120,12 +120,11 @@ Sprite SPRTA0B0, 16, 16 { Patch P3, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsUnknownTopLevelTokens()
+    public void UnknownTopLevelTokensConsumeNextBlockLikeUdb()
     {
         const string text = "garbage 1 2 3\nTexture OK, 2, 2 { Patch P, 0, 0 }";
         var defs = TexturesParser.Parse(text);
-        Assert.Single(defs);
-        Assert.Equal("OK", defs[0].Name);
+        Assert.Empty(defs);
     }
 
     [Fact]
