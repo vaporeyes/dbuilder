@@ -202,4 +202,72 @@ public class SelectionClipboardTests
         Assert.Null(res);
         Assert.False(beforePaste);
     }
+
+    [Fact]
+    public void PasteOptionsRemovePastedTagsAndActions()
+    {
+        var (map, sector) = SquareSector();
+        var line = map.Linedefs[0];
+        line.Tag = 5;
+        line.Action = 80;
+        line.Args[0] = 7;
+        sector.Tag = 6;
+        var thing = map.AddThing(new Vector2D(8, 8), 3001);
+        thing.Tag = 7;
+        thing.Action = 226;
+        thing.Args[0] = 3;
+        sector.Selected = true;
+        thing.Selected = true;
+
+        var buffer = SelectionClipboard.CopySelection(map)!;
+        var result = SelectionClipboard.Paste(map, buffer, new Vector2D(128, 0), new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Remove,
+            RemoveActions = true,
+        });
+
+        Assert.Equal(5, line.Tag);
+        Assert.Equal(80, line.Action);
+        Assert.Equal(6, sector.Tag);
+        Assert.Equal(7, thing.Tag);
+        Assert.Equal(226, thing.Action);
+
+        var pastedLine = map.Linedefs[result.FirstLinedef];
+        var pastedSector = map.Sectors[result.FirstSector];
+        var pastedThing = map.Things[result.FirstThing];
+        Assert.Empty(pastedLine.Tags);
+        Assert.Empty(pastedSector.Tags);
+        Assert.Equal(0, pastedThing.Tag);
+        Assert.Equal(0, pastedLine.Action);
+        Assert.All(pastedLine.Args, arg => Assert.Equal(0, arg));
+        Assert.Equal(0, pastedThing.Action);
+        Assert.All(pastedThing.Args, arg => Assert.Equal(0, arg));
+    }
+
+    [Fact]
+    public void PasteOptionsRenumberPastedTagsAwayFromExistingGeometry()
+    {
+        var (map, sector) = SquareSector();
+        var line = map.Linedefs[0];
+        line.Tag = 1;
+        line.Tags.Add(7);
+        sector.Tag = 2;
+        var thing = map.AddThing(new Vector2D(8, 8), 3001);
+        thing.Tag = 3;
+        sector.Selected = true;
+        thing.Selected = true;
+
+        var buffer = SelectionClipboard.CopySelection(map)!;
+        var result = SelectionClipboard.Paste(map, buffer, new Vector2D(128, 0), new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Renumber,
+        });
+
+        Assert.Equal(new[] { 1, 7 }, line.Tags);
+        Assert.Equal(2, sector.Tag);
+        Assert.Equal(3, thing.Tag);
+        Assert.Equal(new[] { 4, 5 }, map.Linedefs[result.FirstLinedef].Tags);
+        Assert.Equal(6, map.Sectors[result.FirstSector].Tag);
+        Assert.Equal(8, map.Things[result.FirstThing].Tag);
+    }
 }

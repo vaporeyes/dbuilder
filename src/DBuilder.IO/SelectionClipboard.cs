@@ -84,6 +84,9 @@ public static class SelectionClipboard
     /// then clears the prior selection and selects everything pasted. Returns the appended slice.
     /// </summary>
     public static PasteResult Paste(MapSet map, byte[] data, Vector2D offset)
+        => Paste(map, data, offset, new PasteOptions());
+
+    public static PasteResult Paste(MapSet map, byte[] data, Vector2D offset, PasteOptions options)
     {
         using var ms = new MemoryStream(data);
         var result = ClipboardStreamReader.Read(map, ms);
@@ -100,6 +103,7 @@ public static class SelectionClipboard
         for (int i = result.FirstSector; i < result.FirstSector + result.SectorCount; i++) map.Sectors[i].Selected = true;
         for (int i = result.FirstThing; i < result.FirstThing + result.ThingCount; i++) map.Things[i].Selected = true;
 
+        ApplyOptions(map, result, options);
         return result;
     }
 
@@ -108,11 +112,14 @@ public static class SelectionClipboard
     /// Returns null when no selectable elements are selected.
     /// </summary>
     public static PasteResult? DuplicateSelection(MapSet map, Vector2D offset, Action? beforePaste = null)
+        => DuplicateSelection(map, offset, new PasteOptions(), beforePaste);
+
+    public static PasteResult? DuplicateSelection(MapSet map, Vector2D offset, PasteOptions options, Action? beforePaste = null)
     {
         var data = CopySelection(map);
         if (data is null) return null;
         beforePaste?.Invoke();
-        return Paste(map, data, offset);
+        return Paste(map, data, offset, options);
     }
 
     /// <summary>
@@ -122,7 +129,19 @@ public static class SelectionClipboard
     public static PasteResult PasteAtAnchor(MapSet map, byte[] data, Vector2D anchor)
     {
         var res = Paste(map, data, new Vector2D(0, 0));
+        MovePasteToAnchor(map, res, anchor);
+        return res;
+    }
 
+    public static PasteResult PasteAtAnchor(MapSet map, byte[] data, Vector2D anchor, PasteOptions options)
+    {
+        var res = Paste(map, data, new Vector2D(0, 0), options);
+        MovePasteToAnchor(map, res, anchor);
+        return res;
+    }
+
+    private static void MovePasteToAnchor(MapSet map, PasteResult res, Vector2D anchor)
+    {
         double minX = double.MaxValue, minY = double.MaxValue;
         bool any = false;
         for (int i = res.FirstVertex; i < res.FirstVertex + res.VertexCount; i++)
@@ -135,12 +154,119 @@ public static class SelectionClipboard
             var p = map.Things[i].Position;
             if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; any = true;
         }
-        if (!any) return res;
+        if (!any) return;
 
         var delta = new Vector2D(anchor.x - minX, anchor.y - minY);
         for (int i = res.FirstVertex; i < res.FirstVertex + res.VertexCount; i++) map.Vertices[i].Position += delta;
         for (int i = res.FirstThing; i < res.FirstThing + res.ThingCount; i++) map.Things[i].Position += delta;
-        return res;
+    }
+
+    private static void ApplyOptions(MapSet map, PasteResult result, PasteOptions options)
+    {
+        if (options.ChangeTags == PasteTagMode.Remove) RemovePastedTags(map, result);
+        else if (options.ChangeTags == PasteTagMode.Renumber) RenumberPastedTags(map, result);
+
+        if (options.RemoveActions) RemovePastedActions(map, result);
+    }
+
+    private static void RemovePastedTags(MapSet map, PasteResult result)
+    {
+        foreach (var line in PastedLinedefs(map, result)) line.Tags.Clear();
+        foreach (var sector in PastedSectors(map, result)) sector.Tags.Clear();
+        foreach (var thing in PastedThings(map, result)) thing.Tag = 0;
+    }
+
+    private static void RenumberPastedTags(MapSet map, PasteResult result)
+    {
+        var used = CollectTagsOutsidePaste(map, result);
+        var remap = new Dictionary<int, int>();
+
+        void MapTag(int tag)
+        {
+            if (tag <= 0 || remap.ContainsKey(tag)) return;
+            int newTag = FirstUnusedTag(used);
+            remap.Add(tag, newTag);
+            used.Add(newTag);
+        }
+
+        foreach (var line in PastedLinedefs(map, result))
+            foreach (int tag in MapElementTags.PositiveTags(line)) MapTag(tag);
+        foreach (var sector in PastedSectors(map, result))
+            foreach (int tag in MapElementTags.PositiveTags(sector)) MapTag(tag);
+        foreach (var thing in PastedThings(map, result))
+            foreach (int tag in MapElementTags.PositiveTags(thing)) MapTag(tag);
+
+        foreach (var line in PastedLinedefs(map, result)) ReplaceTags(line.Tags, remap);
+        foreach (var sector in PastedSectors(map, result)) ReplaceTags(sector.Tags, remap);
+        foreach (var thing in PastedThings(map, result))
+            if (remap.TryGetValue(thing.Tag, out int newTag)) thing.Tag = newTag;
+    }
+
+    private static void RemovePastedActions(MapSet map, PasteResult result)
+    {
+        foreach (var line in PastedLinedefs(map, result))
+        {
+            line.Action = 0;
+            System.Array.Clear(line.Args);
+        }
+
+        foreach (var thing in PastedThings(map, result))
+        {
+            thing.Action = 0;
+            System.Array.Clear(thing.Args);
+        }
+    }
+
+    private static HashSet<int> CollectTagsOutsidePaste(MapSet map, PasteResult result)
+    {
+        var used = new HashSet<int>();
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            if (i >= result.FirstLinedef && i < result.FirstLinedef + result.LinedefCount) continue;
+            foreach (int tag in MapElementTags.PositiveTags(map.Linedefs[i])) used.Add(tag);
+        }
+
+        for (int i = 0; i < map.Sectors.Count; i++)
+        {
+            if (i >= result.FirstSector && i < result.FirstSector + result.SectorCount) continue;
+            foreach (int tag in MapElementTags.PositiveTags(map.Sectors[i])) used.Add(tag);
+        }
+
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            if (i >= result.FirstThing && i < result.FirstThing + result.ThingCount) continue;
+            foreach (int tag in MapElementTags.PositiveTags(map.Things[i])) used.Add(tag);
+        }
+
+        return used;
+    }
+
+    private static int FirstUnusedTag(HashSet<int> used)
+    {
+        int tag = 1;
+        while (used.Contains(tag)) tag++;
+        return tag;
+    }
+
+    private static void ReplaceTags(List<int> tags, IReadOnlyDictionary<int, int> remap)
+    {
+        for (int i = 0; i < tags.Count; i++)
+            if (remap.TryGetValue(tags[i], out int newTag)) tags[i] = newTag;
+    }
+
+    private static IEnumerable<Linedef> PastedLinedefs(MapSet map, PasteResult result)
+    {
+        for (int i = result.FirstLinedef; i < result.FirstLinedef + result.LinedefCount; i++) yield return map.Linedefs[i];
+    }
+
+    private static IEnumerable<Sector> PastedSectors(MapSet map, PasteResult result)
+    {
+        for (int i = result.FirstSector; i < result.FirstSector + result.SectorCount; i++) yield return map.Sectors[i];
+    }
+
+    private static IEnumerable<Thing> PastedThings(MapSet map, PasteResult result)
+    {
+        for (int i = result.FirstThing; i < result.FirstThing + result.ThingCount; i++) yield return map.Things[i];
     }
 
     // Insertion-ordered set so the serialized subset's indices are stable and references resolve positionally.
