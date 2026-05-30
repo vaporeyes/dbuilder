@@ -31,6 +31,7 @@ public enum MapIssueKind
     UnknownFlat,
     UnknownThingType,
     ObsoleteThingType,
+    UnusedThing,
     ThingOutsideMap,
     ThingStuckInLinedef,
     ThingStuckInThing,
@@ -67,6 +68,8 @@ public sealed class MapCheckContext
     public Func<int, int?>? ThingHeight { get; init; }
     /// <summary>Returns true when two things can appear for overlapping flags, matching UDB thingflagscompare rules.</summary>
     public Func<Thing, Thing, bool>? ThingFlagsOverlap { get; init; }
+    /// <summary>Returns UDB unused-thing warnings from thingflagscompare metadata.</summary>
+    public Func<Thing, IReadOnlyList<string>>? ThingUnusedWarnings { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -238,6 +241,7 @@ public static class MapAnalysis
             }
 
         CheckThingsOutsideMap(map, ctx, issues);
+        CheckUnusedThings(map, ctx, issues);
 
         if (ctx.ActionKnown != null)
         {
@@ -283,6 +287,22 @@ public static class MapAnalysis
                         $"Linedef {i} has an action with no activation.")
                         { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
             }
+    }
+
+    private static void CheckUnusedThings(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (ctx.ThingUnusedWarnings == null) return;
+
+        for (int i = 0; i < map.Things.Count; i++)
+        {
+            var t = map.Things[i];
+            var warnings = ctx.ThingUnusedWarnings(t);
+            if (warnings.Count == 0) continue;
+
+            issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedThing,
+                $"Thing {i} type {t.Type} is unused: {string.Join(" ", warnings)}")
+                { Target = t, Focus = t.Position });
+        }
     }
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)

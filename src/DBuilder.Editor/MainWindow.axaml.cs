@@ -2411,6 +2411,7 @@ public partial class MainWindow : Window
         Func<int, int?>? thingBlocking = null;
         Func<int, int?>? thingHeight = null;
         Func<Thing, Thing, bool>? thingFlagsOverlap = null;
+        Func<Thing, IReadOnlyList<string>>? thingUnusedWarnings = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2425,6 +2426,7 @@ public partial class MainWindow : Window
             thingBlocking = n => _config.GetThing(n)?.Blocking;
             thingHeight = n => _config.GetThing(n)?.Height;
             thingFlagsOverlap = (a, b) => ThingFlagsOverlap(_config, a, b);
+            thingUnusedWarnings = t => CheckThingFlags(_config, t.UdmfFlags);
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2459,6 +2461,7 @@ public partial class MainWindow : Window
             ThingBlocking = thingBlocking,
             ThingHeight = thingHeight,
             ThingFlagsOverlap = thingFlagsOverlap,
+            ThingUnusedWarnings = thingUnusedWarnings,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
@@ -2566,6 +2569,67 @@ public partial class MainWindow : Window
         return string.Equals(flag.CompareMethod, "equal", StringComparison.OrdinalIgnoreCase)
             ? aFlag == bFlag
             : aFlag && bFlag;
+    }
+
+    private static IReadOnlyList<string> CheckThingFlags(GameConfiguration config, IReadOnlySet<string> activeFlags)
+    {
+        if (config.ThingFlagsCompare.Count == 0) return Array.Empty<string>();
+
+        var flagsPerGroup = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var ignoredGroups = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var group in config.ThingFlagsCompare.Values)
+        {
+            var groupFlags = new HashSet<string>(StringComparer.Ordinal);
+            bool removeGroup = false;
+            foreach (var flag in group.Flags.Values)
+            {
+                var requiredFlag = flag.RequiredFlag.Length == 0 ? null : FindThingFlagCompare(config, flag.RequiredFlag);
+                bool requiredMatches = requiredFlag == null || IsThingFlagSet(activeFlags, requiredFlag.Flag, requiredFlag.Invert);
+                if (IsThingFlagSet(activeFlags, flag.Flag, flag.Invert) && requiredMatches)
+                {
+                    groupFlags.Add(flag.Flag);
+                    foreach (string ignoredGroup in flag.IgnoredGroups)
+                        ignoredGroups.Add(ignoredGroup);
+                }
+                else if (flag.IgnoreGroupWhenUnset)
+                {
+                    removeGroup = true;
+                    break;
+                }
+            }
+
+            if (!removeGroup)
+                flagsPerGroup[group.Name] = groupFlags;
+        }
+
+        foreach (var group in flagsPerGroup)
+            foreach (string flag in group.Value)
+                foreach (string requiredGroup in config.ThingFlagsCompare[group.Key].Flags[flag].RequiredGroups)
+                    ignoredGroups.Remove(requiredGroup);
+
+        foreach (string ignoredGroup in ignoredGroups)
+            flagsPerGroup.Remove(ignoredGroup);
+
+        var warnings = new List<string>();
+        foreach (var group in flagsPerGroup)
+        {
+            if (group.Value.Count > 0 || config.ThingFlagsCompare[group.Key].IsOptional) continue;
+            warnings.Add(group.Key switch
+            {
+                "skills" => "Thing is not used in any skill level.",
+                "gamemodes" => "Thing is not used in any game mode.",
+                "classes" => "Thing is not used by any class.",
+                _ => $"At least one \"{group.Key}\" flag should be set.",
+            });
+        }
+
+        return warnings;
+    }
+
+    private static bool IsThingFlagSet(IReadOnlySet<string> flags, string flag, bool invert)
+    {
+        bool result = flags.Contains(flag);
+        return invert ? !result : result;
     }
 
     // ---- UI helpers ----

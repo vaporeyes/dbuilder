@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1419 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1421 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -572,6 +572,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Detect UDB-style things outside the map from thing error-check metadata.
   - [x] Detect UDB-style blocking things stuck in one-sided or impassable linedefs.
   - [x] Detect UDB-style blocking things stuck in overlapping things with flag and height checks.
+  - [x] Detect UDB-style unused things from thing flag compare metadata.
 
 ## 2D Editor UI
 

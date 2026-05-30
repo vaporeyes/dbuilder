@@ -416,6 +416,31 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnusedThingFlaggedWithWarnings()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 3004);
+        var ctx = new MapCheckContext
+        {
+            ThingUnusedWarnings = _ => new[] { "Thing is not used in any skill level." },
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedThing);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("Thing is not used in any skill level.", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UsedThingWithNoWarningsIsNotFlagged()
+    {
+        var map = Square(true);
+        map.AddThing(new Vector2D(50, 50), 3004);
+        var ctx = new MapCheckContext { ThingUnusedWarnings = _ => Array.Empty<string>() };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedThing);
+    }
+
+    [Fact]
     public void ThingOutsideMapFlaggedWhenTypeRequiresInsideCheck()
     {
         var map = Square(true);
