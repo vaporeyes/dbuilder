@@ -218,6 +218,32 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadConfiguredFlatRangesProvideAndPrioritizeFlats()
+    {
+        var config = GameConfiguration.FromText("""
+            flats
+            {
+                floors { start = "FF_START"; end = "FF_END"; }
+            }
+            """);
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("RANGEFL", SolidFlat(9)),
+            ("FF_START", Array.Empty<byte>()),
+            ("RANGEFL", SolidFlat(70)),
+            ("FF_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Equal(9, rm.GetFlat("RANGEFL")!.Rgba[0]);
+
+        rm.Configuration = config;
+
+        Assert.Equal(70, rm.GetFlat("RANGEFL")!.Rgba[0]);
+        Assert.Contains("RANGEFL", rm.GetFlatNames());
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));

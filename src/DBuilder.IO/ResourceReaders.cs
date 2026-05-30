@@ -85,6 +85,9 @@ internal sealed class WadResourceReader : IResourceReader
     public ImageData? GetFlat(string name, DoomPalette? palette)
     {
         if (palette == null) return null;
+        var rangeLump = FindInRanges(name, ConfiguredFlatRanges());
+        if (rangeLump != null) return DecodeFlat(rangeLump, palette);
+
         byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
         return rgba != null ? new ImageData(DoomFlatReader.Width, DoomFlatReader.Height, rgba) : null;
     }
@@ -161,6 +164,13 @@ internal sealed class WadResourceReader : IResourceReader
         return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
 
+    private static ImageData? DecodeFlat(Lump lump, DoomPalette palette)
+    {
+        byte[] bytes = lump.Stream.ReadAllBytes();
+        if (!DoomFlatReader.LooksLikeFlat(bytes.Length) && bytes.Length < DoomFlatReader.RawSize) return null;
+        return new ImageData(DoomFlatReader.Width, DoomFlatReader.Height, DoomFlatReader.DecodeRgba8(bytes, palette));
+    }
+
     private Lump? FindInRanges(string name, IReadOnlyList<ResourceRangeInfo> ranges)
     {
         if (ranges.Count == 0) return null;
@@ -199,6 +209,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private IReadOnlyList<ResourceRangeInfo> ConfiguredTextureRanges()
         => configProvider()?.TextureRanges ?? Array.Empty<ResourceRangeInfo>();
+
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredFlatRanges()
+        => configProvider()?.FlatRanges ?? Array.Empty<ResourceRangeInfo>();
 
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
@@ -246,6 +259,7 @@ internal sealed class WadResourceReader : IResourceReader
             if (n is "F_END" or "FF_END" or "F1_END" or "F2_END" or "F3_END") { inFlats = false; continue; }
             if (inFlats && l.Length > 0) result.Add(n);
         }
+        result.AddRange(NamesInRanges(ConfiguredFlatRanges()));
         return result;
     }
 
