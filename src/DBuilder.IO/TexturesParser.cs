@@ -247,9 +247,9 @@ public static class TexturesParser
         string token = t[i++];
         if (byte.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out red))
         {
-            SkipCommas(t, ref i);
+            if (!ReadComma(t, ref i)) return;
             if (!ReadByte(t, ref i, out green)) return;
-            SkipCommas(t, ref i);
+            if (!ReadComma(t, ref i)) return;
             if (!ReadByte(t, ref i, out blue)) return;
         }
         else if (!ZDoomColorParser.TryParse(token, knownColors, out red, out green, out blue))

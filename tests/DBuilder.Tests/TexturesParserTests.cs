@@ -237,6 +237,31 @@ Texture PATCHES, 8, 8
     }
 
     [Fact]
+    public void RequiresCommasInNumericPatchBlendColors()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch BAD, 0, 0
+    {
+        Blend 255 128 0
+    }
+    Patch OK, 1, 1
+    {
+        Blend 255, 128, 0
+    }
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal(TexturesPatchBlendStyle.None, def.Patches[0].BlendStyle);
+        Assert.Equal(TexturesPatchBlendStyle.Blend, def.Patches[1].BlendStyle);
+        Assert.Equal(255, def.Patches[1].BlendRed);
+        Assert.Equal(128, def.Patches[1].BlendGreen);
+        Assert.Equal(0, def.Patches[1].BlendBlue);
+    }
+
+    [Fact]
     public void RequiresQuotesForLongPatchNames()
     {
         const string text = @"
