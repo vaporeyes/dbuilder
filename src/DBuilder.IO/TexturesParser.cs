@@ -204,8 +204,13 @@ public static class TexturesParser
                     case "worldpanning": def.WorldPanning = true; break;
                     case "nulltexture": def.NullTexture = true; break;
                     case "offset":
-                        SkipCommas(t, ref i); if (ReadInt(t, ref i, out int ox)) def.OffsetX = ox;
-                        if (ReadComma(t, ref i) && ReadInt(t, ref i, out int oy)) def.OffsetY = oy;
+                        SkipCommas(t, ref i);
+                        if (ReadInt(t, ref i, out int ox) && ReadComma(t, ref i) && ReadInt(t, ref i, out int oy))
+                        {
+                            def.OffsetX = ox;
+                            def.OffsetY = oy;
+                        }
+                        else invalid = true;
                         break;
                     case "patch": ParsePatch(def, t, ref i, knownColors); break;
                     default: break; // unknown single-token flag/value; skip

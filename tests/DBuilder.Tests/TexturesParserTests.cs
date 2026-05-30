@@ -194,6 +194,22 @@ Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsDefinitionsWithInvalidOffset()
+    {
+        const string text = @"
+Texture BADX, 8, 8 { Offset bogus, 2 Patch P, 0, 0 }
+Texture BADY, 8, 8 { Offset 1, bogus Patch P, 0, 0 }
+Texture MISSINGCOMMA, 8, 8 { Offset 1 2 Patch P, 0, 0 }
+Texture OK, 8, 8 { Offset 3, 4 Patch P, 0, 0 }";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal("OK", def.Name);
+        Assert.Equal(3, def.OffsetX);
+        Assert.Equal(4, def.OffsetY);
+    }
+
+    [Fact]
     public void RequiresCommasInDefinitionSize()
     {
         const string text = @"

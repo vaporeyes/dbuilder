@@ -347,6 +347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require UDB-style comma separators in numeric TEXTURES patch blends.
   - [x] Ignore top-level TEXTURES `optional` prefixes like UDB.
   - [x] Require numeric TEXTURES scale values.
+  - [x] Require UDB-style TEXTURES offset values.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
