@@ -876,7 +876,14 @@ public static class DecorateParser
             else if (!inStates && tk.Text.Equals("$clearargs", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("skip_super", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
             else if (!inStates && tk.Text.Equals("defaultalpha", StringComparison.OrdinalIgnoreCase)) actor.Properties[tk.Text] = new List<string>();
-            else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase)) ParseDecorateUserVariable(actor, t, ref i);
+            else if (!inStates && tk.Text.Equals("var", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!ParseDecorateUserVariable(actor, t, ref i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
+            }
             else if (!inStates && (tk.Text.Equals("action", StringComparison.OrdinalIgnoreCase)
                                 || tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))) SkipUntilSemicolon(t, ref i);
             else if (!inStates && tk.Text.Equals("monster", StringComparison.OrdinalIgnoreCase)) ApplyMonsterFlags(actor);
@@ -1284,33 +1291,55 @@ public static class DecorateParser
         return values;
     }
 
-    private static void ParseDecorateUserVariable(ActorInfo actor, List<Tok> t, ref int i)
+    private static bool ParseDecorateUserVariable(ActorInfo actor, List<Tok> t, ref int i)
     {
         if (i + 1 >= t.Count)
         {
             SkipUntilSemicolon(t, ref i);
-            return;
+            return false;
         }
 
         if (!TryUserVariableType(t[i].Text, out var type))
         {
             SkipUntilSemicolon(t, ref i);
-            return;
+            return true;
         }
 
         i++;
         if (i >= t.Count || t[i].Kind != Kind.Word)
         {
             SkipUntilSemicolon(t, ref i);
-            return;
+            return false;
         }
 
         string name = t[i++].Text;
-        bool isArray = i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[";
-        if (!isArray && IsUserVariableName(name) && !actor.UserVariables.ContainsKey(name))
-            actor.UserVariables[name] = new ActorUserVariable(name, type);
+        bool isArray = TrySplitInlineArraySuffix(name, out string scalarName);
+        name = scalarName;
+        if (!IsUserVariableName(name))
+        {
+            SkipUntilSemicolon(t, ref i);
+            return false;
+        }
+        if (actor.UserVariables.ContainsKey(name))
+        {
+            SkipUntilSemicolon(t, ref i);
+            return false;
+        }
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[")
+        {
+            isArray = true;
+            SkipBracketedExpression(t, ref i);
+        }
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != ";")
+        {
+            SkipUntilSemicolon(t, ref i);
+            return false;
+        }
 
-        SkipUntilSemicolon(t, ref i);
+        i++;
+        if (!isArray)
+            actor.UserVariables[name] = new ActorUserVariable(name, type);
+        return true;
     }
 
     private static bool TryParseZScriptUserVariables(

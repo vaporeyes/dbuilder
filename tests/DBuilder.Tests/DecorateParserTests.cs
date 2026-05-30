@@ -545,6 +545,34 @@ ACTOR UserVarActor 7006
     }
 
     [Fact]
+    public void RejectsInvalidDecorateUserVariableDeclarationsLikeUdb()
+    {
+        const string text = @"
+ACTOR BadUserVarName 7007
+{
+    var int score;
+    Radius 64
+}
+ACTOR DuplicateUserVar 7008
+{
+    var int user_score;
+    var float user_score;
+    Radius 32
+}
+ACTOR GoodUserVarAfterBad 7009
+{
+    var int user_score;
+    Radius 16
+}";
+
+        var actor = Assert.Single(DecorateParser.Parse(text));
+
+        Assert.Equal("GoodUserVarAfterBad", actor.ClassName);
+        Assert.True(actor.UserVariables.ContainsKey("user_score"));
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void SkipsTopLevelEnumNativeAndConstDeclarations()
     {
         const string text = @"
