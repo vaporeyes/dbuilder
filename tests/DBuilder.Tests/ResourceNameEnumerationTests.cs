@@ -173,7 +173,7 @@ public class ResourceNameEnumerationTests
     }
 
     [Fact]
-    public void EnumeratesSpriteNamesFromTexturesDefinitions()
+    public void EnumeratesSpriteNamesFromTexturesDefinitionsAndSkipsGraphics()
     {
         string textures = "Sprite SPOSA0, 4, 4 { NullTexture }\nGraphic GFXA0, 4, 4 { NullTexture }\n";
         string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)));
@@ -186,7 +186,7 @@ public class ResourceNameEnumerationTests
             var sprites = rm.GetSpriteNames();
 
             Assert.Contains("SPOSA0", sprites);
-            Assert.Contains("GFXA0", sprites);
+            Assert.DoesNotContain("GFXA0", sprites);
         }
         finally { File.Delete(pk3); }
     }

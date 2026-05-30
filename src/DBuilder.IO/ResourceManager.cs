@@ -413,8 +413,7 @@ public sealed class ResourceManager : IDisposable
                     {
                         case TexturesType.WallTexture: SetTexturesDef(wallDefs, def, replaceWithinResource: false); break;
                         case TexturesType.Flat: SetTexturesDef(flatDefs, def, replaceWithinResource: false); break;
-                        case TexturesType.Sprite:
-                        case TexturesType.Graphic: SetTexturesDef(spriteDefs, def, replaceWithinResource: true); break;
+                        case TexturesType.Sprite: SetTexturesDef(spriteDefs, def, replaceWithinResource: true); break;
                         default: // Texture: usable as both a wall and a flat
                             SetTexturesDef(wallDefs, def, replaceWithinResource: true);
                             SetTexturesDef(flatDefs, def, replaceWithinResource: true);

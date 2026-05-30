@@ -9,7 +9,7 @@ using System.Text;
 
 namespace DBuilder.IO;
 
-public enum TexturesType { Texture, Sprite, Graphic, WallTexture, Flat }
+public enum TexturesType { Texture, Sprite, WallTexture, Flat }
 
 public enum TexturesPatchBlendStyle { None, Blend, Tint }
 
@@ -91,7 +91,6 @@ public static class TexturesParser
             {
                 "texture" => TexturesType.Texture,
                 "sprite" => TexturesType.Sprite,
-                "graphic" => TexturesType.Graphic,
                 "walltexture" => TexturesType.WallTexture,
                 "flat" => TexturesType.Flat,
                 _ => (TexturesType?)null,
@@ -154,7 +153,6 @@ public static class TexturesParser
     {
         return word.Equals("texture", StringComparison.OrdinalIgnoreCase)
             || word.Equals("sprite", StringComparison.OrdinalIgnoreCase)
-            || word.Equals("graphic", StringComparison.OrdinalIgnoreCase)
             || word.Equals("walltexture", StringComparison.OrdinalIgnoreCase)
             || word.Equals("flat", StringComparison.OrdinalIgnoreCase)
             || word.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase);

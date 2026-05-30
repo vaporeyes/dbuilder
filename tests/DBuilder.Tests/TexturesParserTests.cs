@@ -92,6 +92,18 @@ Texture OK, 4, 4 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void IgnoresGraphicDefinitionsLikeUdb()
+    {
+        const string text = @"
+Graphic GFXA0, 16, 16 { Patch P2, 1, 2 }
+Texture OK, 4, 4 { Patch P, 0, 0 }";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
     public void SkipsSpriteDefinitionsWithInvalidNameLength()
     {
         const string text = @"
