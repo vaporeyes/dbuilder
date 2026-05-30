@@ -998,10 +998,11 @@ public static class DecorateParser
             {
                 p += 2; while (p + 1 < n && !(s[p] == '*' && s[p + 1] == '/')) p++; p += 2; continue;
             }
-            if (c == '"')
+            if (c is '"' or '\'')
             {
+                char quote = c;
                 int b = ++p; var sb = new System.Text.StringBuilder();
-                while (p < n && s[p] != '"')
+                while (p < n && s[p] != quote)
                 {
                     if (s[p] == '\\' && p + 1 < n)
                     {

@@ -329,6 +329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse DECORATE actor-header `$` properties.
 - [ ] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
+  - [x] Parse single-quoted ZScript name tokens.
 - [ ] Complete ZScript parser behavior.
   - [x] Preserve semicolon-terminated ZScript default expressions as single property values.
   - [x] Skip top-level ZScript struct contents when discovering actor classes.

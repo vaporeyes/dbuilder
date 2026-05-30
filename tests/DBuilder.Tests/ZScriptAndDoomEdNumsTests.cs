@@ -62,6 +62,24 @@ class PlaceholderSpriteActor : Actor
     }
 
     [Fact]
+    public void ParsesSingleQuotedZScriptStateSpriteTokens()
+    {
+        const string text = @"
+class SingleQuotedSpriteActor : Actor
+{
+    States
+    {
+    Spawn:
+        'SQSP' 'A' -1;
+        stop;
+    }
+}";
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("SQSPA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesSpacedZScriptEditorLineComments()
     {
         const string text = @"
