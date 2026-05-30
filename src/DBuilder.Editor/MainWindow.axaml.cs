@@ -2409,6 +2409,8 @@ public partial class MainWindow : Window
         Func<int, string?>? thingObsoleteMessage = null;
         Func<int, int?>? thingErrorCheck = null;
         Func<int, int?>? thingBlocking = null;
+        Func<int, int?>? thingHeight = null;
+        Func<Thing, Thing, bool>? thingFlagsOverlap = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2421,6 +2423,8 @@ public partial class MainWindow : Window
             };
             thingErrorCheck = n => _config.GetThing(n)?.ErrorCheck;
             thingBlocking = n => _config.GetThing(n)?.Blocking;
+            thingHeight = n => _config.GetThing(n)?.Height;
+            thingFlagsOverlap = (a, b) => ThingFlagsOverlap(_config, a, b);
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2453,6 +2457,8 @@ public partial class MainWindow : Window
             ThingObsoleteMessage = thingObsoleteMessage,
             ThingErrorCheck = thingErrorCheck,
             ThingBlocking = thingBlocking,
+            ThingHeight = thingHeight,
+            ThingFlagsOverlap = thingFlagsOverlap,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
@@ -2465,6 +2471,101 @@ public partial class MainWindow : Window
             ImpassableFlag = _config?.ImpassableFlag,
             SafeBoundary = _config?.SafeBoundary ?? 0,
         };
+    }
+
+    private static bool ThingFlagsOverlap(GameConfiguration config, Thing a, Thing b)
+    {
+        if (config.ThingFlagsCompare.Count == 0) return true;
+
+        var results = new Dictionary<string, ThingFlagsCompareResult>(StringComparer.Ordinal);
+        foreach (var group in config.ThingFlagsCompare.Values)
+            results[group.Name] = CompareThingFlagGroup(config, group, a, b);
+
+        foreach (var result in results.Values)
+        {
+            if (result.Result != 1) continue;
+            foreach (string requiredGroup in result.RequiredGroups)
+            {
+                if (!results.TryGetValue(requiredGroup, out var required) || required.Result != 1)
+                {
+                    result.Result = 0;
+                    break;
+                }
+            }
+
+            if (result.Result != 1) continue;
+            foreach (string ignoredGroup in result.IgnoredGroups)
+                if (results.TryGetValue(ignoredGroup, out var ignored))
+                    ignored.Result = 0;
+        }
+
+        int overlappingGroups = 0;
+        int totalGroups = results.Count;
+        foreach (var result in results.Values)
+        {
+            if (result.Result == 1) overlappingGroups++;
+            else if (result.Result == 0) totalGroups--;
+            else return false;
+        }
+
+        return totalGroups > 0 && overlappingGroups == totalGroups;
+    }
+
+    private sealed class ThingFlagsCompareResult
+    {
+        public int Result = -1;
+        public HashSet<string> RequiredGroups { get; } = new(StringComparer.Ordinal);
+        public HashSet<string> IgnoredGroups { get; } = new(StringComparer.Ordinal);
+    }
+
+    private static ThingFlagsCompareResult CompareThingFlagGroup(GameConfiguration config, ThingFlagsCompareGroupInfo group, Thing a, Thing b)
+    {
+        var result = new ThingFlagsCompareResult();
+        foreach (var flag in group.Flags.Values)
+        {
+            if (flag.RequiredFlag.Length > 0)
+            {
+                var requiredFlag = FindThingFlagCompare(config, flag.RequiredFlag);
+                if (requiredFlag == null || !CompareThingFlag(requiredFlag, a, b))
+                {
+                    result.Result = -1;
+                    continue;
+                }
+            }
+
+            bool overlaps = CompareThingFlag(flag, a, b);
+            if (!overlaps && flag.IgnoreGroupWhenUnset) return new ThingFlagsCompareResult { Result = 0 };
+            if (!overlaps) continue;
+
+            result.Result = 1;
+            foreach (string ignoredGroup in flag.IgnoredGroups)
+                result.IgnoredGroups.Add(ignoredGroup);
+            foreach (string requiredGroup in flag.RequiredGroups)
+            {
+                result.IgnoredGroups.Remove(requiredGroup);
+                result.RequiredGroups.Add(requiredGroup);
+            }
+        }
+
+        return result;
+    }
+
+    private static ThingFlagCompareInfo? FindThingFlagCompare(GameConfiguration config, string flag)
+    {
+        foreach (var group in config.ThingFlagsCompare.Values)
+            if (group.Flags.TryGetValue(flag, out var info))
+                return info;
+        return null;
+    }
+
+    private static bool CompareThingFlag(ThingFlagCompareInfo flag, Thing a, Thing b)
+    {
+        bool aFlag = flag.Invert ? !a.IsFlagSet(flag.Flag) : a.IsFlagSet(flag.Flag);
+        bool bFlag = flag.Invert ? !b.IsFlagSet(flag.Flag) : b.IsFlagSet(flag.Flag);
+        if (!aFlag && !bFlag && flag.IgnoreGroupWhenUnset) return false;
+        return string.Equals(flag.CompareMethod, "equal", StringComparison.OrdinalIgnoreCase)
+            ? aFlag == bFlag
+            : aFlag && bFlag;
     }
 
     // ---- UI helpers ----

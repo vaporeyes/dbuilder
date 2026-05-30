@@ -503,6 +503,71 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void BlockingThingsWithOverlappingFlagsAreFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var first = map.AddThing(new Vector2D(64, 64), 3004);
+        first.Size = 20;
+        first.UdmfFlags.Add("skill1");
+        var second = map.AddThing(new Vector2D(70, 64), 3004);
+        second.Size = 20;
+        second.UdmfFlags.Add("skill1");
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = _ => 2,
+            ThingBlocking = _ => 2,
+            ThingHeight = _ => 56,
+            ThingFlagsOverlap = (a, b) => a.UdmfFlags.Overlaps(b.UdmfFlags),
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
+        Assert.Same(first, issue.Target);
+        Assert.Contains("thing 1", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BlockingThingsWithDifferentFlagsAreNotFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var first = map.AddThing(new Vector2D(64, 64), 3004);
+        first.Size = 20;
+        first.UdmfFlags.Add("skill1");
+        var second = map.AddThing(new Vector2D(70, 64), 3004);
+        second.Size = 20;
+        second.UdmfFlags.Add("skill2");
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = _ => 2,
+            ThingBlocking = _ => 2,
+            ThingHeight = _ => 56,
+            ThingFlagsOverlap = (a, b) => a.UdmfFlags.Overlaps(b.UdmfFlags),
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
+    }
+
+    [Fact]
+    public void TrueHeightBlockingThingsSeparatedByHeightAreNotFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var lower = map.AddThing(new Vector2D(64, 64), 3004);
+        lower.Size = 20;
+        lower.Height = 0;
+        var upper = map.AddThing(new Vector2D(70, 64), 3004);
+        upper.Size = 20;
+        upper.Height = 80;
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = _ => 2,
+            ThingBlocking = _ => 2,
+            ThingHeight = _ => 56,
+            ThingFlagsOverlap = (_, _) => true,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);

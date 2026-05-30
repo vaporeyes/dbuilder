@@ -33,6 +33,7 @@ public enum MapIssueKind
     ObsoleteThingType,
     ThingOutsideMap,
     ThingStuckInLinedef,
+    ThingStuckInThing,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -62,6 +63,10 @@ public sealed class MapCheckContext
     public Func<int, int?>? ThingErrorCheck { get; init; }
     /// <summary>Returns UDB thing blocking mode for a thing type, or null when unavailable.</summary>
     public Func<int, int?>? ThingBlocking { get; init; }
+    /// <summary>Returns UDB thing height for a thing type, or null when unavailable.</summary>
+    public Func<int, int?>? ThingHeight { get; init; }
+    /// <summary>Returns true when two things can appear for overlapping flags, matching UDB thingflagscompare rules.</summary>
+    public Func<Thing, Thing, bool>? ThingFlagsOverlap { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -282,13 +287,15 @@ public static class MapAnalysis
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
-        if (ctx.ThingErrorCheck == null || map.Linedefs.Count == 0) return;
+        if (ctx.ThingErrorCheck == null) return;
 
+        var processedThingPairs = new HashSet<(int, int)>();
         for (int i = 0; i < map.Things.Count; i++)
         {
             var t = map.Things[i];
             int errorCheck = ctx.ThingErrorCheck(t.Type) ?? 0;
             bool stuck = CheckThingStuckInLines(map, ctx, issues, t, i, errorCheck);
+            stuck |= CheckThingStuckInThings(map, ctx, issues, t, i, errorCheck, processedThingPairs);
             if (stuck || errorCheck < 1) continue;
 
             var l = map.NearestLinedef(t.Position);
@@ -333,6 +340,51 @@ public static class MapAnalysis
         }
 
         return stuck;
+    }
+
+    private static bool CheckThingStuckInThings(MapSet map, MapCheckContext ctx, List<MapIssue> issues, Thing thing, int thingIndex, int errorCheck, HashSet<(int, int)> processedPairs)
+    {
+        int blocking = ctx.ThingBlocking?.Invoke(thing.Type) ?? 0;
+        if (errorCheck != 2 || blocking <= 0) return false;
+
+        bool stuck = false;
+        for (int otherIndex = 0; otherIndex < map.Things.Count; otherIndex++)
+        {
+            if (otherIndex == thingIndex) continue;
+            var key = thingIndex < otherIndex ? (thingIndex, otherIndex) : (otherIndex, thingIndex);
+            if (!processedPairs.Add(key)) continue;
+
+            var other = map.Things[otherIndex];
+            if ((ctx.ThingBlocking?.Invoke(other.Type) ?? 0) <= 0) continue;
+            if (ctx.ThingFlagsOverlap != null && !ctx.ThingFlagsOverlap(thing, other)) continue;
+            if (!ThingsOverlap(ctx, thing, other)) continue;
+
+            stuck = true;
+            issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInThing,
+                $"Thing {thingIndex} type {thing.Type} is stuck in thing {otherIndex} type {other.Type}.")
+                { Target = thing, Focus = thing.Position });
+        }
+
+        return stuck;
+    }
+
+    private static bool ThingsOverlap(MapCheckContext ctx, Thing a, Thing b)
+    {
+        double aSize = a.Size - AllowedStuckDistance;
+        double bSize = b.Size - AllowedStuckDistance;
+        if (a.Position.x + aSize < b.Position.x - bSize ||
+            a.Position.x - aSize > b.Position.x + bSize ||
+            a.Position.y - aSize > b.Position.y + bSize ||
+            a.Position.y + aSize < b.Position.y - bSize)
+            return false;
+
+        int aBlocking = ctx.ThingBlocking?.Invoke(a.Type) ?? 0;
+        int bBlocking = ctx.ThingBlocking?.Invoke(b.Type) ?? 0;
+        if (aBlocking == 1 || bBlocking == 1) return true;
+
+        int aHeight = ctx.ThingHeight?.Invoke(a.Type) ?? 0;
+        int bHeight = ctx.ThingHeight?.Invoke(b.Type) ?? 0;
+        return !(a.Height > b.Height + bHeight || a.Height + aHeight < b.Height);
     }
 
     private static bool PointInRect(double left, double right, double top, double bottom, Vector2D p)
