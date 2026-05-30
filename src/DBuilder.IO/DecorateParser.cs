@@ -1518,8 +1518,10 @@ public static class DecorateParser
             && targetActor.StateFrames.TryGetValue(target.StateName, out var frames)
             && target.SpriteOffset < frames.Count)
             return frames[target.SpriteOffset];
+        var chained = ResolveStateGotoSprite(targetActor, target.StateName, byName, seen);
+        if (chained != null) return chained;
         if (targetActor.StateSprites.TryGetValue(target.StateName, out var sprite)) return sprite;
-        return ResolveStateGotoSprite(targetActor, target.StateName, byName, seen);
+        return null;
     }
 
     private static void FilterZScriptActorClasses(List<ActorInfo> actors)

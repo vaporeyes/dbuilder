@@ -867,6 +867,30 @@ ACTOR OffsetGotoThing 8009
     }
 
     [Fact]
+    public void FollowsTargetGotoWhenStateOffsetExceedsFrames()
+    {
+        const string text = @"
+ACTOR ChainedOffsetGotoThing 8013
+{
+    States
+    {
+    Ready:
+        SKIP A -1
+        goto Pickup
+    Pickup:
+        PICK A -1
+    Death:
+        DEAD A -1 stop
+    Spawn:
+        goto Ready+1
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("PICKA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void TrimsEmptyFramesBeforeResolvingGotoSpriteOffset()
     {
         const string text = @"
