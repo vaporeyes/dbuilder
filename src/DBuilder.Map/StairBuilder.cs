@@ -23,4 +23,19 @@ public static class StairBuilder
         }
         return sectors.Count;
     }
+
+    /// <summary>
+    /// Applies UDB-style independent floor and ceiling height steps. Floor heights are always changed; ceiling
+    /// heights are changed only when <paramref name="applyCeiling"/> is true.
+    /// </summary>
+    public static int Apply(IReadOnlyList<Sector> sectors, int startFloor, int floorStep,
+        bool applyCeiling, int startCeiling, int ceilingStep)
+    {
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            sectors[i].FloorHeight = startFloor + i * floorStep;
+            if (applyCeiling) sectors[i].CeilHeight = startCeiling + i * ceilingStep;
+        }
+        return sectors.Count;
+    }
 }

@@ -2367,14 +2367,15 @@ public partial class MainWindow : Window
         var sel = _map.GetSelectedSectors();
         if (sel.Count < 2) { SetStatus("Select 2 or more sectors to build stairs."); return; }
 
-        var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8);
+        var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8, sel[0].CeilHeight, 8);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
         CreateUndo("Build stairs");
-        int n = StairBuilder.Apply(sel, dlg.ResultStart, dlg.ResultStep, dlg.ResultMoveCeiling);
+        int n = StairBuilder.Apply(sel, dlg.ResultFloorStart, dlg.ResultFloorStep,
+            dlg.ResultApplyCeiling, dlg.ResultCeilingStart, dlg.ResultCeilingStep);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Built stairs across {n} sectors (start {dlg.ResultStart}, step {dlg.ResultStep}).");
+        SetStatus($"Built stairs across {n} sectors (start {dlg.ResultFloorStart}, step {dlg.ResultFloorStep}).");
     }
 
     // Traces Doom-style sound propagation from the single selected sector and highlights everything it reaches.

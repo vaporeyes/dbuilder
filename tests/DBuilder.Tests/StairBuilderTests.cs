@@ -60,4 +60,28 @@ public class StairBuilderTests
         Assert.Equal(-8, s[1].FloorHeight);
         Assert.Equal(-16, s[2].FloorHeight);
     }
+
+    [Fact]
+    public void IndependentCeilingStepMatchesUdbHeightModification()
+    {
+        var s = Sectors(3);
+
+        StairBuilder.Apply(s, startFloor: 16, floorStep: 8, applyCeiling: true, startCeiling: 128, ceilingStep: 4);
+
+        Assert.Equal(new[] { 16, 24, 32 }, s.ConvertAll(sector => sector.FloorHeight));
+        Assert.Equal(new[] { 128, 132, 136 }, s.ConvertAll(sector => sector.CeilHeight));
+    }
+
+    [Fact]
+    public void IndependentCeilingStepCanLeaveCeilingsUnchanged()
+    {
+        var s = Sectors(2);
+
+        StairBuilder.Apply(s, startFloor: 32, floorStep: 16, applyCeiling: false, startCeiling: 256, ceilingStep: 32);
+
+        Assert.Equal(32, s[0].FloorHeight);
+        Assert.Equal(48, s[1].FloorHeight);
+        Assert.Equal(128, s[0].CeilHeight);
+        Assert.Equal(128, s[1].CeilHeight);
+    }
 }

@@ -1,4 +1,4 @@
-// ABOUTME: Modal dialog for the stair builder - start floor height, per-step delta, and whether to move ceilings.
+// ABOUTME: Modal dialog for the stair builder - start heights and per-step deltas for floor and ceiling stairs.
 
 using System.Globalization;
 using Avalonia.Controls;
@@ -7,27 +7,33 @@ namespace DBuilder.Editor;
 
 public sealed class StairBuilderDialog : PropertyDialog
 {
-    private readonly TextBox _start, _step;
-    private readonly CheckBox _moveCeiling;
+    private readonly TextBox _floorStart, _floorStep, _ceilingStart, _ceilingStep;
+    private readonly CheckBox _applyCeiling;
 
-    public int ResultStart, ResultStep;
-    public bool ResultMoveCeiling;
+    public int ResultFloorStart, ResultFloorStep, ResultCeilingStart, ResultCeilingStep;
+    public bool ResultApplyCeiling;
 
-    public StairBuilderDialog(int defaultStart, int defaultStep)
+    public StairBuilderDialog(int defaultFloorStart, int defaultFloorStep, int defaultCeilingStart, int defaultCeilingStep)
         : base("Build Stairs", "Floors step up across the selected sectors, in order.")
     {
-        _start = AddField("Start floor height", defaultStart.ToString(CultureInfo.InvariantCulture));
-        _step = AddField("Step (per sector)", defaultStep.ToString(CultureInfo.InvariantCulture));
-        _moveCeiling = AddCheckBox("Move ceilings too (keep headroom)", true);
-        ResultStart = defaultStart;
-        ResultStep = defaultStep;
-        ResultMoveCeiling = true;
+        _floorStart = AddField("Start floor height", defaultFloorStart.ToString(CultureInfo.InvariantCulture));
+        _floorStep = AddField("Floor step", defaultFloorStep.ToString(CultureInfo.InvariantCulture));
+        _applyCeiling = AddCheckBox("Apply ceiling heights", true);
+        _ceilingStart = AddField("Start ceiling height", defaultCeilingStart.ToString(CultureInfo.InvariantCulture));
+        _ceilingStep = AddField("Ceiling step", defaultCeilingStep.ToString(CultureInfo.InvariantCulture));
+        ResultFloorStart = defaultFloorStart;
+        ResultFloorStep = defaultFloorStep;
+        ResultCeilingStart = defaultCeilingStart;
+        ResultCeilingStep = defaultCeilingStep;
+        ResultApplyCeiling = true;
     }
 
     protected override void OnConfirm()
     {
-        ResultStart = ParseInt(_start, 0);
-        ResultStep = ParseInt(_step, 8);
-        ResultMoveCeiling = _moveCeiling.IsChecked == true;
+        ResultFloorStart = ParseInt(_floorStart, 0);
+        ResultFloorStep = ParseInt(_floorStep, 8);
+        ResultApplyCeiling = _applyCeiling.IsChecked == true;
+        ResultCeilingStart = ParseInt(_ceilingStart, 128);
+        ResultCeilingStep = ParseInt(_ceilingStep, ResultFloorStep);
     }
 }
