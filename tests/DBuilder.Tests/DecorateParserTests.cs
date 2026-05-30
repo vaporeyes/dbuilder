@@ -1070,6 +1070,26 @@ ACTOR NonThingTagArgThing 31008
     }
 
     [Fact]
+    public void MergeActorsFallsBackUnknownArgumentTypesToInteger()
+    {
+        const string text = @"
+ACTOR UnknownArgTypeThing 31009
+{
+    $Arg0 ""Unknown""
+    $Arg0Type 999
+    Radius 24
+    Height 48
+    States { Spawn: UARG A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31009);
+        Assert.NotNull(info);
+        Assert.Equal(0, info!.Args[0].Type);
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"

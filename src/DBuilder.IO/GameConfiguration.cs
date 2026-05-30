@@ -996,6 +996,7 @@ public sealed class GameConfiguration
             if (!TryActorProperty(actor, prefix, out string title)) continue;
             args ??= new ArgInfo[5];
             int type = ActorPropertyInt(actor, prefix + "type");
+            if (!Enum.IsDefined(typeof(UniversalType), type)) type = 0;
             args[i] = new ArgInfo
             {
                 Title = title,
