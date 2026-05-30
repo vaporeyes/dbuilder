@@ -181,6 +181,7 @@ public static class TexturesParser
 
         var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
         if (i >= t.Count || t[i] != "{") return null;
+        bool invalid = false;
 
         if (i < t.Count && t[i] == "{")
         {
@@ -190,8 +191,16 @@ public static class TexturesParser
                 string kw = t[i++].Text.ToLowerInvariant();
                 switch (kw)
                 {
-                    case "xscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sx)) def.ScaleX = NormalizeScale(sx); break;
-                    case "yscale": SkipCommas(t, ref i); if (ReadDouble(t, ref i, out double sy)) def.ScaleY = NormalizeScale(sy); break;
+                    case "xscale":
+                        SkipCommas(t, ref i);
+                        if (ReadDouble(t, ref i, out double sx)) def.ScaleX = NormalizeScale(sx);
+                        else invalid = true;
+                        break;
+                    case "yscale":
+                        SkipCommas(t, ref i);
+                        if (ReadDouble(t, ref i, out double sy)) def.ScaleY = NormalizeScale(sy);
+                        else invalid = true;
+                        break;
                     case "worldpanning": def.WorldPanning = true; break;
                     case "nulltexture": def.NullTexture = true; break;
                     case "offset":
@@ -204,7 +213,7 @@ public static class TexturesParser
             }
             if (i < t.Count) i++; // }
         }
-        return def;
+        return invalid ? null : def;
     }
 
     private static double NormalizeScale(double value) => value == 0.0 ? 1.0 : 1.0 / value;

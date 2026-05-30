@@ -179,6 +179,21 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsDefinitionsWithNonNumericScale()
+    {
+        const string text = @"
+Texture BADX, 8, 8 { XScale bogus Patch P, 0, 0 }
+Texture BADY, 8, 8 { YScale bogus Patch P, 0, 0 }
+Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Patch P, 0, 0 }";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal("OK", def.Name);
+        Assert.Equal(0.5, def.ScaleX, 6);
+        Assert.Equal(2.0, def.ScaleY, 6);
+    }
+
+    [Fact]
     public void RequiresCommasInDefinitionSize()
     {
         const string text = @"
