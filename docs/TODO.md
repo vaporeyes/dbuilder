@@ -392,6 +392,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
   - [x] Parse quoted DECORATE state sprite and frame tokens.
   - [x] Stop ZScript frame `Light()` scans at semicolon boundaries.
+  - [x] Avoid inheriting non-Spawn state sprites from root `Actor`.
 - [ ] Port category and DoomEdNum merging behavior fully.
   - [x] Use DECORATE `#region` titles as default actor categories.
   - [x] Split DECORATE `#region` category paths on separators.

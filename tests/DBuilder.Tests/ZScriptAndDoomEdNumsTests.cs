@@ -266,6 +266,21 @@ class RealActor : Actor
     }
 
     [Fact]
+    public void ChildDoesNotInheritNonSpawnStateSpriteFromRootActor()
+    {
+        const string text = @"
+class Actor
+{
+    States { See: POL5 A -1; stop; }
+}
+class DerivedActor : Actor { }";
+
+        var actor = ZScriptParser.Parse(text).Single(a => a.ClassName == "DerivedActor");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesMapInfoDoomEdNums()
     {
         const string text = @"

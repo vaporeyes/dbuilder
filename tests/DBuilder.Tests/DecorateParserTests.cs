@@ -349,6 +349,20 @@ ACTOR Derived : Base 7001 { }";
     }
 
     [Fact]
+    public void ChildDoesNotInheritNonSpawnStateSpriteFromRootActor()
+    {
+        const string text = @"
+ACTOR Actor
+{
+    States { See: POL5 A -1 stop }
+}
+ACTOR Derived : Actor 7014 { }";
+        var derived = DecorateParser.Parse(text).First(x => x.ClassName == "Derived");
+
+        Assert.Null(derived.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesFlagsAndProperties()
     {
         const string text = @"

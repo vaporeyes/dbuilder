@@ -1083,8 +1083,13 @@ public static class DecorateParser
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { a.ClassName };
             while (p != null && byName.TryGetValue(p, out var parent) && seen.Add(p))
             {
-                a.Sprite ??= parent.Sprite;
-                a.LightName ??= parent.LightName;
+                var parentSprite = RootActorStateSprite(parent)
+                    ?? new StateSpriteCandidate(parent.Sprite ?? "", parent.Sprite == null || IsEmptySprite(parent.Sprite), parent.LightName);
+                if (!parentSprite.IsEmpty)
+                {
+                    a.Sprite ??= parentSprite.Name;
+                    a.LightName ??= parentSprite.LightName;
+                }
                 if (a.Radius == 0) a.Radius = parent.Radius;
                 if (a.Height == 0) a.Height = parent.Height;
                 foreach (var kvp in parent.Flags)
@@ -1119,6 +1124,12 @@ public static class DecorateParser
         return null;
     }
 
+    private static StateSpriteCandidate? RootActorStateSprite(ActorInfo actor)
+    {
+        if (!actor.ClassName.Equals("Actor", StringComparison.OrdinalIgnoreCase)) return null;
+        return actor.StateSprites.TryGetValue("spawn", out var sprite) ? sprite : new StateSpriteCandidate("", true, null);
+    }
+
     private static bool HasNonEmptyRelevantStateSprite(ActorInfo actor)
     {
         foreach (string state in SpriteCheckStates)
@@ -1146,6 +1157,10 @@ public static class DecorateParser
                 : target.ClassName;
             if (className == null || !byName.TryGetValue(className, out targetActor)) return null;
         }
+
+        if (targetActor.ClassName.Equals("Actor", StringComparison.OrdinalIgnoreCase)
+            && !target.StateName.Equals("spawn", StringComparison.OrdinalIgnoreCase))
+            return null;
 
         if (target.SpriteOffset >= 0
             && targetActor.StateFrames.TryGetValue(target.StateName, out var frames)
