@@ -227,6 +227,12 @@ public static class DecorateParser
             {
                 SkipDeclaration(toks, ref i);
             }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
+                && toks[i].Text.StartsWith("#", StringComparison.Ordinal))
+            {
+                break;
+            }
             else i++;
         }
         ApplyMixins(actors, mixins);

@@ -1233,4 +1233,19 @@ class IncludedBase : Actor
 
         Assert.Empty(actors);
     }
+
+    [Fact]
+    public void UnknownTopLevelPreprocessorDirectiveStopsZScriptParsing()
+    {
+        const string text = @"
+#library ""helpers""
+class AfterUnknownDirective : Actor
+{
+    Default { Radius 8; }
+}";
+
+        var actors = ZScriptParser.Parse(text);
+
+        Assert.Empty(actors);
+    }
 }
