@@ -1,0 +1,80 @@
+# DBuilder
+
+DBuilder is a modern .NET port of Ultimate Doom Builder focused on cross-platform editor parity. The current application is an Avalonia editor shell with WAD, PK3, map IO, resource loading, game configuration parsing, 2D editing workflows, early 3D support, and focused parser/runtime coverage for UDB behavior.
+
+![DBuilder loaded map editor](assets/open-wad.png)
+
+## Current State
+
+This repository is an active port, not a finished replacement for Ultimate Doom Builder. The codebase is kept working after each slice while parity is built up incrementally.
+
+The authoritative trackers are:
+
+- [docs/TODO.md](docs/TODO.md): remaining work and completed parity slices.
+- [docs/PARITY_MATRIX.md](docs/PARITY_MATRIX.md): current DBuilder coverage by UDB source area.
+- [docs/PHASED_PLAN.md](docs/PHASED_PLAN.md): sequencing plan for the port.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
+- [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
+
+When visible editor behavior changes, update these README screenshots alongside `docs/TODO.md` so the repo baseline stays current.
+
+## Screenshots
+
+Loaded WAD and MAP01:
+
+![Loaded WAD in DBuilder](assets/open-wad.png)
+
+Empty editor shell:
+
+![DBuilder empty editor](assets/main.png)
+
+## Requirements
+
+- .NET 8 target framework.
+- A recent .NET SDK. The current local baseline uses .NET SDK 10.0.107.
+- Ultimate Doom Builder checked out locally at `~/dev/repos/UltimateDoomBuilder` for parity comparison and bundled configuration assets.
+
+## Build And Verify
+
+Use the repository verification script before committing parity work:
+
+```bash
+bash scripts/verify.sh
+```
+
+For a narrower editor build:
+
+```bash
+dotnet build src/DBuilder.Editor/DBuilder.Editor.csproj
+```
+
+Run the editor:
+
+```bash
+dotnet run --project src/DBuilder.Editor/DBuilder.Editor.csproj
+```
+
+## Development Workflow
+
+Work in small UDB-backed slices:
+
+1. Pick the next viable item from [docs/TODO.md](docs/TODO.md).
+2. Compare the relevant behavior against the local UDB clone.
+3. Add focused tests for the behavior.
+4. Implement the narrowest matching change.
+5. Run focused tests and `bash scripts/verify.sh`.
+6. Update [docs/TODO.md](docs/TODO.md) and related docs.
+7. Commit the verified slice.
+
+Avoid unrelated refactors during parity slices. If a gap is discovered but is not part of the current slice, record it in the TODO or parity docs instead of folding it into the active change.
+
+## Project Layout
+
+- `src/DBuilder.Editor`: Avalonia editor shell and UI workflows.
+- `src/DBuilder.IO`: WAD, PK3, map IO, resources, game configuration, and ZDoom data parsers.
+- `src/DBuilder.Map`: map model, editing helpers, selection, querying, and geometry-adjacent map behavior.
+- `src/DBuilder.Geometry`: shared geometry primitives and helpers.
+- `src/DBuilder.Rendering`: Silk.NET rendering support.
+- `tests/DBuilder.Tests`: regression suite for ported behavior.
+- `docs`: parity plans, architecture notes, and update policy.
+- `assets`: README screenshots and visual repo assets.
