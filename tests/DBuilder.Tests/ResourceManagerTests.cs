@@ -193,6 +193,31 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadConfiguredTextureRangesProvideWallTextures()
+    {
+        var config = GameConfiguration.FromText("""
+            textures
+            {
+                walls { start = "TX_START"; end = "TX_END"; }
+            }
+            """);
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("TX_START", Array.Empty<byte>()),
+            ("TXPIC", DoomPatch(70)),
+            ("TX_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Null(rm.GetWallTexture("TXPIC"));
+
+        rm.Configuration = config;
+
+        Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("TXPIC")!.Rgba[0..4]);
+        Assert.Contains("TXPIC", rm.GetTextureNames());
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));

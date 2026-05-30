@@ -306,6 +306,7 @@ public partial class MainWindow : Window
     private void ApplyResourceConfig()
     {
         if (_resources is null) return;
+        _resources.Configuration = _config;
         _resources.MixTexturesFlats = _config?.MixTexturesFlats ?? false;
         MapView.MapResources = _resources;
     }
@@ -1837,7 +1838,7 @@ public partial class MainWindow : Window
             _mapSettings = null;
 
             _resources?.Dispose();
-            _resources = new ResourceManager();
+            _resources = new ResourceManager(_config);
             _resources.AddResource(path);
             ApplyResourceConfig();
             MergeActorsFromResources();
@@ -2005,7 +2006,7 @@ public partial class MainWindow : Window
     private int RebuildWadResources(string wadPath, MapOptions options)
     {
         _resources?.Dispose();
-        _resources = new ResourceManager();
+        _resources = new ResourceManager(_config);
         _resources.AddResource(wadPath);
 
         int failures = 0;

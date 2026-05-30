@@ -66,10 +66,17 @@ internal sealed class WadResourceReader : IResourceReader
     private readonly WAD wad;
     private readonly bool owns;
     private readonly bool strictPatches;
+    private readonly Func<GameConfiguration?> configProvider;
     private Dictionary<string, DoomTextureDef>? texDefs;
     private DoomPatchNames? patchNames;
 
-    public WadResourceReader(WAD wad, bool owns, bool strictPatches = false) { this.wad = wad; this.owns = owns; this.strictPatches = strictPatches; }
+    public WadResourceReader(WAD wad, bool owns, bool strictPatches = false, Func<GameConfiguration?>? configProvider = null)
+    {
+        this.wad = wad;
+        this.owns = owns;
+        this.strictPatches = strictPatches;
+        this.configProvider = configProvider ?? (() => null);
+    }
 
     public string DisplayName => string.IsNullOrEmpty(wad.Filename) ? "WAD resource" : Path.GetFileName(wad.Filename);
 
@@ -86,7 +93,7 @@ internal sealed class WadResourceReader : IResourceReader
     {
         if (palette == null) return null;
         var defs = TexDefs();
-        if (!defs.TryGetValue(name, out var def)) return null;
+        if (!defs.TryGetValue(name, out var def)) return GetTextureRangeImage(name, palette);
         byte[]? rgba = DoomWallTextureCompositor.Compose(def, PatchNames(), wad, palette, FindPatchLump);
         return rgba != null ? new ImageData(def.Width, def.Height, rgba) : null;
     }
@@ -145,6 +152,54 @@ internal sealed class WadResourceReader : IResourceReader
         return texDefs;
     }
 
+    private ImageData? GetTextureRangeImage(string name, DoomPalette palette)
+    {
+        var lump = FindInRanges(name, ConfiguredTextureRanges());
+        if (lump == null) return null;
+
+        var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
+        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
+    }
+
+    private Lump? FindInRanges(string name, IReadOnlyList<ResourceRangeInfo> ranges)
+    {
+        if (ranges.Count == 0) return null;
+        foreach (var range in ranges)
+        {
+            int start = wad.FindLumpIndex(range.Start);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(range.End, start + 1);
+                if (end < 0) break;
+                var lump = wad.FindLump(name, start, end);
+                if (lump != null) return lump;
+                start = wad.FindLumpIndex(range.Start, end + 1);
+            }
+        }
+
+        return null;
+    }
+
+    private IEnumerable<string> NamesInRanges(IReadOnlyList<ResourceRangeInfo> ranges)
+    {
+        foreach (var range in ranges)
+        {
+            int start = wad.FindLumpIndex(range.Start);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(range.End, start + 1);
+                if (end < 0) break;
+                for (int i = start + 1; i < end; i++)
+                    if (wad.Lumps[i].Length > 0)
+                        yield return wad.Lumps[i].Name;
+                start = wad.FindLumpIndex(range.Start, end + 1);
+            }
+        }
+    }
+
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredTextureRanges()
+        => configProvider()?.TextureRanges ?? Array.Empty<ResourceRangeInfo>();
+
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
     public string? GetTextLump(string name)
@@ -173,7 +228,11 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> ColormapNames() => Array.Empty<string>();
 
-    public IEnumerable<string> TextureNames() => TexDefs().Keys;
+    public IEnumerable<string> TextureNames()
+    {
+        foreach (var name in TexDefs().Keys) yield return name;
+        foreach (var name in NamesInRanges(ConfiguredTextureRanges())) yield return name;
+    }
 
     public IEnumerable<string> FlatNames()
     {
@@ -252,16 +311,18 @@ internal abstract class FolderResourceReader : IResourceReader
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Func<byte[]>> files = new(StringComparer.OrdinalIgnoreCase);
     protected readonly List<IResourceReader> nestedReaders = new();
+    protected readonly Func<GameConfiguration?> configProvider;
     private Dictionary<string, DoomTextureDef>? classicTextureDefs;
     private DoomPatchNames? classicPatchNames;
     private readonly bool rootTextures;
     private readonly bool rootFlats;
 
-    protected FolderResourceReader(string displayName, bool rootTextures = false, bool rootFlats = false)
+    protected FolderResourceReader(string displayName, bool rootTextures = false, bool rootFlats = false, Func<GameConfiguration?>? configProvider = null)
     {
         DisplayName = displayName;
         this.rootTextures = rootTextures;
         this.rootFlats = rootFlats;
+        this.configProvider = configProvider ?? (() => null);
     }
 
     public string DisplayName { get; }
@@ -701,8 +762,8 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     private readonly Stream? ownedStream;
     private readonly List<MemoryStream> nestedStreams = new();
 
-    public Pk3ResourceReader(Stream zipStream, bool ownsStream, string displayName = "PK3 resource", bool rootTextures = false, bool rootFlats = false)
-        : base(displayName, rootTextures, rootFlats)
+    public Pk3ResourceReader(Stream zipStream, bool ownsStream, string displayName = "PK3 resource", bool rootTextures = false, bool rootFlats = false, Func<GameConfiguration?>? configProvider = null)
+        : base(displayName, rootTextures, rootFlats, configProvider)
     {
         ownedStream = ownsStream ? zipStream : null;
         zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
@@ -725,7 +786,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 s.CopyTo(ms);
                 ms.Position = 0;
                 nestedStreams.Add(ms);
-                nestedReaders.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true));
+                nestedReaders.Add(new WadResourceReader(new WAD(ms, openreadonly: true, virtualFilename: e.FullName), owns: true, configProvider: this.configProvider));
             }
             else if (ArchivePath.IsPk3FamilyPath(e.FullName))
             {
@@ -734,7 +795,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 s.CopyTo(ms);
                 ms.Position = 0;
                 nestedStreams.Add(ms);
-                nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false, displayName: e.FullName));
+                nestedReaders.Add(new Pk3ResourceReader(ms, ownsStream: false, displayName: e.FullName, configProvider: this.configProvider));
             }
         }
     }
@@ -750,14 +811,14 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 
 internal sealed class DirectoryResourceReader : FolderResourceReader
 {
-    public DirectoryResourceReader(string root) : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)))
+    public DirectoryResourceReader(string root, Func<GameConfiguration?>? configProvider = null) : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)), configProvider: configProvider)
     {
         foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
         {
             string rel = Path.GetRelativePath(root, path);
             string p = path;
             if (IsRootWad(rel))
-                nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true));
+                nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: this.configProvider));
             AddEntry(rel, () => File.ReadAllBytes(p));
         }
     }

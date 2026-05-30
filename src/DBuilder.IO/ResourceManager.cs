@@ -116,6 +116,7 @@ public sealed class ResourceTextureSetInfo
 public sealed class ResourceManager : IDisposable
 {
     private readonly List<IResourceReader> readers = new();
+    private GameConfiguration? configuration;
 
     private DoomPalette? palette;
     private bool paletteResolved;
@@ -158,6 +159,22 @@ public sealed class ResourceManager : IDisposable
     private bool switchesBuilt;
     private bool mixTexturesFlats;
 
+    public ResourceManager(GameConfiguration? configuration = null)
+    {
+        this.configuration = configuration;
+    }
+
+    public GameConfiguration? Configuration
+    {
+        get => configuration;
+        set
+        {
+            if (ReferenceEquals(configuration, value)) return;
+            configuration = value;
+            Invalidate();
+        }
+    }
+
     public bool MixTexturesFlats
     {
         get => mixTexturesFlats;
@@ -172,7 +189,7 @@ public sealed class ResourceManager : IDisposable
     }
 
     /// <summary>Adds a caller-owned WAD as a resource (highest priority = added last).</summary>
-    public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false)); Invalidate(); }
+    public void AddResource(WAD wad) { readers.Add(new WadResourceReader(wad, owns: false, configProvider: CurrentConfiguration)); Invalidate(); }
 
     /// <summary>Opens a WAD or PK3 (zip) file read-only and adds it as a resource (highest priority); the manager disposes it.</summary>
     public void AddResource(string path) => Add(path, asBase: false);
@@ -189,9 +206,9 @@ public sealed class ResourceManager : IDisposable
     private void Add(string path, bool asBase)
     {
         IResourceReader reader =
-            Directory.Exists(path) ? new DirectoryResourceReader(path)
-            : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: Path.GetFileName(path))
-            : new WadResourceReader(new WAD(path, openreadonly: true), owns: true);
+            Directory.Exists(path) ? new DirectoryResourceReader(path, CurrentConfiguration)
+            : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: Path.GetFileName(path), configProvider: CurrentConfiguration)
+            : new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: CurrentConfiguration);
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();
     }
@@ -200,18 +217,21 @@ public sealed class ResourceManager : IDisposable
     {
         IResourceReader reader = location.Type switch
         {
-            DataLocationType.Directory => new DirectoryResourceReader(location.Location),
+            DataLocationType.Directory => new DirectoryResourceReader(location.Location, CurrentConfiguration),
             DataLocationType.Pk3 => new Pk3ResourceReader(
                 File.OpenRead(location.Location),
                 ownsStream: true,
                 displayName: location.GetDisplayName(),
                 rootTextures: location.Option1,
-                rootFlats: location.Option2),
-            _ => new WadResourceReader(new WAD(location.Location, openreadonly: true), owns: true, strictPatches: location.Option1),
+                rootFlats: location.Option2,
+                configProvider: CurrentConfiguration),
+            _ => new WadResourceReader(new WAD(location.Location, openreadonly: true), owns: true, strictPatches: location.Option1, configProvider: CurrentConfiguration),
         };
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
         Invalidate();
     }
+
+    private GameConfiguration? CurrentConfiguration() => configuration;
 
     // Resource set changed: drop cached lookups, definitions and the palette (a newly added IWAD may provide them).
     private void Invalidate()
