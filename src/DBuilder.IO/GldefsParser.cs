@@ -209,7 +209,8 @@ public static class GldefsParser
                 }
                 else if (p == "chance")
                 {
-                    light.Chance = ReadFloat(t, ref i);
+                    if (!TryReadFloat(t, ref i, out float chance)) { invalid = true; continue; }
+                    light.Chance = chance;
                     if (!type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase) || light.Chance is < 0.0f or > 1.0f) invalid = true;
                     else light.Interval = (int)(light.Chance * 359.0f);
                 }

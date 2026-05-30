@@ -121,6 +121,19 @@ sectorlight SECTOR { color 0.1 0.1 0.1 scale 0.5 }";
     }
 
     [Fact]
+    public void SkipsFlickerLightsWithNonNumericChance()
+    {
+        const string text = @"
+flickerlight BAD { color 0.1 0.1 0.1 size 16 chance bogus }
+flickerlight GOOD { color 0.1 0.2 0.3 size 16 chance 0.5 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BAD"));
+        Assert.True(g.Lights.ContainsKey("GOOD"));
+    }
+
+    [Fact]
     public void ParsesGlow()
     {
         const string text = @"
