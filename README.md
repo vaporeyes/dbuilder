@@ -1,6 +1,6 @@
 # DBuilder
 
-DBuilder is a modern .NET port of Ultimate Doom Builder focused on cross-platform editor parity. The current application is an Avalonia editor shell with WAD, PK3, map IO, resource loading, game configuration parsing, 2D editing workflows, early 3D support, and focused parser/runtime coverage for UDB behavior.
+DBuilder is a modern .NET port of Ultimate Doom Builder focused on cross-platform editor parity. The current application is an Avalonia editor shell with WAD and PK3 loading, map IO, resource loading, game configuration parsing, 2D editing workflows, early 3D support, and focused parser and runtime coverage for UDB behavior.
 
 ![DBuilder loaded map editor](assets/open-wad.png)
 
@@ -16,15 +16,17 @@ The authoritative trackers are:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
 - [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
 
-When visible editor behavior changes, update these README screenshots alongside `docs/TODO.md` so the repo baseline stays current.
+When visible editor behavior changes, replace the screenshots in `assets` and update this README alongside `docs/TODO.md` so the repo baseline stays current.
 
 ## Screenshots
 
-Loaded WAD and MAP01:
+The README screenshots live in `assets` so they can be reviewed and replaced without changing the docs structure.
+
+### Loaded Map
 
 ![Loaded WAD in DBuilder](assets/open-wad.png)
 
-Empty editor shell:
+### Empty Editor
 
 ![DBuilder empty editor](assets/main.png)
 
