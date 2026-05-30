@@ -392,6 +392,39 @@ class ZeroScaleZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        9055
+        {
+            title = ""Glow ZThing"";
+            class = ""GlowZThing"";
+            renderstyle = ""add"";
+        }
+    }
+}";
+        const string zscript = @"
+class GlowZThing : Actor
+{
+    Default { RenderStyle Translucent; $IgnoreRenderStyle true; }
+    States { Spawn: GLOW A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9055 = GlowZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9055);
+        Assert.NotNull(info);
+        Assert.Equal("add", info!.RenderStyle);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

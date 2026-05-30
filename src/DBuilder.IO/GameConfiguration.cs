@@ -775,7 +775,7 @@ public sealed class GameConfiguration
 
     private static string ActorRenderStyle(ActorInfo actor, ThingTypeInfo? existing)
         => actor.Properties.ContainsKey("$ignorerenderstyle")
-            ? "normal"
+            ? existing?.RenderStyle ?? "normal"
             : TryActorProperty(actor, "renderstyle", out string? style) ? style.ToLowerInvariant() : existing?.RenderStyle ?? "normal";
 
     private static double ActorSpriteScale(ActorInfo actor, ThingTypeInfo? existing)

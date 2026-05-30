@@ -1052,6 +1052,38 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        31004
+        {
+            title = ""Glow Thing"";
+            class = ""GlowThing"";
+            renderstyle = ""add"";
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR GlowThing 31004
+{
+    RenderStyle Translucent
+    $IgnoreRenderStyle true
+    States { Spawn: GLOW A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31004);
+        Assert.NotNull(info);
+        Assert.Equal("add", info!.RenderStyle);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"
