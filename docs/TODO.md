@@ -388,6 +388,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize zero actor sprite scales to UDB's default scale.
   - [x] Apply UDB thing catalog safety for fixed-size radii and absolute-Z hanging things.
   - [x] Honor `$IgnoreRenderStyle` by preserving inherited render style.
+  - [x] Preserve `$Obsolete` actor metadata and red catalog color.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.

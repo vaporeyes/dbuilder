@@ -102,6 +102,8 @@ public sealed class ThingTypeInfo
     public int ThingLink { get; init; }
     public bool Optional { get; init; }
     public bool IsKnown { get; init; } = true;
+    public bool IsObsolete { get; init; }
+    public string ObsoleteMessage { get; init; } = "";
     public bool IsNull => Index == 0;
     public IReadOnlyList<string> AddUniversalFields { get; init; } = Array.Empty<string>();
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
@@ -688,6 +690,7 @@ public sealed class GameConfiguration
         bool fixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? fallback?.FixedSize ?? false;
         bool absoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false;
         bool hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : SafeThingHangs(fallback?.Hangs ?? false, absoluteZ);
+        bool isObsolete = TryActorProperty(actor, "$obsolete", out string obsoleteMessage);
         return new ThingTypeInfo
         {
             Index = index,
@@ -701,7 +704,7 @@ public sealed class GameConfiguration
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
             SpriteScale = ActorSpriteScale(actor, fallback),
-            Color = ActorColor(actor, fallback),
+            Color = isObsolete ? 4 : ActorColor(actor, fallback),
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
                 ? ActorArrow(actor)
                 : ActorRegionPropertyBoolish(actor, "$arrow") ?? fallback?.Arrow ?? false,
@@ -715,6 +718,8 @@ public sealed class GameConfiguration
             ThingLink = existing?.ThingLink ?? 0,
             Optional = existing?.Optional ?? false,
             IsKnown = existing?.IsKnown ?? true,
+            IsObsolete = isObsolete || fallback?.IsObsolete == true,
+            ObsoleteMessage = isObsolete ? obsoleteMessage : fallback?.ObsoleteMessage ?? "",
             AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
             Args = ActorArgs(actor, fallback?.Args),
         };
@@ -745,6 +750,8 @@ public sealed class GameConfiguration
         ThingLink = source.ThingLink,
         Optional = source.Optional,
         IsKnown = source.IsKnown,
+        IsObsolete = source.IsObsolete,
+        ObsoleteMessage = source.ObsoleteMessage,
         AddUniversalFields = source.AddUniversalFields,
         Args = source.Args,
     };
@@ -958,6 +965,8 @@ public sealed class GameConfiguration
                 ThingLink = existing?.ThingLink ?? 0,
                 Optional = existing?.Optional ?? false,
                 IsKnown = existing?.IsKnown ?? true,
+                IsObsolete = existing?.IsObsolete ?? false,
+                ObsoleteMessage = existing?.ObsoleteMessage ?? "",
                 AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
                 Args = existing?.Args ?? System.Array.Empty<ArgInfo>(),
             };
@@ -1005,6 +1014,8 @@ public sealed class GameConfiguration
         ThingLink = info.ThingLink,
         Optional = info.Optional,
         IsKnown = info.IsKnown,
+        IsObsolete = info.IsObsolete,
+        ObsoleteMessage = info.ObsoleteMessage,
         AddUniversalFields = info.AddUniversalFields,
         Color = info.Color,
         Args = info.Args,

@@ -1084,6 +1084,28 @@ ACTOR GlowThing 31004
     }
 
     [Fact]
+    public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
+    {
+        const string text = @"
+ACTOR ObsoleteThing 31007
+{
+    $Color 7
+    $Obsolete ""Use ReplacementThing instead""
+    Radius 24
+    Height 48
+    States { Spawn: OBSO A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31007);
+        Assert.NotNull(info);
+        Assert.True(info!.IsObsolete);
+        Assert.Equal("Use ReplacementThing instead", info.ObsoleteMessage);
+        Assert.Equal(4, info.Color);
+    }
+
+    [Fact]
     public void MergeActorsInheritsConfiguredParentThingDefaults()
     {
         const string cfg = @"
