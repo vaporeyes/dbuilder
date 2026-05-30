@@ -216,7 +216,8 @@ public static class GldefsParser
                 }
                 else if (p == "scale")
                 {
-                    light.Scale = ReadFloat(t, ref i);
+                    if (!TryReadFloat(t, ref i, out float scale)) { invalid = true; continue; }
+                    light.Scale = scale;
                     if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) invalid = true;
                     else light.Interval = (int)(light.Scale * 10.0f);
                 }

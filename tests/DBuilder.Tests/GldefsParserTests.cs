@@ -134,6 +134,19 @@ flickerlight GOOD { color 0.1 0.2 0.3 size 16 chance 0.5 }";
     }
 
     [Fact]
+    public void SkipsSectorLightsWithNonNumericScale()
+    {
+        const string text = @"
+sectorlight BAD { color 0.1 0.1 0.1 scale bogus }
+sectorlight GOOD { color 0.1 0.2 0.3 scale 0.5 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BAD"));
+        Assert.True(g.Lights.ContainsKey("GOOD"));
+    }
+
+    [Fact]
     public void ParsesGlow()
     {
         const string text = @"
