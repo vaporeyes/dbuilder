@@ -394,6 +394,21 @@ object TorchActor
     }
 
     [Fact]
+    public void SkipsObjectsWithEmptyClassNames()
+    {
+        const string text = @"
+pointlight FIRST { color 1 0 0 size 16 }
+object """" { frame TESTA { light FIRST } }
+object NamedActor { frame NAMEA { light FIRST } }";
+
+        var g = GldefsParser.Parse(text);
+
+        var obj = Assert.Single(g.Objects);
+        Assert.Equal("NamedActor", obj.ClassName);
+        Assert.Null(g.ActorLightColor(""));
+    }
+
+    [Fact]
     public void ObjectFindsFirstRelevantFrameLightAcrossNestedBody()
     {
         const string text = @"

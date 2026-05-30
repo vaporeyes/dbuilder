@@ -283,6 +283,11 @@ public static class GldefsParser
         i++; // object
         if (i >= t.Count) return;
         var obj = new GldefsObject { ClassName = t[i++] };
+        if (string.IsNullOrEmpty(obj.ClassName))
+        {
+            if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
+            return;
+        }
         bool foundLight = false;
         if (i < t.Count && t[i] == "{")
         {
