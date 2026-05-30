@@ -436,6 +436,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse and normalize base game settings.
   - [x] Parse make-door defaults and default thing flags.
   - [x] Parse thing type flag rename metadata.
+  - [x] Parse inline argument enum and flag metadata.
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.
 - [x] Port configuration inheritance and includes.

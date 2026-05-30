@@ -51,6 +51,20 @@ linedeftypes
                 str = true;
                 titlestr = ""Speed Name"";
             }
+            arg2
+            {
+                title = ""Inline Mode"";
+                enum
+                {
+                    0 = ""Off"";
+                    1 = ""On"";
+                }
+                flags
+                {
+                    1 = ""North"";
+                    2 = ""South"";
+                }
+            }
         }
     }
 }
@@ -105,7 +119,8 @@ thingtypes
         Assert.Equal(256, a.Args[1].MaxRange);
         Assert.True(a.Args[1].Str);
         Assert.Equal("Speed Name", a.Args[1].TitleStr);
-        Assert.False(a.Args[2].Used); // unused slot
+        Assert.Equal("Inline Mode", a.Args[2].Title);
+        Assert.False(a.Args[3].Used); // unused slot
     }
 
     [Fact]
@@ -134,6 +149,29 @@ thingtypes
         var list = gc.GetArgFlagsList(arg);
         Assert.NotNull(list);
         Assert.Equal("Silent", list!.GetByEnumIndex("1")!.Title);
+    }
+
+    [Fact]
+    public void ResolvesInlineArgEnumAndFlags()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var arg = gc.GetLinedefAction(2)!.Args[2];
+
+        var enumMap = gc.GetArgEnum(arg);
+        Assert.NotNull(enumMap);
+        Assert.Equal("On", enumMap![1]);
+
+        var enumList = gc.GetArgEnumList(arg);
+        Assert.NotNull(enumList);
+        Assert.Equal("Off", enumList!.GetByEnumIndex("0")!.Title);
+
+        var flagsMap = gc.GetArgFlags(arg);
+        Assert.NotNull(flagsMap);
+        Assert.Equal("South", flagsMap![2]);
+
+        var flagsList = gc.GetArgFlagsList(arg);
+        Assert.NotNull(flagsList);
+        Assert.Equal("North", flagsList!.GetByEnumIndex("1")!.Title);
     }
 
     [Fact]

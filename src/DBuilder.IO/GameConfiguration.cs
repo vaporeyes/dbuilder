@@ -31,6 +31,8 @@ public sealed class ArgInfo
     public int Type { get; init; }
     public string? Enum { get; init; }
     public string? Flags { get; init; }
+    public IReadOnlyList<EnumItemInfo> InlineEnumItems { get; init; } = Array.Empty<EnumItemInfo>();
+    public IReadOnlyList<EnumItemInfo> InlineFlagsItems { get; init; } = Array.Empty<EnumItemInfo>();
     public int Default { get; init; }
     public object DefaultValue { get; init; } = 0;
     public IReadOnlySet<string> TargetClasses { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -1451,8 +1453,10 @@ public sealed class GameConfiguration
                 Title = title,
                 ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
                 Type = GetInt(ad, "type", 0),
-                Enum = ad["enum"] as string,
-                Flags = ad["flags"] as string,
+                Enum = ad["enum"] is string enumName ? enumName : null,
+                Flags = ad["flags"] is string flagsName ? flagsName : null,
+                InlineEnumItems = ad["enum"] is IDictionary inlineEnum ? ParseInlineEnum(inlineEnum) : Array.Empty<EnumItemInfo>(),
+                InlineFlagsItems = ad["flags"] is IDictionary inlineFlags ? ParseInlineEnum(inlineFlags) : Array.Empty<EnumItemInfo>(),
                 Default = GetInt(ad, "default", 0),
                 DefaultValue = ad["default"] ?? 0,
                 TargetClasses = ParseTargetClasses(GetString(ad, "targetclasses", "")),
@@ -1508,17 +1512,37 @@ public sealed class GameConfiguration
 
     /// <summary>The string value/title list for an arg's enum, or null when the arg has none.</summary>
     public EnumListInfo? GetArgEnumList(ArgInfo arg)
-        => arg.Enum != null ? GetEnumList(arg.Enum) : null;
+        => arg.InlineEnumItems.Count > 0 ? CreateInlineEnumList("arg.enum", arg.InlineEnumItems)
+            : arg.Enum != null ? GetEnumList(arg.Enum) : null;
 
     /// <summary>The value-&gt;title map for an arg's enum, or null when the arg has none.</summary>
     public IReadOnlyDictionary<int, string>? GetArgEnum(ArgInfo arg)
-        => arg.Enum != null ? GetEnum(arg.Enum) : null;
+        => arg.InlineEnumItems.Count > 0 ? CreateInlineEnumMap(arg.InlineEnumItems)
+            : arg.Enum != null ? GetEnum(arg.Enum) : null;
 
     public EnumListInfo? GetArgFlagsList(ArgInfo arg)
-        => arg.Flags != null ? GetEnumList(arg.Flags) : null;
+        => arg.InlineFlagsItems.Count > 0 ? CreateInlineEnumList("arg.flags", arg.InlineFlagsItems)
+            : arg.Flags != null ? GetEnumList(arg.Flags) : null;
 
     public IReadOnlyDictionary<int, string>? GetArgFlags(ArgInfo arg)
-        => arg.Flags != null ? GetEnum(arg.Flags) : null;
+        => arg.InlineFlagsItems.Count > 0 ? CreateInlineEnumMap(arg.InlineFlagsItems)
+            : arg.Flags != null ? GetEnum(arg.Flags) : null;
+
+    private static EnumListInfo CreateInlineEnumList(string name, IReadOnlyList<EnumItemInfo> items)
+    {
+        var list = new EnumListInfo(name);
+        foreach (EnumItemInfo item in items) list.Add(item);
+        return list;
+    }
+
+    private static IReadOnlyDictionary<int, string> CreateInlineEnumMap(IReadOnlyList<EnumItemInfo> items)
+    {
+        var map = new Dictionary<int, string>();
+        foreach (EnumItemInfo item in items)
+            if (int.TryParse(item.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+                map[value] = item.Title;
+        return map;
+    }
 
     public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
         => Types.CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true, GetArgEnumList(arg));
