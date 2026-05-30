@@ -75,8 +75,8 @@ public static class DoomMapWriter
             w.Write(FixedString(s.FloorTexture, 8));
             w.Write(FixedString(s.CeilTexture, 8));
             w.Write((short)s.Brightness);
-            w.Write((short)s.Special);
-            w.Write((short)s.Tag);
+            w.Write((ushort)s.Special);
+            w.Write((ushort)s.Tag);
         }
         return ms.ToArray();
     }
@@ -94,7 +94,7 @@ public static class DoomMapWriter
             w.Write(FixedString(sd.HighTexture, 8));
             w.Write(FixedString(sd.LowTexture, 8));
             w.Write(FixedString(sd.MidTexture, 8));
-            short sectorIdx = sd.Sector != null && sectorIndex.TryGetValue(sd.Sector, out int si) ? (short)si : (short)0;
+            ushort sectorIdx = sd.Sector != null && sectorIndex.TryGetValue(sd.Sector, out int si) ? (ushort)si : (ushort)0;
             w.Write(sectorIdx);
         }
         return ms.ToArray();
@@ -109,15 +109,15 @@ public static class DoomMapWriter
         using var w = new BinaryWriter(ms);
         foreach (var l in map.Linedefs)
         {
-            short v1 = vertexIndex.TryGetValue(l.Start, out int v1i) ? (short)v1i : (short)0;
-            short v2 = vertexIndex.TryGetValue(l.End,   out int v2i) ? (short)v2i : (short)0;
-            short sideRight = l.Front != null && sidedefIndex.TryGetValue(l.Front, out int srI) ? (short)srI : (short)-1;
-            short sideLeft  = l.Back  != null && sidedefIndex.TryGetValue(l.Back,  out int slI) ? (short)slI : (short)-1;
+            ushort v1 = vertexIndex.TryGetValue(l.Start, out int v1i) ? (ushort)v1i : (ushort)0;
+            ushort v2 = vertexIndex.TryGetValue(l.End,   out int v2i) ? (ushort)v2i : (ushort)0;
+            ushort sideRight = l.Front != null && sidedefIndex.TryGetValue(l.Front, out int srI) ? (ushort)srI : ushort.MaxValue;
+            ushort sideLeft  = l.Back  != null && sidedefIndex.TryGetValue(l.Back,  out int slI) ? (ushort)slI : ushort.MaxValue;
             w.Write(v1);
             w.Write(v2);
-            w.Write((short)l.Flags);
-            w.Write((short)l.Action);
-            w.Write((short)l.Tag);
+            w.Write((ushort)l.Flags);
+            w.Write((ushort)l.Action);
+            w.Write((ushort)l.Tag);
             w.Write(sideRight);
             w.Write(sideLeft);
         }
@@ -134,7 +134,7 @@ public static class DoomMapWriter
             w.Write((short)t.Position.y);
             w.Write((short)t.Angle);
             w.Write((short)t.Type);
-            w.Write((short)t.Flags);
+            w.Write((ushort)t.Flags);
         }
         return ms.ToArray();
     }
