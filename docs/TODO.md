@@ -527,6 +527,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu command for duplicate selection.
   - [x] Add UDB-style paste options for tag renumbering, tag removal, and action removal.
   - [x] Persist paste options and apply them to editor paste, duplicate, and prefab insertion.
+  - [x] Add paste option controls to the settings dialog.
 - [ ] Port undo manager behavior fully.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
