@@ -450,6 +450,7 @@ public sealed class GameConfiguration
     public string GameName { get; private set; } = "<unnamed game>";
     public string EngineName { get; private set; } = "";
     public string BaseGame { get; private set; } = UnknownBaseGame;
+    public FileTitleStyle FileTitleStyle { get; private set; } = FileTitleStyle.DEFAULT;
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
@@ -561,6 +562,7 @@ public sealed class GameConfiguration
             gc.NodeBuilderSave = GetString(root, "nodebuildersave", "");
             gc.NodeBuilderTest = GetString(root, "nodebuildertest", "");
             gc.BaseGame = NormalizeBaseGame(GetString(root, "basegame", ""));
+            gc.FileTitleStyle = ParseFileTitleStyle(GetString(root, "filetitlestyle", "default"));
             gc.MapNameFormat = GetString(root, "mapnameformat", "");
             gc.ScaledTextureOffsets = GetBool(root, "scaledtextureoffsets", true);
             gc.FormatInterface = GetString(root, "formatinterface", "");
@@ -1158,6 +1160,9 @@ public sealed class GameConfiguration
         string normalized = value.ToLowerInvariant();
         return KnownBaseGames.Contains(normalized) ? normalized : UnknownBaseGame;
     }
+
+    private static FileTitleStyle ParseFileTitleStyle(string value)
+        => Enum.TryParse(value, ignoreCase: true, out FileTitleStyle style) ? style : FileTitleStyle.DEFAULT;
 
     /// <summary>
     /// Applies parsed DeHackEd display data to the thing catalog. This only uses patch-local data that does not

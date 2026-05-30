@@ -215,6 +215,7 @@ public class GameConfigurationTests
             testparameters = "-iwad doom2.wad";
             testshortpaths = true;
             testlinuxpaths = true;
+            filetitlestyle = "ZDoom";
             linetagindicatesectors = true;
             doomthingrotationangles = true;
             actionspecialhelp = "https://zdoom.org/wiki/%K";
@@ -251,6 +252,7 @@ public class GameConfigurationTests
         Assert.Equal("-iwad doom2.wad", gc.TestParameters);
         Assert.True(gc.TestShortPaths);
         Assert.True(gc.TestLinuxPaths);
+        Assert.Equal(FileTitleStyle.ZDOOM, gc.FileTitleStyle);
         Assert.True(gc.LineTagIndicatesSectors);
         Assert.True(gc.DoomThingRotationAngles);
         Assert.Equal("https://zdoom.org/wiki/%K", gc.ActionSpecialHelp);
@@ -278,6 +280,14 @@ public class GameConfigurationTests
         Assert.True(gc.BuggyModelDefPitch);
         Assert.True(gc.FixNegativePatchOffsets);
         Assert.True(gc.FixMaskedPatchOffsets);
+    }
+
+    [Fact]
+    public void InvalidFileTitleStyleFallsBackToDefault()
+    {
+        var gc = GameConfiguration.FromText("filetitlestyle = \"Unknown\";");
+
+        Assert.Equal(FileTitleStyle.DEFAULT, gc.FileTitleStyle);
     }
 
     [Fact]
