@@ -23,6 +23,8 @@ namespace DBuilder.IO;
 
 public sealed record ArgColor(byte R, byte G, byte B, byte A);
 
+public sealed record ColormapRangeInfo(string Name, string Start, string End);
+
 /// <summary>Metadata for one of a linedef action's / thing's 5 args: display name, type code, enum reference, default.</summary>
 public sealed class ArgInfo
 {
@@ -370,6 +372,7 @@ public sealed class GameConfiguration
     private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
     private readonly Dictionary<string, string> defaultSkyTextures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<ColormapRangeInfo> colormapRanges = new();
     private readonly Dictionary<string, bool> makeDoorFlags = new(StringComparer.Ordinal);
     private readonly List<string> defaultThingFlags = new();
     private readonly Dictionary<string, string> thingRenderStyles = new(StringComparer.Ordinal);
@@ -498,6 +501,7 @@ public sealed class GameConfiguration
     public string DefaultCeilingTexture { get; private set; } = "CEIL1_1";
     public bool MixTexturesFlats { get; private set; }
     public IReadOnlyDictionary<string, string> DefaultSkyTextures => defaultSkyTextures;
+    public IReadOnlyList<ColormapRangeInfo> ColormapRanges => colormapRanges;
     public StaticLimitsInfo StaticLimits => staticLimits;
     public IReadOnlyList<RequiredArchiveInfo> RequiredArchives => requiredArchives;
     public IReadOnlyList<LinedefActivationInfo> LinedefActivations => linedefActivations;
@@ -611,6 +615,7 @@ public sealed class GameConfiguration
             ParseStringSet(GetString(root, "ignoredextensions", ""), gc.ignoredExtensions);
             gc.MixTexturesFlats = GetBool(root, "mixtexturesflats", false);
             if (root["defaultskytextures"] is IDictionary dst) gc.ParseDefaultSkyTextures(dst);
+            if (root["colormaps"] is IDictionary cmr) gc.ParseColormapRanges(cmr);
             if (root["enums"] is IDictionary en) gc.ParseEnums(en);   // before types, so args can reference them
             if (root["thingtypes"] is IDictionary tt) gc.ParseThingTypes(tt);
             if (root["linedeftypes"] is IDictionary lt) gc.ParseLinedefTypes(lt);
@@ -1729,6 +1734,19 @@ public sealed class GameConfiguration
                 if (map.Length > 0 && !defaultSkyTextures.ContainsKey(map))
                     defaultSkyTextures[map] = skyTexture;
             }
+        }
+    }
+
+    private void ParseColormapRanges(IDictionary block)
+    {
+        foreach (DictionaryEntry e in block)
+        {
+            string name = e.Key.ToString() ?? "";
+            if (name.Length == 0 || e.Value is not IDictionary range) continue;
+            string start = GetString(range, "start", "");
+            string end = GetString(range, "end", "");
+            if (start.Length == 0 || end.Length == 0) continue;
+            colormapRanges.Add(new ColormapRangeInfo(name, start, end));
         }
     }
 

@@ -583,6 +583,32 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesColormapRanges()
+    {
+        const string cfg = """
+            colormaps
+            {
+                standard1
+                {
+                    start = "C_START";
+                    end = "C_END";
+                }
+                ignored
+                {
+                    start = "ONLY_START";
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var range = Assert.Single(gc.ColormapRanges);
+        Assert.Equal("standard1", range.Name);
+        Assert.Equal("C_START", range.Start);
+        Assert.Equal("C_END", range.End);
+    }
+
+    [Fact]
     public void ThingsInheritCategoryDefaults()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

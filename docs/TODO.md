@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1381 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1382 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -461,6 +461,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore empty thing category grouping blocks.
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.
+  - [x] Parse colormap range metadata.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
