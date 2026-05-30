@@ -32,6 +32,7 @@ public enum MapIssueKind
     UnknownThingType,
     ObsoleteThingType,
     ThingOutsideMap,
+    ThingStuckInLinedef,
     UnknownAction,
     UnknownSectorEffect,
     UnknownThingAction,
@@ -59,6 +60,8 @@ public sealed class MapCheckContext
     public Func<int, string?>? ThingObsoleteMessage { get; init; }
     /// <summary>Returns UDB thing error-check mode for a thing type, or null when unavailable.</summary>
     public Func<int, int?>? ThingErrorCheck { get; init; }
+    /// <summary>Returns UDB thing blocking mode for a thing type, or null when unavailable.</summary>
+    public Func<int, int?>? ThingBlocking { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
@@ -77,6 +80,8 @@ public sealed class MapCheckContext
     public bool CheckMissingActivations { get; init; }
     /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
     public string? DoubleSidedFlag { get; init; }
+    /// <summary>Configured linedef flag that marks a line as impassable.</summary>
+    public string? ImpassableFlag { get; init; }
     /// <summary>Maximum safe map width or height in map units; 0 disables the map-size check.</summary>
     public int SafeBoundary { get; init; }
     /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
@@ -282,7 +287,9 @@ public static class MapAnalysis
         for (int i = 0; i < map.Things.Count; i++)
         {
             var t = map.Things[i];
-            if ((ctx.ThingErrorCheck(t.Type) ?? 0) < 1) continue;
+            int errorCheck = ctx.ThingErrorCheck(t.Type) ?? 0;
+            bool stuck = CheckThingStuckInLines(map, ctx, issues, t, i, errorCheck);
+            if (stuck || errorCheck < 1) continue;
 
             var l = map.NearestLinedef(t.Position);
             if (l == null) continue;
@@ -293,6 +300,55 @@ public static class MapAnalysis
                     $"Thing {i} type {t.Type} is outside the map at {t.Position.x.ToString("0.###", CultureInfo.InvariantCulture)}, {t.Position.y.ToString("0.###", CultureInfo.InvariantCulture)}.")
                     { Target = t, Focus = t.Position });
         }
+    }
+
+    private const double AllowedStuckDistance = 6.0;
+
+    private static bool CheckThingStuckInLines(MapSet map, MapCheckContext ctx, List<MapIssue> issues, Thing thing, int thingIndex, int errorCheck)
+    {
+        if (errorCheck != 2 || (ctx.ThingBlocking?.Invoke(thing.Type) ?? 0) <= 0) return false;
+
+        double blockingSize = thing.Size - AllowedStuckDistance;
+        double left = thing.Position.x - blockingSize;
+        double right = thing.Position.x + blockingSize;
+        double top = thing.Position.y - blockingSize;
+        double bottom = thing.Position.y + blockingSize;
+        bool stuck = false;
+
+        for (int lineIndex = 0; lineIndex < map.Linedefs.Count; lineIndex++)
+        {
+            var l = map.Linedefs[lineIndex];
+            bool blocks = l.Back == null || IsLineFlagSet(l, ctx.ImpassableFlag);
+            if (!blocks) continue;
+
+            if (PointInRect(left, right, top, bottom, l.Start.Position) ||
+                PointInRect(left, right, top, bottom, l.End.Position) ||
+                SegmentIntersectsRect(l.Start.Position, l.End.Position, left, right, top, bottom))
+            {
+                stuck = true;
+                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInLinedef,
+                    $"Thing {thingIndex} type {thing.Type} is stuck in linedef {lineIndex}.")
+                    { Target = thing, Focus = thing.Position });
+            }
+        }
+
+        return stuck;
+    }
+
+    private static bool PointInRect(double left, double right, double top, double bottom, Vector2D p)
+        => p.x >= Math.Min(left, right) && p.x <= Math.Max(left, right) &&
+           p.y >= Math.Min(top, bottom) && p.y <= Math.Max(top, bottom);
+
+    private static bool SegmentIntersectsRect(Vector2D a, Vector2D b, double left, double right, double top, double bottom)
+    {
+        double minX = Math.Min(left, right);
+        double maxX = Math.Max(left, right);
+        double minY = Math.Min(top, bottom);
+        double maxY = Math.Max(top, bottom);
+        return Line2D.GetIntersection(a, b, minX, minY, maxX, minY) ||
+               Line2D.GetIntersection(a, b, maxX, minY, maxX, maxY) ||
+               Line2D.GetIntersection(a, b, maxX, maxY, minX, maxY) ||
+               Line2D.GetIntersection(a, b, minX, maxY, minX, minY);
     }
 
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.

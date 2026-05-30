@@ -2408,6 +2408,7 @@ public partial class MainWindow : Window
         Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
         Func<int, string?>? thingObsoleteMessage = null;
         Func<int, int?>? thingErrorCheck = null;
+        Func<int, int?>? thingBlocking = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2419,6 +2420,7 @@ public partial class MainWindow : Window
                 return thing?.IsObsolete == true ? thing.ObsoleteMessage : null;
             };
             thingErrorCheck = n => _config.GetThing(n)?.ErrorCheck;
+            thingBlocking = n => _config.GetThing(n)?.Blocking;
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
@@ -2450,6 +2452,7 @@ public partial class MainWindow : Window
             ThingTypeKnown = thingKnown,
             ThingObsoleteMessage = thingObsoleteMessage,
             ThingErrorCheck = thingErrorCheck,
+            ThingBlocking = thingBlocking,
             ActionKnown = actionKnown,
             SectorEffectKnown = sectorEffectKnown,
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
@@ -2459,6 +2462,7 @@ public partial class MainWindow : Window
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,
             DoubleSidedFlag = _config?.DoubleSidedFlag,
+            ImpassableFlag = _config?.ImpassableFlag,
             SafeBoundary = _config?.SafeBoundary ?? 0,
         };
     }

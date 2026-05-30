@@ -448,6 +448,61 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void BlockingThingIntersectingOneSidedLineIsFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(64, 0));
+        var b = map.AddVertex(new Vector2D(64, 128));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, sector);
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Size = 20;
+        var ctx = new MapCheckContext { ThingErrorCheck = _ => 2, ThingBlocking = _ => 2 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
+        Assert.Same(thing, issue.Target);
+        Assert.Contains("linedef 0", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BlockingThingIntersectingPassableTwoSidedLineIsNotFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var back = map.AddSector();
+        var a = map.AddVertex(new Vector2D(64, 0));
+        var b = map.AddVertex(new Vector2D(64, 128));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Size = 20;
+        var ctx = new MapCheckContext { ThingErrorCheck = _ => 2, ThingBlocking = _ => 2, ImpassableFlag = "blocking" };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
+    }
+
+    [Fact]
+    public void BlockingThingIntersectingImpassableTwoSidedLineIsFlaggedAsStuck()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var back = map.AddSector();
+        var a = map.AddVertex(new Vector2D(64, 0));
+        var b = map.AddVertex(new Vector2D(64, 128));
+        var line = map.AddLinedef(a, b);
+        line.UdmfFlags.Add("blocking");
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Size = 20;
+        var ctx = new MapCheckContext { ThingErrorCheck = _ => 2, ThingBlocking = _ => 2, ImpassableFlag = "blocking" };
+
+        Assert.Contains(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);
