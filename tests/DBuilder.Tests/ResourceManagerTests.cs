@@ -73,26 +73,36 @@ public class ResourceManagerTests
         return ms.ToArray();
     }
 
-    private static byte[] Texture1(string textureName, int width, int height, ushort patchIndex)
+    private static byte[] Texture1(params (string TextureName, int Width, int Height, ushort PatchIndex)[] textures)
     {
         using var ms = new MemoryStream();
         using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
-        w.Write((uint)1);
-        w.Write((uint)8);
-        w.Write(FixedAscii(textureName, 8));
-        w.Write((ushort)0);
-        w.Write((byte)0);
-        w.Write((byte)0);
-        w.Write((short)width);
-        w.Write((short)height);
-        w.Write((short)0);
-        w.Write((short)0);
-        w.Write((short)1);
-        w.Write((short)0);
-        w.Write((short)0);
-        w.Write(patchIndex);
-        w.Write((short)0);
-        w.Write((short)0);
+        w.Write((uint)textures.Length);
+        int offset = 4 + textures.Length * 4;
+        for (int i = 0; i < textures.Length; i++)
+        {
+            w.Write((uint)offset);
+            offset += 32;
+        }
+
+        foreach (var texture in textures)
+        {
+            w.Write(FixedAscii(texture.TextureName, 8));
+            w.Write((ushort)0);
+            w.Write((byte)0);
+            w.Write((byte)0);
+            w.Write((short)texture.Width);
+            w.Write((short)texture.Height);
+            w.Write((short)0);
+            w.Write((short)0);
+            w.Write((short)1);
+            w.Write((short)0);
+            w.Write((short)0);
+            w.Write(texture.PatchIndex);
+            w.Write((short)0);
+            w.Write((short)0);
+        }
+
         return ms.ToArray();
     }
 
@@ -140,7 +150,7 @@ public class ResourceManagerTests
         string wadPath = TestArtifacts.BuildPwadFile(
             ("PLAYPAL", GrayscalePlaypal()),
             ("PNAMES", PNames("PATCH")),
-            ("TEXTURE1", Texture1("WALL", 1, 1, 0)),
+            ("TEXTURE1", Texture1(("UNUSED", 1, 1, 0), ("WALL", 1, 1, 0))),
             ("F_START", Array.Empty<byte>()),
             ("PATCH", DoomPatch(70)),
             ("F_END", Array.Empty<byte>()));
@@ -157,6 +167,27 @@ public class ResourceManagerTests
                 rm.AddResource(new DataLocation(DataLocationType.Wad, wadPath, option1: true));
                 Assert.Null(rm.GetWallTexture("WALL"));
             }
+        }
+        finally { File.Delete(wadPath); }
+    }
+
+    [Fact]
+    public void WadTexture1FirstEntryIsSkippedLikeUdb()
+    {
+        string wadPath = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("PNAMES", PNames("PATCH")),
+            ("TEXTURE1", Texture1(("UNUSED", 1, 1, 0), ("WALL", 1, 1, 0))),
+            ("PATCH", DoomPatch(70)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(wadPath);
+
+            Assert.Null(rm.GetWallTexture("UNUSED"));
+            Assert.DoesNotContain("UNUSED", rm.GetTextureNames());
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("WALL")!.Rgba[0..4]);
+            Assert.Contains("WALL", rm.GetTextureNames());
         }
         finally { File.Delete(wadPath); }
     }

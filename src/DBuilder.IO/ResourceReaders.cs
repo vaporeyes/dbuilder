@@ -139,7 +139,8 @@ internal sealed class WadResourceReader : IResourceReader
         {
             var list = DoomTextureListReader.FromWad(wad, lumpName);
             if (list == null) continue;
-            foreach (var def in list) texDefs[def.Name] = def;
+            int start = lumpName == "TEXTURE1" && list.Count > 0 ? 1 : 0;
+            for (int i = start; i < list.Count; i++) texDefs[list[i].Name] = list[i];
         }
         return texDefs;
     }
