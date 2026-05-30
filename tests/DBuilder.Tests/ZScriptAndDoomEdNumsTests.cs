@@ -328,6 +328,31 @@ class LitZScriptThing : Actor
     }
 
     [Fact]
+    public void StopsZScriptStateLightScanAtFrameSemicolon()
+    {
+        const string zscript = @"
+class FrameBoundaryLightThing : Actor
+{
+    States
+    {
+    Spawn:
+        LITA A -1;
+        LITB A -1 Light(""SECOND_FRAME_LIGHT"");
+        stop;
+    }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var gc = GameConfiguration.FromText("");
+
+        gc.MergeActors(actors, new Dictionary<int, string> { [9061] = "FrameBoundaryLightThing" });
+
+        var info = gc.GetThing(9061);
+        Assert.NotNull(info);
+        Assert.Equal("LITAA0", info!.Sprite);
+        Assert.Equal("", info.LightName);
+    }
+
+    [Fact]
     public void ActorWithoutNumberIsSkippedWhenNoMapping()
     {
         var actors = ZScriptParser.Parse("class Lonely : Actor { Default { Radius 8; } }");

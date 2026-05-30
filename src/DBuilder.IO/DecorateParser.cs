@@ -792,7 +792,7 @@ public static class DecorateParser
     {
         for (int i = start; i < t.Count; i++)
         {
-            if (t[i].Kind == Kind.Sym && t[i].Text is "\n" or "{" or "}") return null;
+            if (t[i].Kind == Kind.Sym && t[i].Text is "\n" or "{" or "}" or ";") return null;
             if (t[i].Kind != Kind.Word) continue;
 
             string token = t[i].Text;
