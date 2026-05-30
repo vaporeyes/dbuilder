@@ -53,6 +53,19 @@ object ShortRedTorch
     }
 
     [Fact]
+    public void SkipsLightsWithNonNumericColorComponents()
+    {
+        const string text = @"
+pointlight BAD { color 1.0 0.5 bogus size 16 }
+pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.False(g.Lights.ContainsKey("BAD"));
+        Assert.True(g.Lights.ContainsKey("GOOD"));
+    }
+
+    [Fact]
     public void MapsLightOffsetToUdbCoordinateAxes()
     {
         const string text = "pointlight OFFSET { color 1.0 1.0 1.0 size 16 offset 1 2 3 }";

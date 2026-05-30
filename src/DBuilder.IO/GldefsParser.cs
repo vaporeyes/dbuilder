@@ -163,7 +163,19 @@ public static class GldefsParser
             while (i < t.Count && t[i] != "}")
             {
                 string p = t[i++].ToLowerInvariant();
-                if (p == "color") { light.R = ClampColor(ReadFloat(t, ref i)); light.G = ClampColor(ReadFloat(t, ref i)); light.B = ClampColor(ReadFloat(t, ref i)); }
+                if (p == "color")
+                {
+                    if (!TryReadFloat(t, ref i, out float red)
+                        || !TryReadFloat(t, ref i, out float green)
+                        || !TryReadFloat(t, ref i, out float blue))
+                    {
+                        invalid = true;
+                        continue;
+                    }
+                    light.R = ClampColor(red);
+                    light.G = ClampColor(green);
+                    light.B = ClampColor(blue);
+                }
                 else if (p == "size")
                 {
                     if (!TryReadInt(t, ref i, out int size)) { invalid = true; continue; }
@@ -406,6 +418,19 @@ public static class GldefsParser
     {
         if (i < t.Count && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float v)) { i++; return v; }
         return 0;
+    }
+
+    private static bool TryReadFloat(List<string> t, ref int i, out float value)
+    {
+        value = 0;
+        if (i >= t.Count) return false;
+        if (float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        {
+            i++;
+            return true;
+        }
+        i++;
+        return false;
     }
 
     private static bool TryReadInt(List<string> t, ref int i, out int value)
