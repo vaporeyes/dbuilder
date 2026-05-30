@@ -679,10 +679,42 @@ public class GameConfigurationTests
         Assert.True(baron.LockSprite);
         Assert.Equal(7, baron.ThingLink);
         Assert.Equal(4, baron.Color);
-        Assert.Equal(20, baron.Width);
+        Assert.Equal(14, baron.Width);
         Assert.Equal(56, baron.Height);
         Assert.Contains("argspeed", baron.AddUniversalFields);
         Assert.True(baron.HasAdditionalUniversalField("CUSTOMFLAG"));
+    }
+
+    [Fact]
+    public void ThingTypeSafetyMatchesUdbForFixedSizeAndAbsoluteZ()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                decorations
+                {
+                    width = 20;
+                    height = 56;
+                    hangs = 1;
+                    absolutez = true;
+
+                    9001
+                    {
+                        title = "Fixed decoration";
+                        fixedsize = true;
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var thing = gc.GetThing(9001);
+        Assert.NotNull(thing);
+        Assert.Equal(14, thing!.Width);
+        Assert.False(thing.Hangs);
+        Assert.True(thing.AbsoluteZ);
+        Assert.True(thing.FixedSize);
     }
 
     [Fact]

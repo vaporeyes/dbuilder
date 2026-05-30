@@ -685,6 +685,9 @@ public sealed class GameConfiguration
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
         var fallback = existing ?? inherited;
+        bool fixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? fallback?.FixedSize ?? false;
+        bool absoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false;
+        bool hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : SafeThingHangs(fallback?.Hangs ?? false, absoluteZ);
         return new ThingTypeInfo
         {
             Index = index,
@@ -693,7 +696,7 @@ public sealed class GameConfiguration
             Category = actor.Category ?? fallback?.Category ?? "Decorate",
             Sprite = actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite ?? "",
             LightName = actor.LightName ?? fallback?.LightName ?? "",
-            Width = ActorWidth(actor, fallback),
+            Width = SafeThingWidth(ActorWidth(actor, fallback), fixedSize),
             Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
@@ -702,12 +705,12 @@ public sealed class GameConfiguration
             Arrow = actor.Properties.ContainsKey("$angled") || actor.Properties.ContainsKey("$notangled")
                 ? ActorArrow(actor)
                 : ActorRegionPropertyBoolish(actor, "$arrow") ?? fallback?.Arrow ?? false,
-            Hangs = actor.Flags.ContainsKey("spawnceiling") ? ActorFlag(actor, "spawnceiling") : fallback?.Hangs ?? false,
+            Hangs = hangs,
             Blocking = actor.Flags.ContainsKey("solid") ? solid ? 2 : 0 : fallback?.Blocking ?? 0,
             ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0,
-            FixedSize = ActorRegionPropertyBool(actor, "$fixedsize") ?? fallback?.FixedSize ?? false,
+            FixedSize = fixedSize,
             FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? fallback?.FixedRotation ?? false,
-            AbsoluteZ = ActorRegionPropertyBool(actor, "$absolutez") ?? fallback?.AbsoluteZ ?? false,
+            AbsoluteZ = absoluteZ,
             LockSprite = existing?.LockSprite ?? false,
             ThingLink = existing?.ThingLink ?? 0,
             Optional = existing?.Optional ?? false,
@@ -761,8 +764,14 @@ public sealed class GameConfiguration
     private static int ActorWidth(ActorInfo actor, ThingTypeInfo? existing)
     {
         if (actor.Radius <= 0) return existing?.Width ?? 16;
-        return actor.Radius < 4 ? ThingFixedSize : actor.Radius;
+        return actor.Radius;
     }
+
+    private static int SafeThingWidth(int width, bool fixedSize)
+        => width < 4 || fixedSize ? ThingFixedSize : width;
+
+    private static bool SafeThingHangs(bool hangs, bool absoluteZ)
+        => hangs && !absoluteZ;
 
     private static string ActorRenderStyle(ActorInfo actor, ThingTypeInfo? existing)
         => actor.Properties.ContainsKey("$ignorerenderstyle")
@@ -1193,6 +1202,8 @@ public sealed class GameConfiguration
             if (e.Value is not IDictionary child) continue;
             if (int.TryParse(childKey, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
             {
+                bool fixedSize = GetBool(child, "fixedsize", info.FixedSize);
+                bool absoluteZ = GetBool(child, "absolutez", info.AbsoluteZ);
                 things[number] = new ThingTypeInfo
                 {
                     Index = number,
@@ -1202,17 +1213,17 @@ public sealed class GameConfiguration
                     LightName = GetString(child, "light", info.LightName),
                     ClassName = GetString(child, "class", ""),
                     Color = GetInt(child, "color", info.Color),
-                    Width = GetInt(child, "width", info.Width),
+                    Width = SafeThingWidth(GetInt(child, "width", info.Width), fixedSize),
                     Height = GetInt(child, "height", info.Height),
                     Alpha = Math.Clamp(GetDouble(child, "alpha", info.Alpha), 0.0, 1.0),
                     RenderStyle = GetString(child, "renderstyle", info.RenderStyle).ToLowerInvariant(),
                     Arrow = GetBoolishInt(child, "arrow", info.Arrow != 0),
-                    Hangs = GetBoolishInt(child, "hangs", info.Hangs != 0),
+                    Hangs = SafeThingHangs(GetBoolishInt(child, "hangs", info.Hangs != 0), absoluteZ),
                     Blocking = GetInt(child, "blocking", info.Blocking),
                     ErrorCheck = GetInt(child, "error", info.ErrorCheck),
-                    FixedSize = GetBool(child, "fixedsize", info.FixedSize),
+                    FixedSize = fixedSize,
                     FixedRotation = GetBool(child, "fixedrotation", info.FixedRotation),
-                    AbsoluteZ = GetBool(child, "absolutez", info.AbsoluteZ),
+                    AbsoluteZ = absoluteZ,
                     SpriteScale = GetDouble(child, "spritescale", info.SpriteScale),
                     LockSprite = GetBool(child, "locksprite", false),
                     ThingLink = GetInt(child, "thinglink", 0),

@@ -514,7 +514,7 @@ thingtypes
         Assert.Equal("FancyZImp", info!.Title);
         Assert.Equal("monsters", info.Category);
         Assert.Equal("TROOA1", info.Sprite);
-        Assert.Equal(20, info.Width);
+        Assert.Equal(14, info.Width);
         Assert.Equal(56, info.Height);
         Assert.Equal(4, info.Color);
         Assert.True(info.FixedSize);

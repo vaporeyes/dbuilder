@@ -1042,7 +1042,7 @@ ACTOR FancyImp replaces DoomImp
         Assert.Equal("Fancy Imp", info!.Title);
         Assert.Equal("FancyImp", info.ClassName);
         Assert.Equal("FIMPA0", info.Sprite);
-        Assert.Equal(24, info.Width);
+        Assert.Equal(14, info.Width);
         Assert.Equal(64, info.Height);
         Assert.Equal("monsters", info.Category);
         Assert.Equal(4, info.Color);
@@ -1086,7 +1086,7 @@ thingtypes
         Assert.Equal("FancyImp", info!.Title);
         Assert.Equal("monsters", info.Category);
         Assert.Equal("TROOA1", info.Sprite);
-        Assert.Equal(20, info.Width);
+        Assert.Equal(14, info.Width);
         Assert.Equal(56, info.Height);
         Assert.Equal(4, info.Color);
         Assert.True(info.FixedSize);

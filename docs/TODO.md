@@ -386,6 +386,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse separated negative actor numeric properties for catalog metadata.
   - [x] Clamp very small actor radii to UDB's fixed editor size.
   - [x] Normalize zero actor sprite scales to UDB's default scale.
+  - [x] Apply UDB thing catalog safety for fixed-size radii and absolute-Z hanging things.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
