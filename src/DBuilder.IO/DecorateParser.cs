@@ -12,7 +12,7 @@ internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, 
 
 internal readonly record struct StateGotoTarget(string? ClassName, string StateName, int SpriteOffset);
 
-public sealed record ActorUserVariable(string Name, UniversalType Type);
+public sealed record ActorUserVariable(string Name, UniversalType Type, object? DefaultValue = null);
 
 /// <summary>An actor definition parsed from DECORATE. DoomEdNum &lt; 0 means it has no editor (placeable) number.</summary>
 public sealed class ActorInfo
@@ -606,6 +606,7 @@ public static class DecorateParser
         var stateSprites = new Dictionary<string, StateSpriteCandidate>(StringComparer.OrdinalIgnoreCase);
         StateSpriteCandidate? firstSprite = null;
         StateSpriteCandidate? firstNonEmptySprite = null;
+        var pendingUserVariableMetadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         while (i < t.Count && depth > 0)
         {
@@ -626,7 +627,13 @@ public static class DecorateParser
                 depth--;
                 continue;
             }
-            if (tk.Kind == Kind.Editor) { ParseEditorKey(tk.Text, actor.EditorKeys); continue; }
+            if (tk.Kind == Kind.Editor)
+            {
+                if (zscriptBody && depth == 1 && TryParseUserVariableMetadata(tk.Text, pendingUserVariableMetadata))
+                    continue;
+                ParseEditorKey(tk.Text, actor.EditorKeys);
+                continue;
+            }
             if (tk.Kind != Kind.Word)
             {
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
@@ -644,15 +651,23 @@ public static class DecorateParser
 
             string lw = tk.Text.ToLowerInvariant();
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
-            if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal))) { pendingStates = true; }
+            if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal)))
+            {
+                pendingUserVariableMetadata.Clear();
+                pendingStates = true;
+            }
             else if (zscriptBody && depth == 1 && lw == "mixin")
             {
                 if (i < t.Count && t[i].Kind == Kind.Word) actor.Mixins.Add(t[i++].Text);
                 SkipUntilSemicolon(t, ref i);
+                pendingUserVariableMetadata.Clear();
             }
+            else if (zscriptBody && depth == 1 && lw == "default") pendingUserVariableMetadata.Clear();
             else if (zscriptBody && depth == 1 && lw != "default")
             {
-                if (!TryParseZScriptUserVariables(actor, tk.Text, t, ref i)) SkipZScriptMember(t, ref i);
+                if (!TryParseZScriptUserVariables(actor, tk.Text, pendingUserVariableMetadata, t, ref i))
+                    SkipZScriptMember(t, ref i);
+                pendingUserVariableMetadata.Clear();
             }
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && TryParseSeparatedFlag(tk.Text, t, ref i, actor)) { }
@@ -1016,11 +1031,17 @@ public static class DecorateParser
         SkipUntilSemicolon(t, ref i);
     }
 
-    private static bool TryParseZScriptUserVariables(ActorInfo actor, string typeName, List<Tok> t, ref int i)
+    private static bool TryParseZScriptUserVariables(
+        ActorInfo actor,
+        string typeName,
+        Dictionary<string, string> metadata,
+        List<Tok> t,
+        ref int i)
     {
         if (!TryUserVariableType(typeName, out var type)) return false;
         if (i >= t.Count || t[i].Kind != Kind.Word) return false;
 
+        object? defaultValue = TryActorUserVariableDefault(metadata, type, out var parsedDefault) ? parsedDefault : null;
         var variables = new List<(string Name, bool IsArray)>();
         bool expectName = true;
         while (i < t.Count)
@@ -1031,7 +1052,7 @@ public static class DecorateParser
                 i++;
                 foreach (var variable in variables)
                     if (!variable.IsArray && IsUserVariableName(variable.Name) && !actor.UserVariables.ContainsKey(variable.Name))
-                        actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, type);
+                        actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, type, defaultValue);
                 return true;
             }
 
@@ -1108,6 +1129,59 @@ public static class DecorateParser
 
     private static bool IsUserVariableName(string name)
         => name.StartsWith("user_", StringComparison.OrdinalIgnoreCase);
+
+    private static bool TryParseUserVariableMetadata(string text, Dictionary<string, string> metadata)
+    {
+        var parsed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        ParseEditorKey(text, parsed);
+        bool hasDefault = parsed.TryGetValue("$userdefaultvalue", out string? defaultValue);
+        bool hasReinterpret = parsed.TryGetValue("$userreinterpret", out string? reinterpret);
+        if (!hasDefault && !hasReinterpret)
+            return false;
+
+        if (hasDefault && defaultValue != null) metadata["$userdefaultvalue"] = defaultValue;
+        if (hasReinterpret && reinterpret != null) metadata["$userreinterpret"] = reinterpret;
+        return true;
+    }
+
+    private static bool TryActorUserVariableDefault(
+        Dictionary<string, string> metadata,
+        UniversalType type,
+        out object? value)
+    {
+        value = null;
+        if (!metadata.TryGetValue("$userdefaultvalue", out string? raw)) return false;
+
+        switch (type)
+        {
+            case UniversalType.Integer:
+                if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int integer))
+                {
+                    value = integer;
+                    return true;
+                }
+                return false;
+            case UniversalType.Float:
+                if (double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double number))
+                {
+                    value = number;
+                    return true;
+                }
+                return false;
+            case UniversalType.Boolean:
+                if (bool.TryParse(raw, out bool boolean))
+                {
+                    value = boolean;
+                    return true;
+                }
+                return false;
+            case UniversalType.String:
+                value = raw;
+                return true;
+            default:
+                return false;
+        }
+    }
 
     private static List<string> ReadSemicolonPropertyValues(string key, List<Tok> t, ref int i, bool isGameProperty)
     {

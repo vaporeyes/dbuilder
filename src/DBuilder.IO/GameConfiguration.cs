@@ -810,7 +810,7 @@ public sealed class GameConfiguration
                 "thing",
                 name,
                 (int)variable.Type,
-                null,
+                variable.DefaultValue,
                 ThingTypeSpecific: true,
                 Managed: true,
                 EnumName: null,
