@@ -237,6 +237,8 @@ public static class DecorateParser
         }
         ApplyMixins(actors, mixins);
         ApplyExtensions(actors, extensions, mixins);
+        if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase))
+            RemoveActorsWithInvalidUserVariableShadows(actors);
         ResolveInheritance(actors);
         if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
             FilterZScriptActorClasses(actors);
@@ -476,6 +478,28 @@ public static class DecorateParser
     {
         foreach (var variable in source.UserVariables.Values)
             actor.UserVariables[variable.Name] = variable;
+    }
+
+    private static void RemoveActorsWithInvalidUserVariableShadows(List<ActorInfo> actors)
+    {
+        var byName = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (var actor in actors) byName[actor.ClassName] = actor;
+        actors.RemoveAll(actor => !SkipsSuper(actor) && ShadowsInheritedUserVariable(actor, byName));
+    }
+
+    private static bool ShadowsInheritedUserVariable(ActorInfo actor, Dictionary<string, ActorInfo> byName)
+    {
+        if (actor.ParentName == null || actor.UserVariables.Count == 0) return false;
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { actor.ClassName };
+        string? parentName = actor.ParentName;
+        while (parentName != null && byName.TryGetValue(parentName, out var parent) && seen.Add(parentName))
+        {
+            foreach (string name in actor.UserVariables.Keys)
+                if (parent.UserVariables.ContainsKey(name))
+                    return true;
+            parentName = parent.ParentName;
+        }
+        return false;
     }
 
     private static bool HasSpawnState(ActorInfo actor)

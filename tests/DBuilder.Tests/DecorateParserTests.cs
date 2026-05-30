@@ -573,6 +573,33 @@ ACTOR GoodUserVarAfterBad 7009
     }
 
     [Fact]
+    public void RejectsDecorateUserVariablesThatShadowParentWithoutSkipSuper()
+    {
+        const string text = @"
+ACTOR UserVarBase
+{
+    var int user_score;
+}
+ACTOR BadUserVarChild : UserVarBase 7010
+{
+    var float user_score;
+    Radius 64
+}
+ACTOR SkipSuperUserVarChild : UserVarBase 7011
+{
+    skip_super
+    var float user_score;
+    Radius 16
+}";
+
+        var actor = Assert.Single(DecorateParser.Parse(text), actor => actor.DoomEdNum > 0);
+
+        Assert.Equal("SkipSuperUserVarChild", actor.ClassName);
+        Assert.Equal(UniversalType.Float, actor.UserVariables["user_score"].Type);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void SkipsTopLevelEnumNativeAndConstDeclarations()
     {
         const string text = @"
