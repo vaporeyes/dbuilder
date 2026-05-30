@@ -901,7 +901,8 @@ public static class DecorateParser
             }
             else if (inStates && currentState != null && lw == "goto")
             {
-                if (TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target))
+                if (TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target)
+                    && (!zscriptBody || TryConsumeZScriptStateGotoSemicolon(t, ref i)))
                     actor.StateGotos[currentState] = target;
             }
             else if (inStates && tk.Kind == Kind.Word && IsStateLabel(t, i))
@@ -1013,6 +1014,14 @@ public static class DecorateParser
         }
         if (stateName.Length == 0) return false;
         target = new StateGotoTarget(className, stateName, spriteOffset);
+        return true;
+    }
+
+    private static bool TryConsumeZScriptStateGotoSemicolon(List<Tok> t, ref int i)
+    {
+        while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != ";") return false;
+        i++;
         return true;
     }
 

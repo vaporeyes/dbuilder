@@ -671,6 +671,23 @@ class SpriteChildZThing : SpriteParentZThing
     }
 
     [Fact]
+    public void DoesNotResolveZScriptGotoWithoutRequiredSemicolon()
+    {
+        const string zscript = @"
+class GotoTargetZThing : Actor
+{
+    States { Spawn: TARG A -1; Stop; }
+}
+class MissingGotoSemicolonZThing : Actor
+{
+    States { Spawn: goto GotoTargetZThing::Spawn }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingGotoSemicolonZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"
