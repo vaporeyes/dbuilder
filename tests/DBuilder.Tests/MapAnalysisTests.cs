@@ -189,6 +189,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ActionRequiresUpperTextureFlagsMissingUpperWithoutHeightGap()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = 271;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { ActionRequiresUpperTexture = action => action == 271 };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+        Assert.NotEmpty(issues);
+        Assert.All(issues, i => Assert.Contains("upper texture", i.Message, StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnknownTextureFlagged()
     {
         var map = Square(true);

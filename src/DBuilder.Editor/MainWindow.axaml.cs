@@ -2405,7 +2405,7 @@ public partial class MainWindow : Window
             texExists = n => texSet.Contains(n);
             flatExists = n => flatSet.Contains(n);
         }
-        Func<int, bool>? thingKnown = null, actionKnown = null, actionRequiresActivation = null;
+        Func<int, bool>? thingKnown = null, actionKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2425,6 +2425,7 @@ public partial class MainWindow : Window
                     _ => false,
                 };
             };
+            actionRequiresUpperTexture = a => _config.GetLinedefAction(a)?.ErrorChecker.RequiresUpperTexture == true;
             actionRequiresActivation = a => _config.GetLinedefAction(a)?.RequiresActivation == true;
             isSkyFlat = n => string.Equals(n, _config.SkyFlatName, StringComparison.OrdinalIgnoreCase);
             triggerActivationFlags = _config.LinedefActivations
@@ -2440,6 +2441,7 @@ public partial class MainWindow : Window
             ThingTypeKnown = thingKnown,
             ActionKnown = actionKnown,
             IgnoreUnknownTexture = ignoreUnknownTexture,
+            ActionRequiresUpperTexture = actionRequiresUpperTexture,
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,

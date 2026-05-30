@@ -50,6 +50,8 @@ public sealed class MapCheckContext
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns true when an action deliberately uses unresolved names in the given texture slot.</summary>
     public Func<int, SidedefPart, bool>? IgnoreUnknownTexture { get; init; }
+    /// <summary>Returns true when a linedef action forces an upper texture even without a height gap.</summary>
+    public Func<int, bool>? ActionRequiresUpperTexture { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
     public Func<int, bool>? ActionRequiresActivation { get; init; }
     /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
@@ -131,7 +133,9 @@ public static class MapAnalysis
             {
                 if (side.Sector != null && other.Sector != null)
                 {
-                    if (other.Sector.CeilHeight < side.Sector.CeilHeight && !IsSkyFlat(ctx, other.Sector.CeilTexture) && IsBlank(side.HighTexture))
+                    if ((other.Sector.CeilHeight < side.Sector.CeilHeight || ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true) &&
+                        !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
+                        IsBlank(side.HighTexture))
                         issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
                             $"Linedef {index} ({which}) needs an upper texture.") { Target = l, Focus = mid });
                     if (other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) && IsBlank(side.LowTexture))
