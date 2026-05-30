@@ -112,7 +112,10 @@ public static class SndInfoParser
             if (tokens[i] is "{" or "}") continue;
             sounds.Add(tokens[i]);
         }
-        if (name.Length > 0 && sounds.Count > 0) result.RandomGroups[name] = sounds;
+        if (name.Length > 0
+            && sounds.Count > 0
+            && !sounds.Contains(name, StringComparer.OrdinalIgnoreCase))
+            result.RandomGroups[name] = sounds;
     }
 
     private static string StripLineComment(string line)

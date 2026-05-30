@@ -70,6 +70,19 @@ $volume world/drip 0.5";
     }
 
     [Fact]
+    public void SkipsRandomGroupsThatReferenceThemselves()
+    {
+        const string text = @"
+$random misc/random { sound/a misc/random }
+$random misc/valid { sound/a sound/b }";
+
+        var info = SndInfoParser.Parse(text);
+
+        Assert.False(info.RandomGroups.ContainsKey("misc/random"));
+        Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/valid"]);
+    }
+
+    [Fact]
     public void ParsesMultilineRandomGroups()
     {
         const string text = """
