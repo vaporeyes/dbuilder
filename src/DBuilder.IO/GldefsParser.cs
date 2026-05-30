@@ -184,15 +184,15 @@ public static class GldefsParser
                 }
                 else if (p == "secondarysize")
                 {
-                    if (!TryReadInt(t, ref i, out int secondarySize)) { invalid = true; continue; }
+                    if (!TryReadSignedInt(t, ref i, out int secondarySize)) { invalid = true; continue; }
                     if (!CanHaveSecondarySize(type) || secondarySize < 0.0f) invalid = true;
                     else light.SecondarySize = secondarySize * 2.0f;
                 }
                 else if (p == "offset")
                 {
-                    if (!TryReadFloat(t, ref i, out float offsetX)
-                        || !TryReadFloat(t, ref i, out float offsetZ)
-                        || !TryReadFloat(t, ref i, out float offsetY))
+                    if (!TryReadSignedFloat(t, ref i, out float offsetX)
+                        || !TryReadSignedFloat(t, ref i, out float offsetZ)
+                        || !TryReadSignedFloat(t, ref i, out float offsetY))
                     {
                         invalid = true;
                         continue;
@@ -203,20 +203,20 @@ public static class GldefsParser
                 }
                 else if (p == "interval")
                 {
-                    if (!TryReadFloat(t, ref i, out float interval)) { invalid = true; continue; }
+                    if (!TryReadSignedFloat(t, ref i, out float interval)) { invalid = true; continue; }
                     if (!CanHaveInterval(type) || interval <= 0.0f) invalid = true;
                     else light.Interval = NormalizeInterval(type, interval);
                 }
                 else if (p == "chance")
                 {
-                    if (!TryReadFloat(t, ref i, out float chance)) { invalid = true; continue; }
+                    if (!TryReadSignedFloat(t, ref i, out float chance)) { invalid = true; continue; }
                     light.Chance = chance;
                     if (!type.Equals("flickerlight", StringComparison.OrdinalIgnoreCase) || light.Chance is < 0.0f or > 1.0f) invalid = true;
                     else light.Interval = (int)(light.Chance * 359.0f);
                 }
                 else if (p == "scale")
                 {
-                    if (!TryReadFloat(t, ref i, out float scale)) { invalid = true; continue; }
+                    if (!TryReadSignedFloat(t, ref i, out float scale)) { invalid = true; continue; }
                     light.Scale = scale;
                     if (!type.Equals("sectorlight", StringComparison.OrdinalIgnoreCase) || light.Scale is < 0.0f or > 1.0f) invalid = true;
                     else light.Interval = (int)(light.Scale * 10.0f);
@@ -458,6 +458,50 @@ public static class GldefsParser
         }
         i++;
         return false;
+    }
+
+    private static bool TryReadSignedFloat(List<string> t, ref int i, out float value)
+    {
+        value = 0;
+        int sign = 1;
+        if (i < t.Count && t[i] == "-")
+        {
+            sign = -1;
+            i++;
+        }
+
+        if (i >= t.Count) return false;
+        if (!float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float parsed))
+        {
+            i++;
+            return false;
+        }
+
+        i++;
+        value = parsed * sign;
+        return true;
+    }
+
+    private static bool TryReadSignedInt(List<string> t, ref int i, out int value)
+    {
+        value = 0;
+        int sign = 1;
+        if (i < t.Count && t[i] == "-")
+        {
+            sign = -1;
+            i++;
+        }
+
+        if (i >= t.Count) return false;
+        if (!int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+        {
+            i++;
+            return false;
+        }
+
+        i++;
+        value = parsed * sign;
+        return true;
     }
 
     private static bool TryReadIntFlag(List<string> t, ref int i, out bool value)

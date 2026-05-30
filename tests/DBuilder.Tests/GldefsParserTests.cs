@@ -78,6 +78,18 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
     }
 
     [Fact]
+    public void ParsesSeparatedNegativeSignedLightOffsets()
+    {
+        const string text = "pointlight OFFSET { color 1.0 1.0 1.0 size 16 offset - 1 -2 - 3 }";
+
+        var light = GldefsParser.Parse(text).Lights["OFFSET"];
+
+        Assert.Equal(-1.0f, light.OffsetX, 4);
+        Assert.Equal(-2.0f, light.OffsetZ, 4);
+        Assert.Equal(-3.0f, light.OffsetY, 4);
+    }
+
+    [Fact]
     public void SkipsLightsWithNonNumericOffsetComponents()
     {
         const string text = @"
