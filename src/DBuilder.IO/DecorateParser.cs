@@ -593,6 +593,9 @@ public static class DecorateParser
         bool hasParent = false;
         bool hasReplacement = false;
         bool hasNative = false;
+        bool hasFinal = false;
+        bool hasScope = false;
+        bool hasVersion = false;
         while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
         {
             var tk = t[i];
@@ -648,12 +651,40 @@ public static class DecorateParser
                 hasNative = true;
                 i++;
             }
+            else if (!headerNum && tk.Kind == Kind.Word && tk.Text.Equals("abstract", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+            }
+            else if (!headerNum && tk.Kind == Kind.Word && tk.Text.Equals("final", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hasFinal) return SkipInvalidActorDeclaration(t, ref i);
+                hasFinal = true;
+                i++;
+            }
+            else if (!headerNum && tk.Kind == Kind.Word && IsZScriptHeaderScopeModifier(tk.Text))
+            {
+                if (hasScope) return SkipInvalidActorDeclaration(t, ref i);
+                hasScope = true;
+                i++;
+            }
+            else if (!headerNum && tk.Kind == Kind.Word && IsZScriptHeaderModifier(tk.Text, "version"))
+            {
+                if (hasVersion) return SkipInvalidActorDeclaration(t, ref i);
+                hasVersion = true;
+                if (!SkipZScriptHeaderModifierArgument(t, ref i)) return SkipInvalidActorDeclaration(t, ref i);
+            }
+            else if (!headerNum && tk.Kind == Kind.Word && (IsZScriptHeaderModifier(tk.Text, "deprecated")
+                || IsZScriptHeaderModifier(tk.Text, "unsafe")
+                || IsZScriptHeaderModifier(tk.Text, "sealed")))
+            {
+                if (!SkipZScriptHeaderModifierArgument(t, ref i)) return SkipInvalidActorDeclaration(t, ref i);
+            }
             else if (headerNum)
             {
                 SkipDeclaration(t, ref i);
                 return null;
             }
-            else i++;
+            else return SkipInvalidActorDeclaration(t, ref i);
         }
 
         if (i >= t.Count || t[i].Text != "{") return actor; // no body (e.g. forward declaration)
@@ -666,6 +697,30 @@ public static class DecorateParser
     {
         SkipDeclaration(t, ref i);
         return null;
+    }
+
+    private static bool IsZScriptHeaderScopeModifier(string token)
+        => token.Equals("clearscope", StringComparison.OrdinalIgnoreCase)
+        || token.Equals("ui", StringComparison.OrdinalIgnoreCase)
+        || token.Equals("play", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsZScriptHeaderModifier(string token, string modifier)
+        => token.Equals(modifier, StringComparison.OrdinalIgnoreCase)
+        || token.StartsWith(modifier + "(", StringComparison.OrdinalIgnoreCase);
+
+    private static bool SkipZScriptHeaderModifierArgument(List<Tok> t, ref int i)
+    {
+        bool hasOpen = false;
+        while (i < t.Count)
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or ";") return false;
+            if (tk.Text.Contains('(')) hasOpen = true;
+            i++;
+            if (hasOpen && tk.Text.Contains(')')) return true;
+        }
+
+        return false;
     }
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;

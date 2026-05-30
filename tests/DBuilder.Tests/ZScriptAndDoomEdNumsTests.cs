@@ -123,6 +123,24 @@ class ValidHeader : Actor replaces OldThing native { Default { Radius 8; } }";
     }
 
     [Fact]
+    public void SkipsZScriptClassesWithInvalidHeaderModifiers()
+    {
+        const string text = @"
+class UnknownModifier : Actor unexpected { Default { Radius 64; } }
+class DuplicateFinal : Actor final final { Default { Radius 32; } }
+class DuplicateScope : Actor ui play { Default { Radius 24; } }
+class DuplicateVersion : Actor version(""4.8"") version(""4.9"") { Default { Radius 20; } }
+class MissingModifierArgument : Actor deprecated { Default { Radius 16; } }
+class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8"", ""Other"") unsafe(Actor) sealed(ValidChild) { Default { Radius 8; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("ValidModifiers", actor.ClassName);
+        Assert.Equal("Actor", actor.ParentName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"
