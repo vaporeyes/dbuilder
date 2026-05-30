@@ -2405,13 +2405,19 @@ public partial class MainWindow : Window
             texExists = n => texSet.Contains(n);
             flatExists = n => flatSet.Contains(n);
         }
-        Func<int, bool>? thingKnown = null, actionKnown = null;
+        Func<int, bool>? thingKnown = null, actionKnown = null, actionRequiresActivation = null;
+        IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
         {
             thingKnown = n => _config.GetThing(n) != null;
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
+            actionRequiresActivation = a => _config.GetLinedefAction(a)?.RequiresActivation == true;
+            triggerActivationFlags = _config.LinedefActivations
+                .Where(a => a.IsTrigger)
+                .Select(a => a.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
         return new MapCheckContext
         {
@@ -2419,6 +2425,9 @@ public partial class MainWindow : Window
             FlatExists = flatExists,
             ThingTypeKnown = thingKnown,
             ActionKnown = actionKnown,
+            ActionRequiresActivation = actionRequiresActivation,
+            TriggerActivationFlags = triggerActivationFlags,
+            CheckMissingActivations = _mapFormat == MapFormat.Udmf,
         };
     }
 

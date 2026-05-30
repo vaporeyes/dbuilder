@@ -29,6 +29,7 @@ public enum MapIssueKind
     OverlappingLinedefs,
     ShortLinedef,
     OffGridVertex,
+    MissingActivation,
 }
 
 /// <summary>
@@ -45,6 +46,12 @@ public sealed class MapCheckContext
     public Func<int, bool>? ThingTypeKnown { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
+    /// <summary>Returns true when a linedef action requires an activation flag.</summary>
+    public Func<int, bool>? ActionRequiresActivation { get; init; }
+    /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
+    public IReadOnlySet<string>? TriggerActivationFlags { get; init; }
+    /// <summary>Enable UDMF-only missing activation checks.</summary>
+    public bool CheckMissingActivations { get; init; }
     /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
     public int GridSize { get; init; }
     /// <summary>Linedefs shorter than this (but non-zero) are flagged. Default 8.</summary>
@@ -169,6 +176,21 @@ public static class MapAnalysis
                 if (l.Action != 0 && !ctx.ActionKnown(l.Action))
                     issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction,
                         $"Linedef {i} action {l.Action} is not in the game config.")
+                        { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+            }
+
+        if (ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
+            for (int i = 0; i < map.Linedefs.Count; i++)
+            {
+                var l = map.Linedefs[i];
+                if (l.Action == 0 || !ctx.ActionRequiresActivation(l.Action)) continue;
+                bool hasActivation = false;
+                foreach (var flag in ctx.TriggerActivationFlags)
+                    if (l.UdmfFlags.Contains(flag)) { hasActivation = true; break; }
+
+                if (!hasActivation)
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MissingActivation,
+                        $"Linedef {i} has an action with no activation.")
                         { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
             }
     }

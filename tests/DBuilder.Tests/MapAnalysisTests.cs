@@ -1,6 +1,8 @@
 // ABOUTME: Tests for MapAnalysis - the map health checker detecting geometry/structure issues.
 // ABOUTME: Verifies a clean sector reports nothing and each defect surfaces its specific issue kind.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -183,6 +185,45 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { ThingTypeKnown = n => n == 1, ActionKnown = a => a == 11 };
         Assert.True(Has(map, ctx, MapIssueKind.UnknownThingType));
         Assert.True(Has(map, ctx, MapIssueKind.UnknownAction));
+    }
+
+    [Fact]
+    public void MissingActivationFlaggedForUdmfActionThatRequiresTrigger()
+    {
+        var map = Square(true);
+        map.Linedefs[0].Action = 80;
+        var ctx = new MapCheckContext
+        {
+            CheckMissingActivations = true,
+            ActionRequiresActivation = a => a == 80,
+            TriggerActivationFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "playeruse" },
+        };
+
+        Assert.True(Has(map, ctx, MapIssueKind.MissingActivation));
+    }
+
+    [Fact]
+    public void MissingActivationIgnoresNonUdmfAndTriggeredLines()
+    {
+        var map = Square(true);
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].UdmfFlags.Add("playeruse");
+        var ctx = new MapCheckContext
+        {
+            ActionRequiresActivation = a => a == 80,
+            TriggerActivationFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "playeruse" },
+        };
+
+        Assert.False(Has(map, ctx, MapIssueKind.MissingActivation));
+
+        ctx = new MapCheckContext
+        {
+            CheckMissingActivations = true,
+            ActionRequiresActivation = a => a == 80,
+            TriggerActivationFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "playeruse" },
+        };
+
+        Assert.False(Has(map, ctx, MapIssueKind.MissingActivation));
     }
 
     [Fact]
