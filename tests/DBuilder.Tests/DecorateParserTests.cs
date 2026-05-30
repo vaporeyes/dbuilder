@@ -1486,6 +1486,31 @@ ACTOR BrightStateThing 31015
     }
 
     [Fact]
+    public void MergeActorsRecalculatesBrightFromActorMetadata()
+    {
+        const string brightDecorate = @"
+ACTOR ConfiguredBrightThing 31016
+{
+    States { Spawn: BRTS A -1 bright stop }
+}";
+        const string dimDecorate = @"
+ACTOR ConfiguredBrightThing 31016
+{
+    States { Spawn: DIMM A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(brightDecorate));
+        Assert.True(gc.GetThing(31016)!.Bright);
+
+        gc.MergeActors(DecorateParser.Parse(dimDecorate));
+
+        var info = gc.GetThing(31016);
+        Assert.NotNull(info);
+        Assert.False(info!.Bright);
+    }
+
+    [Fact]
     public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string text = @"
