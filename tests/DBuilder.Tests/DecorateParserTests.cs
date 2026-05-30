@@ -941,6 +941,31 @@ ACTOR CoolMonster 31000
     }
 
     [Fact]
+    public void MergeActorsParsesSeparatedNegativeNumericProperties()
+    {
+        const string text = @"
+ACTOR NegativePropertyThing 31001
+{
+    Alpha - 0.5
+    Scale - 0.25
+    $Arg0 ""Signed Default""
+    $Arg0Default - 7
+    Radius 24
+    Height 48
+    States { Spawn: NEGA A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31001);
+        Assert.NotNull(info);
+        Assert.Equal(0.0, info!.Alpha);
+        Assert.Equal(-0.25, info.SpriteScale);
+        Assert.Equal(-7, info.Args[0].Default);
+        Assert.Equal(-7, info.Args[0].DefaultValue);
+    }
+
+    [Fact]
     public void MergeActorsAppliesReplacementActorToExistingThingClass()
     {
         const string cfg = @"

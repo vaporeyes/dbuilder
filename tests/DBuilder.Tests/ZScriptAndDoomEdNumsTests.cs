@@ -324,6 +324,33 @@ class MyMonster : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsWithSpacedNegativeNumericDefaults()
+    {
+        const string zscript = @"
+class NegativeDefaultThing : Actor
+{
+    Default
+    {
+        Radius 24;
+        Height 48;
+        Alpha - 0.5;
+        Scale - 0.25;
+    }
+    States { Spawn: NZSC A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9052 = NegativeDefaultThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9052);
+        Assert.NotNull(info);
+        Assert.Equal(0.0, info!.Alpha);
+        Assert.Equal(-0.25, info.SpriteScale);
+    }
+
+    [Fact]
     public void MergesZScriptStateLightName()
     {
         const string zscript = @"

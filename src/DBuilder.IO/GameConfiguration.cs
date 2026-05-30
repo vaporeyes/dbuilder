@@ -855,15 +855,32 @@ public sealed class GameConfiguration
     private static bool TryActorPropertyDouble(ActorInfo actor, string name, out double value)
     {
         value = 0.0;
-        return TryActorProperty(actor, name, out string raw)
+        return TryActorNumericProperty(actor, name, out string raw)
             && double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
     }
 
     private static bool TryActorPropertyInt(ActorInfo actor, string name, out int value)
     {
         value = 0;
-        return TryActorProperty(actor, name, out string raw)
+        return TryActorNumericProperty(actor, name, out string raw)
             && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static bool TryActorNumericProperty(ActorInfo actor, string name, out string value)
+    {
+        value = "";
+        if (!actor.Properties.TryGetValue(name, out var values) || values.Count == 0) return false;
+
+        value = values[0];
+        if (value == "-" && values.Count > 1)
+        {
+            value += values[1];
+            return true;
+        }
+
+        if (value.StartsWith("- ", StringComparison.Ordinal))
+            value = "-" + value[2..].TrimStart();
+        return true;
     }
 
     private static string ActorProperty(ActorInfo actor, string name)
