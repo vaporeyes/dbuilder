@@ -279,6 +279,23 @@ Texture SHORT, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void AppliesConfiguredMaxTextureNameLengthLikeUdb()
+    {
+        const string text = @"
+Texture ""LONGTEXTURE"", 8, 8 { Patch P, 0, 0 }
+WallTexture ""LONGWALLX"", 8, 8 { Patch P, 0, 0 }
+Flat ""LONGFLATX"", 8, 8 { Patch P, 0, 0 }
+Sprite SPRTA0, 8, 8 { Patch P, 0, 0 }
+Texture SHORT, 8, 8 { Patch P, 0, 0 }";
+
+        var defs = TexturesParser.Parse(text, maxTextureNameLength: 8);
+
+        Assert.Equal(2, defs.Count);
+        Assert.Contains(defs, d => d.Type == TexturesType.Sprite && d.Name == "SPRTA0");
+        Assert.Contains(defs, d => d.Type == TexturesType.Texture && d.Name == "SHORT");
+    }
+
+    [Fact]
     public void SkipsPatchesWithNonIntegralOffsets()
     {
         const string text = @"

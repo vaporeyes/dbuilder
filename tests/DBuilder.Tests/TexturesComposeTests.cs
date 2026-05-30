@@ -637,4 +637,28 @@ public class TexturesComposeTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void TexturesDefinitionsHonorConfiguredMaxTextureNameLength()
+    {
+        string textures = "WallTexture \"LONGWALLX\", 1, 1 { Patch \"PAT\", 0, 0 }\n";
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/PAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 20, 30, 255))));
+        try
+        {
+            using (var rm = new ResourceManager(GameConfiguration.FromText("longtexturenames = false;")))
+            {
+                rm.AddResource(pk3);
+                Assert.Null(rm.GetWallTexture("LONGWALLX"));
+            }
+
+            using (var rm = new ResourceManager(GameConfiguration.FromText("longtexturenames = true;")))
+            {
+                rm.AddResource(pk3);
+                Assert.Equal(new byte[] { 10, 20, 30, 255 }, rm.GetWallTexture("LONGWALLX")!.Rgba[0..4]);
+            }
+        }
+        finally { File.Delete(pk3); }
+    }
 }

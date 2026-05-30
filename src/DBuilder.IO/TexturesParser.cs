@@ -72,7 +72,13 @@ public static class TexturesParser
     public static List<TexturesDef> Parse(string text)
         => Parse(text, knownColors: null);
 
+    public static List<TexturesDef> Parse(string text, int maxTextureNameLength)
+        => Parse(text, knownColors: null, maxTextureNameLength);
+
     public static List<TexturesDef> Parse(string text, IReadOnlyDictionary<string, X11Color>? knownColors)
+        => Parse(text, knownColors, int.MaxValue);
+
+    public static List<TexturesDef> Parse(string text, IReadOnlyDictionary<string, X11Color>? knownColors, int maxTextureNameLength)
     {
         var defs = new List<TexturesDef>();
         var t = Tokenize(text);
@@ -103,7 +109,7 @@ public static class TexturesParser
             }
 
             i++; // type
-            var def = ParseDefinition(type.Value, optional: false, t, ref i, knownColors);
+            var def = ParseDefinition(type.Value, optional: false, t, ref i, knownColors, maxTextureNameLength);
             if (def != null) defs.Add(def);
         }
         return defs;
@@ -148,7 +154,7 @@ public static class TexturesParser
         }
     }
 
-    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, int maxTextureNameLength)
     {
         if (i >= t.Count) return null;
         Tok nameToken = t[i++];
@@ -162,6 +168,7 @@ public static class TexturesParser
         }
         if (string.IsNullOrEmpty(name)) return null;
         if (IsInvalidLongTextureName(nameToken)) return null;
+        if (type != TexturesType.Sprite && name.Length > maxTextureNameLength) return null;
         if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
         if (!ReadComma(t, ref i)) return null;
         if (!ReadInt(t, ref i, out int width)) return null;

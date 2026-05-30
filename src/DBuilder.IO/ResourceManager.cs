@@ -401,12 +401,13 @@ public sealed class ResourceManager : IDisposable
         if (defsBuilt) return;
         defsBuilt = true;
         var knownColors = BuildKnownColors();
+        int maxTextureNameLength = configuration?.MaxTextureNameLength ?? 8;
         for (int readerIndex = 0; readerIndex < readers.Count; readerIndex++)
         {
             var reader = readers[readerIndex];
             foreach (string text in reader.GetTextLumps("TEXTURES", partialTitleMatch: true))
             {
-                foreach (var def in TexturesParser.Parse(text, knownColors))
+                foreach (var def in TexturesParser.Parse(text, knownColors, maxTextureNameLength))
                 {
                     def.ResourceIndex = readerIndex;
                     switch (def.Type)
