@@ -998,8 +998,9 @@ public sealed class GameConfiguration
             int type = ActorPropertyInt(actor, prefix + "type");
             if (!Enum.IsDefined(typeof(UniversalType), type)) type = 0;
             string renderStyle = ActorArgRenderStyle(actor, prefix);
-            int minRange = ActorPropertyInt(actor, prefix + "minrange");
-            int maxRange = ActorPropertyInt(actor, prefix + "maxrange");
+            bool hasRenderStyle = renderStyle.Length > 0;
+            int minRange = hasRenderStyle ? ActorPropertyInt(actor, prefix + "minrange") : 0;
+            int maxRange = hasRenderStyle ? ActorPropertyInt(actor, prefix + "maxrange") : 0;
             args[i] = new ArgInfo
             {
                 Title = title,
@@ -1011,11 +1012,11 @@ public sealed class GameConfiguration
                 DefaultValue = ActorPropertyInt(actor, prefix + "default"),
                 TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")) : EmptyTargetClasses,
                 RenderStyle = renderStyle,
-                RenderColor = ActorArgColor(actor, prefix + "rendercolor", alpha: 192),
+                RenderColor = hasRenderStyle ? ActorArgColor(actor, prefix + "rendercolor", alpha: 192) : null,
                 MinRange = minRange,
                 MaxRange = maxRange,
-                MinRangeColor = ActorArgColor(actor, prefix + "minrangecolor", alpha: 96),
-                MaxRangeColor = ActorArgColor(actor, prefix + "maxrangecolor", alpha: 96),
+                MinRangeColor = hasRenderStyle && minRange > 0 ? ActorArgColor(actor, prefix + "minrangecolor", alpha: 96) : null,
+                MaxRangeColor = hasRenderStyle && maxRange > 0 ? ActorArgColor(actor, prefix + "maxrangecolor", alpha: 96) : null,
                 Str = actor.Properties.ContainsKey(prefix + "str"),
                 TitleStr = ActorProperty(actor, prefix + "str") is { Length: > 0 } titleStr ? titleStr : title,
             };

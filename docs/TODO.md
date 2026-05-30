@@ -400,6 +400,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Limit actor argument target classes to ThingTag arguments.
   - [x] Fall back unknown actor argument type codes to integer.
   - [x] Append actor argument render ranges to tooltips.
+  - [x] Ignore actor argument render hints without a valid render style.
   - [x] Discover scalar actor `user_` variables as typed additional thing fields.
   - [x] Apply ZScript `$UserDefaultValue` metadata to actor `user_` fields.
   - [x] Apply ZScript `$UserReinterpret Color` metadata to integer actor `user_` fields.

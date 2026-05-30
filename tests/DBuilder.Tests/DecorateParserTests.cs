@@ -1090,6 +1090,34 @@ ACTOR UnknownArgTypeThing 31009
     }
 
     [Fact]
+    public void MergeActorsIgnoresArgRenderHintsWithoutRenderStyle()
+    {
+        const string text = @"
+ACTOR NoArgRenderStyleThing 31010
+{
+    $Arg0 ""Target""
+    $Arg0RenderColor ""#2040ff""
+    $Arg0MinRange 16
+    $Arg0MinRangeColor ""#102030""
+    $Arg0MaxRange 256
+    $Arg0MaxRangeColor ""#405060""
+    Radius 24
+    Height 48
+    States { Spawn: NRST A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31010);
+        Assert.NotNull(info);
+        Assert.Null(info!.Args[0].RenderColor);
+        Assert.Equal(0, info.Args[0].MinRange);
+        Assert.Null(info.Args[0].MinRangeColor);
+        Assert.Equal(0, info.Args[0].MaxRange);
+        Assert.Null(info.Args[0].MaxRangeColor);
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"
