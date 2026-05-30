@@ -263,6 +263,45 @@ public class ClipboardStreamTests
     }
 
     [Fact]
+    public void ReadsUdbStyleCustomFieldMetadata()
+    {
+        var ms = new MemoryStream();
+        using (var w = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
+        {
+            w.Write(1); // header vertices
+            w.Write(0); // header sectors
+            w.Write(0); // header linedefs
+            w.Write(0); // header things
+
+            w.Write(1); // vertices
+            w.Write(0.0);
+            w.Write(0.0);
+            w.Write(double.NaN);
+            w.Write(double.NaN);
+            w.Write(0); // groups
+            w.Write(4); // custom fields
+            WriteUdbCustomField(w, "userint", UniversalType.Integer, 7);
+            WriteUdbCustomField(w, "userfloat", UniversalType.Float, 2.5);
+            WriteUdbCustomField(w, "userbool", UniversalType.Boolean, true);
+            WriteUdbCustomField(w, "userstring", UniversalType.String, "hello");
+
+            w.Write(0); // sectors
+            w.Write(0); // sidedefs
+            w.Write(0); // linedefs
+            w.Write(0); // things
+        }
+        ms.Position = 0;
+
+        var dst = new MapSet();
+        ClipboardStreamReader.Read(dst, ms);
+
+        Assert.Equal(7, (int)dst.Vertices[0].Fields["userint"]);
+        Assert.Equal(2.5, (double)dst.Vertices[0].Fields["userfloat"]);
+        Assert.True((bool)dst.Vertices[0].Fields["userbool"]);
+        Assert.Equal("hello", (string)dst.Vertices[0].Fields["userstring"]);
+    }
+
+    [Fact]
     public void ThingPitchRollScaleRoundTrip()
     {
         var src = new MapSet();
@@ -512,6 +551,28 @@ public class ClipboardStreamTests
     {
         w.Write(tags.Length);
         foreach (int tag in tags) w.Write(tag);
+    }
+
+    private static void WriteUdbCustomField(BinaryWriter w, string key, UniversalType type, object value)
+    {
+        WriteString(w, key);
+        w.Write((int)type);
+        w.Write((int)type);
+        switch (type)
+        {
+            case UniversalType.Integer:
+                w.Write((int)value);
+                break;
+            case UniversalType.Float:
+                w.Write((double)value);
+                break;
+            case UniversalType.Boolean:
+                w.Write((bool)value);
+                break;
+            case UniversalType.String:
+                WriteString(w, (string)value);
+                break;
+        }
     }
 
     private static void WriteCustomFields(BinaryWriter w)

@@ -27,8 +27,8 @@
  *                                      int32 udmfFlagCount; (str, bool) pairs; customFields
  *
  *   tags:         int32 count; int32 tag per entry
- *   customFields: int32 count; per field: str key, byte typeTag, then value where
- *                 typeTag 0=int(int32), 1=double(double), 2=bool(bool), 3=string(str)
+ *   customFields: int32 count; per field: str key, int32 declared UniversalType,
+ *                 int32 primitive UniversalType, then value
  */
 
 using System.Collections.Generic;
@@ -188,18 +188,29 @@ public static class ClipboardStreamWriter
         foreach (var kv in fields)
         {
             WriteString(w, kv.Key);
+            var primitiveType = PrimitiveUniversalType(kv.Value);
+            w.Write((int)primitiveType);
+            w.Write((int)primitiveType);
             switch (kv.Value)
             {
-                case bool b:   w.Write((byte)2); w.Write(b); break;
-                case double d: w.Write((byte)1); w.Write(d); break;
-                case float f:  w.Write((byte)1); w.Write((double)f); break;
-                case int i:    w.Write((byte)0); w.Write(i); break;
-                case long l:   w.Write((byte)0); w.Write((int)l); break;
-                case string s: w.Write((byte)3); WriteString(w, s); break;
-                default:       w.Write((byte)0); w.Write(System.Convert.ToInt32(kv.Value)); break;
+                case bool b:   w.Write(b); break;
+                case double d: w.Write(d); break;
+                case float f:  w.Write((double)f); break;
+                case int i:    w.Write(i); break;
+                case long l:   w.Write(System.Convert.ToInt32(l)); break;
+                case string s: WriteString(w, s); break;
+                default:       w.Write(System.Convert.ToInt32(kv.Value)); break;
             }
         }
     }
+
+    private static UniversalType PrimitiveUniversalType(object value) => value switch
+    {
+        bool => UniversalType.Boolean,
+        double or float => UniversalType.Float,
+        string => UniversalType.String,
+        _ => UniversalType.Integer,
+    };
 
     private static void WriteUdmfFlagSet(BinaryWriter w, HashSet<string> flags)
     {
@@ -504,14 +515,15 @@ public static class ClipboardStreamReader
         for (int i = 0; i < n; i++)
         {
             string key = ReadString(r);
-            byte typeTag = r.ReadByte();
-            object value = typeTag switch
+            _ = r.ReadInt32();
+            var primitiveType = (UniversalType)r.ReadInt32();
+            object value = primitiveType switch
             {
-                0 => r.ReadInt32(),
-                1 => r.ReadDouble(),
-                2 => r.ReadBoolean(),
-                3 => ReadString(r),
-                _ => throw new IOException($"Unknown clipboard field type tag {typeTag} for key \"{key}\""),
+                UniversalType.Integer => r.ReadInt32(),
+                UniversalType.Float => r.ReadDouble(),
+                UniversalType.Boolean => r.ReadBoolean(),
+                UniversalType.String => ReadString(r),
+                _ => throw new IOException($"Unknown clipboard field primitive type {primitiveType} for key \"{key}\""),
             };
             target[key] = value;
         }

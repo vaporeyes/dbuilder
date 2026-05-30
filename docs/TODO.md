@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1448 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1449 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -264,6 +264,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Clear UDMF-only element data when converting to binary formats.
 - [ ] Port clipboard stream behavior to match UDB exactly.
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
+  - [x] Encode clipboard custom fields with UDB-style declared and primitive type metadata.
 - [ ] Port lump ordering rules.
   - [x] Order saved map blocks by configured `maplumpnames` when a game configuration is supplied.
 - [ ] Port map lump metadata and node-build lump handling.
