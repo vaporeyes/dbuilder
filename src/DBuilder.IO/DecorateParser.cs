@@ -498,14 +498,11 @@ public static class DecorateParser
 
             if (!stopCollectingDeferred && TryReadInclude(line, out string includePath))
             {
-                if (!IsValidIncludePath(includePath, allowRelativeIncludes))
-                {
-                    result.AppendLine(line);
-                    continue;
-                }
+                if (!IsValidIncludePath(includePath, allowRelativeIncludes)) break;
                 string? included = includeResolver(includePath);
-                if (included != null && seen.Add(includePath))
+                if (included != null)
                 {
+                    if (!seen.Add(includePath)) break;
                     string expanded = ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes, deferIncludes);
                     if (deferred != null) deferred.AppendLine(expanded);
                     else result.AppendLine(expanded);

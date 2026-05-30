@@ -2056,4 +2056,37 @@ ACTOR IncludedBase
 
         Assert.Empty(actors);
     }
+
+    [Fact]
+    public void InvalidIncludePathStopsDecorateParsing()
+    {
+        const string root = @"
+#include ""../actors/base.dec""
+ACTOR AfterInvalidInclude 32001
+{
+    Radius 8
+}";
+
+        var actors = DecorateParser.Parse(root, _ => "ACTOR Bad 32002 { Radius 16 }");
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
+    public void DuplicateIncludeStopsDecorateParsing()
+    {
+        const string root = @"
+#include ""actors/base.dec""
+#include ""actors/base.dec""
+ACTOR AfterDuplicateInclude 32003
+{
+    Radius 8
+}";
+        const string included = "ACTOR IncludedBeforeDuplicate 32004 { Radius 16 }";
+
+        var actors = DecorateParser.Parse(root, path => path == "actors/base.dec" ? included : null);
+
+        var actor = Assert.Single(actors);
+        Assert.Equal("IncludedBeforeDuplicate", actor.ClassName);
+    }
 }
