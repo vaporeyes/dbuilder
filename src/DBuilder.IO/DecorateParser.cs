@@ -580,7 +580,11 @@ public static class DecorateParser
         while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
         {
             var tk = t[i];
-            if (tk.Kind == Kind.Sym && tk.Text == ":")
+            if (tk.Kind == Kind.Sym && tk.Text == "\n")
+            {
+                i++;
+            }
+            else if (tk.Kind == Kind.Sym && tk.Text == ":")
             {
                 i++;
                 if (i < t.Count && IsNameToken(t[i])) actor.ParentName = t[i++].Text;
@@ -604,7 +608,16 @@ public static class DecorateParser
             {
                 actor.DoomEdNum = n; i++;
             }
-            else i++; // 'native'/'abstract'/version "x"/stray tokens
+            else if (headerNum && tk.Kind == Kind.Word && tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+            }
+            else if (headerNum)
+            {
+                SkipDeclaration(t, ref i);
+                return null;
+            }
+            else i++;
         }
 
         if (i >= t.Count || t[i].Text != "{") return actor; // no body (e.g. forward declaration)

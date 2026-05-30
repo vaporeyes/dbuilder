@@ -313,6 +313,25 @@ ACTOR RegionArrowOverrideThing 5011
     }
 
     [Fact]
+    public void SkipsDecorateActorsWithUnexpectedHeaderTokens()
+    {
+        const string text = @"
+ACTOR BadHeader bogus 6003
+{
+    Radius 64
+}
+ACTOR GoodHeader 6004
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("GoodHeader", actor.ClassName);
+        Assert.Equal(6004, actor.DoomEdNum);
+    }
+
+    [Fact]
     public void SeparatedNegativeEditorNumberLeavesDoomEdNumNegative()
     {
         var actor = DecorateParser.Parse("ACTOR AbstractBase - 1 { Radius 16 }")[0];
