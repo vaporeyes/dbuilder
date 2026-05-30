@@ -446,7 +446,7 @@ object TorchActor
     }
 
     [Fact]
-    public void SkipsObjectsWithEmptyClassNames()
+    public void EmptyObjectClassNamesStopParsingLikeUdb()
     {
         const string text = @"
 pointlight FIRST { color 1 0 0 size 16 }
@@ -455,9 +455,22 @@ object NamedActor { frame NAMEA { light FIRST } }";
 
         var g = GldefsParser.Parse(text);
 
-        var obj = Assert.Single(g.Objects);
-        Assert.Equal("NamedActor", obj.ClassName);
+        Assert.Empty(g.Objects);
         Assert.Null(g.ActorLightColor(""));
+    }
+
+    [Fact]
+    public void ObjectBlocksWithoutOpeningBracesStopParsingLikeUdb()
+    {
+        const string text = @"
+pointlight FIRST { color 1 0 0 size 16 }
+object BrokenActor frame TESTA { light FIRST }
+object NamedActor { frame NAMEA { light FIRST } }";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Empty(g.Objects);
+        Assert.Null(g.ActorLightColor("NamedActor"));
     }
 
     [Fact]

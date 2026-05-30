@@ -115,7 +115,10 @@ public static class GldefsParser
             {
                 if (!ParseLight(g, kw, t, ref i)) return false;
             }
-            else if (kw == "object") ParseObject(g, t, ref i);
+            else if (kw == "object")
+            {
+                if (!ParseObject(g, t, ref i)) return false;
+            }
             else if (kw == "glow")
             {
                 if (!ParseGlow(g, tokens, ref i, knownColors)) return false;
@@ -290,50 +293,46 @@ public static class GldefsParser
         return true;
     }
 
-    private static void ParseObject(Gldefs g, List<string> t, ref int i)
+    private static bool ParseObject(Gldefs g, List<string> t, ref int i)
     {
         i++; // object
-        if (i >= t.Count) return;
+        if (i >= t.Count) return false;
         var obj = new GldefsObject { ClassName = t[i++] };
-        if (string.IsNullOrEmpty(obj.ClassName))
-        {
-            if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
-            return;
-        }
+        if (string.IsNullOrEmpty(obj.ClassName)) return false;
         bool foundLight = false;
-        if (i < t.Count && t[i] == "{")
+        if (i >= t.Count || t[i] != "{") return false;
+
+        i++;
+        int bracesCount = 1;
+        bool foundFrame = false;
+        while (i < t.Count)
         {
-            i++;
-            int bracesCount = 1;
-            bool foundFrame = false;
-            while (i < t.Count)
+            string token = t[i++].ToLowerInvariant();
+            if (!foundLight && !foundFrame && token == "frame")
             {
-                string token = t[i++].ToLowerInvariant();
-                if (!foundLight && !foundFrame && token == "frame")
+                string frameName = i < t.Count ? t[i++].ToLowerInvariant() : "";
+                foundFrame = frameName.Length == 4 || (frameName.Length > 4 && frameName[4] == 'a');
+            }
+            else if (!foundLight && foundFrame && token == "light")
+            {
+                string lightName = i < t.Count ? t[i++] : "";
+                if (!string.IsNullOrEmpty(lightName))
                 {
-                    string frameName = i < t.Count ? t[i++].ToLowerInvariant() : "";
-                    foundFrame = frameName.Length == 4 || (frameName.Length > 4 && frameName[4] == 'a');
+                    obj.Lights.Add(lightName);
+                    foundLight = true;
                 }
-                else if (!foundLight && foundFrame && token == "light")
-                {
-                    string lightName = i < t.Count ? t[i++] : "";
-                    if (!string.IsNullOrEmpty(lightName))
-                    {
-                        obj.Lights.Add(lightName);
-                        foundLight = true;
-                    }
-                }
-                else if (token == "{")
-                {
-                    bracesCount++;
-                }
-                else if (token == "}" && --bracesCount < 1)
-                {
-                    break;
-                }
+            }
+            else if (token == "{")
+            {
+                bracesCount++;
+            }
+            else if (token == "}" && --bracesCount < 1)
+            {
+                break;
             }
         }
         if (obj.Lights.Count > 0) SetObject(g.Objects, obj);
+        return true;
     }
 
     private static void SetObject(List<GldefsObject> objects, GldefsObject obj)

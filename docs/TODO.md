@@ -405,7 +405,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require numeric GLDEFS animated light interval values.
   - [x] Ignore unknown GLDEFS light properties like UDB.
   - [x] Skip unnamed GLDEFS glow entries like UDB.
-  - [x] Skip unnamed GLDEFS object blocks like UDB.
+  - [x] Stop GLDEFS parsing on invalid object declarations like UDB.
   - [x] Stop GLDEFS parsing on duplicate or invalid includes like UDB.
   - [x] Stop GLDEFS parsing on invalid skybox declarations like UDB.
   - [x] Stop GLDEFS parsing on invalid glow declarations like UDB.
