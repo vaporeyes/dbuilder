@@ -2,12 +2,31 @@
 // ABOUTME: Builds synthetic PK3 entries under hires/ and regular namespaces to verify replacement priority.
 
 using System.IO;
+using System.Text;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
 public class HiresResourceTests
 {
+    private static byte[] DoomPatch(byte index)
+    {
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((short)1);
+        w.Write((short)1);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write((int)12);
+        w.Write((byte)0);
+        w.Write((byte)1);
+        w.Write((byte)0);
+        w.Write(index);
+        w.Write((byte)0);
+        w.Write((byte)0xFF);
+        return ms.ToArray();
+    }
+
     [Fact]
     public void HiresEntryOverridesRegularTextureFlatAndSprite()
     {
@@ -74,5 +93,39 @@ public class HiresResourceTests
             Assert.Null(rm.GetSprite("ONLYHI"));
         }
         finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void ConfiguredWadHiresRangeOverridesResolvableBaseImage()
+    {
+        var config = GameConfiguration.FromText("""
+            hires
+            {
+                detail { start = "HI_START"; end = "HI_END"; }
+            }
+            """);
+        string wad = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", TestArtifacts.GrayscalePlaypal()),
+            ("ROCK", TestArtifacts.SolidFlat(9)),
+            ("HI_START", []),
+            ("ROCK", DoomPatch(70)),
+            ("HI_END", []));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(wad);
+
+            Assert.Equal(9, rm.GetFlat("ROCK")!.Rgba[0]);
+
+            rm.Configuration = config;
+
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetFlat("ROCK")!.Rgba[0..4]);
+            Assert.Equal(1, rm.GetFlat("ROCK")!.Width);
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
     }
 }

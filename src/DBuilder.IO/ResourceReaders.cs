@@ -117,7 +117,15 @@ internal sealed class WadResourceReader : IResourceReader
 
     public ImageData? GetSpriteBase(string name, DoomPalette? palette) => GetSprite(name, palette);
 
-    public ImageData? GetHiRes(string name, DoomPalette? palette) => null;
+    public ImageData? GetHiRes(string name, DoomPalette? palette)
+    {
+        var rangeLump = FindInRanges(name, ConfiguredHiResRanges());
+        if (rangeLump == null) return null;
+
+        byte[] bytes = rangeLump.Stream.ReadAllBytes();
+        if (PngDecoder.IsPng(bytes)) return PngDecoder.Decode(bytes);
+        return palette == null ? null : DecodePicture(bytes, palette);
+    }
 
     public ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
     {
@@ -177,8 +185,11 @@ internal sealed class WadResourceReader : IResourceReader
     }
 
     private static ImageData? DecodePicture(Lump lump, DoomPalette palette)
+        => DecodePicture(lump.Stream.ReadAllBytes(), palette);
+
+    private static ImageData? DecodePicture(byte[] bytes, DoomPalette palette)
     {
-        var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
+        var pic = DoomPictureReader.Decode(bytes, palette);
         return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
 
@@ -235,6 +246,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private IReadOnlyList<ResourceRangeInfo> ConfiguredVoxelRanges()
         => configProvider()?.VoxelRanges ?? Array.Empty<ResourceRangeInfo>();
+
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredHiResRanges()
+        => configProvider()?.HiResRanges ?? Array.Empty<ResourceRangeInfo>();
 
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
