@@ -382,6 +382,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port actor structure behavior for DECORATE and ZScript.
   - [x] Treat separated negative DECORATE editor numbers as non-placeable.
   - [x] Parse quoted DECORATE actor header class names.
+  - [x] Honor DECORATE `skip_super` for parsed parent inheritance.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.

@@ -1079,6 +1079,7 @@ public static class DecorateParser
         foreach (var a in actors)
         {
             if (a.Sprite != null && a.Radius != 0 && a.Height != 0 && a.Category != null) continue;
+            if (SkipsSuper(a)) continue;
             var p = a.ParentName;
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { a.ClassName };
             while (p != null && byName.TryGetValue(p, out var parent) && seen.Add(p))
@@ -1107,6 +1108,9 @@ public static class DecorateParser
             }
         }
     }
+
+    private static bool SkipsSuper(ActorInfo actor)
+        => actor.Properties.ContainsKey("skip_super");
 
     private static StateSpriteCandidate? ResolveRelevantGotoSprite(
         ActorInfo actor,

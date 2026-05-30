@@ -631,6 +631,34 @@ ACTOR ArgChild : ArgBase 7011
     }
 
     [Fact]
+    public void SkipSuperPreventsParsedParentInheritance()
+    {
+        const string text = @"
+ACTOR Base
+{
+    //$Category ""Inherited Category""
+    +SOLID
+    Radius 31
+    Height 64
+    RenderStyle Add
+    States { Spawn: BOSS A -1 stop }
+}
+ACTOR Derived : Base 7015
+{
+    skip_super
+}";
+        var child = DecorateParser.Parse(text).Single(a => a.ClassName == "Derived");
+
+        Assert.True(child.Properties.ContainsKey("skip_super"));
+        Assert.Null(child.EditorSprite);
+        Assert.Equal(0, child.Radius);
+        Assert.Equal(0, child.Height);
+        Assert.DoesNotContain("SOLID", child.Flags.Keys);
+        Assert.False(child.Properties.ContainsKey("RenderStyle"));
+        Assert.Null(child.Category);
+    }
+
+    [Fact]
     public void IgnoresFlowKeywordsAsSprites()
     {
         // "goto" is 4 chars but must not be mistaken for a sprite frame.
