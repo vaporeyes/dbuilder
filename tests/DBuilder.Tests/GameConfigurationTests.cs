@@ -638,6 +638,18 @@ public class GameConfigurationTests
                                 argspeed = true;
                                 customflag = true;
                             }
+                            flagsrename
+                            {
+                                UniversalMapSetIO
+                                {
+                                    dormant = "Starts dormant";
+                                    friendly = "Friendly actor";
+                                }
+                                UnsupportedMapSetIO
+                                {
+                                    ignored = "Ignored";
+                                }
+                            }
                         }
                     }
                 }
@@ -683,6 +695,10 @@ public class GameConfigurationTests
         Assert.Equal(56, baron.Height);
         Assert.Contains("argspeed", baron.AddUniversalFields);
         Assert.True(baron.HasAdditionalUniversalField("CUSTOMFLAG"));
+        var renamed = baron.FlagsRename["universalmapsetio"];
+        Assert.Equal("Starts dormant", renamed["dormant"]);
+        Assert.Equal("Friendly actor", renamed["friendly"]);
+        Assert.False(baron.FlagsRename.ContainsKey("unsupportedmapsetio"));
     }
 
     [Fact]

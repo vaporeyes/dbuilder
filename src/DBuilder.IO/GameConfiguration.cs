@@ -125,6 +125,8 @@ public sealed class ThingTypeInfo
     public ThingRenderMode RenderMode { get; init; }
     public bool RollSprite { get; init; }
     public bool RollCenter { get; init; }
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> FlagsRename { get; init; }
+        = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
     public bool IsNull => Index == 0;
     public IReadOnlyList<string> AddUniversalFields { get; init; } = Array.Empty<string>();
     public ArgInfo[] Args { get; init; } = System.Array.Empty<ArgInfo>();
@@ -765,6 +767,7 @@ public sealed class GameConfiguration
             RenderMode = renderMode,
             RollSprite = rollSprite,
             RollCenter = rollSprite && ActorFlag(actor, "rollcenter"),
+            FlagsRename = existing?.FlagsRename ?? EmptyFlagsRename,
             AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
             Args = ActorArgs(actor, fallback?.Args),
         };
@@ -804,6 +807,7 @@ public sealed class GameConfiguration
         RenderMode = source.RenderMode,
         RollSprite = source.RollSprite,
         RollCenter = source.RollCenter,
+        FlagsRename = source.FlagsRename,
         AddUniversalFields = source.AddUniversalFields,
         Args = source.Args,
     };
@@ -1088,6 +1092,7 @@ public sealed class GameConfiguration
                 RenderMode = existing?.RenderMode ?? ThingRenderMode.Normal,
                 RollSprite = existing?.RollSprite ?? false,
                 RollCenter = existing?.RollCenter ?? false,
+                FlagsRename = existing?.FlagsRename ?? EmptyFlagsRename,
                 AddUniversalFields = existing?.AddUniversalFields ?? Array.Empty<string>(),
                 Args = existing?.Args ?? System.Array.Empty<ArgInfo>(),
             };
@@ -1144,6 +1149,7 @@ public sealed class GameConfiguration
         RenderMode = info.RenderMode,
         RollSprite = info.RollSprite,
         RollCenter = info.RollCenter,
+        FlagsRename = info.FlagsRename,
         AddUniversalFields = info.AddUniversalFields,
         Color = info.Color,
         Args = info.Args,
@@ -1367,6 +1373,7 @@ public sealed class GameConfiguration
                     LockSprite = GetBool(child, "locksprite", false),
                     ThingLink = GetInt(child, "thinglink", 0),
                     Optional = GetBool(child, "optional", info.Optional),
+                    FlagsRename = ParseFlagsRename(child),
                     AddUniversalFields = ParseAddUniversalFields(child),
                     Args = ParseArgs(child),
                 };
@@ -2007,6 +2014,32 @@ public sealed class GameConfiguration
         }
         return result;
     }
+
+    private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> EmptyFlagsRename
+        = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> ParseFlagsRename(IDictionary entry)
+    {
+        if (entry["flagsrename"] is not IDictionary main) return EmptyFlagsRename;
+        var result = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry ioEntry in main)
+        {
+            string ioName = ioEntry.Key.ToString()?.ToLowerInvariant() ?? "";
+            if (!IsSupportedFlagsRenameMapSet(ioName) || ioEntry.Value is not IDictionary flags) continue;
+            var renamed = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (DictionaryEntry flagEntry in flags)
+            {
+                string flag = flagEntry.Key.ToString() ?? "";
+                string title = flagEntry.Value?.ToString() ?? "";
+                if (flag.Length > 0) renamed[flag] = title;
+            }
+            result[ioName] = renamed;
+        }
+        return result;
+    }
+
+    private static bool IsSupportedFlagsRenameMapSet(string value)
+        => value is "doommapsetio" or "hexenmapsetio" or "universalmapsetio";
 
     private static IReadOnlySet<string> ParseTargetClasses(string value)
     {
