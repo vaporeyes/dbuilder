@@ -128,6 +128,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapWiderThanSafeBoundaryIsFlagged()
+    {
+        var map = Square(true);
+        map.Vertices[2].Position = new Vector2D(2000, 100);
+        var ctx = new MapCheckContext { SafeBoundary = 1024 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MapTooBig);
+        Assert.Contains("width", issue.Message, StringComparison.Ordinal);
+        Assert.NotNull(issue.Focus);
+    }
+
+    [Fact]
+    public void SafeBoundaryZeroDisablesMapSizeCheck()
+    {
+        var map = Square(true);
+        map.Vertices[2].Position = new Vector2D(2000, 100);
+        var ctx = new MapCheckContext { SafeBoundary = 0 };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MapTooBig);
+    }
+
+    [Fact]
     public void DetectsOverlappingVertices()
     {
         var map = Square(true);

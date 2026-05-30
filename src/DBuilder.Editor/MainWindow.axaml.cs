@@ -2456,6 +2456,7 @@ public partial class MainWindow : Window
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,
             DoubleSidedFlag = _config?.DoubleSidedFlag,
+            SafeBoundary = _config?.SafeBoundary ?? 0,
         };
     }
 

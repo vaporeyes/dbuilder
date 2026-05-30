@@ -17,6 +17,7 @@ public enum MapIssueKind
     LinedefMissingFront,
     LinedefNotDoubleSided,
     LinedefNotSingleSided,
+    MapTooBig,
     OverlappingVertices,
     UnusedVertex,
     EmptySector,
@@ -72,6 +73,8 @@ public sealed class MapCheckContext
     public bool CheckMissingActivations { get; init; }
     /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
     public string? DoubleSidedFlag { get; init; }
+    /// <summary>Maximum safe map width or height in map units; 0 disables the map-size check.</summary>
+    public int SafeBoundary { get; init; }
     /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
     public int GridSize { get; init; }
     /// <summary>Linedefs shorter than this (but non-zero) are flagged. Default 8.</summary>
@@ -106,6 +109,8 @@ public static class MapAnalysis
         CheckLinedefs(map, issues);
         if (ctx?.DoubleSidedFlag != null)
             CheckLineReferenceFlags(map, ctx, issues);
+        if (ctx != null)
+            CheckMapSize(map, ctx, issues);
         CheckOverlappingVertices(map, issues);
         CheckUnusedVertices(map, vertexIndex, issues);
         CheckSectors(map, issues);
@@ -378,6 +383,37 @@ public static class MapAnalysis
         if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
             return bit != 0 && (line.Flags & bit) != 0;
         return line.UdmfFlags.Contains(flag);
+    }
+
+    private static void CheckMapSize(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (ctx.SafeBoundary <= 0 || map.Vertices.Count == 0) return;
+
+        double minX = double.MaxValue;
+        double maxX = double.MinValue;
+        double minY = double.MaxValue;
+        double maxY = double.MinValue;
+        foreach (var v in map.Vertices)
+        {
+            minX = Math.Min(minX, v.Position.x);
+            maxX = Math.Max(maxX, v.Position.x);
+            minY = Math.Min(minY, v.Position.y);
+            maxY = Math.Max(maxY, v.Position.y);
+        }
+
+        bool tooWide = maxX - minX > ctx.SafeBoundary;
+        bool tooHigh = maxY - minY > ctx.SafeBoundary;
+        if (!tooWide && !tooHigh) return;
+
+        string message = tooWide && tooHigh
+            ? $"Map width and height exceed the safe boundary of {ctx.SafeBoundary} map units."
+            : tooWide
+                ? $"Map width exceeds the safe boundary of {ctx.SafeBoundary} map units."
+                : $"Map height exceeds the safe boundary of {ctx.SafeBoundary} map units.";
+        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MapTooBig, message)
+        {
+            Focus = new Vector2D((minX + maxX) * 0.5, (minY + maxY) * 0.5),
+        });
     }
 
     private static void CheckOverlappingVertices(MapSet map, List<MapIssue> issues)
