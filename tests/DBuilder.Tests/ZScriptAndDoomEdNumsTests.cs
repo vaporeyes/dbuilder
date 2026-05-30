@@ -200,6 +200,34 @@ class AfterMissingSemicolon : Actor { Default { Radius 64; } }";
     }
 
     [Fact]
+    public void ValidatesTopLevelZScriptEnumDeclarations()
+    {
+        const string valid = @"
+enum ActorState : int
+{
+    Idle,
+    Alert
+}
+class EnumAfterValid : Actor { Default { Radius 16; } }";
+        const string missingName = @"
+enum : int { Idle }
+class AfterMissingName : Actor { Default { Radius 32; } }";
+        const string missingIntegerType = @"
+enum BrokenEnum : { Idle }
+class AfterMissingType : Actor { Default { Radius 64; } }";
+        const string missingBody = @"
+enum BrokenEnum
+class AfterMissingBody : Actor { Default { Radius 128; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(valid));
+
+        Assert.Equal("EnumAfterValid", actor.ClassName);
+        Assert.Empty(ZScriptParser.Parse(missingName));
+        Assert.Empty(ZScriptParser.Parse(missingIntegerType));
+        Assert.Empty(ZScriptParser.Parse(missingBody));
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"

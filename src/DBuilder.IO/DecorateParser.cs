@@ -231,6 +231,12 @@ public static class DecorateParser
             }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
+                && toks[i].Text.Equals("enum", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!TrySkipZScriptEnumDeclaration(toks, ref i)) break;
+            }
+            else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word
                 && toks[i].Text.Equals("const", StringComparison.OrdinalIgnoreCase))
             {
                 if (!TrySkipZScriptConstDeclaration(toks, ref i)) break;
@@ -389,8 +395,29 @@ public static class DecorateParser
     }
 
     private static bool IsSkippedZScriptTopLevelDeclaration(string word)
-        => word.Equals("struct", StringComparison.OrdinalIgnoreCase)
-        || word.Equals("enum", StringComparison.OrdinalIgnoreCase);
+        => word.Equals("struct", StringComparison.OrdinalIgnoreCase);
+
+    private static bool TrySkipZScriptEnumDeclaration(List<Tok> t, ref int i)
+    {
+        i++;
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+        i++;
+        SkipNewlines(t, ref i);
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ":")
+        {
+            i++;
+            SkipNewlines(t, ref i);
+            if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+            i++;
+            SkipNewlines(t, ref i);
+        }
+
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
+        SkipBlock(t, ref i);
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";") i++;
+        return true;
+    }
 
     private static bool TrySkipZScriptConstDeclaration(List<Tok> t, ref int i)
     {
