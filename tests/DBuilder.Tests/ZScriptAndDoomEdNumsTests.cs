@@ -324,6 +324,42 @@ class MyMonster : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorArgumentRenderColors()
+    {
+        const string zscript = @"
+class ArgColorZThing : Actor
+{
+    Default
+    {
+        Radius 24;
+        Height 48;
+        $Arg0 ""Target"";
+        $Arg0RenderStyle Circle;
+        $Arg0RenderColor ""#2040ff"";
+        $Arg0MinRange 16;
+        $Arg0MinRangeColor ""#102030"";
+        $Arg0MaxRange 256;
+        $Arg0MaxRangeColor ""#405060"";
+    }
+    States { Spawn: ACZT A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9051 = ArgColorZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9051);
+        Assert.NotNull(info);
+        Assert.Equal("circle", info!.Args[0].RenderStyle);
+        Assert.Equal(new ArgColor(0x20, 0x40, 0xff, 192), info.Args[0].RenderColor);
+        Assert.Equal(16, info.Args[0].MinRange);
+        Assert.Equal(new ArgColor(0x10, 0x20, 0x30, 96), info.Args[0].MinRangeColor);
+        Assert.Equal(256, info.Args[0].MaxRange);
+        Assert.Equal(new ArgColor(0x40, 0x50, 0x60, 96), info.Args[0].MaxRangeColor);
+    }
+
+    [Fact]
     public void MergesZScriptActorsWithSpacedNegativeNumericDefaults()
     {
         const string zscript = @"

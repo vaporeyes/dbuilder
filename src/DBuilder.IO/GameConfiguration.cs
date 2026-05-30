@@ -21,6 +21,8 @@ using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
 
+public sealed record ArgColor(byte R, byte G, byte B, byte A);
+
 /// <summary>Metadata for one of a linedef action's / thing's 5 args: display name, type code, enum reference, default.</summary>
 public sealed class ArgInfo
 {
@@ -33,8 +35,11 @@ public sealed class ArgInfo
     public object DefaultValue { get; init; } = 0;
     public IReadOnlySet<string> TargetClasses { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     public string RenderStyle { get; init; } = "";
+    public ArgColor? RenderColor { get; init; }
     public int MinRange { get; init; }
     public int MaxRange { get; init; }
+    public ArgColor? MinRangeColor { get; init; }
+    public ArgColor? MaxRangeColor { get; init; }
     public bool Str { get; init; }
     public string TitleStr { get; init; } = "";
     /// <summary>True when this arg slot is actually used (has a title).</summary>
@@ -949,8 +954,11 @@ public sealed class GameConfiguration
                 DefaultValue = ActorPropertyInt(actor, prefix + "default"),
                 TargetClasses = ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")),
                 RenderStyle = ActorProperty(actor, prefix + "renderstyle").ToLowerInvariant(),
+                RenderColor = ActorArgColor(actor, prefix + "rendercolor", alpha: 192),
                 MinRange = ActorPropertyInt(actor, prefix + "minrange"),
                 MaxRange = ActorPropertyInt(actor, prefix + "maxrange"),
+                MinRangeColor = ActorArgColor(actor, prefix + "minrangecolor", alpha: 96),
+                MaxRangeColor = ActorArgColor(actor, prefix + "maxrangecolor", alpha: 96),
                 Str = actor.Properties.ContainsKey(prefix + "str"),
                 TitleStr = ActorProperty(actor, prefix + "str") is { Length: > 0 } titleStr ? titleStr : title,
             };
@@ -1006,7 +1014,15 @@ public sealed class GameConfiguration
     private static int ActorPropertyInt(ActorInfo actor, string name)
         => TryActorPropertyInt(actor, name, out int value) ? value : 0;
 
+    private static ArgColor? ActorArgColor(ActorInfo actor, string name, byte alpha)
+        => TryActorProperty(actor, name, out string value) ? ParseArgColor(value, alpha) : null;
+
     private static string? EmptyToNull(string value) => value.Length == 0 ? null : value;
+
+    private static ArgColor? ParseArgColor(string value, byte alpha)
+        => ZDoomColorParser.TryParse(value, knownColors: null, out byte red, out byte green, out byte blue)
+            ? new ArgColor(red, green, blue, alpha)
+            : null;
 
     private static string NormalizeBaseGame(string value)
     {
@@ -1434,8 +1450,11 @@ public sealed class GameConfiguration
                 DefaultValue = ad["default"] ?? 0,
                 TargetClasses = ParseTargetClasses(GetString(ad, "targetclasses", "")),
                 RenderStyle = GetString(ad, "renderstyle", "").ToLowerInvariant(),
+                RenderColor = ParseArgColor(GetString(ad, "rendercolor", ""), alpha: 192),
                 MinRange = GetInt(ad, "minrange", 0),
                 MaxRange = GetInt(ad, "maxrange", 0),
+                MinRangeColor = ParseArgColor(GetString(ad, "minrangecolor", ""), alpha: 96),
+                MaxRangeColor = ParseArgColor(GetString(ad, "maxrangecolor", ""), alpha: 96),
                 Str = GetBool(ad, "str", false),
                 TitleStr = GetString(ad, "titlestr", title),
             };

@@ -393,6 +393,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve GZDoom actor render flags in thing metadata.
   - [x] Preserve actor render radius before fixed-size safety.
   - [x] Resolve actor `DistanceCheck` from integer CVARINFO defaults.
+  - [x] Preserve actor argument render helper colors.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
