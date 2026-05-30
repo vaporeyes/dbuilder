@@ -680,6 +680,8 @@ public sealed class GameConfiguration
 
         foreach (var a in actors)
         {
+            if (!ActorSupportedByDecorateGames(a)) continue;
+
             if (!string.IsNullOrWhiteSpace(a.Replaces))
             {
                 int replacedNum = FindThingByClass(a.Replaces);
@@ -706,6 +708,17 @@ public sealed class GameConfiguration
             if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
                 things[num] = CopyThingInfo(source, num);
         }
+    }
+
+    private bool ActorSupportedByDecorateGames(ActorInfo actor)
+    {
+        if (!actor.Properties.TryGetValue("game", out var games) || games.Count == 0) return true;
+
+        string includeGames = DecorateGames.ToLowerInvariant();
+        foreach (string game in games)
+            if (game.Length > 0 && includeGames.Contains(game.ToLowerInvariant(), StringComparison.Ordinal))
+                return true;
+        return false;
     }
 
     private int FindThingByClass(string className)

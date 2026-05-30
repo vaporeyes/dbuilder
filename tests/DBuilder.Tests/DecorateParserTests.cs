@@ -1143,6 +1143,38 @@ ACTOR InlineArgEnumThing 31011
     }
 
     [Fact]
+    public void MergeActorsFiltersUnsupportedDecorateGames()
+    {
+        const string text = @"
+ACTOR DoomGameThing 31012
+{
+    Game Doom
+    Radius 24
+    Height 48
+    States { Spawn: DARG A -1 stop }
+}
+ACTOR HereticGameThing 31013
+{
+    Game Heretic
+    Radius 24
+    Height 48
+    States { Spawn: HARG A -1 stop }
+}
+ACTOR NeutralGameThing 31014
+{
+    Radius 24
+    Height 48
+    States { Spawn: NARG A -1 stop }
+}";
+        var gc = GameConfiguration.FromText(@"decorategames = ""doom"";");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        Assert.NotNull(gc.GetThing(31012));
+        Assert.Null(gc.GetThing(31013));
+        Assert.NotNull(gc.GetThing(31014));
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"
