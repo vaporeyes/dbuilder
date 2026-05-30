@@ -570,7 +570,7 @@ public static class DecorateParser
         bool pendingStates = false, inStates = false;
         int statesDepth = 0;
         string? currentState = null;
-        var stateSprites = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var stateSprites = new Dictionary<string, SpriteCandidate>(StringComparer.OrdinalIgnoreCase);
         string? firstSprite = null;
         string? firstNonEmptySprite = null;
 
@@ -598,9 +598,9 @@ public static class DecorateParser
             {
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 {
-                    string sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
-                    firstSprite ??= sprite;
-                    if (!IsEmptySprite(sprite)) firstNonEmptySprite ??= sprite;
+                    var sprite = BuildSpriteCandidate(tk.Text, t, i);
+                    firstSprite ??= sprite.Name;
+                    if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite.Name;
                     if (currentState != null && !stateSprites.ContainsKey(currentState))
                         stateSprites[currentState] = sprite;
                 }
@@ -646,9 +646,9 @@ public static class DecorateParser
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
             {
-                string sprite = tk.Text.ToUpperInvariant() + char.ToUpperInvariant(t[i].Text[0]) + "0";
-                firstSprite ??= sprite;
-                if (!IsEmptySprite(sprite)) firstNonEmptySprite ??= sprite;
+                var sprite = BuildSpriteCandidate(tk.Text, t, i);
+                firstSprite ??= sprite.Name;
+                if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite.Name;
                 if (currentState != null && !stateSprites.ContainsKey(currentState))
                     stateSprites[currentState] = sprite;
             }
@@ -668,18 +668,36 @@ public static class DecorateParser
         && t[colonIndex].Text == ":"
         && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
 
-    private static string? ChooseSprite(Dictionary<string, string> stateSprites, string? firstNonEmptySprite, string? firstSprite)
+    private readonly record struct SpriteCandidate(string Name, bool IsEmpty);
+
+    private static SpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
+    {
+        string sprite = spriteName.ToUpperInvariant() + char.ToUpperInvariant(t[frameIndex].Text[0]) + "0";
+        return new SpriteCandidate(sprite, IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1));
+    }
+
+    private static string? ChooseSprite(Dictionary<string, SpriteCandidate> stateSprites, string? firstNonEmptySprite, string? firstSprite)
     {
         foreach (string state in SpriteCheckStates)
-            if (stateSprites.TryGetValue(state, out string? sprite) && !IsEmptySprite(sprite))
-                return sprite;
+            if (stateSprites.TryGetValue(state, out var sprite) && !sprite.IsEmpty)
+                return sprite.Name;
 
         foreach (string state in SpriteCheckStates)
-            if (stateSprites.TryGetValue(state, out string? sprite))
-                if (!IsInvalidPlaceholderSprite(sprite))
-                    return sprite;
+            if (stateSprites.TryGetValue(state, out var sprite))
+                if (!IsInvalidPlaceholderSprite(sprite.Name))
+                    return sprite.Name;
 
         return firstNonEmptySprite ?? firstSprite;
+    }
+
+    private static bool IsZeroDurationFrame(List<Tok> t, int durationIndex)
+    {
+        if (durationIndex >= t.Count || t[durationIndex].Kind != Kind.Word) return false;
+        string durationText = t[durationIndex].Text;
+        if (durationText == "-" && durationIndex + 1 < t.Count && t[durationIndex + 1].Kind == Kind.Word)
+            durationText += t[durationIndex + 1].Text;
+        return int.TryParse(durationText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int duration)
+            && duration == 0;
     }
 
     private static bool IsEmptySprite(string sprite)

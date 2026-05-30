@@ -682,6 +682,26 @@ ACTOR EmptySpawnThing 8003
     }
 
     [Fact]
+    public void SkipsZeroDurationStateSpritesWhenBetterExists()
+    {
+        const string text = @"
+ACTOR ZeroDurationSpawnThing 8006
+{
+    States
+    {
+    Spawn:
+        REAL A 0
+        loop
+    See:
+        SEEE A -1 stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("SEEEA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void SkipsPlaceholderStateSprites()
     {
         const string text = @"
