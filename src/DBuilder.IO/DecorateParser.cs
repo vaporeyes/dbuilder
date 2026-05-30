@@ -1264,7 +1264,8 @@ public static class DecorateParser
             {
                 string name = tk.Text;
                 i++;
-                bool isArray = false;
+                bool isArray = TrySplitInlineArraySuffix(name, out string scalarName);
+                name = scalarName;
                 if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[")
                 {
                     isArray = true;
@@ -1278,6 +1279,19 @@ public static class DecorateParser
             i++;
         }
 
+        return true;
+    }
+
+    private static bool TrySplitInlineArraySuffix(string name, out string scalarName)
+    {
+        int bracket = name.IndexOf('[', StringComparison.Ordinal);
+        if (bracket < 0)
+        {
+            scalarName = name;
+            return false;
+        }
+
+        scalarName = name[..bracket];
         return true;
     }
 

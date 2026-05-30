@@ -292,6 +292,7 @@ class MemberActor : Actor
         Assert.True(actor.UserVariables.ContainsKey("user_color"));
         Assert.True(actor.UserVariables.ContainsKey("user_small"));
         Assert.False(actor.UserVariables.ContainsKey("user_values"));
+        Assert.False(actor.UserVariables.ContainsKey("user_values[4]"));
         Assert.False(actor.UserVariables.ContainsKey("user_type_values"));
         Assert.Equal(7, actor.UserVariables["user_value"].DefaultValue);
         Assert.Equal(1.5, actor.UserVariables["user_speed"].DefaultValue);
