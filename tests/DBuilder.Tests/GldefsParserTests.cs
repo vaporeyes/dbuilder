@@ -246,6 +246,28 @@ glow
     }
 
     [Fact]
+    public void SkipsUnnamedGlowEntries()
+    {
+        const string text = @"
+glow
+{
+    flats { """" VALIDFLAT }
+    walls { """" VALIDWALL }
+    texture """", ""#2040ff""
+    texture VALIDTEX, ""#2040ff""
+}";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.DoesNotContain("", g.GlowFlats);
+        Assert.DoesNotContain("", g.GlowTextures);
+        Assert.False(g.Glows.ContainsKey(""));
+        Assert.Contains("VALIDFLAT", g.GlowFlats);
+        Assert.Contains("VALIDWALL", g.GlowTextures);
+        Assert.True(g.Glows.ContainsKey("VALIDTEX"));
+    }
+
+    [Fact]
     public void ParsesZdTextGlowColorStrings()
     {
         const string text = @"

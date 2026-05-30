@@ -347,6 +347,7 @@ public static class GldefsParser
                 while (i < t.Count && t[i] != "}")
                 {
                     string name = t[i++];
+                    if (string.IsNullOrEmpty(name)) continue;
                     if (p == "flats") g.GlowFlats.Add(name);
                     else g.GlowTextures.Add(name);
                     g.Glows[name] = new GldefsGlow(name, 1.0f, 1.0f, 1.0f, Height: 128, Fullbright: true, CalculateTextureColor: true);
@@ -366,6 +367,7 @@ public static class GldefsParser
         var t = tokens.Text;
         if (IsInvalidLongTextureName(tokens, i)) { i++; return; }
         string texture = t[i++];
+        if (string.IsNullOrEmpty(texture)) return;
         float r = 1.0f, green = 1.0f, b = 1.0f;
         int height = 64;
         bool fullbright = false;
