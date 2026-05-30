@@ -340,6 +340,7 @@ public sealed class GameConfiguration
 {
     private const int ThingFixedSize = 14;
     private const string UnknownBaseGame = "UNKNOWN_GAME";
+    private static readonly IReadOnlySet<string> EmptyTargetClasses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> KnownBaseGames = new(StringComparer.OrdinalIgnoreCase)
     {
         "doom",
@@ -994,16 +995,17 @@ public sealed class GameConfiguration
             string prefix = "$arg" + i.ToString(CultureInfo.InvariantCulture);
             if (!TryActorProperty(actor, prefix, out string title)) continue;
             args ??= new ArgInfo[5];
+            int type = ActorPropertyInt(actor, prefix + "type");
             args[i] = new ArgInfo
             {
                 Title = title,
                 Used = true,
                 ToolTip = ActorProperty(actor, prefix + "tooltip").Replace("\\n", Environment.NewLine),
-                Type = ActorPropertyInt(actor, prefix + "type"),
+                Type = type,
                 Enum = EmptyToNull(ActorProperty(actor, prefix + "enum")),
                 Default = ActorPropertyInt(actor, prefix + "default"),
                 DefaultValue = ActorPropertyInt(actor, prefix + "default"),
-                TargetClasses = ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")),
+                TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(ActorProperty(actor, prefix + "targetclasses")) : EmptyTargetClasses,
                 RenderStyle = ActorProperty(actor, prefix + "renderstyle").ToLowerInvariant(),
                 RenderColor = ActorArgColor(actor, prefix + "rendercolor", alpha: 192),
                 MinRange = ActorPropertyInt(actor, prefix + "minrange"),

@@ -397,6 +397,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve actor render radius before fixed-size safety.
   - [x] Resolve actor `DistanceCheck` from integer CVARINFO defaults.
   - [x] Preserve actor argument render helper colors.
+  - [x] Limit actor argument target classes to ThingTag arguments.
   - [x] Discover scalar actor `user_` variables as typed additional thing fields.
   - [x] Apply ZScript `$UserDefaultValue` metadata to actor `user_` fields.
   - [x] Apply ZScript `$UserReinterpret Color` metadata to integer actor `user_` fields.

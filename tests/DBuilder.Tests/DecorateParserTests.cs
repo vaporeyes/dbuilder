@@ -999,7 +999,7 @@ ACTOR CoolMonster 31000
     +SOLID
     +SPAWNCEILING
     $Arg0 ""Target""
-    $Arg0Type 25
+    $Arg0Type 14
     $Arg0Default 7
     $Arg0Tooltip ""Pick target\nby tid""
     $Arg0TargetClasses ""MapSpot, PatrolPoint""
@@ -1032,7 +1032,7 @@ ACTOR CoolMonster 31000
         Assert.Equal(2, info.Blocking);
         Assert.Equal(1, info.ErrorCheck);
         Assert.Equal("Target", info.Args[0].Title);
-        Assert.Equal(25, info.Args[0].Type);
+        Assert.Equal(14, info.Args[0].Type);
         Assert.Equal(7, info.Args[0].Default);
         Assert.Equal(7, info.Args[0].DefaultValue);
         Assert.Equal("Pick target\nby tid", info.Args[0].ToolTip);
@@ -1046,6 +1046,27 @@ ACTOR CoolMonster 31000
         Assert.Equal(new ArgColor(0x40, 0x50, 0x60, 96), info.Args[0].MaxRangeColor);
         Assert.True(info.Args[0].Str);
         Assert.Equal("Target Name", info.Args[0].TitleStr);
+    }
+
+    [Fact]
+    public void MergeActorsIgnoresTargetClassesForNonThingTagArgs()
+    {
+        const string text = @"
+ACTOR NonThingTagArgThing 31008
+{
+    $Arg0 ""Speed""
+    $Arg0Type 1
+    $Arg0TargetClasses ""MapSpot, PatrolPoint""
+    Radius 24
+    Height 48
+    States { Spawn: NARG A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var info = gc.GetThing(31008);
+        Assert.NotNull(info);
+        Assert.Empty(info!.Args[0].TargetClasses);
     }
 
     [Fact]
@@ -1412,6 +1433,7 @@ thingtypes
 ACTOR LineArgThing 31005
 {
     $Arg0 Target Thing
+    $Arg0Type 14
     $Arg0Tooltip Pick target thing
     $Arg0TargetClasses MapSpot, PatrolPoint
     $Arg0Str Target Name
