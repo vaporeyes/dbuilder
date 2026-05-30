@@ -65,6 +65,7 @@ linedeftypes
                     2 = ""South"";
                 }
             }
+            arg3 { type = 11; }
         }
     }
 }
@@ -120,7 +121,9 @@ thingtypes
         Assert.True(a.Args[1].Str);
         Assert.Equal("Speed Name", a.Args[1].TitleStr);
         Assert.Equal("Inline Mode", a.Args[2].Title);
-        Assert.False(a.Args[3].Used); // unused slot
+        Assert.True(a.Args[3].Used);
+        Assert.Equal("Argument 4", a.Args[3].Title);
+        Assert.False(a.Args[4].Used); // unused slot
     }
 
     [Fact]

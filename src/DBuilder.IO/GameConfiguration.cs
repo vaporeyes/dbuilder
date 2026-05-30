@@ -44,8 +44,8 @@ public sealed class ArgInfo
     public ArgColor? MaxRangeColor { get; init; }
     public bool Str { get; init; }
     public string TitleStr { get; init; } = "";
-    /// <summary>True when this arg slot is actually used (has a title).</summary>
-    public bool Used => Title.Length > 0;
+    /// <summary>True when this arg slot is configured by the game config or actor metadata.</summary>
+    public bool Used { get; init; }
 }
 
 public sealed record EnumItemInfo(string Value, string Title) : IComparable<EnumItemInfo>
@@ -953,6 +953,7 @@ public sealed class GameConfiguration
             args[i] = new ArgInfo
             {
                 Title = title,
+                Used = true,
                 ToolTip = ActorProperty(actor, prefix + "tooltip").Replace("\\n", Environment.NewLine),
                 Type = ActorPropertyInt(actor, prefix + "type"),
                 Enum = EmptyToNull(ActorProperty(actor, prefix + "enum")),
@@ -1447,10 +1448,11 @@ public sealed class GameConfiguration
         {
             if (entry["arg" + i] is not IDictionary ad) continue;
             args ??= new ArgInfo[5];
-            string title = GetString(ad, "title", "");
+            string title = GetString(ad, "title", "Argument " + (i + 1).ToString(CultureInfo.InvariantCulture));
             args[i] = new ArgInfo
             {
                 Title = title,
+                Used = true,
                 ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
                 Type = GetInt(ad, "type", 0),
                 Enum = ad["enum"] is string enumName ? enumName : null,
