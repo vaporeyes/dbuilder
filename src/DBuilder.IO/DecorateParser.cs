@@ -10,7 +10,7 @@ namespace DBuilder.IO;
 
 internal readonly record struct StateSpriteCandidate(string Name, bool IsEmpty, string? LightName);
 
-internal readonly record struct StateGotoTarget(string? ClassName, string StateName);
+internal readonly record struct StateGotoTarget(string? ClassName, string StateName, int SpriteOffset);
 
 /// <summary>An actor definition parsed from DECORATE. DoomEdNum &lt; 0 means it has no editor (placeable) number.</summary>
 public sealed class ActorInfo
@@ -30,6 +30,7 @@ public sealed class ActorInfo
     public Dictionary<string, List<string>> Properties { get; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> Mixins { get; } = new();
     internal Dictionary<string, StateSpriteCandidate> StateSprites { get; } = new(StringComparer.OrdinalIgnoreCase);
+    internal Dictionary<string, List<StateSpriteCandidate>> StateFrames { get; } = new(StringComparer.OrdinalIgnoreCase);
     internal Dictionary<string, StateGotoTarget> StateGotos { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Display title: //$Title if given, else the class name.</summary>
@@ -610,6 +611,8 @@ public static class DecorateParser
                     if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
                     if (currentState != null && !stateSprites.ContainsKey(currentState))
                         stateSprites[currentState] = sprite;
+                    if (currentState != null)
+                        AddStateFrame(actor, currentState, sprite);
                 }
                 continue;
             }
@@ -658,6 +661,8 @@ public static class DecorateParser
                 if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
                 if (currentState != null && !stateSprites.ContainsKey(currentState))
                     stateSprites[currentState] = sprite;
+                if (currentState != null)
+                    AddStateFrame(actor, currentState, sprite);
             }
             else if (inStates && currentState != null && lw == "goto")
             {
@@ -711,6 +716,16 @@ public static class DecorateParser
         return firstNonEmptySprite ?? firstSprite;
     }
 
+    private static void AddStateFrame(ActorInfo actor, string stateName, StateSpriteCandidate sprite)
+    {
+        if (!actor.StateFrames.TryGetValue(stateName, out var frames))
+        {
+            frames = new List<StateSpriteCandidate>();
+            actor.StateFrames[stateName] = frames;
+        }
+        frames.Add(sprite);
+    }
+
     private static bool TryReadStateGoto(List<Tok> t, ref int i, out StateGotoTarget target)
     {
         target = default;
@@ -719,6 +734,7 @@ public static class DecorateParser
         string first = t[i++].Text;
         string? className = null;
         string stateName = first;
+        int spriteOffset = 0;
         if (i + 1 < t.Count && t[i].Text == ":" && t[i + 1].Text == ":")
         {
             i += 2;
@@ -727,11 +743,27 @@ public static class DecorateParser
             stateName = t[i++].Text;
         }
 
-        int offsetIndex = stateName.IndexOf('+', StringComparison.Ordinal);
-        if (offsetIndex >= 0) stateName = stateName[..offsetIndex];
+        stateName = ReadStateNameAndOffset(stateName, ref spriteOffset);
+        if (i + 1 < t.Count && t[i].Text == "+" && t[i + 1].Kind == Kind.Word)
+        {
+            if (int.TryParse(t[i + 1].Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedOffset))
+                spriteOffset = parsedOffset;
+            i += 2;
+        }
         if (stateName.Length == 0) return false;
-        target = new StateGotoTarget(className, stateName);
+        target = new StateGotoTarget(className, stateName, spriteOffset);
         return true;
+    }
+
+    private static string ReadStateNameAndOffset(string stateName, ref int spriteOffset)
+    {
+        int offsetIndex = stateName.IndexOf('+', StringComparison.Ordinal);
+        if (offsetIndex < 0) return stateName;
+
+        string offsetText = stateName[(offsetIndex + 1)..];
+        if (int.TryParse(offsetText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedOffset))
+            spriteOffset = parsedOffset;
+        return stateName[..offsetIndex];
     }
 
     private static bool IsZeroDurationFrame(List<Tok> t, int durationIndex)
@@ -1103,6 +1135,10 @@ public static class DecorateParser
             if (className == null || !byName.TryGetValue(className, out targetActor)) return null;
         }
 
+        if (target.SpriteOffset >= 0
+            && targetActor.StateFrames.TryGetValue(target.StateName, out var frames)
+            && target.SpriteOffset < frames.Count)
+            return frames[target.SpriteOffset];
         if (targetActor.StateSprites.TryGetValue(target.StateName, out var sprite)) return sprite;
         return ResolveStateGotoSprite(targetActor, target.StateName, byName, seen);
     }

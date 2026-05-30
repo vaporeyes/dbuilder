@@ -744,6 +744,28 @@ ACTOR GotoChild : GotoBase 8008
     }
 
     [Fact]
+    public void UsesGotoStateSpriteOffsetForRelevantStateSprite()
+    {
+        const string text = @"
+ACTOR OffsetGotoThing 8009
+{
+    States
+    {
+    Ready:
+        SKIP A -1
+        PICK A -1
+    Death:
+        DEAD A -1 stop
+    Spawn:
+        goto Ready+1
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("PICKA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void SkipsPlaceholderStateSprites()
     {
         const string text = @"
