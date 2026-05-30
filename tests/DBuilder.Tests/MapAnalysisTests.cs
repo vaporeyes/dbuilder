@@ -31,6 +31,25 @@ public class MapAnalysisTests
         return map;
     }
 
+    private static (MapSet Map, List<Linedef> Lines) TextureChain(string texture, params double[] xs)
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var vertices = new List<Vertex>();
+        foreach (double x in xs) vertices.Add(map.AddVertex(new Vector2D(x, 0)));
+
+        var lines = new List<Linedef>();
+        for (int i = 0; i < vertices.Count - 1; i++)
+        {
+            var line = map.AddLinedef(vertices[i], vertices[i + 1]);
+            map.AddSidedef(line, true, sector).MidTexture = texture;
+            lines.Add(line);
+        }
+
+        map.BuildIndexes();
+        return (map, lines);
+    }
+
     private static bool Has(MapSet map, MapIssueKind kind)
         => MapAnalysis.Check(map).Any(i => i.Kind == kind);
 
@@ -722,6 +741,51 @@ public class MapAnalysisTests
         var issues = MapAnalysis.Check(map, ctx);
         Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.UnknownLinedefScript);
         Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.UnknownThingScript);
+    }
+
+    [Fact]
+    public void ConnectedWallTextureRunWithWrongOffsetIsFlagged()
+    {
+        var (map, lines) = TextureChain("WALL", 0, 64, 160, 224);
+        lines[1].Front!.OffsetX = 12;
+        var ctx = new MapCheckContext
+        {
+            CheckTextureAlignment = true,
+            TextureSize = texture => texture == "WALL" ? (128, 128) : null,
+        };
+
+        var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MisalignedTexture);
+        Assert.Same(lines[0], issue.Target);
+        Assert.Contains("Texture \"WALL\" is not aligned", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ConnectedWallTextureRunWithExpectedOffsetsIsValid()
+    {
+        var (map, lines) = TextureChain("WALL", 0, 64, 160, 224);
+        lines[1].Front!.OffsetX = 64;
+        lines[2].Front!.OffsetX = 32;
+        var ctx = new MapCheckContext
+        {
+            CheckTextureAlignment = true,
+            TextureSize = texture => texture == "WALL" ? (128, 128) : null,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MisalignedTexture);
+    }
+
+    [Fact]
+    public void TextureAlignmentCheckSkipsUnknownTextureDimensions()
+    {
+        var (map, lines) = TextureChain("WALL", 0, 64, 128);
+        lines[1].Front!.OffsetX = 12;
+        var ctx = new MapCheckContext
+        {
+            CheckTextureAlignment = true,
+            TextureSize = _ => null,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MisalignedTexture);
     }
 
     [Fact]

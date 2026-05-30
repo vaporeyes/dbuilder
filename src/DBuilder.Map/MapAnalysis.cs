@@ -29,6 +29,7 @@ public enum MapIssueKind
     MissingTexture,
     UnknownTexture,
     UnusedTexture,
+    MisalignedTexture,
     MissingFlat,
     UnknownFlat,
     UnknownThingType,
@@ -57,6 +58,8 @@ public sealed class MapCheckContext
 {
     /// <summary>Returns true when a wall-texture name resolves in the loaded resources.</summary>
     public Func<string, bool>? TextureExists { get; init; }
+    /// <summary>Returns wall-texture dimensions when an image is available.</summary>
+    public Func<string, (int Width, int Height)?>? TextureSize { get; init; }
     /// <summary>Returns true when a flat name resolves in the loaded resources.</summary>
     public Func<string, bool>? FlatExists { get; init; }
     /// <summary>Returns true when a flat name is the configured sky flat marker.</summary>
@@ -105,6 +108,8 @@ public sealed class MapCheckContext
     public bool CheckScripts { get; init; }
     /// <summary>Enable UDMF named script checks through arg0str fields.</summary>
     public bool CheckNamedScripts { get; init; }
+    /// <summary>Enable connected wall texture alignment checks.</summary>
+    public bool CheckTextureAlignment { get; init; }
     /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
     public string? DoubleSidedFlag { get; init; }
     /// <summary>Configured linedef flag that marks a line as impassable.</summary>
@@ -158,6 +163,7 @@ public static class MapAnalysis
             CheckFlats(map, ctx, issues);
             CheckThingsAndActions(map, ctx, issues);
             CheckPolyobjects(map, ctx, issues);
+            CheckTextureAlignment(map, ctx, issues);
             CheckOverlappingLinedefs(map, issues);
             CheckShortLinedefs(map, ctx, issues);
             CheckOffGridVertices(map, ctx, vertexIndex, issues);
@@ -641,6 +647,73 @@ public static class MapAnalysis
             Focus = first.Thing.Position,
         });
     }
+
+    private static void CheckTextureAlignment(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        if (!ctx.CheckTextureAlignment || ctx.TextureSize == null) return;
+
+        var lineIndexes = new Dictionary<Linedef, int>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < map.Linedefs.Count; i++) lineIndexes[map.Linedefs[i]] = i;
+        var sideIndexes = new Dictionary<Sidedef, int>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < map.Sidedefs.Count; i++) sideIndexes[map.Sidedefs[i]] = i;
+
+        var checkedPairs = new HashSet<(int Source, int Target)>();
+        foreach (var side in AllSidedefs(map))
+        {
+            string texture = SidedefTextureAlignment.PrimaryTexture(side);
+            if (IsBlank(texture)) continue;
+            var size = ctx.TextureSize(texture);
+            if (size is not { Width: > 0, Height: > 0 }) continue;
+
+            var target = NextAlignedSidedef(map, side, texture);
+            int sideIndex = sideIndexes.TryGetValue(side, out int sdi) ? sdi : -1;
+            int targetSideIndex = target != null && sideIndexes.TryGetValue(target, out int tsi) ? tsi : -1;
+            if (target == null || !checkedPairs.Add((sideIndex, targetSideIndex))) continue;
+
+            int expectedX = Mod(side.OffsetX + (int)Math.Round(side.Line.Length), size.Value.Width);
+            int expectedY = Mod(side.OffsetY + TopReference(side) - TopReference(target), size.Value.Height);
+            if (target.OffsetX == expectedX && target.OffsetY == expectedY) continue;
+
+            int sourceIndex = lineIndexes.TryGetValue(side.Line, out int si) ? si : -1;
+            int targetIndex = lineIndexes.TryGetValue(target.Line, out int ti) ? ti : -1;
+            issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture,
+                $"Texture \"{texture}\" is not aligned on linedefs {sourceIndex} ({(side.IsFront ? "front" : "back")}) and {targetIndex} ({(target.IsFront ? "front" : "back")}).")
+                { Target = side.Line, Focus = LinedefMidpoint(side.Line) });
+        }
+    }
+
+    private static IEnumerable<Sidedef> AllSidedefs(MapSet map)
+    {
+        foreach (var line in map.Linedefs)
+        {
+            if (line.Front != null) yield return line.Front;
+            if (line.Back != null) yield return line.Back;
+        }
+    }
+
+    private static Sidedef? NextAlignedSidedef(MapSet map, Sidedef side, string texture)
+    {
+        var line = side.Line;
+        Vertex forward = side.IsFront ? line.End : line.Start;
+        foreach (var other in map.Linedefs)
+        {
+            if (ReferenceEquals(other, line)) continue;
+            if (other.Front != null && ReferenceEquals(other.Start, forward) && SameTexture(SidedefTextureAlignment.PrimaryTexture(other.Front), texture))
+                return other.Front;
+            if (other.Back != null && ReferenceEquals(other.End, forward) && SameTexture(SidedefTextureAlignment.PrimaryTexture(other.Back), texture))
+                return other.Back;
+        }
+
+        return null;
+    }
+
+    private static int TopReference(Sidedef side) => side.Sector?.CeilHeight ?? 0;
+
+    private static bool SameTexture(string left, string right)
+        => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+
+    private static int Mod(int value, int modulus)
+        => ((value % modulus) + modulus) % modulus;
 
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.
     private static void CheckOverlappingLinedefs(MapSet map, List<MapIssue> issues)

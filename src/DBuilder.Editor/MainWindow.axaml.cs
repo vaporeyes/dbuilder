@@ -2398,11 +2398,14 @@ public partial class MainWindow : Window
     private MapCheckContext BuildCheckContext()
     {
         Func<string, bool>? texExists = null, flatExists = null, isSkyFlat = null;
+        Func<string, (int Width, int Height)?>? textureSize = null;
         if (_resources != null)
         {
+            var resources = _resources;
             var texSet = new HashSet<string>(_resources.GetTextureNames(), StringComparer.OrdinalIgnoreCase);
             var flatSet = new HashSet<string>(_resources.GetFlatNames(), StringComparer.OrdinalIgnoreCase);
             texExists = n => texSet.Contains(n);
+            textureSize = n => resources.GetWallTexture(n) is { } img ? (img.Width, img.Height) : null;
             flatExists = n => flatSet.Contains(n);
         }
         Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
@@ -2456,6 +2459,7 @@ public partial class MainWindow : Window
         return new MapCheckContext
         {
             TextureExists = texExists,
+            TextureSize = textureSize,
             FlatExists = flatExists,
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
@@ -2478,6 +2482,7 @@ public partial class MainWindow : Window
             CheckPolyobjects = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             CheckScripts = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             CheckNamedScripts = _mapFormat == MapFormat.Udmf,
+            CheckTextureAlignment = true,
             DoubleSidedFlag = _config?.DoubleSidedFlag,
             ImpassableFlag = _config?.ImpassableFlag,
             SafeBoundary = _config?.SafeBoundary ?? 0,
