@@ -2455,6 +2455,7 @@ public partial class MainWindow : Window
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,
+            DoubleSidedFlag = _config?.DoubleSidedFlag,
         };
     }
 

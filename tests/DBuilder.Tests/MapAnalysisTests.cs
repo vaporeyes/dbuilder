@@ -83,6 +83,51 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void DoubleSidedFlagWithoutBackSidedefIsFlagged()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.UdmfFlags.Add("twosided");
+        var ctx = new MapCheckContext { DoubleSidedFlag = "twosided" };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
+        Assert.Same(line, issue.Target);
+    }
+
+    [Fact]
+    public void BackSidedefWithoutDoubleSidedFlagIsFlagged()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var back = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
+        Assert.Same(line, issue.Target);
+    }
+
+    [Fact]
+    public void MissingFrontTakesPrecedenceOverDoubleSidedFlagMismatch()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, false, sector);
+        var ctx = new MapCheckContext { DoubleSidedFlag = "twosided" };
+
+        var issues = MapAnalysis.Check(map, ctx);
+        Assert.Contains(issues, i => i.Kind == MapIssueKind.LinedefMissingFront);
+        Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.LinedefNotSingleSided);
+    }
+
+    [Fact]
     public void DetectsOverlappingVertices()
     {
         var map = Square(true);

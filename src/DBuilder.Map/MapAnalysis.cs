@@ -15,6 +15,8 @@ public enum MapIssueKind
     ZeroLengthLinedef,
     LinedefWithoutSidedefs,
     LinedefMissingFront,
+    LinedefNotDoubleSided,
+    LinedefNotSingleSided,
     OverlappingVertices,
     UnusedVertex,
     EmptySector,
@@ -68,6 +70,8 @@ public sealed class MapCheckContext
     public IReadOnlySet<string>? TriggerActivationFlags { get; init; }
     /// <summary>Enable UDMF-only missing activation checks.</summary>
     public bool CheckMissingActivations { get; init; }
+    /// <summary>Configured linedef flag that marks a line as double-sided.</summary>
+    public string? DoubleSidedFlag { get; init; }
     /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
     public int GridSize { get; init; }
     /// <summary>Linedefs shorter than this (but non-zero) are flagged. Default 8.</summary>
@@ -100,6 +104,8 @@ public static class MapAnalysis
         for (int i = 0; i < map.Vertices.Count; i++) vertexIndex[map.Vertices[i]] = i;
 
         CheckLinedefs(map, issues);
+        if (ctx?.DoubleSidedFlag != null)
+            CheckLineReferenceFlags(map, ctx, issues);
         CheckOverlappingVertices(map, issues);
         CheckUnusedVertices(map, vertexIndex, issues);
         CheckSectors(map, issues);
@@ -346,6 +352,32 @@ public static class MapAnalysis
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront,
                     $"Linedef {i} has only a back sidedef (a front sidedef is required).") { Target = l, Focus = mid });
         }
+    }
+
+    private static void CheckLineReferenceFlags(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
+    {
+        for (int i = 0; i < map.Linedefs.Count; i++)
+        {
+            var l = map.Linedefs[i];
+            if (l.Front == null) continue;
+
+            var mid = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+            bool markedDoubleSided = IsLineFlagSet(l, ctx.DoubleSidedFlag);
+            if (markedDoubleSided && l.Back == null)
+                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided,
+                    $"Linedef {i} is marked double-sided but has no back sidedef.") { Target = l, Focus = mid });
+            else if (!markedDoubleSided && l.Back != null)
+                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotSingleSided,
+                    $"Linedef {i} has a back sidedef but is not marked double-sided.") { Target = l, Focus = mid });
+        }
+    }
+
+    private static bool IsLineFlagSet(Linedef line, string? flag)
+    {
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0") return false;
+        if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+            return bit != 0 && (line.Flags & bit) != 0;
+        return line.UdmfFlags.Contains(flag);
     }
 
     private static void CheckOverlappingVertices(MapSet map, List<MapIssue> issues)
