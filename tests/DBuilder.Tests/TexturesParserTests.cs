@@ -324,6 +324,29 @@ Texture PATCHES, 8, 8
     }
 
     [Fact]
+    public void SkipsPatchesWithNonNumericAlpha()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch BAD, 0, 0
+    {
+        Alpha bogus
+    }
+    Patch OK, 1, 1
+    {
+        Alpha 0.5
+    }
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(0.5, patch.Alpha, 6);
+    }
+
+    [Fact]
     public void RequiresQuotesForLongPatchNames()
     {
         const string text = @"

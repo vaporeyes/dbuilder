@@ -244,13 +244,17 @@ public static class TexturesParser
         if (i < t.Count && t[i] == "{")
         {
             i++; // {
+            bool invalid = false;
             while (i < t.Count && t[i] != "}")
             {
                 switch (t[i++].Text.ToLowerInvariant())
                 {
                     case "flipx": patch.FlipX = true; break;
                     case "flipy": patch.FlipY = true; break;
-                    case "alpha": if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0); break;
+                    case "alpha":
+                        if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0);
+                        else invalid = true;
+                        break;
                     case "rotate": if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation); break;
                     case "style":
                         if (i < t.Count)
@@ -264,6 +268,7 @@ public static class TexturesParser
                 }
             }
             if (i < t.Count) i++; // }
+            if (invalid) return;
         }
         def.Patches.Add(patch);
     }
