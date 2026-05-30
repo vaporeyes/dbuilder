@@ -443,6 +443,52 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void FirstFlatDefinitionWinsWithinResource()
+    {
+        string textures =
+            "Flat FDUP, 1, 1 { Patch \"RED\", 0, 0 }\n" +
+            "Flat FDUP, 1, 1 { Patch \"BLUE\", 0, 0 }\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 200, 0, 0, 255 }, rm.GetFlat("FDUP")!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void TextureAndSpriteDefinitionsReplaceEarlierSameResourceDefinitions()
+    {
+        string textures =
+            "Texture TDUP, 1, 1 { Patch \"RED\", 0, 0 }\n" +
+            "Texture TDUP, 1, 1 { Patch \"BLUE\", 0, 0 }\n" +
+            "Sprite SPRAA0, 1, 1 { Patch \"RED\", 0, 0 }\n" +
+            "Sprite SPRAA0, 1, 1 { Patch \"BLUE\", 0, 0 }\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/RED.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 200, 0, 0, 255))),
+            ("patches/BLUE.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 0, 0, 200, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetWallTexture("TDUP")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetFlat("TDUP")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 0, 0, 200, 255 }, rm.GetSprite("SPRAA0")!.Rgba[0..4]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void TextureDefinitionOverridesEarlierWallTextureDefinition()
     {
         string textures =

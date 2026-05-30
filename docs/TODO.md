@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1499 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1501 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -392,6 +392,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply configured default texture scale when TEXTURES definitions omit scale or set zero scale.
   - [x] Ignore TEXTURES `Graphic` definitions like UDB.
   - [x] Consume unknown top-level TEXTURES declarations like UDB.
+  - [x] Preserve UDB same-resource TEXTURES duplicate rules by namespace.
 - [x] Port MODELDEF parser.
 - [x] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
