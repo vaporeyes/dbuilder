@@ -481,6 +481,23 @@ class BrightStateZThing : Actor
     }
 
     [Fact]
+    public void ZScriptInheritsRelevantParentStateSpriteBeforeUnrelatedChildState()
+    {
+        const string zscript = @"
+class SpriteParentZThing : Actor
+{
+    States { Spawn: PARZ A -1; Stop; }
+}
+class SpriteChildZThing : SpriteParentZThing
+{
+    States { Death: CHLZ A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "SpriteChildZThing");
+
+        Assert.Equal("PARZA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

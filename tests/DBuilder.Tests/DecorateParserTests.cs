@@ -786,6 +786,23 @@ ACTOR GotoChild : GotoBase 8008
     }
 
     [Fact]
+    public void InheritsRelevantParentStateSpriteBeforeUnrelatedChildState()
+    {
+        const string text = @"
+ACTOR SpriteParent
+{
+    States { Spawn: PARS A -1 stop }
+}
+ACTOR SpriteChild : SpriteParent 8011
+{
+    States { Death: CHLD A -1 stop }
+}";
+        var actor = DecorateParser.Parse(text).Single(a => a.ClassName == "SpriteChild");
+
+        Assert.Equal("PARSA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void UsesGotoStateSpriteOffsetForRelevantStateSprite()
     {
         const string text = @"

@@ -1083,6 +1083,7 @@ public static class DecorateParser
         foreach (var a in actors)
         {
             var sprite = ResolveRelevantGotoSprite(a, byName, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+            sprite ??= ResolveInheritedRelevantStateSprite(a, byName, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
             if (sprite != null)
             {
                 a.Sprite = sprite.Value.Name;
@@ -1159,6 +1160,43 @@ public static class DecorateParser
             if (actor.StateSprites.TryGetValue(state, out var sprite) && !sprite.IsEmpty)
                 return true;
         return false;
+    }
+
+    private static StateSpriteCandidate? ResolveInheritedRelevantStateSprite(
+        ActorInfo actor,
+        Dictionary<string, ActorInfo> byName,
+        HashSet<string> seen)
+    {
+        if (HasNonEmptyRelevantStateSprite(actor)) return null;
+
+        foreach (string state in SpriteCheckStates)
+        {
+            var sprite = ResolveInheritedStateSprite(actor, state, byName, seen);
+            if (sprite is { IsEmpty: false }) return sprite;
+        }
+
+        return null;
+    }
+
+    private static StateSpriteCandidate? ResolveInheritedStateSprite(
+        ActorInfo actor,
+        string stateName,
+        Dictionary<string, ActorInfo> byName,
+        HashSet<string> seen)
+    {
+        string key = actor.ClassName + "::" + stateName;
+        if (!seen.Add(key)) return null;
+
+        if (actor.ClassName.Equals("Actor", StringComparison.OrdinalIgnoreCase)
+            && !stateName.Equals("spawn", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        if (actor.StateSprites.TryGetValue(stateName, out var sprite)) return sprite;
+        if (actor.StateGotos.ContainsKey(stateName))
+            return ResolveStateGotoSprite(actor, stateName, byName, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        if (SkipsSuper(actor) || actor.ParentName == null || !byName.TryGetValue(actor.ParentName, out var parent))
+            return null;
+        return ResolveInheritedStateSprite(parent, stateName, byName, seen);
     }
 
     private static StateSpriteCandidate? ResolveStateGotoSprite(
