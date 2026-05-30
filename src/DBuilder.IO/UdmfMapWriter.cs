@@ -84,8 +84,8 @@ public static class UdmfMapWriter
         sb.AppendLine("{");
         WriteAssignment(sb, "x", v.Position.x, indent: true);
         WriteAssignment(sb, "y", v.Position.y, indent: true);
-        if (!double.IsNaN(v.ZFloor))   WriteAssignment(sb, "zfloor",   v.ZFloor,   indent: true);
         if (!double.IsNaN(v.ZCeiling)) WriteAssignment(sb, "zceiling", v.ZCeiling, indent: true);
+        if (!double.IsNaN(v.ZFloor))   WriteAssignment(sb, "zfloor",   v.ZFloor,   indent: true);
         WriteCustomFields(sb, v.Fields);
         sb.AppendLine("}");
         sb.AppendLine();
@@ -130,13 +130,13 @@ public static class UdmfMapWriter
     {
         sb.Append("sidedef // ").Append(index).AppendLine();
         sb.AppendLine("{");
-        int secIdx = sd.Sector != null && sectorIndex.TryGetValue(sd.Sector, out int si) ? si : 0;
-        WriteAssignment(sb, "sector", secIdx, indent: true);
         WriteIfNonzero(sb, "offsetx", sd.OffsetX);
         WriteIfNonzero(sb, "offsety", sd.OffsetY);
         WriteIfNotDefault(sb, "texturetop",    sd.HighTexture, "-");
-        WriteIfNotDefault(sb, "texturemiddle", sd.MidTexture,  "-");
         WriteIfNotDefault(sb, "texturebottom", sd.LowTexture,  "-");
+        WriteIfNotDefault(sb, "texturemiddle", sd.MidTexture,  "-");
+        int secIdx = sd.Sector != null && sectorIndex.TryGetValue(sd.Sector, out int si) ? si : 0;
+        WriteAssignment(sb, "sector", secIdx, indent: true);
         WriteUdmfFlags(sb, sd.UdmfFlags);
         WriteCustomFields(sb, sd.Fields, excludeKeys: sd.UdmfFlags);
         sb.AppendLine("}");
@@ -147,6 +147,7 @@ public static class UdmfMapWriter
     {
         sb.Append("linedef // ").Append(index).AppendLine();
         sb.AppendLine("{");
+        WriteIfNonzero(sb, "id", l.Tag);
         int v1 = vertexIndex.TryGetValue(l.Start, out int v1i) ? v1i : 0;
         int v2 = vertexIndex.TryGetValue(l.End,   out int v2i) ? v2i : 0;
         WriteAssignment(sb, "v1", v1, indent: true);
@@ -158,7 +159,6 @@ public static class UdmfMapWriter
         WriteAssignment(sb, "sideback", sideBack, indent: true);
 
         WriteIfNonzero(sb, "special", l.Action);
-        WriteIfNonzero(sb, "id",      l.Tag);
         WriteMoreIds(sb, l.Tags);
         for (int i = 0; i < l.Args.Length; i++)
             if (l.Args[i] != 0) WriteAssignment(sb, $"arg{i}", l.Args[i], indent: true);
@@ -173,6 +173,7 @@ public static class UdmfMapWriter
     {
         sb.Append("thing // ").Append(index).AppendLine();
         sb.AppendLine("{");
+        WriteIfNonzero(sb, "id", t.Tag);
         WriteAssignment(sb, "x",     t.Position.x, indent: true);
         WriteAssignment(sb, "y",     t.Position.y, indent: true);
         if (t.Height != 0) WriteAssignment(sb, "height", t.Height, indent: true);
@@ -183,7 +184,6 @@ public static class UdmfMapWriter
         if (t.ScaleY != 0 && t.ScaleY != 1.0) WriteAssignment(sb, "scaley", t.ScaleY, indent: true);
         WriteAssignment(sb, "type",   t.Type, indent: true);
         WriteIfNonzero(sb, "special", t.Action);
-        WriteIfNonzero(sb, "id",      t.Tag);
         for (int i = 0; i < t.Args.Length; i++)
             if (t.Args[i] != 0) WriteAssignment(sb, $"arg{i}", t.Args[i], indent: true);
 

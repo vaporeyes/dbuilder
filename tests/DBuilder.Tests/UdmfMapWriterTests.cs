@@ -72,6 +72,43 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void WritesFieldsInUdbOrder()
+    {
+        var map = new MapSet { Namespace = "ZDoom" };
+        var vertex = new Vertex(new Vector2D(0, 0)) { ZCeiling = 64, ZFloor = -16 };
+        map.Vertices.Add(vertex);
+        map.Vertices.Add(new Vertex(new Vector2D(128, 0)));
+
+        var sector = new Sector { Index = 0, FloorTexture = "FLOOR", CeilTexture = "CEIL" };
+        map.Sectors.Add(sector);
+
+        var side = new Sidedef
+        {
+            Sector = sector,
+            OffsetX = 8,
+            OffsetY = 16,
+            HighTexture = "TOP",
+            LowTexture = "BOT",
+            MidTexture = "MID",
+        };
+        map.Sidedefs.Add(side);
+
+        var line = new Linedef(map.Vertices[0], map.Vertices[1]) { Front = side, Tag = 99, Action = 80 };
+        side.Line = line;
+        line.Args[0] = 7;
+        map.Linedefs.Add(line);
+
+        map.Things.Add(new Thing { Position = new Vector2D(32, 48), Type = 3001, Tag = 12, Action = 80 });
+
+        var written = UdmfMapWriter.Write(map);
+
+        AssertInOrder(Block(written, "vertex // 0"), "x = 0.0;", "y = 0.0;", "zceiling = 64.0;", "zfloor = -16.0;");
+        AssertInOrder(Block(written, "linedef // 0"), "id = 99;", "v1 = 0;", "v2 = 1;", "sidefront = 0;", "sideback = -1;", "special = 80;", "arg0 = 7;");
+        AssertInOrder(Block(written, "sidedef // 0"), "offsetx = 8;", "offsety = 16;", "texturetop = \"TOP\";", "texturebottom = \"BOT\";", "texturemiddle = \"MID\";", "sector = 0;");
+        AssertInOrder(Block(written, "thing // 0"), "id = 12;", "x = 32.0;", "y = 48.0;", "angle = 0;", "type = 3001;", "special = 80;");
+    }
+
+    [Fact]
     public void RoundTripPreservesTopology()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
@@ -672,5 +709,25 @@ public class UdmfMapWriterTests
         var reloaded = UdmfMapLoader.Load(text, out var parser)!;
         Assert.Equal(0, parser.ErrorResult);
         Assert.Equal("line1\nline2\tTabbed\rReturn", reloaded.Fields["comment"]);
+    }
+
+    private static string Block(string text, string header)
+    {
+        int start = text.IndexOf(header, StringComparison.Ordinal);
+        Assert.True(start >= 0);
+        int next = text.IndexOf("\n\n", start, StringComparison.Ordinal);
+        Assert.True(next > start);
+        return text[start..next];
+    }
+
+    private static void AssertInOrder(string text, params string[] fragments)
+    {
+        int previous = -1;
+        foreach (var fragment in fragments)
+        {
+            int current = text.IndexOf(fragment, StringComparison.Ordinal);
+            Assert.True(current > previous, $"Expected '{fragment}' after offset {previous} in:{Environment.NewLine}{text}");
+            previous = current;
+        }
     }
 }
