@@ -105,7 +105,7 @@ public static class DoomMapLoader
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 14;
+        int n = System.Math.Min(bytes.Length / 14, DoomMapLoaderInternals.BinaryFormatElementLimit);
         var used = new HashSet<Sidedef>();
         for (int i = 0; i < n; i++)
         {

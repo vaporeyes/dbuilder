@@ -90,6 +90,46 @@ public class HexenMapLoaderTests
         return wadBytes;
     }
 
+    private static MemoryStream BuildHexenMapWithVertexCount(int vertexCount)
+    {
+        var vertexes = new MemoryStream(vertexCount * 4);
+        using (var w = new BinaryWriter(vertexes, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            for (int i = 0; i < vertexCount; i++)
+            {
+                w.Write((short)i);
+                w.Write((short)0);
+            }
+        }
+
+        var sectors = new MemoryStream();
+        using (var w = new BinaryWriter(sectors, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            w.Write((short)0);
+            w.Write((short)128);
+            w.Write(FixedString("FLOOR", 8));
+            w.Write(FixedString("CEIL", 8));
+            w.Write((short)160);
+            w.Write((short)0);
+            w.Write((short)0);
+        }
+
+        var wadBytes = new MemoryStream();
+        using (var wad = new WAD(wadBytes))
+        {
+            wad.Insert("MAP01", 0, 0);
+            WriteLump(wad, "VERTEXES", vertexes.ToArray(), 1);
+            WriteLump(wad, "LINEDEFS", System.Array.Empty<byte>(), 2);
+            WriteLump(wad, "SIDEDEFS", System.Array.Empty<byte>(), 3);
+            WriteLump(wad, "SECTORS", sectors.ToArray(), 4);
+            WriteLump(wad, "BEHAVIOR", new byte[] { 0x41, 0x43, 0x53, 0x00 }, 5);
+            wad.WriteHeaders();
+        }
+
+        wadBytes.Position = 0;
+        return wadBytes;
+    }
+
     private static void WriteLump(WAD wad, string name, byte[] data, int position)
     {
         var lump = wad.Insert(name, position, data.Length)!;
@@ -157,6 +197,17 @@ public class HexenMapLoaderTests
         Assert.Equal(2, map.Vertices.Count);
         Assert.Empty(map.Linedefs);
         Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
+    public void VertexEntriesPastBinaryFormatLimitAreIgnored()
+    {
+        var wadBytes = BuildHexenMapWithVertexCount(ushort.MaxValue + 1);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = HexenMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(ushort.MaxValue, map.Vertices.Count);
     }
 
     [Fact]

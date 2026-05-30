@@ -10,11 +10,13 @@ namespace DBuilder.IO;
 
 internal static class DoomMapLoaderInternals
 {
+    public const int BinaryFormatElementLimit = ushort.MaxValue;
+
     public static void ReadVertexes(Lump lump, MapSet map)
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 4;
+        int n = System.Math.Min(bytes.Length / 4, BinaryFormatElementLimit);
         for (int i = 0; i < n; i++)
         {
             short x = r.ReadInt16();
@@ -27,7 +29,7 @@ internal static class DoomMapLoaderInternals
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 26;
+        int n = System.Math.Min(bytes.Length / 26, BinaryFormatElementLimit);
         for (int i = 0; i < n; i++)
         {
             short floorHeight = r.ReadInt16();
@@ -56,7 +58,7 @@ internal static class DoomMapLoaderInternals
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 30;
+        int n = System.Math.Min(bytes.Length / 30, BinaryFormatElementLimit);
         for (int i = 0; i < n; i++)
         {
             short offsetX = r.ReadInt16();
