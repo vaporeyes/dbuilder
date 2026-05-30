@@ -162,6 +162,17 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void ThingAngleIsAlwaysEmittedLikeUdb()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Things.Add(new Thing { Position = new Vector2D(16, 32), Type = 1, Angle = 0 });
+
+        var text = UdmfMapWriter.Write(map);
+
+        Assert.Contains("angle = 0;", text);
+    }
+
+    [Fact]
     public void FractionalCoordinatesPreserveDecimalPoint()
     {
         // The parser distinguishes float from int by the decimal point - integer-valued doubles need ".0".
