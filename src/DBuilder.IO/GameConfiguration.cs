@@ -1347,9 +1347,36 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in cat)
         {
             string childKey = e.Key.ToString() ?? "";
-            if (e.Value is not IDictionary child) continue;
             if (int.TryParse(childKey, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
             {
+                if (e.Value is string scalarTitle)
+                {
+                    bool scalarAbsoluteZ = info.AbsoluteZ;
+                    things[number] = new ThingTypeInfo
+                    {
+                        Index = number,
+                        Category = key,
+                        Title = scalarTitle,
+                        Sprite = info.Sprite,
+                        LightName = info.LightName,
+                        Color = info.Color,
+                        Width = SafeThingWidth(info.Width, info.FixedSize),
+                        Height = info.Height,
+                        Alpha = info.Alpha,
+                        RenderStyle = info.RenderStyle,
+                        Arrow = info.Arrow != 0,
+                        Hangs = SafeThingHangs(info.Hangs != 0, scalarAbsoluteZ),
+                        Blocking = info.Blocking,
+                        ErrorCheck = info.ErrorCheck,
+                        FixedSize = info.FixedSize,
+                        FixedRotation = info.FixedRotation,
+                        AbsoluteZ = scalarAbsoluteZ,
+                        SpriteScale = info.SpriteScale,
+                    };
+                    continue;
+                }
+
+                if (e.Value is not IDictionary child) continue;
                 bool fixedSize = GetBool(child, "fixedsize", info.FixedSize);
                 bool absoluteZ = GetBool(child, "absolutez", info.AbsoluteZ);
                 things[number] = new ThingTypeInfo
@@ -1383,6 +1410,7 @@ public sealed class GameConfiguration
             }
             else
             {
+                if (e.Value is not IDictionary child) continue;
                 ParseThingCategory(key + "." + childKey, child, info);
             }
         }

@@ -624,6 +624,7 @@ public class GameConfigurationTests
                         title = "Bosses";
                         color = 4;
                         fixedsize = true;
+                        optional = true;
 
                         3003
                         {
@@ -651,6 +652,7 @@ public class GameConfigurationTests
                                 }
                             }
                         }
+                        3004 = "Cyberdemon";
                     }
                 }
             }
@@ -699,6 +701,17 @@ public class GameConfigurationTests
         Assert.Equal("Starts dormant", renamed["dormant"]);
         Assert.Equal("Friendly actor", renamed["friendly"]);
         Assert.False(baron.FlagsRename.ContainsKey("unsupportedmapsetio"));
+        Assert.True(baron.Optional);
+
+        var cyberdemon = gc.GetThing(3004)!;
+        Assert.Equal("Cyberdemon", cyberdemon.Title);
+        Assert.Equal("monsters.bosses", cyberdemon.Category);
+        Assert.Equal("TROOA1", cyberdemon.Sprite);
+        Assert.Equal(4, cyberdemon.Color);
+        Assert.Equal(14, cyberdemon.Width);
+        Assert.Equal(56, cyberdemon.Height);
+        Assert.True(cyberdemon.FixedSize);
+        Assert.False(cyberdemon.Optional);
     }
 
     [Fact]
