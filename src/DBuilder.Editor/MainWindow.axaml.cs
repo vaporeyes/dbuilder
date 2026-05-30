@@ -2397,7 +2397,7 @@ public partial class MainWindow : Window
     // Builds the resource/config-aware check context from the loaded resources and game config.
     private MapCheckContext BuildCheckContext()
     {
-        Func<string, bool>? texExists = null, flatExists = null;
+        Func<string, bool>? texExists = null, flatExists = null, isSkyFlat = null;
         if (_resources != null)
         {
             var texSet = new HashSet<string>(_resources.GetTextureNames(), StringComparer.OrdinalIgnoreCase);
@@ -2426,6 +2426,7 @@ public partial class MainWindow : Window
                 };
             };
             actionRequiresActivation = a => _config.GetLinedefAction(a)?.RequiresActivation == true;
+            isSkyFlat = n => string.Equals(n, _config.SkyFlatName, StringComparison.OrdinalIgnoreCase);
             triggerActivationFlags = _config.LinedefActivations
                 .Where(a => a.IsTrigger)
                 .Select(a => a.Key)
@@ -2435,6 +2436,7 @@ public partial class MainWindow : Window
         {
             TextureExists = texExists,
             FlatExists = flatExists,
+            IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
             ActionKnown = actionKnown,
             IgnoreUnknownTexture = ignoreUnknownTexture,

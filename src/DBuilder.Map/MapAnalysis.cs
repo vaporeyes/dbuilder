@@ -42,6 +42,8 @@ public sealed class MapCheckContext
     public Func<string, bool>? TextureExists { get; init; }
     /// <summary>Returns true when a flat name resolves in the loaded resources.</summary>
     public Func<string, bool>? FlatExists { get; init; }
+    /// <summary>Returns true when a flat name is the configured sky flat marker.</summary>
+    public Func<string, bool>? IsSkyFlat { get; init; }
     /// <summary>Returns true when a thing editor number is known to the game config.</summary>
     public Func<int, bool>? ThingTypeKnown { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
@@ -129,10 +131,10 @@ public static class MapAnalysis
             {
                 if (side.Sector != null && other.Sector != null)
                 {
-                    if (other.Sector.CeilHeight < side.Sector.CeilHeight && IsBlank(side.HighTexture))
+                    if (other.Sector.CeilHeight < side.Sector.CeilHeight && !IsSkyFlat(ctx, other.Sector.CeilTexture) && IsBlank(side.HighTexture))
                         issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
                             $"Linedef {index} ({which}) needs an upper texture.") { Target = l, Focus = mid });
-                    if (other.Sector.FloorHeight > side.Sector.FloorHeight && IsBlank(side.LowTexture))
+                    if (other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) && IsBlank(side.LowTexture))
                         issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
                             $"Linedef {index} ({which}) needs a lower texture.") { Target = l, Focus = mid });
                 }
@@ -268,6 +270,9 @@ public static class MapAnalysis
     }
 
     private static bool IsBlank(string? tex) => string.IsNullOrEmpty(tex) || tex == "-";
+
+    private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
+        => !IsBlank(flat) && ctx.IsSkyFlat?.Invoke(flat!) == true;
 
     private static void CheckLinedefs(MapSet map, List<MapIssue> issues)
     {

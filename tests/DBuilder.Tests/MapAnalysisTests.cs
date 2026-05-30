@@ -155,6 +155,40 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void SkyNeighborSuppressesUpperAndLowerMissingTextures()
+    {
+        var map = new MapSet();
+        var upper = map.AddSector();
+        upper.CeilHeight = 128;
+        upper.FloorHeight = 0;
+        var skyCeiling = map.AddSector();
+        skyCeiling.CeilHeight = 64;
+        skyCeiling.FloorHeight = 0;
+        skyCeiling.CeilTexture = "F_SKY1";
+        var lower = map.AddSector();
+        lower.CeilHeight = 128;
+        lower.FloorHeight = 0;
+        var skyFloor = map.AddSector();
+        skyFloor.CeilHeight = 128;
+        skyFloor.FloorHeight = 32;
+        skyFloor.FloorTexture = "F_SKY1";
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var c = map.AddVertex(new Vector2D(0, 64));
+        var d = map.AddVertex(new Vector2D(128, 64));
+        var upperLine = map.AddLinedef(a, b);
+        var lowerLine = map.AddLinedef(c, d);
+        map.AddSidedef(upperLine, true, upper);
+        map.AddSidedef(upperLine, false, skyCeiling);
+        map.AddSidedef(lowerLine, true, lower);
+        map.AddSidedef(lowerLine, false, skyFloor);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { IsSkyFlat = n => n == "F_SKY1" };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MissingTexture);
+    }
+
+    [Fact]
     public void UnknownTextureFlagged()
     {
         var map = Square(true);
