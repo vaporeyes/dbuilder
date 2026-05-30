@@ -702,8 +702,7 @@ public sealed class GameConfiguration
             classToNum = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (var (num, cls) in doomEdNums)
             {
-                if (cls.Equals("none", StringComparison.OrdinalIgnoreCase)) things.Remove(num);
-                else classToNum[cls] = num;
+                if (!cls.Equals("none", StringComparison.OrdinalIgnoreCase)) classToNum[cls] = num;
             }
         }
 
@@ -729,7 +728,11 @@ public sealed class GameConfiguration
         if (doomEdNums == null) return;
         foreach (var (num, cls) in doomEdNums)
         {
-            if (cls.Equals("none", StringComparison.OrdinalIgnoreCase)) continue;
+            if (cls.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                things.Remove(num);
+                continue;
+            }
             if (things.TryGetValue(num, out var existing) && string.Equals(existing.ClassName, cls, StringComparison.OrdinalIgnoreCase))
                 continue;
 

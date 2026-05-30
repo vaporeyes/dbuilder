@@ -940,6 +940,24 @@ thingtypes
     }
 
     [Fact]
+    public void DoomEdNumNoneOverridesDecorateActorNumbers()
+    {
+        const string decorate = @"
+ACTOR DisabledDecorateThing 31015
+{
+    Radius 24
+    Height 48
+    States { Spawn: DISA A -1 stop }
+}";
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 31015 = none }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(decorate), doomEdNums);
+
+        Assert.Null(gc.GetThing(31015));
+    }
+
+    [Fact]
     public void MergesZScriptActorsWithConfiguredParentThingDefaults()
     {
         const string cfg = @"
