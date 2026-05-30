@@ -269,6 +269,32 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadConfiguredSpriteRangesProvideAndPrioritizeSprites()
+    {
+        var config = GameConfiguration.FromText("""
+            sprites
+            {
+                actors { start = "SP_START"; end = "SP_END"; }
+            }
+            """);
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("POSSA0", DoomPatch(1)),
+            ("SP_START", Array.Empty<byte>()),
+            ("POSSA0", DoomPatch(70)),
+            ("SP_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Equal(1, rm.GetSprite("POSSA0")!.Rgba[0]);
+
+        rm.Configuration = config;
+
+        Assert.Equal(70, rm.GetSprite("POSSA0")!.Rgba[0]);
+        Assert.Contains("POSSA0", rm.GetSpriteNames());
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));

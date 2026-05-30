@@ -104,6 +104,9 @@ internal sealed class WadResourceReader : IResourceReader
     public ImageData? GetSprite(string name, DoomPalette? palette)
     {
         if (palette == null) return null;
+        var rangeLump = FindInRanges(name, ConfiguredSpriteRanges());
+        if (rangeLump != null) return DecodePicture(rangeLump, palette);
+
         var pic = DoomPictureReader.Decode(wad, name, palette);
         return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
     }
@@ -119,8 +122,7 @@ internal sealed class WadResourceReader : IResourceReader
     public ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
     {
         if (palette == null || FindPatchLump(name) is not { } lump) return null;
-        var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
-        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
+        return DecodePicture(lump, palette);
     }
 
     private Lump? FindPatchLump(string name)
@@ -171,6 +173,12 @@ internal sealed class WadResourceReader : IResourceReader
         return new ImageData(DoomFlatReader.Width, DoomFlatReader.Height, DoomFlatReader.DecodeRgba8(bytes, palette));
     }
 
+    private static ImageData? DecodePicture(Lump lump, DoomPalette palette)
+    {
+        var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
+        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
+    }
+
     private Lump? FindInRanges(string name, IReadOnlyList<ResourceRangeInfo> ranges)
     {
         if (ranges.Count == 0) return null;
@@ -215,6 +223,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     private IReadOnlyList<ResourceRangeInfo> ConfiguredColormapRanges()
         => configProvider()?.ColormapRanges ?? Array.Empty<ResourceRangeInfo>();
+
+    private IReadOnlyList<ResourceRangeInfo> ConfiguredSpriteRanges()
+        => configProvider()?.SpriteRanges ?? Array.Empty<ResourceRangeInfo>();
 
     private DoomPatchNames PatchNames() => patchNames ??= DoomPatchNames.FromWad(wad) ?? DoomPatchNames.Empty;
 
@@ -280,6 +291,9 @@ internal sealed class WadResourceReader : IResourceReader
             if (n is "S_END" or "SS_END") { inSprites = false; continue; }
             if (inSprites && IsValidSpriteName(n)) yield return n;
         }
+        foreach (var name in NamesInRanges(ConfiguredSpriteRanges()))
+            if (IsValidSpriteName(name))
+                yield return name;
     }
 
     public IEnumerable<string> VoxelNames()
