@@ -1383,17 +1383,17 @@ public static class DecorateParser
         valid = true;
         if (TryGetParameterizedZScriptFieldModifier(token, out _))
         {
-            valid = ConsumeZScriptModifierArguments(token, t, ref i);
+            valid = ConsumeZScriptVersionArguments(token, t, ref i);
             return true;
         }
 
         if (!ZScriptFieldModifiers.Contains(token)) return false;
         if (token.Equals("version", StringComparison.OrdinalIgnoreCase))
-            valid = i < t.Count && ConsumeZScriptModifierArguments(t[i++].Text, t, ref i);
+            valid = i < t.Count && ConsumeZScriptVersionArguments(t[i++].Text, t, ref i);
         else if (token.Equals("deprecated", StringComparison.OrdinalIgnoreCase)
                  && i < t.Count
                  && t[i].Text.StartsWith("(", StringComparison.Ordinal))
-            valid = ConsumeZScriptModifierArguments(t[i++].Text, t, ref i);
+            valid = ConsumeZScriptVersionArguments(t[i++].Text, t, ref i);
 
         return true;
     }
@@ -1411,18 +1411,39 @@ public static class DecorateParser
         return false;
     }
 
-    private static bool ConsumeZScriptModifierArguments(string token, List<Tok> t, ref int i)
+    private static bool ConsumeZScriptVersionArguments(string token, List<Tok> t, ref int i)
     {
         if (!token.Contains('(', StringComparison.Ordinal)) return false;
-        if (token.Contains(')', StringComparison.Ordinal)) return true;
+        var arguments = new List<Tok>();
+        AddInlineZScriptModifierArgument(token[(token.IndexOf('(', StringComparison.Ordinal) + 1)..], arguments, out bool closed);
+        if (closed) return IsValidZScriptVersionArguments(arguments);
         while (i < t.Count)
         {
             var tk = t[i++];
             if (tk.Kind == Kind.Sym && tk.Text == ";") return false;
-            if (tk.Text.Contains(')', StringComparison.Ordinal)) return true;
+            AddInlineZScriptModifierArgument(tk.Text, arguments, out closed, tk.Kind);
+            if (closed) return IsValidZScriptVersionArguments(arguments);
         }
 
         return false;
+    }
+
+    private static void AddInlineZScriptModifierArgument(string text, List<Tok> arguments, out bool closed, Kind kind = Kind.Word)
+    {
+        int close = text.IndexOf(')', StringComparison.Ordinal);
+        closed = close >= 0;
+        string value = closed ? text[..close] : text;
+        if (value.Length > 0) arguments.Add(new Tok(kind, value));
+    }
+
+    private static bool IsValidZScriptVersionArguments(List<Tok> arguments)
+    {
+        if (arguments.Count == 1) return arguments[0].Kind == Kind.Str;
+        return arguments.Count == 3
+            && arguments[0].Kind == Kind.Str
+            && arguments[1].Kind == Kind.Sym
+            && arguments[1].Text == ","
+            && arguments[2].Kind == Kind.Str;
     }
 
     private static bool IsUserVariableName(string name)
