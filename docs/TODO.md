@@ -450,6 +450,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse ZScript actor `user_` fields with modifiers and integer aliases.
   - [x] Prevent child actor `user_` fields from shadowing inherited metadata.
   - [x] Skip inline array-suffixed ZScript actor `user_` fields.
+  - [x] Parse ZScript actor `user_` fields with version and deprecated modifiers.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Avoid using placeholder-only state sprites as actor editor previews.

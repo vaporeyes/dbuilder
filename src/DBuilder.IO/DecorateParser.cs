@@ -1350,8 +1350,14 @@ public static class DecorateParser
         out bool typeArray)
     {
         string typeName = firstWord;
-        while (ZScriptFieldModifiers.Contains(typeName))
+        while (TryConsumeZScriptFieldModifier(typeName, t, ref i, out bool validModifier))
         {
+            if (!validModifier)
+            {
+                type = UniversalType.Integer;
+                typeArray = false;
+                return false;
+            }
             if (i >= t.Count || t[i].Kind != Kind.Word)
             {
                 type = UniversalType.Integer;
@@ -1370,6 +1376,53 @@ public static class DecorateParser
         typeArray = i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[";
         if (typeArray) SkipBracketedExpression(t, ref i);
         return true;
+    }
+
+    private static bool TryConsumeZScriptFieldModifier(string token, List<Tok> t, ref int i, out bool valid)
+    {
+        valid = true;
+        if (TryGetParameterizedZScriptFieldModifier(token, out _))
+        {
+            valid = ConsumeZScriptModifierArguments(token, t, ref i);
+            return true;
+        }
+
+        if (!ZScriptFieldModifiers.Contains(token)) return false;
+        if (token.Equals("version", StringComparison.OrdinalIgnoreCase))
+            valid = i < t.Count && ConsumeZScriptModifierArguments(t[i++].Text, t, ref i);
+        else if (token.Equals("deprecated", StringComparison.OrdinalIgnoreCase)
+                 && i < t.Count
+                 && t[i].Text.StartsWith("(", StringComparison.Ordinal))
+            valid = ConsumeZScriptModifierArguments(t[i++].Text, t, ref i);
+
+        return true;
+    }
+
+    private static bool TryGetParameterizedZScriptFieldModifier(string token, out string modifier)
+    {
+        foreach (string candidate in new[] { "version", "deprecated" })
+        {
+            if (!token.StartsWith(candidate + "(", StringComparison.OrdinalIgnoreCase)) continue;
+            modifier = candidate;
+            return true;
+        }
+
+        modifier = "";
+        return false;
+    }
+
+    private static bool ConsumeZScriptModifierArguments(string token, List<Tok> t, ref int i)
+    {
+        if (!token.Contains('(', StringComparison.Ordinal)) return false;
+        if (token.Contains(')', StringComparison.Ordinal)) return true;
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == ";") return false;
+            if (tk.Text.Contains(')', StringComparison.Ordinal)) return true;
+        }
+
+        return false;
     }
 
     private static bool IsUserVariableName(string name)
