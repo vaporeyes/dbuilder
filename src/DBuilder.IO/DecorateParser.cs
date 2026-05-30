@@ -767,7 +767,8 @@ public static class DecorateParser
                 if (!IsInvalidPlaceholderSprite(sprite.Name))
                     return sprite;
 
-        return firstNonEmptySprite ?? firstSprite;
+        if (firstNonEmptySprite != null) return firstNonEmptySprite;
+        return firstSprite is { } fallbackSprite && !IsInvalidPlaceholderSprite(fallbackSprite.Name) ? fallbackSprite : null;
     }
 
     private static void AddStateFrame(ActorInfo actor, string stateName, StateSpriteCandidate sprite)

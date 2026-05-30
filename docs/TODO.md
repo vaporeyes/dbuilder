@@ -404,6 +404,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prevent child actor `user_` fields from shadowing inherited metadata.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
+  - [x] Avoid using placeholder-only state sprites as actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
   - [x] Preserve `Light()` state-frame names in actor and thing metadata.
   - [x] Resolve relevant state `goto` targets when choosing actor editor previews.

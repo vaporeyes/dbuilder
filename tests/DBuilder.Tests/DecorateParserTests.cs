@@ -932,6 +932,25 @@ ACTOR PlaceholderSpriteThing 8004
     }
 
     [Fact]
+    public void PlaceholderOnlyStateSpritesDoNotProvideEditorSprite()
+    {
+        const string text = @"
+ACTOR PlaceholderOnlySpriteThing 8014
+{
+    States
+    {
+    Spawn:
+        ---- A -1
+        #### A -1
+        stop
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void AllowsFlowKeywordStateSpriteNames()
     {
         const string text = @"
