@@ -563,7 +563,13 @@ public static class DecorateParser
     {
         i++; // keyword
         if (i >= t.Count || !IsNameToken(t[i])) return null;
-        var actor = new ActorInfo { ClassName = t[i++].Text, RegionCategory = regionCategory };
+        string className = t[i++].Text;
+        var actor = new ActorInfo
+        {
+            ClassName = className,
+            ParentName = headerNum && !className.Equals("Actor", StringComparison.OrdinalIgnoreCase) ? "Actor" : null,
+            RegionCategory = regionCategory
+        };
         if (regionProperties != null)
         {
             foreach (var kvp in regionProperties)

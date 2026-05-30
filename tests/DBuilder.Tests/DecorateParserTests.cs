@@ -305,6 +305,14 @@ ACTOR RegionArrowOverrideThing 5011
     }
 
     [Fact]
+    public void UnparentedDecorateActorsDefaultToActorParent()
+    {
+        var actor = DecorateParser.Parse("ACTOR StandaloneThing 6002 { Radius 16 }").Single();
+
+        Assert.Equal("Actor", actor.ParentName);
+    }
+
+    [Fact]
     public void SeparatedNegativeEditorNumberLeavesDoomEdNumNegative()
     {
         var actor = DecorateParser.Parse("ACTOR AbstractBase - 1 { Radius 16 }")[0];
