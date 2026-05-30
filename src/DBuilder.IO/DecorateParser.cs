@@ -539,6 +539,11 @@ public static class DecorateParser
                 i++;
                 if (i < t.Count && IsNameToken(t[i])) actor.Replaces = t[i++].Text;
             }
+            else if (tk.Kind == Kind.Word && tk.Text.StartsWith("$", StringComparison.Ordinal))
+            {
+                i++;
+                actor.Properties[tk.Text] = ReadDollarPropertyValues(t, ref i);
+            }
             else if (headerNum && tk.Kind == Kind.Word && tk.Text == "-")
             {
                 i++;

@@ -71,6 +71,25 @@ ACTOR PropertyThing 5001
     }
 
     [Fact]
+    public void ParsesHeaderDollarProperties()
+    {
+        const string text = @"
+ACTOR HeaderPropertyThing $Title ""Header Title""
+                          $Category ""Header Category""
+                          $Sprite ""HEADA0""
+                          5003
+{
+    States { Spawn: TROO A -1 stop }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal(5003, actor.DoomEdNum);
+        Assert.Equal("Header Title", actor.Title);
+        Assert.Equal("Header Category", actor.Category);
+        Assert.Equal("HEADA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DollarPropertiesKeepUnquotedLineValues()
     {
         const string text = @"
