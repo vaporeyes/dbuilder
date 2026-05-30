@@ -72,4 +72,42 @@ local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
         Assert.Contains("noarchive", variable.Flags);
         Assert.Equal("1", variable.DefaultValue);
     }
+
+    [Fact]
+    public void SkipsDeclarationsWithInvalidTypedDefaults()
+    {
+        const string text = @"
+user int bad_int = nope;
+user float bad_float = nope;
+user bool bad_bool = maybe;
+user color bad_color = notacolor;
+user int good_int = -3;
+user float good_float = 1.5;
+user bool good_bool = false;
+user color good_color = ""#2040ff"";";
+
+        var info = CvarInfoParser.Parse(text);
+
+        Assert.DoesNotContain(info.Variables, c => c.Name == "bad_int");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "bad_float");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "bad_bool");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "bad_color");
+        Assert.Contains(info.Variables, c => c.Name == "good_int");
+        Assert.Contains(info.Variables, c => c.Name == "good_float");
+        Assert.Contains(info.Variables, c => c.Name == "good_bool");
+        Assert.Contains(info.Variables, c => c.Name == "good_color");
+    }
+
+    [Fact]
+    public void KeepsFirstCvarDefinitionWhenDuplicated()
+    {
+        const string text = @"
+user int duplicate_cvar = 1;
+user int duplicate_cvar = 2;";
+
+        var variable = Assert.Single(CvarInfoParser.Parse(text).Variables);
+
+        Assert.Equal("duplicate_cvar", variable.Name);
+        Assert.Equal("1", variable.DefaultValue);
+    }
 }

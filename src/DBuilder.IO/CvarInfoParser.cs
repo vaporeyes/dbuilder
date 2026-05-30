@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace DBuilder.IO;
 
@@ -32,6 +33,7 @@ public static class CvarInfoParser
     {
         var info = new CvarInfo();
         var t = ZDoomTokenScanner.Tokenize(text);
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < t.Count;)
         {
             string scope = "";
@@ -94,6 +96,8 @@ public static class CvarInfoParser
             }
             while (i < t.Count && t[i] != ";") i++;
             if (i < t.Count) i++;
+            if (!IsValidDefaultValue(variable.Type, variable.DefaultValue)) continue;
+            if (!names.Add(variable.Name)) continue;
             info.Variables.Add(variable);
         }
         return info;
@@ -124,5 +128,19 @@ public static class CvarInfoParser
         string value = t[i++];
         if (i < t.Count && t[i] == ")") i++;
         return value;
+    }
+
+    private static bool IsValidDefaultValue(string type, string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return true;
+        return type.ToLowerInvariant() switch
+        {
+            "int" => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _),
+            "float" => float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _),
+            "bool" => value.Equals("true", StringComparison.OrdinalIgnoreCase) || value.Equals("false", StringComparison.OrdinalIgnoreCase),
+            "color" => ZDoomColorParser.TryParse(value, knownColors: null, out _, out _, out _),
+            "string" => true,
+            _ => false,
+        };
     }
 }
