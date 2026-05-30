@@ -1321,9 +1321,11 @@ public sealed class GameConfiguration
 
     private void ParseThingCategory(string key, IDictionary cat, ThingCategoryInfo? parent)
     {
+        string title = GetString(cat, "title", key);
+        if (!IsValidThingCategory(cat, key, title)) return;
         var info = new ThingCategoryInfo(
             key,
-            GetString(cat, "title", key),
+            title,
             parent?.Key,
             GetInt(cat, "color", parent?.Color ?? 0),
             GetInt(cat, "width", parent?.Width ?? 16),
@@ -1414,6 +1416,35 @@ public sealed class GameConfiguration
                 ParseThingCategory(key + "." + childKey, child, info);
             }
         }
+    }
+
+    private static bool IsValidThingCategory(IDictionary cat, string key, string title)
+    {
+        if (title != key) return true;
+        if (cat.Contains("sprite")
+            || cat.Contains("sort")
+            || cat.Contains("color")
+            || cat.Contains("alpha")
+            || cat.Contains("renderstyle")
+            || cat.Contains("arrow")
+            || cat.Contains("width")
+            || cat.Contains("height")
+            || cat.Contains("hangs")
+            || cat.Contains("blocking")
+            || cat.Contains("error")
+            || cat.Contains("fixedsize")
+            || cat.Contains("fixedrotation")
+            || cat.Contains("absolutez")
+            || cat.Contains("spritescale"))
+        {
+            return true;
+        }
+
+        foreach (DictionaryEntry entry in cat)
+            if (int.TryParse(entry.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                return true;
+
+        return false;
     }
 
     private void ParseLinedefTypes(IDictionary linedeftypes)
