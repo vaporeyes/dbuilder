@@ -175,7 +175,6 @@ public static class TexturesParser
                     case "worldpanning": def.WorldPanning = true; break;
                     case "nulltexture": def.NullTexture = true; break;
                     case "offset":
-                    case "offsets":
                         SkipCommas(t, ref i); if (ReadInt(t, ref i, out int ox)) def.OffsetX = ox;
                         if (ReadComma(t, ref i) && ReadInt(t, ref i, out int oy)) def.OffsetY = oy;
                         break;

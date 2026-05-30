@@ -48,6 +48,22 @@ WallTexture COMPO, 4, 2
     }
 
     [Fact]
+    public void IgnoresPluralOffsetsPropertyLikeUdb()
+    {
+        const string text = @"
+Texture PLURAL, 8, 8
+{
+    Offsets 3, 4
+    Patch P, 0, 0
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal(0, def.OffsetX);
+        Assert.Equal(0, def.OffsetY);
+    }
+
+    [Fact]
     public void ParsesMultipleDefinitionsAndOptionalKeyword()
     {
         const string text = @"
