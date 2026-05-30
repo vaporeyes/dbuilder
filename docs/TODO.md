@@ -350,6 +350,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require UDB-style TEXTURES offset values.
   - [x] Require numeric TEXTURES patch blend alpha values.
   - [x] Require numeric TEXTURES patch alpha values.
+  - [x] Require integral TEXTURES patch rotation values.
 - [x] Port MODELDEF parser.
 - [ ] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.

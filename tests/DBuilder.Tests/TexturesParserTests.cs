@@ -347,6 +347,29 @@ Texture PATCHES, 8, 8
     }
 
     [Fact]
+    public void SkipsPatchesWithNonIntegralRotation()
+    {
+        const string text = @"
+Texture PATCHES, 8, 8
+{
+    Patch BAD, 0, 0
+    {
+        Rotate bogus
+    }
+    Patch OK, 1, 1
+    {
+        Rotate 90
+    }
+}";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(90, patch.Rotation);
+    }
+
+    [Fact]
     public void RequiresQuotesForLongPatchNames()
     {
         const string text = @"

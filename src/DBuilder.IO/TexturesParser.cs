@@ -255,7 +255,10 @@ public static class TexturesParser
                         if (ReadDouble(t, ref i, out double alpha)) patch.Alpha = Math.Clamp(alpha, 0.0, 1.0);
                         else invalid = true;
                         break;
-                    case "rotate": if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation); break;
+                    case "rotate":
+                        if (ReadInt(t, ref i, out int rotation)) patch.Rotation = NormalizeRotation(rotation);
+                        else invalid = true;
+                        break;
                     case "style":
                         if (i < t.Count)
                         {
