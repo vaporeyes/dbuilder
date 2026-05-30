@@ -440,6 +440,30 @@ extend class BaseActor
     }
 
     [Fact]
+    public void AppliesZScriptRegionCategoriesAndEditorDefaults()
+    {
+        const string zscript = @"
+#region Monsters/Bosses
+// $Color 12
+// $Sprite ""BOSSA0""
+class RegionZScriptActor : Actor
+{
+    Default { Radius 32; }
+}
+#endregion";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(new[] { actor }, new Dictionary<int, string> { [9100] = "RegionZScriptActor" });
+
+        var info = gc.GetThing(9100);
+        Assert.NotNull(info);
+        Assert.Equal("Monsters.Bosses", info!.Category);
+        Assert.Equal(12, info.Color);
+        Assert.Equal("BOSSA0", info.Sprite);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
