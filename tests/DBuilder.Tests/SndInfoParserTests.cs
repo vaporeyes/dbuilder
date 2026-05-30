@@ -16,16 +16,33 @@ weapons/pistol ""sounds/pistol.wav""
 misc/secret DSSECRET
 $alias player/death misc/death
 # comment
-misc/death ""sounds/death.ogg""
-weapons/shotgun = DSSHOTGN";
+misc/death ""sounds/death.ogg""";
 
         var info = SndInfoParser.Parse(text);
 
         Assert.Equal("sounds/pistol.wav", info.Sounds["weapons/pistol"]);
         Assert.Equal("DSSECRET", info.Sounds["misc/secret"]);
         Assert.Equal("sounds/death.ogg", info.Sounds["misc/death"]);
-        Assert.Equal("DSSHOTGN", info.Sounds["weapons/shotgun"]);
         Assert.Equal("misc/death", info.Aliases["player/death"]);
+    }
+
+    [Fact]
+    public void SkipsSoundAssignmentsThatMixOldAndNewFormats()
+    {
+        const string oldThenNew = @"
+world/old DSOLD
+world/new = DSNEW";
+        const string newThenOld = @"
+world/new = DSNEW
+world/old DSOLD";
+
+        var oldFirst = SndInfoParser.Parse(oldThenNew);
+        var newFirst = SndInfoParser.Parse(newThenOld);
+
+        Assert.Equal("DSOLD", oldFirst.Sounds["world/old"]);
+        Assert.False(oldFirst.Sounds.ContainsKey("world/new"));
+        Assert.Equal("DSNEW", newFirst.Sounds["world/new"]);
+        Assert.False(newFirst.Sounds.ContainsKey("world/old"));
     }
 
     [Fact]

@@ -16,12 +16,15 @@ public sealed class SndInfo
 
 public static class SndInfoParser
 {
+    private enum AssignmentFormat { None, Old, New }
+
     public static SndInfo Parse(string text) => Parse(text, baseGame: null);
 
     public static SndInfo Parse(string text, TerrainBaseGame? baseGame)
     {
         var result = new SndInfo();
         TerrainBaseGame? conditionalGame = null;
+        AssignmentFormat format = AssignmentFormat.None;
         string[] lines = text.Replace("\r\n", "\n").Split('\n');
         for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
         {
@@ -55,10 +58,29 @@ public static class SndInfoParser
             }
 
             if (first.StartsWith("$", StringComparison.Ordinal)) continue;
-            if (t.Count >= 3 && t[1] == "=") result.Sounds[first] = t[2];
-            else if (t.Count >= 2) result.Sounds[first] = t[1];
+            if (t.Count >= 3 && t[1] == "=")
+            {
+                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.New)) continue;
+                result.Sounds[first] = t[2];
+            }
+            else if (t.Count >= 2)
+            {
+                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.Old)) continue;
+                result.Sounds[first] = t[1];
+            }
         }
         return result;
+    }
+
+    private static bool TrySetAssignmentFormat(ref AssignmentFormat current, AssignmentFormat next)
+    {
+        if (current == AssignmentFormat.None)
+        {
+            current = next;
+            return true;
+        }
+
+        return current == next;
     }
 
     private static void CollectRandomTokens(string[] lines, ref int lineIndex, List<string> tokens)
