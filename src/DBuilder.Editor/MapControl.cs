@@ -28,6 +28,7 @@ namespace DBuilder.Editor;
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
+    public PasteOptions PasteOptions { get; set; } = new();
     public event Action? ActionStateChanged;
 
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
@@ -2417,7 +2418,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return empty;
         }
         EditBegun?.Invoke("Paste");
-        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize));
+        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize), PasteOptions);
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things";
@@ -2432,6 +2433,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var res = SelectionClipboard.DuplicateSelection(
             _map,
             new Vec2D(_grid.GridSize, _grid.GridSize),
+            PasteOptions,
             () => EditBegun?.Invoke("Duplicate selection"));
         if (res is null)
         {
@@ -2454,7 +2456,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         EditBegun?.Invoke("Insert prefab");
-        var res = SelectionClipboard.PasteAtAnchor(_map, data, SnapToGrid(_cursorWorld));
+        var res = SelectionClipboard.PasteAtAnchor(_map, data, SnapToGrid(_cursorWorld), PasteOptions);
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"inserted prefab: {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things");

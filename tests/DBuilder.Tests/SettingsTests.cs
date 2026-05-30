@@ -86,6 +86,11 @@ public class SettingsTests
                 TestIwad = "/iwad.wad",
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
+                PasteOptions = new PasteOptions
+                {
+                    ChangeTags = PasteTagMode.Renumber,
+                    RemoveActions = true,
+                },
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -107,6 +112,10 @@ public class SettingsTests
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);
             Assert.Equal(MergeGeometryMode.Merge, loaded.NormalizedMergeGeometryMode);
+            Assert.Equal(PasteTagMode.Renumber, loaded.PasteOptions.ChangeTags);
+            Assert.True(loaded.PasteOptions.RemoveActions);
+            Assert.Equal(PasteTagMode.Renumber, loaded.NormalizedPasteOptions.ChangeTags);
+            Assert.True(loaded.NormalizedPasteOptions.RemoveActions);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -127,6 +136,8 @@ public class SettingsTests
         Assert.Empty(s.ShortcutOverrides);
         Assert.Null(s.ConfigDir);
         Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
+        Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
+        Assert.False(s.NormalizedPasteOptions.RemoveActions);
     }
 
     [Fact]
@@ -135,6 +146,22 @@ public class SettingsTests
         var s = new Settings { MergeGeometryMode = (MergeGeometryMode)99 };
 
         Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
+    }
+
+    [Fact]
+    public void InvalidPasteTagModeFallsBackToDefaults()
+    {
+        var s = new Settings
+        {
+            PasteOptions = new PasteOptions
+            {
+                ChangeTags = (PasteTagMode)99,
+                RemoveActions = true,
+            },
+        };
+
+        Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
+        Assert.False(s.NormalizedPasteOptions.RemoveActions);
     }
 
     [Fact]

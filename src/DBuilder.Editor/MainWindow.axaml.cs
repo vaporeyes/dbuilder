@@ -114,6 +114,7 @@ public partial class MainWindow : Window
         Activated += (_, _) => FocusMapViewForShortcuts();
 
         _settings = Settings.Load(_settingsPath);
+        MapView.PasteOptions = _settings.NormalizedPasteOptions;
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
@@ -856,6 +857,7 @@ public partial class MainWindow : Window
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
+        MapView.PasteOptions = _settings.NormalizedPasteOptions;
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ReloadCompilerConfiguration();

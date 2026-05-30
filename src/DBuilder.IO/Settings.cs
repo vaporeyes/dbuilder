@@ -24,6 +24,7 @@ public sealed class Settings
     public string? TestIwad { get; set; }
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
+    public PasteOptions PasteOptions { get; set; } = new();
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -37,6 +38,9 @@ public sealed class Settings
 
     public MergeGeometryMode NormalizedMergeGeometryMode =>
         Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;
+
+    public PasteOptions NormalizedPasteOptions =>
+        PasteOptions is { } options && Enum.IsDefined(options.ChangeTags) ? options : new PasteOptions();
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -94,6 +98,7 @@ public sealed class Settings
             settings.RecentFiles ??= new();
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
+            settings.PasteOptions ??= new();
             return settings;
         }
         catch { return new Settings(); }
