@@ -309,6 +309,33 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownSectorEffectFlagged()
+    {
+        var map = Square(true);
+        map.Sectors[0].Special = 4242;
+        var ctx = new MapCheckContext { SectorEffectKnown = effect => effect == 9 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownSectorEffect);
+        Assert.Same(map.Sectors[0], issue.Target);
+    }
+
+    [Fact]
+    public void UnknownThingActionFlaggedOnlyWhenThingActionsAreEnabled()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 1);
+        thing.Action = 4242;
+        var ctx = new MapCheckContext { ActionKnown = action => action == 80 };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingAction);
+
+        ctx = new MapCheckContext { ActionKnown = action => action == 80, CheckThingActions = true };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingAction);
+        Assert.Same(thing, issue.Target);
+    }
+
+    [Fact]
     public void MissingActivationFlaggedForUdmfActionThatRequiresTrigger()
     {
         var map = Square(true);

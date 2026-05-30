@@ -2405,7 +2405,7 @@ public partial class MainWindow : Window
             texExists = n => texSet.Contains(n);
             flatExists = n => flatSet.Contains(n);
         }
-        Func<int, bool>? thingKnown = null, actionKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
+        Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
@@ -2414,6 +2414,7 @@ public partial class MainWindow : Window
             actionKnown = a => _config.GetLinedefAction(a) != null
                 || _config.DescribeGeneralizedLinedef(a) != null
                 || BoomGeneralized.IsGeneralized(a);
+            sectorEffectKnown = e => _config.GetSectorEffect(e) != null || _config.IsGeneralizedSectorEffect(e);
             ignoreUnknownTexture = (a, part) =>
             {
                 var exemptions = _config.GetLinedefAction(a)?.ErrorChecker;
@@ -2440,6 +2441,8 @@ public partial class MainWindow : Window
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
             ActionKnown = actionKnown,
+            SectorEffectKnown = sectorEffectKnown,
+            CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             IgnoreUnknownTexture = ignoreUnknownTexture,
             ActionRequiresUpperTexture = actionRequiresUpperTexture,
             ActionRequiresActivation = actionRequiresActivation,

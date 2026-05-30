@@ -27,6 +27,8 @@ public enum MapIssueKind
     UnknownFlat,
     UnknownThingType,
     UnknownAction,
+    UnknownSectorEffect,
+    UnknownThingAction,
     OverlappingLinedefs,
     ShortLinedef,
     OffGridVertex,
@@ -49,6 +51,10 @@ public sealed class MapCheckContext
     public Func<int, bool>? ThingTypeKnown { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
+    /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
+    public Func<int, bool>? SectorEffectKnown { get; init; }
+    /// <summary>Enable Hexen/UDMF thing action checks.</summary>
+    public bool CheckThingActions { get; init; }
     /// <summary>Returns true when an action deliberately uses unresolved names in the given texture slot.</summary>
     public Func<int, SidedefPart, bool>? IgnoreUnknownTexture { get; init; }
     /// <summary>Returns true when a linedef action forces an upper texture even without a height gap.</summary>
@@ -194,6 +200,7 @@ public static class MapAnalysis
                         $"Thing type {t.Type} is not in the game config.") { Target = t, Focus = t.Position });
 
         if (ctx.ActionKnown != null)
+        {
             for (int i = 0; i < map.Linedefs.Count; i++)
             {
                 var l = map.Linedefs[i];
@@ -201,6 +208,25 @@ public static class MapAnalysis
                     issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction,
                         $"Linedef {i} action {l.Action} is not in the game config.")
                         { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+            }
+
+            if (ctx.CheckThingActions)
+                for (int i = 0; i < map.Things.Count; i++)
+                {
+                    var t = map.Things[i];
+                    if (t.Action != 0 && !ctx.ActionKnown(t.Action))
+                        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction,
+                            $"Thing {i} action {t.Action} is not in the game config.") { Target = t, Focus = t.Position });
+                }
+        }
+
+        if (ctx.SectorEffectKnown != null)
+            for (int i = 0; i < map.Sectors.Count; i++)
+            {
+                var s = map.Sectors[i];
+                if (s.Special != 0 && !ctx.SectorEffectKnown(s.Special))
+                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect,
+                        $"Sector {i} effect {s.Special} is not in the game config.") { Target = s });
             }
 
         if (ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
