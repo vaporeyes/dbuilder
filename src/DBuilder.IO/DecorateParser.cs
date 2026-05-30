@@ -211,6 +211,11 @@ public static class DecorateParser
                     if (a != null) actors.Add(a);
                 }
             }
+            else if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)
+                && toks[i].Kind == Kind.Word)
+            {
+                SkipDeclaration(toks, ref i);
+            }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
                 && IsSkippedZScriptTopLevelDeclaration(toks[i].Text))

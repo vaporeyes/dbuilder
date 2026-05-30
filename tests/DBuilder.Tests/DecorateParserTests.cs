@@ -491,6 +491,28 @@ ACTOR RealActor 7012
     }
 
     [Fact]
+    public void SkipsUnknownTopLevelBlocks()
+    {
+        const string text = @"
+helperblock
+{
+    actor HiddenActor 7012
+    {
+        Radius 128
+    }
+}
+ACTOR RealActor 7013
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("RealActor", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ParsesTopLevelDamageTypes()
     {
         const string text = @"
