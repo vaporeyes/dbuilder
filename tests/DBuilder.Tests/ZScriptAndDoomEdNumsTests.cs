@@ -105,6 +105,24 @@ class SpacedCommentActor : Actor
     }
 
     [Fact]
+    public void SkipsZScriptClassesWithInvalidHeaderOrdering()
+    {
+        const string text = @"
+class DuplicateParent : Actor : Inventory { Default { Radius 64; } }
+class DuplicateReplacement replaces OldThing replaces OtherThing { Default { Radius 32; } }
+class ParentAfterReplacement replaces OldThing : Actor { Default { Radius 24; } }
+class ParentAfterNative native : Actor { Default { Radius 20; } }
+class ValidHeader : Actor replaces OldThing native { Default { Radius 8; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal("ValidHeader", actor.ClassName);
+        Assert.Equal("Actor", actor.ParentName);
+        Assert.Equal("OldThing", actor.Replaces);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void KeepsFirstZScriptActorWhenClassIsDuplicated()
     {
         const string text = @"

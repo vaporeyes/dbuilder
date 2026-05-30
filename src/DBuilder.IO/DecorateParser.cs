@@ -590,6 +590,9 @@ public static class DecorateParser
         }
 
         // Header: [: Parent] [replaces Other] [DoomEdNum], until '{' (body) or ';' (forward declaration).
+        bool hasParent = false;
+        bool hasReplacement = false;
+        bool hasNative = false;
         while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
         {
             var tk = t[i];
@@ -599,6 +602,7 @@ public static class DecorateParser
             }
             else if (tk.Kind == Kind.Sym && tk.Text == ":")
             {
+                if (!headerNum && (hasParent || hasReplacement || hasNative)) return SkipInvalidActorDeclaration(t, ref i);
                 i++;
                 if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.ParentName = t[i++].Text;
                 else
@@ -606,9 +610,11 @@ public static class DecorateParser
                     SkipDeclaration(t, ref i);
                     return null;
                 }
+                hasParent = true;
             }
             else if (tk.Kind == Kind.Word && tk.Text.Equals("replaces", StringComparison.OrdinalIgnoreCase))
             {
+                if (!headerNum && (hasReplacement || hasNative)) return SkipInvalidActorDeclaration(t, ref i);
                 i++;
                 if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.Replaces = t[i++].Text;
                 else
@@ -616,6 +622,7 @@ public static class DecorateParser
                     SkipDeclaration(t, ref i);
                     return null;
                 }
+                hasReplacement = true;
             }
             else if (tk.Kind == Kind.Word && tk.Text.StartsWith("$", StringComparison.Ordinal))
             {
@@ -635,6 +642,12 @@ public static class DecorateParser
             {
                 i++;
             }
+            else if (!headerNum && tk.Kind == Kind.Word && tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hasNative) return SkipInvalidActorDeclaration(t, ref i);
+                hasNative = true;
+                i++;
+            }
             else if (headerNum)
             {
                 SkipDeclaration(t, ref i);
@@ -647,6 +660,12 @@ public static class DecorateParser
         i++; // '{'
         ParseBody(actor, t, ref i, zscriptBody: !headerNum);
         return actor;
+    }
+
+    private static ActorInfo? SkipInvalidActorDeclaration(List<Tok> t, ref int i)
+    {
+        SkipDeclaration(t, ref i);
+        return null;
     }
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
