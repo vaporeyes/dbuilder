@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1474 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1475 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -465,6 +465,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Allow DECORATE flow keyword sprite names when followed by frames.
   - [x] Parse quoted DECORATE state sprite and frame tokens.
   - [x] Resolve DECORATE single-colon class-qualified `goto` targets.
+  - [x] Resolve quoted DECORATE `goto` targets with sprite offsets.
   - [x] Stop ZScript frame `Light()` scans at semicolon boundaries.
   - [x] Avoid inheriting non-Spawn state sprites from root `Actor`.
   - [x] Prefer inherited relevant state sprites before unrelated child states.

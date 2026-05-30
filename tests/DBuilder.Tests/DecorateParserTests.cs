@@ -964,6 +964,26 @@ ACTOR OffsetGotoThing 8009
     }
 
     [Fact]
+    public void UsesQuotedDecorateGotoStateSpriteOffset()
+    {
+        const string text = @"
+ACTOR QuotedOffsetGotoThing 8015
+{
+    States
+    {
+    Ready:
+        SKIP A -1
+        PICK A -1
+    Spawn:
+        goto ""Ready""+1
+    }
+}";
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("PICKA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void FollowsTargetGotoWhenStateOffsetExceedsFrames()
     {
         const string text = @"

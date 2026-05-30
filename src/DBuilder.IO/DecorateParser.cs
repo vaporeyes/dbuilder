@@ -1000,6 +1000,11 @@ public static class DecorateParser
         }
 
         stateName = ReadStateNameAndOffset(stateName, ref spriteOffset);
+        if (i < t.Count && TryReadAttachedStateOffset(t[i].Text, out int attachedOffset))
+        {
+            spriteOffset = attachedOffset;
+            i++;
+        }
         if (i + 1 < t.Count && t[i].Text == "+" && t[i + 1].Kind == Kind.Word)
         {
             if (int.TryParse(t[i + 1].Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedOffset))
@@ -1020,6 +1025,13 @@ public static class DecorateParser
         if (int.TryParse(offsetText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsedOffset))
             spriteOffset = parsedOffset;
         return stateName[..offsetIndex];
+    }
+
+    private static bool TryReadAttachedStateOffset(string token, out int spriteOffset)
+    {
+        spriteOffset = 0;
+        if (token.Length < 2 || token[0] != '+') return false;
+        return int.TryParse(token[1..], NumberStyles.Integer, CultureInfo.InvariantCulture, out spriteOffset);
     }
 
     private static bool IsZeroDurationFrame(List<Tok> t, int durationIndex)
