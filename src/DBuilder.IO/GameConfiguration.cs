@@ -951,7 +951,7 @@ public sealed class GameConfiguration
     {
         if (!TryActorProperty(actor, "distancecheck", out string cvarName))
             return existing?.DistanceCheckSq ?? double.MaxValue;
-        if (cvars == null) return double.MaxValue;
+        if (cvars == null) return existing?.DistanceCheckSq ?? double.MaxValue;
 
         foreach (var cvar in cvars.Variables)
         {
@@ -963,7 +963,7 @@ public sealed class GameConfiguration
                 : double.MaxValue;
         }
 
-        return double.MaxValue;
+        return existing?.DistanceCheckSq ?? double.MaxValue;
     }
 
     private static int SafeThingWidth(int width, bool fixedSize)
