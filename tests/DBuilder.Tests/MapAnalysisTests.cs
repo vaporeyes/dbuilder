@@ -205,6 +205,23 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void DetectsInvalidSectorWithFewerThanThreeUniqueLinedefs()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, sector);
+        map.AddSidedef(line, false, sector);
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.InvalidSector);
+        Assert.Same(sector, issue.Target);
+        Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.UnclosedSector);
+    }
+
+    [Fact]
     public void LinedefIssueCarriesTargetAndFocus()
     {
         var map = Square(true);

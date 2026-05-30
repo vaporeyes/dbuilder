@@ -23,6 +23,7 @@ public enum MapIssueKind
     UnusedVertex,
     EmptySector,
     UnclosedSector,
+    InvalidSector,
     // Context-aware checks (require a MapCheckContext):
     MissingTexture,
     UnknownTexture,
@@ -657,7 +658,22 @@ public static class MapAnalysis
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.UnclosedSector,
                     $"Sector {i} is not closed (a boundary vertex has an odd number of edges).")
                     { Target = s, Focus = Centroid(degrees[s].Keys) });
+            else if (IsInvalidSector(s))
+                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.InvalidSector,
+                    $"Sector {i} is invalid (it has fewer than 3 sidedefs or linedefs).")
+                    { Target = s, Focus = Centroid(degrees[s].Keys) });
         }
+    }
+
+    private static bool IsInvalidSector(Sector sector)
+    {
+        if (sector.Sidedefs.Count < 3) return true;
+
+        var lines = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (var side in sector.Sidedefs)
+            if (side.Line != null)
+                lines.Add(side.Line);
+        return lines.Count < 3;
     }
 
     private static void Bump(Dictionary<Vertex, int> d, Vertex v)
