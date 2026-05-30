@@ -198,6 +198,20 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void EmitsMissingSidedefReferencesLikeUdb()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Vertices.Add(new Vertex(new Vector2D(0, 0)));
+        map.Vertices.Add(new Vertex(new Vector2D(10, 0)));
+        map.Linedefs.Add(new Linedef(map.Vertices[0], map.Vertices[1]));
+
+        var text = UdmfMapWriter.Write(map);
+
+        Assert.Contains("sidefront = -1;", text);
+        Assert.Contains("sideback = -1;", text);
+    }
+
+    [Fact]
     public void WriteMapEmitsMarkerTextmapAndEndmap()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;

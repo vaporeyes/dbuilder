@@ -154,8 +154,8 @@ public static class UdmfMapWriter
 
         int sideFront = l.Front != null && sidedefIndex.TryGetValue(l.Front, out int srI) ? srI : -1;
         int sideBack  = l.Back  != null && sidedefIndex.TryGetValue(l.Back,  out int slI) ? slI : -1;
-        if (sideFront >= 0) WriteAssignment(sb, "sidefront", sideFront, indent: true);
-        if (sideBack  >= 0) WriteAssignment(sb, "sideback",  sideBack,  indent: true);
+        WriteAssignment(sb, "sidefront", sideFront, indent: true);
+        WriteAssignment(sb, "sideback", sideBack, indent: true);
 
         WriteIfNonzero(sb, "special", l.Action);
         WriteIfNonzero(sb, "id",      l.Tag);
