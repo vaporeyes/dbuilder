@@ -81,8 +81,11 @@ public static class TexturesParser
         {
             string word = t[i];
             if (word.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
-            bool optional = false;
-            if (word.Equals("optional", StringComparison.OrdinalIgnoreCase)) { optional = true; i++; if (i >= t.Count) break; word = t[i]; }
+            if (word.Equals("optional", StringComparison.OrdinalIgnoreCase))
+            {
+                SkipUnknownTopLevelStructure(t, ref i);
+                continue;
+            }
 
             var type = word.ToLowerInvariant() switch
             {
@@ -101,7 +104,7 @@ public static class TexturesParser
             }
 
             i++; // type
-            var def = ParseDefinition(type.Value, optional, t, ref i, knownColors);
+            var def = ParseDefinition(type.Value, optional: false, t, ref i, knownColors);
             if (def != null) defs.Add(def);
         }
         return defs;
@@ -129,6 +132,24 @@ public static class TexturesParser
         }
     }
 
+    private static void SkipUnknownTopLevelStructure(List<Tok> t, ref int i)
+    {
+        while (i < t.Count && t[i] != "{") i++;
+        if (i >= t.Count) return;
+
+        int depth = 0;
+        while (i < t.Count)
+        {
+            if (t[i] == "{") depth++;
+            else if (t[i] == "}")
+            {
+                depth--;
+                if (depth == 0) { i++; return; }
+            }
+            i++;
+        }
+    }
+
     private static bool IsTopLevelTypeToken(string word)
     {
         return word.Equals("texture", StringComparison.OrdinalIgnoreCase)
@@ -136,7 +157,6 @@ public static class TexturesParser
             || word.Equals("graphic", StringComparison.OrdinalIgnoreCase)
             || word.Equals("walltexture", StringComparison.OrdinalIgnoreCase)
             || word.Equals("flat", StringComparison.OrdinalIgnoreCase)
-            || word.Equals("optional", StringComparison.OrdinalIgnoreCase)
             || word.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase);
     }
 
