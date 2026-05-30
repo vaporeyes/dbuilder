@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1481 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1482 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -448,6 +448,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Recalculate actor bright metadata when merging DECORATE actors.
   - [x] Recalculate actor dynamic light metadata when merging DECORATE actors.
   - [x] Preserve configured blocking severity when merging solid DECORATE actors.
+  - [x] Preserve configured error checks when merging non-solid DECORATE actors.
   - [x] Discover scalar actor `user_` variables as typed additional thing fields.
   - [x] Apply ZScript `$UserDefaultValue` metadata to actor `user_` fields.
   - [x] Apply ZScript `$UserReinterpret Color` metadata to integer actor `user_` fields.

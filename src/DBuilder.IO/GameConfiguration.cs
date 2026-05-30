@@ -785,6 +785,8 @@ public sealed class GameConfiguration
         {
             blocking = solid ? (blocking > 0 ? blocking : 2) : 0;
         }
+        int errorCheck = ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0;
+        if (blocking > 0) errorCheck = 1;
         return new ThingTypeInfo
         {
             Index = index,
@@ -809,7 +811,7 @@ public sealed class GameConfiguration
                 : ActorRegionPropertyBoolish(actor, "$arrow") ?? fallback?.Arrow ?? false,
             Hangs = hangs,
             Blocking = blocking,
-            ErrorCheck = actor.Flags.ContainsKey("solid") ? solid ? 1 : 0 : ActorRegionPropertyInt(actor, "$error") ?? fallback?.ErrorCheck ?? 0,
+            ErrorCheck = errorCheck,
             FixedSize = fixedSize,
             FixedRotation = ActorRegionPropertyBool(actor, "$fixedrotation") ?? fallback?.FixedRotation ?? false,
             AbsoluteZ = absoluteZ,

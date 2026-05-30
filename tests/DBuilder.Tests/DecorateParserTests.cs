@@ -1589,6 +1589,39 @@ ACTOR CustomBlockingThing 31018
     }
 
     [Fact]
+    public void MergeActorsPreservesConfiguredErrorCheckWhenActorClearsSolid()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        31019
+        {
+            title = ""Custom Error Thing"";
+            class = ""CustomErrorThing"";
+            blocking = 1;
+            error = 2;
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR CustomErrorThing 31019
+{
+    -SOLID
+    States { Spawn: ERRC A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31019);
+        Assert.NotNull(info);
+        Assert.Equal(0, info!.Blocking);
+        Assert.Equal(2, info.ErrorCheck);
+    }
+
+    [Fact]
     public void MergeActorsUsesHereticDefaultAlpha()
     {
         const string text = @"
