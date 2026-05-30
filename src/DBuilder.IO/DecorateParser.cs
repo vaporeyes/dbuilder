@@ -79,6 +79,13 @@ public static class DecorateParser
     private static readonly HashSet<string> StateFlow = new(StringComparer.OrdinalIgnoreCase)
     { "goto", "loop", "stop", "wait", "fail", "hold" };
 
+    private static readonly HashSet<string> ZScriptFieldModifiers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "static", "native", "action", "internal", "readonly", "protected", "private", "virtual",
+        "override", "meta", "transient", "deprecated", "final", "play", "ui", "clearscope",
+        "virtualscope", "version", "const", "abstract", "norollback"
+    };
+
     private static readonly string[] SpriteCheckStates = { "idle", "see", "inactive", "spawn" };
 
     /// <summary>Parses a DECORATE lump into actor definitions, with parent inheritance applied.</summary>
@@ -1038,7 +1045,7 @@ public static class DecorateParser
         List<Tok> t,
         ref int i)
     {
-        if (!TryUserVariableType(typeName, out var type)) return false;
+        if (!TryResolveZScriptFieldType(typeName, t, ref i, out var type, out bool typeArray)) return false;
         if (i >= t.Count || t[i].Kind != Kind.Word) return false;
 
         UniversalType effectiveType = ReinterpretUserVariableType(metadata, type);
@@ -1052,7 +1059,7 @@ public static class DecorateParser
             {
                 i++;
                 foreach (var variable in variables)
-                    if (!variable.IsArray && IsUserVariableName(variable.Name) && !actor.UserVariables.ContainsKey(variable.Name))
+                    if (!typeArray && !variable.IsArray && IsUserVariableName(variable.Name) && !actor.UserVariables.ContainsKey(variable.Name))
                         actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, effectiveType, defaultValue);
                 return true;
             }
@@ -1099,7 +1106,12 @@ public static class DecorateParser
 
     private static bool TryUserVariableType(string typeName, out UniversalType type)
     {
-        if (typeName.Equals("int", StringComparison.OrdinalIgnoreCase))
+        if (typeName.Equals("int", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("int8", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("int16", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("uint", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("uint8", StringComparison.OrdinalIgnoreCase)
+            || typeName.Equals("uint16", StringComparison.OrdinalIgnoreCase))
         {
             type = UniversalType.Integer;
             return true;
@@ -1126,6 +1138,36 @@ public static class DecorateParser
 
         type = UniversalType.Integer;
         return false;
+    }
+
+    private static bool TryResolveZScriptFieldType(
+        string firstWord,
+        List<Tok> t,
+        ref int i,
+        out UniversalType type,
+        out bool typeArray)
+    {
+        string typeName = firstWord;
+        while (ZScriptFieldModifiers.Contains(typeName))
+        {
+            if (i >= t.Count || t[i].Kind != Kind.Word)
+            {
+                type = UniversalType.Integer;
+                typeArray = false;
+                return false;
+            }
+            typeName = t[i++].Text;
+        }
+
+        if (!TryUserVariableType(typeName, out type))
+        {
+            typeArray = false;
+            return false;
+        }
+
+        typeArray = i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[";
+        if (typeArray) SkipBracketedExpression(t, ref i);
+        return true;
     }
 
     private static bool IsUserVariableName(string name)

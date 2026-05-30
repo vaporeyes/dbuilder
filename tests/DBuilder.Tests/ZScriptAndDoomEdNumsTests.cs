@@ -201,6 +201,9 @@ class MemberActor : Actor
     //$UserReinterpret Color
     //$UserDefaultValue ""#112233""
     int user_color;
+    //$UserDefaultValue 11
+    private uint16 user_small;
+    float[] user_type_values;
     void Helper()
     {
         int local_value;
@@ -228,13 +231,17 @@ class MemberActor : Actor
         Assert.True(actor.UserVariables.ContainsKey("user_flag"));
         Assert.True(actor.UserVariables.ContainsKey("user_label"));
         Assert.True(actor.UserVariables.ContainsKey("user_color"));
+        Assert.True(actor.UserVariables.ContainsKey("user_small"));
         Assert.False(actor.UserVariables.ContainsKey("user_values"));
+        Assert.False(actor.UserVariables.ContainsKey("user_type_values"));
         Assert.Equal(7, actor.UserVariables["user_value"].DefaultValue);
         Assert.Equal(1.5, actor.UserVariables["user_speed"].DefaultValue);
         Assert.Equal(true, actor.UserVariables["user_flag"].DefaultValue);
         Assert.Equal("active", actor.UserVariables["user_label"].DefaultValue);
         Assert.Equal(UniversalType.Color, actor.UserVariables["user_color"].Type);
         Assert.Equal(0x112233, actor.UserVariables["user_color"].DefaultValue);
+        Assert.Equal(UniversalType.Integer, actor.UserVariables["user_small"].Type);
+        Assert.Equal(11, actor.UserVariables["user_small"].DefaultValue);
 
         var gc = new GameConfiguration();
         gc.MergeActors(new[] { actor }, new Dictionary<int, string> { [9001] = "MemberActor" });
@@ -244,17 +251,21 @@ class MemberActor : Actor
         Assert.True(thing.HasAdditionalUniversalField("user_flag"));
         Assert.True(thing.HasAdditionalUniversalField("user_label"));
         Assert.True(thing.HasAdditionalUniversalField("user_color"));
+        Assert.True(thing.HasAdditionalUniversalField("user_small"));
         Assert.False(thing.HasAdditionalUniversalField("user_values"));
+        Assert.False(thing.HasAdditionalUniversalField("user_type_values"));
         Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_value"].Type);
         Assert.Equal((int)UniversalType.Float, gc.UniversalFields["thing"]["user_speed"].Type);
         Assert.Equal((int)UniversalType.Boolean, gc.UniversalFields["thing"]["user_flag"].Type);
         Assert.Equal((int)UniversalType.String, gc.UniversalFields["thing"]["user_label"].Type);
         Assert.Equal((int)UniversalType.Color, gc.UniversalFields["thing"]["user_color"].Type);
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_small"].Type);
         Assert.Equal(7, gc.UniversalFields["thing"]["user_value"].DefaultValue);
         Assert.Equal(1.5, gc.UniversalFields["thing"]["user_speed"].DefaultValue);
         Assert.Equal(true, gc.UniversalFields["thing"]["user_flag"].DefaultValue);
         Assert.Equal("active", gc.UniversalFields["thing"]["user_label"].DefaultValue);
         Assert.Equal(0x112233, gc.UniversalFields["thing"]["user_color"].DefaultValue);
+        Assert.Equal(11, gc.UniversalFields["thing"]["user_small"].DefaultValue);
 
         var fields = UniversalFieldEditorValues.ForElement(gc, "thing", new Dictionary<string, object>(), thing.AddUniversalFields);
         Assert.Contains(fields, field => field.Field.Name == "user_value");
@@ -262,7 +273,9 @@ class MemberActor : Actor
         Assert.Contains(fields, field => field is { Field.Name: "user_flag", Value: true });
         Assert.Contains(fields, field => field is { Field.Name: "user_label", Value: "active" });
         Assert.Contains(fields, field => field is { Field.Name: "user_color", Value: 0x112233 });
+        Assert.Contains(fields, field => field is { Field.Name: "user_small", Value: 11 });
         Assert.DoesNotContain(fields, field => field.Field.Name == "user_values");
+        Assert.DoesNotContain(fields, field => field.Field.Name == "user_type_values");
     }
 
     [Fact]
