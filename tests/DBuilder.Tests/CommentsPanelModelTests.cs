@@ -103,4 +103,78 @@ public sealed class CommentsPanelModelTests
     [InlineData(CommentsPanelMode.Things, 4, true)]
     public void CanSetSelectionCommentMatchesUdbModeRules(CommentsPanelMode mode, int count, bool expected)
         => Assert.Equal(expected, CommentsPanelModel.CanSetSelectionComment(mode, count));
+
+    [Fact]
+    public void CreateSelectionTargetUsesFirstCommentedElementKind()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var side = map.AddSidedef(line, true, map.AddSector());
+
+        line.Fields["comment"] = "line";
+        side.Fields["comment"] = "line";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var target = CommentsPanelModel.CreateSelectionTarget(group);
+
+        Assert.Equal(CommentsPanelMode.Linedefs, target.Mode);
+        Assert.Equal(new IFielded[] { line, side }, target.Elements);
+    }
+
+    [Fact]
+    public void CreateViewAreaSquaresAndPadsLineBounds()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(200, 40)));
+        line.Fields["comment"] = "line";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var area = CommentsPanelModel.CreateViewArea(group);
+
+        Assert.Equal(-100f, area.X);
+        Assert.Equal(-180f, area.Y);
+        Assert.Equal(400f, area.Width);
+        Assert.Equal(400f, area.Height);
+    }
+
+    [Fact]
+    public void CreateViewAreaUsesThingDisplaySize()
+    {
+        var map = new MapSet();
+        var thing = map.AddThing(new Vector2D(50, 80), 1);
+        thing.Size = 16;
+        thing.Fields["comment"] = "thing";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var area = CommentsPanelModel.CreateViewArea(group);
+
+        Assert.Equal(-82f, area.X);
+        Assert.Equal(-52f, area.Y);
+        Assert.Equal(264f, area.Width);
+        Assert.Equal(264f, area.Height);
+    }
+
+    [Fact]
+    public void CreateViewAreaUsesSectorSidedefs()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(64, 96));
+        var ab = map.AddLinedef(a, b);
+        var bc = map.AddLinedef(b, c);
+        map.AddSidedef(ab, true, sector);
+        map.AddSidedef(bc, true, sector);
+        map.BuildIndexes();
+        sector.Fields["comment"] = "sector";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var area = CommentsPanelModel.CreateViewArea(group);
+
+        Assert.Equal(-116f, area.X);
+        Assert.Equal(-100f, area.Y);
+        Assert.Equal(296f, area.Width);
+        Assert.Equal(296f, area.Height);
+    }
 }

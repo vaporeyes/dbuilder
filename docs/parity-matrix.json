@@ -155,7 +155,7 @@
       "udbPlugin": "CommentsPanel",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields exists, including current-mode filtering and set/remove helpers. Docked UI, selection navigation, and rendering integration remain incomplete."
+      "notes": "UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields exists, including current-mode filtering, set/remove helpers, selection targets, and padded square view-area calculation. Docked UI, live selection wiring, and rendering integration remain incomplete."
     },
     { "udbPlugin": "ImageDrawingExample", "status": "missing", "dbuilderLocation": null },
     {

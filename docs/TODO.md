@@ -884,6 +884,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `ColorPicker`.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
+  - [x] Add UDB-style comment selection targets and view-area calculation.
 - [ ] Port `NodesViewer`.
 - [ ] Port `RejectExplorer`.
 - [ ] Port `SoundPropagationMode`.
@@ -939,6 +940,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port blockmap explorer UI and data model.
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
+  - [x] Add UDB-style comment selection targets and padded square view-area calculation.
 - [ ] Port nodes viewer visualization.
 - [ ] Port reject explorer visualization.
 - [ ] Port sound propagation mode behavior.
