@@ -326,6 +326,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let nested WAD sprite and voxel resources take priority over folder resources within a PK3 like UDB.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
+  - [x] Add UDB-style default gray PLAYPAL fallback palette model.
   - [x] Resolve the active main `COLORMAP` through the resource stack.
   - [x] Resolve named colormap resources from WAD lumps and PK3 `colormaps/` folders.
   - [x] Include folder colormap resources in texture name enumeration.

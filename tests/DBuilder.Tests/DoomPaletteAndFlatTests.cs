@@ -24,7 +24,7 @@ public class DoomPaletteAndFlatTests
     public void PaletteReadsAllEntries()
     {
         var palette = DoomPalette.FromBytes(BuildSyntheticPalette());
-        Assert.Equal(256, palette.Colors.Length);
+        Assert.Equal(DoomPalette.ColorCount, palette.Colors.Length);
 
         // Entry 0 = (R=0, G=1, B=2) with alpha 0xFF
         uint expected0 = 0xFF000102u;
@@ -33,6 +33,17 @@ public class DoomPaletteAndFlatTests
         // Entry 100 = (R=100, G=101, B=102)
         uint expected100 = 0xFF000000u | (100u << 16) | (101u << 8) | 102u;
         Assert.Equal(expected100, palette.Colors[100]);
+    }
+
+    [Fact]
+    public void DefaultGrayPaletteMatchesUdbFallbackPlaypal()
+    {
+        DoomPalette palette = DoomPalette.CreateDefaultGray();
+
+        Assert.Equal(DoomPalette.ColorCount, palette.Colors.Length);
+        Assert.All(palette.Colors, color => Assert.Equal(0xFF7F7F7Fu, color));
+        Assert.Equal(new byte[] { 127, 127, 127, 255, 127, 127, 127, 255 }, palette.IndexedToRgba8([0, 255]));
+        Assert.Equal(0, palette.FindClosestColor(0xFF7F7F7Fu));
     }
 
     [Fact]

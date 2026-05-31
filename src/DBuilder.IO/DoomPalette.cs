@@ -7,18 +7,27 @@ namespace DBuilder.IO;
 
 public sealed class DoomPalette
 {
+    public const int ColorCount = 256;
+
     /// <summary>256 ARGB entries (alpha always 0xFF).  Index by the Doom 0-255 palette byte.</summary>
     public uint[] Colors { get; }
 
     private DoomPalette(uint[] colors) { Colors = colors; }
+
+    public static DoomPalette CreateDefaultGray()
+    {
+        var colors = new uint[ColorCount];
+        for (int i = 0; i < colors.Length; i++) colors[i] = 0xFF7F7F7Fu;
+        return new DoomPalette(colors);
+    }
 
     /// <summary>Builds a palette from a 768-byte (or larger - extra tables are ignored) RGB buffer.</summary>
     public static DoomPalette FromBytes(byte[] data)
     {
         if (data.Length < 768) throw new IOException($"PLAYPAL data too short: got {data.Length} bytes, need at least 768.");
 
-        var colors = new uint[256];
-        for (int i = 0; i < 256; i++)
+        var colors = new uint[ColorCount];
+        for (int i = 0; i < ColorCount; i++)
         {
             byte r = data[i * 3 + 0];
             byte g = data[i * 3 + 1];
