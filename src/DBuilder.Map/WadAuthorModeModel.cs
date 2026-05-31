@@ -14,16 +14,37 @@ public enum WadAuthorHighlightKind
     Thing,
 }
 
+public enum WadAuthorLinedefPopupAction
+{
+    Properties,
+    Delete,
+    Split,
+    Flip,
+    Curve,
+}
+
 public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, object? Target)
 {
     public static WadAuthorHighlight None => new(WadAuthorHighlightKind.None, null);
 }
+
+public sealed record WadAuthorLinedefPopupItem(string Title, WadAuthorLinedefPopupAction? Action);
 
 public static class WadAuthorModeModel
 {
     public const double LinedefHighlightRange = 10.0;
     public const double VertexHighlightRange = 8.0;
     public const double ThingHighlightRange = 2.0;
+
+    public static IReadOnlyList<WadAuthorLinedefPopupItem> LinedefPopupItems { get; } =
+    [
+        new("Properties...", WadAuthorLinedefPopupAction.Properties),
+        new("", null),
+        new("Delete", WadAuthorLinedefPopupAction.Delete),
+        new("Split", WadAuthorLinedefPopupAction.Split),
+        new("Flip", WadAuthorLinedefPopupAction.Flip),
+        new("Curve...", WadAuthorLinedefPopupAction.Curve),
+    ];
 
     public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)
     {

@@ -8,6 +8,27 @@ namespace DBuilder.Tests;
 
 public class WadAuthorModeModelTests
 {
+    [Fact]
+    public void LinedefPopupItemsMatchUdbOrder()
+    {
+        var items = WadAuthorModeModel.LinedefPopupItems;
+
+        Assert.Equal(
+            new[] { "Properties...", "", "Delete", "Split", "Flip", "Curve..." },
+            items.Select(i => i.Title));
+        Assert.Equal(
+            new WadAuthorLinedefPopupAction?[]
+            {
+                WadAuthorLinedefPopupAction.Properties,
+                null,
+                WadAuthorLinedefPopupAction.Delete,
+                WadAuthorLinedefPopupAction.Split,
+                WadAuthorLinedefPopupAction.Flip,
+                WadAuthorLinedefPopupAction.Curve,
+            },
+            items.Select(i => i.Action));
+    }
+
     private static MapSet EmptyLineMap()
     {
         var map = new MapSet();

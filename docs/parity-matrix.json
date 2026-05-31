@@ -226,7 +226,7 @@
       "udbPlugin": "WadAuthorMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "UDB-style WadAuthorMode hover highlight model exists for vertex/thing/linedef/sector priority, highlight ranges, renderer scale handling, and side-based sector selection from the nearest linedef. Full edit mode UI, toolbar/action registration, rendering highlights, and linedef popup workflow remain incomplete."
+      "notes": "UDB-style WadAuthorMode hover highlight model exists for vertex/thing/linedef/sector priority, highlight ranges, renderer scale handling, and side-based sector selection from the nearest linedef. The UDB linedef popup command order is modeled. Full edit mode UI, toolbar/action registration, rendering highlights, and popup command execution remain incomplete."
     }
   ]
 }

@@ -53,4 +53,4 @@ Status values:
 | `UDBScript` | missing | none | Script API not ported. |
 | `USDF` | partial | `DBuilder.Editor`, `DBuilder.IO` | DIALOGUE parsing and a non-modal conversation window exist. Editing and save-back remain missing. |
 | `VisplaneExplorer` | partial | `DBuilder.Map` | UDB-style tile sampling, packed point-stat storage, stat compression, and heatmap byte interpolation exist. Native VPO execution, map scan orchestration, palette rendering, and full UI remain missing. |
-| `WadAuthorMode` | missing | none | Not ported. |
+| `WadAuthorMode` | partial | `DBuilder.Map` | Hover highlight priority, renderer-scale ranges, side-based sector selection, and the linedef popup command order are modeled. Full edit mode UI, toolbar/action registration, rendering highlights, and popup command execution remain missing. |

@@ -933,6 +933,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
+  - [x] Add UDB-style linedef popup command order model.
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.
@@ -1064,6 +1065,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
+  - [x] Add UDB-style linedef popup command order model.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.
