@@ -48,6 +48,7 @@ public sealed record IdStudioTextureExportPlan(
     IReadOnlyList<IdStudioTextureExportFile> ArtFiles,
     IReadOnlyList<IdStudioExportFile> MaterialFiles,
     IReadOnlyList<string> MissingImages);
+public readonly record struct IdStudioRgba(byte R, byte G, byte B, byte A);
 
 public readonly record struct IdStudioVertex(float X, float Y);
 
@@ -209,6 +210,32 @@ public static class IdStudioTextureExporter
         return useAlpha
             ? string.Format(CultureInfo.InvariantCulture, MaterialTemplateAlpha, subFolder, lowerName)
             : string.Format(CultureInfo.InvariantCulture, MaterialTemplate, subFolder, lowerName);
+    }
+
+    public static byte[] EncodeTga(int width, int height, IReadOnlyList<IdStudioRgba> pixels)
+    {
+        if (pixels.Count != width * height)
+            throw new ArgumentException("Pixel count must match width times height.", nameof(pixels));
+
+        byte[] tga = new byte[18 + pixels.Count * 4];
+        tga[2] = 2;
+        tga[12] = (byte)(width % 256);
+        tga[13] = (byte)(width / 256);
+        tga[14] = (byte)(height % 256);
+        tga[15] = (byte)(height / 256);
+        tga[16] = 32;
+        tga[17] = 0x20;
+
+        int offset = 18;
+        foreach (IdStudioRgba pixel in pixels)
+        {
+            tga[offset++] = pixel.B;
+            tga[offset++] = pixel.G;
+            tga[offset++] = pixel.R;
+            tga[offset++] = pixel.A;
+        }
+
+        return tga;
     }
 
     private static void AddImage(

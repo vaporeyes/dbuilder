@@ -416,5 +416,36 @@ public class IdStudioExportModelTests
         }
     }
 
+    [Fact]
+    public void TextureExporterEncodesUdbStyleUncompressedTga()
+    {
+        byte[] tga = IdStudioTextureExporter.EncodeTga(
+            width: 2,
+            height: 1,
+            [
+                new IdStudioRgba(0x11, 0x22, 0x33, 0x44),
+                new IdStudioRgba(0x55, 0x66, 0x77, 0x88)
+            ]);
+
+        Assert.Equal(26, tga.Length);
+        Assert.Equal(2, tga[2]);
+        Assert.Equal(2, tga[12]);
+        Assert.Equal(0, tga[13]);
+        Assert.Equal(1, tga[14]);
+        Assert.Equal(0, tga[15]);
+        Assert.Equal(32, tga[16]);
+        Assert.Equal(0x20, tga[17]);
+        Assert.Equal([0x33, 0x22, 0x11, 0x44, 0x77, 0x66, 0x55, 0x88], tga.Skip(18).ToArray());
+    }
+
+    [Fact]
+    public void TextureExporterRejectsTgaPixelCountMismatch()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+            IdStudioTextureExporter.EncodeTga(2, 2, [new IdStudioRgba(0, 0, 0, 0)]));
+
+        Assert.Equal("pixels", exception.ParamName);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }
