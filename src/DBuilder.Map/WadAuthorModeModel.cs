@@ -30,11 +30,29 @@ public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, ob
 
 public sealed record WadAuthorLinedefPopupItem(string Title, WadAuthorLinedefPopupAction? Action);
 
+public sealed record WadAuthorModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool UseByDefault,
+    bool SafeStartMode);
+
 public static class WadAuthorModeModel
 {
     public const double LinedefHighlightRange = 10.0;
     public const double VertexHighlightRange = 8.0;
     public const double ThingHighlightRange = 2.0;
+
+    public static WadAuthorModeDescriptor ModeDescriptor { get; } = new(
+        "WadAuthor Mode",
+        "wadauthormode",
+        "WAuthor.png",
+        int.MinValue + 400,
+        "000_editing",
+        UseByDefault: true,
+        SafeStartMode: true);
 
     public static IReadOnlyList<WadAuthorLinedefPopupItem> LinedefPopupItems { get; } =
     [

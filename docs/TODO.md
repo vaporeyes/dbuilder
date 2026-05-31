@@ -1140,6 +1140,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style mode enter and leave selection lifecycle helpers.
+  - [x] Add UDB-style mode descriptor and `wadauthormode` action metadata.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.

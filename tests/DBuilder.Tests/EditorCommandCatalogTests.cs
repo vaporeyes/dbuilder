@@ -2,6 +2,7 @@
 // ABOUTME: Guards stable command ids and default gestures as the action system is ported in slices.
 
 using DBuilder.IO;
+using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
@@ -91,6 +92,20 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void WadAuthorModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.mode-wadauthor");
+
+        Assert.NotNull(command);
+        Assert.Equal("WadAuthor Mode", command.Title);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal("wadauthormode", WadAuthorModeModel.ModeDescriptor.SwitchAction);
     }
 
     [Fact]

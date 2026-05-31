@@ -9,6 +9,20 @@ namespace DBuilder.Tests;
 public class WadAuthorModeModelTests
 {
     [Fact]
+    public void ModeDescriptorMatchesUdbEditModeAttribute()
+    {
+        WadAuthorModeDescriptor descriptor = WadAuthorModeModel.ModeDescriptor;
+
+        Assert.Equal("WadAuthor Mode", descriptor.DisplayName);
+        Assert.Equal("wadauthormode", descriptor.SwitchAction);
+        Assert.Equal("WAuthor.png", descriptor.ButtonImage);
+        Assert.Equal(int.MinValue + 400, descriptor.ButtonOrder);
+        Assert.Equal("000_editing", descriptor.ButtonGroup);
+        Assert.True(descriptor.UseByDefault);
+        Assert.True(descriptor.SafeStartMode);
+    }
+
+    [Fact]
     public void LinedefPopupItemsMatchUdbOrder()
     {
         var items = WadAuthorModeModel.LinedefPopupItems;
