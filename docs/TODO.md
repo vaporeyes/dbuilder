@@ -951,6 +951,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port bridge mode.
 - [ ] Port slope arch tools.
 - [ ] Port make-door tools.
+  - [x] Add UDB-style map-level Make Door sector mutation helper.
 - [ ] Port object export tools.
 - [ ] Port image export tools.
 - [ ] Port Wavefront export tools.
