@@ -92,7 +92,7 @@
       "udbArea": "Source/Core/Rendering",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor;DBuilder.Map",
-      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, visual vertex handle model coverage for floor/ceiling height fallback and handle bounds, and visual slope handle local mesh and placement-basis coverage have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
+      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, visual vertex handle model coverage for floor/ceiling height fallback and handle bounds, visual slope handle local mesh and placement-basis coverage, and UDMF comment icon render planning for linedefs, sectors, and things have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Resources",
@@ -177,7 +177,7 @@
       "udbPlugin": "CommentsPanel",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields exists, including current-mode filtering, set/remove helpers, selection targets with sector boundary propagation, edit targets with sidedef-to-linedef conversion, padded square view-area calculation, and a non-modal editor comments panel for setting selected-element comments, selecting groups, and removing grouped comments. Full docked UI, live selection wiring, and rendering integration remain incomplete."
+      "notes": "UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields exists, including current-mode filtering, set/remove helpers, selection targets with sector boundary propagation, edit targets with sidedef-to-linedef conversion, padded square view-area calculation, UDB-style comment icon render planning, toggle command metadata, and a non-modal editor comments panel for setting selected-element comments, selecting groups, and removing grouped comments. Full docked UI, live selection wiring, and renderer integration remain incomplete."
     },
     {
       "udbPlugin": "ImageDrawingExample",

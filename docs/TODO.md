@@ -797,6 +797,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual slope handles.
   - [x] Add UDB-style visual slope handle local meshes, sidedef and vertex placement basis, side inversion rules, and pivot points.
 - [ ] Port comments rendering.
+  - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
 - [ ] Port color settings and color collections.
 - [ ] Port shader compiler behavior or a documented replacement.
 - [ ] Add screenshot and pixel-level regression tests for key render states.

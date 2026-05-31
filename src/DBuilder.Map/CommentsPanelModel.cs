@@ -32,9 +32,44 @@ public sealed record CommentSelectionTarget(CommentsPanelMode Mode, IReadOnlyLis
 
 public sealed record CommentEditTarget(CommentsPanelMode Mode, IReadOnlyList<IFielded> Elements);
 
+public enum CommentIconKind
+{
+    Regular,
+    Info,
+    Question,
+    Problem,
+    Smile,
+}
+
+public enum CommentIconColorRole
+{
+    White,
+    Selection,
+    Highlight,
+}
+
+public sealed record CommentRenderOptions(
+    CommentsPanelMode Mode,
+    bool IsUdmf = true,
+    bool RenderComments = true,
+    double Scale = 1.0,
+    bool FixedThingsScale = false,
+    IFielded? Highlighted = null,
+    IReadOnlyDictionary<Sector, IReadOnlyList<LabelPositionInfo>>? SectorLabels = null);
+
+public sealed record CommentRenderIcon(
+    CommentedElementKind Kind,
+    IFielded Element,
+    RectangleF Rectangle,
+    CommentIconKind Icon,
+    CommentIconColorRole Color,
+    string Comment,
+    string TooltipText);
+
 public static class CommentsPanelModel
 {
     public const string CommentField = "comment";
+    public static readonly string[] CommentTypePrefixes = ["", "[i]", "[?]", "[!]", "[:]"];
 
     public static IReadOnlyList<CommentGroup> BuildGroups(MapSet map, CommentsPanelMode filterMode = CommentsPanelMode.All)
     {
@@ -146,6 +181,65 @@ public static class CommentsPanelModel
         return area;
     }
 
+    public static IReadOnlyList<CommentRenderIcon> BuildRenderIcons(MapSet map, CommentRenderOptions options)
+    {
+        if (!options.IsUdmf || !options.RenderComments) return Array.Empty<CommentRenderIcon>();
+
+        double scale = Math.Max(options.Scale, 0.000001);
+        var icons = new List<CommentRenderIcon>();
+
+        if (options.Mode == CommentsPanelMode.Linedefs)
+        {
+            foreach (Linedef line in map.Linedefs)
+                if (!line.IsDisposed && TryGetComment(line, out string comment, out CommentIconKind icon, out string tooltip))
+                    icons.Add(RenderLine(line, scale, options.Highlighted, comment, icon, tooltip));
+        }
+        else if (options.Mode == CommentsPanelMode.Sectors)
+        {
+            foreach (Sector sector in map.Sectors)
+                AddSectorIcons(icons, sector, options, scale);
+        }
+        else if (options.Mode == CommentsPanelMode.Things)
+        {
+            foreach (Thing thing in map.Things)
+                AddThingIcon(icons, thing, options, scale);
+        }
+
+        return icons;
+    }
+
+    public static bool TryGetComment(
+        IFielded element,
+        out string comment,
+        out CommentIconKind icon,
+        out string tooltipText)
+    {
+        icon = CommentIconKind.Regular;
+        tooltipText = "";
+
+        if (!element.Fields.TryGetValue(CommentField, out object? raw))
+        {
+            comment = "";
+            return false;
+        }
+
+        comment = raw?.ToString() ?? "";
+        tooltipText = comment;
+
+        if (comment.Length > 2)
+        {
+            string type = comment.Substring(0, 3);
+            int index = Array.IndexOf(CommentTypePrefixes, type);
+            if (index > 0)
+            {
+                icon = (CommentIconKind)index;
+                tooltipText = comment.TrimStart(type.ToCharArray());
+            }
+        }
+
+        return true;
+    }
+
     private static void AddGroups<T>(
         List<CommentGroup> groups,
         CommentsPanelMode group,
@@ -225,5 +319,125 @@ public static class CommentsPanelModel
                 points.Add(p + new Vector2D(-size, -size));
                 break;
         }
+    }
+
+    private static CommentRenderIcon RenderLine(
+        Linedef line,
+        double scale,
+        IFielded? highlighted,
+        string comment,
+        CommentIconKind icon,
+        string tooltip)
+    {
+        Vector2D center = line.GetCenterPoint();
+        RectangleF rect = new(
+            (float)(center.x - 8.0 / scale),
+            (float)(center.y + 18.0 / scale),
+            (float)(16.0 / scale),
+            (float)(-16.0 / scale));
+
+        return new CommentRenderIcon(
+            CommentedElementKind.Linedef,
+            line,
+            rect,
+            icon,
+            ColorFor(line, highlighted),
+            comment,
+            tooltip);
+    }
+
+    private static void AddSectorIcons(List<CommentRenderIcon> icons, Sector sector, CommentRenderOptions options, double scale)
+    {
+        if (sector.IsDisposed || sector.Selected) return;
+        if (!TryGetComment(sector, out string comment, out CommentIconKind icon, out string tooltip)) return;
+
+        if (options.SectorLabels != null &&
+            options.SectorLabels.TryGetValue(sector, out IReadOnlyList<LabelPositionInfo>? labels) &&
+            labels.Count > 0)
+        {
+            foreach (LabelPositionInfo label in labels)
+                icons.Add(RenderSector(sector, label.position, scale, options.Highlighted, comment, icon, tooltip));
+        }
+        else if (TryGetSectorCenter(sector, out Vector2D center))
+        {
+            icons.Add(RenderSector(sector, center, scale, options.Highlighted, comment, icon, tooltip));
+        }
+    }
+
+    private static CommentRenderIcon RenderSector(
+        Sector sector,
+        Vector2D center,
+        double scale,
+        IFielded? highlighted,
+        string comment,
+        CommentIconKind icon,
+        string tooltip)
+    {
+        RectangleF rect = new(
+            (float)(center.x - 8.0 / scale),
+            (float)(center.y + 8.0 / scale),
+            (float)(16.0 / scale),
+            (float)(-16.0 / scale));
+
+        return new CommentRenderIcon(
+            CommentedElementKind.Sector,
+            sector,
+            rect,
+            icon,
+            ReferenceEquals(sector, highlighted) ? CommentIconColorRole.Highlight : CommentIconColorRole.White,
+            comment,
+            tooltip);
+    }
+
+    private static void AddThingIcon(List<CommentRenderIcon> icons, Thing thing, CommentRenderOptions options, double scale)
+    {
+        if (thing.IsDisposed) return;
+        if (!TryGetComment(thing, out string comment, out CommentIconKind icon, out string tooltip)) return;
+
+        double size = ((thing.FixedSize || options.FixedThingsScale) && scale > 1.0)
+            ? thing.Size / scale
+            : thing.Size;
+        if (size * scale < 1.5) return;
+
+        RectangleF rect = new(
+            (float)(thing.Position.x + size - 10.0 / scale),
+            (float)(thing.Position.y + size + 18.0 / scale),
+            (float)(16.0 / scale),
+            (float)(-16.0 / scale));
+
+        icons.Add(new CommentRenderIcon(
+            CommentedElementKind.Thing,
+            thing,
+            rect,
+            icon,
+            ColorFor(thing, options.Highlighted),
+            comment,
+            tooltip));
+    }
+
+    private static bool TryGetSectorCenter(Sector sector, out Vector2D center)
+    {
+        RectangleF area = MapSet.CreateEmptyArea();
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.Line == null) continue;
+            area = MapSet.IncreaseArea(area, side.Line.Start.Position);
+            area = MapSet.IncreaseArea(area, side.Line.End.Position);
+        }
+
+        if (area.Width < 0 || area.Height < 0)
+        {
+            center = default;
+            return false;
+        }
+
+        center = new Vector2D(area.Left + area.Width / 2.0, area.Top + area.Height / 2.0);
+        return true;
+    }
+
+    private static CommentIconColorRole ColorFor(ISelectable element, IFielded? highlighted)
+    {
+        if (ReferenceEquals(element, highlighted)) return CommentIconColorRole.Highlight;
+        return element.Selected ? CommentIconColorRole.Selection : CommentIconColorRole.White;
     }
 }

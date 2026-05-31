@@ -3,6 +3,7 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -230,5 +231,159 @@ public sealed class CommentsPanelModelTests
         Assert.Equal(-100f, area.Y);
         Assert.Equal(296f, area.Width);
         Assert.Equal(296f, area.Height);
+    }
+
+    [Fact]
+    public void TryGetCommentResolvesIconPrefixAndTooltipLikeUdb()
+    {
+        var map = new MapSet();
+        var thing = map.AddThing(new Vector2D(0, 0), 1);
+        thing.Fields["comment"] = "[!]Problem marker";
+
+        bool found = CommentsPanelModel.TryGetComment(
+            thing,
+            out string comment,
+            out CommentIconKind icon,
+            out string tooltip);
+
+        Assert.True(found);
+        Assert.Equal("[!]Problem marker", comment);
+        Assert.Equal(CommentIconKind.Problem, icon);
+        Assert.Equal("Problem marker", tooltip);
+    }
+
+    [Fact]
+    public void BuildRenderIconsHonorsUdmfAndToggleGates()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(0, 0), 1).Fields["comment"] = "note";
+
+        Assert.Empty(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Things, IsUdmf: false)));
+        Assert.Empty(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Things, RenderComments: false)));
+        Assert.Empty(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Vertices)));
+    }
+
+    [Fact]
+    public void LinedefRenderIconUsesUdbRectangleAndSelectionColor()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Selected = true;
+        line.Fields["comment"] = "[i]Line info";
+
+        var icon = Assert.Single(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Linedefs, Scale: 2.0)));
+
+        Assert.Equal(CommentedElementKind.Linedef, icon.Kind);
+        Assert.Same(line, icon.Element);
+        Assert.Equal(new RectangleF(28, 9, 8, -8), icon.Rectangle);
+        Assert.Equal(CommentIconKind.Info, icon.Icon);
+        Assert.Equal(CommentIconColorRole.Selection, icon.Color);
+        Assert.Equal("Line info", icon.TooltipText);
+    }
+
+    [Fact]
+    public void HighlightedLinedefRenderIconUsesHighlightColor()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Fields["comment"] = "plain";
+
+        var icon = Assert.Single(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Linedefs, Highlighted: line)));
+
+        Assert.Equal(CommentIconColorRole.Highlight, icon.Color);
+        Assert.Equal(CommentIconKind.Regular, icon.Icon);
+        Assert.Equal("plain", icon.TooltipText);
+    }
+
+    [Fact]
+    public void SectorRenderIconSkipsSelectedSectorsAndUsesLabelPositionsWhenAvailable()
+    {
+        var map = new MapSet();
+        Sector selected = AddSquareSector(map, 0, 64);
+        Sector sector = AddSquareSector(map, 128, 64);
+        selected.Selected = true;
+        selected.Fields["comment"] = "hidden";
+        sector.Fields["comment"] = "[?]Sector question";
+        var labels = new Dictionary<Sector, IReadOnlyList<LabelPositionInfo>>
+        {
+            [sector] = new[] { new LabelPositionInfo(new Vector2D(140, 160), 8), new LabelPositionInfo(new Vector2D(156, 176), 8) },
+        };
+
+        var icons = CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Sectors, Scale: 4.0, SectorLabels: labels));
+
+        Assert.Equal(2, icons.Count);
+        Assert.All(icons, icon => Assert.Same(sector, icon.Element));
+        Assert.Equal(new RectangleF(138, 162, 4, -4), icons[0].Rectangle);
+        Assert.Equal(new RectangleF(154, 178, 4, -4), icons[1].Rectangle);
+        Assert.All(icons, icon => Assert.Equal(CommentIconKind.Question, icon.Icon));
+        Assert.All(icons, icon => Assert.Equal("Sector question", icon.TooltipText));
+    }
+
+    [Fact]
+    public void SectorRenderIconFallsBackToSectorBoundsCenter()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        sector.Fields["comment"] = "sector";
+
+        var icon = Assert.Single(CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Sectors, Scale: 2.0)));
+
+        Assert.Equal(new RectangleF(28, 36, 8, -8), icon.Rectangle);
+        Assert.Equal(CommentIconColorRole.White, icon.Color);
+    }
+
+    [Fact]
+    public void ThingRenderIconUsesUdbSizeAndScaleRules()
+    {
+        var map = new MapSet();
+        var small = map.AddThing(new Vector2D(0, 0), 1);
+        small.Size = 0.3;
+        small.Fields["comment"] = "small";
+        var thing = map.AddThing(new Vector2D(100, 200), 1);
+        thing.Size = 16;
+        thing.FixedSize = true;
+        thing.Selected = true;
+        thing.Fields["comment"] = "[:]:)";
+
+        var icons = CommentsPanelModel.BuildRenderIcons(
+            map,
+            new CommentRenderOptions(CommentsPanelMode.Things, Scale: 4.0));
+
+        var icon = Assert.Single(icons);
+        Assert.Same(thing, icon.Element);
+        Assert.Equal(new RectangleF(101.5f, 208.5f, 4, -4), icon.Rectangle);
+        Assert.Equal(CommentIconKind.Smile, icon.Icon);
+        Assert.Equal(CommentIconColorRole.Selection, icon.Color);
+        Assert.Equal(")", icon.TooltipText);
+    }
+
+    private static Sector AddSquareSector(MapSet map, double origin, double size)
+    {
+        Sector sector = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(origin, origin));
+        Vertex b = map.AddVertex(new Vector2D(origin + size, origin));
+        Vertex c = map.AddVertex(new Vector2D(origin + size, origin + size));
+        Vertex d = map.AddVertex(new Vector2D(origin, origin + size));
+
+        map.AddSidedef(map.AddLinedef(a, b), true, sector);
+        map.AddSidedef(map.AddLinedef(b, c), true, sector);
+        map.AddSidedef(map.AddLinedef(c, d), true, sector);
+        map.AddSidedef(map.AddLinedef(d, a), true, sector);
+        map.BuildIndexes();
+        return sector;
     }
 }

@@ -95,6 +95,19 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ToggleCommentsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.toggle-comments");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Comments", command.Title);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void UsdfDialogEditorCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.usdf-dialog-editor");
