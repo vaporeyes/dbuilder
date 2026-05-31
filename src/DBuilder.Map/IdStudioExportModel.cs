@@ -41,6 +41,44 @@ public sealed record IdStudioExportSettings(
             options.ExportAllTextures);
 }
 
+public sealed record IdStudioExportFormState(
+    IdStudioExportOptions DefaultOptions,
+    int MapTextureExportCount,
+    int AllTextureExportCount,
+    string MapTextureCountText,
+    string AllTextureCountText)
+{
+    public static IdStudioExportFormState FromMap(
+        MapSet map,
+        string mapFilePath,
+        string levelName,
+        int allTextureCount,
+        int allFlatCount)
+    {
+        IdStudioMapTextureSet mapTextures = IdStudioTextureExporter.CollectMapTextures(map);
+        int mapTextureCount = mapTextures.Textures.Count + mapTextures.Flats.Count;
+        int allTextureExportCount = allTextureCount + allFlatCount;
+
+        return new IdStudioExportFormState(
+            new IdStudioExportOptions
+            {
+                ModPath = Path.GetDirectoryName(mapFilePath) ?? string.Empty,
+                MapName = levelName.ToLowerInvariant(),
+                Downscale = 20,
+                XShift = 0,
+                YShift = 0,
+                ZShift = 0
+            },
+            mapTextureCount,
+            allTextureExportCount,
+            FormatTextureCount(mapTextureCount),
+            FormatTextureCount(allTextureExportCount));
+    }
+
+    public static string FormatTextureCount(int imageCount)
+        => $"{imageCount} TGA images and {imageCount} material2 decls will be created.";
+}
+
 public readonly record struct IdStudioExportFile(string Path, string Content);
 
 public sealed record IdStudioTextureImage(string Name, byte[] TgaBytes, bool IsTranslucent = false, bool IsMasked = false);

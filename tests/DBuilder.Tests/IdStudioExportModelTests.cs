@@ -33,6 +33,48 @@ public class IdStudioExportModelTests
         Assert.True(settings.ExportAllTextures);
     }
 
+    [Fact]
+    public void FormStateMatchesUdbDefaultsAndTextureCountLabels()
+    {
+        MapSet map = BuildMapWithTextures();
+
+        IdStudioExportFormState state = IdStudioExportFormState.FromMap(
+            map,
+            Path.Combine("mods", "doom2.wad"),
+            "MAP01",
+            allTextureCount: 12,
+            allFlatCount: 5);
+
+        Assert.Equal("mods", state.DefaultOptions.ModPath);
+        Assert.Equal("map01", state.DefaultOptions.MapName);
+        Assert.Equal(20, state.DefaultOptions.Downscale);
+        Assert.Equal(0, state.DefaultOptions.XShift);
+        Assert.Equal(0, state.DefaultOptions.YShift);
+        Assert.Equal(0, state.DefaultOptions.ZShift);
+        Assert.False(state.DefaultOptions.ExportTextures);
+        Assert.False(state.DefaultOptions.ExportAllTextures);
+        Assert.Equal(6, state.MapTextureExportCount);
+        Assert.Equal(17, state.AllTextureExportCount);
+        Assert.Equal("6 TGA images and 6 material2 decls will be created.", state.MapTextureCountText);
+        Assert.Equal("17 TGA images and 17 material2 decls will be created.", state.AllTextureCountText);
+    }
+
+    [Fact]
+    public void FormStateUsesEmptyModPathWhenMapPathHasNoDirectory()
+    {
+        IdStudioExportFormState state = IdStudioExportFormState.FromMap(
+            new MapSet(),
+            "doom2.wad",
+            "E1M1",
+            allTextureCount: 0,
+            allFlatCount: 0);
+
+        Assert.Equal(string.Empty, state.DefaultOptions.ModPath);
+        Assert.Equal("e1m1", state.DefaultOptions.MapName);
+        Assert.Equal("0 TGA images and 0 material2 decls will be created.", state.MapTextureCountText);
+        Assert.Equal("0 TGA images and 0 material2 decls will be created.", state.AllTextureCountText);
+    }
+
     [Theory]
     [InlineData("map01", true)]
     [InlineData("e1m1_ref", true)]
@@ -711,6 +753,29 @@ public class IdStudioExportModelTests
     }
 
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+    private static MapSet BuildMapWithTextures()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.FloorTexture = "FLOOR0_1";
+        sector.CeilTexture = "-";
+        Sector otherSector = map.AddSector();
+        otherSector.FloorTexture = "";
+        otherSector.CeilTexture = "CEIL5_2";
+        Vertex v0 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v1 = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        Sidedef front = map.AddSidedef(line, isFront: true, sector);
+        Sidedef back = map.AddSidedef(line, isFront: false, otherSector);
+        front.LowTexture = "LOWER";
+        front.MidTexture = "-";
+        front.HighTexture = "UPPER";
+        back.LowTexture = "";
+        back.MidTexture = "MID";
+        back.HighTexture = "BACKUPPER";
+        return map;
+    }
 
     private static IdStudioTextureDimensions TextureDimensions(string texture)
         => texture switch
