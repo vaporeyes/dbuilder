@@ -812,6 +812,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual vertex behavior.
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
 - [ ] Port visual slope behavior.
+  - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
 - [ ] Port visual blockmap behavior.
 - [ ] Port visual picking behavior to full UDB behavior.
 - [ ] Port surface highlighting and selection behavior.

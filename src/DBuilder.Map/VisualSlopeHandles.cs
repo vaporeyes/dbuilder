@@ -74,6 +74,14 @@ public sealed record VisualSlopeHandle(
     }
 }
 
+public enum VisualSlopeChangeResult
+{
+    Changed,
+    MissingPivot,
+    SameAsPivot,
+    VerticalPlane,
+}
+
 public static class VisualSlopeHandles
 {
     public const uint White = 0xffffffff;
@@ -202,6 +210,114 @@ public static class VisualSlopeHandles
         angle += Angle2D.PIHALF;
         if (levelType == VisualSlopeLevelType.Ceiling) angle += Angle2D.PI;
         return Angle2D.Normalized(angle);
+    }
+
+    public static VisualSlopeChangeResult ChangeTargetHeight(
+        VisualSlopeHandle handle,
+        VisualSlopeHandle? pivot,
+        int amount,
+        IReadOnlyList<VisualSlopeLevel>? affectedLevels = null)
+    {
+        if (handle == null) throw new ArgumentNullException(nameof(handle));
+        if (pivot == null) return VisualSlopeChangeResult.MissingPivot;
+        if (ReferenceEquals(handle, pivot)) return VisualSlopeChangeResult.SameAsPivot;
+
+        Plane plane = handle.Kind == VisualSlopeHandleKind.Line
+            ? CreateLineChangePlane(handle, pivot, amount)
+            : CreateVertexChangePlane(handle, pivot, amount);
+
+        if (Math.Abs(plane.a) == 1.0 || Math.Abs(plane.b) == 1.0)
+            return VisualSlopeChangeResult.VerticalPlane;
+
+        IReadOnlyList<VisualSlopeLevel> levels = affectedLevels is { Count: > 0 }
+            ? affectedLevels
+            : [handle.Level];
+
+        foreach (VisualSlopeLevel level in levels)
+            ApplySlope(level, plane);
+
+        return VisualSlopeChangeResult.Changed;
+    }
+
+    public static void ApplySlope(VisualSlopeLevel level, Plane plane)
+    {
+        bool applyToCeiling = level.ExtraFloor
+            ? level.Type == VisualSlopeLevelType.Floor
+            : level.Type == VisualSlopeLevelType.Ceiling;
+
+        bool reset = false;
+        int height = 0;
+        double diff = Math.Abs(Math.Round(plane.d) - plane.d);
+        if (plane.Normal.z == 1.0 && diff < 0.000000001)
+        {
+            reset = true;
+            height = -Convert.ToInt32(plane.d);
+        }
+
+        if (applyToCeiling)
+        {
+            if (reset)
+            {
+                level.Sector.CeilHeight = height;
+                level.Sector.CeilSlope = new Vector3D();
+                level.Sector.CeilSlopeOffset = double.NaN;
+            }
+            else
+            {
+                Plane downPlane = plane.GetInverted();
+                level.Sector.CeilSlope = downPlane.Normal;
+                level.Sector.CeilSlopeOffset = downPlane.Offset;
+            }
+        }
+        else if (reset)
+        {
+            level.Sector.FloorHeight = height;
+            level.Sector.FloorSlope = new Vector3D();
+            level.Sector.FloorSlopeOffset = double.NaN;
+        }
+        else
+        {
+            level.Sector.FloorSlope = plane.Normal;
+            level.Sector.FloorSlopeOffset = plane.Offset;
+        }
+    }
+
+    private static Plane CreateLineChangePlane(VisualSlopeHandle handle, VisualSlopeHandle pivot, int amount)
+    {
+        if (handle.Sidedef == null) throw new ArgumentException("Line slope handle requires a sidedef.", nameof(handle));
+
+        Vector2D start = handle.Sidedef.Line.Start.Position;
+        Vector2D end = handle.Sidedef.Line.End.Position;
+        Vector3D p1 = new(start, handle.Level.Plane.GetZ(start) + amount);
+        Vector3D p2 = new(end, handle.Level.Plane.GetZ(end) + amount);
+        Vector3D p3 = pivot.GetPivotPoint();
+        return new Plane(p1, p2, p3, true);
+    }
+
+    private static Plane CreateVertexChangePlane(VisualSlopeHandle handle, VisualSlopeHandle pivot, int amount)
+    {
+        if (handle.Vertex == null) throw new ArgumentException("Vertex slope handle requires a vertex.", nameof(handle));
+
+        Vector2D position = handle.Vertex.Position;
+        Vector3D p1 = new(position, handle.Level.Plane.GetZ(position) + amount);
+        Vector3D p2;
+        Vector3D p3;
+
+        if (pivot.Kind == VisualSlopeHandleKind.Vertex)
+        {
+            p3 = pivot.GetPivotPoint();
+            Vector2D perpendicular = new Line2D(position, p3).GetPerpendicular();
+            Vector2D second = position + perpendicular;
+            p2 = new Vector3D(second, handle.Level.Plane.GetZ(second) + amount);
+        }
+        else
+        {
+            IReadOnlyList<Vector3D> pivotPoints = pivot.GetPivotPoints();
+            p2 = pivotPoints[0];
+            p3 = pivotPoints[1];
+        }
+
+        return new Plane(p1, p2, p3, true);
     }
 
     private readonly record struct LineAngleInfo(double Angle, bool Clockwise)
