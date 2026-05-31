@@ -62,4 +62,46 @@ public class ImageDataTests
 
         Assert.Throws<InvalidOperationException>(() => image.UpdatePixels(new byte[4]));
     }
+
+    [Fact]
+    public void CreateIndexedStoresPaletteIndexInRedAndPreservesAlphaAndMetadata()
+    {
+        byte[] paletteBytes = new byte[768];
+        for (int i = 0; i < 256; i++)
+        {
+            paletteBytes[i * 3] = (byte)i;
+            paletteBytes[i * 3 + 1] = (byte)i;
+            paletteBytes[i * 3 + 2] = (byte)i;
+        }
+
+        var palette = DoomPalette.FromBytes(paletteBytes);
+        var image = new ImageData(
+            2,
+            1,
+            [10, 10, 10, 128, 100, 99, 101, 255],
+            OffsetX: 3,
+            OffsetY: 4,
+            ScaleX: 2.0,
+            ScaleY: 3.0);
+
+        ImageData indexed = image.CreateIndexed(palette);
+
+        Assert.Equal(2, indexed.Width);
+        Assert.Equal(1, indexed.Height);
+        Assert.Equal(3, indexed.OffsetX);
+        Assert.Equal(4, indexed.OffsetY);
+        Assert.Equal(2.0, indexed.ScaleX);
+        Assert.Equal(3.0, indexed.ScaleY);
+        Assert.Equal(new byte[] { 10, 0, 0, 128, 100, 0, 0, 255 }, indexed.Rgba);
+        Assert.False(indexed.IsDynamic);
+    }
+
+    [Fact]
+    public void CreateIndexedRejectsInvalidSourceBuffer()
+    {
+        var palette = DoomPalette.FromBytes(new byte[768]);
+        var image = new ImageData(2, 2, new byte[4]);
+
+        Assert.Throws<ArgumentException>(() => image.CreateIndexed(palette));
+    }
 }

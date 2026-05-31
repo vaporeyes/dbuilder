@@ -73,6 +73,22 @@ public sealed record ImageData(int Width, int Height, byte[] Rgba, int OffsetX =
         rgba.CopyTo(Rgba);
     }
 
+    public ImageData CreateIndexed(DoomPalette palette)
+    {
+        ArgumentNullException.ThrowIfNull(palette);
+        ValidateRgbaLength(Width, Height, Rgba);
+
+        var indexed = new byte[Rgba.Length];
+        for (int i = 0; i < Rgba.Length; i += 4)
+        {
+            uint argb = 0xFF000000u | ((uint)Rgba[i] << 16) | ((uint)Rgba[i + 1] << 8) | Rgba[i + 2];
+            indexed[i] = (byte)palette.FindClosestColor(argb);
+            indexed[i + 3] = Rgba[i + 3];
+        }
+
+        return new ImageData(Width, Height, indexed, OffsetX, OffsetY, ScaleX, ScaleY);
+    }
+
     private static void ValidateDimensions(int width, int height)
     {
         if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width), "Image width must be positive.");
