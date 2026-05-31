@@ -329,6 +329,44 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void AppliesPatchFlipBeforeRotationDuringComposition()
+    {
+        string textures =
+            "WallTexture WFLPROT, 2, 2\n" +
+            "{\n" +
+            "    Patch \"QUAD\", 0, 0\n" +
+            "    {\n" +
+            "        FlipX\n" +
+            "        Rotate 90\n" +
+            "    }\n" +
+            "}\n";
+
+        byte[] pixels =
+        {
+            10, 0, 0, 255,
+            20, 0, 0, 255,
+            30, 0, 0, 255,
+            40, 0, 0, 255,
+        };
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/QUAD.png", TestArtifacts.Png(2, 2, pixels)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var tex = rm.GetWallTexture("WFLPROT");
+            Assert.NotNull(tex);
+            Assert.Equal(new byte[] { 40, 0, 0, 255 }, tex!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 20, 0, 0, 255 }, tex.Rgba[4..8]);
+            Assert.Equal(new byte[] { 30, 0, 0, 255 }, tex.Rgba[8..12]);
+            Assert.Equal(new byte[] { 10, 0, 0, 255 }, tex.Rgba[12..16]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void AppliesPatchRenderStylesDuringComposition()
     {
         string textures =
