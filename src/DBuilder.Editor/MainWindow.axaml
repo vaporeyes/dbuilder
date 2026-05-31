@@ -158,6 +158,7 @@
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
+                <MenuItem Header="Sector _Color..." x:Name="SectorColorMenuItem" Click="OnSectorColor" />
                 <MenuItem Header="Tag _Range..." x:Name="TagRangeMenuItem" Click="OnTagRange" />
                 <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
                 <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
@@ -269,6 +270,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Apply Slopes" x:Name="ApplySlopesButton" Click="OnApplySlopes">
                     <PathIcon Data="M4,18 L20,8 L20,18 Z M5,6 L10,6 M5,10 L14,10" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Sector Color" x:Name="SectorColorButton" Click="OnSectorColor">
+                    <PathIcon Data="M12,4 C8,4 5,7 5,11 C5,15 8,20 12,20 C16,20 19,15 19,11 C19,7 16,4 12,4 Z M9,9 A1,1 0 1,1 9,11 A1,1 0 1,1 9,9 M13,8 A1,1 0 1,1 13,10 A1,1 0 1,1 13,8 M15,12 A1,1 0 1,1 15,14 A1,1 0 1,1 15,12 M10,14 A1,1 0 1,1 10,16 A1,1 0 1,1 10,14" />
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Tag Range" x:Name="TagRangeButton" Click="OnTagRange">
                     <PathIcon Data="M5,6 L9,6 L9,10 L5,10 Z M12,7 L20,7 L20,9 L12,9 Z M5,14 L9,14 L9,18 L5,18 Z M12,15 L20,15 L20,17 L12,17 Z" />

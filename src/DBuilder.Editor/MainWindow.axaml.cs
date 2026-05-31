@@ -2672,6 +2672,32 @@ public partial class MainWindow : Window
             : $"Applied {n} slope plane(s) from specials (visible in 3D).");
     }
 
+    private async void OnSectorColor(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0)
+        {
+            SetStatus("Select one or more sectors to set color.");
+            return;
+        }
+
+        var dlg = new SectorColorDialog(sectors[0], SectorColorField.LightColor);
+        if (!await dlg.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
+        CreateUndo("Set sector color");
+        ColorPickerModel.SetSectorColor(sectors, dlg.ResultField, dlg.ResultColor);
+        if (dlg.ResultRemoveDefaults) ColorPickerModel.RemoveDefaultSectorColors(sectors);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Set {dlg.ResultField.ToString().ToLowerInvariant()} on {sectors.Count} sector(s) to {ColorPickerModel.Format(dlg.ResultColor, ColorPickerInfoMode.Hex)}.");
+        MapView.Focus();
+    }
+
     private async void OnTagRange(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
@@ -3376,12 +3402,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, TagRangeMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImportObjTerrainMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, TagRangeButton, ImportObjTerrainButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
