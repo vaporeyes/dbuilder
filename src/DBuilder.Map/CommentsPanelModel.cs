@@ -97,7 +97,15 @@ public static class CommentsPanelModel
     {
         var elements = new List<IFielded>(group.Elements.Count);
         foreach (var item in group.Elements)
+        {
             elements.Add(item.Element);
+            if (item.Element is Sector sector)
+            {
+                foreach (Sidedef side in sector.Sidedefs)
+                    if (side.Line != null)
+                        elements.Add(side.Line);
+            }
+        }
 
         return new CommentSelectionTarget(SelectionMode(group), elements);
     }

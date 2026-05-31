@@ -909,6 +909,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment selection targets and view-area calculation.
   - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
   - [x] Add editor comments panel for grouping, selecting, setting, and removing comments.
+  - [x] Select UDB-style sector comment boundary linedefs when activating sector comments.
 - [ ] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
   - [x] Add editor Nodes Viewer window for parsed classic nodes, segs, and subsectors.
@@ -1062,6 +1063,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.
   - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
   - [x] Add non-modal editor comments panel with current selection comment assignment and group navigation.
+  - [x] Add UDB-style sector comment selection propagation to boundary linedefs.
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
   - [x] Add non-modal Nodes Viewer for classic node structure summaries.

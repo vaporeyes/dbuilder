@@ -122,6 +122,28 @@ public sealed class CommentsPanelModelTests
     }
 
     [Fact]
+    public void CreateSelectionTargetAddsSectorBoundaryLinedefsLikeUdb()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(64, 64));
+        var ab = map.AddLinedef(a, b);
+        var bc = map.AddLinedef(b, c);
+        map.AddSidedef(ab, true, sector);
+        map.AddSidedef(bc, true, sector);
+        map.BuildIndexes();
+        sector.Fields["comment"] = "sector";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var target = CommentsPanelModel.CreateSelectionTarget(group);
+
+        Assert.Equal(CommentsPanelMode.Sectors, target.Mode);
+        Assert.Equal(new IFielded[] { sector, ab, bc }, target.Elements);
+    }
+
+    [Fact]
     public void CreateEditTargetConvertsSidedefsToOwningLinedefs()
     {
         var map = new MapSet();
