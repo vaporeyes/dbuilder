@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1562 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1564 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -644,6 +644,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Integrate configured things filters into the existing thing filter window.
   - [x] Match UDB strict custom field type checks in things filters.
   - [x] Ignore cross-format unknown thing flag fields when evaluating things filters.
+  - [x] Adjust things filter criteria by UDB map-format interface capabilities.
 - [ ] Port custom things filters.
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.

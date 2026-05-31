@@ -153,6 +153,91 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void IgnoresCriteriaUnsupportedByDoomFormatInterface()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "DoomMapSetIO";
+
+            thingsfilters
+            {
+                filter0
+                {
+                    name = "Doom format";
+                    type = 3001;
+                    zheight = 128;
+                    action = 80;
+                    arg0 = 3;
+                    tag = 7;
+
+                    customfieldvalues
+                    {
+                        species = "DoomImp";
+                    }
+
+                    customfieldtypes
+                    {
+                        species = 2;
+                    }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var match = map.AddThing(new Vector2D(0, 0), 3001);
+
+        var result = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[0]);
+
+        Assert.Equal(new[] { match }, result.VisibleThings);
+        Assert.Empty(result.HiddenThings);
+    }
+
+    [Fact]
+    public void AppliesCriteriaSupportedByHexenFormatInterface()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "HexenMapSetIO";
+
+            thingsfilters
+            {
+                filter0
+                {
+                    name = "Hexen format";
+                    type = 3001;
+                    zheight = 64;
+                    action = 80;
+                    arg0 = 3;
+                    tag = 7;
+
+                    customfieldvalues
+                    {
+                        species = "DoomImp";
+                    }
+
+                    customfieldtypes
+                    {
+                        species = 2;
+                    }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var match = map.AddThing(new Vector2D(0, 0), 3001);
+        match.Height = 64;
+        match.Action = 80;
+        match.Args[0] = 3;
+        match.Tag = 7;
+        var wrongArg = map.AddThing(new Vector2D(64, 0), 3001);
+        wrongArg.Height = 64;
+        wrongArg.Action = 80;
+        wrongArg.Args[0] = 1;
+        wrongArg.Tag = 7;
+
+        var result = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[0]);
+
+        Assert.Equal(new[] { match }, result.VisibleThings);
+        Assert.Equal(new[] { wrongArg }, result.HiddenThings);
+    }
+
+    [Fact]
     public void AppliesInvertAndDisplayModes()
     {
         var config = GameConfiguration.FromText("""

@@ -456,6 +456,11 @@ public sealed class GameConfiguration
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
+    public bool HasThingTag => FormatInterfaceSupports("HasThingTag");
+    public bool HasThingAction => FormatInterfaceSupports("HasThingAction");
+    public bool HasThingHeight => FormatInterfaceSupports("HasThingHeight");
+    public bool HasActionArgs => FormatInterfaceSupports("HasActionArgs");
+    public bool HasCustomFields => FormatInterfaceSupports("HasCustomFields");
     public string DefaultLinedefActivationFlag { get; private set; } = "";
     public string SingleSidedFlag { get; private set; } = "0";
     public string DoubleSidedFlag { get; private set; } = "0";
@@ -2059,6 +2064,19 @@ public sealed class GameConfiguration
     /// <summary>True when any configured map lump uses a static script configuration or scriptbuild compiler flow.</summary>
     public bool HasScriptLumps()
         => mapLumpNames.Values.Any(info => info.ScriptBuild || info.Script != null);
+
+    private bool FormatInterfaceSupports(string capability)
+    {
+        if (string.IsNullOrWhiteSpace(FormatInterface)) return true;
+
+        return FormatInterface switch
+        {
+            "DoomMapSetIO" => false,
+            "HexenMapSetIO" => capability is not "HasCustomFields",
+            "UniversalMapSetIO" => true,
+            _ => true,
+        };
+    }
 
     // Parses the maplumpnames block: each key is a lump name, each value its property sub-dict.
     private void ParseMapLumpNames(IDictionary block, ScriptConfigurationCatalog? scriptConfigurations)

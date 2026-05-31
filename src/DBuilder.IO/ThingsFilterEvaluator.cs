@@ -45,10 +45,10 @@ public static class ThingsFilterEvaluator
         bool qualifies =
             MatchesScalar(filter.ThingType, thing.Type) &&
             MatchesScalar(filter.ThingAngle, thing.Angle) &&
-            MatchesHeight(filter.ThingZHeight, thing.Height) &&
-            MatchesScalar(filter.ThingAction, thing.Action) &&
-            MatchesScalar(filter.ThingTag, thing.Tag) &&
-            MatchesArgs(filter.ThingArgs, thing.Args) &&
+            (!config.HasThingHeight || MatchesHeight(filter.ThingZHeight, thing.Height)) &&
+            (!config.HasThingAction || MatchesScalar(filter.ThingAction, thing.Action)) &&
+            (!config.HasThingTag || MatchesScalar(filter.ThingTag, thing.Tag)) &&
+            (!config.HasActionArgs || MatchesArgs(filter.ThingArgs, thing.Args)) &&
             MatchesCategory(thing, config, filter.Category) &&
             MatchesFields(thing, config, filter);
 
@@ -91,8 +91,11 @@ public static class ThingsFilterEvaluator
             if (thing.UdmfFlags.Contains(field)) return false;
         }
 
-        foreach (var (_, custom) in filter.CustomFields)
-            if (!MatchesCustomField(thing, custom)) return false;
+        if (config.HasCustomFields)
+        {
+            foreach (var (_, custom) in filter.CustomFields)
+                if (!MatchesCustomField(thing, custom)) return false;
+        }
 
         return true;
     }
