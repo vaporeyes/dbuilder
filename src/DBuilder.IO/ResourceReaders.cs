@@ -405,6 +405,26 @@ internal abstract class FolderResourceReader : IResourceReader
         entries[folder + "/" + baseName] = read; // last entry of a name wins
     }
 
+    protected static bool ShouldSkipPath(string relativePath, GameConfiguration? config)
+    {
+        if (config == null) return false;
+
+        string extension = Path.GetExtension(relativePath).TrimStart('.');
+        if (config.IgnoredExtensions.Contains(extension)) return true;
+
+        string directory = Path.GetDirectoryName(relativePath) ?? "";
+        if (directory.Length == 0) return false;
+
+        string normalized = directory.Replace('\\', '/');
+        foreach (string ignored in config.IgnoredDirectories)
+        {
+            string prefix = ignored.Replace('\\', '/').TrimEnd('/');
+            if (normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
     public virtual DoomPalette? GetPalette()
     {
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -832,10 +852,13 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     {
         ownedStream = ownsStream ? zipStream : null;
         zip = new ZipArchive(zipStream, ZipArchiveMode.Read, leaveOpen: !ownsStream);
+        var config = this.configProvider();
         foreach (var e in zip.Entries)
         {
             if (e.FullName.EndsWith("/")) continue; // directory entry
             var entry = e;
+            bool isRootWad = IsRootWad(e.FullName);
+            if (!isRootWad && ShouldSkipPath(e.FullName, config)) continue;
             AddEntry(e.FullName, () =>
             {
                 using var s = entry.Open();
@@ -865,6 +888,10 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         }
     }
 
+    private static bool IsRootWad(string path)
+        => Path.GetDirectoryName(path) is null or ""
+            && Path.GetExtension(path).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+
     public override void Dispose()
     {
         foreach (var reader in nestedReaders) reader.Dispose();
@@ -888,7 +915,7 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
                 nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: this.configProvider));
                 continue;
             }
-            if (ShouldSkip(rel, config)) continue;
+            if (ShouldSkipPath(rel, config)) continue;
             AddEntry(rel, () => File.ReadAllBytes(p));
         }
     }
@@ -896,26 +923,6 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
     private static bool IsRootWad(string relativePath)
         => Path.GetDirectoryName(relativePath) is null or ""
             && Path.GetExtension(relativePath).Equals(".wad", StringComparison.OrdinalIgnoreCase);
-
-    private static bool ShouldSkip(string relativePath, GameConfiguration? config)
-    {
-        if (config == null) return false;
-
-        string extension = Path.GetExtension(relativePath).TrimStart('.');
-        if (config.IgnoredExtensions.Contains(extension)) return true;
-
-        string directory = Path.GetDirectoryName(relativePath) ?? "";
-        if (directory.Length == 0) return false;
-
-        string normalized = directory.Replace('\\', '/');
-        foreach (string ignored in config.IgnoredDirectories)
-        {
-            string prefix = ignored.Replace('\\', '/').TrimEnd('/');
-            if (normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) return true;
-        }
-
-        return false;
-    }
 
     public override void Dispose()
     {

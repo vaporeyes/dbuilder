@@ -29,7 +29,7 @@
       "udbArea": "Source/Core/Data",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Resource list serialization, WAD, PK3, nested PK3, directory including ignored path filters, mixed priority stack, palette, colormap, sprite, texture, flat, hires, voxel, and model discovery behavior have focused coverage. Full UDB DataManager parity remains incomplete."
+      "notes": "Resource list serialization, WAD, PK3 and directory resources including ignored path filters, nested PK3, mixed priority stack, palette, colormap, sprite, texture, flat, hires, voxel, and model discovery behavior have focused coverage. Full UDB DataManager parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Dehacked",
