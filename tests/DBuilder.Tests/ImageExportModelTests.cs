@@ -126,6 +126,49 @@ public sealed class ImageExportModelTests
     }
 
     [Fact]
+    public void SelectSectorsForExportUsesAllSectorsWhenNothingIsSelected()
+    {
+        var map = new MapSet();
+        Sector first = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));
+        Sector second = BuildSector((128, 0), (192, 0), (192, -64), (128, -64));
+        map.Sectors.Add(first);
+        map.Sectors.Add(second);
+
+        ImageExportSectorSelection selection = ImageExportPlanner.SelectSectorsForExport(map);
+
+        Assert.True(selection.CanExport);
+        Assert.Null(selection.Warning);
+        Assert.Equal([first, second], selection.Sectors);
+    }
+
+    [Fact]
+    public void SelectSectorsForExportUsesSelectedSectorsWhenAnyAreSelected()
+    {
+        var map = new MapSet();
+        Sector first = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));
+        Sector second = BuildSector((128, 0), (192, 0), (192, -64), (128, -64));
+        second.Selected = true;
+        map.Sectors.Add(first);
+        map.Sectors.Add(second);
+
+        ImageExportSectorSelection selection = ImageExportPlanner.SelectSectorsForExport(map);
+
+        Assert.True(selection.CanExport);
+        Assert.Null(selection.Warning);
+        Assert.Equal([second], selection.Sectors);
+    }
+
+    [Fact]
+    public void SelectSectorsForExportReportsUdbWarningForEmptyMaps()
+    {
+        ImageExportSectorSelection selection = ImageExportPlanner.SelectSectorsForExport(new MapSet());
+
+        Assert.False(selection.CanExport);
+        Assert.Equal(ImageExportPlanner.NoSectorsWarning, selection.Warning);
+        Assert.Empty(selection.Sectors);
+    }
+
+    [Fact]
     public void PlannerListsUntiledNormalAndBrightmapNames()
     {
         Sector sector = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));

@@ -107,9 +107,25 @@ public sealed record ImageExportOutputPlan(
     int ProgressItems,
     IReadOnlyList<string> ImageNames);
 
+public sealed record ImageExportSectorSelection(
+    IReadOnlyList<Sector> Sectors,
+    string? Warning)
+{
+    public bool CanExport => Sectors.Count > 0;
+}
+
 public static class ImageExportPlanner
 {
     public const int TileSize = 64;
+    public const string NoSectorsWarning = "Image export failed. Map has no sectors!";
+
+    public static ImageExportSectorSelection SelectSectorsForExport(MapSet map)
+    {
+        IReadOnlyList<Sector> sectors = map.SelectedSectorsCount == 0 ? map.Sectors : map.GetSelectedSectors();
+        return sectors.Count == 0
+            ? new ImageExportSectorSelection(sectors, NoSectorsWarning)
+            : new ImageExportSectorSelection(sectors, null);
+    }
 
     public static ImageExportOutputPlan CreateOutputPlan(IEnumerable<Sector> sectors, ImageExportSettings settings)
     {
