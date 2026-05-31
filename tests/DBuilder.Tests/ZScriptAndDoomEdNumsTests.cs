@@ -105,6 +105,14 @@ class SpacedCommentActor : Actor
     }
 
     [Fact]
+    public void RejectsZScriptClassDeclarationsWithoutBodyOrSemicolon()
+    {
+        const string text = "class MissingBody : Actor";
+
+        Assert.Empty(ZScriptParser.Parse(text));
+    }
+
+    [Fact]
     public void SkipsZScriptClassesWithInvalidHeaderOrdering()
     {
         const string text = @"
