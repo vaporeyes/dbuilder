@@ -14,6 +14,8 @@ public enum FindCategory
 {
     ThingType,
     LinedefAction,
+    LinedefActionArguments,
+    ThingActionArguments,
     SectorEffect,
     Tag,
     Texture,
@@ -106,6 +108,11 @@ public static class MapSearch
             case FindCategory.ThingAngle:
                 if (numOk) foreach (var t in map.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
+            case FindCategory.ThingActionArguments:
+                if (TryParseActionQuery(value, out var thingActionQuery))
+                    foreach (var t in map.Things)
+                        if (ActionQueryMatches(t.Action, t.Args, thingActionQuery)) { t.Selected = true; count++; focus ??= t.Position; }
+                break;
             case FindCategory.ThingFlags:
                 if (TryParseFlagQuery(value, out var thingFlags))
                     foreach (var t in map.Things)
@@ -120,6 +127,11 @@ public static class MapSearch
                 break;
             case FindCategory.LinedefAction:
                 if (numOk) foreach (var l in map.Linedefs) if (l.Action == num) { l.Selected = true; count++; focus ??= Mid(l); }
+                break;
+            case FindCategory.LinedefActionArguments:
+                if (TryParseActionQuery(value, out var lineActionQuery))
+                    foreach (var l in map.Linedefs)
+                        if (ActionQueryMatches(l.Action, l.Args, lineActionQuery)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.VertexIndex:
                 if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
@@ -301,6 +313,9 @@ public static class MapSearch
         if (IsFlagCategory(cat))
             return ReplaceFlags(map, cat, find, replace);
 
+        if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
+            return ReplaceActionArguments(map, cat, find, replace);
+
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
         switch (cat)
@@ -421,6 +436,82 @@ public static class MapSearch
 
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+
+    private readonly record struct ActionArgQuery(int Action, int?[] Args);
+
+    private static bool TryParseActionQuery(string input, out ActionArgQuery query)
+    {
+        query = default;
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0 || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int action))
+            return false;
+
+        var args = new int?[5];
+        for (int i = 1; i < parts.Length && i <= args.Length; i++)
+        {
+            if (parts[i] == "*") continue;
+            if (!int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int arg)) return false;
+            args[i - 1] = arg;
+        }
+
+        query = new ActionArgQuery(action, args);
+        return true;
+    }
+
+    private static bool ActionQueryMatches(int action, int[] args, ActionArgQuery query)
+    {
+        if (query.Action == -1)
+        {
+            if (action != 0) return false;
+        }
+        else if (action != query.Action)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < query.Args.Length && i < args.Length; i++)
+            if (query.Args[i] is int expected && args[i] != expected) return false;
+        return true;
+    }
+
+    private static int ReplaceActionArguments(MapSet map, FindCategory category, string find, string replace)
+    {
+        if (!TryParseActionQuery(find, out var findQuery) ||
+            !TryParseActionQuery(replace, out var replaceQuery) ||
+            replaceQuery.Action < 0 ||
+            replaceQuery.Action > short.MaxValue)
+            return 0;
+
+        int changed = 0;
+        if (category == FindCategory.LinedefActionArguments)
+        {
+            foreach (var line in map.Linedefs)
+            {
+                if (!ActionQueryMatches(line.Action, line.Args, findQuery)) continue;
+                ApplyActionReplacement(line.Args, replaceQuery);
+                line.Action = replaceQuery.Action;
+                changed++;
+            }
+        }
+        else
+        {
+            foreach (var thing in map.Things)
+            {
+                if (!ActionQueryMatches(thing.Action, thing.Args, findQuery)) continue;
+                ApplyActionReplacement(thing.Args, replaceQuery);
+                thing.Action = replaceQuery.Action;
+                changed++;
+            }
+        }
+
+        return changed;
+    }
+
+    private static void ApplyActionReplacement(int[] args, ActionArgQuery replaceQuery)
+    {
+        for (int i = 0; i < replaceQuery.Args.Length && i < args.Length; i++)
+            if (replaceQuery.Args[i] is int value) args[i] = value;
+    }
 
     private static bool TryParseFlagQuery(string input, out List<(string Flag, bool Set)> flags)
     {

@@ -2295,6 +2295,7 @@ public partial class MainWindow : Window
         FindCategory.ThingType or
         FindCategory.ThingIndex or
         FindCategory.ThingAngle or
+        FindCategory.ThingActionArguments or
         FindCategory.ThingFlags or
         FindCategory.ThingSectorReference or
         FindCategory.ThingThingReference => MapControl.EditMode.Things,

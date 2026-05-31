@@ -108,6 +108,67 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindAndReplaceLinedefActionArguments()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Args[0] = 17;
+        map.Linedefs[0].Args[1] = 41;
+        map.Linedefs[1].Action = 80;
+        map.Linedefs[1].Args[0] = 17;
+        map.Linedefs[1].Args[1] = 42;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.LinedefActionArguments, "80 17 *");
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.True(map.Linedefs[1].Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 17 41", "81 * 99"));
+        Assert.Equal(81, map.Linedefs[0].Action);
+        Assert.Equal(17, map.Linedefs[0].Args[0]);
+        Assert.Equal(99, map.Linedefs[0].Args[1]);
+        Assert.Equal(80, map.Linedefs[1].Action);
+        Assert.Equal(42, map.Linedefs[1].Args[1]);
+    }
+
+    [Fact]
+    public void FindAndReplaceThingActionArguments()
+    {
+        var map = Build();
+        map.Things[0].Action = 80;
+        map.Things[0].Args[0] = 17;
+        map.Things[0].Args[1] = 41;
+        map.Things[1].Action = 80;
+        map.Things[1].Args[0] = 18;
+        map.Things[1].Args[1] = 41;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.ThingActionArguments, "80 * 41");
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Things[0].Selected);
+        Assert.True(map.Things[1].Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.ThingActionArguments, "80 17 41", "82 25 *"));
+        Assert.Equal(82, map.Things[0].Action);
+        Assert.Equal(25, map.Things[0].Args[0]);
+        Assert.Equal(41, map.Things[0].Args[1]);
+        Assert.Equal(80, map.Things[1].Action);
+    }
+
+    [Fact]
+    public void ActionArgumentReplacementRejectsInvalidAction()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Args[0] = 17;
+
+        int changed = MapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 17", "-1 25");
+
+        Assert.Equal(0, changed);
+        Assert.Equal(80, map.Linedefs[0].Action);
+        Assert.Equal(17, map.Linedefs[0].Args[0]);
+    }
+
+    [Fact]
     public void ReplaceTextureCaseInsensitive()
     {
         var map = Build();
