@@ -259,8 +259,10 @@ public static class MapFormatConverter
 
         foreach (var s in map.Sectors)
         {
+            bool isVirtual = s.Fields.ContainsKey(MapSet.VirtualSectorField);
             s.UdmfFlags.Clear();
             s.Fields.Clear();
+            if (isVirtual) s.Fields[MapSet.VirtualSectorField] = 0;
             s.FloorSlope = default;
             s.FloorSlopeOffset = double.NaN;
             s.CeilSlope = default;

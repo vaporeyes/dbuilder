@@ -421,6 +421,9 @@ thingflagstranslation
         sector.FloorSlopeOffset = -32.0;
         sector.CeilSlope = new Vector3D(0, -1, 1);
         sector.CeilSlopeOffset = 64.0;
+        var virtualSector = map.AddSector();
+        virtualSector.Fields[MapSet.VirtualSectorField] = 0;
+        virtualSector.Fields["lightcolor"] = 128;
         thing.UdmfFlags.Add("ambush");
         thing.Fields["conversation"] = 3;
 
@@ -439,6 +442,7 @@ thingflagstranslation
         Assert.Equal(6, sidedef.OffsetY);
         Assert.Empty(sector.UdmfFlags);
         Assert.Empty(sector.Fields);
+        Assert.Equal(new[] { MapSet.VirtualSectorField }, virtualSector.Fields.Keys);
         Assert.Equal(0, sector.FloorSlope.GetLengthSq());
         Assert.True(double.IsNaN(sector.FloorSlopeOffset));
         Assert.Equal(0, sector.CeilSlope.GetLengthSq());

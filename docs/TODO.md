@@ -154,6 +154,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Fold sidedef local UDMF texture offsets into classic offsets when converting maps to binary formats.
   - [x] Clear vertex UDMF-only fields and z offsets when converting maps to binary formats.
   - [x] Add UDB-style marked-geometry cloning with virtual sectors.
+  - [x] Preserve UDB virtual-sector markers during UDMF-to-binary cleanup.
 - [x] Port in-memory selection groups and group metadata.
 - [x] Preserve selection groups through clipboard and undo snapshots.
 - [x] Port map-options-backed selection group persistence.
