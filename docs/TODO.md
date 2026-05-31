@@ -1089,6 +1089,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style deprecated slope and draw-slope mode/action metadata.
   - [x] Add UDB-style slope vertex group persistence, data-sector fields, and floor/ceiling plane application.
   - [x] Add UDB-style selected slope vertex edit and sector plane binding helpers.
+  - [x] Add UDB-style draw-slope acceptance, group allocation, selected-sector binding, and data-sector persistence.
 - [ ] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
   - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.

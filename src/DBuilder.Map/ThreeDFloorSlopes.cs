@@ -15,6 +15,13 @@ public enum ThreeDFloorSlopePlaneType
     Top = 8,
 }
 
+public enum ThreeDFloorSlopeDrawingMode
+{
+    Floor,
+    Ceiling,
+    FloorAndCeiling,
+}
+
 public sealed class ThreeDFloorSlopeVertex(Vector2D position, double z)
 {
     public Vector2D Position { get; set; } = position;
@@ -25,6 +32,8 @@ public sealed class ThreeDFloorSlopeVertex(Vector2D position, double z)
 public sealed record ThreeDFloorSlopeVertexSelection(
     ThreeDFloorSlopeVertex Vertex,
     ThreeDFloorSlopeVertexGroup Group);
+
+public sealed record ThreeDFloorSlopeDrawResult(IReadOnlyList<ThreeDFloorSlopeVertexGroup> CreatedGroups);
 
 public sealed record ThreeDFloorSlopeVertexEdit(
     double? X = null,
@@ -367,6 +376,64 @@ public static class ThreeDFloorSlopes
             group.StoreInSector(slopeDataSector);
     }
 
+    public static ThreeDFloorSlopeVertexGroup AddSlopeVertexGroup(ICollection<ThreeDFloorSlopeVertexGroup> groups, IEnumerable<ThreeDFloorSlopeVertex> vertices)
+    {
+        for (int id = 1; id < int.MaxValue; id++)
+        {
+            if (groups.Any(group => group.Id == id)) continue;
+
+            var group = new ThreeDFloorSlopeVertexGroup(id, vertices);
+            groups.Add(group);
+            return group;
+        }
+
+        throw new InvalidOperationException("No free slope vertex group id is available.");
+    }
+
+    public static ThreeDFloorSlopeDrawResult FinishDraw(
+        MapSet map,
+        ICollection<ThreeDFloorSlopeVertexGroup> groups,
+        IReadOnlyList<Vector2D> points,
+        IReadOnlyList<Sector> selectedSectors,
+        ThreeDFloorSlopeDrawingMode mode,
+        Sector? slopeDataSector = null)
+    {
+        if (points.Count <= 1) return new ThreeDFloorSlopeDrawResult(Array.Empty<ThreeDFloorSlopeVertexGroup>());
+
+        (List<ThreeDFloorSlopeVertex> floorVertices, List<ThreeDFloorSlopeVertex> ceilingVertices) =
+            CreateSlopeVertices(map, points, selectedSectors);
+
+        var created = new List<ThreeDFloorSlopeVertexGroup>();
+        if (mode == ThreeDFloorSlopeDrawingMode.Floor || mode == ThreeDFloorSlopeDrawingMode.FloorAndCeiling)
+        {
+            ThreeDFloorSlopeVertexGroup group = AddSlopeVertexGroup(groups, floorVertices);
+            foreach (Sector sector in selectedSectors)
+            {
+                sector.Fields.Remove(FloorPlaneIdField);
+                sector.Fields[FloorPlaneIdField] = group.Id;
+                group.AddSector(map, sector, ThreeDFloorSlopePlaneType.Floor);
+            }
+
+            created.Add(group);
+        }
+
+        if (mode == ThreeDFloorSlopeDrawingMode.Ceiling || mode == ThreeDFloorSlopeDrawingMode.FloorAndCeiling)
+        {
+            ThreeDFloorSlopeVertexGroup group = AddSlopeVertexGroup(groups, ceilingVertices);
+            foreach (Sector sector in selectedSectors)
+            {
+                sector.Fields.Remove(CeilingPlaneIdField);
+                sector.Fields[CeilingPlaneIdField] = group.Id;
+                group.AddSector(map, sector, ThreeDFloorSlopePlaneType.Ceiling);
+            }
+
+            created.Add(group);
+        }
+
+        if (slopeDataSector != null) StoreGroupsInSector(slopeDataSector, groups);
+        return new ThreeDFloorSlopeDrawResult(created);
+    }
+
     public static int ApplyGroups(MapSet map, IEnumerable<ThreeDFloorSlopeVertexGroup> groups)
     {
         int changed = 0;
@@ -455,5 +522,63 @@ public static class ThreeDFloorSlopes
         }
 
         return changed;
+    }
+
+    private static (List<ThreeDFloorSlopeVertex> Floor, List<ThreeDFloorSlopeVertex> Ceiling) CreateSlopeVertices(
+        MapSet map,
+        IReadOnlyList<Vector2D> points,
+        IReadOnlyList<Sector> selectedSectors)
+    {
+        var floorVertices = new List<ThreeDFloorSlopeVertex>(points.Count);
+        var ceilingVertices = new List<ThreeDFloorSlopeVertex>(points.Count);
+
+        if (selectedSectors.Count == 1 && IsControlSector(selectedSectors[0]))
+        {
+            Sector control = selectedSectors[0];
+            foreach (Vector2D point in points)
+            {
+                floorVertices.Add(new ThreeDFloorSlopeVertex(point, control.FloorHeight));
+                ceilingVertices.Add(new ThreeDFloorSlopeVertex(point, control.CeilHeight));
+            }
+
+            return (floorVertices, ceilingVertices);
+        }
+
+        foreach (Vector2D point in points)
+        {
+            (double floor, double ceiling) = GetDrawPointHeights(map, point, selectedSectors);
+            floorVertices.Add(new ThreeDFloorSlopeVertex(point, floor));
+            ceilingVertices.Add(new ThreeDFloorSlopeVertex(point, ceiling));
+        }
+
+        return (floorVertices, ceilingVertices);
+    }
+
+    private static bool IsControlSector(Sector sector)
+    {
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.Line.Action == ThreeDFloors.Sector3DFloorAction) return true;
+        }
+
+        return false;
+    }
+
+    private static (double Floor, double Ceiling) GetDrawPointHeights(MapSet map, Vector2D point, IReadOnlyList<Sector> selectedSectors)
+    {
+        Sector? sector = map.GetSectorAt(point);
+        if (sector == null) return (0, 0);
+
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.Line.Line.GetSideOfLine(point) != 0.0) continue;
+
+            Sector? source = side.Line.Back?.Sector != null && !selectedSectors.Contains(side.Line.Back.Sector)
+                ? side.Line.Back.Sector
+                : side.Line.Front?.Sector;
+            if (source != null) return (source.FloorHeight, source.CeilHeight);
+        }
+
+        return (0, 0);
     }
 }

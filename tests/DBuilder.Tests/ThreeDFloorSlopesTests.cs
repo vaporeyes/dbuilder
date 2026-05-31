@@ -300,6 +300,100 @@ public class ThreeDFloorSlopesTests
         Assert.Equal(ThreeDFloorSlopePlaneType.Floor, second.SectorPlanes[sector]);
     }
 
+    [Fact]
+    public void AddSlopeVertexGroupUsesFirstFreePositiveId()
+    {
+        var groups = new List<ThreeDFloorSlopeVertexGroup>
+        {
+            new(
+                1,
+                new[]
+                {
+                    new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+                    new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0),
+                }),
+            new(
+                3,
+                new[]
+                {
+                    new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+                    new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0),
+                }),
+        };
+
+        ThreeDFloorSlopeVertexGroup group = ThreeDFloorSlopes.AddSlopeVertexGroup(
+            groups,
+            new[]
+            {
+                new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0),
+            });
+
+        Assert.Equal(2, group.Id);
+        Assert.Contains(group, groups);
+    }
+
+    [Fact]
+    public void FinishDrawCreatesFloorAndCeilingGroupsFromSelectedControlSectorHeights()
+    {
+        var map = new MapSet();
+        Sector slopeData = map.AddSector();
+        Sector control = AddSquareSector(map, 0, 64, 64);
+        control.FloorHeight = -16;
+        control.CeilHeight = 48;
+        control.Sidedefs[0].Line.Action = ThreeDFloors.Sector3DFloorAction;
+        var groups = new List<ThreeDFloorSlopeVertexGroup>();
+
+        ThreeDFloorSlopeDrawResult result = ThreeDFloorSlopes.FinishDraw(
+            map,
+            groups,
+            new[] { new Vector2D(0, 64), new Vector2D(64, 64), new Vector2D(64, 0) },
+            new[] { control },
+            ThreeDFloorSlopeDrawingMode.FloorAndCeiling,
+            slopeData);
+
+        Assert.Equal(2, result.CreatedGroups.Count);
+        Assert.Equal(new[] { 1, 2 }, result.CreatedGroups.Select(group => group.Id).ToArray());
+        Assert.All(result.CreatedGroups[0].Vertices, vertex => Assert.Equal(-16, vertex.Z));
+        Assert.All(result.CreatedGroups[1].Vertices, vertex => Assert.Equal(48, vertex.Z));
+        Assert.Equal(1, control.Fields[ThreeDFloorSlopes.FloorPlaneIdField]);
+        Assert.Equal(2, control.Fields[ThreeDFloorSlopes.CeilingPlaneIdField]);
+        Assert.True(control.HasFloorSlope);
+        Assert.True(control.HasCeilSlope);
+        Assert.Equal(true, slopeData.Fields[ThreeDFloorSlopes.SlopeDataSectorField]);
+        Assert.Equal(-16.0, slopeData.Fields["user_svg1_v0_z"]);
+        Assert.Equal(48.0, slopeData.Fields["user_svg2_v0_z"]);
+    }
+
+    [Fact]
+    public void FinishDrawCreatesOnlyRequestedPlaneAndSkipsShortDraws()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64, 64);
+        var groups = new List<ThreeDFloorSlopeVertexGroup>();
+
+        ThreeDFloorSlopeDrawResult skipped = ThreeDFloorSlopes.FinishDraw(
+            map,
+            groups,
+            new[] { new Vector2D(0, 64) },
+            new[] { sector },
+            ThreeDFloorSlopeDrawingMode.Floor);
+        ThreeDFloorSlopeDrawResult created = ThreeDFloorSlopes.FinishDraw(
+            map,
+            groups,
+            new[] { new Vector2D(0, 64), new Vector2D(64, 64) },
+            new[] { sector },
+            ThreeDFloorSlopeDrawingMode.Ceiling);
+
+        Assert.Empty(skipped.CreatedGroups);
+        ThreeDFloorSlopeVertexGroup group = Assert.Single(created.CreatedGroups);
+        Assert.Equal(1, group.Id);
+        Assert.False(sector.HasFloorSlope);
+        Assert.True(sector.HasCeilSlope);
+        Assert.False(sector.Fields.ContainsKey(ThreeDFloorSlopes.FloorPlaneIdField));
+        Assert.Equal(1, sector.Fields[ThreeDFloorSlopes.CeilingPlaneIdField]);
+    }
+
     private static Sector AddSquareSector(MapSet map, double left, double top, double size)
     {
         var vertices = new[]
