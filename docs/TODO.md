@@ -832,6 +832,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script resource model.
   - [x] Add UDB-style script type detection for MODELDEF, ACS, DECORATE, and ZScript text.
 - [ ] Port script handlers for ACS, DECORATE, MODELDEF, and ZScript.
+  - [x] Add UDB-style script navigator entries for ACS, DECORATE, MODELDEF, and ZScript.
 - [x] Match UDB exact script type names in script configuration parsing.
 - [ ] Port script editor UI.
 - [ ] Port script document tabs.
