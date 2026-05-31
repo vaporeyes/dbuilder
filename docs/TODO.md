@@ -952,6 +952,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port bridge mode.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
 - [ ] Port slope arch tools.
+  - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
 - [ ] Port make-door tools.
   - [x] Add UDB-style map-level Make Door sector mutation helper.
 - [ ] Port object export tools.
