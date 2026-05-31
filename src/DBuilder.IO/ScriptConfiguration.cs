@@ -247,7 +247,6 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
 
     private static IReadOnlyList<string> SplitExtensions(string extensions)
     {
-        if (extensions.Length == 0) return Array.Empty<string>();
         string[] parts = extensions.Split(',');
         for (int i = 0; i < parts.Length; i++) parts[i] = parts[i].Trim();
         return parts;

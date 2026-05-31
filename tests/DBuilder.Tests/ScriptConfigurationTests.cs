@@ -82,6 +82,14 @@ properties
     }
 
     [Fact]
+    public void MissingConfiguredExtensionsKeepUdbEmptyExtensionEntry()
+    {
+        var cfg = ScriptConfigurationInfo.FromText(@"description = ""Mystery"";");
+
+        Assert.Equal(new[] { "" }, cfg.Extensions);
+    }
+
+    [Fact]
     public void LoadsScriptSnippetsFromConfiguredSnippetsDirectory()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_snippets_" + Guid.NewGuid().ToString("N"));
