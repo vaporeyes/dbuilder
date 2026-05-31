@@ -910,6 +910,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
+  - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
 - [ ] Port `UDBScript`.
@@ -1029,6 +1030,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
+  - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
 - [ ] Port tag range tools.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
 - [ ] Port USDF tools.

@@ -63,6 +63,7 @@ public partial class MainWindow : Window
     private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
     private CommentsPanelWindow? _commentsPanel;
+    private TagExplorerWindow? _tagExplorer;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1619,6 +1620,99 @@ public partial class MainWindow : Window
             SetStatus($"Tag {tag}: {r.Count} element(s).");
         };
         win.Show(this);
+    }
+
+    private void OnTagExplorer(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_tagExplorer != null)
+        {
+            RefreshTagExplorer();
+            _tagExplorer.Activate();
+            return;
+        }
+
+        var win = new TagExplorerWindow(BuildTagExplorerEntries(null));
+        _tagExplorer = win;
+        win.Closed += (_, _) => _tagExplorer = null;
+        win.OptionsChanged += RefreshTagExplorer;
+        win.EntryActivated += SelectTagExplorerEntry;
+        win.Show(this);
+    }
+
+    private void RefreshTagExplorer()
+    {
+        if (_tagExplorer is null) return;
+        _tagExplorer.SetEntries(BuildTagExplorerEntries(_tagExplorer.Options));
+    }
+
+    private IReadOnlyList<TagExplorerEntry> BuildTagExplorerEntries(TagExplorerOptions? options)
+    {
+        if (_map is null) return Array.Empty<TagExplorerEntry>();
+        TagExplorerOptions effective = options ?? new TagExplorerOptions();
+        effective = effective with { IsUdmf = _mapFormat == MapFormat.Udmf };
+        return TagExplorerModel.BuildEntries(_map, _config, effective);
+    }
+
+    private void SelectTagExplorerEntry(TagExplorerEntry entry)
+    {
+        if (_map is null) return;
+        _map.ClearAllSelected();
+
+        MapControl.EditMode mode;
+        Vector2D? focus = null;
+        switch (entry.Kind)
+        {
+            case TagExplorerEntryKind.Thing when entry.Index >= 0 && entry.Index < _map.Things.Count:
+                Thing thing = _map.Things[entry.Index];
+                thing.Selected = true;
+                mode = MapControl.EditMode.Things;
+                focus = thing.Position;
+                break;
+            case TagExplorerEntryKind.Sector when entry.Index >= 0 && entry.Index < _map.Sectors.Count:
+                Sector sector = _map.Sectors[entry.Index];
+                sector.Selected = true;
+                mode = MapControl.EditMode.Sectors;
+                focus = SectorFocus(sector);
+                break;
+            case TagExplorerEntryKind.Linedef when entry.Index >= 0 && entry.Index < _map.Linedefs.Count:
+                Linedef line = _map.Linedefs[entry.Index];
+                line.Selected = true;
+                mode = MapControl.EditMode.Linedefs;
+                focus = (line.Start.Position + line.End.Position) * 0.5;
+                break;
+            default:
+                SetStatus("Tag Explorer entry no longer exists.");
+                return;
+        }
+
+        MapView.RevealSelection(mode, focus);
+        UpdateInfo();
+        SetStatus($"Tag Explorer: selected {entry.DefaultName.ToLowerInvariant()} {entry.Index}.");
+    }
+
+    private static Vector2D? SectorFocus(Sector sector)
+    {
+        double minX = double.PositiveInfinity, minY = double.PositiveInfinity;
+        double maxX = double.NegativeInfinity, maxY = double.NegativeInfinity;
+        bool found = false;
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.Line == null) continue;
+            Add(side.Line.Start.Position);
+            Add(side.Line.End.Position);
+        }
+
+        return found ? new Vector2D((minX + maxX) * 0.5, (minY + maxY) * 0.5) : null;
+
+        void Add(Vector2D point)
+        {
+            minX = Math.Min(minX, point.x);
+            minY = Math.Min(minY, point.y);
+            maxX = Math.Max(maxX, point.x);
+            maxY = Math.Max(maxY, point.y);
+            found = true;
+        }
     }
 
     private void OnThingStatistics(object? sender, RoutedEventArgs e)
@@ -3225,7 +3319,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, TagStatisticsMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,

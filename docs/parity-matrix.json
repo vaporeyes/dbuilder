@@ -196,7 +196,7 @@
       "udbPlugin": "TagExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering and sorting model exists for tags, actions, comments, and polyobjects. Full docked tree UI and navigation workflow remain incomplete."
+      "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering and sorting model exists for tags, actions, comments, and polyobjects. A non-modal editor Tag Explorer exposes display mode, sort mode, special-token search, comments-only filtering, and row navigation. Full docked tree UI remains incomplete."
     },
     {
       "udbPlugin": "TagRange",
