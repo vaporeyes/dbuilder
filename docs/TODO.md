@@ -793,6 +793,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port mesh behavior.
 - [ ] Port text font and text label rendering.
 - [ ] Port visual vertex handles.
+  - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
 - [ ] Port visual slope handles.
 - [ ] Port comments rendering.
 - [ ] Port color settings and color collections.
@@ -808,6 +809,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual sector behavior.
 - [ ] Port visual thing behavior.
 - [ ] Port visual vertex behavior.
+  - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
 - [ ] Port visual slope behavior.
 - [ ] Port visual blockmap behavior.
 - [ ] Port visual picking behavior to full UDB behavior.
