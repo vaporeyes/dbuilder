@@ -29,6 +29,37 @@ public class WadAuthorModeModelTests
             items.Select(i => i.Action));
     }
 
+    [Fact]
+    public void EnterModeConvertsSelectedSectorsToLinedefsLikeUdb()
+    {
+        var (map, sector, lines) = SquareSectorMap();
+        sector.Selected = true;
+
+        WadAuthorModeModel.EnterMode(map);
+
+        Assert.False(sector.Selected);
+        Assert.All(lines, line => Assert.True(line.Selected));
+    }
+
+    [Fact]
+    public void LeaveModeClearsAllSelectedElementsLikeUdb()
+    {
+        var (map, sector, lines) = SquareSectorMap();
+        Vertex vertex = map.Vertices[0];
+        Thing thing = map.AddThing(new Vector2D(16, 16), 3001);
+        vertex.Selected = true;
+        lines[0].Selected = true;
+        sector.Selected = true;
+        thing.Selected = true;
+
+        WadAuthorModeModel.LeaveMode(map);
+
+        Assert.False(vertex.Selected);
+        Assert.False(lines[0].Selected);
+        Assert.False(sector.Selected);
+        Assert.False(thing.Selected);
+    }
+
     private static MapSet EmptyLineMap()
     {
         var map = new MapSet();
@@ -47,6 +78,26 @@ public class WadAuthorModeModelTests
         map.AddSidedef(line, false, back);
         map.BuildIndexes();
         return (map, front, back, line);
+    }
+
+    private static (MapSet Map, Sector Sector, Linedef[] Lines) SquareSectorMap()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Linedef ab = map.AddLinedef(a, b);
+        Linedef bc = map.AddLinedef(b, c);
+        Linedef cd = map.AddLinedef(c, d);
+        Linedef da = map.AddLinedef(d, a);
+        map.AddSidedef(ab, true, sector);
+        map.AddSidedef(bc, true, sector);
+        map.AddSidedef(cd, true, sector);
+        map.AddSidedef(da, true, sector);
+        map.BuildIndexes();
+        return (map, sector, new[] { ab, bc, cd, da });
     }
 
     [Fact]

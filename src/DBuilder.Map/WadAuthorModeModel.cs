@@ -46,6 +46,18 @@ public static class WadAuthorModeModel
         new("Curve...", WadAuthorLinedefPopupAction.Curve),
     ];
 
+    public static void EnterMode(MapSet map)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        map.ConvertSelection(SelectionType.Sectors, SelectionType.Linedefs);
+    }
+
+    public static void LeaveMode(MapSet map)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        map.ClearAllSelected();
+    }
+
     public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
