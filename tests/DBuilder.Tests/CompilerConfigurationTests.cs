@@ -175,6 +175,20 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsStripWindowsTempPathFromAccErrors()
+    {
+        var errors = ScriptCompilerErrors.ParseAcc(
+            new[] { @"C:\tmp\dbuilder_compile\scripts.acs:12: Unknown function" },
+            @"C:\tmp\dbuilder_compile",
+            @"C:\maps");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(Path.Combine(@"C:\maps", "scripts.acs"), error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseBccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseBcc(

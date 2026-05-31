@@ -111,10 +111,14 @@ public static class ScriptCompilerErrors
     private static string NormalizeCompilerErrorFile(string fileName, string tempPath, string workingDirectory)
     {
         string normalized = fileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        string tempPrefix = tempPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        string tempNormalized = tempPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        string tempPrefix = tempNormalized.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             + Path.DirectorySeparatorChar;
+        string alternateTempPrefix = tempPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + '\\';
         if (normalized.StartsWith(tempPrefix, StringComparison.Ordinal))
             normalized = normalized[tempPrefix.Length..];
+        else if (fileName.StartsWith(alternateTempPrefix, StringComparison.Ordinal))
+            normalized = fileName[alternateTempPrefix.Length..];
         return IsRootedCompilerPath(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
     }
 
