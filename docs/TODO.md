@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1551 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1556 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -62,6 +62,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and restore the main editor window placement.
 - [ ] Port preferences categories and persistence.
   - [x] Persist and apply the editor status history limit preference.
+  - [x] Persist the UDB auto-clear sidedef textures preference.
 - [ ] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.
@@ -656,6 +657,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
 - [ ] Port texture alignment tools.
+  - [x] Add UDB-style sidedef unused texture cleanup behavior.
   - [x] Add menu commands for selected wall texture auto-alignment.
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.

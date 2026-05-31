@@ -156,6 +156,52 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         _ => false,
     };
 
+    public bool RemoveUnneededTextures(bool removeMiddle, bool autoClearSidedefTextures = true)
+        => RemoveUnneededTextures(removeMiddle, force: false, shiftMiddle: false, autoClearSidedefTextures);
+
+    public bool RemoveUnneededTextures(bool removeMiddle, bool force, bool shiftMiddle, bool autoClearSidedefTextures = true)
+    {
+        bool changed = false;
+        bool mayClearUpperLower = force
+            || (Line.Tag == 0
+                && Line.Action == 0
+                && (Sector?.Tag ?? 0) == 0
+                && (Other?.Sector?.Tag ?? 0) == 0);
+
+        if (mayClearUpperLower)
+        {
+            if (autoClearSidedefTextures && !HighRequired())
+            {
+                HighTexture = "-";
+                changed = true;
+            }
+            else if (shiftMiddle && HighTexture == "-" && HighRequired())
+            {
+                SetTextureHigh(MidTexture);
+                changed = true;
+            }
+
+            if (autoClearSidedefTextures && !LowRequired())
+            {
+                LowTexture = "-";
+                changed = true;
+            }
+            else if (shiftMiddle && LowTexture == "-" && LowRequired())
+            {
+                SetTextureLow(MidTexture);
+                changed = true;
+            }
+        }
+
+        if (removeMiddle && !MiddleRequired())
+        {
+            MidTexture = "-";
+            changed = true;
+        }
+
+        return changed;
+    }
+
     public double GetPartHeight(SidedefPart part) => part switch
     {
         SidedefPart.Upper => GetHighHeight(),

@@ -26,6 +26,7 @@ public sealed class Settings
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
     public int? MaxRecentFiles { get; set; }
+    public bool AutoClearSidedefTextures { get; set; } = true;
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();

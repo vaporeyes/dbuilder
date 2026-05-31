@@ -144,4 +144,104 @@ public class SidedefPartTests
         Assert.True(front.LowRequired());
         Assert.Equal(64, front.GetLowHeight(), 6);
     }
+
+    [Fact]
+    public void RemoveUnneededTexturesClearsUdbOptionalParts()
+    {
+        var (front, back) = TwoSidedSameHeightSides();
+        front.HighTexture = "UP";
+        front.MidTexture = "MID";
+        front.LowTexture = "LOW";
+
+        Assert.True(front.RemoveUnneededTextures(removeMiddle: true));
+
+        Assert.Equal("-", front.HighTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("-", front.LowTexture);
+        Assert.False(back.HighRequired());
+    }
+
+    [Fact]
+    public void RemoveUnneededTexturesHonorsAutoClearPreference()
+    {
+        var (front, _) = TwoSidedSameHeightSides();
+        front.HighTexture = "UP";
+        front.MidTexture = "MID";
+        front.LowTexture = "LOW";
+
+        Assert.True(front.RemoveUnneededTextures(removeMiddle: true, autoClearSidedefTextures: false));
+
+        Assert.Equal("UP", front.HighTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("LOW", front.LowTexture);
+    }
+
+    [Fact]
+    public void RemoveUnneededTexturesKeepsUpperLowerWhenActionsOrTagsMayNeedThem()
+    {
+        var (front, _) = TwoSidedSameHeightSides();
+        front.Line.Action = 80;
+        front.HighTexture = "UP";
+        front.LowTexture = "LOW";
+
+        Assert.False(front.RemoveUnneededTextures(removeMiddle: false));
+
+        Assert.Equal("UP", front.HighTexture);
+        Assert.Equal("LOW", front.LowTexture);
+    }
+
+    [Fact]
+    public void RemoveUnneededTexturesForceIgnoresActionTagProtection()
+    {
+        var (front, _) = TwoSidedSameHeightSides();
+        front.Line.Tag = 1;
+        front.HighTexture = "UP";
+        front.LowTexture = "LOW";
+
+        Assert.True(front.RemoveUnneededTextures(removeMiddle: false, force: true, shiftMiddle: false));
+
+        Assert.Equal("-", front.HighTexture);
+        Assert.Equal("-", front.LowTexture);
+    }
+
+    [Fact]
+    public void RemoveUnneededTexturesCanShiftMiddleToRequiredMissingParts()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 32;
+        backSector.CeilHeight = 96;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var front = map.AddSidedef(line, true, frontSector);
+        map.AddSidedef(line, false, backSector);
+        front.HighTexture = "-";
+        front.MidTexture = "MID";
+        front.LowTexture = "-";
+        map.BuildIndexes();
+
+        Assert.True(front.RemoveUnneededTextures(removeMiddle: false, force: false, shiftMiddle: true));
+
+        Assert.Equal("MID", front.HighTexture);
+        Assert.Equal("MID", front.LowTexture);
+        Assert.Equal("MID", front.MidTexture);
+    }
+
+    private static (Sidedef Front, Sidedef Back) TwoSidedSameHeightSides()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 0;
+        backSector.CeilHeight = 128;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var front = map.AddSidedef(line, true, frontSector);
+        var back = map.AddSidedef(line, false, backSector);
+        map.BuildIndexes();
+        return (front, back);
+    }
 }

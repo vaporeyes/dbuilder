@@ -139,6 +139,7 @@ public class SettingsTests
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
+                AutoClearSidedefTextures = false,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -165,6 +166,7 @@ public class SettingsTests
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
+            Assert.False(loaded.AutoClearSidedefTextures);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);

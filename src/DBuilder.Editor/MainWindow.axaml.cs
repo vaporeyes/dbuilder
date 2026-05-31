@@ -858,6 +858,7 @@ public partial class MainWindow : Window
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
+        _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;

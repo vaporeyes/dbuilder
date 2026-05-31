@@ -10,10 +10,11 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _pasteTagMode;
-    private readonly CheckBox _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs;
     public int? MaxRecentFiles;
+    public bool AutoClearSidedefTextures;
     public int? StatusHistoryLimit;
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
@@ -30,6 +31,7 @@ public sealed class SettingsWindow : PropertyDialog
         _maxRecentFiles = AddField("Max recent files", s.MaxRecentFiles?.ToString() ?? "");
         _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
+        _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _pasteTagMode = AddCombo("Pasted tags", PasteTagModeItems(), (int)s.NormalizedPasteOptions.ChangeTags);
         _pasteRemoveActions = AddCheckBox("Remove pasted actions", s.NormalizedPasteOptions.RemoveActions);
     }
@@ -44,6 +46,7 @@ public sealed class SettingsWindow : PropertyDialog
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         MaxRecentFiles = int.TryParse(_maxRecentFiles.Text, out int maxRecent) && maxRecent > 0 ? maxRecent : null;
         StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
+        AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {
