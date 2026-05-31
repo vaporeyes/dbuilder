@@ -112,6 +112,45 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void LoadsDirectoryKeepsFirstDuplicateCompilerDefinition()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compilers_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "a.cfg"), """
+                compilers
+                {
+                    acc
+                    {
+                        interface = "AccCompiler";
+                        program = "first-acc";
+                    }
+                }
+                """);
+            File.WriteAllText(Path.Combine(dir, "b.cfg"), """
+                compilers
+                {
+                    acc
+                    {
+                        interface = "AccCompiler";
+                        program = "second-acc";
+                    }
+                }
+                """);
+
+            var parsed = CompilerConfiguration.FromDirectory(dir);
+
+            Assert.Equal("a.cfg", parsed.Compilers["acc"].FileName);
+            Assert.Equal("first-acc", parsed.Compilers["acc"].ProgramFile);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ResolveNodebuilderUsesExecutableOverride()
     {
         const string cfg = """

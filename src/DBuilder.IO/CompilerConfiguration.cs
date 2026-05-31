@@ -191,7 +191,7 @@ public sealed class CompilerConfiguration
     public void MergeFrom(CompilerConfiguration other)
     {
         foreach (var compiler in other.compilers)
-            compilers[compiler.Key] = compiler.Value;
+            compilers.TryAdd(compiler.Key, compiler.Value);
         foreach (var nodebuilder in other.nodebuilders)
             nodebuilders[nodebuilder.Key] = nodebuilder.Value;
     }
@@ -226,13 +226,13 @@ public sealed class CompilerConfiguration
                 if (include.Length > 0) files.Add(include);
             }
 
-            compilers[name] = new CompilerInfo(
+            compilers.TryAdd(name, new CompilerInfo(
                 fileName,
                 name,
                 path,
                 GetString(compiler, "program", ""),
                 GetString(compiler, "interface", ""),
-                files);
+                files));
         }
     }
 
