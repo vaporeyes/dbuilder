@@ -2003,6 +2003,20 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnImageExample(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null)
+        {
+            SetStatus("Image Example needs a loaded map.");
+            return;
+        }
+
+        bool active = MapView.ToggleImageExampleMode();
+        SetStatus(active ? "Image Example mode." : $"Mode: {MapView.CurrentEditMode}");
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
     private async void OnAbout(object? sender, RoutedEventArgs e)
     {
         await new AboutWindow().ShowDialog(this);
@@ -3443,6 +3457,7 @@ public partial class MainWindow : Window
         ConfigText.Text = $"Config: {CurrentConfigLabel()}";
         ModeText.Text = MapView.In3DMode
             ? "Mode: 3D"
+            : MapView.ImageExampleMode ? "Mode: Image Example"
             : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
         var grid = MapView.GridSetupSnapshot();
         string gridSize = grid.GridSizeF % 1.0 == 0.0
@@ -3518,7 +3533,7 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
@@ -3561,6 +3576,7 @@ public partial class MainWindow : Window
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
         SetChecked(ToggleNodesMenuItem, MapView.ShowNodes);
+        SetChecked(ImageExampleMenuItem, MapView.ImageExampleMode);
         SetChecked(DrawSectorMenuItem, MapView.DrawMode && !MapView.DrawLinesOnly && !MapView.DrawCurve);
         SetChecked(DrawLinesMenuItem, MapView.DrawMode && MapView.DrawLinesOnly && !MapView.DrawCurve);
         SetChecked(DrawCurveMenuItem, MapView.DrawMode && MapView.DrawCurve);

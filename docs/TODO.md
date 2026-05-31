@@ -926,7 +926,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
-- [ ] Decide whether to port `ImageDrawingExample` or keep it as a sample plugin.
+- [ ] Port `ImageDrawingExample`.
+  - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
+  - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.
 
 ## BuilderModes Detail
 

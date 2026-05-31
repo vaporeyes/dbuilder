@@ -166,6 +166,7 @@
                 </MenuItem>
                 <MenuItem Header="Sector _Color..." x:Name="SectorColorMenuItem" Click="OnSectorColor" />
                 <MenuItem Header="Tag _Range..." x:Name="TagRangeMenuItem" Click="OnTagRange" />
+                <MenuItem Header="_Image Example" x:Name="ImageExampleMenuItem" ToggleType="CheckBox" Click="OnImageExample" />
                 <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
                 <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />

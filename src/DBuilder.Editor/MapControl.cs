@@ -64,6 +64,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _flatTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _wallTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _spriteTextures = new(StringComparer.OrdinalIgnoreCase);
+    private DBTexture? _imageExampleTex;
+    private GlVertexBuffer? _imageExampleVb;
     // 2D thing sprite quads, bucketed by sprite lump (alpha-blended). Things without a resolvable sprite
     // fall back to the colored diamond markers in _thingsVb.
     private readonly System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, DBTexture? Tex)> _spriteBuckets = new();
@@ -144,6 +146,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
+    public bool ImageExampleMode { get; private set; }
 
     public bool ToggleSectorFills()
     {
@@ -159,6 +162,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showThings;
+    }
+
+    public bool ToggleImageExampleMode()
+    {
+        SetImageExampleMode(!ImageExampleMode);
+        return ImageExampleMode;
+    }
+
+    public void SetImageExampleMode(bool enabled)
+    {
+        if (ImageExampleMode == enabled) return;
+        ImageExampleMode = enabled;
+        if (ImageExampleMode && _mode3D) _mode3D = false;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
     }
 
     private bool _thingArrows;
@@ -292,6 +310,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void SetEditMode(EditMode m)
     {
+        SetImageExampleMode(false);
         if (_editMode == m) return;
         _editMode = m;
         ModeChanged?.Invoke();
@@ -303,6 +322,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool Toggle3DMode()
     {
+        SetImageExampleMode(false);
         _mode3D = !_mode3D;
         if (_mode3D)
         {
@@ -576,9 +596,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
+        _imageExampleVb = new GlVertexBuffer(_gl);
         // 1x1 white placeholder so the sampler is always complete during untextured draws.
         _placeholderTex = new DBTexture(_gl);
         _placeholderTex.SetPixelsRgba8(1, 1, new byte[] { 255, 255, 255, 255 }, generateMipmaps: false);
+        _imageExampleTex = new DBTexture(_gl);
+        _imageExampleTex.SetPixelsRgba8(428, 332, BuildImageExampleRgba(428, 332), generateMipmaps: false);
         _device.SetTexture(0, _placeholderTex);
         _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
         _device.SetSamplerState(TextureAddress.Wrap);
@@ -615,9 +638,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
+        _imageExampleVb?.Dispose();
+        _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1326,6 +1351,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _device.SetZEnable(false); // 2D overlay draws back-to-front, no depth test
 
+        if (ImageExampleMode)
+        {
+            DrawImageExample();
+            return;
+        }
+
         if (_map != null)
         {
             if (_needsFit && Bounds.Width > 1 && Bounds.Height > 1) { FitToMap(); _needsFit = false; }
@@ -1921,6 +1952,81 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetTexture(0, _placeholderTex);
         _device.SetVertexBuffer(_nodesVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _nodesLineCount);
+    }
+
+    private void DrawImageExample()
+    {
+        if (_device is null || _imageExampleVb is null || _imageExampleTex is null) return;
+
+        var proj = Matrix4x4.CreateOrthographicOffCenter(0, (float)Bounds.Width, (float)Bounds.Height, 0, -1, 1);
+        _device.SetUniform("projection", proj);
+        _device.SetUniform("tex0", 0);
+        _device.SetUniform("useTexture", 1f);
+        _device.SetAlphaBlendEnable(false);
+        _device.SetTexture(0, _imageExampleTex);
+
+        const float left = 20f;
+        const float top = 20f;
+        const float right = 448f;
+        const float bottom = 352f;
+        const int white = unchecked((int)0xffffffff);
+        var verts = new[]
+        {
+            ImageVertex(left, top, 0, 0, white),
+            ImageVertex(right, top, 1, 0, white),
+            ImageVertex(right, bottom, 1, 1, white),
+            ImageVertex(left, top, 0, 0, white),
+            ImageVertex(right, bottom, 1, 1, white),
+            ImageVertex(left, bottom, 0, 1, white),
+        };
+        _device.SetBufferData(_imageExampleVb, verts);
+        _device.SetVertexBuffer(_imageExampleVb);
+        _device.Draw(DBPrimitiveType.TriangleList, 0, 2);
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+    }
+
+    private static FlatVertex ImageVertex(float x, float y, float u, float v, int color)
+        => new() { x = x, y = y, z = 0, w = 1, c = color, u = u, v = v };
+
+    internal static byte[] BuildImageExampleRgba(int width, int height)
+    {
+        var rgba = new byte[width * height * 4];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int p = (y * width + x) * 4;
+                byte grid = (byte)(((x / 16) + (y / 16)) % 2 == 0 ? 48 : 68);
+                rgba[p] = (byte)Math.Clamp(36 + x * 120 / Math.Max(1, width - 1), 0, 255);
+                rgba[p + 1] = (byte)Math.Clamp(grid + y * 80 / Math.Max(1, height - 1), 0, 255);
+                rgba[p + 2] = (byte)Math.Clamp(130 + (width - x) * 70 / Math.Max(1, width), 0, 255);
+                rgba[p + 3] = 255;
+            }
+        }
+
+        DrawImageExampleFrame(rgba, width, height);
+        return rgba;
+    }
+
+    private static void DrawImageExampleFrame(byte[] rgba, int width, int height)
+    {
+        int margin = 22;
+        int right = width - margin - 1;
+        int bottom = height - margin - 1;
+        for (int y = margin; y <= bottom; y++)
+        {
+            for (int x = margin; x <= right; x++)
+            {
+                bool border = x == margin || x == right || y == margin || y == bottom;
+                bool slash = Math.Abs((x - margin) - (y - margin)) < 3 || Math.Abs((right - x) - (y - margin)) < 3;
+                if (!border && !slash) continue;
+                int p = (y * width + x) * 4;
+                rgba[p] = 240;
+                rgba[p + 1] = 240;
+                rgba[p + 2] = 240;
+            }
+        }
     }
 
     // Projects a world point onto a linedef's segment (clamped to its endpoints).

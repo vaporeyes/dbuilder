@@ -43,7 +43,7 @@ Status values:
 | `BuilderModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected drawing/editing tools exist. Full mode set missing. |
 | `ColorPicker` | missing | none | Not ported. |
 | `CommentsPanel` | missing | none | Not ported. |
-| `ImageDrawingExample` | missing | none | Not ported. |
+| `ImageDrawingExample` | partial | `DBuilder.Editor` | Built-in image-example mode renders an overlay-only screen-space image. Full sample plugin loading remains missing. |
 | `NodesViewer` | partial | `DBuilder.IO` | Nodes reader exists. Viewer UI missing. |
 | `RejectExplorer` | partial | `DBuilder.IO` | Reject table logic exists. Explorer UI missing. |
 | `SoundPropagationMode` | partial | `DBuilder.Map` | Sound propagation helper exists. Full mode UI missing. |
