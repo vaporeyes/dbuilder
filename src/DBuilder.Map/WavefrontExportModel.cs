@@ -2,6 +2,7 @@
 // ABOUTME: Preserves exporter validation, material naming, and coordinate mapping without UI dependencies.
 
 using System.Globalization;
+using System.Text;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -98,6 +99,23 @@ public sealed class WavefrontExportSettings
     }
 }
 
+public enum WavefrontSurfaceType
+{
+    Wall,
+    Floor,
+    Ceiling
+}
+
+public readonly record struct WavefrontSurfaceVertex(
+    float X,
+    float Y,
+    float Z,
+    float U,
+    float V,
+    float NormalX,
+    float NormalY,
+    float NormalZ);
+
 public static class WavefrontObjFormatter
 {
     public static string FormatMaterialLibrary(WavefrontExportSettings settings)
@@ -130,6 +148,161 @@ public static class WavefrontObjFormatter
 
     private static string Format(string format, params double[] values)
         => string.Format(CultureInfo.InvariantCulture, format, values.Cast<object>().ToArray());
+}
+
+public static class WavefrontGeometryExporter
+{
+    public static List<WavefrontSurfaceVertex[]> OptimizeGeometry(
+        IReadOnlyList<WavefrontSurfaceVertex> vertices,
+        WavefrontSurfaceType surfaceType,
+        bool skipRectangleOptimization = false)
+    {
+        var groups = new List<WavefrontSurfaceVertex[]>();
+
+        if (!skipRectangleOptimization
+            && vertices.Count == 6
+            && surfaceType != WavefrontSurfaceType.Ceiling
+            && surfaceType != WavefrontSurfaceType.Floor)
+        {
+            groups.Add([vertices[5], vertices[2], vertices[1], vertices[0]]);
+            return groups;
+        }
+
+        for (int i = 0; i < vertices.Count; i += 3)
+        {
+            groups.Add([vertices[i + 2], vertices[i + 1], vertices[i]]);
+        }
+
+        return groups;
+    }
+
+    public static string CreateObjGeometry(
+        IReadOnlyList<IDictionary<string, List<WavefrontSurfaceVertex[]>>> geometryByTexture,
+        WavefrontExportSettings settings)
+    {
+        var uniqueVertices = new Dictionary<Vector3D, int>();
+        var uniqueNormals = new Dictionary<Vector3D, int>();
+        var uniqueUvs = new Dictionary<WavefrontUv, int>();
+        var vertexDataByTexture = new Dictionary<string, Dictionary<WavefrontSurfaceVertex, VertexIndices>>(StringComparer.Ordinal);
+        int positionCount = 0;
+        int normalCount = 0;
+        int uvCount = 0;
+        var topLeft = new Vector3D(double.MaxValue, double.MinValue, double.MinValue);
+        var bottomRight = new Vector3D(double.MinValue, double.MaxValue, double.MaxValue);
+
+        foreach (IDictionary<string, List<WavefrontSurfaceVertex[]>> dictionary in geometryByTexture)
+        {
+            foreach (KeyValuePair<string, List<WavefrontSurfaceVertex[]>> group in dictionary)
+            {
+                var vertexData = new Dictionary<WavefrontSurfaceVertex, VertexIndices>();
+                foreach (WavefrontSurfaceVertex[] vertices in group.Value)
+                {
+                    Vector3D normal = new Vector3D(vertices[0].NormalX, vertices[0].NormalY, vertices[0].NormalZ).GetNormal();
+                    normal.y *= -1;
+                    int normalIndex = GetIndex(uniqueNormals, normal, ref normalCount);
+
+                    foreach (WavefrontSurfaceVertex vertex in vertices)
+                    {
+                        if (vertexData.ContainsKey(vertex)) continue;
+                        var position = new Vector3D(vertex.X, vertex.Y, vertex.Z);
+                        var uv = new WavefrontUv(vertex.U, vertex.V);
+                        vertexData.Add(
+                            vertex,
+                            new VertexIndices(
+                                GetIndex(uniqueVertices, position, ref positionCount),
+                                GetIndex(uniqueUvs, uv, ref uvCount),
+                                normalIndex));
+                    }
+                }
+
+                if (vertexData.Count == 0) continue;
+                if (!vertexDataByTexture.TryAdd(group.Key, vertexData))
+                {
+                    foreach (KeyValuePair<WavefrontSurfaceVertex, VertexIndices> item in vertexData)
+                    {
+                        vertexDataByTexture[group.Key].Add(item.Key, item.Value);
+                    }
+                }
+            }
+        }
+
+        foreach (Dictionary<WavefrontSurfaceVertex, VertexIndices> vertexData in vertexDataByTexture.Values)
+        {
+            foreach (WavefrontSurfaceVertex vertex in vertexData.Keys)
+            {
+                topLeft.x = Math.Min(topLeft.x, vertex.X);
+                bottomRight.x = Math.Max(bottomRight.x, vertex.X);
+                topLeft.y = Math.Max(topLeft.y, vertex.Y);
+                bottomRight.y = Math.Min(bottomRight.y, vertex.Y);
+                topLeft.z = Math.Max(topLeft.z, vertex.Z);
+                bottomRight.z = Math.Min(bottomRight.z, vertex.Z);
+            }
+        }
+
+        settings.Radius = bottomRight.x - topLeft.x > topLeft.y - bottomRight.y
+            ? (int)(topLeft.y - bottomRight.y) / 2
+            : (int)(bottomRight.x - topLeft.x) / 2;
+        settings.Height = (int)(topLeft.z - bottomRight.z);
+
+        var offset = settings.CenterModel
+            ? new Vector2D(topLeft.x + (bottomRight.x - topLeft.x) / 2.0, topLeft.y + (bottomRight.y - topLeft.y) / 2.0)
+            : new Vector2D(0.0, 0.0);
+
+        var obj = new StringBuilder();
+        foreach (KeyValuePair<Vector3D, int> vertex in uniqueVertices)
+        {
+            obj.Append(WavefrontObjFormatter.FormatVertex(vertex.Key, settings, offset, bottomRight.z));
+        }
+
+        foreach (KeyValuePair<Vector3D, int> normal in uniqueNormals)
+        {
+            obj.Append(WavefrontObjFormatter.FormatNormal(normal.Key));
+        }
+
+        foreach (KeyValuePair<WavefrontUv, int> uv in uniqueUvs)
+        {
+            obj.Append(WavefrontObjFormatter.FormatUv(uv.Key.U, uv.Key.V));
+        }
+
+        obj.Append(WavefrontObjFormatter.FormatMaterialLibrary(settings));
+        foreach (IDictionary<string, List<WavefrontSurfaceVertex[]>> dictionary in geometryByTexture)
+        {
+            foreach (KeyValuePair<string, List<WavefrontSurfaceVertex[]>> group in dictionary)
+            {
+                obj.Append("usemtl ").Append(group.Key).Append('\n');
+                foreach (WavefrontSurfaceVertex[] vertices in group.Value)
+                {
+                    obj.Append('f');
+                    foreach (WavefrontSurfaceVertex vertex in vertices)
+                    {
+                        VertexIndices indices = vertexDataByTexture[group.Key][vertex];
+                        obj.Append(' ')
+                            .Append(indices.PositionIndex)
+                            .Append('/')
+                            .Append(indices.UvIndex)
+                            .Append('/')
+                            .Append(indices.NormalIndex);
+                    }
+
+                    obj.Append('\n');
+                }
+            }
+        }
+
+        return obj.ToString();
+    }
+
+    private static int GetIndex<T>(Dictionary<T, int> lookup, T value, ref int count)
+        where T : notnull
+    {
+        if (lookup.TryGetValue(value, out int existing)) return existing;
+        lookup.Add(value, ++count);
+        return count;
+    }
+
+    private readonly record struct WavefrontUv(float U, float V);
+
+    private readonly record struct VertexIndices(int PositionIndex, int UvIndex, int NormalIndex);
 }
 
 public static class WavefrontExportContent

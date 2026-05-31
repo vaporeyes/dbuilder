@@ -244,5 +244,69 @@ public class WavefrontExportModelTests
         Assert.Contains("FrameIndex PLAY A 0 0", modeldef);
     }
 
+    [Fact]
+    public void OptimizeGeometryMergesWallRectanglesAndKeepsFloorTriangles()
+    {
+        WavefrontSurfaceVertex[] vertices =
+        [
+            Vertex(0, 0, 0, 0, 0),
+            Vertex(1, 0, 0, 1, 0),
+            Vertex(1, 1, 0, 1, 1),
+            Vertex(0, 0, 0, 0, 0),
+            Vertex(1, 1, 0, 1, 1),
+            Vertex(0, 1, 0, 0, 1)
+        ];
+
+        List<WavefrontSurfaceVertex[]> wallGroups = WavefrontGeometryExporter.OptimizeGeometry(vertices, WavefrontSurfaceType.Wall);
+        List<WavefrontSurfaceVertex[]> floorGroups = WavefrontGeometryExporter.OptimizeGeometry(vertices, WavefrontSurfaceType.Floor);
+
+        WavefrontSurfaceVertex[] wall = Assert.Single(wallGroups);
+        Assert.Equal([vertices[5], vertices[2], vertices[1], vertices[0]], wall);
+        Assert.Equal(2, floorGroups.Count);
+        Assert.Equal([vertices[2], vertices[1], vertices[0]], floorGroups[0]);
+        Assert.Equal([vertices[5], vertices[4], vertices[3]], floorGroups[1]);
+    }
+
+    [Fact]
+    public void CreateObjGeometryDeduplicatesIndicesAndUpdatesActorSize()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            CenterModel = true,
+            Scale = 1
+        });
+        var geometry = new List<IDictionary<string, List<WavefrontSurfaceVertex[]>>>
+        {
+            new Dictionary<string, List<WavefrontSurfaceVertex[]>>
+            {
+                ["STARTAN3"] =
+                [
+                    [
+                        Vertex(0, 0, 0, 0, 0),
+                        Vertex(64, 0, 0, 1, 0),
+                        Vertex(64, 32, 16, 1, 1)
+                    ]
+                ]
+            },
+            new Dictionary<string, List<WavefrontSurfaceVertex[]>>()
+        };
+
+        string obj = WavefrontGeometryExporter.CreateObjGeometry(geometry, settings);
+
+        Assert.Contains("v 32 0 -16\n", obj);
+        Assert.Contains("v -32 0 -16\n", obj);
+        Assert.Contains("v -32 16 16\n", obj);
+        Assert.Contains("vn 0 0 1\n", obj);
+        Assert.Contains("vt 1 -1\n", obj);
+        Assert.Contains("mtllib demo.mtl\n", obj);
+        Assert.Contains("usemtl STARTAN3\nf 1/1/1 2/2/1 3/3/1\n", obj);
+        Assert.Equal(16, settings.Radius);
+        Assert.Equal(16, settings.Height);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+    private static WavefrontSurfaceVertex Vertex(float x, float y, float z, float u, float v)
+        => new(x, y, z, u, v, 0, -1, 0);
 }
