@@ -223,7 +223,8 @@ public static class AcsCompilePreflight
         string text,
         string sourceFile,
         bool sourceIsMapScriptsLump,
-        IEnumerable<string>? compilerFiles = null)
+        IEnumerable<string>? compilerFiles = null,
+        Func<string, bool>? includeExists = null)
     {
         var includes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var compilerIncludes = new HashSet<string>(
@@ -259,8 +260,11 @@ public static class AcsCompilePreflight
             if (include.Length == 0)
                 return Error("Expected file name to " + token + ".", sourceFile, i);
 
+            bool isCompilerInclude = compilerIncludes.Contains(include);
             if (!includes.Add(include))
                 return Error("Already parsed \"" + include + "\". Check your " + token + " directives.", sourceFile, i);
+            if (!isCompilerInclude && includeExists is not null && !includeExists(include))
+                return Error("Unable to find include file \"" + include + "\".", sourceFile, i);
         }
 
         if (!sourceIsMapScriptsLump && libraryName.Length == 0)

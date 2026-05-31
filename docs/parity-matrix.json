@@ -11,7 +11,7 @@
       "udbArea": "Source/Core/Compilers",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Compiler and nodebuilder configuration metadata is parsed, including recursive cfg discovery and UDB-style first-definition wins behavior for duplicate compiler names. Nodebuilder `%FI` and `%FO` argument substitution, ACC-style `%FI`, `%FO`, `%FS`, `%PT`, and `%PS` script compiler argument substitution, UDB-style directory and archive script compile planning, ACS map-script and external-library compile preflight checks, ACS include list filtering and temp-directory copying, UDB-style ACC and BCC process start settings, compiler temporary-input error remapping, and ACC, BCC, and ZT-BCC compiler error line parsing including temporary path cleanup are covered. Full nodebuilder execution, script compiler execution, error display, and editor integration remain incomplete."
+      "notes": "Compiler and nodebuilder configuration metadata is parsed, including recursive cfg discovery and UDB-style first-definition wins behavior for duplicate compiler names. Nodebuilder `%FI` and `%FO` argument substitution, ACC-style `%FI`, `%FO`, `%FS`, `%PT`, and `%PS` script compiler argument substitution, UDB-style directory and archive script compile planning, ACS map-script and external-library compile preflight checks, ACS include resolution and temp-directory copying, UDB-style ACC and BCC process start settings, compiler temporary-input error remapping, and ACC, BCC, and ZT-BCC compiler error line parsing including temporary path cleanup are covered. Full nodebuilder execution, script compiler execution, error display, and editor integration remain incomplete."
     },
     {
       "udbArea": "Source/Core/Config",

@@ -608,6 +608,47 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void AcsCompilePreflightReportsMissingIncludesLikeUdb()
+    {
+        const string text = """
+            #library "helpers"
+            #include "libs/missing.acs"
+            """;
+
+        var result = AcsCompilePreflight.Analyze(
+            text,
+            "/maps/project/scripts/helpers.acs",
+            sourceIsMapScriptsLump: false,
+            includeExists: include => include != Path.Combine("libs", "missing.acs"));
+
+        var error = Assert.IsType<ScriptCompilerError>(result.Error);
+        Assert.Equal("Unable to find include file \"" + Path.Combine("libs", "missing.acs") + "\".", error.Description);
+        Assert.Equal("/maps/project/scripts/helpers.acs", error.FileName);
+        Assert.Equal(1, error.LineNumber);
+    }
+
+    [Fact]
+    public void AcsCompilePreflightSkipsCompilerIncludeResolutionLikeUdb()
+    {
+        const string text = """
+            #library "helpers"
+            #include "zcommon.acs"
+            """;
+
+        var result = AcsCompilePreflight.Analyze(
+            text,
+            "/maps/project/scripts/helpers.acs",
+            sourceIsMapScriptsLump: false,
+            compilerFiles: new[] { "zcommon.acs" },
+            includeExists: _ => false);
+
+        Assert.True(result.ShouldCompile);
+        Assert.Null(result.Error);
+        Assert.Empty(result.Includes);
+        Assert.Equal("helpers", result.LibraryName);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(

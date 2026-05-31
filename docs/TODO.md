@@ -847,6 +847,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port ACC compiler integration.
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
   - [x] Validate ACS map-script and external-library compile preconditions and include lists like UDB.
+  - [x] Report unresolved ACS include resources during preflight like UDB.
 - [ ] Port BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
 - [ ] Port ZT-BCC compiler integration.
