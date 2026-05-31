@@ -85,4 +85,46 @@ public sealed class ColorCollectionTests
         Assert.Equal(0x302010, color.ToInversedColorRef());
         Assert.Equal("[A=128, R=16, G=32, B=48]", color.ToString());
     }
+
+    [Fact]
+    public void CorrectionTableUsesUdbImageBrightnessFormula()
+    {
+        byte[] darker = ColorCollection.CreateCorrectionTable(-5);
+        byte[] neutral = ColorCollection.CreateCorrectionTable(0);
+        byte[] brighter = ColorCollection.CreateCorrectionTable(10);
+
+        Assert.Equal(0, darker[0]);
+        Assert.Equal(39, darker[128]);
+        Assert.Equal(102, darker[255]);
+        Assert.Equal(0, neutral[0]);
+        Assert.Equal(128, neutral[128]);
+        Assert.Equal(255, neutral[255]);
+        Assert.Equal(50, brighter[0]);
+        Assert.Equal(255, brighter[128]);
+        Assert.Equal(255, brighter[255]);
+    }
+
+    [Fact]
+    public void ApplyColorCorrectionPreservesAlphaAndCorrectsRgbChannels()
+    {
+        var colors = new ColorCollection(imageBrightness: -5);
+        PixelColor[] pixels =
+        [
+            new(128, 0, 128, 255),
+            new(255, 64, 32, 16),
+        ];
+
+        colors.ApplyColorCorrection(pixels);
+
+        Assert.Equal(new PixelColor(128, 0, 39, 102), pixels[0]);
+        Assert.Equal(new PixelColor(255, 7, 0, 0), pixels[1]);
+    }
+
+    [Fact]
+    public void ApplyColorCorrectionRejectsWrongTableLength()
+    {
+        PixelColor[] pixels = [new(255, 1, 2, 3)];
+
+        Assert.Throws<ArgumentException>(() => ColorCollection.ApplyColorCorrection(pixels, [0, 1, 2]));
+    }
 }

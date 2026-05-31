@@ -800,6 +800,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
 - [ ] Port color settings and color collections.
   - [x] Add UDB-style `PixelColor` packing helpers, indexed color collection defaults, thing color palette, bright/dark assist variants, and `colors.colorN` setting keys.
+  - [x] Add UDB-style image brightness color-correction table generation and pixel-block correction behavior.
 - [ ] Port shader compiler behavior or a documented replacement.
 - [ ] Add screenshot and pixel-level regression tests for key render states.
 

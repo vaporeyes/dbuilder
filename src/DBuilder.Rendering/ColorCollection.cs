@@ -51,8 +51,9 @@ public sealed class ColorCollection
     private readonly PixelColor[] _colors;
     private readonly PixelColor[] _brightColors;
     private readonly PixelColor[] _darkColors;
+    private readonly byte[] _correctionTable;
 
-    public ColorCollection(IReadOnlyDictionary<string, int>? settings = null)
+    public ColorCollection(IReadOnlyDictionary<string, int>? settings = null, int imageBrightness = 0)
     {
         _colors = new PixelColor[NumColors];
         _brightColors = new PixelColor[NumColors];
@@ -66,11 +67,13 @@ public sealed class ColorCollection
 
         ApplyDefaults();
         CreateAssistColors();
+        _correctionTable = CreateCorrectionTable(imageBrightness);
     }
 
     public IReadOnlyList<PixelColor> Colors => _colors;
     public IReadOnlyList<PixelColor> BrightColors => _brightColors;
     public IReadOnlyList<PixelColor> DarkColors => _darkColors;
+    public IReadOnlyList<byte> CorrectionTable => _correctionTable;
 
     public PixelColor Background => _colors[BackgroundIndex];
     public PixelColor Vertices => _colors[VerticesIndex];
@@ -120,6 +123,35 @@ public sealed class ColorCollection
 
     public static PixelColor CreateDarkVariant(PixelColor color)
         => CreateVariant(color, DarkMultiplier, DarkAddition);
+
+    public static byte[] CreateCorrectionTable(int imageBrightness)
+    {
+        float gamma = (imageBrightness + 10) * 0.1f;
+        float bright = imageBrightness * 5f;
+        var table = new byte[256];
+
+        for (int i = 0; i < table.Length; i++)
+        {
+            float value = i * gamma + bright;
+            table[i] = value < 0f ? (byte)0 : value > 255f ? (byte)255 : (byte)value;
+        }
+
+        return table;
+    }
+
+    public void ApplyColorCorrection(Span<PixelColor> pixels)
+        => ApplyColorCorrection(pixels, _correctionTable);
+
+    public static void ApplyColorCorrection(Span<PixelColor> pixels, IReadOnlyList<byte> correctionTable)
+    {
+        if (correctionTable.Count != 256) throw new ArgumentException("Color correction table must have 256 entries.", nameof(correctionTable));
+
+        for (int i = pixels.Length - 1; i >= 0; i--)
+        {
+            PixelColor pixel = pixels[i];
+            pixels[i] = new PixelColor(pixel.A, correctionTable[pixel.R], correctionTable[pixel.G], correctionTable[pixel.B]);
+        }
+    }
 
     private void ApplyDefaults()
     {
