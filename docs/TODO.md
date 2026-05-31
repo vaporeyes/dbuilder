@@ -892,6 +892,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
 - [ ] Port `TagRange`.
+  - [x] Add UDB-style absolute and relative tag range calculation model.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
 - [ ] Port `VisplaneExplorer`.
@@ -949,6 +950,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
 - [ ] Port tag range tools.
+  - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
 - [ ] Port USDF tools.
 - [ ] Port visplane explorer analysis.
 - [ ] Port WadAuthor mode behavior.

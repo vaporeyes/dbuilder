@@ -188,7 +188,12 @@
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
       "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering and sorting model exists for tags, actions, comments, and polyobjects. Full docked tree UI and navigation workflow remain incomplete."
     },
-    { "udbPlugin": "TagRange", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "TagRange",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style absolute and relative tag range calculation exists, including duplicate detection, skip-used handling, out-of-range reporting, selected element initial-tag capture, and selected element assignment. Toolbar button and form UI remain incomplete."
+    },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "USDF", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "VisplaneExplorer", "status": "missing", "dbuilderLocation": null },
