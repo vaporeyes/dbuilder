@@ -1,6 +1,8 @@
 // ABOUTME: Composes a Doom wall texture by alpha-blitting its referenced patches onto a transparent canvas at each patch's origin offset.
 // ABOUTME: Patches are looked up by PNAMES index then by name in the WAD; their pixels are decoded through DoomPictureReader.
 
+using System.Collections.Generic;
+
 namespace DBuilder.IO;
 
 public static class DoomWallTextureCompositor
@@ -9,14 +11,43 @@ public static class DoomWallTextureCompositor
     /// Composes the named wall texture into a Width*Height RGBA8 buffer.  Returns null when any required patch is missing or the def has no usable patches.
     /// Transparent pixels in the source patches and uncovered canvas remain RGBA=0.
     /// </summary>
-    public static byte[]? Compose(DoomTextureDef def, DoomPatchNames pnames, WAD wad, DoomPalette palette, Func<string, Lump?>? findPatch = null)
+    public static byte[]? Compose(
+        DoomTextureDef def,
+        DoomPatchNames pnames,
+        WAD wad,
+        DoomPalette palette,
+        Func<string, Lump?>? findPatch = null,
+        bool fixNegativePatchOffsets = true,
+        bool fixMaskedPatchOffsets = true)
+    {
+        findPatch ??= wad.FindLump;
+        return Compose(
+            def,
+            pnames,
+            patchName =>
+            {
+                var lump = findPatch(patchName);
+                if (lump == null) return null;
+
+                var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
+                return pic == null ? null : new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY);
+            },
+            fixNegativePatchOffsets,
+            fixMaskedPatchOffsets);
+    }
+
+    public static byte[]? Compose(
+        DoomTextureDef def,
+        DoomPatchNames pnames,
+        Func<string, ImageData?> findPatch,
+        bool fixNegativePatchOffsets = true,
+        bool fixMaskedPatchOffsets = true)
     {
         if (def.Width <= 0 || def.Height <= 0) return null;
         if (def.Patches.Count == 0) return null;
-        findPatch ??= wad.FindLump;
 
         byte[] canvas = new byte[def.Width * def.Height * 4];
-        bool anyPatched = false;
+        var patches = new List<(DoomTexturePatch Patch, ImageData Image)>();
 
         foreach (var patch in def.Patches)
         {
@@ -24,17 +55,35 @@ public static class DoomWallTextureCompositor
             string pname = pnames[patch.PatchIndex];
             if (string.IsNullOrEmpty(pname)) continue;
 
-            var lump = findPatch(pname);
-            if (lump == null) continue;
+            var image = findPatch(pname);
+            if (image == null) continue;
 
-            var pic = DoomPictureReader.Decode(lump.Stream.ReadAllBytes(), palette);
-            if (pic == null) continue;
-
-            BlitOpaque(canvas, def.Width, def.Height, pic.Rgba8, pic.Width, pic.Height, patch.OriginX, patch.OriginY);
-            anyPatched = true;
+            patches.Add((patch, image));
         }
 
-        return anyPatched ? canvas : null;
+        if (patches.Count == 0) return null;
+
+        var columnPatches = new int[def.Width];
+        var columnMasked = new bool[def.Width];
+        if (!fixNegativePatchOffsets || !fixMaskedPatchOffsets)
+        {
+            foreach (var (patch, image) in patches)
+            {
+                bool masked = IsMasked(image);
+                for (int sx = 0; sx < image.Width; sx++)
+                {
+                    int x = patch.OriginX + sx;
+                    if (x < 0 || x >= def.Width) continue;
+                    if (!fixNegativePatchOffsets) columnPatches[x]++;
+                    if (!fixMaskedPatchOffsets && masked) columnMasked[x] = true;
+                }
+            }
+        }
+
+        foreach (var (patch, image) in patches)
+            BlitClassic(canvas, def.Width, def.Height, image, patch.OriginX, patch.OriginY, fixNegativePatchOffsets, fixMaskedPatchOffsets, columnPatches, columnMasked);
+
+        return canvas;
     }
 
     /// <summary>Convenience: locate def by name across multiple lists (typically [TEXTURE1, TEXTURE2]) and compose.</summary>
@@ -51,28 +100,66 @@ public static class DoomWallTextureCompositor
         return null;
     }
 
-    // Copies opaque pixels (alpha > 0) from src into dst, with src placed at (dstX, dstY).
-    // Pixels outside the dst rectangle are clipped. Transparent src pixels do not overwrite dst.
-    private static void BlitOpaque(byte[] dst, int dstW, int dstH, byte[] src, int srcW, int srcH, int dstX, int dstY)
+    private static bool IsMasked(ImageData image)
     {
-        for (int sy = 0; sy < srcH; sy++)
+        for (int i = 3; i < image.Rgba.Length; i += 4)
+            if (image.Rgba[i] < 255)
+                return true;
+
+        return false;
+    }
+
+    // Copies opaque pixels from src into dst, including UDB's classic patch-offset compatibility modes.
+    private static void BlitClassic(
+        byte[] dst,
+        int dstW,
+        int dstH,
+        ImageData src,
+        int dstX,
+        int dstY,
+        bool fixNegativePatchOffsets,
+        bool fixMaskedPatchOffsets,
+        int[] columnPatches,
+        bool[] columnMasked)
+    {
+        for (int sx = 0; sx < src.Width; sx++)
         {
-            int dy = dstY + sy;
-            if (dy < 0 || dy >= dstH) continue;
+            int x = dstX + sx;
+            int drawHeight = src.Height;
 
-            for (int sx = 0; sx < srcW; sx++)
+            if (dstY < 0
+                && !fixNegativePatchOffsets
+                && x >= 0
+                && x < columnPatches.Length
+                && columnPatches[x] > 1
+                && !(!fixMaskedPatchOffsets && x < columnMasked.Length && columnMasked[x]))
             {
-                int dx = dstX + sx;
-                if (dx < 0 || dx >= dstW) continue;
+                drawHeight = src.Height + dstY;
+            }
 
-                int srcIdx = (sy * srcW + sx) * 4;
-                if (src[srcIdx + 3] == 0) continue; // transparent source pixel
+            for (int sy = 0; sy < drawHeight; sy++)
+            {
+                int srcIdx = (sy * src.Width + sx) * 4;
+                if (src.Rgba[srcIdx + 3] == 0) continue;
 
-                int dstIdx = (dy * dstW + dx) * 4;
-                dst[dstIdx + 0] = src[srcIdx + 0];
-                dst[dstIdx + 1] = src[srcIdx + 1];
-                dst[dstIdx + 2] = src[srcIdx + 2];
-                dst[dstIdx + 3] = src[srcIdx + 3];
+                int realY = dstY;
+                if (!fixMaskedPatchOffsets && x >= 0 && x < columnMasked.Length && columnMasked[x])
+                {
+                    if (x < columnPatches.Length && columnPatches[x] == 1) realY = 0;
+                }
+                else if (dstY < 0 && !fixNegativePatchOffsets)
+                {
+                    realY = 0;
+                }
+
+                int y = realY + sy;
+                if (x < 0 || x >= dstW || y < 0 || y >= dstH) continue;
+
+                int dstIdx = (y * dstW + x) * 4;
+                dst[dstIdx + 0] = src.Rgba[srcIdx + 0];
+                dst[dstIdx + 1] = src.Rgba[srcIdx + 1];
+                dst[dstIdx + 2] = src.Rgba[srcIdx + 2];
+                dst[dstIdx + 3] = src.Rgba[srcIdx + 3];
             }
         }
     }

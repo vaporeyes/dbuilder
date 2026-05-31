@@ -65,7 +65,7 @@
       "udbArea": "Source/Core/IO",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, stream facades, map conversion, and PK3/WAD resource IO. Full universal IO parity remains incomplete."
+      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, stream facades, map conversion, and PK3/WAD resource IO. Classic texture composition honors UDB patch offset compatibility flags. Full universal IO parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Map",

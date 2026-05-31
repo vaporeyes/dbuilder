@@ -215,6 +215,54 @@ public class DoomTextureCompositionTests
     }
 
     [Fact]
+    public void ComposeEmulatesClassicNegativePatchOffsetBugWhenConfigured()
+    {
+        var palette = GrayPalette();
+        using var wad = BuildPatchWad(
+            ("BASE", BuildOneByTwoPatch(30, 40)),
+            ("TOP", BuildOneByTwoPatch(10, 20)));
+        var pnames = BuildSyntheticPnames(new[] { "BASE", "TOP" });
+        var def = new DoomTextureDef(
+            "NEG",
+            1,
+            2,
+            new[] { new DoomTexturePatch(0, 0, 0), new DoomTexturePatch(0, -1, 1) },
+            false,
+            DoomTextureFormat.DoomClassic);
+
+        byte[] fixedOffsets = DoomWallTextureCompositor.Compose(def, pnames, wad, palette, fixNegativePatchOffsets: true)!;
+        byte[] emulatedBug = DoomWallTextureCompositor.Compose(def, pnames, wad, palette, fixNegativePatchOffsets: false)!;
+
+        Assert.Equal(20, fixedOffsets[(0 * 1 + 0) * 4]);
+        Assert.Equal(40, fixedOffsets[(1 * 1 + 0) * 4]);
+        Assert.Equal(10, emulatedBug[(0 * 1 + 0) * 4]);
+        Assert.Equal(40, emulatedBug[(1 * 1 + 0) * 4]);
+    }
+
+    [Fact]
+    public void ComposeEmulatesClassicMaskedPatchOffsetBugWhenConfigured()
+    {
+        var palette = GrayPalette();
+        using var wad = BuildPatchWad(("MASKED", BuildOneByTwoPatch(10, null)));
+        var pnames = BuildSyntheticPnames(new[] { "MASKED" });
+        var def = new DoomTextureDef(
+            "MASKED",
+            1,
+            3,
+            new[] { new DoomTexturePatch(0, 1, 0) },
+            false,
+            DoomTextureFormat.DoomClassic);
+
+        byte[] fixedOffsets = DoomWallTextureCompositor.Compose(def, pnames, wad, palette, fixMaskedPatchOffsets: true)!;
+        byte[] emulatedBug = DoomWallTextureCompositor.Compose(def, pnames, wad, palette, fixNegativePatchOffsets: false, fixMaskedPatchOffsets: false)!;
+
+        Assert.Equal(0, fixedOffsets[(0 * 1 + 0) * 4 + 3]);
+        Assert.Equal(10, fixedOffsets[(1 * 1 + 0) * 4]);
+        Assert.Equal(10, emulatedBug[(0 * 1 + 0) * 4]);
+        Assert.Equal(0, emulatedBug[(1 * 1 + 0) * 4 + 3]);
+    }
+
+    [Fact]
     public void ComposeReturnsNullWhenAllPatchesMissing()
     {
         // Build a WAD with PLAYPAL but no patches, then reference a non-existent patch.
@@ -269,6 +317,39 @@ public class DoomTextureCompositionTests
         w.Write((byte)0); w.Write((byte)2); w.Write((byte)0);
         w.Write((byte)20); w.Write((byte)40);
         w.Write((byte)0); w.Write((byte)0xFF);
+        return ms.ToArray();
+    }
+
+    private static byte[] BuildOneByTwoPatch(byte? top, byte? bottom)
+    {
+        var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((short)1);
+        w.Write((short)2);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write((int)12);
+
+        if (top.HasValue && bottom.HasValue)
+        {
+            w.Write((byte)0); w.Write((byte)2); w.Write((byte)0);
+            w.Write(top.Value); w.Write(bottom.Value);
+            w.Write((byte)0);
+        }
+        else if (top.HasValue)
+        {
+            w.Write((byte)0); w.Write((byte)1); w.Write((byte)0);
+            w.Write(top.Value);
+            w.Write((byte)0);
+        }
+        else if (bottom.HasValue)
+        {
+            w.Write((byte)1); w.Write((byte)1); w.Write((byte)0);
+            w.Write(bottom.Value);
+            w.Write((byte)0);
+        }
+
+        w.Write((byte)0xFF);
         return ms.ToArray();
     }
 
@@ -340,6 +421,23 @@ public class DoomTextureCompositionTests
         {
             Insert(wad, "PLAYPAL", palBytes, 0);
             Insert(wad, patchName, patchBytes, 1);
+            wad.WriteHeaders();
+        }
+        wadBytes.Position = 0;
+        return new WAD(wadBytes, openreadonly: true);
+    }
+
+    private static WAD BuildPatchWad(params (string Name, byte[] Bytes)[] patches)
+    {
+        var palBytes = new byte[768];
+        for (int i = 0; i < 256; i++) { palBytes[i * 3] = (byte)i; palBytes[i * 3 + 1] = (byte)i; palBytes[i * 3 + 2] = (byte)i; }
+
+        var wadBytes = new MemoryStream();
+        using (var wad = new WAD(wadBytes))
+        {
+            Insert(wad, "PLAYPAL", palBytes, 0);
+            for (int i = 0; i < patches.Length; i++)
+                Insert(wad, patches[i].Name, patches[i].Bytes, i + 1);
             wad.WriteHeaders();
         }
         wadBytes.Position = 0;

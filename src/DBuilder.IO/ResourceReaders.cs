@@ -98,7 +98,15 @@ internal sealed class WadResourceReader : IResourceReader
         if (palette == null) return null;
         var defs = TexDefs();
         if (!defs.TryGetValue(name, out var def)) return GetTextureRangeImage(name, palette);
-        byte[]? rgba = DoomWallTextureCompositor.Compose(def, PatchNames(), wad, palette, FindPatchLump);
+        var config = configProvider();
+        byte[]? rgba = DoomWallTextureCompositor.Compose(
+            def,
+            PatchNames(),
+            wad,
+            palette,
+            FindPatchLump,
+            config?.FixNegativePatchOffsets ?? true,
+            config?.FixMaskedPatchOffsets ?? true);
         return rgba != null ? new ImageData(def.Width, def.Height, rgba) : null;
     }
 
@@ -717,24 +725,15 @@ internal abstract class FolderResourceReader : IResourceReader
         if (!ClassicTextureDefs().TryGetValue(name, out var def)) return null;
         if (def.Width <= 0 || def.Height <= 0 || def.Patches.Count == 0) return null;
 
-        var canvas = new byte[def.Width * def.Height * 4];
-        bool anyPatched = false;
         var pnames = ClassicPatchNames();
-
-        foreach (var patch in def.Patches)
-        {
-            if (patch.PatchIndex < 0 || patch.PatchIndex >= pnames.Length) continue;
-            string patchName = pnames[patch.PatchIndex];
-            if (string.IsNullOrEmpty(patchName)) continue;
-
-            var image = GetPatch(patchName, palette, includeMixedNamespaces: false);
-            if (image == null) continue;
-
-            BlitOpaque(canvas, def.Width, def.Height, image, patch.OriginX, patch.OriginY);
-            anyPatched = true;
-        }
-
-        return anyPatched ? new ImageData(def.Width, def.Height, canvas) : null;
+        var config = configProvider();
+        var canvas = DoomWallTextureCompositor.Compose(
+            def,
+            pnames,
+            patchName => GetPatch(patchName, palette, includeMixedNamespaces: false),
+            config?.FixNegativePatchOffsets ?? true,
+            config?.FixMaskedPatchOffsets ?? true);
+        return canvas != null ? new ImageData(def.Width, def.Height, canvas) : null;
     }
 
     private Dictionary<string, DoomTextureDef> ClassicTextureDefs()
@@ -757,30 +756,6 @@ internal abstract class FolderResourceReader : IResourceReader
         if (classicPatchNames != null) return classicPatchNames;
         classicPatchNames = GetPatchNames() ?? DoomPatchNames.Empty;
         return classicPatchNames;
-    }
-
-    private static void BlitOpaque(byte[] dst, int dstWidth, int dstHeight, ImageData src, int dstX, int dstY)
-    {
-        for (int sy = 0; sy < src.Height; sy++)
-        {
-            int y = dstY + sy;
-            if (y < 0 || y >= dstHeight) continue;
-
-            for (int sx = 0; sx < src.Width; sx++)
-            {
-                int x = dstX + sx;
-                if (x < 0 || x >= dstWidth) continue;
-
-                int si = (sy * src.Width + sx) * 4;
-                if (src.Rgba[si + 3] == 0) continue;
-
-                int di = (y * dstWidth + x) * 4;
-                dst[di] = src.Rgba[si];
-                dst[di + 1] = src.Rgba[si + 1];
-                dst[di + 2] = src.Rgba[si + 2];
-                dst[di + 3] = src.Rgba[si + 3];
-            }
-        }
     }
 
     private IEnumerable<string> LocalTextLumps(string name, bool partialTitleMatch)
