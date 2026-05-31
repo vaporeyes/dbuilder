@@ -917,6 +917,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
+  - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
 - [ ] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
 - [ ] Port `TagExplorer`.

@@ -178,4 +178,73 @@ public class SoundPropagationTests
 
         Assert.Equal(new[] { s[0] }, model.GetAffectedSectors(s[0]));
     }
+
+    [Fact]
+    public void LeakPathReturnsLineMidpointsThroughOneBlockingLine()
+    {
+        var (map, s) = Chain(3, new[] { false, true });
+        var sectors = new HashSet<Sector>(s, ReferenceEqualityComparer.Instance);
+
+        SoundLeakPath? path = SoundPropagation.FindLeakPath(
+            s[0],
+            new Vector2D(-32, 32),
+            s[2],
+            new Vector2D(96, 32),
+            sectors);
+
+        Assert.NotNull(path);
+        Assert.Equal(new[] { map.Linedefs[0], map.Linedefs[1] }, path.Linedefs);
+        Assert.Equal(new[] { map.Linedefs[1] }, path.BlockingLinedefs);
+        Assert.Equal(new Vector2D(-32, 32), path.Points[0]);
+        Assert.Equal(new Vector2D(0, 32), path.Points[1]);
+        Assert.Equal(new Vector2D(64, 32), path.Points[2]);
+        Assert.Equal(new Vector2D(96, 32), path.Points[3]);
+    }
+
+    [Fact]
+    public void LeakPathRejectsSecondBlockingLine()
+    {
+        var (_, s) = Chain(4, new[] { false, true, true });
+        var sectors = new HashSet<Sector>(s, ReferenceEqualityComparer.Instance);
+
+        SoundLeakPath? path = SoundPropagation.FindLeakPath(
+            s[0],
+            new Vector2D(-32, 32),
+            s[3],
+            new Vector2D(160, 32),
+            sectors);
+
+        Assert.Null(path);
+    }
+
+    [Fact]
+    public void LeakPathRejectsHeightBlockedLine()
+    {
+        var (_, s) = Chain(2, new[] { false });
+        s[1].FloorHeight = 128;
+        s[1].CeilHeight = 256;
+        var sectors = new HashSet<Sector>(s, ReferenceEqualityComparer.Instance);
+
+        SoundLeakPath? path = SoundPropagation.FindLeakPath(
+            s[0],
+            new Vector2D(-32, 32),
+            s[1],
+            new Vector2D(32, 32),
+            sectors);
+
+        Assert.Null(path);
+    }
+
+    [Fact]
+    public void LeakPathRequiresSourceAndDestinationInsideSectors()
+    {
+        var (_, s) = Chain(2, new[] { false });
+
+        Assert.Throws<ArgumentException>(() => SoundPropagation.FindLeakPath(
+            s[0],
+            new Vector2D(-32, 32),
+            s[1],
+            new Vector2D(32, 32),
+            new HashSet<Sector>(new[] { s[0] }, ReferenceEqualityComparer.Instance)));
+    }
 }
