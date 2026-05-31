@@ -968,6 +968,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio export settings, map-name validation, refmap hierarchy, and func/static writer helpers.
   - [x] Add UDB-style idStudio vertex, vector, plane, and brush entity formatting helpers.
   - [x] Add UDB-style idStudio floor and ceiling brush plane and texture-axis formatter.
+  - [x] Add UDB-style idStudio wall brush plane and texture projection formatter.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
 

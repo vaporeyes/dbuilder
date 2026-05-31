@@ -179,6 +179,35 @@ public sealed class IdStudioEntityBuilder
             texture.ToLowerInvariant());
     }
 
+    public void WriteWallPlane(
+        IdStudioPlane plane,
+        IdStudioExportSettings settings,
+        IdStudioVector horizontal,
+        IdStudioVertex start,
+        float drawHeight,
+        string texture,
+        float offsetX,
+        int textureWidth,
+        int textureHeight)
+    {
+        float xScale = 1.0f / textureWidth * settings.Downscale;
+        float yScale = 1.0f / textureHeight * settings.Downscale;
+        float projection = ((horizontal.X * start.X + horizontal.Y * start.Y) / horizontal.Magnitude() - offsetX) * xScale * -1;
+
+        builder.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "\t\t( {0} {1} {2} {3} ) ( ( {4} 0 {5} ) ( 0 {6} {7} ) ) \"art/wadtobrush/walls/{8}\" 0 0 0\n",
+            plane.Normal.X,
+            plane.Normal.Y,
+            plane.Normal.Z,
+            -plane.Distance,
+            xScale,
+            projection,
+            yScale,
+            drawHeight * yScale,
+            texture.ToLowerInvariant());
+    }
+
     public void EndBrushDef() => builder.Append("\t}\n}\n");
 
     public string Render() => LowercaseScientificNotation(builder.ToString());
@@ -256,6 +285,64 @@ public static class IdStudioBrushFormatter
         }
 
         builder.WriteFloorPlane(surface, settings, isCeiling, texture, textureWidth, textureHeight);
+        builder.EndBrushDef();
+        return builder.Render();
+    }
+
+    public static string BuildWallBrush(
+        IdStudioExportSettings settings,
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float minHeight,
+        float maxHeight,
+        float drawHeight,
+        string texture,
+        float offsetX,
+        int textureWidth,
+        int textureHeight)
+    {
+        if (maxHeight - minHeight < 0.0075f)
+        {
+            minHeight -= 100.0f / settings.Downscale;
+            maxHeight += 100.0f / settings.Downscale;
+        }
+
+        IdStudioPlane[] bounds = new IdStudioPlane[5];
+        IdStudioVector horizontal = new(start, end);
+        var surface = new IdStudioPlane();
+        surface.SetFrom(new IdStudioVector(horizontal.Y, -horizontal.X, 0), end);
+
+        bounds[0].Normal.X = -surface.Normal.X;
+        bounds[0].Normal.Y = -surface.Normal.Y;
+        bounds[0].Normal.Z = 0;
+
+        IdStudioVertex insetEnd = new(
+            bounds[0].Normal.X * 0.0075f + end.X,
+            bounds[0].Normal.Y * 0.0075f + end.Y);
+        bounds[0].Distance = bounds[0].Normal.X * insetEnd.X + bounds[0].Normal.Y * insetEnd.Y;
+
+        IdStudioVector deltaVector = new(end, insetEnd);
+        bounds[1].SetFrom(new IdStudioVector(deltaVector.Y, -deltaVector.X, 0), insetEnd);
+
+        bounds[2].Normal.X = -bounds[1].Normal.X;
+        bounds[2].Normal.Y = -bounds[1].Normal.Y;
+        bounds[2].Normal.Z = 0;
+        bounds[2].Distance = bounds[2].Normal.X * start.X + bounds[2].Normal.Y * start.Y;
+
+        bounds[3].Normal = new IdStudioVector(0, 0, 1);
+        bounds[3].Distance = maxHeight;
+
+        bounds[4].Normal = new IdStudioVector(0, 0, -1);
+        bounds[4].Distance = minHeight * -1;
+
+        var builder = new IdStudioEntityBuilder();
+        builder.BeginBrushDef();
+        foreach (IdStudioPlane bound in bounds)
+        {
+            builder.WriteCasterPlane(bound);
+        }
+
+        builder.WriteWallPlane(surface, settings, horizontal, start, drawHeight, texture, offsetX, textureWidth, textureHeight);
         builder.EndBrushDef();
         return builder.Render();
     }

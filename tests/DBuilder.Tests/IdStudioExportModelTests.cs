@@ -220,5 +220,61 @@ public class IdStudioExportModelTests
         Assert.Contains("( 0 0 -1 8 ) ( ( 0 -0.3125 -0.0625 ) ( -0.15625 0 0.0625 ) ) \"art/wadtobrush/flats/ceil5_2\" 0 0 0", brush);
     }
 
+    [Fact]
+    public void BuildWallBrushWritesUdbBoundsAndTextureProjection()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            MapName = "map01",
+            Downscale = 20
+        });
+
+        string brush = NormalizeLineEndings(IdStudioBrushFormatter.BuildWallBrush(
+            settings,
+            new IdStudioVertex(0, 0),
+            new IdStudioVertex(10, 0),
+            minHeight: 0,
+            maxHeight: 16,
+            drawHeight: 32,
+            texture: "STARTAN3",
+            offsetX: 2,
+            textureWidth: 64,
+            textureHeight: 128));
+
+        Assert.StartsWith("{\n\tbrushDef3 {\n", brush, StringComparison.Ordinal);
+        Assert.Contains("( -0 1 0 -0.0075 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 1 -0 0 -10 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( -1 0 0 -0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0 0 1 -16 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0 0 -1 0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0 -1 0 -0 ) ( ( 0.3125 0 0.625 ) ( 0 0.15625 5 ) ) \"art/wadtobrush/walls/startan3\" 0 0 0", brush);
+        Assert.EndsWith("\t}\n}\n", brush, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildWallBrushExpandsTooThinBrushHeights()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            MapName = "map01",
+            Downscale = 20
+        });
+
+        string brush = IdStudioBrushFormatter.BuildWallBrush(
+            settings,
+            new IdStudioVertex(0, 0),
+            new IdStudioVertex(10, 0),
+            minHeight: 10,
+            maxHeight: 10,
+            drawHeight: 16,
+            texture: "MID",
+            offsetX: 0,
+            textureWidth: 64,
+            textureHeight: 64);
+
+        Assert.Contains("( 0 0 1 -15 )", brush);
+        Assert.Contains("( 0 0 -1 5 )", brush);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }
