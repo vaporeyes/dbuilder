@@ -1027,6 +1027,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector selection and empty-map warning model for image export.
   - [x] Add UDB-style image export plugin setting keys, defaults, and write-back model.
 - [ ] Port Wavefront export tools.
+  - [x] Add UDB-style Wavefront export sector-selection preflight and empty-map warning model.
   - [x] Add UDB-style Wavefront export settings, validation, material naming, and OBJ coordinate formatting helpers.
   - [x] Add UDB-style Wavefront MTL, actor code, MODELDEF, and export path content builders.
   - [x] Add UDB-style Wavefront surface optimization and OBJ geometry assembly helpers.

@@ -67,6 +67,48 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void PrepareExportSelectionUsesWholeMapWhenNoSectorsAreSelected()
+    {
+        var map = new MapSet();
+        Sector first = AddSquareSector(map, 0);
+        Sector second = AddSquareSector(map, 128);
+
+        WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(map);
+
+        Assert.True(preflight.CanExport);
+        Assert.Null(preflight.Warning);
+        Assert.Equal(-1, preflight.DialogSectorCount);
+        Assert.Equal([first, second], preflight.Sectors);
+    }
+
+    [Fact]
+    public void PrepareExportSelectionConvertsSelectedGeometryToSectors()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0);
+        foreach (Linedef line in map.Linedefs) line.Selected = true;
+
+        WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(map);
+
+        Assert.True(preflight.CanExport);
+        Assert.Null(preflight.Warning);
+        Assert.Equal(1, preflight.DialogSectorCount);
+        Assert.Equal([sector], preflight.Sectors);
+        Assert.True(sector.Selected);
+    }
+
+    [Fact]
+    public void PrepareExportSelectionReportsUdbWarningForEmptyMaps()
+    {
+        WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(new MapSet());
+
+        Assert.False(preflight.CanExport);
+        Assert.Equal(-1, preflight.DialogSectorCount);
+        Assert.Equal(WavefrontExportPlanner.NoSectorsWarning, preflight.Warning);
+        Assert.Empty(preflight.Sectors);
+    }
+
+    [Fact]
     public void ValidateMatchesGzdoomActorAndSpriteRules()
     {
         IReadOnlyList<string> errors = WavefrontExportValidation.Validate(
@@ -467,4 +509,33 @@ public class WavefrontExportModelTests
 
     private static WavefrontSurfaceVertex Vertex(float x, float y, float z, float u, float v)
         => new(x, y, z, u, v, 0, -1, 0);
+
+    private static Sector AddSquareSector(MapSet map, double offsetX)
+    {
+        var sector = new Sector { Index = map.Sectors.Count };
+        var vertices = new[]
+        {
+            new Vertex(new Vector2D(offsetX + 64, 0)),
+            new Vertex(new Vector2D(offsetX, 0)),
+            new Vertex(new Vector2D(offsetX, 64)),
+            new Vertex(new Vector2D(offsetX + 64, 64)),
+        };
+
+        foreach (Vertex vertex in vertices) map.Vertices.Add(vertex);
+        map.Sectors.Add(sector);
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var line = new Linedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            var side = new Sidedef(line, true) { Sector = sector };
+            line.Front = side;
+            line.Start.Linedefs.Add(line);
+            line.End.Linedefs.Add(line);
+            sector.Sidedefs.Add(side);
+            map.Linedefs.Add(line);
+            map.Sidedefs.Add(side);
+        }
+
+        return sector;
+    }
 }

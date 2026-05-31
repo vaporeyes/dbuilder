@@ -30,6 +30,14 @@ public sealed record WavefrontExportOptions
     public bool Solid { get; init; }
 }
 
+public sealed record WavefrontExportPreflight(
+    IReadOnlyList<Sector> Sectors,
+    int DialogSectorCount,
+    string? Warning)
+{
+    public bool CanExport => Sectors.Count > 0;
+}
+
 public sealed class WavefrontExportSettings
 {
     public const string DefaultMaterial = "Default";
@@ -474,6 +482,20 @@ public static class WavefrontExportContent
 
 public static class WavefrontExportPlanner
 {
+    public const string NoSectorsWarning = "OBJ export failed. Map has no sectors!";
+
+    public static WavefrontExportPreflight PrepareExportSelection(MapSet map)
+    {
+        map.ConvertSelection(SelectionType.Sectors);
+
+        IReadOnlyList<Sector> sectors = map.SelectedSectorsCount == 0 ? map.Sectors : map.GetSelectedSectors();
+        if (sectors.Count == 0)
+            return new WavefrontExportPreflight(sectors, DialogSectorCount: -1, NoSectorsWarning);
+
+        int dialogSectorCount = map.SelectedSectorsCount == 0 ? -1 : sectors.Count;
+        return new WavefrontExportPreflight(sectors, dialogSectorCount, null);
+    }
+
     public static WavefrontImagePlan CreateImagePlan(
         WavefrontExportSettings settings,
         Func<string, WavefrontImageData?> getTexture,
