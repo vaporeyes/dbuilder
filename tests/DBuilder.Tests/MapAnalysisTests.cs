@@ -691,7 +691,11 @@ public class MapAnalysisTests
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
-        Assert.True(Has(map, ctx, MapIssueKind.UnknownAction));
+        issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownAction);
+        fix = Assert.Single(issue.Fixes);
+        Assert.Equal("Remove Action", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Equal(0, map.Linedefs[0].Action);
     }
 
     [Fact]
@@ -1073,7 +1077,11 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { SectorEffectKnown = effect => effect == 9 };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownSectorEffect);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(map.Sectors[0], issue.Target);
+        Assert.Equal("Remove Effect", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Equal(0, map.Sectors[0].Special);
     }
 
     [Fact]
@@ -1089,7 +1097,11 @@ public class MapAnalysisTests
         ctx = new MapCheckContext { ActionKnown = action => action == 80, CheckThingActions = true };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingAction);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
+        Assert.Equal("Remove Action", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Equal(0, thing.Action);
     }
 
     [Fact]

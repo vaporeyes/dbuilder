@@ -301,9 +301,8 @@ public static class MapAnalysis
             {
                 var l = map.Linedefs[i];
                 if (l.Action != 0 && !ctx.ActionKnown(l.Action))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction,
-                        $"Linedef {i} action {l.Action} is not in the game config.")
-                        { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+                    issues.Add(UnknownLinedefActionIssue(l,
+                        $"Linedef {i} action {l.Action} is not in the game config."));
             }
 
             if (ctx.CheckThingActions)
@@ -311,8 +310,8 @@ public static class MapAnalysis
                 {
                     var t = map.Things[i];
                     if (t.Action != 0 && !ctx.ActionKnown(t.Action))
-                        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction,
-                            $"Thing {i} action {t.Action} is not in the game config.") { Target = t, Focus = t.Position });
+                        issues.Add(UnknownThingActionIssue(t,
+                            $"Thing {i} action {t.Action} is not in the game config."));
                 }
         }
 
@@ -321,8 +320,8 @@ public static class MapAnalysis
             {
                 var s = map.Sectors[i];
                 if (s.Special != 0 && !ctx.SectorEffectKnown(s.Special))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect,
-                        $"Sector {i} effect {s.Special} is not in the game config.") { Target = s });
+                    issues.Add(UnknownSectorEffectIssue(s,
+                        $"Sector {i} effect {s.Special} is not in the game config."));
             }
 
         if (ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
@@ -424,6 +423,53 @@ public static class MapAnalysis
 
     private static Vector2D LinedefMidpoint(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
+
+    private static MapIssue UnknownLinedefActionIssue(Linedef line, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownAction, message)
+        {
+            Target = line,
+            Focus = LinedefMidpoint(line),
+            Fixes = new[]
+            {
+                new MapIssueFix("Remove Action", map =>
+                {
+                    if (!map.Linedefs.Contains(line)) return false;
+                    line.Action = 0;
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue UnknownThingActionIssue(Thing thing, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction, message)
+        {
+            Target = thing,
+            Focus = thing.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Remove Action", map =>
+                {
+                    if (!map.Things.Contains(thing)) return false;
+                    thing.Action = 0;
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue UnknownSectorEffectIssue(Sector sector, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect, message)
+        {
+            Target = sector,
+            Fixes = new[]
+            {
+                new MapIssueFix("Remove Effect", map =>
+                {
+                    if (!map.Sectors.Contains(sector)) return false;
+                    sector.Special = 0;
+                    return true;
+                }),
+            },
+        };
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
