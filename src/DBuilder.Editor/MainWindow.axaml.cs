@@ -2807,16 +2807,23 @@ public partial class MainWindow : Window
         int? target = sel.Count == 1 ? sel[0].Index : null;
 
         var win = new RejectExplorerWindow(validation, reject, _map.Sectors.Count, target);
-        win.SectorActivated += SelectOneSector;
+        win.SectorActivated += sectorIndex =>
+        {
+            SelectOneSector(sectorIndex);
+            if (reject is { HasData: true })
+                ApplyRejectOverlay(reject, sectorIndex);
+        };
         win.SelectNoLineOfSightRequested += () =>
         {
             if (reject != null && target is int highlighted)
                 SelectRejectedSectors(reject, highlighted);
         };
+        win.Closed += (_, _) => MapView.SetRejectOverlayColors(null);
         win.Show(this);
 
         if (reject is { HasData: true } && target is int selectedTarget)
         {
+            ApplyRejectOverlay(reject, selectedTarget);
             int count = SelectRejectedSectors(reject, selectedTarget);
             SetStatus($"{count} sector(s) are rejected (cannot see) from sector {selectedTarget}.");
         }
@@ -2828,6 +2835,13 @@ public partial class MainWindow : Window
         {
             SetStatus("Reject viewer opened. Select one sector before opening to highlight visibility relationships.");
         }
+    }
+
+    private void ApplyRejectOverlay(RejectTable reject, int? highlightedSector)
+    {
+        if (_map is null) return;
+        int[] colors = RejectExplorerModel.SectorOverlayColors(reject, _map.Sectors.Count, highlightedSector);
+        MapView.SetRejectOverlayColors(colors);
     }
 
     private int SelectRejectedSectors(RejectTable reject, int target)

@@ -89,4 +89,17 @@ public static class RejectExplorerModel
             _ => colors.Default,
         };
     }
+
+    public static int[] SectorOverlayColors(
+        RejectTable reject,
+        int sectorCount,
+        int? highlightedSector,
+        RejectExplorerColorSettings? colors = null)
+    {
+        var result = new int[sectorCount < 0 ? 0 : sectorCount];
+        for (int i = 0; i < result.Length; i++)
+            result[i] = ColorForRelation(RelationToHighlight(reject, i, highlightedSector), colors);
+
+        return result;
+    }
 }

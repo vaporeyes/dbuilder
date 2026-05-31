@@ -137,7 +137,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -249,6 +249,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _thingsFilterResult = null;
         _thingsFilterHidden.Clear();
         _geometryDirty = true;
+        _rejectOverlayDirty = true;
         _geo3DDirty = true;
         RequestNextFrameRendering();
     }
@@ -361,11 +362,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private GlVertexBuffer? _nodesVb;
     private GlVertexBuffer? _nodePolygonsVb;
+    private GlVertexBuffer? _rejectOverlayVb;
     private int _nodesLineCount;
     private int _nodePolygonTriCount;
+    private int _rejectOverlayTriCount;
     private bool _showNodes;
     private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
     private Vec2D[][] _nodePolygons = System.Array.Empty<Vec2D[]>();
+    private int[] _rejectOverlayColors = System.Array.Empty<int>();
+    private bool _rejectOverlayDirty;
 
     /// <summary>When true, overlays the BSP node partition lines (set via <see cref="SetNodeLines"/>).</summary>
     public bool ShowNodes
@@ -394,6 +399,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             for (int p = 0; p < polygons[i].Count; p++) _nodePolygons[i][p] = polygons[i][p];
         }
         _nodesDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    public void SetRejectOverlayColors(System.Collections.Generic.IReadOnlyList<int>? sectorColors)
+    {
+        if (sectorColors == null || sectorColors.Count == 0)
+        {
+            _rejectOverlayColors = System.Array.Empty<int>();
+        }
+        else
+        {
+            _rejectOverlayColors = new int[sectorColors.Count];
+            for (int i = 0; i < sectorColors.Count; i++) _rejectOverlayColors[i] = sectorColors[i];
+        }
+
+        _rejectOverlayDirty = true;
         RequestNextFrameRendering();
     }
     private enum DragKind { None, Pan, Move, Box }
@@ -610,6 +631,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _blockmapVb = new GlVertexBuffer(_gl);
         _nodesVb = new GlVertexBuffer(_gl);
         _nodePolygonsVb = new GlVertexBuffer(_gl);
+        _rejectOverlayVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -653,6 +675,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _blockmapVb?.Dispose();
         _nodesVb?.Dispose();
         _nodePolygonsVb?.Dispose();
+        _rejectOverlayVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
@@ -660,7 +683,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _nodePolygonsVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1447,6 +1470,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 _device.Draw(DBPrimitiveType.LineList, 0, _thingDirCount);
             }
 
+            DrawRejectOverlay();
+
             if (_selVertTris > 0 && _selVertsVb != null)
             {
                 _device.SetVertexBuffer(_selVertsVb);
@@ -2012,6 +2037,45 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ];
         return unchecked((int)colors[index % colors.Length]);
     }
+
+    private void DrawRejectOverlay()
+    {
+        if (_map == null || _device is null || _rejectOverlayVb is null) return;
+        if (_rejectOverlayDirty)
+        {
+            var verts = new System.Collections.Generic.List<FlatVertex>();
+            int count = Math.Min(_map.Sectors.Count, _rejectOverlayColors.Length);
+            for (int i = 0; i < count; i++)
+            {
+                Sector sector = _map.Sectors[i];
+                if (sector.Sidedefs.Count == 0) continue;
+                Triangulation tri;
+                try { tri = Triangulation.Create(sector); }
+                catch { continue; }
+
+                int color = WithAlpha(_rejectOverlayColors[i], 96);
+                foreach (Vec2D point in tri.Vertices)
+                    verts.Add(FV(point, color));
+            }
+
+            _device.SetBufferData(_rejectOverlayVb, verts.ToArray());
+            _rejectOverlayTriCount = verts.Count / 3;
+            _rejectOverlayDirty = false;
+        }
+
+        if (_rejectOverlayTriCount == 0) return;
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetAlphaBlendEnable(true);
+        _device.SetSourceBlend(Blend.SourceAlpha);
+        _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+        _device.SetVertexBuffer(_rejectOverlayVb);
+        _device.Draw(DBPrimitiveType.TriangleList, 0, _rejectOverlayTriCount);
+        _device.SetAlphaBlendEnable(false);
+    }
+
+    private static int WithAlpha(int argb, byte alpha)
+        => unchecked((int)(((uint)alpha << 24) | ((uint)argb & 0x00ffffffu)));
 
     private void DrawImageExample()
     {

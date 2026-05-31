@@ -183,7 +183,7 @@
       "udbPlugin": "RejectExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Reject table IO coverage exists, including UDB-style REJECT lump validation, highlighted-sector visibility relation classification for default, highlighted, bidirectional, and one-way overlay states, default overlay color settings and relation color mapping, and a non-modal editor window for validation, relation summaries, rejected-sector selection, and sector navigation. Full overlay rendering workflow and color configuration UI remain incomplete."
+      "notes": "Reject table IO coverage exists, including UDB-style REJECT lump validation, highlighted-sector visibility relation classification for default, highlighted, bidirectional, and one-way overlay states, default overlay color settings and relation color mapping, highlighted-sector overlay rendering, and a non-modal editor window for validation, relation summaries, rejected-sector selection, and sector navigation. Full color configuration UI and complete mode workflow remain incomplete."
     },
     {
       "udbPlugin": "SoundPropagationMode",

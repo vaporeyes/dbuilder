@@ -88,6 +88,22 @@ public sealed class RejectExplorerModelTests
         Assert.True(RejectExplorerModel.SectorHasLineOfSight(reject, 1, 0));
     }
 
+    [Fact]
+    public void SectorOverlayColorsFollowHighlightedRelations()
+    {
+        var reject = RejectTable.Parse(BuildReject(4, (0, 3), (2, 0)), 4);
+        var colors = new RejectExplorerColorSettings(
+            Default: 10,
+            Highlight: 20,
+            Bidirectional: 30,
+            UnidirectionalFrom: 40,
+            UnidirectionalTo: 50);
+
+        int[] overlay = RejectExplorerModel.SectorOverlayColors(reject, 4, 0, colors);
+
+        Assert.Equal(new[] { 20, 30, 40, 50 }, overlay);
+    }
+
     private static byte[] BuildReject(int sectorCount, params (int From, int To)[] rejected)
     {
         var bytes = new byte[RejectExplorerModel.ExpectedByteCount(sectorCount)];
