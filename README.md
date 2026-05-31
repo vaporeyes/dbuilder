@@ -38,7 +38,7 @@ The README screenshots use the checked-in images under `assets`. Replace those f
 
 ## License
 
-DBuilder is licensed under the GNU General Public License version 3, matching Ultimate Doom Builder. See [LICENSE.txt](LICENSE.txt).
+DBuilder is licensed under the GNU General Public License version 3. The checked-in [LICENSE.txt](LICENSE.txt) matches Ultimate Doom Builder's GPL-3.0 license text, and source files ported from Ultimate Doom Builder retain their upstream copyright and license notices.
 
 ## Build And Verify
 
