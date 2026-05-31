@@ -1,6 +1,8 @@
-// ABOUTME: Tests the vanilla NODES lump parser - partition line segments from 28-byte records.
+// ABOUTME: Tests the vanilla NODES lump parser and classic NodesViewer structure reader.
+// ABOUTME: Covers partition overlays, child flags, parent links, segs, vertices, and subsector links.
 
 using System;
+using System.Text;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
@@ -14,6 +16,56 @@ public class NodesReaderTests
         BitConverter.GetBytes(y).CopyTo(b, 2);
         BitConverter.GetBytes(dx).CopyTo(b, 4);
         BitConverter.GetBytes(dy).CopyTo(b, 6);
+        return b;
+    }
+
+    private static byte[] NodeRecord(
+        short x,
+        short y,
+        short dx,
+        short dy,
+        ushort rightChild,
+        ushort leftChild)
+    {
+        var b = Record(x, y, dx, dy);
+        BitConverter.GetBytes((short)10).CopyTo(b, 8);
+        BitConverter.GetBytes((short)-10).CopyTo(b, 10);
+        BitConverter.GetBytes((short)-20).CopyTo(b, 12);
+        BitConverter.GetBytes((short)20).CopyTo(b, 14);
+        BitConverter.GetBytes((short)30).CopyTo(b, 16);
+        BitConverter.GetBytes((short)-30).CopyTo(b, 18);
+        BitConverter.GetBytes((short)-40).CopyTo(b, 20);
+        BitConverter.GetBytes((short)40).CopyTo(b, 22);
+        BitConverter.GetBytes(rightChild).CopyTo(b, 24);
+        BitConverter.GetBytes(leftChild).CopyTo(b, 26);
+        return b;
+    }
+
+    private static byte[] SegRecord(ushort startVertex, ushort endVertex, short angle, ushort lineIndex, short side, short offset)
+    {
+        var b = new byte[12];
+        BitConverter.GetBytes(startVertex).CopyTo(b, 0);
+        BitConverter.GetBytes(endVertex).CopyTo(b, 2);
+        BitConverter.GetBytes(angle).CopyTo(b, 4);
+        BitConverter.GetBytes(lineIndex).CopyTo(b, 6);
+        BitConverter.GetBytes(side).CopyTo(b, 8);
+        BitConverter.GetBytes(offset).CopyTo(b, 10);
+        return b;
+    }
+
+    private static byte[] VertexRecord(short x, short y)
+    {
+        var b = new byte[4];
+        BitConverter.GetBytes(x).CopyTo(b, 0);
+        BitConverter.GetBytes(y).CopyTo(b, 2);
+        return b;
+    }
+
+    private static byte[] SubsectorRecord(ushort segCount, ushort firstSeg)
+    {
+        var b = new byte[4];
+        BitConverter.GetBytes(segCount).CopyTo(b, 0);
+        BitConverter.GetBytes(firstSeg).CopyTo(b, 2);
         return b;
     }
 
@@ -45,5 +97,91 @@ public class NodesReaderTests
     {
         Assert.Empty(NodesReader.Parse(System.Array.Empty<byte>()));
         Assert.Empty(NodesReader.Parse(new byte[10])); // less than one record
+    }
+
+    [Fact]
+    public void ClassicStructuresParseNodeChildrenAndParents()
+    {
+        var nodes = new byte[56];
+        NodeRecord(0, 0, 64, 0, 0x8002, 1).CopyTo(nodes, 0);
+        NodeRecord(10, 20, 0, -32, 0x8000, 0x8001).CopyTo(nodes, 28);
+
+        var result = NodesReader.ParseClassicStructures(
+            nodes,
+            SegRecord(0, 1, 0, 3, 1, -16),
+            VertexRecord(-128, 256),
+            SubsectorRecord(1, 0));
+
+        Assert.True(result.IsValid);
+        Assert.Equal(ClassicNodesStatus.Ok, result.Status);
+        Assert.Equal(2, result.Nodes.Count);
+        Assert.Equal(-1, result.Nodes[0].ParentIndex);
+        Assert.Equal(0, result.Nodes[1].ParentIndex);
+        Assert.Equal(2, result.Nodes[0].RightChildIndex);
+        Assert.True(result.Nodes[0].RightChildIsSubsector);
+        Assert.Equal(1, result.Nodes[0].LeftChildIndex);
+        Assert.False(result.Nodes[0].LeftChildIsSubsector);
+        Assert.Equal(new NodePartition(0, 0, 64, 0), result.Nodes[0].Partition);
+        Assert.Equal(new ClassicNodeBounds(10, -10, -20, 20), result.Nodes[0].RightBounds);
+        Assert.Equal(new ClassicNodeBounds(30, -30, -40, 40), result.Nodes[0].LeftBounds);
+    }
+
+    [Fact]
+    public void ClassicStructuresParseSegsVerticesAndSubsectorLinks()
+    {
+        var nodes = NodeRecord(0, 0, 64, 0, 0x8000, 0x8001);
+        var segs = new byte[36];
+        SegRecord(0, 1, 0, 3, 1, -16).CopyTo(segs, 0);
+        SegRecord(1, 2, 182, 4, 0, 24).CopyTo(segs, 12);
+        SegRecord(2, 0, -182, 5, 1, 48).CopyTo(segs, 24);
+        var vertices = new byte[12];
+        VertexRecord(-128, 256).CopyTo(vertices, 0);
+        VertexRecord(64, -32).CopyTo(vertices, 4);
+        VertexRecord(99, 101).CopyTo(vertices, 8);
+        var subsectors = new byte[8];
+        SubsectorRecord(2, 0).CopyTo(subsectors, 0);
+        SubsectorRecord(1, 2).CopyTo(subsectors, 4);
+
+        var result = NodesReader.ParseClassicStructures(nodes, segs, vertices, subsectors);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(3, result.Segs.Count);
+        Assert.Equal(0, result.Segs[0].SubsectorIndex);
+        Assert.Equal(0, result.Segs[1].SubsectorIndex);
+        Assert.Equal(1, result.Segs[2].SubsectorIndex);
+        Assert.Equal(Math.PI / 2, result.Segs[0].AngleRadians, precision: 6);
+        Assert.Equal(3, result.Segs[0].LineIndex);
+        Assert.True(result.Segs[0].LeftSide);
+        Assert.Equal(-16, result.Segs[0].Offset);
+        Assert.Equal(new ClassicNodeVertex(-128, 256), result.Vertices[0]);
+        Assert.Equal(new ClassicSubsector(2, 0), result.Subsectors[0]);
+    }
+
+    [Fact]
+    public void ClassicStructuresRejectUnsupportedCompressedHeaders()
+    {
+        byte[] nodes = Encoding.ASCII.GetBytes("ZNOD");
+
+        var result = NodesReader.ParseClassicStructures(
+            nodes,
+            SegRecord(0, 1, 0, 0, 0, 0),
+            VertexRecord(0, 0),
+            SubsectorRecord(1, 0));
+
+        Assert.False(result.IsValid);
+        Assert.Equal(ClassicNodesStatus.UnsupportedCompressedNodes, result.Status);
+    }
+
+    [Fact]
+    public void ClassicStructuresRejectInvalidSubsectorRanges()
+    {
+        var result = NodesReader.ParseClassicStructures(
+            NodeRecord(0, 0, 64, 0, 0x8000, 0x8001),
+            SegRecord(0, 1, 0, 0, 0, 0),
+            VertexRecord(0, 0),
+            SubsectorRecord(2, 0));
+
+        Assert.False(result.IsValid);
+        Assert.Equal(ClassicNodesStatus.InvalidSubsectorSegRange, result.Status);
     }
 }

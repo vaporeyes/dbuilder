@@ -887,6 +887,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
 - [ ] Port `NodesViewer`.
+  - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
 - [ ] Port `SoundPropagationMode`.
@@ -946,6 +947,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.
 - [ ] Port nodes viewer visualization.
+  - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
 - [ ] Port sound propagation mode behavior.

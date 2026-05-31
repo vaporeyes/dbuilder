@@ -167,7 +167,7 @@
       "udbPlugin": "NodesViewer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Nodebuilder lump validation and related IO helpers exist. Full NodesViewer visualization UI remains incomplete."
+      "notes": "Nodebuilder lump validation, related IO helpers, and UDB-style classic NODES/SEGS/VERTEXES/SSECTORS data parsing exist, including BSP child flags, parent links, seg angles, vertices, subsectors, and seg-to-subsector links. ZNODES support and full NodesViewer visualization UI remain incomplete."
     },
     {
       "udbPlugin": "RejectExplorer",
