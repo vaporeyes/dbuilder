@@ -1,0 +1,123 @@
+// ABOUTME: Tests config-aware tag search over direct tags and tag-typed action arguments.
+// ABOUTME: Covers the UDB behavior where action metadata determines whether args participate in tag tools.
+
+using System.Linq;
+using DBuilder.Geometry;
+using DBuilder.IO;
+using DBuilder.Map;
+
+namespace DBuilder.Tests;
+
+public class ConfiguredTagSearchTests
+{
+    private const string Cfg = """
+        formatinterface = "UniversalMapSetIO";
+        linedeftypes
+        {
+            tags
+            {
+                80
+                {
+                    title = "Tag args";
+                    arg0 { type = 13; }
+                    arg1 { type = 14; }
+                    arg2 { type = 15; }
+                    arg3 { type = 11; }
+                }
+            }
+        }
+        """;
+
+    [Fact]
+    public void FindSelectsTagTypedActionArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+
+        var result = ConfiguredTagSearch.Find(map, "17", config);
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.True(map.Things[0].Selected);
+        Assert.False(map.Linedefs[1].Selected);
+        Assert.False(map.Things[1].Selected);
+    }
+
+    [Fact]
+    public void UsedTagsIncludesTagTypedActionArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+
+        var stats = ConfiguredTagSearch.UsedTagStatistics(map, config);
+
+        var tag17 = stats.Single(t => t.Tag == 17);
+        Assert.Equal(0, tag17.Sectors);
+        Assert.Equal(1, tag17.Linedefs);
+        Assert.Equal(1, tag17.Things);
+        Assert.DoesNotContain(stats, t => t.Tag == 99);
+    }
+
+    [Fact]
+    public void ReplaceUpdatesTagTypedActionArgsOncePerElement()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Linedefs[0].Tag = 17;
+
+        int changed = ConfiguredTagSearch.Replace(map, "17", "23", config);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(23, map.Linedefs[0].Tag);
+        Assert.Equal(23, map.Linedefs[0].Args[0]);
+        Assert.Equal(23, map.Things[0].Args[1]);
+        Assert.Equal(99, map.Linedefs[1].Args[3]);
+    }
+
+    [Fact]
+    public void ConfigCapabilitiesSuppressUnsupportedDirectTagOwners()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "HexenMapSetIO";
+            linedeftypes { tags { 80 { title = "Tag args"; arg0 { type = 13; } } } }
+            """);
+        var map = BuildMap();
+        map.Linedefs[0].Tag = 17;
+        map.Linedefs[0].Args[0] = 0;
+        map.Things[0].Tag = 17;
+        map.Things[0].Args[1] = 0;
+
+        var result = ConfiguredTagSearch.Find(map, "17", config);
+
+        Assert.Equal(1, result.Count);
+        Assert.False(map.Linedefs[0].Selected);
+        Assert.True(map.Things[0].Selected);
+    }
+
+    private static MapSet BuildMap()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var v1 = map.AddVertex(new Vector2D(0, 0));
+        var v2 = map.AddVertex(new Vector2D(64, 0));
+        var v3 = map.AddVertex(new Vector2D(64, 64));
+        var line = map.AddLinedef(v1, v2);
+        line.Action = 80;
+        line.Args[0] = 17;
+        line.Args[1] = 41;
+        map.AddSidedef(line, true, sector);
+
+        var nonTagLine = map.AddLinedef(v2, v3);
+        nonTagLine.Action = 80;
+        nonTagLine.Args[3] = 99;
+
+        var thing = map.AddThing(new Vector2D(8, 8), 1);
+        thing.Action = 80;
+        thing.Args[1] = 17;
+        var otherThing = map.AddThing(new Vector2D(16, 16), 2);
+        otherThing.Action = 80;
+        otherThing.Args[3] = 17;
+        map.BuildIndexes();
+        return map;
+    }
+}
