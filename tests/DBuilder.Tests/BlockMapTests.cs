@@ -326,6 +326,32 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void AddThingIndexesEditorRadiusLikeVisualBlockMap()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var thing = new Thing(new Vector2D(63, 32), 3001) { Size = 8 };
+
+        bm.AddThing(thing);
+
+        Assert.Contains(thing, bm.GetThingsAt(0, 0));
+        Assert.Contains(thing, bm.GetThingsAt(1, 0));
+        Assert.Contains(thing, bm.GetThingsNear(new Vector2D(70, 32), 1));
+    }
+
+    [Fact]
+    public void AddThingCropsRadiusToExistingBlockMapRange()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var partiallyInside = new Thing(new Vector2D(-4, 32), 3001) { Size = 8 };
+        var outside = new Thing(new Vector2D(-32, 32), 3001) { Size = 8 };
+
+        bm.AddThings(new[] { partiallyInside, outside });
+
+        Assert.Contains(partiallyInside, bm.GetThingsAt(0, 0));
+        Assert.DoesNotContain(outside, bm.GetThingsAt(0, 0));
+    }
+
+    [Fact]
     public void AddMethodsIgnoreItemsOutsideExistingBlockMapRange()
     {
         var map = new MapSet();

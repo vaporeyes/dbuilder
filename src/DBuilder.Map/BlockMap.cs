@@ -309,11 +309,23 @@ public sealed class BlockMap
         foreach (var thing in things) AddThing(thing);
     }
 
-    /// <summary>Adds a thing to its containing block when it is inside the fixed blockmap range.</summary>
+    /// <summary>Adds a thing to every block overlapped by its editor radius when it intersects the fixed blockmap range.</summary>
     public void AddThing(Thing thing)
     {
-        var (col, row) = GetCellCoordinates(thing.Position);
-        if (IsCellInRange(col, row)) thingCells[Index(col, row)].Add(thing);
+        double size = Math.Max(0.0, thing.Size);
+        double minX = thing.Position.x - size;
+        double minY = thing.Position.y - size;
+        double maxX = thing.Position.x + size;
+        double maxY = thing.Position.y + size;
+        if (!BoxIntersectsRange(minX, minY, maxX, maxY)) return;
+
+        int cx0 = CellX(minX);
+        int cy0 = CellY(minY);
+        int cx1 = CellX(maxX);
+        int cy1 = CellY(maxY);
+        for (int cx = cx0; cx <= cx1; cx++)
+            for (int cy = cy0; cy <= cy1; cy++)
+                thingCells[Index(cx, cy)].Add(thing);
     }
 
     /// <summary>Nearest vertex to <paramref name="pos"/> within <paramref name="maxRange"/>, or null.</summary>
