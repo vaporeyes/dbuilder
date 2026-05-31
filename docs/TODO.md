@@ -958,6 +958,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
 - [ ] Port bridge mode.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
+  - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
 - [ ] Port slope arch tools.
   - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
 - [ ] Port make-door tools.

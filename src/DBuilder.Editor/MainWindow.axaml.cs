@@ -2501,6 +2501,12 @@ public partial class MainWindow : Window
         SetStatus($"Sound reaches {reach.Count} sector(s): {direct} direct, {viaBlock} via a sound-blocking line.");
     }
 
+    private void OnBuildBridge(object? sender, RoutedEventArgs e)
+    {
+        RunCursorEdit(MapView.BuildBridgeFromSelectedLinedefs());
+        UpdateCommandAvailability();
+    }
+
     private async void OnExportIdStudio(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
@@ -2966,12 +2972,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildStairsButton, ApplySlopesButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, BuildStairsButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,

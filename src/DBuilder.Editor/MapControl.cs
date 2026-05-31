@@ -2385,6 +2385,74 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private Vertex MaterializeVertex(Vec2D point)
         => _map!.NearestVertex(point, 0.01) ?? _map.AddVertex(point);
 
+    public string BuildBridgeFromSelectedLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+        var selected = _map.GetSelectedLinedefs();
+        if (selected.Count < 2) return "Select two matching linedef chains to build a bridge.";
+
+        BridgePlan? plan = BridgePlanner.TryCreate(selected);
+        if (plan == null) return "Select exactly two non-intersecting linedef chains with matching vertex counts.";
+        if (plan.Shapes.Count == 0) return "Selected linedefs did not produce bridge sectors.";
+
+        EditBegun?.Invoke("Build bridge");
+        var newSectors = new System.Collections.Generic.List<(Sector Sector, BridgeSectorProperties Properties)>();
+
+        foreach (BridgeShape shape in plan.Shapes)
+        {
+            var verts = new System.Collections.Generic.List<Vertex>(shape.Loop.Count);
+            for (int i = 0; i < shape.Loop.Count; i++)
+            {
+                if (i == shape.Loop.Count - 1 && SamePoint(shape.Loop[i], shape.Loop[0])) continue;
+                verts.Add(MaterializeVertex(shape.Loop[i]));
+            }
+
+            if (verts.Count < 3) continue;
+            Sector? sector = SectorBuilder.CreateSector(_map, verts);
+            if (sector == null) continue;
+
+            sector.FloorHeight = shape.Properties.FloorHeight;
+            sector.CeilHeight = Math.Max(shape.Properties.CeilingHeight, sector.FloorHeight + 8);
+            sector.Brightness = shape.Properties.Brightness;
+            ApplyNewSectorDefaults(sector);
+            newSectors.Add((sector, shape.Properties));
+        }
+
+        _map.MergeOverlappingVertices(0.01);
+        _map.SplitLinedefsAtVertices(0.5);
+        _map.BuildIndexes();
+
+        foreach ((Sector sector, BridgeSectorProperties properties) in newSectors)
+            ApplyBridgeTextures(sector, properties);
+
+        _map.ClearAllSelected();
+        foreach ((Sector sector, _) in newSectors) sector.Selected = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+
+        string status = $"built bridge with {newSectors.Count} sector{(newSectors.Count == 1 ? "" : "s")}";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    private static void ApplyBridgeTextures(Sector sector, BridgeSectorProperties properties)
+    {
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.LowRequired() && IsBlankTexture(side.LowTexture))
+                side.SetTextureLow(properties.LowTexture);
+            if (side.HighRequired() && IsBlankTexture(side.HighTexture))
+                side.SetTextureHigh(properties.HighTexture);
+
+            Sidedef? other = side.Other;
+            if (other == null) continue;
+            if (other.LowRequired() && IsBlankTexture(other.LowTexture))
+                other.SetTextureLow(properties.LowTexture);
+            if (other.HighRequired() && IsBlankTexture(other.HighTexture))
+                other.SetTextureHigh(properties.HighTexture);
+        }
+    }
+
     private void ApplyNewSectorDefaults(Sector? sector)
     {
         if (_map == null || sector == null || _gameConfig == null) return;
