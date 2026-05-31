@@ -1554,6 +1554,7 @@ public partial class MainWindow : Window
     private void OnInsertAtCursor(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.InsertAtCursor());
     private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
     private void OnDrawEllipse(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Ellipse, "ellipse");
+    private void OnDrawGrid(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Grid, "grid");
 
     private void RunCursorEdit(string status)
     {
@@ -2964,12 +2965,12 @@ public partial class MainWindow : Window
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
-            DrawRectangleMenuItem, DrawEllipseMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
+            DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
-            DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, CheckMapButton,
+            DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, BuildStairsButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
@@ -3011,6 +3012,7 @@ public partial class MainWindow : Window
         SetChecked(DrawCurveMenuItem, MapView.DrawMode && MapView.DrawCurve);
         SetChecked(DrawRectangleMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Rectangle);
         SetChecked(DrawEllipseMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Ellipse);
+        SetChecked(DrawGridMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Grid);
     }
 
     private static void SetEnabled(bool enabled, params Control[] controls)

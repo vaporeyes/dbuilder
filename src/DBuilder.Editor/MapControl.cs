@@ -198,8 +198,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _drawLineCount;
     private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
 
-    // Shape-draw tool: while active, a left-drag defines a bounding box that becomes a rectangle/ellipse sector.
-    public enum ShapeKind { None, Rectangle, Ellipse }
+    // Shape-draw tool: while active, a left-drag defines a bounding box that becomes generated geometry.
+    public enum ShapeKind { None, Rectangle, Ellipse, Grid }
     private ShapeKind _shapeKind = ShapeKind.None;
     private int _shapeSides = 24; // segments for the ellipse
     public ShapeKind CurrentShape => _shapeKind;
@@ -2298,12 +2298,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _moveVerts = null;
     }
 
-    // Builds a rectangle/ellipse sector inscribed in the dragged box (corners snapped to grid), undoable.
+    // Builds generated geometry inscribed in the dragged box (corners snapped to grid), undoable.
     private void CreateShapeFromBox(Vec2D a, Vec2D b)
     {
         if (_map == null) return;
         var p0 = SnapToGrid(a);
         var p1 = SnapToGrid(b);
+
+        if (_shapeKind == ShapeKind.Grid)
+        {
+            CreateDrawGridFromBox(p0, p1);
+            return;
+        }
+
         var loop = _shapeKind == ShapeKind.Rectangle
             ? ShapeGenerator.Rectangle(p0, p1)
             : ShapeGenerator.Ellipse(p0, p1, _shapeSides);
@@ -2323,6 +2330,60 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
     }
+
+    private void CreateDrawGridFromBox(Vec2D p0, Vec2D p1)
+    {
+        if (_map == null) return;
+
+        var plan = DrawGridPlanner.Create(p0, p1, new DrawGridPlanOptions
+        {
+            GridSize = _grid.GridSizeF,
+            GridSizeF = _grid.GridSizeF,
+        });
+        if (plan.Shapes.Count == 0) return;
+
+        EditBegun?.Invoke("Draw grid");
+        int sectorCount = 0;
+        int lineCount = 0;
+
+        foreach (var shape in plan.Shapes)
+        {
+            if (shape.Count < 2) continue;
+
+            if (shape.Count == 2)
+            {
+                var a = MaterializeVertex(shape[0]);
+                var b = MaterializeVertex(shape[1]);
+                if (!ReferenceEquals(a, b))
+                {
+                    _map.AddLinedef(a, b);
+                    lineCount++;
+                }
+                continue;
+            }
+
+            var verts = new System.Collections.Generic.List<Vertex>(shape.Count);
+            for (int i = 0; i < shape.Count; i++)
+            {
+                if (i == shape.Count - 1 && SamePoint(shape[i], shape[0])) continue;
+                verts.Add(MaterializeVertex(shape[i]));
+            }
+
+            if (verts.Count < 3) continue;
+            ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
+            sectorCount++;
+        }
+
+        _map.MergeOverlappingVertices(0.01);
+        _map.SplitLinedefsAtVertices(0.5);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke($"drew grid {plan.HorizontalSlices} x {plan.VerticalSlices}: {sectorCount} sector(s), {lineCount} line(s)");
+    }
+
+    private Vertex MaterializeVertex(Vec2D point)
+        => _map!.NearestVertex(point, 0.01) ?? _map.AddVertex(point);
 
     private void ApplyNewSectorDefaults(Sector? sector)
     {

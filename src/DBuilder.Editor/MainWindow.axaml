@@ -142,6 +142,7 @@
                 <MenuItem Header="Draw _Curve" x:Name="DrawCurveMenuItem" ToggleType="CheckBox" Click="OnDrawCurve" />
                 <MenuItem Header="Draw _Rectangle" x:Name="DrawRectangleMenuItem" ToggleType="CheckBox" Click="OnDrawRectangle" />
                 <MenuItem Header="Draw _Ellipse" x:Name="DrawEllipseMenuItem" ToggleType="CheckBox" Click="OnDrawEllipse" />
+                <MenuItem Header="Draw _Grid" x:Name="DrawGridMenuItem" ToggleType="CheckBox" Click="OnDrawGrid" />
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Check Map" x:Name="CheckMapMenuItem" Click="OnCheckMap" />
@@ -229,6 +230,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Draw Ellipse" x:Name="DrawEllipseButton" Click="OnDrawEllipse">
                     <PathIcon Data="M4,12 A8,6 0 1,1 20,12 A8,6 0 1,1 4,12" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Draw Grid" x:Name="DrawGridButton" Click="OnDrawGrid">
+                    <PathIcon Data="M5,5 L19,5 L19,19 L5,19 Z M10,5 L10,19 M14,5 L14,19 M5,10 L19,10 M5,14 L19,14" />
                 </Button>
                 <Border Classes="toolbarSeparator" />
                 <Button Classes="toolbarButton" ToolTip.Tip="Check Map" x:Name="CheckMapButton" Click="OnCheckMap">
