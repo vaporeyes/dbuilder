@@ -197,6 +197,43 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindAndReplaceLinedefFlags()
+    {
+        var map = Build();
+        map.Linedefs[0].SetFlag("blocking", true);
+        map.Linedefs[0].SetFlag("playeruse", true);
+        map.Linedefs[1].SetFlag("blocking", true);
+        map.Linedefs[1].SetFlag("playeruse", false);
+
+        SearchResult found = MapSearch.Find(map, FindCategory.LinedefFlags, "blocking, !playeruse");
+
+        Assert.Equal(1, found.Count);
+        Assert.True(map.Linedefs[1].Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.LinedefFlags, "blocking, !playeruse", "!blocking, monsteruse"));
+        Assert.False(map.Linedefs[1].IsFlagSet("blocking"));
+        Assert.True(map.Linedefs[1].IsFlagSet("monsteruse"));
+        Assert.True(map.Linedefs[0].IsFlagSet("blocking"));
+    }
+
+    [Fact]
+    public void FindAndReplaceSidedefFlags()
+    {
+        var map = Build();
+        map.Sidedefs[0].SetFlag("clipmidtex", true);
+        map.Sidedefs[1].SetFlag("clipmidtex", true);
+        map.Sidedefs[1].SetFlag("wrapmidtex", true);
+
+        SearchResult found = MapSearch.Find(map, FindCategory.SidedefFlags, "clipmidtex, !wrapmidtex");
+
+        Assert.Equal(1, found.Count);
+        Assert.True(map.Sidedefs[0].Line.Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SidedefFlags, "clipmidtex, !wrapmidtex", "!clipmidtex, wrapmidtex"));
+        Assert.False(map.Sidedefs[0].IsFlagSet("clipmidtex"));
+        Assert.True(map.Sidedefs[0].IsFlagSet("wrapmidtex"));
+        Assert.True(map.Sidedefs[1].IsFlagSet("clipmidtex"));
+    }
+
+    [Fact]
     public void FindUdmfFieldsSupportsKeyAndValueWildcards()
     {
         var map = Build();

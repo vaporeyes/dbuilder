@@ -32,6 +32,8 @@ public enum FindCategory
     SidedefMiddleTexture,
     SidedefLowerTexture,
     ThingAngle,
+    LinedefFlags,
+    SidedefFlags,
     AnyUdmfField,
     VertexUdmfField,
     LinedefUdmfField,
@@ -128,6 +130,11 @@ public static class MapSearch
                     if (matches > 0) { l.Selected = true; count += matches; focus ??= Mid(l); }
                 }
                 break;
+            case FindCategory.LinedefFlags:
+                if (TryParseFlagQuery(value, out var lineFlags))
+                    foreach (var l in map.Linedefs)
+                        if (FlagsMatch(l, lineFlags)) { l.Selected = true; count++; focus ??= Mid(l); }
+                break;
             case FindCategory.SidedefIndex:
                 if (numOk && num >= 0 && num < map.Sidedefs.Count)
                 {
@@ -146,6 +153,15 @@ public static class MapSearch
                         count += matches;
                     }
                 }
+                break;
+            case FindCategory.SidedefFlags:
+                if (TryParseFlagQuery(value, out var sideFlags))
+                    foreach (var sd in map.Sidedefs)
+                        if (FlagsMatch(sd, sideFlags))
+                        {
+                            if (sd.Line != null) { sd.Line.Selected = true; focus ??= Mid(sd.Line); }
+                            count++;
+                        }
                 break;
             case FindCategory.SectorEffect:
                 if (numOk) foreach (var s in map.Sectors) if (s.Special == num) { s.Selected = true; count++; }
@@ -266,6 +282,9 @@ public static class MapSearch
             return changed;
         }
 
+        if (cat == FindCategory.LinedefFlags || cat == FindCategory.SidedefFlags)
+            return ReplaceFlags(map, cat, find, replace);
+
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
         switch (cat)
@@ -299,6 +318,7 @@ public static class MapSearch
                     foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
         }
+
         return changed;
     }
 
@@ -385,6 +405,67 @@ public static class MapSearch
 
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+
+    private static bool TryParseFlagQuery(string input, out List<(string Flag, bool Set)> flags)
+    {
+        flags = new List<(string, bool)>();
+        foreach (string part in input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            bool set = true;
+            string flag = part;
+            if (flag.StartsWith("!", StringComparison.Ordinal))
+            {
+                set = false;
+                flag = flag[1..].Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(flag))
+                flags.Add((flag, set));
+        }
+
+        return flags.Count > 0;
+    }
+
+    private static bool FlagsMatch(Linedef line, IReadOnlyList<(string Flag, bool Set)> flags)
+    {
+        foreach (var flag in flags)
+            if (line.IsFlagSet(flag.Flag) != flag.Set) return false;
+        return true;
+    }
+
+    private static bool FlagsMatch(Sidedef side, IReadOnlyList<(string Flag, bool Set)> flags)
+    {
+        foreach (var flag in flags)
+            if (side.IsFlagSet(flag.Flag) != flag.Set) return false;
+        return true;
+    }
+
+    private static int ReplaceFlags(MapSet map, FindCategory category, string find, string replace)
+    {
+        if (!TryParseFlagQuery(find, out var findFlags) || !TryParseFlagQuery(replace, out var replaceFlags)) return 0;
+
+        int changed = 0;
+        if (category == FindCategory.LinedefFlags)
+        {
+            foreach (var line in map.Linedefs)
+            {
+                if (!FlagsMatch(line, findFlags)) continue;
+                foreach (var flag in replaceFlags) line.SetFlag(flag.Flag, flag.Set);
+                changed++;
+            }
+        }
+        else
+        {
+            foreach (var side in map.Sidedefs)
+            {
+                if (!FlagsMatch(side, findFlags)) continue;
+                foreach (var flag in replaceFlags) side.SetFlag(flag.Flag, flag.Set);
+                changed++;
+            }
+        }
+
+        return changed;
+    }
 
     private static int SelectUdmfFieldMatches<T>(IEnumerable<T> elements, string input, Action<T> select, Action<T> setFocus)
         where T : IFielded
