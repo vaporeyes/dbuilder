@@ -92,7 +92,7 @@
       "udbArea": "Source/Core/Rendering",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor;DBuilder.Map",
-      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, visual vertex handle model coverage for floor/ceiling height fallback and handle bounds, visual slope handle local mesh and placement-basis coverage, and UDMF comment icon render planning for linedefs, sectors, and things have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
+      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, visual vertex handle model coverage for floor/ceiling height fallback and handle bounds, visual slope handle local mesh and placement-basis coverage, UDMF comment icon render planning for linedefs, sectors, and things, and UDB-style pixel color and indexed color collection defaults have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Resources",

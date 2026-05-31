@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DBuilder.Geometry\DBuilder.Geometry.csproj" />
+    <ProjectReference Include="..\..\src\DBuilder.Rendering\DBuilder.Rendering.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.Map\DBuilder.Map.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.IO\DBuilder.IO.csproj" />
   </ItemGroup>
