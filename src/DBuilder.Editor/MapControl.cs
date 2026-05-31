@@ -360,9 +360,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     private GlVertexBuffer? _nodesVb;
+    private GlVertexBuffer? _nodePolygonsVb;
     private int _nodesLineCount;
+    private int _nodePolygonTriCount;
     private bool _showNodes;
     private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
+    private Vec2D[][] _nodePolygons = System.Array.Empty<Vec2D[]>();
 
     /// <summary>When true, overlays the BSP node partition lines (set via <see cref="SetNodeLines"/>).</summary>
     public bool ShowNodes
@@ -377,6 +380,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _nodeLines = new (Vec2D, Vec2D)[lines.Count];
         for (int i = 0; i < lines.Count; i++) _nodeLines[i] = lines[i];
+        _nodesDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    /// <summary>Supplies the NodesViewer subsector polygons used for the nodes overlay fill.</summary>
+    public void SetNodePolygons(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<Vec2D>> polygons)
+    {
+        _nodePolygons = new Vec2D[polygons.Count][];
+        for (int i = 0; i < polygons.Count; i++)
+        {
+            _nodePolygons[i] = new Vec2D[polygons[i].Count];
+            for (int p = 0; p < polygons[i].Count; p++) _nodePolygons[i][p] = polygons[i][p];
+        }
         _nodesDirty = true;
         RequestNextFrameRendering();
     }
@@ -593,6 +609,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _gridVb = new GlVertexBuffer(_gl);
         _blockmapVb = new GlVertexBuffer(_gl);
         _nodesVb = new GlVertexBuffer(_gl);
+        _nodePolygonsVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -635,6 +652,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _gridVb?.Dispose();
         _blockmapVb?.Dispose();
         _nodesVb?.Dispose();
+        _nodePolygonsVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
@@ -642,7 +660,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _nodePolygonsVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1932,10 +1950,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.Draw(DBPrimitiveType.LineList, 0, _blockmapLineCount);
     }
 
-    // Draws the BSP node partition lines (set via SetNodeLines) as a green overlay.
+    // Draws classic NodesViewer subsector fills and BSP partition lines as a green overlay.
     private void DrawNodes()
     {
-        if (!_showNodes || _device is null || _nodesVb is null || _nodeLines.Length == 0) return;
+        if (!_showNodes || _device is null || _nodesVb is null || _nodePolygonsVb is null) return;
 
         if (_nodesDirty)
         {
@@ -1944,14 +1962,55 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             foreach (var (a, b) in _nodeLines) { verts.Add(FV(a, col)); verts.Add(FV(b, col)); }
             _device.SetBufferData(_nodesVb, verts.ToArray());
             _nodesLineCount = verts.Count / 2;
+
+            var polys = new System.Collections.Generic.List<FlatVertex>();
+            for (int i = 0; i < _nodePolygons.Length; i++)
+            {
+                Vec2D[] poly = _nodePolygons[i];
+                if (poly.Length < 3) continue;
+
+                int c = NodePolygonColor(i);
+                for (int p = 1; p < poly.Length - 1; p++)
+                {
+                    polys.Add(FV(poly[0], c));
+                    polys.Add(FV(poly[p], c));
+                    polys.Add(FV(poly[p + 1], c));
+                }
+            }
+            _device.SetBufferData(_nodePolygonsVb, polys.ToArray());
+            _nodePolygonTriCount = polys.Count / 3;
             _nodesDirty = false;
         }
-        if (_nodesLineCount == 0) return;
 
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
+        if (_nodePolygonTriCount > 0)
+        {
+            _device.SetAlphaBlendEnable(true);
+            _device.SetSourceBlend(Blend.SourceAlpha);
+            _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+            _device.SetVertexBuffer(_nodePolygonsVb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, _nodePolygonTriCount);
+            _device.SetAlphaBlendEnable(false);
+        }
+        if (_nodesLineCount == 0) return;
+
         _device.SetVertexBuffer(_nodesVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _nodesLineCount);
+    }
+
+    private static int NodePolygonColor(int index)
+    {
+        ReadOnlySpan<uint> colors =
+        [
+            0x403060ffu,
+            0x4020dc20u,
+            0x40d09030u,
+            0x4080ffffu,
+            0x40ff6060u,
+            0x40c060ffu,
+        ];
+        return unchecked((int)colors[index % colors.Length]);
     }
 
     private void DrawImageExample()

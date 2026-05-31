@@ -1992,15 +1992,35 @@ public partial class MainWindow : Window
         if (MapView.ShowNodes) { MapView.ShowNodes = false; SetStatus("Nodes overlay off."); return; }
         if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes overlay needs the source WAD."); return; }
 
+        ClassicNodesStructure structure = ReadClassicNodesStructure();
+        if (structure.IsValid)
+        {
+            var lines = new List<(Vector2D, Vector2D)>(structure.Nodes.Count);
+            foreach (ClassicNode node in structure.Nodes)
+                lines.Add((new Vector2D(node.Partition.X1, node.Partition.Y1), new Vector2D(node.Partition.X2, node.Partition.Y2)));
+
+            IReadOnlyList<ClassicSubsectorPolygon> polygons = NodesReader.BuildClassicSubsectorPolygons(structure, 32767);
+            var overlayPolygons = new List<IReadOnlyList<Vector2D>>(polygons.Count);
+            foreach (ClassicSubsectorPolygon polygon in polygons)
+                overlayPolygons.Add(polygon.Points);
+
+            MapView.SetNodeLines(lines);
+            MapView.SetNodePolygons(overlayPolygons);
+            MapView.ShowNodes = true;
+            SetStatus($"Nodes overlay on: {lines.Count} BSP split(s), {overlayPolygons.Count} subsector polygon(s).");
+            return;
+        }
+
         byte[]? bytes;
         using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "NODES");
         var parts = NodesReader.Parse(bytes ?? Array.Empty<byte>());
-        if (parts.Count == 0) { SetStatus("No vanilla NODES data (none built, or ZDoom/GL nodes)."); return; }
+        if (parts.Count == 0) { SetStatus($"Nodes overlay unavailable: {structure.Status}."); return; }
 
-        var lines = new List<(DBuilder.Geometry.Vector2D, DBuilder.Geometry.Vector2D)>(parts.Count);
+        var fallbackLines = new List<(Vector2D, Vector2D)>(parts.Count);
         foreach (var p in parts)
-            lines.Add((new DBuilder.Geometry.Vector2D(p.X1, p.Y1), new DBuilder.Geometry.Vector2D(p.X2, p.Y2)));
-        MapView.SetNodeLines(lines);
+            fallbackLines.Add((new Vector2D(p.X1, p.Y1), new Vector2D(p.X2, p.Y2)));
+        MapView.SetNodeLines(fallbackLines);
+        MapView.SetNodePolygons(Array.Empty<IReadOnlyList<Vector2D>>());
         MapView.ShowNodes = true;
         SetStatus($"Nodes overlay on: {parts.Count} BSP partition line(s).");
     }
