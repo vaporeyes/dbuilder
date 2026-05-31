@@ -895,6 +895,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
 - [ ] Port `StairSectorBuilder`.
+  - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
 - [ ] Port `TagRange`.
@@ -961,6 +962,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
 - [ ] Port stair sector builder mode and form behavior.
+  - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
 - [ ] Port tag range tools.

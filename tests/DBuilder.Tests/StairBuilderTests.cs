@@ -1,6 +1,8 @@
-// ABOUTME: Tests StairBuilder stepping floor heights across sectors, with and without ceiling movement.
+// ABOUTME: Tests StairBuilder stepping floor heights and UDB-style option application.
+// ABOUTME: Covers independent height bases, flat changes, wall texture filling, and unpegged flags.
 
 using System.Collections.Generic;
+using DBuilder.Geometry;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -83,5 +85,114 @@ public class StairBuilderTests
         Assert.Equal(48, s[1].FloorHeight);
         Assert.Equal(128, s[0].CeilHeight);
         Assert.Equal(128, s[1].CeilHeight);
+    }
+
+    [Fact]
+    public void OptionsUseOneBasedStepCountersWithGlobalBaseHeights()
+    {
+        var s = Sectors(3);
+
+        StairBuilder.Apply(s, new StairBuilderOptions
+        {
+            FloorBase = 0,
+            FloorStep = 8,
+            ApplyCeilingHeight = true,
+            CeilingBase = 128,
+            CeilingStep = 4
+        });
+
+        Assert.Equal(new[] { 8, 16, 24 }, s.ConvertAll(sector => sector.FloorHeight));
+        Assert.Equal(new[] { 132, 136, 140 }, s.ConvertAll(sector => sector.CeilHeight));
+    }
+
+    [Fact]
+    public void OptionsCanUseDistinctExistingBaseHeights()
+    {
+        var s = Sectors(2);
+        s[0].FloorHeight = 16;
+        s[1].FloorHeight = 48;
+        s[0].CeilHeight = 128;
+        s[1].CeilHeight = 192;
+
+        StairBuilder.Apply(s, new StairBuilderOptions
+        {
+            FloorStep = 8,
+            ApplyCeilingHeight = true,
+            CeilingStep = -4,
+            DistinctBaseHeights = true
+        });
+
+        Assert.Equal(new[] { 24, 64 }, s.ConvertAll(sector => sector.FloorHeight));
+        Assert.Equal(new[] { 124, 184 }, s.ConvertAll(sector => sector.CeilHeight));
+    }
+
+    [Fact]
+    public void OptionsApplyFloorAndCeilingFlats()
+    {
+        var s = Sectors(2);
+
+        StairBuilder.Apply(s, new StairBuilderOptions
+        {
+            FloorStep = 0,
+            ApplyFloorTexture = true,
+            FloorTexture = "STEP1",
+            ApplyCeilingTexture = true,
+            CeilingTexture = "CEIL1"
+        });
+
+        Assert.All(s, sector => Assert.Equal("STEP1", sector.FloorTexture));
+        Assert.All(s, sector => Assert.Equal("CEIL1", sector.CeilTexture));
+    }
+
+    [Fact]
+    public void OptionsFillRequiredUpperLowerTexturesAndSetUnpeggedFlags()
+    {
+        var map = new MapSet();
+        Sector front = map.AddSector();
+        Sector back = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 128;
+        back.FloorHeight = 16;
+        back.CeilHeight = 96;
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Sidedef frontSide = map.AddSidedef(line, true, front);
+        Sidedef backSide = map.AddSidedef(line, false, back);
+        map.BuildIndexes();
+
+        StairBuilder.Apply(new[] { front }, new StairBuilderOptions
+        {
+            FloorStep = 0,
+            ApplyUpperTexture = true,
+            UpperTexture = "UPPER",
+            UpperUnpegged = true,
+            ApplyLowerTexture = true,
+            LowerTexture = "LOWER",
+            LowerUnpegged = true
+        });
+
+        Assert.Equal("UPPER", frontSide.HighTexture);
+        Assert.Equal("-", backSide.HighTexture);
+        Assert.Equal("LOWER", frontSide.LowTexture);
+        Assert.Equal("-", backSide.LowTexture);
+        Assert.Equal(StairBuilder.DefaultUpperUnpeggedBit | StairBuilder.DefaultLowerUnpeggedBit, line.Flags);
+    }
+
+    [Fact]
+    public void OptionsFillRequiredMiddleTextureOnOneSidedLines()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Sidedef side = map.AddSidedef(line, true, sector);
+        map.BuildIndexes();
+
+        StairBuilder.Apply(new[] { sector }, new StairBuilderOptions
+        {
+            FloorStep = 0,
+            ApplyMiddleTexture = true,
+            MiddleTexture = "MID"
+        });
+
+        Assert.Equal("MID", side.MidTexture);
     }
 }

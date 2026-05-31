@@ -190,7 +190,7 @@
       "udbPlugin": "StairSectorBuilder",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map;DBuilder.Editor",
-      "notes": "Stair building helpers and editor command surfaces exist. Full StairSectorBuilder plugin parity remains incomplete."
+      "notes": "Stair building helpers, editor command surfaces, and UDB-style accept-path option application exist for one-based height stepping, distinct base heights, flats, required wall texture filling, and upper/lower unpegged flags. Full generated stair geometry, form UI, prefabs, and preview workflow remain incomplete."
     },
     {
       "udbPlugin": "TagExplorer",
