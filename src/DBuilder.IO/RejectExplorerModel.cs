@@ -29,8 +29,22 @@ public sealed record RejectExplorerValidation(
     public bool CanUse => Status is RejectExplorerValidationStatus.Valid or RejectExplorerValidationStatus.TooLarge;
 }
 
+public sealed record RejectExplorerColorSettings(
+    int Default,
+    int Highlight,
+    int Bidirectional,
+    int UnidirectionalFrom,
+    int UnidirectionalTo);
+
 public static class RejectExplorerModel
 {
+    public static RejectExplorerColorSettings DefaultColors { get; } = new(
+        Default: unchecked((int)0xFFA0A0A0),
+        Highlight: unchecked((int)0xFF00C000),
+        Bidirectional: unchecked((int)0xFF00A000),
+        UnidirectionalFrom: unchecked((int)0xFFA0A000),
+        UnidirectionalTo: unchecked((int)0xFFA000A0));
+
     public static int ExpectedByteCount(int sectorCount)
         => sectorCount <= 0 ? 0 : (sectorCount * sectorCount + 7) / 8;
 
@@ -61,5 +75,18 @@ public static class RejectExplorerModel
         if (fromHighlighted) return RejectExplorerRelation.UnidirectionalFrom;
         if (toHighlighted) return RejectExplorerRelation.UnidirectionalTo;
         return RejectExplorerRelation.Default;
+    }
+
+    public static int ColorForRelation(RejectExplorerRelation relation, RejectExplorerColorSettings? colors = null)
+    {
+        colors ??= DefaultColors;
+        return relation switch
+        {
+            RejectExplorerRelation.Highlight => colors.Highlight,
+            RejectExplorerRelation.Bidirectional => colors.Bidirectional,
+            RejectExplorerRelation.UnidirectionalFrom => colors.UnidirectionalFrom,
+            RejectExplorerRelation.UnidirectionalTo => colors.UnidirectionalTo,
+            _ => colors.Default,
+        };
     }
 }

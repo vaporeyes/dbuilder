@@ -7,6 +7,35 @@ namespace DBuilder.Tests;
 
 public sealed class RejectExplorerModelTests
 {
+    [Fact]
+    public void DefaultColorsMatchUdbRejectExplorerDefaults()
+    {
+        RejectExplorerColorSettings colors = RejectExplorerModel.DefaultColors;
+
+        Assert.Equal(unchecked((int)0xFFA0A0A0), colors.Default);
+        Assert.Equal(unchecked((int)0xFF00C000), colors.Highlight);
+        Assert.Equal(unchecked((int)0xFF00A000), colors.Bidirectional);
+        Assert.Equal(unchecked((int)0xFFA0A000), colors.UnidirectionalFrom);
+        Assert.Equal(unchecked((int)0xFFA000A0), colors.UnidirectionalTo);
+    }
+
+    [Fact]
+    public void ColorForRelationUsesConfiguredColors()
+    {
+        var colors = new RejectExplorerColorSettings(
+            Default: 1,
+            Highlight: 2,
+            Bidirectional: 3,
+            UnidirectionalFrom: 4,
+            UnidirectionalTo: 5);
+
+        Assert.Equal(1, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.Default, colors));
+        Assert.Equal(2, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.Highlight, colors));
+        Assert.Equal(3, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.Bidirectional, colors));
+        Assert.Equal(4, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.UnidirectionalFrom, colors));
+        Assert.Equal(5, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.UnidirectionalTo, colors));
+    }
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 1)]

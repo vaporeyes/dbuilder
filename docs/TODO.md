@@ -913,6 +913,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
+  - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
@@ -1047,6 +1048,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
+  - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add non-modal Reject Explorer validation and relation summary window.
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.

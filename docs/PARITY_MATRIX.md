@@ -45,7 +45,7 @@ Status values:
 | `CommentsPanel` | partial | `DBuilder.Editor`, `DBuilder.Map` | Comment grouping, current-mode filtering, set/remove helpers, selection targets, edit targets with sidedef-to-linedef conversion, padded view-area calculation, and a non-modal comments panel exist. Full docked UI, live selection wiring, and rendering integration remain missing. |
 | `ImageDrawingExample` | partial | `DBuilder.Editor` | Built-in image-example mode renders an overlay-only screen-space image. Full sample plugin loading remains missing. |
 | `NodesViewer` | partial | `DBuilder.Editor`, `DBuilder.IO` | Classic node data parsing, ZNODES payload extraction, and a non-modal Nodes Viewer summary window exist. Full ZNODES structure parsing and visualization UI remain missing. |
-| `RejectExplorer` | partial | `DBuilder.IO` | Reject table logic exists. Explorer UI missing. |
+| `RejectExplorer` | partial | `DBuilder.Editor`, `DBuilder.IO` | REJECT validation, visibility relation classification, default overlay colors, relation color mapping, and a non-modal Reject Explorer summary window exist. Full overlay rendering workflow and color configuration UI remain missing. |
 | `SoundPropagationMode` | partial | `DBuilder.Map` | Sound propagation helper exists. Full mode UI missing. |
 | `StairSectorBuilder` | partial | `DBuilder.Map`, `DBuilder.Editor` | Stair builder helper and dialog exist. Full plugin parity unknown. |
 | `TagExplorer` | partial | `DBuilder.Editor` | Tag list window exists. Full explorer behavior missing. |
