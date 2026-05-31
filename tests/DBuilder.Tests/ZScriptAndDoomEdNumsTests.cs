@@ -236,7 +236,7 @@ class AfterMissingBody : Actor { Default { Radius 128; } }";
     }
 
     [Fact]
-    public void KeepsFirstZScriptActorWhenClassIsDuplicated()
+    public void RejectsDuplicateZScriptClassDefinitions()
     {
         const string text = @"
 class DuplicateZThing : Actor
@@ -248,10 +248,7 @@ class DuplicateZThing : Actor
     Default { Radius 64; }
 }";
 
-        var actor = Assert.Single(ZScriptParser.Parse(text));
-
-        Assert.Equal("DuplicateZThing", actor.ClassName);
-        Assert.Equal(16, actor.Radius);
+        Assert.Empty(ZScriptParser.Parse(text));
     }
 
     [Fact]

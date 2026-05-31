@@ -215,7 +215,12 @@ public static class DecorateParser
                         list.Add(parsed);
                     }
                     else if (classKind == ZScriptClassKind.Mixin) mixins[parsed.ClassName] = parsed;
-                    else if (!ContainsActorClass(actors, parsed.ClassName)) actors.Add(parsed);
+                    else if (ContainsActorClass(actors, parsed.ClassName))
+                    {
+                        actors.Clear();
+                        break;
+                    }
+                    else actors.Add(parsed);
                 }
                 else
                 {

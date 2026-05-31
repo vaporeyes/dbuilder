@@ -486,6 +486,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB mixin behavior by not copying `user_` field defaults from mixins.
   - [x] Preserve explicit zero ZScript size defaults when applying mixins.
   - [x] Apply explicit zero ZScript extension size defaults.
+  - [x] Reject duplicate ZScript class definitions.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Avoid using placeholder-only state sprites as actor editor previews.
