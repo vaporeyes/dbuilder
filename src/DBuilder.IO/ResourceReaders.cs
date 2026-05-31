@@ -160,7 +160,66 @@ internal sealed class WadResourceReader : IResourceReader
             }
         }
 
-        return strictPatches ? null : wad.FindLump(name);
+        if (strictPatches) return null;
+
+        var flatRanges = ConfiguredFlatRanges();
+        if (flatRanges.Count == 0) return wad.FindLump(name);
+
+        var flatRangeIndices = ResolveRanges(flatRanges);
+        var outsideFlatRanges = FindOutsideRanges(name, flatRangeIndices);
+        if (outsideFlatRanges != null) return outsideFlatRanges;
+
+        return FindInsideRanges(name, flatRangeIndices);
+    }
+
+    private List<(int Start, int End)> ResolveRanges(IReadOnlyList<ResourceRangeInfo> ranges)
+    {
+        var result = new List<(int Start, int End)>();
+        foreach (var range in ranges)
+        {
+            int start = wad.FindLumpIndex(range.Start);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(range.End, start + 1);
+                if (end < 0) break;
+                result.Add((start, end));
+                start = wad.FindLumpIndex(range.Start, end + 1);
+            }
+        }
+
+        return result;
+    }
+
+    private Lump? FindOutsideRanges(string name, IReadOnlyList<(int Start, int End)> ranges)
+    {
+        int index = wad.FindLumpIndex(name);
+        while (index >= 0)
+        {
+            if (!IsInsideAnyRange(index, ranges)) return wad.Lumps[index];
+            index = wad.FindLumpIndex(name, index + 1);
+        }
+
+        return null;
+    }
+
+    private Lump? FindInsideRanges(string name, IReadOnlyList<(int Start, int End)> ranges)
+    {
+        foreach (var (start, end) in ranges)
+        {
+            var lump = wad.FindLump(name, start, end);
+            if (lump != null) return lump;
+        }
+
+        return null;
+    }
+
+    private static bool IsInsideAnyRange(int index, IReadOnlyList<(int Start, int End)> ranges)
+    {
+        foreach (var (start, end) in ranges)
+            if (index > start && index < end)
+                return true;
+
+        return false;
     }
 
     private Dictionary<string, DoomTextureDef> TexDefs()

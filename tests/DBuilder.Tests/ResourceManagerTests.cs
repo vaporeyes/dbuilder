@@ -326,6 +326,33 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadPatchFallbackPrefersLumpsOutsideConfiguredFlatRanges()
+    {
+        var config = GameConfiguration.FromText("""
+            flats
+            {
+                map { start = "F_START"; end = "F_END"; }
+            }
+            """);
+        string wadPath = TestArtifacts.BuildPwadFile(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("PNAMES", PNames("PATCH")),
+            ("TEXTURE1", Texture1(("UNUSED", 1, 1, 0), ("WALL", 1, 1, 0))),
+            ("F_START", Array.Empty<byte>()),
+            ("PATCH", SolidFlat(1)),
+            ("F_END", Array.Empty<byte>()),
+            ("PATCH", DoomPatch(70)));
+        try
+        {
+            using var rm = new ResourceManager(config);
+            rm.AddResource(wadPath);
+
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("WALL")!.Rgba[0..4]);
+        }
+        finally { File.Delete(wadPath); }
+    }
+
+    [Fact]
     public void ResolvesMainColormapNewestResourceFirst()
     {
         using var lower = BuildWad(("COLORMAP", ColormapBytes(1)));
