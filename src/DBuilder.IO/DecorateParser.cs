@@ -202,6 +202,11 @@ public static class DecorateParser
                     if (parsed == null) continue;
                     if (classKind == ZScriptClassKind.Extension)
                     {
+                        if (!ContainsActorClass(actors, parsed.ClassName))
+                        {
+                            actors.Clear();
+                            break;
+                        }
                         if (!extensions.TryGetValue(parsed.ClassName, out var list))
                         {
                             list = new List<ActorInfo>();

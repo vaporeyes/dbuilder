@@ -811,6 +811,24 @@ class SpriteChildZThing : SpriteParentZThing
     }
 
     [Fact]
+    public void RejectsZScriptExtensionBeforeTargetClass()
+    {
+        const string zscript = @"
+extend class OutOfOrderExtensionThing
+{
+    States { Spawn: EXTO A -1; Stop; }
+}
+class OutOfOrderExtensionThing : Actor
+{
+    States { Spawn: BASE A -1; Stop; }
+}";
+
+        var actors = ZScriptParser.Parse(zscript);
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
     public void DoesNotResolveZScriptGotoWithoutRequiredSemicolon()
     {
         const string zscript = @"
@@ -1142,7 +1160,8 @@ mixin class HelperMixin
 {
     Default { Radius 64; }
 }
-extend class DoomImp
+class ExtensionTarget;
+extend class ExtensionTarget
 {
     Default { Radius 96; }
 }
