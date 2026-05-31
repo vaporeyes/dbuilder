@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using DBuilder.Map;
 
@@ -74,6 +75,18 @@ public sealed class Settings
         RecentMaps.Insert(0, entry);
         int maxRecent = NormalizedMaxRecentFiles;
         if (RecentMaps.Count > maxRecent) RecentMaps.RemoveRange(maxRecent, RecentMaps.Count - maxRecent);
+    }
+
+    public IReadOnlyList<string> ExistingRecentFiles(Func<string, bool> fileExists)
+    {
+        RecentFiles ??= new();
+        return RecentFiles.Where(fileExists).ToArray();
+    }
+
+    public IReadOnlyList<RecentMapReference> ExistingRecentMaps(Func<string, bool> fileExists)
+    {
+        RecentMaps ??= new();
+        return RecentMaps.Where(map => fileExists(map.Path)).ToArray();
     }
 
     /// <summary>Default settings file location: &lt;app-data&gt;/DBuilder/settings.json.</summary>

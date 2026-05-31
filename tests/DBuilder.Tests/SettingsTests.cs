@@ -100,6 +100,34 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ExistingRecentFilesSkipsMissingPathsLikeUdbMenu()
+    {
+        var s = new Settings
+        {
+            RecentFiles = new() { "/missing.wad", "/present.wad" },
+        };
+
+        Assert.Equal(new[] { "/present.wad" }, s.ExistingRecentFiles(path => path.Contains("present")));
+    }
+
+    [Fact]
+    public void ExistingRecentMapsSkipsMissingArchivePaths()
+    {
+        var s = new Settings
+        {
+            RecentMaps = new()
+            {
+                new RecentMapReference { Path = "/missing.pk3", MapName = "MAP01", ArchivePath = "maps/a.wad" },
+                new RecentMapReference { Path = "/present.pk3", MapName = "MAP02", ArchivePath = "maps/b.wad" },
+            },
+        };
+
+        var map = Assert.Single(s.ExistingRecentMaps(path => path.Contains("present")));
+        Assert.Equal("MAP02", map.MapName);
+        Assert.Equal("maps/b.wad", map.ArchivePath);
+    }
+
+    [Fact]
     public void SaveAndLoadRoundTrips()
     {
         string path = Path.Combine(Path.GetTempPath(), $"dbuilder_settings_{System.Guid.NewGuid():N}.json");

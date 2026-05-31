@@ -185,24 +185,25 @@ public partial class MainWindow : Window
     private void RebuildRecentMenu()
     {
         var items = new List<object>();
-        foreach (var map in _settings.RecentMaps)
+        var recentMaps = _settings.ExistingRecentMaps(System.IO.File.Exists);
+        var recentFiles = _settings.ExistingRecentFiles(System.IO.File.Exists);
+        foreach (var map in recentMaps)
         {
             var item = new MenuItem { Header = RecentMapHeader(map) };
             var captured = map;
             item.Click += async (_, _) => await LoadRecentMap(captured);
             items.Add(item);
         }
-        if (_settings.RecentMaps.Count > 0 && _settings.RecentFiles.Count > 0)
+        if (recentMaps.Count > 0 && recentFiles.Count > 0)
             items.Add(new Separator());
 
-        foreach (var path in _settings.RecentFiles)
+        foreach (var path in recentFiles)
         {
             var item = new MenuItem { Header = path };
             string captured = path;
             item.Click += async (_, _) =>
             {
-                if (System.IO.File.Exists(captured)) await LoadArchive(captured, promptForMap: true);
-                else SetStatus($"File not found: {captured}");
+                await LoadArchive(captured, promptForMap: true);
             };
             items.Add(item);
         }
