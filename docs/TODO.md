@@ -890,6 +890,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `SoundPropagationMode`.
 - [ ] Port `StairSectorBuilder`.
 - [ ] Port `TagExplorer`.
+  - [x] Add UDB-style tag explorer entry filtering and sorting model.
 - [ ] Port `TagRange`.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
@@ -946,6 +947,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sound propagation mode behavior.
 - [ ] Port stair sector builder mode and form behavior.
 - [ ] Port tag explorer tree behavior.
+  - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
 - [ ] Port tag range tools.
 - [ ] Port USDF tools.
 - [ ] Port visplane explorer analysis.

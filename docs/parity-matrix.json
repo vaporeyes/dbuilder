@@ -185,8 +185,8 @@
     {
       "udbPlugin": "TagExplorer",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Tag listing and reveal surfaces exist. Full TagExplorer filtering and navigation workflow remain incomplete."
+      "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
+      "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering and sorting model exists for tags, actions, comments, and polyobjects. Full docked tree UI and navigation workflow remain incomplete."
     },
     { "udbPlugin": "TagRange", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
