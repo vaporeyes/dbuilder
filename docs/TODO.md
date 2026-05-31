@@ -925,6 +925,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style linedef and thing action-with-arguments find categories.
   - [x] Add UDB-style linedef, sector, and thing tag find categories.
   - [x] Add UDB-style any texture or flat find category.
+  - [x] Add UDB-style wildcard matching for sidedef texture and sector flat find categories.
 - [ ] Port map error checker infrastructure.
 - [ ] Port all map error checks.
 - [ ] Port all map error result types and fix actions.

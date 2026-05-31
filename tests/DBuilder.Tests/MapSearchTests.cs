@@ -202,6 +202,19 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindAndReplaceTextureSupportsWildcards()
+    {
+        var map = Build();
+
+        SearchResult result = MapSearch.Find(map, FindCategory.Texture, "START*");
+
+        Assert.Equal(4, result.Count);
+        Assert.Equal(4, map.Linedefs.Count(l => l.Selected));
+        Assert.Equal(4, MapSearch.Replace(map, FindCategory.SidedefMiddleTexture, "START?N3", "BROWN1"));
+        Assert.All(map.Sidedefs, sd => Assert.Equal("BROWN1", sd.MidTexture));
+    }
+
+    [Fact]
     public void ReplaceFlatTouchesFloorAndCeiling()
     {
         var map = Build();
@@ -210,6 +223,21 @@ public class MapSearchTests
         Assert.Equal(2, n);
         Assert.Equal("FLAT5_5", map.Sectors[0].FloorTexture);
         Assert.Equal("FLAT5_5", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
+    public void FindAndReplaceFlatSupportsWildcards()
+    {
+        var map = Build();
+
+        SearchResult result = MapSearch.Find(map, FindCategory.Flat, "FLOOR*");
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Sectors[1].Selected);
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.Flat, "FLOOR?_?", "STONE1"));
+        Assert.Equal("STONE1", map.Sectors[0].FloorTexture);
+        Assert.Equal("STONE1", map.Sectors[1].CeilTexture);
     }
 
     [Fact]
