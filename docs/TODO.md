@@ -965,6 +965,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Wavefront planned-file directory creation and write helper.
   - [x] Add UDB-style Wavefront material image export planning and PNG write helper.
 - [ ] Port id Studio export tools.
+  - [x] Add UDB-style idStudio export settings, map-name validation, refmap hierarchy, and func/static writer helpers.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
 
