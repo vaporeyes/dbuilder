@@ -49,6 +49,9 @@ public sealed record IdStudioTextureExportPlan(
     IReadOnlyList<IdStudioTextureExportFile> ArtFiles,
     IReadOnlyList<IdStudioExportFile> MaterialFiles,
     IReadOnlyList<string> MissingImages);
+public sealed record IdStudioExportPlan(
+    IReadOnlyList<IdStudioExportFile> GeometryFiles,
+    IdStudioTextureExportPlan TexturePlan);
 public sealed record IdStudioMapTextureSet(IReadOnlySet<string> Textures, IReadOnlySet<string> Flats);
 public readonly record struct IdStudioTextureDimensions(int Width, int Height);
 public sealed record IdStudioBrushGroup(string Group, int SectorNumber, IReadOnlyList<string> Brushes);
@@ -116,6 +119,57 @@ public static class IdStudioExportValidation
         }
 
         return true;
+    }
+}
+
+public static class IdStudioExportPlanner
+{
+    public static IdStudioExportPlan CreatePlan(
+        MapSet map,
+        IdStudioExportSettings settings,
+        IEnumerable<IdStudioTextureImage> allTextures,
+        IEnumerable<IdStudioTextureImage> allFlats,
+        Func<string, IdStudioTextureImage?> getTexture,
+        Func<string, IdStudioTextureImage?> getFlat,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        Func<string, IdStudioTextureDimensions> getFlatDimensions,
+        Func<Sector, bool>? hasSkyFloor = null,
+        Func<Sector, bool>? hasSkyCeiling = null)
+    {
+        IdStudioMapTextureSet used = IdStudioTextureExporter.CollectMapTextures(map);
+        IReadOnlyList<IdStudioExportFile> geometryFiles = IdStudioGeometryExporter.CreateGeometryFilePlan(
+            map,
+            settings,
+            getTextureDimensions,
+            getFlatDimensions,
+            hasSkyFloor,
+            hasSkyCeiling);
+        IdStudioTextureExportPlan texturePlan = IdStudioTextureExporter.CreatePlan(
+            settings,
+            used.Textures,
+            used.Flats,
+            allTextures,
+            allFlats,
+            getTexture,
+            getFlat);
+
+        return new IdStudioExportPlan(geometryFiles, texturePlan);
+    }
+
+    public static void WriteFiles(IdStudioExportPlan plan)
+    {
+        WriteTextFiles(plan.GeometryFiles);
+        IdStudioTextureExporter.WriteTextureFiles(plan.TexturePlan);
+    }
+
+    private static void WriteTextFiles(IEnumerable<IdStudioExportFile> files)
+    {
+        foreach (IdStudioExportFile file in files)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllText(file.Path, file.Content);
+        }
     }
 }
 

@@ -976,6 +976,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio linedef wall and step brush traversal helper.
   - [x] Add UDB-style idStudio sector floor and ceiling brush traversal helper.
   - [x] Add UDB-style idStudio geometry refmap file-plan orchestration helper.
+  - [x] Add UDB-style idStudio combined geometry and texture export planner.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
 
