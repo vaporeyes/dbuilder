@@ -102,7 +102,47 @@ public class Pk3MapsTests
         }
     }
 
-    private static byte[] BuildUdmfWad(string marker)
+    [Fact]
+    public void ReadsMapLumpFromEmbeddedWadEntry()
+    {
+        byte[] dialogue = Encoding.ASCII.GetBytes("conversation { actor = 3004; }");
+        string pk3 = TestArtifacts.BuildPk3(("maps/map01.wad", BuildUdmfWad("MAP01", dialogue)));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            byte[]? bytes = Pk3Maps.ReadMapLump(pk3, entry, "DIALOGUE");
+
+            Assert.Equal(dialogue, bytes);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ReadsMapLumpFromNestedPk3WadEntry()
+    {
+        byte[] dialogue = Encoding.ASCII.GetBytes("conversation { actor = \"Guard\"; }");
+        string pk3 = TestArtifacts.BuildPk3(("archives/nested.pk3", BuildNestedPk3WithMap(dialogue)));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            byte[]? bytes = Pk3Maps.ReadMapLump(pk3, entry, "DIALOGUE");
+
+            Assert.Equal(dialogue, bytes);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    private static byte[] BuildUdmfWad(string marker, byte[]? dialogue = null)
     {
         using var ms = new MemoryStream();
         using (var wad = new WAD(ms))
@@ -124,6 +164,7 @@ public class Pk3MapsTests
                 linedef { v1 = 2; v2 = 3; sidefront = 2; }
                 linedef { v1 = 3; v2 = 0; sidefront = 3; }
                 """));
+            if (dialogue != null) WriteLump(wad, "DIALOGUE", dialogue);
             WriteLump(wad, "ENDMAP", Array.Empty<byte>());
             wad.WriteHeaders();
         }
@@ -131,13 +172,13 @@ public class Pk3MapsTests
         return ms.ToArray();
     }
 
-    private static byte[] BuildNestedPk3WithMap()
+    private static byte[] BuildNestedPk3WithMap(byte[]? dialogue = null)
     {
         using var ms = new MemoryStream();
         using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
         {
             using var stream = zip.CreateEntry("maps/map02.wad").Open();
-            byte[] wadBytes = BuildUdmfWad("MAP02");
+            byte[] wadBytes = BuildUdmfWad("MAP02", dialogue);
             stream.Write(wadBytes, 0, wadBytes.Length);
         }
 

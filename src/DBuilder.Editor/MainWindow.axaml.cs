@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -64,6 +65,7 @@ public partial class MainWindow : Window
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
     private CommentsPanelWindow? _commentsPanel;
     private TagExplorerWindow? _tagExplorer;
+    private UsdfConversationWindow? _usdfConversations;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1989,6 +1991,42 @@ public partial class MainWindow : Window
             subsectors ?? Array.Empty<byte>());
     }
 
+    private void OnUsdfConversations(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (!UsdfDialogueParser.CanEditDialogue(_config)) { SetStatus("Current game configuration has no DIALOGUE map lump."); return; }
+
+        byte[]? bytes = ReadCurrentMapLump("DIALOGUE");
+        if (bytes is null || bytes.Length == 0)
+        {
+            SetStatus("Current map has no DIALOGUE lump.");
+            return;
+        }
+
+        UsdfParseResult result = UsdfDialogueParser.Parse(Encoding.UTF8.GetString(bytes));
+        _usdfConversations?.Close();
+        _usdfConversations = new UsdfConversationWindow(result);
+        _usdfConversations.Closed += (_, _) => _usdfConversations = null;
+        _usdfConversations.Show(this);
+        SetStatus(result.Success
+            ? $"USDF: {result.Document.Conversations.Count} conversation(s)."
+            : $"USDF parse error on line {result.ErrorLine}.");
+    }
+
+    private byte[]? ReadCurrentMapLump(string lumpName)
+    {
+        if (_wadPath is not null && _mapMarker is not null)
+        {
+            using var wad = new WAD(_wadPath, openreadonly: true);
+            return WadMaps.ReadMapLump(wad, _mapMarker, lumpName, _config);
+        }
+
+        if (_pk3Path is not null && _pk3MapArchivePath is not null && _mapMarker is not null)
+            return Pk3Maps.ReadMapLump(_pk3Path, new Pk3MapEntry(_pk3MapArchivePath, new MapEntry(_mapMarker, _mapFormat)), lumpName, _config);
+
+        return null;
+    }
+
     private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
     {
         MapView.ThingArrows = !MapView.ThingArrows;
@@ -3521,6 +3559,7 @@ public partial class MainWindow : Window
               _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0));
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
+        bool canEditUsdf = hasMap && UsdfDialogueParser.CanEditDialogue(_config);
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
@@ -3539,6 +3578,7 @@ public partial class MainWindow : Window
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton);
+        SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,

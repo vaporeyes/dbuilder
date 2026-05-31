@@ -51,6 +51,6 @@ Status values:
 | `TagExplorer` | partial | `DBuilder.Editor` | Tag list window exists. Full explorer behavior missing. |
 | `TagRange` | missing | none | Not ported. |
 | `UDBScript` | missing | none | Script API not ported. |
-| `USDF` | missing | none | Not ported. |
+| `USDF` | partial | `DBuilder.Editor`, `DBuilder.IO` | DIALOGUE parsing and a non-modal conversation window exist. Editing and save-back remain missing. |
 | `VisplaneExplorer` | missing | none | Not ported. |
 | `WadAuthorMode` | missing | none | Not ported. |

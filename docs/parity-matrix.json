@@ -213,8 +213,8 @@
     {
       "udbPlugin": "USDF",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.IO",
-      "notes": "UDB-style USDF availability gating on configured DIALOGUE map lumps exists, along with a typed parser for DIALOGUE includes, conversations, pages, ifitem conditions, choices, costs, messages, specials, args, and navigation fields. Conversation editor UI, editing commands, include lump resolution, and save-back workflow remain incomplete."
+      "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
+      "notes": "UDB-style USDF availability gating on configured DIALOGUE map lumps exists, along with DIALOGUE map-lump reads from direct WAD maps and PK3-embedded WAD maps, plus a typed parser for includes, conversations, pages, ifitem conditions, choices, costs, messages, specials, args, and navigation fields. A non-modal editor USDF conversation window shows parsed DIALOGUE content. Editing commands, include lump resolution, and save-back workflow remain incomplete."
     },
     {
       "udbPlugin": "VisplaneExplorer",

@@ -922,6 +922,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
+  - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
 - [ ] Port `WadAuthorMode`.
@@ -1047,6 +1048,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add Tag Range editor form for target selection, start/step values, relative ranges, skip-used behavior, and selected-element assignment.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
+  - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
 - [ ] Port WadAuthor mode behavior.
