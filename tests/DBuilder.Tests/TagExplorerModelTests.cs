@@ -213,6 +213,39 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void BuildTreeLabelsActionAndEffectGroupsFromGameConfigLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            linedeftypes
+            {
+                doors
+                {
+                    80 { title = "Door Open"; }
+                }
+            }
+            sectortypes
+            {
+                9 = "Secret";
+            }
+            """);
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tag = 1;
+        line.Action = 80;
+        var sector = map.AddSector();
+        sector.Tag = 2;
+        sector.Special = 9;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByAction);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, config, options);
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, options);
+
+        Assert.Equal(new[] { "Sectors:", "Linedefs:" }, tree.Select(node => node.Title));
+        Assert.Equal("9 - Secret", tree[0].Children[0].Title);
+        Assert.Equal("80 - Door Open", tree[1].Children[0].Title);
+    }
+
+    [Fact]
     public void ExportTreeTextMatchesUdbIndentedShape()
     {
         var map = new MapSet();

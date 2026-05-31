@@ -52,7 +52,8 @@ public sealed record TagExplorerEntry(
     int PolyobjectNumber,
     string Comment,
     string DefaultName,
-    string ThingCategory = "")
+    string ThingCategory = "",
+    string ActionTitle = "")
 {
     public bool HasComment => Comment.Length > 0;
 }
@@ -82,8 +83,8 @@ public static class TagExplorerModel
 
         var entries = new List<TagExplorerEntry>();
         AddThings(entries, map, config, options.DisplayMode, showTags, showActions, filters, commentSearch, commentsOnly, options.IsUdmf);
-        AddSectors(entries, map, options.DisplayMode, showTags, showActions, filters, commentSearch, commentsOnly, options.IsUdmf);
-        AddLinedefs(entries, map, options.DisplayMode, showTags, showActions, filters, commentSearch, commentsOnly, options.IsUdmf);
+        AddSectors(entries, map, config, options.DisplayMode, showTags, showActions, filters, commentSearch, commentsOnly, options.IsUdmf);
+        AddLinedefs(entries, map, config, options.DisplayMode, showTags, showActions, filters, commentSearch, commentsOnly, options.IsUdmf);
 
         entries.Sort(Comparer(options.SortMode, options.DisplayMode));
         return entries;
@@ -208,15 +209,18 @@ public static class TagExplorerModel
     {
         var nodes = new List<TagExplorerTreeNode>();
         foreach (var group in entries.Where(entry => entry.Action != 0).GroupBy(entry => entry.Action).OrderBy(group => group.Key))
-            nodes.Add(new TagExplorerTreeNode(ActionGroupTitle(kind, group.Key), null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
+            nodes.Add(new TagExplorerTreeNode(ActionGroupTitle(kind, group.Key, group.First().ActionTitle), null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
 
         var noAction = entries.Where(entry => entry.Action == 0).Select(entry => EntryNode(entry, sortMode)).ToList();
         if (noAction.Count > 0) nodes.Add(new TagExplorerTreeNode(kind == TagExplorerEntryKind.Sector ? "No Effect" : "No Action", null, noAction));
         return nodes;
     }
 
-    private static string ActionGroupTitle(TagExplorerEntryKind kind, int action)
-        => kind == TagExplorerEntryKind.Sector ? "Effect " + action : "Action " + action;
+    private static string ActionGroupTitle(TagExplorerEntryKind kind, int action, string title)
+    {
+        if (title.Length > 0) return action + " - " + title;
+        return kind == TagExplorerEntryKind.Sector ? "Effect " + action : "Action " + action;
+    }
 
     private static TagExplorerTreeNode EntryNode(TagExplorerEntry entry, TagExplorerSortMode sortMode)
         => new(EntryTitle(entry, sortMode), entry, Array.Empty<TagExplorerTreeNode>());
@@ -276,7 +280,8 @@ public static class TagExplorerModel
                     polyobjectNumber,
                     Comment(thing, isUdmf),
                     "Thing",
-                    ThingCategory(thing, config)), commentSearch, commentsOnly, displayMode);
+                    ThingCategory(thing, config),
+                    LinedefActionTitle(thing.Action, config)), commentSearch, commentsOnly, displayMode);
             }
             else if (displayMode == TagExplorerDisplayMode.Polyobjects &&
                 polyobjectNumber != NoPolyobjectNumber &&
@@ -297,6 +302,7 @@ public static class TagExplorerModel
     private static void AddSectors(
         List<TagExplorerEntry> entries,
         MapSet map,
+        GameConfiguration? config,
         TagExplorerDisplayMode displayMode,
         bool showTags,
         bool showActions,
@@ -323,7 +329,8 @@ public static class TagExplorerModel
                     sector.Special,
                     NoPolyobjectNumber,
                     Comment(sector, isUdmf),
-                    "Sector"), commentSearch, commentsOnly, displayMode);
+                    "Sector",
+                    ActionTitle: SectorEffectTitle(sector.Special, config)), commentSearch, commentsOnly, displayMode);
             }
         }
     }
@@ -331,6 +338,7 @@ public static class TagExplorerModel
     private static void AddLinedefs(
         List<TagExplorerEntry> entries,
         MapSet map,
+        GameConfiguration? config,
         TagExplorerDisplayMode displayMode,
         bool showTags,
         bool showActions,
@@ -360,7 +368,8 @@ public static class TagExplorerModel
                         line.Action,
                         polyobjectNumber,
                         polyobjectNumber == NoPolyobjectNumber ? Comment(line, isUdmf) : "",
-                        "Linedef"), commentSearch, commentsOnly, displayMode);
+                        "Linedef",
+                        ActionTitle: LinedefActionTitle(line.Action, config)), commentSearch, commentsOnly, displayMode);
                 }
             }
             else if (displayMode == TagExplorerDisplayMode.Polyobjects &&
@@ -467,6 +476,12 @@ public static class TagExplorerModel
 
         return info.Category.Length > 0 ? info.Category : "UNKNOWN";
     }
+
+    private static string LinedefActionTitle(int action, GameConfiguration? config)
+        => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "";
+
+    private static string SectorEffectTitle(int effect, GameConfiguration? config)
+        => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "";
 
     private static IEnumerable<int> TagsOrZero(IReadOnlyCollection<int> tags)
     {
