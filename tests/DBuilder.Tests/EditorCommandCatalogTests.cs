@@ -95,6 +95,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void UsdfDialogEditorCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.usdf-dialog-editor");
+
+        Assert.NotNull(command);
+        Assert.Equal("Dialog Editor", command.Title);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal("opendialogeditor", UsdfDialogEditorModel.Action.Id);
+    }
+
+    [Fact]
     public void WadAuthorModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-wadauthor");

@@ -46,6 +46,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.select-similar", "Select Similar Map Elements", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.usdf-dialog-editor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
 
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),

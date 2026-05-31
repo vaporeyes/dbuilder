@@ -49,6 +49,27 @@ public sealed record UsdfChoice(
     int? NextPage,
     bool CloseDialog);
 
+public sealed record UsdfDialogEditorAction(
+    string Id,
+    string Title,
+    string Category,
+    string Description,
+    bool AllowKeys,
+    bool AllowMouse,
+    bool AllowScroll);
+
+public sealed record UsdfDialogEditorToolItem(
+    string Text,
+    string ActionId,
+    string ImageResource);
+
+public sealed record UsdfDialogEditorWindowState(
+    int PositionX,
+    int PositionY,
+    int SizeWidth,
+    int SizeHeight,
+    int WindowState);
+
 public static class UsdfDialogueParser
 {
     public static bool CanEditDialogue(GameConfiguration? config)
@@ -191,4 +212,74 @@ public static class UsdfDialogueParser
             string s when bool.TryParse(s, out bool b) => b,
             _ => null,
         };
+}
+
+public static class UsdfDialogEditorModel
+{
+    public const string ActionId = "opendialogeditor";
+    public const string PositionXKey = "mainwindow.positionx";
+    public const string PositionYKey = "mainwindow.positiony";
+    public const string SizeWidthKey = "mainwindow.sizewidth";
+    public const string SizeHeightKey = "mainwindow.sizeheight";
+    public const string WindowStateKey = "mainwindow.windowstate";
+    public const int NormalWindowState = 0;
+    public const int MinimizedWindowState = 1;
+
+    public static UsdfDialogEditorAction Action { get; } = new(
+        ActionId,
+        "Dialog Editor",
+        "view",
+        "This opens the dialog editor that allows you to edit DIALOGUE conversations in your map.",
+        AllowKeys: true,
+        AllowMouse: true,
+        AllowScroll: true);
+
+    public static UsdfDialogEditorToolItem ToolbarButton { get; } = new(
+        "Open Dialog Editor",
+        ActionId,
+        "Dialog.png");
+
+    public static UsdfDialogEditorToolItem MenuItem { get; } = new(
+        "Dialog Editor...",
+        ActionId,
+        "Dialog.png");
+
+    public static UsdfDialogEditorWindowState ReadWindowState(
+        IReadOnlyDictionary<string, object?> settings,
+        UsdfDialogEditorWindowState fallback)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new UsdfDialogEditorWindowState(
+            ReadInt(settings, PositionXKey, fallback.PositionX),
+            ReadInt(settings, PositionYKey, fallback.PositionY),
+            ReadInt(settings, SizeWidthKey, fallback.SizeWidth),
+            ReadInt(settings, SizeHeightKey, fallback.SizeHeight),
+            ReadInt(settings, WindowStateKey, fallback.WindowState));
+    }
+
+    public static Dictionary<string, object> WriteWindowState(UsdfDialogEditorWindowState state)
+    {
+        int persistedWindowState = state.WindowState == MinimizedWindowState ? NormalWindowState : state.WindowState;
+        return new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [PositionXKey] = state.PositionX,
+            [PositionYKey] = state.PositionY,
+            [SizeWidthKey] = state.SizeWidth,
+            [SizeHeightKey] = state.SizeHeight,
+            [WindowStateKey] = persistedWindowState,
+        };
+    }
+
+    private static int ReadInt(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return fallback;
+        return value switch
+        {
+            int i => i,
+            long l when l is >= int.MinValue and <= int.MaxValue => (int)l,
+            string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) => i,
+            _ => fallback,
+        };
+    }
 }

@@ -8,6 +8,69 @@ namespace DBuilder.Tests;
 public class UsdfDialogueParserTests
 {
     [Fact]
+    public void DialogEditorActionMatchesUdbActionsCfg()
+    {
+        UsdfDialogEditorAction action = UsdfDialogEditorModel.Action;
+
+        Assert.Equal("opendialogeditor", action.Id);
+        Assert.Equal("Dialog Editor", action.Title);
+        Assert.Equal("view", action.Category);
+        Assert.Equal("This opens the dialog editor that allows you to edit DIALOGUE conversations in your map.", action.Description);
+        Assert.True(action.AllowKeys);
+        Assert.True(action.AllowMouse);
+        Assert.True(action.AllowScroll);
+    }
+
+    [Fact]
+    public void DialogEditorToolItemsMatchUdbToolsForm()
+    {
+        Assert.Equal(new UsdfDialogEditorToolItem("Open Dialog Editor", "opendialogeditor", "Dialog.png"), UsdfDialogEditorModel.ToolbarButton);
+        Assert.Equal(new UsdfDialogEditorToolItem("Dialog Editor...", "opendialogeditor", "Dialog.png"), UsdfDialogEditorModel.MenuItem);
+    }
+
+    [Fact]
+    public void DialogEditorWindowStateReadsUdbPluginSettings()
+    {
+        var fallback = new UsdfDialogEditorWindowState(1, 2, 300, 200, UsdfDialogEditorModel.NormalWindowState);
+        var settings = new Dictionary<string, object?>
+        {
+            [UsdfDialogEditorModel.PositionXKey] = "10",
+            [UsdfDialogEditorModel.PositionYKey] = 20,
+            [UsdfDialogEditorModel.SizeWidthKey] = 640,
+            [UsdfDialogEditorModel.SizeHeightKey] = "480",
+            [UsdfDialogEditorModel.WindowStateKey] = 2,
+        };
+
+        UsdfDialogEditorWindowState state = UsdfDialogEditorModel.ReadWindowState(settings, fallback);
+
+        Assert.Equal(new UsdfDialogEditorWindowState(10, 20, 640, 480, 2), state);
+    }
+
+    [Fact]
+    public void DialogEditorWindowStateUsesFallbacksForMissingSettings()
+    {
+        var fallback = new UsdfDialogEditorWindowState(1, 2, 300, 200, UsdfDialogEditorModel.NormalWindowState);
+
+        UsdfDialogEditorWindowState state = UsdfDialogEditorModel.ReadWindowState(new Dictionary<string, object?>(), fallback);
+
+        Assert.Equal(fallback, state);
+    }
+
+    [Fact]
+    public void DialogEditorWindowStateWritesUdbPluginSettingsAndNormalizesMinimized()
+    {
+        var state = new UsdfDialogEditorWindowState(10, 20, 640, 480, UsdfDialogEditorModel.MinimizedWindowState);
+
+        Dictionary<string, object> settings = UsdfDialogEditorModel.WriteWindowState(state);
+
+        Assert.Equal(10, settings[UsdfDialogEditorModel.PositionXKey]);
+        Assert.Equal(20, settings[UsdfDialogEditorModel.PositionYKey]);
+        Assert.Equal(640, settings[UsdfDialogEditorModel.SizeWidthKey]);
+        Assert.Equal(480, settings[UsdfDialogEditorModel.SizeHeightKey]);
+        Assert.Equal(UsdfDialogEditorModel.NormalWindowState, settings[UsdfDialogEditorModel.WindowStateKey]);
+    }
+
+    [Fact]
     public void CanEditDialogueMatchesConfiguredDialogueMapLump()
     {
         var config = GameConfiguration.FromText("""
