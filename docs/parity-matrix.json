@@ -131,7 +131,12 @@
       "dbuilderLocation": "DBuilder.Map",
       "notes": "GZDoom 3D floor data resolution and display toggles exist. Full 3DFloorMode editing workflow remains incomplete."
     },
-    { "udbPlugin": "AutomapMode", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "AutomapMode",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style automap model exists for line visibility, Doom/Hexen/Strife color presets, line color classification, secret-sector detection, lock-color resolution, and toggling secret/dontdraw/textured-hidden automap flags. Full mode UI, toolbar options, highlighting, rendering presentation, and interactive editing workflow remain incomplete."
+    },
     {
       "udbPlugin": "BlockmapExplorer",
       "status": "partial",
