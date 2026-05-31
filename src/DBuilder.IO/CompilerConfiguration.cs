@@ -48,12 +48,8 @@ public static class ScriptCompilerErrors
         var errors = new List<ScriptCompilerError>();
         foreach (string line in lines)
         {
-            int firstColon = line.IndexOf(':', StringComparison.Ordinal);
-            if (firstColon <= 0) continue;
-            int secondColon = line.IndexOf(':', firstColon + 1);
-            if (secondColon <= firstColon + 1) continue;
-            if (secondColon + 1 >= line.Length || line[secondColon + 1] != ' ') continue;
-            if (!int.TryParse(line[(firstColon + 1)..secondColon], out int lineNumber)) continue;
+            if (!TryFindAccErrorLocation(line, out int firstColon, out int secondColon, out int lineNumber))
+                continue;
 
             errors.Add(new ScriptCompilerError(
                 line[(secondColon + 2)..].Trim(),
@@ -95,6 +91,23 @@ public static class ScriptCompilerErrors
         return errors;
     }
 
+    private static bool TryFindAccErrorLocation(string line, out int firstColon, out int secondColon, out int lineNumber)
+    {
+        for (firstColon = 1; firstColon < line.Length; firstColon++)
+        {
+            if (line[firstColon] != ':') continue;
+            secondColon = line.IndexOf(':', firstColon + 1);
+            if (secondColon <= firstColon + 1) continue;
+            if (secondColon + 1 >= line.Length || line[secondColon + 1] != ' ') continue;
+            if (int.TryParse(line[(firstColon + 1)..secondColon], out lineNumber))
+                return true;
+        }
+
+        secondColon = -1;
+        lineNumber = -1;
+        return false;
+    }
+
     private static string NormalizeCompilerErrorFile(string fileName, string tempPath, string workingDirectory)
     {
         string normalized = fileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -102,7 +115,16 @@ public static class ScriptCompilerErrors
             + Path.DirectorySeparatorChar;
         if (normalized.StartsWith(tempPrefix, StringComparison.Ordinal))
             normalized = normalized[tempPrefix.Length..];
-        return Path.IsPathRooted(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
+        return IsRootedCompilerPath(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
+    }
+
+    private static bool IsRootedCompilerPath(string fileName)
+    {
+        if (Path.IsPathRooted(fileName)) return true;
+        return fileName.Length >= 3
+            && char.IsLetter(fileName[0])
+            && fileName[1] == ':'
+            && (fileName[2] == '\\' || fileName[2] == '/');
     }
 }
 
