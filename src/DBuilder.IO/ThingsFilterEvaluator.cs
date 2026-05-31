@@ -50,7 +50,7 @@ public static class ThingsFilterEvaluator
             MatchesScalar(filter.ThingTag, thing.Tag) &&
             MatchesArgs(filter.ThingArgs, thing.Args) &&
             MatchesCategory(thing, config, filter.Category) &&
-            MatchesFields(thing, filter);
+            MatchesFields(thing, config, filter);
 
         return filter.Invert ? !qualifies : qualifies;
     }
@@ -77,18 +77,34 @@ public static class ThingsFilterEvaluator
         return string.Equals(thingCategory, category, StringComparison.Ordinal);
     }
 
-    private static bool MatchesFields(Thing thing, ThingsFilterInfo filter)
+    private static bool MatchesFields(Thing thing, GameConfiguration config, ThingsFilterInfo filter)
     {
         foreach (string field in filter.RequiredFields)
+        {
+            if (!IsKnownThingFlagField(config, field)) continue;
             if (!thing.UdmfFlags.Contains(field)) return false;
+        }
 
         foreach (string field in filter.ForbiddenFields)
+        {
+            if (!IsKnownThingFlagField(config, field)) continue;
             if (thing.UdmfFlags.Contains(field)) return false;
+        }
 
         foreach (var (_, custom) in filter.CustomFields)
             if (!MatchesCustomField(thing, custom)) return false;
 
         return true;
+    }
+
+    private static bool IsKnownThingFlagField(GameConfiguration config, string field)
+    {
+        if (config.ThingFlagsTranslation.Count == 0) return true;
+        foreach (var translation in config.ThingFlagsTranslation)
+            foreach (string translatedField in translation.Fields)
+                if (string.Equals(translatedField, field, StringComparison.OrdinalIgnoreCase)) return true;
+
+        return false;
     }
 
     private static bool MatchesCustomField(Thing thing, ThingsFilterCustomFieldInfo custom)

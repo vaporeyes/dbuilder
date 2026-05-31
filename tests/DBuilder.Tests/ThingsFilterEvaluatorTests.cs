@@ -65,6 +65,12 @@ public class ThingsFilterEvaluatorTests
     public void QualifiesThingByRequiredForbiddenAndCustomFields()
     {
         var config = GameConfiguration.FromText("""
+            thingflagstranslation
+            {
+                1 = "skill1";
+                8 = "dm";
+            }
+
             thingsfilters
             {
                 filter0
@@ -110,6 +116,40 @@ public class ThingsFilterEvaluatorTests
 
         Assert.Equal(new[] { match }, result.VisibleThings);
         Assert.Equal(new[] { forbidden, wrongCustom }, result.HiddenThings);
+    }
+
+    [Fact]
+    public void IgnoresThingFlagFieldsUnknownToCurrentConfiguration()
+    {
+        var config = GameConfiguration.FromText("""
+            thingflagstranslation
+            {
+                1 = "skill1";
+            }
+
+            thingsfilters
+            {
+                filter0
+                {
+                    name = "Cross-format flags";
+
+                    fields
+                    {
+                        skill1 = true;
+                        hexenclass1 = true;
+                        unknownforbidden = false;
+                    }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var match = map.AddThing(new Vector2D(0, 0), 3001);
+        match.UdmfFlags.Add("skill1");
+
+        var result = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[0]);
+
+        Assert.Equal(new[] { match }, result.VisibleThings);
+        Assert.Empty(result.HiddenThings);
     }
 
     [Fact]
