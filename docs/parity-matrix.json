@@ -151,7 +151,12 @@
       "notes": "Core edit modes, draw mode surfaces, selection conversion, stitching, filters, and error-check surfaces are partially represented. Full mode set and docked tooling remain incomplete."
     },
     { "udbPlugin": "ColorPicker", "status": "missing", "dbuilderLocation": null },
-    { "udbPlugin": "CommentsPanel", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "CommentsPanel",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields exists, including current-mode filtering and set/remove helpers. Docked UI, selection navigation, and rendering integration remain incomplete."
+    },
     { "udbPlugin": "ImageDrawingExample", "status": "missing", "dbuilderLocation": null },
     {
       "udbPlugin": "NodesViewer",
