@@ -226,6 +226,24 @@ public static class NodesReader
         return polygons;
     }
 
+    public static int FindClassicSubsectorAtPoint(
+        ClassicNodesStructure structure,
+        IReadOnlyList<ClassicSubsectorPolygon> polygons,
+        Vector2D point)
+    {
+        if (structure == null || !structure.IsValid || structure.Nodes.Count == 0)
+            return -1;
+
+        int subsectorIndex = TraverseClassicSubsector(structure, point);
+        if (subsectorIndex < 0) return -1;
+
+        ClassicSubsectorPolygon? polygon = FindPolygon(polygons, subsectorIndex);
+        if (polygon == null || !PointInSubsector(polygon.Value.Points, point))
+            return -1;
+
+        return subsectorIndex;
+    }
+
     private static ClassicNode[] ParseClassicNodes(byte[] data, int count)
     {
         var nodes = new ClassicNode[count];
@@ -469,6 +487,56 @@ public static class NodesReader
     {
         Line2D.GetIntersection(split.Position, split.Position + split.Delta, previous.x, previous.y, current.x, current.y, out double u, false);
         return previous + (current - previous) * u;
+    }
+
+    private static int TraverseClassicSubsector(ClassicNodesStructure structure, Vector2D point)
+    {
+        int nodeIndex = structure.Nodes.Count - 1;
+        for (int depth = 0; depth < structure.Nodes.Count; depth++)
+        {
+            if (nodeIndex < 0 || nodeIndex >= structure.Nodes.Count) return -1;
+
+            ClassicNode node = structure.Nodes[nodeIndex];
+            var split = new NodeSplit(new Vector2D(node.X, node.Y), new Vector2D(node.Dx, node.Dy));
+            if (SideOfSplit(point, split) > 0)
+            {
+                if (node.LeftChildIsSubsector) return node.LeftChildIndex;
+                nodeIndex = node.LeftChildIndex;
+            }
+            else
+            {
+                if (node.RightChildIsSubsector) return node.RightChildIndex;
+                nodeIndex = node.RightChildIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    private static ClassicSubsectorPolygon? FindPolygon(IReadOnlyList<ClassicSubsectorPolygon> polygons, int subsectorIndex)
+    {
+        if (polygons == null) return null;
+
+        foreach (ClassicSubsectorPolygon polygon in polygons)
+        {
+            if (polygon.SubsectorIndex == subsectorIndex) return polygon;
+        }
+
+        return null;
+    }
+
+    private static bool PointInSubsector(IReadOnlyList<Vector2D> points, Vector2D point)
+    {
+        if (points == null || points.Count == 0) return false;
+
+        Vector2D previous = points[^1];
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (Line2D.GetSideOfLine(previous, points[i], point) > 0) return false;
+            previous = points[i];
+        }
+
+        return true;
     }
 
     private readonly record struct NodeSplit(Vector2D Position, Vector2D Delta);

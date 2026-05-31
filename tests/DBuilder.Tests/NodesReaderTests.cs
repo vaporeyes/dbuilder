@@ -312,6 +312,30 @@ public class NodesReaderTests
         AssertPoints(polygons[1].Points, new Vector2D(-64, 64), new Vector2D(0, 64), new Vector2D(0, -64), new Vector2D(-64, -64));
     }
 
+    [Fact]
+    public void FindsClassicSubsectorAtPointByTreeAndPolygon()
+    {
+        var segs = new byte[24];
+        SegRecord(0, 1, 0, 0, 0, 0).CopyTo(segs, 0);
+        SegRecord(10, 11, 0, 0, 0, 0).CopyTo(segs, 12);
+        var vertices = new byte[8];
+        VertexRecord(32, -64).CopyTo(vertices, 0);
+        VertexRecord(32, 64).CopyTo(vertices, 4);
+        var subsectors = new byte[8];
+        SubsectorRecord(1, 0).CopyTo(subsectors, 0);
+        SubsectorRecord(1, 1).CopyTo(subsectors, 4);
+        ClassicNodesStructure structure = NodesReader.ParseClassicStructures(
+            NodeRecord(0, 0, 0, 64, 0x8000, 0x8001),
+            segs,
+            vertices,
+            subsectors);
+        IReadOnlyList<ClassicSubsectorPolygon> polygons = NodesReader.BuildClassicSubsectorPolygons(structure, 64);
+
+        Assert.Equal(0, NodesReader.FindClassicSubsectorAtPoint(structure, polygons, new Vector2D(40, 0)));
+        Assert.Equal(1, NodesReader.FindClassicSubsectorAtPoint(structure, polygons, new Vector2D(-10, 0)));
+        Assert.Equal(-1, NodesReader.FindClassicSubsectorAtPoint(structure, polygons, new Vector2D(10, 0)));
+    }
+
     private static void AssertPoints(IReadOnlyList<Vector2D> actual, params Vector2D[] expected)
     {
         Assert.Equal(expected.Length, actual.Count);
