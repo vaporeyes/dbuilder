@@ -130,4 +130,19 @@ public class CompilerConfigurationTests
 
         Assert.Equal(new NodebuilderConfig("/usr/local/bin/zdbsp", "-R -o%FO %FI"), config);
     }
+
+    [Fact]
+    public void ScriptCompilerArgumentsSubstituteUdbAccTokens()
+    {
+        var paths = new ScriptCompilerPaths(
+            "input.wad",
+            "behavior.o",
+            "scripts.acs",
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        string args = ScriptCompilerArguments.Build("-i %FI -o %FO -s %FS -temp %PT -I %PS", paths);
+
+        Assert.Equal("-i input.wad -o behavior.o -s scripts.acs -temp /tmp/dbuilder_compile -I /maps/project", args);
+    }
 }

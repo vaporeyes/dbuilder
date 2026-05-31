@@ -17,6 +17,25 @@ public sealed record CompilerInfo(
     string ProgramInterface,
     IReadOnlySet<string> Files);
 
+public sealed record ScriptCompilerPaths(
+    string InputFile,
+    string OutputFile,
+    string SourceFile,
+    string TempPath,
+    string SourcePath);
+
+public static class ScriptCompilerArguments
+{
+    public static string Build(string parameters, ScriptCompilerPaths paths)
+        => parameters
+            .Replace("%FI", paths.InputFile)
+            .Replace("%FO", paths.OutputFile)
+            .Replace("%FS", paths.SourceFile)
+            .Replace("%PT", paths.TempPath)
+            .Replace("%PS", paths.SourcePath)
+            .Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+}
+
 public sealed record NodebuilderInfo(
     string FileName,
     string Name,
