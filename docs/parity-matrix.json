@@ -135,7 +135,7 @@
       "udbPlugin": "AutomapMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "UDB-style automap model exists for line visibility, Doom/Hexen/Strife color presets, line color classification, secret-sector detection, lock-color resolution, format-aware UDMF and classic automap linedef flag handling, selected linedef secret/dontdraw flag toggles, selected sector textured-hidden automap flag toggles, mode metadata, persisted setting defaults, presentation layer descriptors, valid-linedef collection, and highlight target planning. Full mode UI, toolbar options, highlight rendering, rendering execution, and interactive editing workflow remain incomplete."
+      "notes": "UDB-style automap model exists for line visibility, Doom/Hexen/Strife color presets, line color classification, secret-sector detection, lock-color resolution, format-aware UDMF and classic automap linedef flag handling, selected linedef secret/dontdraw flag toggles, selected sector textured-hidden automap flag toggles, mode metadata, persisted setting defaults, presentation layer descriptors, valid-linedef collection, highlight target planning, and render planning for line draw order, highlight colors, and textured-background fallback. Full mode UI, toolbar options, live highlight rendering, editor rendering execution, and interactive editing workflow remain incomplete."
     },
     {
       "udbPlugin": "BlockmapExplorer",

@@ -112,6 +112,16 @@ public sealed record AutomapHighlightResult(
     Sector? Sector,
     IReadOnlyList<Linedef> Lines);
 
+public readonly record struct AutomapRenderLine(
+    Linedef Line,
+    AutomapColor Color,
+    bool IsHighlight);
+
+public sealed record AutomapRenderPlan(
+    IReadOnlyList<AutomapRenderLine> Lines,
+    bool RenderTexturedSurfaces,
+    AutomapColor? BackgroundColor);
+
 public static class AutomapModeModel
 {
     public const double LineLengthScaler = 0.001;
@@ -125,6 +135,8 @@ public static class AutomapModeModel
     public const int ClassicSecretFlagBit = 32;
     public const int ClassicHiddenFlagBit = 128;
     public const string TexturedAutomapHiddenSectorFlag = "hidden";
+    public static AutomapColor DefaultInfoLineColor { get; } = new(255, 198, 198, 255);
+    public static AutomapColor DefaultHighlightColor { get; } = new(255, 255, 172, 0);
 
     public static AutomapModeDescriptor ModeDescriptor { get; } = new(
         "Automap Mode",
@@ -211,6 +223,44 @@ public static class AutomapModeModel
         return line == null
             ? new AutomapHighlightResult(AutomapHighlightKind.None, null, null, Array.Empty<Linedef>())
             : new AutomapHighlightResult(AutomapHighlightKind.Linedef, line, null, new[] { line });
+    }
+
+    public static AutomapRenderPlan BuildRenderPlan(
+        MapSet map,
+        AutomapModeOptions options,
+        AutomapModeSettings settings,
+        AutomapPalette palette,
+        AutomapHighlightResult? highlight = null,
+        bool editSectors = false,
+        AutomapColor? infoLineColor = null,
+        AutomapColor? highlightColor = null)
+    {
+        var lines = new List<AutomapRenderLine>();
+        foreach (var line in map.Linedefs)
+        {
+            AutomapLineStyle style = DetermineLineStyle(line, options, palette);
+            if (style.IsValid) lines.Add(new AutomapRenderLine(line, style.Color, IsHighlight: false));
+        }
+
+        if (highlight is { } h)
+        {
+            if (h.Kind == AutomapHighlightKind.Linedef && h.Line != null && IsLineValid(h.Line, options))
+            {
+                lines.Add(new AutomapRenderLine(h.Line, infoLineColor ?? DefaultInfoLineColor, IsHighlight: true));
+            }
+            else if (h.Kind == AutomapHighlightKind.Sector)
+            {
+                AutomapColor color = highlightColor ?? DefaultHighlightColor;
+                foreach (var line in h.Lines)
+                    lines.Add(new AutomapRenderLine(line, color, IsHighlight: true));
+            }
+        }
+
+        bool showTextures = settings.ShowTextures || editSectors;
+        return new AutomapRenderPlan(
+            lines,
+            RenderTexturedSurfaces: showTextures,
+            BackgroundColor: showTextures ? null : palette.Background);
     }
 
     public static AutomapLineStyle DetermineLineStyle(Linedef line, AutomapModeOptions options, AutomapPalette palette)

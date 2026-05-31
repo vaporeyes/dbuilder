@@ -228,6 +228,70 @@ public class AutomapModeModelTests
     }
 
     [Fact]
+    public void RenderPlanDrawsValidLinesThenHighlightedLine()
+    {
+        var map = new MapSet();
+        Linedef visible = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef hidden = map.AddLinedef(map.AddVertex(new Vector2D(0, 8)), map.AddVertex(new Vector2D(64, 8)));
+        hidden.SetFlag(AutomapModeModel.HiddenFlag, true);
+        map.BuildIndexes();
+        var palette = AutomapModeModel.Palette(AutomapColorPreset.Doom);
+        var highlight = new AutomapHighlightResult(AutomapHighlightKind.Linedef, visible, null, new[] { visible });
+
+        AutomapRenderPlan plan = AutomapModeModel.BuildRenderPlan(
+            map,
+            new AutomapModeOptions(),
+            new AutomapModeSettings(ShowTextures: false),
+            palette,
+            highlight);
+
+        Assert.False(plan.RenderTexturedSurfaces);
+        Assert.Equal(palette.Background, plan.BackgroundColor);
+        Assert.Collection(
+            plan.Lines,
+            line =>
+            {
+                Assert.Same(visible, line.Line);
+                Assert.Equal(palette.SingleSided, line.Color);
+                Assert.False(line.IsHighlight);
+            },
+            line =>
+            {
+                Assert.Same(visible, line.Line);
+                Assert.Equal(AutomapModeModel.DefaultInfoLineColor, line.Color);
+                Assert.True(line.IsHighlight);
+            });
+    }
+
+    [Fact]
+    public void RenderPlanDrawsSectorHighlightBoundariesAndKeepsTexturesInSectorMode()
+    {
+        var (map, sector, lines) = SquareSector();
+        var palette = AutomapModeModel.Palette(AutomapColorPreset.Hexen);
+        var highlight = new AutomapHighlightResult(AutomapHighlightKind.Sector, null, sector, lines);
+
+        AutomapRenderPlan plan = AutomapModeModel.BuildRenderPlan(
+            map,
+            new AutomapModeOptions(),
+            new AutomapModeSettings(ShowTextures: false),
+            palette,
+            highlight,
+            editSectors: true);
+
+        Assert.True(plan.RenderTexturedSurfaces);
+        Assert.Null(plan.BackgroundColor);
+        Assert.Equal(lines.Length * 2, plan.Lines.Count);
+        Assert.Equal(lines, plan.Lines.Take(lines.Length).Select(line => line.Line));
+        Assert.All(plan.Lines.Take(lines.Length), line => Assert.False(line.IsHighlight));
+        Assert.Equal(lines, plan.Lines.Skip(lines.Length).Select(line => line.Line));
+        Assert.All(plan.Lines.Skip(lines.Length), line =>
+        {
+            Assert.True(line.IsHighlight);
+            Assert.Equal(AutomapModeModel.DefaultHighlightColor, line.Color);
+        });
+    }
+
+    [Fact]
     public void DetermineLineStyleClassifiesAutomapLines()
     {
         AutomapPalette palette = AutomapModeModel.Palette(AutomapColorPreset.Doom);
