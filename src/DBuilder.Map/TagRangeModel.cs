@@ -18,6 +18,8 @@ public sealed record TagRangeOptions(
     int MinTag = 1,
     int MaxTag = int.MaxValue);
 
+public sealed record TagRangeStoredOptions(int Step = 1, bool Relative = false);
+
 public sealed record TagRangeResult(
     IReadOnlyList<int> Tags,
     bool TagsUsed,
@@ -25,6 +27,12 @@ public sealed record TagRangeResult(
 
 public static class TagRangeModel
 {
+    public static TagRangeStoredOptions StoredOptionsFrom(TagRangeOptions options)
+    {
+        int step = options.Step == 0 ? 1 : options.Step;
+        return new TagRangeStoredOptions(step, options.Relative);
+    }
+
     public static TagRangeResult CreateRange(
         IReadOnlyList<int> initialTags,
         IReadOnlySet<int> usedTags,

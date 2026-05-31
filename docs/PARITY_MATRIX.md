@@ -49,7 +49,7 @@ Status values:
 | `SoundPropagationMode` | partial | `DBuilder.Map` | Sound propagation helper exists. Full mode UI missing. |
 | `StairSectorBuilder` | partial | `DBuilder.Map`, `DBuilder.Editor` | Stair builder helper and dialog exist. Full plugin parity unknown. |
 | `TagExplorer` | partial | `DBuilder.Editor` | Tag list window exists. Full explorer behavior missing. |
-| `TagRange` | missing | none | Not ported. |
+| `TagRange` | partial | `DBuilder.Editor`, `DBuilder.Map` | Absolute and relative tag range calculation, duplicate and skip-used handling, selected assignment, in-session step and relative-mode defaults, and editor dialog integration exist. Full plugin lifecycle and docked workflow remain missing. |
 | `UDBScript` | missing | none | Script API not ported. |
 | `USDF` | partial | `DBuilder.Editor`, `DBuilder.IO` | DIALOGUE parsing and a non-modal conversation window exist. Editing and save-back remain missing. |
 | `VisplaneExplorer` | partial | `DBuilder.Map` | UDB-style tile sampling, packed point-stat storage, stat compression, and heatmap byte interpolation exist. Native VPO execution, map scan orchestration, palette rendering, and full UI remain missing. |

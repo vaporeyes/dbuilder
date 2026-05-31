@@ -9,6 +9,37 @@ namespace DBuilder.Tests;
 public sealed class TagRangeModelTests
 {
     [Fact]
+    public void StoredOptionsKeepOnlyStepAndRelativeMode()
+    {
+        var options = new TagRangeOptions(
+            StartTag: 32,
+            Step: -4,
+            Relative: true,
+            SkipUsedTags: true,
+            MaxTag: 128);
+
+        var stored = TagRangeModel.StoredOptionsFrom(options);
+
+        Assert.Equal(-4, stored.Step);
+        Assert.True(stored.Relative);
+    }
+
+    [Fact]
+    public void StoredOptionsNormalizeZeroStepLikeDialogInput()
+    {
+        var options = new TagRangeOptions(
+            StartTag: 32,
+            Step: 0,
+            Relative: false,
+            SkipUsedTags: false);
+
+        var stored = TagRangeModel.StoredOptionsFrom(options);
+
+        Assert.Equal(1, stored.Step);
+        Assert.False(stored.Relative);
+    }
+
+    [Fact]
     public void CreateRangeBuildsAbsoluteRange()
     {
         var result = TagRangeModel.CreateRange(

@@ -9,6 +9,8 @@ namespace DBuilder.Editor;
 
 public sealed class TagRangeDialog : PropertyDialog
 {
+    private static TagRangeStoredOptions storedOptions = new();
+
     private readonly ComboBox _target;
     private readonly TextBox _startTag;
     private readonly TextBox _step;
@@ -23,7 +25,7 @@ public sealed class TagRangeDialog : PropertyDialog
         : base("Tag Range")
     {
         ResultTarget = target;
-        ResultOptions = new TagRangeOptions(startTag, 1, Relative: false, SkipUsedTags: false);
+        ResultOptions = new TagRangeOptions(startTag, storedOptions.Step, storedOptions.Relative, SkipUsedTags: false);
 
         _target = AddCombo(
             "Apply to",
@@ -35,9 +37,9 @@ public sealed class TagRangeDialog : PropertyDialog
             },
             (int)target);
         _startTag = AddField("Start tag", startTag.ToString(CultureInfo.InvariantCulture));
-        _step = AddField("Step", "1");
+        _step = AddField("Step", storedOptions.Step.ToString(CultureInfo.InvariantCulture));
         _maxTag = AddField("Max tag", int.MaxValue.ToString(CultureInfo.InvariantCulture));
-        _relative = AddCheckBox("Relative to existing tags", false);
+        _relative = AddCheckBox("Relative to existing tags", storedOptions.Relative);
         _skipUsedTags = AddCheckBox("Skip used tags", false);
     }
 
@@ -53,5 +55,6 @@ public sealed class TagRangeDialog : PropertyDialog
             Relative: _relative.IsChecked == true,
             SkipUsedTags: _skipUsedTags.IsChecked == true,
             MaxTag: maxTag);
+        storedOptions = TagRangeModel.StoredOptionsFrom(ResultOptions);
     }
 }

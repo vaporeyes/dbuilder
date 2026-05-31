@@ -923,6 +923,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.
+  - [x] Add UDB-style in-session step and relative-mode defaults.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
@@ -1054,6 +1055,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port tag range tools.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
   - [x] Add Tag Range editor form for target selection, start/step values, relative ranges, skip-used behavior, and selected-element assignment.
+  - [x] Add UDB-style in-session step and relative-mode defaults.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.
