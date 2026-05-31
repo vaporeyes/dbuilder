@@ -899,6 +899,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
 - [ ] Port `VisplaneExplorer`.
+  - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
 - [ ] Port `WadAuthorMode`.
 - [ ] Decide whether to port `ImageDrawingExample` or keep it as a sample plugin.
 
@@ -958,6 +959,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
 - [ ] Port USDF tools.
 - [ ] Port visplane explorer analysis.
+  - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
 - [ ] Port WadAuthor mode behavior.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.

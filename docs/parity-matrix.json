@@ -201,7 +201,12 @@
     },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "USDF", "status": "missing", "dbuilderLocation": null },
-    { "udbPlugin": "VisplaneExplorer", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "VisplaneExplorer",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style VisplaneExplorer 64x64 tile model exists, including progressive butterfly sampling order, point result sentinels, packed visplanes/drawsegs/solidsegs/openings counters, and UDB stat compression. Native VPO execution, heatmap interpolation, map scan orchestration, and full UI remain incomplete."
+    },
     { "udbPlugin": "WadAuthorMode", "status": "missing", "dbuilderLocation": null }
   ]
 }
