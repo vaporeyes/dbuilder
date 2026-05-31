@@ -15,13 +15,22 @@ public static class SourcePort
 
     /// <summary>
     /// Splits <paramref name="template"/> into argument tokens (double quotes group spaces) and substitutes
-    /// %IWAD (iwad path), %FO (the map PWAD path) and %MAP (the map marker).
+    /// UDB and DBuilder placeholders for IWAD, map resources, skill, map marker, and no-monsters mode.
     /// </summary>
-    public static List<string> BuildArgs(string template, string iwad, string file, string map, IEnumerable<string>? additionalFiles = null)
+    public static List<string> BuildArgs(
+        string template,
+        string iwad,
+        string file,
+        string map,
+        IEnumerable<string>? additionalFiles = null,
+        bool testMonsters = true)
     {
         var (l, l1, l2) = WarpTokens(map);
         string additional = BuildAdditionalFiles(additionalFiles);
-        template = template.Replace("\"%AP\"", additional).Replace("%AP", additional);
+        string noMonsters = testMonsters ? "" : "-nomonsters";
+        template = NormalizeNoMonstersToken(template)
+            .Replace("\"%AP\"", additional)
+            .Replace("%AP", additional);
 
         var tokens = new List<string>();
         var cur = new StringBuilder();
@@ -46,7 +55,7 @@ public static class SourcePort
                 .Replace("%L2", l2)
                 .Replace("%L", l)
                 .Replace("%S", "3")
-                .Replace("%NM", "");
+                .Replace("%NM", noMonsters);
             if (token.Length == 0) tokens.RemoveAt(i);
             else tokens[i] = token;
         }
@@ -76,6 +85,11 @@ public static class SourcePort
 
     private static string Quote(string value)
         => "\"" + value.Replace("\"", "\\\"") + "\"";
+
+    private static string NormalizeNoMonstersToken(string template)
+        => template.Replace("%nM", "%NM")
+            .Replace("%Nm", "%NM")
+            .Replace("%nm", "%NM");
 
     private static (string L, string L1, string L2) WarpTokens(string map)
     {

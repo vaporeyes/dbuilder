@@ -50,6 +50,15 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbNoMonstersTokenExpandsWhenTestingWithoutMonsters()
+    {
+        var args = SourcePort.BuildArgs("-file \"%F\" +map %L %nm",
+            "doom2.wad", "edit.wad", "MAP07", testMonsters: false);
+
+        Assert.Equal(new[] { "-file", "edit.wad", "+map", "MAP07", "-nomonsters" }, args);
+    }
+
+    [Fact]
     public void UdbAdditionalFilesExpandAsSeparateFileArguments()
     {
         var args = SourcePort.BuildArgs("-file \"%AP\" \"%F\"",

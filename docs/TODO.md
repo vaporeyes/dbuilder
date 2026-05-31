@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1524 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1525 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -67,6 +67,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use loaded game configuration test parameter templates when no user override is set.
   - [x] Include non-excluded map resources in Test Map launch parameters.
   - [x] Build testable source-port launch plans for Test Map.
+  - [x] Expand UDB-style `%NM` Test Map tokens for no-monsters launches.
 - [ ] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
 
