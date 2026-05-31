@@ -3,6 +3,8 @@
 
 namespace DBuilder.Map;
 
+using DBuilder.Geometry;
+
 public enum AutomapColorPreset
 {
     Doom,
@@ -23,7 +25,47 @@ public enum AutomapLineColorKind
     Normal,
 }
 
+public enum AutomapHighlightKind
+{
+    None,
+    Linedef,
+    Sector,
+}
+
+public enum AutomapPresentationLayerKind
+{
+    Surface,
+    Overlay,
+    Grid,
+    Geometry,
+}
+
+public enum AutomapPresentationBlendMode
+{
+    Mask,
+    Alpha,
+}
+
 public readonly record struct AutomapColor(byte Alpha, byte Red, byte Green, byte Blue);
+
+public readonly record struct AutomapModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool UseByDefault);
+
+public readonly record struct AutomapPresentationLayer(
+    AutomapPresentationLayerKind Kind,
+    AutomapPresentationBlendMode BlendMode,
+    double Alpha = 1,
+    bool GeometryOnly = false);
+
+public sealed record AutomapPresentationDescriptor(
+    bool DrawMapCenter,
+    bool SkipHiddenSectors,
+    IReadOnlyList<AutomapPresentationLayer> Layers);
 
 public readonly record struct AutomapPalette(
     AutomapColor SingleSided,
@@ -34,6 +76,13 @@ public readonly record struct AutomapPalette(
     AutomapColor Invisible,
     AutomapColor MatchingHeight,
     AutomapColor Background);
+
+public sealed record AutomapModeSettings(
+    bool ShowHiddenLines = false,
+    bool ShowSecretSectors = false,
+    bool ShowLocks = true,
+    bool ShowTextures = true,
+    AutomapColorPreset ColorPreset = AutomapColorPreset.Doom);
 
 public readonly record struct AutomapSectorEffectData(int Effect, IReadOnlySet<int> GeneralizedBits)
 {
@@ -57,13 +106,46 @@ public readonly record struct AutomapLineStyle(
     AutomapLineColorKind Kind,
     AutomapColor Color);
 
+public sealed record AutomapHighlightResult(
+    AutomapHighlightKind Kind,
+    Linedef? Line,
+    Sector? Sector,
+    IReadOnlyList<Linedef> Lines);
+
 public static class AutomapModeModel
 {
+    public const double LineLengthScaler = 0.001;
+    public const string ShowHiddenLinesSettingKey = "automapmode.showhiddenlines";
+    public const string ShowSecretSectorsSettingKey = "automapmode.showsecretsectors";
+    public const string ShowLocksSettingKey = "automapmode.showlocks";
+    public const string ShowTexturesSettingKey = "automapmode.showtextures";
+    public const string ColorPresetSettingKey = "automapmode.colorpreset";
     public const string SecretFlag = "secret";
     public const string HiddenFlag = "dontdraw";
     public const int ClassicSecretFlagBit = 32;
     public const int ClassicHiddenFlagBit = 128;
     public const string TexturedAutomapHiddenSectorFlag = "hidden";
+
+    public static AutomapModeDescriptor ModeDescriptor { get; } = new(
+        "Automap Mode",
+        "automapmode",
+        "automap.png",
+        int.MinValue + 503,
+        "000_editing",
+        true);
+
+    public static AutomapModeSettings DefaultSettings { get; } = new();
+
+    public static AutomapPresentationDescriptor Presentation { get; } = new(
+        DrawMapCenter: false,
+        SkipHiddenSectors: true,
+        new[]
+        {
+            new AutomapPresentationLayer(AutomapPresentationLayerKind.Surface, AutomapPresentationBlendMode.Mask),
+            new AutomapPresentationLayer(AutomapPresentationLayerKind.Overlay, AutomapPresentationBlendMode.Mask),
+            new AutomapPresentationLayer(AutomapPresentationLayerKind.Grid, AutomapPresentationBlendMode.Mask),
+            new AutomapPresentationLayer(AutomapPresentationLayerKind.Geometry, AutomapPresentationBlendMode.Alpha, 1, true),
+        });
 
     public static AutomapPalette Palette(AutomapColorPreset preset) => preset switch
     {
@@ -95,6 +177,41 @@ public static class AutomapModeModel
             new(255, 108, 108, 108),
             new(255, 0, 0, 0)),
     };
+
+    public static AutomapModeOptions ToOptions(AutomapModeSettings settings, bool invertLineVisibility = false, bool isUdmf = true, bool isDoom = true)
+        => new(
+            settings.ShowHiddenLines,
+            settings.ShowSecretSectors,
+            settings.ShowLocks,
+            invertLineVisibility,
+            isUdmf,
+            isDoom);
+
+    public static List<Linedef> GetValidLinedefs(MapSet map, AutomapModeOptions options)
+        => map.Linedefs.Where(line => IsLineValid(line, options)).ToList();
+
+    public static AutomapHighlightResult PlanHighlight(
+        MapSet map,
+        ICollection<Linedef> validLinedefs,
+        Vector2D mouseMapPosition,
+        double highlightRange,
+        double rendererScale,
+        bool editSectors)
+    {
+        if (editSectors)
+        {
+            Sector? sector = map.GetSectorAt(mouseMapPosition);
+            return sector == null
+                ? new AutomapHighlightResult(AutomapHighlightKind.None, null, null, Array.Empty<Linedef>())
+                : new AutomapHighlightResult(AutomapHighlightKind.Sector, null, sector, SectorBoundaryLines(sector));
+        }
+
+        double scale = rendererScale <= 0 ? 1 : rendererScale;
+        Linedef? line = MapSet.NearestLinedefRange(validLinedefs, mouseMapPosition, highlightRange / scale);
+        return line == null
+            ? new AutomapHighlightResult(AutomapHighlightKind.None, null, null, Array.Empty<Linedef>())
+            : new AutomapHighlightResult(AutomapHighlightKind.Linedef, line, null, new[] { line });
+    }
 
     public static AutomapLineStyle DetermineLineStyle(Linedef line, AutomapModeOptions options, AutomapPalette palette)
     {
@@ -176,6 +293,18 @@ public static class AutomapModeModel
     {
         if ((line.Flags & bit) != 0) line.Flags &= ~bit;
         else line.Flags |= bit;
+    }
+
+    private static List<Linedef> SectorBoundaryLines(Sector sector)
+    {
+        var lines = new List<Linedef>();
+        var seen = new HashSet<Linedef>();
+        foreach (var side in sector.Sidedefs)
+        {
+            if (side.Line == null || !seen.Add(side.Line)) continue;
+            lines.Add(side.Line);
+        }
+        return lines;
     }
 
     private static AutomapColor ColorForKind(AutomapLineColorKind kind, AutomapPalette palette, AutomapColor? lockColor)

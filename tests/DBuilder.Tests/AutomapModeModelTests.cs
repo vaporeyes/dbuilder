@@ -40,6 +40,110 @@ public class AutomapModeModelTests
         return line;
     }
 
+    private static (MapSet Map, Sector Sector, Linedef[] Lines) SquareSector()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        Vertex v1 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v2 = map.AddVertex(new Vector2D(0, 64));
+        Vertex v3 = map.AddVertex(new Vector2D(64, 64));
+        Vertex v4 = map.AddVertex(new Vector2D(64, 0));
+        Linedef l1 = map.AddLinedef(v1, v2);
+        Linedef l2 = map.AddLinedef(v2, v3);
+        Linedef l3 = map.AddLinedef(v3, v4);
+        Linedef l4 = map.AddLinedef(v4, v1);
+        map.AddSidedef(l1, true, sector);
+        map.AddSidedef(l2, true, sector);
+        map.AddSidedef(l3, true, sector);
+        map.AddSidedef(l4, true, sector);
+        map.BuildIndexes();
+        return (map, sector, new[] { l1, l2, l3, l4 });
+    }
+
+    [Fact]
+    public void ModeDescriptorAndDefaultsMatchUdbAutomapMode()
+    {
+        Assert.Equal("Automap Mode", AutomapModeModel.ModeDescriptor.DisplayName);
+        Assert.Equal("automapmode", AutomapModeModel.ModeDescriptor.SwitchAction);
+        Assert.Equal("automap.png", AutomapModeModel.ModeDescriptor.ButtonImage);
+        Assert.Equal(int.MinValue + 503, AutomapModeModel.ModeDescriptor.ButtonOrder);
+        Assert.Equal("000_editing", AutomapModeModel.ModeDescriptor.ButtonGroup);
+        Assert.True(AutomapModeModel.ModeDescriptor.UseByDefault);
+
+        Assert.Equal("automapmode.showhiddenlines", AutomapModeModel.ShowHiddenLinesSettingKey);
+        Assert.Equal("automapmode.showsecretsectors", AutomapModeModel.ShowSecretSectorsSettingKey);
+        Assert.Equal("automapmode.showlocks", AutomapModeModel.ShowLocksSettingKey);
+        Assert.Equal("automapmode.showtextures", AutomapModeModel.ShowTexturesSettingKey);
+        Assert.Equal("automapmode.colorpreset", AutomapModeModel.ColorPresetSettingKey);
+        Assert.False(AutomapModeModel.DefaultSettings.ShowHiddenLines);
+        Assert.False(AutomapModeModel.DefaultSettings.ShowSecretSectors);
+        Assert.True(AutomapModeModel.DefaultSettings.ShowLocks);
+        Assert.True(AutomapModeModel.DefaultSettings.ShowTextures);
+        Assert.Equal(AutomapColorPreset.Doom, AutomapModeModel.DefaultSettings.ColorPreset);
+        Assert.Equal(0.001, AutomapModeModel.LineLengthScaler);
+    }
+
+    [Fact]
+    public void PresentationMatchesUdbAutomapEngageLayers()
+    {
+        AutomapPresentationDescriptor presentation = AutomapModeModel.Presentation;
+
+        Assert.False(presentation.DrawMapCenter);
+        Assert.True(presentation.SkipHiddenSectors);
+        Assert.Collection(
+            presentation.Layers,
+            layer =>
+            {
+                Assert.Equal(AutomapPresentationLayerKind.Surface, layer.Kind);
+                Assert.Equal(AutomapPresentationBlendMode.Mask, layer.BlendMode);
+                Assert.False(layer.GeometryOnly);
+            },
+            layer =>
+            {
+                Assert.Equal(AutomapPresentationLayerKind.Overlay, layer.Kind);
+                Assert.Equal(AutomapPresentationBlendMode.Mask, layer.BlendMode);
+                Assert.False(layer.GeometryOnly);
+            },
+            layer =>
+            {
+                Assert.Equal(AutomapPresentationLayerKind.Grid, layer.Kind);
+                Assert.Equal(AutomapPresentationBlendMode.Mask, layer.BlendMode);
+                Assert.False(layer.GeometryOnly);
+            },
+            layer =>
+            {
+                Assert.Equal(AutomapPresentationLayerKind.Geometry, layer.Kind);
+                Assert.Equal(AutomapPresentationBlendMode.Alpha, layer.BlendMode);
+                Assert.Equal(1, layer.Alpha);
+                Assert.True(layer.GeometryOnly);
+            });
+    }
+
+    [Fact]
+    public void ValidLinedefCollectionUsesAutomapVisibilityRules()
+    {
+        var map = new MapSet();
+        var visible = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var hidden = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+        hidden.SetFlag(AutomapModeModel.HiddenFlag, true);
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.FloorHeight = 0;
+        back.CeilHeight = 128;
+        var matching = map.AddLinedef(map.AddVertex(new Vector2D(0, 128)), map.AddVertex(new Vector2D(64, 128)));
+        map.AddSidedef(matching, true, front);
+        map.AddSidedef(matching, false, back);
+
+        List<Linedef> valid = AutomapModeModel.GetValidLinedefs(map, new AutomapModeOptions());
+
+        Assert.Contains(visible, valid);
+        Assert.DoesNotContain(hidden, valid);
+        Assert.DoesNotContain(matching, valid);
+        Assert.Contains(hidden, AutomapModeModel.GetValidLinedefs(map, new AutomapModeOptions(ShowHiddenLines: true)));
+    }
+
     [Fact]
     public void PaletteMatchesUdbDoomPreset()
     {
@@ -69,6 +173,58 @@ public class AutomapModeModelTests
         Assert.False(AutomapModeModel.IsLineValid(hidden, new AutomapModeOptions()));
         Assert.True(AutomapModeModel.IsLineValid(hidden, new AutomapModeOptions(ShowHiddenLines: true)));
         Assert.True(AutomapModeModel.IsLineValid(matching, new AutomapModeOptions(InvertLineVisibility: true)));
+    }
+
+    [Fact]
+    public void HighlightPlanningPicksNearestValidLinedefWithinScaledRange()
+    {
+        var map = new MapSet();
+        Linedef valid = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef invalid = map.AddLinedef(map.AddVertex(new Vector2D(0, 8)), map.AddVertex(new Vector2D(64, 8)));
+        invalid.SetFlag(AutomapModeModel.HiddenFlag, true);
+        map.BuildIndexes();
+        List<Linedef> validLines = AutomapModeModel.GetValidLinedefs(map, new AutomapModeOptions());
+
+        AutomapHighlightResult result = AutomapModeModel.PlanHighlight(
+            map,
+            validLines,
+            new Vector2D(32, 6),
+            highlightRange: 16,
+            rendererScale: 2,
+            editSectors: false);
+
+        Assert.Equal(AutomapHighlightKind.Linedef, result.Kind);
+        Assert.Same(valid, result.Line);
+        Assert.Null(result.Sector);
+        Assert.Equal(new[] { valid }, result.Lines);
+
+        AutomapHighlightResult tooFar = AutomapModeModel.PlanHighlight(
+            map,
+            validLines,
+            new Vector2D(32, 9),
+            highlightRange: 16,
+            rendererScale: 2,
+            editSectors: false);
+        Assert.Equal(AutomapHighlightKind.None, tooFar.Kind);
+    }
+
+    [Fact]
+    public void HighlightPlanningPicksSectorUnderCursorWithoutRangeLimit()
+    {
+        var (map, sector, lines) = SquareSector();
+
+        AutomapHighlightResult result = AutomapModeModel.PlanHighlight(
+            map,
+            Array.Empty<Linedef>(),
+            new Vector2D(32, 32),
+            highlightRange: 1,
+            rendererScale: 100,
+            editSectors: true);
+
+        Assert.Equal(AutomapHighlightKind.Sector, result.Kind);
+        Assert.Null(result.Line);
+        Assert.Same(sector, result.Sector);
+        Assert.Equal(lines, result.Lines);
     }
 
     [Fact]
