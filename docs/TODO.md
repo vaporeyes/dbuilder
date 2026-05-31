@@ -882,6 +882,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `AutomapMode`.
   - [x] Add UDB-style automap line visibility, color classification, secret-sector detection, lock-color resolution, and flag toggle model.
 - [ ] Port `BlockmapExplorer`.
+  - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
 - [ ] Port `ColorPicker`.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
 - [ ] Port `CommentsPanel`.
@@ -948,6 +949,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
 - [ ] Port blockmap explorer UI and data model.
+  - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.

@@ -140,8 +140,8 @@
     {
       "udbPlugin": "BlockmapExplorer",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.Map",
-      "notes": "Blockmap construction, queries, and editor overlay toggles exist. Full explorer UI and diagnostics remain incomplete."
+      "dbuilderLocation": "DBuilder.Map, DBuilder.IO",
+      "notes": "Blockmap construction, queries, editor overlay toggles, raw BLOCKMAP lump parsing, shared block-list queries, questionable offset helpers, missing-line counts, and malformed lump diagnostics exist. Full explorer UI and visualization workflow remain incomplete."
     },
     {
       "udbPlugin": "BuilderEffects",
