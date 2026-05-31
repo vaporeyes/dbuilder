@@ -2,6 +2,7 @@
 // ABOUTME: Preserves the progressive tile sampling order and packed stat counters used by the plugin.
 
 using System.Drawing;
+using System.Globalization;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -48,6 +49,50 @@ public readonly record struct VisplaneHoverInfo(int Value, int StaticLimit, bool
 {
     public string FormatLabel()
         => $"{Value}{(Overflow ? "+" : "")} / {StaticLimit}";
+}
+
+public static class VisplaneExplorerViewHeight
+{
+    public const int DefaultCustomHeight = 0;
+    public const int MaxCustomHeight = short.MaxValue;
+
+    public static int NormalizeCustomHeightInput(string? input)
+    {
+        int height = ParseNumericTextboxInput(input, DefaultCustomHeight);
+        return height > MaxCustomHeight ? DefaultCustomHeight : height;
+    }
+
+    private static int ParseNumericTextboxInput(string? input, int original)
+    {
+        string text = input?.Trim() ?? "";
+        if (text.Length == 0) return original;
+
+        string valueText = StripRelativePrefix(text, out string prefix);
+        if (!int.TryParse(valueText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+            return original;
+
+        return prefix switch
+        {
+            "+++" or "++" => original + value,
+            "---" or "--" => original - value < 0 ? original : original - value,
+            "*" => original * value,
+            "/" => value == 0 ? original : original / value,
+            _ => value < 0 ? original : value,
+        };
+    }
+
+    private static string StripRelativePrefix(string text, out string prefix)
+    {
+        foreach (string candidate in new[] { "+++", "---", "++", "--", "*", "/" })
+        {
+            if (!text.StartsWith(candidate, StringComparison.Ordinal)) continue;
+            prefix = candidate;
+            return text[candidate.Length..].Trim();
+        }
+
+        prefix = "";
+        return text;
+    }
 }
 
 public sealed class VisplanePalette

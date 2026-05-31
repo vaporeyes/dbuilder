@@ -8,6 +8,21 @@ namespace DBuilder.Tests;
 
 public class VisplaneExplorerModelTests
 {
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData("41", 41)]
+    [InlineData("32767", 32767)]
+    [InlineData("32768", 0)]
+    [InlineData("-1", 0)]
+    [InlineData("not a number", 0)]
+    [InlineData("++64", 64)]
+    [InlineData("+++8", 8)]
+    [InlineData("--8", 0)]
+    [InlineData("*4", 0)]
+    [InlineData("/2", 0)]
+    public void CustomViewHeightInputMatchesUdbDialogNormalization(string input, int expected)
+        => Assert.Equal(expected, VisplaneExplorerViewHeight.NormalizeCustomHeightInput(input));
+
     [Fact]
     public void PaletteCopiesRowColorsAndSupportsUdbStyleOverride()
     {

@@ -963,6 +963,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style map-bound tile creation with one-sided outside-tile culling.
   - [x] Add UDB-style VisplaneExplorer NODES preflight for missing, empty, and ZDBSP node lumps.
   - [x] Add UDB-style VisplaneExplorer tile hover value and overflow label model.
+  - [x] Add UDB-style custom view-height input normalization.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
   - [x] Add UDB-style linedef popup command order model.
@@ -1114,6 +1115,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
   - [x] Add UDB-style point hover value lookup and `value / limit` label formatting.
+  - [x] Add UDB-style custom view-height input normalization.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.
