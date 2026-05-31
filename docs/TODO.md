@@ -947,6 +947,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add Edit menu command for selecting similar elements in the active edit mode.
 - [ ] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
+  - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
 - [ ] Port bridge mode.
 - [ ] Port slope arch tools.
 - [ ] Port make-door tools.

@@ -19,6 +19,13 @@ public sealed class SidedefTextureFitOptions
     public bool FitHeight { get; init; } = true;
     public bool AutoWidth { get; init; }
     public bool AutoHeight { get; init; }
+    public bool FitAcrossSurfaces { get; init; }
+    public double BoundsX { get; init; }
+    public double BoundsY { get; init; }
+    public double GlobalBoundsWidth { get; init; }
+    public double GlobalBoundsHeight { get; init; }
+    public double ControlSideOffsetX { get; init; }
+    public double ControlSideOffsetY { get; init; }
     public double InitialOffsetX { get; init; }
     public double InitialOffsetY { get; init; }
     public double InitialScaleX { get; init; } = 1.0;
@@ -38,9 +45,16 @@ public static class SidedefTextureFitting
 
         if (options.FitWidth && lineLength > 0.0)
         {
-            double repeat = HorizontalRepeat(options, texture.Width, lineLength);
-            changed |= SetFloat(side, ScaleXField(part), Math.Round(texture.ScaledWidth / lineLength * repeat, decimals), 1.0);
-            changed |= SetFloat(side, OffsetXField(part), Math.Round((double)-side.OffsetX, decimals), 0.0);
+            bool useSurfaceBounds = options.FitAcrossSurfaces && options.GlobalBoundsWidth > 0.0;
+            double fitWidth = useSurfaceBounds ? options.GlobalBoundsWidth : lineLength;
+            double repeat = HorizontalRepeat(options, texture.Width, fitWidth);
+            double scaleX = texture.ScaledWidth / fitWidth * repeat;
+            double offsetX = useSurfaceBounds
+                ? options.BoundsX * scaleX - side.OffsetX - options.ControlSideOffsetX
+                : -side.OffsetX - options.ControlSideOffsetX;
+
+            changed |= SetFloat(side, ScaleXField(part), Math.Round(scaleX, decimals), 1.0);
+            changed |= SetFloat(side, OffsetXField(part), Math.Round(offsetX, decimals), 0.0);
         }
         else
         {
@@ -51,9 +65,16 @@ public static class SidedefTextureFitting
         double partHeight = side.GetPartHeight(part);
         if (options.FitHeight && partHeight > 0.0)
         {
-            double repeat = VerticalRepeat(options, texture.Height, partHeight);
-            changed |= SetFloat(side, ScaleYField(part), Math.Round(texture.ScaledHeight / partHeight * repeat, decimals), 1.0);
-            changed |= SetFloat(side, OffsetYField(part), Math.Round((double)-side.OffsetY, decimals), 0.0);
+            bool useSurfaceBounds = options.FitAcrossSurfaces && options.GlobalBoundsHeight > 0.0;
+            double fitHeight = useSurfaceBounds ? options.GlobalBoundsHeight : partHeight;
+            double repeat = VerticalRepeat(options, texture.Height, fitHeight);
+            double scaleY = texture.ScaledHeight / fitHeight * repeat;
+            double offsetY = useSurfaceBounds
+                ? options.BoundsY * scaleY - side.OffsetY - options.ControlSideOffsetY
+                : -side.OffsetY - options.ControlSideOffsetY;
+
+            changed |= SetFloat(side, ScaleYField(part), Math.Round(scaleY, decimals), 1.0);
+            changed |= SetFloat(side, OffsetYField(part), Math.Round(offsetY, decimals), 0.0);
         }
         else
         {

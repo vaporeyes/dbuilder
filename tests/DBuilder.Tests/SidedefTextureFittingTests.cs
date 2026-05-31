@@ -42,6 +42,25 @@ public class SidedefTextureFittingTests
     }
 
     [Fact]
+    public void FitSubtractsControlSideOffsets()
+    {
+        var (side, _) = OneSidedLine(length: 64, floor: 0, ceiling: 128);
+        side.OffsetX = 8;
+        side.OffsetY = 12;
+
+        var options = new SidedefTextureFitOptions
+        {
+            ControlSideOffsetX = 5,
+            ControlSideOffsetY = 7,
+        };
+
+        SidedefTextureFitting.Fit(side, SidedefPart.Middle, new TextureFitImage(128, 64), options);
+
+        Assert.Equal(-13.0, side.GetFloatField("offsetx_mid"));
+        Assert.Equal(-19.0, side.GetFloatField("offsety_mid"));
+    }
+
+    [Fact]
     public void FitAutoRepeatHonorsPatternSize()
     {
         var (side, _) = OneSidedLine(length: 96, floor: 0, ceiling: 160);
@@ -58,6 +77,65 @@ public class SidedefTextureFittingTests
 
         Assert.Equal(1.0, side.GetFloatField("scalex_mid", 1.0));
         Assert.Equal(1.0, side.GetFloatField("scaley_mid", 1.0));
+    }
+
+    [Fact]
+    public void FitAcrossSurfacesUsesGlobalWidthAndPerSurfaceOffset()
+    {
+        var (side, _) = OneSidedLine(length: 64, floor: 0, ceiling: 128);
+        side.OffsetX = 4;
+
+        var options = new SidedefTextureFitOptions
+        {
+            FitAcrossSurfaces = true,
+            FitHeight = false,
+            BoundsX = 64,
+            GlobalBoundsWidth = 192,
+        };
+
+        SidedefTextureFitting.Fit(side, SidedefPart.Middle, new TextureFitImage(96, 64), options);
+
+        Assert.Equal(0.5, side.GetFloatField("scalex_mid", 1.0));
+        Assert.Equal(28.0, side.GetFloatField("offsetx_mid"));
+    }
+
+    [Fact]
+    public void FitAcrossSurfacesAutoRepeatUsesGlobalPatternWidth()
+    {
+        var (side, _) = OneSidedLine(length: 64, floor: 0, ceiling: 128);
+
+        var options = new SidedefTextureFitOptions
+        {
+            FitAcrossSurfaces = true,
+            FitHeight = false,
+            AutoWidth = true,
+            PatternWidth = 64,
+            GlobalBoundsWidth = 192,
+        };
+
+        SidedefTextureFitting.Fit(side, SidedefPart.Middle, new TextureFitImage(128, 64), options);
+
+        Assert.Equal(1.0, side.GetFloatField("scalex_mid", 1.0));
+    }
+
+    [Fact]
+    public void FitAcrossSurfacesUsesGlobalHeightAndPerSurfaceOffset()
+    {
+        var (side, _) = OneSidedLine(length: 64, floor: 0, ceiling: 128);
+        side.OffsetY = 10;
+
+        var options = new SidedefTextureFitOptions
+        {
+            FitAcrossSurfaces = true,
+            FitWidth = false,
+            BoundsY = 64,
+            GlobalBoundsHeight = 256,
+        };
+
+        SidedefTextureFitting.Fit(side, SidedefPart.Middle, new TextureFitImage(64, 128), options);
+
+        Assert.Equal(0.5, side.GetFloatField("scaley_mid", 1.0));
+        Assert.Equal(22.0, side.GetFloatField("offsety_mid"));
     }
 
     [Fact]
