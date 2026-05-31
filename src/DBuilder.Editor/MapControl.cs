@@ -2316,13 +2316,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var existing = _map.NearestVertex(p, 0.01);
             verts.Add(existing ?? _map.AddVertex(p));
         }
-        SectorBuilder.CreateSector(_map, verts);
+        ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
     }
+
+    private void ApplyNewSectorDefaults(Sector? sector)
+    {
+        if (_map == null || sector == null || _gameConfig == null) return;
+        if (IsBlankTexture(sector.FloorTexture)) sector.FloorTexture = _gameConfig.DefaultFloorTexture;
+        if (IsBlankTexture(sector.CeilTexture)) sector.CeilTexture = _gameConfig.DefaultCeilingTexture;
+
+        foreach (var side in _map.Sidedefs)
+        {
+            if (!ReferenceEquals(side.Sector, sector)) continue;
+            if (!IsOneSided(side.Line)) continue;
+            if (IsBlankTexture(side.MidTexture)) side.MidTexture = _gameConfig.DefaultWallTexture;
+        }
+    }
+
+    private static bool IsBlankTexture(string? name)
+        => string.IsNullOrWhiteSpace(name) || name == "-";
+
+    private static bool IsOneSided(Linedef line)
+        => line.Front == null || line.Back == null;
 
     // Selects all elements of the active mode whose geometry falls inside the rubber-band box.
     private void ApplyBoxSelection(Vec2D a, Vec2D b, bool additive)
@@ -2567,7 +2587,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke("Make sector");
-        SectorBuilder.CreateSectorFromSides(_map, path);
+        ApplyNewSectorDefaults(SectorBuilder.CreateSectorFromSides(_map, path));
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -2690,7 +2710,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
-            SectorBuilder.CreateSector(_map, verts);
+            ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
         }
 
         _map.MergeOverlappingVertices(0.01);

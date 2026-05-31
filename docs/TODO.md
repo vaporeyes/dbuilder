@@ -112,6 +112,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
 - [ ] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
+  - [x] Expose an explicit Properties command for single linedef, sector, and thing selections.
 
 ## Plugin Architecture
 
@@ -636,6 +637,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Integrate handlers into configured universal field editors.
 - [ ] Integrate handlers into property editing UI.
   - [x] Add texture and flat browser buttons to property dialogs.
+  - [x] Add front and back sidedef texture fields to the linedef property dialog.
   - [x] Add thing, linedef action, and sector effect browsers to configured property fields.
   - [x] Add thing, linedef action, and sector effect browsers to argument editors.
   - [x] Add checkbox editors for configured enum-bit property fields.
@@ -746,6 +748,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add drawing default fields to the map options dialog.
   - [x] Add drawing override toggles to the map options dialog.
   - [x] Add texture and flat browser buttons to map drawing defaults.
+  - [x] Apply active game configuration default textures to newly drawn sectors.
   - [x] Add external command fields to the map options dialog.
   - [x] Persist view position and zoom through map options.
   - [x] Add script compiler field to the map options dialog.

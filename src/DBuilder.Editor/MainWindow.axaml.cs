@@ -323,6 +323,7 @@ public partial class MainWindow : Window
             MapView.GameConfig = _config; // enables thing sprites in the map view
             ApplyResourceConfig();
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
+            UpdateStatusDetails();
             UpdateInfo();
         }
         catch (Exception ex) { LogAndSetStatus(ex, "Config load failed"); }
@@ -354,7 +355,7 @@ public partial class MainWindow : Window
         MapView.Focus();
         MarkMapDirty();
         UpdateInfo();
-        SetStatus("New empty map. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
+        SetStatus($"New empty map for {CurrentConfigLabel()}. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
     }
 
     private async void OnOpen(object? sender, RoutedEventArgs e)
@@ -1086,6 +1087,18 @@ public partial class MainWindow : Window
             {
                 CreateUndo("Edit linedef");
                 l.Action = dlg.ResultAction; l.Tag = dlg.ResultTag; l.Flags = dlg.ResultFlags;
+                if (l.Front is { } front)
+                {
+                    front.HighTexture = dlg.ResultFrontHighTex ?? front.HighTexture;
+                    front.MidTexture = dlg.ResultFrontMidTex ?? front.MidTexture;
+                    front.LowTexture = dlg.ResultFrontLowTex ?? front.LowTexture;
+                }
+                if (l.Back is { } back)
+                {
+                    back.HighTexture = dlg.ResultBackHighTex ?? back.HighTexture;
+                    back.MidTexture = dlg.ResultBackMidTex ?? back.MidTexture;
+                    back.LowTexture = dlg.ResultBackLowTex ?? back.LowTexture;
+                }
                 Array.Copy(dlg.ResultArgs, l.Args, l.Args.Length);
                 ApplyFields(l.Fields, dlg.ResultFields);
                 AfterEdit("Linedef updated");
@@ -1105,7 +1118,10 @@ public partial class MainWindow : Window
                 AfterEdit("Sector updated");
             }
         }
+        else SetStatus("Select exactly one linedef, sector or thing to edit properties.");
     }
+
+    private void OnEditProperties(object? sender, RoutedEventArgs e) => OnEditSelected();
 
     // Opens the named UDMF flags dialog for one selected thing or linedef.
     private async void OnFlags(object? sender, RoutedEventArgs e)
@@ -2739,12 +2755,18 @@ public partial class MainWindow : Window
         _statusHistory.Add(text);
     }
 
+    private string CurrentConfigLabel()
+        => _config is null || string.IsNullOrWhiteSpace(_config.GameName)
+            ? _configName
+            : $"{_config.GameName} ({_configName})";
+
     private string CommandHint(string commandId) => EditorCommandCatalog.CommandHint(commandId, _shortcutBindings);
 
     private string CommandHints(params string[] commandIds) => EditorCommandCatalog.CommandHints(_shortcutBindings, commandIds);
 
     private void UpdateStatusDetails()
     {
+        ConfigText.Text = $"Config: {CurrentConfigLabel()}";
         ModeText.Text = MapView.In3DMode
             ? "Mode: 3D"
             : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
@@ -2793,6 +2815,14 @@ public partial class MainWindow : Window
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
+        bool hasEditableProperties =
+            _map is not null &&
+            ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&
+              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0) ||
+             (_map.SelectedSectorsCount == 1 && _map.SelectedLinedefsCount == 0 &&
+              _map.SelectedThingsCount == 0 && _map.SelectedVerticesCount == 0) ||
+             (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 &&
+              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0));
         bool hasSingleFlagSelection =
             _map is not null &&
             ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&
@@ -2831,6 +2861,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
+        SetEnabled(hasEditableProperties, PropertiesMenuItem);
         SetEnabled(hasSingleFlagSelection, FlagsMenuItem);
         SetEnabled(hasExactlyOneSelection, CustomFieldsMenuItem);
         SetEnabled(canUndo, UndoMenuItem, UndoButton);

@@ -526,6 +526,8 @@ public sealed class LinedefEditDialog : PropertyDialog
     private readonly ComboBox? _actionCombo;
     private readonly TextBox? _actionBox;
     private readonly TextBox _tag;
+    private readonly TextBox? _frontHighTex, _frontMidTex, _frontLowTex;
+    private readonly TextBox? _backHighTex, _backMidTex, _backLowTex;
     private readonly FlagChecks? _flagChecks;
     private readonly TextBox? _flagsBox;
     private readonly ArgEditors? _args;
@@ -534,6 +536,8 @@ public sealed class LinedefEditDialog : PropertyDialog
 
     public int ResultAction, ResultTag, ResultFlags;
     public int[] ResultArgs;
+    public string? ResultFrontHighTex, ResultFrontMidTex, ResultFrontLowTex;
+    public string? ResultBackHighTex, ResultBackMidTex, ResultBackLowTex;
     public Dictionary<string, object> ResultFields = new();
 
     public LinedefEditDialog(Linedef l, GameConfiguration? config, ResourceManager? resources = null) : base("Edit Linedef")
@@ -549,6 +553,18 @@ public sealed class LinedefEditDialog : PropertyDialog
         else _actionBox = AddField("Action", l.Action.ToString(CultureInfo.InvariantCulture));
 
         _tag = AddField("Tag", l.Tag.ToString(CultureInfo.InvariantCulture));
+        if (l.Front is { } front)
+        {
+            _frontHighTex = AddLinedefTextureField("Front upper texture", front.HighTexture, resources);
+            _frontMidTex = AddLinedefTextureField("Front middle texture", front.MidTexture, resources);
+            _frontLowTex = AddLinedefTextureField("Front lower texture", front.LowTexture, resources);
+        }
+        if (l.Back is { } back)
+        {
+            _backHighTex = AddLinedefTextureField("Back upper texture", back.HighTexture, resources);
+            _backMidTex = AddLinedefTextureField("Back middle texture", back.MidTexture, resources);
+            _backLowTex = AddLinedefTextureField("Back lower texture", back.LowTexture, resources);
+        }
 
         _args = AddArgEditors(config, config?.GetLinedefAction(l.Action)?.Args ?? Array.Empty<ArgInfo>(), l.Args);
 
@@ -562,15 +578,29 @@ public sealed class LinedefEditDialog : PropertyDialog
             UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(l.Fields, editorFields)));
     }
 
+    private TextBox AddLinedefTextureField(string label, string value, ResourceManager? resources)
+        => resources != null
+            ? AddTextureField(label, value, resources, flats: false, "Browse Textures")
+            : AddField(label, value);
+
     protected override void OnConfirm()
     {
         ResultAction = _actionCombo != null ? ComboNumber(_actionCombo, 0) : ParseInt(_actionBox!, 0);
         ResultTag = ParseInt(_tag, 0);
+        ResultFrontHighTex = TextureValue(_frontHighTex);
+        ResultFrontMidTex = TextureValue(_frontMidTex);
+        ResultFrontLowTex = TextureValue(_frontLowTex);
+        ResultBackHighTex = TextureValue(_backHighTex);
+        ResultBackMidTex = TextureValue(_backMidTex);
+        ResultBackLowTex = TextureValue(_backLowTex);
         ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
         if (_args != null) ResultArgs = _args.Read(ResultArgs);
         ResultFields = UdmfFields.Parse(_custom.Text);
         _fieldEditors?.Apply(ResultFields);
     }
+
+    private static string? TextureValue(TextBox? box)
+        => box is null ? null : string.IsNullOrWhiteSpace(box.Text) ? "-" : box.Text!;
 }
 
 public sealed class SectorEditDialog : PropertyDialog
