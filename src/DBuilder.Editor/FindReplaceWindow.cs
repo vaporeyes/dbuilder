@@ -64,6 +64,7 @@ public sealed class FindReplaceWindow : Window
                 new CategoryItem(FindCategory.LinedefTag, "Linedef tag"),
                 new CategoryItem(FindCategory.SectorTag, "Sector tag"),
                 new CategoryItem(FindCategory.ThingTag, "Thing tag"),
+                new CategoryItem(FindCategory.TextureOrFlat, "Any texture or flat"),
                 new CategoryItem(FindCategory.Texture, "Texture (sidedef)"),
                 new CategoryItem(FindCategory.SidedefUpperTexture, "Texture (upper)"),
                 new CategoryItem(FindCategory.SidedefMiddleTexture, "Texture (middle)"),

@@ -21,6 +21,7 @@ public enum FindCategory
     LinedefTag,
     SectorTag,
     ThingTag,
+    TextureOrFlat,
     Texture,
     Flat,
     VertexIndex,
@@ -77,6 +78,7 @@ public static class MapSearch
     public static bool IsTextual(FindCategory cat) => cat switch
     {
         FindCategory.Texture or
+        FindCategory.TextureOrFlat or
         FindCategory.Flat or
         FindCategory.SectorFloorFlat or
         FindCategory.SectorCeilingFlat or
@@ -243,6 +245,22 @@ public static class MapSearch
                     if (sd.Line != null && (Eq(sd.HighTexture, value) || Eq(sd.MidTexture, value) || Eq(sd.LowTexture, value)))
                     { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
+            case FindCategory.TextureOrFlat:
+                foreach (var s in map.Sectors)
+                {
+                    if (TexturePatternMatches(s.CeilTexture, value)) { s.Selected = true; count++; }
+                    if (TexturePatternMatches(s.FloorTexture, value)) { s.Selected = true; count++; }
+                }
+                foreach (var sd in map.Sidedefs)
+                {
+                    if (sd.Line == null) continue;
+                    bool selected = false;
+                    if (TexturePatternMatches(sd.HighTexture, value) && (value != "-" || sd.HighRequired())) { selected = true; count++; }
+                    if (TexturePatternMatches(sd.MidTexture, value) && (value != "-" || sd.MiddleRequired())) { selected = true; count++; }
+                    if (TexturePatternMatches(sd.LowTexture, value) && (value != "-" || sd.LowRequired())) { selected = true; count++; }
+                    if (selected) { sd.Line.Selected = true; focus ??= Mid(sd.Line); }
+                }
+                break;
             case FindCategory.SidedefUpperTexture:
                 foreach (var sd in map.Sidedefs) if (sd.Line != null && Eq(sd.HighTexture, value)) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
@@ -295,6 +313,19 @@ public static class MapSearch
                         if (Eq(sd.MidTexture, find)) { sd.MidTexture = replace; hit = true; }
                         if (Eq(sd.LowTexture, find)) { sd.LowTexture = replace; hit = true; }
                         if (hit) changed++;
+                    }
+                    break;
+                case FindCategory.TextureOrFlat:
+                    foreach (var s in map.Sectors)
+                    {
+                        if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
+                        if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
+                    }
+                    foreach (var sd in map.Sidedefs)
+                    {
+                        if (TexturePatternMatches(sd.HighTexture, find) && (find != "-" || sd.HighRequired())) { sd.HighTexture = replace; changed++; }
+                        if (TexturePatternMatches(sd.MidTexture, find) && (find != "-" || sd.MiddleRequired())) { sd.MidTexture = replace; changed++; }
+                        if (TexturePatternMatches(sd.LowTexture, find) && (find != "-" || sd.LowRequired())) { sd.LowTexture = replace; changed++; }
                     }
                     break;
                 case FindCategory.SidedefUpperTexture:
@@ -457,6 +488,14 @@ public static class MapSearch
     }
 
     private static bool Eq(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    private static bool TexturePatternMatches(string name, string pattern)
+    {
+        if (pattern.IndexOf('*') == -1 && pattern.IndexOf('?') == -1) return Eq(name, pattern);
+        var regex = new Regex("^" + Regex.Escape(pattern).Replace("\\?", ".").Replace("\\*", ".*") + "$",
+            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        return regex.IsMatch(name);
+    }
 
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);

@@ -213,6 +213,23 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindAndReplaceAnyTextureOrFlatTouchesBothSidedefsAndSectors()
+    {
+        var map = Build();
+
+        SearchResult result = MapSearch.Find(map, FindCategory.TextureOrFlat, "FLOOR4_8");
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Sectors[1].Selected);
+
+        Assert.Equal(4, MapSearch.Find(map, FindCategory.TextureOrFlat, "START*").Count);
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1"));
+
+        Assert.Equal("STONE1", map.Sectors[0].FloorTexture);
+        Assert.Equal("STONE1", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
     public void FindIndexCategoriesSelectSpecificElements()
     {
         var map = Build();
