@@ -26,6 +26,15 @@ public sealed record ModeldefFrame(string Sprite, string Frame, int ModelIndex, 
 
 public static class ModeldefParser
 {
+    private static readonly HashSet<string> SupportedModelExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".3d",
+        ".iqm",
+        ".md2",
+        ".md3",
+        ".obj",
+    };
+
     public static List<Modeldef> Parse(string text) => Parse(text, includeResolver: null);
 
     public static List<Modeldef> Parse(string text, Func<string, string?>? includeResolver)
@@ -50,10 +59,10 @@ public static class ModeldefParser
             i++;
             if (i >= t.Count) break;
             var def = new Modeldef { ActorName = t[i++] };
-            if (i >= t.Count || t[i] != "{") { result.Add(def); continue; }
+            if (i >= t.Count || t[i] != "{") continue;
             i++;
-            ParseBlock(def, t, ref i);
-            result.Add(def);
+            bool valid = ParseBlock(def, t, ref i);
+            if (valid && def.Models.Count > 0) result.Add(def);
         }
     }
 
@@ -79,8 +88,9 @@ public static class ModeldefParser
             && !include.Equals(".", StringComparison.Ordinal);
     }
 
-    private static void ParseBlock(Modeldef def, List<string> t, ref int i)
+    private static bool ParseBlock(Modeldef def, List<string> t, ref int i)
     {
+        bool valid = true;
         while (i < t.Count && t[i] != "}")
         {
             string kw = t[i++].ToLowerInvariant();
@@ -90,18 +100,16 @@ public static class ModeldefParser
                     if (i < t.Count) def.Path = t[i++].TrimEnd('/', '\\');
                     break;
                 case "model":
-                    if (ReadInt(t, ref i, out int modelIndex) && i < t.Count)
-                        SetModel(def.Models, new ModeldefModel(modelIndex, t[i++]));
+                    if (!ParseModel(def, t, ref i)) valid = false;
                     break;
                 case "skin":
-                    if (ReadInt(t, ref i, out int skinIndex) && i < t.Count)
-                        SetSkin(def.Skins, new ModeldefSkin(skinIndex, t[i++]));
+                    if (!ParseSkin(def, t, ref i)) valid = false;
                     break;
                 case "surfaceskin":
-                    ParseSurfaceSkin(def, t, ref i);
+                    if (!ParseSurfaceSkin(def, t, ref i)) valid = false;
                     break;
                 case "frameindex":
-                    ParseFrameIndex(def, t, ref i);
+                    if (!ParseFrameIndex(def, t, ref i)) valid = false;
                     break;
                 default:
                     SkipValue(t, ref i);
@@ -109,14 +117,35 @@ public static class ModeldefParser
             }
         }
         if (i < t.Count) i++;
+        return valid;
     }
 
-    private static void ParseSurfaceSkin(Modeldef def, List<string> t, ref int i)
+    private static bool ParseModel(Modeldef def, List<string> t, ref int i)
     {
-        if (!ReadInt(t, ref i, out int modelIndex)) return;
-        if (!ReadInt(t, ref i, out int surfaceIndex)) return;
-        if (i >= t.Count) return;
+        if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
+        if (i >= t.Count) return false;
+        string file = t[i++];
+        if (string.IsNullOrWhiteSpace(Path.GetExtension(file))) return false;
+        if (!SupportedModelExtensions.Contains(Path.GetExtension(file))) return false;
+        SetModel(def.Models, new ModeldefModel(modelIndex, file));
+        return true;
+    }
+
+    private static bool ParseSkin(Modeldef def, List<string> t, ref int i)
+    {
+        if (!ReadInt(t, ref i, out int skinIndex) || skinIndex < 0) return false;
+        if (i >= t.Count) return false;
+        SetSkin(def.Skins, new ModeldefSkin(skinIndex, t[i++]));
+        return true;
+    }
+
+    private static bool ParseSurfaceSkin(Modeldef def, List<string> t, ref int i)
+    {
+        if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
+        if (!ReadInt(t, ref i, out int surfaceIndex) || surfaceIndex < 0) return false;
+        if (i >= t.Count) return false;
         SetSurfaceSkin(def.SurfaceSkins, new ModeldefSurfaceSkin(modelIndex, surfaceIndex, t[i++]));
+        return true;
     }
 
     private static void SetModel(List<ModeldefModel> models, ModeldefModel model)
@@ -158,14 +187,16 @@ public static class ModeldefParser
         skins.Add(skin);
     }
 
-    private static void ParseFrameIndex(Modeldef def, List<string> t, ref int i)
+    private static bool ParseFrameIndex(Modeldef def, List<string> t, ref int i)
     {
-        if (i + 1 >= t.Count) return;
+        if (i + 1 >= t.Count) return false;
         string sprite = t[i++];
         string frame = t[i++];
-        if (!ReadInt(t, ref i, out int modelIndex)) return;
-        if (!ReadInt(t, ref i, out int frameIndex)) return;
+        if (sprite.Length != 4 || frame.Length != 1) return false;
+        if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
+        if (!ReadInt(t, ref i, out int frameIndex)) return false;
         def.Frames.Add(new ModeldefFrame(sprite, frame, modelIndex, frameIndex));
+        return true;
     }
 
     private static void SkipValue(List<string> t, ref int i)

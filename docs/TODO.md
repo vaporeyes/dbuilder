@@ -433,6 +433,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve UDB same-resource TEXTURES duplicate rules by namespace.
   - [x] Enforce configured TEXTURES name length limits like UDB.
 - [x] Port MODELDEF parser.
+  - [x] Reject unsupported MODELDEF model file extensions like UDB.
+  - [x] Reject negative MODELDEF model, skin, surface skin, and frame model indexes like UDB.
 - [x] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
   - [x] Require integral GLDEFS light radius fields.

@@ -78,6 +78,86 @@ model Repeated
         Assert.Equal(new ModeldefSurfaceSkin(0, 2, "second_alt.png"), def.SurfaceSkins.Single());
     }
 
+    [Theory]
+    [InlineData("bad.txt")]
+    [InlineData("bad")]
+    public void SkipsModelsWithUnsupportedModelFilesLikeUdb(string file)
+    {
+        string text = $$"""
+            model Bad
+            {
+                Model 0 "{{file}}"
+            }
+            model Good
+            {
+                Model 0 "good.obj"
+            }
+            """;
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefModel(0, "good.obj"), def.Models.Single());
+    }
+
+    [Fact]
+    public void SkipsModelsWithNegativeIndexesLikeUdb()
+    {
+        const string text = @"
+model BadModel
+{
+    Model -1 ""bad.md3""
+}
+model BadSkin
+{
+    Model 0 ""bad.md3""
+    Skin -1 ""bad.png""
+}
+model BadSurfaceSkin
+{
+    Model 0 ""bad.md3""
+    SurfaceSkin 0 -1 ""bad.png""
+}
+model BadFrame
+{
+    Model 0 ""bad.md3""
+    FrameIndex POSS A -1 0
+}
+model Good
+{
+    Model 0 ""good.iqm""
+    Skin 0 ""good.png""
+    SurfaceSkin 0 1 ""good_alt.png""
+    FrameIndex POSS A 0 -1
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefModel(0, "good.iqm"), def.Models.Single());
+        Assert.Equal(new ModeldefSkin(0, "good.png"), def.Skins.Single());
+        Assert.Equal(new ModeldefSurfaceSkin(0, 1, "good_alt.png"), def.SurfaceSkins.Single());
+        Assert.Equal(new ModeldefFrame("POSS", "A", 0, -1), def.Frames.Single());
+    }
+
+    [Fact]
+    public void SkipsModelsWithoutModelEntriesLikeUdb()
+    {
+        const string text = @"
+model Empty
+{
+    Skin 0 ""empty.png""
+}
+model Good
+{
+    Model 0 ""good.md2""
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+    }
+
     [Fact]
     public void ParsesIncludesOnce()
     {
