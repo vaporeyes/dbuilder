@@ -44,6 +44,45 @@ public static class StairBuilder
         return sectors;
     }
 
+    public static IReadOnlyList<Sector> CreateSectorsFromPlans(
+        MapSet map,
+        IReadOnlyList<StairBuilderSectorPlan> plans,
+        StairBuilderOptions options)
+    {
+        var verticesByPosition = new Dictionary<Vector2D, Vertex>();
+        foreach (Vertex vertex in map.Vertices)
+            verticesByPosition.TryAdd(vertex.Position, vertex);
+
+        var sectors = new List<Sector>();
+        foreach (StairBuilderSectorPlan plan in plans)
+        {
+            var loop = new List<Vertex>();
+            int pointCount = plan.Vertices.Count;
+            if (pointCount > 1 && plan.Vertices[0] == plan.Vertices[^1]) pointCount--;
+
+            for (int i = 0; i < pointCount; i++)
+            {
+                Vector2D point = plan.Vertices[i];
+                if (!verticesByPosition.TryGetValue(point, out Vertex? vertex))
+                {
+                    vertex = map.AddVertex(point);
+                    verticesByPosition.Add(point, vertex);
+                }
+
+                loop.Add(vertex);
+            }
+
+            Sector? sector = SectorBuilder.CreateSector(map, loop);
+            if (sector != null) sectors.Add(sector);
+        }
+
+        map.BuildIndexes();
+        Apply(sectors, options);
+        map.BuildIndexes();
+
+        return sectors;
+    }
+
     /// <summary>
     /// Sets sector i's floor to <paramref name="startFloor"/> + i*<paramref name="step"/> (in list order). When
     /// <paramref name="moveCeiling"/> is true the ceiling shifts by the same delta, preserving each room's height.

@@ -265,4 +265,57 @@ public class StairBuilderTests
             new[] { new Vector2D(128, 0), new Vector2D(144, 0), new Vector2D(144, 64), new Vector2D(128, 64), new Vector2D(128, 0) },
             plan[1].Vertices);
     }
+
+    [Fact]
+    public void CreateSectorsFromPlansMaterializesLoopsAndAppliesOptions()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { line },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 2,
+                SectorDepth = 32,
+                SideFront = true
+            });
+
+        IReadOnlyList<Sector> sectors = StairBuilder.CreateSectorsFromPlans(
+            map,
+            plan,
+            new StairBuilderOptions
+            {
+                FloorBase = 0,
+                FloorStep = 8,
+                ApplyCeilingHeight = true,
+                CeilingBase = 128,
+                CeilingStep = 4,
+                ApplyFloorTexture = true,
+                FloorTexture = "STEPFLAT"
+            });
+
+        Assert.Equal(2, sectors.Count);
+        Assert.Equal(new[] { 8, 16 }, sectors.Select(sector => sector.FloorHeight));
+        Assert.Equal(new[] { 132, 136 }, sectors.Select(sector => sector.CeilHeight));
+        Assert.All(sectors, sector => Assert.Equal("STEPFLAT", sector.FloorTexture));
+        Assert.Equal(6, map.Vertices.Count);
+        Assert.Equal(7, map.Linedefs.Count);
+        Assert.Contains(map.Linedefs, linedef => linedef.Front?.Sector != null && linedef.Back?.Sector != null);
+    }
+
+    [Fact]
+    public void CreateSectorsFromPlansSkipsDegenerateLoops()
+    {
+        var map = new MapSet();
+        IReadOnlyList<Sector> sectors = StairBuilder.CreateSectorsFromPlans(
+            map,
+            new[]
+            {
+                new StairBuilderSectorPlan(new[] { new Vector2D(0, 0), new Vector2D(32, 0), new Vector2D(0, 0) })
+            },
+            new StairBuilderOptions { FloorStep = 8 });
+
+        Assert.Empty(sectors);
+        Assert.Empty(map.Sectors);
+    }
 }
