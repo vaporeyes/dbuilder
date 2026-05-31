@@ -112,6 +112,20 @@ public sealed class ImageExportModelTests
     }
 
     [Fact]
+    public void PlannerCountsProgressItemsLikeUdbExporter()
+    {
+        Sector sector = BuildSector((64, 0), (0, 0), (0, 64), (64, 64));
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Brightmap: true,
+            Tiles: true));
+
+        ImageExportOutputPlan plan = ImageExportPlanner.CreateOutputPlan([sector], settings);
+
+        Assert.Equal(6, plan.ProgressItems);
+    }
+
+    [Fact]
     public void PlannerListsUntiledNormalAndBrightmapNames()
     {
         Sector sector = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));
@@ -161,6 +175,8 @@ public sealed class ImageExportModelTests
             var line = new Linedef(vertices[i], vertices[(i + 1) % vertices.Length]);
             var side = new Sidedef(line, true) { Sector = sector };
             line.Front = side;
+            line.Start.Linedefs.Add(line);
+            line.End.Linedefs.Add(line);
             sector.Sidedefs.Add(side);
         }
 

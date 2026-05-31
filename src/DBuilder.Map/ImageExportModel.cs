@@ -104,6 +104,7 @@ public readonly record struct ImageExportLayout(Vector2D Size, Vector2D Offset);
 public sealed record ImageExportOutputPlan(
     ImageExportLayout Layout,
     int TileCount,
+    int ProgressItems,
     IReadOnlyList<string> ImageNames);
 
 public static class ImageExportPlanner
@@ -116,6 +117,7 @@ public static class ImageExportPlanner
         return new ImageExportOutputPlan(
             layout,
             GetNumTiles(layout, settings),
+            GetProgressItems(sectors, layout, settings),
             GetImageNames(layout, settings));
     }
 
@@ -144,6 +146,21 @@ public static class ImageExportPlanner
         int xnum = (int)Math.Ceiling(layout.Size.x * settings.Scale / TileSize);
         int ynum = (int)Math.Ceiling(layout.Size.y * settings.Scale / TileSize);
         return xnum * ynum;
+    }
+
+    public static int GetProgressItems(IEnumerable<Sector> sectors, ImageExportLayout layout, ImageExportSettings settings)
+    {
+        int count = 0;
+        foreach (Sector sector in sectors)
+            count += Triangulation.Create(sector).Vertices.Count / 3;
+
+        if (settings.Tiles)
+            count += GetNumTiles(layout, settings);
+
+        if (settings.Brightmap)
+            count *= 2;
+
+        return count;
     }
 
     public static IReadOnlyList<string> GetImageNames(ImageExportLayout layout, ImageExportSettings settings)
