@@ -2,6 +2,7 @@
 // ABOUTME: Also keeps legacy helpers for simple floor stepping and ceiling movement.
 
 using System.Collections.Generic;
+using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
@@ -9,6 +10,39 @@ public static class StairBuilder
 {
     public const int DefaultUpperUnpeggedBit = 8;
     public const int DefaultLowerUnpeggedBit = 16;
+
+    public static IReadOnlyList<StairBuilderSectorPlan> PlanStraightSectorsFromLines(
+        IReadOnlyList<Linedef> selectedLinedefs,
+        StairBuilderStraightOptions options)
+    {
+        var sectors = new List<StairBuilderSectorPlan>();
+
+        foreach (Linedef line in selectedLinedefs)
+        {
+            Vector2D direction = line.Line.GetPerpendicular().GetNormal() * (options.SideFront ? -1 : 1);
+
+            for (int i = 0; i < options.NumberOfSectors; i++)
+            {
+                Vector2D v1 = line.Start.Position + direction * options.SectorDepth * i;
+                Vector2D v2 = line.End.Position + direction * options.SectorDepth * i;
+                Vector2D v3 = v1 + direction * options.SectorDepth;
+                Vector2D v4 = v2 + direction * options.SectorDepth;
+
+                if (options.Spacing > 0)
+                {
+                    Vector2D offset = direction * options.Spacing * i;
+                    v1 += offset;
+                    v2 += offset;
+                    v3 += offset;
+                    v4 += offset;
+                }
+
+                sectors.Add(new StairBuilderSectorPlan(new[] { v1, v3, v4, v2, v1 }));
+            }
+        }
+
+        return sectors;
+    }
 
     /// <summary>
     /// Sets sector i's floor to <paramref name="startFloor"/> + i*<paramref name="step"/> (in list order). When
@@ -98,6 +132,16 @@ public static class StairBuilder
             }
         }
     }
+}
+
+public sealed record StairBuilderSectorPlan(IReadOnlyList<Vector2D> Vertices);
+
+public sealed record StairBuilderStraightOptions
+{
+    public int NumberOfSectors { get; init; } = 1;
+    public int SectorDepth { get; init; } = 32;
+    public int Spacing { get; init; }
+    public bool SideFront { get; init; } = true;
 }
 
 public sealed class StairBuilderOptions

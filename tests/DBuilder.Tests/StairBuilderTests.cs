@@ -195,4 +195,74 @@ public class StairBuilderTests
 
         Assert.Equal("MID", side.MidTexture);
     }
+
+    [Fact]
+    public void StraightLinePlanBuildsFrontSideLoopsLikeUdb()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { line },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 2,
+                SectorDepth = 32,
+                SideFront = true
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.Equal(
+            new[] { new Vector2D(0, 0), new Vector2D(0, -32), new Vector2D(64, -32), new Vector2D(64, 0), new Vector2D(0, 0) },
+            plan[0].Vertices);
+        Assert.Equal(
+            new[] { new Vector2D(0, -32), new Vector2D(0, -64), new Vector2D(64, -64), new Vector2D(64, -32), new Vector2D(0, -32) },
+            plan[1].Vertices);
+    }
+
+    [Fact]
+    public void StraightLinePlanBuildsBackSideLoopsAndAppliesSpacing()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { line },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 2,
+                SectorDepth = 32,
+                Spacing = 8,
+                SideFront = false
+            });
+
+        Assert.Equal(
+            new[] { new Vector2D(0, 40), new Vector2D(0, 72), new Vector2D(64, 72), new Vector2D(64, 40), new Vector2D(0, 40) },
+            plan[1].Vertices);
+    }
+
+    [Fact]
+    public void StraightLinePlanCreatesIndependentLoopsForEachSelectedLine()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(128, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 1,
+                SectorDepth = 16,
+                SideFront = true
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.Equal(
+            new[] { new Vector2D(0, 0), new Vector2D(0, -16), new Vector2D(64, -16), new Vector2D(64, 0), new Vector2D(0, 0) },
+            plan[0].Vertices);
+        Assert.Equal(
+            new[] { new Vector2D(128, 0), new Vector2D(144, 0), new Vector2D(144, 64), new Vector2D(128, 64), new Vector2D(128, 0) },
+            plan[1].Vertices);
+    }
 }

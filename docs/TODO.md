@@ -921,6 +921,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
 - [ ] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
+  - [x] Add UDB-style straight stair geometry planning from selected linedefs, including front/back side and spacing.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
