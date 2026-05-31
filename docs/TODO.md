@@ -893,6 +893,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
 - [ ] Port `SoundPropagationMode`.
+  - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
 - [ ] Port `StairSectorBuilder`.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
@@ -958,6 +959,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
 - [ ] Port sound propagation mode behavior.
+  - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
 - [ ] Port stair sector builder mode and form behavior.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.

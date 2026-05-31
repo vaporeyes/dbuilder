@@ -1,4 +1,5 @@
-// ABOUTME: Tests Doom-style sound propagation: free flow, level-2 across one sound-block line, and stop at the second.
+// ABOUTME: Tests Doom-style sound propagation and UDB SoundPropagationMode domain models.
+// ABOUTME: Covers free flow, block lines, adjacent domains, hunting things, and height-blocked lines.
 
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -107,5 +108,74 @@ public class SoundPropagationTests
         Assert.True(SoundPropagation.IsBlockedByHeight(map.Linedefs[0]));
         Assert.Single(reach);
         Assert.True(reach.ContainsKey(s[0]));
+    }
+
+    [Fact]
+    public void BuildModeModelGroupsOpenSectorsIntoDomains()
+    {
+        var (map, s) = Chain(4, new[] { false, true, false });
+
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+
+        Assert.Equal(2, model.Domains.Count);
+        Assert.Same(model.GetDomain(s[0]), model.GetDomain(s[1]));
+        Assert.Same(model.GetDomain(s[2]), model.GetDomain(s[3]));
+        Assert.NotSame(model.GetDomain(s[0]), model.GetDomain(s[2]));
+        Assert.Equal(new[] { map.Linedefs[1] }, model.BlockingLinedefs);
+        Assert.Equal(new[] { s[2] }, model.GetDomain(s[0])!.AdjacentSectors);
+        Assert.Equal(new[] { s[0], s[1], s[2], s[3] }, model.GetAffectedSectors(s[0]));
+    }
+
+    [Fact]
+    public void AffectedSectorsDoNotCrossTwoBlockingLines()
+    {
+        var (map, s) = Chain(4, new[] { false, true, true });
+
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+
+        Assert.Equal(new[] { s[0], s[1], s[2] }, model.GetAffectedSectors(s[0]));
+    }
+
+    [Fact]
+    public void HuntingThingsExcludeAmbushAndOutsideSectors()
+    {
+        var (map, s) = Chain(4, new[] { false, true, true });
+        var direct = new Thing(new Vector2D(0, 0), 3001) { Sector = s[0] };
+        var adjacent = new Thing(new Vector2D(64, 0), 3001) { Sector = s[2] };
+        var ambush = new Thing(new Vector2D(64, 0), 3001) { Sector = s[2], Flags = SoundPropagation.DefaultAmbushBit };
+        var outside = new Thing(new Vector2D(128, 0), 3001) { Sector = s[3] };
+        map.Things.AddRange(new[] { direct, adjacent, ambush, outside });
+
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+
+        Assert.Equal(new[] { direct, adjacent }, model.GetHuntingThings(s[0], map.Things));
+    }
+
+    [Fact]
+    public void UdmfBlockSoundFlagCreatesDomainBoundary()
+    {
+        var (map, s) = Chain(3, new[] { false, false });
+        map.Linedefs[1].SetFlag(SoundPropagation.DefaultUdmfSoundBlockFlag, true);
+        var ambush = new Thing(new Vector2D(64, 0), 3001) { Sector = s[2] };
+        ambush.SetFlag("ambush", true);
+        map.Things.Add(ambush);
+
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map, udmf: true);
+
+        Assert.Equal(2, model.Domains.Count);
+        Assert.Equal(new[] { map.Linedefs[1] }, model.BlockingLinedefs);
+        Assert.Empty(model.GetHuntingThings(s[0], map.Things, udmf: true));
+    }
+
+    [Fact]
+    public void HeightBlockedSoundLineIsNotAdjacent()
+    {
+        var (map, s) = Chain(3, new[] { true, false });
+        s[1].FloorHeight = 128;
+        s[1].CeilHeight = 256;
+
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+
+        Assert.Equal(new[] { s[0] }, model.GetAffectedSectors(s[0]));
     }
 }

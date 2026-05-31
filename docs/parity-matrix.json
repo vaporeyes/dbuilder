@@ -184,7 +184,7 @@
       "udbPlugin": "SoundPropagationMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Sound propagation reachability helpers and editor command wiring exist. Full mode UI and plugin workflow remain incomplete."
+      "notes": "Sound propagation reachability helpers, UDB-style domain grouping, adjacent-domain expansion across one sound-blocking boundary, block-line tracking, non-ambush hunting thing filtering, and editor command wiring exist. Full mode UI, leak path rendering, color configuration, and plugin workflow remain incomplete."
     },
     {
       "udbPlugin": "StairSectorBuilder",
