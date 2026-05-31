@@ -14,7 +14,19 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+        <Style Selector="ToggleButton.toolbarButton">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
         <Style Selector="Button.toolbarButton PathIcon">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="ToggleButton.toolbarButton PathIcon">
             <Setter Property="Width" Value="16" />
             <Setter Property="Height" Value="16" />
         </Style>
@@ -215,6 +227,26 @@
                 <Button Classes="toolbarButton" ToolTip.Tip="Toggle 3D Mode" x:Name="Toggle3DModeButton" Click="OnToggle3DMode">
                     <TextBlock Classes="toolbarGlyph" Text="3D" />
                 </Button>
+                <StackPanel x:Name="AutomapOptionsPanel" IsVisible="False" Orientation="Horizontal" Spacing="3">
+                    <Border Classes="toolbarSeparator" />
+                    <ToggleButton Classes="toolbarButton" ToolTip.Tip="Show Hidden Automap Lines" x:Name="AutomapShowHiddenLinesButton" Click="OnAutomapOptionChanged">
+                        <PathIcon Data="M4,12 L8,8 L12,12 L16,8 L20,12 M4,16 L20,16" />
+                    </ToggleButton>
+                    <ToggleButton Classes="toolbarButton" ToolTip.Tip="Show Secret Sectors" x:Name="AutomapShowSecretSectorsButton" Click="OnAutomapOptionChanged">
+                        <PathIcon Data="M6,18 L18,18 L18,8 L12,4 L6,8 Z M10,18 L10,12 L14,12 L14,18" />
+                    </ToggleButton>
+                    <ToggleButton Classes="toolbarButton" ToolTip.Tip="Show Locks" x:Name="AutomapShowLocksButton" Click="OnAutomapOptionChanged">
+                        <PathIcon Data="M7,11 L7,20 L17,20 L17,11 Z M9,11 L9,8 A3,3 0 0,1 15,8 L15,11 M12,14 L12,17" />
+                    </ToggleButton>
+                    <ToggleButton Classes="toolbarButton" ToolTip.Tip="Show Textures" x:Name="AutomapShowTexturesButton" Click="OnAutomapOptionChanged">
+                        <PathIcon Data="M5,5 L19,5 L19,19 L5,19 Z M5,10 L19,10 M5,15 L19,15 M10,5 L10,19 M15,5 L15,19" />
+                    </ToggleButton>
+                    <ComboBox x:Name="AutomapColorPresetCombo" Width="86" Height="28" ToolTip.Tip="Automap Color Preset" SelectionChanged="OnAutomapColorPresetChanged">
+                        <ComboBoxItem Content="Doom" />
+                        <ComboBoxItem Content="Hexen" />
+                        <ComboBoxItem Content="Strife" />
+                    </ComboBox>
+                </StackPanel>
                 <Border Classes="toolbarSeparator" />
                 <Button Classes="toolbarButton" ToolTip.Tip="Vertices Mode" x:Name="VerticesModeButton" Click="OnModeVertices">
                     <PathIcon Data="M6,6 L18,6 L18,18 L6,18 Z M4,4 L8,4 L8,8 L4,8 Z M16,4 L20,4 L20,8 L16,8 Z M16,16 L20,16 L20,20 L16,20 Z M4,16 L8,16 L8,20 L4,20 Z" />

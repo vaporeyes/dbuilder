@@ -155,6 +155,12 @@ public class SettingsTests
                 EditSelectionSettings = new EditSelectionModeSettings(
                     UsePrecisePosition: false,
                     HeightAdjustMode: EditSelectionHeightAdjustMode.AdjustBoth),
+                AutomapSettings = new AutomapModeSettings(
+                    ShowHiddenLines: true,
+                    ShowSecretSectors: true,
+                    ShowLocks: false,
+                    ShowTextures: false,
+                    ColorPreset: AutomapColorPreset.Strife),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -201,6 +207,12 @@ public class SettingsTests
             Assert.False(loaded.EditSelectionSettings.UsePrecisePosition);
             Assert.Equal(EditSelectionHeightAdjustMode.AdjustBoth, loaded.EditSelectionSettings.HeightAdjustMode);
             Assert.Equal(EditSelectionHeightAdjustMode.AdjustBoth, loaded.NormalizedEditSelectionSettings.HeightAdjustMode);
+            Assert.True(loaded.AutomapSettings.ShowHiddenLines);
+            Assert.True(loaded.AutomapSettings.ShowSecretSectors);
+            Assert.False(loaded.AutomapSettings.ShowLocks);
+            Assert.False(loaded.AutomapSettings.ShowTextures);
+            Assert.Equal(AutomapColorPreset.Strife, loaded.AutomapSettings.ColorPreset);
+            Assert.Equal(AutomapColorPreset.Strife, loaded.NormalizedAutomapSettings.ColorPreset);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -229,6 +241,7 @@ public class SettingsTests
         Assert.Equal(new DrawCurveModeSettings(), s.NormalizedDrawCurveSettings);
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
+        Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);
     }
 
     [Fact]
@@ -253,6 +266,17 @@ public class SettingsTests
 
         Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
         Assert.False(s.NormalizedPasteOptions.RemoveActions);
+    }
+
+    [Fact]
+    public void InvalidAutomapColorPresetFallsBackToDoom()
+    {
+        var s = new Settings
+        {
+            AutomapSettings = new AutomapModeSettings(ColorPreset: (AutomapColorPreset)99),
+        };
+
+        Assert.Equal(AutomapColorPreset.Doom, s.NormalizedAutomapSettings.ColorPreset);
     }
 
     [Fact]

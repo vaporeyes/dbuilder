@@ -82,7 +82,11 @@ public sealed record AutomapModeSettings(
     bool ShowSecretSectors = false,
     bool ShowLocks = true,
     bool ShowTextures = true,
-    AutomapColorPreset ColorPreset = AutomapColorPreset.Doom);
+    AutomapColorPreset ColorPreset = AutomapColorPreset.Doom)
+{
+    public AutomapModeSettings Normalized()
+        => Enum.IsDefined(ColorPreset) ? this : this with { ColorPreset = AutomapColorPreset.Doom };
+}
 
 public readonly record struct AutomapSectorEffectData(int Effect, IReadOnlySet<int> GeneralizedBits)
 {

@@ -248,6 +248,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private DrawEllipseModeSettings _drawEllipseSettings = new();
     private DrawCurveModeSettings _drawCurveSettings = new();
     private DrawGridModeSettings _drawGridSettings = new();
+    private AutomapModeSettings _automapSettings = new();
     public ShapeKind CurrentShape => _shapeKind;
 
     public DrawLineModeSettings DrawLineSettings
@@ -278,6 +279,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _drawGridSettings;
         set => _drawGridSettings = (value ?? new DrawGridModeSettings()).Normalized();
+    }
+
+    public AutomapModeSettings AutomapSettings
+    {
+        get => _automapSettings;
+        set
+        {
+            _automapSettings = (value ?? new AutomapModeSettings()).Normalized();
+            if (!AutomapMode) return;
+            UpdateAutomapHighlight(_cursorWorld, CurrentAutomapModifiers());
+            _geometryDirty = true;
+            RequestNextFrameRendering();
+        }
     }
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
@@ -1557,7 +1571,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             AutomapRenderPlan? automapPlan = null;
             if (AutomapMode)
             {
-                var settings = AutomapModeModel.DefaultSettings;
+                var settings = _automapSettings;
                 var options = AutomapModeModel.ToOptions(settings, _automapInvertLineVisibility, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom);
                 automapPlan = AutomapModeModel.BuildRenderPlan(
                     _map,
@@ -1684,7 +1698,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var lv = new System.Collections.Generic.List<FlatVertex>(_map.Linedefs.Count * 4);
             if (AutomapMode)
             {
-                AutomapModeSettings settings = AutomapModeModel.DefaultSettings;
+                AutomapModeSettings settings = _automapSettings;
                 AutomapRenderPlan plan = AutomapModeModel.BuildRenderPlan(
                     _map,
                     AutomapModeModel.ToOptions(settings, _automapInvertLineVisibility, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom),
@@ -2635,7 +2649,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         bool editSectors = modifiers.HasFlag(KeyModifiers.Shift) && _mapFormat == MapFormat.Udmf;
         bool invert = modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
-        AutomapModeSettings settings = AutomapModeModel.DefaultSettings;
+        AutomapModeSettings settings = _automapSettings;
         AutomapModeOptions options = AutomapModeModel.ToOptions(
             settings,
             invert,

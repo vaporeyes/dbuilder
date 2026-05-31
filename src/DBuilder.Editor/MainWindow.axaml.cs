@@ -63,6 +63,7 @@ public partial class MainWindow : Window
     private readonly string _settingsPath = Settings.DefaultPath;
     private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
+    private bool _syncingAutomapControls;
     private CommentsPanelWindow? _commentsPanel;
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
@@ -125,6 +126,7 @@ public partial class MainWindow : Window
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
+        MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
@@ -132,6 +134,7 @@ public partial class MainWindow : Window
         RebuildSelectionGroupsMenu();
         RebuildRecentMenu();
         TryLoadDefaultConfig();
+        UpdateAutomapOptionControls();
 
         if (openPath != null && System.IO.File.Exists(openPath))
             _ = LoadArchive(openPath, promptForMap: false);
@@ -1351,9 +1354,60 @@ public partial class MainWindow : Window
     {
         bool enabled = MapView.ToggleAutomapMode();
         MapView.Focus();
+        UpdateAutomapOptionControls();
         SetStatus(enabled
             ? "Mode: Automap. Valid automap lines use the Doom automap palette; View > Automap Mode exits."
             : $"Mode: {MapView.CurrentEditMode}");
+    }
+
+    private void OnAutomapOptionChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_syncingAutomapControls) return;
+
+        _settings.AutomapSettings = new AutomapModeSettings(
+            AutomapShowHiddenLinesButton.IsChecked == true,
+            AutomapShowSecretSectorsButton.IsChecked == true,
+            AutomapShowLocksButton.IsChecked == true,
+            AutomapShowTexturesButton.IsChecked == true,
+            _settings.NormalizedAutomapSettings.ColorPreset).Normalized();
+        MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        SaveSettings();
+        UpdateAutomapOptionControls();
+        SetStatus("Automap options updated.");
+    }
+
+    private void OnAutomapColorPresetChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_syncingAutomapControls || AutomapColorPresetCombo.SelectedIndex < 0) return;
+
+        _settings.AutomapSettings = _settings.NormalizedAutomapSettings with
+        {
+            ColorPreset = (AutomapColorPreset)AutomapColorPresetCombo.SelectedIndex,
+        };
+        MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        SaveSettings();
+        UpdateAutomapOptionControls();
+        SetStatus($"Automap color preset: {_settings.NormalizedAutomapSettings.ColorPreset}.");
+    }
+
+    private void UpdateAutomapOptionControls()
+    {
+        _syncingAutomapControls = true;
+        try
+        {
+            AutomapModeSettings settings = _settings.NormalizedAutomapSettings;
+            AutomapOptionsPanel.IsVisible = MapView.AutomapMode;
+            AutomapShowHiddenLinesButton.IsChecked = settings.ShowHiddenLines;
+            AutomapShowSecretSectorsButton.IsChecked = settings.ShowSecretSectors;
+            AutomapShowLocksButton.IsChecked = settings.ShowLocks;
+            AutomapShowLocksButton.IsVisible = _mapFormat != MapFormat.Doom;
+            AutomapShowTexturesButton.IsChecked = settings.ShowTextures;
+            AutomapColorPresetCombo.SelectedIndex = (int)settings.ColorPreset;
+        }
+        finally
+        {
+            _syncingAutomapControls = false;
+        }
     }
 
     private void RebuildSelectionGroupsMenu()
@@ -3753,6 +3807,7 @@ public partial class MainWindow : Window
         SetChecked(DrawRectangleMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Rectangle);
         SetChecked(DrawEllipseMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Ellipse);
         SetChecked(DrawGridMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Grid);
+        UpdateAutomapOptionControls();
     }
 
     private static void SetEnabled(bool enabled, params Control[] controls)
