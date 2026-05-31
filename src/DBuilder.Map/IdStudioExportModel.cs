@@ -49,6 +49,8 @@ public sealed record IdStudioTextureExportPlan(
     IReadOnlyList<IdStudioExportFile> MaterialFiles,
     IReadOnlyList<string> MissingImages);
 public sealed record IdStudioMapTextureSet(IReadOnlySet<string> Textures, IReadOnlySet<string> Flats);
+public readonly record struct IdStudioTextureDimensions(int Width, int Height);
+public sealed record IdStudioBrushGroup(string Group, int SectorNumber, IReadOnlyList<string> Brushes);
 public readonly record struct IdStudioRgba(byte R, byte G, byte B, byte A);
 
 public readonly record struct IdStudioVertex(float X, float Y);
@@ -114,6 +116,253 @@ public static class IdStudioExportValidation
 
         return true;
     }
+}
+
+public static class IdStudioGeometryExporter
+{
+    public static IReadOnlyList<IdStudioBrushGroup> BuildWallBrushGroups(
+        MapSet map,
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions)
+    {
+        var groups = new List<IdStudioBrushGroup>();
+
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (line.Front?.Sector == null) continue;
+
+            bool upperUnpegged = (line.Flags & 0x8) > 0;
+            bool lowerUnpegged = (line.Flags & 0x10) > 0;
+            IdStudioVertex start = TransformVertex(line.Start, settings);
+            IdStudioVertex end = TransformVertex(line.End, settings);
+
+            Sidedef front = line.Front;
+            Sector frontSector = front.Sector;
+            float frontOffsetX = front.OffsetX / settings.Downscale;
+            float frontOffsetY = front.OffsetY / settings.Downscale;
+            float frontFloor = TransformHeight(frontSector.FloorHeight, settings);
+            float frontCeiling = TransformHeight(frontSector.CeilHeight, settings);
+            int frontSectorIndex = frontSector.Index;
+
+            if (line.Back?.Sector == null)
+            {
+                if (front.MidTexture == "-") continue;
+
+                float drawHeight = frontOffsetY + (lowerUnpegged ? frontFloor : frontCeiling);
+                groups.Add(new IdStudioBrushGroup(
+                    "wall",
+                    frontSectorIndex,
+                    [BuildWallBrush(settings, getTextureDimensions, start, end, frontFloor, frontCeiling, drawHeight, front.MidTexture, frontOffsetX)]));
+                continue;
+            }
+
+            Sidedef back = line.Back;
+            Sector backSector = back.Sector;
+            float backOffsetX = back.OffsetX / settings.Downscale;
+            float backOffsetY = back.OffsetY / settings.Downscale;
+            float backFloor = TransformHeight(backSector.FloorHeight, settings);
+            float backCeiling = TransformHeight(backSector.CeilHeight, settings);
+            int backSectorIndex = backSector.Index;
+
+            float lowerFloor = Math.Min(frontFloor, backFloor);
+            float higherFloor = Math.Max(frontFloor, backFloor);
+            float lowerCeiling = Math.Min(frontCeiling, backCeiling);
+            float higherCeiling = Math.Max(frontCeiling, backCeiling);
+
+            List<string> frontBrushes = BuildFrontSideBrushes(
+                settings,
+                getTextureDimensions,
+                front,
+                back,
+                start,
+                end,
+                frontFloor,
+                frontCeiling,
+                backFloor,
+                backCeiling,
+                lowerFloor,
+                higherFloor,
+                lowerCeiling,
+                higherCeiling,
+                lowerUnpegged,
+                upperUnpegged,
+                frontOffsetX,
+                frontOffsetY,
+                backSectorIndex);
+            if (frontBrushes.Count > 0) groups.Add(new IdStudioBrushGroup("wall", backSectorIndex, frontBrushes));
+
+            List<string> backBrushes = BuildBackSideBrushes(
+                settings,
+                getTextureDimensions,
+                front,
+                back,
+                start,
+                end,
+                frontFloor,
+                frontCeiling,
+                backFloor,
+                backCeiling,
+                lowerFloor,
+                higherFloor,
+                lowerCeiling,
+                higherCeiling,
+                lowerUnpegged,
+                upperUnpegged,
+                backOffsetX,
+                backOffsetY,
+                frontSectorIndex);
+            if (backBrushes.Count > 0) groups.Add(new IdStudioBrushGroup("wall", frontSectorIndex, backBrushes));
+        }
+
+        return groups;
+    }
+
+    private static List<string> BuildFrontSideBrushes(
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        Sidedef front,
+        Sidedef back,
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float frontFloor,
+        float frontCeiling,
+        float backFloor,
+        float backCeiling,
+        float lowerFloor,
+        float higherFloor,
+        float lowerCeiling,
+        float higherCeiling,
+        bool lowerUnpegged,
+        bool upperUnpegged,
+        float offsetX,
+        float offsetY,
+        int sectorIndex)
+    {
+        var brushes = new List<string>();
+
+        if (LowRequired(front, back))
+        {
+            float drawHeight = offsetY + (lowerUnpegged ? frontCeiling : higherFloor);
+            brushes.Add(BuildWallBrush(settings, getTextureDimensions, start, end, frontFloor, backFloor, drawHeight, front.LowTexture, offsetX));
+
+            int stepHeightCheck = back.Sector!.FloorHeight - front.Sector!.FloorHeight;
+            if (stepHeightCheck <= 24) brushes.Add(IdStudioBrushFormatter.BuildStepBrush(start, end, lowerFloor, higherFloor, sectorIndex));
+        }
+
+        if (front.MidTexture != "-")
+        {
+            AddMiddleBrush(settings, getTextureDimensions, brushes, start, end, backFloor, backCeiling, higherFloor, higherCeiling, lowerUnpegged, offsetX, offsetY, front.MidTexture);
+        }
+
+        if (HighRequired(front, back))
+        {
+            float drawHeight = offsetY + (upperUnpegged ? higherCeiling : lowerCeiling);
+            brushes.Add(BuildWallBrush(settings, getTextureDimensions, start, end, backCeiling, frontCeiling, drawHeight, front.HighTexture, offsetX));
+        }
+
+        return brushes;
+    }
+
+    private static List<string> BuildBackSideBrushes(
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        Sidedef front,
+        Sidedef back,
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float frontFloor,
+        float frontCeiling,
+        float backFloor,
+        float backCeiling,
+        float lowerFloor,
+        float higherFloor,
+        float lowerCeiling,
+        float higherCeiling,
+        bool lowerUnpegged,
+        bool upperUnpegged,
+        float offsetX,
+        float offsetY,
+        int sectorIndex)
+    {
+        var brushes = new List<string>();
+
+        if (LowRequired(back, front))
+        {
+            float drawHeight = offsetY + (lowerUnpegged ? backCeiling : higherFloor);
+            brushes.Add(BuildWallBrush(settings, getTextureDimensions, end, start, backFloor, frontFloor, drawHeight, back.LowTexture, offsetX));
+
+            int stepHeightCheck = front.Sector!.FloorHeight - back.Sector!.FloorHeight;
+            if (stepHeightCheck <= 24) brushes.Add(IdStudioBrushFormatter.BuildStepBrush(end, start, lowerFloor, higherFloor, sectorIndex));
+        }
+
+        if (back.MidTexture != "-")
+        {
+            AddMiddleBrush(settings, getTextureDimensions, brushes, end, start, frontFloor, frontCeiling, higherFloor, higherCeiling, lowerUnpegged, offsetX, offsetY, back.MidTexture);
+        }
+
+        if (HighRequired(back, front))
+        {
+            float drawHeight = offsetY + (upperUnpegged ? higherCeiling : lowerCeiling);
+            brushes.Add(BuildWallBrush(settings, getTextureDimensions, end, start, frontCeiling, backCeiling, drawHeight, back.HighTexture, offsetX));
+        }
+
+        return brushes;
+    }
+
+    private static void AddMiddleBrush(
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        List<string> brushes,
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float facingFloor,
+        float facingCeiling,
+        float higherFloor,
+        float higherCeiling,
+        bool lowerUnpegged,
+        float offsetX,
+        float offsetY,
+        string texture)
+    {
+        float textureHeight = getTextureDimensions(texture).Height / settings.Downscale;
+        float minHeight = lowerUnpegged ? facingFloor + offsetY : facingCeiling - textureHeight + offsetY;
+        float maxHeight = lowerUnpegged ? facingFloor + textureHeight + offsetY : facingCeiling + offsetY;
+
+        if (minHeight < facingFloor) minHeight = facingFloor;
+        if (maxHeight > facingCeiling) maxHeight = facingCeiling;
+
+        float drawHeight = offsetY + (lowerUnpegged ? higherFloor : higherCeiling);
+        brushes.Add(BuildWallBrush(settings, getTextureDimensions, start, end, minHeight, maxHeight, drawHeight, texture, offsetX));
+    }
+
+    private static bool LowRequired(Sidedef side, Sidedef other)
+        => side.Sector != null && other.Sector != null && side.Sector.FloorHeight < other.Sector.FloorHeight;
+
+    private static bool HighRequired(Sidedef side, Sidedef other)
+        => side.Sector != null && other.Sector != null && side.Sector.CeilHeight > other.Sector.CeilHeight;
+
+    private static string BuildWallBrush(
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float minHeight,
+        float maxHeight,
+        float drawHeight,
+        string texture,
+        float offsetX)
+    {
+        IdStudioTextureDimensions dimensions = getTextureDimensions(texture);
+        return IdStudioBrushFormatter.BuildWallBrush(settings, start, end, minHeight, maxHeight, drawHeight, texture, offsetX, dimensions.Width, dimensions.Height);
+    }
+
+    private static IdStudioVertex TransformVertex(Vertex vertex, IdStudioExportSettings settings)
+        => new(
+            ((float)vertex.Position.x + settings.XShift) / settings.Downscale,
+            ((float)vertex.Position.y + settings.YShift) / settings.Downscale);
+
+    private static float TransformHeight(int height, IdStudioExportSettings settings)
+        => (height + settings.ZShift) / settings.Downscale;
 }
 
 public static class IdStudioTextureExporter

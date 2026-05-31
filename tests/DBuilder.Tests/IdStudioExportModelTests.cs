@@ -297,6 +297,72 @@ public class IdStudioExportModelTests
     }
 
     [Fact]
+    public void GeometryExporterBuildsOneSidedWallBrushGroup()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        Vertex v0 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v1 = map.AddVertex(new Vector2D(160, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        line.Flags = 0x10;
+        Sidedef side = map.AddSidedef(line, isFront: true, sector);
+        side.MidTexture = "STARTAN3";
+        side.OffsetX = 16;
+        side.OffsetY = 32;
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 0, 0, 0, false, false);
+
+        IReadOnlyList<IdStudioBrushGroup> groups = IdStudioGeometryExporter.BuildWallBrushGroups(map, settings, TextureDimensions);
+
+        IdStudioBrushGroup group = Assert.Single(groups);
+        Assert.Equal("wall", group.Group);
+        Assert.Equal(0, group.SectorNumber);
+        string brush = Assert.Single(group.Brushes);
+        Assert.Contains("\"art/wadtobrush/walls/startan3\"", brush);
+        Assert.Contains("( 0 -1 0 -0 )", brush);
+        Assert.Contains("( ( 0.25 0 0.25 ) ( 0 0.25 0.5 ) )", brush);
+    }
+
+    [Fact]
+    public void GeometryExporterBuildsTwoSidedWallAndStepBrushGroups()
+    {
+        var map = new MapSet();
+        Sector frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        Sector backSector = map.AddSector();
+        backSector.FloorHeight = 16;
+        backSector.CeilHeight = 96;
+        Vertex v0 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v1 = map.AddVertex(new Vector2D(160, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        Sidedef front = map.AddSidedef(line, isFront: true, frontSector);
+        Sidedef back = map.AddSidedef(line, isFront: false, backSector);
+        front.LowTexture = "LOWER";
+        front.MidTexture = "MID";
+        front.HighTexture = "UPPER";
+        back.MidTexture = "BACKMID";
+
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 0, 0, 0, false, false);
+
+        IReadOnlyList<IdStudioBrushGroup> groups = IdStudioGeometryExporter.BuildWallBrushGroups(map, settings, TextureDimensions);
+
+        Assert.Equal(2, groups.Count);
+        Assert.Equal(1, groups[0].SectorNumber);
+        Assert.Equal(4, groups[0].Brushes.Count);
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("\"art/wadtobrush/walls/lower\"", StringComparison.Ordinal));
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("\"stepclip/1\"", StringComparison.Ordinal));
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("\"art/wadtobrush/walls/mid\"", StringComparison.Ordinal));
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("\"art/wadtobrush/walls/upper\"", StringComparison.Ordinal));
+
+        Assert.Equal(0, groups[1].SectorNumber);
+        string backBrush = Assert.Single(groups[1].Brushes);
+        Assert.Contains("\"art/wadtobrush/walls/backmid\"", backBrush);
+        Assert.Contains("( -0 -1 0 -0.0075 )", backBrush);
+    }
+
+    [Fact]
     public void TextureExporterReportsRequiredDirectories()
     {
         IReadOnlyList<string> directories = IdStudioTextureExporter.RequiredDirectories("/tmp/mod");
@@ -484,4 +550,13 @@ public class IdStudioExportModelTests
     }
 
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+    private static IdStudioTextureDimensions TextureDimensions(string texture)
+        => texture switch
+        {
+            "STARTAN3" => new IdStudioTextureDimensions(64, 64),
+            "MID" => new IdStudioTextureDimensions(64, 128),
+            "BACKMID" => new IdStudioTextureDimensions(64, 128),
+            _ => new IdStudioTextureDimensions(64, 64)
+        };
 }
