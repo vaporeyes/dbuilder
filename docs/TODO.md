@@ -893,6 +893,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.
   - [x] Add UDB-style automap line visibility, color classification, secret-sector detection, lock-color resolution, and flag toggle model.
+  - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.
   - [x] Add editor commands for toggling selected automap line and sector visibility flags.
 - [ ] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
@@ -1027,6 +1028,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port 3D floor slope editing.
 - [ ] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
+  - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.
   - [x] Add selected linedef and sector automap flag toggle commands.
 - [ ] Port blockmap explorer UI and data model.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.

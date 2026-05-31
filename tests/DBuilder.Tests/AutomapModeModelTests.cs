@@ -176,4 +176,60 @@ public class AutomapModeModelTests
         Assert.False(line.IsFlagSet(AutomapModeModel.HiddenFlag));
         Assert.True(AutomapModeModel.IsSectorVisible(sector));
     }
+
+    [Fact]
+    public void ClassicFlagsDriveAutomapVisibilityAndClassification()
+    {
+        Linedef hidden = TwoSidedLine(backFloor: 24).Line;
+        hidden.Flags = AutomapModeModel.ClassicHiddenFlagBit;
+        Linedef secret = TwoSidedLine().Line;
+        secret.Flags = AutomapModeModel.ClassicSecretFlagBit;
+
+        var options = new AutomapModeOptions(IsUdmf: false);
+
+        Assert.False(AutomapModeModel.IsLineValid(hidden, options));
+        Assert.Equal(AutomapLineColorKind.HiddenFlag, AutomapModeModel.DetermineLineKind(hidden, options));
+        Assert.True(AutomapModeModel.IsLineValid(secret, options));
+        Assert.Equal(AutomapLineColorKind.SingleSided, AutomapModeModel.DetermineLineKind(secret, options));
+    }
+
+    [Fact]
+    public void UdmfOptionsIgnoreClassicAutomapFlagBits()
+    {
+        Linedef hidden = TwoSidedLine(backFloor: 24).Line;
+        hidden.Flags = AutomapModeModel.ClassicHiddenFlagBit;
+        Linedef secret = TwoSidedLine().Line;
+        secret.Flags = AutomapModeModel.ClassicSecretFlagBit;
+
+        var options = new AutomapModeOptions(IsUdmf: true);
+
+        Assert.True(AutomapModeModel.IsLineValid(hidden, options));
+        Assert.Equal(AutomapLineColorKind.FloorDifference, AutomapModeModel.DetermineLineKind(hidden, options));
+        Assert.False(AutomapModeModel.IsLineValid(secret, options));
+        Assert.Equal(AutomapLineColorKind.MatchingHeight, AutomapModeModel.DetermineLineKind(secret, options));
+    }
+
+    [Fact]
+    public void FormatAwareToggleHelpersFlipClassicOrUdmfFlags()
+    {
+        Linedef classic = OneSidedLine();
+        Linedef udmf = OneSidedLine();
+
+        AutomapModeModel.ToggleSecretFlag(classic, isUdmf: false);
+        AutomapModeModel.ToggleHiddenFlag(classic, isUdmf: false);
+        AutomapModeModel.ToggleSecretFlag(udmf, isUdmf: true);
+        AutomapModeModel.ToggleHiddenFlag(udmf, isUdmf: true);
+
+        Assert.Equal(
+            AutomapModeModel.ClassicSecretFlagBit | AutomapModeModel.ClassicHiddenFlagBit,
+            classic.Flags);
+        Assert.Empty(classic.UdmfFlags);
+        Assert.True(udmf.IsFlagSet(AutomapModeModel.SecretFlag));
+        Assert.True(udmf.IsFlagSet(AutomapModeModel.HiddenFlag));
+
+        AutomapModeModel.ToggleSecretFlag(classic, isUdmf: false);
+        AutomapModeModel.ToggleHiddenFlag(classic, isUdmf: false);
+
+        Assert.Equal(0, classic.Flags);
+    }
 }

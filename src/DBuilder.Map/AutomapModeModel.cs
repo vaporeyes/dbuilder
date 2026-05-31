@@ -46,7 +46,7 @@ public sealed record AutomapModeOptions(
     bool ShowSecretSectors = false,
     bool ShowLocks = true,
     bool InvertLineVisibility = false,
-    bool IsUdmf = false,
+    bool IsUdmf = true,
     bool IsDoom = true,
     Func<Sector, AutomapSectorEffectData>? SectorEffectData = null,
     IReadOnlyDictionary<int, int>? LockableActionArgs = null,
@@ -61,6 +61,8 @@ public static class AutomapModeModel
 {
     public const string SecretFlag = "secret";
     public const string HiddenFlag = "dontdraw";
+    public const int ClassicSecretFlagBit = 32;
+    public const int ClassicHiddenFlagBit = 128;
     public const string TexturedAutomapHiddenSectorFlag = "hidden";
 
     public static AutomapPalette Palette(AutomapColorPreset preset) => preset switch
@@ -104,8 +106,8 @@ public static class AutomapModeModel
     public static bool IsLineValid(Linedef line, AutomapModeOptions options)
     {
         if (options.ShowHiddenLines ^ options.InvertLineVisibility) return true;
-        if (line.IsFlagSet(HiddenFlag)) return false;
-        if (line.Back == null || line.Front == null || line.IsFlagSet(SecretFlag)) return true;
+        if (IsHiddenFlagSet(line, options.IsUdmf)) return false;
+        if (line.Back == null || line.Front == null || IsSecretFlagSet(line, options.IsUdmf)) return true;
         if (line.Front.Sector == null || line.Back.Sector == null) return true;
         if (line.Front.Sector.FloorHeight != line.Back.Sector.FloorHeight) return true;
         if (line.Front.Sector.CeilHeight != line.Back.Sector.CeilHeight) return true;
@@ -117,8 +119,8 @@ public static class AutomapModeModel
     {
         if (options.ShowLocks && ResolveLockColor(line, options) != null) return AutomapLineColorKind.Lock;
         if (options.ShowSecretSectors && IsAdjacentToSecretSector(line, options)) return AutomapLineColorKind.Secret;
-        if (line.IsFlagSet(HiddenFlag)) return AutomapLineColorKind.HiddenFlag;
-        if (line.Back == null || line.Front == null || line.IsFlagSet(SecretFlag)) return AutomapLineColorKind.SingleSided;
+        if (IsHiddenFlagSet(line, options.IsUdmf)) return AutomapLineColorKind.HiddenFlag;
+        if (line.Back == null || line.Front == null || IsSecretFlagSet(line, options.IsUdmf)) return AutomapLineColorKind.SingleSided;
         if (line.Front.Sector == null || line.Back.Sector == null) return AutomapLineColorKind.SingleSided;
         if (line.Front.Sector.FloorHeight != line.Back.Sector.FloorHeight) return AutomapLineColorKind.FloorDifference;
         if (line.Front.Sector.CeilHeight != line.Back.Sector.CeilHeight) return AutomapLineColorKind.CeilingDifference;
@@ -145,12 +147,36 @@ public static class AutomapModeModel
     public static void ToggleHiddenFlag(Linedef line)
         => line.SetFlag(HiddenFlag, !line.IsFlagSet(HiddenFlag));
 
+    public static void ToggleSecretFlag(Linedef line, bool isUdmf)
+    {
+        if (isUdmf) ToggleSecretFlag(line);
+        else ToggleClassicFlag(line, ClassicSecretFlagBit);
+    }
+
+    public static void ToggleHiddenFlag(Linedef line, bool isUdmf)
+    {
+        if (isUdmf) ToggleHiddenFlag(line);
+        else ToggleClassicFlag(line, ClassicHiddenFlagBit);
+    }
+
     public static void ToggleTexturedAutomapHiddenFlag(Sector sector)
         => sector.SetFlag(TexturedAutomapHiddenSectorFlag, !sector.IsFlagSet(TexturedAutomapHiddenSectorFlag));
 
     private static bool IsAdjacentToSecretSector(Linedef line, AutomapModeOptions options)
         => line.Front?.Sector != null && IsSectorSecret(line.Front.Sector, options.IsDoom, options.SectorEffectData)
         || line.Back?.Sector != null && IsSectorSecret(line.Back.Sector, options.IsDoom, options.SectorEffectData);
+
+    private static bool IsSecretFlagSet(Linedef line, bool isUdmf)
+        => isUdmf ? line.IsFlagSet(SecretFlag) : (line.Flags & ClassicSecretFlagBit) != 0;
+
+    private static bool IsHiddenFlagSet(Linedef line, bool isUdmf)
+        => isUdmf ? line.IsFlagSet(HiddenFlag) : (line.Flags & ClassicHiddenFlagBit) != 0;
+
+    private static void ToggleClassicFlag(Linedef line, int bit)
+    {
+        if ((line.Flags & bit) != 0) line.Flags &= ~bit;
+        else line.Flags |= bit;
+    }
 
     private static AutomapColor ColorForKind(AutomapLineColorKind kind, AutomapPalette palette, AutomapColor? lockColor)
         => kind switch

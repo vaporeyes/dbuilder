@@ -37,7 +37,7 @@ Status values:
 | UDB plugin | Status | DBuilder location | Notes |
 | --- | --- | --- | --- |
 | `3DFloorMode` | partial | `DBuilder.Map` | 3D floor data helper exists. Full plugin workflow missing. |
-| `AutomapMode` | missing | none | Not ported. |
+| `AutomapMode` | partial | `DBuilder.Editor`, `DBuilder.Map` | Automap line visibility, color presets, line classification, secret-sector and lock overlays, format-aware UDMF/classic automap flags, and selected line/sector flag toggles exist. Full mode UI, highlighting, rendering presentation, and interactive editing workflow remain missing. |
 | `BlockmapExplorer` | partial | `DBuilder.Editor`, `DBuilder.Map`, `DBuilder.IO` | Blockmap logic, overlay toggle, and a non-modal explorer summary window exist. Full mode visualization remains missing. |
 | `BuilderEffects` | partial | `DBuilder.Map` | Selected effects exist. Full plugin missing. |
 | `BuilderModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected drawing/editing tools exist. Full mode set missing. |
