@@ -35,6 +35,8 @@ public sealed record ThreeDFloorControlEdit(
 
 public readonly record struct ThreeDFloorCleanupResult(int ClearedLines, bool ControlSectorDeleted);
 
+public sealed record ThreeDFloorControlSectorMaterializationResult(Sector Sector, Linedef ActionLine, int TargetTag);
+
 public sealed record ThreeDFloorModeDescriptor(
     string DisplayName,
     string SwitchAction,
@@ -297,6 +299,7 @@ public static class ThreeDFloors
     public const int Sector3DFloorAction = 160;
     public const string ActionCategory = "threedfloorplugin";
     public const string ActionCategoryTitle = "3D Floor Plugin";
+    public const string ManagedControlSectorComment = "[!]DO NOT DELETE! This sector is managed by the 3D floor plugin.";
 
     public static ThreeDFloorModeDescriptor ModeDescriptor { get; } = new(
         "3D Floor Mode",
@@ -451,6 +454,64 @@ public static class ThreeDFloors
         return updatedLines;
     }
 
+    public static ThreeDFloorControlSectorMaterializationResult MaterializeControlSector(
+        MapSet map,
+        IReadOnlyList<Vector2D> loop,
+        ThreeDFloorControlEdit edit,
+        int targetTag,
+        bool managed = true)
+    {
+        if (loop.Count < 4) throw new ArgumentException("A control sector loop must contain at least 4 points.", nameof(loop));
+
+        IReadOnlyList<Vector2D> points = RemoveClosingPoint(loop);
+        var vertices = new List<Vertex>(points.Count);
+        foreach (Vector2D point in points)
+            vertices.Add(map.AddVertex(point));
+
+        Sector control = SectorBuilder.CreateSector(map, vertices)
+            ?? throw new InvalidOperationException("A control sector requires at least 3 unique vertices.");
+
+        map.BuildIndexes();
+
+        if (managed)
+        {
+            control.Fields[ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField] = true;
+            control.Fields["comment"] = ManagedControlSectorComment;
+        }
+
+        ApplyControlEdit(control, edit);
+        Linedef actionLine = BindControlSectorTag(map, control, targetTag, edit);
+        map.BuildIndexes();
+        return new ThreeDFloorControlSectorMaterializationResult(control, actionLine, targetTag);
+    }
+
+    public static Linedef BindControlSectorTag(MapSet map, Sector control, int targetTag, ThreeDFloorControlEdit edit)
+    {
+        if (targetTag <= 0) throw new ArgumentOutOfRangeException(nameof(targetTag), "3D floor target tags must be positive.");
+
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            if (side.Line.Action == Sector3DFloorAction && side.Line.Args[0] == targetTag)
+            {
+                ApplyActionLine(side.Line, targetTag, edit);
+                return side.Line;
+            }
+        }
+
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            if (side.Line.Action != 0 || side.Line.Tag != 0) continue;
+
+            ApplyActionLine(side.Line, targetTag, edit);
+            return side.Line;
+        }
+
+        Linedef splitLine = SplitLongestControlLine(map, control);
+        ApplyActionLine(splitLine, targetTag, edit);
+        map.BuildIndexes();
+        return splitLine;
+    }
+
     public static ThreeDFloorCleanupResult CleanupControlSector(MapSet map, Sector control)
     {
         int cleared = 0;
@@ -503,6 +564,42 @@ public static class ThreeDFloors
         }
 
         return true;
+    }
+
+    private static IReadOnlyList<Vector2D> RemoveClosingPoint(IReadOnlyList<Vector2D> loop)
+    {
+        if (loop.Count > 1 && loop[0].Equals(loop[^1]))
+        {
+            var points = new Vector2D[loop.Count - 1];
+            for (int i = 0; i < points.Length; i++) points[i] = loop[i];
+            return points;
+        }
+
+        return loop;
+    }
+
+    private static void ApplyActionLine(Linedef line, int targetTag, ThreeDFloorControlEdit edit)
+    {
+        line.Action = Sector3DFloorAction;
+        line.Args[0] = targetTag;
+        line.Args[1] = edit.Type;
+        line.Args[2] = edit.Flags;
+        line.Args[3] = Math.Clamp(edit.Alpha, 0, 255);
+    }
+
+    private static Linedef SplitLongestControlLine(MapSet map, Sector control)
+    {
+        Linedef? longest = null;
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            if (longest == null || side.Line.LengthSq > longest.LengthSq)
+                longest = side.Line;
+        }
+
+        if (longest == null) throw new InvalidOperationException("Control sector has no lines to bind.");
+
+        Vertex vertex = map.AddVertex(longest.GetCenterPoint());
+        return map.SplitLinedefAt(longest, vertex);
     }
 
     private static bool IsManagedControlSector(Sector control, bool udmf)

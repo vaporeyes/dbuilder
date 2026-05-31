@@ -231,6 +231,84 @@ public class ThreeDFloorsTests
         Assert.Equal("No space left for control sectors.", ex.Message);
     }
 
+    [Fact]
+    public void MaterializeControlSectorCreatesManagedGeometryAndBindsActionLine()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0, 128, 128);
+        target.Tag = 44;
+        var settings = new ThreeDFloorControlSectorAreaSettings();
+        ThreeDFloorControlEdit edit = ControlEdit();
+
+        ThreeDFloorControlSectorMaterializationResult created = ThreeDFloors.MaterializeControlSector(
+            map,
+            settings.GetNewControlSectorVertexLoops(map, 1)[0],
+            edit,
+            target.Tag);
+
+        Assert.Same(created.Sector, created.ActionLine.Front?.Sector ?? created.ActionLine.Back?.Sector);
+        Assert.Equal(44, created.TargetTag);
+        Assert.Equal(2, map.Sectors.Count);
+        Assert.Equal(8, map.Vertices.Count);
+        Assert.Equal(8, map.Linedefs.Count);
+        Assert.True((bool)created.Sector.Fields[ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField]);
+        Assert.Equal(ThreeDFloors.ManagedControlSectorComment, created.Sector.Fields["comment"]);
+        Assert.Equal(-16, created.Sector.FloorHeight);
+        Assert.Equal(48, created.Sector.CeilHeight);
+        Assert.Equal("FLOOR1", created.Sector.FloorTexture);
+        Assert.Equal("CEIL1", created.Sector.CeilTexture);
+        Assert.Equal(176, created.Sector.Brightness);
+        Assert.Equal(new[] { 77 }, created.Sector.Tags);
+        Assert.All(created.Sector.Sidedefs, side => Assert.Equal("SIDE1", side.MidTexture));
+        Assert.Equal(ThreeDFloors.Sector3DFloorAction, created.ActionLine.Action);
+        Assert.Equal(44, created.ActionLine.Args[0]);
+        Assert.Equal(2, created.ActionLine.Args[1]);
+        Assert.Equal(4, created.ActionLine.Args[2]);
+        Assert.Equal(255, created.ActionLine.Args[3]);
+
+        Dictionary<Sector, List<ThreeDFloor>> floors = ThreeDFloors.Resolve(map, udmf: true, requireManagedControlSector: true);
+        ThreeDFloor floor = Assert.Single(floors[target]);
+        Assert.Same(created.Sector, floor.Control);
+        Assert.Equal("SIDE1", floor.SideTexture);
+    }
+
+    [Fact]
+    public void BindControlSectorTagReusesExistingTargetLine()
+    {
+        var map = new MapSet();
+        Sector control = AddSquareSector(map, 0, 128, 64);
+        ThreeDFloorControlEdit edit = ControlEdit();
+        Linedef first = ThreeDFloors.BindControlSectorTag(map, control, 5, edit);
+
+        Linedef second = ThreeDFloors.BindControlSectorTag(map, control, 5, edit with { Type = 9, Alpha = 12 });
+
+        Assert.Same(first, second);
+        Assert.Equal(1, control.Sidedefs.Count(side => side.Line.Action == ThreeDFloors.Sector3DFloorAction));
+        Assert.Equal(9, first.Args[1]);
+        Assert.Equal(12, first.Args[3]);
+    }
+
+    [Fact]
+    public void BindControlSectorTagSplitsLongestLineWhenNoFreeLineRemains()
+    {
+        var map = new MapSet();
+        Sector control = AddSquareSector(map, 0, 128, 64);
+        ThreeDFloorControlEdit edit = ControlEdit();
+        int targetTag = 10;
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            side.Line.Action = ThreeDFloors.Sector3DFloorAction;
+            side.Line.Args[0] = targetTag++;
+        }
+
+        Linedef added = ThreeDFloors.BindControlSectorTag(map, control, 99, edit);
+
+        Assert.Contains(added, map.Linedefs);
+        Assert.Equal(5, control.Sidedefs.Count);
+        Assert.Equal(5, map.Linedefs.Count(line => line.Action == ThreeDFloors.Sector3DFloorAction));
+        Assert.Equal(99, added.Args[0]);
+    }
+
     // A control sector carrying special 160 (arg0=tag) and a target sector tagged the same.
     private static (MapSet map, Sector control, Sector target) Setup(int tag, int alpha)
     {
@@ -442,6 +520,23 @@ public class ThreeDFloorsTests
         map.BuildIndexes();
         return control;
     }
+
+    private static ThreeDFloorControlEdit ControlEdit()
+        => new(
+            BottomHeight: -16,
+            TopHeight: 48,
+            BottomFlat: "FLOOR1",
+            TopFlat: "CEIL1",
+            SideTexture: "SIDE1",
+            Type: 2,
+            Flags: 4,
+            Alpha: 999,
+            Brightness: 176,
+            FloorSlope: new Vector3D(0, 1, -1),
+            FloorSlopeOffset: 8,
+            CeilingSlope: new Vector3D(0, -1, 1),
+            CeilingSlopeOffset: 16,
+            Tags: new[] { 77 });
 
     private static Sector AddSquareSector(MapSet map, double left, double top, double size)
     {
