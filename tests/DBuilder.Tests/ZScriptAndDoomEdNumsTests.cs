@@ -1249,6 +1249,25 @@ extend class BaseActor
     }
 
     [Fact]
+    public void ZScriptExtensionCanOverrideSizeDefaultsWithZero()
+    {
+        const string zscript = @"
+class BaseActor : Actor
+{
+    Default { Radius 16; Height 32; }
+}
+extend class BaseActor
+{
+    Default { Radius 0; Height 0; }
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal(0, actor.Radius);
+        Assert.Equal(0, actor.Height);
+    }
+
+    [Fact]
     public void ZScriptExtensionWithoutSpawnStateDoesNotReplaceEditorSprite()
     {
         const string zscript = @"

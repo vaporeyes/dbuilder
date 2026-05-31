@@ -638,8 +638,8 @@ public static class DecorateParser
                     actor.LightName = extension.LightName ?? actor.LightName;
                     actor.StateBright = extension.StateBright;
                 }
-                if (extension.Radius > 0) actor.Radius = extension.Radius;
-                if (extension.Height > 0) actor.Height = extension.Height;
+                if (extension.Properties.ContainsKey("radius")) actor.Radius = extension.Radius;
+                if (extension.Properties.ContainsKey("height")) actor.Height = extension.Height;
                 CopyUserVariables(actor, extension);
                 CopyExtensionFlag(actor, extension, "spawnceiling");
                 CopyExtensionFlag(actor, extension, "solid");
