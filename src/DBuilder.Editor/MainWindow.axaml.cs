@@ -2288,8 +2288,18 @@ public partial class MainWindow : Window
     // The edit mode that best shows matches of a given find category.
     private static MapControl.EditMode ModeFor(FindCategory cat) => cat switch
     {
-        FindCategory.ThingType => MapControl.EditMode.Things,
-        FindCategory.SectorEffect or FindCategory.Flat => MapControl.EditMode.Sectors,
+        FindCategory.ThingType or
+        FindCategory.ThingIndex or
+        FindCategory.ThingAngle => MapControl.EditMode.Things,
+        FindCategory.SectorEffect or
+        FindCategory.SectorIndex or
+        FindCategory.SectorFloorHeight or
+        FindCategory.SectorCeilingHeight or
+        FindCategory.SectorBrightness or
+        FindCategory.Flat or
+        FindCategory.SectorFloorFlat or
+        FindCategory.SectorCeilingFlat => MapControl.EditMode.Sectors,
+        FindCategory.VertexIndex => MapControl.EditMode.Vertices,
         _ => MapControl.EditMode.Linedefs, // actions, tags, sidedef textures
     };
 

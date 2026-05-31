@@ -32,6 +32,9 @@ public class MapSearchTests
         map.AddThing(new Vector2D(10, 10), 3001); // imp
         map.AddThing(new Vector2D(20, 20), 3001);
         map.AddThing(new Vector2D(30, 30), 9);     // tag holder
+        map.Things[0].Angle = 90;
+        map.Things[1].Angle = 180;
+        map.Things[2].Angle = 90;
         map.Things[2].Tag = 5;
         map.BuildIndexes();
         return map;
@@ -122,6 +125,75 @@ public class MapSearchTests
         Assert.Equal(2, n);
         Assert.Equal("FLAT5_5", map.Sectors[0].FloorTexture);
         Assert.Equal("FLAT5_5", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
+    public void FindIndexCategoriesSelectSpecificElements()
+    {
+        var map = Build();
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.VertexIndex, "2").Count);
+        Assert.True(map.Vertices[2].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.LinedefIndex, "1").Count);
+        Assert.True(map.Linedefs[1].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.SidedefIndex, "1").Count);
+        Assert.True(map.Sidedefs[1].Line.Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.SectorIndex, "1").Count);
+        Assert.True(map.Sectors[1].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.ThingIndex, "1").Count);
+        Assert.True(map.Things[1].Selected);
+    }
+
+    [Fact]
+    public void FindAndReplaceSectorHeightsAndBrightness()
+    {
+        var map = Build();
+        map.Sectors[0].FloorHeight = -16;
+        map.Sectors[1].FloorHeight = -16;
+        map.Sectors[0].CeilHeight = 128;
+        map.Sectors[1].Brightness = 192;
+
+        Assert.Equal(2, MapSearch.Find(map, FindCategory.SectorFloorHeight, "-16").Count);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorCeilingHeight, "128", "160"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorBrightness, "192", "224"));
+
+        Assert.Equal(160, map.Sectors[0].CeilHeight);
+        Assert.Equal(224, map.Sectors[1].Brightness);
+    }
+
+    [Fact]
+    public void FindAndReplaceSpecificTextureAndFlatSlots()
+    {
+        var map = Build();
+        map.Sidedefs[0].HighTexture = "SUPPORT3";
+        map.Sidedefs[1].LowTexture = "BROWN96";
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.SidedefUpperTexture, "support3").Count);
+        Assert.Equal(4, MapSearch.Find(map, FindCategory.SidedefMiddleTexture, "startan3").Count);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SidedefLowerTexture, "brown96", "STONE2"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorFloorFlat, "floor4_8", "FLAT1"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorCeilingFlat, "floor4_8", "FLAT2"));
+
+        Assert.Equal("STONE2", map.Sidedefs[1].LowTexture);
+        Assert.Equal("FLAT1", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLAT2", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
+    public void FindAndReplaceThingAngle()
+    {
+        var map = Build();
+
+        Assert.Equal(2, MapSearch.Find(map, FindCategory.ThingAngle, "90").Count);
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.ThingAngle, "90", "270"));
+
+        Assert.Equal(270, map.Things[0].Angle);
+        Assert.Equal(270, map.Things[2].Angle);
+        Assert.Equal(180, map.Things[1].Angle);
     }
 
     [Fact]

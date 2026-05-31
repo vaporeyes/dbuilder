@@ -1,5 +1,5 @@
-// ABOUTME: Find & replace over a MapSet by category (thing type, linedef action, sector effect, tag, texture, flat).
-// ABOUTME: Find selects matches and reports a focus point; Replace mutates matched attributes. Pure, no UI.
+// ABOUTME: Find & replace over a MapSet by UDB-style object categories.
+// ABOUTME: Find selects matches and reports a focus point; Replace mutates matched attributes without UI dependencies.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,29 @@ using DBuilder.Geometry;
 namespace DBuilder.Map;
 
 /// <summary>What a find/replace operation matches against.</summary>
-public enum FindCategory { ThingType, LinedefAction, SectorEffect, Tag, Texture, Flat }
+public enum FindCategory
+{
+    ThingType,
+    LinedefAction,
+    SectorEffect,
+    Tag,
+    Texture,
+    Flat,
+    VertexIndex,
+    LinedefIndex,
+    SidedefIndex,
+    SectorIndex,
+    ThingIndex,
+    SectorFloorHeight,
+    SectorCeilingHeight,
+    SectorBrightness,
+    SectorFloorFlat,
+    SectorCeilingFlat,
+    SidedefUpperTexture,
+    SidedefMiddleTexture,
+    SidedefLowerTexture,
+    ThingAngle,
+}
 
 /// <summary>Outcome of a find: how many matched and a representative location to center on.</summary>
 public readonly record struct SearchResult(int Count, Vector2D? Focus);
@@ -32,7 +54,17 @@ public readonly record struct ThingTypeStatistic(int Type, int Count);
 public static class MapSearch
 {
     /// <summary>True for categories whose value is a string (texture/flat names); the rest are integers.</summary>
-    public static bool IsTextual(FindCategory cat) => cat == FindCategory.Texture || cat == FindCategory.Flat;
+    public static bool IsTextual(FindCategory cat) => cat switch
+    {
+        FindCategory.Texture or
+        FindCategory.Flat or
+        FindCategory.SectorFloorFlat or
+        FindCategory.SectorCeilingFlat or
+        FindCategory.SidedefUpperTexture or
+        FindCategory.SidedefMiddleTexture or
+        FindCategory.SidedefLowerTexture => true,
+        _ => false,
+    };
 
     /// <summary>
     /// Selects every element matching <paramref name="value"/> in <paramref name="cat"/> (clearing prior selection)
@@ -53,11 +85,43 @@ public static class MapSearch
             case FindCategory.ThingType:
                 if (numOk) foreach (var t in map.Things) if (t.Type == num) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
+            case FindCategory.ThingIndex:
+                if (numOk && num >= 0 && num < map.Things.Count) { map.Things[num].Selected = true; count = 1; focus = map.Things[num].Position; }
+                break;
+            case FindCategory.ThingAngle:
+                if (numOk) foreach (var t in map.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
+                break;
             case FindCategory.LinedefAction:
                 if (numOk) foreach (var l in map.Linedefs) if (l.Action == num) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
+            case FindCategory.VertexIndex:
+                if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
+                break;
+            case FindCategory.LinedefIndex:
+                if (numOk && num >= 0 && num < map.Linedefs.Count) { map.Linedefs[num].Selected = true; count = 1; focus = Mid(map.Linedefs[num]); }
+                break;
+            case FindCategory.SidedefIndex:
+                if (numOk && num >= 0 && num < map.Sidedefs.Count)
+                {
+                    Sidedef side = map.Sidedefs[num];
+                    if (side.Line != null) { side.Line.Selected = true; focus = Mid(side.Line); }
+                    count = 1;
+                }
+                break;
             case FindCategory.SectorEffect:
                 if (numOk) foreach (var s in map.Sectors) if (s.Special == num) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorIndex:
+                if (numOk && num >= 0 && num < map.Sectors.Count) { map.Sectors[num].Selected = true; count = 1; }
+                break;
+            case FindCategory.SectorFloorHeight:
+                if (numOk) foreach (var s in map.Sectors) if (s.FloorHeight == num) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorCeilingHeight:
+                if (numOk) foreach (var s in map.Sectors) if (s.CeilHeight == num) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorBrightness:
+                if (numOk) foreach (var s in map.Sectors) if (s.Brightness == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.Tag:
                 if (numOk)
@@ -74,9 +138,24 @@ public static class MapSearch
                     if (sd.Line != null && (Eq(sd.HighTexture, value) || Eq(sd.MidTexture, value) || Eq(sd.LowTexture, value)))
                     { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
+            case FindCategory.SidedefUpperTexture:
+                foreach (var sd in map.Sidedefs) if (sd.Line != null && Eq(sd.HighTexture, value)) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                break;
+            case FindCategory.SidedefMiddleTexture:
+                foreach (var sd in map.Sidedefs) if (sd.Line != null && Eq(sd.MidTexture, value)) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                break;
+            case FindCategory.SidedefLowerTexture:
+                foreach (var sd in map.Sidedefs) if (sd.Line != null && Eq(sd.LowTexture, value)) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                break;
             case FindCategory.Flat:
                 foreach (var s in map.Sectors)
                     if (Eq(s.FloorTexture, value) || Eq(s.CeilTexture, value)) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorFloorFlat:
+                foreach (var s in map.Sectors) if (Eq(s.FloorTexture, value)) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorCeilingFlat:
+                foreach (var s in map.Sectors) if (Eq(s.CeilTexture, value)) { s.Selected = true; count++; }
                 break;
         }
         return new SearchResult(count, focus);
@@ -106,6 +185,15 @@ public static class MapSearch
                         if (hit) changed++;
                     }
                     break;
+                case FindCategory.SidedefUpperTexture:
+                    foreach (var sd in map.Sidedefs) if (Eq(sd.HighTexture, find)) { sd.HighTexture = replace; changed++; }
+                    break;
+                case FindCategory.SidedefMiddleTexture:
+                    foreach (var sd in map.Sidedefs) if (Eq(sd.MidTexture, find)) { sd.MidTexture = replace; changed++; }
+                    break;
+                case FindCategory.SidedefLowerTexture:
+                    foreach (var sd in map.Sidedefs) if (Eq(sd.LowTexture, find)) { sd.LowTexture = replace; changed++; }
+                    break;
                 case FindCategory.Flat:
                     foreach (var s in map.Sectors)
                     {
@@ -114,6 +202,12 @@ public static class MapSearch
                         if (Eq(s.CeilTexture, find)) { s.CeilTexture = replace; hit = true; }
                         if (hit) changed++;
                     }
+                    break;
+                case FindCategory.SectorFloorFlat:
+                    foreach (var s in map.Sectors) if (Eq(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
+                    break;
+                case FindCategory.SectorCeilingFlat:
+                    foreach (var s in map.Sectors) if (Eq(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
                     break;
             }
             return changed;
@@ -126,11 +220,23 @@ public static class MapSearch
             case FindCategory.ThingType:
                 foreach (var t in map.Things) if (t.Type == from) { t.Type = to; changed++; }
                 break;
+            case FindCategory.ThingAngle:
+                foreach (var t in map.Things) if (t.Angle == from) { t.Angle = to; changed++; }
+                break;
             case FindCategory.LinedefAction:
                 foreach (var l in map.Linedefs) if (l.Action == from) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
                 foreach (var s in map.Sectors) if (s.Special == from) { s.Special = to; changed++; }
+                break;
+            case FindCategory.SectorFloorHeight:
+                foreach (var s in map.Sectors) if (s.FloorHeight == from) { s.FloorHeight = to; changed++; }
+                break;
+            case FindCategory.SectorCeilingHeight:
+                foreach (var s in map.Sectors) if (s.CeilHeight == from) { s.CeilHeight = to; changed++; }
+                break;
+            case FindCategory.SectorBrightness:
+                foreach (var s in map.Sectors) if (s.Brightness == from) { s.Brightness = to; changed++; }
                 break;
             case FindCategory.Tag:
                 if (tagOptions.IncludeLinedefs)

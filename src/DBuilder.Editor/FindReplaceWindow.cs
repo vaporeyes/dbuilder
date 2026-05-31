@@ -40,11 +40,25 @@ public sealed class FindReplaceWindow : Window
             ItemsSource = new[]
             {
                 new CategoryItem(FindCategory.ThingType, "Thing type"),
+                new CategoryItem(FindCategory.ThingIndex, "Thing index"),
+                new CategoryItem(FindCategory.ThingAngle, "Thing angle"),
                 new CategoryItem(FindCategory.LinedefAction, "Linedef action"),
+                new CategoryItem(FindCategory.LinedefIndex, "Linedef index"),
+                new CategoryItem(FindCategory.SidedefIndex, "Sidedef index"),
                 new CategoryItem(FindCategory.SectorEffect, "Sector effect"),
+                new CategoryItem(FindCategory.SectorIndex, "Sector index"),
+                new CategoryItem(FindCategory.SectorFloorHeight, "Sector floor height"),
+                new CategoryItem(FindCategory.SectorCeilingHeight, "Sector ceiling height"),
+                new CategoryItem(FindCategory.SectorBrightness, "Sector brightness"),
                 new CategoryItem(FindCategory.Tag, "Tag"),
                 new CategoryItem(FindCategory.Texture, "Texture (sidedef)"),
+                new CategoryItem(FindCategory.SidedefUpperTexture, "Texture (upper)"),
+                new CategoryItem(FindCategory.SidedefMiddleTexture, "Texture (middle)"),
+                new CategoryItem(FindCategory.SidedefLowerTexture, "Texture (lower)"),
                 new CategoryItem(FindCategory.Flat, "Flat (sector)"),
+                new CategoryItem(FindCategory.SectorFloorFlat, "Flat (floor)"),
+                new CategoryItem(FindCategory.SectorCeilingFlat, "Flat (ceiling)"),
+                new CategoryItem(FindCategory.VertexIndex, "Vertex index"),
             },
         };
         _category.SelectedIndex = 0;
