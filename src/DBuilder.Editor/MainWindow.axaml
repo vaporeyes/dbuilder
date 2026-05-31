@@ -156,6 +156,7 @@
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
+                <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
                 <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
@@ -265,6 +266,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Apply Slopes" x:Name="ApplySlopesButton" Click="OnApplySlopes">
                     <PathIcon Data="M4,18 L20,8 L20,18 Z M5,6 L10,6 M5,10 L14,10" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Import OBJ Terrain" x:Name="ImportObjTerrainButton" Click="OnImportObjTerrain">
+                    <PathIcon Data="M4,18 L8,10 L12,15 L16,7 L21,18 Z M4,20 L21,20 M7,18 L10,14 M13,18 L16,13" />
                 </Button>
             </StackPanel>
         </Border>

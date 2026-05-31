@@ -829,6 +829,9 @@ public partial class MainWindow : Window
         return "";
     }
 
+    private static string FirstNonBlankOr(string fallback, params string[] values)
+        => FirstNonBlank(values) is { Length: > 0 } value ? value : fallback;
+
     private void SaveCurrentMapOptions(string wadPath, string marker)
     {
         var options = _mapOptions ?? new MapOptions();
@@ -2476,6 +2479,67 @@ public partial class MainWindow : Window
             : $"Applied {n} slope plane(s) from specials (visible in 3D).");
     }
 
+    private async void OnImportObjTerrain(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var top = TopLevel.GetTopLevel(this);
+        if (top?.StorageProvider == null) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Import OBJ Terrain",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Wavefront OBJ") { Patterns = new[] { "*.obj" } },
+            },
+        });
+        if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+
+        try
+        {
+            string text = System.IO.File.ReadAllText(path);
+            ObjTerrainParseResult parsed = ObjTerrainImporter.Parse(text, axis: ObjTerrainUpAxis.Z);
+            if (!parsed.Success)
+            {
+                SetStatus("OBJ terrain import failed: " + parsed.Errors[0]);
+                return;
+            }
+            if (parsed.Geometry.Faces.Count == 0)
+            {
+                SetStatus("OBJ terrain import found no usable triangular faces.");
+                return;
+            }
+
+            CreateUndo("Import OBJ terrain");
+            _map.ClearAllSelected();
+            ObjTerrainImportResult result = ObjTerrainImporter.BuildMapGeometry(
+                _map,
+                parsed.Geometry,
+                BuildObjTerrainImportOptions());
+            MapView.MarkGeometryDirty();
+            MapView.RevealSelection(MapControl.EditMode.Sectors, null);
+            UpdateInfo();
+            MapView.Focus();
+            SetStatus($"Imported OBJ terrain: {result.SectorsCreated} sectors, {result.LinedefsCreated} lines, {result.VerticesCreated} vertices.");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "OBJ terrain import failed");
+        }
+    }
+
+    private ObjTerrainImportOptions BuildObjTerrainImportOptions()
+    {
+        int brightness = _mapOptions?.OverrideBrightness == true ? _mapOptions.CustomBrightness : 160;
+        return new ObjTerrainImportOptions(
+            DefaultBrightness: brightness,
+            DefaultFloorTexture: FirstNonBlankOr("FLOOR0_1", _mapOptions?.DefaultFloorTexture ?? "", _config?.DefaultFloorTexture ?? ""),
+            DefaultCeilingTexture: FirstNonBlankOr("F_SKY1", _mapOptions?.DefaultCeilingTexture ?? "", _config?.DefaultCeilingTexture ?? ""),
+            DefaultWallTexture: FirstNonBlankOr("STARTAN3", _mapOptions?.DefaultWallTexture ?? "", _config?.DefaultWallTexture ?? ""),
+            UseVertexHeights: _config?.VertexHeightSupport == true);
+    }
+
     private void OnApplySlopeArch(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
@@ -3067,12 +3131,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, ImportObjTerrainMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, ImportObjTerrainButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
