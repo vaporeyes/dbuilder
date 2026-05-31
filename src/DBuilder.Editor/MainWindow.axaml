@@ -87,6 +87,7 @@
                     <MenuItem Header="Align _Horizontal" x:Name="AlignHorizontalMenuItem" Click="OnAlignTexturesX" />
                     <MenuItem Header="Align _Vertical" x:Name="AlignVerticalMenuItem" Click="OnAlignTexturesY" />
                 </MenuItem>
+                <MenuItem Header="Auto _Clear Sidedef Textures" x:Name="AutoClearSidedefTexturesMenuItem" ToggleType="CheckBox" Click="OnToggleAutoClearSidedefTextures" />
                 <Separator />
                 <MenuItem Header="Save _Prefab..." x:Name="SavePrefabMenuItem" Click="OnSavePrefab" />
                 <MenuItem Header="_Insert Prefab..." x:Name="InsertPrefabMenuItem" Click="OnInsertPrefab" />

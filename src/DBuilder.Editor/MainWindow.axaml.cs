@@ -962,6 +962,7 @@ public partial class MainWindow : Window
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
                 MapView.ExitDrawModes();
@@ -2757,6 +2758,7 @@ public partial class MainWindow : Window
 
     private void UpdateCommandCheckedState()
     {
+        SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
         SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode);
         SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode);
         SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode);
@@ -2782,6 +2784,14 @@ public partial class MainWindow : Window
     }
 
     private static void SetChecked(MenuItem item, bool isChecked) => item.IsChecked = isChecked;
+
+    private void OnToggleAutoClearSidedefTextures(object? sender, RoutedEventArgs e)
+    {
+        _settings.AutoClearSidedefTextures = !_settings.AutoClearSidedefTextures;
+        SaveSettings();
+        UpdateCommandCheckedState();
+        SetStatus("Auto removal of unused sidedef textures is " + (_settings.AutoClearSidedefTextures ? "ENABLED" : "DISABLED"));
+    }
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;
 

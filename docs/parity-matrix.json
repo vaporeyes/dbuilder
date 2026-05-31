@@ -5,7 +5,7 @@
       "udbArea": "Source/Core/Actions",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
+      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, auto-clear sidedef texture toggle action, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Compilers",
@@ -23,7 +23,7 @@
       "udbArea": "Source/Core/Controls",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area, settings, shortcuts, recent files, error/status history, selection groups, map markers, custom fields, and basic property dialogs. Full UDB control set parity remains incomplete."
+      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, and basic property dialogs. Full UDB control set parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Data",
