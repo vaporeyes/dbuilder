@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1523 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1524 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -490,6 +490,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject duplicate ZScript class definitions.
   - [x] Reject duplicate ZScript mixin definitions.
   - [x] Reject self-inheriting ZScript mixin definitions.
+  - [x] Reject ZScript mixin definitions with missing parents.
   - [x] Reject ZScript documents with final, sealed, or self-inheritance violations.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
