@@ -59,6 +59,12 @@ public sealed class FindReplaceWindow : Window
                 new CategoryItem(FindCategory.SectorFloorFlat, "Flat (floor)"),
                 new CategoryItem(FindCategory.SectorCeilingFlat, "Flat (ceiling)"),
                 new CategoryItem(FindCategory.VertexIndex, "Vertex index"),
+                new CategoryItem(FindCategory.AnyUdmfField, "UDMF field (any)"),
+                new CategoryItem(FindCategory.VertexUdmfField, "UDMF field (vertex)"),
+                new CategoryItem(FindCategory.LinedefUdmfField, "UDMF field (linedef)"),
+                new CategoryItem(FindCategory.SidedefUdmfField, "UDMF field (sidedef)"),
+                new CategoryItem(FindCategory.SectorUdmfField, "UDMF field (sector)"),
+                new CategoryItem(FindCategory.ThingUdmfField, "UDMF field (thing)"),
             },
         };
         _category.SelectedIndex = 0;

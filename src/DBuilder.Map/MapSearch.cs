@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -31,6 +32,12 @@ public enum FindCategory
     SidedefMiddleTexture,
     SidedefLowerTexture,
     ThingAngle,
+    AnyUdmfField,
+    VertexUdmfField,
+    LinedefUdmfField,
+    SidedefUdmfField,
+    SectorUdmfField,
+    ThingUdmfField,
 }
 
 /// <summary>Outcome of a find: how many matched and a representative location to center on.</summary>
@@ -91,14 +98,35 @@ public static class MapSearch
             case FindCategory.ThingAngle:
                 if (numOk) foreach (var t in map.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
+            case FindCategory.ThingUdmfField:
+                foreach (var t in map.Things)
+                {
+                    int matches = CountUdmfFieldMatches(t, value);
+                    if (matches > 0) { t.Selected = true; count += matches; focus ??= t.Position; }
+                }
+                break;
             case FindCategory.LinedefAction:
                 if (numOk) foreach (var l in map.Linedefs) if (l.Action == num) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.VertexIndex:
                 if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
                 break;
+            case FindCategory.VertexUdmfField:
+                foreach (var v in map.Vertices)
+                {
+                    int matches = CountUdmfFieldMatches(v, value);
+                    if (matches > 0) { v.Selected = true; count += matches; focus ??= v.Position; }
+                }
+                break;
             case FindCategory.LinedefIndex:
                 if (numOk && num >= 0 && num < map.Linedefs.Count) { map.Linedefs[num].Selected = true; count = 1; focus = Mid(map.Linedefs[num]); }
+                break;
+            case FindCategory.LinedefUdmfField:
+                foreach (var l in map.Linedefs)
+                {
+                    int matches = CountUdmfFieldMatches(l, value);
+                    if (matches > 0) { l.Selected = true; count += matches; focus ??= Mid(l); }
+                }
                 break;
             case FindCategory.SidedefIndex:
                 if (numOk && num >= 0 && num < map.Sidedefs.Count)
@@ -108,11 +136,29 @@ public static class MapSearch
                     count = 1;
                 }
                 break;
+            case FindCategory.SidedefUdmfField:
+                foreach (var sd in map.Sidedefs)
+                {
+                    int matches = CountUdmfFieldMatches(sd, value);
+                    if (matches > 0)
+                    {
+                        if (sd.Line != null) { sd.Line.Selected = true; focus ??= Mid(sd.Line); }
+                        count += matches;
+                    }
+                }
+                break;
             case FindCategory.SectorEffect:
                 if (numOk) foreach (var s in map.Sectors) if (s.Special == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorIndex:
                 if (numOk && num >= 0 && num < map.Sectors.Count) { map.Sectors[num].Selected = true; count = 1; }
+                break;
+            case FindCategory.SectorUdmfField:
+                foreach (var s in map.Sectors)
+                {
+                    int matches = CountUdmfFieldMatches(s, value);
+                    if (matches > 0) { s.Selected = true; count += matches; }
+                }
                 break;
             case FindCategory.SectorFloorHeight:
                 if (numOk) foreach (var s in map.Sectors) if (s.FloorHeight == num) { s.Selected = true; count++; }
@@ -156,6 +202,13 @@ public static class MapSearch
                 break;
             case FindCategory.SectorCeilingFlat:
                 foreach (var s in map.Sectors) if (Eq(s.CeilTexture, value)) { s.Selected = true; count++; }
+                break;
+            case FindCategory.AnyUdmfField:
+                count += SelectUdmfFieldMatches(map.Vertices, value, element => element.Selected = true, element => focus ??= element.Position);
+                count += SelectUdmfFieldMatches(map.Linedefs, value, element => element.Selected = true, element => focus ??= Mid(element));
+                count += SelectUdmfFieldMatches(map.Sidedefs, value, element => { if (element.Line != null) element.Line.Selected = true; }, element => { if (element.Line != null) focus ??= Mid(element.Line); });
+                count += SelectUdmfFieldMatches(map.Sectors, value, element => element.Selected = true, _ => { });
+                count += SelectUdmfFieldMatches(map.Things, value, element => element.Selected = true, element => focus ??= element.Position);
                 break;
         }
         return new SearchResult(count, focus);
@@ -332,4 +385,52 @@ public static class MapSearch
 
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+
+    private static int SelectUdmfFieldMatches<T>(IEnumerable<T> elements, string input, Action<T> select, Action<T> setFocus)
+        where T : IFielded
+    {
+        int count = 0;
+        foreach (T element in elements)
+        {
+            int matches = CountUdmfFieldMatches(element, input);
+            if (matches == 0) continue;
+            select(element);
+            setFocus(element);
+            count += matches;
+        }
+
+        return count;
+    }
+
+    private static int CountUdmfFieldMatches(IFielded element, string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return 0;
+
+        (string key, string value) = SplitUdmfFieldQuery(input);
+        Regex keyPattern = WildcardRegex(key);
+        Regex? valuePattern = string.IsNullOrEmpty(value) ? null : WildcardRegex(value);
+        int count = 0;
+
+        foreach (var field in element.Fields)
+        {
+            if (!keyPattern.IsMatch(field.Key)) continue;
+            if (valuePattern == null) { count++; continue; }
+
+            string fieldValue = Convert.ToString(field.Value, CultureInfo.InvariantCulture) ?? "";
+            if (valuePattern.IsMatch(fieldValue)) count++;
+        }
+
+        return count;
+    }
+
+    private static (string Key, string Value) SplitUdmfFieldQuery(string input)
+    {
+        input = input.Trim();
+        int space = input.IndexOf(' ');
+        if (space == -1) return (input, "");
+        return (input[..space], input[space..].Trim());
+    }
+
+    private static Regex WildcardRegex(string value)
+        => new("^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$", RegexOptions.CultureInvariant);
 }

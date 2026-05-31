@@ -197,6 +197,61 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindUdmfFieldsSupportsKeyAndValueWildcards()
+    {
+        var map = Build();
+        map.Sectors[0].Fields["lightcolor"] = 0x112233;
+        map.Sectors[0].Fields["lightfloor"] = 24;
+        map.Linedefs[1].Fields["comment"] = "door alpha";
+        map.Sidedefs[2].Fields["comment"] = "door beta";
+        map.Things[0].Fields["arg0str"] = "OpenDoor";
+        map.Vertices[1].Fields["zfloor"] = 16;
+
+        SearchResult allLights = MapSearch.Find(map, FindCategory.AnyUdmfField, "light*");
+        Assert.Equal(2, allLights.Count);
+        Assert.True(map.Sectors[0].Selected);
+
+        SearchResult comments = MapSearch.Find(map, FindCategory.AnyUdmfField, "comment door*");
+        Assert.Equal(2, comments.Count);
+        Assert.True(map.Linedefs[1].Selected);
+        Assert.True(map.Sidedefs[2].Line.Selected);
+
+        SearchResult thingArg = MapSearch.Find(map, FindCategory.ThingUdmfField, "arg?str Open*");
+        Assert.Equal(1, thingArg.Count);
+        Assert.True(map.Things[0].Selected);
+
+        SearchResult vertexHeight = MapSearch.Find(map, FindCategory.VertexUdmfField, "zfloor 16");
+        Assert.Equal(1, vertexHeight.Count);
+        Assert.True(map.Vertices[1].Selected);
+    }
+
+    [Fact]
+    public void FindUdmfFieldCategoriesScopeToElementTypes()
+    {
+        var map = Build();
+        map.Sectors[0].Fields["comment"] = "shared";
+        map.Linedefs[0].Fields["comment"] = "shared";
+        map.Sidedefs[0].Fields["comment"] = "shared";
+        map.Things[0].Fields["comment"] = "shared";
+        map.Vertices[0].Fields["comment"] = "shared";
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.SectorUdmfField, "comment shared").Count);
+        Assert.True(map.Sectors[0].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.LinedefUdmfField, "comment shared").Count);
+        Assert.True(map.Linedefs[0].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.SidedefUdmfField, "comment shared").Count);
+        Assert.True(map.Sidedefs[0].Line.Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.ThingUdmfField, "comment shared").Count);
+        Assert.True(map.Things[0].Selected);
+
+        Assert.Equal(1, MapSearch.Find(map, FindCategory.VertexUdmfField, "comment shared").Count);
+        Assert.True(map.Vertices[0].Selected);
+    }
+
+    [Fact]
     public void UsedTagsAggregatesAcrossTypesAscending()
     {
         var map = Build(); // tag 5 used by sector s1, linedef 0, thing[2]

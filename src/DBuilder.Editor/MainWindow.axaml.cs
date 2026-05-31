@@ -2298,8 +2298,10 @@ public partial class MainWindow : Window
         FindCategory.SectorBrightness or
         FindCategory.Flat or
         FindCategory.SectorFloorFlat or
-        FindCategory.SectorCeilingFlat => MapControl.EditMode.Sectors,
-        FindCategory.VertexIndex => MapControl.EditMode.Vertices,
+        FindCategory.SectorCeilingFlat or
+        FindCategory.SectorUdmfField => MapControl.EditMode.Sectors,
+        FindCategory.VertexIndex or
+        FindCategory.VertexUdmfField => MapControl.EditMode.Vertices,
         _ => MapControl.EditMode.Linedefs, // actions, tags, sidedef textures
     };
 
