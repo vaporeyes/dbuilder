@@ -15,8 +15,18 @@ public sealed record ScriptLexerDefinition(
 
 public sealed record ScriptSyntaxKeywordSet(int Index, string Kind, string Words);
 
+public sealed record ScriptAutoCompleteItem(string Word, int ImageIndex)
+{
+    public string Entry => Word + "?" + ImageIndex;
+}
+
 public static class ScriptSyntaxHighlighting
 {
+    public const int ConstantImageIndex = 0;
+    public const int KeywordImageIndex = 1;
+    public const int SnippetImageIndex = 3;
+    public const int PropertyImageIndex = 4;
+
     public static ScriptLexerDefinition GetLexerDefinition(Configuration lexerConfiguration, int lexer)
     {
         string name = "lexer" + lexer;
@@ -38,6 +48,35 @@ public static class ScriptSyntaxHighlighting
         AddSet(sets, lexerDefinition.ConstantsIndex, "constants", scriptConfiguration.Constants, scriptConfiguration.CaseSensitive);
         AddSet(sets, lexerDefinition.SnippetIndex, "snippets", scriptConfiguration.Snippets, scriptConfiguration.CaseSensitive);
         return sets;
+    }
+
+    public static IReadOnlyList<ScriptAutoCompleteItem> BuildAutoCompleteItems(ScriptConfigurationInfo scriptConfiguration)
+    {
+        var items = new Dictionary<string, ScriptAutoCompleteItem>(StringComparer.Ordinal);
+        var snippets = new HashSet<string>(scriptConfiguration.Snippets, StringComparer.Ordinal);
+
+        foreach (string keyword in scriptConfiguration.Keywords)
+        {
+            if (!snippets.Contains(keyword))
+                items.TryAdd(keyword, new ScriptAutoCompleteItem(keyword, KeywordImageIndex));
+        }
+
+        foreach (string property in scriptConfiguration.Properties)
+        {
+            if (!snippets.Contains(property))
+                items.TryAdd(property, new ScriptAutoCompleteItem(property, PropertyImageIndex));
+        }
+
+        foreach (string constant in scriptConfiguration.Constants)
+        {
+            if (!items.ContainsKey(constant) && !snippets.Contains(constant))
+                items.Add(constant, new ScriptAutoCompleteItem(constant, ConstantImageIndex));
+        }
+
+        foreach (string snippet in scriptConfiguration.Snippets)
+            items.TryAdd(snippet, new ScriptAutoCompleteItem(snippet, SnippetImageIndex));
+
+        return new List<ScriptAutoCompleteItem>(items.Values);
     }
 
     private static void AddSet(

@@ -92,4 +92,39 @@ public class ScriptSyntaxHighlightingTests
         Assert.Equal("properties", set.Kind);
         Assert.Equal("A B C RenderStyleAdd", set.Words);
     }
+
+    [Fact]
+    public void BuildsAutocompleteItemsLikeUdb()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_snippets_" + Guid.NewGuid().ToString("N"));
+        string snippets = Path.Combine(dir, "ACS");
+        Directory.CreateDirectory(snippets);
+        try
+        {
+            File.WriteAllText(Path.Combine(snippets, "Script.txt"), "script [EP]");
+            File.WriteAllText(Path.Combine(snippets, "Door Open.txt"), "Door_Open();");
+            var config = ScriptConfigurationInfo.FromText("""
+                snippetsdir = "ACS";
+                keywords { Script = ""; Function = ""; }
+                constants { Function = ""; OPEN = ""; }
+                properties { Door.Open = ""; }
+                """, dir);
+
+            var entries = ScriptSyntaxHighlighting.BuildAutoCompleteItems(config)
+                .Select(item => item.Entry)
+                .ToArray();
+
+            Assert.Contains("Function?1", entries);
+            Assert.Contains("Door.Open?4", entries);
+            Assert.Contains("OPEN?0", entries);
+            Assert.Contains("Script?3", entries);
+            Assert.Contains("Door_Open?3", entries);
+            Assert.DoesNotContain("Script?1", entries);
+            Assert.DoesNotContain("Function?0", entries);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
 }
