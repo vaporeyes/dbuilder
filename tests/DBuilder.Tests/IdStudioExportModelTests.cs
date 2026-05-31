@@ -276,5 +276,24 @@ public class IdStudioExportModelTests
         Assert.Contains("( 0 0 -1 5 )", brush);
     }
 
+    [Fact]
+    public void BuildStepBrushWritesUdbStepclipPlanes()
+    {
+        string brush = NormalizeLineEndings(IdStudioBrushFormatter.BuildStepBrush(
+            new IdStudioVertex(0, 0),
+            new IdStudioVertex(10, 0),
+            minHeight: 0,
+            maxHeight: 10,
+            sectorNumber: 9));
+
+        Assert.Contains("\"stepclip/9\"", brush);
+        Assert.Contains("( -0 1 0 -0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/clip/clip\" 0 0 0", brush);
+        Assert.Contains("( -1 -0 0 0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/clip/clip\" 0 0 0", brush);
+        Assert.Contains("( 1 0 0 -10 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/clip/clip\" 0 0 0", brush);
+        Assert.Contains("( 0 0 -1 0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/clip/clip\" 0 0 0", brush);
+        Assert.Contains("-0.4472136 0.8944272 -8.94427", brush);
+        Assert.EndsWith("\t}\n}\n", brush, StringComparison.Ordinal);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }

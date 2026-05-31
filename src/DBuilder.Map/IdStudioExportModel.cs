@@ -346,6 +346,59 @@ public static class IdStudioBrushFormatter
         builder.EndBrushDef();
         return builder.Render();
     }
+
+    public static string BuildStepBrush(
+        IdStudioVertex start,
+        IdStudioVertex end,
+        float minHeight,
+        float maxHeight,
+        int sectorNumber)
+    {
+        float xyShift = (maxHeight - minHeight) * 2;
+        IdStudioPlane[] bounds = new IdStudioPlane[5];
+        IdStudioVector horizontal = new(start, end);
+
+        IdStudioVector cross = new(horizontal.Y, -horizontal.X, 0);
+        cross.Normalize();
+
+        IdStudioVertex baseStart = new(cross.X * xyShift + start.X, cross.Y * xyShift + start.Y);
+
+        bounds[0].Normal.X = -cross.X;
+        bounds[0].Normal.Y = -cross.Y;
+        bounds[0].Normal.Z = 0;
+        bounds[0].Distance = bounds[0].Normal.X * start.X + bounds[0].Normal.Y * start.Y;
+
+        IdStudioVector leftHorizontal = new(start, baseStart);
+        bounds[1].SetFrom(new IdStudioVector(leftHorizontal.Y, -leftHorizontal.X, 0), start);
+
+        bounds[2].Normal.X = -bounds[1].Normal.X;
+        bounds[2].Normal.Y = -bounds[1].Normal.Y;
+        bounds[2].Normal.Z = 0;
+        bounds[2].Distance = bounds[2].Normal.X * end.X + bounds[2].Normal.Y * end.Y;
+
+        bounds[3].Normal = new IdStudioVector(0, 0, -1);
+        bounds[3].Distance = -minHeight;
+
+        IdStudioVector slopeBase = new(leftHorizontal.X, leftHorizontal.Y, minHeight - maxHeight);
+        IdStudioVector slopeHorizontal = new(horizontal.X, horizontal.Y, 0);
+        IdStudioVector normal = new(
+            -slopeHorizontal.Y * slopeBase.Z,
+            slopeHorizontal.X * slopeBase.Z,
+            slopeBase.X * slopeHorizontal.Y - slopeHorizontal.X * slopeBase.Y);
+        normal.Normalize();
+        bounds[4].Normal = normal;
+        bounds[4].Distance = normal.X * start.X + normal.Y * start.Y + normal.Z * maxHeight;
+
+        var builder = new IdStudioEntityBuilder();
+        builder.BeginBrushDef("stepclip", sectorNumber);
+        foreach (IdStudioPlane bound in bounds)
+        {
+            builder.WriteClipPlane(bound);
+        }
+
+        builder.EndBrushDef();
+        return builder.Render();
+    }
 }
 
 public sealed class IdStudioMapWriter
