@@ -32,6 +32,15 @@ public readonly record struct VisplanePointData(
 
 public readonly record struct VisplaneTilePosition(int X, int Y);
 
+public readonly record struct VisplaneMapRectangle(int X, int Y, int Width, int Height)
+{
+    public bool Contains(VisplaneTilePosition position)
+        => position.X >= X
+            && position.Y >= Y
+            && position.X < X + Width
+            && position.Y < Y + Height;
+}
+
 public sealed class VisplanePalette
 {
     private readonly uint[] colors;
@@ -93,6 +102,67 @@ public sealed class VisplanePaletteSet
         if (index < 0 || index > (int)VisplaneExplorerStat.Heatmap)
             throw new ArgumentOutOfRangeException(nameof(stat));
         return index;
+    }
+}
+
+public sealed class VisplaneTileScan
+{
+    private readonly Dictionary<VisplaneTilePosition, VisplaneTile> tiles = new();
+
+    public IReadOnlyDictionary<VisplaneTilePosition, VisplaneTile> Tiles => tiles;
+
+    public static VisplaneTilePosition TileForPoint(double x, double y)
+        => new(
+            (int)Math.Floor(x / VisplaneTile.TileSize) * VisplaneTile.TileSize,
+            (int)Math.Floor(y / VisplaneTile.TileSize) * VisplaneTile.TileSize);
+
+    public VisplaneTile AddTile(VisplaneTilePosition position)
+    {
+        var tile = new VisplaneTile(position);
+        tiles.Add(position, tile);
+        return tile;
+    }
+
+    public VisplaneTile GetOrCreateTile(VisplaneTilePosition position)
+    {
+        if (!tiles.TryGetValue(position, out VisplaneTile? tile))
+        {
+            tile = new VisplaneTile(position);
+            tiles.Add(position, tile);
+        }
+
+        return tile;
+    }
+
+    public IReadOnlyList<VisplaneTilePoint> CollectNextPointBatch(VisplaneMapRectangle viewRectangle)
+    {
+        var points = new List<VisplaneTilePoint>(tiles.Count);
+        foreach (KeyValuePair<VisplaneTilePosition, VisplaneTile> entry in tiles)
+            if (!entry.Value.IsComplete && viewRectangle.Contains(entry.Key))
+                points.Add(entry.Value.GetNextPoint());
+
+        if (points.Count > 0) return points;
+
+        foreach (VisplaneTile tile in tiles.Values)
+            if (!tile.IsComplete)
+                points.Add(tile.GetNextPoint());
+
+        return points;
+    }
+
+    public IReadOnlyList<VisplaneTilePoint> QueuePoints(VisplaneMapRectangle viewRectangle, int currentQueuedPoints, int targetQueuedPoints)
+    {
+        var points = new List<VisplaneTilePoint>();
+        int queued = currentQueuedPoints;
+        while (queued < targetQueuedPoints)
+        {
+            IReadOnlyList<VisplaneTilePoint> batch = CollectNextPointBatch(viewRectangle);
+            if (batch.Count == 0) break;
+            points.AddRange(batch);
+            queued += batch.Count;
+        }
+
+        return points;
     }
 }
 

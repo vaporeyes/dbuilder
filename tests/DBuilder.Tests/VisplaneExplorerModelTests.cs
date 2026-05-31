@@ -56,6 +56,77 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void TileForPointMatchesUdbFlooringForPositiveAndNegativeCoordinates()
+    {
+        Assert.Equal(new VisplaneTilePosition(0, 0), VisplaneTileScan.TileForPoint(0, 0));
+        Assert.Equal(new VisplaneTilePosition(0, 0), VisplaneTileScan.TileForPoint(63.9, 63.9));
+        Assert.Equal(new VisplaneTilePosition(64, 64), VisplaneTileScan.TileForPoint(64, 64));
+        Assert.Equal(new VisplaneTilePosition(-64, -64), VisplaneTileScan.TileForPoint(-0.1, -0.1));
+        Assert.Equal(new VisplaneTilePosition(-64, -64), VisplaneTileScan.TileForPoint(-64, -64));
+        Assert.Equal(new VisplaneTilePosition(-128, -128), VisplaneTileScan.TileForPoint(-64.1, -64.1));
+    }
+
+    [Fact]
+    public void CollectNextPointBatchPrefersIncompleteTilesInCurrentView()
+    {
+        var scan = new VisplaneTileScan();
+        scan.AddTile(new VisplaneTilePosition(0, 0));
+        scan.AddTile(new VisplaneTilePosition(128, 0));
+
+        IReadOnlyList<VisplaneTilePoint> points = scan.CollectNextPointBatch(new VisplaneMapRectangle(-64, -64, 128, 128));
+
+        Assert.Equal(new VisplaneTilePoint(0, 0, 64), Assert.Single(points));
+    }
+
+    [Fact]
+    public void CollectNextPointBatchFallsBackToAllIncompleteTilesWhenViewIsComplete()
+    {
+        var scan = new VisplaneTileScan();
+        scan.AddTile(new VisplaneTilePosition(0, 0));
+        scan.AddTile(new VisplaneTilePosition(128, 0));
+
+        IReadOnlyList<VisplaneTilePoint> points = scan.CollectNextPointBatch(new VisplaneMapRectangle(512, 512, 64, 64));
+
+        Assert.Equal(
+            new[] { new VisplaneTilePoint(0, 0, 64), new VisplaneTilePoint(128, 0, 64) },
+            points);
+    }
+
+    [Fact]
+    public void QueuePointsRepeatsBatchesUntilTargetQueuedCountIsReached()
+    {
+        var scan = new VisplaneTileScan();
+        scan.AddTile(new VisplaneTilePosition(0, 0));
+        scan.AddTile(new VisplaneTilePosition(64, 0));
+
+        IReadOnlyList<VisplaneTilePoint> points = scan.QueuePoints(
+            new VisplaneMapRectangle(-64, -64, 256, 128),
+            currentQueuedPoints: 1,
+            targetQueuedPoints: 5);
+
+        Assert.Equal(4, points.Count);
+        Assert.Equal(new VisplaneTilePoint(0, 0, 64), points[0]);
+        Assert.Equal(new VisplaneTilePoint(64, 0, 64), points[1]);
+        Assert.Equal(new VisplaneTilePoint(32, 32, 32), points[2]);
+        Assert.Equal(new VisplaneTilePoint(96, 32, 32), points[3]);
+    }
+
+    [Fact]
+    public void QueuePointsReturnsNoPointsWhenCurrentQueueAlreadyMeetsTarget()
+    {
+        var scan = new VisplaneTileScan();
+        scan.AddTile(new VisplaneTilePosition(0, 0));
+
+        IReadOnlyList<VisplaneTilePoint> points = scan.QueuePoints(
+            new VisplaneMapRectangle(-64, -64, 256, 128),
+            currentQueuedPoints: 5,
+            targetQueuedPoints: 5);
+
+        Assert.Empty(points);
+        Assert.False(scan.Tiles[new VisplaneTilePosition(0, 0)].IsComplete);
+    }
+
+    [Fact]
     public void PointByIndexMatchesUdbButterflySamplingOrder()
     {
         Assert.Equal(new VisplaneTilePoint(0, 0, 64), VisplaneTile.PointByIndex(0));
