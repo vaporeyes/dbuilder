@@ -882,6 +882,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `AutomapMode`.
 - [ ] Port `BlockmapExplorer`.
 - [ ] Port `ColorPicker`.
+  - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
@@ -955,6 +956,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visplane explorer analysis.
 - [ ] Port WadAuthor mode behavior.
 - [ ] Port color picker controls and dialogs.
+  - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
 
 ## Validation And Test Strategy
 

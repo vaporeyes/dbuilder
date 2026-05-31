@@ -150,7 +150,12 @@
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
       "notes": "Core edit modes, draw mode surfaces, selection conversion, stitching, filters, and error-check surfaces are partially represented. Full mode set and docked tooling remain incomplete."
     },
-    { "udbPlugin": "ColorPicker", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "ColorPicker",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style RGB/HSV conversion, picker display formatting, packed UDMF color integers, and sector lightcolor/fadecolor field behavior exist. Color picker controls, dialogs, and dynamic light editing remain incomplete."
+    },
     {
       "udbPlugin": "CommentsPanel",
       "status": "partial",
