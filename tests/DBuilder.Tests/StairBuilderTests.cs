@@ -580,6 +580,123 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void PrefabCollectionSuggestedNameSkipsExistingUdbNames()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "Prefab #1" },
+            new StairBuilderPrefab { Name = "Prefab #3" },
+            new StairBuilderPrefab { Name = "[Default]" }
+        };
+
+        string name = StairBuilderPrefabSettings.CreateSuggestedName(prefabs);
+
+        Assert.Equal("Prefab #2", name);
+    }
+
+    [Fact]
+    public void PrefabCollectionManualSaveRejectsReservedNamesAndEmptyNames()
+    {
+        var prefabs = new[] { new StairBuilderPrefab { Name = "Prefab #1" } };
+
+        StairBuilderPrefabSaveResult empty = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "   " },
+            overwriteDuplicate: true);
+        StairBuilderPrefabSaveResult previous = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "[Previous]" },
+            overwriteDuplicate: true);
+        StairBuilderPrefabSaveResult defaultPrefab = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "[Default]" },
+            overwriteDuplicate: true);
+
+        Assert.Equal(StairBuilderPrefabSaveStatus.EmptyName, empty.Status);
+        Assert.Same(prefabs, empty.Prefabs);
+        Assert.Equal(StairBuilderPrefabSaveStatus.ReservedName, previous.Status);
+        Assert.Same(prefabs, previous.Prefabs);
+        Assert.Equal(StairBuilderPrefabSaveStatus.ReservedName, defaultPrefab.Status);
+        Assert.Same(prefabs, defaultPrefab.Prefabs);
+    }
+
+    [Fact]
+    public void PrefabCollectionManualSaveAppendsOrOverwritesDuplicatesLikeUdb()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "Prefab #1", NumberOfSectors = 1 },
+            new StairBuilderPrefab { Name = "Prefab #2", NumberOfSectors = 2 }
+        };
+
+        StairBuilderPrefabSaveResult duplicate = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "Prefab #2", NumberOfSectors = 5 },
+            overwriteDuplicate: false);
+        StairBuilderPrefabSaveResult overwritten = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "Prefab #2", NumberOfSectors = 5 },
+            overwriteDuplicate: true);
+        StairBuilderPrefabSaveResult appended = StairBuilderPrefabSettings.SaveManualPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = " Prefab #3 ", NumberOfSectors = 3 },
+            overwriteDuplicate: false);
+
+        Assert.Equal(StairBuilderPrefabSaveStatus.DuplicateName, duplicate.Status);
+        Assert.Equal(1, duplicate.Index);
+        Assert.Same(prefabs, duplicate.Prefabs);
+        Assert.Equal(StairBuilderPrefabSaveStatus.Saved, overwritten.Status);
+        Assert.Equal(1, overwritten.Index);
+        Assert.Equal(new[] { 1, 5 }, overwritten.Prefabs.Select(prefab => prefab.NumberOfSectors));
+        Assert.Equal(StairBuilderPrefabSaveStatus.Saved, appended.Status);
+        Assert.Equal(2, appended.Index);
+        Assert.Equal("Prefab #3", appended.Prefabs[2].Name);
+    }
+
+    [Fact]
+    public void PrefabCollectionForcedSaveInsertsPreviousAfterDefault()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "Before" },
+            new StairBuilderPrefab { Name = "[Default]", NumberOfSectors = 1 },
+            new StairBuilderPrefab { Name = "After" }
+        };
+
+        int position = StairBuilderPrefabSettings.PreviousInsertPosition(prefabs);
+        StairBuilderPrefabSaveResult saved = StairBuilderPrefabSettings.SaveForcedPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "[Previous]", NumberOfSectors = 4 },
+            position);
+
+        Assert.Equal(2, position);
+        Assert.Equal(StairBuilderPrefabSaveStatus.Saved, saved.Status);
+        Assert.Equal(2, saved.Index);
+        Assert.Equal(new[] { "Before", "[Default]", "[Previous]", "After" }, saved.Prefabs.Select(prefab => prefab.Name));
+    }
+
+    [Fact]
+    public void PrefabCollectionForcedSaveOverwritesExistingNameAtOriginalPosition()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "[Default]", NumberOfSectors = 1 },
+            new StairBuilderPrefab { Name = "[Previous]", NumberOfSectors = 2 },
+            new StairBuilderPrefab { Name = "Saved", NumberOfSectors = 3 }
+        };
+
+        StairBuilderPrefabSaveResult saved = StairBuilderPrefabSettings.SaveForcedPrefab(
+            prefabs,
+            new StairBuilderPrefab { Name = "[Previous]", NumberOfSectors = 8 },
+            position: 1);
+
+        Assert.Equal(StairBuilderPrefabSaveStatus.Saved, saved.Status);
+        Assert.Equal(1, saved.Index);
+        Assert.Equal(new[] { "[Default]", "[Previous]", "Saved" }, saved.Prefabs.Select(prefab => prefab.Name));
+        Assert.Equal(8, saved.Prefabs[1].NumberOfSectors);
+    }
+
+    [Fact]
     public void PrefabCreatesStraightOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab

@@ -651,6 +651,9 @@ public sealed record StairBuilderPrefab
 
 public static class StairBuilderPrefabSettings
 {
+    public const string DefaultPrefabName = "[Default]";
+    public const string PreviousPrefabName = "[Previous]";
+
     public static Dictionary<string, object> ToSettingsDictionary(IReadOnlyList<StairBuilderPrefab> prefabs)
     {
         var settings = new Dictionary<string, object>();
@@ -695,6 +698,117 @@ public static class StairBuilderPrefabSettings
 
         return int.TryParse(key.AsSpan(prefix.Length), out int index) ? index : -1;
     }
+
+    public static string CreateSuggestedName(IReadOnlyList<StairBuilderPrefab> prefabs)
+    {
+        for (int i = 1; i < int.MaxValue; i++)
+        {
+            string name = "Prefab #" + i;
+            if (!ContainsName(prefabs, name)) return name;
+        }
+
+        return "Prefab";
+    }
+
+    public static bool IsReservedManualName(string name)
+    {
+        string trimmed = name.Trim();
+        return trimmed == DefaultPrefabName || trimmed == PreviousPrefabName;
+    }
+
+    public static int PreviousInsertPosition(IReadOnlyList<StairBuilderPrefab> prefabs)
+    {
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            if (prefabs[i].Name == DefaultPrefabName) return i + 1;
+        }
+
+        return 0;
+    }
+
+    public static StairBuilderPrefabSaveResult SaveManualPrefab(
+        IReadOnlyList<StairBuilderPrefab> prefabs,
+        StairBuilderPrefab prefab,
+        bool overwriteDuplicate)
+    {
+        string name = prefab.Name.Trim();
+        if (name.Length == 0) return new StairBuilderPrefabSaveResult(StairBuilderPrefabSaveStatus.EmptyName, prefabs, -1);
+        if (IsReservedManualName(name)) return new StairBuilderPrefabSaveResult(StairBuilderPrefabSaveStatus.ReservedName, prefabs, -1);
+
+        int overwrite = IndexOfName(prefabs, name);
+        if (overwrite >= 0 && !overwriteDuplicate)
+            return new StairBuilderPrefabSaveResult(StairBuilderPrefabSaveStatus.DuplicateName, prefabs, overwrite);
+
+        return SavePrefab(prefabs, prefab with { Name = name }, overwrite >= 0, overwrite, -1);
+    }
+
+    public static StairBuilderPrefabSaveResult SaveForcedPrefab(
+        IReadOnlyList<StairBuilderPrefab> prefabs,
+        StairBuilderPrefab prefab,
+        int position)
+    {
+        string name = prefab.Name.Trim();
+        if (name.Length == 0) return new StairBuilderPrefabSaveResult(StairBuilderPrefabSaveStatus.EmptyName, prefabs, -1);
+
+        int overwrite = IndexOfName(prefabs, name);
+        return SavePrefab(prefabs, prefab with { Name = name }, overwrite >= 0, overwrite, position);
+    }
+
+    private static StairBuilderPrefabSaveResult SavePrefab(
+        IReadOnlyList<StairBuilderPrefab> prefabs,
+        StairBuilderPrefab prefab,
+        bool overwriteExisting,
+        int overwrite,
+        int position)
+    {
+        var saved = new List<StairBuilderPrefab>(prefabs);
+        int savedIndex;
+
+        if (overwriteExisting)
+        {
+            saved.RemoveAt(overwrite);
+            saved.Insert(overwrite, prefab);
+            savedIndex = overwrite;
+        }
+        else if (position == -1)
+        {
+            saved.Add(prefab);
+            savedIndex = saved.Count - 1;
+        }
+        else
+        {
+            saved.Insert(position, prefab);
+            savedIndex = position;
+        }
+
+        return new StairBuilderPrefabSaveResult(StairBuilderPrefabSaveStatus.Saved, saved, savedIndex);
+    }
+
+    private static bool ContainsName(IReadOnlyList<StairBuilderPrefab> prefabs, string name)
+        => IndexOfName(prefabs, name) >= 0;
+
+    private static int IndexOfName(IReadOnlyList<StairBuilderPrefab> prefabs, string name)
+    {
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            if (prefabs[i].Name == name) return i;
+        }
+
+        return -1;
+    }
+}
+
+public sealed record StairBuilderPrefabSaveResult(
+    StairBuilderPrefabSaveStatus Status,
+    IReadOnlyList<StairBuilderPrefab> Prefabs,
+    int Index);
+
+public enum StairBuilderPrefabSaveStatus
+{
+    Saved,
+    EmptyName,
+    ReservedName,
+    DuplicateName
 }
 
 public sealed class StairBuilderOptions

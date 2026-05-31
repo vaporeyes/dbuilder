@@ -195,7 +195,7 @@
       "udbPlugin": "StairSectorBuilder",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map;DBuilder.Editor",
-      "notes": "Stair building helpers, editor command surfaces, UDB-style accept-path option application for one-based height stepping, distinct base heights, flats, required wall texture filling, and upper/lower unpegged flags, plus straight linedef geometry planning with front/back side and spacing, curved stair geometry planning, Catmull-Rom spline stair geometry planning, straight stair sector materialization, prefab settings key model, prefab collection settings shape, numeric prefab settings load ordering, and loaded-prefab option mapping exist. Editor prefab UI persistence and preview workflow remain incomplete."
+      "notes": "Stair building helpers, editor command surfaces, UDB-style accept-path option application for one-based height stepping, distinct base heights, flats, required wall texture filling, and upper/lower unpegged flags, plus straight linedef geometry planning with front/back side and spacing, curved stair geometry planning, Catmull-Rom spline stair geometry planning, straight stair sector materialization, prefab settings key model, prefab collection settings shape, numeric prefab settings load ordering, prefab name suggestion, reserved-name, overwrite, and insert-position behavior, and loaded-prefab option mapping exist. Editor prefab UI persistence and preview workflow remain incomplete."
     },
     {
       "udbPlugin": "TagExplorer",
