@@ -106,4 +106,28 @@ public class DirectoryResourceTests
         }
         finally { Directory.Delete(dir, recursive: true); }
     }
+
+    [Fact]
+    public void DirectoryResourceHonorsConfiguredIgnoredPaths()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, ".git", "textures"));
+            File.WriteAllBytes(Path.Combine(dir, ".git", "textures", "HIDDEN.png"), TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 1, 2, 3, 255)));
+            File.WriteAllBytes(Path.Combine(dir, "textures", "SKIP.ignore"), TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 4, 5, 6, 255)));
+            var config = GameConfiguration.FromText("""
+                ignoreddirectories = ".git";
+                ignoredextensions = "ignore";
+                """);
+
+            using var rm = new ResourceManager(config);
+            rm.AddResource(dir);
+
+            Assert.Null(rm.GetWallTexture("HIDDEN"));
+            Assert.Null(rm.GetWallTexture("SKIP"));
+            Assert.NotNull(rm.GetWallTexture("DWALL"));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
@@ -877,12 +878,17 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
 {
     public DirectoryResourceReader(string root, Func<GameConfiguration?>? configProvider = null) : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)), configProvider: configProvider)
     {
-        foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+        var config = this.configProvider();
+        foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal))
         {
             string rel = Path.GetRelativePath(root, path);
             string p = path;
             if (IsRootWad(rel))
+            {
                 nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: this.configProvider));
+                continue;
+            }
+            if (ShouldSkip(rel, config)) continue;
             AddEntry(rel, () => File.ReadAllBytes(p));
         }
     }
@@ -890,6 +896,26 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
     private static bool IsRootWad(string relativePath)
         => Path.GetDirectoryName(relativePath) is null or ""
             && Path.GetExtension(relativePath).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+
+    private static bool ShouldSkip(string relativePath, GameConfiguration? config)
+    {
+        if (config == null) return false;
+
+        string extension = Path.GetExtension(relativePath).TrimStart('.');
+        if (config.IgnoredExtensions.Contains(extension)) return true;
+
+        string directory = Path.GetDirectoryName(relativePath) ?? "";
+        if (directory.Length == 0) return false;
+
+        string normalized = directory.Replace('\\', '/');
+        foreach (string ignored in config.IgnoredDirectories)
+        {
+            string prefix = ignored.Replace('\\', '/').TrimEnd('/');
+            if (normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
 
     public override void Dispose()
     {
