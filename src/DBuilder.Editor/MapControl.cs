@@ -2421,7 +2421,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return empty;
         }
         EditBegun?.Invoke("Paste");
-        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize), PasteOptions);
+        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize), PasteOptions, _gameConfig);
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things";
@@ -2437,6 +2437,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _map,
             new Vec2D(_grid.GridSize, _grid.GridSize),
             PasteOptions,
+            _gameConfig,
             () => EditBegun?.Invoke("Duplicate selection"));
         if (res is null)
         {
@@ -2459,7 +2460,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         EditBegun?.Invoke("Insert prefab");
-        var res = SelectionClipboard.PasteAtAnchor(_map, data, SnapToGrid(_cursorWorld), PasteOptions);
+        var res = SelectionClipboard.PasteAtAnchor(_map, data, SnapToGrid(_cursorWorld), PasteOptions, _gameConfig);
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"inserted prefab: {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things");

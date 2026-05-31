@@ -9,6 +9,23 @@ namespace DBuilder.Tests;
 
 public class SelectionClipboardTests
 {
+    private const string TagArgConfig = """
+        formatinterface = "UniversalMapSetIO";
+        linedeftypes
+        {
+            tags
+            {
+                80
+                {
+                    title = "Tag args";
+                    arg0 { type = 13; }
+                    arg1 { type = 11; }
+                    arg2 { type = 14; }
+                }
+            }
+        }
+        """;
+
     private static (MapSet map, Sector sector) SquareSector()
     {
         var map = new MapSet();
@@ -269,5 +286,70 @@ public class SelectionClipboardTests
         Assert.Equal(new[] { 4, 5 }, map.Linedefs[result.FirstLinedef].Tags);
         Assert.Equal(6, map.Sectors[result.FirstSector].Tag);
         Assert.Equal(8, map.Things[result.FirstThing].Tag);
+    }
+
+    [Fact]
+    public void PasteOptionsRemovePastedTagArgs()
+    {
+        var config = GameConfiguration.FromText(TagArgConfig);
+        var (map, sector) = SquareSector();
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 5;
+        line.Args[1] = 6;
+        var thing = map.AddThing(new Vector2D(8, 8), 3001);
+        thing.Action = 80;
+        thing.Args[2] = 7;
+        sector.Selected = true;
+        thing.Selected = true;
+
+        var buffer = SelectionClipboard.CopySelection(map)!;
+        var result = SelectionClipboard.Paste(map, buffer, new Vector2D(128, 0), new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Remove,
+        }, config);
+
+        var pastedLine = map.Linedefs[result.FirstLinedef];
+        var pastedThing = map.Things[result.FirstThing];
+        Assert.Equal(80, pastedLine.Action);
+        Assert.Equal(0, pastedLine.Args[0]);
+        Assert.Equal(6, pastedLine.Args[1]);
+        Assert.Equal(80, pastedThing.Action);
+        Assert.Equal(0, pastedThing.Args[2]);
+    }
+
+    [Fact]
+    public void PasteOptionsRenumberPastedTagArgsAwayFromExistingGeometry()
+    {
+        var config = GameConfiguration.FromText(TagArgConfig);
+        var (map, sector) = SquareSector();
+        var outside = map.Linedefs[1];
+        outside.Action = 80;
+        outside.Args[0] = 4;
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 1;
+        line.Args[1] = 9;
+        sector.Tag = 2;
+        var thing = map.AddThing(new Vector2D(8, 8), 3001);
+        thing.Action = 80;
+        thing.Args[2] = 3;
+        line.Selected = true;
+        thing.Selected = true;
+
+        var buffer = SelectionClipboard.CopySelection(map)!;
+        var result = SelectionClipboard.Paste(map, buffer, new Vector2D(128, 0), new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Renumber,
+        }, config);
+
+        Assert.Equal(4, outside.Args[0]);
+        Assert.Equal(1, line.Args[0]);
+        Assert.Equal(2, sector.Tag);
+        Assert.Equal(3, thing.Args[2]);
+        Assert.Equal(7, map.Linedefs[result.FirstLinedef].Args[0]);
+        Assert.Equal(9, map.Linedefs[result.FirstLinedef].Args[1]);
+        Assert.Equal(5, map.Sectors[result.FirstSector].Tag);
+        Assert.Equal(6, map.Things[result.FirstThing].Args[2]);
     }
 }
