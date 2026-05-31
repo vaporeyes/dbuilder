@@ -2,6 +2,7 @@
 // ABOUTME: Covers image format, pixel format, scale, extension, and default output path behavior.
 
 using DBuilder.Map;
+using DBuilder.Geometry;
 
 namespace DBuilder.Tests;
 
@@ -83,5 +84,86 @@ public sealed class ImageExportModelTests
         Assert.Equal(
             "doom2_MAP01_abc123",
             ImageExportSettings.DefaultFilePath(null, "doom2.wad", "MAP01", "abc123.tmp"));
+    }
+
+    [Fact]
+    public void PlannerUsesUdbSelectionBoundsAndTopLeftOffset()
+    {
+        Sector sector = BuildSector((10, 20), (138, 20), (138, -44), (10, -44));
+
+        ImageExportLayout layout = ImageExportPlanner.GetLayout([sector]);
+
+        Assert.Equal(new Vector2D(128, 64), layout.Size);
+        Assert.Equal(new Vector2D(10, 20), layout.Offset);
+    }
+
+    [Fact]
+    public void PlannerCountsScaledTilesLikeUdbExporter()
+    {
+        Sector sector = BuildSector((0, 0), (96, 0), (96, -96), (0, -96));
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Tiles: true,
+            ScaleIndex: 1));
+
+        ImageExportOutputPlan plan = ImageExportPlanner.CreateOutputPlan([sector], settings);
+
+        Assert.Equal(9, plan.TileCount);
+    }
+
+    [Fact]
+    public void PlannerListsUntiledNormalAndBrightmapNames()
+    {
+        Sector sector = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.jpg"),
+            Brightmap: true,
+            ImageFormatIndex: 1));
+
+        ImageExportOutputPlan plan = ImageExportPlanner.CreateOutputPlan([sector], settings);
+
+        Assert.Equal(
+            [
+                Path.Combine("export", "MAP01.jpg"),
+                Path.Combine("export", "MAP01_brightmap.jpg")
+            ],
+            plan.ImageNames);
+    }
+
+    [Fact]
+    public void PlannerListsTiledNamesInUdbReportedOrder()
+    {
+        Sector sector = BuildSector((0, 0), (128, 0), (128, -64), (0, -64));
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Brightmap: true,
+            Tiles: true));
+
+        ImageExportOutputPlan plan = ImageExportPlanner.CreateOutputPlan([sector], settings);
+
+        Assert.Equal(
+            [
+                Path.Combine("export", "MAP011.png"),
+                Path.Combine("export", "MAP012.png"),
+                Path.Combine("export", "MAP011_brightmap.png"),
+                Path.Combine("export", "MAP012_brightmap.png")
+            ],
+            plan.ImageNames);
+    }
+
+    private static Sector BuildSector(params (double X, double Y)[] points)
+    {
+        var sector = new Sector();
+        var vertices = points.Select(point => new Vertex(new Vector2D(point.X, point.Y))).ToArray();
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var line = new Linedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            var side = new Sidedef(line, true) { Sector = sector };
+            line.Front = side;
+            sector.Sidedefs.Add(side);
+        }
+
+        return sector;
     }
 }

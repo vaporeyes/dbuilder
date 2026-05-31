@@ -3,6 +3,8 @@
 
 namespace DBuilder.Map;
 
+using DBuilder.Geometry;
+
 public enum ImageExportImageFormat
 {
     Png,
@@ -94,5 +96,91 @@ public sealed record ImageExportSettings(
 
         string directory = Path.GetDirectoryName(mapFilePath) ?? "";
         return Path.Combine(directory, fileName + ".png");
+    }
+}
+
+public readonly record struct ImageExportLayout(Vector2D Size, Vector2D Offset);
+
+public sealed record ImageExportOutputPlan(
+    ImageExportLayout Layout,
+    int TileCount,
+    IReadOnlyList<string> ImageNames);
+
+public static class ImageExportPlanner
+{
+    public const int TileSize = 64;
+
+    public static ImageExportOutputPlan CreateOutputPlan(IEnumerable<Sector> sectors, ImageExportSettings settings)
+    {
+        ImageExportLayout layout = GetLayout(sectors);
+        return new ImageExportOutputPlan(
+            layout,
+            GetNumTiles(layout, settings),
+            GetImageNames(layout, settings));
+    }
+
+    public static ImageExportLayout GetLayout(IEnumerable<Sector> sectors)
+    {
+        Vector2D offset = new(double.MaxValue, double.MinValue);
+        Vector2D size = new(double.MinValue, double.MaxValue);
+
+        foreach (Sector sector in sectors)
+        {
+            foreach (Sidedef sidedef in sector.Sidedefs)
+            {
+                UpdateBounds(sidedef.Line.Start.Position, ref offset, ref size);
+                UpdateBounds(sidedef.Line.End.Position, ref offset, ref size);
+            }
+        }
+
+        size -= offset;
+        size.y *= -1.0;
+
+        return new ImageExportLayout(size, offset);
+    }
+
+    public static int GetNumTiles(ImageExportLayout layout, ImageExportSettings settings)
+    {
+        int xnum = (int)Math.Ceiling(layout.Size.x * settings.Scale / TileSize);
+        int ynum = (int)Math.Ceiling(layout.Size.y * settings.Scale / TileSize);
+        return xnum * ynum;
+    }
+
+    public static IReadOnlyList<string> GetImageNames(ImageExportLayout layout, ImageExportSettings settings)
+    {
+        var names = new List<string>();
+        string basePath = Path.Combine(settings.Directory, settings.Name);
+
+        if (settings.Tiles)
+        {
+            int xnum = (int)Math.Ceiling(layout.Size.x / TileSize);
+            int ynum = (int)Math.Ceiling(layout.Size.y / TileSize);
+
+            for (int i = 1; i <= xnum * ynum; i++)
+                names.Add($"{basePath}{i}{settings.Extension}");
+
+            if (settings.Brightmap)
+            {
+                for (int i = 1; i <= xnum * ynum; i++)
+                    names.Add($"{basePath}{i}_brightmap{settings.Extension}");
+            }
+        }
+        else
+        {
+            names.Add($"{basePath}{settings.Extension}");
+
+            if (settings.Brightmap)
+                names.Add($"{basePath}_brightmap{settings.Extension}");
+        }
+
+        return names;
+    }
+
+    private static void UpdateBounds(Vector2D position, ref Vector2D offset, ref Vector2D size)
+    {
+        if (position.x < offset.x) offset.x = position.x;
+        if (position.x > size.x) size.x = position.x;
+        if (position.y > offset.y) offset.y = position.y;
+        if (position.y < size.y) size.y = position.y;
     }
 }
