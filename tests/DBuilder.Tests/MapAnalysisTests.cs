@@ -681,11 +681,16 @@ public class MapAnalysisTests
     public void UnknownThingAndActionFlagged()
     {
         var map = Square(true);
-        map.AddThing(new Vector2D(50, 50), 99999);
+        var thing = map.AddThing(new Vector2D(50, 50), 99999);
         map.Linedefs[0].Action = 4242;
         map.BuildIndexes();
         var ctx = new MapCheckContext { ThingTypeKnown = n => n == 1, ActionKnown = a => a == 11 };
-        Assert.True(Has(map, ctx, MapIssueKind.UnknownThingType));
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingType);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
         Assert.True(Has(map, ctx, MapIssueKind.UnknownAction));
     }
 
@@ -697,8 +702,12 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ObsoleteThingType);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Contains("Use ReplacementThing instead", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
     }
 
     [Fact]
@@ -712,8 +721,12 @@ public class MapAnalysisTests
         };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedThing);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Contains("Thing is not used in any skill level.", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
     }
 
     [Fact]
@@ -734,8 +747,12 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { ThingErrorCheck = type => type == 3004 ? 1 : 0 };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingOutsideMap);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Contains("outside the map", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
     }
 
     [Fact]
@@ -772,8 +789,12 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { ThingErrorCheck = _ => 2, ThingBlocking = _ => 2 };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Contains("linedef 0", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
     }
 
     [Fact]
@@ -834,6 +855,12 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
         Assert.Same(first, issue.Target);
         Assert.Contains("thing 1", issue.Message, StringComparison.Ordinal);
+        Assert.Collection(issue.Fixes,
+            fix => Assert.Equal("Delete 1-st Thing", fix.Label),
+            fix => Assert.Equal("Delete 2-nd Thing", fix.Label));
+        Assert.True(issue.Fixes[1].Apply(map));
+        Assert.Contains(first, map.Things);
+        Assert.DoesNotContain(second, map.Things);
     }
 
     [Fact]

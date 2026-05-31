@@ -279,16 +279,16 @@ public static class MapAnalysis
         if (ctx.ThingTypeKnown != null)
             foreach (var t in map.Things)
                 if (!ctx.ThingTypeKnown(t.Type))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingType,
-                        $"Thing type {t.Type} is not in the game config.") { Target = t, Focus = t.Position });
+                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingType, t,
+                        $"Thing type {t.Type} is not in the game config."));
 
         if (ctx.ThingObsoleteMessage != null)
             foreach (var t in map.Things)
             {
                 string? message = ctx.ThingObsoleteMessage(t.Type);
                 if (!string.IsNullOrWhiteSpace(message))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ObsoleteThingType,
-                        $"Thing type {t.Type} is obsolete: {message}") { Target = t, Focus = t.Position });
+                    issues.Add(DeleteThingIssue(MapIssueKind.ObsoleteThingType, t,
+                        $"Thing type {t.Type} is obsolete: {message}"));
             }
 
         CheckThingsOutsideMap(map, ctx, issues);
@@ -405,9 +405,8 @@ public static class MapAnalysis
             var warnings = ctx.ThingUnusedWarnings(t);
             if (warnings.Count == 0) continue;
 
-            issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedThing,
-                $"Thing {i} type {t.Type} is unused: {string.Join(" ", warnings)}")
-                { Target = t, Focus = t.Position });
+            issues.Add(DeleteThingIssue(MapIssueKind.UnusedThing, t,
+                $"Thing {i} type {t.Type} is unused: {string.Join(" ", warnings)}"));
         }
     }
 
@@ -444,9 +443,8 @@ public static class MapAnalysis
 
             bool outside = l.SideOfLine(t.Position) <= 0.0 ? l.Front == null : l.Back == null;
             if (outside)
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingOutsideMap,
-                    $"Thing {i} type {t.Type} is outside the map at {t.Position.x.ToString("0.###", CultureInfo.InvariantCulture)}, {t.Position.y.ToString("0.###", CultureInfo.InvariantCulture)}.")
-                    { Target = t, Focus = t.Position });
+                issues.Add(DeleteThingIssue(MapIssueKind.ThingOutsideMap, t,
+                    $"Thing {i} type {t.Type} is outside the map at {t.Position.x.ToString("0.###", CultureInfo.InvariantCulture)}, {t.Position.y.ToString("0.###", CultureInfo.InvariantCulture)}."));
         }
     }
 
@@ -474,9 +472,8 @@ public static class MapAnalysis
                 SegmentIntersectsRect(l.Start.Position, l.End.Position, left, right, top, bottom))
             {
                 stuck = true;
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInLinedef,
-                    $"Thing {thingIndex} type {thing.Type} is stuck in linedef {lineIndex}.")
-                    { Target = thing, Focus = thing.Position });
+                issues.Add(DeleteThingIssue(MapIssueKind.ThingStuckInLinedef, thing,
+                    $"Thing {thingIndex} type {thing.Type} is stuck in linedef {lineIndex}."));
             }
         }
 
@@ -501,9 +498,8 @@ public static class MapAnalysis
             if (!ThingsOverlap(ctx, thing, other)) continue;
 
             stuck = true;
-            issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInThing,
-                $"Thing {thingIndex} type {thing.Type} is stuck in thing {otherIndex} type {other.Type}.")
-                { Target = thing, Focus = thing.Position });
+            issues.Add(ThingStuckInThingIssue(thing, other,
+                $"Thing {thingIndex} type {thing.Type} is stuck in thing {otherIndex} type {other.Type}."));
         }
 
         return stuck;
@@ -527,6 +523,44 @@ public static class MapAnalysis
         int bHeight = ctx.ThingHeight?.Invoke(b.Type) ?? 0;
         return !(a.Height > b.Height + bHeight || a.Height + aHeight < b.Height);
     }
+
+    private static MapIssue DeleteThingIssue(MapIssueKind kind, Thing thing, string message)
+        => new(MapIssueSeverity.Warning, kind, message)
+        {
+            Target = thing,
+            Focus = thing.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Delete Thing", map =>
+                {
+                    if (!map.Things.Contains(thing)) return false;
+                    map.RemoveThing(thing);
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue ThingStuckInThingIssue(Thing first, Thing second, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInThing, message)
+        {
+            Target = first,
+            Focus = first.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Delete 1-st Thing", map =>
+                {
+                    if (!map.Things.Contains(first)) return false;
+                    map.RemoveThing(first);
+                    return true;
+                }),
+                new MapIssueFix("Delete 2-nd Thing", map =>
+                {
+                    if (!map.Things.Contains(second)) return false;
+                    map.RemoveThing(second);
+                    return true;
+                }),
+            },
+        };
 
     private static bool PointInRect(double left, double right, double top, double bottom, Vector2D p)
         => p.x >= Math.Min(left, right) && p.x <= Math.Max(left, right) &&
