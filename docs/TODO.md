@@ -838,6 +838,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script document tabs.
 - [ ] Port script syntax highlighting behavior.
 - [ ] Port find-usages behavior.
+  - [x] Add UDB-style script find-usages matching with whole-word and case options.
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Remap temporary compiler input errors back to source files, archive entries, and WAD script lumps.
