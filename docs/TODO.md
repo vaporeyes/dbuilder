@@ -922,6 +922,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port map error checker infrastructure.
 - [ ] Port all map error checks.
 - [ ] Port all map error result types and fix actions.
+  - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
 - [ ] Port sector drawing options.
 - [ ] Port edit selection panel behavior.

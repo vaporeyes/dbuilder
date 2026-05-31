@@ -50,12 +50,35 @@ public enum MapIssueKind
     MissingActivation,
 }
 
+public sealed class MapIssueFix
+{
+    private readonly Func<MapSet, bool> apply;
+
+    public MapIssueFix(string label, Func<MapSet, bool> apply)
+    {
+        Label = label;
+        this.apply = apply;
+    }
+
+    public string Label { get; }
+
+    public bool Apply(MapSet map) => apply(map);
+}
+
+public sealed record MapIssueFixOptions(
+    string DefaultTopTexture = "STARTAN3",
+    string DefaultWallTexture = "STARTAN3",
+    string DefaultBottomTexture = "STARTAN3",
+    string DefaultFloorTexture = "FLOOR0_1",
+    string DefaultCeilingTexture = "CEIL1_1");
+
 /// <summary>
 /// Optional lookups that enable the resource/config-aware checks. Delegates are injected by the host (so this
 /// project stays decoupled from resource/config code); a null delegate disables its check.
 /// </summary>
 public sealed class MapCheckContext
 {
+    public MapIssueFixOptions FixOptions { get; init; } = new();
     /// <summary>Returns true when a wall-texture name resolves in the loaded resources.</summary>
     public Func<string, bool>? TextureExists { get; init; }
     /// <summary>Returns wall-texture dimensions when an image is available.</summary>
@@ -130,6 +153,8 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
 
     /// <summary>A representative world location to center the view on (null when unknown).</summary>
     public Vector2D? Focus { get; init; }
+
+    public IReadOnlyList<MapIssueFix> Fixes { get; init; } = Array.Empty<MapIssueFix>();
 }
 
 public static class MapAnalysis
@@ -191,8 +216,8 @@ public static class MapAnalysis
             if (other == null)
             {
                 if (IsBlank(side.MidTexture))
-                    issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
-                        $"Linedef {index} ({which}) is one-sided but has no middle texture.") { Target = l, Focus = mid });
+                    issues.Add(MissingTextureIssue(l, side, SidedefPart.Middle, ctx.FixOptions,
+                        $"Linedef {index} ({which}) is one-sided but has no middle texture.", mid));
             }
             else
             {
@@ -201,11 +226,11 @@ public static class MapAnalysis
                     if ((other.Sector.CeilHeight < side.Sector.CeilHeight || ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true) &&
                         !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
                         IsBlank(side.HighTexture))
-                        issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
-                            $"Linedef {index} ({which}) needs an upper texture.") { Target = l, Focus = mid });
+                        issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx.FixOptions,
+                            $"Linedef {index} ({which}) needs an upper texture.", mid));
                     if (other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) && IsBlank(side.LowTexture))
-                        issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture,
-                            $"Linedef {index} ({which}) needs a lower texture.") { Target = l, Focus = mid });
+                        issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx.FixOptions,
+                            $"Linedef {index} ({which}) needs a lower texture.", mid));
                 }
             }
 
@@ -223,12 +248,12 @@ public static class MapAnalysis
             if (!IsBlank(side.HighTexture) &&
                 !side.HighRequired() &&
                 ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true)
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture,
-                    $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.") { Target = l, Focus = mid });
+                issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
+                    $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.", mid));
 
             if (!IsBlank(side.LowTexture) && !side.LowRequired())
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture,
-                    $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.") { Target = l, Focus = mid });
+                issues.Add(UnusedTextureIssue(l, side, SidedefPart.Lower,
+                    $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.", mid));
         }
     }
 
@@ -240,8 +265,8 @@ public static class MapAnalysis
             foreach (var (slot, name) in new[] { ("floor", s.FloorTexture), ("ceiling", s.CeilTexture) })
             {
                 if (IsBlank(name))
-                    issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingFlat,
-                        $"Sector {i} has no {slot} flat.") { Target = s });
+                    issues.Add(MissingFlatIssue(s, slot == "ceiling", ctx.FixOptions,
+                        $"Sector {i} has no {slot} flat."));
                 else if (ctx.FlatExists != null && !ctx.FlatExists(name))
                     issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat,
                         $"Sector {i} {slot} flat \"{name}\" is not found.") { Target = s });
@@ -780,6 +805,76 @@ public static class MapAnalysis
                     $"Vertex {index[v]} is off the {ctx.GridSize}-unit grid.") { Target = v, Focus = v.Position });
     }
 
+    private static MapIssue MissingTextureIssue(
+        Linedef line,
+        Sidedef side,
+        SidedefPart part,
+        MapIssueFixOptions options,
+        string message,
+        Vector2D focus)
+        => new(MapIssueSeverity.Error, MapIssueKind.MissingTexture, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Add Default Texture", map =>
+                {
+                    if (!map.Sidedefs.Contains(side)) return false;
+                    side.SetTexture(part, DefaultTexture(part, options));
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue UnusedTextureIssue(
+        Linedef line,
+        Sidedef side,
+        SidedefPart part,
+        string message,
+        Vector2D focus)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Remove Texture", map =>
+                {
+                    if (!map.Sidedefs.Contains(side)) return false;
+                    side.SetTexture(part, "-");
+                    if (part == SidedefPart.Upper)
+                        side.RemoveFields(new[] { "scalex_top", "scaley_top", "offsetx_top", "offsety_top" });
+                    else if (part == SidedefPart.Lower)
+                        side.RemoveFields(new[] { "scalex_bottom", "scaley_bottom", "offsetx_bottom", "offsety_bottom" });
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue MissingFlatIssue(Sector sector, bool ceiling, MapIssueFixOptions options, string message)
+        => new(MapIssueSeverity.Error, MapIssueKind.MissingFlat, message)
+        {
+            Target = sector,
+            Fixes = new[]
+            {
+                new MapIssueFix("Add Default Flat", map =>
+                {
+                    if (!map.Sectors.Contains(sector)) return false;
+                    if (ceiling) sector.SetCeilTexture(options.DefaultCeilingTexture);
+                    else sector.SetFloorTexture(options.DefaultFloorTexture);
+                    return true;
+                }),
+            },
+        };
+
+    private static string DefaultTexture(SidedefPart part, MapIssueFixOptions options) => part switch
+    {
+        SidedefPart.Upper => options.DefaultTopTexture,
+        SidedefPart.Lower => options.DefaultBottomTexture,
+        _ => options.DefaultWallTexture,
+    };
+
     private static bool IsBlank(string? tex) => string.IsNullOrEmpty(tex) || tex == "-";
 
     private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
@@ -910,7 +1005,21 @@ public static class MapAnalysis
         foreach (var v in map.Vertices)
             if (!used.Contains(v))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex,
-                    $"Vertex {vertexIndex[v]} is not used by any linedef.") { Target = v, Focus = v.Position });
+                    $"Vertex {vertexIndex[v]} is not used by any linedef.")
+                {
+                    Target = v,
+                    Focus = v.Position,
+                    Fixes = new[]
+                    {
+                        new MapIssueFix("Delete Vertex", map =>
+                        {
+                            if (!map.Vertices.Contains(v)) return false;
+                            map.RemoveVertex(v);
+                            map.BuildIndexes();
+                            return true;
+                        }),
+                    },
+                });
     }
 
     private static void CheckSectors(MapSet map, List<MapIssue> issues)

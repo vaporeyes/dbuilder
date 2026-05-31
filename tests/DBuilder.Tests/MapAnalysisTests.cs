@@ -265,6 +265,22 @@ public class MapAnalysisTests
         Assert.Equal(900, issue.Focus!.Value.y, 3);
     }
 
+    [Fact]
+    public void UnusedVertexIssueCanDeleteVertex()
+    {
+        var map = Square(true);
+        var vertex = map.AddVertex(new Vector2D(900, 900));
+        map.BuildIndexes();
+        var issue = MapAnalysis.Check(map).First(i => i.Kind == MapIssueKind.UnusedVertex);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Delete Vertex", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.DoesNotContain(vertex, map.Vertices);
+        Assert.True(vertex.IsDisposed);
+    }
+
     // --- context-aware checks ---
 
     private static bool Has(MapSet map, MapCheckContext ctx, MapIssueKind kind)
@@ -283,6 +299,25 @@ public class MapAnalysisTests
         var map = Square(true); // sidedefs default to "-" textures, one-sided
         var ctx = new MapCheckContext();
         Assert.True(Has(map, ctx, MapIssueKind.MissingTexture));
+    }
+
+    [Fact]
+    public void MissingTextureIssueCanAddDefaultTexture()
+    {
+        var map = Square(true);
+        var side = map.Sidedefs[0];
+        side.MidTexture = "-";
+        var ctx = new MapCheckContext
+        {
+            FixOptions = new MapIssueFixOptions(DefaultWallTexture: "BROWN1"),
+        };
+        var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingTexture);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Add Default Texture", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWN1", side.MidTexture);
     }
 
     [Fact]
@@ -395,6 +430,39 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnusedTextureIssueCanRemoveTextureAndUdmfOffsets()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.FloorHeight = 0;
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        var side = line.Front!;
+        side.HighTexture = "UNUSEDHI";
+        side.Fields["offsetx_top"] = 8;
+        side.Fields["scalex_top"] = 2.0;
+        map.BuildIndexes();
+
+        var issue = MapAnalysis.Check(map, new MapCheckContext())
+            .First(i => i.Kind == MapIssueKind.UnusedTexture && i.Message.Contains("UNUSEDHI", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Remove Texture", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("-", side.HighTexture);
+        Assert.False(side.Fields.ContainsKey("offsetx_top"));
+        Assert.False(side.Fields.ContainsKey("scalex_top"));
+    }
+
+    [Fact]
     public void RequiredUpperTextureActionDoesNotFlagUpperTextureUnused()
     {
         var map = new MapSet();
@@ -425,6 +493,25 @@ public class MapAnalysisTests
         var issues = MapAnalysis.Check(map, ctx);
         Assert.Contains(issues, i => i.Kind == MapIssueKind.MissingFlat);
         Assert.Contains(issues, i => i.Kind == MapIssueKind.UnknownFlat);
+    }
+
+    [Fact]
+    public void MissingFlatIssueCanAddDefaultFlat()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.FloorTexture = "-";
+        var ctx = new MapCheckContext
+        {
+            FixOptions = new MapIssueFixOptions(DefaultFloorTexture: "FLOOR7_2"),
+        };
+        var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingFlat);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Add Default Flat", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("FLOOR7_2", sector.FloorTexture);
     }
 
     [Fact]
