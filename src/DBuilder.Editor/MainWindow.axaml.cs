@@ -2252,7 +2252,7 @@ public partial class MainWindow : Window
         win.NextFreeTagRequested += () =>
         {
             if (_map is null) return;
-            int tag = MapSearch.NextFreeTag(_map);
+            int tag = ConfiguredTagSearch.NextFreeTag(_map, _config);
             win.SetFindText(tag.ToString());
             win.SetResult($"Next free tag: {tag}.");
         };

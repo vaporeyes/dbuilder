@@ -139,6 +139,18 @@ public static class ConfiguredTagSearch
         return result;
     }
 
+    public static int NextFreeTag(MapSet map, GameConfiguration? config, int maxTag = int.MaxValue)
+    {
+        var used = new HashSet<int>();
+        foreach (var stat in UsedTagStatistics(map, config))
+            if (stat.Tag > 0) used.Add(stat.Tag);
+
+        for (int tag = 1; tag <= maxTag; tag++)
+            if (!used.Contains(tag)) return tag;
+
+        return 0;
+    }
+
     private static void Add(Dictionary<int, int> counts, int tag)
     {
         if (tag > 0) counts[tag] = counts.TryGetValue(tag, out int count) ? count + 1 : 1;

@@ -75,6 +75,19 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void NextFreeTagSkipsTagTypedActionArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tag = 1;
+        map.Linedefs[0].Args[0] = 2;
+        map.Things[0].Args[1] = 3;
+        map.Linedefs[1].Args[3] = 4;
+
+        Assert.Equal(4, ConfiguredTagSearch.NextFreeTag(map, config));
+    }
+
+    [Fact]
     public void ConfigCapabilitiesSuppressUnsupportedDirectTagOwners()
     {
         var config = GameConfiguration.FromText("""
