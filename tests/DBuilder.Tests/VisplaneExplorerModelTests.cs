@@ -8,6 +8,54 @@ namespace DBuilder.Tests;
 public class VisplaneExplorerModelTests
 {
     [Fact]
+    public void PaletteCopiesRowColorsAndSupportsUdbStyleOverride()
+    {
+        uint[] source = MakePalette(0xFF100000u);
+        var palette = new VisplanePalette(source);
+
+        source[5] = 0xFFFFFFFFu;
+        palette.SetColor(5, 0x80123456u);
+
+        Assert.Equal(0x80123456u, palette[5]);
+        Assert.Equal(0x80123456u, palette.ColorForByte(5));
+        Assert.NotEqual(source[5], palette[5]);
+    }
+
+    [Fact]
+    public void PaletteSetSelectsStatPaletteUnlessHeatmapRenderingIsEnabled()
+    {
+        var visplanes = new VisplanePalette(MakePalette(0xFF000000u));
+        var drawsegs = new VisplanePalette(MakePalette(0xFF100000u));
+        var solidsegs = new VisplanePalette(MakePalette(0xFF200000u));
+        var openings = new VisplanePalette(MakePalette(0xFF300000u));
+        var heatmap = new VisplanePalette(MakePalette(0xFF400000u));
+        var palettes = new VisplanePaletteSet(visplanes, drawsegs, solidsegs, openings, heatmap);
+
+        Assert.Same(solidsegs, palettes.PaletteFor(VisplaneExplorerStat.Solidsegs, showHeatmap: false));
+        Assert.Same(heatmap, palettes.PaletteFor(VisplaneExplorerStat.Solidsegs, showHeatmap: true));
+        Assert.Same(heatmap, palettes[VisplaneExplorerStat.Heatmap]);
+    }
+
+    [Fact]
+    public void PaletteSetAppliesVoidColorOverrideToAllPalettes()
+    {
+        var palettes = new VisplanePaletteSet(
+            new VisplanePalette(MakePalette(0xFF000000u)),
+            new VisplanePalette(MakePalette(0xFF100000u)),
+            new VisplanePalette(MakePalette(0xFF200000u)),
+            new VisplanePalette(MakePalette(0xFF300000u)),
+            new VisplanePalette(MakePalette(0xFF400000u)));
+
+        palettes.SetVoidColor(0x00000000u);
+
+        Assert.Equal(0x00000000u, palettes[VisplaneExplorerStat.Visplanes][VisplaneTile.PointVoidByte]);
+        Assert.Equal(0x00000000u, palettes[VisplaneExplorerStat.Drawsegs][VisplaneTile.PointVoidByte]);
+        Assert.Equal(0x00000000u, palettes[VisplaneExplorerStat.Solidsegs][VisplaneTile.PointVoidByte]);
+        Assert.Equal(0x00000000u, palettes[VisplaneExplorerStat.Openings][VisplaneTile.PointVoidByte]);
+        Assert.Equal(0x00000000u, palettes[VisplaneExplorerStat.Heatmap][VisplaneTile.PointVoidByte]);
+    }
+
+    [Fact]
     public void PointByIndexMatchesUdbButterflySamplingOrder()
     {
         Assert.Equal(new VisplaneTilePoint(0, 0, 64), VisplaneTile.PointByIndex(0));
@@ -139,5 +187,13 @@ public class VisplaneExplorerModelTests
             tile.GetNextPoint();
 
         Assert.True(tile.IsComplete);
+    }
+
+    private static uint[] MakePalette(uint baseColor)
+    {
+        var colors = new uint[256];
+        for (uint i = 0; i < colors.Length; i++)
+            colors[i] = baseColor + i;
+        return colors;
     }
 }

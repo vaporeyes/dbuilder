@@ -32,6 +32,70 @@ public readonly record struct VisplanePointData(
 
 public readonly record struct VisplaneTilePosition(int X, int Y);
 
+public sealed class VisplanePalette
+{
+    private readonly uint[] colors;
+
+    public VisplanePalette(IReadOnlyList<uint> colors)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        if (colors.Count <= byte.MaxValue)
+            throw new ArgumentException("Visplane palettes must provide colors for all byte values.", nameof(colors));
+
+        this.colors = new uint[colors.Count];
+        for (int i = 0; i < colors.Count; i++) this.colors[i] = colors[i];
+    }
+
+    public IReadOnlyList<uint> Colors => colors;
+
+    public uint this[int index] => colors[index];
+
+    public void SetColor(int index, uint color) => colors[index] = color;
+
+    public uint ColorForByte(byte value) => colors[value];
+}
+
+public sealed class VisplanePaletteSet
+{
+    private readonly VisplanePalette[] palettes;
+
+    public VisplanePaletteSet(
+        VisplanePalette visplanes,
+        VisplanePalette drawsegs,
+        VisplanePalette solidsegs,
+        VisplanePalette openings,
+        VisplanePalette heatmap)
+    {
+        palettes = new[]
+        {
+            visplanes ?? throw new ArgumentNullException(nameof(visplanes)),
+            drawsegs ?? throw new ArgumentNullException(nameof(drawsegs)),
+            solidsegs ?? throw new ArgumentNullException(nameof(solidsegs)),
+            openings ?? throw new ArgumentNullException(nameof(openings)),
+            heatmap ?? throw new ArgumentNullException(nameof(heatmap)),
+        };
+    }
+
+    public VisplanePalette this[VisplaneExplorerStat stat] => palettes[PaletteIndex(stat)];
+
+    public VisplanePalette PaletteFor(VisplaneExplorerStat viewStat, bool showHeatmap)
+        => showHeatmap ? palettes[(int)VisplaneExplorerStat.Heatmap] : palettes[PaletteIndex(viewStat)];
+
+    public void SetVoidColor(uint color)
+    {
+        foreach (VisplanePalette palette in palettes)
+            palette.SetColor(VisplaneTile.PointVoidByte, color);
+    }
+
+    private static int PaletteIndex(VisplaneExplorerStat stat)
+    {
+        int index = (int)stat;
+        if (index < 0 || index > (int)VisplaneExplorerStat.Heatmap)
+            throw new ArgumentOutOfRangeException(nameof(stat));
+        return index;
+    }
+}
+
 public sealed class VisplaneTile
 {
     public const int TileSize = 64;
