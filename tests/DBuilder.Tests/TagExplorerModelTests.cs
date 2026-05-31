@@ -246,6 +246,39 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void BuildTreeExpandsGeneralizedSectorEffectsByActionLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            gen_sectortypes
+            {
+                damage
+                {
+                    0 = "None";
+                    32 = "5 per second";
+                }
+            }
+            sectortypes
+            {
+                1 = "Secret";
+            }
+            """);
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.Tag = 7;
+        sector.Special = 33;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByAction);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, config, options);
+        TagExplorerTreeNode sectors = Assert.Single(TagExplorerModel.BuildTree(entries, options));
+
+        Assert.Equal("Sectors:", sectors.Title);
+        Assert.Equal(new[] { "1 - Secret", "32 - Damage", "33 - Secret + Damage: 5 per second" }, sectors.Children.Select(node => node.Title));
+        Assert.Equal("Tag 7: Secret, Index 0", sectors.Children[0].Children[0].Title);
+        Assert.Equal("Tag 7: Damage: 5 per second, Index 0", sectors.Children[1].Children[0].Title);
+        Assert.Equal("Tag 7: Secret + Damage: 5 per second, Index 0", sectors.Children[2].Children[0].Title);
+    }
+
+    [Fact]
     public void ExportTreeTextMatchesUdbIndentedShape()
     {
         var map = new MapSet();

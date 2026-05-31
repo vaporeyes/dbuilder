@@ -53,10 +53,13 @@ public sealed record TagExplorerEntry(
     string Comment,
     string DefaultName,
     string ThingCategory = "",
-    string ActionTitle = "")
+    string ActionTitle = "",
+    IReadOnlyList<TagExplorerActionGroup>? ActionGroups = null)
 {
     public bool HasComment => Comment.Length > 0;
 }
+
+public sealed record TagExplorerActionGroup(int Action, string GroupTitle, string EntryTitle);
 
 public sealed record TagExplorerTreeNode(
     string Title,
@@ -208,12 +211,49 @@ public static class TagExplorerModel
         TagExplorerSortMode sortMode)
     {
         var nodes = new List<TagExplorerTreeNode>();
-        foreach (var group in entries.Where(entry => entry.Action != 0).GroupBy(entry => entry.Action).OrderBy(group => group.Key))
-            nodes.Add(new TagExplorerTreeNode(ActionGroupTitle(kind, group.Key, group.First().ActionTitle), null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
+        List<TagExplorerEntry> actionEntries = kind == TagExplorerEntryKind.Sector
+            ? ExpandSectorActionEntries(entries)
+            : entries.ToList();
 
-        var noAction = entries.Where(entry => entry.Action == 0).Select(entry => EntryNode(entry, sortMode)).ToList();
+        foreach (var group in actionEntries.Where(entry => entry.Action != 0).GroupBy(entry => entry.Action).OrderBy(group => group.Key))
+        {
+            List<TagExplorerTreeNode> children = group
+                .OrderBy(entry => entry, Comparer<TagExplorerEntry>.Create(SortByAction))
+                .Select(entry => EntryNode(entry, sortMode))
+                .ToList();
+
+            nodes.Add(new TagExplorerTreeNode(ActionGroupTitle(kind, group.Key, group.First().ActionTitle), null, children));
+        }
+
+        var noAction = actionEntries.Where(entry => entry.Action == 0).Select(entry => EntryNode(entry, sortMode)).ToList();
         if (noAction.Count > 0) nodes.Add(new TagExplorerTreeNode(kind == TagExplorerEntryKind.Sector ? "No Effect" : "No Action", null, noAction));
         return nodes;
+    }
+
+    private static List<TagExplorerEntry> ExpandSectorActionEntries(IReadOnlyList<TagExplorerEntry> entries)
+    {
+        var result = new List<TagExplorerEntry>();
+        foreach (TagExplorerEntry entry in entries)
+        {
+            if (entry.ActionGroups is not { Count: > 0 } groups)
+            {
+                result.Add(entry);
+                continue;
+            }
+
+            foreach (TagExplorerActionGroup group in groups)
+            {
+                result.Add(entry with
+                {
+                    Action = group.Action,
+                    ActionTitle = group.GroupTitle,
+                    DefaultName = group.EntryTitle,
+                    ActionGroups = null,
+                });
+            }
+        }
+
+        return result;
     }
 
     private static string ActionGroupTitle(TagExplorerEntryKind kind, int action, string title)
@@ -330,7 +370,8 @@ public static class TagExplorerModel
                     NoPolyobjectNumber,
                     Comment(sector, isUdmf),
                     "Sector",
-                    ActionTitle: SectorEffectTitle(sector.Special, config)), commentSearch, commentsOnly, displayMode);
+                    ActionTitle: SectorEffectTitle(sector.Special, config),
+                    ActionGroups: SectorActionGroups(sector.Special, config)), commentSearch, commentsOnly, displayMode);
             }
         }
     }
@@ -482,6 +523,48 @@ public static class TagExplorerModel
 
     private static string SectorEffectTitle(int effect, GameConfiguration? config)
         => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "";
+
+    private static IReadOnlyList<TagExplorerActionGroup>? SectorActionGroups(int effect, GameConfiguration? config)
+    {
+        if (effect <= 0 || config == null || config.GetSectorEffect(effect) != null || !config.IsGeneralizedSectorEffect(effect))
+            return null;
+
+        int remainingEffect = effect;
+        var groups = new List<TagExplorerActionGroup>();
+
+        for (int i = config.GeneralizedSectorEffects.Count - 1; i >= 0; i--)
+        {
+            GeneralizedOption option = config.GeneralizedSectorEffects[i];
+            for (int j = option.Bits.Count - 1; j >= 0; j--)
+            {
+                GeneralizedBit bit = option.Bits[j];
+                if (bit.Value > 0 && (effect & bit.Value) == bit.Value)
+                {
+                    remainingEffect -= bit.Value;
+                    groups.Add(new TagExplorerActionGroup(
+                        bit.Value,
+                        option.Name,
+                        option.Name + ": " + bit.Title));
+                    break;
+                }
+            }
+        }
+
+        if (groups.Count > 0 && remainingEffect > 0)
+            groups.Add(new TagExplorerActionGroup(effect, config.SectorEffectTitle(effect), config.SectorEffectTitle(effect)));
+
+        if (remainingEffect > 0)
+        {
+            string title = config.GetSectorEffect(remainingEffect)?.Title ?? "Unknown";
+            groups.Insert(0, new TagExplorerActionGroup(remainingEffect, title, title));
+        }
+        else if (groups.Count == 0)
+        {
+            groups.Add(new TagExplorerActionGroup(effect, "Unknown", "Unknown"));
+        }
+
+        return groups;
+    }
 
     private static IEnumerable<int> TagsOrZero(IReadOnlyCollection<int> tags)
     {
