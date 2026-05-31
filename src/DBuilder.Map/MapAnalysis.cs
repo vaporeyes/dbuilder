@@ -800,10 +800,32 @@ public static class MapAnalysis
     {
         if (ctx.GridSize <= 0) return;
         foreach (var v in map.Vertices)
-            if (v.Position.x % ctx.GridSize != 0 || v.Position.y % ctx.GridSize != 0)
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex,
-                    $"Vertex {index[v]} is off the {ctx.GridSize}-unit grid.") { Target = v, Focus = v.Position });
+            if (!IsOnGrid(v.Position.x, ctx.GridSize) || !IsOnGrid(v.Position.y, ctx.GridSize))
+                issues.Add(OffGridVertexIssue(v, ctx.GridSize,
+                    $"Vertex {index[v]} is off the {ctx.GridSize}-unit grid."));
     }
+
+    private static bool IsOnGrid(double value, int gridSize)
+        => Math.Abs(value - Math.Round(value / gridSize) * gridSize) < 1e-9;
+
+    private static MapIssue OffGridVertexIssue(Vertex vertex, int gridSize, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex, message)
+        {
+            Target = vertex,
+            Focus = vertex.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Align Vertex", map =>
+                {
+                    if (!map.Vertices.Contains(vertex)) return false;
+                    vertex.Move(
+                        Math.Round(vertex.Position.x / gridSize) * gridSize,
+                        Math.Round(vertex.Position.y / gridSize) * gridSize);
+                    map.BuildIndexes();
+                    return true;
+                }),
+            },
+        };
 
     private static MapIssue MissingTextureIssue(
         Linedef line,
@@ -1060,12 +1082,31 @@ public static class MapAnalysis
                 if (l.LengthSq < 1e-9) continue;
                 if (Math.Round(l.Line.GetDistanceToLine(v.Position, bounded: true), 3) != 0.0) continue;
 
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef,
-                    $"Vertex {vertexIndex[v]} overlaps linedef {lineIndex} without splitting it.")
-                    { Target = v, Focus = v.Position });
+                issues.Add(VertexOverlappingLinedefIssue(v, l,
+                    $"Vertex {vertexIndex[v]} overlaps linedef {lineIndex} without splitting it."));
             }
         }
     }
+
+    private static MapIssue VertexOverlappingLinedefIssue(Vertex vertex, Linedef line, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef, message)
+        {
+            Target = vertex,
+            Focus = vertex.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Split Linedef", map =>
+                {
+                    if (!map.Vertices.Contains(vertex) || !map.Linedefs.Contains(line)) return false;
+                    if (ReferenceEquals(line.Start, vertex) || ReferenceEquals(line.End, vertex)) return false;
+                    map.SplitLinedefAt(line, vertex);
+                    map.BuildIndexes();
+                    map.JoinOverlappingLinedefs(vertex.Linedefs);
+                    map.BuildIndexes();
+                    return true;
+                }),
+            },
+        };
 
     private static void CheckUnusedVertices(MapSet map, Dictionary<Vertex, int> vertexIndex, List<MapIssue> issues)
     {

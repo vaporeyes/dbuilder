@@ -260,6 +260,26 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void VertexOverlappingLinedefIssueCanSplitLinedef()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        var vertex = map.AddVertex(new Vector2D(64, 0));
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Split Linedef", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Same(vertex, line.End);
+        Assert.Contains(map.Linedefs, l => ReferenceEquals(l.Start, vertex) && ReferenceEquals(l.End, b));
+        Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
+    }
+
+    [Fact]
     public void LinedefEndpointDoesNotCountAsVertexOverlappingLinedef()
     {
         var map = new MapSet();
@@ -1071,5 +1091,21 @@ public class MapAnalysisTests
         var withGrid = new MapCheckContext { GridSize = 64 };
         Assert.True(Has(map, withGrid, MapIssueKind.OffGridVertex));
         Assert.False(Has(map, new MapCheckContext { GridSize = 0 }, MapIssueKind.OffGridVertex));
+    }
+
+    [Fact]
+    public void OffGridVertexIssueCanAlignVertexToGrid()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(70, 95));
+        var ctx = new MapCheckContext { GridSize = 64 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.OffGridVertex);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Align Vertex", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Equal(new Vector2D(64, 64), vertex.Position);
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.OffGridVertex);
     }
 }
