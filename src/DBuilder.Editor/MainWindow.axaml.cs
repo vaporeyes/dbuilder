@@ -97,7 +97,7 @@ public partial class MainWindow : Window
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
         {
-            SetStatus(MapView.In3DMode ? "Mode: 3D" : $"Mode: {MapView.CurrentEditMode}");
+            SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : $"Mode: {MapView.CurrentEditMode}");
             UpdateInfo();
             UpdateStatusDetails();
         };
@@ -363,6 +363,7 @@ public partial class MainWindow : Window
         SyncMapOptionsToView();
         _mapSettings = new Configuration(sorted: true);
         _mapFormat = MapFormat.Doom;
+        MapView.MapFormat = _mapFormat;
         _undo = new UndoManager(map);
         MapView.Map = map;
         MapView.Focus();
@@ -1346,6 +1347,15 @@ public partial class MainWindow : Window
             ? $"Mode: Things. Click empty space or {CommandHint("map2d.insert")} to place thing type {MapView.InsertThingType}; View > Browsers > Things changes the type."
             : $"Mode: {mode}";
 
+    private void OnAutomapMode(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleAutomapMode();
+        MapView.Focus();
+        SetStatus(enabled
+            ? "Mode: Automap. Valid automap lines use the Doom automap palette; View > Automap Mode exits."
+            : $"Mode: {MapView.CurrentEditMode}");
+    }
+
     private void RebuildSelectionGroupsMenu()
     {
         var groups = new List<MenuItem>();
@@ -2203,6 +2213,7 @@ public partial class MainWindow : Window
             _pk3MapArchivePath = null;
             _activeAutosaveKey = autosave.Key;
             _mapFormat = entry.Format;
+            MapView.MapFormat = _mapFormat;
             _undo = new UndoManager(map);
 
             MapView.MapResources = null;
@@ -2334,6 +2345,7 @@ public partial class MainWindow : Window
             _sourceMapMarker = entry.Name;
             _activeAutosaveKey = null;
             _mapFormat = entry.Format;
+            MapView.MapFormat = _mapFormat;
             _undo = new UndoManager(map);
 
             MapView.Map = map;
@@ -2365,6 +2377,7 @@ public partial class MainWindow : Window
             _sourceMapMarker = null;
             _activeAutosaveKey = null;
             _mapFormat = entry.Map.Format;
+            MapView.MapFormat = _mapFormat;
             _pk3MapArchivePath = entry.ArchivePath;
             _undo = new UndoManager(map);
 
@@ -3609,6 +3622,7 @@ public partial class MainWindow : Window
         ConfigText.Text = $"Config: {CurrentConfigLabel()}";
         ModeText.Text = MapView.In3DMode
             ? "Mode: 3D"
+            : MapView.AutomapMode ? "Mode: Automap"
             : MapView.ImageExampleMode ? "Mode: Image Example"
             : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
         var grid = MapView.GridSetupSnapshot();
@@ -3681,7 +3695,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, AutomapModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -3718,11 +3732,12 @@ public partial class MainWindow : Window
     private void UpdateCommandCheckedState()
     {
         SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
-        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode);
-        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode);
-        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode);
-        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode);
+        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode);
+        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode);
+        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode);
+        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode && !MapView.AutomapMode);
         SetChecked(Toggle3DModeMenuItem, MapView.In3DMode);
+        SetChecked(AutomapModeMenuItem, MapView.AutomapMode);
         SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
         SetChecked(ToggleThingsMenuItem, MapView.ShowThings);
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);

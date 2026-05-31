@@ -898,6 +898,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor commands for toggling selected automap line and sector visibility flags.
   - [x] Add UDB-style mode metadata, persisted setting defaults, presentation layers, valid-linedef collection, and highlight target planning.
   - [x] Add UDB-style automap render planning for valid-line draw order, highlight colors, and textured-background fallback.
+  - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
 - [ ] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
   - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
@@ -1098,6 +1099,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add selected linedef and sector automap flag toggle commands.
   - [x] Add UDB-style mode metadata, persisted setting defaults, presentation layers, valid-linedef collection, and highlight target planning.
   - [x] Add UDB-style automap render planning for valid-line draw order, highlight colors, and textured-background fallback.
+  - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
 - [ ] Port blockmap explorer UI and data model.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
   - [x] Add non-modal Blockmap Explorer summary and block-list window.

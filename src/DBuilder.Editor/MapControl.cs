@@ -137,6 +137,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set => _mapOptions = value;
     }
 
+    private MapFormat _mapFormat = MapFormat.Doom;
+    public MapFormat MapFormat
+    {
+        get => _mapFormat;
+        set
+        {
+            if (_mapFormat == value) return;
+            _mapFormat = value;
+            _geometryDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+
     private bool _needsFit;
     private MapSet? _map;
     public MapSet? Map
@@ -154,6 +167,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
     public bool ImageExampleMode { get; private set; }
+    public bool AutomapMode { get; private set; }
 
     public bool ToggleSectorFills()
     {
@@ -181,6 +195,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (ImageExampleMode == enabled) return;
         ImageExampleMode = enabled;
+        if (ImageExampleMode) AutomapMode = false;
         if (ImageExampleMode && _mode3D) _mode3D = false;
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
@@ -351,6 +366,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void SetEditMode(EditMode m)
     {
+        if (AutomapMode)
+        {
+            AutomapMode = false;
+            _geometryDirty = true;
+            ActionStateChanged?.Invoke();
+        }
         SetImageExampleMode(false);
         if (_editMode == m) return;
         _editMode = m;
@@ -364,6 +385,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool Toggle3DMode()
     {
         SetImageExampleMode(false);
+        AutomapMode = false;
         _mode3D = !_mode3D;
         if (_mode3D)
         {
@@ -381,6 +403,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _mode3D;
+    }
+
+    public bool ToggleAutomapMode()
+    {
+        SetImageExampleMode(false);
+        bool enabled = !AutomapMode;
+        AutomapMode = enabled;
+        if (enabled)
+        {
+            _mode3D = false;
+            _heldKeys.Clear();
+            _look3D = false;
+            _drag3DTarget = null;
+            ExitDrawModes();
+        }
+
+        _geometryDirty = true;
+        ModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return AutomapMode;
     }
 
     // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
@@ -1501,8 +1544,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             // Grid behind everything (visible in the void between sectors).
             DrawGrid();
 
+            AutomapRenderPlan? automapPlan = null;
+            if (AutomapMode)
+            {
+                var settings = AutomapModeModel.DefaultSettings;
+                var options = AutomapModeModel.ToOptions(settings, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom);
+                automapPlan = AutomapModeModel.BuildRenderPlan(
+                    _map,
+                    options,
+                    settings,
+                    AutomapModeModel.Palette(settings.ColorPreset));
+            }
+
             // Draw order: sector fills (textured) -> lines -> things/sprites -> selection markers.
-            if (_showFills)
+            bool drawFills = AutomapMode ? automapPlan?.RenderTexturedSurfaces == true : _showFills;
+            if (drawFills)
             {
                 foreach (var bucket in _fillBuckets)
                 {
@@ -1519,7 +1575,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             _device.SetUniform("useTexture", 0f);
             _device.SetTexture(0, _placeholderTex);
-            if (_showThings && _thingTris > 0 && _thingsVb != null)
+            if (!AutomapMode && _showThings && _thingTris > 0 && _thingsVb != null)
             {
                 _device.SetVertexBuffer(_thingsVb);
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _thingTris);
@@ -1531,7 +1587,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             // Thing sprites (alpha-blended, above lines).
-            if (_showThings && _spriteBuckets.Count > 0)
+            if (!AutomapMode && _showThings && _spriteBuckets.Count > 0)
             {
                 _device.SetAlphaBlendEnable(true);
                 _device.SetSourceBlend(Blend.SourceAlpha);
@@ -1550,22 +1606,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             // Thing direction ticks above sprites so the facing stays visible over the sprite art.
-            if (_showThings && _thingDirCount > 0 && _thingDirVb != null)
+            if (!AutomapMode && _showThings && _thingDirCount > 0 && _thingDirVb != null)
             {
                 _device.SetVertexBuffer(_thingDirVb);
                 _device.Draw(DBPrimitiveType.LineList, 0, _thingDirCount);
             }
 
-            DrawRejectOverlay();
+            if (!AutomapMode) DrawRejectOverlay();
 
-            if (_selVertTris > 0 && _selVertsVb != null)
+            if (!AutomapMode && _selVertTris > 0 && _selVertsVb != null)
             {
                 _device.SetVertexBuffer(_selVertsVb);
                 _device.Draw(DBPrimitiveType.TriangleList, 0, _selVertTris);
             }
 
-            DrawBlockmap(); // debug overlay on top of geometry
-            DrawNodes();    // BSP partition lines overlay
+            if (!AutomapMode)
+            {
+                DrawBlockmap(); // debug overlay on top of geometry
+                DrawNodes();    // BSP partition lines overlay
+            }
 
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
             if (_drawDirty) { RebuildDrawPreview(); _drawDirty = false; }
@@ -1611,21 +1670,39 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             const double frontTick = 6;
             var lv = new System.Collections.Generic.List<FlatVertex>(_map.Linedefs.Count * 4);
-            foreach (var l in _map.Linedefs)
+            if (AutomapMode)
             {
-                int c = LineColor(l);
-                lv.Add(FV(l.Start.Position, c));
-                lv.Add(FV(l.End.Position, c));
-
-                var dir = l.End.Position - l.Start.Position;
-                double len = dir.GetLength();
-                if (len > 0.0001)
+                AutomapModeSettings settings = AutomapModeModel.DefaultSettings;
+                AutomapRenderPlan plan = AutomapModeModel.BuildRenderPlan(
+                    _map,
+                    AutomapModeModel.ToOptions(settings, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom),
+                    settings,
+                    AutomapModeModel.Palette(settings.ColorPreset));
+                foreach (var renderLine in plan.Lines)
                 {
-                    // Front side is to the right of start->end (Doom convention): right-hand normal (dy, -dx).
-                    var mid = new Vec2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
-                    var nrm = new Vec2D(dir.y / len, -dir.x / len);
-                    lv.Add(FV(mid, c));
-                    lv.Add(FV(new Vec2D(mid.x + nrm.x * frontTick, mid.y + nrm.y * frontTick), c));
+                    int c = ToArgb(renderLine.Color);
+                    lv.Add(FV(renderLine.Line.Start.Position, c));
+                    lv.Add(FV(renderLine.Line.End.Position, c));
+                }
+            }
+            else
+            {
+                foreach (var l in _map.Linedefs)
+                {
+                    int c = LineColor(l);
+                    lv.Add(FV(l.Start.Position, c));
+                    lv.Add(FV(l.End.Position, c));
+
+                    var dir = l.End.Position - l.Start.Position;
+                    double len = dir.GetLength();
+                    if (len > 0.0001)
+                    {
+                        // Front side is to the right of start->end (Doom convention): right-hand normal (dy, -dx).
+                        var mid = new Vec2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
+                        var nrm = new Vec2D(dir.y / len, -dir.x / len);
+                        lv.Add(FV(mid, c));
+                        lv.Add(FV(new Vec2D(mid.x + nrm.x * frontTick, mid.y + nrm.y * frontTick), c));
+                    }
                 }
             }
             _device.SetBufferData(_linesVb, lv.ToArray());
@@ -1751,6 +1828,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         foreach (var sector in _map.Sectors)
         {
+            if (AutomapMode && !AutomapModeModel.IsSectorVisible(sector)) continue;
             if (sector.Sidedefs.Count == 0) continue;
             Triangulation tri;
             try { tri = Triangulation.Create(sector); }
@@ -1868,6 +1946,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool twoSided = l.Front != null && l.Back != null;
         return twoSided ? unchecked((int)0xff8090a0) : unchecked((int)0xffe0e0e0);
     }
+
+    private static int ToArgb(AutomapColor color)
+        => unchecked((int)(((uint)color.Alpha << 24) | ((uint)color.Red << 16) | ((uint)color.Green << 8) | color.Blue));
 
     private static FlatVertex FV(Vec2D p, int color)
         => new FlatVertex { x = (float)p.x, y = (float)p.y, z = 0, w = 1, c = color, u = 0, v = 0 };
