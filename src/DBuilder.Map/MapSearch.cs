@@ -20,6 +20,12 @@ public readonly record struct TagStatistic(int Tag, int Sectors, int Linedefs, i
     public int Total => Sectors + Linedefs + Things;
 }
 
+/// <summary>Controls which map-format-specific tag owners participate in tag searches.</summary>
+public readonly record struct TagSearchOptions(bool IncludeLinedefs, bool IncludeThings)
+{
+    public static TagSearchOptions All => new(true, true);
+}
+
 /// <summary>Per-thing-type usage count for statistics UI.</summary>
 public readonly record struct ThingTypeStatistic(int Type, int Count);
 
@@ -33,6 +39,9 @@ public static class MapSearch
     /// and returns the match count plus a focus point (the first match's location).
     /// </summary>
     public static SearchResult Find(MapSet map, FindCategory cat, string value)
+        => Find(map, cat, value, TagSearchOptions.All);
+
+    public static SearchResult Find(MapSet map, FindCategory cat, string value, TagSearchOptions tagOptions)
     {
         map.ClearAllSelected();
         int count = 0;
@@ -53,9 +62,11 @@ public static class MapSearch
             case FindCategory.Tag:
                 if (numOk)
                 {
-                    foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
+                    if (tagOptions.IncludeLinedefs)
+                        foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
                     foreach (var s in map.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
-                    foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
+                    if (tagOptions.IncludeThings)
+                        foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 }
                 break;
             case FindCategory.Texture:
@@ -129,12 +140,17 @@ public static class MapSearch
 
     /// <summary>All positive tags in use (linedefs, sectors, things) with how many elements use each, ascending.</summary>
     public static List<(int Tag, int Count)> UsedTags(MapSet map)
+        => UsedTags(map, TagSearchOptions.All);
+
+    public static List<(int Tag, int Count)> UsedTags(MapSet map, TagSearchOptions options)
     {
         var counts = new Dictionary<int, int>();
         void Add(int t) { if (t != 0) counts[t] = counts.TryGetValue(t, out int c) ? c + 1 : 1; }
-        foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(tag);
+        if (options.IncludeLinedefs)
+            foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(tag);
         foreach (var s in map.Sectors) foreach (int tag in MapElementTags.PositiveTags(s)) Add(tag);
-        foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(tag);
+        if (options.IncludeThings)
+            foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(tag);
         var list = new List<(int, int)>();
         foreach (var kv in counts) list.Add((kv.Key, kv.Value));
         list.Sort((a, b) => a.Item1.CompareTo(b.Item1));
@@ -143,6 +159,9 @@ public static class MapSearch
 
     /// <summary>All positive tags in use with separate sector, linedef and thing counts.</summary>
     public static List<TagStatistic> UsedTagStatistics(MapSet map)
+        => UsedTagStatistics(map, TagSearchOptions.All);
+
+    public static List<TagStatistic> UsedTagStatistics(MapSet map, TagSearchOptions options)
     {
         var sectors = new Dictionary<int, int>();
         var linedefs = new Dictionary<int, int>();
@@ -154,8 +173,10 @@ public static class MapSearch
         }
 
         foreach (var s in map.Sectors) foreach (int tag in MapElementTags.PositiveTags(s)) Add(sectors, tag);
-        foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(linedefs, tag);
-        foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(things, tag);
+        if (options.IncludeLinedefs)
+            foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(linedefs, tag);
+        if (options.IncludeThings)
+            foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(things, tag);
 
         var tags = new SortedSet<int>(sectors.Keys);
         tags.UnionWith(linedefs.Keys);

@@ -60,6 +60,18 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindTagHonorsFormatSpecificTagOwners()
+    {
+        var map = Build();
+        var r = MapSearch.Find(map, FindCategory.Tag, "5", new TagSearchOptions(IncludeLinedefs: true, IncludeThings: false));
+
+        Assert.Equal(2, r.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Things[2].Selected);
+    }
+
+    [Fact]
     public void FindTagMatchesMoreIds()
     {
         var map = Build();
@@ -142,6 +154,18 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void UsedTagsHonorsFormatSpecificTagOwners()
+    {
+        var map = Build();
+
+        var tags = MapSearch.UsedTags(map, new TagSearchOptions(IncludeLinedefs: false, IncludeThings: false));
+
+        Assert.Single(tags);
+        Assert.Equal(5, tags[0].Tag);
+        Assert.Equal(1, tags[0].Count);
+    }
+
+    [Fact]
     public void UsedTagStatisticsSplitsCountsByElementType()
     {
         var map = Build();
@@ -162,6 +186,21 @@ public class MapSearchTests
         Assert.Equal(1, tag7.Sectors);
         Assert.Equal(1, tag7.Linedefs);
         Assert.Equal(1, tag7.Things);
+    }
+
+    [Fact]
+    public void UsedTagStatisticsHonorsFormatSpecificTagOwners()
+    {
+        var map = Build();
+
+        var tags = MapSearch.UsedTagStatistics(map, new TagSearchOptions(IncludeLinedefs: false, IncludeThings: false));
+
+        var tag5 = Assert.Single(tags);
+        Assert.Equal(5, tag5.Tag);
+        Assert.Equal(1, tag5.Sectors);
+        Assert.Equal(0, tag5.Linedefs);
+        Assert.Equal(0, tag5.Things);
+        Assert.Equal(1, tag5.Total);
     }
 
     [Fact]

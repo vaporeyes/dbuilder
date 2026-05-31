@@ -109,6 +109,25 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ExposesUdbMapFormatInterfaceCapabilities()
+    {
+        var doom = GameConfiguration.FromText("""formatinterface = "DoomMapSetIO";""");
+        var hexen = GameConfiguration.FromText("""formatinterface = "HexenMapSetIO";""");
+        var udmf = GameConfiguration.FromText("""formatinterface = "UniversalMapSetIO";""");
+
+        Assert.True(doom.HasLinedefTag);
+        Assert.False(doom.HasThingTag);
+        Assert.False(doom.HasActionArgs);
+        Assert.False(hexen.HasLinedefTag);
+        Assert.True(hexen.HasThingTag);
+        Assert.True(hexen.HasActionArgs);
+        Assert.False(hexen.HasCustomFields);
+        Assert.True(udmf.HasLinedefTag);
+        Assert.True(udmf.HasThingTag);
+        Assert.True(udmf.HasCustomFields);
+    }
+
+    [Fact]
     public void ParsesGameAndEngineNames()
     {
         var gc = GameConfiguration.FromText("""

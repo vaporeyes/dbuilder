@@ -456,6 +456,7 @@ public sealed class GameConfiguration
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
+    public bool HasLinedefTag => FormatInterfaceSupports("HasLinedefTag");
     public bool HasThingTag => FormatInterfaceSupports("HasThingTag");
     public bool HasThingAction => FormatInterfaceSupports("HasThingAction");
     public bool HasThingHeight => FormatInterfaceSupports("HasThingHeight");
@@ -2071,8 +2072,8 @@ public sealed class GameConfiguration
 
         return FormatInterface switch
         {
-            "DoomMapSetIO" => false,
-            "HexenMapSetIO" => capability is not "HasCustomFields",
+            "DoomMapSetIO" => capability is "HasLinedefTag",
+            "HexenMapSetIO" => capability is not "HasCustomFields" and not "HasLinedefTag",
             "UniversalMapSetIO" => true,
             _ => true,
         };
