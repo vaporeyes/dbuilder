@@ -24,6 +24,17 @@ public sealed record ScriptCompilerPaths(
     string TempPath,
     string SourcePath);
 
+public sealed record ScriptCompilePlan(
+    ScriptCompilerPaths Paths,
+    string WorkingDirectory,
+    string InputCopyPath,
+    string OutputPath);
+
+public sealed record ScriptCompileTarget(string TargetPath, string ErrorMessage = "")
+{
+    public bool Success => ErrorMessage.Length == 0;
+}
+
 public static class ScriptCompilerArguments
 {
     public static string Build(string parameters, ScriptCompilerPaths paths)
@@ -34,6 +45,74 @@ public static class ScriptCompilerArguments
             .Replace("%PT", paths.TempPath)
             .Replace("%PS", paths.SourcePath)
             .Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+}
+
+public static class ScriptCompileFlow
+{
+    public static ScriptCompilePlan BuildDirectoryPlan(string sourceFile, string compilerTempDirectory, string outputPath)
+    {
+        string inputCopyPath = Path.Combine(compilerTempDirectory, Path.GetFileName(sourceFile));
+        return new ScriptCompilePlan(
+            new ScriptCompilerPaths(
+                inputCopyPath,
+                Path.GetFileName(outputPath),
+                sourceFile,
+                compilerTempDirectory,
+                Path.GetDirectoryName(sourceFile) ?? ""),
+            compilerTempDirectory,
+            inputCopyPath,
+            outputPath);
+    }
+
+    public static ScriptCompilePlan BuildArchivePlan(string archiveEntryName, string compilerTempDirectory, string outputPath)
+    {
+        string inputCopyPath = Path.Combine(compilerTempDirectory, Path.GetFileName(archiveEntryName));
+        return new ScriptCompilePlan(
+            new ScriptCompilerPaths(
+                inputCopyPath,
+                Path.GetFileName(outputPath),
+                inputCopyPath,
+                compilerTempDirectory,
+                Path.GetDirectoryName(archiveEntryName) ?? ""),
+            compilerTempDirectory,
+            inputCopyPath,
+            outputPath);
+    }
+
+    public static ScriptCompileTarget ResolveFileTarget(
+        string sourceFile,
+        string resultLump,
+        bool isAccCompiler,
+        string libraryName,
+        string scriptConfigurationName = "")
+    {
+        string sourceDirectory = Path.GetDirectoryName(sourceFile) ?? "";
+        if (isAccCompiler) return new ScriptCompileTarget(Path.Combine(sourceDirectory, libraryName + ".o"));
+        if (string.IsNullOrEmpty(resultLump)) return MissingResultLumpTarget(scriptConfigurationName);
+        return new ScriptCompileTarget(Path.Combine(sourceDirectory, resultLump));
+    }
+
+    public static ScriptCompileTarget ResolveArchiveTarget(
+        string archiveEntryName,
+        string resultLump,
+        bool isAccCompiler,
+        string libraryName,
+        string scriptConfigurationName = "")
+    {
+        string entryDirectory = Path.GetDirectoryName(archiveEntryName) ?? "";
+        if (isAccCompiler) return new ScriptCompileTarget(Path.Combine(entryDirectory, libraryName + ".o"));
+        if (string.IsNullOrEmpty(resultLump)) return MissingResultLumpTarget(scriptConfigurationName);
+        return new ScriptCompileTarget(Path.Combine(entryDirectory, resultLump));
+    }
+
+    public static ScriptCompilerError MissingOutputFileError(string outputPath)
+        => new("Output file \"" + outputPath + "\" doesn't exist.");
+
+    private static ScriptCompileTarget MissingResultLumpTarget(string scriptConfigurationName)
+    {
+        string name = string.IsNullOrEmpty(scriptConfigurationName) ? "" : "\"" + scriptConfigurationName + "\" ";
+        return new ScriptCompileTarget("", "Unable to create target file: unable to determine target filename. Make sure \"ResultLump\" property is set in the " + name + "script configuration.");
+    }
 }
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);

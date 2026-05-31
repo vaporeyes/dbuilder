@@ -227,6 +227,93 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowBuildsDirectoryPlanLikeUdb()
+    {
+        var plan = ScriptCompileFlow.BuildDirectoryPlan(
+            "/maps/project/scripts/library.acs",
+            "/tmp/dbuilder_compile",
+            "/tmp/dbuilder_compile/tmp123");
+
+        Assert.Equal("/tmp/dbuilder_compile/library.acs", plan.InputCopyPath);
+        Assert.Equal("/tmp/dbuilder_compile/tmp123", plan.OutputPath);
+        Assert.Equal("/tmp/dbuilder_compile", plan.WorkingDirectory);
+        Assert.Equal("/tmp/dbuilder_compile/library.acs", plan.Paths.InputFile);
+        Assert.Equal("tmp123", plan.Paths.OutputFile);
+        Assert.Equal("/maps/project/scripts/library.acs", plan.Paths.SourceFile);
+        Assert.Equal("/tmp/dbuilder_compile", plan.Paths.TempPath);
+        Assert.Equal("/maps/project/scripts", plan.Paths.SourcePath);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowBuildsArchivePlanLikeUdb()
+    {
+        var plan = ScriptCompileFlow.BuildArchivePlan(
+            "acs/library.acs",
+            "/tmp/dbuilder_compile",
+            "/tmp/dbuilder_compile/tmp123");
+
+        Assert.Equal("/tmp/dbuilder_compile/library.acs", plan.InputCopyPath);
+        Assert.Equal("/tmp/dbuilder_compile/tmp123", plan.OutputPath);
+        Assert.Equal("/tmp/dbuilder_compile", plan.WorkingDirectory);
+        Assert.Equal("/tmp/dbuilder_compile/library.acs", plan.Paths.InputFile);
+        Assert.Equal("tmp123", plan.Paths.OutputFile);
+        Assert.Equal("/tmp/dbuilder_compile/library.acs", plan.Paths.SourceFile);
+        Assert.Equal("/tmp/dbuilder_compile", plan.Paths.TempPath);
+        Assert.Equal("acs", plan.Paths.SourcePath);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowResolvesAccLibraryTargetsLikeUdb()
+    {
+        var target = ScriptCompileFlow.ResolveFileTarget(
+            "/maps/project/scripts/library.acs",
+            resultLump: "",
+            isAccCompiler: true,
+            libraryName: "helpers");
+
+        Assert.True(target.Success);
+        Assert.Equal("/maps/project/scripts/helpers.o", target.TargetPath);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowResolvesResultLumpTargetsLikeUdb()
+    {
+        var target = ScriptCompileFlow.ResolveArchiveTarget(
+            "acs/library.bcs",
+            resultLump: "library.o",
+            isAccCompiler: false,
+            libraryName: "");
+
+        Assert.True(target.Success);
+        Assert.Equal(Path.Combine("acs", "library.o"), target.TargetPath);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowReportsMissingResultLumpLikeUdb()
+    {
+        var target = ScriptCompileFlow.ResolveFileTarget(
+            "/maps/project/scripts/library.bcs",
+            resultLump: "",
+            isAccCompiler: false,
+            libraryName: "",
+            scriptConfigurationName: "BCC");
+
+        Assert.False(target.Success);
+        Assert.Equal("", target.TargetPath);
+        Assert.Equal("Unable to create target file: unable to determine target filename. Make sure \"ResultLump\" property is set in the \"BCC\" script configuration.", target.ErrorMessage);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowReportsMissingOutputFileLikeUdb()
+    {
+        var error = ScriptCompileFlow.MissingOutputFileError("/tmp/dbuilder_compile/tmp123");
+
+        Assert.Equal("Output file \"/tmp/dbuilder_compile/tmp123\" doesn't exist.", error.Description);
+        Assert.Equal("", error.FileName);
+        Assert.Equal(-1, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(

@@ -839,6 +839,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script syntax highlighting behavior.
 - [ ] Port find-usages behavior.
 - [ ] Port script compile flow.
+  - [x] Build UDB-style directory and archive script compile plans and output target rules.
 - [ ] Port ACC compiler integration.
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
 - [ ] Port BCC compiler integration.
