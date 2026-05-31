@@ -837,6 +837,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Match UDB exact script type names in script configuration parsing.
 - [ ] Port script editor UI.
 - [ ] Port script document tabs.
+  - [x] Add UDB-style file, lump, and resource document tab identity and persisted view settings.
 - [ ] Port script syntax highlighting behavior.
   - [x] Build UDB-style lexer keyword sets for script highlighting.
   - [x] Build UDB-style script autocomplete entries with keyword, property, constant, and snippet icons.

@@ -105,4 +105,8 @@ public sealed class ScriptResource
         => filename
             .Replace('\\', Path.DirectorySeparatorChar)
             .Replace('/', Path.DirectorySeparatorChar);
+
+    public override string ToString()
+        => (LumpIndex != -1 ? LumpIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" : "")
+            + Path.GetFileName(Filename);
 }
