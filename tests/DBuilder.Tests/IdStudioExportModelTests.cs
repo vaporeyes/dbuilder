@@ -2,6 +2,7 @@
 // ABOUTME: Verifies map-name validation, refmap hierarchy, file planning, and func/static text.
 
 using DBuilder.Map;
+using DBuilder.Geometry;
 
 namespace DBuilder.Tests;
 
@@ -308,6 +309,41 @@ public class IdStudioExportModelTests
                 "/tmp/mod/base/declTree/material2/art/wadtobrush/walls/"
             ],
             directories);
+    }
+
+    [Fact]
+    public void TextureExporterCollectsMapUsedTexturesAndFlatsLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.FloorTexture = "FLOOR0_1";
+        sector.CeilTexture = "-";
+        Sector otherSector = map.AddSector();
+        otherSector.FloorTexture = "";
+        otherSector.CeilTexture = "CEIL5_2";
+        Vertex v0 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v1 = map.AddVertex(new Vector2D(64, 0));
+        Vertex v2 = map.AddVertex(new Vector2D(128, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        Sidedef front = map.AddSidedef(line, isFront: true, sector);
+        Sidedef back = map.AddSidedef(line, isFront: false, otherSector);
+        front.LowTexture = "LOWER";
+        front.MidTexture = "-";
+        front.HighTexture = "UPPER";
+        back.LowTexture = "";
+        back.MidTexture = "MID";
+        back.HighTexture = "BACKUPPER";
+
+        Linedef backOnlyLine = map.AddLinedef(v1, v2);
+        Sidedef backOnly = map.AddSidedef(backOnlyLine, isFront: false, sector);
+        backOnly.LowTexture = "IGNOREDLOW";
+        backOnly.MidTexture = "IGNOREDMID";
+        backOnly.HighTexture = "IGNOREDUPPER";
+
+        IdStudioMapTextureSet used = IdStudioTextureExporter.CollectMapTextures(map);
+
+        Assert.Equal(new HashSet<string>(["LOWER", "UPPER", "MID", "BACKUPPER"], StringComparer.Ordinal), used.Textures);
+        Assert.Equal(new HashSet<string>(["FLOOR0_1", "CEIL5_2"], StringComparer.Ordinal), used.Flats);
     }
 
     [Fact]

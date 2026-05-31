@@ -48,6 +48,7 @@ public sealed record IdStudioTextureExportPlan(
     IReadOnlyList<IdStudioTextureExportFile> ArtFiles,
     IReadOnlyList<IdStudioExportFile> MaterialFiles,
     IReadOnlyList<string> MissingImages);
+public sealed record IdStudioMapTextureSet(IReadOnlySet<string> Textures, IReadOnlySet<string> Flats);
 public readonly record struct IdStudioRgba(byte R, byte G, byte B, byte A);
 
 public readonly record struct IdStudioVertex(float X, float Y);
@@ -212,6 +213,33 @@ public static class IdStudioTextureExporter
             : string.Format(CultureInfo.InvariantCulture, MaterialTemplate, subFolder, lowerName);
     }
 
+    public static IdStudioMapTextureSet CollectMapTextures(MapSet map)
+    {
+        var textures = new HashSet<string>(StringComparer.Ordinal);
+        var flats = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (line.Front == null) continue;
+
+            AddSidedefTextures(textures, line.Front);
+            if (line.Back != null) AddSidedefTextures(textures, line.Back);
+        }
+
+        foreach (Sector sector in map.Sectors)
+        {
+            flats.Add(sector.FloorTexture);
+            flats.Add(sector.CeilTexture);
+        }
+
+        textures.Remove("-");
+        textures.Remove("");
+        flats.Remove("-");
+        flats.Remove("");
+
+        return new IdStudioMapTextureSet(textures, flats);
+    }
+
     public static byte[] EncodeTga(int width, int height, IReadOnlyList<IdStudioRgba> pixels)
     {
         if (pixels.Count != width * height)
@@ -253,6 +281,13 @@ public static class IdStudioTextureExporter
         materialFiles.Add(new IdStudioExportFile(
             materialPath,
             BuildMaterialDeclaration(subFolder, lowerName, image.IsTranslucent || image.IsMasked)));
+    }
+
+    private static void AddSidedefTextures(HashSet<string> textures, Sidedef side)
+    {
+        textures.Add(side.LowTexture);
+        textures.Add(side.MidTexture);
+        textures.Add(side.HighTexture);
     }
 
     private const string MaterialTemplate =
