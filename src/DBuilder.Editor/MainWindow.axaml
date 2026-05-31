@@ -208,6 +208,9 @@
                 <Button Classes="toolbarButton" ToolTip.Tip="Things Mode" x:Name="ThingsModeButton" Click="OnModeThings">
                     <PathIcon Data="M12,4 A4,4 0 1,1 12,12 A4,4 0 1,1 12,4 M12,13 L17,20 L7,20 Z" />
                 </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Insert at Cursor" x:Name="InsertAtCursorButton" Click="OnInsertAtCursor">
+                    <PathIcon Data="M11,4 L13,4 L13,11 L20,11 L20,13 L13,13 L13,20 L11,20 L11,13 L4,13 L4,11 L11,11 Z" />
+                </Button>
                 <Border Classes="toolbarSeparator" />
                 <Button Classes="toolbarButton" ToolTip.Tip="Make Sector at Cursor" x:Name="MakeSectorAtCursorButton" Click="OnMakeSectorAtCursor">
                     <PathIcon Data="M5,5 L19,5 L19,19 L5,19 Z M11,8 L13,8 L13,16 L11,16 Z M8,11 L16,11 L16,13 L8,13 Z" />

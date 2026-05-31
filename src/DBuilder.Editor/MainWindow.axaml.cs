@@ -1317,10 +1317,15 @@ public partial class MainWindow : Window
     private void SetEditMode(MapControl.EditMode mode)
     {
         MapView.SetCurrentEditMode(mode);
-        SetStatus($"Mode: {mode}");
+        SetStatus(ModeStatus(mode));
         UpdateStatusDetails();
         MapView.Focus();
     }
+
+    private string ModeStatus(MapControl.EditMode mode)
+        => mode == MapControl.EditMode.Things
+            ? $"Mode: Things. {CommandHint("map2d.insert")} places thing type {MapView.InsertThingType}; View > Browsers > Things changes the type."
+            : $"Mode: {mode}";
 
     private void RebuildSelectionGroupsMenu()
     {
@@ -2963,7 +2968,7 @@ public partial class MainWindow : Window
             TestMapMenuItem, SoundPropagationMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
-            SectorsModeButton, ThingsModeButton, MakeSectorAtCursorButton, DrawSectorButton,
+            SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, BuildStairsButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);

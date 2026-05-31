@@ -104,6 +104,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
+  - [x] Show thing placement command hints when entering Things mode.
 - [ ] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
@@ -728,6 +729,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port toolbar layout and all toolbar actions.
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.
+  - [x] Add an Insert at Cursor toolbar action for thing and vertex placement.
 - [ ] Port status bar behavior.
   - [x] Add persistent mode, snap/grid, and coordinate status fields.
 - [ ] Port dockers and tabbed dock panels.
