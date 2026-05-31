@@ -378,6 +378,66 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void SplineLinePlanRequiresAtLeastTwoSelectedLines()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanSplineSectorsFromLines(
+            new[] { line },
+            new StairBuilderSplineOptions { NumberOfSectors = 2 });
+
+        Assert.Empty(plan);
+    }
+
+    [Fact]
+    public void SplineLinePlanBuildsClosedLoopsBetweenSelectedLines()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanSplineSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderSplineOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 1,
+                OuterVertexMultiplier = 1,
+                NumberOfControlPoints = 2
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.Equal(5, plan[0].Vertices.Count);
+        Assert.Equal(plan[0].Vertices[0], plan[0].Vertices[^1]);
+        Assert.Equal(plan[1].Vertices[0], plan[1].Vertices[^1]);
+        Assert.Equal(new Vector2D(64, 0), plan[0].Vertices[0]);
+        Assert.Equal(new Vector2D(64, 64), plan[1].Vertices[1]);
+        Assert.All(plan.SelectMany(sector => sector.Vertices), vertex => Assert.True(vertex.IsFinite()));
+    }
+
+    [Fact]
+    public void SplineLinePlanHonorsVertexMultipliers()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanSplineSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderSplineOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 2,
+                OuterVertexMultiplier = 3,
+                NumberOfControlPoints = 3
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.All(plan, sector => Assert.Equal(8, sector.Vertices.Count));
+    }
+
+    [Fact]
     public void PrefabSettingsDictionaryUsesUdbKeys()
     {
         var prefab = new StairBuilderPrefab
@@ -550,6 +610,27 @@ public class StairBuilderTests
         Assert.Equal(3, options.OuterVertexMultiplier);
         Assert.Equal(2, options.InnerVertexMultiplier);
         Assert.Equal(1, options.Flipping);
+    }
+
+    [Fact]
+    public void PrefabCreatesSplineOptionsForLoadedFormState()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 4,
+            OuterVertexMultiplier = 3,
+            InnerVertexMultiplier = 2,
+            Flipping = 1,
+            NumberOfControlPoints = 5
+        };
+
+        StairBuilderSplineOptions options = prefab.ToSplineOptions();
+
+        Assert.Equal(4, options.NumberOfSectors);
+        Assert.Equal(3, options.OuterVertexMultiplier);
+        Assert.Equal(2, options.InnerVertexMultiplier);
+        Assert.Equal(1, options.Flipping);
+        Assert.Equal(5, options.NumberOfControlPoints);
     }
 
     [Fact]

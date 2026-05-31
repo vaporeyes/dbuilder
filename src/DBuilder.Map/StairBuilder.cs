@@ -163,6 +163,48 @@ public static class StairBuilder
         return sectors;
     }
 
+    public static IReadOnlyList<StairBuilderSectorPlan> PlanSplineSectorsFromLines(
+        IReadOnlyList<Linedef> selectedLinedefs,
+        StairBuilderSplineOptions options)
+    {
+        var sectors = new List<StairBuilderSectorPlan>();
+        if (selectedLinedefs.Count <= 1) return sectors;
+
+        int controlPointCount = Math.Max(options.NumberOfControlPoints + 2, 2);
+        for (int l1 = 0; l1 < selectedLinedefs.Count - 1; l1++)
+        {
+            int l2 = l1 + 1;
+            Linedef first = selectedLinedefs[l1];
+            Linedef second = selectedLinedefs[l2];
+
+            Vector2D s1 = options.Flipping == 1 ? first.End.Position : first.Start.Position;
+            Vector2D e1 = options.Flipping == 1 ? first.Start.Position : first.End.Position;
+            Vector2D s2 = options.Flipping == 2 ? second.End.Position : second.Start.Position;
+            Vector2D e2 = options.Flipping == 2 ? second.Start.Position : second.End.Position;
+
+            SplineData innerSpline = CreateSpline(new Line2D(s2, s1), controlPointCount);
+            SplineData outerSpline = CreateSpline(new Line2D(e1, e2), controlPointCount);
+            List<Vector2D> innerVertices = GenerateCatmullRom(innerSpline, options.NumberOfSectors * options.InnerVertexMultiplier);
+            List<Vector2D> outerVertices = GenerateCatmullRom(outerSpline, options.NumberOfSectors * options.OuterVertexMultiplier);
+
+            for (int i = 0; i < options.NumberOfSectors; i++)
+            {
+                var sector = new List<Vector2D>();
+
+                for (int k = 0; k <= options.OuterVertexMultiplier; k++)
+                    sector.Add(outerVertices[i * options.OuterVertexMultiplier + k]);
+
+                for (int k = 0; k <= options.InnerVertexMultiplier; k++)
+                    sector.Add(innerVertices[(options.NumberOfSectors - 1 - i) * options.InnerVertexMultiplier + k]);
+
+                sector.Add(outerVertices[i * options.OuterVertexMultiplier]);
+                sectors.Add(new StairBuilderSectorPlan(sector));
+            }
+        }
+
+        return sectors;
+    }
+
     public static IReadOnlyList<Sector> CreateSectorsFromPlans(
         MapSet map,
         IReadOnlyList<StairBuilderSectorPlan> plans,
@@ -315,6 +357,104 @@ public static class StairBuilder
 
         return points;
     }
+
+    private static SplineData CreateSpline(Line2D line, int controlPointCount)
+    {
+        var controlPoints = new List<Vector2D> { line.v1 };
+
+        for (int k = 1; k <= controlPointCount - 2; k++)
+            controlPoints.Add(line.GetCoordinatesAt(1.0 / (controlPointCount - 1) * k));
+
+        controlPoints.Add(line.v2);
+
+        return new SplineData(controlPoints, ComputeTangents(controlPoints));
+    }
+
+    private static List<Vector2D> ComputeTangents(IReadOnlyList<Vector2D> controlPoints)
+    {
+        var tangents = new List<Vector2D>();
+        tangents.Add(controlPoints[1] - controlPoints[0]);
+
+        for (int i = 1; i < controlPoints.Count - 1; i++)
+            tangents.Add((controlPoints[i + 1] - controlPoints[i - 1]) / 2.0);
+
+        tangents.Add(controlPoints[^1] - controlPoints[^2]);
+        return tangents;
+    }
+
+    private static List<Vector2D> GenerateCatmullRom(SplineData spline, int vertexCount)
+    {
+        var vertices = new List<Vector2D>();
+        double distance = 0;
+        var controlPointDistances = new List<double>();
+
+        for (int i = 0; i < spline.ControlPoints.Count - 1; i++)
+        {
+            int samples = Math.Max((int)Vector2D.Distance(spline.ControlPoints[i], spline.ControlPoints[i + 1]), 1);
+            double sectionDistance = 0;
+            var sectionPoints = new List<Vector2D>();
+
+            Vector2D p0 = spline.ControlPoints[i];
+            Vector2D p1 = spline.ControlPoints[i + 1];
+            Vector2D t0 = spline.Tangents[i];
+            Vector2D t1 = spline.Tangents[i + 1];
+
+            for (int k = 0; k <= samples; k++)
+                sectionPoints.Add(HermiteSpline(p0, t0, p1, t1, (double)k / samples));
+
+            for (int k = 0; k < samples; k++)
+                sectionDistance += Vector2D.Distance(sectionPoints[k], sectionPoints[k + 1]);
+
+            distance += sectionDistance;
+            controlPointDistances.Add(sectionDistance);
+        }
+
+        double unitHop = distance / vertexCount;
+        for (int i = 0; i <= vertexCount; i++)
+        {
+            int section = 0;
+            double distanceFromStart = i * unitHop;
+            double max = 0;
+
+            while (max < distanceFromStart)
+            {
+                max += controlPointDistances[section];
+                if (max < distanceFromStart) section++;
+
+                if (section > controlPointDistances.Count - 1)
+                {
+                    section = controlPointDistances.Count - 1;
+                    max = distanceFromStart;
+                }
+            }
+
+            double u;
+            if (distanceFromStart == 0) u = 0;
+            else if (distanceFromStart == distance) u = 1;
+            else u = 1.0 - ((max - distanceFromStart) / controlPointDistances[section]);
+
+            Vector2D p0 = spline.ControlPoints[section];
+            Vector2D p1 = spline.ControlPoints[section + 1];
+            Vector2D t0 = spline.Tangents[section];
+            Vector2D t1 = spline.Tangents[section + 1];
+            vertices.Add(HermiteSpline(p0, t0, p1, t1, u));
+        }
+
+        return vertices;
+    }
+
+    private static Vector2D HermiteSpline(Vector2D p1, Vector2D t1, Vector2D p2, Vector2D t2, double u)
+    {
+        double u2 = u * u;
+        double u3 = u2 * u;
+        double h1 = 2 * u3 - 3 * u2 + 1;
+        double h2 = -2 * u3 + 3 * u2;
+        double h3 = u3 - 2 * u2 + u;
+        double h4 = u3 - u2;
+        return p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4;
+    }
+
+    private sealed record SplineData(IReadOnlyList<Vector2D> ControlPoints, IReadOnlyList<Vector2D> Tangents);
 }
 
 public sealed record StairBuilderSectorPlan(IReadOnlyList<Vector2D> Vertices);
@@ -333,6 +473,15 @@ public sealed record StairBuilderCurvedOptions
     public int OuterVertexMultiplier { get; init; } = 1;
     public int InnerVertexMultiplier { get; init; } = 1;
     public int Flipping { get; init; }
+}
+
+public sealed record StairBuilderSplineOptions
+{
+    public int NumberOfSectors { get; init; } = 1;
+    public int OuterVertexMultiplier { get; init; } = 1;
+    public int InnerVertexMultiplier { get; init; } = 1;
+    public int Flipping { get; init; }
+    public int NumberOfControlPoints { get; init; } = 1;
 }
 
 public sealed record StairBuilderPrefab
@@ -384,6 +533,16 @@ public sealed record StairBuilderPrefab
             OuterVertexMultiplier = OuterVertexMultiplier,
             InnerVertexMultiplier = InnerVertexMultiplier,
             Flipping = Flipping,
+        };
+
+    public StairBuilderSplineOptions ToSplineOptions()
+        => new()
+        {
+            NumberOfSectors = NumberOfSectors,
+            OuterVertexMultiplier = OuterVertexMultiplier,
+            InnerVertexMultiplier = InnerVertexMultiplier,
+            Flipping = Flipping,
+            NumberOfControlPoints = NumberOfControlPoints,
         };
 
     public StairBuilderOptions ToBuilderOptions(int floorBase = 0, int ceilingBase = 0)
