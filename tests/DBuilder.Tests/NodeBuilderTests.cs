@@ -61,6 +61,26 @@ maplumpnames
     }
 
     [Fact]
+    public void CreateStartInfoMatchesUdbNodesCompilerSettings()
+    {
+        var startInfo = NodeBuilder.CreateStartInfo(
+            new NodebuilderConfig("/tools/zdbsp", "-o \"%FO\" \"%FI\""),
+            "/tmp/input.wad",
+            "/tmp/output.wad",
+            "/tmp/dbuilder_nodes");
+
+        Assert.Equal("/tools/zdbsp", startInfo.FileName);
+        Assert.Equal("-o \"/tmp/output.wad\" \"/tmp/input.wad\"", startInfo.Arguments);
+        Assert.Equal("/tmp/dbuilder_nodes", startInfo.WorkingDirectory);
+        Assert.True(startInfo.CreateNoWindow);
+        Assert.False(startInfo.ErrorDialog);
+        Assert.False(startInfo.UseShellExecute);
+        Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, startInfo.WindowStyle);
+        Assert.True(startInfo.RedirectStandardOutput);
+        Assert.True(startInfo.RedirectStandardError);
+    }
+
+    [Fact]
     public void AnalyzeProcessResultFailsWhenOutputContainsErrorLikeUdb()
     {
         var normalOutput = NodeBuilder.AnalyzeProcessResult(0, "build error: bad subsector", "");

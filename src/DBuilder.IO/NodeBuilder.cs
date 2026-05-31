@@ -30,6 +30,20 @@ public static class NodeBuilder
     /// <summary>True when the template produces a separate output file rather than editing the input in place.</summary>
     public static bool HasSeparateOutput(string parameters) => parameters.Contains("%FO");
 
+    public static ProcessStartInfo CreateStartInfo(NodebuilderConfig config, string inputFile, string outputFile, string workingDirectory)
+        => new()
+        {
+            FileName = config.Executable,
+            Arguments = BuildArguments(config.Parameters, inputFile, outputFile),
+            WorkingDirectory = workingDirectory,
+            CreateNoWindow = true,
+            ErrorDialog = false,
+            UseShellExecute = false,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+
     public static ProcessResult AnalyzeProcessResult(int exitCode, string standardOutput, string standardError)
     {
         string outMsg = CleanProcessOutput(standardOutput);
@@ -75,16 +89,7 @@ public static class NodeBuilder
         {
             File.WriteAllBytes(input, PrepareInputWad(wadBytes, mapMarker, config));
 
-            var psi = new ProcessStartInfo
-            {
-                FileName = cfg.Executable,
-                Arguments = BuildArguments(cfg.Parameters, input, output),
-                WorkingDirectory = dir,
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
+            var psi = CreateStartInfo(cfg, input, output, dir);
 
             var stdout = new StringBuilder();
             var stderr = new StringBuilder();
