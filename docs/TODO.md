@@ -943,6 +943,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port edit selection panel behavior.
 - [ ] Port undo/redo panel behavior.
 - [ ] Port select similar element behavior.
+  - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
 - [ ] Port texture fitting behavior.
 - [ ] Port bridge mode.
 - [ ] Port slope arch tools.
