@@ -958,6 +958,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port object export tools.
 - [ ] Port image export tools.
 - [ ] Port Wavefront export tools.
+  - [x] Add UDB-style Wavefront export settings, validation, material naming, and OBJ coordinate formatting helpers.
 - [ ] Port id Studio export tools.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
