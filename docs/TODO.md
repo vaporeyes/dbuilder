@@ -931,6 +931,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
   - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
   - [x] Add UDB-style format-aware linedef sound-blocking toggle model.
+  - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
 - [ ] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
   - [x] Add UDB-style straight stair geometry planning from selected linedefs, including front/back side and spacing.
@@ -1130,6 +1131,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
   - [x] Add UDB-style linedef blocksound toggle behavior for classic and UDMF maps.
+  - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
 - [ ] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.

@@ -3237,23 +3237,61 @@ public partial class MainWindow : Window
         SetStatus($"Built stairs across {n} sectors (start {dlg.ResultFloorStart}, step {dlg.ResultFloorStep}).");
     }
 
-    // Traces Doom-style sound propagation from the single selected sector and highlights everything it reaches.
+    // Traces Doom-style sound propagation from the selected sector, or a leak path between two sectors.
     private void OnSoundPropagation(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         var sel = _map.GetSelectedSectors();
-        if (sel.Count != 1) { SetStatus("Select exactly one sector to trace sound from."); return; }
+        if (sel.Count == 2) { ShowSoundLeakPath(sel[0], sel[1]); return; }
+        if (sel.Count != 1) { SetStatus("Select one sector to trace sound propagation, or two sectors to find a sound leak path."); return; }
 
         bool udmf = _mapFormat == MapFormat.Udmf;
         var reach = SoundPropagation.Reachable(_map, sel[0], udmf: udmf);
         SoundPropagationModeModel model = SoundPropagation.BuildModeModel(_map, udmf: udmf);
         MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, sel[0]), 128);
+        MapView.SetSoundLeakPath(null);
         _map.ClearAllSelected();
         int direct = 0, viaBlock = 0;
         foreach (var (s, level) in reach) { s.Selected = true; if (level == 1) direct++; else viaBlock++; }
         MapView.RevealSelection(MapControl.EditMode.Sectors, null);
         UpdateInfo();
         SetStatus($"Sound reaches {reach.Count} sector(s): {direct} direct, {viaBlock} via a sound-blocking line.");
+    }
+
+    private void ShowSoundLeakPath(Sector source, Sector destination)
+    {
+        if (_map is null) return;
+
+        bool udmf = _mapFormat == MapFormat.Udmf;
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(_map, udmf: udmf);
+        IReadOnlySet<Sector> sectors = model.GetLeakSearchSectors(source);
+        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, source), 128);
+
+        if (!sectors.Contains(destination))
+        {
+            MapView.SetSoundLeakPath(null);
+            SetStatus("Sound can not travel between the two selected sectors.");
+            return;
+        }
+
+        Vector2D sourcePosition = SoundPropagation.SectorCenter(source);
+        Vector2D destinationPosition = SoundPropagation.SectorCenter(destination);
+        SoundLeakPath? path = SoundPropagation.FindLeakPath(
+            source,
+            sourcePosition,
+            destination,
+            destinationPosition,
+            sectors,
+            udmf: udmf);
+
+        MapView.SetSoundLeakPath(path);
+        MapView.RevealSelection(MapControl.EditMode.Sectors, new Vector2D(
+            (sourcePosition.x + destinationPosition.x) * 0.5,
+            (sourcePosition.y + destinationPosition.y) * 0.5));
+        UpdateInfo();
+        SetStatus(path == null
+            ? "No sound leak path found between the two selected sectors."
+            : $"Sound leak path: {path.Linedefs.Count} line(s), {path.BlockingLinedefs.Count} sound-blocking line(s).");
     }
 
     private void OnBuildBridge(object? sender, RoutedEventArgs e)

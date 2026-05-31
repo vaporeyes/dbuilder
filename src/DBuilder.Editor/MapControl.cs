@@ -157,7 +157,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _soundLeakPath = System.Array.Empty<Vec2D>(); _soundLeakDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -492,15 +492,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private GlVertexBuffer? _nodesVb;
     private GlVertexBuffer? _nodePolygonsVb;
     private GlVertexBuffer? _rejectOverlayVb;
+    private GlVertexBuffer? _soundLeakPathVb;
+    private GlVertexBuffer? _soundLeakMarkerVb;
     private int _nodesLineCount;
     private int _nodePolygonTriCount;
     private int _rejectOverlayTriCount;
+    private int _soundLeakLineCount;
+    private int _soundLeakMarkerTriCount;
     private bool _showNodes;
     private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
     private Vec2D[][] _nodePolygons = System.Array.Empty<Vec2D[]>();
     private int[] _rejectOverlayColors = System.Array.Empty<int>();
     private byte _rejectOverlayAlpha = 96;
     private bool _rejectOverlayDirty;
+    private Vec2D[] _soundLeakPath = System.Array.Empty<Vec2D>();
+    private bool _soundLeakDirty;
 
     /// <summary>When true, overlays the BSP node partition lines (set via <see cref="SetNodeLines"/>).</summary>
     public bool ShowNodes
@@ -534,6 +540,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public void SetRejectOverlayColors(System.Collections.Generic.IReadOnlyList<int>? sectorColors)
         => SetSectorOverlayColors(sectorColors, 96);
+
+    public void SetSoundLeakPath(SoundLeakPath? path)
+    {
+        if (path == null || path.Points.Count < 2)
+        {
+            _soundLeakPath = System.Array.Empty<Vec2D>();
+        }
+        else
+        {
+            _soundLeakPath = new Vec2D[path.Points.Count];
+            for (int i = 0; i < path.Points.Count; i++) _soundLeakPath[i] = path.Points[i];
+        }
+
+        _soundLeakDirty = true;
+        RequestNextFrameRendering();
+    }
 
     public void SetSectorOverlayColors(System.Collections.Generic.IReadOnlyList<uint>? sectorColors, byte alpha = 96)
     {
@@ -621,6 +643,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _camX = f.x;
             _camY = f.y;
             if (_zoom > 1.0) _zoom = 1.0; // zoom in to reveal a small element, but never zoom further out
+            _soundLeakDirty = true;
         }
         _geometryDirty = true;
         Changed?.Invoke();
@@ -639,6 +662,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _camX = f.x;
             _camY = f.y;
             if (_zoom > 1.0) _zoom = 1.0;
+            _soundLeakDirty = true;
         }
         _geometryDirty = true;
         Changed?.Invoke();
@@ -657,6 +681,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         double availH = Math.Max(1, Bounds.Height);
         _zoom = Math.Max(w / availW, h / availH) * 1.15;
         if (_zoom <= 0) _zoom = 1;
+        _soundLeakDirty = true;
     }
 
     public void CenterOn(double x, double y)
@@ -679,6 +704,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!double.IsNaN(scale) && scale > 0)
         {
             _zoom = Math.Clamp(scale, 0.02, 200);
+            _soundLeakDirty = true;
             restored = true;
         }
 
@@ -784,6 +810,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _nodesVb = new GlVertexBuffer(_gl);
         _nodePolygonsVb = new GlVertexBuffer(_gl);
         _rejectOverlayVb = new GlVertexBuffer(_gl);
+        _soundLeakPathVb = new GlVertexBuffer(_gl);
+        _soundLeakMarkerVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -829,6 +857,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _nodesVb?.Dispose();
         _nodePolygonsVb?.Dispose();
         _rejectOverlayVb?.Dispose();
+        _soundLeakPathVb?.Dispose();
+        _soundLeakMarkerVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
@@ -836,7 +866,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1650,6 +1680,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 DrawBlockmap(); // debug overlay on top of geometry
                 DrawNodes();    // BSP partition lines overlay
+                DrawSoundLeakPath();
             }
 
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
@@ -2344,6 +2375,61 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetVertexBuffer(_rejectOverlayVb);
         _device.Draw(DBPrimitiveType.TriangleList, 0, _rejectOverlayTriCount);
         _device.SetAlphaBlendEnable(false);
+    }
+
+    private void DrawSoundLeakPath()
+    {
+        if (_device is null || _soundLeakPathVb is null || _soundLeakMarkerVb is null) return;
+        if (_soundLeakDirty)
+        {
+            const int red = unchecked((int)0xffff0000);
+            var lineVerts = new System.Collections.Generic.List<FlatVertex>();
+            var markerVerts = new System.Collections.Generic.List<FlatVertex>();
+
+            for (int i = 1; i < _soundLeakPath.Length; i++)
+            {
+                lineVerts.Add(FV(_soundLeakPath[i - 1], red));
+                lineVerts.Add(FV(_soundLeakPath[i], red));
+            }
+
+            double halfSize = 4.0 / Math.Max(_zoom, 0.001);
+            for (int i = 1; i < _soundLeakPath.Length - 1; i++)
+                AddFilledRect(markerVerts, _soundLeakPath[i], halfSize, red);
+
+            _device.SetBufferData(_soundLeakPathVb, lineVerts.ToArray());
+            _device.SetBufferData(_soundLeakMarkerVb, markerVerts.ToArray());
+            _soundLeakLineCount = lineVerts.Count / 2;
+            _soundLeakMarkerTriCount = markerVerts.Count / 3;
+            _soundLeakDirty = false;
+        }
+
+        if (_soundLeakLineCount == 0 && _soundLeakMarkerTriCount == 0) return;
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        if (_soundLeakLineCount > 0)
+        {
+            _device.SetVertexBuffer(_soundLeakPathVb);
+            _device.Draw(DBPrimitiveType.LineList, 0, _soundLeakLineCount);
+        }
+        if (_soundLeakMarkerTriCount > 0)
+        {
+            _device.SetVertexBuffer(_soundLeakMarkerVb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, _soundLeakMarkerTriCount);
+        }
+    }
+
+    private static void AddFilledRect(System.Collections.Generic.List<FlatVertex> verts, Vec2D center, double halfSize, int color)
+    {
+        var a = new Vec2D(center.x - halfSize, center.y - halfSize);
+        var b = new Vec2D(center.x + halfSize, center.y - halfSize);
+        var c = new Vec2D(center.x + halfSize, center.y + halfSize);
+        var d = new Vec2D(center.x - halfSize, center.y + halfSize);
+        verts.Add(FV(a, color));
+        verts.Add(FV(b, color));
+        verts.Add(FV(c, color));
+        verts.Add(FV(a, color));
+        verts.Add(FV(c, color));
+        verts.Add(FV(d, color));
     }
 
     private static int WithAlpha(int argb, byte alpha)
@@ -3727,6 +3813,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ZoomBy(double factor)
     {
         _zoom = Math.Clamp(_zoom * factor, 0.02, 200);
+        _soundLeakDirty = true;
         RequestNextFrameRendering();
     }
 

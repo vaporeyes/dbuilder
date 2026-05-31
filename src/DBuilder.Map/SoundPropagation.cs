@@ -155,6 +155,21 @@ public sealed class SoundPropagationModeModel
         return affected;
     }
 
+    public IReadOnlySet<Sector> GetLeakSearchSectors(Sector source)
+    {
+        if (!sectorDomains.TryGetValue(source, out SoundPropagationDomain? domain))
+            return new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+
+        var sectors = new HashSet<Sector>(domain.Sectors, ReferenceEqualityComparer.Instance);
+        foreach (Sector adjacent in domain.AdjacentSectors)
+        {
+            if (!sectorDomains.TryGetValue(adjacent, out SoundPropagationDomain? adjacentDomain)) continue;
+            sectors.UnionWith(adjacentDomain.Sectors);
+        }
+
+        return sectors;
+    }
+
     public IReadOnlyList<Thing> GetHuntingThings(Sector highlighted, IEnumerable<Thing>? visibleThings = null, bool udmf = false)
     {
         IReadOnlySet<Sector> affected = GetAffectedSectors(highlighted);
@@ -361,6 +376,29 @@ public static class SoundPropagation
             start.G = 0.0;
             start.F = start.H;
         }
+    }
+
+    public static Vector2D SectorCenter(Sector sector)
+    {
+        var vertices = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.Line == null) continue;
+            vertices.Add(side.Line.Start);
+            vertices.Add(side.Line.End);
+        }
+
+        if (vertices.Count == 0) return new Vector2D();
+
+        double x = 0.0;
+        double y = 0.0;
+        foreach (Vertex vertex in vertices)
+        {
+            x += vertex.Position.x;
+            y += vertex.Position.y;
+        }
+
+        return new Vector2D(x / vertices.Count, y / vertices.Count);
     }
 
     private static SoundPropagationDomain CreateDomain(Sector source, int soundBlockBit, string soundBlockFlag, bool udmf)

@@ -293,6 +293,44 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void LeakSearchSectorsIncludeSourceDomainAndAdjacentDomains()
+    {
+        var (map, s) = Chain(5, new[] { false, true, false, true });
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+
+        IReadOnlySet<Sector> sectors = model.GetLeakSearchSectors(s[0]);
+
+        Assert.Contains(s[0], sectors);
+        Assert.Contains(s[1], sectors);
+        Assert.Contains(s[2], sectors);
+        Assert.Contains(s[3], sectors);
+        Assert.DoesNotContain(s[4], sectors);
+    }
+
+    [Fact]
+    public void SectorCenterUsesUniqueBoundaryVertices()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+
+        Linedef ab = map.AddLinedef(a, b);
+        Linedef bc = map.AddLinedef(b, c);
+        Linedef cd = map.AddLinedef(c, d);
+        Linedef da = map.AddLinedef(d, a);
+        map.AddSidedef(ab, true, sector);
+        map.AddSidedef(bc, true, sector);
+        map.AddSidedef(cd, true, sector);
+        map.AddSidedef(da, true, sector);
+        map.BuildIndexes();
+
+        Assert.Equal(new Vector2D(32, 32), SoundPropagation.SectorCenter(sector));
+    }
+
+    [Fact]
     public void DefaultColorSettingsMatchUdbPluginDefaults()
     {
         SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;
