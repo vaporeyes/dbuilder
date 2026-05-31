@@ -70,6 +70,13 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawRectangleSettingsNormalizeDeserializedSubdivisions()
+    {
+        Assert.Equal(DrawRectangleModeSettings.MaxSubdivisions, new DrawRectangleModeSettings(Subdivisions: 99).Normalized().Subdivisions);
+        Assert.Equal(DrawRectangleModeSettings.MinSubdivisions, new DrawRectangleModeSettings(Subdivisions: -1).Normalized().Subdivisions);
+    }
+
+    [Fact]
     public void DrawEllipseSettingsClampSubdivisionsAndKeepAngle()
     {
         var lowSource = new Dictionary<string, object?>
@@ -112,6 +119,13 @@ public class DrawModeSettingsTests
         Assert.Equal(6, new DrawEllipseModeSettings(Subdivisions: 8).DecreaseSubdivisions().Subdivisions);
         Assert.Equal(4, new DrawEllipseModeSettings(Subdivisions: 4).DecreaseSubdivisions().Subdivisions);
         Assert.Equal(3, new DrawEllipseModeSettings(Subdivisions: 3).DecreaseSubdivisions().Subdivisions);
+    }
+
+    [Fact]
+    public void DrawEllipseSettingsNormalizeDeserializedSubdivisions()
+    {
+        Assert.Equal(DrawEllipseModeSettings.MaxSubdivisions, new DrawEllipseModeSettings(Subdivisions: 999).Normalized().Subdivisions);
+        Assert.Equal(DrawEllipseModeSettings.MinSubdivisions, new DrawEllipseModeSettings(Subdivisions: 1).Normalized().Subdivisions);
     }
 
     [Fact]

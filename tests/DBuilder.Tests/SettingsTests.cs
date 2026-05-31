@@ -147,6 +147,8 @@ public class SettingsTests
                     ChangeTags = PasteTagMode.Renumber,
                     RemoveActions = true,
                 },
+                DrawRectangleSettings = new DrawRectangleModeSettings(Subdivisions: 6, BevelWidth: 12),
+                DrawEllipseSettings = new DrawEllipseModeSettings(Subdivisions: 10, BevelWidth: -8, Angle: 45),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -175,6 +177,13 @@ public class SettingsTests
             Assert.True(loaded.PasteOptions.RemoveActions);
             Assert.Equal(PasteTagMode.Renumber, loaded.NormalizedPasteOptions.ChangeTags);
             Assert.True(loaded.NormalizedPasteOptions.RemoveActions);
+            Assert.Equal(6, loaded.DrawRectangleSettings.Subdivisions);
+            Assert.Equal(12, loaded.DrawRectangleSettings.BevelWidth);
+            Assert.Equal(6, loaded.NormalizedDrawRectangleSettings.Subdivisions);
+            Assert.Equal(10, loaded.DrawEllipseSettings.Subdivisions);
+            Assert.Equal(-8, loaded.DrawEllipseSettings.BevelWidth);
+            Assert.Equal(45, loaded.DrawEllipseSettings.Angle);
+            Assert.Equal(10, loaded.NormalizedDrawEllipseSettings.Subdivisions);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -197,6 +206,8 @@ public class SettingsTests
         Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
         Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
         Assert.False(s.NormalizedPasteOptions.RemoveActions);
+        Assert.Equal(new DrawRectangleModeSettings(), s.NormalizedDrawRectangleSettings);
+        Assert.Equal(new DrawEllipseModeSettings(), s.NormalizedDrawEllipseSettings);
     }
 
     [Fact]

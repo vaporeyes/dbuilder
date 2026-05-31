@@ -120,6 +120,8 @@ public partial class MainWindow : Window
 
         _settings = Settings.Load(_settingsPath);
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
+        MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;
+        MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();

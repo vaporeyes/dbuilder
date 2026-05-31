@@ -1001,6 +1001,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
   - [x] Add UDB-style rectangle and ellipse draw-shape planning with bevel, spikiness, and hints.
+  - [x] Wire editor rectangle and ellipse box drawing to UDB-style draw settings and closed-shape materialization.
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
 - [ ] Port sector drawing options.

@@ -219,8 +219,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Shape-draw tool: while active, a left-drag defines a bounding box that becomes generated geometry.
     public enum ShapeKind { None, Rectangle, Ellipse, Grid }
     private ShapeKind _shapeKind = ShapeKind.None;
-    private int _shapeSides = 24; // segments for the ellipse
+    private DrawRectangleModeSettings _drawRectangleSettings = new();
+    private DrawEllipseModeSettings _drawEllipseSettings = new();
     public ShapeKind CurrentShape => _shapeKind;
+
+    public DrawRectangleModeSettings DrawRectangleSettings
+    {
+        get => _drawRectangleSettings;
+        set => _drawRectangleSettings = (value ?? new DrawRectangleModeSettings()).Normalized();
+    }
+
+    public DrawEllipseModeSettings DrawEllipseSettings
+    {
+        get => _drawEllipseSettings;
+        set => _drawEllipseSettings = (value ?? new DrawEllipseModeSettings()).Normalized();
+    }
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
     private readonly System.Collections.Generic.HashSet<string> _hiddenThingCategories = new(StringComparer.OrdinalIgnoreCase);
@@ -2669,24 +2682,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        var loop = _shapeKind == ShapeKind.Rectangle
-            ? ShapeGenerator.Rectangle(p0, p1)
-            : ShapeGenerator.Ellipse(p0, p1, _shapeSides);
-        if (loop.Count < 3) return;
+        DrawShapePlan plan = _shapeKind == ShapeKind.Rectangle
+            ? ShapeGenerator.UdbRectangle(p0, p1, _drawRectangleSettings)
+            : ShapeGenerator.UdbEllipse(p0, p1, _drawEllipseSettings);
+        if (plan.Points.Count < 3) return;
 
         EditBegun?.Invoke(_shapeKind == ShapeKind.Rectangle ? "Draw rectangle" : "Draw ellipse");
-        var verts = new System.Collections.Generic.List<Vertex>(loop.Count);
-        foreach (var p in loop)
+        var verts = new System.Collections.Generic.List<Vertex>(plan.Points.Count);
+        for (int i = 0; i < plan.Points.Count; i++)
         {
+            var p = plan.Points[i];
+            if (i == plan.Points.Count - 1 && SamePoint(p, plan.Points[0])) continue;
             var existing = _map.NearestVertex(p, 0.01);
             verts.Add(existing ?? _map.AddVertex(p));
         }
+        if (verts.Count < 3) return;
         ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
+        if (!string.IsNullOrEmpty(plan.HintText)) Picked?.Invoke(plan.HintText);
     }
 
     private void CreateDrawGridFromBox(Vec2D p0, Vec2D p1)

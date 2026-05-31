@@ -30,6 +30,8 @@ public sealed class Settings
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();
+    public DrawRectangleModeSettings DrawRectangleSettings { get; set; } = new();
+    public DrawEllipseModeSettings DrawEllipseSettings { get; set; } = new();
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -49,6 +51,12 @@ public sealed class Settings
 
     public PasteOptions NormalizedPasteOptions =>
         PasteOptions is { } options && Enum.IsDefined(options.ChangeTags) ? options : new PasteOptions();
+
+    public DrawRectangleModeSettings NormalizedDrawRectangleSettings =>
+        (DrawRectangleSettings ?? new DrawRectangleModeSettings()).Normalized();
+
+    public DrawEllipseModeSettings NormalizedDrawEllipseSettings =>
+        (DrawEllipseSettings ?? new DrawEllipseModeSettings()).Normalized();
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -121,6 +129,8 @@ public sealed class Settings
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
             settings.PasteOptions ??= new();
+            settings.DrawRectangleSettings ??= new();
+            settings.DrawEllipseSettings ??= new();
             return settings;
         }
         catch { return new Settings(); }

@@ -75,6 +75,9 @@ public sealed record DrawRectangleModeSettings(
 
     public DrawRectangleModeSettings DecreaseSubdivisions()
         => this with { Subdivisions = Math.Max(Subdivisions - 1, MinSubdivisions) };
+
+    public DrawRectangleModeSettings Normalized()
+        => this with { Subdivisions = Math.Clamp(Subdivisions, MinSubdivisions, MaxSubdivisions) };
 }
 
 public sealed record DrawEllipseModeSettings(
@@ -130,6 +133,9 @@ public sealed record DrawEllipseModeSettings(
         int decrement = Subdivisions % 2 != 0 ? 1 : 2;
         return this with { Subdivisions = Math.Max(Subdivisions - decrement, MinSubdivisions) };
     }
+
+    public DrawEllipseModeSettings Normalized()
+        => this with { Subdivisions = Math.Clamp(Subdivisions, MinSubdivisions, MaxSubdivisions) };
 }
 
 public sealed record DrawCurveModeSettings(
