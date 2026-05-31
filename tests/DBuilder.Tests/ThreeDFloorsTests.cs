@@ -1,4 +1,5 @@
-// ABOUTME: Tests GZDoom 3D-floor resolution from Sector_3DFloor (160) control sectors to tagged target sectors.
+// ABOUTME: Tests GZDoom 3D-floor resolution from Sector_3DFloor control sectors to tagged target sectors.
+// ABOUTME: Covers multi-tag sectors, managed UDMF controls, and selected-sector shared floor filtering.
 
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -75,5 +76,78 @@ public class ThreeDFloorsTests
         var (map, _, target) = Setup(tag: 7, alpha: 999);
         var f = ThreeDFloors.Resolve(map)[target][0];
         Assert.Equal(255, f.Alpha);
+    }
+
+    [Fact]
+    public void ResolveUsesAllSectorTags()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 255);
+        target.Tags.Clear();
+        target.Tags.Add(0);
+        target.Tags.Add(5);
+
+        var result = ThreeDFloors.Resolve(map);
+
+        Assert.True(result.ContainsKey(target));
+        Assert.Same(control, result[target][0].Control);
+        Assert.Equal(5, result[target][0].TargetTag);
+    }
+
+    [Fact]
+    public void ManagedUdmfControlFilterSkipsUnmanagedSectors()
+    {
+        var (map, _, target) = Setup(tag: 5, alpha: 255);
+
+        Assert.Empty(ThreeDFloors.Resolve(map, udmf: true, requireManagedControlSector: true));
+
+        map.Linedefs[0].Front!.Sector!.Fields["user_managed_3d_floor"] = true;
+
+        Assert.True(ThreeDFloors.Resolve(map, udmf: true, requireManagedControlSector: true).ContainsKey(target));
+    }
+
+    [Fact]
+    public void GetThreeDFloorsReturnsSelectedSectorControls()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 255);
+        var other = map.AddSector();
+        other.Tag = 5;
+
+        var floors = ThreeDFloors.GetThreeDFloors(map, new[] { target, other });
+
+        var floor = Assert.Single(floors);
+        Assert.Same(control, floor.Control);
+    }
+
+    [Fact]
+    public void GetThreeDFloorsCanFilterToFloorsSharedByAllSelectedSectors()
+    {
+        var (map, sharedControl, first) = Setup(tag: 5, alpha: 255);
+        var second = map.AddSector();
+        second.Tag = 5;
+        var privateControl = AddControlFloor(map, tag: 9);
+        first.Tags.Add(9);
+
+        var all = ThreeDFloors.GetThreeDFloors(map, new[] { first, second });
+        var shared = ThreeDFloors.GetThreeDFloors(map, new[] { first, second }, sharedOnly: true);
+
+        Assert.Equal(2, all.Count);
+        Assert.Contains(all, floor => ReferenceEquals(privateControl, floor.Control));
+        var sharedFloor = Assert.Single(shared);
+        Assert.Same(sharedControl, sharedFloor.Control);
+    }
+
+    private static Sector AddControlFloor(MapSet map, int tag)
+    {
+        var control = map.AddSector();
+        control.FloorHeight = 8;
+        control.CeilHeight = 24;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(tag * 64, 0)), map.AddVertex(new Vector2D(tag * 64 + 32, 0)));
+        var side = map.AddSidedef(line, true, control);
+        side.MidTexture = "SIDE" + tag;
+        line.Action = ThreeDFloors.Sector3DFloorAction;
+        line.Args[0] = tag;
+        line.Args[3] = 255;
+        map.BuildIndexes();
+        return control;
     }
 }

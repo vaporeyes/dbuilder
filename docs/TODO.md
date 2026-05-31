@@ -879,6 +879,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `BuilderModes`.
 - [ ] Port `BuilderEffects`.
 - [ ] Port `3DFloorMode`.
+  - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.
   - [x] Add UDB-style automap line visibility, color classification, secret-sector detection, lock-color resolution, and flag toggle model.
 - [ ] Port `BlockmapExplorer`.
@@ -947,6 +948,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Specialized Plugin Detail
 
 - [ ] Port 3D floor control-sector editing.
+  - [x] Add selected-sector 3D floor discovery and shared 3D floor filtering model.
 - [ ] Port 3D floor slope editing.
 - [ ] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
