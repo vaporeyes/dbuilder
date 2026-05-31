@@ -2698,6 +2698,48 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleAutomapSecretLine(object? sender, RoutedEventArgs e)
+        => ToggleSelectedAutomapLines("Toggle automap secret", AutomapModeModel.ToggleSecretFlag, "automap secret");
+
+    private void OnToggleAutomapHiddenLine(object? sender, RoutedEventArgs e)
+        => ToggleSelectedAutomapLines("Toggle automap hidden", AutomapModeModel.ToggleHiddenFlag, "automap hidden");
+
+    private void OnToggleAutomapTexturedHiddenSector(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0)
+        {
+            SetStatus("Select one or more sectors to toggle textured automap visibility.");
+            return;
+        }
+
+        CreateUndo("Toggle textured automap hidden");
+        foreach (var sector in sectors) AutomapModeModel.ToggleTexturedAutomapHiddenFlag(sector);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Toggled textured automap hidden on {sectors.Count} sector(s).");
+        MapView.Focus();
+    }
+
+    private void ToggleSelectedAutomapLines(string undoDescription, Action<Linedef> toggle, string label)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var lines = _map.GetSelectedLinedefs();
+        if (lines.Count == 0)
+        {
+            SetStatus($"Select one or more linedefs to toggle {label}.");
+            return;
+        }
+
+        CreateUndo(undoDescription);
+        foreach (var line in lines) toggle(line);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Toggled {label} on {lines.Count} linedef(s).");
+        MapView.Focus();
+    }
+
     private async void OnTagRange(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
@@ -3370,6 +3412,7 @@ public partial class MainWindow : Window
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
         bool hasExactlyOneSelection = hasMap && CountSelection() == 1;
+        bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
@@ -3418,7 +3461,9 @@ public partial class MainWindow : Window
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
+        SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
+        SetEnabled(hasSelectedSector, ToggleAutomapTexturedHiddenSectorMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);
         SetEnabled(hasSingleFlagSelection, FlagsMenuItem);

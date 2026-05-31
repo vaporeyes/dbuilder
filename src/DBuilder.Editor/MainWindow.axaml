@@ -158,6 +158,11 @@
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
+                <MenuItem Header="_Automap">
+                    <MenuItem Header="Toggle Selected Line _Secret" x:Name="ToggleAutomapSecretLineMenuItem" Click="OnToggleAutomapSecretLine" />
+                    <MenuItem Header="Toggle Selected Line _Hidden" x:Name="ToggleAutomapHiddenLineMenuItem" Click="OnToggleAutomapHiddenLine" />
+                    <MenuItem Header="Toggle Selected Sector _Textured Hidden" x:Name="ToggleAutomapTexturedHiddenSectorMenuItem" Click="OnToggleAutomapTexturedHiddenSector" />
+                </MenuItem>
                 <MenuItem Header="Sector _Color..." x:Name="SectorColorMenuItem" Click="OnSectorColor" />
                 <MenuItem Header="Tag _Range..." x:Name="TagRangeMenuItem" Click="OnTagRange" />
                 <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
