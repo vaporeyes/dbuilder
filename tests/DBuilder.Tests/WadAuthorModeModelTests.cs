@@ -44,6 +44,16 @@ public class WadAuthorModeModelTests
     }
 
     [Fact]
+    public void LinedefPopupExecutableStateMatchesPortedEditorActions()
+    {
+        Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Properties));
+        Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Delete));
+        Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Split));
+        Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Flip));
+        Assert.False(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Curve));
+    }
+
+    [Fact]
     public void EnterModeConvertsSelectedSectorsToLinedefsLikeUdb()
     {
         var (map, sector, lines) = SquareSectorMap();
@@ -72,6 +82,81 @@ public class WadAuthorModeModelTests
         Assert.False(lines[0].Selected);
         Assert.False(sector.Selected);
         Assert.False(thing.Selected);
+    }
+
+    [Fact]
+    public void LinedefPopupPropertiesSelectsOnlyTargetLine()
+    {
+        var map = EmptyLineMap();
+        Linedef line = map.Linedefs[0];
+        Vertex vertex = map.Vertices[0];
+        vertex.Selected = true;
+
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(
+            map,
+            line,
+            WadAuthorLinedefPopupAction.Properties,
+            new Vector2D(50, 0));
+
+        Assert.False(result.Changed);
+        Assert.True(line.Selected);
+        Assert.False(vertex.Selected);
+        Assert.Equal("Edit linedef properties.", result.Status);
+    }
+
+    [Fact]
+    public void LinedefPopupDeleteRemovesTargetLine()
+    {
+        var map = EmptyLineMap();
+        Linedef line = map.Linedefs[0];
+
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(
+            map,
+            line,
+            WadAuthorLinedefPopupAction.Delete,
+            new Vector2D(50, 0));
+
+        Assert.True(result.Changed);
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.Equal("Deleted linedef.", result.Status);
+    }
+
+    [Fact]
+    public void LinedefPopupSplitSplitsTargetLineAtCursorPosition()
+    {
+        var map = EmptyLineMap();
+        Linedef line = map.Linedefs[0];
+
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(
+            map,
+            line,
+            WadAuthorLinedefPopupAction.Split,
+            new Vector2D(40, 0));
+
+        Assert.True(result.Changed);
+        Assert.Equal(2, map.Linedefs.Count);
+        Assert.Equal(new Vector2D(40, 0), line.End.Position);
+        Assert.Equal("Split linedef.", result.Status);
+    }
+
+    [Fact]
+    public void LinedefPopupFlipReversesTargetLine()
+    {
+        var map = EmptyLineMap();
+        Linedef line = map.Linedefs[0];
+        Vertex start = line.Start;
+        Vertex end = line.End;
+
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(
+            map,
+            line,
+            WadAuthorLinedefPopupAction.Flip,
+            new Vector2D(50, 0));
+
+        Assert.True(result.Changed);
+        Assert.Same(end, line.Start);
+        Assert.Same(start, line.End);
+        Assert.Equal("Flipped linedef.", result.Status);
     }
 
     private static MapSet EmptyLineMap()

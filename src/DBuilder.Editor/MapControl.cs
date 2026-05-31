@@ -22,6 +22,10 @@ using DBShader = DBuilder.Rendering.Shader;
 using DBTexture = DBuilder.Rendering.Texture;
 using DBPrimitiveType = DBuilder.Rendering.PrimitiveType;
 using Vec2D = DBuilder.Geometry.Vector2D;
+using AvaloniaContextMenu = Avalonia.Controls.ContextMenu;
+using AvaloniaControl = Avalonia.Controls.Control;
+using AvaloniaMenuItem = Avalonia.Controls.MenuItem;
+using AvaloniaSeparator = Avalonia.Controls.Separator;
 
 namespace DBuilder.Editor;
 
@@ -2945,6 +2949,70 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    private void ShowWadAuthorLinedefPopup()
+    {
+        if (_map == null || _wadAuthorHighlight.Target is not Linedef line) return;
+
+        WadAuthorModeModel.SelectOnlyLinedef(_map, line);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+
+        var controls = new List<AvaloniaControl>();
+        foreach (WadAuthorLinedefPopupItem popupItem in WadAuthorModeModel.LinedefPopupItems)
+        {
+            if (popupItem.Action == null)
+            {
+                controls.Add(new AvaloniaSeparator());
+                continue;
+            }
+
+            WadAuthorLinedefPopupAction action = popupItem.Action.Value;
+            var menuItem = new AvaloniaMenuItem
+            {
+                Header = popupItem.Title,
+                IsEnabled = WadAuthorModeModel.CanExecuteLinedefPopupAction(action),
+            };
+            menuItem.Click += (_, _) => ExecuteWadAuthorLinedefPopupAction(line, action);
+            controls.Add(menuItem);
+        }
+
+        var menu = new AvaloniaContextMenu { ItemsSource = controls };
+        menu.Open(this);
+    }
+
+    private void ExecuteWadAuthorLinedefPopupAction(Linedef line, WadAuthorLinedefPopupAction action)
+    {
+        if (_map == null) return;
+
+        Vec2D splitPosition = NearestPointOnLine(line, _cursorWorld);
+        if (action == WadAuthorLinedefPopupAction.Properties)
+        {
+            WadAuthorModeModel.SelectOnlyLinedef(_map, line);
+            Changed?.Invoke();
+            EditRequested?.Invoke();
+            return;
+        }
+
+        EditBegun?.Invoke(action switch
+        {
+            WadAuthorLinedefPopupAction.Delete => "Delete linedef",
+            WadAuthorLinedefPopupAction.Split => "Split linedef",
+            WadAuthorLinedefPopupAction.Flip => "Flip linedef",
+            _ => "WadAuthor linedef action",
+        });
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(_map, line, action, splitPosition);
+        if (result.Changed)
+        {
+            _map.BuildIndexes();
+            _wadAuthorHighlight = WadAuthorHighlight.None;
+            _wadAuthorDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+        Picked?.Invoke(result.Status);
+        RequestNextFrameRendering();
+    }
+
     private void ToggleAutomapSecretOrSector()
     {
         if (_map == null || _automapHighlight == null) return;
@@ -3110,6 +3178,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             if (e.InitialPressMouseButton == MouseButton.Left) ToggleAutomapSecretOrSector();
             else if (e.InitialPressMouseButton == MouseButton.Right) ToggleAutomapHiddenLine();
+            return;
+        }
+
+        if (WadAuthorMode && e.InitialPressMouseButton == MouseButton.Right)
+        {
+            bool wasDrag = _rightDragging;
+            _rightPressed = false;
+            _rightDragging = false;
+            if (!wasDrag) ShowWadAuthorLinedefPopup();
             return;
         }
 

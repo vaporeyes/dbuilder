@@ -30,6 +30,8 @@ public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, ob
 
 public sealed record WadAuthorLinedefPopupItem(string Title, WadAuthorLinedefPopupAction? Action);
 
+public sealed record WadAuthorLinedefPopupResult(bool Changed, string Status);
+
 public sealed record WadAuthorModeDescriptor(
     string DisplayName,
     string SwitchAction,
@@ -74,6 +76,49 @@ public static class WadAuthorModeModel
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
         map.ClearAllSelected();
+    }
+
+    public static bool CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction action)
+        => action != WadAuthorLinedefPopupAction.Curve;
+
+    public static WadAuthorLinedefPopupResult ExecuteLinedefPopupAction(
+        MapSet map,
+        Linedef line,
+        WadAuthorLinedefPopupAction action,
+        Vector2D splitPosition)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        if (line == null) throw new ArgumentNullException(nameof(line));
+        if (!map.Linedefs.Contains(line)) return new WadAuthorLinedefPopupResult(false, "Linedef no longer exists.");
+
+        SelectOnlyLinedef(map, line);
+
+        switch (action)
+        {
+            case WadAuthorLinedefPopupAction.Properties:
+                return new WadAuthorLinedefPopupResult(false, "Edit linedef properties.");
+            case WadAuthorLinedefPopupAction.Delete:
+                map.RemoveLinedef(line);
+                return new WadAuthorLinedefPopupResult(true, "Deleted linedef.");
+            case WadAuthorLinedefPopupAction.Split:
+                map.SplitLinedef(line, splitPosition);
+                return new WadAuthorLinedefPopupResult(true, "Split linedef.");
+            case WadAuthorLinedefPopupAction.Flip:
+                line.FlipVertices();
+                return new WadAuthorLinedefPopupResult(true, "Flipped linedef.");
+            case WadAuthorLinedefPopupAction.Curve:
+                return new WadAuthorLinedefPopupResult(false, "Curve linedefs is not ported yet.");
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
+        }
+    }
+
+    public static void SelectOnlyLinedef(MapSet map, Linedef line)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        if (line == null) throw new ArgumentNullException(nameof(line));
+        map.ClearAllSelected();
+        if (map.Linedefs.Contains(line)) line.Selected = true;
     }
 
     public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)

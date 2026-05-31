@@ -975,6 +975,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style WadAuthor mode selection conversion and cleanup model.
   - [x] Add editor WadAuthor mode menu, toolbar action, and hover highlight rendering.
+  - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.
@@ -1166,6 +1167,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style mode enter and leave selection lifecycle helpers.
   - [x] Add UDB-style mode descriptor and `wadauthormode` action metadata.
   - [x] Add editor WadAuthor mode toggle and hover highlight rendering for vertices, things, linedefs, and sectors.
+  - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.
