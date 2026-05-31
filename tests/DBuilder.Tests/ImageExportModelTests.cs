@@ -87,6 +87,64 @@ public sealed class ImageExportModelTests
     }
 
     [Fact]
+    public void PluginSettingsUseUdbKeysAndDefaults()
+    {
+        ImageExportPluginSettings settings = ImageExportPluginSettings.FromDictionary(new Dictionary<string, object?>());
+
+        Assert.True(settings.Fullbright);
+        Assert.True(settings.ApplySectorColors);
+        Assert.False(settings.Brightmap);
+        Assert.False(settings.Transparency);
+        Assert.False(settings.Tiles);
+        Assert.Equal(0, settings.ScaleIndex);
+    }
+
+    [Fact]
+    public void PluginSettingsReadUdbPersistedValues()
+    {
+        var source = new Dictionary<string, object?>
+        {
+            [ImageExportPluginSettings.FullbrightKey] = false,
+            [ImageExportPluginSettings.ApplySectorColorsKey] = false,
+            [ImageExportPluginSettings.BrightmapKey] = true,
+            [ImageExportPluginSettings.TransparencyKey] = true,
+            [ImageExportPluginSettings.TilesKey] = true,
+            [ImageExportPluginSettings.ScaleKey] = 3,
+        };
+
+        ImageExportPluginSettings settings = ImageExportPluginSettings.FromDictionary(source);
+
+        Assert.False(settings.Fullbright);
+        Assert.False(settings.ApplySectorColors);
+        Assert.True(settings.Brightmap);
+        Assert.True(settings.Transparency);
+        Assert.True(settings.Tiles);
+        Assert.Equal(3, settings.ScaleIndex);
+    }
+
+    [Fact]
+    public void PluginSettingsWriteUdbPersistedValues()
+    {
+        var target = new Dictionary<string, object?>();
+        var settings = new ImageExportPluginSettings(
+            Fullbright: false,
+            ApplySectorColors: false,
+            Brightmap: true,
+            Transparency: true,
+            Tiles: true,
+            ScaleIndex: 2);
+
+        settings.WriteTo(target);
+
+        Assert.Equal(false, target[ImageExportPluginSettings.FullbrightKey]);
+        Assert.Equal(false, target[ImageExportPluginSettings.ApplySectorColorsKey]);
+        Assert.Equal(true, target[ImageExportPluginSettings.BrightmapKey]);
+        Assert.Equal(true, target[ImageExportPluginSettings.TransparencyKey]);
+        Assert.Equal(true, target[ImageExportPluginSettings.TilesKey]);
+        Assert.Equal(2, target[ImageExportPluginSettings.ScaleKey]);
+    }
+
+    [Fact]
     public void PlannerUsesUdbSelectionBoundsAndTopLeftOffset()
     {
         Sector sector = BuildSector((10, 20), (138, 20), (138, -44), (10, -44));

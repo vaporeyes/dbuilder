@@ -30,6 +30,47 @@ public sealed record ImageExportOptions(
     int ImageFormatIndex = 0,
     int PixelFormatIndex = 0);
 
+public sealed record ImageExportPluginSettings(
+    bool Fullbright = true,
+    bool ApplySectorColors = true,
+    bool Brightmap = false,
+    bool Transparency = false,
+    bool Tiles = false,
+    int ScaleIndex = 0)
+{
+    public const string FullbrightKey = "imageexportfullbright";
+    public const string ApplySectorColorsKey = "imageexportapplysectorcolors";
+    public const string BrightmapKey = "imageexportbrightmap";
+    public const string TransparencyKey = "imageexporttransparency";
+    public const string TilesKey = "imageexporttiles";
+    public const string ScaleKey = "imageexportscale";
+
+    public static ImageExportPluginSettings FromDictionary(IReadOnlyDictionary<string, object?> settings)
+        => new(
+            ReadBool(settings, FullbrightKey, true),
+            ReadBool(settings, ApplySectorColorsKey, true),
+            ReadBool(settings, BrightmapKey, false),
+            ReadBool(settings, TransparencyKey, false),
+            ReadBool(settings, TilesKey, false),
+            ReadInt(settings, ScaleKey, 0));
+
+    public void WriteTo(IDictionary<string, object?> settings)
+    {
+        settings[FullbrightKey] = Fullbright;
+        settings[ApplySectorColorsKey] = ApplySectorColors;
+        settings[BrightmapKey] = Brightmap;
+        settings[TransparencyKey] = Transparency;
+        settings[TilesKey] = Tiles;
+        settings[ScaleKey] = ScaleIndex;
+    }
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+        => settings.TryGetValue(key, out object? value) && value is bool result ? result : fallback;
+
+    private static int ReadInt(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+        => settings.TryGetValue(key, out object? value) && value is int result ? result : fallback;
+}
+
 public sealed record ImageExportSettings(
     string Directory,
     string Name,
