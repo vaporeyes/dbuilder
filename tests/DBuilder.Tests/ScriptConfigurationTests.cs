@@ -82,6 +82,33 @@ properties
     }
 
     [Fact]
+    public void LoadsScriptSnippetsFromConfiguredSnippetsDirectory()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_snippets_" + Guid.NewGuid().ToString("N"));
+        string snippets = Path.Combine(dir, "ACS");
+        Directory.CreateDirectory(snippets);
+        try
+        {
+            File.WriteAllLines(Path.Combine(snippets, "Open Door.txt"), new[] { "script 1 OPEN", "{" });
+            File.WriteAllText(Path.Combine(snippets, "Empty.txt"), "");
+            const string text = """
+                description = "ZDoom ACS";
+                snippetsdir = "ACS";
+                """;
+
+            var cfg = ScriptConfigurationInfo.FromText(text, dir);
+
+            Assert.Equal(new[] { "Open_Door" }, cfg.Snippets);
+            Assert.Equal(new[] { "script 1 OPEN", "{" }, cfg.GetSnippet("open_door"));
+            Assert.Null(cfg.GetSnippet("Empty"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void CatalogLoadsTopLevelScriptConfigurationsByLowerFileName()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_scripts_" + Guid.NewGuid().ToString("N"));

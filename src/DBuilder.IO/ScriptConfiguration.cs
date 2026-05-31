@@ -62,6 +62,8 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
     private readonly List<string> keywordKeysSorted = new();
     private readonly List<string> constants = new();
     private readonly List<string> properties = new();
+    private readonly List<string> snippetKeysSorted = new();
+    private readonly Dictionary<string, string[]> snippets = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<char> braces = new();
 
     public string CompilerName { get; private init; } = "";
@@ -88,24 +90,25 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
     public IReadOnlyList<string> Keywords => keywordKeysSorted;
     public IReadOnlyList<string> Constants => constants;
     public IReadOnlyList<string> Properties => properties;
+    public IReadOnlyList<string> Snippets => snippetKeysSorted;
     public IReadOnlySet<char> BraceChars => braces;
 
     public static ScriptConfigurationInfo PlainText { get; } = new();
 
-    public static ScriptConfigurationInfo FromFile(string path)
+    public static ScriptConfigurationInfo FromFile(string path, string snippetsPath = "")
     {
         var cfg = new Configuration(path);
-        return FromConfiguration(cfg);
+        return FromConfiguration(cfg, snippetsPath);
     }
 
-    public static ScriptConfigurationInfo FromText(string text)
+    public static ScriptConfigurationInfo FromText(string text, string snippetsPath = "")
     {
         var cfg = new Configuration();
         cfg.InputConfiguration(text);
-        return FromConfiguration(cfg);
+        return FromConfiguration(cfg, snippetsPath);
     }
 
-    public static ScriptConfigurationInfo FromConfiguration(Configuration cfg)
+    public static ScriptConfigurationInfo FromConfiguration(Configuration cfg, string snippetsPath = "")
     {
         string extensions = cfg.ReadSetting("extensions", "") ?? "";
         var info = new ScriptConfigurationInfo
@@ -136,6 +139,7 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
         info.LoadKeywords(cfg.ReadSetting("keywords", new Hashtable()) ?? new Hashtable());
         info.LoadProperties(cfg.ReadSetting("properties", new Hashtable()) ?? new Hashtable());
         info.LoadConstants(cfg.ReadSetting("constants", new Hashtable()) ?? new Hashtable());
+        info.LoadSnippets(cfg.ReadSetting("snippetsdir", "") ?? "", snippetsPath);
         return info;
     }
 
@@ -156,6 +160,9 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
 
     public string? GetFunctionDefinition(string keyword)
         => keywords.TryGetValue(keyword, out string? definition) ? definition : null;
+
+    public string[]? GetSnippet(string name)
+        => snippets.TryGetValue(name, out string[]? lines) ? lines : null;
 
     public int CompareTo(ScriptConfigurationInfo? other)
         => string.Compare(Description, other?.Description, ignoreCase: true, CultureInfo.InvariantCulture);
@@ -207,6 +214,29 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
             lowerConstants[constant.ToLowerInvariant()] = constant;
         }
         constants.Sort(StringComparer.Ordinal);
+    }
+
+    private void LoadSnippets(string snippetsDirectory, string snippetsPath)
+    {
+        if (string.IsNullOrEmpty(snippetsDirectory) || string.IsNullOrEmpty(snippetsPath)) return;
+
+        string path = Path.Combine(snippetsPath, snippetsDirectory);
+        if (!Directory.Exists(path)) return;
+
+        foreach (string file in Directory.EnumerateFiles(path, "*.txt", SearchOption.TopDirectoryOnly))
+        {
+            string name = Path.GetFileNameWithoutExtension(file);
+            if (string.IsNullOrEmpty(name)) continue;
+            if (name.Contains(' ', StringComparison.Ordinal)) name = name.Replace(' ', '_');
+
+            string[] lines = File.ReadAllLines(file);
+            if (lines.Length == 0) continue;
+
+            snippets[name] = lines;
+            snippetKeysSorted.Add(name);
+        }
+
+        snippetKeysSorted.Sort(StringComparer.Ordinal);
     }
 
     private void AddBrace(string value)
