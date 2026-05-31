@@ -129,6 +129,33 @@ public sealed record WavefrontPluginSettings(
     }
 }
 
+public sealed record WavefrontExportUiState(
+    bool GzdoomOptionsEnabled,
+    bool ActorSettingsEnabled,
+    bool ActorFormatEnabled,
+    bool ActorPathEnabled,
+    bool ModelPathEnabled,
+    bool ClassicExportPathEnabled,
+    bool ClassicExportTexturesEnabled,
+    bool ScaleEnabled)
+{
+    public static WavefrontExportUiState FromOptions(bool exportForGZDoom, bool generateCode)
+    {
+        bool actorOptionsEnabled = exportForGZDoom && generateCode;
+        bool classicOptionsEnabled = !exportForGZDoom;
+
+        return new WavefrontExportUiState(
+            GzdoomOptionsEnabled: exportForGZDoom,
+            ActorSettingsEnabled: actorOptionsEnabled,
+            ActorFormatEnabled: actorOptionsEnabled,
+            ActorPathEnabled: actorOptionsEnabled,
+            ModelPathEnabled: exportForGZDoom,
+            ClassicExportPathEnabled: classicOptionsEnabled,
+            ClassicExportTexturesEnabled: classicOptionsEnabled,
+            ScaleEnabled: classicOptionsEnabled);
+    }
+}
+
 public sealed record WavefrontExportPreflight(
     IReadOnlyList<Sector> Sectors,
     int DialogSectorCount,

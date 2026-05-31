@@ -154,6 +154,51 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void UiStateEnablesClassicExportControlsWhenGzdoomExportIsOff()
+    {
+        WavefrontExportUiState state = WavefrontExportUiState.FromOptions(exportForGZDoom: false, generateCode: true);
+
+        Assert.False(state.GzdoomOptionsEnabled);
+        Assert.False(state.ActorSettingsEnabled);
+        Assert.False(state.ActorFormatEnabled);
+        Assert.False(state.ActorPathEnabled);
+        Assert.False(state.ModelPathEnabled);
+        Assert.True(state.ClassicExportPathEnabled);
+        Assert.True(state.ClassicExportTexturesEnabled);
+        Assert.True(state.ScaleEnabled);
+    }
+
+    [Fact]
+    public void UiStateEnablesGzdoomActorControlsWhenCodeGenerationIsOn()
+    {
+        WavefrontExportUiState state = WavefrontExportUiState.FromOptions(exportForGZDoom: true, generateCode: true);
+
+        Assert.True(state.GzdoomOptionsEnabled);
+        Assert.True(state.ActorSettingsEnabled);
+        Assert.True(state.ActorFormatEnabled);
+        Assert.True(state.ActorPathEnabled);
+        Assert.True(state.ModelPathEnabled);
+        Assert.False(state.ClassicExportPathEnabled);
+        Assert.False(state.ClassicExportTexturesEnabled);
+        Assert.False(state.ScaleEnabled);
+    }
+
+    [Fact]
+    public void UiStateKeepsModelPathEnabledWhenGzdoomCodeGenerationIsOff()
+    {
+        WavefrontExportUiState state = WavefrontExportUiState.FromOptions(exportForGZDoom: true, generateCode: false);
+
+        Assert.True(state.GzdoomOptionsEnabled);
+        Assert.False(state.ActorSettingsEnabled);
+        Assert.False(state.ActorFormatEnabled);
+        Assert.False(state.ActorPathEnabled);
+        Assert.True(state.ModelPathEnabled);
+        Assert.False(state.ClassicExportPathEnabled);
+        Assert.False(state.ClassicExportTexturesEnabled);
+        Assert.False(state.ScaleEnabled);
+    }
+
+    [Fact]
     public void PrepareExportSelectionUsesWholeMapWhenNoSectorsAreSelected()
     {
         var map = new MapSet();
