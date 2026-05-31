@@ -314,6 +314,64 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowRemapsDirectoryTempInputErrorsLikeUdb()
+    {
+        var error = new ScriptCompilerError("Unknown function", "/tmp/dbuilder_compile/library.acs", 4);
+
+        var remapped = ScriptCompileFlow.RemapDirectoryError(
+            error,
+            "/tmp/dbuilder_compile/library.acs",
+            "/maps/project/scripts/library.acs");
+
+        Assert.Equal("/maps/project/scripts/library.acs", remapped.FileName);
+        Assert.Equal("Unknown function", remapped.Description);
+        Assert.Equal(4, remapped.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowRemapsArchiveTempInputErrorsLikeUdb()
+    {
+        var error = new ScriptCompilerError("Expected semicolon", "/tmp/dbuilder_compile/library.acs", 7);
+
+        var remapped = ScriptCompileFlow.RemapArchiveError(
+            error,
+            "/tmp/dbuilder_compile/library.acs",
+            "acs/library.acs");
+
+        Assert.Equal("acs/library.acs", remapped.FileName);
+        Assert.Equal("Expected semicolon", remapped.Description);
+        Assert.Equal(7, remapped.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowRemapsWadLumpTempInputErrorsLikeUdb()
+    {
+        var error = new ScriptCompilerError("Bad syntax", "/tmp/dbuilder_compile/tmp123", 0);
+
+        var remapped = ScriptCompileFlow.RemapWadLumpError(
+            error,
+            "/tmp/dbuilder_compile/tmp123",
+            "SCRIPTS");
+
+        Assert.Equal("?SCRIPTS", remapped.FileName);
+        Assert.Equal("Bad syntax", remapped.Description);
+        Assert.Equal(0, remapped.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowKeepsNonTempInputErrorsLikeUdb()
+    {
+        var error = new ScriptCompilerError("Bad include", "/maps/project/libs/common.acs", 3);
+
+        var remapped = ScriptCompileFlow.RemapDirectoryError(
+            error,
+            "/tmp/dbuilder_compile/library.acs",
+            "/maps/project/scripts/library.acs");
+
+        Assert.Equal(error, remapped);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(

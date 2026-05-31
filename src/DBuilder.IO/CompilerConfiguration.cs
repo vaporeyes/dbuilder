@@ -108,11 +108,32 @@ public static class ScriptCompileFlow
     public static ScriptCompilerError MissingOutputFileError(string outputPath)
         => new("Output file \"" + outputPath + "\" doesn't exist.");
 
+    public static ScriptCompilerError RemapDirectoryError(ScriptCompilerError error, string inputCopyPath, string sourceFile)
+        => SamePath(error.FileName, inputCopyPath)
+            ? error with { FileName = sourceFile }
+            : error;
+
+    public static ScriptCompilerError RemapArchiveError(ScriptCompilerError error, string inputCopyPath, string archiveEntryName)
+        => SamePath(error.FileName, inputCopyPath)
+            ? error with { FileName = archiveEntryName }
+            : error;
+
+    public static ScriptCompilerError RemapWadLumpError(ScriptCompilerError error, string inputFile, string lumpName)
+        => SamePath(error.FileName, inputFile)
+            ? error with { FileName = "?" + lumpName }
+            : error;
+
     private static ScriptCompileTarget MissingResultLumpTarget(string scriptConfigurationName)
     {
         string name = string.IsNullOrEmpty(scriptConfigurationName) ? "" : "\"" + scriptConfigurationName + "\" ";
         return new ScriptCompileTarget("", "Unable to create target file: unable to determine target filename. Make sure \"ResultLump\" property is set in the " + name + "script configuration.");
     }
+
+    private static bool SamePath(string left, string right)
+        => string.Equals(
+            left.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
+            right.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
+            StringComparison.OrdinalIgnoreCase);
 }
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);
