@@ -18,6 +18,8 @@ public sealed class MapLumpInfo
     public bool ScriptBuild { get; init; }
     /// <summary>Script-config filename for text script lumps (e.g. SCRIPTS), or null.</summary>
     public string? Script { get; init; }
+    /// <summary>Resolved script configuration for text script lumps, or plain text when the configured script is unknown.</summary>
+    public ScriptConfigurationInfo? ScriptConfiguration { get; init; }
 
     /// <summary>True for the map marker placeholder lump ("~MAP").</summary>
     public bool IsMarker => Name == "~MAP";

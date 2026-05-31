@@ -74,6 +74,29 @@ maplumpnames
         var lump = gc.MapLumpNames["ACS"];
         Assert.True(lump.ScriptBuild);
         Assert.Null(lump.Script);
+        Assert.Null(lump.ScriptConfiguration);
+    }
+
+    [Fact]
+    public void ResolvesConfiguredScriptConfigurationByLowerFileName()
+    {
+        var scripts = new ScriptConfigurationCatalog();
+        scripts.Add("hexen_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Hexen ACS";
+            scripttype = "ACS";
+            """));
+
+        var gc = GameConfiguration.FromText(Cfg, scripts);
+
+        Assert.Equal("Hexen ACS", gc.MapLumpNames["SCRIPTS"].ScriptConfiguration?.Description);
+    }
+
+    [Fact]
+    public void UnknownMapLumpScriptConfigurationFallsBackToPlainText()
+    {
+        var gc = GameConfiguration.FromText(Cfg, new ScriptConfigurationCatalog());
+
+        Assert.Equal(ScriptConfigurationInfo.PlainText, gc.MapLumpNames["SCRIPTS"].ScriptConfiguration);
     }
 
     [Fact]

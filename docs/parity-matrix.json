@@ -17,7 +17,7 @@
       "udbArea": "Source/Core/Config",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Game configuration parsing and thing catalog metadata are partial. Script configuration loading, UDB-style script configuration selection rules, and script snippet loading are covered. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, UDB stuck-inside error checks for solid actors, non-solid error-check preservation, DistanceCheck preservation for undefined CVARs, unknown preview sprite fallback, MAPINFO DoomEdNums overrides from archived unsupported actors, and explicit-category-only replacement recategorization."
+      "notes": "Game configuration parsing and thing catalog metadata are partial. Script configuration loading, UDB-style script configuration selection rules, script snippet loading, and map-lump script configuration resolution are covered. Recent actor merge parity includes locked sprites, bright and dynamic light recalculation, blocking severity preservation, UDB stuck-inside error checks for solid actors, non-solid error-check preservation, DistanceCheck preservation for undefined CVARs, unknown preview sprite fallback, MAPINFO DoomEdNums overrides from archived unsupported actors, and explicit-category-only replacement recategorization."
     },
     {
       "udbArea": "Source/Core/Controls",

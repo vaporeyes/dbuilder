@@ -537,21 +537,21 @@ public sealed class GameConfiguration
     public IReadOnlyDictionary<string, EnumListInfo> EnumLists => enumLists;
 
     /// <summary>Loads a game configuration file (resolving its include() statements) into catalogs.</summary>
-    public static GameConfiguration FromFile(string path)
+    public static GameConfiguration FromFile(string path, ScriptConfigurationCatalog? scriptConfigurations = null)
     {
         var cfg = new Configuration(path, true);
-        return FromConfiguration(cfg);
+        return FromConfiguration(cfg, scriptConfigurations);
     }
 
     /// <summary>Builds catalogs from already-parsed configuration text (no include resolution).</summary>
-    public static GameConfiguration FromText(string cfgText)
+    public static GameConfiguration FromText(string cfgText, ScriptConfigurationCatalog? scriptConfigurations = null)
     {
         var cfg = new Configuration(true);
         cfg.InputConfiguration(cfgText, true);
-        return FromConfiguration(cfg);
+        return FromConfiguration(cfg, scriptConfigurations);
     }
 
-    public static GameConfiguration FromConfiguration(Configuration cfg)
+    public static GameConfiguration FromConfiguration(Configuration cfg, ScriptConfigurationCatalog? scriptConfigurations = null)
     {
         var gc = new GameConfiguration();
         if (cfg.Root is IDictionary root)
@@ -667,7 +667,7 @@ public sealed class GameConfiguration
             if (root["gen_sectortypes"] is IDictionary gs) gc.genSectorEffects.AddRange(GeneralizedOption.ParseOptionsBlock(gs));
             if (root["linedefflagstranslation"] is IDictionary lft) gc.ParseFlagTranslations(lft, gc.linedefFlagsTranslation);
             if (root["thingflagstranslation"] is IDictionary tft) gc.ParseFlagTranslations(tft, gc.thingFlagsTranslation);
-            if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln);
+            if (root["maplumpnames"] is IDictionary mln) gc.ParseMapLumpNames(mln, scriptConfigurations);
             if (root["staticlimits"] is IDictionary sl) gc.staticLimits = ParseStaticLimits(sl);
             if (root["requiredarchives"] is IDictionary ra) gc.ParseRequiredArchives(ra);
             if (root["texturesets"] is IDictionary ts) gc.ParseTextureSets(ts);
@@ -2057,13 +2057,14 @@ public sealed class GameConfiguration
         => mapLumpNames.TryGetValue(name, out var info) && !info.IsMarker;
 
     // Parses the maplumpnames block: each key is a lump name, each value its property sub-dict.
-    private void ParseMapLumpNames(IDictionary block)
+    private void ParseMapLumpNames(IDictionary block, ScriptConfigurationCatalog? scriptConfigurations)
     {
         foreach (DictionaryEntry e in block)
         {
             string name = e.Key.ToString() ?? "";
             if (e.Value is not IDictionary d) continue;
             bool scriptBuild = GetBool(d, "scriptbuild", false);
+            string? script = scriptBuild ? null : d["script"] as string;
             mapLumpNames[name] = new MapLumpInfo
             {
                 Name = name,
@@ -2073,9 +2074,18 @@ public sealed class GameConfiguration
                 AllowEmpty = GetBool(d, "allowempty", false),
                 Forbidden = GetBool(d, "forbidden", false),
                 ScriptBuild = scriptBuild,
-                Script = scriptBuild ? null : d["script"] as string,
+                Script = script,
+                ScriptConfiguration = ResolveMapLumpScript(script, scriptConfigurations),
             };
         }
+    }
+
+    private static ScriptConfigurationInfo? ResolveMapLumpScript(string? script, ScriptConfigurationCatalog? scriptConfigurations)
+    {
+        if (string.IsNullOrEmpty(script) || scriptConfigurations == null) return null;
+        return scriptConfigurations.Configurations.TryGetValue(script.ToLowerInvariant(), out var configuration)
+            ? configuration
+            : ScriptConfigurationInfo.PlainText;
     }
 
     // Parses a "<bit> = "<udmf spec>";" block into FlagTranslation entries (compound "a,b" / negated "!a").
