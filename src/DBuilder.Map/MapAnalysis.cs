@@ -242,8 +242,8 @@ public static class MapAnalysis
                     ("lower", SidedefPart.Lower, side.LowTexture),
                 })
                     if (!IsBlank(name) && !ctx.TextureExists(name) && ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
-                        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture,
-                            $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.") { Target = l, Focus = mid });
+                        issues.Add(UnknownTextureIssue(l, side, part, ctx.FixOptions,
+                            $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.", mid));
 
             if (!IsBlank(side.HighTexture) &&
                 !side.HighRequired() &&
@@ -268,8 +268,8 @@ public static class MapAnalysis
                     issues.Add(MissingFlatIssue(s, slot == "ceiling", ctx.FixOptions,
                         $"Sector {i} has no {slot} flat."));
                 else if (ctx.FlatExists != null && !ctx.FlatExists(name))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat,
-                        $"Sector {i} {slot} flat \"{name}\" is not found.") { Target = s });
+                    issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx.FixOptions,
+                        $"Sector {i} {slot} flat \"{name}\" is not found."));
             }
         }
     }
@@ -874,8 +874,52 @@ public static class MapAnalysis
             },
         };
 
+    private static MapIssue UnknownTextureIssue(
+        Linedef line,
+        Sidedef side,
+        SidedefPart part,
+        MapIssueFixOptions options,
+        string message,
+        Vector2D focus)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Remove Texture", map =>
+                {
+                    if (!map.Sidedefs.Contains(side)) return false;
+                    side.SetTexture(part, "-");
+                    return true;
+                }),
+                new MapIssueFix("Add Default Texture", map =>
+                {
+                    if (!map.Sidedefs.Contains(side)) return false;
+                    side.SetTexture(part, DefaultTexture(part, options));
+                    return true;
+                }),
+            },
+        };
+
     private static MapIssue MissingFlatIssue(Sector sector, bool ceiling, MapIssueFixOptions options, string message)
         => new(MapIssueSeverity.Error, MapIssueKind.MissingFlat, message)
+        {
+            Target = sector,
+            Fixes = new[]
+            {
+                new MapIssueFix("Add Default Flat", map =>
+                {
+                    if (!map.Sectors.Contains(sector)) return false;
+                    if (ceiling) sector.SetCeilTexture(options.DefaultCeilingTexture);
+                    else sector.SetFloorTexture(options.DefaultFloorTexture);
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue UnknownFlatIssue(Sector sector, bool ceiling, MapIssueFixOptions options, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat, message)
         {
             Target = sector,
             Fixes = new[]

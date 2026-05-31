@@ -511,6 +511,42 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownTextureIssueCanRemoveTexture()
+    {
+        var map = Square(true);
+        var side = map.Linedefs[0].Front!;
+        side.MidTexture = "NOPE99";
+        var ctx = new MapCheckContext { TextureExists = _ => false };
+        var issue = MapAnalysis.Check(map, ctx)
+            .First(i => i.Kind == MapIssueKind.UnknownTexture && i.Message.Contains("middle texture", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Remove Texture");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("-", side.MidTexture);
+    }
+
+    [Fact]
+    public void UnknownTextureIssueCanAddDefaultTexture()
+    {
+        var map = Square(true);
+        var side = map.Linedefs[0].Front!;
+        side.HighTexture = "NOPE99";
+        var ctx = new MapCheckContext
+        {
+            TextureExists = _ => false,
+            FixOptions = new MapIssueFixOptions(DefaultTopTexture: "BROWN1"),
+        };
+        var issue = MapAnalysis.Check(map, ctx)
+            .First(i => i.Kind == MapIssueKind.UnknownTexture && i.Message.Contains("upper texture", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Add Default Texture");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWN1", side.HighTexture);
+    }
+
+    [Fact]
     public void UnusedUpperAndLowerTexturesAreFlaggedWhenWallPartsAreNotRequired()
     {
         var map = new MapSet();
@@ -599,6 +635,27 @@ public class MapAnalysisTests
         var issues = MapAnalysis.Check(map, ctx);
         Assert.Contains(issues, i => i.Kind == MapIssueKind.MissingFlat);
         Assert.Contains(issues, i => i.Kind == MapIssueKind.UnknownFlat);
+    }
+
+    [Fact]
+    public void UnknownFlatIssueCanAddDefaultFlat()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.CeilTexture = "WAT99";
+        var ctx = new MapCheckContext
+        {
+            FlatExists = _ => false,
+            FixOptions = new MapIssueFixOptions(DefaultCeilingTexture: "CEIL5_1"),
+        };
+        var issue = MapAnalysis.Check(map, ctx)
+            .First(i => i.Kind == MapIssueKind.UnknownFlat && i.Message.Contains("ceiling flat", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Add Default Flat", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("CEIL5_1", sector.CeilTexture);
     }
 
     [Fact]
