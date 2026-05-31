@@ -42,7 +42,7 @@ Status values:
 | `BuilderEffects` | partial | `DBuilder.Map` | Selected effects exist. Full plugin missing. |
 | `BuilderModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected drawing/editing tools exist. Full mode set missing. |
 | `ColorPicker` | partial | `DBuilder.Editor`, `DBuilder.Map` | RGB/HSV conversion, picker formatting, typed HEX and float color parsing, packed UDMF color integers, sector light/fade color fields, and selected-sector color command exist. Full picker controls and dynamic light editing remain missing. |
-| `CommentsPanel` | missing | none | Not ported. |
+| `CommentsPanel` | partial | `DBuilder.Editor`, `DBuilder.Map` | Comment grouping, current-mode filtering, set/remove helpers, selection targets, edit targets with sidedef-to-linedef conversion, padded view-area calculation, and a non-modal comments panel exist. Full docked UI, live selection wiring, and rendering integration remain missing. |
 | `ImageDrawingExample` | partial | `DBuilder.Editor` | Built-in image-example mode renders an overlay-only screen-space image. Full sample plugin loading remains missing. |
 | `NodesViewer` | partial | `DBuilder.IO` | Nodes reader exists. Viewer UI missing. |
 | `RejectExplorer` | partial | `DBuilder.IO` | Reject table logic exists. Explorer UI missing. |

@@ -904,6 +904,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
+  - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
   - [x] Add editor comments panel for grouping, selecting, setting, and removing comments.
 - [ ] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
@@ -1033,6 +1034,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.
+  - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
   - [x] Add non-modal editor comments panel with current selection comment assignment and group navigation.
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.

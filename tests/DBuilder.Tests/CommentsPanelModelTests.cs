@@ -122,6 +122,38 @@ public sealed class CommentsPanelModelTests
     }
 
     [Fact]
+    public void CreateEditTargetConvertsSidedefsToOwningLinedefs()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var side = map.AddSidedef(line, true, map.AddSector());
+
+        side.Fields["comment"] = "side";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var target = CommentsPanelModel.CreateEditTarget(group);
+
+        Assert.Equal(CommentsPanelMode.Linedefs, target.Mode);
+        Assert.Equal(new IFielded[] { line }, target.Elements);
+    }
+
+    [Fact]
+    public void CreateEditTargetKeepsElementOrderAndDuplicatesLikeUdb()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var side = map.AddSidedef(line, true, map.AddSector());
+
+        line.Fields["comment"] = "line";
+        side.Fields["comment"] = "line";
+
+        var group = Assert.Single(CommentsPanelModel.BuildGroups(map));
+        var target = CommentsPanelModel.CreateEditTarget(group);
+
+        Assert.Equal(new IFielded[] { line, line }, target.Elements);
+    }
+
+    [Fact]
     public void CreateViewAreaSquaresAndPadsLineBounds()
     {
         var map = new MapSet();

@@ -30,6 +30,8 @@ public sealed record CommentGroup(CommentsPanelMode Group, string Comment, IRead
 
 public sealed record CommentSelectionTarget(CommentsPanelMode Mode, IReadOnlyList<IFielded> Elements);
 
+public sealed record CommentEditTarget(CommentsPanelMode Mode, IReadOnlyList<IFielded> Elements);
+
 public static class CommentsPanelModel
 {
     public const string CommentField = "comment";
@@ -98,6 +100,15 @@ public static class CommentsPanelModel
             elements.Add(item.Element);
 
         return new CommentSelectionTarget(SelectionMode(group), elements);
+    }
+
+    public static CommentEditTarget CreateEditTarget(CommentGroup group)
+    {
+        var elements = new List<IFielded>(group.Elements.Count);
+        foreach (var item in group.Elements)
+            elements.Add(item.Element is Sidedef side ? side.Line : item.Element);
+
+        return new CommentEditTarget(SelectionMode(group), elements);
     }
 
     public static RectangleF CreateViewArea(CommentGroup group)
