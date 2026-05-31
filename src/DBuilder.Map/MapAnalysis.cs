@@ -896,8 +896,7 @@ public static class MapAnalysis
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefWithoutSidedefs,
                     $"Linedef {i} has no sidedefs.") { Target = l, Focus = mid });
             else if (l.Front == null)
-                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront,
-                    $"Linedef {i} has only a back sidedef (a front sidedef is required).") { Target = l, Focus = mid });
+                issues.Add(MissingFrontIssue(l, $"Linedef {i} has only a back sidedef (a front sidedef is required).", mid));
         }
     }
 
@@ -911,11 +910,11 @@ public static class MapAnalysis
             var mid = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
             bool markedDoubleSided = IsLineFlagSet(l, ctx.DoubleSidedFlag);
             if (markedDoubleSided && l.Back == null)
-                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided,
-                    $"Linedef {i} is marked double-sided but has no back sidedef.") { Target = l, Focus = mid });
+                issues.Add(LineNotDoubleSidedIssue(l, ctx.DoubleSidedFlag,
+                    $"Linedef {i} is marked double-sided but has no back sidedef.", mid));
             else if (!markedDoubleSided && l.Back != null)
-                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotSingleSided,
-                    $"Linedef {i} has a back sidedef but is not marked double-sided.") { Target = l, Focus = mid });
+                issues.Add(LineNotSingleSidedIssue(l, ctx.DoubleSidedFlag,
+                    $"Linedef {i} has a back sidedef but is not marked double-sided.", mid));
         }
     }
 
@@ -925,6 +924,76 @@ public static class MapAnalysis
         if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
             return bit != 0 && (line.Flags & bit) != 0;
         return line.UdmfFlags.Contains(flag);
+    }
+
+    private static MapIssue MissingFrontIssue(Linedef line, string message, Vector2D focus)
+        => new(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Flip Linedef", map =>
+                {
+                    if (!map.Linedefs.Contains(line) || line.Back == null || line.Front != null) return false;
+                    line.FlipVertices();
+                    line.FlipSidedefs();
+                    map.BuildIndexes();
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue LineNotDoubleSidedIssue(Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
+        => new(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Make Single-Sided", map =>
+                {
+                    if (!map.Linedefs.Contains(line)) return false;
+                    SetLineFlag(line, doubleSidedFlag, false);
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue LineNotSingleSidedIssue(Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
+        => new(MapIssueSeverity.Error, MapIssueKind.LinedefNotSingleSided, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Make Double-Sided", map =>
+                {
+                    if (!map.Linedefs.Contains(line)) return false;
+                    SetLineFlag(line, doubleSidedFlag, true);
+                    return true;
+                }),
+                new MapIssueFix("Remove Sidedef", map =>
+                {
+                    if (!map.Linedefs.Contains(line) || line.Back == null) return false;
+                    map.RemoveSidedef(line.Back);
+                    map.BuildIndexes();
+                    return true;
+                }),
+            },
+        };
+
+    private static void SetLineFlag(Linedef line, string? flag, bool value)
+    {
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0") return;
+        if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+        {
+            if (value) line.Flags |= bit;
+            else line.Flags &= ~bit;
+            return;
+        }
+
+        line.SetFlag(flag, value);
     }
 
     private static void CheckMapSize(MapSet map, MapCheckContext ctx, List<MapIssue> issues)

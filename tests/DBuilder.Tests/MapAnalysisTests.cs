@@ -102,6 +102,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingFrontIssueCanFlipLinedef()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var line = map.AddLinedef(a, b);
+        var back = map.AddSidedef(line, false, sector);
+        map.BuildIndexes();
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.LinedefMissingFront);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Flip Linedef", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.Same(back, line.Front);
+        Assert.Null(line.Back);
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+    }
+
+    [Fact]
     public void DoubleSidedFlagWithoutBackSidedefIsFlagged()
     {
         var map = Square(true);
@@ -111,6 +133,22 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
         Assert.Same(line, issue.Target);
+    }
+
+    [Fact]
+    public void NotDoubleSidedIssueCanClearDoubleSidedFlag()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.UdmfFlags.Add("twosided");
+        var ctx = new MapCheckContext { DoubleSidedFlag = "twosided" };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Make Single-Sided", fix.Label);
+        Assert.True(fix.Apply(map));
+
+        Assert.DoesNotContain("twosided", line.UdmfFlags);
     }
 
     [Fact]
@@ -128,6 +166,34 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
         Assert.Same(line, issue.Target);
+    }
+
+    [Fact]
+    public void NotSingleSidedIssueCanSetFlagOrRemoveBackSidedef()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var backSector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, front);
+        var back = map.AddSidedef(line, false, backSector);
+        var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
+        Assert.Equal(new[] { "Make Double-Sided", "Remove Sidedef" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+
+        Assert.True(issue.Fixes[0].Apply(map));
+        Assert.Equal(4, line.Flags);
+
+        line.Flags = 0;
+        issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
+        Assert.True(issue.Fixes[1].Apply(map));
+
+        Assert.Null(line.Back);
+        Assert.DoesNotContain(back, map.Sidedefs);
+        Assert.True(back.IsDisposed);
     }
 
     [Fact]
