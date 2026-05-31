@@ -903,6 +903,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
 - [ ] Port `WadAuthorMode`.
+  - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
 - [ ] Decide whether to port `ImageDrawingExample` or keep it as a sample plugin.
 
 ## BuilderModes Detail
@@ -965,6 +966,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
 - [ ] Port WadAuthor mode behavior.
+  - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
 

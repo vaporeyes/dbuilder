@@ -217,6 +217,11 @@
       "dbuilderLocation": "DBuilder.Map",
       "notes": "UDB-style VisplaneExplorer 64x64 tile model exists, including progressive butterfly sampling order, point result sentinels, packed visplanes/drawsegs/solidsegs/openings counters, and UDB stat compression. Native VPO execution, heatmap interpolation, map scan orchestration, and full UI remain incomplete."
     },
-    { "udbPlugin": "WadAuthorMode", "status": "missing", "dbuilderLocation": null }
+    {
+      "udbPlugin": "WadAuthorMode",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "UDB-style WadAuthorMode hover highlight model exists for vertex/thing/linedef/sector priority, highlight ranges, renderer scale handling, and side-based sector selection from the nearest linedef. Full edit mode UI, toolbar/action registration, rendering highlights, and linedef popup workflow remain incomplete."
+    }
   ]
 }
