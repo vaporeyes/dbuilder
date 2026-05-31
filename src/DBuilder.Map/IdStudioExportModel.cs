@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text;
+using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
@@ -120,6 +121,50 @@ public static class IdStudioExportValidation
 
 public static class IdStudioGeometryExporter
 {
+    public static IReadOnlyList<IdStudioBrushGroup> BuildSectorBrushGroups(
+        MapSet map,
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getFlatDimensions,
+        Func<Sector, bool>? hasSkyFloor = null,
+        Func<Sector, bool>? hasSkyCeiling = null)
+    {
+        var groups = new List<IdStudioBrushGroup>();
+
+        foreach (Sector sector in map.Sectors)
+        {
+            Triangulation triangles = Triangulation.Create(sector);
+            if (triangles.Vertices.Count == 0) continue;
+
+            List<string> floorBrushes = BuildSectorSurfaceBrushes(
+                settings,
+                getFlatDimensions,
+                triangles.Vertices,
+                sector.FloorHeight,
+                isCeiling: false,
+                sector.FloorTexture,
+                sector.Index);
+            if (floorBrushes.Count > 0 && hasSkyFloor?.Invoke(sector) != true)
+            {
+                groups.Add(new IdStudioBrushGroup("floor", sector.Index, floorBrushes));
+            }
+
+            List<string> ceilingBrushes = BuildSectorSurfaceBrushes(
+                settings,
+                getFlatDimensions,
+                triangles.Vertices,
+                sector.CeilHeight,
+                isCeiling: true,
+                sector.CeilTexture,
+                sector.Index);
+            if (ceilingBrushes.Count > 0 && hasSkyCeiling?.Invoke(sector) != true)
+            {
+                groups.Add(new IdStudioBrushGroup("ceil", sector.Index, ceilingBrushes));
+            }
+        }
+
+        return groups;
+    }
+
     public static IReadOnlyList<IdStudioBrushGroup> BuildWallBrushGroups(
         MapSet map,
         IdStudioExportSettings settings,
@@ -215,6 +260,40 @@ public static class IdStudioGeometryExporter
         }
 
         return groups;
+    }
+
+    private static List<string> BuildSectorSurfaceBrushes(
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getFlatDimensions,
+        IReadOnlyList<Vector2D> vertices,
+        int height,
+        bool isCeiling,
+        string texture,
+        int sectorIndex)
+    {
+        IdStudioTextureDimensions dimensions = getFlatDimensions(texture);
+        float surfaceHeight = TransformHeight(height, settings);
+        var brushes = new List<string>();
+
+        for (int i = 0; i < vertices.Count;)
+        {
+            IdStudioVertex c = TransformVertex(vertices[i++], settings);
+            IdStudioVertex b = TransformVertex(vertices[i++], settings);
+            IdStudioVertex a = TransformVertex(vertices[i++], settings);
+            brushes.Add(IdStudioBrushFormatter.BuildFloorBrush(
+                settings,
+                a,
+                b,
+                c,
+                surfaceHeight,
+                isCeiling,
+                texture,
+                sectorIndex,
+                dimensions.Width,
+                dimensions.Height));
+        }
+
+        return brushes;
     }
 
     private static List<string> BuildFrontSideBrushes(
@@ -360,6 +439,11 @@ public static class IdStudioGeometryExporter
         => new(
             ((float)vertex.Position.x + settings.XShift) / settings.Downscale,
             ((float)vertex.Position.y + settings.YShift) / settings.Downscale);
+
+    private static IdStudioVertex TransformVertex(Vector2D vertex, IdStudioExportSettings settings)
+        => new(
+            ((float)vertex.x + settings.XShift) / settings.Downscale,
+            ((float)vertex.y + settings.YShift) / settings.Downscale);
 
     private static float TransformHeight(int height, IdStudioExportSettings settings)
         => (height + settings.ZShift) / settings.Downscale;

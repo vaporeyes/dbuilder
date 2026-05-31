@@ -974,6 +974,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio uncompressed BGRA TGA encoder.
   - [x] Add UDB-style idStudio map-used wall texture and flat collection helper.
   - [x] Add UDB-style idStudio linedef wall and step brush traversal helper.
+  - [x] Add UDB-style idStudio sector floor and ceiling brush traversal helper.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
 

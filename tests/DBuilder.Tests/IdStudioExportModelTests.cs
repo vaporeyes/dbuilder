@@ -363,6 +363,52 @@ public class IdStudioExportModelTests
     }
 
     [Fact]
+    public void GeometryExporterBuildsSectorFloorAndCeilingBrushGroups()
+    {
+        (MapSet map, Sector sector) = BuildSquareSector(size: 64);
+        sector.FloorHeight = 8;
+        sector.CeilHeight = 72;
+        sector.FloorTexture = "FLOOR0_1";
+        sector.CeilTexture = "CEIL5_2";
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 16, 32, 8, false, false);
+
+        IReadOnlyList<IdStudioBrushGroup> groups = IdStudioGeometryExporter.BuildSectorBrushGroups(map, settings, TextureDimensions);
+
+        Assert.Equal(2, groups.Count);
+        Assert.Equal("floor", groups[0].Group);
+        Assert.Equal(0, groups[0].SectorNumber);
+        Assert.Equal(2, groups[0].Brushes.Count);
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("\"art/wadtobrush/flats/floor0_1\"", StringComparison.Ordinal));
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("( 0 0 1 -1 )", StringComparison.Ordinal));
+        Assert.Contains(groups[0].Brushes, brush => brush.Contains("( ( 0 0.25 -0.25 ) ( -0.25 0 0.5 ) )", StringComparison.Ordinal));
+
+        Assert.Equal("ceil", groups[1].Group);
+        Assert.Equal(0, groups[1].SectorNumber);
+        Assert.Equal(2, groups[1].Brushes.Count);
+        Assert.Contains(groups[1].Brushes, brush => brush.Contains("\"art/wadtobrush/flats/ceil5_2\"", StringComparison.Ordinal));
+        Assert.Contains(groups[1].Brushes, brush => brush.Contains("( 0 0 -1 5 )", StringComparison.Ordinal));
+        Assert.Contains(groups[1].Brushes, brush => brush.Contains("( ( 0 -0.25 -0.25 ) ( -0.25 0 0.5 ) )", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void GeometryExporterSkipsSkySectorSurfaces()
+    {
+        (MapSet map, Sector sector) = BuildSquareSector(size: 64);
+        sector.FloorTexture = "F_SKY1";
+        sector.CeilTexture = "F_SKY1";
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 0, 0, 0, false, false);
+
+        IReadOnlyList<IdStudioBrushGroup> groups = IdStudioGeometryExporter.BuildSectorBrushGroups(
+            map,
+            settings,
+            TextureDimensions,
+            hasSkyFloor: s => ReferenceEquals(s, sector),
+            hasSkyCeiling: s => ReferenceEquals(s, sector));
+
+        Assert.Empty(groups);
+    }
+
+    [Fact]
     public void TextureExporterReportsRequiredDirectories()
     {
         IReadOnlyList<string> directories = IdStudioTextureExporter.RequiredDirectories("/tmp/mod");
@@ -555,8 +601,26 @@ public class IdStudioExportModelTests
         => texture switch
         {
             "STARTAN3" => new IdStudioTextureDimensions(64, 64),
+            "FLOOR0_1" => new IdStudioTextureDimensions(64, 64),
+            "CEIL5_2" => new IdStudioTextureDimensions(64, 64),
             "MID" => new IdStudioTextureDimensions(64, 128),
             "BACKMID" => new IdStudioTextureDimensions(64, 128),
             _ => new IdStudioTextureDimensions(64, 64)
         };
+
+    private static (MapSet Map, Sector Sector) BuildSquareSector(double size)
+    {
+        var map = new MapSet();
+        var vertices = new List<Vertex>
+        {
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(size, 0)),
+            map.AddVertex(new Vector2D(size, size)),
+            map.AddVertex(new Vector2D(0, size)),
+        };
+
+        Sector sector = SectorBuilder.CreateSector(map, vertices)!;
+        map.BuildIndexes();
+        return (map, sector);
+    }
 }
