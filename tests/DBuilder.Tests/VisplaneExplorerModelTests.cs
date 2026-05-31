@@ -85,12 +85,49 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void GetHeatmapByteInterpolatesVisplanesAgainstConfiguredStaticLimit()
+    {
+        var tile = new VisplaneTile(new VisplaneTilePosition(0, 0));
+
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 1),
+            VisplanePointResult.Ok,
+            Visplanes: 64,
+            Drawsegs: 66,
+            Solidsegs: 17,
+            Openings: 160));
+
+        Assert.Equal(64, tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Visplanes));
+        Assert.Equal(32, tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Visplanes, configuredVisplaneLimit: 256));
+        Assert.Equal(33, tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Drawsegs, configuredVisplaneLimit: 256));
+        Assert.Equal(1, tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Openings, configuredVisplaneLimit: 256));
+    }
+
+    [Fact]
+    public void GetHeatmapByteLeavesVoidAndZeroVisplanesUninterpolated()
+    {
+        var tile = new VisplaneTile(new VisplaneTilePosition(0, 0));
+
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 1),
+            VisplanePointResult.Void,
+            0,
+            0,
+            0,
+            0));
+
+        Assert.Equal(VisplaneTile.PointVoidByte, tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Visplanes, 256));
+        Assert.Equal(0, tile.GetHeatmapByte(1, 1, VisplaneExplorerStat.Visplanes, 256));
+    }
+
+    [Fact]
     public void PackedPointAccessRejectsHeatmapViewMode()
     {
         var tile = new VisplaneTile(new VisplaneTilePosition(0, 0));
 
         Assert.Throws<ArgumentOutOfRangeException>(() => tile.GetPointByte(0, 0, VisplaneExplorerStat.Heatmap));
         Assert.Throws<ArgumentOutOfRangeException>(() => tile.GetPointValue(0, 0, VisplaneExplorerStat.Heatmap));
+        Assert.Throws<ArgumentOutOfRangeException>(() => tile.GetHeatmapByte(0, 0, VisplaneExplorerStat.Heatmap));
     }
 
     [Fact]

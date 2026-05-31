@@ -87,6 +87,15 @@ public sealed class VisplaneTile
         return GetPointByte(x, y, stat) * StatCompressors[statIndex];
     }
 
+    public byte GetHeatmapByte(int x, int y, VisplaneExplorerStat stat, int configuredVisplaneLimit = 128)
+    {
+        byte value = GetPointByte(x, y, stat);
+        if (stat == VisplaneExplorerStat.Visplanes && value != 0 && value != PointVoidByte)
+            return InterpolateVisplanes(value, configuredVisplaneLimit);
+
+        return value;
+    }
+
     public VisplaneTilePoint GetNextPoint()
     {
         VisplaneTilePoint point = PointByIndex(nextIndex++);
@@ -158,6 +167,15 @@ public sealed class VisplaneTile
         if (statIndex < 0 || statIndex >= StatCompressors.Length)
             throw new ArgumentOutOfRangeException(nameof(stat));
         return statIndex;
+    }
+
+    private static byte InterpolateVisplanes(byte value, int configuredVisplaneLimit)
+    {
+        const int defaultMaxVisplanes = 128;
+        if (configuredVisplaneLimit <= 0 || configuredVisplaneLimit == defaultMaxVisplanes) return value;
+
+        double scaled = defaultMaxVisplanes * value / (double)configuredVisplaneLimit;
+        return (byte)Math.Ceiling(scaled);
     }
 
     private static uint MakePointValue(uint visplanes, uint drawsegs, uint solidsegs, uint openings)

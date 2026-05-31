@@ -926,6 +926,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
+  - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
 - [ ] Port `ImageDrawingExample`.
@@ -1053,6 +1054,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
+  - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
 - [ ] Port color picker controls and dialogs.

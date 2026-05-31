@@ -232,7 +232,26 @@ public sealed class SectorEffectDataInfo
 
 public sealed record StaticLimitsInfo(IReadOnlyDictionary<string, int> Values)
 {
+    public const int DefaultVisplanes = 128;
+    public const int DefaultDrawsegs = 256;
+    public const int DefaultSolidsegs = 32;
+    public const int DefaultOpenings = 320 * 64;
+
     public int Get(string name, int fallback = 0) => Values.TryGetValue(name, out int value) ? value : fallback;
+
+    public int Visplanes => Get("visplanes", DefaultVisplanes);
+    public int Drawsegs => Get("drawsegs", DefaultDrawsegs);
+    public int Solidsegs => Get("solidsegs", DefaultSolidsegs);
+    public int Openings => Get("openings", DefaultOpenings);
+
+    public byte InterpolateVisplanes(byte value)
+    {
+        int visplanes = Visplanes;
+        if (visplanes <= 0 || visplanes == DefaultVisplanes) return value;
+
+        double scaled = DefaultVisplanes * value / (double)visplanes;
+        return (byte)Math.Ceiling(scaled);
+    }
 }
 
 public sealed record RequiredArchiveEntry(string Name, string? Lump, string? ClassName);
