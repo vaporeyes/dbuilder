@@ -1635,18 +1635,47 @@ public partial class MainWindow : Window
             return;
         }
 
-        var win = new TagExplorerWindow(BuildTagExplorerEntries(null));
+        var win = new TagExplorerWindow(BuildTagExplorerEntries(null), _mapOptions?.TagLabels);
         _tagExplorer = win;
         win.Closed += (_, _) => _tagExplorer = null;
         win.OptionsChanged += RefreshTagExplorer;
         win.EntryActivated += SelectTagExplorerEntry;
+        win.ExportRequested += ExportTagExplorer;
         win.Show(this);
     }
 
     private void RefreshTagExplorer()
     {
         if (_tagExplorer is null) return;
-        _tagExplorer.SetEntries(BuildTagExplorerEntries(_tagExplorer.Options));
+        _tagExplorer.SetEntries(BuildTagExplorerEntries(_tagExplorer.Options), _mapOptions?.TagLabels);
+    }
+
+    private async void ExportTagExplorer(string contents)
+    {
+        if (string.IsNullOrEmpty(contents)) { SetStatus("No Tag Explorer entries to export."); return; }
+
+        var top = GetTopLevel(this);
+        if (top?.StorageProvider == null) return;
+
+        string mapName = _mapMarker ?? "map";
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export Tag Explorer Info",
+            SuggestedFileName = mapName + "_info.txt",
+            DefaultExtension = "txt",
+            FileTypeChoices = new[] { new FilePickerFileType("Text file") { Patterns = new[] { "*.txt" } } },
+        });
+        if (file?.TryGetLocalPath() is not { } path) return;
+
+        try
+        {
+            System.IO.File.WriteAllText(path, contents);
+            SetStatus($"Exported Tag Explorer info to {System.IO.Path.GetFileName(path)}.");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "Tag Explorer export failed");
+        }
     }
 
     private IReadOnlyList<TagExplorerEntry> BuildTagExplorerEntries(TagExplorerOptions? options)

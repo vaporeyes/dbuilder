@@ -16,11 +16,14 @@ public sealed class TagExplorerWindow : Window
     private readonly ComboBox _sortMode = new();
     private readonly TextBox _search = new();
     private readonly CheckBox _commentsOnly = new();
+    private readonly Button _export = new();
     private readonly TextBlock _header = new();
     private readonly ListBox _list = new();
+    private string _exportText = "";
 
     public event Action? OptionsChanged;
     public event Action<TagExplorerEntry>? EntryActivated;
+    public event Action<string>? ExportRequested;
 
     public TagExplorerOptions Options => new(
         DisplayMode: _displayMode.SelectedItem is TagExplorerDisplayMode display ? display : TagExplorerDisplayMode.TagsAndActions,
@@ -28,7 +31,7 @@ public sealed class TagExplorerWindow : Window
         SearchText: _search.Text ?? "",
         CommentsOnly: _commentsOnly.IsChecked == true);
 
-    public TagExplorerWindow(IReadOnlyList<TagExplorerEntry> entries)
+    public TagExplorerWindow(IReadOnlyList<TagExplorerEntry> entries, IReadOnlyDictionary<int, string>? tagLabels = null)
     {
         Title = "Tag Explorer";
         Width = 520;
@@ -60,12 +63,15 @@ public sealed class TagExplorerWindow : Window
         _commentsOnly.Content = "Comments only";
         _commentsOnly.Margin = new Avalonia.Thickness(0, 4, 0, 0);
         _commentsOnly.IsCheckedChanged += (_, _) => OptionsChanged?.Invoke();
+        _export.Content = "Export";
+        _export.HorizontalAlignment = HorizontalAlignment.Right;
+        _export.Click += (_, _) => ExportRequested?.Invoke(_exportText);
 
         var optionsGrid = new Grid
         {
             Margin = new Avalonia.Thickness(8),
             ColumnDefinitions = new ColumnDefinitions("*,*"),
-            RowDefinitions = new RowDefinitions("Auto,Auto,Auto"),
+            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
         };
         optionsGrid.Children.Add(Labeled("Show", _displayMode, 0, 0));
         optionsGrid.Children.Add(Labeled("Sort", _sortMode, 1, 0));
@@ -75,6 +81,9 @@ public sealed class TagExplorerWindow : Window
         Grid.SetRow(_commentsOnly, 2);
         Grid.SetColumnSpan(_commentsOnly, 2);
         optionsGrid.Children.Add(_commentsOnly);
+        Grid.SetRow(_export, 3);
+        Grid.SetColumn(_export, 1);
+        optionsGrid.Children.Add(_export);
 
         _header.Margin = new Avalonia.Thickness(8, 0, 8, 6);
         _header.Foreground = Brushes.LightSkyBlue;
@@ -92,25 +101,36 @@ public sealed class TagExplorerWindow : Window
         root.Children.Add(new ScrollViewer { Content = _list });
         Content = root;
 
-        SetEntries(entries);
+        SetEntries(entries, tagLabels);
     }
 
-    public void SetEntries(IReadOnlyList<TagExplorerEntry> entries)
+    public void SetEntries(IReadOnlyList<TagExplorerEntry> entries, IReadOnlyDictionary<int, string>? tagLabels = null)
     {
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, Options, tagLabels);
+        _exportText = TagExplorerModel.ExportTreeText(tree, Options.SortMode);
+        _export.IsEnabled = entries.Count > 0;
         _header.Text = entries.Count == 0
             ? "No matching tag explorer entries."
             : $"{entries.Count} entr{(entries.Count == 1 ? "y" : "ies")}. Click a row to select and reveal it.";
 
         var rows = new List<ListBoxItem>();
-        foreach (TagExplorerEntry entry in entries)
-        {
-            rows.Add(new ListBoxItem
-            {
-                Content = new TextBlock { Text = FormatEntry(entry), TextWrapping = TextWrapping.Wrap },
-                Tag = entry,
-            });
-        }
+        foreach (TagExplorerTreeNode node in tree)
+            AddRows(rows, node, depth: 0);
+
         _list.ItemsSource = rows;
+    }
+
+    private static void AddRows(List<ListBoxItem> rows, TagExplorerTreeNode node, int depth)
+    {
+        rows.Add(new ListBoxItem
+        {
+            Content = new TextBlock { Text = new string(' ', depth * 2) + node.Title, TextWrapping = TextWrapping.Wrap },
+            Tag = node.Entry,
+            IsEnabled = node.Entry != null,
+        });
+
+        foreach (TagExplorerTreeNode child in node.Children)
+            AddRows(rows, child, depth + 1);
     }
 
     private static Control Labeled(string label, Control control, int column, int row)
@@ -123,12 +143,4 @@ public sealed class TagExplorerWindow : Window
         return panel;
     }
 
-    private static string FormatEntry(TagExplorerEntry entry)
-    {
-        string tag = entry.Tag == 0 ? "" : $" tag {entry.Tag}";
-        string action = entry.Action == 0 ? "" : $" action {entry.Action}";
-        string polyobject = entry.PolyobjectNumber == TagExplorerModel.NoPolyobjectNumber ? "" : $" polyobject {entry.PolyobjectNumber}";
-        string comment = entry.Comment.Length == 0 ? "" : $" - {entry.Comment}";
-        return $"{entry.DefaultName} {entry.Index}:{tag}{action}{polyobject}{comment}";
-    }
 }
