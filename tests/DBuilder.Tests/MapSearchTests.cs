@@ -235,6 +235,35 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void MapSetNewTagCanScopeToElementOwnerType()
+    {
+        var map = Build();
+        map.Sectors[1].Tag = 1;
+        map.Linedefs[1].Tag = 1;
+        map.Things[0].Tag = 1;
+        map.Things[1].Tag = 2;
+
+        Assert.Equal(2, map.GetNewTag(MapTagKind.Linedef));
+        Assert.Equal(2, map.GetNewTag(MapTagKind.Sector));
+        Assert.Equal(3, map.GetNewTag(MapTagKind.Thing));
+    }
+
+    [Fact]
+    public void MapSetMultipleNewTagsCanScopeToMarkedGeometry()
+    {
+        var map = Build();
+        map.Sectors[1].Tag = 1;
+        map.Linedefs[1].Tag = 2;
+        map.Things[0].Tag = 3;
+        map.Sectors[1].Marked = true;
+        map.Linedefs[1].Marked = false;
+        map.Things[0].Marked = false;
+
+        Assert.Equal(new[] { 2, 3, 4 }, map.GetMultipleNewTags(3, markedOnly: true));
+        Assert.Equal(new[] { 4, 6 }, map.GetMultipleNewTags(2, markedOnly: false));
+    }
+
+    [Fact]
     public void ReplaceTagUpdatesMoreIds()
     {
         var map = Build();

@@ -41,6 +41,13 @@ public readonly record struct GeometryStitchResult(
         FlippedBackwardLinedefs;
 }
 
+public enum MapTagKind
+{
+    Linedef,
+    Sector,
+    Thing,
+}
+
 public class MapSet : IDisposable
 {
     public const string VirtualSectorField = "!virtual_sector";
@@ -1668,13 +1675,21 @@ public class MapSet : IDisposable
     public int GetNewTag(bool markedOnly, int maxTag = int.MaxValue)
         => FirstUnusedTag(CollectUsedTags(markedOnly), maxTag);
 
+    /// <summary>Returns the first positive tag not used by the requested tagged element owner type.</summary>
+    public int GetNewTag(MapTagKind kind, int maxTag = int.MaxValue)
+        => FirstUnusedTag(CollectUsedTags(kind), maxTag);
+
     /// <summary>Returns up to <paramref name="count"/> positive tags not used by any tagged map element.</summary>
     public List<int> GetMultipleNewTags(int count, int maxTag = int.MaxValue)
+        => GetMultipleNewTags(count, markedOnly: false, maxTag);
+
+    /// <summary>Returns up to <paramref name="count"/> positive tags not used by marked geometry when requested.</summary>
+    public List<int> GetMultipleNewTags(int count, bool markedOnly, int maxTag = int.MaxValue)
     {
         var result = new List<int>(Math.Max(0, count));
         if (count <= 0) return result;
 
-        var used = CollectUsedTags(markedOnly: false);
+        var used = CollectUsedTags(markedOnly);
         for (int tag = 1; tag <= maxTag && result.Count < count; tag++)
         {
             if (used.Contains(tag)) continue;
@@ -1696,6 +1711,27 @@ public class MapSet : IDisposable
         foreach (var thing in Things)
             if (!markedOnly || thing.Marked)
                 foreach (int tag in MapElementTags.PositiveTags(thing)) used.Add(tag);
+        return used;
+    }
+
+    private HashSet<int> CollectUsedTags(MapTagKind kind)
+    {
+        var used = new HashSet<int>();
+        switch (kind)
+        {
+            case MapTagKind.Linedef:
+                foreach (var line in Linedefs)
+                    foreach (int tag in MapElementTags.PositiveTags(line)) used.Add(tag);
+                break;
+            case MapTagKind.Sector:
+                foreach (var sector in Sectors)
+                    foreach (int tag in MapElementTags.PositiveTags(sector)) used.Add(tag);
+                break;
+            case MapTagKind.Thing:
+                foreach (var thing in Things)
+                    foreach (int tag in MapElementTags.PositiveTags(thing)) used.Add(tag);
+                break;
+        }
         return used;
     }
 
