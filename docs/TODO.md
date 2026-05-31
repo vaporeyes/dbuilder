@@ -879,6 +879,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `BuilderModes`.
 - [ ] Port `BuilderEffects`.
   - [x] Add UDB-style jitter transform helpers for vertices, sector heights, and things.
+  - [x] Add UDB-style directional shading calculations for sectors and sidedefs.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

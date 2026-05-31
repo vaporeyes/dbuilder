@@ -35,8 +35,21 @@ public readonly record struct ThingJitter(
     int SafeDistance = int.MaxValue,
     int SectorHeight = int.MaxValue);
 
+public readonly record struct DirectionalShadingOptions(
+    int SunAngleDegrees = 45,
+    int LightAmount = 64,
+    int LightColor = 0xFDEBD7,
+    int ShadeAmount = 16,
+    int ShadeColor = 0xABC8EB);
+
+public readonly record struct DirectionalShadingSector(Sector Sector, Vector3D Normal, int InitialBrightness, int InitialLightColor);
+
+public readonly record struct DirectionalShadingSide(Sidedef Sidedef, Vector3D Normal, int InitialBrightness);
+
 public static class BuilderEffects
 {
+    public const int WhiteNoAlpha = 0x00FFFFFF;
+
     public static int ApplyVertexTranslation(IReadOnlyList<VertexJitter> vertices, int amount)
     {
         foreach (VertexJitter jitter in vertices)
@@ -176,9 +189,101 @@ public static class BuilderEffects
         _ => value,
     };
 
+    public static DirectionalShadingSector CaptureDirectionalShadingSector(Sector sector)
+    {
+        int brightness = IsAbsoluteLight(sector, "lightfloorabsolute")
+            ? sector.GetIntegerField("lightfloor")
+            : sector.Brightness;
+        int color = sector.GetIntegerField("lightcolor", WhiteNoAlpha);
+        Vector3D normal = sector.HasFloorSlope ? sector.FloorSlope.GetNormal() : new Vector3D(0, 0, 1);
+
+        return new DirectionalShadingSector(sector, normal, brightness, color);
+    }
+
+    public static DirectionalShadingSide CaptureDirectionalShadingSide(Sidedef sidedef)
+    {
+        Vector3D normal = Vector3D.FromAngleXY(sidedef.Line.Angle + Angle2D.PIHALF);
+        if (sidedef.IsFront) normal = -normal;
+
+        int brightness = IsAbsoluteLight(sidedef, "lightabsolute")
+            ? sidedef.GetIntegerField("light")
+            : sidedef.Sector?.Brightness ?? 0;
+
+        return new DirectionalShadingSide(sidedef, normal, brightness);
+    }
+
+    public static int ApplyDirectionalShading(
+        IReadOnlyList<DirectionalShadingSector> sectors,
+        IReadOnlyList<DirectionalShadingSide> sides,
+        DirectionalShadingOptions options)
+    {
+        Vector3D sunvector = Vector3D.FromAngleXYZ(Angle2D.DegToRad(options.SunAngleDegrees + 90), Angle2D.DegToRad(45));
+
+        foreach (DirectionalShadingSector sector in sectors)
+        {
+            DirectionalShadingResult result = CalculateDirectionalShading(sector.Normal, sunvector, options);
+            if (IsAbsoluteLight(sector.Sector, "lightfloorabsolute"))
+                sector.Sector.SetIntegerField("lightfloor", Clamp(result.Light + sector.InitialBrightness, 0, 255), 0);
+            else
+                sector.Sector.SetIntegerField("lightfloor", Clamp(result.Light, -255, 255), 0);
+
+            int color = result.Color & WhiteNoAlpha;
+            if (color == WhiteNoAlpha) color = sector.InitialLightColor;
+            sector.Sector.SetIntegerField("lightcolor", color, WhiteNoAlpha);
+        }
+
+        foreach (DirectionalShadingSide side in sides)
+        {
+            DirectionalShadingResult result = CalculateDirectionalShading(side.Normal, sunvector, options);
+            if (IsAbsoluteLight(side.Sidedef, "lightabsolute"))
+                side.Sidedef.SetIntegerField("light", Clamp(result.Light + side.InitialBrightness, 0, 255), 0);
+            else
+                side.Sidedef.SetIntegerField("light", Clamp(result.Light, -255, 255), 0);
+        }
+
+        return sectors.Count + sides.Count;
+    }
+
     private static int NormalizeAngle(int angle)
     {
         int normalized = angle % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
+
+    private static DirectionalShadingResult CalculateDirectionalShading(
+        Vector3D normal,
+        Vector3D sunvector,
+        DirectionalShadingOptions options)
+    {
+        double anglediff = Vector3D.DotProduct(normal.GetNormal(), sunvector);
+        int light;
+        if (anglediff >= 0.5f)
+        {
+            double lightmul = (anglediff - 0.5f) * 2.0f;
+            light = (int)Math.Round(options.LightAmount * lightmul);
+        }
+        else
+        {
+            double lightmul = (0.5f - anglediff) * -2.0f;
+            light = (int)Math.Round(options.ShadeAmount * lightmul);
+        }
+
+        uint color = InterpolationTools.InterpolateColor((uint)options.ShadeColor, (uint)options.LightColor, anglediff);
+        return new DirectionalShadingResult(light, (int)(color & WhiteNoAlpha));
+    }
+
+    private static bool IsAbsoluteLight(IFielded element, string flagName)
+    {
+        if (element.Fields.TryGetValue(flagName, out object? raw) && raw is bool fieldValue) return fieldValue;
+        return element switch
+        {
+            Sector sector => sector.UdmfFlags.Contains(flagName),
+            Sidedef sidedef => sidedef.UdmfFlags.Contains(flagName),
+            _ => false,
+        };
+    }
+
+    private static int Clamp(int value, int min, int max) => Math.Min(max, Math.Max(min, value));
+
+    private readonly record struct DirectionalShadingResult(int Light, int Color);
 }

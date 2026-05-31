@@ -122,4 +122,61 @@ public class BuilderEffectsTests
         Assert.Equal(2.75, thing.ScaleX);
         Assert.Equal(5.5, thing.ScaleY);
     }
+
+    [Fact]
+    public void DirectionalShadingAppliesRelativeSectorLightAndColorFromCachedValues()
+    {
+        var sector = new Sector { Brightness = 160 };
+        sector.FloorSlope = new Vector3D(1, 0, 1).GetNormal();
+        sector.Fields["lightcolor"] = 0x112233;
+        var captured = BuilderEffects.CaptureDirectionalShadingSector(sector);
+
+        int changed = BuilderEffects.ApplyDirectionalShading(
+            new[] { captured },
+            Array.Empty<DirectionalShadingSide>(),
+            new DirectionalShadingOptions(SunAngleDegrees: 0, LightAmount: 64, LightColor: 0xFDEBD7, ShadeAmount: 16, ShadeColor: 0xABC8EB));
+
+        Assert.Equal(1, changed);
+        Assert.Equal(64, sector.GetIntegerField("lightfloor"));
+        Assert.Equal(0xFDEBD7, sector.GetIntegerField("lightcolor"));
+    }
+
+    [Fact]
+    public void DirectionalShadingUsesInitialAbsoluteSectorLightForRepeatedUpdates()
+    {
+        var sector = new Sector { Brightness = 96 };
+        sector.FloorSlope = new Vector3D(1, 0, 1).GetNormal();
+        sector.Fields["lightfloorabsolute"] = true;
+        sector.Fields["lightfloor"] = 100;
+        var captured = BuilderEffects.CaptureDirectionalShadingSector(sector);
+
+        BuilderEffects.ApplyDirectionalShading(
+            new[] { captured },
+            Array.Empty<DirectionalShadingSide>(),
+            new DirectionalShadingOptions(SunAngleDegrees: 0, LightAmount: 64, LightColor: BuilderEffects.WhiteNoAlpha, ShadeAmount: 16, ShadeColor: BuilderEffects.WhiteNoAlpha));
+        BuilderEffects.ApplyDirectionalShading(
+            new[] { captured },
+            Array.Empty<DirectionalShadingSide>(),
+            new DirectionalShadingOptions(SunAngleDegrees: 0, LightAmount: 16, LightColor: BuilderEffects.WhiteNoAlpha, ShadeAmount: 16, ShadeColor: BuilderEffects.WhiteNoAlpha));
+
+        Assert.Equal(116, sector.GetIntegerField("lightfloor"));
+        Assert.False(sector.Fields.ContainsKey("lightcolor"));
+    }
+
+    [Fact]
+    public void DirectionalShadingAppliesSidedefLightUsingUdbSideNormal()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(0, -64)));
+        line.Angle = 0;
+        var sector = new Sector { Brightness = 100 };
+        var side = new Sidedef(line, isFront: false) { Sector = sector };
+        var captured = BuilderEffects.CaptureDirectionalShadingSide(side);
+
+        BuilderEffects.ApplyDirectionalShading(
+            Array.Empty<DirectionalShadingSector>(),
+            new[] { captured },
+            new DirectionalShadingOptions(SunAngleDegrees: 0, LightAmount: 64, LightColor: 0xFDEBD7, ShadeAmount: 16, ShadeColor: 0xABC8EB));
+
+        Assert.Equal(27, side.GetIntegerField("light"));
+    }
 }
