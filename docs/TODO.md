@@ -1080,6 +1080,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port 3D floor control-sector editing.
   - [x] Add selected-sector 3D floor discovery and shared 3D floor filtering model.
+  - [x] Add UDB-style control-sector edit snapshots, geometry mutation, and orphan action-line cleanup.
 - [ ] Port 3D floor slope editing.
 - [ ] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.

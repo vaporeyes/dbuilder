@@ -136,6 +136,75 @@ public class ThreeDFloorsTests
         Assert.Same(sharedControl, sharedFloor.Control);
     }
 
+    [Fact]
+    public void ApplyControlEditUpdatesControlSectorAndActionLines()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 128);
+        ThreeDFloor floor = ThreeDFloors.Resolve(map)[target][0];
+        ThreeDFloorControlEdit edit = ThreeDFloors.CreateControlEdit(floor) with
+        {
+            BottomHeight = -16,
+            TopHeight = 48,
+            BottomFlat = "NEWFLR",
+            TopFlat = "NEWCEIL",
+            SideTexture = "NEWSIDE",
+            Type = 2,
+            Flags = 4,
+            Alpha = 999,
+            Brightness = 144,
+            Tags = new[] { 12, 13 },
+        };
+
+        int updated = ThreeDFloors.ApplyControlEdit(control, edit);
+
+        Assert.Equal(1, updated);
+        Assert.Equal(-16, control.FloorHeight);
+        Assert.Equal(48, control.CeilHeight);
+        Assert.Equal("NEWFLR", control.FloorTexture);
+        Assert.Equal("NEWCEIL", control.CeilTexture);
+        Assert.Equal(144, control.Brightness);
+        Assert.Equal(new[] { 12, 13 }, control.Tags);
+        Assert.Equal("NEWSIDE", control.Sidedefs[0].MidTexture);
+        Assert.Equal(2, map.Linedefs[0].Args[1]);
+        Assert.Equal(4, map.Linedefs[0].Args[2]);
+        Assert.Equal(255, map.Linedefs[0].Args[3]);
+    }
+
+    [Fact]
+    public void CleanupControlSectorClearsOrphanedActionAndDeletesUnusedControlSector()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 255);
+        target.Tags.Clear();
+
+        ThreeDFloorCleanupResult result = ThreeDFloors.CleanupControlSector(map, control);
+
+        Assert.Equal(1, result.ClearedLines);
+        Assert.True(result.ControlSectorDeleted);
+        Assert.DoesNotContain(control, map.Sectors);
+        Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Sidedefs);
+    }
+
+    [Fact]
+    public void CleanupControlSectorKeepsControlSectorWhenAnotherActionLineRemains()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 255);
+        target.Tags.Clear();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 32)), map.AddVertex(new Vector2D(64, 32)));
+        var side = map.AddSidedef(line, true, control);
+        side.MidTexture = "OTHER";
+        line.Action = 80;
+        map.BuildIndexes();
+
+        ThreeDFloorCleanupResult result = ThreeDFloors.CleanupControlSector(map, control);
+
+        Assert.Equal(1, result.ClearedLines);
+        Assert.False(result.ControlSectorDeleted);
+        Assert.Contains(control, map.Sectors);
+        Assert.Equal(0, map.Linedefs[0].Action);
+        Assert.Equal(80, map.Linedefs[1].Action);
+    }
+
     private static Sector AddControlFloor(MapSet map, int tag)
     {
         var control = map.AddSector();

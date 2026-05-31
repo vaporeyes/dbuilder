@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using DBuilder.Geometry;
 
 namespace DBuilder.Map;
 
 /// <summary>One resolved 3D floor inserted into a target sector by a control sector.</summary>
-public sealed record ThreeDFloor(Sector Control, double Bottom, double Top, int Alpha, int TypeBits, string SideTexture, int TargetTag = 0)
+public sealed record ThreeDFloor(Sector Control, double Bottom, double Top, int Alpha, int TypeBits, int Flags, string SideTexture, int TargetTag = 0)
 {
     /// <summary>Top flat (the surface walked on) - the control sector's ceiling flat.</summary>
     public string TopFlat => Control.CeilTexture;
@@ -15,6 +16,24 @@ public sealed record ThreeDFloor(Sector Control, double Bottom, double Top, int 
     public string BottomFlat => Control.FloorTexture;
     public int Brightness => Control.Brightness;
 }
+
+public sealed record ThreeDFloorControlEdit(
+    int BottomHeight,
+    int TopHeight,
+    string BottomFlat,
+    string TopFlat,
+    string SideTexture,
+    int Type,
+    int Flags,
+    int Alpha,
+    int Brightness,
+    Vector3D FloorSlope,
+    double FloorSlopeOffset,
+    Vector3D CeilingSlope,
+    double CeilingSlopeOffset,
+    IReadOnlyList<int> Tags);
+
+public readonly record struct ThreeDFloorCleanupResult(int ClearedLines, bool ControlSectorDeleted);
 
 public static class ThreeDFloors
 {
@@ -56,10 +75,83 @@ public static class ThreeDFloors
             {
                 if (ReferenceEquals(t, control)) continue;
                 if (!result.TryGetValue(t, out var fl)) { fl = new List<ThreeDFloor>(); result[t] = fl; }
-                fl.Add(new ThreeDFloor(control, bottom, top, alpha, line.Args[1], side, tag));
+                fl.Add(new ThreeDFloor(control, bottom, top, alpha, line.Args[1], line.Args[2], side, tag));
             }
         }
         return result;
+    }
+
+    public static ThreeDFloorControlEdit CreateControlEdit(ThreeDFloor floor)
+        => CreateControlEdit(floor.Control, floor.SideTexture, floor.TypeBits, floor.Flags, floor.Alpha);
+
+    public static ThreeDFloorControlEdit CreateControlEdit(Sector control, string sideTexture, int type, int flags, int alpha)
+        => new(
+            control.FloorHeight,
+            control.CeilHeight,
+            control.FloorTexture,
+            control.CeilTexture,
+            NormalizeTextureName(sideTexture),
+            type,
+            flags,
+            Math.Clamp(alpha, 0, 255),
+            control.Brightness,
+            control.FloorSlope,
+            control.FloorSlopeOffset,
+            control.CeilSlope,
+            control.CeilSlopeOffset,
+            control.Tags.ToArray());
+
+    public static int ApplyControlEdit(Sector control, ThreeDFloorControlEdit edit)
+    {
+        control.FloorHeight = edit.BottomHeight;
+        control.CeilHeight = edit.TopHeight;
+        control.SetFloorTexture(edit.BottomFlat);
+        control.SetCeilTexture(edit.TopFlat);
+        control.Brightness = edit.Brightness;
+        control.FloorSlope = edit.FloorSlope;
+        control.FloorSlopeOffset = edit.FloorSlopeOffset;
+        control.CeilSlope = edit.CeilingSlope;
+        control.CeilSlopeOffset = edit.CeilingSlopeOffset;
+        control.Tags.Clear();
+        control.Tags.AddRange(edit.Tags);
+
+        int updatedLines = 0;
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            side.SetTextureMid(edit.SideTexture);
+            if (side.Line.Action != Sector3DFloorAction) continue;
+
+            side.Line.Args[1] = edit.Type;
+            side.Line.Args[2] = edit.Flags;
+            side.Line.Args[3] = Math.Clamp(edit.Alpha, 0, 255);
+            updatedLines++;
+        }
+
+        return updatedLines;
+    }
+
+    public static ThreeDFloorCleanupResult CleanupControlSector(MapSet map, Sector control)
+    {
+        int cleared = 0;
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            Linedef line = side.Line;
+            if (line.Action != Sector3DFloorAction) continue;
+            if (HasTargetSector(map, line.Args[0], control)) continue;
+
+            line.Action = 0;
+            Array.Clear(line.Args);
+            cleared++;
+        }
+
+        foreach (Sidedef side in control.Sidedefs)
+        {
+            if (side.Line.Action != 0)
+                return new ThreeDFloorCleanupResult(cleared, false);
+        }
+
+        DeleteControlSector(map, control);
+        return new ThreeDFloorCleanupResult(cleared, true);
     }
 
     public static List<ThreeDFloor> GetThreeDFloors(MapSet map, IReadOnlyList<Sector> sectors, bool sharedOnly = false, bool udmf = false, bool requireManagedControlSector = false)
@@ -99,4 +191,41 @@ public static class ThreeDFloors
             && value is bool managed
             && managed;
     }
+
+    private static bool HasTargetSector(MapSet map, int tag, Sector control)
+    {
+        if (tag == 0) return false;
+
+        foreach (Sector sector in map.Sectors)
+        {
+            if (ReferenceEquals(sector, control)) continue;
+            if (sector.Tags.Contains(tag)) return true;
+        }
+
+        return false;
+    }
+
+    private static void DeleteControlSector(MapSet map, Sector control)
+    {
+        var lines = new List<Linedef>();
+        foreach (Sidedef side in control.Sidedefs)
+            if (!lines.Contains(side.Line))
+                lines.Add(side.Line);
+
+        var sides = new List<Sidedef>(control.Sidedefs);
+        foreach (Sidedef side in sides)
+            map.RemoveSidedef(side);
+
+        map.RemoveSector(control);
+
+        foreach (Linedef line in lines)
+            if (line.Front == null && line.Back == null)
+                map.RemoveLinedef(line);
+
+        map.RemoveUnusedVertices();
+        map.BuildIndexes();
+    }
+
+    private static string NormalizeTextureName(string? name)
+        => string.IsNullOrEmpty(name) ? "-" : name;
 }
