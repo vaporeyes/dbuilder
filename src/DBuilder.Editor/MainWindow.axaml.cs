@@ -2672,6 +2672,58 @@ public partial class MainWindow : Window
             : $"Applied {n} slope plane(s) from specials (visible in 3D).");
     }
 
+    private async void OnTagRange(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        TagRangeTargetKind target = DefaultTagRangeTarget();
+        int selected = TagRangeModel.SelectedInitialTags(_map, target).Count;
+        if (selected == 0)
+        {
+            SetStatus("Select one or more sectors, linedefs, or things first.");
+            return;
+        }
+
+        int startTag = ConfiguredTagSearch.NextFreeTag(_map, _config);
+        var dlg = new TagRangeDialog(target, startTag);
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        IReadOnlyList<int> initialTags = TagRangeModel.SelectedInitialTags(_map, dlg.ResultTarget);
+        if (initialTags.Count == 0)
+        {
+            SetStatus($"No selected {dlg.ResultTarget.ToString().ToLowerInvariant()} to tag.");
+            return;
+        }
+
+        HashSet<int> usedTags = TagRangeModel.CollectUsedTags(_map);
+        TagRangeResult result = TagRangeModel.CreateRange(initialTags, usedTags, dlg.ResultOptions);
+        if (result.OutOfTags)
+        {
+            SetStatus($"Tag range ran out of tags after {result.Tags.Count} assignment(s).");
+            return;
+        }
+
+        CreateUndo("Tag range");
+        int applied = TagRangeModel.ApplyRange(_map, dlg.ResultTarget, result.Tags);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus(result.TagsUsed
+            ? $"Tag range assigned {applied} tag(s); one or more tags were already in use."
+            : $"Tag range assigned {applied} tag(s).");
+    }
+
+    private TagRangeTargetKind DefaultTagRangeTarget()
+    {
+        if (MapView.CurrentEditMode == MapControl.EditMode.Sectors && _map?.SelectedSectorsCount > 0)
+            return TagRangeTargetKind.Sectors;
+        if (MapView.CurrentEditMode == MapControl.EditMode.Things && _map?.SelectedThingsCount > 0)
+            return TagRangeTargetKind.Things;
+        if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs && _map?.SelectedLinedefsCount > 0)
+            return TagRangeTargetKind.Linedefs;
+        if (_map?.SelectedSectorsCount > 0) return TagRangeTargetKind.Sectors;
+        if (_map?.SelectedLinedefsCount > 0) return TagRangeTargetKind.Linedefs;
+        return TagRangeTargetKind.Things;
+    }
+
     private async void OnImportObjTerrain(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
@@ -3324,12 +3376,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, TagRangeMenuItem, ImportObjTerrainMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, ImportObjTerrainButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, TagRangeButton, ImportObjTerrainButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,

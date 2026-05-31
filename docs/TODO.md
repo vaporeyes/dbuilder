@@ -913,6 +913,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
+  - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
@@ -1033,6 +1034,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
 - [ ] Port tag range tools.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
+  - [x] Add Tag Range editor form for target selection, start/step values, relative ranges, skip-used behavior, and selected-element assignment.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
 - [ ] Port visplane explorer analysis.
