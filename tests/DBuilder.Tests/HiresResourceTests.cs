@@ -128,4 +128,47 @@ public class HiresResourceTests
             File.Delete(wad);
         }
     }
+
+    [Fact]
+    public void DirectoryNestedWadHiresOverridesDirectoryHiresFolder()
+    {
+        var config = GameConfiguration.FromText("""
+            hires
+            {
+                detail { start = "HI_START"; end = "HI_END"; }
+            }
+            """);
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_hires_dir_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "textures"));
+            Directory.CreateDirectory(Path.Combine(dir, "hires"));
+            File.WriteAllBytes(Path.Combine(dir, "textures", "ROCK.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 9, 9, 9, 255)));
+            File.WriteAllBytes(Path.Combine(dir, "hires", "ROCK.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 41, 42, 255)));
+
+            using (var wad = new WAD(Path.Combine(dir, "resources.wad")))
+            {
+                Insert(wad, "PLAYPAL", TestArtifacts.GrayscalePlaypal());
+                Insert(wad, "HI_START", []);
+                Insert(wad, "ROCK", DoomPatch(70));
+                Insert(wad, "HI_END", []);
+                wad.WriteHeaders();
+            }
+
+            using var rm = new ResourceManager(config);
+            rm.AddResource(dir);
+
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("ROCK")!.Rgba[0..4]);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    private static void Insert(WAD wad, string name, byte[] bytes)
+    {
+        var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+        lump.Stream.Write(bytes, 0, bytes.Length);
+    }
 }

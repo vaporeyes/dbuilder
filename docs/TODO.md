@@ -347,6 +347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve and prioritize WAD sprites from configured sprite ranges.
   - [x] Resolve and prioritize WAD voxel models from configured voxel ranges.
   - [x] Resolve WAD high-resolution replacements from configured hires ranges.
+  - [x] Let nested directory WAD high-resolution replacements override folder `hires/` entries like UDB.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
   - [x] Resolve composite patches through mixed wall/flat base namespaces.

@@ -959,6 +959,17 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
         => Path.GetDirectoryName(relativePath) is null or ""
             && Path.GetExtension(relativePath).Equals(".wad", StringComparison.OrdinalIgnoreCase);
 
+    public override ImageData? GetHiRes(string name, DoomPalette? palette)
+    {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedImage = nestedReaders[i].GetHiRes(name, palette);
+            if (nestedImage != null) return nestedImage;
+        }
+
+        return base.GetHiRes(name, palette);
+    }
+
     public override void Dispose()
     {
         foreach (var reader in nestedReaders) reader.Dispose();
