@@ -38,7 +38,7 @@ Status values:
 | --- | --- | --- | --- |
 | `3DFloorMode` | partial | `DBuilder.Map` | 3D floor data helper exists. Full plugin workflow missing. |
 | `AutomapMode` | partial | `DBuilder.Editor`, `DBuilder.Map` | Automap line visibility, color presets, line classification, secret-sector and lock overlays, format-aware UDMF/classic automap flags, and selected line/sector flag toggles exist. Full mode UI, highlighting, rendering presentation, and interactive editing workflow remain missing. |
-| `BlockmapExplorer` | partial | `DBuilder.Editor`, `DBuilder.Map`, `DBuilder.IO` | Blockmap logic, overlay toggle, and a non-modal explorer summary window exist. Full mode visualization remains missing. |
+| `BlockmapExplorer` | partial | `DBuilder.Editor`, `DBuilder.Map`, `DBuilder.IO` | Blockmap logic, overlay toggle, parsed BLOCKMAP highlighted-block/shared-list/questionable-offset overlays, and a non-modal explorer summary window exist. Full mode workflow remains missing. |
 | `BuilderEffects` | partial | `DBuilder.Map` | Selected effects exist. Full plugin missing. |
 | `BuilderModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected drawing/editing tools exist. Full mode set missing. |
 | `ColorPicker` | partial | `DBuilder.Editor`, `DBuilder.Map` | RGB/HSV conversion, picker formatting, typed HEX and float color parsing, packed UDMF color integers, sector light/fade color fields, and selected-sector color command exist. Full picker controls and dynamic light editing remain missing. |

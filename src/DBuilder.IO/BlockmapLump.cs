@@ -100,6 +100,14 @@ public sealed class BlockmapLumpData
         return shared;
     }
 
+    public IReadOnlyList<(int Column, int Row)> GetHighlightedBlocks(int column, int row, bool includeSharedBlocks)
+    {
+        if (!IsCellInRange(column, row)) return Array.Empty<(int, int)>();
+        return includeSharedBlocks
+            ? GetSharedBlocks(column, row)
+            : new[] { (column, row) };
+    }
+
     public (int Column, int Row) GetColumnAndRowByPosition(Vector2D position)
     {
         if (position.x < OriginX || position.y < OriginY || position.x > OriginX + Columns * BlockmapLump.BlockSize || position.y > OriginY + Rows * BlockmapLump.BlockSize)

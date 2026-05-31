@@ -899,6 +899,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
   - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
+  - [x] Render parsed BLOCKMAP highlighted-block, shared-block-list, and questionable-offset overlays.
 - [ ] Port `ColorPicker`.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
   - [x] Add UDB-style HEX and float typed color input parsing.
@@ -1055,6 +1056,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port blockmap explorer UI and data model.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
   - [x] Add non-modal Blockmap Explorer summary and block-list window.
+  - [x] Wire Blockmap Explorer selections and overlay options into the editor blockmap renderer.
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.

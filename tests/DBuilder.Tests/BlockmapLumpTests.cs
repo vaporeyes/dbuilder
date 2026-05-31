@@ -42,6 +42,9 @@ public class BlockmapLumpTests
         Assert.False(blockmap.Blocks[24].IsSublist);
         Assert.False(blockmap.Blocks[28].IsSublist);
         Assert.Equal(new[] { (0, 0), (0, 1) }, blockmap.GetSharedBlocks(0, 0));
+        Assert.Equal(new[] { (0, 0) }, blockmap.GetHighlightedBlocks(0, 0, includeSharedBlocks: false));
+        Assert.Equal(new[] { (0, 0), (0, 1) }, blockmap.GetHighlightedBlocks(0, 0, includeSharedBlocks: true));
+        Assert.Empty(blockmap.GetHighlightedBlocks(5, 5, includeSharedBlocks: true));
         Assert.Equal(4, blockmap.CountLinesNotInBlocks(9));
     }
 

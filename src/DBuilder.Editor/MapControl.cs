@@ -137,7 +137,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -349,8 +349,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
     private GlVertexBuffer? _blockmapVb;
+    private GlVertexBuffer? _blockmapFillVb;
     private int _blockmapLineCount;
+    private int _blockmapFillTriCount;
     private DBuilder.Map.BlockMap? _blockmapCache; // built lazily while the overlay is shown
+    private BlockmapLumpData? _blockmapExplorerData;
+    private int? _blockmapExplorerColumn;
+    private int? _blockmapExplorerRow;
+    private bool _blockmapExplorerShared;
+    private bool _blockmapExplorerQuestionable;
     private bool _showBlockmap;
 
     /// <summary>When true, draws the 128-unit blockmap grid (occupied blocks brighter) over the map.</summary>
@@ -358,6 +365,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _showBlockmap;
         set { _showBlockmap = value; ActionStateChanged?.Invoke(); RequestNextFrameRendering(); }
+    }
+
+    public void SetBlockmapExplorerOverlay(
+        BlockmapLumpData? blockmap,
+        int? column,
+        int? row,
+        bool includeSharedBlocks,
+        bool showQuestionableBlocks)
+    {
+        _blockmapExplorerData = blockmap;
+        _blockmapExplorerColumn = column;
+        _blockmapExplorerRow = row;
+        _blockmapExplorerShared = includeSharedBlocks;
+        _blockmapExplorerQuestionable = showQuestionableBlocks;
+        RequestNextFrameRendering();
     }
 
     private GlVertexBuffer? _nodesVb;
@@ -651,6 +673,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
         _blockmapVb = new GlVertexBuffer(_gl);
+        _blockmapFillVb = new GlVertexBuffer(_gl);
         _nodesVb = new GlVertexBuffer(_gl);
         _nodePolygonsVb = new GlVertexBuffer(_gl);
         _rejectOverlayVb = new GlVertexBuffer(_gl);
@@ -695,6 +718,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawVb?.Dispose();
         _gridVb?.Dispose();
         _blockmapVb?.Dispose();
+        _blockmapFillVb?.Dispose();
         _nodesVb?.Dispose();
         _nodePolygonsVb?.Dispose();
         _rejectOverlayVb?.Dispose();
@@ -705,7 +729,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1949,37 +1973,82 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void DrawBlockmap()
     {
         _blockmapLineCount = 0;
-        if (!_showBlockmap || _device is null || _blockmapVb is null || _map is null || _map.Vertices.Count == 0) return;
+        _blockmapFillTriCount = 0;
+        if (!_showBlockmap || _device is null || _blockmapVb is null || _blockmapFillVb is null || _map is null || _map.Vertices.Count == 0) return;
 
-        _blockmapCache ??= new DBuilder.Map.BlockMap(_map);
-        var bm = _blockmapCache;
-        double bs = bm.BlockSize;
+        double originX;
+        double originY;
+        int columns;
+        int rows;
+        double bs = BlockmapLump.BlockSize;
+        bool parsedBlockmap = _blockmapExplorerData is { IsUsable: true };
+        DBuilder.Map.BlockMap? generatedBlockmap = null;
+
+        if (_blockmapExplorerData is { IsUsable: true } lump)
+        {
+            originX = lump.OriginX;
+            originY = lump.OriginY;
+            columns = lump.Columns;
+            rows = lump.Rows;
+        }
+        else
+        {
+            _blockmapCache ??= new DBuilder.Map.BlockMap(_map);
+            generatedBlockmap = _blockmapCache;
+            originX = generatedBlockmap.OriginX;
+            originY = generatedBlockmap.OriginY;
+            columns = generatedBlockmap.Columns;
+            rows = generatedBlockmap.Rows;
+            bs = generatedBlockmap.BlockSize;
+        }
+
         if (bs / _zoom < 3) return; // too dense to be useful
 
         // Visible block range (clamped to the blockmap extents).
         double halfW = Bounds.Width * 0.5 * _zoom, halfH = Bounds.Height * 0.5 * _zoom;
-        int c0 = Math.Max(0, (int)Math.Floor((_camX - halfW - bm.OriginX) / bs));
-        int c1 = Math.Min(bm.Columns, (int)Math.Ceiling((_camX + halfW - bm.OriginX) / bs));
-        int r0 = Math.Max(0, (int)Math.Floor((_camY - halfH - bm.OriginY) / bs));
-        int r1 = Math.Min(bm.Rows, (int)Math.Ceiling((_camY + halfH - bm.OriginY) / bs));
+        int c0 = Math.Max(0, (int)Math.Floor((_camX - halfW - originX) / bs));
+        int c1 = Math.Min(columns, (int)Math.Ceiling((_camX + halfW - originX) / bs));
+        int r0 = Math.Max(0, (int)Math.Floor((_camY - halfH - originY) / bs));
+        int r1 = Math.Min(rows, (int)Math.Ceiling((_camY + halfH - originY) / bs));
         if (c1 <= c0 || r1 <= r0) return;
 
         // Note: the renderer swaps R<->B, so these read blue-ish on screen (consistent with the app palette).
         const int grid = unchecked((int)0xff403028);      // dim grid for empty blocks (kept subtle)
         const int occupied = unchecked((int)0xffffc040);  // bright highlight for blocks containing linedefs
+        const int highlight = unchecked((int)0x806060a0);
+        const int questionable = unchecked((int)0x80502090);
+        var fill = new System.Collections.Generic.List<FlatVertex>();
         var verts = new System.Collections.Generic.List<FlatVertex>();
 
-        double x0 = bm.OriginX + c0 * bs, x1 = bm.OriginX + c1 * bs;
-        double y0 = bm.OriginY + r0 * bs, y1 = bm.OriginY + r1 * bs;
-        for (int c = c0; c <= c1; c++) { double x = bm.OriginX + c * bs; verts.Add(FV(new Vec2D(x, y0), grid)); verts.Add(FV(new Vec2D(x, y1), grid)); }
-        for (int r = r0; r <= r1; r++) { double y = bm.OriginY + r * bs; verts.Add(FV(new Vec2D(x0, y), grid)); verts.Add(FV(new Vec2D(x1, y), grid)); }
+        if (parsedBlockmap && _blockmapExplorerData != null)
+        {
+            if (_blockmapExplorerQuestionable)
+            {
+                foreach ((int column, int row) in _blockmapExplorerData.GetQuestionableBlocks())
+                    AddBlockFill(fill, originX, originY, bs, column, row, questionable);
+            }
+
+            if (_blockmapExplorerColumn is int hc && _blockmapExplorerRow is int hr)
+            {
+                foreach ((int column, int row) in _blockmapExplorerData.GetHighlightedBlocks(hc, hr, _blockmapExplorerShared))
+                    AddBlockFill(fill, originX, originY, bs, column, row, highlight);
+            }
+        }
+
+        double x0 = originX + c0 * bs, x1 = originX + c1 * bs;
+        double y0 = originY + r0 * bs, y1 = originY + r1 * bs;
+        for (int c = c0; c <= c1; c++) { double x = originX + c * bs; verts.Add(FV(new Vec2D(x, y0), grid)); verts.Add(FV(new Vec2D(x, y1), grid)); }
+        for (int r = r0; r <= r1; r++) { double y = originY + r * bs; verts.Add(FV(new Vec2D(x0, y), grid)); verts.Add(FV(new Vec2D(x1, y), grid)); }
 
         // Outline blocks that contain linedefs.
         for (int r = r0; r < r1; r++)
             for (int c = c0; c < c1; c++)
             {
-                if (bm.LinedefCountAt(c, r) == 0) continue;
-                double bx0 = bm.OriginX + c * bs, by0 = bm.OriginY + r * bs, bx1 = bx0 + bs, by1 = by0 + bs;
+                int lineCount = parsedBlockmap && _blockmapExplorerData != null
+                    ? _blockmapExplorerData.GetLinesInBlock(c, r).Count
+                    : generatedBlockmap?.LinedefCountAt(c, r) ?? 0;
+                if (lineCount == 0) continue;
+                double bx0 = originX + c * bs, by0 = originY + r * bs, bx1 = bx0 + bs, by1 = by0 + bs;
                 var p00 = new Vec2D(bx0, by0); var p10 = new Vec2D(bx1, by0);
                 var p11 = new Vec2D(bx1, by1); var p01 = new Vec2D(bx0, by1);
                 verts.Add(FV(p00, occupied)); verts.Add(FV(p10, occupied));
@@ -1988,6 +2057,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 verts.Add(FV(p01, occupied)); verts.Add(FV(p00, occupied));
             }
 
+        if (fill.Count > 0)
+        {
+            _device.SetUniform("useTexture", 0f);
+            _device.SetTexture(0, _placeholderTex);
+            _device.SetAlphaBlendEnable(true);
+            _device.SetSourceBlend(Blend.SourceAlpha);
+            _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+            _device.SetBufferData(_blockmapFillVb, fill.ToArray());
+            _blockmapFillTriCount = fill.Count / 3;
+            _device.SetVertexBuffer(_blockmapFillVb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, _blockmapFillTriCount);
+            _device.SetAlphaBlendEnable(false);
+        }
+
         if (verts.Count == 0) return;
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
@@ -1995,6 +2078,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _blockmapLineCount = verts.Count / 2;
         _device.SetVertexBuffer(_blockmapVb);
         _device.Draw(DBPrimitiveType.LineList, 0, _blockmapLineCount);
+    }
+
+    private static void AddBlockFill(System.Collections.Generic.List<FlatVertex> verts, double originX, double originY, double blockSize, int column, int row, int color)
+    {
+        double bx0 = originX + column * blockSize;
+        double by0 = originY + row * blockSize;
+        double bx1 = bx0 + blockSize;
+        double by1 = by0 + blockSize;
+        var p00 = new Vec2D(bx0, by0);
+        var p10 = new Vec2D(bx1, by0);
+        var p11 = new Vec2D(bx1, by1);
+        var p01 = new Vec2D(bx0, by1);
+        verts.Add(FV(p00, color));
+        verts.Add(FV(p10, color));
+        verts.Add(FV(p11, color));
+        verts.Add(FV(p00, color));
+        verts.Add(FV(p11, color));
+        verts.Add(FV(p01, color));
     }
 
     // Draws classic NodesViewer subsector fills and BSP partition lines as a green overlay.

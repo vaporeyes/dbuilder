@@ -18,11 +18,14 @@ public sealed class BlockmapExplorerWindow : Window
 
     private readonly ListBox _rows = new();
     private readonly CheckBox _questionableOnly = new() { Content = "Questionable offsets only" };
+    private readonly CheckBox _highlightSharedBlocks = new() { Content = "Highlight shared block lists" };
+    private readonly CheckBox _showQuestionableOverlay = new() { Content = "Overlay questionable offsets" };
     private readonly TextBlock _header = new();
     private readonly BlockmapLumpData _blockmap;
     private readonly int _linedefCount;
 
     public event Action<int, int>? BlockActivated;
+    public event Action<int?, int?, bool, bool>? OverlayChanged;
 
     public BlockmapExplorerWindow(BlockmapLumpData blockmap, int linedefCount)
     {
@@ -47,6 +50,11 @@ public sealed class BlockmapExplorerWindow : Window
         _questionableOnly.IsVisible = blockmap.GetQuestionableOffsetCount() > 0;
         _questionableOnly.IsCheckedChanged += (_, _) => RefreshRows();
         top.Children.Add(_questionableOnly);
+        _highlightSharedBlocks.IsCheckedChanged += (_, _) => EmitOverlayChanged();
+        top.Children.Add(_highlightSharedBlocks);
+        _showQuestionableOverlay.IsVisible = blockmap.GetQuestionableOffsetCount() > 0;
+        _showQuestionableOverlay.IsCheckedChanged += (_, _) => EmitOverlayChanged();
+        top.Children.Add(_showQuestionableOverlay);
         top.Children.Add(_header);
 
         DockPanel.SetDock(top, Dock.Top);
@@ -57,10 +65,30 @@ public sealed class BlockmapExplorerWindow : Window
             if (_rows.SelectedItem is ListBoxItem { Tag: BlockmapRow row })
                 BlockActivated?.Invoke(row.Column, row.Row);
         };
+        _rows.SelectionChanged += (_, _) => EmitOverlayChanged();
         root.Children.Add(new ScrollViewer { Content = _rows });
         Content = root;
 
         RefreshRows();
+    }
+
+    private void EmitOverlayChanged()
+    {
+        if (_rows.SelectedItem is ListBoxItem { Tag: BlockmapRow row })
+        {
+            OverlayChanged?.Invoke(
+                row.Column,
+                row.Row,
+                _highlightSharedBlocks.IsChecked == true,
+                _showQuestionableOverlay.IsChecked == true);
+            return;
+        }
+
+        OverlayChanged?.Invoke(
+            null,
+            null,
+            _highlightSharedBlocks.IsChecked == true,
+            _showQuestionableOverlay.IsChecked == true);
     }
 
     private void RefreshRows()

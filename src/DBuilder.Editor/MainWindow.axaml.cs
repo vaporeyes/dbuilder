@@ -1951,7 +1951,16 @@ public partial class MainWindow : Window
         BlockmapLumpData blockmap = BlockmapLump.Parse(bytes);
         _blockmapExplorer?.Close();
         _blockmapExplorer = new BlockmapExplorerWindow(blockmap, _map.Linedefs.Count);
-        _blockmapExplorer.Closed += (_, _) => _blockmapExplorer = null;
+        _blockmapExplorer.Closed += (_, _) =>
+        {
+            MapView.SetBlockmapExplorerOverlay(null, null, null, includeSharedBlocks: false, showQuestionableBlocks: false);
+            _blockmapExplorer = null;
+        };
+        _blockmapExplorer.OverlayChanged += (column, row, shared, questionable) =>
+        {
+            MapView.SetBlockmapExplorerOverlay(blockmap, column, row, shared, questionable);
+            MapView.ShowBlockmap = true;
+        };
         _blockmapExplorer.BlockActivated += (column, row) =>
         {
             double x = blockmap.OriginX + (column + 0.5) * BlockmapLump.BlockSize;
