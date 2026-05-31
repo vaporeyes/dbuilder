@@ -292,8 +292,8 @@ public static class DecorateParser
         ApplyExtensions(actors, extensions, mixins);
         if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase))
             RemoveActorsWithInvalidUserVariableShadows(actors);
-        else
-            RemoveActorsWithInvalidZScriptInheritance(actors);
+        else if (HasInvalidZScriptInheritance(actors))
+            actors.Clear();
         ResolveInheritance(actors);
         if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
             FilterZScriptActorClasses(actors);
@@ -734,12 +734,15 @@ public static class DecorateParser
         return false;
     }
 
-    private static void RemoveActorsWithInvalidZScriptInheritance(List<ActorInfo> actors)
+    private static bool HasInvalidZScriptInheritance(List<ActorInfo> actors)
     {
         var byName = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
         foreach (var actor in actors) byName[actor.ClassName] = actor;
         var valid = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-        actors.RemoveAll(actor => !HasValidZScriptInheritance(actor, byName, valid, new HashSet<string>(StringComparer.OrdinalIgnoreCase)));
+        foreach (var actor in actors)
+            if (!HasValidZScriptInheritance(actor, byName, valid, new HashSet<string>(StringComparer.OrdinalIgnoreCase)))
+                return true;
+        return false;
     }
 
     private static bool HasValidZScriptInheritance(

@@ -490,6 +490,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject duplicate ZScript class definitions.
   - [x] Reject duplicate ZScript mixin definitions.
   - [x] Reject self-inheriting ZScript mixin definitions.
+  - [x] Reject ZScript documents with final, sealed, or self-inheritance violations.
 - [ ] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Avoid using placeholder-only state sprites as actor editor previews.

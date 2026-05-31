@@ -165,13 +165,7 @@ class AllowedChild : SealedBase { Default { Radius 8; } }";
 
         var actors = ZScriptParser.Parse(text);
 
-        Assert.Contains(actors, actor => actor.ClassName == "FinalBase");
-        Assert.Contains(actors, actor => actor.ClassName == "SealedBase");
-        var allowed = Assert.Single(actors, actor => actor.ClassName == "AllowedChild");
-        Assert.Equal(8, allowed.Radius);
-        Assert.DoesNotContain(actors, actor => actor.ClassName == "FinalChild");
-        Assert.DoesNotContain(actors, actor => actor.ClassName == "BlockedChild");
-        Assert.DoesNotContain(actors, actor => actor.ClassName == "BlockedGrandChild");
+        Assert.Empty(actors);
     }
 
     [Fact]
@@ -181,10 +175,7 @@ class AllowedChild : SealedBase { Default { Radius 8; } }";
 class SelfParent : SelfParent { Default { Radius 64; } }
 class ValidAfterSelfParent : Actor { Default { Radius 8; } }";
 
-        var actor = Assert.Single(ZScriptParser.Parse(text));
-
-        Assert.Equal("ValidAfterSelfParent", actor.ClassName);
-        Assert.Equal(8, actor.Radius);
+        Assert.Empty(ZScriptParser.Parse(text));
     }
 
     [Fact]
