@@ -20,12 +20,15 @@ public sealed record ScriptAutoCompleteItem(string Word, int ImageIndex)
     public string Entry => Word + "?" + ImageIndex;
 }
 
+public sealed record ScriptFunctionCallPosition(string FunctionName, int ArgumentIndex, int FunctionStartOffset);
+
 public static class ScriptSyntaxHighlighting
 {
     public const int ConstantImageIndex = 0;
     public const int KeywordImageIndex = 1;
     public const int SnippetImageIndex = 3;
     public const int PropertyImageIndex = 4;
+    private const int MaxBacktrackLength = 200;
 
     public static ScriptLexerDefinition GetLexerDefinition(Configuration lexerConfiguration, int lexer)
     {
@@ -79,6 +82,79 @@ public static class ScriptSyntaxHighlighting
         return new List<ScriptAutoCompleteItem>(items.Values);
     }
 
+    public static ScriptFunctionCallPosition? FindFunctionCallPosition(
+        ScriptConfigurationInfo scriptConfiguration,
+        string text,
+        int caretOffset)
+    {
+        if (scriptConfiguration.ArgumentDelimiter.Length == 0
+            || scriptConfiguration.FunctionClose.Length == 0
+            || scriptConfiguration.FunctionOpen.Length == 0
+            || scriptConfiguration.Terminator.Length == 0)
+        {
+            return null;
+        }
+
+        int argumentDelimiter = scriptConfiguration.ArgumentDelimiter[0];
+        int functionClose = scriptConfiguration.FunctionClose[0];
+        int functionOpen = scriptConfiguration.FunctionOpen[0];
+        int terminator = scriptConfiguration.Terminator[0];
+        int position = Math.Min(caretOffset, text.Length);
+        int limit = Math.Max(0, position - MaxBacktrackLength);
+        int bracketLevel = 0;
+        int argumentIndex = 0;
+
+        while (position > limit)
+        {
+            position--;
+            int current = text[position];
+            if (current == functionClose)
+            {
+                bracketLevel++;
+            }
+            else if (current == functionOpen)
+            {
+                bracketLevel--;
+                if (bracketLevel < 0)
+                {
+                    int wordPosition = SkipWhitespaceBackward(text, position - 1, limit);
+                    if (wordPosition < limit) break;
+
+                    int wordStart = WordStart(text, wordPosition);
+                    int wordEnd = WordEnd(text, wordPosition);
+                    string word = text[wordStart..wordEnd];
+                    if (word.Length == 0) break;
+                    if (word[0] == argumentDelimiter)
+                    {
+                        bracketLevel++;
+                        argumentIndex = 0;
+                    }
+                    else if (scriptConfiguration.IsKeyword(word))
+                    {
+                        return new ScriptFunctionCallPosition(
+                            scriptConfiguration.GetKeywordCase(word),
+                            argumentIndex,
+                            wordStart);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            else if (current == argumentDelimiter)
+            {
+                if (bracketLevel == 0) argumentIndex++;
+            }
+            else if (current == terminator)
+            {
+                break;
+            }
+        }
+
+        return null;
+    }
+
     private static void AddSet(
         List<ScriptSyntaxKeywordSet> sets,
         int index,
@@ -116,4 +192,27 @@ public static class ScriptSyntaxHighlighting
 
         return result;
     }
+
+    private static int SkipWhitespaceBackward(string text, int position, int limit)
+    {
+        while (position >= limit && char.IsWhiteSpace(text[position])) position--;
+        return position;
+    }
+
+    private static int WordStart(string text, int position)
+    {
+        int start = position;
+        while (start > 0 && IsWordChar(text[start - 1])) start--;
+        return start;
+    }
+
+    private static int WordEnd(string text, int position)
+    {
+        int end = position;
+        while (end < text.Length && IsWordChar(text[end])) end++;
+        return end;
+    }
+
+    private static bool IsWordChar(char c)
+        => char.IsLetterOrDigit(c) || c == '_';
 }

@@ -127,4 +127,65 @@ public class ScriptSyntaxHighlightingTests
             if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void FindsFunctionCallArgumentPositionLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Thing_Spawn = "Thing_Spawn(tid, type, angle)"; }
+            """);
+        const string text = "Thing_Spawn(1, 3004, ";
+
+        var position = ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length);
+
+        Assert.NotNull(position);
+        Assert.Equal("Thing_Spawn", position.FunctionName);
+        Assert.Equal(2, position.ArgumentIndex);
+        Assert.Equal(0, position.FunctionStartOffset);
+    }
+
+    [Fact]
+    public void FindsParentFunctionWhenNestedArgumentClosesLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords
+            {
+                Outer = "Outer(a, b)";
+                Inner = "Inner(a)";
+            }
+            """);
+        const string text = "Outer(Inner(1), ";
+
+        var position = ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length);
+
+        Assert.NotNull(position);
+        Assert.Equal("Outer", position.FunctionName);
+        Assert.Equal(1, position.ArgumentIndex);
+        Assert.Equal(0, position.FunctionStartOffset);
+    }
+
+    [Fact]
+    public void StopsFunctionCallSearchAtTerminatorLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Thing_Spawn = "Thing_Spawn(tid)"; }
+            """);
+        const string text = "Thing_Spawn(1); more text";
+
+        var position = ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length);
+
+        Assert.Null(position);
+    }
 }
