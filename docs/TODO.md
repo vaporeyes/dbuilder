@@ -795,6 +795,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual vertex handles.
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
 - [ ] Port visual slope handles.
+  - [x] Add UDB-style visual slope handle local meshes, sidedef and vertex placement basis, side inversion rules, and pivot points.
 - [ ] Port comments rendering.
 - [ ] Port color settings and color collections.
 - [ ] Port shader compiler behavior or a documented replacement.

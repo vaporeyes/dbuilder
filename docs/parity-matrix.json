@@ -91,8 +91,8 @@
     {
       "udbArea": "Source/Core/Rendering",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor",
-      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, and visual vertex handle model coverage for floor/ceiling height fallback and handle bounds have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
+      "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor;DBuilder.Map",
+      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, large-map 3D performance guards, visual vertex handle model coverage for floor/ceiling height fallback and handle bounds, and visual slope handle local mesh and placement-basis coverage have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Resources",
@@ -110,7 +110,7 @@
       "udbArea": "Source/Core/VisualModes",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "Mode switching, 3D entry, selected geometry editing surfaces, command shortcuts, status hints, rendering scaffolding, visual vertex handle floor/ceiling pair modeling, explicit height-offset state, and adjacent-sector height fallback exist. Full UDB visual mode tools and interaction behavior remain incomplete."
+      "notes": "Mode switching, 3D entry, selected geometry editing surfaces, command shortcuts, status hints, rendering scaffolding, visual vertex handle floor/ceiling pair modeling, explicit height-offset state, adjacent-sector height fallback, and visual slope sidedef and vertex handle placement and pivot models exist. Full UDB visual mode tools and interaction behavior remain incomplete."
     },
     {
       "udbArea": "Source/Core/Windows",
