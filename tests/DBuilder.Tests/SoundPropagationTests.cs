@@ -247,4 +247,30 @@ public class SoundPropagationTests
             new Vector2D(32, 32),
             new HashSet<Sector>(new[] { s[0] }, ReferenceEqualityComparer.Instance)));
     }
+
+    [Fact]
+    public void DefaultColorSettingsMatchUdbPluginDefaults()
+    {
+        SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;
+
+        Assert.Equal(0xFF00C000u, colors.HighlightColor);
+        Assert.Equal(0xFF00FF00u, colors.Level1Color);
+        Assert.Equal(0xFFFFFF00u, colors.Level2Color);
+        Assert.Equal(0xFFA0A0A0u, colors.NoSoundColor);
+        Assert.Equal(0xFFFF0000u, colors.BlockSoundColor);
+        Assert.Equal(24, colors.DistinctDomainColors.Count);
+        Assert.Equal(0xFF84D5A4u, colors.DistinctDomainColors[0]);
+        Assert.Equal(0xFF8DD3C7u, colors.DistinctDomainColors[^1]);
+    }
+
+    [Fact]
+    public void DomainColorForIndexWrapsLikeUdbDomainAssignment()
+    {
+        SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;
+
+        Assert.Equal(colors.DistinctDomainColors[0], colors.DomainColorForIndex(0));
+        Assert.Equal(colors.DistinctDomainColors[1], colors.DomainColorForIndex(1));
+        Assert.Equal(colors.DistinctDomainColors[0], colors.DomainColorForIndex(colors.DistinctDomainColors.Count));
+        Assert.Equal(colors.DistinctDomainColors[^1], colors.DomainColorForIndex(-1));
+    }
 }

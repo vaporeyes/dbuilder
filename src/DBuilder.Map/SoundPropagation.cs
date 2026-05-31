@@ -18,6 +18,57 @@ public sealed record SoundLeakPath(
     IReadOnlyList<Linedef> Linedefs,
     IReadOnlyList<Linedef> BlockingLinedefs);
 
+public sealed record SoundPropagationColorSettings(
+    uint HighlightColor,
+    uint Level1Color,
+    uint Level2Color,
+    uint NoSoundColor,
+    uint BlockSoundColor,
+    IReadOnlyList<uint> DistinctDomainColors)
+{
+    public static SoundPropagationColorSettings Default { get; } = new(
+        0xFF00C000,
+        0xFF00FF00,
+        0xFFFFFF00,
+        0xFFA0A0A0,
+        0xFFFF0000,
+        new[]
+        {
+            0xFF84D5A4u,
+            0xFFC059CBu,
+            0xFFD0533Du,
+            0xFF415354u,
+            0xFFCEA953u,
+            0xFF91D44Bu,
+            0xFFCD5B89u,
+            0xFFA8B6C0u,
+            0xFF797ECBu,
+            0xFF567539u,
+            0xFF72422Fu,
+            0xFF5D3762u,
+            0xFFFFED6Fu,
+            0xFFCCEBC5u,
+            0xFFBC80BDu,
+            0xFFD9D9D9u,
+            0xFFFCCDE5u,
+            0xFF80B1D3u,
+            0xFFFDB462u,
+            0xFFB3DE69u,
+            0xFFFB8072u,
+            0xFFBEBADAu,
+            0xFFFFFFB3u,
+            0xFF8DD3C7u,
+        });
+
+    public uint DomainColorForIndex(int index)
+    {
+        if (DistinctDomainColors.Count == 0) return Level1Color;
+        int wrapped = index % DistinctDomainColors.Count;
+        if (wrapped < 0) wrapped += DistinctDomainColors.Count;
+        return DistinctDomainColors[wrapped];
+    }
+}
+
 public sealed class SoundPropagationModeModel
 {
     private readonly Dictionary<Sector, SoundPropagationDomain> sectorDomains;

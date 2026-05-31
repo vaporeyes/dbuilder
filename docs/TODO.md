@@ -918,6 +918,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
+  - [x] Add UDB-style default overlay colors and rotating domain color palette.
 - [ ] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
 - [ ] Port `TagExplorer`.
