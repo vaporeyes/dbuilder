@@ -50,6 +50,15 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbTokenCaseVariantsNormalizeBeforeSubstitution()
+    {
+        var args = SourcePort.BuildArgs("-iwad %wp -iwadfile %Wf -skill %s -file %ap %f -warp %l1 %l2",
+            "/games/doom2.wad", "edit.wad", "MAP11", new[] { "textures.pk3" });
+
+        Assert.Equal(new[] { "-iwad", "/games/doom2.wad", "-iwadfile", "doom2.wad", "-skill", "3", "-file", "textures.pk3", "edit.wad", "-warp", "1", "1" }, args);
+    }
+
+    [Fact]
     public void UdbNoMonstersTokenExpandsWhenTestingWithoutMonsters()
     {
         var args = SourcePort.BuildArgs("-file \"%F\" +map %L %nm",

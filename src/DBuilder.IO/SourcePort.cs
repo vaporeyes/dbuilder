@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Text;
 
@@ -27,8 +28,9 @@ public static class SourcePort
     {
         var (l, l1, l2) = WarpTokens(map);
         string additional = BuildAdditionalFiles(additionalFiles);
+        string iwadFile = Path.GetFileName(iwad);
         string noMonsters = testMonsters ? "" : "-nomonsters";
-        template = NormalizeNoMonstersToken(template)
+        template = NormalizeUdbTokens(template)
             .Replace("\"%AP\"", additional)
             .Replace("%AP", additional);
 
@@ -48,6 +50,7 @@ public static class SourcePort
             string token = tokens[i]
                 .Replace("%IWAD", iwad)
                 .Replace("%WP", iwad)
+                .Replace("%WF", iwadFile)
                 .Replace("%FO", file)
                 .Replace("%F", file)
                 .Replace("%MAP", map)
@@ -86,8 +89,22 @@ public static class SourcePort
     private static string Quote(string value)
         => "\"" + value.Replace("\"", "\\\"") + "\"";
 
-    private static string NormalizeNoMonstersToken(string template)
-        => template.Replace("%nM", "%NM")
+    private static string NormalizeUdbTokens(string template)
+        => template.Replace("%f", "%F")
+            .Replace("%wp", "%WP")
+            .Replace("%wf", "%WF")
+            .Replace("%wP", "%WP")
+            .Replace("%wF", "%WF")
+            .Replace("%Wp", "%WP")
+            .Replace("%Wf", "%WF")
+            .Replace("%l1", "%L1")
+            .Replace("%l2", "%L2")
+            .Replace("%l", "%L")
+            .Replace("%ap", "%AP")
+            .Replace("%aP", "%AP")
+            .Replace("%Ap", "%AP")
+            .Replace("%s", "%S")
+            .Replace("%nM", "%NM")
             .Replace("%Nm", "%NM")
             .Replace("%nm", "%NM");
 
