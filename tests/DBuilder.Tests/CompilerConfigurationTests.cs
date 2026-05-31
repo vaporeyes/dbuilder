@@ -372,6 +372,96 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void AcsCompilePreflightSkipsEmptyMapScriptsLumpLikeUdb()
+    {
+        var result = AcsCompilePreflight.Analyze("", "SCRIPTS", sourceIsMapScriptsLump: true);
+
+        Assert.False(result.ShouldCompile);
+        Assert.Null(result.Error);
+        Assert.Empty(result.Includes);
+        Assert.Equal("", result.LibraryName);
+    }
+
+    [Fact]
+    public void AcsCompilePreflightRequiresExternalAcsLibrariesLikeUdb()
+    {
+        var result = AcsCompilePreflight.Analyze(
+            "script 1 OPEN { }\n",
+            "/maps/project/scripts/main.acs",
+            sourceIsMapScriptsLump: false);
+
+        Assert.True(result.ShouldCompile);
+        var error = Assert.IsType<ScriptCompilerError>(result.Error);
+        Assert.Equal("External ACS files can only be compiled as libraries.", error.Description);
+        Assert.Equal("/maps/project/scripts/main.acs", error.FileName);
+        Assert.Equal(-1, error.LineNumber);
+    }
+
+    [Fact]
+    public void AcsCompilePreflightCollectsIncludesAndSkipsCompilerFilesLikeUdb()
+    {
+        const string text = """
+            #library "helpers"
+            #include "zcommon.acs"
+            #include "libs\shared.acs"
+            #import "acs/mapsupport.acs"
+            """;
+
+        var result = AcsCompilePreflight.Analyze(
+            text,
+            "/maps/project/scripts/helpers.acs",
+            sourceIsMapScriptsLump: false,
+            compilerFiles: new[] { "zcommon.acs" });
+
+        Assert.True(result.ShouldCompile);
+        Assert.Null(result.Error);
+        Assert.Equal("helpers", result.LibraryName);
+        Assert.DoesNotContain("zcommon.acs", result.Includes);
+        Assert.Contains(Path.Combine("libs", "shared.acs"), result.Includes);
+        Assert.Contains(Path.Combine("acs", "mapsupport.acs"), result.Includes);
+    }
+
+    [Fact]
+    public void AcsCompilePreflightReportsDuplicateIncludesLikeUdb()
+    {
+        const string text = """
+            #library "helpers"
+            #include "libs/shared.acs"
+            #include "libs/shared.acs"
+            """;
+
+        var result = AcsCompilePreflight.Analyze(
+            text,
+            "/maps/project/scripts/helpers.acs",
+            sourceIsMapScriptsLump: false);
+
+        string include = Path.Combine("libs", "shared.acs");
+        var error = Assert.IsType<ScriptCompilerError>(result.Error);
+        Assert.Equal("Already parsed \"" + include + "\". Check your #include directives.", error.Description);
+        Assert.Equal("/maps/project/scripts/helpers.acs", error.FileName);
+        Assert.Equal(2, error.LineNumber);
+    }
+
+    [Fact]
+    public void AcsCompilePreflightRequiresQuotedIncludesLikeUdb()
+    {
+        const string text = """
+            #library "helpers"
+            #import libs/shared.acs
+            """;
+
+        var result = AcsCompilePreflight.Analyze(
+            text,
+            "/maps/project/scripts/helpers.acs",
+            sourceIsMapScriptsLump: false);
+
+        var error = Assert.IsType<ScriptCompilerError>(result.Error);
+        Assert.Equal("#import filename should be quoted.", error.Description);
+        Assert.Equal("/maps/project/scripts/helpers.acs", error.FileName);
+        Assert.Equal(1, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(

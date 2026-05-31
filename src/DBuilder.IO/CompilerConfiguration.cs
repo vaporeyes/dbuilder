@@ -35,6 +35,12 @@ public sealed record ScriptCompileTarget(string TargetPath, string ErrorMessage 
     public bool Success => ErrorMessage.Length == 0;
 }
 
+public sealed record AcsCompilePreflightResult(
+    bool ShouldCompile,
+    string LibraryName,
+    IReadOnlySet<string> Includes,
+    ScriptCompilerError? Error);
+
 public static class ScriptCompilerArguments
 {
     public static string Build(string parameters, ScriptCompilerPaths paths)
@@ -137,6 +143,78 @@ public static class ScriptCompileFlow
 }
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);
+
+public static class AcsCompilePreflight
+{
+    public static AcsCompilePreflightResult Analyze(
+        string text,
+        string sourceFile,
+        bool sourceIsMapScriptsLump,
+        IEnumerable<string>? compilerFiles = null)
+    {
+        var includes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var compilerIncludes = new HashSet<string>(
+            (compilerFiles ?? Array.Empty<string>()).Select(NormalizeIncludePath),
+            StringComparer.OrdinalIgnoreCase);
+        string libraryName = "";
+
+        if (sourceIsMapScriptsLump && text.Length == 0)
+            return new AcsCompilePreflightResult(false, "", includes, null);
+
+        string[] lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i].TrimStart();
+            if (line.StartsWith("#library", StringComparison.Ordinal))
+            {
+                if (TryReadQuotedArgument(line["#library".Length..].Trim(), out string name)) libraryName = name;
+                continue;
+            }
+
+            string token = line.StartsWith("#include", StringComparison.Ordinal)
+                ? "#include"
+                : line.StartsWith("#import", StringComparison.Ordinal)
+                    ? "#import"
+                    : "";
+            if (token.Length == 0) continue;
+
+            string value = line[token.Length..].Trim();
+            if (!TryReadQuotedArgument(value, out string include))
+                return Error(token + " filename should be quoted.", sourceFile, i);
+
+            include = NormalizeIncludePath(include);
+            if (include.Length == 0)
+                return Error("Expected file name to " + token + ".", sourceFile, i);
+
+            if (!includes.Add(include))
+                return Error("Already parsed \"" + include + "\". Check your " + token + " directives.", sourceFile, i);
+        }
+
+        if (!sourceIsMapScriptsLump && libraryName.Length == 0)
+            return Error("External ACS files can only be compiled as libraries.", sourceFile);
+
+        includes.ExceptWith(compilerIncludes);
+        return new AcsCompilePreflightResult(true, libraryName, includes, null);
+    }
+
+    private static AcsCompilePreflightResult Error(string description, string sourceFile, int lineNumber = -1)
+        => new(true, "", new HashSet<string>(StringComparer.OrdinalIgnoreCase), new ScriptCompilerError(description, sourceFile, lineNumber));
+
+    private static bool TryReadQuotedArgument(string value, out string argument)
+    {
+        argument = "";
+        if (value.Length < 2 || value[0] != '"') return false;
+        int end = value.IndexOf('"', 1);
+        if (end < 0) return false;
+        argument = value[1..end];
+        return true;
+    }
+
+    private static string NormalizeIncludePath(string value)
+        => value
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+}
 
 public static class ScriptCompilerErrors
 {
