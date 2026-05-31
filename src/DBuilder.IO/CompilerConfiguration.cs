@@ -534,12 +534,23 @@ public sealed class CompilerConfiguration
         if (!nodebuilders.TryGetValue(nodebuilderName, out var nodebuilder)) return null;
 
         string executable = executableOverride ?? "";
+        CompilerInfo? compiler = null;
         if (string.IsNullOrWhiteSpace(executable)
-            && compilers.TryGetValue(nodebuilder.CompilerName, out var compiler)
+            && compilers.TryGetValue(nodebuilder.CompilerName, out compiler)
             && !string.IsNullOrWhiteSpace(compiler.ProgramFile))
+        {
             executable = Path.Combine(compiler.Path, compiler.ProgramFile);
+        }
+        else if (compiler is null)
+        {
+            compilers.TryGetValue(nodebuilder.CompilerName, out compiler);
+        }
 
-        return string.IsNullOrWhiteSpace(executable) ? null : nodebuilder.ToConfig(executable);
+        if (string.IsNullOrWhiteSpace(executable)) return null;
+        if (compiler != null && compiler.Files.Count > 0)
+            return new NodebuilderConfig(executable, nodebuilder.Parameters, compiler.Path, compiler.Files.ToArray());
+
+        return nodebuilder.ToConfig(executable);
     }
 
     private void ParseCompilers(IDictionary block, string fileName, string path)

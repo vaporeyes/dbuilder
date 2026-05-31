@@ -212,6 +212,41 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ResolveNodebuilderCarriesCompilerSupportFilesLikeUdb()
+    {
+        const string cfg = """
+            compilers
+            {
+                zdbsp
+                {
+                    interface = "NodesCompiler";
+                    program = "zdbsp";
+                    support = "zdbsp.cfg";
+                    nested = "cfg\\zdbsp.ini";
+                }
+            }
+
+            nodebuilders
+            {
+                zdbsp_normal
+                {
+                    compiler = "zdbsp";
+                    parameters = "-o%FO %FI";
+                }
+            }
+            """;
+
+        var parsed = CompilerConfiguration.FromText(cfg, "zdbsp.cfg", "/compilers/ZDBSP");
+        var config = parsed.ResolveNodebuilderConfig("zdbsp_normal");
+
+        Assert.NotNull(config);
+        Assert.Equal(Path.Combine("/compilers/ZDBSP", "zdbsp"), config.Executable);
+        Assert.Equal("-o%FO %FI", config.Parameters);
+        Assert.Equal("/compilers/ZDBSP", config.RequiredFilesDirectory);
+        Assert.Equal(new[] { "cfg/zdbsp.ini", "zdbsp.cfg" }, config.RequiredFiles!.OrderBy(v => v, StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void ScriptCompilerArgumentsSubstituteUdbAccTokens()
     {
         var paths = new ScriptCompilerPaths(
