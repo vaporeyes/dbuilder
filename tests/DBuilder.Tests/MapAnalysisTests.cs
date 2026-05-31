@@ -244,6 +244,26 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void OverlappingVerticesIssueCanMergeVertices()
+    {
+        var map = new MapSet();
+        var keep = map.AddVertex(new Vector2D(0, 0));
+        var remove = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(remove, end);
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.OverlappingVertices);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Merge Vertices", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(remove, map.Vertices);
+        Assert.Same(keep, line.Start);
+        Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.OverlappingVertices);
+    }
+
+    [Fact]
     public void DetectsVertexOverlappingLinedefWithoutSplittingIt()
     {
         var map = new MapSet();

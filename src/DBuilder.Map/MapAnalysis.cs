@@ -1063,13 +1063,36 @@ public static class MapAnalysis
         foreach (var (_, list) in buckets)
             if (list.Count > 1)
             {
-                var v0 = map.Vertices[list[0]];
-                var p = v0.Position;
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingVertices,
-                    $"{list.Count} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)}).")
-                    { Target = v0, Focus = p });
+                var vertices = list.Select(i => map.Vertices[i]).ToArray();
+                var p = vertices[0].Position;
+                issues.Add(OverlappingVerticesIssue(vertices,
+                    $"{vertices.Length} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)})."));
             }
     }
+
+    private static MapIssue OverlappingVerticesIssue(Vertex[] vertices, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.OverlappingVertices, message)
+        {
+            Target = vertices[0],
+            Focus = vertices[0].Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Merge Vertices", map =>
+                {
+                    if (!map.Vertices.Contains(vertices[0])) return false;
+                    bool changed = false;
+                    for (int i = 1; i < vertices.Length; i++)
+                    {
+                        if (!map.Vertices.Contains(vertices[i])) continue;
+                        map.JoinVertices(vertices[0], vertices[i]);
+                        changed = true;
+                    }
+                    if (!changed) return false;
+                    map.BuildIndexes();
+                    return true;
+                }),
+            },
+        };
 
     private static void CheckVerticesOverlappingLinedefs(MapSet map, Dictionary<Vertex, int> vertexIndex, List<MapIssue> issues)
     {
