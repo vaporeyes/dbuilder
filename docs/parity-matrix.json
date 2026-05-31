@@ -173,7 +173,7 @@
       "udbPlugin": "RejectExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Reject table IO coverage exists. Full RejectExplorer UI and analysis workflow remain incomplete."
+      "notes": "Reject table IO coverage exists, including UDB-style REJECT lump validation and highlighted-sector visibility relation classification for default, highlighted, bidirectional, and one-way overlay states. Full RejectExplorer UI and overlay rendering workflow remain incomplete."
     },
     {
       "udbPlugin": "SoundPropagationMode",

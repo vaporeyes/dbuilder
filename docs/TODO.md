@@ -888,6 +888,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment selection targets and view-area calculation.
 - [ ] Port `NodesViewer`.
 - [ ] Port `RejectExplorer`.
+  - [x] Add UDB-style REJECT lump validation and visibility relation model.
 - [ ] Port `SoundPropagationMode`.
 - [ ] Port `StairSectorBuilder`.
 - [ ] Port `TagExplorer`.
@@ -946,6 +947,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.
 - [ ] Port nodes viewer visualization.
 - [ ] Port reject explorer visualization.
+  - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
 - [ ] Port sound propagation mode behavior.
 - [ ] Port stair sector builder mode and form behavior.
 - [ ] Port tag explorer tree behavior.
