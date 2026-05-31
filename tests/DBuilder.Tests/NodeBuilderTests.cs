@@ -10,7 +10,19 @@ namespace DBuilder.Tests;
 
 public class NodeBuilderTests
 {
-    private static byte[] SampleWadBytes()
+    private const string NodeBuildConfig = @"
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    THINGS { required = true; }
+    LINEDEFS { required = true; }
+    SIDEDEFS { required = true; }
+    VERTEXES { required = true; }
+    SECTORS { required = true; }
+    NODES { required = true; nodebuild = true; allowempty = false; }
+}";
+
+    private static byte[] SampleWadBytes(bool includeStaleNodes = false)
     {
         var map = new MapSet();
         var s = map.AddSector();
@@ -26,6 +38,8 @@ public class NodeBuilderTests
         using (var wad = new WAD(ms))
         {
             DoomMapWriter.WriteMap(map, wad, "MAP01", 0);
+            if (includeStaleNodes)
+                wad.Insert("NODES", wad.Lumps.Count, 0, false);
             wad.WriteHeaders();
             return ms.ToArray();
         }
@@ -75,5 +89,25 @@ public class NodeBuilderTests
         var maps = WadMaps.Find(wad);
         Assert.Single(maps);
         Assert.Equal("MAP01", maps[0].Name);
+    }
+
+    [Fact]
+    public void ValidatedBuildRejectsOutputWithoutRequiredNodeLumps()
+    {
+        const string cp = "/bin/cp";
+        if (!File.Exists(cp)) return; // platform without /bin/cp; pipeline covered elsewhere
+
+        var config = GameConfiguration.FromText(NodeBuildConfig);
+        var input = SampleWadBytes(includeStaleNodes: true);
+
+        var result = NodeBuilder.Build(
+            input,
+            new NodebuilderConfig(cp, "\"%FI\" \"%FO\""),
+            mapMarker: "MAP01",
+            config: config);
+
+        Assert.False(result.Success);
+        Assert.Null(result.Output);
+        Assert.Contains("expected data structures", result.Message);
     }
 }

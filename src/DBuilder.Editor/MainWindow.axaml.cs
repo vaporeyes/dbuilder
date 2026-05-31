@@ -808,7 +808,7 @@ public partial class MainWindow : Window
 
         if (!System.IO.File.Exists(cfg.Executable)) return $"  (node builder not found: {cfg.Executable})";
 
-        var result = NodeBuilder.Build(bytes, cfg);
+        var result = NodeBuilder.Build(bytes, cfg, mapMarker: _mapMarker, config: _config);
         if (result.Success && result.Output != null) { bytes = result.Output; return "  (nodes built)"; }
         return "  (node build FAILED, saved without nodes)";
     }

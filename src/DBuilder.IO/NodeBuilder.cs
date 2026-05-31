@@ -33,7 +33,7 @@ public static class NodeBuilder
     /// rebuilt WAD bytes. Never throws for the common failures (missing executable, non-zero exit, timeout);
     /// those come back as <see cref="Result"/> with Success=false and a descriptive message.
     /// </summary>
-    public static Result Build(byte[] wadBytes, NodebuilderConfig cfg, int timeoutMs = 120000)
+    public static Result Build(byte[] wadBytes, NodebuilderConfig cfg, int timeoutMs = 120000, string? mapMarker = null, GameConfiguration? config = null)
     {
         if (string.IsNullOrWhiteSpace(cfg.Executable) || !File.Exists(cfg.Executable))
             return new Result(false, null, $"Node builder executable not found: {cfg.Executable}");
@@ -46,7 +46,7 @@ public static class NodeBuilder
 
         try
         {
-            File.WriteAllBytes(input, wadBytes);
+            File.WriteAllBytes(input, PrepareInputWad(wadBytes, mapMarker, config));
 
             var psi = new ProcessStartInfo
             {
@@ -84,7 +84,11 @@ public static class NodeBuilder
             if (!File.Exists(output))
                 return new Result(false, null, $"Node builder produced no output file. {msg}");
 
-            return new Result(true, File.ReadAllBytes(output), msg);
+            byte[] outputBytes = File.ReadAllBytes(output);
+            if (!RequiredNodeBuildLumpsPresent(outputBytes, mapMarker, config))
+                return new Result(false, null, $"Node builder failed to build the expected data structures. {msg}");
+
+            return new Result(true, outputBytes, msg);
         }
         catch (Exception ex)
         {
@@ -93,6 +97,42 @@ public static class NodeBuilder
         finally
         {
             try { Directory.Delete(dir, recursive: true); } catch { /* best effort cleanup */ }
+        }
+    }
+
+    private static byte[] PrepareInputWad(byte[] wadBytes, string? mapMarker, GameConfiguration? config)
+    {
+        if (string.IsNullOrWhiteSpace(mapMarker) || config is null || config.MapLumpNames.Count == 0)
+            return wadBytes;
+
+        try
+        {
+            using var ms = new MemoryStream();
+            ms.Write(wadBytes, 0, wadBytes.Length);
+            ms.Position = 0;
+            using (var wad = new WAD(ms))
+                WadMaps.RemoveUnneededMapLumps(wad, mapMarker, config, glNodesOnly: false);
+            return ms.ToArray();
+        }
+        catch
+        {
+            return wadBytes;
+        }
+    }
+
+    private static bool RequiredNodeBuildLumpsPresent(byte[] wadBytes, string? mapMarker, GameConfiguration? config)
+    {
+        if (string.IsNullOrWhiteSpace(mapMarker) || config is null || config.MapLumpNames.Count == 0)
+            return true;
+
+        try
+        {
+            using var wad = new WAD(new MemoryStream(wadBytes), openreadonly: true);
+            return WadMaps.RequiredNodeBuildLumpsPresent(wad, mapMarker, config);
+        }
+        catch
+        {
+            return false;
         }
     }
 }
