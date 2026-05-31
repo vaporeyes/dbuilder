@@ -31,6 +31,8 @@ public sealed record ScriptCompilePlan(
     string InputCopyPath,
     string OutputPath);
 
+public sealed record ScriptCompileIncludeCopy(string IncludeName, string TargetPath, bool ShouldCopy);
+
 public sealed record ScriptCompileTarget(string TargetPath, string ErrorMessage = "")
 {
     public bool Success => ErrorMessage.Length == 0;
@@ -142,6 +144,24 @@ public static class ScriptCompileFlow
     public static ScriptCompilerError MissingOutputFileError(string outputPath)
         => new("Output file \"" + outputPath + "\" doesn't exist.");
 
+    public static IReadOnlyList<ScriptCompileIncludeCopy> BuildIncludeCopyPlan(
+        IEnumerable<string> includes,
+        string compilerTempDirectory,
+        IEnumerable<string>? existingTargetPaths = null)
+    {
+        var existing = new HashSet<string>(
+            existingTargetPaths ?? Array.Empty<string>(),
+            StringComparer.OrdinalIgnoreCase);
+        return includes
+            .Select(include =>
+            {
+                string normalizedInclude = NormalizeIncludePath(include);
+                string target = Path.Combine(compilerTempDirectory, normalizedInclude);
+                return new ScriptCompileIncludeCopy(normalizedInclude, target, !existing.Contains(target));
+            })
+            .ToList();
+    }
+
     public static ScriptCompilerError RemapDirectoryError(ScriptCompilerError error, string inputCopyPath, string sourceFile)
         => SamePath(error.FileName, inputCopyPath)
             ? error with { FileName = sourceFile }
@@ -168,6 +188,11 @@ public static class ScriptCompileFlow
             left.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
             right.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
             StringComparison.OrdinalIgnoreCase);
+
+    private static string NormalizeIncludePath(string value)
+        => value
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
 }
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);

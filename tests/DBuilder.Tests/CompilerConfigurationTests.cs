@@ -315,6 +315,45 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowBuildsIncludeCopyPlanLikeUdb()
+    {
+        var plan = ScriptCompileFlow.BuildIncludeCopyPlan(
+            new[] { "libs\\shared.acs", "acs/mapsupport.acs" },
+            "/tmp/dbuilder_compile");
+
+        Assert.Collection(
+            plan,
+            copy =>
+            {
+                Assert.Equal(Path.Combine("libs", "shared.acs"), copy.IncludeName);
+                Assert.Equal(Path.Combine("/tmp/dbuilder_compile", "libs", "shared.acs"), copy.TargetPath);
+                Assert.True(copy.ShouldCopy);
+            },
+            copy =>
+            {
+                Assert.Equal(Path.Combine("acs", "mapsupport.acs"), copy.IncludeName);
+                Assert.Equal(Path.Combine("/tmp/dbuilder_compile", "acs", "mapsupport.acs"), copy.TargetPath);
+                Assert.True(copy.ShouldCopy);
+            });
+    }
+
+    [Fact]
+    public void ScriptCompileFlowSkipsExistingIncludeCopyTargetsLikeUdb()
+    {
+        string existing = Path.Combine("/tmp/dbuilder_compile", "libs", "shared.acs");
+
+        var plan = ScriptCompileFlow.BuildIncludeCopyPlan(
+            new[] { "libs/shared.acs" },
+            "/tmp/dbuilder_compile",
+            new[] { existing });
+
+        var copy = Assert.Single(plan);
+        Assert.Equal(Path.Combine("libs", "shared.acs"), copy.IncludeName);
+        Assert.Equal(existing, copy.TargetPath);
+        Assert.False(copy.ShouldCopy);
+    }
+
+    [Fact]
     public void ScriptCompileFlowResolvesAccLibraryTargetsLikeUdb()
     {
         var target = ScriptCompileFlow.ResolveFileTarget(
