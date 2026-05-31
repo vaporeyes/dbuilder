@@ -234,6 +234,42 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindAndReplaceSectorFlags()
+    {
+        var map = Build();
+        map.Sectors[0].SetFlag("secret", true);
+        map.Sectors[0].SetFlag("nofallingdamage", true);
+        map.Sectors[1].SetFlag("secret", true);
+
+        SearchResult found = MapSearch.Find(map, FindCategory.SectorFlags, "secret, !nofallingdamage");
+
+        Assert.Equal(1, found.Count);
+        Assert.True(map.Sectors[1].Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorFlags, "secret, !nofallingdamage", "!secret, damagehazard"));
+        Assert.False(map.Sectors[1].IsFlagSet("secret"));
+        Assert.True(map.Sectors[1].IsFlagSet("damagehazard"));
+        Assert.True(map.Sectors[0].IsFlagSet("secret"));
+    }
+
+    [Fact]
+    public void FindAndReplaceThingFlags()
+    {
+        var map = Build();
+        map.Things[0].SetFlag("ambush", true);
+        map.Things[0].SetFlag("skill1", true);
+        map.Things[1].SetFlag("ambush", true);
+
+        SearchResult found = MapSearch.Find(map, FindCategory.ThingFlags, "ambush, !skill1");
+
+        Assert.Equal(1, found.Count);
+        Assert.True(map.Things[1].Selected);
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.ThingFlags, "ambush, !skill1", "!ambush, skill2"));
+        Assert.False(map.Things[1].IsFlagSet("ambush"));
+        Assert.True(map.Things[1].IsFlagSet("skill2"));
+        Assert.True(map.Things[0].IsFlagSet("ambush"));
+    }
+
+    [Fact]
     public void FindUdmfFieldsSupportsKeyAndValueWildcards()
     {
         var map = Build();

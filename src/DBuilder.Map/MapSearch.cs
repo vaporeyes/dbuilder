@@ -34,6 +34,8 @@ public enum FindCategory
     ThingAngle,
     LinedefFlags,
     SidedefFlags,
+    SectorFlags,
+    ThingFlags,
     AnyUdmfField,
     VertexUdmfField,
     LinedefUdmfField,
@@ -99,6 +101,11 @@ public static class MapSearch
                 break;
             case FindCategory.ThingAngle:
                 if (numOk) foreach (var t in map.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
+                break;
+            case FindCategory.ThingFlags:
+                if (TryParseFlagQuery(value, out var thingFlags))
+                    foreach (var t in map.Things)
+                        if (FlagsMatch(t, thingFlags)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingUdmfField:
                 foreach (var t in map.Things)
@@ -184,6 +191,11 @@ public static class MapSearch
                 break;
             case FindCategory.SectorBrightness:
                 if (numOk) foreach (var s in map.Sectors) if (s.Brightness == num) { s.Selected = true; count++; }
+                break;
+            case FindCategory.SectorFlags:
+                if (TryParseFlagQuery(value, out var sectorFlags))
+                    foreach (var s in map.Sectors)
+                        if (FlagsMatch(s, sectorFlags)) { s.Selected = true; count++; }
                 break;
             case FindCategory.Tag:
                 if (numOk)
@@ -282,7 +294,7 @@ public static class MapSearch
             return changed;
         }
 
-        if (cat == FindCategory.LinedefFlags || cat == FindCategory.SidedefFlags)
+        if (IsFlagCategory(cat))
             return ReplaceFlags(map, cat, find, replace);
 
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
@@ -440,28 +452,62 @@ public static class MapSearch
         return true;
     }
 
+    private static bool FlagsMatch(Sector sector, IReadOnlyList<(string Flag, bool Set)> flags)
+    {
+        foreach (var flag in flags)
+            if (sector.IsFlagSet(flag.Flag) != flag.Set) return false;
+        return true;
+    }
+
+    private static bool FlagsMatch(Thing thing, IReadOnlyList<(string Flag, bool Set)> flags)
+    {
+        foreach (var flag in flags)
+            if (thing.IsFlagSet(flag.Flag) != flag.Set) return false;
+        return true;
+    }
+
+    private static bool IsFlagCategory(FindCategory category)
+        => category is FindCategory.LinedefFlags or FindCategory.SidedefFlags or FindCategory.SectorFlags or FindCategory.ThingFlags;
+
     private static int ReplaceFlags(MapSet map, FindCategory category, string find, string replace)
     {
         if (!TryParseFlagQuery(find, out var findFlags) || !TryParseFlagQuery(replace, out var replaceFlags)) return 0;
 
         int changed = 0;
-        if (category == FindCategory.LinedefFlags)
+        switch (category)
         {
-            foreach (var line in map.Linedefs)
-            {
-                if (!FlagsMatch(line, findFlags)) continue;
-                foreach (var flag in replaceFlags) line.SetFlag(flag.Flag, flag.Set);
-                changed++;
-            }
-        }
-        else
-        {
-            foreach (var side in map.Sidedefs)
-            {
-                if (!FlagsMatch(side, findFlags)) continue;
-                foreach (var flag in replaceFlags) side.SetFlag(flag.Flag, flag.Set);
-                changed++;
-            }
+            case FindCategory.LinedefFlags:
+                foreach (var line in map.Linedefs)
+                {
+                    if (!FlagsMatch(line, findFlags)) continue;
+                    foreach (var flag in replaceFlags) line.SetFlag(flag.Flag, flag.Set);
+                    changed++;
+                }
+                break;
+            case FindCategory.SidedefFlags:
+                foreach (var side in map.Sidedefs)
+                {
+                    if (!FlagsMatch(side, findFlags)) continue;
+                    foreach (var flag in replaceFlags) side.SetFlag(flag.Flag, flag.Set);
+                    changed++;
+                }
+                break;
+            case FindCategory.SectorFlags:
+                foreach (var sector in map.Sectors)
+                {
+                    if (!FlagsMatch(sector, findFlags)) continue;
+                    foreach (var flag in replaceFlags) sector.SetFlag(flag.Flag, flag.Set);
+                    changed++;
+                }
+                break;
+            case FindCategory.ThingFlags:
+                foreach (var thing in map.Things)
+                {
+                    if (!FlagsMatch(thing, findFlags)) continue;
+                    foreach (var flag in replaceFlags) thing.SetFlag(flag.Flag, flag.Set);
+                    changed++;
+                }
+                break;
         }
 
         return changed;
