@@ -89,6 +89,30 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindSpecificTagCategoriesMatchOnlyTheirElementTypes()
+    {
+        var map = Build();
+
+        var linedefs = MapSearch.Find(map, FindCategory.LinedefTag, "5");
+        Assert.Equal(1, linedefs.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Sectors[0].Selected);
+        Assert.False(map.Things[2].Selected);
+
+        var sectors = MapSearch.Find(map, FindCategory.SectorTag, "5");
+        Assert.Equal(1, sectors.Count);
+        Assert.False(map.Linedefs[0].Selected);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.False(map.Things[2].Selected);
+
+        var things = MapSearch.Find(map, FindCategory.ThingTag, "5");
+        Assert.Equal(1, things.Count);
+        Assert.False(map.Linedefs[0].Selected);
+        Assert.False(map.Sectors[0].Selected);
+        Assert.True(map.Things[2].Selected);
+    }
+
+    [Fact]
     public void FindClearsPriorSelection()
     {
         var map = Build();
@@ -536,6 +560,20 @@ public class MapSearchTests
         Assert.Equal(2, changed);
         Assert.Equal(new[] { 5, 19 }, map.Sectors[0].Tags);
         Assert.Equal(new[] { 5, 19 }, map.Linedefs[0].Tags);
+    }
+
+    [Fact]
+    public void ReplaceSpecificTagCategoriesTouchOnlyTheirElementTypes()
+    {
+        var map = Build();
+
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.LinedefTag, "5", "11"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SectorTag, "5", "12"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.ThingTag, "5", "13"));
+
+        Assert.Equal(11, map.Linedefs[0].Tag);
+        Assert.Equal(12, map.Sectors[0].Tag);
+        Assert.Equal(13, map.Things[2].Tag);
     }
 
     [Fact]

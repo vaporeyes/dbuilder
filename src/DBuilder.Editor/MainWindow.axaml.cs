@@ -2297,6 +2297,7 @@ public partial class MainWindow : Window
         FindCategory.ThingAngle or
         FindCategory.ThingActionArguments or
         FindCategory.ThingFlags or
+        FindCategory.ThingTag or
         FindCategory.ThingSectorReference or
         FindCategory.ThingThingReference => MapControl.EditMode.Things,
         FindCategory.SectorEffect or
@@ -2305,6 +2306,7 @@ public partial class MainWindow : Window
         FindCategory.SectorCeilingHeight or
         FindCategory.SectorBrightness or
         FindCategory.SectorFlags or
+        FindCategory.SectorTag or
         FindCategory.Flat or
         FindCategory.SectorFloorFlat or
         FindCategory.SectorCeilingFlat or

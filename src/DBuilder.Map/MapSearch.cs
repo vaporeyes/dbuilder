@@ -18,6 +18,9 @@ public enum FindCategory
     ThingActionArguments,
     SectorEffect,
     Tag,
+    LinedefTag,
+    SectorTag,
+    ThingTag,
     Texture,
     Flat,
     VertexIndex,
@@ -223,6 +226,18 @@ public static class MapSearch
                         foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 }
                 break;
+            case FindCategory.LinedefTag:
+                if (numOk)
+                    foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
+                break;
+            case FindCategory.SectorTag:
+                if (numOk)
+                    foreach (var s in map.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
+                break;
+            case FindCategory.ThingTag:
+                if (numOk)
+                    foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
+                break;
             case FindCategory.Texture:
                 foreach (var sd in map.Sidedefs)
                     if (sd.Line != null && (Eq(sd.HighTexture, value) || Eq(sd.MidTexture, value) || Eq(sd.LowTexture, value)))
@@ -347,6 +362,15 @@ public static class MapSearch
                 foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
                 if (tagOptions.IncludeThings)
                     foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
+                break;
+            case FindCategory.LinedefTag:
+                foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
+                break;
+            case FindCategory.SectorTag:
+                foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
+                break;
+            case FindCategory.ThingTag:
+                foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
         }
 
