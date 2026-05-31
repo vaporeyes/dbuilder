@@ -82,6 +82,24 @@ properties
     }
 
     [Fact]
+    public void ParsesUdbScriptTypeNamesExactly()
+    {
+        Assert.Equal(ScriptType.ModelDef, ScriptConfigurationInfo.FromText(@"scripttype = ""MODELDEF"";").ScriptType);
+        Assert.Equal(ScriptType.SndSeq, ScriptConfigurationInfo.FromText(@"scripttype = ""SNDSEQ"";").ScriptType);
+        Assert.Equal(ScriptType.X11R6Rgb, ScriptConfigurationInfo.FromText(@"scripttype = ""X11R6RGB"";").ScriptType);
+        Assert.Equal(ScriptType.DecalDef, ScriptConfigurationInfo.FromText(@"scripttype = ""DECALDEF"";").ScriptType);
+    }
+
+    [Fact]
+    public void RejectsNonUdbUnderscoredScriptTypeAliases()
+    {
+        Assert.Equal(ScriptType.Unknown, ScriptConfigurationInfo.FromText(@"scripttype = ""MODEL_DEF"";").ScriptType);
+        Assert.Equal(ScriptType.Unknown, ScriptConfigurationInfo.FromText(@"scripttype = ""SND_SEQ"";").ScriptType);
+        Assert.Equal(ScriptType.Unknown, ScriptConfigurationInfo.FromText(@"scripttype = ""X11_R6_RGB"";").ScriptType);
+        Assert.Equal(ScriptType.Unknown, ScriptConfigurationInfo.FromText(@"scripttype = ""DECAL_DEF"";").ScriptType);
+    }
+
+    [Fact]
     public void MissingConfiguredExtensionsKeepUdbEmptyExtensionEntry()
     {
         var cfg = ScriptConfigurationInfo.FromText(@"description = ""Mystery"";");

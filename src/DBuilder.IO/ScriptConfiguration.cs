@@ -254,8 +254,7 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
 
     private static ScriptType ParseScriptType(string value)
     {
-        string normalized = value.Replace("_", "", StringComparison.Ordinal).ToUpperInvariant();
-        return normalized switch
+        return value.ToUpperInvariant() switch
         {
             "ACS" => ScriptType.Acs,
             "MODELDEF" => ScriptType.ModelDef,
