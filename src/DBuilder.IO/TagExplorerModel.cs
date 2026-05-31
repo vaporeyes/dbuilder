@@ -51,7 +51,8 @@ public sealed record TagExplorerEntry(
     int Action,
     int PolyobjectNumber,
     string Comment,
-    string DefaultName)
+    string DefaultName,
+    string ThingCategory = "")
 {
     public bool HasComment => Comment.Length > 0;
 }
@@ -159,10 +160,25 @@ public static class TagExplorerModel
         {
             TagExplorerSortMode.ByTag => GroupByTag(kindEntries, options.SortMode, tagLabels),
             TagExplorerSortMode.ByAction => GroupByAction(kindEntries, kind, options.SortMode),
+            TagExplorerSortMode.ByIndex when kind == TagExplorerEntryKind.Thing && options.DisplayMode != TagExplorerDisplayMode.Polyobjects => GroupThingsByCategory(kindEntries, options.SortMode),
             _ => kindEntries.Select(entry => EntryNode(entry, options.SortMode)).ToList(),
         };
 
         roots.Add(new TagExplorerTreeNode(title, null, children));
+    }
+
+    private static IReadOnlyList<TagExplorerTreeNode> GroupThingsByCategory(
+        IReadOnlyList<TagExplorerEntry> entries,
+        TagExplorerSortMode sortMode)
+    {
+        var categories = new List<TagExplorerTreeNode>();
+        foreach (IGrouping<string, TagExplorerEntry> group in entries.GroupBy(entry => entry.ThingCategory))
+        {
+            string title = group.Key.Length > 0 ? group.Key : "UNKNOWN";
+            categories.Add(new TagExplorerTreeNode(title, null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
+        }
+
+        return categories;
     }
 
     private static IReadOnlyList<TagExplorerTreeNode> GroupByTag(
@@ -259,7 +275,8 @@ public static class TagExplorerModel
                     thing.Action,
                     polyobjectNumber,
                     Comment(thing, isUdmf),
-                    "Thing"), commentSearch, commentsOnly, displayMode);
+                    "Thing",
+                    ThingCategory(thing, config)), commentSearch, commentsOnly, displayMode);
             }
             else if (displayMode == TagExplorerDisplayMode.Polyobjects &&
                 polyobjectNumber != NoPolyobjectNumber &&
@@ -440,6 +457,16 @@ public static class TagExplorerModel
         => isUdmf && element.Fields.TryGetValue(CommentsPanelModel.CommentField, out var raw)
             ? raw?.ToString() ?? ""
             : "";
+
+    private static string ThingCategory(Thing thing, GameConfiguration? config)
+    {
+        ThingTypeInfo? info = config?.GetThing(thing.Type);
+        if (info == null) return "UNKNOWN";
+        if (config != null && config.ThingCategories.TryGetValue(info.Category, out ThingCategoryInfo? category))
+            return category.Title;
+
+        return info.Category.Length > 0 ? info.Category : "UNKNOWN";
+    }
 
     private static IEnumerable<int> TagsOrZero(IReadOnlyCollection<int> tags)
     {

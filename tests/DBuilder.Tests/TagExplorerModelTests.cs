@@ -156,6 +156,43 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void BuildTreeGroupsThingsByCategoryInIndexModeLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+                    3001 { title = "Imp"; }
+                }
+                decorations
+                {
+                    title = "Decorations";
+                    2001 { title = "Column"; }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var imp = map.AddThing(new Vector2D(0, 0), 3001);
+        imp.Tag = 7;
+        var unknown = map.AddThing(new Vector2D(8, 8), 9999);
+        unknown.Tag = 9;
+        var column = map.AddThing(new Vector2D(16, 16), 2001);
+        column.Tag = 11;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByIndex);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, config, options);
+        TagExplorerTreeNode things = Assert.Single(TagExplorerModel.BuildTree(entries, options));
+
+        Assert.Equal("Things:", things.Title);
+        Assert.Equal(new[] { "Monsters", "UNKNOWN", "Decorations" }, things.Children.Select(node => node.Title));
+        Assert.Equal("0: Thing, Tag 7", things.Children[0].Children[0].Title);
+        Assert.Equal("1: Thing, Tag 9", things.Children[1].Children[0].Title);
+        Assert.Equal("2: Thing, Tag 11", things.Children[2].Children[0].Title);
+    }
+
+    [Fact]
     public void BuildTreeGroupsEntriesByActionAndLeavesNoActionLast()
     {
         var map = new MapSet();

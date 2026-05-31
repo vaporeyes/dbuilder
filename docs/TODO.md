@@ -941,6 +941,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
   - [x] Add UDB-style grouped Tag Explorer tree and export text model.
+  - [x] Add UDB-style thing category grouping in Tag Explorer index view.
   - [x] Wire editor Tag Explorer grouped view and text export command.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
@@ -1093,6 +1094,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style form startup state for default prefabs, available tabs, and selected-sector overrides.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
+  - [x] Add UDB-style thing category grouping in index view.
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
 - [ ] Port tag range tools.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
