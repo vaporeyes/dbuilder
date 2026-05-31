@@ -100,5 +100,66 @@ public class IdStudioExportModelTests
         Assert.Contains("clipModelName = \"maps/map01/wadgeo_map01_func_static_1\";", refmap.Content);
     }
 
+    [Fact]
+    public void IdStudioVectorMatchesUdbDeltaMagnitudeAndNormalize()
+    {
+        var vector = new IdStudioVector(new IdStudioVertex(1, 2), new IdStudioVertex(4, 6));
+
+        Assert.Equal(3, vector.X);
+        Assert.Equal(4, vector.Y);
+        Assert.Equal(0, vector.Z);
+        Assert.Equal(5, vector.Magnitude());
+
+        vector.Normalize();
+
+        Assert.Equal(0.6f, vector.X, precision: 6);
+        Assert.Equal(0.8f, vector.Y, precision: 6);
+        Assert.Equal(0, vector.Z);
+    }
+
+    [Fact]
+    public void IdStudioPlaneSetFromNormalizesAndCalculatesDistance()
+    {
+        var plane = new IdStudioPlane();
+
+        plane.SetFrom(new IdStudioVector(10, 0, 0), new IdStudioVertex(3, 4));
+
+        Assert.Equal(1, plane.Normal.X);
+        Assert.Equal(0, plane.Normal.Y);
+        Assert.Equal(0, plane.Normal.Z);
+        Assert.Equal(3, plane.Distance);
+    }
+
+    [Fact]
+    public void EntityBuilderWritesGroupedClipAndCasterBrushPlanes()
+    {
+        var builder = new IdStudioEntityBuilder();
+        var plane = new IdStudioPlane
+        {
+            Normal = new IdStudioVector(0, 0, 1),
+            Distance = 16
+        };
+
+        builder.BeginBrushDef("stepclip", 7);
+        builder.WriteClipPlane(plane);
+        builder.WriteCasterPlane(plane);
+        builder.EndBrushDef();
+        string text = builder.Render();
+
+        Assert.Contains("\"stepclip/7\"", text);
+        Assert.Contains("brushDef3", text);
+        Assert.Contains("( 0 0 1 -16 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/clip/clip\" 0 0 0", text);
+        Assert.Contains("( 0 0 1 -16 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", text);
+        Assert.EndsWith("\t}\n}\n", NormalizeLineEndings(text), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EntityBuilderLowercasesScientificNotationMarkers()
+    {
+        string text = IdStudioEntityBuilder.LowercaseScientificNotation("1E-05 2E+06 NAME");
+
+        Assert.Equal("1e-05 2e+06 NAME", text);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }
