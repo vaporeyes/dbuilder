@@ -1021,6 +1021,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and toolbar Make Door command for selected sectors.
 - [ ] Port object export tools.
 - [ ] Port image export tools.
+  - [x] Add UDB-style image export settings model for format, pixel depth, scale, tiles, brightmaps, transparency, and default output paths.
 - [ ] Port Wavefront export tools.
   - [x] Add UDB-style Wavefront export settings, validation, material naming, and OBJ coordinate formatting helpers.
   - [x] Add UDB-style Wavefront MTL, actor code, MODELDEF, and export path content builders.
