@@ -217,6 +217,39 @@ public sealed record StairBuilderPrefab
     public string LowerTexture { get; init; } = "-";
     public bool LowerUnpegged { get; init; }
 
+    public StairBuilderStraightOptions ToStraightOptions()
+        => new()
+        {
+            NumberOfSectors = NumberOfSectors,
+            SectorDepth = SectorDepth,
+            Spacing = Spacing,
+            SideFront = FrontSide,
+        };
+
+    public StairBuilderOptions ToBuilderOptions(int floorBase = 0, int ceilingBase = 0)
+        => new()
+        {
+            ApplyFloorHeight = ApplyFloorHeight,
+            FloorBase = floorBase,
+            FloorStep = FloorStep,
+            ApplyCeilingHeight = ApplyCeilingHeight,
+            CeilingBase = ceilingBase,
+            CeilingStep = CeilingStep,
+            DistinctBaseHeights = DistinctBaseHeights,
+            ApplyFloorTexture = ApplyFloorTexture,
+            FloorTexture = FloorTexture,
+            ApplyCeilingTexture = ApplyCeilingTexture,
+            CeilingTexture = CeilingTexture,
+            ApplyUpperTexture = ApplyUpperTexture,
+            UpperTexture = UpperTexture,
+            UpperUnpegged = UpperUnpegged,
+            ApplyMiddleTexture = ApplyMiddleTexture,
+            MiddleTexture = MiddleTexture,
+            ApplyLowerTexture = ApplyLowerTexture,
+            LowerTexture = LowerTexture,
+            LowerUnpegged = LowerUnpegged,
+        };
+
     public Dictionary<string, object> ToSettingsDictionary()
         => new()
         {

@@ -455,4 +455,70 @@ public class StairBuilderTests
         Assert.Equal("[Previous]", prefabs[1].Name);
         Assert.Equal(4, prefabs[1].NumberOfSectors);
     }
+
+    [Fact]
+    public void PrefabCreatesStraightOptionsForLoadedFormState()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 4,
+            SectorDepth = 48,
+            Spacing = 12,
+            FrontSide = false
+        };
+
+        StairBuilderStraightOptions options = prefab.ToStraightOptions();
+
+        Assert.Equal(4, options.NumberOfSectors);
+        Assert.Equal(48, options.SectorDepth);
+        Assert.Equal(12, options.Spacing);
+        Assert.False(options.SideFront);
+    }
+
+    [Fact]
+    public void PrefabCreatesBuilderOptionsForLoadedFormState()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            ApplyFloorHeight = true,
+            FloorStep = 8,
+            ApplyCeilingHeight = true,
+            CeilingStep = 4,
+            DistinctBaseHeights = true,
+            ApplyFloorTexture = true,
+            FloorTexture = "FLOOR",
+            ApplyCeilingTexture = true,
+            CeilingTexture = "CEIL",
+            ApplyUpperTexture = true,
+            UpperTexture = "UP",
+            UpperUnpegged = true,
+            ApplyMiddleTexture = true,
+            MiddleTexture = "MID",
+            ApplyLowerTexture = true,
+            LowerTexture = "LOW",
+            LowerUnpegged = true
+        };
+
+        StairBuilderOptions options = prefab.ToBuilderOptions(floorBase: 24, ceilingBase: 160);
+
+        Assert.True(options.ApplyFloorHeight);
+        Assert.Equal(24, options.FloorBase);
+        Assert.Equal(8, options.FloorStep);
+        Assert.True(options.ApplyCeilingHeight);
+        Assert.Equal(160, options.CeilingBase);
+        Assert.Equal(4, options.CeilingStep);
+        Assert.True(options.DistinctBaseHeights);
+        Assert.True(options.ApplyFloorTexture);
+        Assert.Equal("FLOOR", options.FloorTexture);
+        Assert.True(options.ApplyCeilingTexture);
+        Assert.Equal("CEIL", options.CeilingTexture);
+        Assert.True(options.ApplyUpperTexture);
+        Assert.Equal("UP", options.UpperTexture);
+        Assert.True(options.UpperUnpegged);
+        Assert.True(options.ApplyMiddleTexture);
+        Assert.Equal("MID", options.MiddleTexture);
+        Assert.True(options.ApplyLowerTexture);
+        Assert.Equal("LOW", options.LowerTexture);
+        Assert.True(options.LowerUnpegged);
+    }
 }
