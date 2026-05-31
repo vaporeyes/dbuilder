@@ -1020,7 +1020,7 @@ public sealed class ResourceManager : IDisposable
         return null;
     }
 
-    /// <summary>The active palette (first PLAYPAL found searching newest resource first), or null.</summary>
+    /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {
         get
@@ -1030,6 +1030,7 @@ public sealed class ResourceManager : IDisposable
                 paletteResolved = true;
                 for (int i = readers.Count - 1; i >= 0 && palette == null; i--)
                     palette = readers[i].GetPalette();
+                if (palette == null && readers.Count > 0) palette = DoomPalette.CreateDefaultGray();
             }
             return palette;
         }

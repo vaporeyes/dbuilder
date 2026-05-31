@@ -602,13 +602,18 @@ public class ResourceManagerTests
     }
 
     [Fact]
-    public void NoPaletteYieldsNoImages()
+    public void MissingPaletteUsesUdbGrayFallback()
     {
         using var wad = BuildWad(("FLAT5", SolidFlat(5))); // no PLAYPAL
         var rm = new ResourceManager();
         rm.AddResource(wad);
-        Assert.Null(rm.Palette);
-        Assert.Null(rm.GetFlat("FLAT5"));
+        Assert.NotNull(rm.Palette);
+        Assert.Equal(0xFF7F7F7Fu, rm.Palette!.Colors[5]);
+
+        var flat = rm.GetFlat("FLAT5");
+
+        Assert.NotNull(flat);
+        Assert.Equal(new byte[] { 127, 127, 127, 255 }, flat!.Rgba[0..4]);
     }
 
     [Fact]
