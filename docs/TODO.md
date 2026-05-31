@@ -330,6 +330,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve named colormap resources from WAD lumps and PK3 `colormaps/` folders.
   - [x] Include folder colormap resources in texture name enumeration.
   - [x] Let nested WAD resources override root PK3 palette and main colormap lumps like UDB.
+  - [x] Add UDB-style nearest PLAYPAL color lookup and ARGB-to-index quantization helpers.
   - [x] Let nested WAD named colormaps override PK3 `colormaps/` folder entries like UDB.
   - [x] Resolve and prioritize WAD named colormaps from configured colormap ranges.
 - [ ] Port patch name behavior fully.

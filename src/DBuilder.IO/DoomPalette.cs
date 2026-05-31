@@ -50,4 +50,37 @@ public sealed class DoomPalette
         }
         return rgba;
     }
+
+    public int FindClosestColor(uint argb)
+    {
+        byte matchR = (byte)((argb >> 16) & 0xFF);
+        byte matchG = (byte)((argb >> 8) & 0xFF);
+        byte matchB = (byte)(argb & 0xFF);
+        int minDistance = int.MaxValue;
+        int minIndex = 0;
+
+        for (int i = 0; i < Colors.Length; i++)
+        {
+            uint color = Colors[i];
+            int dr = matchR - (byte)((color >> 16) & 0xFF);
+            int dg = matchG - (byte)((color >> 8) & 0xFF);
+            int db = matchB - (byte)(color & 0xFF);
+            int distance = dr * dr + dg * dg + db * db;
+
+            if (distance < minDistance)
+            {
+                minIndex = i;
+                minDistance = distance;
+            }
+        }
+
+        return minIndex;
+    }
+
+    public byte[] QuantizeArgbToIndices(ReadOnlySpan<uint> argbPixels)
+    {
+        var indices = new byte[argbPixels.Length];
+        for (int i = 0; i < argbPixels.Length; i++) indices[i] = (byte)FindClosestColor(argbPixels[i]);
+        return indices;
+    }
 }

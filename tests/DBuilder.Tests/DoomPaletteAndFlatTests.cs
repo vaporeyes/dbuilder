@@ -53,6 +53,46 @@ public class DoomPaletteAndFlatTests
     }
 
     [Fact]
+    public void FindClosestColorUsesUdbSquaredRgbDistanceAndFirstTie()
+    {
+        var palette = DoomPalette.FromBytes(BuildSyntheticPalette());
+        var tieBytes = new byte[768];
+        for (int i = 0; i < 256; i++)
+        {
+            tieBytes[i * 3 + 0] = 200;
+            tieBytes[i * 3 + 1] = 200;
+            tieBytes[i * 3 + 2] = 200;
+        }
+        tieBytes[0] = 0;
+        tieBytes[1] = 0;
+        tieBytes[2] = 0;
+        tieBytes[3] = 10;
+        tieBytes[4] = 0;
+        tieBytes[5] = 0;
+        var tiePalette = DoomPalette.FromBytes(tieBytes);
+
+        Assert.Equal(10, palette.FindClosestColor(0xFF0A0B0Cu));
+        Assert.Equal(0, tiePalette.FindClosestColor(0xFF050000u));
+        Assert.Equal(0, palette.FindClosestColor(0x00000102u));
+    }
+
+    [Fact]
+    public void QuantizeArgbToIndicesMapsPixelsToNearestPaletteEntries()
+    {
+        var palette = DoomPalette.FromBytes(BuildSyntheticPalette());
+        uint[] pixels =
+        [
+            0xFF000102u,
+            0xFF646566u,
+            0xFFFF0001u,
+        ];
+
+        byte[] indices = palette.QuantizeArgbToIndices(pixels);
+
+        Assert.Equal(new byte[] { 0, 100, 255 }, indices);
+    }
+
+    [Fact]
     public void FlatDecodesTo16384RgbaBytes()
     {
         var palette = DoomPalette.FromBytes(BuildSyntheticPalette());
