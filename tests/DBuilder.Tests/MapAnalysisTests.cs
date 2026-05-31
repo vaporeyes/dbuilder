@@ -722,14 +722,20 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext
         {
             ThingUnusedWarnings = _ => new[] { "Thing is not used in any skill level." },
+            DefaultThingFlags = new[] { "skill1", "skill2" },
         };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedThing);
-        var fix = Assert.Single(issue.Fixes);
+        Assert.Collection(issue.Fixes,
+            fix => Assert.Equal("Delete Thing", fix.Label),
+            fix => Assert.Equal("Apply default flags", fix.Label));
         Assert.Same(thing, issue.Target);
         Assert.Contains("Thing is not used in any skill level.", issue.Message, StringComparison.Ordinal);
-        Assert.Equal("Delete Thing", fix.Label);
-        Assert.True(fix.Apply(map));
+        Assert.True(issue.Fixes[1].Apply(map));
+        Assert.Contains("skill1", thing.UdmfFlags);
+        Assert.Contains("skill2", thing.UdmfFlags);
+        Assert.Contains(thing, map.Things);
+        Assert.True(issue.Fixes[0].Apply(map));
         Assert.DoesNotContain(thing, map.Things);
     }
 

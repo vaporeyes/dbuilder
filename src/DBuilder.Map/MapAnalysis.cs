@@ -101,6 +101,8 @@ public sealed class MapCheckContext
     public Func<Thing, Thing, bool>? ThingFlagsOverlap { get; init; }
     /// <summary>Returns UDB unused-thing warnings from thingflagscompare metadata.</summary>
     public Func<Thing, IReadOnlyList<string>>? ThingUnusedWarnings { get; init; }
+    /// <summary>Configured thing flags applied by UDB's unused-thing default-flags fix.</summary>
+    public IReadOnlyList<string> DefaultThingFlags { get; init; } = Array.Empty<string>();
     /// <summary>Returns the configured action id for a linedef action number, or null when unavailable.</summary>
     public Func<int, string?>? LinedefActionId { get; init; }
     /// <summary>Returns the configured class name for a thing type, or null when unavailable.</summary>
@@ -402,7 +404,7 @@ public static class MapAnalysis
             var warnings = ctx.ThingUnusedWarnings(t);
             if (warnings.Count == 0) continue;
 
-            issues.Add(DeleteThingIssue(MapIssueKind.UnusedThing, t,
+            issues.Add(UnusedThingIssue(t, ctx.DefaultThingFlags,
                 $"Thing {i} type {t.Type} is unused: {string.Join(" ", warnings)}"));
         }
     }
@@ -579,6 +581,30 @@ public static class MapAnalysis
                 {
                     if (!map.Things.Contains(thing)) return false;
                     map.RemoveThing(thing);
+                    return true;
+                }),
+            },
+        };
+
+    private static MapIssue UnusedThingIssue(Thing thing, IReadOnlyList<string> defaultFlags, string message)
+        => new(MapIssueSeverity.Warning, MapIssueKind.UnusedThing, message)
+        {
+            Target = thing,
+            Focus = thing.Position,
+            Fixes = new[]
+            {
+                new MapIssueFix("Delete Thing", map =>
+                {
+                    if (!map.Things.Contains(thing)) return false;
+                    map.RemoveThing(thing);
+                    return true;
+                }),
+                new MapIssueFix("Apply default flags", map =>
+                {
+                    if (!map.Things.Contains(thing)) return false;
+                    foreach (string flag in defaultFlags)
+                        if (!string.IsNullOrWhiteSpace(flag))
+                            thing.SetFlag(flag, true);
                     return true;
                 }),
             },

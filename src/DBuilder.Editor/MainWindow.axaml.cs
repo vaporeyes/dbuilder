@@ -2511,6 +2511,7 @@ public partial class MainWindow : Window
             ThingHeight = thingHeight,
             ThingFlagsOverlap = thingFlagsOverlap,
             ThingUnusedWarnings = thingUnusedWarnings,
+            DefaultThingFlags = _config?.DefaultThingFlags ?? Array.Empty<string>(),
             LinedefActionId = linedefActionId,
             ThingClassName = thingClassName,
             ActionKnown = actionKnown,
