@@ -663,6 +663,23 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsResolveAccIncludeErrorsLikeUdb()
+    {
+        var errors = ScriptCompilerErrors.ParseAcc(
+            new[] { "libs/common.acs:12: Unknown function" },
+            "/tmp/dbuilder_compile",
+            "/maps/project",
+            include => include == Path.Combine("libs", "common.acs")
+                ? Path.Combine("/resources/pk3", include)
+                : null);
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(Path.Combine("/resources/pk3", "libs", "common.acs"), error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccWindowsPathErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(
@@ -701,6 +718,23 @@ public class CompilerConfigurationTests
         var error = Assert.Single(errors);
         Assert.Equal("Expected semicolon", error.Description);
         Assert.Equal(Path.Combine("/maps/project", "libs/common.acs"), error.FileName);
+        Assert.Equal(7, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsResolveBccIncludeErrorsLikeUdb()
+    {
+        var errors = ScriptCompilerErrors.ParseBcc(
+            new[] { "libs/common.acs:8:4: Expected semicolon" },
+            "/tmp/dbuilder_compile",
+            "/maps/project",
+            include => include == Path.Combine("libs", "common.acs")
+                ? Path.Combine("/resources/pk3", include)
+                : null);
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Expected semicolon", error.Description);
+        Assert.Equal(Path.Combine("/resources/pk3", "libs", "common.acs"), error.FileName);
         Assert.Equal(7, error.LineNumber);
     }
 

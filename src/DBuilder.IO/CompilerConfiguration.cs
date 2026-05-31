@@ -298,7 +298,8 @@ public static class ScriptCompilerErrors
     public static IReadOnlyList<ScriptCompilerError> ParseAcc(
         IEnumerable<string> lines,
         string tempPath,
-        string workingDirectory)
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile = null)
     {
         var errors = new List<ScriptCompilerError>();
         foreach (string line in lines)
@@ -308,7 +309,7 @@ public static class ScriptCompilerErrors
 
             errors.Add(new ScriptCompilerError(
                 line[(secondColon + 2)..].Trim(),
-                NormalizeCompilerErrorFile(line[..firstColon], tempPath, workingDirectory),
+                NormalizeCompilerErrorFile(line[..firstColon], tempPath, workingDirectory, resolveIncludeFile),
                 lineNumber - 1));
         }
 
@@ -324,19 +325,22 @@ public static class ScriptCompilerErrors
     public static IReadOnlyList<ScriptCompilerError> ParseBcc(
         IEnumerable<string> lines,
         string tempPath,
-        string workingDirectory)
-        => ParseBccFormat(lines, tempPath, workingDirectory);
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile = null)
+        => ParseBccFormat(lines, tempPath, workingDirectory, resolveIncludeFile);
 
     public static IReadOnlyList<ScriptCompilerError> ParseZtBcc(
         IEnumerable<string> stderrLines,
         string tempPath,
-        string workingDirectory)
-        => ParseBccFormat(stderrLines, tempPath, workingDirectory);
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile = null)
+        => ParseBccFormat(stderrLines, tempPath, workingDirectory, resolveIncludeFile);
 
     private static IReadOnlyList<ScriptCompilerError> ParseBccFormat(
         IEnumerable<string> lines,
         string tempPath,
-        string workingDirectory)
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile)
     {
         var errors = new List<ScriptCompilerError>();
         foreach (string line in lines)
@@ -345,7 +349,7 @@ public static class ScriptCompilerErrors
             if (parts.Length != 4 || !int.TryParse(parts[1], out int lineNumber)) continue;
             errors.Add(new ScriptCompilerError(
                 parts[3].Trim(),
-                NormalizeCompilerErrorFile(parts[0], tempPath, workingDirectory),
+                NormalizeCompilerErrorFile(parts[0], tempPath, workingDirectory, resolveIncludeFile),
                 lineNumber - 1));
         }
 
@@ -375,19 +379,36 @@ public static class ScriptCompilerErrors
         return false;
     }
 
-    private static string NormalizeCompilerErrorFile(string fileName, string tempPath, string workingDirectory)
+    private static string NormalizeCompilerErrorFile(
+        string fileName,
+        string tempPath,
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile)
     {
-        string normalized = fileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        string tempNormalized = tempPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        string tempNormalized = NormalizePathSeparators(tempPath);
         string tempPrefix = tempNormalized.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             + Path.DirectorySeparatorChar;
         string alternateTempPrefix = tempPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + '\\';
+        string normalized = NormalizePathSeparators(fileName);
         if (normalized.StartsWith(tempPrefix, StringComparison.Ordinal))
             normalized = normalized[tempPrefix.Length..];
         else if (fileName.StartsWith(alternateTempPrefix, StringComparison.Ordinal))
-            normalized = fileName[alternateTempPrefix.Length..];
+            normalized = NormalizePathSeparators(fileName[alternateTempPrefix.Length..]);
+        else if (IsRootedCompilerPath(fileName))
+            return fileName;
+        if (!IsRootedCompilerPath(normalized) && resolveIncludeFile is not null)
+        {
+            string? includeFile = resolveIncludeFile(normalized);
+            if (!string.IsNullOrEmpty(includeFile)) return includeFile;
+        }
+
         return IsRootedCompilerPath(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
     }
+
+    private static string NormalizePathSeparators(string path)
+        => path
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
 
     private static bool IsRootedCompilerPath(string fileName)
     {
