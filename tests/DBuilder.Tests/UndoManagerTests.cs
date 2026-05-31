@@ -198,4 +198,25 @@ public class UndoManagerTests
         undo.Undo();
         Assert.Equal("Move vertex", undo.NextRedoDescription);
     }
+
+    [Fact]
+    public void DescriptionListsUseNextFirstOrder()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("move 1");
+        map.Vertices[0].Position = new Vector2D(1, 0);
+        undo.CreateUndo("move 2");
+        map.Vertices[0].Position = new Vector2D(2, 0);
+        undo.CreateUndo("move 3");
+        map.Vertices[0].Position = new Vector2D(3, 0);
+
+        Assert.Equal(new[] { "move 3", "move 2", "move 1" }, undo.GetUndoDescriptions());
+
+        undo.PerformUndo(2);
+
+        Assert.Equal(new[] { "move 1" }, undo.GetUndoDescriptions());
+        Assert.Equal(new[] { "move 2", "move 3" }, undo.GetRedoDescriptions());
+    }
 }

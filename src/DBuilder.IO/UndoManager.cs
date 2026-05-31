@@ -45,6 +45,12 @@ public sealed class UndoManager
     /// <summary>Description of the edit that the next Redo would re-apply, or null when nothing to redo.</summary>
     public string? NextRedoDescription => redos.First?.Value.Description;
 
+    public IReadOnlyList<string> GetUndoDescriptions()
+        => undos.Select(snapshot => snapshot.Description).ToArray();
+
+    public IReadOnlyList<string> GetRedoDescriptions()
+        => redos.Select(snapshot => snapshot.Description).ToArray();
+
     /// <summary>
     /// Snapshots the current map state under <paramref name="description"/> and pushes it onto the undo stack.
     /// Clears the redo stack (a new edit invalidates the redo history). Call this BEFORE mutating the map.
@@ -68,6 +74,14 @@ public sealed class UndoManager
         return true;
     }
 
+    public int PerformUndo(int levels)
+    {
+        int performed = 0;
+        for (int i = 0; i < levels && Undo(); i++)
+            performed++;
+        return performed;
+    }
+
     /// <summary>Re-applies the most recently undone edit. Returns false when there is nothing to redo.</summary>
     public bool Redo()
     {
@@ -77,6 +91,14 @@ public sealed class UndoManager
         undos.AddFirst(Capture(snap.Description));
         Restore(snap);
         return true;
+    }
+
+    public int PerformRedo(int levels)
+    {
+        int performed = 0;
+        for (int i = 0; i < levels && Redo(); i++)
+            performed++;
+        return performed;
     }
 
     /// <summary>Discards all undo and redo history.</summary>
