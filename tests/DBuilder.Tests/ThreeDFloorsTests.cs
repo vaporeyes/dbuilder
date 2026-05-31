@@ -80,6 +80,96 @@ public class ThreeDFloorsTests
         Assert.True(cycleUp.AllowScroll);
     }
 
+    [Fact]
+    public void ControlSectorAreaSettingsUseUdbDefaultsAndKeys()
+    {
+        var settings = ThreeDFloorControlSectorAreaSettings.FromDictionary(new Dictionary<string, object?>());
+
+        Assert.Equal(-512.0, settings.OuterLeft);
+        Assert.Equal(0.0, settings.OuterRight);
+        Assert.Equal(512.0, settings.OuterTop);
+        Assert.Equal(0.0, settings.OuterBottom);
+        Assert.Equal(64.0, settings.GridSize);
+        Assert.Equal(56.0, settings.SectorSize);
+        Assert.False(settings.UseCustomTagRange);
+        Assert.Equal("controlsectorarea", ThreeDFloorControlSectorAreaSettings.PluginName);
+        Assert.Equal("usecustomtagrange", ThreeDFloorControlSectorAreaSettings.UseCustomTagRangeKey);
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsReadAndWriteUdbPersistedValues()
+    {
+        var source = new Dictionary<string, object?>
+        {
+            [ThreeDFloorControlSectorAreaSettings.UseCustomTagRangeKey] = true,
+            [ThreeDFloorControlSectorAreaSettings.FirstTagKey] = 100,
+            [ThreeDFloorControlSectorAreaSettings.LastTagKey] = 120,
+            [ThreeDFloorControlSectorAreaSettings.OuterLeftKey] = -1024.0,
+            [ThreeDFloorControlSectorAreaSettings.OuterRightKey] = 256.0,
+            [ThreeDFloorControlSectorAreaSettings.OuterTopKey] = 768.0,
+            [ThreeDFloorControlSectorAreaSettings.OuterBottomKey] = -128.0,
+        };
+
+        ThreeDFloorControlSectorAreaSettings settings = ThreeDFloorControlSectorAreaSettings.FromDictionary(source);
+        var target = new Dictionary<string, object?>();
+        settings.WriteTo(target);
+
+        Assert.True(settings.UseCustomTagRange);
+        Assert.Equal(100, settings.FirstTag);
+        Assert.Equal(120, settings.LastTag);
+        Assert.Equal(-1024.0, settings.OuterLeft);
+        Assert.Equal(256.0, settings.OuterRight);
+        Assert.Equal(768.0, settings.OuterTop);
+        Assert.Equal(-128.0, settings.OuterBottom);
+        Assert.Equal(true, target[ThreeDFloorControlSectorAreaSettings.UseCustomTagRangeKey]);
+        Assert.Equal(100, target[ThreeDFloorControlSectorAreaSettings.FirstTagKey]);
+        Assert.Equal(120, target[ThreeDFloorControlSectorAreaSettings.LastTagKey]);
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsSkipTagRangeWhenDisabled()
+    {
+        var target = new Dictionary<string, object?>
+        {
+            [ThreeDFloorControlSectorAreaSettings.FirstTagKey] = 10,
+            [ThreeDFloorControlSectorAreaSettings.LastTagKey] = 12,
+        };
+
+        new ThreeDFloorControlSectorAreaSettings(UseCustomTagRange: false).WriteTo(target);
+
+        Assert.Equal(false, target[ThreeDFloorControlSectorAreaSettings.UseCustomTagRangeKey]);
+        Assert.False(target.ContainsKey(ThreeDFloorControlSectorAreaSettings.FirstTagKey));
+        Assert.False(target.ContainsKey(ThreeDFloorControlSectorAreaSettings.LastTagKey));
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsGetNewSectorTagUsesCustomRangeBeforeMapFallback()
+    {
+        var map = new MapSet();
+        map.AddSector().Tag = 10;
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0))).Tag = 11;
+        map.AddThing(new Vector2D(0, 0), 3001).Tag = 12;
+        var custom = new ThreeDFloorControlSectorAreaSettings(UseCustomTagRange: true, FirstTag: 10, LastTag: 13);
+        var fallback = new ThreeDFloorControlSectorAreaSettings();
+
+        Assert.Equal(11, custom.GetNewSectorTag(map));
+        Assert.Equal(12, custom.GetNewSectorTag(map, new[] { 11 }));
+        Assert.Equal(1, fallback.GetNewSectorTag(map));
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsThrowsWhenCustomRangeIsFull()
+    {
+        var map = new MapSet();
+        map.AddSector().Tag = 10;
+        map.AddSector().Tag = 11;
+        var settings = new ThreeDFloorControlSectorAreaSettings(UseCustomTagRange: true, FirstTag: 10, LastTag: 11);
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => settings.GetNewSectorTag(map));
+
+        Assert.Equal("No free tags in the custom range between 10 and 11.", ex.Message);
+    }
+
     // A control sector carrying special 160 (arg0=tag) and a target sector tagged the same.
     private static (MapSet map, Sector control, Sector target) Setup(int tag, int alpha)
     {

@@ -62,6 +62,96 @@ public sealed record ThreeDFloorActionDescriptor(
     bool DisregardControl = false,
     int? DefaultInput = null);
 
+public sealed record ThreeDFloorControlSectorAreaSettings(
+    double OuterLeft = -512.0,
+    double OuterRight = 0.0,
+    double OuterTop = 512.0,
+    double OuterBottom = 0.0,
+    double GridSize = 64.0,
+    double SectorSize = 56.0,
+    bool UseCustomTagRange = false,
+    int FirstTag = 0,
+    int LastTag = 0)
+{
+    public const string PluginName = "controlsectorarea";
+    public const string UseCustomTagRangeKey = "usecustomtagrange";
+    public const string FirstTagKey = "firsttag";
+    public const string LastTagKey = "lasttag";
+    public const string OuterLeftKey = "outerleft";
+    public const string OuterRightKey = "outerright";
+    public const string OuterTopKey = "outertop";
+    public const string OuterBottomKey = "outerbottom";
+
+    public static ThreeDFloorControlSectorAreaSettings FromDictionary(IReadOnlyDictionary<string, object?> settings)
+    {
+        var defaults = new ThreeDFloorControlSectorAreaSettings();
+        return defaults with
+        {
+            UseCustomTagRange = ReadBool(settings, UseCustomTagRangeKey, defaults.UseCustomTagRange),
+            FirstTag = ReadInt(settings, FirstTagKey, defaults.FirstTag),
+            LastTag = ReadInt(settings, LastTagKey, defaults.LastTag),
+            OuterLeft = ReadDouble(settings, OuterLeftKey, defaults.OuterLeft),
+            OuterRight = ReadDouble(settings, OuterRightKey, defaults.OuterRight),
+            OuterTop = ReadDouble(settings, OuterTopKey, defaults.OuterTop),
+            OuterBottom = ReadDouble(settings, OuterBottomKey, defaults.OuterBottom),
+        };
+    }
+
+    public void WriteTo(IDictionary<string, object?> settings)
+    {
+        settings[UseCustomTagRangeKey] = UseCustomTagRange;
+
+        if (UseCustomTagRange)
+        {
+            settings[FirstTagKey] = FirstTag;
+            settings[LastTagKey] = LastTag;
+        }
+        else
+        {
+            settings.Remove(FirstTagKey);
+            settings.Remove(LastTagKey);
+        }
+
+        settings[OuterLeftKey] = OuterLeft;
+        settings[OuterRightKey] = OuterRight;
+        settings[OuterTopKey] = OuterTop;
+        settings[OuterBottomKey] = OuterBottom;
+    }
+
+    public int GetNewSectorTag(MapSet map, IEnumerable<int>? tagBlacklist = null)
+    {
+        if (!UseCustomTagRange) return map.GetNewTag(tagBlacklist ?? Array.Empty<int>());
+
+        var blacklist = new HashSet<int>(tagBlacklist ?? Array.Empty<int>());
+        for (int tag = FirstTag; tag <= LastTag; tag++)
+        {
+            if (blacklist.Contains(tag)) continue;
+            if (!SectorTagExists(map, tag)) return tag;
+        }
+
+        throw new InvalidOperationException($"No free tags in the custom range between {FirstTag} and {LastTag}.");
+    }
+
+    private static bool SectorTagExists(MapSet map, int tag)
+    {
+        foreach (Sector sector in map.Sectors)
+        {
+            if (sector.Tags.Contains(tag)) return true;
+        }
+
+        return false;
+    }
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+        => settings.TryGetValue(key, out object? value) && value is bool result ? result : fallback;
+
+    private static int ReadInt(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+        => settings.TryGetValue(key, out object? value) && value is int result ? result : fallback;
+
+    private static double ReadDouble(IReadOnlyDictionary<string, object?> settings, string key, double fallback)
+        => settings.TryGetValue(key, out object? value) && value is double result ? result : value is float single ? single : value is int integer ? integer : fallback;
+}
+
 public static class ThreeDFloors
 {
     /// <summary>The Hexen/ZDoom Sector_3DFloor linedef special number.</summary>

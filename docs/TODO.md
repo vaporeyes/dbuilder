@@ -1082,6 +1082,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add selected-sector 3D floor discovery and shared 3D floor filtering model.
   - [x] Add UDB-style control-sector edit snapshots, geometry mutation, and orphan action-line cleanup.
   - [x] Add UDB-style 3D floor mode/action metadata and command catalog entries.
+  - [x] Add UDB-style control-sector area settings and custom tag range allocation.
 - [ ] Port 3D floor slope editing.
   - [x] Add UDB-style deprecated slope and draw-slope mode/action metadata.
 - [ ] Port automap mode rendering and editing behavior.
