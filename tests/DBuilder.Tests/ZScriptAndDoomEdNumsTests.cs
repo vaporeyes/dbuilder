@@ -1471,6 +1471,32 @@ class IncludedBase : Actor
     }
 
     [Fact]
+    public void InvalidClassIncludePathRejectsContainingZScript()
+    {
+        const string root = @"
+class BeforeInvalidInclude : Actor { Default { Radius 8; } }
+#include ""zscript\bad.zs""";
+
+        var actors = ZScriptParser.Parse(root, _ => "class Bad : Actor { Default { Radius 16; } }");
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
+    public void DuplicateClassIncludeRejectsContainingZScript()
+    {
+        const string root = @"
+class BeforeDuplicateInclude : Actor { Default { Radius 8; } }
+#include ""zscript/base.zs""
+#include ""zscript/base.zs""";
+        const string included = "class IncludedActor : Actor { Default { Radius 16; } }";
+
+        var actors = ZScriptParser.Parse(root, path => path == "zscript/base.zs" ? included : null);
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
     public void AllowsTopLevelZScriptVersionDeclaration()
     {
         const string text = @"

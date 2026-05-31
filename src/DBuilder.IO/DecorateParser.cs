@@ -119,7 +119,8 @@ public static class DecorateParser
         ISet<string>? damageTypes = null)
     {
         bool deferIncludes = keyword.Equals("class", StringComparison.OrdinalIgnoreCase);
-        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes, deferIncludes);
+        text = ExpandIncludes(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase), allowRelativeIncludes, deferIncludes, out bool includeFailed);
+        if (deferIncludes && includeFailed) return new List<ActorInfo>();
         var toks = Tokenize(text);
         var actors = new List<ActorInfo>();
         var mixins = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
@@ -762,8 +763,15 @@ public static class DecorateParser
     private static bool HasSpawnState(ActorInfo actor)
         => actor.StateSprites.ContainsKey("spawn") || actor.StateGotos.ContainsKey("spawn");
 
-    private static string ExpandIncludes(string text, Func<string, string?>? includeResolver, HashSet<string> seen, bool allowRelativeIncludes, bool deferIncludes)
+    private static string ExpandIncludes(
+        string text,
+        Func<string, string?>? includeResolver,
+        HashSet<string> seen,
+        bool allowRelativeIncludes,
+        bool deferIncludes,
+        out bool includeFailed)
     {
+        includeFailed = false;
         if (includeResolver == null) return text;
 
         using var reader = new StringReader(text);
@@ -785,12 +793,22 @@ public static class DecorateParser
 
             if (!stopCollectingDeferred && TryReadInclude(line, out string includePath))
             {
-                if (!IsValidIncludePath(includePath, allowRelativeIncludes)) break;
+                if (!IsValidIncludePath(includePath, allowRelativeIncludes))
+                {
+                    includeFailed = true;
+                    break;
+                }
                 string? included = includeResolver(includePath);
                 if (included != null)
                 {
-                    if (!seen.Add(includePath)) break;
-                    string expanded = ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes, deferIncludes);
+                    if (!seen.Add(includePath))
+                    {
+                        includeFailed = true;
+                        break;
+                    }
+                    string expanded = ExpandIncludes(included, includeResolver, seen, allowRelativeIncludes, deferIncludes, out bool nestedIncludeFailed);
+                    includeFailed = includeFailed || nestedIncludeFailed;
+                    if (includeFailed) break;
                     if (deferred != null) deferred.AppendLine(expanded);
                     else result.AppendLine(expanded);
                     continue;
