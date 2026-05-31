@@ -305,6 +305,52 @@ public class WavefrontExportModelTests
         Assert.Equal(16, settings.Height);
     }
 
+    [Fact]
+    public void CreateFilePlanIncludesObjAndMtlForClassicExport()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+        settings.Obj = "obj text";
+        settings.Textures = ["STARTAN3"];
+
+        IReadOnlyList<WavefrontExportFile> files = WavefrontExportPlanner.CreateFilePlan(settings, "doom2.wad", "MAP01", "1.0");
+
+        Assert.Equal(2, files.Count);
+        Assert.Equal("/tmp/export/demo.obj", files[0].Path);
+        Assert.Equal("obj text", files[0].Content);
+        Assert.Equal("/tmp/export/demo.mtl", files[1].Path);
+        Assert.Contains("# MTL for doom2.wad, map MAP01", files[1].Content);
+    }
+
+    [Fact]
+    public void CreateFilePlanIncludesGzdoomActorAndModeldefOutputs()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportForGZDoom = true,
+            ActorName = "DemoActor",
+            BasePath = "/tmp/project",
+            ActorPath = "/tmp/project/actors",
+            ModelPath = "/tmp/project/models",
+            Sprite = "PLAY",
+            ZScript = true
+        });
+        settings.Obj = "obj text";
+
+        IReadOnlyList<WavefrontExportFile> files = WavefrontExportPlanner.CreateFilePlan(settings, "doom2.wad", "MAP01");
+
+        Assert.Equal(3, files.Count);
+        Assert.Equal("/tmp/project/models/DemoActor.obj", files[0].Path);
+        Assert.Equal("obj text", files[0].Content);
+        Assert.Equal("/tmp/project/actors/DemoActor.zs", files[1].Path);
+        Assert.Contains("Class DemoActor : Actor", files[1].Content);
+        Assert.Equal("/tmp/project/modeldef.DemoActor.txt", files[2].Path);
+        Assert.Contains("Model 0 \"models/DemoActor.obj\"", files[2].Content);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 
     private static WavefrontSurfaceVertex Vertex(float x, float y, float z, float u, float v)

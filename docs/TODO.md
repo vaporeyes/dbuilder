@@ -961,6 +961,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Wavefront export settings, validation, material naming, and OBJ coordinate formatting helpers.
   - [x] Add UDB-style Wavefront MTL, actor code, MODELDEF, and export path content builders.
   - [x] Add UDB-style Wavefront surface optimization and OBJ geometry assembly helpers.
+  - [x] Add UDB-style Wavefront OBJ, MTL, actor code, and MODELDEF file-plan helper.
 - [ ] Port id Studio export tools.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.

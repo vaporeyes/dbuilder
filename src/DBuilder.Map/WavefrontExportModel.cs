@@ -116,6 +116,8 @@ public readonly record struct WavefrontSurfaceVertex(
     float NormalY,
     float NormalZ);
 
+public readonly record struct WavefrontExportFile(string Path, string Content);
+
 public static class WavefrontObjFormatter
 {
     public static string FormatMaterialLibrary(WavefrontExportSettings settings)
@@ -458,6 +460,51 @@ public static class WavefrontExportContent
         => path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal)
             ? path
             : path + Path.DirectorySeparatorChar;
+}
+
+public static class WavefrontExportPlanner
+{
+    public static IReadOnlyList<WavefrontExportFile> CreateFilePlan(
+        WavefrontExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        var files = new List<WavefrontExportFile>();
+        string objPath = settings.ExportForGZDoom
+            ? Path.Combine(settings.ModelPath, settings.ActorName + ".obj")
+            : Path.Combine(settings.ObjPath, settings.ObjName + ".obj");
+        files.Add(new WavefrontExportFile(objPath, settings.Obj));
+
+        if (!settings.ExportForGZDoom)
+        {
+            string? directory = Path.GetDirectoryName(objPath);
+            string mtlPath = Path.Combine(
+                directory ?? string.Empty,
+                Path.GetFileNameWithoutExtension(objPath) + ".mtl");
+            files.Add(new WavefrontExportFile(
+                mtlPath,
+                WavefrontExportContent.BuildMaterialLibrary(settings, mapTitle, levelName, productVersion)));
+            return files;
+        }
+
+        if (settings.GenerateCode)
+        {
+            string extension = settings.ZScript ? ".zs" : ".txt";
+            files.Add(new WavefrontExportFile(
+                Path.Combine(settings.ActorPath, settings.ActorName + extension),
+                WavefrontExportContent.BuildActorCode(settings)));
+        }
+
+        if (settings.GenerateModeldef)
+        {
+            files.Add(new WavefrontExportFile(
+                Path.Combine(settings.BasePath, "modeldef." + settings.ActorName + ".txt"),
+                WavefrontExportContent.BuildModeldef(settings)));
+        }
+
+        return files;
+    }
 }
 
 public static class WavefrontExportValidation
