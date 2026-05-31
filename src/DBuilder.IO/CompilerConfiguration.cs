@@ -36,6 +36,76 @@ public static class ScriptCompilerArguments
             .Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 }
 
+public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);
+
+public static class ScriptCompilerErrors
+{
+    public static IReadOnlyList<ScriptCompilerError> ParseAcc(
+        IEnumerable<string> lines,
+        string tempPath,
+        string workingDirectory)
+    {
+        var errors = new List<ScriptCompilerError>();
+        foreach (string line in lines)
+        {
+            int firstColon = line.IndexOf(':', StringComparison.Ordinal);
+            if (firstColon <= 0) continue;
+            int secondColon = line.IndexOf(':', firstColon + 1);
+            if (secondColon <= firstColon + 1) continue;
+            if (secondColon + 1 >= line.Length || line[secondColon + 1] != ' ') continue;
+            if (!int.TryParse(line[(firstColon + 1)..secondColon], out int lineNumber)) continue;
+
+            errors.Add(new ScriptCompilerError(
+                line[(secondColon + 2)..].Trim(),
+                NormalizeCompilerErrorFile(line[..firstColon], tempPath, workingDirectory),
+                lineNumber - 1));
+        }
+
+        if (errors.Count == 0)
+        {
+            var fallback = string.Join(Environment.NewLine, lines).Trim();
+            if (fallback.Length > 0) errors.Add(new ScriptCompilerError(fallback));
+        }
+
+        return errors;
+    }
+
+    public static IReadOnlyList<ScriptCompilerError> ParseBcc(
+        IEnumerable<string> lines,
+        string tempPath,
+        string workingDirectory)
+    {
+        var errors = new List<ScriptCompilerError>();
+        foreach (string line in lines)
+        {
+            string[] parts = line.Split(new[] { ':' }, 4);
+            if (parts.Length != 4 || !int.TryParse(parts[1], out int lineNumber)) continue;
+            errors.Add(new ScriptCompilerError(
+                parts[3].Trim(),
+                NormalizeCompilerErrorFile(parts[0], tempPath, workingDirectory),
+                lineNumber - 1));
+        }
+
+        if (errors.Count == 0)
+        {
+            var fallback = string.Join(Environment.NewLine, lines).Trim();
+            if (fallback.Length > 0) errors.Add(new ScriptCompilerError(fallback));
+        }
+
+        return errors;
+    }
+
+    private static string NormalizeCompilerErrorFile(string fileName, string tempPath, string workingDirectory)
+    {
+        string normalized = fileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        string tempPrefix = tempPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        if (normalized.StartsWith(tempPrefix, StringComparison.Ordinal))
+            normalized = normalized[tempPrefix.Length..];
+        return Path.IsPathRooted(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
+    }
+}
+
 public sealed record NodebuilderInfo(
     string FileName,
     string Name,
