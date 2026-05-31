@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1568 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1571 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -153,6 +153,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Clear sector and sidedef UDMF-only flags when converting maps to binary formats.
   - [x] Fold sidedef local UDMF texture offsets into classic offsets when converting maps to binary formats.
   - [x] Clear vertex UDMF-only fields and z offsets when converting maps to binary formats.
+  - [x] Add UDB-style marked-geometry cloning with virtual sectors.
 - [x] Port in-memory selection groups and group metadata.
 - [x] Preserve selection groups through clipboard and undo snapshots.
 - [x] Port map-options-backed selection group persistence.

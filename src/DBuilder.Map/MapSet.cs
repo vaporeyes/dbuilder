@@ -43,6 +43,8 @@ public readonly record struct GeometryStitchResult(
 
 public class MapSet : IDisposable
 {
+    public const string VirtualSectorField = "!virtual_sector";
+
     public List<Vertex> Vertices { get; } = new();
     public List<Linedef> Linedefs { get; } = new();
     public List<Sidedef> Sidedefs { get; } = new();
@@ -280,6 +282,75 @@ public class MapSet : IDisposable
         return clone;
     }
 
+    /// <summary>Creates a deep copy of the marked geometry, using a virtual sector for unmarked adjacent sectors.</summary>
+    public MapSet CloneMarked()
+    {
+        var clone = new MapSet();
+        var vertexMap = new Dictionary<Vertex, Vertex>(ReferenceEqualityComparer.Instance);
+        var sectorMap = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
+        Sector? virtualSector = null;
+
+        foreach (var vertex in Vertices)
+        {
+            if (!vertex.Marked) continue;
+            var copy = clone.AddVertex(vertex.Position);
+            vertex.CopyPropertiesTo(copy);
+            vertexMap[vertex] = copy;
+        }
+
+        foreach (var sector in Sectors)
+        {
+            if (!sector.Marked) continue;
+            var copy = clone.AddSector();
+            sector.CopyPropertiesTo(copy);
+            sectorMap[sector] = copy;
+        }
+
+        foreach (var line in Linedefs)
+        {
+            if (!line.Marked) continue;
+            if (!vertexMap.TryGetValue(line.Start, out var start) || !vertexMap.TryGetValue(line.End, out var end)) continue;
+
+            var copy = clone.AddLinedef(start, end);
+            line.CopyPropertiesTo(copy);
+            if (line.Front != null) CopyMarkedSidedef(line.Front, copy, true);
+            if (line.Back != null) CopyMarkedSidedef(line.Back, copy, false);
+        }
+
+        foreach (var thing in Things)
+        {
+            if (!thing.Marked) continue;
+            var copy = clone.AddThing(thing.Position, thing.Type);
+            thing.CopyPropertiesTo(copy);
+            copy.Sector = thing.Sector != null && sectorMap.TryGetValue(thing.Sector, out var sector) ? sector : null;
+        }
+
+        clone.BuildIndexes();
+        return clone;
+
+        void CopyMarkedSidedef(Sidedef side, Linedef copyLine, bool isFront)
+        {
+            var targetSector = CloneSidedefSector(side);
+            var copySide = clone.AddSidedef(copyLine, isFront, targetSector);
+            side.CopyPropertiesTo(copySide);
+        }
+
+        Sector? CloneSidedefSector(Sidedef side)
+        {
+            if (side.Sector == null) return null;
+            if (sectorMap.TryGetValue(side.Sector, out var markedSector)) return markedSector;
+
+            if (virtualSector == null)
+            {
+                virtualSector = clone.AddSector();
+                side.Sector.CopyPropertiesTo(virtualSector);
+                virtualSector.Fields[VirtualSectorField] = 0;
+            }
+
+            return virtualSector;
+        }
+    }
+
     /// <summary>Removes a sidedef and detaches it from its owning linedef.</summary>
     public void RemoveSidedef(Sidedef sd)
     {
@@ -324,6 +395,21 @@ public class MapSet : IDisposable
         foreach (var sd in Sidedefs)
             if (ReferenceEquals(sd.Sector, s)) sd.Sector = null;
         if (Sectors.Remove(s)) DisposeElement(s);
+    }
+
+    /// <summary>Removes UDB virtual sectors from pasted or cloned geometry and clears their sidedef references.</summary>
+    public int RemoveVirtualSectors()
+    {
+        int removed = 0;
+        for (int i = Sectors.Count - 1; i >= 0; i--)
+        {
+            if (!Sectors[i].Fields.ContainsKey(VirtualSectorField)) continue;
+            RemoveSector(Sectors[i]);
+            removed++;
+        }
+
+        ReindexSectors();
+        return removed;
     }
 
     public void RemoveThing(Thing t)

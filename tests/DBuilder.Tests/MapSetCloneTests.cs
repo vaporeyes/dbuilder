@@ -146,6 +146,67 @@ public class MapSetCloneTests
         Assert.Null(thing.Sector);
     }
 
+    [Fact]
+    public void CloneMarkedCopiesOnlyMarkedGeometry()
+    {
+        var map = BuildSample();
+        map.Vertices[0].Marked = true;
+        map.Vertices[1].Marked = true;
+        map.Sectors[0].Marked = true;
+        map.Things[0].Marked = true;
+
+        var clone = map.CloneMarked();
+
+        Assert.Equal(2, clone.Vertices.Count);
+        Assert.Single(clone.Linedefs);
+        Assert.Equal(2, clone.Sidedefs.Count);
+        Assert.Equal(2, clone.Sectors.Count);
+        Assert.Single(clone.Things);
+        Assert.Same(clone.Vertices[0], clone.Linedefs[0].Start);
+        Assert.Same(clone.Vertices[1], clone.Linedefs[0].End);
+        Assert.Same(clone.Sectors[0], clone.Linedefs[0].Front!.Sector);
+        Assert.Same(clone.Sectors[1], clone.Linedefs[0].Back!.Sector);
+        Assert.Same(clone.Sectors[0], clone.Things[0].Sector);
+        Assert.Equal("MID", clone.Linedefs[0].Front!.MidTexture);
+        Assert.Equal(9, clone.Linedefs[0].GetArg(2));
+        Assert.Equal(200, clone.Things[0].GetField<int>("health"));
+    }
+
+    [Fact]
+    public void CloneMarkedBindsUnmarkedAdjacentSectorsToVirtualSector()
+    {
+        var map = BuildSample();
+        map.Vertices[0].Marked = true;
+        map.Vertices[1].Marked = true;
+        map.Sectors[0].Marked = true;
+        map.Sectors[1].Marked = false;
+
+        var clone = map.CloneMarked();
+
+        Assert.Equal(2, clone.Sectors.Count);
+        var virtualSector = clone.Sectors[1];
+        Assert.True(virtualSector.Fields.ContainsKey(MapSet.VirtualSectorField));
+        Assert.Equal("LOW", clone.Linedefs[0].Back!.LowTexture);
+        Assert.Same(virtualSector, clone.Linedefs[0].Back!.Sector);
+        Assert.Equal(map.Sectors[1].Brightness, virtualSector.Brightness);
+    }
+
+    [Fact]
+    public void RemoveVirtualSectorsClearsSidedefReferences()
+    {
+        var map = BuildSample();
+        var virtualSector = map.AddSector();
+        virtualSector.Fields[MapSet.VirtualSectorField] = 0;
+        map.Sidedefs[0].Sector = virtualSector;
+
+        int removed = map.RemoveVirtualSectors();
+
+        Assert.Equal(1, removed);
+        Assert.DoesNotContain(virtualSector, map.Sectors);
+        Assert.True(virtualSector.IsDisposed);
+        Assert.Null(map.Sidedefs[0].Sector);
+    }
+
     private static MapSet BuildSample()
     {
         var map = new MapSet { Namespace = "Doom" };
