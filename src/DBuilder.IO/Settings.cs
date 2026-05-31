@@ -35,6 +35,7 @@ public sealed class Settings
     public DrawEllipseModeSettings DrawEllipseSettings { get; set; } = new();
     public DrawCurveModeSettings DrawCurveSettings { get; set; } = new();
     public DrawGridModeSettings DrawGridSettings { get; set; } = new();
+    public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -69,6 +70,9 @@ public sealed class Settings
 
     public DrawGridModeSettings NormalizedDrawGridSettings =>
         (DrawGridSettings ?? new DrawGridModeSettings()).Normalized();
+
+    public EditSelectionModeSettings NormalizedEditSelectionSettings =>
+        (EditSelectionSettings ?? new EditSelectionModeSettings()).Normalized();
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -146,6 +150,7 @@ public sealed class Settings
             settings.DrawEllipseSettings ??= new();
             settings.DrawCurveSettings ??= new();
             settings.DrawGridSettings ??= new();
+            settings.EditSelectionSettings ??= new();
             return settings;
         }
         catch { return new Settings(); }

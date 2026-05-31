@@ -152,6 +152,9 @@ public class SettingsTests
                 DrawEllipseSettings = new DrawEllipseModeSettings(Subdivisions: 10, BevelWidth: -8, Angle: 45),
                 DrawCurveSettings = new DrawCurveModeSettings(SegmentLength: 96, ContinuousDrawing: true),
                 DrawGridSettings = new DrawGridModeSettings(HorizontalSlices: 5, VerticalSlices: 7, Triangulate: true),
+                EditSelectionSettings = new EditSelectionModeSettings(
+                    UsePrecisePosition: false,
+                    HeightAdjustMode: EditSelectionHeightAdjustMode.AdjustBoth),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -195,6 +198,9 @@ public class SettingsTests
             Assert.Equal(7, loaded.DrawGridSettings.VerticalSlices);
             Assert.True(loaded.DrawGridSettings.Triangulate);
             Assert.Equal(5, loaded.NormalizedDrawGridSettings.HorizontalSlices);
+            Assert.False(loaded.EditSelectionSettings.UsePrecisePosition);
+            Assert.Equal(EditSelectionHeightAdjustMode.AdjustBoth, loaded.EditSelectionSettings.HeightAdjustMode);
+            Assert.Equal(EditSelectionHeightAdjustMode.AdjustBoth, loaded.NormalizedEditSelectionSettings.HeightAdjustMode);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -222,6 +228,7 @@ public class SettingsTests
         Assert.Equal(new DrawEllipseModeSettings(), s.NormalizedDrawEllipseSettings);
         Assert.Equal(new DrawCurveModeSettings(), s.NormalizedDrawCurveSettings);
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
+        Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
     }
 
     [Fact]

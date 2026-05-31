@@ -1008,6 +1008,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port edit selection panel behavior.
+  - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
 - [ ] Port undo/redo panel behavior.
 - [ ] Port select similar element behavior.
   - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
