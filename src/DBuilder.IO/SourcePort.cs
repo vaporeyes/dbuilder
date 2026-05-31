@@ -114,13 +114,15 @@ public static class SourcePort
         if (exmx.Success)
             return (map, exmx.Groups["e"].Value, exmx.Groups["m"].Value);
 
-        var mapxx = Regex.Match(map, @"^MAP(?<n>\d+)$", RegexOptions.IgnoreCase);
-        if (mapxx.Success)
-        {
-            string number = mapxx.Groups["n"].Value.PadLeft(2, '0');
-            return (map, number[..^1], number[^1..]);
-        }
+        var numbers = Regex.Matches(map, @"\d+");
+        if (numbers.Count == 0) return (map, "", "");
 
-        return (map, map, "");
+        string l1 = int.Parse(numbers[0].Value, System.Globalization.CultureInfo.InvariantCulture)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string l2 = numbers.Count > 1
+            ? int.Parse(numbers[1].Value, System.Globalization.CultureInfo.InvariantCulture)
+                .ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : "";
+        return (map, l1, l2);
     }
 }

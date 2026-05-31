@@ -55,7 +55,7 @@ public class SourcePortTests
         var args = SourcePort.BuildArgs("-iwad %wp -iwadfile %Wf -skill %s -file %ap %f -warp %l1 %l2",
             "/games/doom2.wad", "edit.wad", "MAP11", new[] { "textures.pk3" });
 
-        Assert.Equal(new[] { "-iwad", "/games/doom2.wad", "-iwadfile", "doom2.wad", "-skill", "3", "-file", "textures.pk3", "edit.wad", "-warp", "1", "1" }, args);
+        Assert.Equal(new[] { "-iwad", "/games/doom2.wad", "-iwadfile", "doom2.wad", "-skill", "3", "-file", "textures.pk3", "edit.wad", "-warp", "11" }, args);
     }
 
     [Fact]
@@ -90,6 +90,14 @@ public class SourcePortTests
         var args = SourcePort.BuildArgs("-warp %L1 %L2", "doom.wad", "edit.wad", "E2M8");
 
         Assert.Equal(new[] { "-warp", "2", "8" }, args);
+    }
+
+    [Fact]
+    public void UdbMapNumberTokensUseFirstTwoNumericGroups()
+    {
+        var args = SourcePort.BuildArgs("-warp %L1 %L2", "doom.wad", "edit.wad", "HUB02_MAP03");
+
+        Assert.Equal(new[] { "-warp", "2", "3" }, args);
     }
 
     [Fact]
