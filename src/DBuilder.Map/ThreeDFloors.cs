@@ -81,6 +81,7 @@ public sealed record ThreeDFloorControlSectorAreaSettings(
     public const string OuterRightKey = "outerright";
     public const string OuterTopKey = "outertop";
     public const string OuterBottomKey = "outerbottom";
+    public const string ManagedControlSectorField = "user_managed_3d_floor";
 
     public static ThreeDFloorControlSectorAreaSettings FromDictionary(IReadOnlyDictionary<string, object?> settings)
     {
@@ -132,11 +133,149 @@ public sealed record ThreeDFloorControlSectorAreaSettings(
         throw new InvalidOperationException($"No free tags in the custom range between {FirstTag} and {LastTag}.");
     }
 
+    public IReadOnlyList<IReadOnlyList<Vector2D>> GetNewControlSectorVertexLoops(MapSet map, int sectorCount)
+    {
+        var loops = new List<IReadOnlyList<Vector2D>>();
+        foreach (Vector2D origin in FindAvailableOrigins(map, sectorCount, ignoreActiveManagedControls: false, activeControlSectors: null))
+        {
+            loops.Add(new[]
+            {
+                origin,
+                new Vector2D(origin.x + SectorSize, origin.y),
+                new Vector2D(origin.x + SectorSize, origin.y - SectorSize),
+                new Vector2D(origin.x, origin.y - SectorSize),
+                origin,
+            });
+        }
+
+        return loops;
+    }
+
+    public IReadOnlyList<Vector2D> GetRelocatePositions(MapSet map, int sectorCount, IReadOnlySet<Sector> activeControlSectors)
+        => FindAvailableOrigins(map, sectorCount, ignoreActiveManagedControls: true, activeControlSectors);
+
     private static bool SectorTagExists(MapSet map, int tag)
     {
         foreach (Sector sector in map.Sectors)
         {
             if (sector.Tags.Contains(tag)) return true;
+        }
+
+        return false;
+    }
+
+    private IReadOnlyList<Vector2D> FindAvailableOrigins(
+        MapSet map,
+        int sectorCount,
+        bool ignoreActiveManagedControls,
+        IReadOnlySet<Sector>? activeControlSectors)
+    {
+        if (sectorCount <= 0) return Array.Empty<Vector2D>();
+
+        double margin = Math.Truncate((GridSize - SectorSize) / 2.0);
+        var origins = new List<Vector2D>(sectorCount);
+
+        for (int x = (int)OuterLeft; x < (int)OuterRight; x += (int)GridSize)
+        {
+            for (int y = (int)OuterTop; y > (int)OuterBottom; y -= (int)GridSize)
+            {
+                if (CandidateIntersectsMap(map, x, y, margin, ignoreActiveManagedControls, activeControlSectors)) continue;
+
+                origins.Add(new Vector2D(x + margin, y - margin));
+                if (origins.Count == sectorCount) return origins;
+            }
+        }
+
+        throw new InvalidOperationException(ignoreActiveManagedControls
+            ? "Not enough space for control sector relocation."
+            : "No space left for control sectors.");
+    }
+
+    private bool CandidateIntersectsMap(
+        MapSet map,
+        int x,
+        int y,
+        double margin,
+        bool ignoreActiveManagedControls,
+        IReadOnlySet<Sector>? activeControlSectors)
+    {
+        double left = x + margin;
+        double right = left + SectorSize;
+        double top = y - margin;
+        double bottom = top - SectorSize;
+        var corners = new[]
+        {
+            new Vector2D(left, top),
+            new Vector2D(right, top),
+            new Vector2D(right, bottom),
+            new Vector2D(left, bottom),
+        };
+        var candidateLines = new[]
+        {
+            new Line2D(corners[0], corners[1]),
+            new Line2D(corners[1], corners[2]),
+            new Line2D(corners[2], corners[3]),
+            new Line2D(corners[3], corners[0]),
+        };
+
+        foreach (Sector sector in map.Sectors)
+        {
+            if (ShouldIgnoreSector(sector, ignoreActiveManagedControls, activeControlSectors)) continue;
+            if (SectorIntersectsCandidate(sector, left, right, top, bottom, corners, candidateLines)) return true;
+        }
+
+        return false;
+    }
+
+    private static bool ShouldIgnoreSector(
+        Sector sector,
+        bool ignoreActiveManagedControls,
+        IReadOnlySet<Sector>? activeControlSectors)
+    {
+        if (!ignoreActiveManagedControls) return false;
+        return activeControlSectors?.Contains(sector) == true
+            && sector.Fields.TryGetValue(ManagedControlSectorField, out object? value)
+            && value is bool managed
+            && managed;
+    }
+
+    private static bool SectorIntersectsCandidate(
+        Sector sector,
+        double left,
+        double right,
+        double top,
+        double bottom,
+        IReadOnlyList<Vector2D> corners,
+        IReadOnlyList<Line2D> candidateLines)
+    {
+        var sectorVertices = new HashSet<Vertex>();
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            sectorVertices.Add(side.Line.Start);
+            sectorVertices.Add(side.Line.End);
+        }
+
+        foreach (Vertex vertex in sectorVertices)
+        {
+            Vector2D position = vertex.Position;
+            if (position.x >= left && position.x <= right && position.y <= top && position.y >= bottom) return true;
+        }
+
+        var polygon = new List<Vector2D>();
+        foreach (Sidedef side in sector.Sidedefs)
+            polygon.Add(side.Line.Start.Position);
+        if (polygon.Count >= 3)
+        {
+            foreach (Vector2D corner in corners)
+                if (Tools.PointInPolygon(polygon, corner))
+                    return true;
+        }
+
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            foreach (Line2D candidateLine in candidateLines)
+                if (Line2D.GetIntersection(side.Line.Line, candidateLine))
+                    return true;
         }
 
         return false;
@@ -369,7 +508,7 @@ public static class ThreeDFloors
     private static bool IsManagedControlSector(Sector control, bool udmf)
     {
         if (!udmf) return true;
-        return control.Fields.TryGetValue("user_managed_3d_floor", out object? value)
+        return control.Fields.TryGetValue(ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField, out object? value)
             && value is bool managed
             && managed;
     }

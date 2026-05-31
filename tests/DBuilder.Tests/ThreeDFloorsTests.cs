@@ -170,6 +170,67 @@ public class ThreeDFloorsTests
         Assert.Equal("No free tags in the custom range between 10 and 11.", ex.Message);
     }
 
+    [Fact]
+    public void ControlSectorAreaSettingsPlansClosedControlSectorLoops()
+    {
+        var map = new MapSet();
+        var settings = new ThreeDFloorControlSectorAreaSettings();
+
+        IReadOnlyList<IReadOnlyList<Vector2D>> loops = settings.GetNewControlSectorVertexLoops(map, 2);
+
+        Assert.Equal(2, loops.Count);
+        Assert.Equal(
+            new[]
+            {
+                new Vector2D(-508, 508),
+                new Vector2D(-452, 508),
+                new Vector2D(-452, 452),
+                new Vector2D(-508, 452),
+                new Vector2D(-508, 508),
+            },
+            loops[0]);
+        Assert.Equal(new Vector2D(-508, 444), loops[1][0]);
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsSkipsOccupiedControlSectorCells()
+    {
+        var map = new MapSet();
+        AddSquareSector(map, -508, 508, 56);
+        var settings = new ThreeDFloorControlSectorAreaSettings();
+
+        IReadOnlyList<IReadOnlyList<Vector2D>> loops = settings.GetNewControlSectorVertexLoops(map, 1);
+
+        Assert.Equal(new Vector2D(-508, 444), loops[0][0]);
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsRelocationIgnoresActiveManagedControls()
+    {
+        var map = new MapSet();
+        Sector control = AddSquareSector(map, -508, 508, 56);
+        control.Fields[ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField] = true;
+        var settings = new ThreeDFloorControlSectorAreaSettings();
+
+        IReadOnlyList<Vector2D> relocate = settings.GetRelocatePositions(map, 1, new HashSet<Sector> { control });
+        IReadOnlyList<IReadOnlyList<Vector2D>> create = settings.GetNewControlSectorVertexLoops(map, 1);
+
+        Assert.Equal(new Vector2D(-508, 508), relocate[0]);
+        Assert.Equal(new Vector2D(-508, 444), create[0][0]);
+    }
+
+    [Fact]
+    public void ControlSectorAreaSettingsThrowsWhenNoPlacementFits()
+    {
+        var map = new MapSet();
+        AddSquareSector(map, -508, 508, 56);
+        var settings = new ThreeDFloorControlSectorAreaSettings(OuterLeft: -512, OuterRight: -448, OuterTop: 512, OuterBottom: 448);
+
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => settings.GetNewControlSectorVertexLoops(map, 1));
+
+        Assert.Equal("No space left for control sectors.", ex.Message);
+    }
+
     // A control sector carrying special 160 (arg0=tag) and a target sector tagged the same.
     private static (MapSet map, Sector control, Sector target) Setup(int tag, int alpha)
     {
@@ -380,5 +441,20 @@ public class ThreeDFloorsTests
         line.Args[3] = 255;
         map.BuildIndexes();
         return control;
+    }
+
+    private static Sector AddSquareSector(MapSet map, double left, double top, double size)
+    {
+        var vertices = new[]
+        {
+            map.AddVertex(new Vector2D(left, top)),
+            map.AddVertex(new Vector2D(left + size, top)),
+            map.AddVertex(new Vector2D(left + size, top - size)),
+            map.AddVertex(new Vector2D(left, top - size)),
+        };
+
+        Sector sector = SectorBuilder.CreateSector(map, vertices)!;
+        map.BuildIndexes();
+        return sector;
     }
 }

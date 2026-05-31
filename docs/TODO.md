@@ -1083,6 +1083,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style control-sector edit snapshots, geometry mutation, and orphan action-line cleanup.
   - [x] Add UDB-style 3D floor mode/action metadata and command catalog entries.
   - [x] Add UDB-style control-sector area settings and custom tag range allocation.
+  - [x] Add UDB-style control-sector area placement planning for new and relocated controls.
 - [ ] Port 3D floor slope editing.
   - [x] Add UDB-style deprecated slope and draw-slope mode/action metadata.
 - [ ] Port automap mode rendering and editing behavior.

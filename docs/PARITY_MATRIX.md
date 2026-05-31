@@ -36,7 +36,7 @@ Status values:
 
 | UDB plugin | Status | DBuilder location | Notes |
 | --- | --- | --- | --- |
-| `3DFloorMode` | partial | `DBuilder.Map`, `DBuilder.IO` | 3D floor data helper exists, including selected-sector discovery, control-sector edit snapshots, control-sector mutation, orphan action-line cleanup, mode/action metadata, command catalog entries, control-sector area settings, and custom tag range allocation. Full plugin workflow, editor window, control-sector geometry placement, and slope workflow remain missing. |
+| `3DFloorMode` | partial | `DBuilder.Map`, `DBuilder.IO` | 3D floor data helper exists, including selected-sector discovery, control-sector edit snapshots, control-sector mutation, orphan action-line cleanup, mode/action metadata, command catalog entries, control-sector area settings, custom tag range allocation, and control-sector area placement planning. Full plugin workflow, editor window, control-sector geometry materialization, and slope workflow remain missing. |
 | `AutomapMode` | partial | `DBuilder.Editor`, `DBuilder.Map` | Automap line visibility, color presets, line classification, secret-sector and lock overlays, format-aware UDMF/classic automap flags, and selected line/sector flag toggles exist. Full mode UI, highlighting, rendering presentation, and interactive editing workflow remain missing. |
 | `BlockmapExplorer` | partial | `DBuilder.Editor`, `DBuilder.Map`, `DBuilder.IO` | Blockmap logic, overlay toggle, parsed BLOCKMAP highlighted-block/shared-list/questionable-offset overlays, and a non-modal explorer summary window exist. Full mode workflow remains missing. |
 | `BuilderEffects` | partial | `DBuilder.Map` | Selected effects exist. Full plugin missing. |
