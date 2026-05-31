@@ -618,7 +618,7 @@ public static class DecorateParser
                 actor.Height = mixin.Height;
                 if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
             }
-            CopyUserVariables(actor, mixin);
+            CopyMixinUserVariables(actor, mixin);
             CopyMixinFlag(actor, mixin, "spawnceiling");
             CopyMixinFlag(actor, mixin, "solid");
         }
@@ -662,6 +662,12 @@ public static class DecorateParser
     {
         foreach (var variable in source.UserVariables.Values)
             actor.UserVariables[variable.Name] = variable;
+    }
+
+    private static void CopyMixinUserVariables(ActorInfo actor, ActorInfo mixin)
+    {
+        foreach (var variable in mixin.UserVariables.Values)
+            actor.UserVariables[variable.Name] = new ActorUserVariable(variable.Name, variable.Type);
     }
 
     private static void RemoveActorsWithInvalidUserVariableShadows(List<ActorInfo> actors)

@@ -1166,6 +1166,27 @@ class MixedActor : Actor
     }
 
     [Fact]
+    public void ZScriptMixinUserVariablesDoNotCopyDefaults()
+    {
+        const string zscript = @"
+mixin class UserDefaultsMixin
+{
+    //$UserDefaultValue 7
+    int user_value;
+}
+class MixedActor : Actor
+{
+    mixin UserDefaultsMixin;
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.True(actor.UserVariables.ContainsKey("user_value"));
+        Assert.Equal(UniversalType.Integer, actor.UserVariables["user_value"].Type);
+        Assert.Null(actor.UserVariables["user_value"].DefaultValue);
+    }
+
+    [Fact]
     public void ZScriptMixinWithoutSpawnStateDoesNotSupplyEditorSprite()
     {
         const string zscript = @"
