@@ -16,7 +16,7 @@ public sealed class TagListWindow : Window
     /// <summary>Raised with a tag number when the user selects a row.</summary>
     public event Action<int>? TagActivated;
 
-    public TagListWindow(IReadOnlyList<(int Tag, int Count)> tags)
+    public TagListWindow(IReadOnlyList<(int Tag, int Count)> tags, IReadOnlyDictionary<int, string>? labels = null)
     {
         Title = "Tags";
         Width = 280;
@@ -31,7 +31,7 @@ public sealed class TagListWindow : Window
 
         var rows = new List<ListBoxItem>();
         foreach (var (tag, count) in tags)
-            rows.Add(new ListBoxItem { Content = $"Tag {tag}  ({count} element{(count == 1 ? "" : "s")})", Tag = tag });
+            rows.Add(new ListBoxItem { Content = FormatRow(tag, count, labels), Tag = tag });
         _list.ItemsSource = rows;
         _list.SelectionChanged += (_, _) => { if (_list.SelectedItem is ListBoxItem { Tag: int t }) TagActivated?.Invoke(t); };
 
@@ -40,5 +40,13 @@ public sealed class TagListWindow : Window
         root.Children.Add(header);
         root.Children.Add(new ScrollViewer { Content = _list });
         Content = root;
+    }
+
+    private static string FormatRow(int tag, int count, IReadOnlyDictionary<int, string>? labels)
+    {
+        string label = labels != null && labels.TryGetValue(tag, out string? value) && !string.IsNullOrWhiteSpace(value)
+            ? $" - {value}"
+            : "";
+        return $"Tag {tag}{label}  ({count} element{(count == 1 ? "" : "s")})";
     }
 }

@@ -746,6 +746,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add bundled configuration picker with external cfg browse fallback.
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
+  - [x] Display and edit UDB-compatible tag labels from map options.
 - [x] Port thing statistics dialog.
 - [ ] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.

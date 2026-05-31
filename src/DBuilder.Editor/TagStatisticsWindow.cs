@@ -15,10 +15,13 @@ public sealed class TagStatisticsWindow : Window
     /// <summary>Raised when a row action requests selecting elements that use a tag.</summary>
     public event Action<int, MapControl.EditMode?>? TagActivated;
 
-    public TagStatisticsWindow(IReadOnlyList<TagStatistic> tags)
+    /// <summary>Raised when a row label is edited.</summary>
+    public event Action<int, string>? LabelChanged;
+
+    public TagStatisticsWindow(IReadOnlyList<TagStatistic> tags, IReadOnlyDictionary<int, string>? labels = null)
     {
         Title = "Used Tags";
-        Width = 520;
+        Width = 700;
         Height = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
@@ -35,7 +38,7 @@ public sealed class TagStatisticsWindow : Window
 
         var rows = new StackPanel { Margin = new Avalonia.Thickness(10, 0, 10, 10), Spacing = 3 };
         rows.Children.Add(HeaderRow());
-        foreach (var tag in tags) rows.Children.Add(DataRow(tag));
+        foreach (var tag in tags) rows.Children.Add(DataRow(tag, labels));
 
         root.Children.Add(new ScrollViewer { Content = rows });
         Content = root;
@@ -45,22 +48,40 @@ public sealed class TagStatisticsWindow : Window
     {
         var grid = RowGrid();
         AddHeader(grid, "Tag", 0);
-        AddHeader(grid, "All", 1);
-        AddHeader(grid, "Sectors", 2);
-        AddHeader(grid, "Lines", 3);
-        AddHeader(grid, "Things", 4);
+        AddHeader(grid, "Label", 1);
+        AddHeader(grid, "All", 2);
+        AddHeader(grid, "Sectors", 3);
+        AddHeader(grid, "Lines", 4);
+        AddHeader(grid, "Things", 5);
         return grid;
     }
 
-    private Grid DataRow(TagStatistic tag)
+    private Grid DataRow(TagStatistic tag, IReadOnlyDictionary<int, string>? labels)
     {
         var grid = RowGrid();
         AddText(grid, tag.Tag.ToString(), 0, Brushes.Khaki);
-        AddButton(grid, tag.Tag, 1, tag.Total, null);
-        AddButton(grid, tag.Tag, 2, tag.Sectors, MapControl.EditMode.Sectors);
-        AddButton(grid, tag.Tag, 3, tag.Linedefs, MapControl.EditMode.Linedefs);
-        AddButton(grid, tag.Tag, 4, tag.Things, MapControl.EditMode.Things);
+        AddLabelEditor(grid, tag.Tag, labels);
+        AddButton(grid, tag.Tag, 2, tag.Total, null);
+        AddButton(grid, tag.Tag, 3, tag.Sectors, MapControl.EditMode.Sectors);
+        AddButton(grid, tag.Tag, 4, tag.Linedefs, MapControl.EditMode.Linedefs);
+        AddButton(grid, tag.Tag, 5, tag.Things, MapControl.EditMode.Things);
         return grid;
+    }
+
+    private void AddLabelEditor(Grid grid, int tag, IReadOnlyDictionary<int, string>? labels)
+    {
+        string label = labels != null && labels.TryGetValue(tag, out string? value) ? value : "";
+        var box = new TextBox
+        {
+            Text = label,
+            Watermark = "Label",
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin = new Avalonia.Thickness(4, 1),
+            Padding = new Avalonia.Thickness(4, 1),
+        };
+        box.TextChanged += (_, _) => LabelChanged?.Invoke(tag, box.Text?.Trim() ?? "");
+        Grid.SetColumn(box, 1);
+        grid.Children.Add(box);
     }
 
     private void AddButton(Grid grid, int tag, int column, int count, MapControl.EditMode? mode)
@@ -84,7 +105,7 @@ public sealed class TagStatisticsWindow : Window
     }
 
     private static Grid RowGrid()
-        => new() { ColumnDefinitions = new ColumnDefinitions("70,70,90,90,90") };
+        => new() { ColumnDefinitions = new ColumnDefinitions("70,180,70,90,90,90") };
 
     private static void AddHeader(Grid grid, string text, int column)
         => AddText(grid, text, column, Brushes.LightSkyBlue, FontWeight.Bold);

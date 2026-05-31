@@ -837,6 +837,7 @@ public partial class MainWindow : Window
         options.ViewScale = MapView.ViewScale;
         options.WriteResources();
         options.WriteDrawingOptions();
+        options.WriteTagLabels();
         options.WriteExternalCommandSettings();
         options.WriteGridSetup(MapView.GridSetupSnapshot());
         var root = _mapSettings ?? new Configuration(sorted: true);
@@ -1524,7 +1525,15 @@ public partial class MainWindow : Window
     private void OnTagStatistics(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var win = new TagStatisticsWindow(ConfiguredTagSearch.UsedTagStatistics(_map, _config));
+        _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
+        var win = new TagStatisticsWindow(ConfiguredTagSearch.UsedTagStatistics(_map, _config), _mapOptions.TagLabels);
+        win.LabelChanged += (tag, label) =>
+        {
+            if (_mapOptions is null) return;
+            if (string.IsNullOrWhiteSpace(label)) _mapOptions.TagLabels.Remove(tag);
+            else _mapOptions.TagLabels[tag] = label;
+            MarkMapDirty();
+        };
         win.TagActivated += (tag, mode) =>
         {
             if (_map is null) return;
@@ -1997,6 +2006,7 @@ public partial class MainWindow : Window
         options.ReadRootOptions(root, mapName);
         options.ReadResources();
         options.ReadDrawingOptions(_config?.UseLongTextureNames ?? false);
+        options.ReadTagLabels();
         options.ReadExternalCommandSettings();
         return options;
     }
@@ -2263,7 +2273,7 @@ public partial class MainWindow : Window
     private void OnTagList(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var win = new TagListWindow(ConfiguredTagSearch.UsedTags(_map, _config));
+        var win = new TagListWindow(ConfiguredTagSearch.UsedTags(_map, _config), _mapOptions?.TagLabels);
         win.TagActivated += tag =>
         {
             if (_map is null) return;
