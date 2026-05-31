@@ -52,6 +52,37 @@ public sealed class ColorPickerModelTests
         Assert.Equal("0.13 0.25 1.00", ColorPickerModel.Format(rgb, ColorPickerInfoMode.Float));
     }
 
+    [Theory]
+    [InlineData("2040FF", 0x20, 0x40, 0xff)]
+    [InlineData("20-40-ff", 0x20, 0x40, 0xff)]
+    [InlineData("  ff0000  ", 0xff, 0, 0)]
+    public void TryParseHexMatchesUdbTypedInput(string text, int red, int green, int blue)
+    {
+        var rgb = ColorPickerModel.TryParse(ColorPickerInfoMode.Hex, text);
+
+        Assert.Equal(new ColorRgb(red, green, blue), rgb);
+    }
+
+    [Theory]
+    [InlineData("0.5 0.25 1", 127, 63, 255)]
+    [InlineData("-0.5 2 -1", 127, 255, 255)]
+    [InlineData("1E-1 0 1", 25, 0, 255)]
+    public void TryParseFloatTripletMatchesUdbTypedInput(string text, int red, int green, int blue)
+    {
+        var rgb = ColorPickerModel.TryParse(ColorPickerInfoMode.Float, text);
+
+        Assert.Equal(new ColorRgb(red, green, blue), rgb);
+    }
+
+    [Theory]
+    [InlineData(ColorPickerInfoMode.Hex, "12345")]
+    [InlineData(ColorPickerInfoMode.Hex, "zzzzzz")]
+    [InlineData(ColorPickerInfoMode.Float, "0.1 0.2")]
+    [InlineData(ColorPickerInfoMode.Float, "0.1 nope 0.3")]
+    [InlineData(ColorPickerInfoMode.Rgb, "32 64 255")]
+    public void TryParseRejectsInvalidTypedInput(ColorPickerInfoMode mode, string text)
+        => Assert.Null(ColorPickerModel.TryParse(mode, text));
+
     [Fact]
     public void EnsureSectorColorFieldsSeedsMissingFields()
     {

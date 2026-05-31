@@ -41,7 +41,7 @@ Status values:
 | `BlockmapExplorer` | partial | `DBuilder.Editor`, `DBuilder.Map`, `DBuilder.IO` | Blockmap logic, overlay toggle, and a non-modal explorer summary window exist. Full mode visualization remains missing. |
 | `BuilderEffects` | partial | `DBuilder.Map` | Selected effects exist. Full plugin missing. |
 | `BuilderModes` | partial | `DBuilder.Editor`, `DBuilder.Map` | Selected drawing/editing tools exist. Full mode set missing. |
-| `ColorPicker` | missing | none | Not ported. |
+| `ColorPicker` | partial | `DBuilder.Editor`, `DBuilder.Map` | RGB/HSV conversion, picker formatting, typed HEX and float color parsing, packed UDMF color integers, sector light/fade color fields, and selected-sector color command exist. Full picker controls and dynamic light editing remain missing. |
 | `CommentsPanel` | missing | none | Not ported. |
 | `ImageDrawingExample` | partial | `DBuilder.Editor` | Built-in image-example mode renders an overlay-only screen-space image. Full sample plugin loading remains missing. |
 | `NodesViewer` | partial | `DBuilder.IO` | Nodes reader exists. Viewer UI missing. |

@@ -147,6 +147,14 @@ public static class ColorPickerModel
             _ => "",
         };
 
+    public static ColorRgb? TryParse(ColorPickerInfoMode mode, string text)
+        => mode switch
+        {
+            ColorPickerInfoMode.Hex => TryParseHex(text),
+            ColorPickerInfoMode.Float => TryParseFloatTriplet(text),
+            _ => null,
+        };
+
     public static void EnsureSectorColorFields(IEnumerable<Sector> sectors, int lightColor, int fadeColor)
     {
         foreach (var sector in sectors)
@@ -180,4 +188,31 @@ public static class ColorPickerModel
                 sector.Fields.Remove(FadeColorField);
         }
     }
+
+    private static ColorRgb? TryParseHex(string text)
+    {
+        string hexColor = text.Trim().Replace("-", "", StringComparison.Ordinal);
+        if (hexColor.Length != 6) return null;
+
+        if (!int.TryParse(hexColor[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int red)) return null;
+        if (!int.TryParse(hexColor.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int green)) return null;
+        if (!int.TryParse(hexColor.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int blue)) return null;
+
+        return new ColorRgb(red, green, blue);
+    }
+
+    private static ColorRgb? TryParseFloatTriplet(string text)
+    {
+        string[] parts = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 3) return null;
+
+        if (!float.TryParse(parts[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out float red)) return null;
+        if (!float.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out float green)) return null;
+        if (!float.TryParse(parts[2].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out float blue)) return null;
+
+        return new ColorRgb(FloatComponentToByte(red), FloatComponentToByte(green), FloatComponentToByte(blue));
+    }
+
+    private static int FloatComponentToByte(float value)
+        => (int)(Math.Clamp(Math.Abs(value), 0.0f, 1.0f) * 255);
 }

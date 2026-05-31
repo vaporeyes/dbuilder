@@ -899,6 +899,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
 - [ ] Port `ColorPicker`.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
+  - [x] Add UDB-style HEX and float typed color input parsing.
   - [x] Add editor command and dialog for selected-sector lightcolor and fadecolor fields.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
@@ -1059,6 +1060,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
+  - [x] Add UDB-style HEX and float typed color input parsing.
   - [x] Add selected-sector color command for lightcolor and fadecolor editing.
 
 ## Validation And Test Strategy
