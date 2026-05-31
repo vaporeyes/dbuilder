@@ -33,9 +33,9 @@ public class SettingsTests
     public void AddRecentCapsAtMax()
     {
         var s = new Settings();
-        for (int i = 0; i < Settings.MaxRecent + 5; i++) s.AddRecent($"/wad{i}.wad");
-        Assert.Equal(Settings.MaxRecent, s.RecentFiles.Count);
-        Assert.Equal($"/wad{Settings.MaxRecent + 4}.wad", s.RecentFiles[0]); // most recent first
+        for (int i = 0; i < Settings.DefaultMaxRecentFiles + 5; i++) s.AddRecent($"/wad{i}.wad");
+        Assert.Equal(Settings.DefaultMaxRecentFiles, s.RecentFiles.Count);
+        Assert.Equal($"/wad{Settings.DefaultMaxRecentFiles + 4}.wad", s.RecentFiles[0]); // most recent first
     }
 
     [Fact]
@@ -68,9 +68,35 @@ public class SettingsTests
     public void AddRecentMapCapsAtMax()
     {
         var s = new Settings();
-        for (int i = 0; i < Settings.MaxRecent + 5; i++) s.AddRecentMap("/maps/a.wad", $"MAP{i:00}");
-        Assert.Equal(Settings.MaxRecent, s.RecentMaps.Count);
-        Assert.Equal($"MAP{Settings.MaxRecent + 4:00}", s.RecentMaps[0].MapName);
+        for (int i = 0; i < Settings.DefaultMaxRecentFiles + 5; i++) s.AddRecentMap("/maps/a.wad", $"MAP{i:00}");
+        Assert.Equal(Settings.DefaultMaxRecentFiles, s.RecentMaps.Count);
+        Assert.Equal($"MAP{Settings.DefaultMaxRecentFiles + 4:00}", s.RecentMaps[0].MapName);
+    }
+
+    [Fact]
+    public void RecentListsUseConfiguredUdbLimit()
+    {
+        var s = new Settings { MaxRecentFiles = 12 };
+
+        for (int i = 0; i < 20; i++)
+        {
+            s.AddRecent($"/wad{i}.wad");
+            s.AddRecentMap("/maps/a.wad", $"MAP{i:00}");
+        }
+
+        Assert.Equal(12, s.NormalizedMaxRecentFiles);
+        Assert.Equal(12, s.RecentFiles.Count);
+        Assert.Equal(12, s.RecentMaps.Count);
+        Assert.Equal("/wad19.wad", s.RecentFiles[0]);
+        Assert.Equal("MAP19", s.RecentMaps[0].MapName);
+    }
+
+    [Fact]
+    public void MaxRecentFilesClampsToUdbPreferenceRange()
+    {
+        Assert.Equal(Settings.DefaultMaxRecentFiles, new Settings().NormalizedMaxRecentFiles);
+        Assert.Equal(Settings.MinMaxRecentFiles, new Settings { MaxRecentFiles = 1 }.NormalizedMaxRecentFiles);
+        Assert.Equal(Settings.MaxMaxRecentFiles, new Settings { MaxRecentFiles = 50 }.NormalizedMaxRecentFiles);
     }
 
     [Fact]
@@ -84,6 +110,7 @@ public class SettingsTests
                 ConfigDir = "/cfg",
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
+                MaxRecentFiles = 12,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -108,6 +135,8 @@ public class SettingsTests
             Assert.Equal("/cfg", loaded.ConfigDir);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
+            Assert.Equal(12, loaded.MaxRecentFiles);
+            Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);

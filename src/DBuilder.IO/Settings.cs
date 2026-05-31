@@ -11,7 +11,9 @@ namespace DBuilder.IO;
 
 public sealed class Settings
 {
-    public const int MaxRecent = 10;
+    public const int DefaultMaxRecentFiles = 8;
+    public const int MinMaxRecentFiles = 8;
+    public const int MaxMaxRecentFiles = 25;
     public const int DefaultStatusHistoryLimit = 100;
     public const int MinStatusHistoryLimit = 10;
     public const int MaxStatusHistoryLimit = 1000;
@@ -22,6 +24,7 @@ public sealed class Settings
     public string? TestPort { get; set; }
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
+    public int? MaxRecentFiles { get; set; }
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();
@@ -36,6 +39,9 @@ public sealed class Settings
     public int NormalizedStatusHistoryLimit =>
         Math.Clamp(StatusHistoryLimit ?? DefaultStatusHistoryLimit, MinStatusHistoryLimit, MaxStatusHistoryLimit);
 
+    public int NormalizedMaxRecentFiles =>
+        Math.Clamp(MaxRecentFiles ?? DefaultMaxRecentFiles, MinMaxRecentFiles, MaxMaxRecentFiles);
+
     public MergeGeometryMode NormalizedMergeGeometryMode =>
         Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;
 
@@ -49,7 +55,8 @@ public sealed class Settings
         RecentFiles ??= new();
         RecentFiles.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
         RecentFiles.Insert(0, path);
-        if (RecentFiles.Count > MaxRecent) RecentFiles.RemoveRange(MaxRecent, RecentFiles.Count - MaxRecent);
+        int maxRecent = NormalizedMaxRecentFiles;
+        if (RecentFiles.Count > maxRecent) RecentFiles.RemoveRange(maxRecent, RecentFiles.Count - maxRecent);
     }
 
     /// <summary>Moves a map reference to the front of the recent maps list, de-duplicated and capped.</summary>
@@ -65,7 +72,8 @@ public sealed class Settings
         };
         RecentMaps.RemoveAll(entry.Matches);
         RecentMaps.Insert(0, entry);
-        if (RecentMaps.Count > MaxRecent) RecentMaps.RemoveRange(MaxRecent, RecentMaps.Count - MaxRecent);
+        int maxRecent = NormalizedMaxRecentFiles;
+        if (RecentMaps.Count > maxRecent) RecentMaps.RemoveRange(maxRecent, RecentMaps.Count - maxRecent);
     }
 
     /// <summary>Default settings file location: &lt;app-data&gt;/DBuilder/settings.json.</summary>

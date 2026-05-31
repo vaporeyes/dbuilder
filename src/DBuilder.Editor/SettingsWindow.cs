@@ -8,11 +8,12 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _statusHistoryLimit, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _pasteTagMode;
     private readonly CheckBox _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs;
+    public int? MaxRecentFiles;
     public int? StatusHistoryLimit;
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
@@ -26,6 +27,7 @@ public sealed class SettingsWindow : PropertyDialog
         _testArgs  = AddField("Test port args", s.TestPortArgs ?? "");
         _nodePath  = AddField("Node builder", s.NodeBuilderPath ?? "");
         _nodeArgs  = AddField("Node builder args", s.NodeBuilderArgs ?? "");
+        _maxRecentFiles = AddField("Max recent files", s.MaxRecentFiles?.ToString() ?? "");
         _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _pasteTagMode = AddCombo("Pasted tags", PasteTagModeItems(), (int)s.NormalizedPasteOptions.ChangeTags);
@@ -40,6 +42,7 @@ public sealed class SettingsWindow : PropertyDialog
         TestPortArgs = NullIfBlank(_testArgs.Text);
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
+        MaxRecentFiles = int.TryParse(_maxRecentFiles.Text, out int maxRecent) && maxRecent > 0 ? maxRecent : null;
         StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions

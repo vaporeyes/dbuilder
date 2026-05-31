@@ -856,12 +856,14 @@ public partial class MainWindow : Window
         _settings.TestPortArgs = dlg.TestPortArgs;
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
+        _settings.MaxRecentFiles = dlg.MaxRecentFiles;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
+        RebuildRecentMenu();
         ReloadCompilerConfiguration();
         SaveSettings();
         SetStatus("Settings saved.");

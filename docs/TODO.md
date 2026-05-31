@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1547 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1549 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -54,6 +54,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep a bounded status history and expose it from the View menu.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.
+  - [x] Persist UDB-style configurable recent-file count with the same 8-25 preference range.
 - [ ] Port file lock checks and save conflict handling.
   - [x] Block in-place WAD saves when the source archive changed on disk after load.
 - [ ] Port program configuration loading and persistence.
