@@ -81,6 +81,74 @@ maplumpnames
     }
 
     [Fact]
+    public void BuildsRequiredFileCopyPlanLikeUdbCompiler()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder_nodebuilder_files_" + Guid.NewGuid().ToString("N"));
+        string working = Path.Combine(root, "work");
+        Directory.CreateDirectory(root);
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "zdbsp.cfg"), "support");
+            var config = new NodebuilderConfig(
+                "/tools/zdbsp",
+                "%FI",
+                root,
+                new[] { "zdbsp.cfg", "missing.dat" });
+
+            var plan = NodeBuilder.BuildRequiredFileCopyPlan(config, working);
+
+            Assert.Collection(
+                plan,
+                copy =>
+                {
+                    Assert.Equal("zdbsp.cfg", copy.Name);
+                    Assert.Equal(Path.Combine(root, "zdbsp.cfg"), copy.SourcePath);
+                    Assert.Equal(Path.Combine(working, "zdbsp.cfg"), copy.TargetPath);
+                    Assert.True(copy.SourceExists);
+                },
+                copy =>
+                {
+                    Assert.Equal("missing.dat", copy.Name);
+                    Assert.Equal(Path.Combine(root, "missing.dat"), copy.SourcePath);
+                    Assert.Equal(Path.Combine(working, "missing.dat"), copy.TargetPath);
+                    Assert.False(copy.SourceExists);
+                });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void CopiesRequiredFilesAndReportsMissingLikeUdbCompiler()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder_nodebuilder_copy_" + Guid.NewGuid().ToString("N"));
+        string source = Path.Combine(root, "source");
+        string working = Path.Combine(root, "work");
+        Directory.CreateDirectory(source);
+        try
+        {
+            File.WriteAllText(Path.Combine(source, "zdbsp.cfg"), "support");
+            var config = new NodebuilderConfig(
+                "/tools/zdbsp",
+                "%FI",
+                source,
+                new[] { "zdbsp.cfg", "missing.dat" });
+
+            var missing = NodeBuilder.CopyRequiredFiles(NodeBuilder.BuildRequiredFileCopyPlan(config, working));
+
+            Assert.Equal("support", File.ReadAllText(Path.Combine(working, "zdbsp.cfg")));
+            var missingCopy = Assert.Single(missing);
+            Assert.Equal("missing.dat", missingCopy.Name);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void AnalyzeProcessResultFailsWhenOutputContainsErrorLikeUdb()
     {
         var normalOutput = NodeBuilder.AnalyzeProcessResult(0, "build error: bad subsector", "");

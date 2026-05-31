@@ -2,8 +2,10 @@
 // ABOUTME: Ports UDB's NodesCompiler approach: %FI/%FO parameter substitution, run the exe, read the result back.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DBuilder.IO;
@@ -14,7 +16,13 @@ namespace DBuilder.IO;
 /// omits <c>%FO</c> means the builder edits the input WAD in place (e.g. <c>"%FI"</c>); one that includes it
 /// writes a separate output (e.g. <c>-o "%FO" "%FI"</c> for zdbsp).
 /// </remarks>
-public sealed record NodebuilderConfig(string Executable, string Parameters);
+public sealed record NodebuilderConfig(
+    string Executable,
+    string Parameters,
+    string RequiredFilesDirectory = "",
+    IReadOnlyList<string>? RequiredFiles = null);
+
+public sealed record NodebuilderRequiredFileCopy(string Name, string SourcePath, string TargetPath, bool SourceExists);
 
 public static class NodeBuilder
 {
@@ -43,6 +51,43 @@ public static class NodeBuilder
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
+
+    public static IReadOnlyList<NodebuilderRequiredFileCopy> BuildRequiredFileCopyPlan(
+        NodebuilderConfig config,
+        string workingDirectory)
+    {
+        return (config.RequiredFiles ?? Array.Empty<string>())
+            .Select(file =>
+            {
+                string source = Path.Combine(config.RequiredFilesDirectory, file);
+                return new NodebuilderRequiredFileCopy(
+                    file,
+                    source,
+                    Path.Combine(workingDirectory, file),
+                    File.Exists(source));
+            })
+            .ToArray();
+    }
+
+    public static IReadOnlyList<NodebuilderRequiredFileCopy> CopyRequiredFiles(
+        IReadOnlyList<NodebuilderRequiredFileCopy> copyPlan)
+    {
+        var missing = new List<NodebuilderRequiredFileCopy>();
+        foreach (NodebuilderRequiredFileCopy copy in copyPlan)
+        {
+            if (!copy.SourceExists)
+            {
+                missing.Add(copy);
+                continue;
+            }
+
+            string? targetDirectory = Path.GetDirectoryName(copy.TargetPath);
+            if (!string.IsNullOrEmpty(targetDirectory)) Directory.CreateDirectory(targetDirectory);
+            File.Copy(copy.SourcePath, copy.TargetPath, overwrite: true);
+        }
+
+        return missing;
+    }
 
     public static ProcessResult AnalyzeProcessResult(int exitCode, string standardOutput, string standardError)
     {
@@ -88,6 +133,7 @@ public static class NodeBuilder
         try
         {
             File.WriteAllBytes(input, PrepareInputWad(wadBytes, mapMarker, config));
+            CopyRequiredFiles(BuildRequiredFileCopyPlan(cfg, dir));
 
             var psi = CreateStartInfo(cfg, input, output, dir);
 
