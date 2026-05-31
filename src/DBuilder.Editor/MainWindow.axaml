@@ -114,6 +114,7 @@
                 <MenuItem Header="_Tag Explorer..." x:Name="TagExplorerMenuItem" Click="OnTagExplorer" />
                 <MenuItem Header="View Thing _Types..." x:Name="ThingStatisticsMenuItem" Click="OnThingStatistics" />
                 <MenuItem Header="View _Comments..." x:Name="CommentsPanelMenuItem" Click="OnCommentsPanel" />
+                <MenuItem Header="View _Nodes..." x:Name="NodesViewerMenuItem" Click="OnNodesViewer" />
                 <MenuItem Header="View _Status History..." Click="OnStatusHistory" />
                 <MenuItem Header="View _Error Log..." Click="OnErrorLog" />
                 <MenuItem Header="_Browsers">

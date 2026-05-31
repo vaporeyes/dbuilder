@@ -1952,6 +1952,43 @@ public partial class MainWindow : Window
         SetStatus($"Nodes overlay on: {parts.Count} BSP partition line(s).");
     }
 
+    private void OnNodesViewer(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes Viewer needs the source WAD."); return; }
+
+        ClassicNodesStructure structure = ReadClassicNodesStructure();
+        var win = new NodesViewerWindow(structure);
+        win.Show(this);
+        SetStatus(structure.IsValid
+            ? $"Nodes Viewer: {structure.Nodes.Count} node(s), {structure.Segs.Count} seg(s), {structure.Subsectors.Count} subsector(s)."
+            : $"Nodes Viewer: {structure.Status}.");
+    }
+
+    private ClassicNodesStructure ReadClassicNodesStructure()
+    {
+        if (_wadPath is null || _mapMarker is null)
+            return ClassicNodesStructure.Failure(ClassicNodesStatus.MissingOrTooShortNodes);
+
+        byte[]? nodes;
+        byte[]? segs;
+        byte[]? vertices;
+        byte[]? subsectors;
+        using (var wad = new WAD(_wadPath, openreadonly: true))
+        {
+            nodes = WadMaps.ReadMapLump(wad, _mapMarker, "NODES");
+            segs = WadMaps.ReadMapLump(wad, _mapMarker, "SEGS");
+            vertices = WadMaps.ReadMapLump(wad, _mapMarker, "VERTEXES");
+            subsectors = WadMaps.ReadMapLump(wad, _mapMarker, "SSECTORS");
+        }
+
+        return NodesReader.ParseClassicStructures(
+            nodes ?? Array.Empty<byte>(),
+            segs ?? Array.Empty<byte>(),
+            vertices ?? Array.Empty<byte>(),
+            subsectors ?? Array.Empty<byte>());
+    }
+
     private void OnToggleThingArrows(object? sender, RoutedEventArgs e)
     {
         MapView.ThingArrows = !MapView.ThingArrows;
@@ -3476,7 +3513,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
