@@ -8,6 +8,78 @@ namespace DBuilder.Tests;
 
 public class ThreeDFloorsTests
 {
+    [Fact]
+    public void ModeDescriptorsMatchUdbEditModeAttributes()
+    {
+        ThreeDFloorModeDescriptor floor = ThreeDFloors.ModeDescriptor;
+        Assert.Equal("3D Floor Mode", floor.DisplayName);
+        Assert.Equal("threedfloorhelpermode", floor.SwitchAction);
+        Assert.Equal("ThreeDFloorIcon.png", floor.ButtonImage);
+        Assert.Equal(int.MinValue + 501, floor.ButtonOrder);
+        Assert.Equal("000_editing", floor.ButtonGroup);
+        Assert.True(floor.UseByDefault);
+        Assert.False(floor.SafeStartMode);
+        Assert.False(floor.Volatile);
+        Assert.True(floor.AllowCopyPaste);
+        Assert.False(floor.Deprecated);
+        Assert.Equal(new[] { "HexenMapSetIO", "UniversalMapSetIO" }, floor.SupportedMapFormats);
+        Assert.Equal(new[] { "Effect3DFloorSupport" }, floor.RequiredMapFeatures);
+
+        ThreeDFloorModeDescriptor slope = ThreeDFloors.SlopeModeDescriptor;
+        Assert.Equal("Slope Mode", slope.DisplayName);
+        Assert.Equal("threedslopemode", slope.SwitchAction);
+        Assert.Equal("SlopeModeIcon.png", slope.ButtonImage);
+        Assert.Equal(new[] { "UniversalMapSetIO" }, slope.SupportedMapFormats);
+        Assert.Equal(new[] { "PlaneEquationSupport" }, slope.RequiredMapFeatures);
+        Assert.True(slope.Deprecated);
+
+        ThreeDFloorModeDescriptor drawSlopes = ThreeDFloors.DrawSlopesModeDescriptor;
+        Assert.Equal("Draw Slopes Mode", drawSlopes.DisplayName);
+        Assert.Equal("drawslopesmode", drawSlopes.SwitchAction);
+        Assert.Equal("DrawSlopeModeIcon.png", drawSlopes.ButtonImage);
+        Assert.False(drawSlopes.AllowCopyPaste);
+        Assert.True(drawSlopes.Volatile);
+        Assert.True(drawSlopes.Deprecated);
+    }
+
+    [Fact]
+    public void ActionDescriptorsMatchUdbActionsConfig()
+    {
+        Assert.Equal("3D Floor Plugin", ThreeDFloors.ActionCategoryTitle);
+        Assert.Equal("threedfloorplugin", ThreeDFloors.ActionCategory);
+
+        string[] ids = ThreeDFloors.ActionDescriptors.Select(action => action.Id).ToArray();
+        Assert.Equal(
+            new[]
+            {
+                "threedfloorhelpermode",
+                "threedslopemode",
+                "drawslopesmode",
+                "drawslopepoint",
+                "drawfloorslope",
+                "drawceilingslope",
+                "drawfloorandceilingslope",
+                "finishslopedraw",
+                "threedflipslope",
+                "cyclehighlighted3dfloorup",
+                "cyclehighlighted3dfloordown",
+                "relocate3dfloorcontrolsectors",
+                "select3dfloorcontrolsector",
+                "duplicate3dfloorgeometry",
+            },
+            ids);
+
+        ThreeDFloorActionDescriptor drawPoint = ThreeDFloors.ActionDescriptors.Single(action => action.Id == "drawslopepoint");
+        Assert.Equal("Draw slope vertex", drawPoint.Title);
+        Assert.True(drawPoint.DisregardShift);
+        Assert.True(drawPoint.DisregardControl);
+        Assert.Equal(1, drawPoint.DefaultInput);
+
+        ThreeDFloorActionDescriptor cycleUp = ThreeDFloors.ActionDescriptors.Single(action => action.Id == "cyclehighlighted3dfloorup");
+        Assert.Equal(131066, cycleUp.DefaultInput);
+        Assert.True(cycleUp.AllowScroll);
+    }
+
     // A control sector carrying special 160 (arg0=tag) and a target sector tagged the same.
     private static (MapSet map, Sector control, Sector target) Setup(int tag, int alpha)
     {

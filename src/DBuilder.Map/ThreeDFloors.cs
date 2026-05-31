@@ -35,10 +35,102 @@ public sealed record ThreeDFloorControlEdit(
 
 public readonly record struct ThreeDFloorCleanupResult(int ClearedLines, bool ControlSectorDeleted);
 
+public sealed record ThreeDFloorModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool UseByDefault,
+    bool SafeStartMode,
+    bool Volatile,
+    bool AllowCopyPaste,
+    bool Deprecated,
+    string DeprecationMessage,
+    IReadOnlyList<string> SupportedMapFormats,
+    IReadOnlyList<string> RequiredMapFeatures);
+
+public sealed record ThreeDFloorActionDescriptor(
+    string Id,
+    string Title,
+    string Category,
+    string Description,
+    bool AllowKeys = true,
+    bool AllowMouse = true,
+    bool AllowScroll = false,
+    bool DisregardShift = false,
+    bool DisregardControl = false,
+    int? DefaultInput = null);
+
 public static class ThreeDFloors
 {
     /// <summary>The Hexen/ZDoom Sector_3DFloor linedef special number.</summary>
     public const int Sector3DFloorAction = 160;
+    public const string ActionCategory = "threedfloorplugin";
+    public const string ActionCategoryTitle = "3D Floor Plugin";
+
+    public static ThreeDFloorModeDescriptor ModeDescriptor { get; } = new(
+        "3D Floor Mode",
+        "threedfloorhelpermode",
+        "ThreeDFloorIcon.png",
+        int.MinValue + 501,
+        "000_editing",
+        UseByDefault: true,
+        SafeStartMode: false,
+        Volatile: false,
+        AllowCopyPaste: true,
+        Deprecated: false,
+        DeprecationMessage: "",
+        SupportedMapFormats: new[] { "HexenMapSetIO", "UniversalMapSetIO" },
+        RequiredMapFeatures: new[] { "Effect3DFloorSupport" });
+
+    public static ThreeDFloorModeDescriptor SlopeModeDescriptor { get; } = new(
+        "Slope Mode",
+        "threedslopemode",
+        "SlopeModeIcon.png",
+        int.MinValue + 501,
+        "000_editing",
+        UseByDefault: true,
+        SafeStartMode: false,
+        Volatile: false,
+        AllowCopyPaste: true,
+        Deprecated: true,
+        DeprecationMessage: "Please use the visual sloping functionality instead.",
+        SupportedMapFormats: new[] { "UniversalMapSetIO" },
+        RequiredMapFeatures: new[] { "PlaneEquationSupport" });
+
+    public static ThreeDFloorModeDescriptor DrawSlopesModeDescriptor { get; } = new(
+        "Draw Slopes Mode",
+        "drawslopesmode",
+        "DrawSlopeModeIcon.png",
+        int.MinValue + 501,
+        "000_editing",
+        UseByDefault: true,
+        SafeStartMode: false,
+        Volatile: true,
+        AllowCopyPaste: false,
+        Deprecated: true,
+        DeprecationMessage: "Please use the visual sloping functionality instead.",
+        SupportedMapFormats: new[] { "UniversalMapSetIO" },
+        RequiredMapFeatures: new[] { "PlaneEquationSupport" });
+
+    public static IReadOnlyList<ThreeDFloorActionDescriptor> ActionDescriptors { get; } =
+    [
+        new("threedfloorhelpermode", "3D floor editing mode", ActionCategory, "Edits 3D floors", AllowScroll: true),
+        new("threedslopemode", "Slope mode", ActionCategory, "Edits slope vertex groups", AllowScroll: true),
+        new("drawslopesmode", "Draw slope mode", ActionCategory, "Draws a slope vertex group", AllowScroll: true),
+        new("drawslopepoint", "Draw slope vertex", ActionCategory, "Draws a slope vertex at the mousecursor position.", AllowScroll: true, DisregardShift: true, DisregardControl: true, DefaultInput: 1),
+        new("drawfloorslope", "Draw Floor Slope", ActionCategory, "The drawn slope will be applied to the floor", AllowScroll: true),
+        new("drawceilingslope", "Draw Ceiling Slope", ActionCategory, "The drawn slope will be applied to the ceiling", AllowScroll: true),
+        new("drawfloorandceilingslope", "Draw Floor and Ceiling Slope", ActionCategory, "The drawn slope will be applied to the floor and ceiling", AllowScroll: true),
+        new("finishslopedraw", "Finish Slope Drawing", ActionCategory, "Finishes the slope drawing.", AllowScroll: true, DefaultInput: 2),
+        new("threedflipslope", "Flip 3D slope", ActionCategory, ""),
+        new("cyclehighlighted3dfloorup", "Cycle highlighted 3D floor up", ActionCategory, "Cycles up through the 3D floors of the currently highlighted sector", AllowScroll: true, DefaultInput: 131066),
+        new("cyclehighlighted3dfloordown", "Cycle highlighted 3D floor down", ActionCategory, "Cycles down through the 3D floors of the currently highlighted sector", AllowScroll: true, DefaultInput: 131067),
+        new("relocate3dfloorcontrolsectors", "Relocate 3D floor control sectors", ActionCategory, "Relocates the managed 3D floor control sectors to the current position of the control sector area", AllowScroll: true),
+        new("select3dfloorcontrolsector", "Select 3D floor control sector", ActionCategory, "Selects the control sector of the currently highlighted 3D floor. Removes all other selections", AllowScroll: true),
+        new("duplicate3dfloorgeometry", "Duplicate and paste geometry", ActionCategory, "Duplicates and pastes selected geometry and its 3D floors", AllowScroll: true),
+    ];
 
     /// <summary>
     /// Maps each target sector to the 3D floors inserted into it. The slab bottom/top come from the control

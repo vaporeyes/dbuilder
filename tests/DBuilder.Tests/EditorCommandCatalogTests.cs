@@ -137,6 +137,60 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ThreeDFloorModeCommandsMatchUdbActionSurface()
+    {
+        var floor = EditorCommandCatalog.Find("map2d.mode-3d-floor");
+        var slope = EditorCommandCatalog.Find("map2d.mode-3d-slope");
+        var drawSlopes = EditorCommandCatalog.Find("map2d.mode-draw-slopes");
+
+        Assert.NotNull(floor);
+        Assert.Equal("3D Floor Mode", floor.Title);
+        Assert.Equal(EditorCommandScope.Map2D, floor.Scope);
+        Assert.True(floor.AllowScroll);
+        Assert.Equal("threedfloorhelpermode", ThreeDFloors.ModeDescriptor.SwitchAction);
+
+        Assert.NotNull(slope);
+        Assert.Equal("Slope Mode", slope.Title);
+        Assert.Equal("threedslopemode", ThreeDFloors.SlopeModeDescriptor.SwitchAction);
+
+        Assert.NotNull(drawSlopes);
+        Assert.Equal("Draw Slopes Mode", drawSlopes.Title);
+        Assert.Equal("drawslopesmode", ThreeDFloors.DrawSlopesModeDescriptor.SwitchAction);
+    }
+
+    [Fact]
+    public void ThreeDFloorActionCommandsMatchUdbActionsConfig()
+    {
+        var expected = new Dictionary<string, string>
+        {
+            ["map2d.3dfloor.draw-slope-point"] = "drawslopepoint",
+            ["map2d.3dfloor.draw-floor-slope"] = "drawfloorslope",
+            ["map2d.3dfloor.draw-ceiling-slope"] = "drawceilingslope",
+            ["map2d.3dfloor.draw-floor-and-ceiling-slope"] = "drawfloorandceilingslope",
+            ["map2d.3dfloor.finish-slope-draw"] = "finishslopedraw",
+            ["map2d.3dfloor.flip-slope"] = "threedflipslope",
+            ["map2d.3dfloor.cycle-highlight-up"] = "cyclehighlighted3dfloorup",
+            ["map2d.3dfloor.cycle-highlight-down"] = "cyclehighlighted3dfloordown",
+            ["map2d.3dfloor.relocate-control-sectors"] = "relocate3dfloorcontrolsectors",
+            ["map2d.3dfloor.select-control-sector"] = "select3dfloorcontrolsector",
+            ["map2d.3dfloor.duplicate-geometry"] = "duplicate3dfloorgeometry",
+        };
+
+        foreach ((string commandId, string udbActionId) in expected)
+        {
+            var command = EditorCommandCatalog.Find(commandId);
+            ThreeDFloorActionDescriptor action = ThreeDFloors.ActionDescriptors.Single(action => action.Id == udbActionId);
+
+            Assert.NotNull(command);
+            Assert.Equal(action.Title, command.Title);
+            Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+            Assert.Equal(action.AllowKeys, command.AllowKeys);
+            Assert.Equal(action.AllowMouse, command.AllowMouse);
+            Assert.Equal(action.AllowScroll, command.AllowScroll);
+        }
+    }
+
+    [Fact]
     public void DefaultShortcutsReferenceKnownCommands()
     {
         var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
