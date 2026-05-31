@@ -272,6 +272,16 @@ public static class SoundPropagation
     public static bool IsSoundBlocking(Linedef line, int soundBlockBit = DefaultSoundBlockBit, string soundBlockFlag = DefaultUdmfSoundBlockFlag, bool udmf = false)
         => udmf ? line.IsFlagSet(soundBlockFlag) : (line.Flags & soundBlockBit) != 0;
 
+    public static bool ToggleSoundBlocking(Linedef line, int soundBlockBit = DefaultSoundBlockBit, string soundBlockFlag = DefaultUdmfSoundBlockFlag, bool udmf = false)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        bool next = !IsSoundBlocking(line, soundBlockBit, soundBlockFlag, udmf);
+        if (udmf) line.SetFlag(soundBlockFlag, next);
+        else if (next) line.Flags |= soundBlockBit;
+        else line.Flags &= ~soundBlockBit;
+        return next;
+    }
+
     public static SoundLeakPath? FindLeakPath(
         Sector source,
         Vector2D sourcePosition,

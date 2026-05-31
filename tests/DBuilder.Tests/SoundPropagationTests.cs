@@ -181,6 +181,37 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void ToggleSoundBlockingFlipsClassicBitLikeUdbModeAction()
+    {
+        var (map, _) = Chain(2, new[] { false });
+        Linedef line = map.Linedefs[0];
+
+        Assert.True(SoundPropagation.ToggleSoundBlocking(line));
+        Assert.True((line.Flags & Block) != 0);
+        Assert.True(SoundPropagation.IsSoundBlocking(line));
+
+        Assert.False(SoundPropagation.ToggleSoundBlocking(line));
+        Assert.Equal(0, line.Flags & Block);
+        Assert.False(SoundPropagation.IsSoundBlocking(line));
+    }
+
+    [Fact]
+    public void ToggleSoundBlockingFlipsUdmfFlagLikeUdbModeAction()
+    {
+        var (map, _) = Chain(2, new[] { false });
+        Linedef line = map.Linedefs[0];
+
+        Assert.True(SoundPropagation.ToggleSoundBlocking(line, udmf: true));
+        Assert.True(line.IsFlagSet(SoundPropagation.DefaultUdmfSoundBlockFlag));
+        Assert.True(SoundPropagation.IsSoundBlocking(line, udmf: true));
+        Assert.Equal(0, line.Flags & Block);
+
+        Assert.False(SoundPropagation.ToggleSoundBlocking(line, udmf: true));
+        Assert.False(line.IsFlagSet(SoundPropagation.DefaultUdmfSoundBlockFlag));
+        Assert.False(SoundPropagation.IsSoundBlocking(line, udmf: true));
+    }
+
+    [Fact]
     public void HeightBlockedSoundLineIsNotAdjacent()
     {
         var (map, s) = Chain(3, new[] { true, false });

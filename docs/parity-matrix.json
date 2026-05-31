@@ -189,7 +189,7 @@
       "udbPlugin": "SoundPropagationMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "Sound propagation reachability helpers, UDB-style domain grouping, adjacent-domain expansion across one sound-blocking boundary, block-line tracking, non-ambush hunting thing filtering, editor command wiring, UDMF blocksound reachability, highlighted-domain sector overlay rendering, leak path search model, default overlay colors, and rotating domain color palette exist. Full mode UI, leak path rendering, color configuration UI, and plugin workflow remain incomplete."
+      "notes": "Sound propagation reachability helpers, UDB-style domain grouping, adjacent-domain expansion across one sound-blocking boundary, block-line tracking, non-ambush hunting thing filtering, editor command wiring, UDMF blocksound reachability, format-aware linedef sound-blocking toggles, highlighted-domain sector overlay rendering, leak path search model, default overlay colors, and rotating domain color palette exist. Full mode UI, leak path rendering, color configuration UI, and plugin workflow remain incomplete."
     },
     {
       "udbPlugin": "StairSectorBuilder",
