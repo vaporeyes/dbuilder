@@ -24,7 +24,8 @@ public static class SourcePort
         string file,
         string map,
         IEnumerable<string>? additionalFiles = null,
-        bool testMonsters = true)
+        bool testMonsters = true,
+        int skill = 3)
     {
         var (l, l1, l2) = WarpTokens(map);
         string additional = BuildAdditionalFiles(additionalFiles);
@@ -57,7 +58,7 @@ public static class SourcePort
                 .Replace("%L1", l1)
                 .Replace("%L2", l2)
                 .Replace("%L", l)
-                .Replace("%S", "3")
+                .Replace("%S", skill.ToString(System.Globalization.CultureInfo.InvariantCulture))
                 .Replace("%NM", noMonsters);
             if (token.Length == 0) tokens.RemoveAt(i);
             else tokens[i] = token;

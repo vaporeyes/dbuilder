@@ -68,6 +68,15 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbSkillTokenUsesRequestedTestSkill()
+    {
+        var args = SourcePort.BuildArgs("-skill %S -file \"%F\"",
+            "doom2.wad", "edit.wad", "MAP07", skill: 5);
+
+        Assert.Equal(new[] { "-skill", "5", "-file", "edit.wad" }, args);
+    }
+
+    [Fact]
     public void UdbAdditionalFilesExpandAsSeparateFileArguments()
     {
         var args = SourcePort.BuildArgs("-file \"%AP\" \"%F\"",
