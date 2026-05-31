@@ -188,4 +188,42 @@ public class ScriptSyntaxHighlightingTests
 
         Assert.Null(position);
     }
+
+    [Fact]
+    public void BuildsFunctionCallTipHighlightLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            keywords { Thing_Spawn = "Thing_Spawn(tid, type, angle)"; }
+            """);
+        var position = new ScriptFunctionCallPosition("Thing_Spawn", 1, 4);
+
+        var tip = ScriptSyntaxHighlighting.BuildFunctionCallTip(config, position);
+
+        Assert.NotNull(tip);
+        Assert.Equal("Thing_Spawn", tip.FunctionName);
+        Assert.Equal("Thing_Spawn(tid, type, angle)", tip.Definition);
+        Assert.Equal(4, tip.FunctionStartOffset);
+        Assert.Equal(" type", tip.Definition[tip.HighlightStart..tip.HighlightEnd]);
+    }
+
+    [Fact]
+    public void LeavesFunctionCallTipHighlightEmptyWhenArgumentIsMissingLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            keywords { Thing_Spawn = "Thing_Spawn(tid)"; }
+            """);
+        var position = new ScriptFunctionCallPosition("Thing_Spawn", 3, 0);
+
+        var tip = ScriptSyntaxHighlighting.BuildFunctionCallTip(config, position);
+
+        Assert.NotNull(tip);
+        Assert.Equal(0, tip.HighlightStart);
+        Assert.Equal(0, tip.HighlightEnd);
+    }
 }

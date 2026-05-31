@@ -22,6 +22,13 @@ public sealed record ScriptAutoCompleteItem(string Word, int ImageIndex)
 
 public sealed record ScriptFunctionCallPosition(string FunctionName, int ArgumentIndex, int FunctionStartOffset);
 
+public sealed record ScriptFunctionCallTip(
+    string FunctionName,
+    string Definition,
+    int FunctionStartOffset,
+    int HighlightStart,
+    int HighlightEnd);
+
 public static class ScriptSyntaxHighlighting
 {
     public const int ConstantImageIndex = 0;
@@ -153,6 +160,40 @@ public static class ScriptSyntaxHighlighting
         }
 
         return null;
+    }
+
+    public static ScriptFunctionCallTip? BuildFunctionCallTip(
+        ScriptConfigurationInfo scriptConfiguration,
+        ScriptFunctionCallPosition position)
+    {
+        string? definition = scriptConfiguration.GetFunctionDefinition(position.FunctionName);
+        if (definition is null) return null;
+
+        int highlightStart = 0;
+        int highlightEnd = 0;
+        int argsOpenPosition = definition.IndexOf(scriptConfiguration.FunctionOpen, StringComparison.Ordinal);
+        int argsClosePosition = definition.LastIndexOf(scriptConfiguration.FunctionClose, StringComparison.Ordinal);
+        if (argsOpenPosition > -1
+            && argsClosePosition > -1
+            && scriptConfiguration.ArgumentDelimiter.Length > 0)
+        {
+            string argsText = definition.Substring(argsOpenPosition + 1, argsClosePosition - argsOpenPosition - 1);
+            string[] args = argsText.Split(scriptConfiguration.ArgumentDelimiter[0]);
+            if (position.ArgumentIndex >= 0 && position.ArgumentIndex < args.Length)
+            {
+                int argOffset = 0;
+                for (int i = 0; i < position.ArgumentIndex; i++) argOffset += args[i].Length + 1;
+                highlightStart = argsOpenPosition + argOffset + 1;
+                highlightEnd = highlightStart + args[position.ArgumentIndex].Length;
+            }
+        }
+
+        return new ScriptFunctionCallTip(
+            position.FunctionName,
+            definition,
+            position.FunctionStartOffset,
+            highlightStart,
+            highlightEnd);
     }
 
     private static void AddSet(
