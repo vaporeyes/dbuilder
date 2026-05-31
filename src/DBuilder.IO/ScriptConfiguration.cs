@@ -16,7 +16,7 @@ public sealed class ScriptConfigurationCatalog
 
     public IReadOnlyDictionary<string, ScriptConfigurationInfo> Configurations => configurations;
 
-    public static ScriptConfigurationCatalog FromDirectory(string path)
+    public static ScriptConfigurationCatalog FromDirectory(string path, string snippetsPath = "")
     {
         var catalog = new ScriptConfigurationCatalog();
         if (!Directory.Exists(path)) return catalog;
@@ -24,7 +24,8 @@ public sealed class ScriptConfigurationCatalog
         foreach (string file in Directory.EnumerateFiles(path, "*.cfg", SearchOption.TopDirectoryOnly)
                      .OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
         {
-            catalog.configurations[Path.GetFileName(file).ToLowerInvariant()] = ScriptConfigurationInfo.FromFile(file);
+            catalog.configurations[Path.GetFileName(file).ToLowerInvariant()] =
+                ScriptConfigurationInfo.FromFile(file, snippetsPath);
         }
 
         return catalog;

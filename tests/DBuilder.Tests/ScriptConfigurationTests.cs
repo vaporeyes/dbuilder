@@ -138,6 +138,33 @@ properties
     }
 
     [Fact]
+    public void CatalogPassesSnippetsPathToScriptConfigurations()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_scripts_" + Guid.NewGuid().ToString("N"));
+        string snippetsRoot = Path.Combine(dir, "Snippets");
+        string acsSnippets = Path.Combine(snippetsRoot, "ACS");
+        Directory.CreateDirectory(acsSnippets);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "ZDoom_ACS.cfg"), """
+                description = "ZDoom ACS";
+                scripttype = "ACS";
+                snippetsdir = "ACS";
+                """);
+            File.WriteAllLines(Path.Combine(acsSnippets, "Spawn Thing.txt"), new[] { "Thing_Spawn(0, 1, 0);" });
+
+            var catalog = ScriptConfigurationCatalog.FromDirectory(dir, snippetsRoot);
+            var cfg = catalog.Configurations["zdoom_acs.cfg"];
+
+            Assert.Equal(new[] { "Thing_Spawn(0, 1, 0);" }, cfg.GetSnippet("Spawn_Thing"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void CatalogSelectsAcsScriptConfigurationFromMapOverrideBeforeDefault()
     {
         var catalog = new ScriptConfigurationCatalog();
