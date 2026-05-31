@@ -2642,6 +2642,63 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    public string FitSelectedTextures()
+    {
+        if (_map == null) return "No map loaded.";
+        if (_resources == null) return "No resources loaded for texture dimensions.";
+        if (_map.SelectedLinedefsCount == 0) return "Select one or more linedefs to fit textures.";
+
+        int changed = 0;
+        int skipped = 0;
+        EditBegun?.Invoke("Fit selected textures");
+
+        foreach (var line in _map.Linedefs)
+        {
+            if (!line.Selected) continue;
+            changed += FitSideTextures(line.Front, ref skipped);
+            changed += FitSideTextures(line.Back, ref skipped);
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = changed == 0
+            ? $"no selected wall textures fitted ({skipped} missing texture image{(skipped == 1 ? "" : "s")})"
+            : $"fit {changed} wall texture{(changed == 1 ? "" : "s")} ({skipped} missing image{(skipped == 1 ? "" : "s")})";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    private int FitSideTextures(Sidedef? side, ref int skipped)
+    {
+        if (side == null) return 0;
+
+        int changed = 0;
+        changed += FitSideTexturePart(side, SidedefPart.Middle, ref skipped);
+        changed += FitSideTexturePart(side, SidedefPart.Upper, ref skipped);
+        changed += FitSideTexturePart(side, SidedefPart.Lower, ref skipped);
+        return changed;
+    }
+
+    private int FitSideTexturePart(Sidedef side, SidedefPart part, ref int skipped)
+    {
+        string textureName = side.GetTexture(part);
+        if (IsBlankTexture(textureName)) return 0;
+        if (!side.IsTextureRequired(part) && part != SidedefPart.Middle) return 0;
+
+        var image = _resources?.GetWallTexture(textureName);
+        if (image == null)
+        {
+            skipped++;
+            return 0;
+        }
+
+        bool changed = SidedefTextureFitting.Fit(
+            side,
+            part,
+            new TextureFitImage(image.Width, image.Height, image.ScaleX, image.ScaleY));
+        return changed ? 1 : 0;
+    }
+
     // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.
     private void FlipSelected(bool sidedefs)
     {

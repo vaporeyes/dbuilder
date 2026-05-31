@@ -1451,10 +1451,19 @@ public partial class MainWindow : Window
     private void OnScaleDown(object? sender, RoutedEventArgs e) => ScaleSelection(0.5, "Scale down");
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
+    private void OnFitSelectedTextures(object? sender, RoutedEventArgs e) => FitSelectedTextures();
 
     private void AlignTextures(bool vertical)
     {
         string status = MapView.AutoAlignSelectedTextures(vertical);
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(status);
+    }
+
+    private void FitSelectedTextures()
+    {
+        string status = MapView.FitSelectedTextures();
         UpdateInfo();
         MapView.Focus();
         SetStatus(status);
@@ -3011,7 +3020,7 @@ public partial class MainWindow : Window
             TransformSelectionMenuItem,
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
-        SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem);
+        SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);

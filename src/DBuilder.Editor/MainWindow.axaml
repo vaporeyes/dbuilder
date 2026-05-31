@@ -87,6 +87,7 @@
                 <MenuItem Header="_Align textures" x:Name="AlignTexturesMenuItem">
                     <MenuItem Header="Align _Horizontal" x:Name="AlignHorizontalMenuItem" Click="OnAlignTexturesX" />
                     <MenuItem Header="Align _Vertical" x:Name="AlignVerticalMenuItem" Click="OnAlignTexturesY" />
+                    <MenuItem Header="_Fit Selected" x:Name="FitSelectedTexturesMenuItem" Click="OnFitSelectedTextures" />
                 </MenuItem>
                 <MenuItem Header="Auto _Clear Sidedef Textures" x:Name="AutoClearSidedefTexturesMenuItem" ToggleType="CheckBox" Click="OnToggleAutoClearSidedefTextures" />
                 <Separator />

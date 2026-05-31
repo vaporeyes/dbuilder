@@ -956,6 +956,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
+  - [x] Add editor command to fit selected wall texture fields from resource dimensions.
 - [ ] Port bridge mode.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
