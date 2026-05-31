@@ -5,8 +5,53 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace DBuilder.IO;
+
+public sealed class ScriptConfigurationCatalog
+{
+    private readonly Dictionary<string, ScriptConfigurationInfo> configurations = new(StringComparer.Ordinal);
+
+    public IReadOnlyDictionary<string, ScriptConfigurationInfo> Configurations => configurations;
+
+    public static ScriptConfigurationCatalog FromDirectory(string path)
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        if (!Directory.Exists(path)) return catalog;
+
+        foreach (string file in Directory.EnumerateFiles(path, "*.cfg", SearchOption.TopDirectoryOnly)
+                     .OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
+        {
+            catalog.configurations[Path.GetFileName(file).ToLowerInvariant()] = ScriptConfigurationInfo.FromFile(file);
+        }
+
+        return catalog;
+    }
+
+    public void Add(string fileName, ScriptConfigurationInfo configuration)
+        => configurations[fileName.ToLowerInvariant()] = configuration;
+
+    public ScriptConfigurationInfo? GetScriptConfiguration(
+        ScriptType type,
+        string mapScriptCompiler = "",
+        string defaultScriptCompiler = "")
+    {
+        if (type == ScriptType.Acs)
+        {
+            string compiler = !string.IsNullOrEmpty(mapScriptCompiler) ? mapScriptCompiler : defaultScriptCompiler;
+            return configurations.TryGetValue(compiler, out var configuration) ? configuration : null;
+        }
+
+        foreach (var configuration in configurations.Values)
+        {
+            if (configuration.ScriptType == type) return configuration;
+        }
+
+        return null;
+    }
+}
 
 public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInfo>
 {

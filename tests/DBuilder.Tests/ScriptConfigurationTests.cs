@@ -80,4 +80,87 @@ properties
         var cfg = ScriptConfigurationInfo.FromText(@"description = ""Mystery""; scripttype = ""doesnotexist"";");
         Assert.Equal(ScriptType.Unknown, cfg.ScriptType);
     }
+
+    [Fact]
+    public void CatalogLoadsTopLevelScriptConfigurationsByLowerFileName()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_scripts_" + Guid.NewGuid().ToString("N"));
+        string nested = Path.Combine(dir, "Nested");
+        Directory.CreateDirectory(nested);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "ZDoom_ACS.cfg"), """
+                description = "ZDoom ACS";
+                scripttype = "ACS";
+                compiler = "acc";
+                """);
+            File.WriteAllText(Path.Combine(nested, "Nested.cfg"), """
+                description = "Nested";
+                scripttype = "DECORATE";
+                """);
+
+            var catalog = ScriptConfigurationCatalog.FromDirectory(dir);
+
+            Assert.True(catalog.Configurations.ContainsKey("zdoom_acs.cfg"));
+            Assert.False(catalog.Configurations.ContainsKey("nested.cfg"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void CatalogSelectsAcsScriptConfigurationFromMapOverrideBeforeDefault()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("default_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Default ACS";
+            scripttype = "ACS";
+            """));
+        catalog.Add("map_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Map ACS";
+            scripttype = "ACS";
+            """));
+
+        var selected = catalog.GetScriptConfiguration(
+            ScriptType.Acs,
+            mapScriptCompiler: "map_acs.cfg",
+            defaultScriptCompiler: "default_acs.cfg");
+
+        Assert.NotNull(selected);
+        Assert.Equal("Map ACS", selected.Description);
+    }
+
+    [Fact]
+    public void CatalogSelectsDefaultAcsScriptConfigurationWhenMapOverrideIsEmpty()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("default_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Default ACS";
+            scripttype = "ACS";
+            """));
+
+        var selected = catalog.GetScriptConfiguration(
+            ScriptType.Acs,
+            defaultScriptCompiler: "default_acs.cfg");
+
+        Assert.NotNull(selected);
+        Assert.Equal("Default ACS", selected.Description);
+    }
+
+    [Fact]
+    public void CatalogSelectsFirstMatchingNonAcsScriptType()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("decorate.cfg", ScriptConfigurationInfo.FromText("""
+            description = "DECORATE";
+            scripttype = "DECORATE";
+            """));
+
+        var selected = catalog.GetScriptConfiguration(ScriptType.Decorate);
+
+        Assert.NotNull(selected);
+        Assert.Equal("DECORATE", selected.Description);
+    }
 }
