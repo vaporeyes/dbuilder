@@ -662,15 +662,38 @@ public static class StairBuilderPrefabSettings
 
     public static IReadOnlyList<StairBuilderPrefab> FromSettingsDictionary(IReadOnlyDictionary<string, object> settings)
     {
-        var prefabs = new List<StairBuilderPrefab>();
+        var entries = new List<(int Index, IReadOnlyDictionary<string, object> Settings)>();
         foreach ((string key, object value) in settings)
         {
-            if (!key.StartsWith("prefab", StringComparison.Ordinal)) continue;
             if (value is IReadOnlyDictionary<string, object> prefabSettings)
-                prefabs.Add(StairBuilderPrefab.FromSettingsDictionary(prefabSettings));
+            {
+                int index = ReadPrefabIndex(key);
+                if (index > 0) entries.Add((index, prefabSettings));
+            }
         }
 
+        entries.Sort((left, right) => left.Index.CompareTo(right.Index));
+
+        var prefabs = new List<StairBuilderPrefab>();
+        foreach ((_, IReadOnlyDictionary<string, object> prefabSettings) in entries)
+            prefabs.Add(StairBuilderPrefab.FromSettingsDictionary(prefabSettings));
+
         return prefabs;
+    }
+
+    private static int ReadPrefabIndex(string key)
+    {
+        const string prefix = "prefab";
+        if (!key.StartsWith(prefix, StringComparison.Ordinal)) return -1;
+        if (key.Length == prefix.Length) return -1;
+
+        for (int i = prefix.Length; i < key.Length; i++)
+        {
+            char c = key[i];
+            if (c < '0' || c > '9') return -1;
+        }
+
+        return int.TryParse(key.AsSpan(prefix.Length), out int index) ? index : -1;
     }
 }
 
