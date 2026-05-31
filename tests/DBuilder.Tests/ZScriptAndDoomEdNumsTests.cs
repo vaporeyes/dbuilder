@@ -464,6 +464,34 @@ class RealActor : Actor
     }
 
     [Fact]
+    public void ValidatesTopLevelZScriptStructDeclarations()
+    {
+        const string valid = @"
+struct HelperStruct;
+struct DetailedStruct
+{
+    class NotAnActor : Actor { Default { Radius 64; } }
+}
+class StructAfterValid : Actor { Default { Radius 16; } }";
+        const string missingName = @"
+struct { int Value; }
+class AfterMissingName : Actor { Default { Radius 32; } }";
+        const string missingBody = @"
+struct BrokenStruct
+class AfterMissingBody : Actor { Default { Radius 64; } }";
+        const string invalidModifier = @"
+struct BrokenStruct abstract { int Value; }
+class AfterInvalidModifier : Actor { Default { Radius 128; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(valid));
+
+        Assert.Equal("StructAfterValid", actor.ClassName);
+        Assert.Empty(ZScriptParser.Parse(missingName));
+        Assert.Empty(ZScriptParser.Parse(missingBody));
+        Assert.Empty(ZScriptParser.Parse(invalidModifier));
+    }
+
+    [Fact]
     public void InheritedZScriptUserVariablesOverrideShadowingChildFields()
     {
         const string text = @"

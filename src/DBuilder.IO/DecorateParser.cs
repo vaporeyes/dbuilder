@@ -225,9 +225,9 @@ public static class DecorateParser
             }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
-                && IsSkippedZScriptTopLevelDeclaration(toks[i].Text))
+                && toks[i].Text.Equals("struct", StringComparison.OrdinalIgnoreCase))
             {
-                SkipDeclaration(toks, ref i);
+                if (!TrySkipZScriptStructDeclaration(toks, ref i)) break;
             }
             else if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase)
                 && toks[i].Kind == Kind.Word
@@ -394,9 +394,6 @@ public static class DecorateParser
         }
     }
 
-    private static bool IsSkippedZScriptTopLevelDeclaration(string word)
-        => word.Equals("struct", StringComparison.OrdinalIgnoreCase);
-
     private static bool TrySkipZScriptEnumDeclaration(List<Tok> t, ref int i)
     {
         i++;
@@ -414,6 +411,92 @@ public static class DecorateParser
         }
 
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
+        SkipBlock(t, ref i);
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";") i++;
+        return true;
+    }
+
+    private static bool TrySkipZScriptStructDeclaration(List<Tok> t, ref int i)
+    {
+        i++;
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+        i++;
+
+        bool hasParent = false;
+        bool hasReplacement = false;
+        bool hasNative = false;
+        bool hasFinal = false;
+        bool hasScope = false;
+        bool hasVersion = false;
+        while (i < t.Count && !(t[i].Kind == Kind.Sym && (t[i].Text == "{" || t[i].Text == ";")))
+        {
+            var tk = t[i];
+            if (tk.Kind == Kind.Sym && tk.Text == "\n")
+            {
+                i++;
+            }
+            else if (tk.Kind == Kind.Sym && tk.Text == ":")
+            {
+                if (hasParent || hasReplacement || hasNative) return false;
+                i++;
+                SkipNewlines(t, ref i);
+                if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+                i++;
+                hasParent = true;
+            }
+            else if (tk.Kind == Kind.Word && tk.Text.Equals("replaces", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hasReplacement || hasNative) return false;
+                i++;
+                SkipNewlines(t, ref i);
+                if (i >= t.Count || t[i].Kind != Kind.Word) return false;
+                i++;
+                hasReplacement = true;
+            }
+            else if (tk.Kind == Kind.Word && tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hasNative) return false;
+                hasNative = true;
+                i++;
+            }
+            else if (tk.Kind == Kind.Word && tk.Text.Equals("final", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hasFinal) return false;
+                hasFinal = true;
+                i++;
+            }
+            else if (tk.Kind == Kind.Word && IsZScriptHeaderScopeModifier(tk.Text))
+            {
+                if (hasScope) return false;
+                hasScope = true;
+                i++;
+            }
+            else if (tk.Kind == Kind.Word && IsZScriptHeaderModifier(tk.Text, "version"))
+            {
+                if (hasVersion) return false;
+                hasVersion = true;
+                if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
+                    || !ValidateZScriptHeaderModifierArguments("version", arguments))
+                    return false;
+            }
+            else if (tk.Kind == Kind.Word && TryGetZScriptHeaderParameterizedModifier(tk.Text, out string modifier))
+            {
+                if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
+                    || !ValidateZScriptHeaderModifierArguments(modifier, arguments))
+                    return false;
+            }
+            else return false;
+        }
+
+        if (i >= t.Count || t[i].Kind != Kind.Sym) return false;
+        if (t[i].Text == ";")
+        {
+            i++;
+            return true;
+        }
+
+        if (t[i].Text != "{") return false;
         SkipBlock(t, ref i);
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";") i++;
         return true;
