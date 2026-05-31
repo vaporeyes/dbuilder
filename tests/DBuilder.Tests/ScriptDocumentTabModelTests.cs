@@ -62,6 +62,7 @@ public class ScriptDocumentTabModelTests
 
         Assert.Equal(ScriptDocumentTabType.Resource, tab.TabType);
         Assert.Equal(resource.FilePathName, tab.Filename);
+        Assert.Equal(resource.Filename, tab.ErrorFilename);
         Assert.Equal("7:zombie.txt", tab.Title);
         Assert.Equal(resource.FilePathName, tab.ToolTip);
         Assert.True(tab.ExplicitSave);
@@ -119,5 +120,44 @@ public class ScriptDocumentTabModelTests
         Assert.Equal(resource.ResourcePath, settings.ResourceLocation);
         Assert.Equal(ScriptDocumentTabType.Resource, settings.TabType);
         Assert.Equal(ScriptType.ZScript, settings.ScriptType);
+    }
+
+    [Fact]
+    public void MatchesFileCompilerErrorsLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            """);
+        var tab = ScriptDocumentTabModel.OpenFile("/mods/test.acs", config);
+
+        Assert.True(tab.AppliesToError(new ScriptCompilerError("boom", "/MODS/TEST.ACS", 3)));
+        Assert.False(tab.AppliesToError(new ScriptCompilerError("boom", "?SCRIPTS", 3)));
+    }
+
+    [Fact]
+    public void MatchesLumpCompilerErrorsLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            """);
+        var tab = ScriptDocumentTabModel.Lump("SCRIPTS", "SCRIPTS", config);
+
+        Assert.True(tab.AppliesToError(new ScriptCompilerError("boom", "?scripts", 3)));
+        Assert.False(tab.AppliesToError(new ScriptCompilerError("boom", "SCRIPTS", 3)));
+    }
+
+    [Fact]
+    public void MatchesResourceCompilerErrorsLikeUdb()
+    {
+        var resource = ScriptResource.FromText(
+            "archives/base.pk3",
+            "base.pk3",
+            "zscript/actors.txt",
+            ScriptType.ZScript,
+            "");
+        var tab = ScriptDocumentTabModel.Resource(resource);
+
+        Assert.True(tab.AppliesToError(new ScriptCompilerError("boom", "ZSCRIPT/ACTORS.TXT", 3)));
+        Assert.False(tab.AppliesToError(new ScriptCompilerError("boom", resource.FilePathName, 3)));
     }
 }

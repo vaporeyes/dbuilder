@@ -26,7 +26,8 @@ public sealed class ScriptDocumentTabModel
         bool isClosable,
         bool isReconfigurable,
         bool isReadOnly,
-        string resourceLocation = "")
+        string resourceLocation = "",
+        string errorFilename = "")
     {
         TabType = tabType;
         ScriptType = scriptType;
@@ -39,6 +40,7 @@ public sealed class ScriptDocumentTabModel
         IsReconfigurable = isReconfigurable;
         IsReadOnly = isReadOnly;
         ResourceLocation = resourceLocation;
+        ErrorFilename = errorFilename.Length > 0 ? errorFilename : filename;
     }
 
     public ScriptDocumentTabType TabType { get; }
@@ -62,6 +64,8 @@ public sealed class ScriptDocumentTabModel
     public bool IsReadOnly { get; }
 
     public string ResourceLocation { get; }
+
+    public string ErrorFilename { get; }
 
     public static ScriptDocumentTabModel NewFile(ScriptConfigurationInfo configuration)
     {
@@ -119,7 +123,8 @@ public sealed class ScriptDocumentTabModel
             isClosable: true,
             isReconfigurable: false,
             resource.IsReadOnly,
-            resource.ResourcePath);
+            resource.ResourcePath,
+            resource.Filename);
 
     public ScriptDocumentSettings GetViewSettings(string text, ScriptDocumentTabViewState viewState)
     {
@@ -142,6 +147,17 @@ public sealed class ScriptDocumentTabModel
         }
 
         return settings;
+    }
+
+    public bool AppliesToError(ScriptCompilerError error)
+    {
+        return TabType switch
+        {
+            ScriptDocumentTabType.File => string.Equals(error.FileName, Filename, StringComparison.OrdinalIgnoreCase),
+            ScriptDocumentTabType.Lump => string.Equals(error.FileName, "?" + Filename, StringComparison.OrdinalIgnoreCase),
+            ScriptDocumentTabType.Resource => string.Equals(error.FileName, ErrorFilename, StringComparison.OrdinalIgnoreCase),
+            _ => false,
+        };
     }
 
     private string SettingsFilename()

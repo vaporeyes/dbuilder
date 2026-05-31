@@ -23,7 +23,7 @@
       "udbArea": "Source/Core/Controls",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, basic property dialogs, and UDB-style script document tab identity with persisted view settings. Full UDB control set parity remains incomplete."
+      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, basic property dialogs, UDB-style script document tab identity with persisted view settings, and script compiler error routing by tab type. Full UDB control set parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Data",
