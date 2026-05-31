@@ -151,6 +151,7 @@
                 <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
+                <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
             <MenuItem Header="_Help">

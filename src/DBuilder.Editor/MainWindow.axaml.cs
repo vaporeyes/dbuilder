@@ -2495,6 +2495,123 @@ public partial class MainWindow : Window
         SetStatus($"Sound reaches {reach.Count} sector(s): {direct} direct, {viaBlock} via a sound-blocking line.");
     }
 
+    private async void OnExportIdStudio(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+
+        var dlg = new IdStudioExportDialog(DefaultIdStudioExportOptions());
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        IdStudioExportOptions options = dlg.ResultOptions;
+        IReadOnlyList<string> errors = ValidateIdStudioExportOptions(options);
+        if (errors.Count > 0)
+        {
+            SetStatus("idStudio export blocked: " + string.Join(" ", errors));
+            return;
+        }
+
+        if (options.ExportTextures && _resources is null)
+        {
+            SetStatus("idStudio export blocked: load resources before exporting textures.");
+            return;
+        }
+
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(options);
+        IdStudioExportPlan plan = IdStudioExportPlanner.CreatePlan(
+            _map,
+            settings,
+            AllIdStudioTextures(flats: false),
+            AllIdStudioTextures(flats: true),
+            name => IdStudioTexture(name, flats: false),
+            name => IdStudioTexture(name, flats: true),
+            name => IdStudioDimensions(name, flats: false),
+            name => IdStudioDimensions(name, flats: true),
+            hasSkyFloor: sector => IsConfiguredSkyFlat(sector.FloorTexture),
+            hasSkyCeiling: sector => IsConfiguredSkyFlat(sector.CeilTexture));
+
+        try
+        {
+            IdStudioExportPlanner.WriteFiles(plan);
+            int textureFiles = plan.TexturePlan.ArtFiles.Count + plan.TexturePlan.MaterialFiles.Count;
+            string missing = plan.TexturePlan.MissingImages.Count == 0
+                ? ""
+                : $" {plan.TexturePlan.MissingImages.Count} missing image(s).";
+            SetStatus($"Exported idStudio map {settings.MapName}: {plan.GeometryFiles.Count} geometry file(s), {textureFiles} texture file(s).{missing}");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "idStudio export failed");
+        }
+    }
+
+    private IdStudioExportOptions DefaultIdStudioExportOptions()
+    {
+        string modPath = _wadPath is null
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : System.IO.Path.GetDirectoryName(_wadPath) ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string mapName = (_mapMarker ?? "map01").ToLowerInvariant();
+        return new IdStudioExportOptions
+        {
+            ModPath = modPath,
+            MapName = mapName,
+            Downscale = 20,
+            ExportTextures = _resources is not null,
+        };
+    }
+
+    private static IReadOnlyList<string> ValidateIdStudioExportOptions(IdStudioExportOptions options)
+    {
+        var errors = new List<string>();
+        if (string.IsNullOrWhiteSpace(options.ModPath)) errors.Add("Mod path is required.");
+        else if (!System.IO.Directory.Exists(options.ModPath)) errors.Add("Mod path does not exist.");
+        if (!IdStudioExportValidation.IsValidMapName(options.MapName))
+            errors.Add("Map name must start with a lower-case letter and contain only lower-case letters, digits or underscores.");
+        if (options.Downscale <= 0) errors.Add("Downscale must be greater than zero.");
+        return errors;
+    }
+
+    private IEnumerable<IdStudioTextureImage> AllIdStudioTextures(bool flats)
+    {
+        if (_resources is null) yield break;
+        IReadOnlyList<string> names = flats ? _resources.GetFlatNames() : _resources.GetTextureNames();
+        foreach (string name in names)
+            if (IdStudioTexture(name, flats) is { } image)
+                yield return image;
+    }
+
+    private IdStudioTextureImage? IdStudioTexture(string name, bool flats)
+    {
+        if (_resources is null) return null;
+        ImageData? image = flats ? _resources.GetFlat(name) : _resources.GetWallTexture(name);
+        if (image is null) return null;
+
+        var pixels = new IdStudioRgba[image.Width * image.Height];
+        bool translucent = false;
+        bool masked = false;
+        for (int i = 0, p = 0; i < image.Rgba.Length; i += 4, p++)
+        {
+            byte alpha = image.Rgba[i + 3];
+            if (alpha == 0) masked = true;
+            else if (alpha < 255) translucent = true;
+            pixels[p] = new IdStudioRgba(image.Rgba[i], image.Rgba[i + 1], image.Rgba[i + 2], alpha);
+        }
+
+        return new IdStudioTextureImage(name, IdStudioTextureExporter.EncodeTga(image.Width, image.Height, pixels), translucent, masked);
+    }
+
+    private IdStudioTextureDimensions IdStudioDimensions(string name, bool flats)
+    {
+        ImageData? image = flats ? _resources?.GetFlat(name) : _resources?.GetWallTexture(name);
+        return image is null
+            ? new IdStudioTextureDimensions(64, 64)
+            : new IdStudioTextureDimensions(image.Width, image.Height);
+    }
+
+    private bool IsConfiguredSkyFlat(string? flat)
+        => _config is not null
+            && !string.IsNullOrWhiteSpace(flat)
+            && string.Equals(flat, _config.SkyFlatName, StringComparison.OrdinalIgnoreCase);
+
     // Builds the resource/config-aware check context from the loaded resources and game config.
     private MapCheckContext BuildCheckContext()
     {
@@ -2844,7 +2961,7 @@ public partial class MainWindow : Window
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
-            RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
+            ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, CheckMapButton,
