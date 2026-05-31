@@ -649,6 +649,59 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorDisplayFormatsRowsLikeUdb()
+    {
+        var items = ScriptCompilerErrorDisplay.BuildItems(new[]
+        {
+            new ScriptCompilerError("Unknown function", "/maps/project/scripts.acs", 11),
+            new ScriptCompilerError("Bad map lump", "?SCRIPTS", -1),
+            new ScriptCompilerError("Fatal error")
+        });
+
+        Assert.Collection(
+            items,
+            item =>
+            {
+                Assert.Equal(1, item.Index);
+                Assert.Equal("Unknown function", item.Description);
+                Assert.Equal("scripts.acs (line 12)", item.Source);
+            },
+            item =>
+            {
+                Assert.Equal(2, item.Index);
+                Assert.Equal("Bad map lump", item.Description);
+                Assert.Equal("SCRIPTS", item.Source);
+            },
+            item =>
+            {
+                Assert.Equal(3, item.Index);
+                Assert.Equal("Fatal error", item.Description);
+                Assert.Equal("", item.Source);
+            });
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorDisplayCombinesUniqueErrorsLikeUdb()
+    {
+        var existing = new[]
+        {
+            new ScriptCompilerError("Unknown function", "/maps/project/scripts.acs", 11)
+        };
+        var incoming = new[]
+        {
+            new ScriptCompilerError("Unknown function", "/maps/project/scripts.acs", 11),
+            new ScriptCompilerError("Expected semicolon", "/maps/project/scripts.acs", 12)
+        };
+
+        var combined = ScriptCompilerErrorDisplay.Combine(existing, incoming);
+
+        Assert.Collection(
+            combined,
+            error => Assert.Equal("Unknown function", error.Description),
+            error => Assert.Equal("Expected semicolon", error.Description));
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseAccErrorLines()
     {
         var errors = ScriptCompilerErrors.ParseAcc(

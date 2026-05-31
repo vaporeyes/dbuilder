@@ -217,6 +217,50 @@ public static class ScriptCompileFlow
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);
 
+public sealed record ScriptCompilerErrorDisplayItem(int Index, string Description, string Source);
+
+public static class ScriptCompilerErrorDisplay
+{
+    public static IReadOnlyList<ScriptCompilerError> Combine(
+        IEnumerable<ScriptCompilerError> existing,
+        IEnumerable<ScriptCompilerError>? incoming)
+    {
+        var result = new List<ScriptCompilerError>(existing);
+        if (incoming is null) return result;
+        foreach (ScriptCompilerError error in incoming)
+        {
+            if (!result.Contains(error)) result.Add(error);
+        }
+
+        return result;
+    }
+
+    public static IReadOnlyList<ScriptCompilerErrorDisplayItem> BuildItems(IEnumerable<ScriptCompilerError> errors)
+    {
+        var items = new List<ScriptCompilerErrorDisplayItem>();
+        int index = 1;
+        foreach (ScriptCompilerError error in errors)
+        {
+            items.Add(new ScriptCompilerErrorDisplayItem(
+                index,
+                error.Description,
+                SourceText(error)));
+            index++;
+        }
+
+        return items;
+    }
+
+    private static string SourceText(ScriptCompilerError error)
+    {
+        string fileName = error.FileName.StartsWith("?", StringComparison.Ordinal)
+            ? error.FileName.Replace("?", "")
+            : Path.GetFileName(error.FileName);
+        string lineNumber = error.LineNumber != -1 ? " (line " + (error.LineNumber + 1) + ")" : "";
+        return fileName + lineNumber;
+    }
+}
+
 public static class AcsCompilePreflight
 {
     public static AcsCompilePreflightResult Analyze(
