@@ -30,8 +30,11 @@ public sealed class Settings
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();
+    public DrawLineModeSettings DrawLineSettings { get; set; } = new();
     public DrawRectangleModeSettings DrawRectangleSettings { get; set; } = new();
     public DrawEllipseModeSettings DrawEllipseSettings { get; set; } = new();
+    public DrawCurveModeSettings DrawCurveSettings { get; set; } = new();
+    public DrawGridModeSettings DrawGridSettings { get; set; } = new();
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -57,6 +60,15 @@ public sealed class Settings
 
     public DrawEllipseModeSettings NormalizedDrawEllipseSettings =>
         (DrawEllipseSettings ?? new DrawEllipseModeSettings()).Normalized();
+
+    public DrawLineModeSettings NormalizedDrawLineSettings =>
+        (DrawLineSettings ?? new DrawLineModeSettings()).Normalized();
+
+    public DrawCurveModeSettings NormalizedDrawCurveSettings =>
+        (DrawCurveSettings ?? new DrawCurveModeSettings()).Normalized();
+
+    public DrawGridModeSettings NormalizedDrawGridSettings =>
+        (DrawGridSettings ?? new DrawGridModeSettings()).Normalized();
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -129,8 +141,11 @@ public sealed class Settings
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
             settings.PasteOptions ??= new();
+            settings.DrawLineSettings ??= new();
             settings.DrawRectangleSettings ??= new();
             settings.DrawEllipseSettings ??= new();
+            settings.DrawCurveSettings ??= new();
+            settings.DrawGridSettings ??= new();
             return settings;
         }
         catch { return new Settings(); }

@@ -147,8 +147,11 @@ public class SettingsTests
                     ChangeTags = PasteTagMode.Renumber,
                     RemoveActions = true,
                 },
+                DrawLineSettings = new DrawLineModeSettings(ContinuousDrawing: true, AutoCloseDrawing: true),
                 DrawRectangleSettings = new DrawRectangleModeSettings(Subdivisions: 6, BevelWidth: 12),
                 DrawEllipseSettings = new DrawEllipseModeSettings(Subdivisions: 10, BevelWidth: -8, Angle: 45),
+                DrawCurveSettings = new DrawCurveModeSettings(SegmentLength: 96, ContinuousDrawing: true),
+                DrawGridSettings = new DrawGridModeSettings(HorizontalSlices: 5, VerticalSlices: 7, Triangulate: true),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -177,6 +180,8 @@ public class SettingsTests
             Assert.True(loaded.PasteOptions.RemoveActions);
             Assert.Equal(PasteTagMode.Renumber, loaded.NormalizedPasteOptions.ChangeTags);
             Assert.True(loaded.NormalizedPasteOptions.RemoveActions);
+            Assert.True(loaded.DrawLineSettings.ContinuousDrawing);
+            Assert.True(loaded.DrawLineSettings.AutoCloseDrawing);
             Assert.Equal(6, loaded.DrawRectangleSettings.Subdivisions);
             Assert.Equal(12, loaded.DrawRectangleSettings.BevelWidth);
             Assert.Equal(6, loaded.NormalizedDrawRectangleSettings.Subdivisions);
@@ -184,6 +189,12 @@ public class SettingsTests
             Assert.Equal(-8, loaded.DrawEllipseSettings.BevelWidth);
             Assert.Equal(45, loaded.DrawEllipseSettings.Angle);
             Assert.Equal(10, loaded.NormalizedDrawEllipseSettings.Subdivisions);
+            Assert.Equal(96, loaded.DrawCurveSettings.SegmentLength);
+            Assert.Equal(96, loaded.NormalizedDrawCurveSettings.SegmentLength);
+            Assert.Equal(5, loaded.DrawGridSettings.HorizontalSlices);
+            Assert.Equal(7, loaded.DrawGridSettings.VerticalSlices);
+            Assert.True(loaded.DrawGridSettings.Triangulate);
+            Assert.Equal(5, loaded.NormalizedDrawGridSettings.HorizontalSlices);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -206,8 +217,11 @@ public class SettingsTests
         Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
         Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
         Assert.False(s.NormalizedPasteOptions.RemoveActions);
+        Assert.Equal(new DrawLineModeSettings(), s.NormalizedDrawLineSettings);
         Assert.Equal(new DrawRectangleModeSettings(), s.NormalizedDrawRectangleSettings);
         Assert.Equal(new DrawEllipseModeSettings(), s.NormalizedDrawEllipseSettings);
+        Assert.Equal(new DrawCurveModeSettings(), s.NormalizedDrawCurveSettings);
+        Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
     }
 
     [Fact]

@@ -204,7 +204,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Draw-geometry tool state. While active, left-clicks place loop vertices; closing builds a sector
     // (or, in lines-only mode, just the linedefs of the drawn polyline).
-    private const int DrawCurveSegmentLength = 16;
     private bool _drawMode;
     private bool _drawLinesOnly; // Shift+D: lay plain linedefs instead of building a sector
     private bool _drawCurve;     // Curve mode smooths the placed control points into linedefs
@@ -219,9 +218,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Shape-draw tool: while active, a left-drag defines a bounding box that becomes generated geometry.
     public enum ShapeKind { None, Rectangle, Ellipse, Grid }
     private ShapeKind _shapeKind = ShapeKind.None;
+    private DrawLineModeSettings _drawLineSettings = new();
     private DrawRectangleModeSettings _drawRectangleSettings = new();
     private DrawEllipseModeSettings _drawEllipseSettings = new();
+    private DrawCurveModeSettings _drawCurveSettings = new();
+    private DrawGridModeSettings _drawGridSettings = new();
     public ShapeKind CurrentShape => _shapeKind;
+
+    public DrawLineModeSettings DrawLineSettings
+    {
+        get => _drawLineSettings;
+        set => _drawLineSettings = (value ?? new DrawLineModeSettings()).Normalized();
+    }
 
     public DrawRectangleModeSettings DrawRectangleSettings
     {
@@ -233,6 +241,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _drawEllipseSettings;
         set => _drawEllipseSettings = (value ?? new DrawEllipseModeSettings()).Normalized();
+    }
+
+    public DrawCurveModeSettings DrawCurveSettings
+    {
+        get => _drawCurveSettings;
+        set => _drawCurveSettings = (value ?? new DrawCurveModeSettings()).Normalized();
+    }
+
+    public DrawGridModeSettings DrawGridSettings
+    {
+        get => _drawGridSettings;
+        set => _drawGridSettings = (value ?? new DrawGridModeSettings()).Normalized();
     }
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
@@ -2710,11 +2730,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
 
-        var plan = DrawGridPlanner.Create(p0, p1, new DrawGridPlanOptions
+        DrawGridPlanOptions stored = _drawGridSettings.ToPlanOptions();
+        var options = new DrawGridPlanOptions
         {
+            HorizontalSlices = stored.HorizontalSlices,
+            VerticalSlices = stored.VerticalSlices,
+            Triangulate = stored.Triangulate,
+            RelativeInterpolation = stored.RelativeInterpolation,
+            GridLockMode = stored.GridLockMode,
+            HorizontalInterpolation = stored.HorizontalInterpolation,
+            VerticalInterpolation = stored.VerticalInterpolation,
             GridSize = _grid.GridSizeF,
             GridSizeF = _grid.GridSizeF,
-        });
+        };
+        var plan = DrawGridPlanner.Create(p0, p1, options);
         if (plan.Shapes.Count == 0) return;
 
         EditBegun?.Invoke("Draw grid");
@@ -3299,7 +3328,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!_drawCurve) return control;
 
         if (_drawClosed && control.Count >= 3 && !SamePoint(control[0], control[^1])) control.Add(control[0]);
-        return CurveTools.CurveThroughPoints(control, 0.5f, 0.75f, DrawCurveSegmentLength).Shape;
+        return CurveTools.CurveThroughPoints(control, 0.5f, 0.75f, _drawCurveSettings.SegmentLength).Shape;
     }
 
     private static bool SamePoint(Vec2D a, Vec2D b)

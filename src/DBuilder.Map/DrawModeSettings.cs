@@ -27,6 +27,8 @@ public sealed record DrawLineModeSettings(
         settings[ShowGuidelinesKey] = ShowGuidelines;
     }
 
+    public DrawLineModeSettings Normalized() => this;
+
     internal static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
         => settings.TryGetValue(key, out object? value) && value is bool result ? result : fallback;
 
@@ -182,6 +184,9 @@ public sealed record DrawCurveModeSettings(
 
     public static int SegmentLengthIncrement(int segmentLength)
         => Math.Max(MinSegmentLength, segmentLength / 32 * 16);
+
+    public DrawCurveModeSettings Normalized()
+        => this with { SegmentLength = Math.Clamp(SegmentLength, MinSegmentLength, MaxSegmentLength) };
 }
 
 public sealed record DrawGridModeSettings(
@@ -240,5 +245,15 @@ public sealed record DrawGridModeSettings(
             GridLockMode = GridLockMode,
             HorizontalInterpolation = HorizontalInterpolation,
             VerticalInterpolation = VerticalInterpolation
+        };
+
+    public DrawGridModeSettings Normalized()
+        => this with
+        {
+            GridLockMode = Enum.IsDefined(GridLockMode) ? GridLockMode : DrawGridLockMode.None,
+            HorizontalSlices = Math.Max(HorizontalSlices, 1),
+            VerticalSlices = Math.Max(VerticalSlices, 1),
+            HorizontalInterpolation = Enum.IsDefined(HorizontalInterpolation) ? HorizontalInterpolation : InterpolationTools.Mode.LINEAR,
+            VerticalInterpolation = Enum.IsDefined(VerticalInterpolation) ? VerticalInterpolation : InterpolationTools.Mode.LINEAR,
         };
 }

@@ -181,6 +181,13 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawCurveSettingsNormalizeDeserializedSegmentLength()
+    {
+        Assert.Equal(DrawCurveModeSettings.MaxSegmentLength, new DrawCurveModeSettings(SegmentLength: 99999).Normalized().SegmentLength);
+        Assert.Equal(DrawCurveModeSettings.MinSegmentLength, new DrawCurveModeSettings(SegmentLength: 1).Normalized().SegmentLength);
+    }
+
+    [Fact]
     public void DrawGridSettingsUseUdbKeysAndCreatePlannerOptions()
     {
         var source = new Dictionary<string, object?>
@@ -225,5 +232,24 @@ public class DrawModeSettingsTests
         Assert.Equal((int)InterpolationTools.Mode.EASE_OUT_SINE, target[DrawGridModeSettings.VerticalInterpolationKey]);
         Assert.Equal(true, target[DrawGridModeSettings.ContinuousDrawingKey]);
         Assert.Equal(true, target[DrawGridModeSettings.ShowGuidelinesKey]);
+    }
+
+    [Fact]
+    public void DrawGridSettingsNormalizeDeserializedValues()
+    {
+        var settings = new DrawGridModeSettings(
+            GridLockMode: (DrawGridLockMode)99,
+            HorizontalSlices: 0,
+            VerticalSlices: -5,
+            HorizontalInterpolation: (InterpolationTools.Mode)999,
+            VerticalInterpolation: (InterpolationTools.Mode)999);
+
+        DrawGridModeSettings normalized = settings.Normalized();
+
+        Assert.Equal(DrawGridLockMode.None, normalized.GridLockMode);
+        Assert.Equal(1, normalized.HorizontalSlices);
+        Assert.Equal(1, normalized.VerticalSlices);
+        Assert.Equal(InterpolationTools.Mode.LINEAR, normalized.HorizontalInterpolation);
+        Assert.Equal(InterpolationTools.Mode.LINEAR, normalized.VerticalInterpolation);
     }
 }
