@@ -878,7 +878,8 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
 
 internal sealed class DirectoryResourceReader : FolderResourceReader
 {
-    public DirectoryResourceReader(string root, Func<GameConfiguration?>? configProvider = null) : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)), configProvider: configProvider)
+    public DirectoryResourceReader(string root, bool rootTextures = false, bool rootFlats = false, Func<GameConfiguration?>? configProvider = null)
+        : base(Path.GetFileName(Path.TrimEndingDirectorySeparator(root)), rootTextures, rootFlats, configProvider)
     {
         var config = this.configProvider();
         foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal))

@@ -207,7 +207,7 @@ public sealed class ResourceManager : IDisposable
     private void Add(string path, bool asBase)
     {
         IResourceReader reader =
-            Directory.Exists(path) ? new DirectoryResourceReader(path, CurrentConfiguration)
+            Directory.Exists(path) ? new DirectoryResourceReader(path, configProvider: CurrentConfiguration)
             : LooksLikeZip(path) ? new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: Path.GetFileName(path), configProvider: CurrentConfiguration)
             : new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: CurrentConfiguration);
         if (asBase) readers.Insert(0, reader); else readers.Add(reader);
@@ -218,7 +218,11 @@ public sealed class ResourceManager : IDisposable
     {
         IResourceReader reader = location.Type switch
         {
-            DataLocationType.Directory => new DirectoryResourceReader(location.Location, CurrentConfiguration),
+            DataLocationType.Directory => new DirectoryResourceReader(
+                location.Location,
+                rootTextures: location.Option1,
+                rootFlats: location.Option2,
+                configProvider: CurrentConfiguration),
             DataLocationType.Pk3 => new Pk3ResourceReader(
                 File.OpenRead(location.Location),
                 ownsStream: true,

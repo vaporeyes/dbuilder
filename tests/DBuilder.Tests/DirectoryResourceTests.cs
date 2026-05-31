@@ -108,6 +108,32 @@ public class DirectoryResourceTests
     }
 
     [Fact]
+    public void DirectoryDataLocationRootOptionsExposeRootImagesLikeUdb()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            File.WriteAllBytes(Path.Combine(dir, "ROOTWALL.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 12, 34, 56, 255)));
+            File.WriteAllBytes(Path.Combine(dir, "ROOTFLAT.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 65, 43, 21, 255)));
+
+            using (var defaultOptions = new ResourceManager())
+            {
+                defaultOptions.AddResource(new DataLocation(DataLocationType.Directory, dir));
+                Assert.Null(defaultOptions.GetWallTexture("ROOTWALL"));
+                Assert.Null(defaultOptions.GetFlat("ROOTFLAT"));
+            }
+
+            using (var rootOptions = new ResourceManager())
+            {
+                rootOptions.AddResource(new DataLocation(DataLocationType.Directory, dir, option1: true, option2: true));
+                Assert.Equal(new byte[] { 12, 34, 56, 255 }, rootOptions.GetWallTexture("ROOTWALL")!.Rgba[0..4]);
+                Assert.Equal(new byte[] { 65, 43, 21, 255 }, rootOptions.GetFlat("ROOTFLAT")!.Rgba[0..4]);
+            }
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
     public void DirectoryResourceHonorsConfiguredIgnoredPaths()
     {
         string dir = BuildResourceDir();
