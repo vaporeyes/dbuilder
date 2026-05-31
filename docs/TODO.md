@@ -1006,6 +1006,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
 - [ ] Port sector drawing options.
+  - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port edit selection panel behavior.
 - [ ] Port undo/redo panel behavior.
 - [ ] Port select similar element behavior.

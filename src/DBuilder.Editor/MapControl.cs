@@ -130,6 +130,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         set { _gameConfig = value; _activeThingsFilter = null; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _geometryDirty = true; RequestNextFrameRendering(); }
     }
 
+    private MapOptions? _mapOptions;
+    public MapOptions? MapOptions
+    {
+        get => _mapOptions;
+        set => _mapOptions = value;
+    }
+
     private bool _needsFit;
     private MapSet? _map;
     public MapSet? Map
@@ -2859,23 +2866,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void ApplyNewSectorDefaults(Sector? sector)
     {
-        if (_map == null || sector == null || _gameConfig == null) return;
-        if (IsBlankTexture(sector.FloorTexture)) sector.FloorTexture = _gameConfig.DefaultFloorTexture;
-        if (IsBlankTexture(sector.CeilTexture)) sector.CeilTexture = _gameConfig.DefaultCeilingTexture;
-
-        foreach (var side in _map.Sidedefs)
-        {
-            if (!ReferenceEquals(side.Sector, sector)) continue;
-            if (!IsOneSided(side.Line)) continue;
-            if (IsBlankTexture(side.MidTexture)) side.MidTexture = _gameConfig.DefaultWallTexture;
-        }
+        if (_map == null || sector == null) return;
+        SectorDrawingDefaults.Apply(_map, sector, _mapOptions, _gameConfig);
     }
 
     private static bool IsBlankTexture(string? name)
         => string.IsNullOrWhiteSpace(name) || name == "-";
-
-    private static bool IsOneSided(Linedef line)
-        => line.Front == null || line.Back == null;
 
     // Selects all elements of the active mode whose geometry falls inside the rubber-band box.
     private void ApplyBoxSelection(Vec2D a, Vec2D b, bool additive)

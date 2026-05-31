@@ -142,6 +142,8 @@ public partial class MainWindow : Window
 
     private void SaveSettings() => _settings.Save(_settingsPath);
 
+    private void SyncMapOptionsToView() => MapView.MapOptions = _mapOptions;
+
     private void ApplyShortcutBindings()
     {
         _shortcutBindings = EditorCommandCatalog.EffectiveShortcuts(_settings.ShortcutOverrides);
@@ -358,6 +360,7 @@ public partial class MainWindow : Window
         _pk3Maps = null;
         _pk3MapArchivePath = null;
         _mapOptions = new MapOptions { CurrentName = _mapMarker };
+        SyncMapOptionsToView();
         _mapSettings = new Configuration(sorted: true);
         _mapFormat = MapFormat.Doom;
         _undo = new UndoManager(map);
@@ -773,6 +776,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
+        SyncMapOptionsToView();
         var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace, _mapOptions, _config?.UseLongTextureNames ?? false, _resources);
         if (await dlg.ShowDialog<bool>(this))
         {
@@ -780,6 +784,7 @@ public partial class MainWindow : Window
             _map.Namespace = dlg.ResultNamespace;
             _mapOptions.CurrentName = _mapMarker;
             dlg.ApplyTo(_mapOptions);
+            SyncMapOptionsToView();
             MarkMapDirty();
             UpdateInfo();
             MapView.Focus();
@@ -858,6 +863,7 @@ public partial class MainWindow : Window
         options.WriteRootOptions(root);
         root.SaveConfiguration(DbsPath(wadPath));
         _mapOptions = options;
+        SyncMapOptionsToView();
         _mapSettings = root;
     }
 
@@ -1611,6 +1617,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
+        SyncMapOptionsToView();
         var win = new TagStatisticsWindow(ConfiguredTagSearch.UsedTagStatistics(_map, _config), _mapOptions.TagLabels);
         win.LabelChanged += (tag, label) =>
         {
@@ -2184,6 +2191,7 @@ public partial class MainWindow : Window
             _resources?.Dispose();
             _resources = null;
             _mapOptions = new MapOptions { CurrentName = entry.Name };
+            SyncMapOptionsToView();
             _mapSettings = new Configuration(sorted: true);
             _map = map;
             _mapMarker = entry.Name;
@@ -2291,6 +2299,7 @@ public partial class MainWindow : Window
             _pk3Path = path;
             _pk3Maps = maps;
             _mapOptions = null;
+            SyncMapOptionsToView();
             _mapSettings = null;
 
             _resources?.Dispose();
@@ -2317,6 +2326,7 @@ public partial class MainWindow : Window
             if (map is null) { SetStatus($"Failed to load {entry.Name}"); return; }
 
             _mapOptions = LoadMapOptions(_wadPath, entry.Name, out _mapSettings);
+            SyncMapOptionsToView();
             int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
 
             _map = map;
@@ -2348,6 +2358,7 @@ public partial class MainWindow : Window
             if (map is null) { SetStatus($"Failed to load {entry.Map.Name} from {entry.ArchivePath}"); return; }
 
             _mapOptions = null;
+            SyncMapOptionsToView();
             _mapSettings = null;
             _map = map;
             _mapMarker = entry.Map.Name;
@@ -2389,6 +2400,7 @@ public partial class MainWindow : Window
         _iwadPath = null;
         _activeAutosaveKey = null;
         _mapOptions = null;
+        SyncMapOptionsToView();
         _mapSettings = null;
         _resources?.Dispose();
         _resources = null;
