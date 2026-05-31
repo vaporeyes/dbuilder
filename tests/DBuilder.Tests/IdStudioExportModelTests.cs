@@ -161,5 +161,64 @@ public class IdStudioExportModelTests
         Assert.Equal("1e-05 2e+06 NAME", text);
     }
 
+    [Fact]
+    public void BuildFloorBrushWritesUdbCasterBoundsAndTexturePlane()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            MapName = "map01",
+            Downscale = 20,
+            XShift = 4,
+            YShift = 8
+        });
+
+        string brush = NormalizeLineEndings(IdStudioBrushFormatter.BuildFloorBrush(
+            settings,
+            new IdStudioVertex(0, 0),
+            new IdStudioVertex(10, 0),
+            new IdStudioVertex(0, 10),
+            height: 8,
+            isCeiling: false,
+            texture: "FLOOR0_1",
+            sectorNumber: 12,
+            textureWidth: 64,
+            textureHeight: 128));
+
+        Assert.StartsWith("{\n\tbrushDef3 {\n", brush, StringComparison.Ordinal);
+        Assert.Contains("( 0 -1 0 -0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0.70710677 0.70710677 0 -7.071068 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( -1 -0 0 0 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0 0 -1 7.9925 ) ( ( 1 0 0 ) ( 0 1 0 ) ) \"art/tile/common/shadow_caster\" 0 0 0", brush);
+        Assert.Contains("( 0 0 1 -8 ) ( ( 0 0.3125 -0.0625 ) ( -0.15625 0 0.0625 ) ) \"art/wadtobrush/flats/floor0_1\" 0 0 0", brush);
+        Assert.EndsWith("\t}\n}\n", brush, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildCeilingBrushFlipsSurfaceAndHorizontalTextureScale()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            MapName = "map01",
+            Downscale = 20,
+            XShift = 4,
+            YShift = 8
+        });
+
+        string brush = IdStudioBrushFormatter.BuildFloorBrush(
+            settings,
+            new IdStudioVertex(0, 0),
+            new IdStudioVertex(10, 0),
+            new IdStudioVertex(0, 10),
+            height: 8,
+            isCeiling: true,
+            texture: "CEIL5_2",
+            sectorNumber: 12,
+            textureWidth: 64,
+            textureHeight: 128);
+
+        Assert.Contains("( 0 0 1 -8.0075 )", brush);
+        Assert.Contains("( 0 0 -1 8 ) ( ( 0 -0.3125 -0.0625 ) ( -0.15625 0 0.0625 ) ) \"art/wadtobrush/flats/ceil5_2\" 0 0 0", brush);
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }
