@@ -924,6 +924,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style straight stair geometry planning from selected linedefs, including front/back side and spacing.
   - [x] Add UDB-style straight stair sector materialization from planned preview loops.
   - [x] Add UDB-style prefab settings key model for saving and loading stair form state.
+  - [x] Add UDB-style prefab collection settings shape with `prefab1`, `prefab2`, etc. ordering.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.

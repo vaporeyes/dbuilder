@@ -418,4 +418,41 @@ public class StairBuilderTests
         Assert.Equal("-", prefab.MiddleTexture);
         Assert.Equal("-", prefab.LowerTexture);
     }
+
+    [Fact]
+    public void PrefabCollectionSettingsUseUdbPrefabNumberKeys()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "[Default]", NumberOfSectors = 1 },
+            new StairBuilderPrefab { Name = "[Previous]", NumberOfSectors = 3 },
+            new StairBuilderPrefab { Name = "Wide", NumberOfSectors = 5 }
+        };
+
+        Dictionary<string, object> settings = StairBuilderPrefabSettings.ToSettingsDictionary(prefabs);
+
+        Assert.Equal(new[] { "prefab1", "prefab2", "prefab3" }, settings.Keys);
+        Assert.Equal("[Default]", ((Dictionary<string, object>)settings["prefab1"])["name"]);
+        Assert.Equal(3, ((Dictionary<string, object>)settings["prefab2"])["numberofsectors"]);
+        Assert.Equal("Wide", ((Dictionary<string, object>)settings["prefab3"])["name"]);
+    }
+
+    [Fact]
+    public void PrefabCollectionSettingsLoadInStoredOrderAndIgnoreOtherKeys()
+    {
+        var settings = new Dictionary<string, object>
+        {
+            ["prefab1"] = new Dictionary<string, object> { ["name"] = "[Default]", ["numberofsectors"] = 1 },
+            ["ignored"] = new Dictionary<string, object> { ["name"] = "Ignored" },
+            ["prefab2"] = new Dictionary<string, object> { ["name"] = "[Previous]", ["numberofsectors"] = 4 }
+        };
+
+        IReadOnlyList<StairBuilderPrefab> prefabs = StairBuilderPrefabSettings.FromSettingsDictionary(settings);
+
+        Assert.Equal(2, prefabs.Count);
+        Assert.Equal("[Default]", prefabs[0].Name);
+        Assert.Equal(1, prefabs[0].NumberOfSectors);
+        Assert.Equal("[Previous]", prefabs[1].Name);
+        Assert.Equal(4, prefabs[1].NumberOfSectors);
+    }
 }

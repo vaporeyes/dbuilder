@@ -1,6 +1,7 @@
 // ABOUTME: Turns sectors into stairs by applying UDB-style height, flat, and wall texture options.
 // ABOUTME: Also keeps legacy helpers for simple floor stepping and ceiling movement.
 
+using System;
 using System.Collections.Generic;
 using DBuilder.Geometry;
 
@@ -294,6 +295,31 @@ public sealed record StairBuilderPrefab
 
     private static string ReadString(IReadOnlyDictionary<string, object> settings, string key, string fallback)
         => settings.TryGetValue(key, out object? value) && value is string typed ? typed : fallback;
+}
+
+public static class StairBuilderPrefabSettings
+{
+    public static Dictionary<string, object> ToSettingsDictionary(IReadOnlyList<StairBuilderPrefab> prefabs)
+    {
+        var settings = new Dictionary<string, object>();
+        for (int i = 0; i < prefabs.Count; i++)
+            settings["prefab" + (i + 1)] = prefabs[i].ToSettingsDictionary();
+
+        return settings;
+    }
+
+    public static IReadOnlyList<StairBuilderPrefab> FromSettingsDictionary(IReadOnlyDictionary<string, object> settings)
+    {
+        var prefabs = new List<StairBuilderPrefab>();
+        foreach ((string key, object value) in settings)
+        {
+            if (!key.StartsWith("prefab", StringComparison.Ordinal)) continue;
+            if (value is IReadOnlyDictionary<string, object> prefabSettings)
+                prefabs.Add(StairBuilderPrefab.FromSettingsDictionary(prefabSettings));
+        }
+
+        return prefabs;
+    }
 }
 
 public sealed class StairBuilderOptions
