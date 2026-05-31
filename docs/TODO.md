@@ -896,6 +896,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor commands for toggling selected automap line and sector visibility flags.
 - [ ] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
+  - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
 - [ ] Port `ColorPicker`.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
   - [x] Add editor command and dialog for selected-sector lightcolor and fadecolor fields.
@@ -1026,6 +1027,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add selected linedef and sector automap flag toggle commands.
 - [ ] Port blockmap explorer UI and data model.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
+  - [x] Add non-modal Blockmap Explorer summary and block-list window.
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.

@@ -66,6 +66,7 @@ public partial class MainWindow : Window
     private CommentsPanelWindow? _commentsPanel;
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
+    private BlockmapExplorerWindow? _blockmapExplorer;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1913,6 +1914,27 @@ public partial class MainWindow : Window
         SetStatus($"Blockmap overlay {(MapView.ShowBlockmap ? "on" : "off")}.");
     }
 
+    private void OnBlockmapExplorer(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+
+        byte[]? bytes = ReadCurrentMapLump("BLOCKMAP");
+        BlockmapLumpData blockmap = BlockmapLump.Parse(bytes);
+        _blockmapExplorer?.Close();
+        _blockmapExplorer = new BlockmapExplorerWindow(blockmap, _map.Linedefs.Count);
+        _blockmapExplorer.Closed += (_, _) => _blockmapExplorer = null;
+        _blockmapExplorer.BlockActivated += (column, row) =>
+        {
+            double x = blockmap.OriginX + (column + 0.5) * BlockmapLump.BlockSize;
+            double y = blockmap.OriginY + (row + 0.5) * BlockmapLump.BlockSize;
+            MapView.CenterOn(x, y);
+            MapView.ShowBlockmap = true;
+            SetStatus($"Blockmap block ({column}, {row}).");
+        };
+        _blockmapExplorer.Show(this);
+        SetStatus($"Blockmap Explorer: {blockmap.Status}, {blockmap.Columns} x {blockmap.Rows}.");
+    }
+
     private void OnToggleSectorFills(object? sender, RoutedEventArgs e)
     {
         bool shown = MapView.ToggleSectorFills();
@@ -3572,7 +3594,7 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
