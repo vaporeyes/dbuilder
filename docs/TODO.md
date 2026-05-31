@@ -921,6 +921,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style wildcard UDMF field find categories for any, vertex, linedef, sidedef, sector, and thing fields.
   - [x] Add UDB-style linedef and sidedef flag find categories.
   - [x] Add UDB-style sector and thing flag find categories.
+  - [x] Add UDB-style linedef and thing action-argument reference find categories.
 - [ ] Port map error checker infrastructure.
 - [ ] Port all map error checks.
 - [ ] Port all map error result types and fix actions.

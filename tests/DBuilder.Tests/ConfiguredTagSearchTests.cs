@@ -75,6 +75,60 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void FindsAndReplacesConfiguredLinedefReferenceArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Linedefs[0].Args[0] = 17;
+        map.Linedefs[0].Args[1] = 41;
+
+        var sectorRefs = ConfiguredTagSearch.FindReference(map, FindCategory.LinedefSectorReference, "17", config);
+        Assert.Equal(1, sectorRefs.Count);
+        Assert.True(map.Linedefs[0].Selected);
+
+        var thingRefs = ConfiguredTagSearch.FindReference(map, FindCategory.LinedefThingReference, "41", config);
+        Assert.Equal(1, thingRefs.Count);
+        Assert.True(map.Linedefs[0].Selected);
+
+        Assert.Equal(1, ConfiguredTagSearch.ReplaceReference(map, FindCategory.LinedefSectorReference, "17", "23", config));
+        Assert.Equal(23, map.Linedefs[0].Args[0]);
+        Assert.Equal(41, map.Linedefs[0].Args[1]);
+    }
+
+    [Fact]
+    public void FindsAndReplacesConfiguredThingReferenceArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Things[0].Args[0] = 17;
+        map.Things[0].Args[1] = 41;
+
+        var sectorRefs = ConfiguredTagSearch.FindReference(map, FindCategory.ThingSectorReference, "17", config);
+        Assert.Equal(1, sectorRefs.Count);
+        Assert.True(map.Things[0].Selected);
+
+        var thingRefs = ConfiguredTagSearch.FindReference(map, FindCategory.ThingThingReference, "41", config);
+        Assert.Equal(1, thingRefs.Count);
+        Assert.True(map.Things[0].Selected);
+
+        Assert.Equal(1, ConfiguredTagSearch.ReplaceReference(map, FindCategory.ThingThingReference, "41", "24", config));
+        Assert.Equal(17, map.Things[0].Args[0]);
+        Assert.Equal(24, map.Things[0].Args[1]);
+    }
+
+    [Fact]
+    public void ReferenceReplacementRejectsOutOfByteRangeValues()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+
+        int changed = ConfiguredTagSearch.ReplaceReference(map, FindCategory.LinedefSectorReference, "17", "300", config);
+
+        Assert.Equal(0, changed);
+        Assert.Equal(17, map.Linedefs[0].Args[0]);
+    }
+
+    [Fact]
     public void NextFreeTagSkipsTagTypedActionArgs()
     {
         var config = GameConfiguration.FromText(Cfg);

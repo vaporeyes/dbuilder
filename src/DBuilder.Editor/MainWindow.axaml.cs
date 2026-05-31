@@ -2241,9 +2241,11 @@ public partial class MainWindow : Window
         win.FindRequested += () =>
         {
             if (_map is null) return;
-            var r = win.Category == FindCategory.Tag
-                ? ConfiguredTagSearch.Find(_map, win.FindText, _config)
-                : MapSearch.Find(_map, win.Category, win.FindText);
+            var r = ConfiguredTagSearch.IsReferenceCategory(win.Category)
+                ? ConfiguredTagSearch.FindReference(_map, win.Category, win.FindText, _config)
+                : win.Category == FindCategory.Tag
+                    ? ConfiguredTagSearch.Find(_map, win.FindText, _config)
+                    : MapSearch.Find(_map, win.Category, win.FindText);
             MapView.RevealSelection(ModeFor(win.Category), r.Focus);
             win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
             UpdateInfo();
@@ -2252,9 +2254,11 @@ public partial class MainWindow : Window
         {
             if (_map is null || _undo is null) return;
             CreateUndo("Find & replace");
-            int n = win.Category == FindCategory.Tag
-                ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config)
-                : MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
+            int n = ConfiguredTagSearch.IsReferenceCategory(win.Category)
+                ? ConfiguredTagSearch.ReplaceReference(_map, win.Category, win.FindText, win.ReplaceText, _config)
+                : win.Category == FindCategory.Tag
+                    ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config)
+                    : MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
             win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
             UpdateInfo();
@@ -2290,12 +2294,16 @@ public partial class MainWindow : Window
     {
         FindCategory.ThingType or
         FindCategory.ThingIndex or
-        FindCategory.ThingAngle => MapControl.EditMode.Things,
+        FindCategory.ThingAngle or
+        FindCategory.ThingFlags or
+        FindCategory.ThingSectorReference or
+        FindCategory.ThingThingReference => MapControl.EditMode.Things,
         FindCategory.SectorEffect or
         FindCategory.SectorIndex or
         FindCategory.SectorFloorHeight or
         FindCategory.SectorCeilingHeight or
         FindCategory.SectorBrightness or
+        FindCategory.SectorFlags or
         FindCategory.Flat or
         FindCategory.SectorFloorFlat or
         FindCategory.SectorCeilingFlat or

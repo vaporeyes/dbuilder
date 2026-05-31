@@ -10,6 +10,65 @@ namespace DBuilder.IO;
 
 public static class ConfiguredTagSearch
 {
+    public static bool IsReferenceCategory(FindCategory category)
+        => category is FindCategory.LinedefSectorReference or FindCategory.LinedefThingReference
+            or FindCategory.ThingSectorReference or FindCategory.ThingThingReference;
+
+    public static SearchResult FindReference(MapSet map, FindCategory category, string value, GameConfiguration? config)
+    {
+        map.ClearAllSelected();
+        if (!TryParseReference(value, requireByteRange: false, out int reference) || !IsReferenceCategory(category))
+            return new SearchResult(0, null);
+
+        int count = 0;
+        Vector2D? focus = null;
+
+        if (category is FindCategory.LinedefSectorReference or FindCategory.LinedefThingReference)
+        {
+            if (!(config?.HasActionArgs ?? true)) return new SearchResult(0, null);
+            UniversalType type = category == FindCategory.LinedefSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
+            foreach (var line in map.Linedefs)
+                if (HasMatchingActionArg(line.Action, line.Args, reference, config, type))
+                    SelectLine(line, ref count, ref focus);
+        }
+        else
+        {
+            if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return new SearchResult(0, null);
+            UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
+            foreach (var thing in map.Things)
+                if (HasMatchingActionArg(thing.Action, thing.Args, reference, config, type))
+                    SelectThing(thing, ref count, ref focus);
+        }
+
+        return new SearchResult(count, focus);
+    }
+
+    public static int ReplaceReference(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
+    {
+        if (!TryParseReference(find, requireByteRange: false, out int from) ||
+            !TryParseReference(replace, requireByteRange: true, out int to) ||
+            !IsReferenceCategory(category))
+            return 0;
+
+        int changed = 0;
+        if (category is FindCategory.LinedefSectorReference or FindCategory.LinedefThingReference)
+        {
+            if (!(config?.HasActionArgs ?? true)) return 0;
+            UniversalType type = category == FindCategory.LinedefSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
+            foreach (var line in map.Linedefs)
+                if (ReplaceActionArgs(line.Action, line.Args, from, to, config, type)) changed++;
+        }
+        else
+        {
+            if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return 0;
+            UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
+            foreach (var thing in map.Things)
+                if (ReplaceActionArgs(thing.Action, thing.Args, from, to, config, type)) changed++;
+        }
+
+        return changed;
+    }
+
     public static SearchResult Find(MapSet map, string value, GameConfiguration? config)
     {
         map.ClearAllSelected();
@@ -173,17 +232,23 @@ public static class ConfiguredTagSearch
     }
 
     private static bool HasMatchingActionArg(int action, int[] values, int tag, GameConfiguration? config)
+        => HasMatchingActionArg(action, values, tag, config, null);
+
+    private static bool HasMatchingActionArg(int action, int[] values, int tag, GameConfiguration? config, UniversalType? type)
     {
         var args = config?.GetLinedefAction(action)?.Args;
         if (args == null) return false;
 
         for (int i = 0; i < args.Length && i < values.Length; i++)
-            if (IsTagArg(args[i]) && values[i] == tag) return true;
+            if (IsMatchingTagArg(args[i], type) && values[i] == tag) return true;
 
         return false;
     }
 
     private static bool ReplaceActionArgs(int action, int[] values, int from, int to, GameConfiguration? config)
+        => ReplaceActionArgs(action, values, from, to, config, null);
+
+    private static bool ReplaceActionArgs(int action, int[] values, int from, int to, GameConfiguration? config, UniversalType? type)
     {
         var args = config?.GetLinedefAction(action)?.Args;
         if (args == null) return false;
@@ -191,7 +256,7 @@ public static class ConfiguredTagSearch
         bool changed = false;
         for (int i = 0; i < args.Length && i < values.Length; i++)
         {
-            if (!IsTagArg(args[i]) || values[i] != from) continue;
+            if (!IsMatchingTagArg(args[i], type) || values[i] != from) continue;
             values[i] = to;
             changed = true;
         }
@@ -209,7 +274,22 @@ public static class ConfiguredTagSearch
     }
 
     private static bool IsTagArg(ArgInfo arg)
-        => arg.Used && ((UniversalType)arg.Type is UniversalType.LinedefTag or UniversalType.SectorTag or UniversalType.ThingTag);
+        => IsMatchingTagArg(arg, null);
+
+    private static bool IsMatchingTagArg(ArgInfo arg, UniversalType? type)
+    {
+        if (!arg.Used) return false;
+        var argType = (UniversalType)arg.Type;
+        return type == null
+            ? argType is UniversalType.LinedefTag or UniversalType.SectorTag or UniversalType.ThingTag
+            : argType == type.Value;
+    }
+
+    private static bool TryParseReference(string value, bool requireByteRange, out int reference)
+    {
+        if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out reference)) return false;
+        return !requireByteRange || reference is >= 0 and <= 255;
+    }
 
     private static Vector2D Mid(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
