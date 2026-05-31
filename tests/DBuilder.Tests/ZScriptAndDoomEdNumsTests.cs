@@ -790,6 +790,27 @@ class SpriteChildZThing : SpriteParentZThing
     }
 
     [Fact]
+    public void ZScriptChildInheritsExtendedParentSpawnState()
+    {
+        const string zscript = @"
+class SpriteParentZThing : Actor
+{
+    States { Spawn: PARZ A -1; Stop; }
+}
+extend class SpriteParentZThing
+{
+    States { Spawn: EXTZ A -1; Stop; }
+}
+class SpriteChildZThing : SpriteParentZThing
+{
+    States { Death: CHLZ A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "SpriteChildZThing");
+
+        Assert.Equal("EXTZA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DoesNotResolveZScriptGotoWithoutRequiredSemicolon()
     {
         const string zscript = @"

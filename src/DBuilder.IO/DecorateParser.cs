@@ -634,6 +634,7 @@ public static class DecorateParser
                 ApplyActorMixins(extension, mixins);
                 if (HasSpawnState(extension))
                 {
+                    CopyExtensionSpawnState(actor, extension);
                     actor.Sprite = extension.Sprite ?? actor.Sprite;
                     actor.LightName = extension.LightName ?? actor.LightName;
                     actor.StateBright = extension.StateBright;
@@ -645,6 +646,18 @@ public static class DecorateParser
                 CopyExtensionFlag(actor, extension, "solid");
             }
         }
+    }
+
+    private static void CopyExtensionSpawnState(ActorInfo actor, ActorInfo extension)
+    {
+        if (extension.StateSprites.TryGetValue("spawn", out var sprite))
+            actor.StateSprites["spawn"] = sprite;
+        if (extension.StateFrames.TryGetValue("spawn", out var frames))
+            actor.StateFrames["spawn"] = new List<StateSpriteCandidate>(frames);
+        if (extension.StateGotos.TryGetValue("spawn", out var target))
+            actor.StateGotos["spawn"] = target;
+        else
+            actor.StateGotos.Remove("spawn");
     }
 
     private static void CopyExtensionFlag(ActorInfo actor, ActorInfo extension, string flag)

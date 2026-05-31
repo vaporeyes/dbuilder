@@ -114,25 +114,75 @@
       "udbArea": "Source/Core/ZDoom",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, DoomEdNum, DamageType, DECORATE include validation, DECORATE state cast validation, DECORATE user-variable validation, inherited user-variable shadow validation, ZScript preprocessor validation, ZScript top-level version declarations, ZScript top-level const validation, ZScript top-level enum validation, ZScript top-level struct validation, ZScript top-level identifier validation, ZScript class body terminator validation, ZScript final and sealed inheritance constraints, ZScript self-inheritance rejection, ZScript mixin user-variable default behavior, ZScript mixin size-default behavior, ZScript extension size-default behavior, and actor merge behaviors, including MAPINFO DoomEdNums overrides from archived unsupported actors. TEXTURES, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, MAPINFO, ZMAPINFO, and GLDEFS all have focused parser coverage. TEXTURES includes default-scale composition metadata, UDB-style Graphic skipping, UDB-style unknown declaration consumption, and namespace-specific duplicate handling. GLDEFS covers lights, objects, glow metadata, skyboxes, includes, invalid declaration abort behavior, and unknown structure handling. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
+      "notes": "DECORATE and ZScript parsers cover many actor metadata, state preview, goto, user variable, region, DoomEdNum, DamageType, DECORATE include validation, DECORATE state cast validation, DECORATE user-variable validation, inherited user-variable shadow validation, ZScript preprocessor validation, ZScript top-level version declarations, ZScript top-level const validation, ZScript top-level enum validation, ZScript top-level struct validation, ZScript top-level identifier validation, ZScript class body terminator validation, ZScript final and sealed inheritance constraints, ZScript self-inheritance rejection, ZScript mixin user-variable default behavior, ZScript mixin size-default behavior, ZScript extension size-default behavior, ZScript extended Spawn inheritance, and actor merge behaviors, including MAPINFO DoomEdNums overrides from archived unsupported actors. TEXTURES, MODELDEF, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, X11 RGB, MAPINFO, ZMAPINFO, and GLDEFS all have focused parser coverage. TEXTURES includes default-scale composition metadata, UDB-style Graphic skipping, UDB-style unknown declaration consumption, and namespace-specific duplicate handling. GLDEFS covers lights, objects, glow metadata, skyboxes, includes, invalid declaration abort behavior, and unknown structure handling. Full actor semantics, model rendering, voxel rendering, and broader ZDoom data integration remain incomplete."
     },
-    { "udbArea": "Source/Native/OpenGL", "status": "partial", "dbuilderLocation": "DBuilder.Rendering" },
+    {
+      "udbArea": "Source/Native/OpenGL",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Rendering",
+      "notes": "DBuilder uses a cross-platform Silk.NET OpenGL rendering abstraction. Full UDB native OpenGL parity remains incomplete."
+    },
     { "udbArea": "Source/Native/VPO", "status": "missing", "dbuilderLocation": null }
   ],
   "plugins": [
-    { "udbPlugin": "3DFloorMode", "status": "partial", "dbuilderLocation": "DBuilder.Map" },
+    {
+      "udbPlugin": "3DFloorMode",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "GZDoom 3D floor data resolution and display toggles exist. Full 3DFloorMode editing workflow remains incomplete."
+    },
     { "udbPlugin": "AutomapMode", "status": "missing", "dbuilderLocation": null },
-    { "udbPlugin": "BlockmapExplorer", "status": "partial", "dbuilderLocation": "DBuilder.Map" },
-    { "udbPlugin": "BuilderEffects", "status": "partial", "dbuilderLocation": "DBuilder.Map" },
-    { "udbPlugin": "BuilderModes", "status": "partial", "dbuilderLocation": "DBuilder.Editor;DBuilder.Map" },
+    {
+      "udbPlugin": "BlockmapExplorer",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "Blockmap construction, queries, and editor overlay toggles exist. Full explorer UI and diagnostics remain incomplete."
+    },
+    {
+      "udbPlugin": "BuilderEffects",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "Selected map effect helpers exist, including slope and 3D floor related behavior. Full BuilderEffects plugin parity remains incomplete."
+    },
+    {
+      "udbPlugin": "BuilderModes",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
+      "notes": "Core edit modes, draw mode surfaces, selection conversion, stitching, filters, and error-check surfaces are partially represented. Full mode set and docked tooling remain incomplete."
+    },
     { "udbPlugin": "ColorPicker", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "CommentsPanel", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "ImageDrawingExample", "status": "missing", "dbuilderLocation": null },
-    { "udbPlugin": "NodesViewer", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
-    { "udbPlugin": "RejectExplorer", "status": "partial", "dbuilderLocation": "DBuilder.IO" },
-    { "udbPlugin": "SoundPropagationMode", "status": "partial", "dbuilderLocation": "DBuilder.Map" },
-    { "udbPlugin": "StairSectorBuilder", "status": "partial", "dbuilderLocation": "DBuilder.Map;DBuilder.Editor" },
-    { "udbPlugin": "TagExplorer", "status": "partial", "dbuilderLocation": "DBuilder.Editor" },
+    {
+      "udbPlugin": "NodesViewer",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Nodebuilder lump validation and related IO helpers exist. Full NodesViewer visualization UI remains incomplete."
+    },
+    {
+      "udbPlugin": "RejectExplorer",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "Reject table IO coverage exists. Full RejectExplorer UI and analysis workflow remain incomplete."
+    },
+    {
+      "udbPlugin": "SoundPropagationMode",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map",
+      "notes": "Sound propagation reachability helpers and editor command wiring exist. Full mode UI and plugin workflow remain incomplete."
+    },
+    {
+      "udbPlugin": "StairSectorBuilder",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Map;DBuilder.Editor",
+      "notes": "Stair building helpers and editor command surfaces exist. Full StairSectorBuilder plugin parity remains incomplete."
+    },
+    {
+      "udbPlugin": "TagExplorer",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.Editor",
+      "notes": "Tag listing and reveal surfaces exist. Full TagExplorer filtering and navigation workflow remain incomplete."
+    },
     { "udbPlugin": "TagRange", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
     { "udbPlugin": "USDF", "status": "missing", "dbuilderLocation": null },
