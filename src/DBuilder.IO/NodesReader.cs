@@ -65,6 +65,8 @@ public readonly record struct ClassicSubsector(int SegCount, int FirstSeg);
 
 public readonly record struct ClassicNodeVertex(short X, short Y);
 
+public readonly record struct ClassicSubsectorPolygon(int SubsectorIndex, IReadOnlyList<Vector2D> Points);
+
 public sealed record ClassicNodesStructure(
     ClassicNodesStatus Status,
     IReadOnlyList<ClassicNode> Nodes,
@@ -94,6 +96,7 @@ public sealed record ZNodesPayload(ZNodesPayloadStatus Status, string Format, by
 
 public static class NodesReader
 {
+    private const double Epsilon = 0.00001;
     private const int NodeRecordSize = 28;
     private const int SegRecordSize = 12;
     private const int VertexRecordSize = 4;
@@ -209,6 +212,18 @@ public static class NodesReader
         {
             return ZNodesPayload.Failure(ZNodesPayloadStatus.DecompressionFailed, format, ex.Message);
         }
+    }
+
+    public static IReadOnlyList<ClassicSubsectorPolygon> BuildClassicSubsectorPolygons(
+        ClassicNodesStructure structure,
+        int maxCoordinate)
+    {
+        if (structure == null || !structure.IsValid || structure.Nodes.Count == 0 || maxCoordinate <= 0)
+            return Array.Empty<ClassicSubsectorPolygon>();
+
+        var polygons = new ClassicSubsectorPolygon[structure.Subsectors.Count];
+        BuildSubsectorPolygons(structure, structure.Nodes.Count - 1, new Stack<NodeSplit>(), maxCoordinate, polygons);
+        return polygons;
     }
 
     private static ClassicNode[] ParseClassicNodes(byte[] data, int count)
@@ -330,4 +345,131 @@ public static class NodesReader
         int normalized = degrees % 360;
         return normalized < 0 ? normalized + 360 : normalized;
     }
+
+    private static void BuildSubsectorPolygons(
+        ClassicNodesStructure structure,
+        int nodeIndex,
+        Stack<NodeSplit> splits,
+        int maxCoordinate,
+        ClassicSubsectorPolygon[] polygons)
+    {
+        if (nodeIndex < 0 || nodeIndex >= structure.Nodes.Count) return;
+
+        ClassicNode node = structure.Nodes[nodeIndex];
+        var start = new Vector2D(node.X, node.Y);
+        var delta = new Vector2D(node.Dx, node.Dy);
+
+        splits.Push(new NodeSplit(start, -delta));
+        if (node.LeftChildIsSubsector)
+            BuildSubsectorPolygon(structure, node.LeftChildIndex, splits, maxCoordinate, polygons);
+        else
+            BuildSubsectorPolygons(structure, node.LeftChildIndex, splits, maxCoordinate, polygons);
+        splits.Pop();
+
+        splits.Push(new NodeSplit(start, delta));
+        if (node.RightChildIsSubsector)
+            BuildSubsectorPolygon(structure, node.RightChildIndex, splits, maxCoordinate, polygons);
+        else
+            BuildSubsectorPolygons(structure, node.RightChildIndex, splits, maxCoordinate, polygons);
+        splits.Pop();
+    }
+
+    private static void BuildSubsectorPolygon(
+        ClassicNodesStructure structure,
+        int subsectorIndex,
+        IEnumerable<NodeSplit> splits,
+        int maxCoordinate,
+        ClassicSubsectorPolygon[] polygons)
+    {
+        if (subsectorIndex < 0 || subsectorIndex >= structure.Subsectors.Count) return;
+
+        var poly = new List<Vector2D>(16)
+        {
+            new(-maxCoordinate, maxCoordinate),
+            new(maxCoordinate, maxCoordinate),
+            new(maxCoordinate, -maxCoordinate),
+            new(-maxCoordinate, -maxCoordinate),
+        };
+
+        foreach (NodeSplit split in splits) CropPolygon(poly, split);
+
+        ClassicSubsector subsector = structure.Subsectors[subsectorIndex];
+        int lastSeg = subsector.FirstSeg + subsector.SegCount - 1;
+        for (int i = subsector.FirstSeg; i <= lastSeg; i++)
+        {
+            ClassicSeg seg = structure.Segs[i];
+            if (seg.StartVertex < 0 || seg.StartVertex >= structure.Vertices.Count) continue;
+            if (seg.EndVertex < 0 || seg.EndVertex >= structure.Vertices.Count) continue;
+
+            ClassicNodeVertex start = structure.Vertices[seg.StartVertex];
+            ClassicNodeVertex end = structure.Vertices[seg.EndVertex];
+            var pos = new Vector2D(start.X, start.Y);
+            var delta = new Vector2D(end.X - start.X, end.Y - start.Y);
+            CropPolygon(poly, new NodeSplit(pos, delta));
+        }
+
+        RemoveZeroLengthEdges(poly);
+        polygons[subsectorIndex] = new ClassicSubsectorPolygon(subsectorIndex, poly.ToArray());
+    }
+
+    private static void CropPolygon(List<Vector2D> poly, NodeSplit split)
+    {
+        if (poly.Count == 0) return;
+
+        Vector2D previous = poly[^1];
+        double previousSide = SideOfSplit(previous, split);
+        var cropped = new List<Vector2D>(poly.Count);
+
+        foreach (Vector2D current in poly)
+        {
+            double currentSide = SideOfSplit(current, split);
+            if (currentSide < -Epsilon)
+            {
+                if (previousSide > Epsilon)
+                    cropped.Add(Intersection(split, previous, current));
+
+                cropped.Add(current);
+            }
+            else if (currentSide > Epsilon)
+            {
+                if (previousSide < -Epsilon)
+                    cropped.Add(Intersection(split, previous, current));
+            }
+            else
+            {
+                cropped.Add(current);
+            }
+
+            previous = current;
+            previousSide = currentSide;
+        }
+
+        poly.Clear();
+        poly.AddRange(cropped);
+    }
+
+    private static void RemoveZeroLengthEdges(List<Vector2D> poly)
+    {
+        if (poly.Count <= 1) return;
+
+        Vector2D previous = poly[0];
+        for (int i = poly.Count - 1; i >= 0; i--)
+        {
+            if (Vector2D.DistanceSq(poly[i], previous) < 0.001)
+                poly.RemoveAt(i);
+            else
+                previous = poly[i];
+        }
+    }
+
+    private static double SideOfSplit(Vector2D point, NodeSplit split)
+        => (point.y - split.Position.y) * split.Delta.x - (point.x - split.Position.x) * split.Delta.y;
+
+    private static Vector2D Intersection(NodeSplit split, Vector2D previous, Vector2D current)
+    {
+        Line2D.GetIntersection(split.Position, split.Position + split.Delta, previous.x, previous.y, current.x, current.y, out double u, false);
+        return previous + (current - previous) * u;
+    }
+
+    private readonly record struct NodeSplit(Vector2D Position, Vector2D Delta);
 }

@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using DBuilder.Geometry;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
@@ -263,5 +264,61 @@ public class NodesReaderTests
 
         Assert.False(result.IsValid);
         Assert.Equal(ClassicNodesStatus.InvalidSubsectorSegRange, result.Status);
+    }
+
+    [Fact]
+    public void ClassicSubsectorPolygonsClipByBspSplits()
+    {
+        var segs = new byte[24];
+        SegRecord(10, 11, 0, 0, 0, 0).CopyTo(segs, 0);
+        SegRecord(10, 11, 0, 0, 0, 0).CopyTo(segs, 12);
+        var subsectors = new byte[8];
+        SubsectorRecord(1, 0).CopyTo(subsectors, 0);
+        SubsectorRecord(1, 1).CopyTo(subsectors, 4);
+        ClassicNodesStructure structure = NodesReader.ParseClassicStructures(
+            NodeRecord(0, 0, 0, 64, 0x8000, 0x8001),
+            segs,
+            VertexRecord(0, 0),
+            subsectors);
+
+        IReadOnlyList<ClassicSubsectorPolygon> polygons = NodesReader.BuildClassicSubsectorPolygons(structure, 64);
+
+        Assert.Equal(2, polygons.Count);
+        AssertPoints(polygons[0].Points, new Vector2D(0, 64), new Vector2D(64, 64), new Vector2D(64, -64), new Vector2D(0, -64));
+        AssertPoints(polygons[1].Points, new Vector2D(-64, 64), new Vector2D(0, 64), new Vector2D(0, -64), new Vector2D(-64, -64));
+    }
+
+    [Fact]
+    public void ClassicSubsectorPolygonsClipBySubsectorSegs()
+    {
+        var segs = new byte[24];
+        SegRecord(0, 1, 0, 0, 0, 0).CopyTo(segs, 0);
+        SegRecord(10, 11, 0, 0, 0, 0).CopyTo(segs, 12);
+        var vertices = new byte[8];
+        VertexRecord(32, -64).CopyTo(vertices, 0);
+        VertexRecord(32, 64).CopyTo(vertices, 4);
+        var subsectors = new byte[8];
+        SubsectorRecord(1, 0).CopyTo(subsectors, 0);
+        SubsectorRecord(1, 1).CopyTo(subsectors, 4);
+        ClassicNodesStructure structure = NodesReader.ParseClassicStructures(
+            NodeRecord(0, 0, 0, 64, 0x8000, 0x8001),
+            segs,
+            vertices,
+            subsectors);
+
+        IReadOnlyList<ClassicSubsectorPolygon> polygons = NodesReader.BuildClassicSubsectorPolygons(structure, 64);
+
+        AssertPoints(polygons[0].Points, new Vector2D(32, 64), new Vector2D(64, 64), new Vector2D(64, -64), new Vector2D(32, -64));
+        AssertPoints(polygons[1].Points, new Vector2D(-64, 64), new Vector2D(0, 64), new Vector2D(0, -64), new Vector2D(-64, -64));
+    }
+
+    private static void AssertPoints(IReadOnlyList<Vector2D> actual, params Vector2D[] expected)
+    {
+        Assert.Equal(expected.Length, actual.Count);
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i].x, actual[i].x, precision: 6);
+            Assert.Equal(expected[i].y, actual[i].y, precision: 6);
+        }
     }
 }

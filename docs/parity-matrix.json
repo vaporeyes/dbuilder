@@ -177,7 +177,7 @@
       "udbPlugin": "NodesViewer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Nodebuilder lump validation, related IO helpers, and UDB-style classic NODES/SEGS/VERTEXES/SSECTORS data parsing exist, including BSP child flags, parent links, seg angles, vertices, subsectors, and seg-to-subsector links. UDB-supported ZNODES headers are recognized, and compressed or uncompressed ZNODES payload extraction exists. A non-modal editor Nodes Viewer shows classic parser status plus node, seg, and subsector summaries. Full ZNODES structure parsing and NodesViewer visualization UI remain incomplete."
+      "notes": "Nodebuilder lump validation, related IO helpers, and UDB-style classic NODES/SEGS/VERTEXES/SSECTORS data parsing exist, including BSP child flags, parent links, seg angles, vertices, subsectors, seg-to-subsector links, and classic subsector polygon clipping for visualization. UDB-supported ZNODES headers are recognized, and compressed or uncompressed ZNODES payload extraction exists. A non-modal editor Nodes Viewer shows classic parser status plus node, seg, and subsector summaries. Full ZNODES structure parsing and NodesViewer visualization UI remain incomplete."
     },
     {
       "udbPlugin": "RejectExplorer",
