@@ -147,7 +147,7 @@
       "udbPlugin": "BuilderEffects",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Selected map effect helpers exist, including slope and 3D floor related behavior. UDB-style jitter transform helpers exist for vertices, sector floor and ceiling heights, and things, including safe-distance clamping, offset modes, angle snapping, height offsets, pitch, roll, and scale. UDB-style directional shading calculations exist for sectors and sidedefs, including cached initial lights, absolute light handling, sun-angle vectors, and sector lightcolor fields. Full BuilderEffects plugin UI and terrain import parity remain incomplete."
+      "notes": "Selected map effect helpers exist, including slope and 3D floor related behavior. UDB-style jitter transform helpers exist for vertices, sector floor and ceiling heights, and things, including safe-distance clamping, offset modes, angle snapping, height offsets, pitch, roll, and scale. UDB-style directional shading calculations exist for sectors and sidedefs, including cached initial lights, absolute light handling, sun-angle vectors, and sector lightcolor fields. UDB-style Wavefront OBJ terrain parsing and triangular sector geometry building exist, including axis conversion, face filtering, shared edges, selected output, and vertex-height support. Full BuilderEffects plugin UI remains incomplete."
     },
     {
       "udbPlugin": "BuilderModes",
