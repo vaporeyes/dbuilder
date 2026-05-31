@@ -375,6 +375,94 @@ public class WavefrontExportModelTests
         }
     }
 
+    [Fact]
+    public void CreateImagePlanExportsClassicTexturesAndFlatsOnly()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportTextures = true
+        });
+        settings.Textures = [WavefrontExportSettings.DefaultMaterial, "walls/STARTAN3", "NUKAGE1", "MISSINGTEX", "BADTEX"];
+        settings.Flats = [WavefrontExportSettings.DefaultMaterial, "NUKAGE1", "MISSINGFLAT", "BADFLAT"];
+        var textureBytes = new byte[] { 1, 2, 3 };
+        var flatBytes = new byte[] { 4, 5, 6 };
+
+        WavefrontImagePlan plan = WavefrontExportPlanner.CreateImagePlan(
+            settings,
+            name => name switch
+            {
+                "walls/STARTAN3" => new WavefrontImageData(64, 128, textureBytes),
+                "NUKAGE1" => new WavefrontImageData(64, 64, textureBytes),
+                "BADTEX" => new WavefrontImageData(0, 64, []),
+                _ => null
+            },
+            name => name switch
+            {
+                "NUKAGE1" => new WavefrontImageData(64, 64, flatBytes),
+                "BADFLAT" => new WavefrontImageData(64, 0, []),
+                _ => null
+            });
+
+        Assert.Equal(3, plan.Files.Count);
+        Assert.Contains(plan.Files, file => file.Path == "/tmp/export/walls/STARTAN3.png" && !file.IsFlat && file.Content.SequenceEqual(textureBytes));
+        Assert.Contains(plan.Files, file => file.Path == "/tmp/export/NUKAGE1.png" && !file.IsFlat);
+        Assert.Contains(plan.Files, file => file.Path == "/tmp/export/NUKAGE1_FLAT.PNG" && file.IsFlat && file.Content.SequenceEqual(flatBytes));
+        Assert.DoesNotContain(plan.Files, file => file.MaterialName == WavefrontExportSettings.DefaultMaterial);
+        Assert.Contains("OBJ Exporter: texture \"MISSINGTEX\" does not exist!", plan.Warnings);
+        Assert.Contains("OBJ Exporter: texture \"BADTEX\" has invalid size (0x64)!", plan.Warnings);
+        Assert.Contains("OBJ Exporter: flat \"MISSINGFLAT\" does not exist!", plan.Warnings);
+        Assert.Contains("OBJ Exporter: flat \"BADFLAT\" has invalid size (64x0)!", plan.Warnings);
+    }
+
+    [Fact]
+    public void CreateImagePlanSkipsGzdoomAndDisabledTextureExports()
+    {
+        WavefrontExportSettings gzdoom = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportForGZDoom = true,
+            ExportTextures = true
+        });
+        WavefrontExportSettings disabled = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportTextures = false
+        });
+        gzdoom.Textures = ["STARTAN3"];
+        disabled.Textures = ["STARTAN3"];
+
+        WavefrontImagePlan gzdoomPlan = WavefrontExportPlanner.CreateImagePlan(gzdoom, _ => throw new InvalidOperationException(), _ => null);
+        WavefrontImagePlan disabledPlan = WavefrontExportPlanner.CreateImagePlan(disabled, _ => throw new InvalidOperationException(), _ => null);
+
+        Assert.Empty(gzdoomPlan.Files);
+        Assert.Empty(gzdoomPlan.Warnings);
+        Assert.Empty(disabledPlan.Files);
+        Assert.Empty(disabledPlan.Warnings);
+    }
+
+    [Fact]
+    public void WriteImageFilesCreatesDirectoriesAndWritesBytes()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder-wavefront-images-" + Guid.NewGuid().ToString("N"));
+        string path = Path.Combine(root, "walls", "STARTAN3.png");
+        byte[] bytes = [7, 8, 9];
+
+        try
+        {
+            WavefrontExportPlanner.WriteImageFiles(
+            [
+                new WavefrontExportImageFile(path, bytes, "STARTAN3", IsFlat: false)
+            ]);
+
+            Assert.Equal(bytes, File.ReadAllBytes(path));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 
     private static WavefrontSurfaceVertex Vertex(float x, float y, float z, float u, float v)

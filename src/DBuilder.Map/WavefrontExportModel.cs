@@ -117,6 +117,9 @@ public readonly record struct WavefrontSurfaceVertex(
     float NormalZ);
 
 public readonly record struct WavefrontExportFile(string Path, string Content);
+public sealed record WavefrontImageData(int Width, int Height, byte[] PngBytes);
+public readonly record struct WavefrontExportImageFile(string Path, byte[] Content, string MaterialName, bool IsFlat);
+public sealed record WavefrontImagePlan(IReadOnlyList<WavefrontExportImageFile> Files, IReadOnlyList<string> Warnings);
 
 public static class WavefrontObjFormatter
 {
@@ -383,6 +386,13 @@ public static class WavefrontExportContent
         return Path.Combine(settings.ObjPath, flatPath);
     }
 
+    public static string GetFlatImageExportPath(WavefrontExportSettings settings, string flat, bool hasTextureWithSameName)
+    {
+        string suffix = hasTextureWithSameName ? "_FLAT" : string.Empty;
+        string flatName = Path.GetFileNameWithoutExtension(flat) + suffix + ".PNG";
+        return Path.Combine(settings.ObjPath, flatName);
+    }
+
     private static void WriteMaterial(TextWriter writer, string name, string? imagePath)
     {
         writer.WriteLine($"newmtl {name}");
@@ -464,6 +474,71 @@ public static class WavefrontExportContent
 
 public static class WavefrontExportPlanner
 {
+    public static WavefrontImagePlan CreateImagePlan(
+        WavefrontExportSettings settings,
+        Func<string, WavefrontImageData?> getTexture,
+        Func<string, WavefrontImageData?> getFlat)
+    {
+        var files = new List<WavefrontExportImageFile>();
+        var warnings = new List<string>();
+        if (!settings.ExportTextures || settings.ExportForGZDoom) return new WavefrontImagePlan(files, warnings);
+
+        if (settings.Textures != null)
+        {
+            foreach (string texture in settings.Textures)
+            {
+                if (texture == WavefrontExportSettings.DefaultMaterial) continue;
+                WavefrontImageData? image = getTexture(texture);
+                if (image == null)
+                {
+                    warnings.Add($"OBJ Exporter: texture \"{texture}\" does not exist!");
+                    continue;
+                }
+
+                if (!HasValidSize(image))
+                {
+                    warnings.Add($"OBJ Exporter: texture \"{texture}\" has invalid size ({image.Width}x{image.Height})!");
+                    continue;
+                }
+
+                files.Add(new WavefrontExportImageFile(
+                    WavefrontExportContent.GetTextureExportPath(settings, texture),
+                    image.PngBytes,
+                    texture,
+                    IsFlat: false));
+            }
+        }
+
+        if (settings.Flats != null)
+        {
+            foreach (string flat in settings.Flats)
+            {
+                if (flat == WavefrontExportSettings.DefaultMaterial) continue;
+                WavefrontImageData? image = getFlat(flat);
+                if (image == null)
+                {
+                    warnings.Add($"OBJ Exporter: flat \"{flat}\" does not exist!");
+                    continue;
+                }
+
+                if (!HasValidSize(image))
+                {
+                    warnings.Add($"OBJ Exporter: flat \"{flat}\" has invalid size ({image.Width}x{image.Height})!");
+                    continue;
+                }
+
+                bool hasTextureWithSameName = settings.Textures != null && settings.Textures.Contains(flat);
+                files.Add(new WavefrontExportImageFile(
+                    WavefrontExportContent.GetFlatImageExportPath(settings, flat, hasTextureWithSameName),
+                    image.PngBytes,
+                    flat,
+                    IsFlat: true));
+            }
+        }
+
+        return new WavefrontImagePlan(files, warnings);
+    }
+
     public static IReadOnlyList<WavefrontExportFile> CreateFilePlan(
         WavefrontExportSettings settings,
         string mapTitle,
@@ -515,6 +590,18 @@ public static class WavefrontExportPlanner
             File.WriteAllText(file.Path, file.Content);
         }
     }
+
+    public static void WriteImageFiles(IEnumerable<WavefrontExportImageFile> files)
+    {
+        foreach (WavefrontExportImageFile file in files)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllBytes(file.Path, file.Content);
+        }
+    }
+
+    private static bool HasValidSize(WavefrontImageData image) => image.Width > 0 && image.Height > 0;
 }
 
 public static class WavefrontExportValidation
