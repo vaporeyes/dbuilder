@@ -128,6 +128,61 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void HoverInfoFormatsUdbStylePointValueAndStaticLimit()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(-64, 0));
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(-64, 0, 64),
+            VisplanePointResult.Ok,
+            Visplanes: 65,
+            Drawsegs: 67,
+            Solidsegs: 17,
+            Openings: 320));
+
+        VisplaneHoverInfo? info = scan.GetHoverInfo(-0.1, 63.9, VisplaneExplorerStat.Drawsegs, staticLimit: 256);
+
+        Assert.Equal(new VisplaneHoverInfo(68, 256, Overflow: false), info);
+        Assert.Equal("68 / 256", info?.FormatLabel());
+    }
+
+    [Fact]
+    public void HoverInfoReturnsNullForVoidOrMissingTilesLikeUdbTooltip()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(0, 0));
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 64),
+            VisplanePointResult.Void,
+            0,
+            0,
+            0,
+            0));
+
+        Assert.Null(scan.GetHoverInfo(4, 4, VisplaneExplorerStat.Visplanes, staticLimit: 128));
+        Assert.Null(scan.GetHoverInfo(128, 4, VisplaneExplorerStat.Visplanes, staticLimit: 128));
+    }
+
+    [Fact]
+    public void HoverInfoAppendsOverflowMarkerLikeUdbTooltip()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(0, 0));
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 64),
+            VisplanePointResult.Overflow,
+            0,
+            0,
+            0,
+            0));
+
+        VisplaneHoverInfo? info = scan.GetHoverInfo(1, 1, VisplaneExplorerStat.Openings, staticLimit: 32768);
+
+        Assert.Equal(new VisplaneHoverInfo(40640, 32768, Overflow: true), info);
+        Assert.Equal("40640+ / 32768", info?.FormatLabel());
+    }
+
+    [Fact]
     public void CreateForMapExpandsVertexBoundsByOneTileLikeUdb()
     {
         MapSet map = ClockwiseSquareMap();

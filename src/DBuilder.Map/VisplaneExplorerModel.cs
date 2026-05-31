@@ -44,6 +44,12 @@ public readonly record struct VisplaneMapRectangle(int X, int Y, int Width, int 
             && position.Y < Y + Height;
 }
 
+public readonly record struct VisplaneHoverInfo(int Value, int StaticLimit, bool Overflow)
+{
+    public string FormatLabel()
+        => $"{Value}{(Overflow ? "+" : "")} / {StaticLimit}";
+}
+
 public sealed class VisplanePalette
 {
     private readonly uint[] colors;
@@ -207,6 +213,22 @@ public sealed class VisplaneTileScan
         }
 
         return points;
+    }
+
+    public VisplaneHoverInfo? GetHoverInfo(double mapX, double mapY, VisplaneExplorerStat stat, int staticLimit)
+    {
+        VisplaneTilePosition position = TileForPoint(mapX, mapY);
+        if (!tiles.TryGetValue(position, out VisplaneTile? tile)) return null;
+
+        int x = (int)Math.Floor(mapX) - position.X;
+        int y = (int)Math.Floor(mapY) - position.Y;
+        byte point = tile.GetPointByte(x, y, stat);
+        if (point == VisplaneTile.PointVoidByte) return null;
+
+        return new VisplaneHoverInfo(
+            tile.GetPointValue(x, y, stat),
+            staticLimit,
+            point == VisplaneTile.PointOverflowByte);
     }
 }
 
