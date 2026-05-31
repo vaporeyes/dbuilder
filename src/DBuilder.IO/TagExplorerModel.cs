@@ -56,6 +56,14 @@ public sealed record TagExplorerEntry(
     public bool HasComment => Comment.Length > 0;
 }
 
+public sealed record TagExplorerTreeNode(
+    string Title,
+    TagExplorerEntry? Entry,
+    IReadOnlyList<TagExplorerTreeNode> Children)
+{
+    public bool IsEntry => Entry != null;
+}
+
 public static class TagExplorerModel
 {
     public const int NoPolyobjectNumber = int.MinValue;
@@ -80,6 +88,48 @@ public static class TagExplorerModel
         return entries;
     }
 
+    public static IReadOnlyList<TagExplorerTreeNode> BuildTree(
+        IReadOnlyList<TagExplorerEntry> entries,
+        TagExplorerOptions options,
+        IReadOnlyDictionary<int, string>? tagLabels = null)
+    {
+        var roots = new List<TagExplorerTreeNode>();
+        AddKindRoot(roots, entries, TagExplorerEntryKind.Thing, "Things:", options, tagLabels);
+        AddKindRoot(roots, entries, TagExplorerEntryKind.Sector, "Sectors:", options, tagLabels);
+        AddKindRoot(roots, entries, TagExplorerEntryKind.Linedef, "Linedefs:", options, tagLabels);
+        return roots;
+    }
+
+    public static string ExportTreeText(IReadOnlyList<TagExplorerTreeNode> roots, TagExplorerSortMode sortMode)
+    {
+        var blocks = new List<string>();
+        string sortName = SortModeTitle(sortMode).ToLowerInvariant();
+
+        foreach (TagExplorerTreeNode root in roots)
+        {
+            if (root.Children.Count == 0) continue;
+
+            var lines = new List<string> { root.Title.Replace(":", " (" + sortName + "):", StringComparison.Ordinal) };
+            foreach (TagExplorerTreeNode child in root.Children)
+            {
+                if (child.Children.Count > 0)
+                {
+                    lines.Add("  " + child.Title + ":");
+                    foreach (TagExplorerTreeNode grandchild in child.Children)
+                        lines.Add("    " + grandchild.Title);
+                }
+                else
+                {
+                    lines.Add("  " + child.Title);
+                }
+            }
+
+            blocks.Add(string.Join(Environment.NewLine, lines));
+        }
+
+        return string.Join(Environment.NewLine + Environment.NewLine, blocks);
+    }
+
     public static TagExplorerSpecialFilters ParseSpecialFilters(string searchText)
     {
         var tags = new HashSet<int>();
@@ -92,6 +142,89 @@ public static class TagExplorerModel
 
         return new TagExplorerSpecialFilters(tags, actions, polyobjects);
     }
+
+    private static void AddKindRoot(
+        List<TagExplorerTreeNode> roots,
+        IReadOnlyList<TagExplorerEntry> entries,
+        TagExplorerEntryKind kind,
+        string title,
+        TagExplorerOptions options,
+        IReadOnlyDictionary<int, string>? tagLabels)
+    {
+        var kindEntries = entries.Where(entry => entry.Kind == kind).ToList();
+        if (kindEntries.Count == 0) return;
+
+        kindEntries.Sort(Comparer(options.SortMode, options.DisplayMode));
+        IReadOnlyList<TagExplorerTreeNode> children = options.SortMode switch
+        {
+            TagExplorerSortMode.ByTag => GroupByTag(kindEntries, options.SortMode, tagLabels),
+            TagExplorerSortMode.ByAction => GroupByAction(kindEntries, kind, options.SortMode),
+            _ => kindEntries.Select(entry => EntryNode(entry, options.SortMode)).ToList(),
+        };
+
+        roots.Add(new TagExplorerTreeNode(title, null, children));
+    }
+
+    private static IReadOnlyList<TagExplorerTreeNode> GroupByTag(
+        IReadOnlyList<TagExplorerEntry> entries,
+        TagExplorerSortMode sortMode,
+        IReadOnlyDictionary<int, string>? tagLabels)
+    {
+        var nodes = new List<TagExplorerTreeNode>();
+        foreach (var group in entries.Where(entry => entry.Tag != 0).GroupBy(entry => entry.Tag).OrderBy(group => group.Key))
+        {
+            string title = "Tag " + group.Key;
+            if (tagLabels != null && tagLabels.TryGetValue(group.Key, out string? label))
+                title += ": " + label;
+
+            nodes.Add(new TagExplorerTreeNode(title, null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
+        }
+
+        var noTag = entries.Where(entry => entry.Tag == 0).Select(entry => EntryNode(entry, sortMode)).ToList();
+        if (noTag.Count > 0) nodes.Add(new TagExplorerTreeNode("No Tag", null, noTag));
+        return nodes;
+    }
+
+    private static IReadOnlyList<TagExplorerTreeNode> GroupByAction(
+        IReadOnlyList<TagExplorerEntry> entries,
+        TagExplorerEntryKind kind,
+        TagExplorerSortMode sortMode)
+    {
+        var nodes = new List<TagExplorerTreeNode>();
+        foreach (var group in entries.Where(entry => entry.Action != 0).GroupBy(entry => entry.Action).OrderBy(group => group.Key))
+            nodes.Add(new TagExplorerTreeNode(ActionGroupTitle(kind, group.Key), null, group.Select(entry => EntryNode(entry, sortMode)).ToList()));
+
+        var noAction = entries.Where(entry => entry.Action == 0).Select(entry => EntryNode(entry, sortMode)).ToList();
+        if (noAction.Count > 0) nodes.Add(new TagExplorerTreeNode(kind == TagExplorerEntryKind.Sector ? "No Effect" : "No Action", null, noAction));
+        return nodes;
+    }
+
+    private static string ActionGroupTitle(TagExplorerEntryKind kind, int action)
+        => kind == TagExplorerEntryKind.Sector ? "Effect " + action : "Action " + action;
+
+    private static TagExplorerTreeNode EntryNode(TagExplorerEntry entry, TagExplorerSortMode sortMode)
+        => new(EntryTitle(entry, sortMode), entry, Array.Empty<TagExplorerTreeNode>());
+
+    private static string EntryTitle(TagExplorerEntry entry, TagExplorerSortMode sortMode)
+    {
+        string name = entry.Comment.Length > 0 ? entry.Comment : entry.DefaultName;
+        return sortMode switch
+        {
+            TagExplorerSortMode.ByAction => (entry.Tag > 0 ? "Tag " + entry.Tag + ": " : "") + name + ", Index " + entry.Index,
+            TagExplorerSortMode.ByTag => (entry.Action > 0 ? "Action " + entry.Action + ": " : "") + name + ", Index " + entry.Index,
+            TagExplorerSortMode.ByPolyobjectNumber => "PO " + entry.PolyobjectNumber + ": " + entry.DefaultName + ", Index " + entry.Index,
+            _ => entry.Index + ": " + name + (entry.Tag > 0 ? ", Tag " + entry.Tag : "") + (entry.Action > 0 ? ", Action " + entry.Action : ""),
+        };
+    }
+
+    private static string SortModeTitle(TagExplorerSortMode sortMode)
+        => sortMode switch
+        {
+            TagExplorerSortMode.ByAction => "By Action Special",
+            TagExplorerSortMode.ByTag => "By Tag",
+            TagExplorerSortMode.ByPolyobjectNumber => "By Polyobject Number",
+            _ => "By Index",
+        };
 
     private static void AddThings(
         List<TagExplorerEntry> entries,

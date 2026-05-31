@@ -931,6 +931,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
+  - [x] Add UDB-style grouped Tag Explorer tree and export text model.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.

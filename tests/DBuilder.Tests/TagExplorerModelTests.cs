@@ -131,4 +131,69 @@ public sealed class TagExplorerModelTests
             entries.Select(e => e.Kind));
         Assert.Equal(new[] { 7, 22 }, entries.Select(e => e.PolyobjectNumber));
     }
+
+    [Fact]
+    public void BuildTreeGroupsEntriesByKindAndTagWithLabels()
+    {
+        var map = new MapSet();
+        var thing = map.AddThing(new Vector2D(0, 0), 1);
+        thing.Tag = 7;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tag = 7;
+        line.Action = 80;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByTag);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, null, options);
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(
+            entries,
+            options,
+            new Dictionary<int, string> { [7] = "Door group" });
+
+        Assert.Equal(new[] { "Things:", "Linedefs:" }, tree.Select(node => node.Title));
+        Assert.Equal("Tag 7: Door group", tree[0].Children[0].Title);
+        Assert.Equal("Thing, Index 0", tree[0].Children[0].Children[0].Title);
+        Assert.Equal("Action 80: Linedef, Index 0", tree[1].Children[0].Children[0].Title);
+    }
+
+    [Fact]
+    public void BuildTreeGroupsEntriesByActionAndLeavesNoActionLast()
+    {
+        var map = new MapSet();
+        var first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        first.Tag = 1;
+        var second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+        second.Tag = 2;
+        second.Action = 80;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByAction);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, null, options);
+        TagExplorerTreeNode linedefs = Assert.Single(TagExplorerModel.BuildTree(entries, options));
+
+        Assert.Equal("Linedefs:", linedefs.Title);
+        Assert.Equal(new[] { "Action 80", "No Action" }, linedefs.Children.Select(node => node.Title));
+        Assert.Equal("Tag 2: Linedef, Index 1", linedefs.Children[0].Children[0].Title);
+        Assert.Equal("Tag 1: Linedef, Index 0", linedefs.Children[1].Children[0].Title);
+    }
+
+    [Fact]
+    public void ExportTreeTextMatchesUdbIndentedShape()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.Tag = 7;
+        sector.Special = 9;
+        sector.Fields["comment"] = "Tagged lift";
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByTag);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, null, options);
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, options);
+
+        string text = TagExplorerModel.ExportTreeText(tree, options.SortMode);
+
+        Assert.Equal(
+            "Sectors (by tag):" + Environment.NewLine +
+            "  Tag 7:" + Environment.NewLine +
+            "    Action 9: Tagged lift, Index 0",
+            text);
+    }
 }
