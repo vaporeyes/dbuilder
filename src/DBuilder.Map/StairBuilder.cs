@@ -183,6 +183,119 @@ public sealed record StairBuilderStraightOptions
     public bool SideFront { get; init; } = true;
 }
 
+public sealed record StairBuilderPrefab
+{
+    public string Name { get; init; } = "";
+    public int NumberOfSectors { get; init; } = 1;
+    public int OuterVertexMultiplier { get; init; } = 1;
+    public int InnerVertexMultiplier { get; init; } = 1;
+    public int StairType { get; init; }
+    public int SectorDepth { get; init; } = 32;
+    public int Spacing { get; init; }
+    public bool FrontSide { get; init; } = true;
+    public bool SingleSteps { get; init; }
+    public bool DistinctSectors { get; init; }
+    public bool SingleDirection { get; init; }
+    public bool DistinctBaseHeights { get; init; }
+    public int Flipping { get; init; }
+    public int NumberOfControlPoints { get; init; } = 1;
+    public bool ApplyFloorHeight { get; init; }
+    public int FloorStep { get; init; }
+    public bool ApplyCeilingHeight { get; init; }
+    public int CeilingStep { get; init; }
+    public bool ApplyFloorTexture { get; init; }
+    public string FloorTexture { get; init; } = "-";
+    public bool ApplyCeilingTexture { get; init; }
+    public string CeilingTexture { get; init; } = "-";
+    public bool ApplyUpperTexture { get; init; }
+    public string UpperTexture { get; init; } = "-";
+    public bool UpperUnpegged { get; init; }
+    public bool ApplyMiddleTexture { get; init; }
+    public string MiddleTexture { get; init; } = "-";
+    public bool ApplyLowerTexture { get; init; }
+    public string LowerTexture { get; init; } = "-";
+    public bool LowerUnpegged { get; init; }
+
+    public Dictionary<string, object> ToSettingsDictionary()
+        => new()
+        {
+            ["name"] = Name,
+            ["numberofsectors"] = NumberOfSectors,
+            ["outervertexmultiplier"] = OuterVertexMultiplier,
+            ["innervertexmultiplier"] = InnerVertexMultiplier,
+            ["stairtype"] = StairType,
+            ["sectordepth"] = SectorDepth,
+            ["spacing"] = Spacing,
+            ["frontside"] = FrontSide,
+            ["singlesectors"] = SingleSteps,
+            ["distinctsectors"] = DistinctSectors,
+            ["singledirection"] = SingleDirection,
+            ["distinctbaseheights"] = DistinctBaseHeights,
+            ["flipping"] = Flipping,
+            ["numberofcontrolpoints"] = NumberOfControlPoints,
+            ["applyfloormod"] = ApplyFloorHeight,
+            ["floormod"] = FloorStep,
+            ["applyceilingmod"] = ApplyCeilingHeight,
+            ["ceilingmod"] = CeilingStep,
+            ["applyfloortexture"] = ApplyFloorTexture,
+            ["floortexture"] = FloorTexture,
+            ["applyceilingtexture"] = ApplyCeilingTexture,
+            ["ceilingtexture"] = CeilingTexture,
+            ["applyuppertexture"] = ApplyUpperTexture,
+            ["uppertexture"] = UpperTexture,
+            ["upperunpegged"] = UpperUnpegged,
+            ["applymiddletexture"] = ApplyMiddleTexture,
+            ["middletexture"] = MiddleTexture,
+            ["applylowertexture"] = ApplyLowerTexture,
+            ["lowertexture"] = LowerTexture,
+            ["lowerunpegged"] = LowerUnpegged,
+        };
+
+    public static StairBuilderPrefab FromSettingsDictionary(IReadOnlyDictionary<string, object> settings)
+        => new()
+        {
+            Name = ReadString(settings, "name", ""),
+            NumberOfSectors = ReadInt(settings, "numberofsectors", 1),
+            OuterVertexMultiplier = ReadInt(settings, "outervertexmultiplier", 1),
+            InnerVertexMultiplier = ReadInt(settings, "innervertexmultiplier", 1),
+            StairType = ReadInt(settings, "stairtype", 0),
+            SectorDepth = ReadInt(settings, "sectordepth", 32),
+            Spacing = ReadInt(settings, "spacing", 0),
+            FrontSide = ReadBool(settings, "frontside", true),
+            SingleSteps = ReadBool(settings, "singlesectors", false),
+            DistinctSectors = ReadBool(settings, "distinctsectors", false),
+            SingleDirection = ReadBool(settings, "singledirection", false),
+            DistinctBaseHeights = ReadBool(settings, "distinctbaseheights", false),
+            Flipping = ReadInt(settings, "flipping", 0),
+            NumberOfControlPoints = ReadInt(settings, "numberofcontrolpoints", 1),
+            ApplyFloorHeight = ReadBool(settings, "applyfloormod", false),
+            FloorStep = ReadInt(settings, "floormod", 0),
+            ApplyCeilingHeight = ReadBool(settings, "applyceilingmod", false),
+            CeilingStep = ReadInt(settings, "ceilingmod", 0),
+            ApplyFloorTexture = ReadBool(settings, "applyfloortexture", false),
+            FloorTexture = ReadString(settings, "floortexture", "-"),
+            ApplyCeilingTexture = ReadBool(settings, "applyceilingtexture", false),
+            CeilingTexture = ReadString(settings, "ceilingtexture", "-"),
+            ApplyUpperTexture = ReadBool(settings, "applyuppertexture", false),
+            UpperTexture = ReadString(settings, "uppertexture", "-"),
+            UpperUnpegged = ReadBool(settings, "upperunpegged", false),
+            ApplyMiddleTexture = ReadBool(settings, "applymiddletexture", false),
+            MiddleTexture = ReadString(settings, "middletexture", "-"),
+            ApplyLowerTexture = ReadBool(settings, "applylowertexture", false),
+            LowerTexture = ReadString(settings, "lowertexture", "-"),
+            LowerUnpegged = ReadBool(settings, "lowerunpegged", false),
+        };
+
+    private static int ReadInt(IReadOnlyDictionary<string, object> settings, string key, int fallback)
+        => settings.TryGetValue(key, out object? value) && value is int typed ? typed : fallback;
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object> settings, string key, bool fallback)
+        => settings.TryGetValue(key, out object? value) && value is bool typed ? typed : fallback;
+
+    private static string ReadString(IReadOnlyDictionary<string, object> settings, string key, string fallback)
+        => settings.TryGetValue(key, out object? value) && value is string typed ? typed : fallback;
+}
+
 public sealed class StairBuilderOptions
 {
     public bool ApplyFloorHeight { get; init; } = true;

@@ -318,4 +318,104 @@ public class StairBuilderTests
         Assert.Empty(sectors);
         Assert.Empty(map.Sectors);
     }
+
+    [Fact]
+    public void PrefabSettingsDictionaryUsesUdbKeys()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            Name = "Test",
+            NumberOfSectors = 5,
+            OuterVertexMultiplier = 3,
+            InnerVertexMultiplier = 2,
+            StairType = 1,
+            SectorDepth = 64,
+            Spacing = 8,
+            FrontSide = false,
+            SingleSteps = true,
+            DistinctSectors = true,
+            SingleDirection = true,
+            DistinctBaseHeights = true,
+            Flipping = 2,
+            NumberOfControlPoints = 4,
+            ApplyFloorHeight = true,
+            FloorStep = 16,
+            ApplyCeilingHeight = true,
+            CeilingStep = -8,
+            ApplyFloorTexture = true,
+            FloorTexture = "FLOOR",
+            ApplyCeilingTexture = true,
+            CeilingTexture = "CEIL",
+            ApplyUpperTexture = true,
+            UpperTexture = "UPPER",
+            UpperUnpegged = true,
+            ApplyMiddleTexture = true,
+            MiddleTexture = "MID",
+            ApplyLowerTexture = true,
+            LowerTexture = "LOWER",
+            LowerUnpegged = true
+        };
+
+        Dictionary<string, object> settings = prefab.ToSettingsDictionary();
+
+        Assert.Equal("Test", settings["name"]);
+        Assert.Equal(5, settings["numberofsectors"]);
+        Assert.Equal(3, settings["outervertexmultiplier"]);
+        Assert.Equal(2, settings["innervertexmultiplier"]);
+        Assert.Equal(1, settings["stairtype"]);
+        Assert.Equal(64, settings["sectordepth"]);
+        Assert.Equal(8, settings["spacing"]);
+        Assert.False((bool)settings["frontside"]);
+        Assert.True((bool)settings["singlesectors"]);
+        Assert.True((bool)settings["distinctsectors"]);
+        Assert.True((bool)settings["singledirection"]);
+        Assert.True((bool)settings["distinctbaseheights"]);
+        Assert.Equal(2, settings["flipping"]);
+        Assert.Equal(4, settings["numberofcontrolpoints"]);
+        Assert.True((bool)settings["applyfloormod"]);
+        Assert.Equal(16, settings["floormod"]);
+        Assert.True((bool)settings["applyceilingmod"]);
+        Assert.Equal(-8, settings["ceilingmod"]);
+        Assert.True((bool)settings["applyfloortexture"]);
+        Assert.Equal("FLOOR", settings["floortexture"]);
+        Assert.True((bool)settings["applyceilingtexture"]);
+        Assert.Equal("CEIL", settings["ceilingtexture"]);
+        Assert.True((bool)settings["applyuppertexture"]);
+        Assert.Equal("UPPER", settings["uppertexture"]);
+        Assert.True((bool)settings["upperunpegged"]);
+        Assert.True((bool)settings["applymiddletexture"]);
+        Assert.Equal("MID", settings["middletexture"]);
+        Assert.True((bool)settings["applylowertexture"]);
+        Assert.Equal("LOWER", settings["lowertexture"]);
+        Assert.True((bool)settings["lowerunpegged"]);
+        Assert.False(settings.ContainsKey("singlesteps"));
+    }
+
+    [Fact]
+    public void PrefabSettingsDictionaryRoundTripsAndUsesUdbDefaults()
+    {
+        var settings = new Dictionary<string, object>
+        {
+            ["name"] = "Loaded",
+            ["singlesectors"] = true,
+            ["floormod"] = 12,
+            ["floortexture"] = "STEP"
+        };
+
+        StairBuilderPrefab prefab = StairBuilderPrefab.FromSettingsDictionary(settings);
+
+        Assert.Equal("Loaded", prefab.Name);
+        Assert.True(prefab.SingleSteps);
+        Assert.Equal(12, prefab.FloorStep);
+        Assert.Equal("STEP", prefab.FloorTexture);
+        Assert.Equal(1, prefab.NumberOfSectors);
+        Assert.Equal(1, prefab.OuterVertexMultiplier);
+        Assert.Equal(1, prefab.InnerVertexMultiplier);
+        Assert.Equal(32, prefab.SectorDepth);
+        Assert.True(prefab.FrontSide);
+        Assert.Equal("-", prefab.CeilingTexture);
+        Assert.Equal("-", prefab.UpperTexture);
+        Assert.Equal("-", prefab.MiddleTexture);
+        Assert.Equal("-", prefab.LowerTexture);
+    }
 }
