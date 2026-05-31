@@ -70,6 +70,18 @@ public static class ScriptCompilerErrors
         IEnumerable<string> lines,
         string tempPath,
         string workingDirectory)
+        => ParseBccFormat(lines, tempPath, workingDirectory);
+
+    public static IReadOnlyList<ScriptCompilerError> ParseZtBcc(
+        IEnumerable<string> stderrLines,
+        string tempPath,
+        string workingDirectory)
+        => ParseBccFormat(stderrLines, tempPath, workingDirectory);
+
+    private static IReadOnlyList<ScriptCompilerError> ParseBccFormat(
+        IEnumerable<string> lines,
+        string tempPath,
+        string workingDirectory)
     {
         var errors = new List<ScriptCompilerError>();
         foreach (string line in lines)

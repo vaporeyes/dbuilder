@@ -846,6 +846,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port nodes compiler integration.
 - [ ] Port compiler error parsing and display.
   - [x] Parse UDB-style ACC and BCC compiler error lines into file, line, and description metadata.
+  - [x] Parse UDB-style ZT-BCC stderr error lines into file, line, and description metadata.
   - [x] Parse UDB-style ACC compiler errors when Windows paths contain drive-letter colons.
   - [x] Strip Windows-style ACC temporary compiler paths before resolving source files.
 

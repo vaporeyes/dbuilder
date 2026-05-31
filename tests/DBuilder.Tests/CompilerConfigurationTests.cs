@@ -281,4 +281,32 @@ public class CompilerConfigurationTests
         Assert.Equal(Path.Combine("/maps/project", "libs/common.acs"), error.FileName);
         Assert.Equal(7, error.LineNumber);
     }
+
+    [Fact]
+    public void ScriptCompilerErrorsParseZtBccStderrLines()
+    {
+        var errors = ScriptCompilerErrors.ParseZtBcc(
+            new[] { "scripts/main.acs:10:2: Unknown identifier" },
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown identifier", error.Description);
+        Assert.Equal(Path.Combine("/maps/project", "scripts/main.acs"), error.FileName);
+        Assert.Equal(9, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsFallbackForUnformattedZtBccStderr()
+    {
+        var errors = ScriptCompilerErrors.ParseZtBcc(
+            new[] { "fatal: compiler crashed", "details unavailable" },
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal($"fatal: compiler crashed{Environment.NewLine}details unavailable", error.Description);
+        Assert.Equal("", error.FileName);
+        Assert.Equal(-1, error.LineNumber);
+    }
 }
