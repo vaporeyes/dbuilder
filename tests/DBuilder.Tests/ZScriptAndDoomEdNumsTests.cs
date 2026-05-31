@@ -252,6 +252,26 @@ class DuplicateZThing : Actor
     }
 
     [Fact]
+    public void RejectsDuplicateZScriptMixinDefinitions()
+    {
+        const string text = @"
+mixin class DuplicateMixin
+{
+    Default { Radius 16; }
+}
+mixin class DuplicateMixin
+{
+    Default { Radius 64; }
+}
+class AfterDuplicateMixin : Actor
+{
+    Default { Radius 8; }
+}";
+
+        Assert.Empty(ZScriptParser.Parse(text));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipLineComment()
     {
         const string text = @"
