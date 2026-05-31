@@ -3150,7 +3150,10 @@ public partial class MainWindow : Window
         var sel = _map.GetSelectedSectors();
         if (sel.Count != 1) { SetStatus("Select exactly one sector to trace sound from."); return; }
 
-        var reach = SoundPropagation.Reachable(_map, sel[0]);
+        bool udmf = _mapFormat == MapFormat.Udmf;
+        var reach = SoundPropagation.Reachable(_map, sel[0], udmf: udmf);
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(_map, udmf: udmf);
+        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, sel[0]), 128);
         _map.ClearAllSelected();
         int direct = 0, viaBlock = 0;
         foreach (var (s, level) in reach) { s.Selected = true; if (level == 1) direct++; else viaBlock++; }

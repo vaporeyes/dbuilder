@@ -168,6 +168,19 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void ReachableHonorsUdmfBlockSoundFlag()
+    {
+        var (map, s) = Chain(3, new[] { false, false });
+        map.Linedefs[1].SetFlag(SoundPropagation.DefaultUdmfSoundBlockFlag, true);
+
+        Dictionary<Sector, int> reach = SoundPropagation.Reachable(map, s[0], udmf: true);
+
+        Assert.Equal(1, reach[s[0]]);
+        Assert.Equal(1, reach[s[1]]);
+        Assert.Equal(2, reach[s[2]]);
+    }
+
+    [Fact]
     public void HeightBlockedSoundLineIsNotAdjacent()
     {
         var (map, s) = Chain(3, new[] { true, false });
@@ -272,5 +285,36 @@ public class SoundPropagationTests
         Assert.Equal(colors.DistinctDomainColors[1], colors.DomainColorForIndex(1));
         Assert.Equal(colors.DistinctDomainColors[0], colors.DomainColorForIndex(colors.DistinctDomainColors.Count));
         Assert.Equal(colors.DistinctDomainColors[^1], colors.DomainColorForIndex(-1));
+    }
+
+    [Fact]
+    public void SectorOverlayColorsUseDomainPaletteWithoutHighlight()
+    {
+        var (map, s) = Chain(4, new[] { false, true, false });
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+        SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;
+
+        uint[] overlay = model.SectorOverlayColors(map.Sectors, highlightedSector: null, colors);
+
+        Assert.Equal(colors.DistinctDomainColors[0], overlay[0]);
+        Assert.Equal(colors.DistinctDomainColors[0], overlay[1]);
+        Assert.Equal(colors.DistinctDomainColors[1], overlay[2]);
+        Assert.Equal(colors.DistinctDomainColors[1], overlay[3]);
+    }
+
+    [Fact]
+    public void SectorOverlayColorsUseUdbHighlightedDomainLevels()
+    {
+        var (map, s) = Chain(5, new[] { false, true, false, true });
+        SoundPropagationModeModel model = SoundPropagation.BuildModeModel(map);
+        SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;
+
+        uint[] overlay = model.SectorOverlayColors(map.Sectors, s[0], colors);
+
+        Assert.Equal(colors.HighlightColor, overlay[0]);
+        Assert.Equal(colors.Level1Color, overlay[1]);
+        Assert.Equal(colors.Level2Color, overlay[2]);
+        Assert.Equal(colors.Level2Color, overlay[3]);
+        Assert.Equal(colors.NoSoundColor, overlay[4]);
     }
 }

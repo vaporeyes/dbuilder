@@ -92,6 +92,54 @@ public sealed class SoundPropagationModeModel
     public SoundPropagationDomain? GetDomain(Sector sector)
         => sectorDomains.TryGetValue(sector, out SoundPropagationDomain? domain) ? domain : null;
 
+    public uint[] SectorOverlayColors(
+        IReadOnlyList<Sector> sectors,
+        Sector? highlightedSector,
+        SoundPropagationColorSettings? colors = null)
+    {
+        colors ??= SoundPropagationColorSettings.Default;
+        var result = new uint[sectors.Count];
+
+        if (highlightedSector == null || !sectorDomains.TryGetValue(highlightedSector, out SoundPropagationDomain? highlightedDomain))
+        {
+            for (int i = 0; i < sectors.Count; i++)
+            {
+                if (!sectorDomains.TryGetValue(sectors[i], out SoundPropagationDomain? domain)) continue;
+
+                int domainIndex = 0;
+                for (; domainIndex < domains.Count; domainIndex++)
+                    if (ReferenceEquals(domains[domainIndex], domain)) break;
+
+                result[i] = colors.DomainColorForIndex(domainIndex);
+            }
+
+            return result;
+        }
+
+        Array.Fill(result, colors.NoSoundColor);
+
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            Sector sector = sectors[i];
+            if (highlightedDomain.Sectors.Contains(sector))
+                result[i] = colors.Level1Color;
+        }
+
+        foreach (Sector adjacent in highlightedDomain.AdjacentSectors)
+        {
+            if (!sectorDomains.TryGetValue(adjacent, out SoundPropagationDomain? adjacentDomain)) continue;
+            for (int i = 0; i < sectors.Count; i++)
+                if (adjacentDomain.Sectors.Contains(sectors[i]))
+                    result[i] = colors.Level2Color;
+        }
+
+        for (int i = 0; i < sectors.Count; i++)
+            if (ReferenceEquals(sectors[i], highlightedSector))
+                result[i] = colors.HighlightColor;
+
+        return result;
+    }
+
     public IReadOnlySet<Sector> GetAffectedSectors(Sector highlighted)
     {
         if (!sectorDomains.TryGetValue(highlighted, out SoundPropagationDomain? domain))
@@ -170,7 +218,12 @@ public static class SoundPropagation
     /// Returns every sector reachable by sound from <paramref name="start"/>, mapped to its level: 1 = heard
     /// directly, 2 = heard only after crossing one sound-blocking line. Requires <see cref="MapSet.BuildIndexes"/>.
     /// </summary>
-    public static Dictionary<Sector, int> Reachable(MapSet map, Sector start, int soundBlockBit = DefaultSoundBlockBit)
+    public static Dictionary<Sector, int> Reachable(
+        MapSet map,
+        Sector start,
+        int soundBlockBit = DefaultSoundBlockBit,
+        string soundBlockFlag = DefaultUdmfSoundBlockFlag,
+        bool udmf = false)
     {
         var traversed = new Dictionary<Sector, int>(ReferenceEqualityComparer.Instance);
         Recurse(start, 0);
@@ -191,7 +244,7 @@ public static class SoundPropagation
                 var other = ReferenceEquals(line.Front.Sector, sec) ? line.Back.Sector : line.Front.Sector;
                 if (other == null || ReferenceEquals(other, sec)) continue;
 
-                if ((line.Flags & soundBlockBit) != 0)
+                if (IsSoundBlocking(line, soundBlockBit, soundBlockFlag, udmf))
                 {
                     if (soundblocks == 0) Recurse(other, 1); // sound passes one block line, then stops at the next
                 }

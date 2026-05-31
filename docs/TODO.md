@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 2004 tests.
+- Current verified baseline: `scripts/verify.sh` passes 2007 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -693,6 +693,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port slope editing behavior fully.
 - [ ] Port sound propagation editing behavior fully.
   - [x] Block sound propagation across closed-height two-sided lines.
+  - [x] Honor UDMF `blocksound` flags in editor sound reachability tracing.
 - [ ] Port 3D floor editing behavior fully.
 - [ ] Port geometry cleanup tools.
   - [x] Add menu command for reference, unused sector, and unused vertex cleanup.
@@ -920,6 +921,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
+  - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
 - [ ] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
   - [x] Add UDB-style straight stair geometry planning from selected linedefs, including front/back side and spacing.
@@ -1072,6 +1074,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Render highlighted-sector relation overlay colors in the editor.
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
+  - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
 - [ ] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
 - [ ] Port tag explorer tree behavior.

@@ -137,7 +137,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -370,6 +370,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
     private Vec2D[][] _nodePolygons = System.Array.Empty<Vec2D[]>();
     private int[] _rejectOverlayColors = System.Array.Empty<int>();
+    private byte _rejectOverlayAlpha = 96;
     private bool _rejectOverlayDirty;
 
     /// <summary>When true, overlays the BSP node partition lines (set via <see cref="SetNodeLines"/>).</summary>
@@ -403,6 +404,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     public void SetRejectOverlayColors(System.Collections.Generic.IReadOnlyList<int>? sectorColors)
+        => SetSectorOverlayColors(sectorColors, 96);
+
+    public void SetSectorOverlayColors(System.Collections.Generic.IReadOnlyList<uint>? sectorColors, byte alpha = 96)
+    {
+        if (sectorColors == null || sectorColors.Count == 0)
+        {
+            _rejectOverlayColors = System.Array.Empty<int>();
+        }
+        else
+        {
+            _rejectOverlayColors = new int[sectorColors.Count];
+            for (int i = 0; i < sectorColors.Count; i++) _rejectOverlayColors[i] = unchecked((int)sectorColors[i]);
+        }
+
+        _rejectOverlayAlpha = alpha;
+        _rejectOverlayDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    private void SetSectorOverlayColors(System.Collections.Generic.IReadOnlyList<int>? sectorColors, byte alpha)
     {
         if (sectorColors == null || sectorColors.Count == 0)
         {
@@ -414,6 +435,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             for (int i = 0; i < sectorColors.Count; i++) _rejectOverlayColors[i] = sectorColors[i];
         }
 
+        _rejectOverlayAlpha = alpha;
         _rejectOverlayDirty = true;
         RequestNextFrameRendering();
     }
@@ -2053,7 +2075,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 try { tri = Triangulation.Create(sector); }
                 catch { continue; }
 
-                int color = WithAlpha(_rejectOverlayColors[i], 96);
+                int color = WithAlpha(_rejectOverlayColors[i], _rejectOverlayAlpha);
                 foreach (Vec2D point in tri.Vertices)
                     verts.Add(FV(point, color));
             }
