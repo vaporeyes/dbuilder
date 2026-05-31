@@ -109,6 +109,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisplaneExplorerModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.mode-visplane-explorer");
+
+        Assert.NotNull(command);
+        Assert.Equal("Visplane Explorer Mode", command.Title);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal("visplaneexplorermode", VisplaneExplorerInterfaceModel.ModeDescriptor.SwitchAction);
+    }
+
+    [Fact]
     public void DefaultShortcutsReferenceKnownCommands()
     {
         var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);

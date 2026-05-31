@@ -51,6 +51,31 @@ public readonly record struct VisplaneHoverInfo(int Value, int StaticLimit, bool
         => $"{Value}{(Overflow ? "+" : "")} / {StaticLimit}";
 }
 
+public sealed record VisplaneExplorerModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool Volatile,
+    bool UseByDefault,
+    IReadOnlyList<string> SupportedMapFormats,
+    bool AllowCopyPaste);
+
+public sealed record VisplaneExplorerInterfaceSettings(
+    bool OpenDoors,
+    bool ShowHeatmap,
+    int ViewHeight,
+    int ViewHeightCustom);
+
+public sealed record VisplaneExplorerViewHeightState(
+    int ViewHeight,
+    int ViewHeightCustom,
+    string ButtonText,
+    bool CustomItemVisible,
+    string CustomItemText,
+    bool SettingsChanged);
+
 public static class VisplaneExplorerViewHeight
 {
     public const int DefaultCustomHeight = 0;
@@ -92,6 +117,101 @@ public static class VisplaneExplorerViewHeight
 
         prefix = "";
         return text;
+    }
+}
+
+public static class VisplaneExplorerInterfaceModel
+{
+    public const string OpenDoorsSettingsKey = "opendoors";
+    public const string ShowHeatmapSettingsKey = "showheatmap";
+    public const string ViewHeightSettingsKey = "viewheight";
+    public const string ViewHeightCustomSettingsKey = "viewheightcustom";
+
+    public static VisplaneExplorerModeDescriptor ModeDescriptor { get; } = new(
+        "Visplane Explorer",
+        "visplaneexplorermode",
+        "Gauge.png",
+        300,
+        "002_tools",
+        Volatile: true,
+        UseByDefault: true,
+        new[] { "DoomMapSetIO", "HexenMapSetIO" },
+        AllowCopyPaste: false);
+
+    public static VisplaneExplorerInterfaceSettings CreateSettings(
+        IReadOnlyDictionary<string, object?> settings,
+        int viewHeightDefault)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new VisplaneExplorerInterfaceSettings(
+            ReadBool(settings, OpenDoorsSettingsKey, false),
+            ReadBool(settings, ShowHeatmapSettingsKey, false),
+            ReadInt(settings, ViewHeightSettingsKey, viewHeightDefault),
+            ReadInt(settings, ViewHeightCustomSettingsKey, 0));
+    }
+
+    public static VisplaneExplorerViewHeightState ViewHeightState(int viewHeight, int viewHeightCustom)
+        => new(
+            viewHeight,
+            viewHeightCustom,
+            FormatViewHeightButtonText(viewHeight),
+            viewHeightCustom > 0,
+            viewHeightCustom > 0 ? viewHeightCustom.ToString(CultureInfo.InvariantCulture) + " - Custom" : "",
+            SettingsChanged: false);
+
+    public static VisplaneExplorerViewHeightState SelectViewHeight(int currentViewHeight, int selectedViewHeight)
+        => ViewHeightState(selectedViewHeight, VisplaneExplorerViewHeight.DefaultCustomHeight) with
+        {
+            SettingsChanged = currentViewHeight != selectedViewHeight,
+        };
+
+    public static VisplaneExplorerViewHeightState ApplyCustomViewHeight(
+        int currentViewHeight,
+        int currentCustomHeight,
+        string? customInput,
+        int viewHeightDefault,
+        IReadOnlyDictionary<string, string> configuredViewHeights)
+    {
+        ArgumentNullException.ThrowIfNull(configuredViewHeights);
+
+        int customHeight = VisplaneExplorerViewHeight.NormalizeCustomHeightInput(customInput);
+        int viewHeight = customHeight > 0 ? customHeight : viewHeightDefault;
+        int visibleCustomHeight = configuredViewHeights.ContainsKey(customHeight.ToString(CultureInfo.InvariantCulture))
+            ? 0
+            : customHeight;
+
+        return ViewHeightState(viewHeight, visibleCustomHeight) with
+        {
+            SettingsChanged = currentViewHeight != viewHeight || currentCustomHeight != visibleCustomHeight,
+        };
+    }
+
+    public static string FormatViewHeightButtonText(int viewHeight)
+        => "View Height (" + viewHeight.ToString(CultureInfo.InvariantCulture) + ")";
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return fallback;
+        return value switch
+        {
+            bool b => b,
+            string s when bool.TryParse(s, out bool b) => b,
+            int i => i != 0,
+            _ => fallback,
+        };
+    }
+
+    private static int ReadInt(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return fallback;
+        return value switch
+        {
+            int i => i,
+            long l when l is >= int.MinValue and <= int.MaxValue => (int)l,
+            string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) => i,
+            _ => fallback,
+        };
     }
 }
 

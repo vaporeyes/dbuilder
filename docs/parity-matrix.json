@@ -220,7 +220,7 @@
       "udbPlugin": "VisplaneExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map;DBuilder.IO",
-      "notes": "UDB-style VisplaneExplorer 64x64 tile model exists, including progressive butterfly sampling order, point result sentinels, packed visplanes/drawsegs/solidsegs/openings counters, UDB stat compression, heatmap byte interpolation from configured visplane static limits, palette row storage, heatmap palette selection, void-color overrides, tile coordinate flooring, view-prioritized scan queueing, map-bound tile creation with one-sided outside-tile culling, NODES preflight checks for missing, empty, and ZDBSP node lumps, tile hover value labels with overflow markers, and custom view-height input normalization. Native VPO execution, editor overlay rendering, and full UI remain incomplete."
+      "notes": "UDB-style VisplaneExplorer 64x64 tile model exists, including progressive butterfly sampling order, point result sentinels, packed visplanes/drawsegs/solidsegs/openings counters, UDB stat compression, heatmap byte interpolation from configured visplane static limits, palette row storage, heatmap palette selection, void-color overrides, tile coordinate flooring, view-prioritized scan queueing, map-bound tile creation with one-sided outside-tile culling, NODES preflight checks for missing, empty, and ZDBSP node lumps, tile hover value labels with overflow markers, custom view-height input normalization, mode/action metadata, and toolbar settings state for open doors, heatmap, and view height. Native VPO execution, editor overlay rendering, and full UI remain incomplete."
     },
     {
       "udbPlugin": "WadAuthorMode",

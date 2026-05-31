@@ -8,6 +8,133 @@ namespace DBuilder.Tests;
 
 public class VisplaneExplorerModelTests
 {
+    [Fact]
+    public void ModeDescriptorMatchesUdbEditModeAttribute()
+    {
+        VisplaneExplorerModeDescriptor descriptor = VisplaneExplorerInterfaceModel.ModeDescriptor;
+
+        Assert.Equal("Visplane Explorer", descriptor.DisplayName);
+        Assert.Equal("visplaneexplorermode", descriptor.SwitchAction);
+        Assert.Equal("Gauge.png", descriptor.ButtonImage);
+        Assert.Equal(300, descriptor.ButtonOrder);
+        Assert.Equal("002_tools", descriptor.ButtonGroup);
+        Assert.True(descriptor.Volatile);
+        Assert.True(descriptor.UseByDefault);
+        Assert.Equal(new[] { "DoomMapSetIO", "HexenMapSetIO" }, descriptor.SupportedMapFormats);
+        Assert.False(descriptor.AllowCopyPaste);
+    }
+
+    [Fact]
+    public void InterfaceSettingsDefaultsMatchUdbPluginSettings()
+    {
+        VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(
+            new Dictionary<string, object?>(),
+            viewHeightDefault: 41);
+
+        Assert.False(settings.OpenDoors);
+        Assert.False(settings.ShowHeatmap);
+        Assert.Equal(41, settings.ViewHeight);
+        Assert.Equal(0, settings.ViewHeightCustom);
+    }
+
+    [Fact]
+    public void InterfaceSettingsReadStoredPluginValues()
+    {
+        VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(
+            new Dictionary<string, object?>
+            {
+                [VisplaneExplorerInterfaceModel.OpenDoorsSettingsKey] = true,
+                [VisplaneExplorerInterfaceModel.ShowHeatmapSettingsKey] = "true",
+                [VisplaneExplorerInterfaceModel.ViewHeightSettingsKey] = "64",
+                [VisplaneExplorerInterfaceModel.ViewHeightCustomSettingsKey] = 72,
+            },
+            viewHeightDefault: 41);
+
+        Assert.True(settings.OpenDoors);
+        Assert.True(settings.ShowHeatmap);
+        Assert.Equal(64, settings.ViewHeight);
+        Assert.Equal(72, settings.ViewHeightCustom);
+    }
+
+    [Fact]
+    public void ViewHeightStateFormatsButtonAndCustomMenuLikeUdb()
+    {
+        VisplaneExplorerViewHeightState state = VisplaneExplorerInterfaceModel.ViewHeightState(
+            viewHeight: 72,
+            viewHeightCustom: 72);
+
+        Assert.Equal("View Height (72)", state.ButtonText);
+        Assert.True(state.CustomItemVisible);
+        Assert.Equal("72 - Custom", state.CustomItemText);
+        Assert.False(state.SettingsChanged);
+    }
+
+    [Fact]
+    public void SelectViewHeightClearsCustomHeightAndReportsChanges()
+    {
+        VisplaneExplorerViewHeightState changed = VisplaneExplorerInterfaceModel.SelectViewHeight(
+            currentViewHeight: 72,
+            selectedViewHeight: 41);
+        VisplaneExplorerViewHeightState unchanged = VisplaneExplorerInterfaceModel.SelectViewHeight(
+            currentViewHeight: 41,
+            selectedViewHeight: 41);
+
+        Assert.Equal(41, changed.ViewHeight);
+        Assert.Equal(0, changed.ViewHeightCustom);
+        Assert.False(changed.CustomItemVisible);
+        Assert.True(changed.SettingsChanged);
+        Assert.False(unchanged.SettingsChanged);
+    }
+
+    [Fact]
+    public void ApplyCustomViewHeightMatchesUdbDialogCommitBehavior()
+    {
+        VisplaneExplorerViewHeightState state = VisplaneExplorerInterfaceModel.ApplyCustomViewHeight(
+            currentViewHeight: 41,
+            currentCustomHeight: 0,
+            customInput: "72",
+            viewHeightDefault: 41,
+            configuredViewHeights: new Dictionary<string, string>());
+
+        Assert.Equal(72, state.ViewHeight);
+        Assert.Equal(72, state.ViewHeightCustom);
+        Assert.Equal("72 - Custom", state.CustomItemText);
+        Assert.True(state.SettingsChanged);
+    }
+
+    [Fact]
+    public void ApplyCustomViewHeightHidesCustomMenuWhenValueMatchesConfiguredPreset()
+    {
+        VisplaneExplorerViewHeightState state = VisplaneExplorerInterfaceModel.ApplyCustomViewHeight(
+            currentViewHeight: 41,
+            currentCustomHeight: 72,
+            customInput: "41",
+            viewHeightDefault: 41,
+            configuredViewHeights: new Dictionary<string, string> { ["41"] = "Default" });
+
+        Assert.Equal(41, state.ViewHeight);
+        Assert.Equal(0, state.ViewHeightCustom);
+        Assert.False(state.CustomItemVisible);
+        Assert.Equal("", state.CustomItemText);
+        Assert.True(state.SettingsChanged);
+    }
+
+    [Fact]
+    public void ApplyCustomViewHeightFallsBackToDefaultWhenInputNormalizesToZero()
+    {
+        VisplaneExplorerViewHeightState state = VisplaneExplorerInterfaceModel.ApplyCustomViewHeight(
+            currentViewHeight: 72,
+            currentCustomHeight: 72,
+            customInput: "32768",
+            viewHeightDefault: 41,
+            configuredViewHeights: new Dictionary<string, string>());
+
+        Assert.Equal(41, state.ViewHeight);
+        Assert.Equal(0, state.ViewHeightCustom);
+        Assert.Equal("View Height (41)", state.ButtonText);
+        Assert.True(state.SettingsChanged);
+    }
+
     [Theory]
     [InlineData("", 0)]
     [InlineData("41", 41)]
