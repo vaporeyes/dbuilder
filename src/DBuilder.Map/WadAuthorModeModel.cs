@@ -79,7 +79,7 @@ public static class WadAuthorModeModel
     }
 
     public static bool CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction action)
-        => action != WadAuthorLinedefPopupAction.Curve;
+        => true;
 
     public static WadAuthorLinedefPopupResult ExecuteLinedefPopupAction(
         MapSet map,
@@ -107,7 +107,10 @@ public static class WadAuthorModeModel
                 line.FlipVertices();
                 return new WadAuthorLinedefPopupResult(true, "Flipped linedef.");
             case WadAuthorLinedefPopupAction.Curve:
-                return new WadAuthorLinedefPopupResult(false, "Curve linedefs is not ported yet.");
+                CurveLinedefsResult curve = CurveLinedefs.ApplyToSelectedLinedefs(map);
+                return new WadAuthorLinedefPopupResult(
+                    curve.InsertedVertices > 0,
+                    curve.CurvedLinedefs == 1 ? "Curved linedef." : $"Curved {curve.CurvedLinedefs} linedefs.");
             default:
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }

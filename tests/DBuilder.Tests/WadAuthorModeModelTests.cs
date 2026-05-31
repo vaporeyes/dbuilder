@@ -50,7 +50,7 @@ public class WadAuthorModeModelTests
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Delete));
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Split));
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Flip));
-        Assert.False(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Curve));
+        Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Curve));
     }
 
     [Fact]
@@ -157,6 +157,24 @@ public class WadAuthorModeModelTests
         Assert.Same(end, line.Start);
         Assert.Same(start, line.End);
         Assert.Equal("Flipped linedef.", result.Status);
+    }
+
+    [Fact]
+    public void LinedefPopupCurveAppliesDefaultCurveToTargetLine()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 0)));
+
+        WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(
+            map,
+            line,
+            WadAuthorLinedefPopupAction.Curve,
+            new Vector2D(64, 0));
+
+        Assert.True(result.Changed);
+        Assert.Equal(9, map.Linedefs.Count);
+        Assert.Equal(10, map.Vertices.Count);
+        Assert.Equal("Curved linedef.", result.Status);
     }
 
     private static MapSet EmptyLineMap()

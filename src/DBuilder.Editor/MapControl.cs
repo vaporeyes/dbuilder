@@ -2998,6 +2998,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             WadAuthorLinedefPopupAction.Delete => "Delete linedef",
             WadAuthorLinedefPopupAction.Split => "Split linedef",
             WadAuthorLinedefPopupAction.Flip => "Flip linedef",
+            WadAuthorLinedefPopupAction.Curve => "Curve linedef",
             _ => "WadAuthor linedef action",
         });
         WadAuthorLinedefPopupResult result = WadAuthorModeModel.ExecuteLinedefPopupAction(_map, line, action, splitPosition);

@@ -976,6 +976,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style WadAuthor mode selection conversion and cleanup model.
   - [x] Add editor WadAuthor mode menu, toolbar action, and hover highlight rendering.
   - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
+  - [x] Add editor WadAuthor linedef curve popup execution with UDB default curve settings.
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.
@@ -1013,6 +1014,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire editor curve and grid drawing to persisted UDB-style draw settings.
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
+  - [x] Add UDB-style selected-linedef curve defaults, point generation, and materialization.
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port edit selection panel behavior.
@@ -1168,6 +1170,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style mode descriptor and `wadauthormode` action metadata.
   - [x] Add editor WadAuthor mode toggle and hover highlight rendering for vertices, things, linedefs, and sectors.
   - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
+  - [x] Add editor WadAuthor linedef curve popup execution with UDB default curve settings.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.
