@@ -1166,6 +1166,26 @@ class MixedActor : Actor
     }
 
     [Fact]
+    public void ZScriptMixinDoesNotOverrideExplicitZeroSizeDefaults()
+    {
+        const string zscript = @"
+mixin class SizeDefaults
+{
+    Default { Radius 32; Height 72; }
+}
+class MixedActor : Actor
+{
+    mixin SizeDefaults;
+    Default { Radius 0; Height 0; }
+}";
+
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal(0, actor.Radius);
+        Assert.Equal(0, actor.Height);
+    }
+
+    [Fact]
     public void ZScriptMixinUserVariablesDoNotCopyDefaults()
     {
         const string zscript = @"

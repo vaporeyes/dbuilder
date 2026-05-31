@@ -608,12 +608,12 @@ public static class DecorateParser
                 actor.LightName ??= mixin.LightName;
                 actor.StateBright = actor.StateBright || mixin.StateBright;
             }
-            if (actor.Radius == 0)
+            if (!actor.Properties.ContainsKey("radius"))
             {
                 actor.Radius = mixin.Radius;
                 if (mixin.Properties.TryGetValue("radius", out var radius)) actor.Properties["radius"] = new List<string>(radius);
             }
-            if (actor.Height == 0)
+            if (!actor.Properties.ContainsKey("height"))
             {
                 actor.Height = mixin.Height;
                 if (mixin.Properties.TryGetValue("height", out var height)) actor.Properties["height"] = new List<string>(height);
