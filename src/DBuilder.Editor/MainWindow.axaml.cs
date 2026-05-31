@@ -2235,7 +2235,8 @@ public partial class MainWindow : Window
         win.FindRequested += () =>
         {
             if (_map is null) return;
-            var r = MapSearch.Find(_map, win.Category, win.FindText);
+            var tagOptions = win.Category == FindCategory.Tag ? ActiveTagSearchOptions() : TagSearchOptions.All;
+            var r = MapSearch.Find(_map, win.Category, win.FindText, tagOptions);
             MapView.RevealSelection(ModeFor(win.Category), r.Focus);
             win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
             UpdateInfo();
@@ -2244,7 +2245,8 @@ public partial class MainWindow : Window
         {
             if (_map is null || _undo is null) return;
             CreateUndo("Find & replace");
-            int n = MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
+            var tagOptions = win.Category == FindCategory.Tag ? ActiveTagSearchOptions() : TagSearchOptions.All;
+            int n = MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText, tagOptions);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
             win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
             UpdateInfo();
@@ -2263,11 +2265,12 @@ public partial class MainWindow : Window
     private void OnTagList(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var win = new TagListWindow(MapSearch.UsedTags(_map));
+        var tagOptions = ActiveTagSearchOptions();
+        var win = new TagListWindow(MapSearch.UsedTags(_map, tagOptions));
         win.TagActivated += tag =>
         {
             if (_map is null) return;
-            var r = MapSearch.Find(_map, FindCategory.Tag, tag.ToString());
+            var r = MapSearch.Find(_map, FindCategory.Tag, tag.ToString(), tagOptions);
             MapView.RevealSelection(MapControl.EditMode.Linedefs, r.Focus);
             UpdateInfo();
             SetStatus($"Tag {tag}: {r.Count} element(s).");

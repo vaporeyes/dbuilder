@@ -142,6 +142,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style new-tag allocation helpers.
   - [x] Add UDB-style owner-specific and marked multi-tag allocation helpers.
   - [x] Apply UDB map-format tag owner capabilities to tag searches and statistics.
+  - [x] Apply UDB map-format tag owner capabilities to tag replacement.
   - [x] Add UDB-style element index change helpers.
   - [x] Add UDB-style selection group helpers on groupable elements.
 - [x] Port element disposal and orphan cleanup behavior.

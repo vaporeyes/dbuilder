@@ -87,6 +87,9 @@ public static class MapSearch
     /// the number of elements changed. Numeric categories parse both values; textual ones compare case-insensitively.
     /// </summary>
     public static int Replace(MapSet map, FindCategory cat, string find, string replace)
+        => Replace(map, cat, find, replace, TagSearchOptions.All);
+
+    public static int Replace(MapSet map, FindCategory cat, string find, string replace, TagSearchOptions tagOptions)
     {
         int changed = 0;
         if (IsTextual(cat))
@@ -130,9 +133,11 @@ public static class MapSearch
                 foreach (var s in map.Sectors) if (s.Special == from) { s.Special = to; changed++; }
                 break;
             case FindCategory.Tag:
-                foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
+                if (tagOptions.IncludeLinedefs)
+                    foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
                 foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
-                foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
+                if (tagOptions.IncludeThings)
+                    foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
         }
         return changed;

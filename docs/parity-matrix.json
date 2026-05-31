@@ -41,7 +41,7 @@
       "udbArea": "Source/Core/Editing",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "Selection conversion, duplicate, copy helpers, marked-geometry cloning with virtual sectors, virtual-sector cleanup preservation, stitching, merge geometry mode, tag helpers, owner-specific tag allocation, format-aware tag searches/statistics, named flags, custom fields, UDB-style things filter validation, format-aware things filter criteria, and several edit-mode surfaces are covered. Full UDB editing mode parity remains incomplete."
+      "notes": "Selection conversion, duplicate, copy helpers, marked-geometry cloning with virtual sectors, virtual-sector cleanup preservation, stitching, merge geometry mode, tag helpers, owner-specific tag allocation, format-aware tag searches/statistics/replacement, named flags, custom fields, UDB-style things filter validation, format-aware things filter criteria, and several edit-mode surfaces are covered. Full UDB editing mode parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/General",

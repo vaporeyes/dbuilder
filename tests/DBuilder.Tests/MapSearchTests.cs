@@ -278,6 +278,24 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ReplaceTagHonorsFormatSpecificTagOwners()
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(
+            map,
+            FindCategory.Tag,
+            "5",
+            "8",
+            new TagSearchOptions(IncludeLinedefs: false, IncludeThings: false));
+
+        Assert.Equal(1, changed);
+        Assert.Equal(8, map.Sectors[0].Tag);
+        Assert.Equal(5, map.Linedefs[0].Tag);
+        Assert.Equal(5, map.Things[2].Tag);
+    }
+
+    [Fact]
     public void ReplaceWithNonNumericValueDoesNothing()
     {
         var map = Build();
