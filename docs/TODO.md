@@ -970,6 +970,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio floor and ceiling brush plane and texture-axis formatter.
   - [x] Add UDB-style idStudio wall brush plane and texture projection formatter.
   - [x] Add UDB-style idStudio stepclip brush formatter.
+  - [x] Add UDB-style idStudio texture art and material declaration export planner.
 - [ ] Port visual vertex slope behavior.
 - [ ] Port all BuilderModes visual modes.
 

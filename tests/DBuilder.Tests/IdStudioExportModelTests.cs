@@ -295,5 +295,126 @@ public class IdStudioExportModelTests
         Assert.EndsWith("\t}\n}\n", brush, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TextureExporterReportsRequiredDirectories()
+    {
+        IReadOnlyList<string> directories = IdStudioTextureExporter.RequiredDirectories("/tmp/mod");
+
+        Assert.Equal(
+            [
+                "/tmp/mod/base/art/wadtobrush/flats/",
+                "/tmp/mod/base/declTree/material2/art/wadtobrush/flats/",
+                "/tmp/mod/base/art/wadtobrush/walls/",
+                "/tmp/mod/base/declTree/material2/art/wadtobrush/walls/"
+            ],
+            directories);
+    }
+
+    [Fact]
+    public void TextureExporterPlansMapUsedTextureAndFlatFiles()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            ModPath = "/tmp/mod",
+            MapName = "map01",
+            ExportTextures = true
+        });
+        byte[] wallBytes = [1, 2, 3];
+        byte[] flatBytes = [4, 5, 6];
+
+        IdStudioTextureExportPlan plan = IdStudioTextureExporter.CreatePlan(
+            settings,
+            mapTextureNames: ["STARTAN3", "MISSINGTEX"],
+            mapFlatNames: ["FLOOR0_1", "MISSINGFLAT"],
+            allTextures: [],
+            allFlats: [],
+            getTexture: name => name == "STARTAN3" ? new IdStudioTextureImage(name, wallBytes, IsMasked: true) : null,
+            getFlat: name => name == "FLOOR0_1" ? new IdStudioTextureImage(name, flatBytes) : null);
+
+        Assert.Equal(2, plan.ArtFiles.Count);
+        Assert.Contains(plan.ArtFiles, file => file.Path == "/tmp/mod/base/art/wadtobrush/walls/startan3.tga" && !file.IsFlat && file.Content.SequenceEqual(wallBytes));
+        Assert.Contains(plan.ArtFiles, file => file.Path == "/tmp/mod/base/art/wadtobrush/flats/floor0_1.tga" && file.IsFlat && file.Content.SequenceEqual(flatBytes));
+        Assert.Equal(2, plan.MaterialFiles.Count);
+        Assert.Contains(plan.MaterialFiles, file => file.Path == "/tmp/mod/base/declTree/material2/art/wadtobrush/walls/startan3.decl");
+        Assert.Contains(plan.MaterialFiles, file => file.Content.Contains("template/pbr_alphatest", StringComparison.Ordinal));
+        Assert.Contains(plan.MaterialFiles, file => file.Content.Contains("filePath = \"art/wadtobrush/walls/startan3.tga\";", StringComparison.Ordinal));
+        Assert.Contains(plan.MaterialFiles, file => file.Path == "/tmp/mod/base/declTree/material2/art/wadtobrush/flats/floor0_1.decl");
+        Assert.Contains(plan.MaterialFiles, file => file.Content.Contains("template/pbr\";", StringComparison.Ordinal));
+        Assert.Contains("idStudio Exporter: texture \"MISSINGTEX\" does not exist!", plan.MissingImages);
+        Assert.Contains("idStudio Exporter: flat \"MISSINGFLAT\" does not exist!", plan.MissingImages);
+    }
+
+    [Fact]
+    public void TextureExporterPlansAllTextureAndFlatFilesWhenEnabled()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            ModPath = "/tmp/mod",
+            MapName = "map01",
+            ExportTextures = true,
+            ExportAllTextures = true
+        });
+
+        IdStudioTextureExportPlan plan = IdStudioTextureExporter.CreatePlan(
+            settings,
+            mapTextureNames: ["IGNORED"],
+            mapFlatNames: ["IGNORED"],
+            allTextures: [new IdStudioTextureImage("BRICK", [1])],
+            allFlats: [new IdStudioTextureImage("CEIL5_2", [2])],
+            getTexture: _ => throw new InvalidOperationException(),
+            getFlat: _ => throw new InvalidOperationException());
+
+        Assert.Equal(2, plan.ArtFiles.Count);
+        Assert.Contains(plan.ArtFiles, file => file.Path == "/tmp/mod/base/art/wadtobrush/walls/brick.tga");
+        Assert.Contains(plan.ArtFiles, file => file.Path == "/tmp/mod/base/art/wadtobrush/flats/ceil5_2.tga");
+        Assert.Empty(plan.MissingImages);
+    }
+
+    [Fact]
+    public void TextureExporterSkipsPlanningWhenTextureExportDisabled()
+    {
+        IdStudioExportSettings settings = IdStudioExportSettings.FromOptions(new IdStudioExportOptions
+        {
+            ModPath = "/tmp/mod",
+            MapName = "map01",
+            ExportTextures = false
+        });
+
+        IdStudioTextureExportPlan plan = IdStudioTextureExporter.CreatePlan(
+            settings,
+            mapTextureNames: ["STARTAN3"],
+            mapFlatNames: ["FLOOR0_1"],
+            allTextures: [],
+            allFlats: [],
+            getTexture: _ => throw new InvalidOperationException(),
+            getFlat: _ => throw new InvalidOperationException());
+
+        Assert.Empty(plan.ArtFiles);
+        Assert.Empty(plan.MaterialFiles);
+        Assert.Empty(plan.MissingImages);
+    }
+
+    [Fact]
+    public void TextureExporterWritesArtAndMaterialFiles()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder-idstudio-textures-" + Guid.NewGuid().ToString("N"));
+        var plan = new IdStudioTextureExportPlan(
+            [new IdStudioTextureExportFile(Path.Combine(root, "base/art/wadtobrush/walls/startan3.tga"), [1, 2], "startan3", IsFlat: false)],
+            [new IdStudioExportFile(Path.Combine(root, "base/declTree/material2/art/wadtobrush/walls/startan3.decl"), "material")],
+            []);
+
+        try
+        {
+            IdStudioTextureExporter.WriteTextureFiles(plan);
+
+            Assert.Equal([1, 2], File.ReadAllBytes(Path.Combine(root, "base/art/wadtobrush/walls/startan3.tga")));
+            Assert.Equal("material", File.ReadAllText(Path.Combine(root, "base/declTree/material2/art/wadtobrush/walls/startan3.decl")));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }

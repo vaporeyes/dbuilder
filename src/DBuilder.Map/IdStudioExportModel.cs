@@ -42,6 +42,13 @@ public sealed record IdStudioExportSettings(
 
 public readonly record struct IdStudioExportFile(string Path, string Content);
 
+public sealed record IdStudioTextureImage(string Name, byte[] TgaBytes, bool IsTranslucent = false, bool IsMasked = false);
+public readonly record struct IdStudioTextureExportFile(string Path, byte[] Content, string MaterialName, bool IsFlat);
+public sealed record IdStudioTextureExportPlan(
+    IReadOnlyList<IdStudioTextureExportFile> ArtFiles,
+    IReadOnlyList<IdStudioExportFile> MaterialFiles,
+    IReadOnlyList<string> MissingImages);
+
 public readonly record struct IdStudioVertex(float X, float Y);
 
 public struct IdStudioVector
@@ -105,6 +112,172 @@ public static class IdStudioExportValidation
 
         return true;
     }
+}
+
+public static class IdStudioTextureExporter
+{
+    private const string FlatsArtDirectory = "base/art/wadtobrush/flats/";
+    private const string FlatsMaterialDirectory = "base/declTree/material2/art/wadtobrush/flats/";
+    private const string WallsArtDirectory = "base/art/wadtobrush/walls/";
+    private const string WallsMaterialDirectory = "base/declTree/material2/art/wadtobrush/walls/";
+
+    public static IReadOnlyList<string> RequiredDirectories(string modPath)
+        =>
+        [
+            Path.Combine(modPath, FlatsArtDirectory),
+            Path.Combine(modPath, FlatsMaterialDirectory),
+            Path.Combine(modPath, WallsArtDirectory),
+            Path.Combine(modPath, WallsMaterialDirectory)
+        ];
+
+    public static IdStudioTextureExportPlan CreatePlan(
+        IdStudioExportSettings settings,
+        IEnumerable<string> mapTextureNames,
+        IEnumerable<string> mapFlatNames,
+        IEnumerable<IdStudioTextureImage> allTextures,
+        IEnumerable<IdStudioTextureImage> allFlats,
+        Func<string, IdStudioTextureImage?> getTexture,
+        Func<string, IdStudioTextureImage?> getFlat)
+    {
+        var artFiles = new List<IdStudioTextureExportFile>();
+        var materialFiles = new List<IdStudioExportFile>();
+        var missing = new List<string>();
+        if (!settings.ExportTextures) return new IdStudioTextureExportPlan(artFiles, materialFiles, missing);
+
+        if (settings.ExportAllTextures)
+        {
+            foreach (IdStudioTextureImage image in allTextures)
+            {
+                AddImage(settings.ModPath, "walls/", image, isFlat: false, artFiles, materialFiles);
+            }
+
+            foreach (IdStudioTextureImage image in allFlats)
+            {
+                AddImage(settings.ModPath, "flats/", image, isFlat: true, artFiles, materialFiles);
+            }
+        }
+        else
+        {
+            foreach (string name in mapTextureNames)
+            {
+                IdStudioTextureImage? image = getTexture(name);
+                if (image == null)
+                {
+                    missing.Add($"idStudio Exporter: texture \"{name}\" does not exist!");
+                    continue;
+                }
+
+                AddImage(settings.ModPath, "walls/", image, isFlat: false, artFiles, materialFiles);
+            }
+
+            foreach (string name in mapFlatNames)
+            {
+                IdStudioTextureImage? image = getFlat(name);
+                if (image == null)
+                {
+                    missing.Add($"idStudio Exporter: flat \"{name}\" does not exist!");
+                    continue;
+                }
+
+                AddImage(settings.ModPath, "flats/", image, isFlat: true, artFiles, materialFiles);
+            }
+        }
+
+        return new IdStudioTextureExportPlan(artFiles, materialFiles, missing);
+    }
+
+    public static void WriteTextureFiles(IdStudioTextureExportPlan plan)
+    {
+        foreach (IdStudioTextureExportFile file in plan.ArtFiles)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllBytes(file.Path, file.Content);
+        }
+
+        foreach (IdStudioExportFile file in plan.MaterialFiles)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllText(file.Path, file.Content);
+        }
+    }
+
+    public static string BuildMaterialDeclaration(string subFolder, string imageName, bool useAlpha)
+    {
+        string lowerName = imageName.ToLowerInvariant();
+        return useAlpha
+            ? string.Format(CultureInfo.InvariantCulture, MaterialTemplateAlpha, subFolder, lowerName)
+            : string.Format(CultureInfo.InvariantCulture, MaterialTemplate, subFolder, lowerName);
+    }
+
+    private static void AddImage(
+        string modPath,
+        string subFolder,
+        IdStudioTextureImage image,
+        bool isFlat,
+        List<IdStudioTextureExportFile> artFiles,
+        List<IdStudioExportFile> materialFiles)
+    {
+        string lowerName = image.Name.ToLowerInvariant();
+        string artPath = Path.Combine(modPath, "base/art/wadtobrush/", subFolder, lowerName + ".tga");
+        string materialPath = Path.Combine(modPath, "base/declTree/material2/art/wadtobrush/", subFolder, lowerName + ".decl");
+        artFiles.Add(new IdStudioTextureExportFile(artPath, image.TgaBytes, lowerName, isFlat));
+        materialFiles.Add(new IdStudioExportFile(
+            materialPath,
+            BuildMaterialDeclaration(subFolder, lowerName, image.IsTranslucent || image.IsMasked)));
+    }
+
+    private const string MaterialTemplate =
+        """
+declType( material2 ) {{
+	inherit = "template/pbr";
+	edit = {{
+		RenderLayers = {{
+			item[0] = {{
+				parms = {{
+					smoothness = {{
+						filePath = "textures/system/constant_color/black.tga";
+					}}
+					specular = {{
+						filePath = "textures/system/constant_color/black.tga";
+					}}
+					albedo = {{
+						filePath = "art/wadtobrush/{0}{1}.tga";
+					}}
+				}}
+			}}
+		}}
+	}}
+}}
+""";
+
+    private const string MaterialTemplateAlpha =
+        """
+declType( material2 ) {{
+	inherit = "template/pbr_alphatest";
+	edit = {{
+		RenderLayers = {{
+			item[0] = {{
+				parms = {{
+					cover = {{
+						filePath = "art/wadtobrush/{0}{1}.tga";
+					}}
+					smoothness = {{
+						filePath = "textures/system/constant_color/black.tga";
+					}}
+					specular = {{
+						filePath = "textures/system/constant_color/black.tga";
+					}}
+					albedo = {{
+						filePath = "art/wadtobrush/{0}{1}.tga";
+					}}
+				}}
+			}}
+		}}
+	}}
+}}
+""";
 }
 
 public sealed class IdStudioEntityBuilder
