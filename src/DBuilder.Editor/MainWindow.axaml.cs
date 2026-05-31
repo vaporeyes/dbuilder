@@ -62,6 +62,7 @@ public partial class MainWindow : Window
     private readonly string _settingsPath = Settings.DefaultPath;
     private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
+    private CommentsPanelWindow? _commentsPanel;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1635,6 +1636,104 @@ public partial class MainWindow : Window
         win.Show(this);
     }
 
+    private void OnCommentsPanel(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_commentsPanel != null)
+        {
+            RefreshCommentsPanel();
+            _commentsPanel.Activate();
+            return;
+        }
+
+        var win = new CommentsPanelWindow(CommentsPanelModel.BuildGroups(_map));
+        _commentsPanel = win;
+        win.Closed += (_, _) => _commentsPanel = null;
+        win.FilterChanged += _ => RefreshCommentsPanel();
+        win.GroupActivated += SelectCommentGroup;
+        win.RemoveRequested += RemoveCommentGroup;
+        win.SetSelectedCommentRequested += SetCommentOnCurrentSelection;
+        win.Show(this);
+    }
+
+    private void RefreshCommentsPanel()
+    {
+        if (_map is null || _commentsPanel is null) return;
+        _commentsPanel.SetGroups(CommentsPanelModel.BuildGroups(_map, _commentsPanel.FilterMode));
+    }
+
+    private void SelectCommentGroup(CommentGroup group)
+    {
+        if (_map is null) return;
+        _map.ClearAllSelected();
+        foreach (IFielded element in CommentsPanelModel.CreateSelectionTarget(group).Elements)
+        {
+            if (element is Sidedef side)
+            {
+                side.Selected = true;
+                side.Line.Selected = true;
+            }
+            else if (element is DBuilder.Map.ISelectable selectable)
+            {
+                selectable.Selected = true;
+            }
+        }
+
+        var area = CommentsPanelModel.CreateViewArea(group);
+        var focus = new Vector2D(area.X + area.Width * 0.5f, area.Y + area.Height * 0.5f);
+        MapView.RevealSelection(EditModeFor(CommentsPanelModel.SelectionMode(group)), focus);
+        UpdateInfo();
+        SetStatus($"Selected comment group: {group.Comment}");
+    }
+
+    private void RemoveCommentGroup(CommentGroup group)
+    {
+        if (_map is null || _undo is null) return;
+        CreateUndo("Remove comment");
+        CommentsPanelModel.RemoveComment(group);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        RefreshCommentsPanel();
+        SetStatus($"Removed comment from {group.Elements.Count} element(s).");
+    }
+
+    private void SetCommentOnCurrentSelection(string comment)
+    {
+        if (_map is null || _undo is null) return;
+        IReadOnlyList<IFielded> elements = CurrentCommentSelection();
+        if (elements.Count == 0)
+        {
+            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.");
+            return;
+        }
+
+        CreateUndo("Set comment");
+        CommentsPanelModel.SetComment(elements, comment);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        RefreshCommentsPanel();
+        SetStatus($"Set comment on {elements.Count} element(s).");
+    }
+
+    private IReadOnlyList<IFielded> CurrentCommentSelection()
+        => MapView.CurrentEditMode switch
+        {
+            MapControl.EditMode.Vertices => _map?.GetSelectedVertices().Cast<IFielded>().ToList() ?? [],
+            MapControl.EditMode.Linedefs => _map?.GetSelectedLinedefs().Cast<IFielded>().ToList() ?? [],
+            MapControl.EditMode.Sectors => _map?.GetSelectedSectors().Cast<IFielded>().ToList() ?? [],
+            MapControl.EditMode.Things => _map?.GetSelectedThings().Cast<IFielded>().ToList() ?? [],
+            _ => [],
+        };
+
+    private static MapControl.EditMode EditModeFor(CommentsPanelMode mode)
+        => mode switch
+        {
+            CommentsPanelMode.Vertices => MapControl.EditMode.Vertices,
+            CommentsPanelMode.Sectors => MapControl.EditMode.Sectors,
+            CommentsPanelMode.Things => MapControl.EditMode.Things,
+            _ => MapControl.EditMode.Linedefs,
+        };
+
     private void OnStatusHistory(object? sender, RoutedEventArgs e)
         => new StatusHistoryWindow(_statusHistory.Entries).Show(this);
 
@@ -3126,7 +3225,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, TagStatisticsMenuItem, ThingStatisticsMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, TagStatisticsMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
