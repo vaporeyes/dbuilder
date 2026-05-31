@@ -1803,11 +1803,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public string ChangeGridSize(bool larger)
     {
-        double size = larger
-            ? Math.Min(1024, _grid.GridSizeF * 2.0)
-            : Math.Max(GridSetup.MinimumGridSize, _grid.GridSizeF * 0.5);
-        SetEditorGridSize(size);
-        return $"grid {GridSizeLabel()}";
+        bool changed = _grid.TryStepGridSize(larger);
+        string status = changed
+            ? $"grid {GridSizeLabel()}"
+            : $"grid {(larger ? "max" : "min")} {GridSizeLabel()}";
+
+        Picked?.Invoke(status);
+        if (changed) MarkGeometryDirty();
+        return status;
     }
 
     public GridSetup GridSetupSnapshot()

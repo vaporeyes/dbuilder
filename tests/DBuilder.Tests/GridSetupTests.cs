@@ -76,6 +76,23 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void StepGridSizeStopsAtUdbBounds()
+    {
+        var grid = new GridSetup();
+
+        grid.SetGridSize(GridSetup.MaximumGridSize);
+        Assert.False(grid.TryStepGridSize(larger: true));
+        Assert.Equal(GridSetup.MaximumGridSize, grid.GridSizeF);
+
+        Assert.True(grid.TryStepGridSize(larger: false));
+        Assert.Equal(512.0, grid.GridSizeF);
+
+        grid.SetGridSize(GridSetup.MinimumGridSize);
+        Assert.False(grid.TryStepGridSize(larger: false));
+        Assert.Equal(GridSetup.MinimumGridSize, grid.GridSizeF);
+    }
+
+    [Fact]
     public void GetHigherAndLowerMatchGridSize()
     {
         var grid = new GridSetup();

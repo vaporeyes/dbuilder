@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 1546 tests.
+- Current verified baseline: `scripts/verify.sh` passes 1547 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -647,6 +647,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.
   - [x] Add menu commands for snap toggle and grid-size stepping.
+  - [x] Report UDB grid-size bounds when bracket shortcuts reach minimum or maximum size.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.

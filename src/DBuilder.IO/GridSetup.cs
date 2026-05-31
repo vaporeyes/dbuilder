@@ -10,6 +10,7 @@ public sealed class GridSetup
     public const double DefaultGridSize = 32.0;
     public const double MinimumGridSize = 1.0;
     public const double MinimumUdmfGridSize = 0.125;
+    public const double MaximumGridSize = 1024.0;
     public const int SourceTextures = 0;
     public const int SourceFlats = 1;
     public const int SourceFile = 2;
@@ -69,6 +70,18 @@ public sealed class GridSetup
         gridSizeF = Math.Max(size, minimumGridSize);
         GridSize = (int)Math.Max(1, Math.Round(gridSizeF));
         gridSizeFInv = 1.0 / gridSizeF;
+    }
+
+    public bool TryStepGridSize(bool larger)
+    {
+        double nextSize = larger
+            ? Math.Min(MaximumGridSize, gridSizeF * 2.0)
+            : Math.Max(minimumGridSize, gridSizeF * 0.5);
+
+        if (nextSize == gridSizeF) return false;
+
+        SetGridSize(nextSize);
+        return true;
     }
 
     public void SetGridRotation(double angle)
