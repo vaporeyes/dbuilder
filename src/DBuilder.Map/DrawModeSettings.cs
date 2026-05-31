@@ -69,6 +69,12 @@ public sealed record DrawRectangleModeSettings(
         settings[RadialDrawingKey] = RadialDrawing;
         settings[PlaceThingsAtVerticesKey] = PlaceThingsAtVertices;
     }
+
+    public DrawRectangleModeSettings IncreaseSubdivisions()
+        => this with { Subdivisions = Math.Min(Subdivisions + 1, MaxSubdivisions) };
+
+    public DrawRectangleModeSettings DecreaseSubdivisions()
+        => this with { Subdivisions = Math.Max(Subdivisions - 1, MinSubdivisions) };
 }
 
 public sealed record DrawEllipseModeSettings(
@@ -110,6 +116,20 @@ public sealed record DrawEllipseModeSettings(
         settings[RadialDrawingKey] = RadialDrawing;
         settings[PlaceThingsAtVerticesKey] = PlaceThingsAtVertices;
     }
+
+    public DrawEllipseModeSettings IncreaseSubdivisions()
+    {
+        if (MaxSubdivisions - Subdivisions <= 1) return this;
+        int increment = Subdivisions % 2 != 0 ? 1 : 2;
+        return this with { Subdivisions = Math.Min(Subdivisions + increment, MaxSubdivisions) };
+    }
+
+    public DrawEllipseModeSettings DecreaseSubdivisions()
+    {
+        if (Subdivisions - MinSubdivisions <= 1) return this;
+        int decrement = Subdivisions % 2 != 0 ? 1 : 2;
+        return this with { Subdivisions = Math.Max(Subdivisions - decrement, MinSubdivisions) };
+    }
 }
 
 public sealed record DrawCurveModeSettings(
@@ -139,6 +159,23 @@ public sealed record DrawCurveModeSettings(
         settings[AutoCloseDrawingKey] = AutoCloseDrawing;
         settings[PlaceThingsAtVerticesKey] = PlaceThingsAtVertices;
     }
+
+    public DrawCurveModeSettings IncreaseSegmentLength()
+    {
+        if (SegmentLength >= MaxSegmentLength) return this;
+        int increment = SegmentLengthIncrement(SegmentLength);
+        return this with { SegmentLength = Math.Min(SegmentLength + increment, MaxSegmentLength) };
+    }
+
+    public DrawCurveModeSettings DecreaseSegmentLength()
+    {
+        if (SegmentLength <= MinSegmentLength) return this;
+        int decrement = SegmentLengthIncrement(SegmentLength);
+        return this with { SegmentLength = Math.Max(SegmentLength - decrement, MinSegmentLength) };
+    }
+
+    public static int SegmentLengthIncrement(int segmentLength)
+        => Math.Max(MinSegmentLength, segmentLength / 32 * 16);
 }
 
 public sealed record DrawGridModeSettings(

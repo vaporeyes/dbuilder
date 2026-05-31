@@ -59,6 +59,17 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawRectangleSubdivisionsStepByOneLikeUdbActions()
+    {
+        var settings = new DrawRectangleModeSettings(Subdivisions: 15);
+
+        Assert.Equal(16, settings.IncreaseSubdivisions().Subdivisions);
+        Assert.Equal(16, settings.IncreaseSubdivisions().IncreaseSubdivisions().Subdivisions);
+        Assert.Equal(14, settings.DecreaseSubdivisions().Subdivisions);
+        Assert.Equal(0, new DrawRectangleModeSettings(Subdivisions: 0).DecreaseSubdivisions().Subdivisions);
+    }
+
+    [Fact]
     public void DrawEllipseSettingsClampSubdivisionsAndKeepAngle()
     {
         var lowSource = new Dictionary<string, object?>
@@ -90,6 +101,20 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawEllipseSubdivisionsUseUdbOddEvenStepRules()
+    {
+        Assert.Equal(6, new DrawEllipseModeSettings(Subdivisions: 5).IncreaseSubdivisions().Subdivisions);
+        Assert.Equal(8, new DrawEllipseModeSettings(Subdivisions: 6).IncreaseSubdivisions().Subdivisions);
+        Assert.Equal(511, new DrawEllipseModeSettings(Subdivisions: 511).IncreaseSubdivisions().Subdivisions);
+        Assert.Equal(512, new DrawEllipseModeSettings(Subdivisions: 512).IncreaseSubdivisions().Subdivisions);
+
+        Assert.Equal(6, new DrawEllipseModeSettings(Subdivisions: 7).DecreaseSubdivisions().Subdivisions);
+        Assert.Equal(6, new DrawEllipseModeSettings(Subdivisions: 8).DecreaseSubdivisions().Subdivisions);
+        Assert.Equal(4, new DrawEllipseModeSettings(Subdivisions: 4).DecreaseSubdivisions().Subdivisions);
+        Assert.Equal(3, new DrawEllipseModeSettings(Subdivisions: 3).DecreaseSubdivisions().Subdivisions);
+    }
+
+    [Fact]
     public void DrawCurveSettingsClampSegmentLengthAndWriteUdbKeys()
     {
         DrawCurveModeSettings low = DrawCurveModeSettings.FromDictionary(new Dictionary<string, object?>
@@ -117,6 +142,28 @@ public class DrawModeSettingsTests
         Assert.Equal(true, target[DrawCurveModeSettings.ContinuousDrawingKey]);
         Assert.Equal(true, target[DrawCurveModeSettings.AutoCloseDrawingKey]);
         Assert.Equal(true, target[DrawCurveModeSettings.PlaceThingsAtVerticesKey]);
+    }
+
+    [Theory]
+    [InlineData(16, 16)]
+    [InlineData(31, 16)]
+    [InlineData(32, 16)]
+    [InlineData(64, 32)]
+    [InlineData(96, 48)]
+    public void DrawCurveSegmentLengthIncrementMatchesUdbIntegerMath(int segmentLength, int expectedIncrement)
+        => Assert.Equal(expectedIncrement, DrawCurveModeSettings.SegmentLengthIncrement(segmentLength));
+
+    [Fact]
+    public void DrawCurveSegmentLengthActionsUseUdbVariableStep()
+    {
+        Assert.Equal(48, new DrawCurveModeSettings(SegmentLength: 32).IncreaseSegmentLength().SegmentLength);
+        Assert.Equal(96, new DrawCurveModeSettings(SegmentLength: 64).IncreaseSegmentLength().SegmentLength);
+        Assert.Equal(4096, new DrawCurveModeSettings(SegmentLength: 4090).IncreaseSegmentLength().SegmentLength);
+        Assert.Equal(4096, new DrawCurveModeSettings(SegmentLength: 4096).IncreaseSegmentLength().SegmentLength);
+
+        Assert.Equal(32, new DrawCurveModeSettings(SegmentLength: 64).DecreaseSegmentLength().SegmentLength);
+        Assert.Equal(16, new DrawCurveModeSettings(SegmentLength: 17).DecreaseSegmentLength().SegmentLength);
+        Assert.Equal(16, new DrawCurveModeSettings(SegmentLength: 16).DecreaseSegmentLength().SegmentLength);
     }
 
     [Fact]

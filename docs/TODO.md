@@ -999,6 +999,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style apply-default-flags fix for unused things.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
+  - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
 - [ ] Port sector drawing options.
