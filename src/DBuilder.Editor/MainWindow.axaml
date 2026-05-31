@@ -151,6 +151,7 @@
                 <MenuItem Header="_Test Map" x:Name="TestMapMenuItem" Click="OnTestMap" />
                 <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />
                 <MenuItem Header="Build _Bridge" x:Name="BuildBridgeMenuItem" Click="OnBuildBridge" />
+                <MenuItem Header="Make _Door" x:Name="MakeDoorMenuItem" Click="OnMakeDoor" />
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
@@ -250,6 +251,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Build Bridge" x:Name="BuildBridgeButton" Click="OnBuildBridge">
                     <PathIcon Data="M4,16 C8,8 16,8 20,16 L18,18 C15,13 9,13 6,18 Z M7,16 L9,16 M11,14 L13,14 M15,16 L17,16" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Make Door" x:Name="MakeDoorButton" Click="OnMakeDoor">
+                    <PathIcon Data="M6,5 L18,5 L18,20 L6,20 Z M9,8 L15,8 L15,20 L9,20 Z M14,14 L16,14 L16,16 L14,16 Z" />
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Build Stairs" x:Name="BuildStairsButton" Click="OnBuildStairs">
                     <PathIcon Data="M4,18 L8,18 L8,14 L12,14 L12,10 L16,10 L16,6 L20,6 L20,20 L4,20 Z" />

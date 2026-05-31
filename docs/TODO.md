@@ -963,6 +963,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
 - [ ] Port make-door tools.
   - [x] Add UDB-style map-level Make Door sector mutation helper.
+  - [x] Add editor menu and toolbar Make Door command for selected sectors.
 - [ ] Port object export tools.
 - [ ] Port image export tools.
 - [ ] Port Wavefront export tools.

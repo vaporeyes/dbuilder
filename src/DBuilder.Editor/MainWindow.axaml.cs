@@ -2507,6 +2507,30 @@ public partial class MainWindow : Window
         UpdateCommandAvailability();
     }
 
+    private void OnMakeDoor(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0) { SetStatus("Select one or more sectors to make doors."); return; }
+
+        var options = new MakeDoorOptions
+        {
+            DoorTexture = _config?.MakeDoorDoor ?? "-",
+            TrackTexture = _config?.MakeDoorTrack ?? "-",
+            CeilingTexture = _config?.MakeDoorCeiling ?? "-",
+            Action = _config?.MakeDoorAction ?? 0,
+            Activate = _config?.MakeDoorActivate ?? 0,
+            Args = _config?.MakeDoorArgs.ToArray() ?? new int[5],
+            Flags = _config?.MakeDoorFlags ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
+        };
+
+        CreateUndo("Make door");
+        MakeDoorResult result = MakeDoorTool.Apply(_map, sectors, options);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Made {result.SectorsChanged} door sector(s), updated {result.DoorLinesChanged} door line(s) and {result.OneSidedLinesChanged} track line(s).");
+    }
+
     private async void OnExportIdStudio(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
@@ -2972,12 +2996,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, BuildStairsButton, ApplySlopesButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
