@@ -8,6 +8,33 @@ namespace DBuilder.Tests;
 
 public sealed class TagRangeModelTests
 {
+    [Theory]
+    [InlineData("SectorsMode", false, false, true)]
+    [InlineData("LinedefsMode", true, false, true)]
+    [InlineData("LinedefsMode", false, true, false)]
+    [InlineData("ThingsMode", false, true, true)]
+    [InlineData("ThingsMode", true, false, false)]
+    [InlineData("VerticesMode", true, true, false)]
+    [InlineData(null, true, true, false)]
+    public void ToolbarButtonVisibilityMatchesUdbModeAndFormatRules(
+        string? modeName,
+        bool hasLinedefTag,
+        bool hasThingTag,
+        bool expected)
+    {
+        var capabilities = new TagRangeFormatCapabilities(hasLinedefTag, hasThingTag);
+
+        Assert.Equal(expected, TagRangeModel.ShouldShowToolbarButton(modeName, capabilities));
+    }
+
+    [Fact]
+    public void HasSelectionMatchesUdbActionWarningCondition()
+    {
+        Assert.False(TagRangeModel.HasSelection(0));
+        Assert.True(TagRangeModel.HasSelection(1));
+        Assert.Equal("This action requires a selection!", TagRangeModel.NoSelectionWarning);
+    }
+
     [Fact]
     public void StoredOptionsKeepOnlyStepAndRelativeMode()
     {

@@ -33,8 +33,25 @@ public sealed record TagRangePreviewState(
     bool DoubleTagWarningVisible,
     bool SkipUsedTagsVisible);
 
+public sealed record TagRangeFormatCapabilities(
+    bool HasLinedefTag,
+    bool HasThingTag);
+
 public static class TagRangeModel
 {
+    public const string NoSelectionWarning = "This action requires a selection!";
+
+    public static bool ShouldShowToolbarButton(string? modeName, TagRangeFormatCapabilities capabilities)
+        => modeName switch
+        {
+            "SectorsMode" => true,
+            "LinedefsMode" => capabilities.HasLinedefTag,
+            "ThingsMode" => capabilities.HasThingTag,
+            _ => false,
+        };
+
+    public static bool HasSelection(int selectionCount) => selectionCount > 0;
+
     public static TagRangeStoredOptions StoredOptionsFrom(TagRangeOptions options)
     {
         int step = options.Step == 0 ? 1 : options.Step;
