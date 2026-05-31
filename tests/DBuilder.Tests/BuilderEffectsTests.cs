@@ -1,0 +1,125 @@
+// ABOUTME: Tests data-level BuilderEffects jitter transforms ported from UDB.
+// ABOUTME: Verifies vertex, sector, and thing transforms use cached factors and UDB formulas.
+
+using DBuilder.Geometry;
+using DBuilder.Map;
+
+namespace DBuilder.Tests;
+
+public class BuilderEffectsTests
+{
+    [Fact]
+    public void VertexTranslationUsesSinCosAndSafeDistance()
+    {
+        var vertex = new Vertex(new Vector2D(10, 20));
+        var jitter = new VertexJitter(vertex, vertex.Position, Angle2D.DegToRad(90), SafeDistance: 8);
+
+        BuilderEffects.ApplyVertexTranslation(new[] { jitter }, amount: 16);
+
+        Assert.Equal(new Vector2D(18, 20), vertex.Position);
+    }
+
+    [Fact]
+    public void SectorHeightJitterMatchesFloorAndCeilingDirections()
+    {
+        var sector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+        var jitter = new SectorHeightJitter(sector, 0, 128, FloorFactor: 0.5, CeilingFactor: 0.25);
+
+        BuilderEffects.ApplySectorFloorHeight(new[] { jitter }, amount: 10);
+        BuilderEffects.ApplySectorCeilingHeight(new[] { jitter }, amount: 12);
+
+        Assert.Equal(5, sector.FloorHeight);
+        Assert.Equal(125, sector.CeilHeight);
+    }
+
+    [Fact]
+    public void SectorHeightJitterSupportsRaiseOnlyAndLowerOnlyModes()
+    {
+        var floorSector = new Sector { FloorHeight = 32, CeilHeight = 128 };
+        var ceilSector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+
+        BuilderEffects.ApplySectorFloorHeight(
+            new[] { new SectorHeightJitter(floorSector, 32, 128, FloorFactor: -0.5, CeilingFactor: 0) },
+            amount: 10,
+            JitterOffsetMode.RaiseOnly);
+        BuilderEffects.ApplySectorCeilingHeight(
+            new[] { new SectorHeightJitter(ceilSector, 0, 128, FloorFactor: 0, CeilingFactor: 0.5) },
+            amount: 10,
+            JitterOffsetMode.LowerOnly);
+
+        Assert.Equal(37, floorSector.FloorHeight);
+        Assert.Equal(133, ceilSector.CeilHeight);
+    }
+
+    [Fact]
+    public void ThingTranslationRotationPitchRollAndHeightUseCachedValues()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 3001, angle: 90)
+        {
+            Height = 4,
+            Pitch = 10,
+            Roll = 20
+        };
+        var jitter = new ThingJitter(
+            thing,
+            thing.Position,
+            thing.Angle,
+            thing.Pitch,
+            thing.Roll,
+            thing.Height,
+            thing.ScaleX,
+            thing.ScaleY,
+            OffsetAngle: Angle2D.DegToRad(0),
+            RotationFactor: 0.5,
+            PitchFactor: 0.25,
+            RollFactor: -0.5,
+            HeightFactor: 0.5,
+            ScaleXFactor: 0,
+            ScaleYFactor: 0,
+            SafeDistance: 64,
+            SectorHeight: 32);
+
+        BuilderEffects.ApplyThingTranslation(new[] { jitter }, amount: 10);
+        BuilderEffects.ApplyThingRotation(new[] { jitter }, amount: 20, snapToDoomAngles: true);
+        BuilderEffects.ApplyThingPitch(new[] { jitter }, amount: 20, relative: true);
+        BuilderEffects.ApplyThingRoll(new[] { jitter }, amount: 20, relative: false);
+        BuilderEffects.ApplyThingHeight(new[] { jitter }, amount: 8);
+
+        Assert.Equal(new Vector2D(0, 10), thing.Position);
+        Assert.Equal(90, thing.Angle);
+        Assert.Equal(15, thing.Pitch);
+        Assert.Equal(350, thing.Roll);
+        Assert.Equal(6, thing.Height);
+    }
+
+    [Fact]
+    public void ThingScaleSupportsRelativeUniformAndSwappedRanges()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 3001)
+        {
+            ScaleX = 1.5,
+            ScaleY = 2.0
+        };
+        var jitter = new ThingJitter(
+            thing,
+            thing.Position,
+            thing.Angle,
+            thing.Pitch,
+            thing.Roll,
+            thing.Height,
+            thing.ScaleX,
+            thing.ScaleY,
+            OffsetAngle: 0,
+            RotationFactor: 0,
+            PitchFactor: 0,
+            RollFactor: 0,
+            HeightFactor: 0,
+            ScaleXFactor: 0.25,
+            ScaleYFactor: 0.75);
+
+        BuilderEffects.ApplyThingScale(new[] { jitter }, minX: 2, maxX: 1, minY: 4, maxY: 2, relative: true, uniform: false);
+
+        Assert.Equal(2.75, thing.ScaleX);
+        Assert.Equal(5.5, thing.ScaleY);
+    }
+}

@@ -147,7 +147,7 @@
       "udbPlugin": "BuilderEffects",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Selected map effect helpers exist, including slope and 3D floor related behavior. Full BuilderEffects plugin parity remains incomplete."
+      "notes": "Selected map effect helpers exist, including slope and 3D floor related behavior. UDB-style jitter transform helpers exist for vertices, sector floor and ceiling heights, and things, including safe-distance clamping, offset modes, angle snapping, height offsets, pitch, roll, and scale. Full BuilderEffects plugin UI, directional shading, and terrain import parity remain incomplete."
     },
     {
       "udbPlugin": "BuilderModes",
