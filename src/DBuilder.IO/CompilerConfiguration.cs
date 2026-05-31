@@ -158,7 +158,8 @@ public sealed class CompilerConfiguration
         var result = new CompilerConfiguration();
         if (!Directory.Exists(path)) return result;
 
-        foreach (string file in Directory.EnumerateFiles(path, "*.cfg").OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
+        foreach (string file in Directory.EnumerateFiles(path, "*.cfg", SearchOption.AllDirectories)
+                     .OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
             result.MergeFrom(FromFile(file));
 
         return result;

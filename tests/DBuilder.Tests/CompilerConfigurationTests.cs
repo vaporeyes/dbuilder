@@ -112,6 +112,47 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void LoadsDirectoryRecursivelyLikeUdbCompilerPath()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compilers_" + Guid.NewGuid().ToString("N"));
+        string nested = Path.Combine(dir, "Nodebuilders");
+        Directory.CreateDirectory(nested);
+        try
+        {
+            File.WriteAllText(Path.Combine(nested, "zdbsp.cfg"), """
+                compilers
+                {
+                    zdbsp
+                    {
+                        interface = "NodesCompiler";
+                        program = "zdbsp";
+                    }
+                }
+
+                nodebuilders
+                {
+                    zdbsp_normal
+                    {
+                        compiler = "zdbsp";
+                        parameters = "-o%FO %FI";
+                    }
+                }
+                """);
+
+            var parsed = CompilerConfiguration.FromDirectory(dir);
+            var config = parsed.ResolveNodebuilderConfig("zdbsp_normal");
+
+            Assert.True(parsed.Compilers.ContainsKey("zdbsp"));
+            Assert.True(parsed.Nodebuilders.ContainsKey("zdbsp_normal"));
+            Assert.Equal(new NodebuilderConfig(Path.Combine(nested, "zdbsp"), "-o%FO %FI"), config);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void LoadsDirectoryKeepsFirstDuplicateCompilerDefinition()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compilers_" + Guid.NewGuid().ToString("N"));
