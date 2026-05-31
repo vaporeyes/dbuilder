@@ -123,6 +123,7 @@
                 <MenuItem Header="_Fit to map" x:Name="FitMenuItem" Click="OnFit" />
                 <MenuItem Header="_Go To Coordinates..." x:Name="GoToCoordinatesMenuItem" Click="OnGoToCoordinates" />
                 <MenuItem Header="_Automap Mode" x:Name="AutomapModeMenuItem" ToggleType="CheckBox" Click="OnAutomapMode" />
+                <MenuItem Header="_WadAuthor Mode" x:Name="WadAuthorModeMenuItem" ToggleType="CheckBox" Click="OnWadAuthorMode" />
                 <MenuItem Header="View Used _Tags..." x:Name="TagStatisticsMenuItem" Click="OnTagStatistics" />
                 <MenuItem Header="_Tag Explorer..." x:Name="TagExplorerMenuItem" Click="OnTagExplorer" />
                 <MenuItem Header="View Thing _Types..." x:Name="ThingStatisticsMenuItem" Click="OnThingStatistics" />
@@ -226,6 +227,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Toggle 3D Mode" x:Name="Toggle3DModeButton" Click="OnToggle3DMode">
                     <TextBlock Classes="toolbarGlyph" Text="3D" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="WadAuthor Mode" x:Name="WadAuthorModeButton" Click="OnWadAuthorMode">
+                    <TextBlock Classes="toolbarGlyph" Text="WA" />
                 </Button>
                 <StackPanel x:Name="AutomapOptionsPanel" IsVisible="False" Orientation="Horizontal" Spacing="3">
                     <Border Classes="toolbarSeparator" />

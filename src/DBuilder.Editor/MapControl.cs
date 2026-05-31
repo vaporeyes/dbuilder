@@ -157,7 +157,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _soundLeakPath = System.Array.Empty<Vec2D>(); _soundLeakDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _soundLeakPath = System.Array.Empty<Vec2D>(); _soundLeakDirty = true; _wadAuthorHighlight = WadAuthorHighlight.None; _wadAuthorDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -168,6 +168,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ShowThings => _showThings;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
+    public bool WadAuthorMode { get; private set; }
 
     public bool ToggleSectorFills()
     {
@@ -195,7 +196,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (ImageExampleMode == enabled) return;
         ImageExampleMode = enabled;
-        if (ImageExampleMode) AutomapMode = false;
+        if (ImageExampleMode)
+        {
+            AutomapMode = false;
+            ClearAutomapState();
+            if (WadAuthorMode) LeaveWadAuthorMode();
+        }
         if (ImageExampleMode && _mode3D) _mode3D = false;
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
@@ -236,6 +242,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private AutomapHighlightResult? _automapHighlight;
     private bool _automapEditSectors;
     private bool _automapInvertLineVisibility;
+    private WadAuthorHighlight _wadAuthorHighlight = WadAuthorHighlight.None;
+    private bool _wadAuthorDirty;
     private GlVertexBuffer? _drawVb;
     private int _drawLineCount;
     private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
@@ -386,6 +394,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (AutomapMode)
         {
             AutomapMode = false;
+            ClearAutomapState();
+            _geometryDirty = true;
+            ActionStateChanged?.Invoke();
+        }
+        if (WadAuthorMode)
+        {
+            LeaveWadAuthorMode();
             _geometryDirty = true;
             ActionStateChanged?.Invoke();
         }
@@ -403,6 +418,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         SetImageExampleMode(false);
         AutomapMode = false;
+        ClearAutomapState();
+        if (WadAuthorMode) LeaveWadAuthorMode();
         _mode3D = !_mode3D;
         if (_mode3D)
         {
@@ -425,6 +442,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ToggleAutomapMode()
     {
         SetImageExampleMode(false);
+        if (WadAuthorMode) LeaveWadAuthorMode();
         bool enabled = !AutomapMode;
         AutomapMode = enabled;
         if (enabled)
@@ -438,9 +456,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
-            _automapHighlight = null;
-            _automapEditSectors = false;
-            _automapInvertLineVisibility = false;
+            ClearAutomapState();
         }
 
         _geometryDirty = true;
@@ -448,6 +464,55 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return AutomapMode;
+    }
+
+    public bool ToggleWadAuthorMode()
+    {
+        SetImageExampleMode(false);
+        if (AutomapMode)
+        {
+            AutomapMode = false;
+            ClearAutomapState();
+        }
+
+        bool enabled = !WadAuthorMode;
+        if (enabled)
+        {
+            _mode3D = false;
+            _heldKeys.Clear();
+            _look3D = false;
+            _drag3DTarget = null;
+            ExitDrawModes();
+            WadAuthorMode = true;
+            if (_map != null) WadAuthorModeModel.EnterMode(_map);
+            UpdateWadAuthorHighlight(_cursorWorld);
+        }
+        else
+        {
+            LeaveWadAuthorMode();
+        }
+
+        _geometryDirty = true;
+        ModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        return WadAuthorMode;
+    }
+
+    private void ClearAutomapState()
+    {
+        _automapHighlight = null;
+        _automapEditSectors = false;
+        _automapInvertLineVisibility = false;
+    }
+
+    private void LeaveWadAuthorMode()
+    {
+        if (_map != null) WadAuthorModeModel.LeaveMode(_map);
+        WadAuthorMode = false;
+        _wadAuthorHighlight = WadAuthorHighlight.None;
+        _wadAuthorDirty = true;
     }
 
     // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
@@ -494,11 +559,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private GlVertexBuffer? _rejectOverlayVb;
     private GlVertexBuffer? _soundLeakPathVb;
     private GlVertexBuffer? _soundLeakMarkerVb;
+    private GlVertexBuffer? _wadAuthorVb;
+    private GlVertexBuffer? _wadAuthorFillVb;
     private int _nodesLineCount;
     private int _nodePolygonTriCount;
     private int _rejectOverlayTriCount;
     private int _soundLeakLineCount;
     private int _soundLeakMarkerTriCount;
+    private int _wadAuthorLineCount;
+    private int _wadAuthorTriCount;
     private bool _showNodes;
     private (Vec2D a, Vec2D b)[] _nodeLines = System.Array.Empty<(Vec2D, Vec2D)>();
     private Vec2D[][] _nodePolygons = System.Array.Empty<Vec2D[]>();
@@ -644,6 +713,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _camY = f.y;
             if (_zoom > 1.0) _zoom = 1.0; // zoom in to reveal a small element, but never zoom further out
             _soundLeakDirty = true;
+            _wadAuthorDirty = true;
         }
         _geometryDirty = true;
         Changed?.Invoke();
@@ -663,6 +733,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _camY = f.y;
             if (_zoom > 1.0) _zoom = 1.0;
             _soundLeakDirty = true;
+            _wadAuthorDirty = true;
         }
         _geometryDirty = true;
         Changed?.Invoke();
@@ -682,6 +753,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _zoom = Math.Max(w / availW, h / availH) * 1.15;
         if (_zoom <= 0) _zoom = 1;
         _soundLeakDirty = true;
+        _wadAuthorDirty = true;
     }
 
     public void CenterOn(double x, double y)
@@ -705,6 +777,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             _zoom = Math.Clamp(scale, 0.02, 200);
             _soundLeakDirty = true;
+            _wadAuthorDirty = true;
             restored = true;
         }
 
@@ -812,6 +885,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _rejectOverlayVb = new GlVertexBuffer(_gl);
         _soundLeakPathVb = new GlVertexBuffer(_gl);
         _soundLeakMarkerVb = new GlVertexBuffer(_gl);
+        _wadAuthorVb = new GlVertexBuffer(_gl);
+        _wadAuthorFillVb = new GlVertexBuffer(_gl);
         _boxVb = new GlVertexBuffer(_gl);
         _pick3DVb = new GlVertexBuffer(_gl);
         _things3DVb = new GlVertexBuffer(_gl);
@@ -859,6 +934,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _rejectOverlayVb?.Dispose();
         _soundLeakPathVb?.Dispose();
         _soundLeakMarkerVb?.Dispose();
+        _wadAuthorVb?.Dispose();
+        _wadAuthorFillVb?.Dispose();
         _boxVb?.Dispose();
         _pick3DVb?.Dispose();
         _things3DVb?.Dispose();
@@ -866,7 +943,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _wadAuthorVb = null; _wadAuthorFillVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -1681,6 +1758,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 DrawBlockmap(); // debug overlay on top of geometry
                 DrawNodes();    // BSP partition lines overlay
                 DrawSoundLeakPath();
+                DrawWadAuthorHighlight();
             }
 
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
@@ -2418,6 +2496,72 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    private void DrawWadAuthorHighlight()
+    {
+        if (!WadAuthorMode || _device is null || _wadAuthorVb is null || _wadAuthorFillVb is null) return;
+        if (_wadAuthorDirty)
+        {
+            const int highlight = unchecked((int)0xffffee00);
+            const int fill = unchecked((int)0x70ffee00);
+            var verts = new System.Collections.Generic.List<FlatVertex>();
+            var tris = new System.Collections.Generic.List<FlatVertex>();
+
+            switch (_wadAuthorHighlight.Target)
+            {
+                case Vertex vertex when !_wadAuthorHighlight.Kind.Equals(WadAuthorHighlightKind.None):
+                    AddFilledDiamond(tris, vertex.Position, 7.0 * _zoom, highlight);
+                    break;
+                case Linedef line:
+                    verts.Add(FV(line.Start.Position, highlight));
+                    verts.Add(FV(line.End.Position, highlight));
+                    AddFilledDiamond(tris, line.Start.Position, 5.0 * _zoom, highlight);
+                    AddFilledDiamond(tris, line.End.Position, 5.0 * _zoom, highlight);
+                    break;
+                case Sector sector:
+                    AddSectorFill(tris, sector, fill);
+                    break;
+                case Thing thing:
+                    AddFilledDiamond(tris, thing.Position, 12.0 * _zoom, highlight);
+                    break;
+            }
+
+            _device.SetBufferData(_wadAuthorVb, verts.ToArray());
+            _device.SetBufferData(_wadAuthorFillVb, tris.ToArray());
+            _wadAuthorLineCount = verts.Count / 2;
+            _wadAuthorTriCount = tris.Count / 3;
+            _wadAuthorDirty = false;
+        }
+
+        if (_wadAuthorLineCount == 0 && _wadAuthorTriCount == 0) return;
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        if (_wadAuthorLineCount > 0)
+        {
+            _device.SetVertexBuffer(_wadAuthorVb);
+            _device.Draw(DBPrimitiveType.LineList, 0, _wadAuthorLineCount);
+        }
+        if (_wadAuthorTriCount > 0)
+        {
+            _device.SetAlphaBlendEnable(true);
+            _device.SetSourceBlend(Blend.SourceAlpha);
+            _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+            _device.SetVertexBuffer(_wadAuthorFillVb);
+            _device.Draw(DBPrimitiveType.TriangleList, 0, _wadAuthorTriCount);
+            _device.SetAlphaBlendEnable(false);
+        }
+    }
+
+    private static void AddSectorFill(System.Collections.Generic.List<FlatVertex> verts, Sector sector, int color)
+    {
+        if (sector.Sidedefs.Count == 0) return;
+        Triangulation tri;
+        try { tri = Triangulation.Create(sector); }
+        catch { return; }
+
+        foreach (Vec2D point in tri.Vertices)
+            verts.Add(FV(point, color));
+    }
+
     private static void AddFilledRect(System.Collections.Generic.List<FlatVertex> verts, Vec2D center, double halfSize, int color)
     {
         var a = new Vec2D(center.x - halfSize, center.y - halfSize);
@@ -2430,6 +2574,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         verts.Add(FV(a, color));
         verts.Add(FV(c, color));
         verts.Add(FV(d, color));
+    }
+
+    private static void AddFilledDiamond(System.Collections.Generic.List<FlatVertex> verts, Vec2D center, double radius, int color)
+    {
+        var n = new Vec2D(center.x, center.y + radius);
+        var e = new Vec2D(center.x + radius, center.y);
+        var s = new Vec2D(center.x, center.y - radius);
+        var w = new Vec2D(center.x - radius, center.y);
+        verts.Add(FV(center, color));
+        verts.Add(FV(n, color));
+        verts.Add(FV(e, color));
+        verts.Add(FV(center, color));
+        verts.Add(FV(e, color));
+        verts.Add(FV(s, color));
+        verts.Add(FV(center, color));
+        verts.Add(FV(s, color));
+        verts.Add(FV(w, color));
+        verts.Add(FV(center, color));
+        verts.Add(FV(w, color));
+        verts.Add(FV(n, color));
     }
 
     private static int WithAlpha(int argb, byte alpha)
@@ -2595,6 +2759,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.mode-things":
                 SetEditMode(EditMode.Things);
                 return true;
+            case "map2d.mode-wadauthor":
+                ToggleWadAuthorMode();
+                return true;
             case "map2d.flip":
                 FlipSelected(sidedefs: false);
                 return true;
@@ -2754,6 +2921,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             AutomapHighlightKind.Linedef when next.Line != null => $"automap linedef {_map.Linedefs.IndexOf(next.Line)}",
             AutomapHighlightKind.Sector when next.Sector != null => $"automap sector {_map.Sectors.IndexOf(next.Sector)}",
             _ => "automap"
+        });
+        RequestNextFrameRendering();
+    }
+
+    private void UpdateWadAuthorHighlight(Vec2D world)
+    {
+        if (_map == null || !WadAuthorMode) return;
+
+        WadAuthorHighlight next = WadAuthorModeModel.PickHighlight(_map, world, _zoom);
+        if (Equals(_wadAuthorHighlight, next)) return;
+
+        _wadAuthorHighlight = next;
+        _wadAuthorDirty = true;
+        Picked?.Invoke(next.Kind switch
+        {
+            WadAuthorHighlightKind.Vertex when next.Target is Vertex vertex => $"WadAuthor vertex {_map.Vertices.IndexOf(vertex)}",
+            WadAuthorHighlightKind.Linedef when next.Target is Linedef line => $"WadAuthor linedef {_map.Linedefs.IndexOf(line)}",
+            WadAuthorHighlightKind.Sector when next.Target is Sector sector => $"WadAuthor sector {_map.Sectors.IndexOf(sector)}",
+            WadAuthorHighlightKind.Thing when next.Target is Thing thing => $"WadAuthor thing {_map.Things.IndexOf(thing)}",
+            _ => "WadAuthor"
         });
         RequestNextFrameRendering();
     }
@@ -3713,6 +3900,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
+        if (WadAuthorMode) UpdateWadAuthorHighlight(_cursorWorld);
+
         if (_drawMode)
         {
             _drawCursor = SnapWorld(ToWorld(pos));
@@ -3814,6 +4003,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _zoom = Math.Clamp(_zoom * factor, 0.02, 200);
         _soundLeakDirty = true;
+        _wadAuthorDirty = true;
         RequestNextFrameRendering();
     }
 

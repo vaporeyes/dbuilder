@@ -98,7 +98,7 @@ public partial class MainWindow : Window
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
         {
-            SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : $"Mode: {MapView.CurrentEditMode}");
+            SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : MapView.WadAuthorMode ? "Mode: WadAuthor" : $"Mode: {MapView.CurrentEditMode}");
             UpdateInfo();
             UpdateStatusDetails();
         };
@@ -1358,6 +1358,17 @@ public partial class MainWindow : Window
         SetStatus(enabled
             ? "Mode: Automap. Valid automap lines use the Doom automap palette; View > Automap Mode exits."
             : $"Mode: {MapView.CurrentEditMode}");
+    }
+
+    private void OnWadAuthorMode(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleWadAuthorMode();
+        MapView.Focus();
+        SetStatus(enabled
+            ? "Mode: WadAuthor. Hover highlights vertices, things, linedefs, and sectors using WadAuthor priority."
+            : $"Mode: {MapView.CurrentEditMode}");
+        UpdateStatusDetails();
+        UpdateCommandAvailability();
     }
 
     private void OnAutomapOptionChanged(object? sender, RoutedEventArgs e)
@@ -3716,6 +3727,7 @@ public partial class MainWindow : Window
         ModeText.Text = MapView.In3DMode
             ? "Mode: 3D"
             : MapView.AutomapMode ? "Mode: Automap"
+            : MapView.WadAuthorMode ? "Mode: WadAuthor"
             : MapView.ImageExampleMode ? "Mode: Image Example"
             : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
         var grid = MapView.GridSetupSnapshot();
@@ -3788,7 +3800,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, AutomapModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -3798,7 +3810,7 @@ public partial class MainWindow : Window
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
@@ -3825,12 +3837,13 @@ public partial class MainWindow : Window
     private void UpdateCommandCheckedState()
     {
         SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
-        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode);
-        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode);
-        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode);
-        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode && !MapView.AutomapMode);
+        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
+        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
+        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
+        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
         SetChecked(Toggle3DModeMenuItem, MapView.In3DMode);
         SetChecked(AutomapModeMenuItem, MapView.AutomapMode);
+        SetChecked(WadAuthorModeMenuItem, MapView.WadAuthorMode);
         SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
         SetChecked(ToggleThingsMenuItem, MapView.ShowThings);
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
