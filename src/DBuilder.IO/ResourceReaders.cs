@@ -926,6 +926,17 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         => Path.GetDirectoryName(path) is null or ""
             && Path.GetExtension(path).Equals(".wad", StringComparison.OrdinalIgnoreCase);
 
+    public override ImageData? GetHiRes(string name, DoomPalette? palette)
+    {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedImage = nestedReaders[i].GetWallTextureBase(name, palette);
+            if (nestedImage != null) return nestedImage;
+        }
+
+        return base.GetHiRes(name, palette);
+    }
+
     public override void Dispose()
     {
         foreach (var reader in nestedReaders) reader.Dispose();

@@ -9,6 +9,19 @@ namespace DBuilder.Tests;
 
 public class HiresResourceTests
 {
+    private static byte[] BuildNestedWadBytes(params (string name, byte[] bytes)[] lumps)
+    {
+        string path = TestArtifacts.BuildPwadFile(lumps);
+        try
+        {
+            return File.ReadAllBytes(path);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static byte[] DoomPatch(byte index)
     {
         using var ms = new MemoryStream();
@@ -25,6 +38,38 @@ public class HiresResourceTests
         w.Write((byte)0);
         w.Write((byte)0xFF);
         return ms.ToArray();
+    }
+
+    [Fact]
+    public void Pk3NestedWadTextureOverridesPk3HiresFolder()
+    {
+        var config = GameConfiguration.FromText("""
+            textures
+            {
+                walls { start = "TX_START"; end = "TX_END"; }
+            }
+            """);
+        byte[] nested = BuildNestedWadBytes(
+            ("PLAYPAL", TestArtifacts.GrayscalePlaypal()),
+            ("TX_START", []),
+            ("ROCK", DoomPatch(70)),
+            ("TX_END", []));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("textures/ROCK.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 9, 9, 9, 255))),
+            ("hires/ROCK.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 41, 42, 255))),
+            ("resources/nested.wad", nested));
+
+        try
+        {
+            using var rm = new ResourceManager(config);
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetWallTexture("ROCK")!.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
     }
 
     [Fact]
