@@ -1,6 +1,7 @@
 // ABOUTME: Tests the UDB-style VisplaneExplorer tile model and packed point statistics.
 // ABOUTME: Covers progressive sampling order, result storage, compression, and sentinel point states.
 
+using DBuilder.Geometry;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -124,6 +125,41 @@ public class VisplaneExplorerModelTests
 
         Assert.Empty(points);
         Assert.False(scan.Tiles[new VisplaneTilePosition(0, 0)].IsComplete);
+    }
+
+    [Fact]
+    public void CreateForMapExpandsVertexBoundsByOneTileLikeUdb()
+    {
+        MapSet map = ClockwiseSquareMap();
+
+        VisplaneTileScan scan = VisplaneTileScan.CreateForMap(map);
+
+        Assert.Contains(new VisplaneTilePosition(-64, -64), scan.Tiles.Keys);
+        Assert.Contains(new VisplaneTilePosition(0, 0), scan.Tiles.Keys);
+        Assert.Contains(new VisplaneTilePosition(128, 128), scan.Tiles.Keys);
+        Assert.DoesNotContain(new VisplaneTilePosition(192, 192), scan.Tiles.Keys);
+    }
+
+    [Fact]
+    public void CreateForMapSkipsObviousBackSideOutsideTiles()
+    {
+        MapSet map = ClockwiseSquareMap();
+
+        VisplaneTileScan scan = VisplaneTileScan.CreateForMap(map);
+
+        Assert.DoesNotContain(new VisplaneTilePosition(0, -128), scan.Tiles.Keys);
+        Assert.Contains(new VisplaneTilePosition(0, -64), scan.Tiles.Keys);
+    }
+
+    [Fact]
+    public void CreateForMapReturnsEmptyScanForMapsWithoutLines()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(0, 0));
+
+        VisplaneTileScan scan = VisplaneTileScan.CreateForMap(map);
+
+        Assert.Empty(scan.Tiles);
     }
 
     [Fact]
@@ -266,5 +302,28 @@ public class VisplaneExplorerModelTests
         for (uint i = 0; i < colors.Length; i++)
             colors[i] = baseColor + i;
         return colors;
+    }
+
+    private static MapSet ClockwiseSquareMap()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex bottomLeft = map.AddVertex(new Vector2D(0, 0));
+        Vertex bottomRight = map.AddVertex(new Vector2D(128, 0));
+        Vertex topRight = map.AddVertex(new Vector2D(128, 128));
+        Vertex topLeft = map.AddVertex(new Vector2D(0, 128));
+
+        AddLine(bottomRight, bottomLeft);
+        AddLine(topRight, bottomRight);
+        AddLine(topLeft, topRight);
+        AddLine(bottomLeft, topLeft);
+        map.BuildIndexes();
+        return map;
+
+        void AddLine(Vertex start, Vertex end)
+        {
+            Linedef line = map.AddLinedef(start, end);
+            map.AddSidedef(line, true, sector);
+        }
     }
 }

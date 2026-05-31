@@ -1,6 +1,9 @@
 // ABOUTME: Models UDB VisplaneExplorer point results and 64x64 tile storage.
 // ABOUTME: Preserves the progressive tile sampling order and packed stat counters used by the plugin.
 
+using System.Drawing;
+using DBuilder.Geometry;
+
 namespace DBuilder.Map;
 
 public enum VisplaneExplorerStat
@@ -132,6 +135,47 @@ public sealed class VisplaneTileScan
         }
 
         return tile;
+    }
+
+    public static VisplaneTileScan CreateForMap(MapSet map)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+
+        var scan = new VisplaneTileScan();
+        if (map.Vertices.Count == 0 || map.Linedefs.Count == 0) return scan;
+
+        RectangleF area = MapSet.CreateArea(map.Vertices);
+        if (area.Width < 0.0f || area.Height < 0.0f) return scan;
+
+        int left = (int)Math.Round(area.Left);
+        int top = (int)Math.Round(area.Top);
+        int right = (int)Math.Round(area.Right);
+        int bottom = (int)Math.Round(area.Bottom);
+
+        VisplaneTilePosition leftTop = TileForPoint(left - VisplaneTile.TileSize, top - VisplaneTile.TileSize);
+        VisplaneTilePosition rightBottom = TileForPoint(right + VisplaneTile.TileSize, bottom + VisplaneTile.TileSize);
+
+        for (int x = leftTop.X; x <= rightBottom.X; x += VisplaneTile.TileSize)
+        {
+            for (int y = leftTop.Y; y <= rightBottom.Y; y += VisplaneTile.TileSize)
+            {
+                var center = new Vector2D(x + (VisplaneTile.TileSize >> 1), y + (VisplaneTile.TileSize >> 1));
+                Linedef? nearest = map.NearestLinedef(center);
+                if (nearest == null) continue;
+
+                double distanceSq = nearest.DistanceToSq(center, bounded: true);
+                if (distanceSq > VisplaneTile.TileSize * VisplaneTile.TileSize)
+                {
+                    double side = nearest.SideOfLine(center);
+                    if (side > 0.0 && nearest.Back == null)
+                        continue;
+                }
+
+                scan.AddTile(new VisplaneTilePosition(x, y));
+            }
+        }
+
+        return scan;
     }
 
     public IReadOnlyList<VisplaneTilePoint> CollectNextPointBatch(VisplaneMapRectangle viewRectangle)

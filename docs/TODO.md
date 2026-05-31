@@ -946,6 +946,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
   - [x] Add UDB-style palette row model, heatmap palette selection, and void-color override.
   - [x] Add UDB-style tile coordinate flooring and view-prioritized scan queue model.
+  - [x] Add UDB-style map-bound tile creation with one-sided outside-tile culling.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
   - [x] Add UDB-style linedef popup command order model.
