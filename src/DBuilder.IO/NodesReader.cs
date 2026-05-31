@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using DBuilder.Geometry;
 
 namespace DBuilder.IO;
@@ -21,6 +24,14 @@ public enum ClassicNodesStatus
     EmptyVertices,
     EmptySubsectors,
     InvalidSubsectorSegRange
+}
+
+public enum ZNodesPayloadStatus
+{
+    Ok,
+    MissingOrTooShort,
+    UnsupportedHeader,
+    DecompressionFailed,
 }
 
 public readonly record struct ClassicNodeBounds(short Top, short Bottom, short Left, short Right);
@@ -73,6 +84,14 @@ public sealed record ClassicNodesStructure(
         false);
 }
 
+public sealed record ZNodesPayload(ZNodesPayloadStatus Status, string Format, byte[] Data, string? Error)
+{
+    public bool IsValid => Status == ZNodesPayloadStatus.Ok;
+
+    public static ZNodesPayload Failure(ZNodesPayloadStatus status, string format = "", string? error = null)
+        => new(status, format, Array.Empty<byte>(), error);
+}
+
 public static class NodesReader
 {
     private const int NodeRecordSize = 28;
@@ -81,6 +100,17 @@ public static class NodesReader
     private const int SubsectorRecordSize = 4;
     private const int SubsectorFlag = 0x8000;
     private const int ChildIndexMask = 0x7FFF;
+    private static readonly string[] SupportedZNodesFormats =
+    [
+        "XNOD",
+        "XGLN",
+        "XGL2",
+        "XGL3",
+        "ZNOD",
+        "ZGLN",
+        "ZGL2",
+        "ZGL3",
+    ];
 
     /// <summary>
     /// Parses a vanilla NODES lump into partition segments. Returns an empty list for empty or non-vanilla
@@ -144,6 +174,41 @@ public static class NodesReader
             subsectors,
             vertices,
             segCount >= short.MaxValue);
+    }
+
+    public static bool HasSupportedZNodesHeader(byte[] data)
+        => data != null
+        && data.Length >= 4
+        && Array.IndexOf(SupportedZNodesFormats, Encoding.ASCII.GetString(data, 0, 4)) >= 0;
+
+    public static ZNodesPayload ExtractZNodesPayload(byte[] data)
+    {
+        if (data == null || data.Length < 4)
+            return ZNodesPayload.Failure(ZNodesPayloadStatus.MissingOrTooShort);
+
+        string format = Encoding.ASCII.GetString(data, 0, 4);
+        if (Array.IndexOf(SupportedZNodesFormats, format) < 0)
+            return ZNodesPayload.Failure(ZNodesPayloadStatus.UnsupportedHeader, format);
+
+        if (format[0] != 'Z')
+        {
+            var payload = new byte[data.Length - 4];
+            Array.Copy(data, 4, payload, 0, payload.Length);
+            return new ZNodesPayload(ZNodesPayloadStatus.Ok, format, payload, null);
+        }
+
+        try
+        {
+            using var compressed = new MemoryStream(data, 4, data.Length - 4, writable: false);
+            using var zlib = new ZLibStream(compressed, CompressionMode.Decompress);
+            using var payload = new MemoryStream();
+            zlib.CopyTo(payload);
+            return new ZNodesPayload(ZNodesPayloadStatus.Ok, format, payload.ToArray(), null);
+        }
+        catch (InvalidDataException ex)
+        {
+            return ZNodesPayload.Failure(ZNodesPayloadStatus.DecompressionFailed, format, ex.Message);
+        }
     }
 
     private static ClassicNode[] ParseClassicNodes(byte[] data, int count)

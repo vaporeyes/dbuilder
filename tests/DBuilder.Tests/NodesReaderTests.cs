@@ -2,6 +2,8 @@
 // ABOUTME: Covers partition overlays, child flags, parent links, segs, vertices, and subsector links.
 
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 using DBuilder.IO;
 
@@ -67,6 +69,23 @@ public class NodesReaderTests
         BitConverter.GetBytes(segCount).CopyTo(b, 0);
         BitConverter.GetBytes(firstSeg).CopyTo(b, 2);
         return b;
+    }
+
+    private static byte[] ZNodesLump(string header, byte[] payload)
+    {
+        byte[] bytes = new byte[4 + payload.Length];
+        Encoding.ASCII.GetBytes(header).CopyTo(bytes, 0);
+        payload.CopyTo(bytes, 4);
+        return bytes;
+    }
+
+    private static byte[] CompressedZNodesLump(string header, byte[] payload)
+    {
+        using var output = new MemoryStream();
+        output.Write(Encoding.ASCII.GetBytes(header));
+        using (var zlib = new ZLibStream(output, CompressionLevel.SmallestSize, leaveOpen: true))
+            zlib.Write(payload);
+        return output.ToArray();
     }
 
     [Fact]
@@ -170,6 +189,67 @@ public class NodesReaderTests
 
         Assert.False(result.IsValid);
         Assert.Equal(ClassicNodesStatus.UnsupportedCompressedNodes, result.Status);
+    }
+
+    [Theory]
+    [InlineData("XNOD")]
+    [InlineData("XGLN")]
+    [InlineData("XGL2")]
+    [InlineData("XGL3")]
+    [InlineData("ZNOD")]
+    [InlineData("ZGLN")]
+    [InlineData("ZGL2")]
+    [InlineData("ZGL3")]
+    public void RecognizesSupportedZNodesHeaders(string header)
+    {
+        Assert.True(NodesReader.HasSupportedZNodesHeader(ZNodesLump(header, Array.Empty<byte>())));
+    }
+
+    [Fact]
+    public void ExtractZNodesPayloadCopiesUncompressedPayload()
+    {
+        byte[] lump = ZNodesLump("XGL3", new byte[] { 1, 2, 3, 4 });
+
+        ZNodesPayload payload = NodesReader.ExtractZNodesPayload(lump);
+
+        Assert.True(payload.IsValid);
+        Assert.Equal(ZNodesPayloadStatus.Ok, payload.Status);
+        Assert.Equal("XGL3", payload.Format);
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, payload.Data);
+        Assert.Null(payload.Error);
+    }
+
+    [Fact]
+    public void ExtractZNodesPayloadDecompressesCompressedPayload()
+    {
+        byte[] lump = CompressedZNodesLump("ZGLN", new byte[] { 9, 8, 7 });
+
+        ZNodesPayload payload = NodesReader.ExtractZNodesPayload(lump);
+
+        Assert.True(payload.IsValid);
+        Assert.Equal("ZGLN", payload.Format);
+        Assert.Equal(new byte[] { 9, 8, 7 }, payload.Data);
+    }
+
+    [Fact]
+    public void ExtractZNodesPayloadReportsUnsupportedHeader()
+    {
+        ZNodesPayload payload = NodesReader.ExtractZNodesPayload(ZNodesLump("ABCD", Array.Empty<byte>()));
+
+        Assert.False(payload.IsValid);
+        Assert.Equal(ZNodesPayloadStatus.UnsupportedHeader, payload.Status);
+        Assert.Equal("ABCD", payload.Format);
+    }
+
+    [Fact]
+    public void ExtractZNodesPayloadReportsDecompressionFailure()
+    {
+        ZNodesPayload payload = NodesReader.ExtractZNodesPayload(ZNodesLump("ZNOD", new byte[] { 1, 2, 3 }));
+
+        Assert.False(payload.IsValid);
+        Assert.Equal(ZNodesPayloadStatus.DecompressionFailed, payload.Status);
+        Assert.Equal("ZNOD", payload.Format);
+        Assert.NotNull(payload.Error);
     }
 
     [Fact]

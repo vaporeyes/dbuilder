@@ -910,6 +910,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
   - [x] Add editor Nodes Viewer window for parsed classic nodes, segs, and subsectors.
+  - [x] Add UDB-style supported ZNODES header detection and payload extraction.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
@@ -1043,6 +1044,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
   - [x] Add non-modal Nodes Viewer for classic node structure summaries.
+  - [x] Add UDB-style supported ZNODES header detection and payload extraction.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add non-modal Reject Explorer validation and relation summary window.
