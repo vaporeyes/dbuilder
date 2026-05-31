@@ -257,6 +257,70 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void RemoveUnneededSidedefTexturesCleansTwoSidedOptionalParts()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 0;
+        backSector.CeilHeight = 128;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var front = map.AddSidedef(line, true, frontSector);
+        var back = map.AddSidedef(line, false, backSector);
+        front.HighTexture = "UP";
+        front.MidTexture = "MID";
+        front.LowTexture = "LOW";
+        back.HighTexture = "UP";
+        back.MidTexture = "MID";
+        back.LowTexture = "LOW";
+
+        int changed = map.RemoveUnneededSidedefTextures(autoClearSidedefTextures: true);
+        int unchanged = map.RemoveUnneededSidedefTextures(autoClearSidedefTextures: true);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(0, unchanged);
+        Assert.Equal("-", front.HighTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("-", front.LowTexture);
+        Assert.Equal("-", back.HighTexture);
+        Assert.Equal("-", back.MidTexture);
+        Assert.Equal("-", back.LowTexture);
+    }
+
+    [Fact]
+    public void RemoveUnneededSidedefTexturesHonorsAutoClearPreference()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 0;
+        backSector.CeilHeight = 128;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var front = map.AddSidedef(line, true, frontSector);
+        var back = map.AddSidedef(line, false, backSector);
+        front.HighTexture = "UP";
+        front.MidTexture = "MID";
+        front.LowTexture = "LOW";
+        back.HighTexture = "UP";
+        back.MidTexture = "MID";
+        back.LowTexture = "LOW";
+
+        int changed = map.RemoveUnneededSidedefTextures(autoClearSidedefTextures: false);
+
+        Assert.Equal(2, changed);
+        Assert.Equal("UP", front.HighTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("LOW", front.LowTexture);
+        Assert.Equal("UP", back.HighTexture);
+        Assert.Equal("-", back.MidTexture);
+        Assert.Equal("LOW", back.LowTexture);
+    }
+
+    [Fact]
     public void RepairReferencesRemovesLinedefsWithMissingVertices()
     {
         var map = new MapSet();

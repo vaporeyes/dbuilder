@@ -177,6 +177,18 @@ public class SidedefPartTests
     }
 
     [Fact]
+    public void RemoveUnneededTexturesIsIdempotentWhenAlreadyClear()
+    {
+        var (front, _) = TwoSidedSameHeightSides();
+
+        Assert.False(front.RemoveUnneededTextures(removeMiddle: true));
+
+        Assert.Equal("-", front.HighTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("-", front.LowTexture);
+    }
+
+    [Fact]
     public void RemoveUnneededTexturesKeepsUpperLowerWhenActionsOrTagsMayNeedThem()
     {
         var (front, _) = TwoSidedSameHeightSides();

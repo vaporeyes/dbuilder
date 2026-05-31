@@ -1063,6 +1063,20 @@ public class MapSet : IDisposable
         return removed;
     }
 
+    /// <summary>Removes unneeded textures from sidedefs. Returns the number of sidedefs changed.</summary>
+    public int RemoveUnneededSidedefTextures(bool autoClearSidedefTextures)
+    {
+        BuildIndexes();
+        int changed = 0;
+        foreach (var side in Sidedefs)
+        {
+            if (side.RemoveUnneededTextures(side.Other != null, force: false, shiftMiddle: true, autoClearSidedefTextures))
+                changed++;
+        }
+
+        return changed;
+    }
+
     private static void CopySidedefProperties(Sidedef src, Sidedef dst)
     {
         dst.OffsetX = src.OffsetX;

@@ -2299,7 +2299,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
 
         using var previewMap = _map.Clone();
-        var preview = CleanUpGeometry(previewMap);
+        var preview = CleanUpGeometry(previewMap, _settings.AutoClearSidedefTextures);
         if (preview.Total == 0)
         {
             SetStatus("Geometry cleanup: no changes needed.");
@@ -2307,24 +2307,25 @@ public partial class MainWindow : Window
         }
 
         CreateUndo("Clean up geometry");
-        var result = CleanUpGeometry(_map);
+        var result = CleanUpGeometry(_map, _settings.AutoClearSidedefTextures);
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Geometry cleanup: {result.Repaired} reference repair(s), {result.Sectors} sector(s), {result.Vertices} unused vertex removal(s).");
+        SetStatus($"Geometry cleanup: {result.Repaired} reference repair(s), {result.Sectors} sector(s), {result.Vertices} unused vertex removal(s), {result.SidedefTextures} sidedef texture cleanup(s).");
     }
 
-    private static GeometryCleanupResult CleanUpGeometry(MapSet map)
+    private static GeometryCleanupResult CleanUpGeometry(MapSet map, bool autoClearSidedefTextures)
     {
         int repaired = map.RepairReferences();
         int sectors = map.RemoveUnusedSectors();
         int vertices = map.RemoveUnusedVertices();
-        return new GeometryCleanupResult(repaired, sectors, vertices);
+        int sidedefTextures = map.RemoveUnneededSidedefTextures(autoClearSidedefTextures);
+        return new GeometryCleanupResult(repaired, sectors, vertices, sidedefTextures);
     }
 
-    private readonly record struct GeometryCleanupResult(int Repaired, int Sectors, int Vertices)
+    private readonly record struct GeometryCleanupResult(int Repaired, int Sectors, int Vertices, int SidedefTextures)
     {
-        public int Total => Repaired + Sectors + Vertices;
+        public int Total => Repaired + Sectors + Vertices + SidedefTextures;
     }
 
     // Reads the map's REJECT lump and highlights sectors that cannot see the selected sector (reject visualization).

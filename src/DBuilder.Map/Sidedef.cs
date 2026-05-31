@@ -172,34 +172,53 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         {
             if (autoClearSidedefTextures && !HighRequired())
             {
-                HighTexture = "-";
-                changed = true;
+                changed |= SetTextureHighIfDifferent("-");
             }
             else if (shiftMiddle && HighTexture == "-" && HighRequired())
             {
-                SetTextureHigh(MidTexture);
-                changed = true;
+                changed |= SetTextureHighIfDifferent(MidTexture);
             }
 
             if (autoClearSidedefTextures && !LowRequired())
             {
-                LowTexture = "-";
-                changed = true;
+                changed |= SetTextureLowIfDifferent("-");
             }
             else if (shiftMiddle && LowTexture == "-" && LowRequired())
             {
-                SetTextureLow(MidTexture);
-                changed = true;
+                changed |= SetTextureLowIfDifferent(MidTexture);
             }
         }
 
         if (removeMiddle && !MiddleRequired())
         {
-            MidTexture = "-";
-            changed = true;
+            changed |= SetTextureMidIfDifferent("-");
         }
 
         return changed;
+    }
+
+    private bool SetTextureHighIfDifferent(string? name)
+    {
+        string texture = NormalizeTextureName(name);
+        if (HighTexture == texture) return false;
+        HighTexture = texture;
+        return true;
+    }
+
+    private bool SetTextureMidIfDifferent(string? name)
+    {
+        string texture = NormalizeTextureName(name);
+        if (MidTexture == texture) return false;
+        MidTexture = texture;
+        return true;
+    }
+
+    private bool SetTextureLowIfDifferent(string? name)
+    {
+        string texture = NormalizeTextureName(name);
+        if (LowTexture == texture) return false;
+        LowTexture = texture;
+        return true;
     }
 
     public double GetPartHeight(SidedefPart part) => part switch
