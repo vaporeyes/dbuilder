@@ -162,6 +162,26 @@ public static class ScriptCompileFlow
             .ToList();
     }
 
+    public static IReadOnlyList<string> CopyIncludes(
+        IEnumerable<ScriptCompileIncludeCopy> copyPlan,
+        Func<string, byte[]?> readInclude)
+    {
+        var copied = new List<string>();
+        foreach (ScriptCompileIncludeCopy copy in copyPlan)
+        {
+            if (!copy.ShouldCopy) continue;
+            byte[]? data = readInclude(copy.IncludeName);
+            if (data is null) continue;
+
+            string? directory = Path.GetDirectoryName(copy.TargetPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllBytes(copy.TargetPath, data);
+            copied.Add(copy.TargetPath);
+        }
+
+        return copied;
+    }
+
     public static ScriptCompilerError RemapDirectoryError(ScriptCompilerError error, string inputCopyPath, string sourceFile)
         => SamePath(error.FileName, inputCopyPath)
             ? error with { FileName = sourceFile }

@@ -354,6 +354,61 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowCopiesIncludesIntoTempDirectoryLikeUdb()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compile_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var plan = ScriptCompileFlow.BuildIncludeCopyPlan(
+                new[] { "libs/shared.acs", "missing.acs" },
+                dir);
+
+            var copied = ScriptCompileFlow.CopyIncludes(
+                plan,
+                include => include == Path.Combine("libs", "shared.acs")
+                    ? "script 1 OPEN { }"u8.ToArray()
+                    : null);
+
+            string target = Path.Combine(dir, "libs", "shared.acs");
+            Assert.Equal(target, Assert.Single(copied));
+            Assert.Equal("script 1 OPEN { }", File.ReadAllText(target));
+            Assert.False(File.Exists(Path.Combine(dir, "missing.acs")));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ScriptCompileFlowDoesNotOverwriteExistingIncludeCopiesLikeUdb()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compile_" + Guid.NewGuid().ToString("N"));
+        string target = Path.Combine(dir, "libs", "shared.acs");
+        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        File.WriteAllText(target, "original");
+
+        try
+        {
+            var plan = ScriptCompileFlow.BuildIncludeCopyPlan(
+                new[] { "libs/shared.acs" },
+                dir,
+                new[] { target });
+
+            var copied = ScriptCompileFlow.CopyIncludes(
+                plan,
+                _ => "replacement"u8.ToArray());
+
+            Assert.Empty(copied);
+            Assert.Equal("original", File.ReadAllText(target));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ScriptCompileFlowResolvesAccLibraryTargetsLikeUdb()
     {
         var target = ScriptCompileFlow.ResolveFileTarget(
