@@ -207,7 +207,7 @@
       "udbPlugin": "TagRange",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "UDB-style absolute and relative tag range calculation exists, including duplicate detection, skip-used handling, out-of-range reporting, selected element initial-tag capture, selected element assignment, in-session step and relative-mode defaults, and editor menu/toolbar form integration for sectors, linedefs, and things. Full plugin lifecycle and docked workflow remain incomplete."
+      "notes": "UDB-style absolute and relative tag range calculation exists, including duplicate detection, skip-used handling, out-of-range reporting, selected element initial-tag capture, selected element assignment, in-session step and relative-mode defaults, form title, end-tag preview and warning state, and editor menu/toolbar form integration for sectors, linedefs, and things. Full plugin lifecycle and docked workflow remain incomplete."
     },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
     {

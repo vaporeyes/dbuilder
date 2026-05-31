@@ -115,6 +115,42 @@ public sealed class TagRangeModelTests
     }
 
     [Fact]
+    public void CreatePreviewStateMatchesUdbWarningsAndEndTag()
+    {
+        TagRangePreviewState preview = TagRangeModel.CreatePreviewState(
+            TagRangeTargetKind.Sectors,
+            selectionCount: 3,
+            initialTags: new[] { 0, 0, 0 },
+            usedTags: new HashSet<int> { 12 },
+            options: new TagRangeOptions(StartTag: 10, Step: 2, Relative: false, SkipUsedTags: false));
+
+        Assert.Equal("Create tag range for 3 sectors", preview.Title);
+        Assert.Equal(14, preview.EndTag);
+        Assert.False(preview.OutOfTagsWarningVisible);
+        Assert.True(preview.OkEnabled);
+        Assert.True(preview.DoubleTagWarningVisible);
+        Assert.True(preview.SkipUsedTagsVisible);
+    }
+
+    [Fact]
+    public void CreatePreviewStateHidesDuplicateWarningWhenOutOfTags()
+    {
+        TagRangePreviewState preview = TagRangeModel.CreatePreviewState(
+            TagRangeTargetKind.Linedefs,
+            selectionCount: 1,
+            initialTags: new[] { 0, 0, 0 },
+            usedTags: new HashSet<int> { 10 },
+            options: new TagRangeOptions(StartTag: 8, Step: 2, Relative: false, SkipUsedTags: false, MinTag: 1, MaxTag: 10));
+
+        Assert.Equal("Create tag range for 1 linedef", preview.Title);
+        Assert.Equal(10, preview.EndTag);
+        Assert.True(preview.OutOfTagsWarningVisible);
+        Assert.False(preview.OkEnabled);
+        Assert.False(preview.DoubleTagWarningVisible);
+        Assert.False(preview.SkipUsedTagsVisible);
+    }
+
+    [Fact]
     public void SelectedInitialTagsAndApplyRangeUseMapOrder()
     {
         var map = new MapSet();

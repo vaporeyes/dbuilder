@@ -25,6 +25,14 @@ public sealed record TagRangeResult(
     bool TagsUsed,
     bool OutOfTags);
 
+public sealed record TagRangePreviewState(
+    string Title,
+    int? EndTag,
+    bool OutOfTagsWarningVisible,
+    bool OkEnabled,
+    bool DoubleTagWarningVisible,
+    bool SkipUsedTagsVisible);
+
 public static class TagRangeModel
 {
     public static TagRangeStoredOptions StoredOptionsFrom(TagRangeOptions options)
@@ -97,6 +105,25 @@ public static class TagRangeModel
         return new TagRangeResult(newTags, tagsUsed, false);
     }
 
+    public static TagRangePreviewState CreatePreviewState(
+        TagRangeTargetKind target,
+        int selectionCount,
+        IReadOnlyList<int> initialTags,
+        IReadOnlySet<int> usedTags,
+        TagRangeOptions options)
+    {
+        TagRangeResult result = CreateRange(initialTags, usedTags, options);
+        bool showUsedTagWarning = result.TagsUsed && !result.OutOfTags;
+
+        return new TagRangePreviewState(
+            TitleFor(target, selectionCount),
+            result.Tags.Count > 0 ? result.Tags[^1] : null,
+            result.OutOfTags,
+            !result.OutOfTags,
+            showUsedTagWarning,
+            showUsedTagWarning);
+    }
+
     public static IReadOnlyList<int> SelectedInitialTags(MapSet map, TagRangeTargetKind target)
         => target switch
         {
@@ -165,4 +192,17 @@ public static class TagRangeModel
 
     private static bool AtOrBeyondRange(int tag, TagRangeOptions options)
         => tag >= options.MaxTag || tag <= options.MinTag;
+
+    private static string TitleFor(TagRangeTargetKind target, int selectionCount)
+    {
+        string name = target switch
+        {
+            TagRangeTargetKind.Sectors => selectionCount == 1 ? "sector" : "sectors",
+            TagRangeTargetKind.Linedefs => selectionCount == 1 ? "linedef" : "linedefs",
+            TagRangeTargetKind.Things => selectionCount == 1 ? "thing" : "things",
+            _ => "elements",
+        };
+
+        return "Create tag range for " + selectionCount + " " + name;
+    }
 }
