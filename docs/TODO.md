@@ -933,6 +933,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style prefab collection settings shape with `prefab1`, `prefab2`, etc. ordering.
   - [x] Add UDB-style numeric prefab settings load ordering.
   - [x] Add UDB-style prefab name suggestion, reserved-name, overwrite, and insert-position behavior.
+  - [x] Add UDB-style StairSectorBuilder form startup state for default prefabs, available tabs, and selected-sector overrides.
   - [x] Add UDB-style loaded-prefab option mapping for straight geometry and stair option application.
   - [x] Add UDB-style curved stair geometry planning between selected linedefs.
   - [x] Add UDB-style Catmull-Rom spline stair geometry planning between selected linedefs.
@@ -1089,6 +1090,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.
   - [x] Add UDB-style prefab name suggestion, reserved-name, overwrite, and insert-position behavior.
+  - [x] Add UDB-style form startup state for default prefabs, available tabs, and selected-sector overrides.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.

@@ -697,6 +697,101 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void PrefabCollectionFormStateLoadsDefaultPrefabLikeUdb()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab { Name = "Other", StairType = (int)StairBuilderTab.Straight },
+            new StairBuilderPrefab
+            {
+                Name = "[Default]",
+                StairType = (int)StairBuilderTab.Curved,
+                NumberOfSectors = 6,
+                SingleSteps = true,
+                SingleDirection = true
+            }
+        };
+
+        StairBuilderFormState state = StairBuilderPrefabSettings.CreateFormState(
+            prefabs,
+            selectedLinedefCount: 2,
+            selectedSectorCount: 0);
+
+        Assert.Equal(new[] { StairBuilderTab.Straight, StairBuilderTab.Curved, StairBuilderTab.Spline }, state.AvailableTabs);
+        Assert.Equal(StairBuilderTab.Curved, state.ActiveTab);
+        Assert.Equal("[Default]", state.CurrentPrefab.Name);
+        Assert.Equal(6, state.CurrentPrefab.NumberOfSectors);
+        Assert.True(state.CurrentPrefab.SingleSteps);
+        Assert.True(state.CurrentPrefab.SingleDirection);
+    }
+
+    [Fact]
+    public void PrefabCollectionFormStateUsesDefaultsWhenNoDefaultPrefabExists()
+    {
+        var prefabs = new[] { new StairBuilderPrefab { Name = "Other", NumberOfSectors = 5 } };
+
+        StairBuilderFormState state = StairBuilderPrefabSettings.CreateFormState(
+            prefabs,
+            selectedLinedefCount: 2,
+            selectedSectorCount: 0);
+
+        Assert.Equal(StairBuilderTab.Straight, state.ActiveTab);
+        Assert.Equal("", state.CurrentPrefab.Name);
+        Assert.Equal(1, state.CurrentPrefab.NumberOfSectors);
+        Assert.Equal(32, state.CurrentPrefab.SectorDepth);
+        Assert.False(state.CurrentPrefab.SingleSteps);
+        Assert.False(state.CurrentPrefab.SingleDirection);
+    }
+
+    [Fact]
+    public void PrefabCollectionFormStateLimitsTabsForSingleLineLikeUdb()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab
+            {
+                Name = "[Default]",
+                StairType = (int)StairBuilderTab.Spline,
+                NumberOfSectors = 4
+            }
+        };
+
+        StairBuilderFormState state = StairBuilderPrefabSettings.CreateFormState(
+            prefabs,
+            selectedLinedefCount: 1,
+            selectedSectorCount: 0);
+
+        Assert.Equal(new[] { StairBuilderTab.Straight }, state.AvailableTabs);
+        Assert.Equal(StairBuilderTab.Straight, state.ActiveTab);
+        Assert.Equal("[Default]", state.CurrentPrefab.Name);
+    }
+
+    [Fact]
+    public void PrefabCollectionFormStateAppliesSelectedSectorOverridesLikeUdb()
+    {
+        var prefabs = new[]
+        {
+            new StairBuilderPrefab
+            {
+                Name = "[Default]",
+                StairType = (int)StairBuilderTab.Curved,
+                SingleSteps = false,
+                SingleDirection = true
+            }
+        };
+
+        StairBuilderFormState state = StairBuilderPrefabSettings.CreateFormState(
+            prefabs,
+            selectedLinedefCount: 0,
+            selectedSectorCount: 2);
+
+        Assert.Equal(new[] { StairBuilderTab.Straight }, state.AvailableTabs);
+        Assert.Equal(StairBuilderTab.Straight, state.ActiveTab);
+        Assert.True(state.CurrentPrefab.SingleSteps);
+        Assert.False(state.CurrentPrefab.SingleDirection);
+    }
+
+    [Fact]
     public void PrefabCreatesStraightOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab

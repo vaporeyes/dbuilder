@@ -484,6 +484,13 @@ public sealed record StairBuilderSplineOptions
     public int NumberOfControlPoints { get; init; } = 1;
 }
 
+public enum StairBuilderTab
+{
+    Straight = 0,
+    Curved = 1,
+    Spline = 2
+}
+
 public sealed record StairBuilderPrefab
 {
     public string Name { get; init; } = "";
@@ -654,6 +661,12 @@ public static class StairBuilderPrefabSettings
     public const string DefaultPrefabName = "[Default]";
     public const string PreviousPrefabName = "[Previous]";
 
+    private static readonly IReadOnlyList<StairBuilderTab> AllTabs =
+        new[] { StairBuilderTab.Straight, StairBuilderTab.Curved, StairBuilderTab.Spline };
+
+    private static readonly IReadOnlyList<StairBuilderTab> StraightOnlyTabs =
+        new[] { StairBuilderTab.Straight };
+
     public static Dictionary<string, object> ToSettingsDictionary(IReadOnlyList<StairBuilderPrefab> prefabs)
     {
         var settings = new Dictionary<string, object>();
@@ -714,6 +727,24 @@ public static class StairBuilderPrefabSettings
     {
         string trimmed = name.Trim();
         return trimmed == DefaultPrefabName || trimmed == PreviousPrefabName;
+    }
+
+    public static StairBuilderFormState CreateFormState(
+        IReadOnlyList<StairBuilderPrefab> prefabs,
+        int selectedLinedefCount,
+        int selectedSectorCount)
+    {
+        StairBuilderPrefab prefab = FindDefaultPrefab(prefabs) ?? new StairBuilderPrefab();
+        if (selectedSectorCount > 0)
+            prefab = prefab with { SingleSteps = true, SingleDirection = false };
+
+        IReadOnlyList<StairBuilderTab> availableTabs =
+            selectedLinedefCount == 1 || selectedSectorCount > 0 ? StraightOnlyTabs : AllTabs;
+
+        StairBuilderTab activeTab = ToTab(prefab.StairType);
+        if (!availableTabs.Contains(activeTab)) activeTab = StairBuilderTab.Straight;
+
+        return new StairBuilderFormState(availableTabs, activeTab, prefab);
     }
 
     public static int PreviousInsertPosition(IReadOnlyList<StairBuilderPrefab> prefabs)
@@ -796,7 +827,25 @@ public static class StairBuilderPrefabSettings
 
         return -1;
     }
+
+    private static StairBuilderPrefab? FindDefaultPrefab(IReadOnlyList<StairBuilderPrefab> prefabs)
+    {
+        foreach (StairBuilderPrefab prefab in prefabs)
+        {
+            if (prefab.Name == DefaultPrefabName) return prefab;
+        }
+
+        return null;
+    }
+
+    private static StairBuilderTab ToTab(int stairType)
+        => Enum.IsDefined(typeof(StairBuilderTab), stairType) ? (StairBuilderTab)stairType : StairBuilderTab.Straight;
 }
+
+public sealed record StairBuilderFormState(
+    IReadOnlyList<StairBuilderTab> AvailableTabs,
+    StairBuilderTab ActiveTab,
+    StairBuilderPrefab CurrentPrefab);
 
 public sealed record StairBuilderPrefabSaveResult(
     StairBuilderPrefabSaveStatus Status,
