@@ -84,7 +84,7 @@
       "udbArea": "Source/Core/Rendering",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Rendering;DBuilder.Editor",
-      "notes": "2D map rendering, grid display, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, and large-map 3D performance guards have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
+      "notes": "2D map rendering, grid display, UDB-style bounded grid stepping, textured previews, sprite and thing previews, camera texture image handling, dynamic bitmap images, unknown images, voxel image discovery, and large-map 3D performance guards have coverage. Full UDB renderer and visual mode rendering parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Resources",

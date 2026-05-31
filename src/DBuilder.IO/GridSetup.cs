@@ -67,18 +67,32 @@ public sealed class GridSetup
 
     public void SetGridSize(double size)
     {
+        if (!double.IsFinite(size)) size = MaximumGridSize;
         gridSizeF = Math.Max(size, minimumGridSize);
-        GridSize = (int)Math.Max(1, Math.Round(gridSizeF));
+        double roundedSize = Math.Round(gridSizeF);
+        GridSize = roundedSize >= int.MaxValue ? int.MaxValue : (int)Math.Max(1, roundedSize);
         gridSizeFInv = 1.0 / gridSizeF;
     }
 
     public bool TryStepGridSize(bool larger)
     {
-        double nextSize = larger
-            ? Math.Min(MaximumGridSize, gridSizeF * 2.0)
-            : Math.Max(minimumGridSize, gridSizeF * 0.5);
+        if (!double.IsFinite(gridSizeF))
+        {
+            SetGridSize(MaximumGridSize);
+            return true;
+        }
 
-        if (nextSize == gridSizeF) return false;
+        double nextSize;
+        if (larger)
+        {
+            if (gridSizeF > MaximumGridSize * 0.5) return false;
+            nextSize = gridSizeF * 2.0;
+        }
+        else
+        {
+            if (gridSizeF < minimumGridSize * 2.0) return false;
+            nextSize = gridSizeF * 0.5;
+        }
 
         SetGridSize(nextSize);
         return true;

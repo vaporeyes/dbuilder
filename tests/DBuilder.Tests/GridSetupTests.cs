@@ -93,6 +93,48 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void StepGridSizeCanReduceOversizedGridValues()
+    {
+        var grid = new GridSetup();
+
+        grid.SetGridSize(GridSetup.MaximumGridSize * 4.0);
+
+        Assert.False(grid.TryStepGridSize(larger: true));
+        Assert.Equal(GridSetup.MaximumGridSize * 4.0, grid.GridSizeF);
+        Assert.True(grid.TryStepGridSize(larger: false));
+        Assert.Equal(GridSetup.MaximumGridSize * 2.0, grid.GridSizeF);
+        Assert.True(grid.TryStepGridSize(larger: false));
+        Assert.Equal(GridSetup.MaximumGridSize, grid.GridSizeF);
+    }
+
+    [Fact]
+    public void SetGridSizeRecoversNonFiniteValuesToMaximum()
+    {
+        var grid = new GridSetup();
+
+        grid.SetGridSize(double.PositiveInfinity);
+
+        Assert.Equal(GridSetup.MaximumGridSize, grid.GridSizeF);
+        Assert.False(grid.TryStepGridSize(larger: true));
+        Assert.True(grid.TryStepGridSize(larger: false));
+        Assert.Equal(GridSetup.MaximumGridSize * 0.5, grid.GridSizeF);
+    }
+
+    [Fact]
+    public void SetGridSizeSaturatesDisplaySizeForHugeFiniteValues()
+    {
+        var grid = new GridSetup();
+
+        grid.SetGridSize((double)int.MaxValue * 2.0);
+
+        Assert.Equal((double)int.MaxValue * 2.0, grid.GridSizeF);
+        Assert.Equal(int.MaxValue, grid.GridSize);
+        Assert.True(grid.TryStepGridSize(larger: false));
+        Assert.Equal((double)int.MaxValue, grid.GridSizeF);
+        Assert.Equal(int.MaxValue, grid.GridSize);
+    }
+
+    [Fact]
     public void GetHigherAndLowerMatchGridSize()
     {
         var grid = new GridSetup();
