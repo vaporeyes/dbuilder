@@ -15,6 +15,8 @@ public sealed class SectorColorDialog : PropertyDialog
     private readonly TextBox _blue;
     private readonly TextBox _hex;
     private readonly CheckBox _removeDefaults;
+    private SectorColorPickerState _state;
+    private SectorColorField _activeField;
 
     public SectorColorField ResultField { get; private set; }
     public ColorRgb ResultColor { get; private set; }
@@ -24,7 +26,9 @@ public sealed class SectorColorDialog : PropertyDialog
         : base("Sector Color")
     {
         ResultField = field;
-        ResultColor = ColorPickerModel.UnpackRgb(ColorPickerModel.GetSectorColor(sector, field));
+        _activeField = field;
+        _state = ColorPickerModel.CreateSectorColorPickerState(sector, field);
+        ResultColor = _state.ActiveColor;
 
         _field = AddCombo(
             "Field",
@@ -39,20 +43,48 @@ public sealed class SectorColorDialog : PropertyDialog
         _blue = AddField("Blue", ResultColor.Blue.ToString(CultureInfo.InvariantCulture));
         _hex = AddField("Hex", ColorPickerModel.Format(ResultColor, ColorPickerInfoMode.Hex));
         _removeDefaults = AddCheckBox("Remove default color fields", true);
+        _field.SelectionChanged += (_, _) => SwitchFieldFromCombo();
     }
 
     protected override void OnConfirm()
     {
-        ResultField = (SectorColorField)ComboNumber(_field, (int)ResultField);
+        StoreActiveColor();
+        ResultField = (SectorColorField)ComboNumber(_field, (int)_activeField);
+        _state = ColorPickerModel.SwitchSectorColorPickerField(_state, ResultField);
+        ResultColor = _state.ActiveColor;
+        ResultRemoveDefaults = _removeDefaults.IsChecked == true;
+    }
+
+    private void SwitchFieldFromCombo()
+    {
+        var next = (SectorColorField)ComboNumber(_field, (int)_activeField);
+        if (next == _activeField) return;
+
+        StoreActiveColor();
+        _state = ColorPickerModel.SwitchSectorColorPickerField(_state, next);
+        _activeField = next;
+        LoadColor(_state.ActiveColor);
+    }
+
+    private void StoreActiveColor()
+    {
         var rgbColor = new ColorRgb(
-            ClampByte(ParseInt(_red, ResultColor.Red)),
-            ClampByte(ParseInt(_green, ResultColor.Green)),
-            ClampByte(ParseInt(_blue, ResultColor.Blue)));
-        string originalHex = ColorPickerModel.Format(ResultColor, ColorPickerInfoMode.Hex);
-        ResultColor = HexChanged(_hex.Text, originalHex) && TryParseHex(_hex.Text, out ColorRgb hexColor)
+            ClampByte(ParseInt(_red, _state.ActiveColor.Red)),
+            ClampByte(ParseInt(_green, _state.ActiveColor.Green)),
+            ClampByte(ParseInt(_blue, _state.ActiveColor.Blue)));
+        string originalHex = ColorPickerModel.Format(_state.ActiveColor, ColorPickerInfoMode.Hex);
+        ColorRgb color = HexChanged(_hex.Text, originalHex) && TryParseHex(_hex.Text, out ColorRgb hexColor)
             ? hexColor
             : rgbColor;
-        ResultRemoveDefaults = _removeDefaults.IsChecked == true;
+        _state = ColorPickerModel.SetSectorColorPickerActiveColor(_state, color);
+    }
+
+    private void LoadColor(ColorRgb color)
+    {
+        _red.Text = color.Red.ToString(CultureInfo.InvariantCulture);
+        _green.Text = color.Green.ToString(CultureInfo.InvariantCulture);
+        _blue.Text = color.Blue.ToString(CultureInfo.InvariantCulture);
+        _hex.Text = ColorPickerModel.Format(color, ColorPickerInfoMode.Hex);
     }
 
     private static bool HexChanged(string? text, string originalHex)

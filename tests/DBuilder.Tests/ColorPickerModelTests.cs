@@ -99,6 +99,29 @@ public sealed class ColorPickerModelTests
     }
 
     [Fact]
+    public void SectorColorPickerStateKeepsSeparateLightAndFadeDraftsLikeUdb()
+    {
+        var sector = new Sector();
+        sector.Fields[ColorPickerModel.LightColorField] = 0x112233;
+        sector.Fields[ColorPickerModel.FadeColorField] = 0x445566;
+
+        SectorColorPickerState state = ColorPickerModel.CreateSectorColorPickerState(sector, SectorColorField.LightColor);
+
+        Assert.Equal(new ColorRgb(0x11, 0x22, 0x33), state.ActiveColor);
+
+        state = ColorPickerModel.SetSectorColorPickerActiveColor(state, new ColorRgb(0xaa, 0xbb, 0xcc));
+        state = ColorPickerModel.SwitchSectorColorPickerField(state, SectorColorField.FadeColor);
+
+        Assert.Equal(new ColorRgb(0x44, 0x55, 0x66), state.ActiveColor);
+
+        state = ColorPickerModel.SetSectorColorPickerActiveColor(state, new ColorRgb(0x01, 0x02, 0x03));
+        state = ColorPickerModel.SwitchSectorColorPickerField(state, SectorColorField.LightColor);
+
+        Assert.Equal(new ColorRgb(0xaa, 0xbb, 0xcc), state.ActiveColor);
+        Assert.Equal(new ColorRgb(0x01, 0x02, 0x03), state.FadeColor);
+    }
+
+    [Fact]
     public void SetSectorColorUpdatesSelectedField()
     {
         var sectors = new[] { new Sector(), new Sector() };

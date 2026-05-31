@@ -22,6 +22,14 @@ public enum SectorColorField
     FadeColor,
 }
 
+public sealed record SectorColorPickerState(
+    ColorRgb LightColor,
+    ColorRgb FadeColor,
+    SectorColorField ActiveField)
+{
+    public ColorRgb ActiveColor => ActiveField == SectorColorField.LightColor ? LightColor : FadeColor;
+}
+
 public static class ColorPickerModel
 {
     public const int DefaultLightColor = 0xffffff;
@@ -168,6 +176,20 @@ public static class ColorPickerModel
         => field == SectorColorField.LightColor
             ? sector.GetIntegerField(LightColorField, DefaultLightColor)
             : sector.GetIntegerField(FadeColorField, DefaultFadeColor);
+
+    public static SectorColorPickerState CreateSectorColorPickerState(Sector sector, SectorColorField activeField)
+        => new(
+            UnpackRgb(GetSectorColor(sector, SectorColorField.LightColor)),
+            UnpackRgb(GetSectorColor(sector, SectorColorField.FadeColor)),
+            activeField);
+
+    public static SectorColorPickerState SwitchSectorColorPickerField(SectorColorPickerState state, SectorColorField field)
+        => state with { ActiveField = field };
+
+    public static SectorColorPickerState SetSectorColorPickerActiveColor(SectorColorPickerState state, ColorRgb color)
+        => state.ActiveField == SectorColorField.LightColor
+            ? state with { LightColor = color }
+            : state with { FadeColor = color };
 
     public static void SetSectorColor(IEnumerable<Sector> sectors, SectorColorField field, ColorRgb rgb)
     {

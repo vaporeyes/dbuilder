@@ -904,6 +904,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
   - [x] Add UDB-style HEX and float typed color input parsing.
   - [x] Add editor command and dialog for selected-sector lightcolor and fadecolor fields.
+  - [x] Keep separate UDB-style lightcolor and fadecolor drafts when switching sector color fields.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
