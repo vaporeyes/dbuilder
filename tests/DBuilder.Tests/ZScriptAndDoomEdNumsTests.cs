@@ -272,6 +272,22 @@ class AfterDuplicateMixin : Actor
     }
 
     [Fact]
+    public void RejectsZScriptMixinsThatInheritFromThemselves()
+    {
+        const string text = @"
+mixin class SelfMixin : SelfMixin
+{
+    Default { Radius 64; }
+}
+class ValidAfterSelfMixin : Actor
+{
+    Default { Radius 8; }
+}";
+
+        Assert.Empty(ZScriptParser.Parse(text));
+    }
+
+    [Fact]
     public void StopsAtGzdbSkipLineComment()
     {
         const string text = @"

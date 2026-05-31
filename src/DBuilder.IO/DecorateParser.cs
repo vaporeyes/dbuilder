@@ -286,6 +286,8 @@ public static class DecorateParser
             }
             else i++;
         }
+        if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase) && HasSelfInheritingMixin(mixins))
+            actors.Clear();
         ApplyMixins(actors, mixins);
         ApplyExtensions(actors, extensions, mixins);
         if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase))
@@ -721,6 +723,14 @@ public static class DecorateParser
                     return true;
             parentName = parent.ParentName;
         }
+        return false;
+    }
+
+    private static bool HasSelfInheritingMixin(Dictionary<string, ActorInfo> mixins)
+    {
+        foreach (var mixin in mixins.Values)
+            if (mixin.ParentName != null && mixin.ParentName.Equals(mixin.ClassName, StringComparison.OrdinalIgnoreCase))
+                return true;
         return false;
     }
 
