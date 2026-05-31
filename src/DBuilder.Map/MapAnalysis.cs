@@ -381,15 +381,13 @@ public static class MapAnalysis
             if (named)
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingScript,
-                        $"Thing {i} references unknown ACS script name \"{scriptName}\".")
-                        { Target = thing, Focus = thing.Position });
+                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing,
+                        $"Thing {i} references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(thing.Args[0]))
             {
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingScript,
-                    $"Thing {i} references unknown ACS script number \"{thing.Args[0]}\".")
-                    { Target = thing, Focus = thing.Position });
+                issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing,
+                    $"Thing {i} references unknown ACS script number \"{thing.Args[0]}\"."));
             }
         }
     }

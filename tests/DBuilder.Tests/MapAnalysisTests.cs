@@ -997,8 +997,12 @@ public class MapAnalysisTests
         };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingScript);
+        var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Contains("unknown ACS script name \"OpenDoor\"", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Delete Thing", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(thing, map.Things);
     }
 
     [Fact]

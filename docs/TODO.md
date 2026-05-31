@@ -933,6 +933,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style fix actions for unknown textures and unknown flats.
   - [x] Add UDB-style delete fix actions for thing error results.
   - [x] Add UDB-style remove fixes for unknown actions and sector effects.
+  - [x] Add UDB-style delete fix for unknown thing script results.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
 - [ ] Port sector drawing options.
 - [ ] Port edit selection panel behavior.
