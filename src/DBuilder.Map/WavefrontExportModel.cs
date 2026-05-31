@@ -2,6 +2,7 @@
 // ABOUTME: Preserves exporter validation, material naming, and coordinate mapping without UI dependencies.
 
 using System.Globalization;
+using System.Collections;
 using System.Text;
 using DBuilder.Geometry;
 
@@ -28,6 +29,104 @@ public sealed record WavefrontExportOptions
     public bool NoGravity { get; init; }
     public bool SpawnOnCeiling { get; init; }
     public bool Solid { get; init; }
+}
+
+public sealed record WavefrontPluginSettings(
+    bool ExportTextures = false,
+    bool ExportForGZDoom = false,
+    float Scale = 1.0f,
+    string BasePath = "",
+    string ActorPath = "",
+    string ModelPath = "",
+    string Sprite = "PLAY",
+    bool GenerateCode = true,
+    bool GenerateModeldef = true,
+    IReadOnlyList<string>? SkipTextures = null)
+{
+    public const string ExportTexturesKey = "objexporttextures";
+    public const string ExportForGZDoomKey = "objgzdoomscale";
+    public const string ScaleKey = "objscale";
+    public const string BasePathKey = "objbasepath";
+    public const string ActorPathKey = "objactorpath";
+    public const string ModelPathKey = "objmodelpath";
+    public const string SpriteKey = "objsprite";
+    public const string GenerateCodeKey = "objgeneratecode";
+    public const string GenerateModeldefKey = "objgeneratemodeldef";
+    public const string SkipTexturesKey = "objskiptextures";
+
+    public IReadOnlyList<string> NormalizedSkipTextures => SkipTextures ?? Array.Empty<string>();
+
+    public static WavefrontPluginSettings FromDictionary(
+        IReadOnlyDictionary<string, object?> settings,
+        string initialDirectory)
+        => new(
+            ReadBool(settings, ExportTexturesKey, false),
+            ReadBool(settings, ExportForGZDoomKey, false),
+            ReadFloat(settings, ScaleKey, 1.0f),
+            ReadString(settings, BasePathKey, initialDirectory),
+            ReadString(settings, ActorPathKey, initialDirectory),
+            ReadString(settings, ModelPathKey, initialDirectory),
+            ReadString(settings, SpriteKey, "PLAY"),
+            ReadBool(settings, GenerateCodeKey, true),
+            ReadBool(settings, GenerateModeldefKey, true),
+            ReadSkipTextures(settings));
+
+    public void WriteTo(IDictionary<string, object?> settings)
+    {
+        settings[ExportTexturesKey] = ExportTextures;
+        settings[ExportForGZDoomKey] = ExportForGZDoom;
+        settings[ScaleKey] = Scale;
+        settings[BasePathKey] = BasePath;
+        settings[ActorPathKey] = ActorPath;
+        settings[ModelPathKey] = ModelPath;
+        settings[SpriteKey] = Sprite.ToUpperInvariant();
+        settings[GenerateCodeKey] = GenerateCode;
+        settings[GenerateModeldefKey] = GenerateModeldef;
+
+        var skip = new Dictionary<string, string>(StringComparer.Ordinal);
+        int index = 0;
+        foreach (string texture in NormalizedSkipTextures)
+        {
+            skip["texture" + index] = texture;
+            index++;
+        }
+
+        settings[SkipTexturesKey] = skip;
+    }
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+        => settings.TryGetValue(key, out object? value) && value is bool result ? result : fallback;
+
+    private static float ReadFloat(IReadOnlyDictionary<string, object?> settings, string key, float fallback)
+        => settings.TryGetValue(key, out object? value) ? value switch
+        {
+            float result => result,
+            double result => (float)result,
+            decimal result => (float)result,
+            int result => result,
+            _ => fallback,
+        } : fallback;
+
+    private static string ReadString(IReadOnlyDictionary<string, object?> settings, string key, string fallback)
+        => settings.TryGetValue(key, out object? value) && value is string result ? result : fallback;
+
+    private static IReadOnlyList<string> ReadSkipTextures(IReadOnlyDictionary<string, object?> settings)
+    {
+        if (!settings.TryGetValue(SkipTexturesKey, out object? value)) return Array.Empty<string>();
+
+        if (value is IDictionary dictionary)
+        {
+            var result = new List<string>();
+            foreach (DictionaryEntry entry in dictionary)
+                if (entry.Value is string texture) result.Add(texture);
+            return result;
+        }
+
+        if (value is IEnumerable<KeyValuePair<string, string>> typed)
+            return typed.Select(entry => entry.Value).ToArray();
+
+        return Array.Empty<string>();
+    }
 }
 
 public sealed record WavefrontExportPreflight(

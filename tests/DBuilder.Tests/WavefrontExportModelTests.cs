@@ -67,6 +67,93 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void PluginSettingsUseUdbKeysAndDefaults()
+    {
+        WavefrontPluginSettings settings = WavefrontPluginSettings.FromDictionary(
+            new Dictionary<string, object?>(),
+            "/tmp/mapdir");
+
+        Assert.False(settings.ExportTextures);
+        Assert.False(settings.ExportForGZDoom);
+        Assert.Equal(1.0f, settings.Scale);
+        Assert.Equal("/tmp/mapdir", settings.BasePath);
+        Assert.Equal("/tmp/mapdir", settings.ActorPath);
+        Assert.Equal("/tmp/mapdir", settings.ModelPath);
+        Assert.Equal("PLAY", settings.Sprite);
+        Assert.True(settings.GenerateCode);
+        Assert.True(settings.GenerateModeldef);
+        Assert.Empty(settings.NormalizedSkipTextures);
+    }
+
+    [Fact]
+    public void PluginSettingsReadUdbPersistedValues()
+    {
+        var source = new Dictionary<string, object?>
+        {
+            [WavefrontPluginSettings.ExportTexturesKey] = true,
+            [WavefrontPluginSettings.ExportForGZDoomKey] = true,
+            [WavefrontPluginSettings.ScaleKey] = 2.5f,
+            [WavefrontPluginSettings.BasePathKey] = "/base",
+            [WavefrontPluginSettings.ActorPathKey] = "/actors",
+            [WavefrontPluginSettings.ModelPathKey] = "/models",
+            [WavefrontPluginSettings.SpriteKey] = "BOS2",
+            [WavefrontPluginSettings.GenerateCodeKey] = false,
+            [WavefrontPluginSettings.GenerateModeldefKey] = false,
+            [WavefrontPluginSettings.SkipTexturesKey] = new Dictionary<string, string>
+            {
+                ["texture0"] = "SKY1",
+                ["texture1"] = "AASTINKY",
+            },
+        };
+
+        WavefrontPluginSettings settings = WavefrontPluginSettings.FromDictionary(source, "/fallback");
+
+        Assert.True(settings.ExportTextures);
+        Assert.True(settings.ExportForGZDoom);
+        Assert.Equal(2.5f, settings.Scale);
+        Assert.Equal("/base", settings.BasePath);
+        Assert.Equal("/actors", settings.ActorPath);
+        Assert.Equal("/models", settings.ModelPath);
+        Assert.Equal("BOS2", settings.Sprite);
+        Assert.False(settings.GenerateCode);
+        Assert.False(settings.GenerateModeldef);
+        Assert.Equal(["SKY1", "AASTINKY"], settings.NormalizedSkipTextures);
+    }
+
+    [Fact]
+    public void PluginSettingsWriteUdbPersistedValues()
+    {
+        var target = new Dictionary<string, object?>();
+        var settings = new WavefrontPluginSettings(
+            ExportTextures: true,
+            ExportForGZDoom: true,
+            Scale: 0.5f,
+            BasePath: "/base",
+            ActorPath: "/actors",
+            ModelPath: "/models",
+            Sprite: "play",
+            GenerateCode: false,
+            GenerateModeldef: false,
+            SkipTextures: ["SKY1", "AASTINKY"]);
+
+        settings.WriteTo(target);
+
+        Assert.Equal(true, target[WavefrontPluginSettings.ExportTexturesKey]);
+        Assert.Equal(true, target[WavefrontPluginSettings.ExportForGZDoomKey]);
+        Assert.Equal(0.5f, target[WavefrontPluginSettings.ScaleKey]);
+        Assert.Equal("/base", target[WavefrontPluginSettings.BasePathKey]);
+        Assert.Equal("/actors", target[WavefrontPluginSettings.ActorPathKey]);
+        Assert.Equal("/models", target[WavefrontPluginSettings.ModelPathKey]);
+        Assert.Equal("PLAY", target[WavefrontPluginSettings.SpriteKey]);
+        Assert.Equal(false, target[WavefrontPluginSettings.GenerateCodeKey]);
+        Assert.Equal(false, target[WavefrontPluginSettings.GenerateModeldefKey]);
+
+        var skip = Assert.IsType<Dictionary<string, string>>(target[WavefrontPluginSettings.SkipTexturesKey]);
+        Assert.Equal("SKY1", skip["texture0"]);
+        Assert.Equal("AASTINKY", skip["texture1"]);
+    }
+
+    [Fact]
     public void PrepareExportSelectionUsesWholeMapWhenNoSectorsAreSelected()
     {
         var map = new MapSet();
