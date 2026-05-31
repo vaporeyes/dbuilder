@@ -36,6 +36,10 @@ The README screenshots use the checked-in images under `assets`. Replace those f
 - A recent .NET SDK. The current local baseline uses .NET SDK 10.0.107.
 - Ultimate Doom Builder checked out locally at `~/dev/repos/UltimateDoomBuilder` for parity comparison and bundled configuration assets.
 
+## License
+
+DBuilder is licensed under the GNU General Public License version 3, matching Ultimate Doom Builder. See [LICENSE.txt](LICENSE.txt).
+
 ## Build And Verify
 
 Use the repository verification script before committing parity work:
