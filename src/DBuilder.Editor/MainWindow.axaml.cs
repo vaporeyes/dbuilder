@@ -963,6 +963,7 @@ public partial class MainWindow : Window
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
@@ -1251,6 +1252,46 @@ public partial class MainWindow : Window
         UpdateInfo();
         SetStatus($"Inverted {MapView.CurrentEditMode.ToString().ToLowerInvariant()} selection: {count} selected.");
     }
+
+    private void OnSelectSimilar(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (CountSelectionInCurrentMode() == 0)
+        {
+            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.");
+            return;
+        }
+
+        int changed = MapView.CurrentEditMode switch
+        {
+            MapControl.EditMode.Vertices => SelectSimilar.SelectVertices(_map),
+            MapControl.EditMode.Linedefs => SelectSimilar.SelectLinedefs(_map),
+            MapControl.EditMode.Sectors => SelectSimilar.SelectSectors(_map),
+            MapControl.EditMode.Things => SelectSimilar.SelectThings(_map),
+            _ => 0,
+        };
+
+        if (changed == 0)
+        {
+            SetStatus($"No similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()} found.");
+            return;
+        }
+
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Selected {changed} similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()}.");
+        MapView.Focus();
+    }
+
+    private int CountSelectionInCurrentMode()
+        => _map is null ? 0 : MapView.CurrentEditMode switch
+        {
+            MapControl.EditMode.Vertices => _map.SelectedVerticesCount,
+            MapControl.EditMode.Linedefs => _map.SelectedLinedefsCount,
+            MapControl.EditMode.Sectors => _map.SelectedSectorsCount,
+            MapControl.EditMode.Things => _map.SelectedThingsCount,
+            _ => 0,
+        };
 
     private void OnModeVertices(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Vertices);
     private void OnModeLinedefs(object? sender, RoutedEventArgs e) => SetEditMode(MapControl.EditMode.Linedefs);
@@ -2746,6 +2787,7 @@ public partial class MainWindow : Window
         bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
+        bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
         bool hasExactlyOneSelection = hasMap && CountSelection() == 1;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
@@ -2781,6 +2823,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
+        SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
         SetEnabled(hasTransformableSelection,
             TransformSelectionMenuItem,
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,

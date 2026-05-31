@@ -15,6 +15,7 @@ public class EditorCommandCatalogTests
         Assert.DoesNotContain(ids, string.IsNullOrWhiteSpace);
         Assert.Equal(ids.Length, ids.Distinct(StringComparer.Ordinal).Count());
         Assert.Contains("window.save", ids);
+        Assert.Contains("window.select-similar", ids);
         Assert.Contains("window.toggle-auto-clear-sidedef-textures", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
@@ -73,6 +74,19 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Auto Clear Sidedef Textures", command.Title);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void SelectSimilarCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.select-similar");
+
+        Assert.NotNull(command);
+        Assert.Equal("Select Similar Map Elements", command.Title);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);

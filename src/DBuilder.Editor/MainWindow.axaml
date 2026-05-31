@@ -69,6 +69,7 @@
                 <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
                 <MenuItem Header="Select _all" x:Name="SelectAllMenuItem" Click="OnSelectAll" />
                 <MenuItem Header="_Invert selection" x:Name="InvertSelectionMenuItem" Click="OnInvertSelection" />
+                <MenuItem Header="Select S_imilar" x:Name="SelectSimilarMenuItem" Click="OnSelectSimilar" />
                 <MenuItem Header="Select _none" x:Name="SelectNoneMenuItem" Click="OnSelectNone" />
                 <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />
                 <Separator />
