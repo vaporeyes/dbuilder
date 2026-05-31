@@ -67,16 +67,16 @@ public sealed class ScriptDocumentTabModel
 
     public string ErrorFilename { get; }
 
+    public string DisplayTitle(bool isChanged)
+        => isChanged ? "\u25CF " + Title : Title;
+
     public static ScriptDocumentTabModel NewFile(ScriptConfigurationInfo configuration)
     {
-        string extension = configuration.Extensions.Count > 0 && configuration.Extensions[0].Length > 0
-            ? "." + configuration.Extensions[0]
-            : "";
         return new ScriptDocumentTabModel(
             ScriptDocumentTabType.File,
             configuration.ScriptType,
             "",
-            "Untitled" + extension,
+            "Untitled" + FirstExtension(configuration),
             "",
             explicitSave: true,
             isSaveAsRequired: true,
@@ -160,8 +160,36 @@ public sealed class ScriptDocumentTabModel
         };
     }
 
+    public ScriptDocumentTabModel WithScriptConfiguration(ScriptConfigurationInfo configuration)
+    {
+        if (!IsReconfigurable) return this;
+
+        string title = Filename.Length == 0
+            ? "Untitled" + FirstExtension(configuration)
+            : Title;
+
+        return new ScriptDocumentTabModel(
+            TabType,
+            configuration.ScriptType,
+            Filename,
+            title,
+            ToolTip,
+            ExplicitSave,
+            IsSaveAsRequired,
+            IsClosable,
+            IsReconfigurable,
+            IsReadOnly,
+            ResourceLocation,
+            ErrorFilename);
+    }
+
     private string SettingsFilename()
         => TabType == ScriptDocumentTabType.Resource && ResourceLocation.Length > 0
             ? Path.Combine(ResourceLocation, Filename)
             : Filename;
+
+    private static string FirstExtension(ScriptConfigurationInfo configuration)
+        => configuration.Extensions.Count > 0 && configuration.Extensions[0].Length > 0
+            ? "." + configuration.Extensions[0]
+            : "";
 }

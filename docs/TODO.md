@@ -839,6 +839,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script document tabs.
   - [x] Add UDB-style file, lump, and resource document tab identity and persisted view settings.
   - [x] Add UDB-style file, lump, and resource compiler error routing.
+  - [x] Add UDB-style script tab changed-title marker and file tab configuration title updates.
 - [ ] Port script syntax highlighting behavior.
   - [x] Build UDB-style lexer keyword sets for script highlighting.
   - [x] Build UDB-style script autocomplete entries with keyword, property, constant, and snippet icons.

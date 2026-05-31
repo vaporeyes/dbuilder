@@ -29,6 +29,75 @@ public class ScriptDocumentTabModelTests
     }
 
     [Fact]
+    public void DisplaysChangedMarkerInTitleLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            extensions = "acs";
+            """);
+        var tab = ScriptDocumentTabModel.NewFile(config);
+
+        Assert.Equal("Untitled.acs", tab.DisplayTitle(isChanged: false));
+        Assert.Equal("\u25CF Untitled.acs", tab.DisplayTitle(isChanged: true));
+    }
+
+    [Fact]
+    public void ChangesUntitledFileConfigurationTitleLikeUdb()
+    {
+        var acs = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            extensions = "acs";
+            """);
+        var zscript = ScriptConfigurationInfo.FromText("""
+            scripttype = "ZSCRIPT";
+            extensions = "zs";
+            """);
+        var tab = ScriptDocumentTabModel.NewFile(acs);
+
+        var changed = tab.WithScriptConfiguration(zscript);
+
+        Assert.Equal(ScriptType.ZScript, changed.ScriptType);
+        Assert.Equal("Untitled.zs", changed.Title);
+        Assert.Equal("", changed.Filename);
+        Assert.True(changed.IsSaveAsRequired);
+    }
+
+    [Fact]
+    public void KeepsSavedFileTitleWhenChangingConfigurationLikeUdb()
+    {
+        var acs = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            extensions = "acs";
+            """);
+        var decorate = ScriptConfigurationInfo.FromText("""
+            scripttype = "DECORATE";
+            extensions = "dec";
+            """);
+        var tab = ScriptDocumentTabModel.OpenFile("/mods/scripts/test.acs", acs);
+
+        var changed = tab.WithScriptConfiguration(decorate);
+
+        Assert.Equal(ScriptType.Decorate, changed.ScriptType);
+        Assert.Equal("test.acs", changed.Title);
+        Assert.Equal("/mods/scripts/test.acs", changed.Filename);
+        Assert.False(changed.IsSaveAsRequired);
+    }
+
+    [Fact]
+    public void SkipsNonReconfigurableTabsWhenChangingConfigurationLikeUdb()
+    {
+        var acs = ScriptConfigurationInfo.FromText("""
+            scripttype = "ACS";
+            """);
+        var decorate = ScriptConfigurationInfo.FromText("""
+            scripttype = "DECORATE";
+            """);
+        var tab = ScriptDocumentTabModel.Lump("SCRIPTS", "SCRIPTS", acs);
+
+        Assert.Same(tab, tab.WithScriptConfiguration(decorate));
+    }
+
+    [Fact]
     public void CreatesLumpTabLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""
