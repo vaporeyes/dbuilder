@@ -351,6 +351,30 @@ public class WavefrontExportModelTests
         Assert.Contains("Model 0 \"models/DemoActor.obj\"", files[2].Content);
     }
 
+    [Fact]
+    public void WriteFilesCreatesDirectoriesAndWritesContents()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder-wavefront-" + Guid.NewGuid().ToString("N"));
+        string first = Path.Combine(root, "models", "DemoActor.obj");
+        string second = Path.Combine(root, "actors", "DemoActor.zs");
+
+        try
+        {
+            WavefrontExportPlanner.WriteFiles(
+            [
+                new WavefrontExportFile(first, "obj text"),
+                new WavefrontExportFile(second, "actor text")
+            ]);
+
+            Assert.Equal("obj text", File.ReadAllText(first));
+            Assert.Equal("actor text", File.ReadAllText(second));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 
     private static WavefrontSurfaceVertex Vertex(float x, float y, float z, float u, float v)

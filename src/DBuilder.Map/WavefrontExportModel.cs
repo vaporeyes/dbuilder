@@ -505,6 +505,16 @@ public static class WavefrontExportPlanner
 
         return files;
     }
+
+    public static void WriteFiles(IEnumerable<WavefrontExportFile> files)
+    {
+        foreach (WavefrontExportFile file in files)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllText(file.Path, file.Content);
+        }
+    }
 }
 
 public static class WavefrontExportValidation
