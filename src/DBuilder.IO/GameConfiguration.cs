@@ -2056,6 +2056,10 @@ public sealed class GameConfiguration
     public bool IsMapLump(string name)
         => mapLumpNames.TryGetValue(name, out var info) && !info.IsMarker;
 
+    /// <summary>True when any configured map lump uses a static script configuration or scriptbuild compiler flow.</summary>
+    public bool HasScriptLumps()
+        => mapLumpNames.Values.Any(info => info.ScriptBuild || info.Script != null);
+
     // Parses the maplumpnames block: each key is a lump name, each value its property sub-dict.
     private void ParseMapLumpNames(IDictionary block, ScriptConfigurationCatalog? scriptConfigurations)
     {

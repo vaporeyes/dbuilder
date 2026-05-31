@@ -110,6 +110,30 @@ maplumpnames
     }
 
     [Fact]
+    public void HasScriptLumpsDetectsStaticAndBuildScriptLumps()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+
+        Assert.True(gc.HasScriptLumps());
+    }
+
+    [Fact]
+    public void HasScriptLumpsIsFalseWithoutScriptMapLumps()
+    {
+        var gc = GameConfiguration.FromText("""
+            maplumpnames
+            {
+                THINGS
+                {
+                    required = true;
+                }
+            }
+            """);
+
+        Assert.False(gc.HasScriptLumps());
+    }
+
+    [Fact]
     public void PreservesConfiguredLumpOrder()
     {
         var gc = GameConfiguration.FromText(Cfg);
