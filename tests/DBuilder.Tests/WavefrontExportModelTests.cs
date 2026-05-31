@@ -168,4 +168,81 @@ public class WavefrontExportModelTests
         Assert.Equal("mtllib demo.mtl\n", WavefrontObjFormatter.FormatMaterialLibrary(classic));
         Assert.Equal(string.Empty, WavefrontObjFormatter.FormatMaterialLibrary(gzdoom));
     }
+
+    [Fact]
+    public void BuildMaterialLibraryMatchesUdbTextureAndFlatEntries()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportTextures = true
+        });
+        settings.Textures = [WavefrontExportSettings.DefaultMaterial, "walls/STARTAN3", "NUKAGE1"];
+        settings.Flats = ["NUKAGE1", "FLOOR0_1"];
+
+        string mtl = NormalizeLineEndings(WavefrontExportContent.BuildMaterialLibrary(settings, "doom2.wad", "MAP01", "1.0"));
+
+        Assert.Contains("# MTL for doom2.wad, map MAP01\n", mtl);
+        Assert.DoesNotContain($"newmtl {WavefrontExportSettings.DefaultMaterial}", mtl);
+        Assert.Contains("newmtl walls/STARTAN3\nKd 1.0 1.0 1.0\nmap_Kd /tmp/export/walls/STARTAN3.png\n", mtl);
+        Assert.Contains("newmtl NUKAGE1\nKd 1.0 1.0 1.0\nmap_Kd /tmp/export/NUKAGE1.png\n", mtl);
+        Assert.Contains("newmtl NUKAGE1\nKd 1.0 1.0 1.0\nmap_Kd /tmp/export/NUKAGE1_FLAT.png\n", mtl);
+        Assert.Contains("newmtl FLOOR0_1\nKd 1.0 1.0 1.0\nmap_Kd /tmp/export/FLOOR0_1.png\n", mtl);
+    }
+
+    [Fact]
+    public void BuildActorCodeAppliesUdbFlagsAndProperties()
+    {
+        WavefrontExportSettings zscript = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ActorName = "DemoActor",
+            Sprite = "PLAY",
+            ZScript = true,
+            NoGravity = true,
+            SpawnOnCeiling = true,
+            Solid = true
+        });
+        WavefrontExportSettings decorate = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ActorName = "DemoActor",
+            Sprite = "PLAY"
+        });
+
+        string zscriptText = WavefrontExportContent.BuildActorCode(zscript);
+        string decorateText = WavefrontExportContent.BuildActorCode(decorate);
+
+        Assert.Contains("Class DemoActor : Actor", zscriptText);
+        Assert.Contains("Radius 20;", zscriptText);
+        Assert.Contains("+NOGRAVITY", zscriptText);
+        Assert.Contains("+SPAWNCEILING", zscriptText);
+        Assert.Contains("+INVULNERABLE", zscriptText);
+        Assert.Contains("PLAY A -1;", zscriptText);
+        Assert.Contains("ACTOR DemoActor", decorateText);
+        Assert.Contains("Radius 20", decorateText);
+        Assert.Contains("PLAY A -1", decorateText);
+        Assert.DoesNotContain("+NOGRAVITY", decorateText);
+    }
+
+    [Fact]
+    public void BuildModeldefUsesRelativeModelPath()
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ActorName = "DemoActor",
+            BasePath = "/tmp/project",
+            ModelPath = "/tmp/project/models",
+            Sprite = "PLAY"
+        });
+
+        string modeldef = WavefrontExportContent.BuildModeldef(settings);
+
+        Assert.Contains("Model DemoActor", modeldef);
+        Assert.Contains("Model 0 \"models/DemoActor.obj\"", modeldef);
+        Assert.Contains("FrameIndex PLAY A 0 0", modeldef);
+    }
+
+    private static string NormalizeLineEndings(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal);
 }

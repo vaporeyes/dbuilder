@@ -132,6 +132,161 @@ public static class WavefrontObjFormatter
         => string.Format(CultureInfo.InvariantCulture, format, values.Cast<object>().ToArray());
 }
 
+public static class WavefrontExportContent
+{
+    public static string BuildMaterialLibrary(
+        WavefrontExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        var mtl = new StringWriter(CultureInfo.InvariantCulture);
+        mtl.WriteLine($"# MTL for {mapTitle}, map {levelName}");
+        mtl.WriteLine($"# Created by Ultimate Doom Builder {productVersion}");
+        mtl.WriteLine();
+
+        if (settings.Textures != null)
+        {
+            foreach (string texture in settings.Textures)
+            {
+                if (texture == WavefrontExportSettings.DefaultMaterial) continue;
+                WriteMaterial(mtl, texture, settings.ExportTextures ? GetTextureExportPath(settings, texture) : null);
+            }
+        }
+
+        if (settings.Flats != null)
+        {
+            foreach (string flat in settings.Flats)
+            {
+                if (flat == WavefrontExportSettings.DefaultMaterial) continue;
+                string? imagePath = null;
+                if (settings.ExportTextures)
+                {
+                    bool hasTextureWithSameName = settings.Textures != null && settings.Textures.Contains(flat);
+                    imagePath = GetFlatExportPath(settings, flat, hasTextureWithSameName);
+                }
+
+                WriteMaterial(mtl, flat, imagePath);
+            }
+        }
+
+        return mtl.ToString();
+    }
+
+    public static string BuildActorCode(WavefrontExportSettings settings)
+        => settings.ZScript ? BuildZScript(settings) : BuildDecorate(settings);
+
+    public static string BuildModeldef(WavefrontExportSettings settings)
+    {
+        string modelPath = GetRelativeDirectoryPath(settings.BasePath, settings.ModelPath);
+        var writer = new StringWriter(CultureInfo.InvariantCulture);
+        writer.WriteLine($"Model {settings.ActorName}");
+        writer.WriteLine("{");
+        writer.WriteLine($"\tModel 0 \"{modelPath}{settings.ActorName}.obj\"");
+        writer.WriteLine();
+        writer.WriteLine("\tUSEACTORPITCH");
+        writer.WriteLine("\tUSEACTORROLL");
+        writer.WriteLine("   ");
+        writer.WriteLine($"\tFrameIndex {settings.Sprite} A 0 0");
+        writer.WriteLine("}");
+        return writer.ToString();
+    }
+
+    public static string GetTextureExportPath(WavefrontExportSettings settings, string texture)
+        => Path.Combine(
+            settings.ObjPath,
+            Path.GetDirectoryName(texture) ?? string.Empty,
+            Path.GetFileNameWithoutExtension(texture) + ".png");
+
+    public static string GetFlatExportPath(WavefrontExportSettings settings, string flat, bool hasTextureWithSameName)
+    {
+        string suffix = hasTextureWithSameName ? "_FLAT" : string.Empty;
+        string flatPath = Path.Combine(
+            settings.ObjPath,
+            Path.GetDirectoryName(flat) ?? string.Empty,
+            Path.GetFileNameWithoutExtension(flat) + suffix + ".png");
+        return Path.Combine(settings.ObjPath, flatPath);
+    }
+
+    private static void WriteMaterial(TextWriter writer, string name, string? imagePath)
+    {
+        writer.WriteLine($"newmtl {name}");
+        writer.WriteLine("Kd 1.0 1.0 1.0");
+        if (imagePath != null) writer.WriteLine($"map_Kd {imagePath}");
+        writer.WriteLine();
+    }
+
+    private static string BuildZScript(WavefrontExportSettings settings)
+    {
+        var writer = new StringWriter(CultureInfo.InvariantCulture);
+        writer.WriteLine($"Class {settings.ActorName} : Actor {{");
+        writer.WriteLine("\tDefault {");
+        writer.WriteLine($"\t\tRadius {settings.Radius};");
+        writer.WriteLine($"\t\tHeight {settings.Height};");
+        writer.WriteLine($"\t\t{Flag(settings.NoGravity, "+NOGRAVITY")}");
+        writer.WriteLine($"\t\t{Flag(settings.SpawnOnCeiling, "+SPAWNCEILING")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+SOLID")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+INVULNERABLE")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+NODAMAGE")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+SHOOTABLE")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+NOTAUTOAIMED")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+NEVERTARGET")}");
+        writer.WriteLine($"\t\t{Flag(settings.Solid, "+DONTTHRUST")}");
+        writer.WriteLine("\t}");
+        writer.WriteLine();
+        writer.WriteLine("\tStates {");
+        writer.WriteLine("\t\tSpawn:");
+        writer.WriteLine($"\t\t\t{settings.Sprite} A -1;");
+        writer.WriteLine("\t\t\tStop;");
+        writer.WriteLine("\t}");
+        writer.WriteLine("}");
+        return writer.ToString();
+    }
+
+    private static string BuildDecorate(WavefrontExportSettings settings)
+    {
+        var writer = new StringWriter(CultureInfo.InvariantCulture);
+        writer.WriteLine($"ACTOR {settings.ActorName}");
+        writer.WriteLine("{");
+        writer.WriteLine($"\tRadius {settings.Radius}");
+        writer.WriteLine($"\tHeight {settings.Height}");
+        writer.WriteLine($"\t{Flag(settings.NoGravity, "+NOGRAVITY")}");
+        writer.WriteLine($"\t{Flag(settings.SpawnOnCeiling, "+SPAWNCEILING")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+SOLID")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+INVULNERABLE")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+NODAMAGE")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+SHOOTABLE")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+NOTAUTOAIMED")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+NEVERTARGET")}");
+        writer.WriteLine($"\t{Flag(settings.Solid, "+DONTTHRUST")}");
+        writer.WriteLine("  ");
+        writer.WriteLine("\tStates {");
+        writer.WriteLine("\t\tSpawn:");
+        writer.WriteLine($"\t\t\t{settings.Sprite} A -1");
+        writer.WriteLine("\t\t\tStop");
+        writer.WriteLine("\t}");
+        writer.WriteLine("}");
+        return writer.ToString();
+    }
+
+    private static string Flag(bool enabled, string flag) => enabled ? flag : string.Empty;
+
+    private static string GetRelativeDirectoryPath(string basePath, string modelPath)
+    {
+        string trimmedBasePath = EnsureDirectorySeparator(basePath.Trim());
+        string trimmedModelPath = EnsureDirectorySeparator(modelPath.Trim());
+        var baseUri = new Uri(trimmedBasePath);
+        var modelUri = new Uri(trimmedModelPath);
+        Uri relativeUri = baseUri.MakeRelativeUri(modelUri);
+        return Uri.UnescapeDataString(relativeUri.OriginalString);
+    }
+
+    private static string EnsureDirectorySeparator(string path)
+        => path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal)
+            ? path
+            : path + Path.DirectorySeparatorChar;
+}
+
 public static class WavefrontExportValidation
 {
     public static IReadOnlyList<string> Validate(WavefrontExportOptions options, Func<string, bool>? directoryExists = null)
