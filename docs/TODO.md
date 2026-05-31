@@ -962,6 +962,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
 - [ ] Port slope arch tools.
   - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
+  - [x] Add editor menu and toolbar floor slope-arch command for selected sectors.
 - [ ] Port make-door tools.
   - [x] Add UDB-style map-level Make Door sector mutation helper.
   - [x] Add editor menu and toolbar Make Door command for selected sectors.

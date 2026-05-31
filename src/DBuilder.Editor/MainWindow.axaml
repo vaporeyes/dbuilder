@@ -154,6 +154,7 @@
                 <MenuItem Header="Build _Bridge" x:Name="BuildBridgeMenuItem" Click="OnBuildBridge" />
                 <MenuItem Header="Make _Door" x:Name="MakeDoorMenuItem" Click="OnMakeDoor" />
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
+                <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
@@ -258,6 +259,9 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Build Stairs" x:Name="BuildStairsButton" Click="OnBuildStairs">
                     <PathIcon Data="M4,18 L8,18 L8,14 L12,14 L12,10 L16,10 L16,6 L20,6 L20,20 L4,20 Z" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Apply Slope Arch" x:Name="ApplySlopeArchButton" Click="OnApplySlopeArch">
+                    <PathIcon Data="M4,18 C8,6 16,6 20,18 L18,18 C15,11 9,11 6,18 Z M5,20 L20,20" />
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Apply Slopes" x:Name="ApplySlopesButton" Click="OnApplySlopes">
                     <PathIcon Data="M4,18 L20,8 L20,18 Z M5,6 L10,6 M5,10 L14,10" />

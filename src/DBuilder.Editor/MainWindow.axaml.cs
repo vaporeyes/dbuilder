@@ -2476,6 +2476,68 @@ public partial class MainWindow : Window
             : $"Applied {n} slope plane(s) from specials (visible in 3D).");
     }
 
+    private void OnApplySlopeArch(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0) { SetStatus("Select one or more sectors to slope-arch."); return; }
+        if (!TrySelectedSectorBounds(sectors, out double minX, out double minY, out double maxX, out double maxY))
+        {
+            SetStatus("Selected sectors have no linedef bounds.");
+            return;
+        }
+        if (maxX - minX <= 0.0)
+        {
+            SetStatus("Selected sectors need horizontal span for slope arch.");
+            return;
+        }
+
+        double centerY = (minY + maxY) * 0.5;
+        var options = new SlopeArchOptions
+        {
+            Theta = Angle2D.PIHALF,
+            OffsetAngle = 0.0,
+            BaseHeight = sectors[0].FloorHeight,
+        };
+
+        CreateUndo("Apply slope arch");
+        int n = SlopeArchTool.Apply(sectors, new Vector2D(minX, centerY), new Vector2D(maxX, centerY), options);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus(n == 0
+            ? "No sectors slope-arched."
+            : $"Applied floor slope arch to {n} sector(s).");
+    }
+
+    private static bool TrySelectedSectorBounds(IReadOnlyList<Sector> sectors, out double minX, out double minY, out double maxX, out double maxY)
+    {
+        minX = minY = double.PositiveInfinity;
+        maxX = maxY = double.NegativeInfinity;
+        bool found = false;
+
+        foreach (Sector sector in sectors)
+        {
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                if (side.Line == null) continue;
+                Vector2D start = side.Line.Start.Position;
+                minX = Math.Min(minX, start.x);
+                minY = Math.Min(minY, start.y);
+                maxX = Math.Max(maxX, start.x);
+                maxY = Math.Max(maxY, start.y);
+
+                Vector2D end = side.Line.End.Position;
+                minX = Math.Min(minX, end.x);
+                minY = Math.Min(minY, end.y);
+                maxX = Math.Max(maxX, end.x);
+                maxY = Math.Max(maxY, end.y);
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
     // Builds a staircase from the selected sectors (stepped floor heights), undoable.
     private async void OnBuildStairs(object? sender, RoutedEventArgs e)
     {
@@ -3005,12 +3067,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopesMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem,
             ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopesButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
