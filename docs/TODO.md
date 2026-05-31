@@ -939,6 +939,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style delete fix for unknown thing script results.
   - [x] Add UDB-style apply-default-flags fix for unused things.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
+  - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
 - [ ] Port sector drawing options.
 - [ ] Port edit selection panel behavior.
 - [ ] Port undo/redo panel behavior.
