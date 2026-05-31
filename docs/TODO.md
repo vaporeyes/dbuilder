@@ -898,6 +898,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style absolute and relative tag range calculation model.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
+  - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
 - [ ] Port `WadAuthorMode`.
@@ -958,6 +959,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port tag range tools.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
 - [ ] Port USDF tools.
+  - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
 - [ ] Port WadAuthor mode behavior.

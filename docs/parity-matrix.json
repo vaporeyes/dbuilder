@@ -200,7 +200,12 @@
       "notes": "UDB-style absolute and relative tag range calculation exists, including duplicate detection, skip-used handling, out-of-range reporting, selected element initial-tag capture, and selected element assignment. Toolbar button and form UI remain incomplete."
     },
     { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
-    { "udbPlugin": "USDF", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "USDF",
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "UDB-style USDF availability gating on configured DIALOGUE map lumps exists, along with a typed parser for DIALOGUE includes, conversations, pages, ifitem conditions, choices, costs, messages, specials, args, and navigation fields. Conversation editor UI, editing commands, include lump resolution, and save-back workflow remain incomplete."
+    },
     {
       "udbPlugin": "VisplaneExplorer",
       "status": "partial",
