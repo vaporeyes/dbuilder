@@ -22,6 +22,14 @@ public enum SectorColorField
     FadeColor,
 }
 
+public enum DynamicLightColorMode
+{
+    Standard,
+    VavoomGeneric,
+    VavoomColored,
+    SpotOrSun,
+}
+
 public sealed record SectorColorPickerState(
     ColorRgb LightColor,
     ColorRgb FadeColor,
@@ -30,12 +38,56 @@ public sealed record SectorColorPickerState(
     public ColorRgb ActiveColor => ActiveField == SectorColorField.LightColor ? LightColor : FadeColor;
 }
 
+public sealed record DynamicLightDefinition(
+    int LightNumber,
+    bool LightVavoom,
+    DynamicLightColorMode ColorMode);
+
+public sealed record DynamicLightSliderLimits(
+    int TrackMinimum,
+    int TrackMaximum,
+    int NumericMinimum,
+    int NumericMaximum);
+
+public sealed record DynamicLightPickerState(
+    ColorRgb Color,
+    int PrimaryRadius,
+    int SecondaryRadius,
+    int Interval,
+    bool ShowAllControls,
+    DynamicLightSliderLimits PrimaryLimits,
+    DynamicLightSliderLimits SecondaryLimits,
+    DynamicLightSliderLimits IntervalLimits);
+
+public sealed record DynamicLightMutation(
+    IReadOnlyList<int> Args,
+    int AngleDoom,
+    IReadOnlyDictionary<string, object> Fields);
+
 public static class ColorPickerModel
 {
     public const int DefaultLightColor = 0xffffff;
     public const int DefaultFadeColor = 0;
     public const string LightColorField = "lightcolor";
     public const string FadeColorField = "fadecolor";
+    public const string DynamicLightPackedColorField = "arg0str";
+    public const string NoDynamicLightsWarning = "No lights found in selection!";
+
+    private static readonly HashSet<int> LightsUsingAngleValue =
+    [
+        9801,
+        9802,
+        9804,
+        9811,
+        9812,
+        9814,
+        9821,
+        9822,
+        9824,
+        9831,
+        9832,
+        9834,
+    ];
 
     public static ColorRgb HsvToRgb(int hue, int saturation, int value)
         => HsvToRgb(new ColorHsv(hue, saturation, value));
@@ -142,6 +194,130 @@ public static class ColorPickerModel
     public static ColorRgb UnpackRgb(int value)
         => new((value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff);
 
+    public static string DynamicLightPickerTitle(int selectedLightCount)
+        => $"Editing {selectedLightCount} light{(selectedLightCount > 1 ? "s" : "")}";
+
+    public static bool DynamicLightUsesAngleValue(int lightNumber)
+        => LightsUsingAngleValue.Contains(lightNumber);
+
+    public static int FirstDynamicLightRadiusArgument(bool lightVavoom)
+        => lightVavoom ? 0 : 3;
+
+    public static DynamicLightSliderLimits DynamicLightRadiusLimits(bool relativeMode)
+        => relativeMode
+            ? new DynamicLightSliderLimits(-256, 256, -16384, 16384)
+            : new DynamicLightSliderLimits(0, 512, 0, 16384);
+
+    public static DynamicLightSliderLimits DynamicLightIntervalLimits(bool relativeMode)
+        => relativeMode
+            ? new DynamicLightSliderLimits(-180, 180, -16384, 16384)
+            : new DynamicLightSliderLimits(0, 359, 0, 16384);
+
+    public static DynamicLightPickerState CreateDynamicLightPickerState(
+        DynamicLightDefinition definition,
+        IReadOnlyList<int> args,
+        int angleDoom,
+        IReadOnlyDictionary<string, object> fields,
+        bool relativeMode)
+    {
+        bool showAllControls = DynamicLightUsesAngleValue(definition.LightNumber);
+        var radiusLimits = DynamicLightRadiusLimits(relativeMode);
+        var intervalLimits = DynamicLightIntervalLimits(relativeMode);
+
+        return new DynamicLightPickerState(
+            GetDynamicLightColor(definition, args, fields),
+            relativeMode ? 0 : GetArgument(args, FirstDynamicLightRadiusArgument(definition.LightVavoom)),
+            relativeMode ? 0 : showAllControls ? GetArgument(args, 4) : 0,
+            relativeMode ? 0 : showAllControls ? angleDoom : 0,
+            showAllControls,
+            radiusLimits,
+            radiusLimits,
+            intervalLimits);
+    }
+
+    public static ColorRgb GetDynamicLightColor(
+        DynamicLightDefinition definition,
+        IReadOnlyList<int> args,
+        IReadOnlyDictionary<string, object> fields)
+        => definition.ColorMode switch
+        {
+            DynamicLightColorMode.VavoomGeneric => new ColorRgb(255, 255, 255),
+            DynamicLightColorMode.VavoomColored => new ColorRgb(GetArgument(args, 1), GetArgument(args, 2), GetArgument(args, 3)),
+            DynamicLightColorMode.SpotOrSun => GetSpotOrSunDynamicLightColor(args, fields),
+            _ => new ColorRgb(GetArgument(args, 0), GetArgument(args, 1), GetArgument(args, 2)),
+        };
+
+    public static DynamicLightMutation SetDynamicLightColor(
+        DynamicLightDefinition definition,
+        IReadOnlyList<int> args,
+        int angleDoom,
+        IReadOnlyDictionary<string, object> fields,
+        ColorRgb color)
+    {
+        int[] updatedArgs = CopyArguments(args, 5);
+        var updatedFields = new Dictionary<string, object>(fields, StringComparer.OrdinalIgnoreCase);
+
+        switch (definition.ColorMode)
+        {
+            case DynamicLightColorMode.VavoomGeneric:
+                break;
+            case DynamicLightColorMode.VavoomColored:
+                updatedArgs[1] = color.Red;
+                updatedArgs[2] = color.Green;
+                updatedArgs[3] = color.Blue;
+                break;
+            case DynamicLightColorMode.SpotOrSun:
+                updatedArgs[0] = 0;
+                updatedFields[DynamicLightPackedColorField] = Format(color, ColorPickerInfoMode.Hex);
+                break;
+            default:
+                updatedArgs[0] = color.Red;
+                updatedArgs[1] = color.Green;
+                updatedArgs[2] = color.Blue;
+                break;
+        }
+
+        return new DynamicLightMutation(updatedArgs, angleDoom, updatedFields);
+    }
+
+    public static DynamicLightMutation SetDynamicLightProperties(
+        DynamicLightDefinition definition,
+        IReadOnlyList<int> args,
+        int angleDoom,
+        IReadOnlyDictionary<string, object> fields,
+        int primaryRadius,
+        int secondaryRadius,
+        int interval,
+        bool relativeMode,
+        DynamicLightPickerState? fixedValues = null)
+    {
+        bool showAllControls = DynamicLightUsesAngleValue(definition.LightNumber);
+        int firstArg = FirstDynamicLightRadiusArgument(definition.LightVavoom);
+        int[] updatedArgs = CopyArguments(args, 5);
+
+        if (relativeMode)
+        {
+            DynamicLightPickerState reference = fixedValues ?? CreateDynamicLightPickerState(definition, args, angleDoom, fields, false);
+            updatedArgs[firstArg] = Math.Max(0, reference.PrimaryRadius + primaryRadius);
+            if (showAllControls)
+            {
+                updatedArgs[4] = Math.Max(0, reference.SecondaryRadius + secondaryRadius);
+                angleDoom = ClampAngle(reference.Interval + interval);
+            }
+        }
+        else
+        {
+            if (primaryRadius != -1) updatedArgs[firstArg] = primaryRadius;
+            if (showAllControls)
+            {
+                updatedArgs[4] = secondaryRadius;
+                angleDoom = ClampAngle(interval);
+            }
+        }
+
+        return new DynamicLightMutation(updatedArgs, angleDoom, new Dictionary<string, object>(fields, StringComparer.OrdinalIgnoreCase));
+    }
+
     public static string Format(ColorRgb rgb, ColorPickerInfoMode mode)
         => mode switch
         {
@@ -237,4 +413,32 @@ public static class ColorPickerModel
 
     private static int FloatComponentToByte(float value)
         => (int)(Math.Clamp(Math.Abs(value), 0.0f, 1.0f) * 255);
+
+    private static ColorRgb GetSpotOrSunDynamicLightColor(IReadOnlyList<int> args, IReadOnlyDictionary<string, object> fields)
+    {
+        if (fields.TryGetValue(DynamicLightPackedColorField, out object? textValue))
+        {
+            ColorRgb? parsed = TryParseHex(textValue.ToString() ?? "");
+            if (parsed.HasValue) return parsed.Value;
+        }
+
+        return UnpackRgb(GetArgument(args, 0) & 0xffffff);
+    }
+
+    private static int GetArgument(IReadOnlyList<int> args, int index)
+        => index >= 0 && index < args.Count ? args[index] : 0;
+
+    private static int[] CopyArguments(IReadOnlyList<int> args, int minimumLength)
+    {
+        int[] copy = new int[Math.Max(args.Count, minimumLength)];
+        for (int i = 0; i < args.Count; i++)
+            copy[i] = args[i];
+        return copy;
+    }
+
+    private static int ClampAngle(int angle)
+    {
+        int normalized = angle % 360;
+        return normalized < 0 ? normalized + 360 : normalized;
+    }
 }

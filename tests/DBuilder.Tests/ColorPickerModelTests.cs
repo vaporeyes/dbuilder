@@ -148,4 +148,212 @@ public sealed class ColorPickerModelTests
         Assert.Equal(0x112233, second.Fields[ColorPickerModel.LightColorField]);
         Assert.Equal(0x445566, second.Fields[ColorPickerModel.FadeColorField]);
     }
+
+    [Fact]
+    public void DynamicLightPickerMetadataMatchesUdbSelectionMessages()
+    {
+        Assert.Equal("No lights found in selection!", ColorPickerModel.NoDynamicLightsWarning);
+        Assert.Equal("Editing 1 light", ColorPickerModel.DynamicLightPickerTitle(1));
+        Assert.Equal("Editing 2 lights", ColorPickerModel.DynamicLightPickerTitle(2));
+        Assert.Equal(3, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: false));
+        Assert.Equal(0, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: true));
+    }
+
+    [Theory]
+    [InlineData(9801, true)]
+    [InlineData(9802, true)]
+    [InlineData(9804, true)]
+    [InlineData(9811, true)]
+    [InlineData(9812, true)]
+    [InlineData(9814, true)]
+    [InlineData(9821, true)]
+    [InlineData(9822, true)]
+    [InlineData(9824, true)]
+    [InlineData(9831, true)]
+    [InlineData(9832, true)]
+    [InlineData(9834, true)]
+    [InlineData(9803, false)]
+    public void DynamicLightAngleControlUsesUdbLightNumbers(int lightNumber, bool expected)
+        => Assert.Equal(expected, ColorPickerModel.DynamicLightUsesAngleValue(lightNumber));
+
+    [Fact]
+    public void DynamicLightSliderLimitsMatchUdbAbsoluteAndRelativeModes()
+    {
+        Assert.Equal(new DynamicLightSliderLimits(0, 512, 0, 16384), ColorPickerModel.DynamicLightRadiusLimits(relativeMode: false));
+        Assert.Equal(new DynamicLightSliderLimits(-256, 256, -16384, 16384), ColorPickerModel.DynamicLightRadiusLimits(relativeMode: true));
+        Assert.Equal(new DynamicLightSliderLimits(0, 359, 0, 16384), ColorPickerModel.DynamicLightIntervalLimits(relativeMode: false));
+        Assert.Equal(new DynamicLightSliderLimits(-180, 180, -16384, 16384), ColorPickerModel.DynamicLightIntervalLimits(relativeMode: true));
+    }
+
+    [Fact]
+    public void DynamicLightPickerStateUsesReferenceThingValuesInAbsoluteMode()
+    {
+        var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
+
+        DynamicLightPickerState state = ColorPickerModel.CreateDynamicLightPickerState(
+            definition,
+            new[] { 16, 32, 64, 256, 128 },
+            angleDoom: 45,
+            new Dictionary<string, object>(),
+            relativeMode: false);
+
+        Assert.Equal(new ColorRgb(16, 32, 64), state.Color);
+        Assert.Equal(256, state.PrimaryRadius);
+        Assert.Equal(128, state.SecondaryRadius);
+        Assert.Equal(45, state.Interval);
+        Assert.True(state.ShowAllControls);
+    }
+
+    [Fact]
+    public void DynamicLightPickerStateStartsAtZeroInRelativeMode()
+    {
+        var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
+
+        DynamicLightPickerState state = ColorPickerModel.CreateDynamicLightPickerState(
+            definition,
+            new[] { 16, 32, 64, 256, 128 },
+            angleDoom: 45,
+            new Dictionary<string, object>(),
+            relativeMode: true);
+
+        Assert.Equal(new ColorRgb(16, 32, 64), state.Color);
+        Assert.Equal(0, state.PrimaryRadius);
+        Assert.Equal(0, state.SecondaryRadius);
+        Assert.Equal(0, state.Interval);
+        Assert.True(state.ShowAllControls);
+    }
+
+    [Fact]
+    public void StandardDynamicLightColorUsesFirstThreeArgs()
+    {
+        var definition = new DynamicLightDefinition(0, LightVavoom: false, DynamicLightColorMode.Standard);
+
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightColor(
+            definition,
+            new[] { 1, 2, 3, 4, 5 },
+            angleDoom: 90,
+            new Dictionary<string, object>(),
+            new ColorRgb(10, 20, 30));
+
+        Assert.Equal(new[] { 10, 20, 30, 4, 5 }, mutation.Args);
+        Assert.Equal(90, mutation.AngleDoom);
+        Assert.Empty(mutation.Fields);
+    }
+
+    [Fact]
+    public void VavoomGenericDynamicLightKeepsColorArgsUnchanged()
+    {
+        var definition = new DynamicLightDefinition(0, LightVavoom: true, DynamicLightColorMode.VavoomGeneric);
+
+        ColorRgb color = ColorPickerModel.GetDynamicLightColor(definition, new[] { 1, 2, 3, 4, 5 }, new Dictionary<string, object>());
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightColor(
+            definition,
+            new[] { 1, 2, 3, 4, 5 },
+            angleDoom: 0,
+            new Dictionary<string, object>(),
+            new ColorRgb(10, 20, 30));
+
+        Assert.Equal(new ColorRgb(255, 255, 255), color);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, mutation.Args);
+    }
+
+    [Fact]
+    public void VavoomColoredDynamicLightColorUsesArgsOneThroughThree()
+    {
+        var definition = new DynamicLightDefinition(0, LightVavoom: true, DynamicLightColorMode.VavoomColored);
+
+        ColorRgb color = ColorPickerModel.GetDynamicLightColor(definition, new[] { 99, 1, 2, 3, 4 }, new Dictionary<string, object>());
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightColor(
+            definition,
+            new[] { 99, 1, 2, 3, 4 },
+            angleDoom: 0,
+            new Dictionary<string, object>(),
+            new ColorRgb(10, 20, 30));
+
+        Assert.Equal(new ColorRgb(1, 2, 3), color);
+        Assert.Equal(new[] { 99, 10, 20, 30, 4 }, mutation.Args);
+    }
+
+    [Fact]
+    public void SpotAndSunDynamicLightColorPrefersArgStringAndWritesPackedString()
+    {
+        var definition = new DynamicLightDefinition(0, LightVavoom: false, DynamicLightColorMode.SpotOrSun);
+        var fields = new Dictionary<string, object>
+        {
+            [ColorPickerModel.DynamicLightPackedColorField] = "2040FF",
+        };
+
+        ColorRgb color = ColorPickerModel.GetDynamicLightColor(definition, new[] { 0x112233, 1, 2, 3, 4 }, fields);
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightColor(
+            definition,
+            new[] { 0x112233, 1, 2, 3, 4 },
+            angleDoom: 0,
+            fields,
+            new ColorRgb(10, 20, 30));
+
+        Assert.Equal(new ColorRgb(0x20, 0x40, 0xff), color);
+        Assert.Equal(0, mutation.Args[0]);
+        Assert.Equal("0A141E", mutation.Fields[ColorPickerModel.DynamicLightPackedColorField]);
+    }
+
+    [Fact]
+    public void SpotAndSunDynamicLightColorFallsBackToPackedArg()
+    {
+        var definition = new DynamicLightDefinition(0, LightVavoom: false, DynamicLightColorMode.SpotOrSun);
+
+        ColorRgb color = ColorPickerModel.GetDynamicLightColor(
+            definition,
+            new[] { 0x112233, 1, 2, 3, 4 },
+            new Dictionary<string, object>());
+
+        Assert.Equal(new ColorRgb(0x11, 0x22, 0x33), color);
+    }
+
+    [Fact]
+    public void DynamicLightPropertiesMatchUdbAbsoluteMode()
+    {
+        var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
+
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightProperties(
+            definition,
+            new[] { 1, 2, 3, 4, 5 },
+            angleDoom: 90,
+            new Dictionary<string, object>(),
+            primaryRadius: 256,
+            secondaryRadius: 128,
+            interval: 405,
+            relativeMode: false);
+
+        Assert.Equal(new[] { 1, 2, 3, 256, 128 }, mutation.Args);
+        Assert.Equal(45, mutation.AngleDoom);
+    }
+
+    [Fact]
+    public void DynamicLightPropertiesMatchUdbRelativeMode()
+    {
+        var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
+        var fixedValues = new DynamicLightPickerState(
+            new ColorRgb(1, 2, 3),
+            PrimaryRadius: 100,
+            SecondaryRadius: 50,
+            Interval: 20,
+            ShowAllControls: true,
+            ColorPickerModel.DynamicLightRadiusLimits(relativeMode: false),
+            ColorPickerModel.DynamicLightRadiusLimits(relativeMode: false),
+            ColorPickerModel.DynamicLightIntervalLimits(relativeMode: false));
+
+        DynamicLightMutation mutation = ColorPickerModel.SetDynamicLightProperties(
+            definition,
+            new[] { 1, 2, 3, 4, 5 },
+            angleDoom: 90,
+            new Dictionary<string, object>(),
+            primaryRadius: -120,
+            secondaryRadius: 25,
+            interval: -45,
+            relativeMode: true,
+            fixedValues);
+
+        Assert.Equal(new[] { 1, 2, 3, 0, 75 }, mutation.Args);
+        Assert.Equal(335, mutation.AngleDoom);
+    }
 }

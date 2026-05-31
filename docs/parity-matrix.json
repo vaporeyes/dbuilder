@@ -159,7 +159,7 @@
       "udbPlugin": "ColorPicker",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "UDB-style RGB/HSV conversion, picker display formatting, typed HEX and float color input parsing, packed UDMF color integers, sector lightcolor/fadecolor field behavior, separate sector color field drafts, and a selected-sector editor color command exist. Full color picker controls and dynamic light editing remain incomplete."
+      "notes": "UDB-style RGB/HSV conversion, picker display formatting, typed HEX and float color input parsing, packed UDMF color integers, sector lightcolor/fadecolor field behavior, separate sector color field drafts, selected-sector editor color command, and dynamic light picker metadata, color storage, slider limits, and radius/interval mutation rules exist. Full color picker controls and dynamic light editor UI wiring remain incomplete."
     },
     {
       "udbPlugin": "CommentsPanel",
