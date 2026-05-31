@@ -61,6 +61,36 @@ maplumpnames
     }
 
     [Fact]
+    public void AnalyzeProcessResultFailsWhenOutputContainsErrorLikeUdb()
+    {
+        var normalOutput = NodeBuilder.AnalyzeProcessResult(0, "build error: bad subsector", "");
+        var errorOutput = NodeBuilder.AnalyzeProcessResult(0, "", "fatal ERROR: bad blockmap");
+
+        Assert.False(normalOutput.Success);
+        Assert.Equal("build error: bad subsector", normalOutput.Message);
+        Assert.False(errorOutput.Success);
+        Assert.Equal("fatal ERROR: bad blockmap", errorOutput.Message);
+    }
+
+    [Fact]
+    public void AnalyzeProcessResultStripsBackspaceCharactersLikeUdb()
+    {
+        var result = NodeBuilder.AnalyzeProcessResult(0, "building\b nodes", "");
+
+        Assert.True(result.Success);
+        Assert.Equal("building nodes", result.Message);
+    }
+
+    [Fact]
+    public void AnalyzeProcessResultReportsExitCodeWhenNoErrorTextExistsLikeUdb()
+    {
+        var result = NodeBuilder.AnalyzeProcessResult(2, "finished", "details");
+
+        Assert.False(result.Success);
+        Assert.Equal("Node builder exited with code 2.", result.Message);
+    }
+
+    [Fact]
     public void MissingExecutableFailsGracefully()
     {
         var result = NodeBuilder.Build(SampleWadBytes(),

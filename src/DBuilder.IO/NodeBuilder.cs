@@ -21,12 +21,39 @@ public static class NodeBuilder
     /// <summary>The outcome of a node build: the rebuilt WAD bytes on success, plus the tool's output.</summary>
     public sealed record Result(bool Success, byte[]? Output, string Message);
 
+    public sealed record ProcessResult(bool Success, string Message);
+
     /// <summary>Substitutes the %FI/%FO placeholders in a parameter template (testable in isolation).</summary>
     public static string BuildArguments(string parameters, string inputFile, string outputFile)
         => parameters.Replace("%FI", inputFile).Replace("%FO", outputFile);
 
     /// <summary>True when the template produces a separate output file rather than editing the input in place.</summary>
     public static bool HasSeparateOutput(string parameters) => parameters.Contains("%FO");
+
+    public static ProcessResult AnalyzeProcessResult(int exitCode, string standardOutput, string standardError)
+    {
+        string outMsg = CleanProcessOutput(standardOutput);
+        string outErr = CleanProcessOutput(standardError);
+        bool errorsInNormalOutput = outMsg.Length > 0 && outMsg.Contains("error", StringComparison.OrdinalIgnoreCase);
+        bool errorsInErrorOutput = outErr.Length > 0 && outErr.Contains("error", StringComparison.OrdinalIgnoreCase);
+
+        if (exitCode > 0 || errorsInNormalOutput || errorsInErrorOutput)
+        {
+            var message = new StringBuilder();
+            if (errorsInNormalOutput) message.Append(outMsg);
+            if (errorsInErrorOutput)
+            {
+                if (message.Length > 0) message.AppendLine();
+                message.Append(outErr);
+            }
+            if (message.Length == 0)
+                message.Append("Node builder exited with code ").Append(exitCode).Append('.');
+            return new ProcessResult(false, message.ToString());
+        }
+
+        string successMessage = (outMsg + Environment.NewLine + outErr).Trim();
+        return new ProcessResult(true, successMessage);
+    }
 
     /// <summary>
     /// Writes <paramref name="wadBytes"/> to a temp file, runs the configured node builder, and returns the
@@ -78,17 +105,17 @@ public static class NodeBuilder
             }
             process.WaitForExit(); // flush async output buffers
 
-            string msg = (stdout.ToString() + stderr.ToString()).Trim();
-            if (process.ExitCode != 0)
-                return new Result(false, null, $"Node builder exited with code {process.ExitCode}. {msg}");
+            ProcessResult processResult = AnalyzeProcessResult(process.ExitCode, stdout.ToString(), stderr.ToString());
+            if (!processResult.Success)
+                return new Result(false, null, processResult.Message);
             if (!File.Exists(output))
-                return new Result(false, null, $"Node builder produced no output file. {msg}");
+                return new Result(false, null, $"Node builder produced no output file. {processResult.Message}");
 
             byte[] outputBytes = File.ReadAllBytes(output);
             if (!RequiredNodeBuildLumpsPresent(outputBytes, mapMarker, config))
-                return new Result(false, null, $"Node builder failed to build the expected data structures. {msg}");
+                return new Result(false, null, $"Node builder failed to build the expected data structures. {processResult.Message}");
 
-            return new Result(true, outputBytes, msg);
+            return new Result(true, outputBytes, processResult.Message);
         }
         catch (Exception ex)
         {
@@ -135,4 +162,7 @@ public static class NodeBuilder
             return false;
         }
     }
+
+    private static string CleanProcessOutput(string value)
+        => value.Trim().Replace("\b", "", StringComparison.Ordinal);
 }
