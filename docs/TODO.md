@@ -841,11 +841,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Remap temporary compiler input errors back to source files, archive entries, and WAD script lumps.
+  - [x] Build UDB-style script compiler process start settings.
 - [ ] Port ACC compiler integration.
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
   - [x] Validate ACS map-script and external-library compile preconditions and include lists like UDB.
 - [ ] Port BCC compiler integration.
+  - [x] Configure redirected stdout and stderr process mode like UDB.
 - [ ] Port ZT-BCC compiler integration.
+  - [x] Configure redirected stdout and stderr process mode like UDB.
 - [ ] Port nodes compiler integration.
 - [ ] Port compiler error parsing and display.
   - [x] Parse UDB-style ACC and BCC compiler error lines into file, line, and description metadata.

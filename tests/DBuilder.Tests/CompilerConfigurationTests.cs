@@ -227,6 +227,58 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerProcessBuildsAccStartInfoLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "acc.cfg",
+            "zdoom_acc",
+            "/compilers/ZDoom",
+            "acc",
+            "AccCompiler",
+            new HashSet<string>());
+
+        var startInfo = ScriptCompilerProcess.CreateAccStartInfo(
+            compiler,
+            "-i scripts.acs -o behavior.o",
+            "/tmp/dbuilder_compile");
+
+        Assert.Equal(Path.Combine("/compilers/ZDoom", "acc"), startInfo.FileName);
+        Assert.Equal("-i scripts.acs -o behavior.o", startInfo.Arguments);
+        Assert.Equal("/tmp/dbuilder_compile", startInfo.WorkingDirectory);
+        Assert.False(startInfo.CreateNoWindow);
+        Assert.False(startInfo.RedirectStandardError);
+        Assert.False(startInfo.RedirectStandardOutput);
+        Assert.True(startInfo.UseShellExecute);
+        Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, startInfo.WindowStyle);
+    }
+
+    [Fact]
+    public void ScriptCompilerProcessBuildsBccStartInfoLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "bcc.cfg",
+            "bcc",
+            "/compilers/BCC",
+            "bcc",
+            "BccCompiler",
+            new HashSet<string>());
+
+        var startInfo = ScriptCompilerProcess.CreateBccStartInfo(
+            compiler,
+            "-acc-err-file -i scripts.bcs -o behavior.o",
+            "/tmp/dbuilder_compile");
+
+        Assert.Equal(Path.Combine("/compilers/BCC", "bcc"), startInfo.FileName);
+        Assert.Equal("-acc-err-file -i scripts.bcs -o behavior.o", startInfo.Arguments);
+        Assert.Equal("/tmp/dbuilder_compile", startInfo.WorkingDirectory);
+        Assert.True(startInfo.CreateNoWindow);
+        Assert.True(startInfo.RedirectStandardError);
+        Assert.True(startInfo.RedirectStandardOutput);
+        Assert.False(startInfo.UseShellExecute);
+        Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, startInfo.WindowStyle);
+    }
+
+    [Fact]
     public void ScriptCompileFlowBuildsDirectoryPlanLikeUdb()
     {
         var plan = ScriptCompileFlow.BuildDirectoryPlan(

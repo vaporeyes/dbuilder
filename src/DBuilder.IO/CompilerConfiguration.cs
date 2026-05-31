@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -51,6 +52,33 @@ public static class ScriptCompilerArguments
             .Replace("%PT", paths.TempPath)
             .Replace("%PS", paths.SourcePath)
             .Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+}
+
+public static class ScriptCompilerProcess
+{
+    public static ProcessStartInfo CreateAccStartInfo(CompilerInfo compiler, string arguments, string workingDirectory)
+    {
+        return new ProcessStartInfo
+        {
+            Arguments = arguments,
+            FileName = Path.Combine(compiler.Path, compiler.ProgramFile),
+            CreateNoWindow = false,
+            ErrorDialog = false,
+            UseShellExecute = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            WorkingDirectory = workingDirectory
+        };
+    }
+
+    public static ProcessStartInfo CreateBccStartInfo(CompilerInfo compiler, string arguments, string workingDirectory)
+    {
+        ProcessStartInfo startInfo = CreateAccStartInfo(compiler, arguments, workingDirectory);
+        startInfo.UseShellExecute = false;
+        startInfo.CreateNoWindow = true;
+        startInfo.RedirectStandardError = true;
+        startInfo.RedirectStandardOutput = true;
+        return startInfo;
+    }
 }
 
 public static class ScriptCompileFlow
