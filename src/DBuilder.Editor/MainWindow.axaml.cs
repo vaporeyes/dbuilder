@@ -1329,7 +1329,7 @@ public partial class MainWindow : Window
 
     private string ModeStatus(MapControl.EditMode mode)
         => mode == MapControl.EditMode.Things
-            ? $"Mode: Things. {CommandHint("map2d.insert")} places thing type {MapView.InsertThingType}; View > Browsers > Things changes the type."
+            ? $"Mode: Things. Click empty space or {CommandHint("map2d.insert")} to place thing type {MapView.InsertThingType}; View > Browsers > Things changes the type."
             : $"Mode: {mode}";
 
     private void RebuildSelectionGroupsMenu()

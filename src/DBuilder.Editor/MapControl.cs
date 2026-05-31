@@ -2282,7 +2282,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             // A click. Point elements were already handled on press; otherwise pick a line/sector (or clear).
             if (!_selectionDoneOnPress)
-                Pick(ToWorld(pos), additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            {
+                var world = ToWorld(pos);
+                if (_editMode == EditMode.Things && !e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                    InsertThingAt(world);
+                else
+                    Pick(world, additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+            }
         }
         else if (_drag == DragKind.Move)
         {
@@ -2722,18 +2728,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var pos = SnapToGrid(_cursorWorld);
 
         if (_editMode == EditMode.Things)
-        {
-            EditBegun?.Invoke("Insert thing");
-            _map.ClearAllSelected();
-            var t = _map.AddThing(pos, InsertThingType);
-            t.Selected = true;
-            _map.BuildIndexes();
-            MarkGeometryDirty();
-            Changed?.Invoke();
-            string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
-            Picked?.Invoke(status);
-            return status;
-        }
+            return InsertThingAt(pos, snap: false);
 
         var line = _map.NearestLinedef(_cursorWorld, 8 * _zoom);
         if (line != null)
@@ -2758,6 +2753,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string vertexStatus = $"inserted vertex at ({pos.x:0}, {pos.y:0})";
         Picked?.Invoke(vertexStatus);
         return vertexStatus;
+    }
+
+    private string InsertThingAt(Vec2D world, bool snap = true)
+    {
+        if (_map == null) return "No map loaded.";
+        var pos = snap ? SnapToGrid(world) : world;
+
+        EditBegun?.Invoke("Insert thing");
+        _map.ClearAllSelected();
+        var t = _map.AddThing(pos, InsertThingType);
+        t.Selected = true;
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
+        Picked?.Invoke(status);
+        return status;
     }
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).

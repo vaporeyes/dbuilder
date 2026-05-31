@@ -731,6 +731,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.
   - [x] Add an Insert at Cursor toolbar action for thing and vertex placement.
+  - [x] Let Things mode left-click place the configured thing type on empty map space.
 - [ ] Port status bar behavior.
   - [x] Add persistent mode, snap/grid, and coordinate status fields.
 - [ ] Port dockers and tabbed dock panels.
