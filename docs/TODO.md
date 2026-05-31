@@ -907,6 +907,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
+  - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
 - [ ] Port `StairSectorBuilder`.
@@ -1029,6 +1030,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
+  - [x] Add non-modal Reject Explorer validation and relation summary window.
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
 - [ ] Port stair sector builder mode and form behavior.

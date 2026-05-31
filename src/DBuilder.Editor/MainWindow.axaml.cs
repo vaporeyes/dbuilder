@@ -2633,20 +2633,46 @@ public partial class MainWindow : Window
         public int Total => Repaired + Sectors + Vertices + SidedefTextures;
     }
 
-    // Reads the map's REJECT lump and highlights sectors that cannot see the selected sector (reject visualization).
+    // Reads the map's REJECT lump and opens a visibility relation summary for the selected sector.
     private void OnRejectViewer(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         var sel = _map.GetSelectedSectors();
-        if (sel.Count != 1) { SetStatus("Select one sector to inspect REJECT."); return; }
         if (_wadPath is null || _mapMarker is null) { SetStatus("Reject viewer needs the source WAD."); return; }
 
         byte[]? bytes;
         using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "REJECT");
-        var reject = RejectTable.Parse(bytes ?? Array.Empty<byte>(), _map.Sectors.Count);
-        if (!reject.HasData) { SetStatus("No usable REJECT data for this map (none built or too small)."); return; }
+        var validation = RejectExplorerModel.Validate(bytes, _map.Sectors.Count);
+        RejectTable? reject = validation.CanUse ? RejectTable.Parse(bytes ?? Array.Empty<byte>(), _map.Sectors.Count) : null;
+        int? target = sel.Count == 1 ? sel[0].Index : null;
 
-        int target = sel[0].Index;
+        var win = new RejectExplorerWindow(validation, reject, _map.Sectors.Count, target);
+        win.SectorActivated += SelectOneSector;
+        win.SelectNoLineOfSightRequested += () =>
+        {
+            if (reject != null && target is int highlighted)
+                SelectRejectedSectors(reject, highlighted);
+        };
+        win.Show(this);
+
+        if (reject is { HasData: true } && target is int selectedTarget)
+        {
+            int count = SelectRejectedSectors(reject, selectedTarget);
+            SetStatus($"{count} sector(s) are rejected (cannot see) from sector {selectedTarget}.");
+        }
+        else if (!validation.CanUse)
+        {
+            SetStatus($"Reject viewer: {validation.Status} REJECT lump ({validation.ActualBytes}/{validation.ExpectedBytes} bytes).");
+        }
+        else
+        {
+            SetStatus("Reject viewer opened. Select one sector before opening to highlight visibility relationships.");
+        }
+    }
+
+    private int SelectRejectedSectors(RejectTable reject, int target)
+    {
+        if (_map is null) return 0;
         _map.ClearAllSelected();
         int count = 0;
         for (int i = 0; i < _map.Sectors.Count; i++)
@@ -2656,7 +2682,17 @@ public partial class MainWindow : Window
         }
         MapView.RevealSelection(MapControl.EditMode.Sectors, null);
         UpdateInfo();
-        SetStatus($"{count} sector(s) are rejected (cannot see) from sector {target}.");
+        return count;
+    }
+
+    private void SelectOneSector(int sectorIndex)
+    {
+        if (_map is null || (uint)sectorIndex >= (uint)_map.Sectors.Count) return;
+        _map.ClearAllSelected();
+        _map.Sectors[sectorIndex].Selected = true;
+        MapView.RevealSelection(MapControl.EditMode.Sectors, null);
+        UpdateInfo();
+        SetStatus($"Selected sector {sectorIndex}.");
     }
 
     // Bakes Plane_Align (181) linedef specials into sector floor/ceiling slope planes so 3D shows them, undoable.

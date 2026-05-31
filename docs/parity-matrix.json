@@ -177,8 +177,8 @@
     {
       "udbPlugin": "RejectExplorer",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.IO",
-      "notes": "Reject table IO coverage exists, including UDB-style REJECT lump validation and highlighted-sector visibility relation classification for default, highlighted, bidirectional, and one-way overlay states. Full RejectExplorer UI and overlay rendering workflow remain incomplete."
+      "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
+      "notes": "Reject table IO coverage exists, including UDB-style REJECT lump validation, highlighted-sector visibility relation classification for default, highlighted, bidirectional, and one-way overlay states, and a non-modal editor window for validation, relation summaries, rejected-sector selection, and sector navigation. Full overlay rendering workflow remains incomplete."
     },
     {
       "udbPlugin": "SoundPropagationMode",
