@@ -18,6 +18,14 @@ public enum ImageExportPixelFormat
     Format16BppRgb555,
 }
 
+public enum ImageExportResult
+{
+    OK,
+    Canceled,
+    OutOfMemory,
+    ImageTooBig,
+}
+
 public sealed record ImageExportOptions(
     string FilePath,
     bool Floor = true,
@@ -29,6 +37,31 @@ public sealed record ImageExportOptions(
     int ScaleIndex = 0,
     int ImageFormatIndex = 0,
     int PixelFormatIndex = 0);
+
+public sealed record ImageExportResultMessage(string Title, string Message, bool IsError)
+{
+    public static ImageExportResultMessage FromResult(ImageExportResult result)
+        => result switch
+        {
+            ImageExportResult.OK => new ImageExportResultMessage(
+                "Export to image",
+                "Export successful.",
+                IsError: false),
+            ImageExportResult.Canceled => new ImageExportResultMessage(
+                "Export to image",
+                "Export canceled.",
+                IsError: false),
+            ImageExportResult.OutOfMemory => new ImageExportResultMessage(
+                "Export failed",
+                "Exporting failed. There's likely not enough consecutive free memory to create the image. Try a lower color depth or file format",
+                IsError: true),
+            ImageExportResult.ImageTooBig => new ImageExportResultMessage(
+                "Export failed",
+                "Exporting failed. The image is likely too big for the current settings. Try a lower color depth or file format",
+                IsError: true),
+            _ => throw new ArgumentOutOfRangeException(nameof(result), result, null),
+        };
+}
 
 public sealed record ImageExportPluginSettings(
     bool Fullbright = true,

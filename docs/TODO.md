@@ -1026,6 +1026,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style image export progress item accounting for triangles, tiles, and brightmaps.
   - [x] Add UDB-style sector selection and empty-map warning model for image export.
   - [x] Add UDB-style image export plugin setting keys, defaults, and write-back model.
+  - [x] Add UDB-style image export completion result messages.
 - [ ] Port Wavefront export tools.
   - [x] Add UDB-style Wavefront export sector-selection preflight and empty-map warning model.
   - [x] Add UDB-style Wavefront export plugin setting keys, defaults, skip-texture storage, and write-back model.

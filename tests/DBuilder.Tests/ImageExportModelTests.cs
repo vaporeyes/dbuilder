@@ -144,6 +144,24 @@ public sealed class ImageExportModelTests
         Assert.Equal(2, target[ImageExportPluginSettings.ScaleKey]);
     }
 
+    [Theory]
+    [InlineData(ImageExportResult.OK, "Export to image", "Export successful.", false)]
+    [InlineData(ImageExportResult.Canceled, "Export to image", "Export canceled.", false)]
+    [InlineData(ImageExportResult.OutOfMemory, "Export failed", "Exporting failed. There's likely not enough consecutive free memory to create the image. Try a lower color depth or file format", true)]
+    [InlineData(ImageExportResult.ImageTooBig, "Export failed", "Exporting failed. The image is likely too big for the current settings. Try a lower color depth or file format", true)]
+    public void ResultMessagesMatchUdbStopExportDialogs(
+        ImageExportResult result,
+        string expectedTitle,
+        string expectedMessage,
+        bool expectedIsError)
+    {
+        ImageExportResultMessage message = ImageExportResultMessage.FromResult(result);
+
+        Assert.Equal(expectedTitle, message.Title);
+        Assert.Equal(expectedMessage, message.Message);
+        Assert.Equal(expectedIsError, message.IsError);
+    }
+
     [Fact]
     public void PlannerUsesUdbSelectionBoundsAndTopLeftOffset()
     {
