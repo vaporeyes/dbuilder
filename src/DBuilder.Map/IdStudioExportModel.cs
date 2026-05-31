@@ -121,6 +121,28 @@ public static class IdStudioExportValidation
 
 public static class IdStudioGeometryExporter
 {
+    public static IReadOnlyList<IdStudioExportFile> CreateGeometryFilePlan(
+        MapSet map,
+        IdStudioExportSettings settings,
+        Func<string, IdStudioTextureDimensions> getTextureDimensions,
+        Func<string, IdStudioTextureDimensions> getFlatDimensions,
+        Func<Sector, bool>? hasSkyFloor = null,
+        Func<Sector, bool>? hasSkyCeiling = null)
+    {
+        var rootWriter = new IdStudioMapWriter(settings);
+        IdStudioMapWriter wadToBrush = rootWriter.AddRefmap("wadtobrush");
+        IdStudioMapWriter geoWriter = wadToBrush.AddRefmap("wadgeo");
+
+        WriteBrushGroups(
+            geoWriter,
+            BuildSectorBrushGroups(map, settings, getFlatDimensions, hasSkyFloor, hasSkyCeiling));
+        WriteBrushGroups(
+            geoWriter,
+            BuildWallBrushGroups(map, settings, getTextureDimensions));
+
+        return rootWriter.CreateFilePlan();
+    }
+
     public static IReadOnlyList<IdStudioBrushGroup> BuildSectorBrushGroups(
         MapSet map,
         IdStudioExportSettings settings,
@@ -261,6 +283,32 @@ public static class IdStudioGeometryExporter
 
         return groups;
     }
+
+    private static void WriteBrushGroups(IdStudioMapWriter writer, IReadOnlyList<IdStudioBrushGroup> groups)
+    {
+        foreach (IdStudioBrushGroup group in groups)
+        {
+            var staticBrushes = new List<string>();
+            foreach (string brush in group.Brushes)
+            {
+                if (IsWorldBrush(brush)) writer.WriteWorldBrush(brush);
+                else staticBrushes.Add(brush);
+            }
+
+            if (staticBrushes.Count == 0) continue;
+
+            writer.BeginFuncStatic(group.Group, group.SectorNumber);
+            foreach (string brush in staticBrushes)
+            {
+                writer.WriteEntityBrush(brush);
+            }
+
+            writer.EndFuncStatic();
+        }
+    }
+
+    private static bool IsWorldBrush(string brush)
+        => brush.Contains("\"stepclip/", StringComparison.Ordinal);
 
     private static List<string> BuildSectorSurfaceBrushes(
         IdStudioExportSettings settings,
@@ -1038,6 +1086,10 @@ entity {{
     }
 
     public void EndFuncStatic() => entities.Append("}\n");
+
+    public void WriteEntityBrush(string brush) => entities.Append(brush);
+
+    public void WriteWorldBrush(string brush) => world.Append(brush);
 
     public IReadOnlyList<IdStudioExportFile> CreateFilePlan()
     {

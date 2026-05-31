@@ -409,6 +409,63 @@ public class IdStudioExportModelTests
     }
 
     [Fact]
+    public void GeometryExporterCreatesUdbStyleRefmapFilePlan()
+    {
+        (MapSet map, _) = BuildSquareSector(size: 64);
+        map.Sidedefs[0].MidTexture = "STARTAN3";
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 0, 0, 0, false, false);
+
+        IReadOnlyList<IdStudioExportFile> files = IdStudioGeometryExporter.CreateGeometryFilePlan(
+            map,
+            settings,
+            TextureDimensions,
+            TextureDimensions);
+
+        Assert.Equal(3, files.Count);
+        IdStudioExportFile geo = files[2];
+        Assert.Equal("/tmp/mod/base/maps/map01_wadtobrush_wadgeo.refmap", geo.Path);
+        Assert.Contains("entityPrefix = \"wadgeo\";", geo.Content);
+        Assert.Contains("\"floor/0\"", geo.Content);
+        Assert.Contains("\"ceil/0\"", geo.Content);
+        Assert.Contains("\"wall/0\"", geo.Content);
+        Assert.Contains("\"art/wadtobrush/flats/-\"", geo.Content);
+        Assert.Contains("\"art/wadtobrush/walls/startan3\"", geo.Content);
+    }
+
+    [Fact]
+    public void GeometryExporterWritesStepclipBrushesToWorldEntity()
+    {
+        var map = new MapSet();
+        Sector frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        Sector backSector = map.AddSector();
+        backSector.FloorHeight = 16;
+        backSector.CeilHeight = 96;
+        Vertex v0 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v1 = map.AddVertex(new Vector2D(160, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        Sidedef front = map.AddSidedef(line, isFront: true, frontSector);
+        map.AddSidedef(line, isFront: false, backSector);
+        front.LowTexture = "LOWER";
+
+        var settings = new IdStudioExportSettings("/tmp/mod", "map01", 16, 0, 0, 0, false, false);
+
+        IdStudioExportFile geo = IdStudioGeometryExporter.CreateGeometryFilePlan(
+            map,
+            settings,
+            TextureDimensions,
+            TextureDimensions)[2];
+
+        int stepclipIndex = geo.Content.IndexOf("\"stepclip/1\"", StringComparison.Ordinal);
+        int staticIndex = geo.Content.IndexOf("entityDef wadgeo_map01_func_static_1", StringComparison.Ordinal);
+
+        Assert.True(stepclipIndex > 0);
+        Assert.True(staticIndex > stepclipIndex);
+        Assert.Contains("\"art/wadtobrush/walls/lower\"", geo.Content);
+    }
+
+    [Fact]
     public void TextureExporterReportsRequiredDirectories()
     {
         IReadOnlyList<string> directories = IdStudioTextureExporter.RequiredDirectories("/tmp/mod");
