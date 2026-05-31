@@ -15,10 +15,29 @@ public enum ThreeDFloorSlopePlaneType
     Top = 8,
 }
 
-public sealed record ThreeDFloorSlopeVertex(Vector2D Position, double Z)
+public sealed class ThreeDFloorSlopeVertex(Vector2D position, double z)
 {
+    public Vector2D Position { get; set; } = position;
+    public double Z { get; set; } = z;
     public bool Selected { get; set; }
 }
+
+public sealed record ThreeDFloorSlopeVertexSelection(
+    ThreeDFloorSlopeVertex Vertex,
+    ThreeDFloorSlopeVertexGroup Group);
+
+public sealed record ThreeDFloorSlopeVertexEdit(
+    double? X = null,
+    double? Y = null,
+    double? Z = null,
+    bool? Reposition = null,
+    bool? Spline = null,
+    IReadOnlyList<Sector>? SelectedSectors = null,
+    bool AddSelectedSectorsToFloor = false,
+    bool RemoveSelectedSectorsFromFloor = false,
+    bool AddSelectedSectorsToCeiling = false,
+    bool RemoveSelectedSectorsFromCeiling = false,
+    IReadOnlyList<Sector>? SectorsToUnbind = null);
 
 public sealed class ThreeDFloorSlopeVertexGroup
 {
@@ -356,6 +375,83 @@ public static class ThreeDFloorSlopes
             group.FindSectors(map);
             group.ApplyToSectors();
             changed += group.Sectors.Count;
+        }
+
+        return changed;
+    }
+
+    public static int ApplyVertexEdit(
+        MapSet map,
+        IEnumerable<ThreeDFloorSlopeVertexSelection> selections,
+        ThreeDFloorSlopeVertexEdit edit)
+    {
+        var groups = new List<ThreeDFloorSlopeVertexGroup>();
+        int changedVertices = 0;
+
+        foreach (ThreeDFloorSlopeVertexSelection selection in selections)
+        {
+            ThreeDFloorSlopeVertex vertex = selection.Vertex;
+            Vector2D oldPosition = vertex.Position;
+            double oldZ = vertex.Z;
+            double x = edit.X ?? vertex.Position.x;
+            double y = edit.Y ?? vertex.Position.y;
+
+            vertex.Position = new Vector2D(x, y);
+            vertex.Z = edit.Z ?? vertex.Z;
+            if (vertex.Position != oldPosition || vertex.Z != oldZ) changedVertices++;
+
+            if (!groups.Contains(selection.Group)) groups.Add(selection.Group);
+        }
+
+        IReadOnlyList<Sector> selectedSectors = edit.SelectedSectors ?? Array.Empty<Sector>();
+        IReadOnlyList<Sector> sectorsToUnbind = edit.SectorsToUnbind ?? Array.Empty<Sector>();
+
+        foreach (ThreeDFloorSlopeVertexGroup group in groups)
+        {
+            if (edit.Reposition.HasValue) group.Reposition = edit.Reposition.Value;
+            if (edit.Spline.HasValue && group.Vertices.Count == 3) group.Spline = edit.Spline.Value;
+
+            foreach (Sector sector in selectedSectors)
+            {
+                if (edit.AddSelectedSectorsToCeiling) group.AddSector(map, sector, ThreeDFloorSlopePlaneType.Ceiling);
+                if (edit.RemoveSelectedSectorsFromCeiling && group.Sectors.Contains(sector)) group.RemoveSector(sector, ThreeDFloorSlopePlaneType.Ceiling);
+                if (edit.AddSelectedSectorsToFloor) group.AddSector(map, sector, ThreeDFloorSlopePlaneType.Floor);
+                if (edit.RemoveSelectedSectorsFromFloor && group.Sectors.Contains(sector)) group.RemoveSector(sector, ThreeDFloorSlopePlaneType.Floor);
+            }
+
+            foreach (Sector sector in sectorsToUnbind)
+            {
+                if (!group.Sectors.Contains(sector)) continue;
+                group.RemoveSector(sector, ThreeDFloorSlopePlaneType.Floor);
+                group.RemoveSector(sector, ThreeDFloorSlopePlaneType.Ceiling);
+            }
+
+            group.ApplyToSectors();
+        }
+
+        return changedVertices;
+    }
+
+    public static int AssignSectorsToGroup(
+        MapSet map,
+        ThreeDFloorSlopeVertexGroup targetGroup,
+        IEnumerable<ThreeDFloorSlopeVertexGroup> groups,
+        IEnumerable<Sector> sectors,
+        ThreeDFloorSlopePlaneType plane)
+    {
+        int changed = 0;
+        foreach (Sector sector in sectors)
+        {
+            foreach (ThreeDFloorSlopeVertexGroup group in groups)
+            {
+                if (ReferenceEquals(group, targetGroup)) continue;
+                if (!group.Sectors.Contains(sector)) continue;
+
+                group.RemoveSector(sector, plane);
+            }
+
+            targetGroup.AddSector(map, sector, plane);
+            changed++;
         }
 
         return changed;

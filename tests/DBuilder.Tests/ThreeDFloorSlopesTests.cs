@@ -180,6 +180,126 @@ public class ThreeDFloorSlopesTests
         Assert.False(invalid.VerticesAreValid());
     }
 
+    [Fact]
+    public void ApplyVertexEditUpdatesSelectedVerticesAndGroupOptions()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64, 64);
+        var first = new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0);
+        var second = new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0);
+        var third = new ThreeDFloorSlopeVertex(new Vector2D(64, 64), 64);
+        var group = new ThreeDFloorSlopeVertexGroup(8, new[] { first, second, third });
+        var edit = new ThreeDFloorSlopeVertexEdit(
+            Z: 32,
+            Reposition: false,
+            Spline: true,
+            SelectedSectors: new[] { sector },
+            AddSelectedSectorsToFloor: true);
+
+        int changed = ThreeDFloorSlopes.ApplyVertexEdit(
+            map,
+            new[] { new ThreeDFloorSlopeVertexSelection(first, group), new ThreeDFloorSlopeVertexSelection(second, group) },
+            edit);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(new Vector2D(0, 0), first.Position);
+        Assert.Equal(new Vector2D(64, 0), second.Position);
+        Assert.Equal(32, first.Z);
+        Assert.Equal(32, second.Z);
+        Assert.False(group.Reposition);
+        Assert.True(group.Spline);
+        Assert.Equal(8, sector.Fields[ThreeDFloorSlopes.FloorPlaneIdField]);
+        Assert.True(sector.HasFloorSlope);
+    }
+
+    [Fact]
+    public void ApplyVertexEditIgnoresSplineForTwoPointGroups()
+    {
+        var map = new MapSet();
+        var first = new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 16);
+        var second = new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 16);
+        var group = new ThreeDFloorSlopeVertexGroup(9, new[] { first, second });
+
+        ThreeDFloorSlopes.ApplyVertexEdit(
+            map,
+            new[] { new ThreeDFloorSlopeVertexSelection(first, group) },
+            new ThreeDFloorSlopeVertexEdit(Spline: true));
+
+        Assert.False(group.Spline);
+    }
+
+    [Fact]
+    public void ApplyVertexEditRemovesSelectedAndListedSectorBindings()
+    {
+        var map = new MapSet();
+        Sector selected = AddSquareSector(map, 0, 64, 64);
+        Sector listed = AddSquareSector(map, 128, 64, 64);
+        var group = new ThreeDFloorSlopeVertexGroup(
+            7,
+            new[]
+            {
+                new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 64), 64),
+            });
+        group.AddSector(map, selected, ThreeDFloorSlopePlaneType.Floor | ThreeDFloorSlopePlaneType.Ceiling);
+        group.AddSector(map, listed, ThreeDFloorSlopePlaneType.Floor | ThreeDFloorSlopePlaneType.Ceiling);
+
+        ThreeDFloorSlopes.ApplyVertexEdit(
+            map,
+            new[] { new ThreeDFloorSlopeVertexSelection(group.Vertices[0], group) },
+            new ThreeDFloorSlopeVertexEdit(
+                SelectedSectors: new[] { selected },
+                RemoveSelectedSectorsFromFloor: true,
+                SectorsToUnbind: new[] { listed }));
+
+        Assert.False(selected.HasFloorSlope);
+        Assert.True(selected.HasCeilSlope);
+        Assert.False(selected.Fields.ContainsKey(ThreeDFloorSlopes.FloorPlaneIdField));
+        Assert.False(listed.HasFloorSlope);
+        Assert.False(listed.HasCeilSlope);
+        Assert.DoesNotContain(listed, group.Sectors);
+    }
+
+    [Fact]
+    public void AssignSectorsToGroupRemovesCompetingPlaneBinding()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64, 64);
+        var first = new ThreeDFloorSlopeVertexGroup(
+            1,
+            new[]
+            {
+                new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 0),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 64), 64),
+            });
+        var second = new ThreeDFloorSlopeVertexGroup(
+            2,
+            new[]
+            {
+                new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 64),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 64),
+                new ThreeDFloorSlopeVertex(new Vector2D(64, 64), 0),
+            });
+        first.AddSector(map, sector, ThreeDFloorSlopePlaneType.Floor | ThreeDFloorSlopePlaneType.Ceiling);
+
+        int changed = ThreeDFloorSlopes.AssignSectorsToGroup(
+            map,
+            second,
+            new[] { first, second },
+            new[] { sector },
+            ThreeDFloorSlopePlaneType.Floor);
+
+        Assert.Equal(1, changed);
+        Assert.Equal(2, sector.Fields[ThreeDFloorSlopes.FloorPlaneIdField]);
+        Assert.Equal(1, sector.Fields[ThreeDFloorSlopes.CeilingPlaneIdField]);
+        Assert.Contains(sector, first.Sectors);
+        Assert.Contains(sector, second.Sectors);
+        Assert.Equal(ThreeDFloorSlopePlaneType.Ceiling, first.SectorPlanes[sector]);
+        Assert.Equal(ThreeDFloorSlopePlaneType.Floor, second.SectorPlanes[sector]);
+    }
+
     private static Sector AddSquareSector(MapSet map, double left, double top, double size)
     {
         var vertices = new[]

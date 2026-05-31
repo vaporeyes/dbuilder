@@ -129,7 +129,7 @@
       "udbPlugin": "3DFloorMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map, DBuilder.IO",
-      "notes": "GZDoom 3D floor data resolution, multi-tag target matching, managed UDMF control-sector filtering, selected-sector floor discovery, shared-floor filtering, display toggles, control-sector edit snapshots, control-sector mutation, orphan action-line cleanup, mode/action metadata, command catalog entries, control-sector area settings, custom tag range allocation, control-sector area placement planning, control-sector geometry materialization, action-line binding, slope vertex group persistence, slope data-sector fields, and floor/ceiling plane application exist. Full 3DFloorMode save-back, editor window, slope drawing UI, and slope editing UI remain incomplete."
+      "notes": "GZDoom 3D floor data resolution, multi-tag target matching, managed UDMF control-sector filtering, selected-sector floor discovery, shared-floor filtering, display toggles, control-sector edit snapshots, control-sector mutation, orphan action-line cleanup, mode/action metadata, command catalog entries, control-sector area settings, custom tag range allocation, control-sector area placement planning, control-sector geometry materialization, action-line binding, slope vertex group persistence, slope data-sector fields, floor/ceiling plane application, selected slope vertex editing, and sector plane binding helpers exist. Full 3DFloorMode save-back, editor window, slope drawing UI, and slope editing UI remain incomplete."
     },
     {
       "udbPlugin": "AutomapMode",
