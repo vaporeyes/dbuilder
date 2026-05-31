@@ -2971,7 +2971,7 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
-    private void ToggleSelectedAutomapLines(string undoDescription, Action<Linedef> toggle, string label)
+    private void ToggleSelectedAutomapLines(string undoDescription, Action<Linedef, bool> toggle, string label)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         var lines = _map.GetSelectedLinedefs();
@@ -2982,7 +2982,8 @@ public partial class MainWindow : Window
         }
 
         CreateUndo(undoDescription);
-        foreach (var line in lines) toggle(line);
+        bool isUdmf = _mapFormat == MapFormat.Udmf;
+        foreach (var line in lines) toggle(line, isUdmf);
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Toggled {label} on {lines.Count} linedef(s).");

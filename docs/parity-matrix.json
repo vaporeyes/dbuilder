@@ -1,5 +1,9 @@
 {
-  "statusValues": ["ported", "partial", "missing"],
+  "statusValues": [
+    "ported",
+    "partial",
+    "missing"
+  ],
   "core": [
     {
       "udbArea": "Source/Core/Actions",
@@ -73,7 +77,11 @@
       "dbuilderLocation": "DBuilder.Map",
       "notes": "Map model coverage includes element collections, map options, selection groups, marks, tags, argument handling, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
     },
-    { "udbArea": "Source/Core/Plugins", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbArea": "Source/Core/Plugins",
+      "status": "missing",
+      "dbuilderLocation": null
+    },
     {
       "udbArea": "Source/Core/Properties",
       "status": "partial",
@@ -122,7 +130,11 @@
       "dbuilderLocation": "DBuilder.Rendering",
       "notes": "DBuilder uses a cross-platform Silk.NET OpenGL rendering abstraction. Full UDB native OpenGL parity remains incomplete."
     },
-    { "udbArea": "Source/Native/VPO", "status": "missing", "dbuilderLocation": null }
+    {
+      "udbArea": "Source/Native/VPO",
+      "status": "missing",
+      "dbuilderLocation": null
+    }
   ],
   "plugins": [
     {
@@ -135,7 +147,7 @@
       "udbPlugin": "AutomapMode",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "UDB-style automap model exists for line visibility, Doom/Hexen/Strife color presets, line color classification, secret-sector detection, lock-color resolution, format-aware UDMF and classic automap linedef flag handling, selected linedef secret/dontdraw flag toggles, selected sector textured-hidden automap flag toggles, mode metadata, persisted setting defaults, presentation layer descriptors, valid-linedef collection, highlight target planning, render planning for line draw order, highlight colors, and textured-background fallback, plus editor Automap Mode rendering with UDB-style valid-line colors and textured-sector visibility. Full toolbar options, live highlight rendering, and interactive editing workflow remain incomplete."
+      "notes": "UDB-style automap model exists for line visibility, Doom/Hexen/Strife color presets, line color classification, secret-sector detection, lock-color resolution, format-aware UDMF and classic automap linedef flag handling, selected linedef secret/dontdraw flag toggles, selected sector textured-hidden automap flag toggles, mode metadata, persisted setting defaults, presentation layer descriptors, valid-linedef collection, highlight target planning, render planning for line draw order, highlight colors, and textured-background fallback, editor Automap Mode rendering with UDB-style valid-line colors and textured-sector visibility, hover highlighting, and click toggles for highlighted line and sector automap flags. Full toolbar option UI and persisted option editing remain incomplete."
     },
     {
       "udbPlugin": "BlockmapExplorer",
@@ -209,7 +221,11 @@
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
       "notes": "UDB-style absolute and relative tag range calculation exists, including duplicate detection, skip-used handling, out-of-range reporting, selected element initial-tag capture, selected element assignment, in-session step and relative-mode defaults, form title, end-tag preview and warning state, and editor menu/toolbar form integration for sectors, linedefs, and things. Full plugin lifecycle and docked workflow remain incomplete."
     },
-    { "udbPlugin": "UDBScript", "status": "missing", "dbuilderLocation": null },
+    {
+      "udbPlugin": "UDBScript",
+      "status": "missing",
+      "dbuilderLocation": null
+    },
     {
       "udbPlugin": "USDF",
       "status": "partial",

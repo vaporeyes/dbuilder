@@ -233,6 +233,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
     private Vec2D _drawCursor;
     private Vec2D _cursorWorld; // last known cursor position in world space (for cursor-targeted actions)
+    private AutomapHighlightResult? _automapHighlight;
+    private bool _automapEditSectors;
+    private bool _automapInvertLineVisibility;
     private GlVertexBuffer? _drawVb;
     private int _drawLineCount;
     private bool _drawDirty; // rebuild the preview buffer on the render thread, not from input handlers
@@ -417,6 +420,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _look3D = false;
             _drag3DTarget = null;
             ExitDrawModes();
+            UpdateAutomapHighlight(_cursorWorld, KeyModifiers.None);
+        }
+        else
+        {
+            _automapHighlight = null;
+            _automapEditSectors = false;
+            _automapInvertLineVisibility = false;
         }
 
         _geometryDirty = true;
@@ -1548,12 +1558,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (AutomapMode)
             {
                 var settings = AutomapModeModel.DefaultSettings;
-                var options = AutomapModeModel.ToOptions(settings, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom);
+                var options = AutomapModeModel.ToOptions(settings, _automapInvertLineVisibility, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom);
                 automapPlan = AutomapModeModel.BuildRenderPlan(
                     _map,
                     options,
                     settings,
-                    AutomapModeModel.Palette(settings.ColorPreset));
+                    AutomapModeModel.Palette(settings.ColorPreset),
+                    _automapHighlight,
+                    _automapEditSectors);
             }
 
             // Draw order: sector fills (textured) -> lines -> things/sprites -> selection markers.
@@ -1675,9 +1687,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 AutomapModeSettings settings = AutomapModeModel.DefaultSettings;
                 AutomapRenderPlan plan = AutomapModeModel.BuildRenderPlan(
                     _map,
-                    AutomapModeModel.ToOptions(settings, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom),
+                    AutomapModeModel.ToOptions(settings, _automapInvertLineVisibility, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom),
                     settings,
-                    AutomapModeModel.Palette(settings.ColorPreset));
+                    AutomapModeModel.Palette(settings.ColorPreset),
+                    _automapHighlight,
+                    _automapEditSectors);
                 foreach (var renderLine in plan.Lines)
                 {
                     int c = ToArgb(renderLine.Color);
@@ -2416,6 +2430,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        if (AutomapMode) UpdateAutomapHighlight(_cursorWorld, e.KeyModifiers);
         string key = e.Key.ToString();
         var scope = _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D;
         string pressKey = EditorCommandCatalog.ShortcutPressKey(scope, key, accel, shift, alt);
@@ -2582,6 +2597,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     protected override void OnKeyUp(KeyEventArgs e)
     {
+        if (AutomapMode) UpdateAutomapHighlight(_cursorWorld, e.KeyModifiers);
         RemovePressedMapShortcut(e.Key.ToString());
         if (_heldKeys.Remove(e.Key)) e.Handled = true;
         else base.OnKeyUp(e);
@@ -2611,6 +2627,83 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         float cp = (float)Math.Cos(_pitch);
         return new Vector3(cp * (float)Math.Cos(_yaw), cp * (float)Math.Sin(_yaw), (float)Math.Sin(_pitch));
+    }
+
+    private void UpdateAutomapHighlight(Vec2D world, KeyModifiers modifiers)
+    {
+        if (_map == null || !AutomapMode) return;
+
+        bool editSectors = modifiers.HasFlag(KeyModifiers.Shift) && _mapFormat == MapFormat.Udmf;
+        bool invert = modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
+        AutomapModeSettings settings = AutomapModeModel.DefaultSettings;
+        AutomapModeOptions options = AutomapModeModel.ToOptions(
+            settings,
+            invert,
+            isUdmf: _mapFormat == MapFormat.Udmf,
+            isDoom: _mapFormat == MapFormat.Doom);
+        List<Linedef> validLines = AutomapModeModel.GetValidLinedefs(_map, options);
+        AutomapHighlightResult next = AutomapModeModel.PlanHighlight(_map, validLines, world, highlightRange: 20, rendererScale: _zoom, editSectors);
+
+        if (_automapHighlight == next && _automapEditSectors == editSectors && _automapInvertLineVisibility == invert) return;
+        _automapHighlight = next;
+        _automapEditSectors = editSectors;
+        _automapInvertLineVisibility = invert;
+        _geometryDirty = true;
+        Picked?.Invoke(next.Kind switch
+        {
+            AutomapHighlightKind.Linedef when next.Line != null => $"automap linedef {_map.Linedefs.IndexOf(next.Line)}",
+            AutomapHighlightKind.Sector when next.Sector != null => $"automap sector {_map.Sectors.IndexOf(next.Sector)}",
+            _ => "automap"
+        });
+        RequestNextFrameRendering();
+    }
+
+    private void ToggleAutomapSecretOrSector()
+    {
+        if (_map == null || _automapHighlight == null) return;
+
+        if (_automapHighlight.Kind == AutomapHighlightKind.Linedef && _automapHighlight.Line != null)
+        {
+            EditBegun?.Invoke("Toggle automap secret");
+            AutomapModeModel.ToggleSecretFlag(_automapHighlight.Line, _mapFormat == MapFormat.Udmf);
+            Picked?.Invoke("toggled automap secret");
+        }
+        else if (_automapHighlight.Kind == AutomapHighlightKind.Sector && _automapHighlight.Sector != null)
+        {
+            EditBegun?.Invoke("Toggle textured automap hidden");
+            AutomapModeModel.ToggleTexturedAutomapHiddenFlag(_automapHighlight.Sector);
+            Picked?.Invoke("toggled textured automap hidden");
+        }
+        else
+        {
+            return;
+        }
+
+        _map.BuildIndexes();
+        UpdateAutomapHighlight(_cursorWorld, CurrentAutomapModifiers());
+        MarkGeometryDirty();
+        Changed?.Invoke();
+    }
+
+    private void ToggleAutomapHiddenLine()
+    {
+        if (_map == null || _automapHighlight?.Kind != AutomapHighlightKind.Linedef || _automapHighlight.Line == null) return;
+
+        EditBegun?.Invoke("Toggle automap hidden");
+        AutomapModeModel.ToggleHiddenFlag(_automapHighlight.Line, _mapFormat == MapFormat.Udmf);
+        Picked?.Invoke("toggled automap hidden");
+        _map.BuildIndexes();
+        UpdateAutomapHighlight(_cursorWorld, CurrentAutomapModifiers());
+        MarkGeometryDirty();
+        Changed?.Invoke();
+    }
+
+    private KeyModifiers CurrentAutomapModifiers()
+    {
+        KeyModifiers modifiers = KeyModifiers.None;
+        if (_automapEditSectors) modifiers |= KeyModifiers.Shift;
+        if (_automapInvertLineVisibility) modifiers |= KeyModifiers.Control;
+        return modifiers;
     }
 
     private void UpdateFlyCamera()
@@ -2654,6 +2747,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         base.OnPointerPressed(e);
         Focus(); // take keyboard focus so the 3D fly camera receives WASD/arrows
         var pt = e.GetCurrentPoint(this);
+        if (AutomapMode)
+        {
+            _cursorWorld = ToWorld(pt.Position);
+            UpdateAutomapHighlight(_cursorWorld, e.KeyModifiers);
+            return;
+        }
         if (_mode3D)
         {
             // Left-drag is mouse-look (a left click without dragging toggles selection); right-drag edits height.
@@ -2719,6 +2818,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
         var pos = e.GetCurrentPoint(this).Position;
+
+        if (AutomapMode)
+        {
+            if (e.InitialPressMouseButton == MouseButton.Left) ToggleAutomapSecretOrSector();
+            else if (e.InitialPressMouseButton == MouseButton.Right) ToggleAutomapHiddenLine();
+            return;
+        }
 
         // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
         if (e.InitialPressMouseButton == MouseButton.Right && _rightPressed)
@@ -3500,6 +3606,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _cursorWorld = ToWorld(pos);
         CursorWorldMoved?.Invoke(_cursorWorld);
+
+        if (AutomapMode)
+        {
+            UpdateAutomapHighlight(_cursorWorld, e.KeyModifiers);
+            return;
+        }
 
         if (_drawMode)
         {
