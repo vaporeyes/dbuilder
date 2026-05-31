@@ -45,6 +45,124 @@ public static class StairBuilder
         return sectors;
     }
 
+    public static IReadOnlyList<StairBuilderSectorPlan> PlanCurvedSectorsFromLines(
+        IReadOnlyList<Linedef> selectedLinedefs,
+        StairBuilderCurvedOptions options)
+    {
+        var sectors = new List<StairBuilderSectorPlan>();
+        if (selectedLinedefs.Count <= 1) return sectors;
+
+        for (int l1 = 0; l1 < selectedLinedefs.Count - 1; l1++)
+        {
+            int l2 = l1 + 1;
+            double distance = 128;
+            bool fixedCurve = true;
+
+            Linedef first = selectedLinedefs[l1];
+            Linedef second = selectedLinedefs[l2];
+
+            Vector2D s1 = options.Flipping == 1 ? first.End.Position : first.Start.Position;
+            Vector2D e1 = options.Flipping == 1 ? first.Start.Position : first.End.Position;
+            Vector2D s2 = options.Flipping == 2 ? second.End.Position : second.Start.Position;
+            Vector2D e2 = options.Flipping == 2 ? second.Start.Position : second.End.Position;
+
+            Line2D innerLine;
+            Line2D outerLine;
+            bool clockwise;
+            if (Vector2D.Distance(s1, s2) < Vector2D.Distance(e1, e2))
+            {
+                clockwise = true;
+                innerLine = new Line2D(s2, s1);
+                outerLine = new Line2D(e1, e2);
+            }
+            else
+            {
+                clockwise = false;
+                innerLine = new Line2D(e1, e2);
+                outerLine = new Line2D(s2, s1);
+            }
+
+            double innerAngle;
+            double outerAngle;
+            if (first.Angle == second.Angle && options.Flipping != 1 && options.Flipping != 2)
+            {
+                innerAngle = 1;
+                outerAngle = 1;
+                distance = 0;
+                fixedCurve = false;
+            }
+            else
+            {
+                if (clockwise)
+                {
+                    innerAngle = outerAngle = first.Angle - second.Angle;
+                    if (innerAngle < 0.0) innerAngle += Angle2D.PI2;
+                    if (outerAngle < 0.0) outerAngle += Angle2D.PI2;
+                }
+                else
+                {
+                    innerAngle = outerAngle = second.Angle - first.Angle;
+                    if (innerAngle < 0.0) innerAngle += Angle2D.PI2;
+                    if (outerAngle < 0.0) outerAngle += Angle2D.PI2;
+                }
+
+                if (options.Flipping != 0)
+                {
+                    if (first.Angle == second.Angle)
+                    {
+                        if (options.Flipping == 1)
+                        {
+                            innerAngle = Math.Abs(innerAngle - Angle2D.PI);
+                            outerAngle = Math.Abs(outerAngle - Angle2D.PI);
+                        }
+                        else if (options.Flipping == 2)
+                        {
+                            innerAngle -= Angle2D.PI;
+                            outerAngle -= Angle2D.PI;
+                        }
+                    }
+                    else
+                    {
+                        innerAngle = Math.Abs(innerAngle - Angle2D.PI2);
+                        outerAngle = Math.Abs(outerAngle - Angle2D.PI2);
+                    }
+                }
+            }
+
+            int innerVertexMultiplier = options.InnerVertexMultiplier;
+            int outerVertexMultiplier = options.OuterVertexMultiplier;
+            var innerVertices = GenerateCurve(innerLine, options.NumberOfSectors * innerVertexMultiplier - 1, innerAngle, false, distance, fixedCurve);
+            innerVertices.Insert(0, innerLine.v1);
+            innerVertices.Add(innerLine.v2);
+
+            var outerVertices = GenerateCurve(outerLine, options.NumberOfSectors * outerVertexMultiplier - 1, outerAngle, true, distance, fixedCurve);
+            outerVertices.Insert(0, outerLine.v1);
+            outerVertices.Add(outerLine.v2);
+
+            if (!clockwise)
+            {
+                (innerVertices, outerVertices) = (outerVertices, innerVertices);
+                (innerVertexMultiplier, outerVertexMultiplier) = (outerVertexMultiplier, innerVertexMultiplier);
+            }
+
+            for (int i = 0; i < options.NumberOfSectors; i++)
+            {
+                var sector = new List<Vector2D>();
+
+                for (int k = 0; k <= outerVertexMultiplier; k++)
+                    sector.Add(outerVertices[i * outerVertexMultiplier + k]);
+
+                for (int k = 0; k <= innerVertexMultiplier; k++)
+                    sector.Add(innerVertices[(options.NumberOfSectors - 1 - i) * innerVertexMultiplier + k]);
+
+                sector.Add(outerVertices[i * outerVertexMultiplier]);
+                sectors.Add(new StairBuilderSectorPlan(sector));
+            }
+        }
+
+        return sectors;
+    }
+
     public static IReadOnlyList<Sector> CreateSectorsFromPlans(
         MapSet map,
         IReadOnlyList<StairBuilderSectorPlan> plans,
@@ -172,6 +290,31 @@ public static class StairBuilder
             }
         }
     }
+
+    private static List<Vector2D> GenerateCurve(Line2D line, int vertices, double angle, bool backwards, double distance, bool fixedCurve)
+    {
+        var points = new List<Vector2D>(Math.Max(vertices, 0));
+        double chord = line.GetLength();
+        double theta = angle;
+        double d = (chord / Math.Tan(theta / 2)) / 2;
+        double radius = d / Math.Cos(theta / 2);
+        double height = radius - d;
+        double yDeform = fixedCurve ? 1 : distance / height;
+        if (backwards) yDeform = -yDeform;
+
+        for (int v = 1; v <= vertices; v++)
+        {
+            double a = (Math.PI - theta) / 2 + v * (theta / (vertices + 1));
+            double x = Math.Cos(a) * radius;
+            double y = (Math.Sin(a) * radius - d) * yDeform;
+            Vector2D vertex = new Vector2D(x, y).GetRotated(line.GetAngle() + Angle2D.PIHALF);
+            vertex = vertex.GetTransformed(line.GetCoordinatesAt(0.5).x, line.GetCoordinatesAt(0.5).y, 1, 1);
+
+            points.Add(vertex);
+        }
+
+        return points;
+    }
 }
 
 public sealed record StairBuilderSectorPlan(IReadOnlyList<Vector2D> Vertices);
@@ -182,6 +325,14 @@ public sealed record StairBuilderStraightOptions
     public int SectorDepth { get; init; } = 32;
     public int Spacing { get; init; }
     public bool SideFront { get; init; } = true;
+}
+
+public sealed record StairBuilderCurvedOptions
+{
+    public int NumberOfSectors { get; init; } = 1;
+    public int OuterVertexMultiplier { get; init; } = 1;
+    public int InnerVertexMultiplier { get; init; } = 1;
+    public int Flipping { get; init; }
 }
 
 public sealed record StairBuilderPrefab
@@ -224,6 +375,15 @@ public sealed record StairBuilderPrefab
             SectorDepth = SectorDepth,
             Spacing = Spacing,
             SideFront = FrontSide,
+        };
+
+    public StairBuilderCurvedOptions ToCurvedOptions()
+        => new()
+        {
+            NumberOfSectors = NumberOfSectors,
+            OuterVertexMultiplier = OuterVertexMultiplier,
+            InnerVertexMultiplier = InnerVertexMultiplier,
+            Flipping = Flipping,
         };
 
     public StairBuilderOptions ToBuilderOptions(int floorBase = 0, int ceilingBase = 0)

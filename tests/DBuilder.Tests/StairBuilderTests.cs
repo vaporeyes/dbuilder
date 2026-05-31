@@ -320,6 +320,64 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void CurvedLinePlanRequiresAtLeastTwoSelectedLines()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanCurvedSectorsFromLines(
+            new[] { line },
+            new StairBuilderCurvedOptions { NumberOfSectors = 2 });
+
+        Assert.Empty(plan);
+    }
+
+    [Fact]
+    public void CurvedLinePlanBuildsClosedLoopsBetweenSelectedLines()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanCurvedSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderCurvedOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 1,
+                OuterVertexMultiplier = 1
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.Equal(5, plan[0].Vertices.Count);
+        Assert.Equal(plan[0].Vertices[0], plan[0].Vertices[^1]);
+        Assert.Equal(plan[1].Vertices[0], plan[1].Vertices[^1]);
+        Assert.Equal(new Vector2D(64, 0), plan[0].Vertices[0]);
+        Assert.Equal(new Vector2D(64, 64), plan[1].Vertices[1]);
+        Assert.All(plan.SelectMany(sector => sector.Vertices), vertex => Assert.True(vertex.IsFinite()));
+    }
+
+    [Fact]
+    public void CurvedLinePlanHonorsVertexMultipliers()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanCurvedSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderCurvedOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 2,
+                OuterVertexMultiplier = 3
+            });
+
+        Assert.Equal(2, plan.Count);
+        Assert.All(plan, sector => Assert.Equal(8, sector.Vertices.Count));
+    }
+
+    [Fact]
     public void PrefabSettingsDictionaryUsesUdbKeys()
     {
         var prefab = new StairBuilderPrefab
@@ -473,6 +531,25 @@ public class StairBuilderTests
         Assert.Equal(48, options.SectorDepth);
         Assert.Equal(12, options.Spacing);
         Assert.False(options.SideFront);
+    }
+
+    [Fact]
+    public void PrefabCreatesCurvedOptionsForLoadedFormState()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 4,
+            OuterVertexMultiplier = 3,
+            InnerVertexMultiplier = 2,
+            Flipping = 1
+        };
+
+        StairBuilderCurvedOptions options = prefab.ToCurvedOptions();
+
+        Assert.Equal(4, options.NumberOfSectors);
+        Assert.Equal(3, options.OuterVertexMultiplier);
+        Assert.Equal(2, options.InnerVertexMultiplier);
+        Assert.Equal(1, options.Flipping);
     }
 
     [Fact]
