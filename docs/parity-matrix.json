@@ -90,7 +90,7 @@
       "udbArea": "Source/Core/Resources",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
+      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, nested WAD folder-resource priority, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
     },
     {
       "udbArea": "Source/Core/Types",

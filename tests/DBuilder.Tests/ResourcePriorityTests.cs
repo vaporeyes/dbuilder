@@ -9,6 +9,37 @@ namespace DBuilder.Tests;
 
 public class ResourcePriorityTests
 {
+    private static byte[] DoomPatch(byte index)
+    {
+        using var ms = new MemoryStream();
+        using var w = new BinaryWriter(ms, Encoding.ASCII, leaveOpen: true);
+        w.Write((short)1);
+        w.Write((short)1);
+        w.Write((short)0);
+        w.Write((short)0);
+        w.Write((int)12);
+        w.Write((byte)0);
+        w.Write((byte)1);
+        w.Write((byte)0);
+        w.Write(index);
+        w.Write((byte)0);
+        w.Write((byte)0xFF);
+        return ms.ToArray();
+    }
+
+    private static byte[] BuildNestedWadBytes(params (string name, byte[] bytes)[] lumps)
+    {
+        string path = TestArtifacts.BuildPwadFile(lumps);
+        try
+        {
+            return File.ReadAllBytes(path);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     [Fact]
     public void LaterPk3OverridesEarlierTextureAndSprite()
     {
@@ -32,6 +63,57 @@ public class ResourcePriorityTests
         {
             File.Delete(lower);
             File.Delete(higher);
+        }
+    }
+
+    [Fact]
+    public void NestedWadSpriteOverridesFolderSpriteInsidePk3()
+    {
+        byte[] nested = BuildNestedWadBytes(
+            ("PLAYPAL", TestArtifacts.GrayscalePlaypal()),
+            ("S_START", []),
+            ("POSSA0", DoomPatch(70)),
+            ("S_END", []));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))),
+            ("resources/nested.wad", nested));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetSprite("POSSA0")!.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void NestedWadVoxelOverridesFolderVoxelInsidePk3()
+    {
+        byte[] nestedVoxel = { 9, 8, 7, 6 };
+        byte[] folderVoxel = { 1, 2, 3, 4 };
+        byte[] nested = BuildNestedWadBytes(
+            ("VX_START", []),
+            ("BAR1", nestedVoxel),
+            ("VX_END", []));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("voxels/BAR1.kvx", folderVoxel),
+            ("resources/nested.wad", nested));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(nestedVoxel, rm.GetVoxelBytes("BAR1"));
+        }
+        finally
+        {
+            File.Delete(pk3);
         }
     }
 

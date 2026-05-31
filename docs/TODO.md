@@ -321,6 +321,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port resource priority and override behavior completely.
   - [x] Let later GLDEFS resources override actor light associations.
   - [x] Let nested WAD flat and texture resources take priority over folder resources within a PK3 like UDB.
+  - [x] Let nested WAD sprite and voxel resources take priority over folder resources within a PK3 like UDB.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
   - [x] Resolve the active main `COLORMAP` through the resource stack.
@@ -347,6 +348,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve and prioritize WAD sprites from configured sprite ranges.
   - [x] Resolve and prioritize WAD voxel models from configured voxel ranges.
   - [x] Resolve WAD high-resolution replacements from configured hires ranges.
+  - [x] Let nested WAD sprites and voxels override folder entries like UDB.
   - [x] Let nested directory WAD high-resolution replacements override folder `hires/` entries like UDB.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.

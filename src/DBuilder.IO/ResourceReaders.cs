@@ -561,14 +561,14 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetSpriteBase(string name, DoomPalette? palette)
     {
-        var image = Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
-        if (image != null) return image;
-
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            image = nestedReaders[i].GetSpriteBase(name, palette);
-            if (image != null) return image;
+            var nestedImage = nestedReaders[i].GetSpriteBase(name, palette);
+            if (nestedImage != null) return nestedImage;
         }
+
+        var image = Decode(Find(name, "sprites", "graphics", "patches", ""), palette, preferFlat: false);
+        if (image != null) return image;
 
         return null;
     }
@@ -709,6 +709,12 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual byte[]? GetVoxelBytes(string name)
     {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedBytes = nestedReaders[i].GetVoxelBytes(name);
+            if (nestedBytes != null) return nestedBytes;
+        }
+
         string normalized = name.Replace('\\', '/');
         if (files.TryGetValue(normalized.TrimStart('/'), out var read)) return read();
 
@@ -718,12 +724,6 @@ internal abstract class FolderResourceReader : IResourceReader
             ? Find(lookup, "voxels", "")
             : Find(lookup, folder);
         if (bytes != null) return bytes;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            bytes = nestedReaders[i].GetVoxelBytes(name);
-            if (bytes != null) return bytes;
-        }
 
         return null;
     }
