@@ -34,6 +34,7 @@ public class MapControl : OpenGlControlBase, ICustomHitTest
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
     public PasteOptions PasteOptions { get; set; } = new();
     public event Action? ActionStateChanged;
+    private readonly PastePropertiesClipboard _pastePropertiesClipboard = new();
 
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
     // reach it by default. Claim only points actually inside the control's bounds - returning true for
@@ -417,6 +418,86 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     public void SetCurrentEditMode(EditMode mode) => SetEditMode(mode);
+
+    public bool HasCopiedPropertiesForCurrentMode => CurrentPropertyKind() switch
+    {
+        PastePropertiesElementKind.Vertex => _pastePropertiesClipboard.CopiedState.Vertex,
+        PastePropertiesElementKind.Linedef => _pastePropertiesClipboard.CopiedState.Linedef,
+        PastePropertiesElementKind.Sector => _pastePropertiesClipboard.CopiedState.Sector,
+        PastePropertiesElementKind.Thing => _pastePropertiesClipboard.CopiedState.Thing,
+        _ => false,
+    };
+
+    public string CopyPropertiesSelection()
+    {
+        if (_map == null) return "No map loaded.";
+
+        PastePropertiesCopyResult result = _pastePropertiesClipboard.CopySelected(_map, CurrentPropertyKind());
+        Picked?.Invoke(result.StatusMessage);
+        ActionStateChanged?.Invoke();
+        return result.StatusMessage;
+    }
+
+    public string PastePropertiesSelection()
+    {
+        if (_map == null) return "No map loaded.";
+
+        PastePropertiesElementKind kind = CurrentPropertyKind();
+        if (!HasCopiedPropertiesForCurrentMode)
+        {
+            string missing = $"Copy {PropertyKindText(kind)} properties first!";
+            Picked?.Invoke(missing);
+            return missing;
+        }
+        if (CurrentPropertySelectionCount() == 0)
+        {
+            const string required = "This action requires highlight or selection!";
+            Picked?.Invoke(required);
+            return required;
+        }
+
+        EditBegun?.Invoke($"Paste {PropertyKindText(kind)} properties");
+        PastePropertiesApplyResult result = _pastePropertiesClipboard.ApplySelected(
+            _map,
+            kind,
+            supportsUdmf: _mapFormat == MapFormat.Udmf);
+        if (result.Applied)
+        {
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+
+        Picked?.Invoke(result.StatusMessage);
+        return result.StatusMessage;
+    }
+
+    private PastePropertiesElementKind CurrentPropertyKind() => _editMode switch
+    {
+        EditMode.Vertices => PastePropertiesElementKind.Vertex,
+        EditMode.Linedefs => PastePropertiesElementKind.Linedef,
+        EditMode.Sectors => PastePropertiesElementKind.Sector,
+        EditMode.Things => PastePropertiesElementKind.Thing,
+        _ => PastePropertiesElementKind.Linedef,
+    };
+
+    private int CurrentPropertySelectionCount() => _map == null ? 0 : _editMode switch
+    {
+        EditMode.Vertices => _map.SelectedVerticesCount,
+        EditMode.Linedefs => _map.SelectedLinedefsCount,
+        EditMode.Sectors => _map.SelectedSectorsCount,
+        EditMode.Things => _map.SelectedThingsCount,
+        _ => 0,
+    };
+
+    private static string PropertyKindText(PastePropertiesElementKind kind) => kind switch
+    {
+        PastePropertiesElementKind.Vertex => "vertex",
+        PastePropertiesElementKind.Linedef => "linedef",
+        PastePropertiesElementKind.Sidedef => "sidedef",
+        PastePropertiesElementKind.Sector => "sector",
+        PastePropertiesElementKind.Thing => "thing",
+        _ => "element",
+    };
 
     public bool Toggle3DMode()
     {

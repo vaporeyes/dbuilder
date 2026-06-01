@@ -1042,6 +1042,8 @@ public partial class MainWindow : Window
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
+            case "window.copy-properties": OnCopyProperties(this, new RoutedEventArgs()); return true;
+            case "window.paste-properties": OnPasteProperties(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
@@ -1113,6 +1115,10 @@ public partial class MainWindow : Window
     private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
 
     private void OnPaste(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PasteClipboard());
+
+    private void OnCopyProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopyPropertiesSelection());
+
+    private void OnPasteProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PastePropertiesSelection());
 
     private void OnDuplicate(object? sender, RoutedEventArgs e)
     {
@@ -4400,6 +4406,7 @@ public partial class MainWindow : Window
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
+        bool canPasteProperties = hasMap && hasCurrentModeSelection && MapView.HasCopiedPropertiesForCurrentMode;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
@@ -4456,6 +4463,8 @@ public partial class MainWindow : Window
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
+        SetEnabled(hasCurrentModeSelection, CopyPropertiesMenuItem);
+        SetEnabled(canPasteProperties, PastePropertiesMenuItem);
         SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
         SetEnabled(hasTransformableSelection,
             TransformSelectionMenuItem,

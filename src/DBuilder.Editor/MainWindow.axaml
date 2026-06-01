@@ -79,6 +79,9 @@
                 <MenuItem Header="_Paste" x:Name="PasteMenuItem" Click="OnPaste" />
                 <MenuItem Header="D_uplicate" x:Name="DuplicateMenuItem" Click="OnDuplicate" />
                 <Separator />
+                <MenuItem Header="Copy _Properties" x:Name="CopyPropertiesMenuItem" Click="OnCopyProperties" />
+                <MenuItem Header="Paste Properties" x:Name="PastePropertiesMenuItem" Click="OnPasteProperties" />
+                <Separator />
                 <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
                 <MenuItem Header="Select _all" x:Name="SelectAllMenuItem" Click="OnSelectAll" />
                 <MenuItem Header="_Invert selection" x:Name="InvertSelectionMenuItem" Click="OnInvertSelection" />
