@@ -1094,6 +1094,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB stray and overlapping vertex result text.
   - [x] Match UDB sector empty, unclosed, and invalid result text.
   - [x] Match UDB overlapping linedef result text.
+  - [x] Match UDB misaligned texture result text.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.

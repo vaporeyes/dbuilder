@@ -1196,7 +1196,7 @@ public static class MapAnalysis
             int sourceIndex = lineIndexes.TryGetValue(side.Line, out int si) ? si : -1;
             int targetIndex = lineIndexes.TryGetValue(target.Line, out int ti) ? ti : -1;
             issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture,
-                $"Texture \"{texture}\" is not aligned on linedefs {sourceIndex} ({(side.IsFront ? "front" : "back")}) and {targetIndex} ({(target.IsFront ? "front" : "back")}).")
+                $"Texture \"{texture}\" is not aligned on linedefs {sourceIndex} ({(side.IsFront ? "front" : "back")}) and {targetIndex} ({(target.IsFront ? "front" : "back")})")
                 { Target = side.Line, RelatedTargets = new[] { target.Line }, Focus = LinedefMidpoint(side.Line) });
         }
     }

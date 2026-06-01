@@ -1978,7 +1978,7 @@ public class MapAnalysisTests
 
         var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MisalignedTexture);
         Assert.Same(lines[0], issue.Target);
-        Assert.Contains("Texture \"WALL\" is not aligned", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Texture \"WALL\" is not aligned on linedefs 0 (front) and 1 (front)", issue.Message);
     }
 
     [Fact]
