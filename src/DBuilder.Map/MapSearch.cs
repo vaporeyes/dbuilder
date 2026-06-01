@@ -118,7 +118,7 @@ public static class MapSearch
             case FindCategory.ThingActionArguments:
                 if (TryParseActionQuery(value, out var thingActionQuery))
                     foreach (var t in map.Things)
-                        if (ActionQueryMatches(t.Action, t.Args, thingActionQuery)) { t.Selected = true; count++; focus ??= t.Position; }
+                        if (ActionQueryMatches(t, t.Action, t.Args, thingActionQuery)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingFlags:
                 if (TryParseFlagQuery(value, out var thingFlags))
@@ -138,7 +138,7 @@ public static class MapSearch
             case FindCategory.LinedefActionArguments:
                 if (TryParseActionQuery(value, out var lineActionQuery))
                     foreach (var l in map.Linedefs)
-                        if (ActionQueryMatches(l.Action, l.Args, lineActionQuery)) { l.Selected = true; count++; focus ??= Mid(l); }
+                        if (ActionQueryMatches(l, l.Action, l.Args, lineActionQuery)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.VertexIndex:
                 if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
@@ -588,7 +588,7 @@ public static class MapSearch
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
 
-    private readonly record struct ActionArgQuery(int Action, int?[] Args);
+    private readonly record struct ActionArgQuery(int Action, string? Arg0String, int?[] Args);
 
     private static bool TryParseActionQuery(string input, out ActionArgQuery query)
     {
@@ -598,18 +598,26 @@ public static class MapSearch
             return false;
 
         var args = new int?[5];
-        for (int i = 1; i < parts.Length && i <= args.Length; i++)
+        string? arg0String = null;
+        int start = 1;
+        if (parts.Length > 1 && parts[1] != "*" && !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+        {
+            arg0String = parts[1].Replace("\"", "", StringComparison.Ordinal);
+            start = 2;
+        }
+
+        for (int i = start; i < parts.Length && i - 1 < args.Length; i++)
         {
             if (parts[i] == "*") continue;
             if (!int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int arg)) return false;
             args[i - 1] = arg;
         }
 
-        query = new ActionArgQuery(action, args);
+        query = new ActionArgQuery(action, arg0String, args);
         return true;
     }
 
-    private static bool ActionQueryMatches(int action, int[] args, ActionArgQuery query)
+    private static bool ActionQueryMatches(IFielded element, int action, int[] args, ActionArgQuery query)
     {
         if (query.Action == -1)
         {
@@ -619,6 +627,10 @@ public static class MapSearch
         {
             return false;
         }
+
+        if (query.Arg0String != null &&
+            !string.Equals(element.GetStringField("arg0str"), query.Arg0String, StringComparison.OrdinalIgnoreCase))
+            return false;
 
         for (int i = 0; i < query.Args.Length && i < args.Length; i++)
             if (query.Args[i] is int expected && args[i] != expected) return false;
@@ -638,8 +650,9 @@ public static class MapSearch
         {
             foreach (var line in map.Linedefs)
             {
-                if (!ActionQueryMatches(line.Action, line.Args, findQuery)) continue;
+                if (!ActionQueryMatches(line, line.Action, line.Args, findQuery)) continue;
                 ApplyActionReplacement(line.Args, replaceQuery);
+                if (replaceQuery.Arg0String != null) line.SetStringField("arg0str", replaceQuery.Arg0String);
                 line.Action = replaceQuery.Action;
                 changed++;
             }
@@ -648,8 +661,9 @@ public static class MapSearch
         {
             foreach (var thing in map.Things)
             {
-                if (!ActionQueryMatches(thing.Action, thing.Args, findQuery)) continue;
+                if (!ActionQueryMatches(thing, thing.Action, thing.Args, findQuery)) continue;
                 ApplyActionReplacement(thing.Args, replaceQuery);
+                if (replaceQuery.Arg0String != null) thing.SetStringField("arg0str", replaceQuery.Arg0String);
                 thing.Action = replaceQuery.Action;
                 changed++;
             }
