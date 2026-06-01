@@ -3483,6 +3483,8 @@ public partial class MainWindow : Window
         Func<Thing, IReadOnlyList<string>>? thingUnusedWarnings = null;
         Func<int, string?>? linedefActionId = null, thingClassName = null;
         Func<int, SidedefPart, bool>? ignoreUnknownTexture = null;
+        Func<int, ActionTextureCheckKind>? actionTextureChecks = null;
+        Func<int, int[], IEnumerable<int>>? actionTextureSectorTags = null;
         IReadOnlySet<string>? triggerActivationFlags = null;
         if (_config != null)
         {
@@ -3515,6 +3517,33 @@ public partial class MainWindow : Window
                 };
             };
             actionRequiresUpperTexture = a => _config.GetLinedefAction(a)?.ErrorChecker.RequiresUpperTexture == true;
+            actionTextureChecks = a =>
+            {
+                var exemptions = _config.GetLinedefAction(a)?.ErrorChecker;
+                if (exemptions == null) return ActionTextureCheckKind.None;
+
+                var checks = ActionTextureCheckKind.None;
+                if (exemptions.FloorLowerToLowest)
+                    checks |= ActionTextureCheckKind.FloorLowerToLowest;
+                if (exemptions.FloorRaiseToNextHigher)
+                    checks |= ActionTextureCheckKind.FloorRaiseToNextHigher;
+                if (exemptions.FloorRaiseToHighest)
+                    checks |= ActionTextureCheckKind.FloorRaiseToHighest;
+                return checks;
+            };
+            if (_mapFormat is MapFormat.Hexen or MapFormat.Udmf)
+            {
+                actionTextureSectorTags = (action, args) =>
+                {
+                    var actionArgs = _config.GetLinedefAction(action)?.Args;
+                    if (actionArgs is not { Length: > 0 } || args.Length == 0)
+                        return Array.Empty<int>();
+
+                    return (UniversalType)actionArgs[0].Type == UniversalType.SectorTag && args[0] > 0
+                        ? new[] { args[0] }
+                        : Array.Empty<int>();
+                };
+            }
             actionRequiresActivation = a => _config.GetLinedefAction(a)?.RequiresActivation == true;
             isSkyFlat = n => string.Equals(n, _config.SkyFlatName, StringComparison.OrdinalIgnoreCase);
             triggerActivationFlags = _config.LinedefActivations
@@ -3543,6 +3572,9 @@ public partial class MainWindow : Window
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             IgnoreUnknownTexture = ignoreUnknownTexture,
             ActionRequiresUpperTexture = actionRequiresUpperTexture,
+            ActionTextureChecks = actionTextureChecks,
+            ActionTextureSectorTags = actionTextureSectorTags,
+            CheckThingActionTextures = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,

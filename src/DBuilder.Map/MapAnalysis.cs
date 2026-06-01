@@ -11,6 +11,15 @@ namespace DBuilder.Map;
 
 public enum MapIssueSeverity { Warning, Error }
 
+[Flags]
+public enum ActionTextureCheckKind
+{
+    None = 0,
+    FloorLowerToLowest = 1,
+    FloorRaiseToNextHigher = 2,
+    FloorRaiseToHighest = 4,
+}
+
 public enum MapIssueKind
 {
     ZeroLengthLinedef,
@@ -133,6 +142,12 @@ public sealed class MapCheckContext
     public Func<Sector, bool, string?>? BrowseFlat { get; init; }
     /// <summary>Returns true when a linedef action forces an upper texture even without a height gap.</summary>
     public Func<int, bool>? ActionRequiresUpperTexture { get; init; }
+    /// <summary>Returns UDB action-texture checks enabled for a linedef or thing action.</summary>
+    public Func<int, ActionTextureCheckKind>? ActionTextureChecks { get; init; }
+    /// <summary>Returns sector tags from action arguments for Hexen/UDMF action-texture checks.</summary>
+    public Func<int, int[], IEnumerable<int>>? ActionTextureSectorTags { get; init; }
+    /// <summary>Enable Hexen/UDMF thing action-texture checks.</summary>
+    public bool CheckThingActionTextures { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
     public Func<int, bool>? ActionRequiresActivation { get; init; }
     /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
@@ -244,6 +259,8 @@ public static class MapAnalysis
     // one-sided line needs a middle texture. Flags required-but-absent ("-") slots and unresolved names.
     private static void CheckTextures(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
+        var actionTextures = ActionTextureTags.From(map, ctx);
+
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var l = map.Linedefs[i];
@@ -271,7 +288,9 @@ public static class MapAnalysis
                         IsBlank(side.HighTexture))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,
                             $"Linedef {index} ({which}) needs an upper texture.", mid));
-                    if (other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) && IsBlank(side.LowTexture))
+                    if ((other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) ||
+                         actionTextures.RequiresLowerTexture(side)) &&
+                        IsBlank(side.LowTexture))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx,
                             $"Linedef {index} ({which}) needs a lower texture.", mid));
                 }
@@ -294,7 +313,7 @@ public static class MapAnalysis
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
                     $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.", mid));
 
-            if (!IsBlank(side.LowTexture) && !side.LowRequired())
+            if (!IsBlank(side.LowTexture) && !side.LowRequired() && !actionTextures.RequiresLowerTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Lower,
                     $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.", mid));
         }
@@ -314,6 +333,126 @@ public static class MapAnalysis
                     issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx,
                         $"Sector {i} {slot} flat \"{name}\" is not found."));
             }
+        }
+    }
+
+    private sealed class ActionTextureTags
+    {
+        private readonly HashSet<int> floorLowerToLowest = new();
+        private readonly HashSet<int> floorRaiseToNextHigher = new();
+        private readonly HashSet<int> floorRaiseToHighest = new();
+
+        private ActionTextureTags() { }
+
+        public static ActionTextureTags From(MapSet map, MapCheckContext ctx)
+        {
+            var tags = new ActionTextureTags();
+            if (ctx.ActionTextureChecks == null) return tags;
+
+            foreach (var line in map.Linedefs)
+            {
+                var checks = ctx.ActionTextureChecks(line.Action);
+                if (checks == ActionTextureCheckKind.None) continue;
+                foreach (int tag in TagsForLine(line, ctx))
+                    tags.Add(checks, tag);
+            }
+
+            if (ctx.CheckThingActionTextures)
+            {
+                foreach (var thing in map.Things)
+                {
+                    var checks = ctx.ActionTextureChecks(thing.Action);
+                    if (checks == ActionTextureCheckKind.None) continue;
+                    foreach (int tag in TagsFromActionArguments(thing.Action, thing.Args, ctx))
+                        tags.Add(checks, tag);
+                }
+            }
+
+            return tags;
+        }
+
+        public bool RequiresLowerTexture(Sidedef side)
+        {
+            if (side.Sector == null || side.Other?.Sector == null || side.Other.Sector == side.Sector)
+                return false;
+
+            foreach (int tag in MapElementTags.PositiveTags(side.Sector))
+                if (RequiresTexture(side, tag, floorLowerToLowest) && FloorLowerToLowestNeedsLower(side))
+                    return true;
+
+            foreach (int tag in MapElementTags.PositiveTags(side.Other.Sector))
+            {
+                if (RequiresTexture(side.Other, tag, floorRaiseToNextHigher) && FloorRaiseToNextHigherNeedsLower(side.Other))
+                    return true;
+                if (RequiresTexture(side.Other, tag, floorRaiseToHighest) && FloorRaiseToHighestNeedsLower(side.Other))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void Add(ActionTextureCheckKind checks, int tag)
+        {
+            if (tag <= 0) return;
+            if ((checks & ActionTextureCheckKind.FloorLowerToLowest) != 0)
+                floorLowerToLowest.Add(tag);
+            if ((checks & ActionTextureCheckKind.FloorRaiseToNextHigher) != 0)
+                floorRaiseToNextHigher.Add(tag);
+            if ((checks & ActionTextureCheckKind.FloorRaiseToHighest) != 0)
+                floorRaiseToHighest.Add(tag);
+        }
+
+        private static IEnumerable<int> TagsForLine(Linedef line, MapCheckContext ctx)
+            => ctx.ActionTextureSectorTags == null
+                ? MapElementTags.PositiveTags(line)
+                : TagsFromActionArguments(line.Action, line.Args, ctx);
+
+        private static IEnumerable<int> TagsFromActionArguments(int action, int[] args, MapCheckContext ctx)
+            => ctx.ActionTextureSectorTags?.Invoke(action, args).Where(tag => tag > 0) ?? Array.Empty<int>();
+
+        private static bool RequiresTexture(Sidedef side, int tag, HashSet<int> actionTags)
+            => actionTags.Contains(tag)
+                && side.Other?.Sector != null
+                && side.Sector != null
+                && side.Other.Sector != side.Sector
+                && !MapElementTags.HasTag(side.Other.Sector, tag);
+
+        private static bool FloorLowerToLowestNeedsLower(Sidedef side)
+        {
+            if (side.Sector == null || side.Other?.Sector == null) return false;
+
+            int lowest = side.Sector.FloorHeight;
+            foreach (var s in side.Sector.Sidedefs)
+                if (s.Other?.Sector != null && s.Other.Sector != side.Sector && s.Other.Sector.FloorHeight < lowest)
+                    lowest = s.Other.Sector.FloorHeight;
+
+            return side.Other.Sector.FloorHeight > lowest;
+        }
+
+        private static bool FloorRaiseToNextHigherNeedsLower(Sidedef side)
+        {
+            if (side.Sector == null || side.Other?.Sector == null) return false;
+
+            int? next = null;
+            foreach (var s in side.Sector.Sidedefs)
+                if (s.Other?.Sector != null
+                    && s.Other.Sector.FloorHeight > side.Sector.FloorHeight
+                    && (!next.HasValue || s.Other.Sector.FloorHeight < next.Value))
+                    next = s.Other.Sector.FloorHeight;
+
+            return next.HasValue && side.Other.Sector.FloorHeight < next.Value;
+        }
+
+        private static bool FloorRaiseToHighestNeedsLower(Sidedef side)
+        {
+            if (side.Sector == null || side.Other?.Sector == null) return false;
+
+            int highest = side.Sector.FloorHeight;
+            foreach (var s in side.Sector.Sidedefs)
+                if (s.Other?.Sector != null && s.Other.Sector != side.Sector && s.Other.Sector.FloorHeight > highest)
+                    highest = s.Other.Sector.FloorHeight;
+
+            return side.Other.Sector.FloorHeight < highest;
         }
     }
 

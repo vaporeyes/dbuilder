@@ -764,6 +764,118 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void FloorLowerToLowestActionFlagsMissingLowerWithoutCurrentHeightGap()
+    {
+        var map = new MapSet();
+        var tagged = map.AddSector();
+        tagged.FloorHeight = 64;
+        tagged.Tag = 7;
+        var sameHeight = map.AddSector();
+        sameHeight.FloorHeight = 64;
+        var lowerNeighbor = map.AddSector();
+        lowerNeighbor.FloorHeight = 0;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var c = map.AddVertex(new Vector2D(0, 64));
+        var d = map.AddVertex(new Vector2D(128, 64));
+        var checkedLine = map.AddLinedef(a, b);
+        var lowLine = map.AddLinedef(c, d);
+        map.AddSidedef(checkedLine, true, tagged);
+        map.AddSidedef(checkedLine, false, sameHeight);
+        map.AddSidedef(lowLine, true, tagged);
+        map.AddSidedef(lowLine, false, lowerNeighbor);
+        var actionLine = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        actionLine.Action = 37;
+        actionLine.Tag = 7;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            ActionTextureChecks = action => action == 37
+                ? ActionTextureCheckKind.FloorLowerToLowest
+                : ActionTextureCheckKind.None,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => ReferenceEquals(i.Target, checkedLine) && i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void FloorRaiseActionLowerTextureIsNotReportedUnused()
+    {
+        var map = new MapSet();
+        var tagged = map.AddSector();
+        tagged.FloorHeight = 0;
+        tagged.Tag = 7;
+        var sameHeight = map.AddSector();
+        sameHeight.FloorHeight = 0;
+        var higherNeighbor = map.AddSector();
+        higherNeighbor.FloorHeight = 64;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var c = map.AddVertex(new Vector2D(0, 64));
+        var d = map.AddVertex(new Vector2D(128, 64));
+        var checkedLine = map.AddLinedef(a, b);
+        var highLine = map.AddLinedef(c, d);
+        map.AddSidedef(checkedLine, true, sameHeight).LowTexture = "STEP1";
+        map.AddSidedef(checkedLine, false, tagged);
+        map.AddSidedef(highLine, true, tagged);
+        map.AddSidedef(highLine, false, higherNeighbor);
+        var actionLine = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        actionLine.Action = 22;
+        actionLine.Tag = 7;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            ActionTextureChecks = action => action == 22
+                ? ActionTextureCheckKind.FloorRaiseToNextHigher
+                : ActionTextureCheckKind.None,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx),
+            i => i.Kind == MapIssueKind.UnusedTexture && ReferenceEquals(i.Target, checkedLine));
+    }
+
+    [Fact]
+    public void ThingFloorRaiseActionUsesSectorTagArgumentForMissingLowerTexture()
+    {
+        var map = new MapSet();
+        var tagged = map.AddSector();
+        tagged.FloorHeight = 0;
+        tagged.Tag = 7;
+        var sameHeight = map.AddSector();
+        sameHeight.FloorHeight = 0;
+        var higherNeighbor = map.AddSector();
+        higherNeighbor.FloorHeight = 64;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var c = map.AddVertex(new Vector2D(0, 64));
+        var d = map.AddVertex(new Vector2D(128, 64));
+        var checkedLine = map.AddLinedef(a, b);
+        var highLine = map.AddLinedef(c, d);
+        map.AddSidedef(checkedLine, true, sameHeight);
+        map.AddSidedef(checkedLine, false, tagged);
+        map.AddSidedef(highLine, true, tagged);
+        map.AddSidedef(highLine, false, higherNeighbor);
+        var thing = map.AddThing(new Vector2D(64, 32), 1);
+        thing.Action = 80;
+        thing.Args[0] = 7;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            ActionTextureChecks = action => action == 80
+                ? ActionTextureCheckKind.FloorRaiseToHighest
+                : ActionTextureCheckKind.None,
+            ActionTextureSectorTags = (_, args) => new[] { args[0] },
+            CheckThingActionTextures = true,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => ReferenceEquals(i.Target, checkedLine) && i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnknownTextureFlagged()
     {
         var map = Square(true);

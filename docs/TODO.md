@@ -1051,6 +1051,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add map-check window support for selecting all visible results of the selected type.
   - [x] Add map-check window support for copying selected result descriptions to the clipboard.
 - [ ] Port all map error checks.
+  - [x] Add UDB-style action-driven lower texture checks for floor lower/raise specials.
 - [ ] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
   - [x] Add UDB-style fix actions for missing-front and sidedness flag mismatch linedefs.
