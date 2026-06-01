@@ -697,6 +697,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sidedef unused texture cleanup behavior.
   - [x] Add UDB-style auto-clear sidedef textures command and menu toggle.
   - [x] Add menu commands for selected wall texture auto-alignment.
+  - [x] Propagate selected wall texture auto-alignment across connected matching walls in both directions.
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.
 - [ ] Port slope editing behavior fully.

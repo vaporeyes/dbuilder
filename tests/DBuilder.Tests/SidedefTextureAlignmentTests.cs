@@ -1,5 +1,5 @@
-// ABOUTME: Tests for SidedefTextureAlignment.AutoAlignX - propagating X offsets along connected walls.
-// ABOUTME: Covers a straight run, modulo wrap, non-zero anchor, texture-break stops, and a closed loop guard.
+// ABOUTME: Tests for SidedefTextureAlignment - propagating X and Y offsets along connected walls.
+// ABOUTME: Covers straight runs, bidirectional branches, modulo wrap, texture-break stops, and closed loop guards.
 
 using System.Collections.Generic;
 using DBuilder.Geometry;
@@ -47,6 +47,44 @@ public class SidedefTextureAlignmentTests
         SidedefTextureAlignment.AutoAlignX(lines[0].Front!, 128);
         Assert.Equal(10, lines[0].Front!.OffsetX);
         Assert.Equal(74, lines[1].Front!.OffsetX); // 10 + 64
+    }
+
+    [Fact]
+    public void AlignsBothDirectionsFromMiddleAnchor()
+    {
+        var (_, lines) = Chain("WALL", 0, 64, 160, 224);
+        lines[1].Front!.OffsetX = 20;
+
+        int n = SidedefTextureAlignment.AutoAlignX(lines[1].Front!, 128);
+
+        Assert.Equal(2, n);
+        Assert.Equal(84, lines[0].Front!.OffsetX);  // 20 - 64 -> wrapped
+        Assert.Equal(20, lines[1].Front!.OffsetX);  // anchor unchanged
+        Assert.Equal(116, lines[2].Front!.OffsetX); // 20 + 96
+    }
+
+    [Fact]
+    public void AlignsBranchesAtConnectedVertex()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var junction = map.AddVertex(new Vector2D(64, 0));
+        var north = map.AddVertex(new Vector2D(64, 64));
+        var east = map.AddVertex(new Vector2D(128, 0));
+        var anchor = map.AddLinedef(start, junction);
+        var branchA = map.AddLinedef(junction, north);
+        var branchB = map.AddLinedef(junction, east);
+        map.AddSidedef(anchor, true, sector).MidTexture = "WALL";
+        map.AddSidedef(branchA, true, sector).MidTexture = "WALL";
+        map.AddSidedef(branchB, true, sector).MidTexture = "WALL";
+        map.BuildIndexes();
+
+        int n = SidedefTextureAlignment.AutoAlignX(anchor.Front!, 128);
+
+        Assert.Equal(2, n);
+        Assert.Equal(64, branchA.Front!.OffsetX);
+        Assert.Equal(64, branchB.Front!.OffsetX);
     }
 
     [Fact]
@@ -129,5 +167,19 @@ public class SidedefTextureAlignmentTests
         SidedefTextureAlignment.AutoAlignY(lines[0].Front!, 128);
         Assert.Equal(0, lines[1].Front!.OffsetY);
         Assert.Equal(0, lines[2].Front!.OffsetY);
+    }
+
+    [Fact]
+    public void AlignsYBothDirectionsFromMiddleAnchor()
+    {
+        var (_, lines) = HeightChain("WALL", 100, 80, 120);
+        lines[1].Front!.OffsetY = 5;
+
+        int n = SidedefTextureAlignment.AutoAlignY(lines[1].Front!, 128);
+
+        Assert.Equal(2, n);
+        Assert.Equal(113, lines[0].Front!.OffsetY); // 5 + 80 - 100 -> wrapped
+        Assert.Equal(5, lines[1].Front!.OffsetY);   // anchor unchanged
+        Assert.Equal(93, lines[2].Front!.OffsetY);  // 5 + 80 - 120 -> wrapped
     }
 }

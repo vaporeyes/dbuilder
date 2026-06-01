@@ -1,5 +1,5 @@
-// ABOUTME: Horizontal texture auto-alignment - propagates a sidedef's X offset along a connected run of walls.
-// ABOUTME: A focused port of UDB's auto-align; Doom's X offset is per-sidedef, so this aligns the whole chain seamlessly.
+// ABOUTME: Texture auto-alignment - propagates sidedef offsets across connected matching walls.
+// ABOUTME: A focused port of UDB's auto-align; Doom offsets are per-sidedef, so this aligns wall sets seamlessly.
 
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,9 @@ namespace DBuilder.Map;
 public static class SidedefTextureAlignment
 {
     /// <summary>
-    /// Walks the forward chain of connected sidedefs sharing <paramref name="start"/>'s primary texture and sets
-    /// each one's X offset so the texture continues seamlessly from the previous wall. The start sidedef's offset
-    /// is the anchor and is left unchanged. Returns the number of downstream sidedefs aligned.
+    /// Walks connected sidedefs sharing <paramref name="start"/>'s primary texture and sets each one's X offset
+    /// so the texture continues seamlessly from the anchor wall. The start sidedef's offset is left unchanged.
+    /// Returns the number of other sidedefs aligned.
     /// Requires MapSet.BuildIndexes() to have populated Vertex.Linedefs.
     /// </summary>
     public static int AutoAlignX(Sidedef start, int textureWidth)
@@ -20,50 +20,48 @@ public static class SidedefTextureAlignment
         if (textureWidth <= 0) textureWidth = 1; // guard against modulo/division by zero
         string tex = PrimaryTexture(start);
 
-        int aligned = 0;
+        var pending = new Queue<Sidedef>();
         var visited = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance) { start };
-        Sidedef prev = start;
-        int offset = start.OffsetX;
-        Sidedef? next = NextSidedef(start, tex);
+        pending.Enqueue(start);
 
-        while (next != null && visited.Add(next))
+        while (pending.Count > 0)
         {
-            offset += (int)Math.Round(WallLength(prev));
-            next.OffsetX = Mod(offset, textureWidth);
-            aligned++;
-            prev = next;
-            next = NextSidedef(next, tex);
+            Sidedef current = pending.Dequeue();
+            AddNeighbors(current, tex, visited, pending, candidate =>
+            {
+                candidate.OffsetX = Mod(OffsetAtSharedVertex(current, candidate), textureWidth);
+            });
         }
-        return aligned;
+
+        return visited.Count - 1;
     }
 
     /// <summary>
-    /// Walks the same forward chain as <see cref="AutoAlignX"/> and sets each sidedef's Y (row) offset so a
-    /// top-pegged texture stays continuous across ceiling-height changes. The start sidedef is the anchor.
-    /// Returns the number of downstream sidedefs aligned. Requires BuildIndexes() for Vertex.Linedefs.
+    /// Walks the same connected wall set as <see cref="AutoAlignX"/> and sets each sidedef's Y (row) offset so
+    /// a top-pegged texture stays continuous across ceiling-height changes. The start sidedef is the anchor.
+    /// Returns the number of other sidedefs aligned. Requires BuildIndexes() for Vertex.Linedefs.
     /// </summary>
     public static int AutoAlignY(Sidedef start, int textureHeight)
     {
         if (textureHeight <= 0) textureHeight = 1;
         string tex = PrimaryTexture(start);
 
-        int aligned = 0;
+        var pending = new Queue<Sidedef>();
         var visited = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance) { start };
-        int offset = start.OffsetY;
-        int top = TopReference(start);
-        Sidedef? next = NextSidedef(start, tex);
+        int startOffset = start.OffsetY;
+        int startTop = TopReference(start);
+        pending.Enqueue(start);
 
-        while (next != null && visited.Add(next))
+        while (pending.Count > 0)
         {
-            int nextTop = TopReference(next);
-            // Continuity: top_prev - z + off_prev == top_next - z + off_next, so off_next = off_prev + (top_prev - top_next).
-            offset += top - nextTop;
-            next.OffsetY = Mod(offset, textureHeight);
-            aligned++;
-            top = nextTop;
-            next = NextSidedef(next, tex);
+            Sidedef current = pending.Dequeue();
+            AddNeighbors(current, tex, visited, pending, candidate =>
+            {
+                candidate.OffsetY = Mod(startOffset + startTop - TopReference(candidate), textureHeight);
+            });
         }
-        return aligned;
+
+        return visited.Count - 1;
     }
 
     // The vertical anchor for a top-pegged wall is its sector's ceiling height (0 when it has no sector).
@@ -80,24 +78,78 @@ public static class SidedefTextureAlignment
 
     private static bool IsSet(string t) => !string.IsNullOrEmpty(t) && t != "-";
 
-    private static double WallLength(Sidedef sd)
-        => (sd.Line.End.Position - sd.Line.Start.Position).GetLength();
+    private static double WallLength(Sidedef sd) => (WallTo(sd).Position - WallFrom(sd).Position).GetLength();
 
-    // The next sidedef whose wall begins at this sidedef's forward vertex and shares the texture.
-    private static Sidedef? NextSidedef(Sidedef sd, string tex)
+    private static Vertex WallFrom(Sidedef sd) => sd.IsFront ? sd.Line.Start : sd.Line.End;
+
+    private static Vertex WallTo(Sidedef sd) => sd.IsFront ? sd.Line.End : sd.Line.Start;
+
+    private static void AddNeighbors(
+        Sidedef current,
+        string texture,
+        HashSet<Sidedef> visited,
+        Queue<Sidedef> pending,
+        Action<Sidedef> align)
     {
-        var line = sd.Line;
-        // The wall runs Start->End for a front side and End->Start for a back side; advance off its far vertex.
-        Vertex forward = sd.IsFront ? line.End : line.Start;
+        AddNeighborsAtVertex(WallFrom(current), texture, visited, pending, align);
+        AddNeighborsAtVertex(WallTo(current), texture, visited, pending, align);
+    }
 
-        foreach (var o in forward.Linedefs)
+    private static void AddNeighborsAtVertex(
+        Vertex vertex,
+        string texture,
+        HashSet<Sidedef> visited,
+        Queue<Sidedef> pending,
+        Action<Sidedef> align)
+    {
+        foreach (var line in vertex.Linedefs)
         {
-            if (ReferenceEquals(o, line)) continue;
-            // A front side begins at o.Start; a back side begins at o.End. Continue where one begins at forward.
-            if (o.Front != null && ReferenceEquals(o.Start, forward) && SameTex(PrimaryTexture(o.Front), tex)) return o.Front;
-            if (o.Back != null && ReferenceEquals(o.End, forward) && SameTex(PrimaryTexture(o.Back), tex)) return o.Back;
+            TryAddNeighbor(line.Front, vertex, texture, visited, pending, align);
+            TryAddNeighbor(line.Back, vertex, texture, visited, pending, align);
         }
-        return null;
+    }
+
+    private static void TryAddNeighbor(
+        Sidedef? candidate,
+        Vertex shared,
+        string texture,
+        HashSet<Sidedef> visited,
+        Queue<Sidedef> pending,
+        Action<Sidedef> align)
+    {
+        if (candidate == null || !SameTex(PrimaryTexture(candidate), texture)) return;
+        if (!ReferenceEquals(WallFrom(candidate), shared) && !ReferenceEquals(WallTo(candidate), shared)) return;
+        if (!visited.Add(candidate)) return;
+
+        align(candidate);
+        pending.Enqueue(candidate);
+    }
+
+    private static int OffsetAtSharedVertex(Sidedef current, Sidedef candidate)
+    {
+        Vertex currentFrom = WallFrom(current);
+        Vertex currentTo = WallTo(current);
+        Vertex candidateFrom = WallFrom(candidate);
+        Vertex candidateTo = WallTo(candidate);
+
+        double boundaryOffset;
+        if (ReferenceEquals(candidateFrom, currentFrom) || ReferenceEquals(candidateTo, currentFrom))
+        {
+            boundaryOffset = current.OffsetX;
+        }
+        else if (ReferenceEquals(candidateFrom, currentTo) || ReferenceEquals(candidateTo, currentTo))
+        {
+            boundaryOffset = current.OffsetX + WallLength(current);
+        }
+        else
+        {
+            boundaryOffset = candidate.OffsetX;
+        }
+
+        if (ReferenceEquals(candidateTo, currentFrom) || ReferenceEquals(candidateTo, currentTo))
+            boundaryOffset -= WallLength(candidate);
+
+        return (int)Math.Round(boundaryOffset);
     }
 
     private static bool SameTex(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
