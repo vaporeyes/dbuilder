@@ -1294,6 +1294,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add selected-sector color command for lightcolor and fadecolor editing.
   - [x] Add UDB-style dynamic light picker metadata, color storage, slider limits, and radius/interval mutation rules.
   - [x] Add UDB-style dynamic light slider labels and secondary-control visibility planning.
+  - [x] Add UDB-style multi-light fixed-value capture and selection-wide dynamic light color/property mutations.
 
 ## Validation And Test Strategy
 

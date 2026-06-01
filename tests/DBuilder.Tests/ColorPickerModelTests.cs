@@ -384,4 +384,99 @@ public sealed class ColorPickerModelTests
         Assert.Equal(new[] { 1, 2, 3, 0, 75 }, mutation.Args);
         Assert.Equal(335, mutation.AngleDoom);
     }
+
+    [Fact]
+    public void DynamicLightSelectionCapturesFixedValuesForRelativeMode()
+    {
+        var targets = new[]
+        {
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard),
+                new[] { 1, 2, 3, 128, 64 },
+                AngleDoom: 45,
+                new Dictionary<string, object>()),
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9803, LightVavoom: true, DynamicLightColorMode.VavoomColored),
+                new[] { 96, 10, 20, 30, 0 },
+                AngleDoom: 180,
+                new Dictionary<string, object>()),
+        };
+
+        IReadOnlyList<DynamicLightPickerState> fixedValues = ColorPickerModel.CaptureDynamicLightFixedValues(targets);
+
+        Assert.Equal(2, fixedValues.Count);
+        Assert.Equal(128, fixedValues[0].PrimaryRadius);
+        Assert.Equal(64, fixedValues[0].SecondaryRadius);
+        Assert.Equal(45, fixedValues[0].Interval);
+        Assert.Equal(96, fixedValues[1].PrimaryRadius);
+        Assert.Equal(0, fixedValues[1].SecondaryRadius);
+        Assert.False(fixedValues[1].ShowAllControls);
+    }
+
+    [Fact]
+    public void DynamicLightSelectionAppliesColorToEachLightDefinitionLikeUdb()
+    {
+        var fields = new Dictionary<string, object>
+        {
+            [ColorPickerModel.DynamicLightPackedColorField] = "112233",
+        };
+        var targets = new[]
+        {
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard),
+                new[] { 1, 2, 3, 128, 64 },
+                AngleDoom: 45,
+                new Dictionary<string, object>()),
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9803, LightVavoom: true, DynamicLightColorMode.VavoomColored),
+                new[] { 96, 1, 2, 3, 0 },
+                AngleDoom: 180,
+                new Dictionary<string, object>()),
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9804, LightVavoom: false, DynamicLightColorMode.SpotOrSun),
+                new[] { 0x445566, 1, 2, 128, 64 },
+                AngleDoom: 90,
+                fields),
+        };
+
+        IReadOnlyList<DynamicLightMutation> mutations =
+            ColorPickerModel.SetDynamicLightSelectionColor(targets, new ColorRgb(10, 20, 30));
+
+        Assert.Equal(new[] { 10, 20, 30, 128, 64 }, mutations[0].Args);
+        Assert.Equal(new[] { 96, 10, 20, 30, 0 }, mutations[1].Args);
+        Assert.Equal(0, mutations[2].Args[0]);
+        Assert.Equal("0A141E", mutations[2].Fields[ColorPickerModel.DynamicLightPackedColorField]);
+    }
+
+    [Fact]
+    public void DynamicLightSelectionAppliesRelativePropertiesPerTargetLikeUdb()
+    {
+        var targets = new[]
+        {
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard),
+                new[] { 1, 2, 3, 100, 50 },
+                AngleDoom: 20,
+                new Dictionary<string, object>()),
+            new DynamicLightEditTarget(
+                new DynamicLightDefinition(9803, LightVavoom: true, DynamicLightColorMode.VavoomColored),
+                new[] { 80, 1, 2, 3, 0 },
+                AngleDoom: 270,
+                new Dictionary<string, object>()),
+        };
+        IReadOnlyList<DynamicLightPickerState> fixedValues = ColorPickerModel.CaptureDynamicLightFixedValues(targets);
+
+        IReadOnlyList<DynamicLightMutation> mutations = ColorPickerModel.SetDynamicLightSelectionProperties(
+            targets,
+            primaryRadius: -20,
+            secondaryRadius: 25,
+            interval: -45,
+            relativeMode: true,
+            fixedValues);
+
+        Assert.Equal(new[] { 1, 2, 3, 80, 75 }, mutations[0].Args);
+        Assert.Equal(335, mutations[0].AngleDoom);
+        Assert.Equal(new[] { 60, 1, 2, 3, 0 }, mutations[1].Args);
+        Assert.Equal(270, mutations[1].AngleDoom);
+    }
 }

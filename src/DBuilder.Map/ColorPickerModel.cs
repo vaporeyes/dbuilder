@@ -70,6 +70,12 @@ public sealed record DynamicLightMutation(
     int AngleDoom,
     IReadOnlyDictionary<string, object> Fields);
 
+public sealed record DynamicLightEditTarget(
+    DynamicLightDefinition Definition,
+    IReadOnlyList<int> Args,
+    int AngleDoom,
+    IReadOnlyDictionary<string, object> Fields);
+
 public static class ColorPickerModel
 {
     public const int DefaultLightColor = 0xffffff;
@@ -336,6 +342,67 @@ public static class ColorPickerModel
         }
 
         return new DynamicLightMutation(updatedArgs, angleDoom, new Dictionary<string, object>(fields, StringComparer.OrdinalIgnoreCase));
+    }
+
+    public static IReadOnlyList<DynamicLightPickerState> CaptureDynamicLightFixedValues(
+        IReadOnlyList<DynamicLightEditTarget> targets)
+    {
+        var fixedValues = new List<DynamicLightPickerState>(targets.Count);
+        foreach (DynamicLightEditTarget target in targets)
+            fixedValues.Add(CreateDynamicLightPickerState(
+                target.Definition,
+                target.Args,
+                target.AngleDoom,
+                target.Fields,
+                relativeMode: false));
+
+        return fixedValues;
+    }
+
+    public static IReadOnlyList<DynamicLightMutation> SetDynamicLightSelectionColor(
+        IReadOnlyList<DynamicLightEditTarget> targets,
+        ColorRgb color)
+    {
+        var mutations = new List<DynamicLightMutation>(targets.Count);
+        foreach (DynamicLightEditTarget target in targets)
+            mutations.Add(SetDynamicLightColor(
+                target.Definition,
+                target.Args,
+                target.AngleDoom,
+                target.Fields,
+                color));
+
+        return mutations;
+    }
+
+    public static IReadOnlyList<DynamicLightMutation> SetDynamicLightSelectionProperties(
+        IReadOnlyList<DynamicLightEditTarget> targets,
+        int primaryRadius,
+        int secondaryRadius,
+        int interval,
+        bool relativeMode,
+        IReadOnlyList<DynamicLightPickerState>? fixedValues = null)
+    {
+        var mutations = new List<DynamicLightMutation>(targets.Count);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            DynamicLightEditTarget target = targets[i];
+            DynamicLightPickerState? fixedValue =
+                fixedValues != null && i < fixedValues.Count ? fixedValues[i] : null;
+
+            mutations.Add(SetDynamicLightProperties(
+                target.Definition,
+                target.Args,
+                target.AngleDoom,
+                target.Fields,
+                primaryRadius,
+                secondaryRadius,
+                interval,
+                relativeMode,
+                fixedValue));
+        }
+
+        return mutations;
     }
 
     public static string Format(ColorRgb rgb, ColorPickerInfoMode mode)
