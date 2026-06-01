@@ -9,6 +9,9 @@ namespace DBuilder.Map;
 
 public static class UdmfFields
 {
+    private const string NameChars = "abcdefghijklmnopqrstuvwxyz0123456789_";
+    private const string StartChars = "abcdefghijklmnopqrstuvwxyz_";
+
     /// <summary>Renders a fields dictionary as one "key = value" line per entry (sorted by key).</summary>
     public static string Format(IReadOnlyDictionary<string, object> fields)
     {
@@ -34,12 +37,25 @@ public static class UdmfFields
             if (line.Length == 0) continue;
             int eq = line.IndexOf('=');
             if (eq <= 0) continue;
-            string key = line[..eq].Trim();
+            string key = ValidateName(line[..eq]);
             string val = line[(eq + 1)..].Trim();
             if (key.Length == 0) continue;
             result[key] = InferValue(val);
         }
         return result;
+    }
+
+    public static string ValidateName(string name)
+    {
+        string fieldName = name.Trim().ToLowerInvariant();
+        var validName = new StringBuilder();
+        foreach (char c in fieldName)
+        {
+            string validChars = validName.Length > 0 ? NameChars : StartChars;
+            if (validChars.IndexOf(c) > -1) validName.Append(c);
+        }
+
+        return validName.ToString();
     }
 
     private static object InferValue(string v)

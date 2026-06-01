@@ -32,6 +32,24 @@ public class UdmfFieldsTests
         Assert.Equal(1, f["a"]);
     }
 
+    [Theory]
+    [InlineData(" Light Color ", "lightcolor")]
+    [InlineData("1bad name", "badname")]
+    [InlineData("_Zone-Id", "_zoneid")]
+    [InlineData("@#$", "")]
+    public void ValidateNameMatchesUdbFieldNameRules(string input, string expected)
+        => Assert.Equal(expected, UdmfFields.ValidateName(input));
+
+    [Fact]
+    public void ParseNormalizesFieldNamesLikeUdbCustomFieldEditor()
+    {
+        var f = UdmfFields.Parse(" Light Color = 7\n1bad-name = true\n@#$ = 4");
+
+        Assert.Equal(2, f.Count);
+        Assert.Equal(7, f["lightcolor"]);
+        Assert.True((bool)f["badname"]);
+    }
+
     [Fact]
     public void FormatThenParseRoundTrips()
     {
