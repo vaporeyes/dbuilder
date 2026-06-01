@@ -876,6 +876,82 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ThreeDFloorUseUpperFlagsMissingUpperTexture()
+    {
+        var map = new MapSet();
+        var untagged = map.AddSector();
+        untagged.CeilHeight = 128;
+        var target = map.AddSector();
+        target.CeilHeight = 128;
+        target.Tag = 7;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var checkedLine = map.AddLinedef(a, b);
+        map.AddSidedef(checkedLine, true, untagged);
+        map.AddSidedef(checkedLine, false, target);
+        var control = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        control.Action = ThreeDFloors.Sector3DFloorAction;
+        control.Args[0] = 7;
+        control.Args[2] = 16;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { CheckThreeDFloorTextures = true };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => ReferenceEquals(i.Target, checkedLine) && i.Message.Contains("upper texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ThreeDFloorRenderInsideUseLowerFlagsMissingLowerTexture()
+    {
+        var map = new MapSet();
+        var target = map.AddSector();
+        target.FloorHeight = 0;
+        target.Tag = 7;
+        var untagged = map.AddSector();
+        untagged.FloorHeight = 0;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var checkedLine = map.AddLinedef(a, b);
+        map.AddSidedef(checkedLine, true, target);
+        map.AddSidedef(checkedLine, false, untagged);
+        var control = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        control.Action = ThreeDFloors.Sector3DFloorAction;
+        control.Args[0] = 7;
+        control.Args[1] = 4;
+        control.Args[2] = 32;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { CheckThreeDFloorTextures = true };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => ReferenceEquals(i.Target, checkedLine) && i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ThreeDFloorRequiredTextureIsNotReportedUnused()
+    {
+        var map = new MapSet();
+        var untagged = map.AddSector();
+        var target = map.AddSector();
+        target.Tag = 7;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var checkedLine = map.AddLinedef(a, b);
+        map.AddSidedef(checkedLine, true, untagged).HighTexture = "STEP1";
+        map.AddSidedef(checkedLine, false, target);
+        var control = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        control.Action = ThreeDFloors.Sector3DFloorAction;
+        control.Args[0] = 7;
+        control.Args[2] = 16;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { CheckThreeDFloorTextures = true };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx),
+            i => i.Kind == MapIssueKind.UnusedTexture && ReferenceEquals(i.Target, checkedLine));
+    }
+
+    [Fact]
     public void UnknownTextureFlagged()
     {
         var map = Square(true);

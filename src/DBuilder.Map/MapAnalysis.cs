@@ -148,6 +148,8 @@ public sealed class MapCheckContext
     public Func<int, int[], IEnumerable<int>>? ActionTextureSectorTags { get; init; }
     /// <summary>Enable Hexen/UDMF thing action-texture checks.</summary>
     public bool CheckThingActionTextures { get; init; }
+    /// <summary>Enable UDB Sector_Set3dFloor texture requirement checks.</summary>
+    public bool CheckThreeDFloorTextures { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
     public Func<int, bool>? ActionRequiresActivation { get; init; }
     /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
@@ -260,6 +262,7 @@ public static class MapAnalysis
     private static void CheckTextures(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
         var actionTextures = ActionTextureTags.From(map, ctx);
+        var threeDFloorTextures = ThreeDFloorTextureTags.From(map, ctx);
 
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
@@ -283,13 +286,16 @@ public static class MapAnalysis
             {
                 if (side.Sector != null && other.Sector != null)
                 {
-                    if ((other.Sector.CeilHeight < side.Sector.CeilHeight || ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true) &&
+                    if ((other.Sector.CeilHeight < side.Sector.CeilHeight ||
+                         ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true ||
+                         threeDFloorTextures.RequiresUpperTexture(side)) &&
                         !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
                         IsBlank(side.HighTexture))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,
                             $"Linedef {index} ({which}) needs an upper texture.", mid));
                     if ((other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) ||
-                         actionTextures.RequiresLowerTexture(side)) &&
+                         actionTextures.RequiresLowerTexture(side) ||
+                         threeDFloorTextures.RequiresLowerTexture(side)) &&
                         IsBlank(side.LowTexture))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx,
                             $"Linedef {index} ({which}) needs a lower texture.", mid));
@@ -309,11 +315,15 @@ public static class MapAnalysis
 
             if (!IsBlank(side.HighTexture) &&
                 !side.HighRequired() &&
-                ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true)
+                ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true &&
+                !threeDFloorTextures.RequiresUpperTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
                     $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.", mid));
 
-            if (!IsBlank(side.LowTexture) && !side.LowRequired() && !actionTextures.RequiresLowerTexture(side))
+            if (!IsBlank(side.LowTexture) &&
+                !side.LowRequired() &&
+                !actionTextures.RequiresLowerTexture(side) &&
+                !threeDFloorTextures.RequiresLowerTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Lower,
                     $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.", mid));
         }
@@ -453,6 +463,77 @@ public static class MapAnalysis
                     highest = s.Other.Sector.FloorHeight;
 
             return side.Other.Sector.FloorHeight < highest;
+        }
+    }
+
+    private sealed class ThreeDFloorTextureTags
+    {
+        private const int RenderInsideTypeBit = 4;
+        private const int UseUpperFlag = 16;
+        private const int UseLowerFlag = 32;
+
+        private readonly Dictionary<int, Flags> byTag = new();
+
+        private ThreeDFloorTextureTags() { }
+
+        public static ThreeDFloorTextureTags From(MapSet map, MapCheckContext ctx)
+        {
+            var tags = new ThreeDFloorTextureTags();
+            if (!ctx.CheckThreeDFloorTextures) return tags;
+
+            foreach (var line in map.Linedefs)
+            {
+                if (line.Action != ThreeDFloors.Sector3DFloorAction || line.Args[0] <= 0) continue;
+
+                Flags flags = Flags.None;
+                if ((line.Args[1] & RenderInsideTypeBit) == RenderInsideTypeBit)
+                    flags |= Flags.RenderInside;
+                if ((line.Args[2] & UseUpperFlag) == UseUpperFlag)
+                    flags |= Flags.UseUpper;
+                if ((line.Args[2] & UseLowerFlag) == UseLowerFlag)
+                    flags |= Flags.UseLower;
+
+                if (flags == Flags.None) continue;
+                tags.byTag[line.Args[0]] = tags.byTag.TryGetValue(line.Args[0], out Flags existing)
+                    ? existing | flags
+                    : flags;
+            }
+
+            return tags;
+        }
+
+        public bool RequiresUpperTexture(Sidedef side)
+            => RequiresTexture(side, Flags.UseUpper);
+
+        public bool RequiresLowerTexture(Sidedef side)
+            => RequiresTexture(side, Flags.UseLower);
+
+        private bool RequiresTexture(Sidedef side, Flags flag)
+        {
+            if (side.Sector == null || side.Other?.Sector == null || side.Other.Sector == side.Sector)
+                return false;
+
+            foreach (int tag in MapElementTags.PositiveTags(side.Sector))
+                if (HasFlags(tag, flag | Flags.RenderInside))
+                    return true;
+
+            foreach (int tag in MapElementTags.PositiveTags(side.Other.Sector))
+                if (HasFlags(tag, flag))
+                    return true;
+
+            return false;
+        }
+
+        private bool HasFlags(int tag, Flags flags)
+            => byTag.TryGetValue(tag, out Flags existing) && (existing & flags) == flags;
+
+        [Flags]
+        private enum Flags
+        {
+            None = 0,
+            UseUpper = 1,
+            UseLower = 2,
+            RenderInside = 4,
         }
     }
 
