@@ -127,6 +127,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void InsertPreviousPrefabCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.insert-previous-prefab");
+
+        Assert.NotNull(command);
+        Assert.Equal("Insert Previous Prefab", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void PropertiesCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.properties");

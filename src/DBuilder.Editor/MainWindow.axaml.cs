@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     private UsdfConversationWindow? _usdfConversations;
     private BlockmapExplorerWindow? _blockmapExplorer;
     private InterpolationTools.Mode _gradientInterpolationMode = InterpolationTools.Mode.LINEAR;
+    private string? _lastPrefabPath;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1054,6 +1055,7 @@ public partial class MainWindow : Window
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
+            case "window.insert-previous-prefab": OnInsertPreviousPrefab(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
                 MapView.ExitDrawModes();
@@ -1928,8 +1930,32 @@ public partial class MainWindow : Window
             FileTypeFilter = new[] { new FilePickerFileType("DBuilder prefab") { Patterns = new[] { "*.dbprefab" } } },
         });
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
-        try { MapView.InsertPrefab(System.IO.File.ReadAllBytes(path)); UpdateInfo(); MapView.Focus(); }
+        try
+        {
+            InsertPrefabFile(path);
+            _lastPrefabPath = path;
+        }
         catch (Exception ex) { LogAndSetStatus(ex, "Insert prefab failed"); }
+    }
+
+    private void OnInsertPreviousPrefab(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("Open a map first."); return; }
+        if (string.IsNullOrWhiteSpace(_lastPrefabPath) || !System.IO.File.Exists(_lastPrefabPath))
+        {
+            SetStatus("No previous prefab file available.");
+            return;
+        }
+
+        try { InsertPrefabFile(_lastPrefabPath); }
+        catch (Exception ex) { LogAndSetStatus(ex, "Insert previous prefab failed"); }
+    }
+
+    private void InsertPrefabFile(string path)
+    {
+        MapView.InsertPrefab(System.IO.File.ReadAllBytes(path));
+        UpdateInfo();
+        MapView.Focus();
     }
 
     private void OnDrawSector(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: false, "sector");
@@ -4494,6 +4520,9 @@ public partial class MainWindow : Window
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
         bool canEditUsdf = hasMap && UsdfDialogueParser.CanEditDialogue(_config);
+        bool canInsertPreviousPrefab = hasMap
+            && !string.IsNullOrWhiteSpace(_lastPrefabPath)
+            && System.IO.File.Exists(_lastPrefabPath);
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
@@ -4512,6 +4541,7 @@ public partial class MainWindow : Window
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
+        SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
