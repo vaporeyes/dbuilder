@@ -1056,6 +1056,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Plane_Align missing upper/lower texture suppression.
   - [x] Add UDB-style Static_Init sky-transfer texture requirements and preservation.
   - [x] Add UDB-style texture-alignment filtering to required wall slots.
+  - [x] Limit UDB-style sky-flat upper texture suppression to ordinary height gaps.
 - [ ] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
   - [x] Add UDB-style fix actions for missing-front and sidedness flag mismatch linedefs.

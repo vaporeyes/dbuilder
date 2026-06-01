@@ -290,11 +290,9 @@ public static class MapAnalysis
             {
                 if (side.Sector != null && other.Sector != null)
                 {
-                    if ((other.Sector.CeilHeight < side.Sector.CeilHeight ||
-                         ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true ||
-                         IsSkyTransferStaticInit(l, ctx) ||
-                         threeDFloorTextures.RequiresUpperTexture(side)) &&
-                        !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
+                    bool heightGapNeedsUpper = side.HighRequired() && !IsSkyFlat(ctx, other.Sector.CeilTexture);
+                    bool actionNeedsUpper = ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true || IsSkyTransferStaticInit(l, ctx);
+                    if ((heightGapNeedsUpper || actionNeedsUpper || threeDFloorTextures.RequiresUpperTexture(side)) &&
                         IsBlank(side.HighTexture) &&
                         !SuppressPlaneAlignTexture(l, ctx, ceiling: true))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,

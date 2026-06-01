@@ -764,6 +764,33 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ActionRequiresUpperTextureStillFlagsMissingUpperAgainstSkyNeighbor()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.CeilHeight = 128;
+        var sky = map.AddSector();
+        sky.CeilHeight = 128;
+        sky.CeilTexture = "F_SKY1";
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = 271;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, sky);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            ActionRequiresUpperTexture = action => action == 271,
+            IsSkyFlat = name => name == "F_SKY1",
+        };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void StaticInitSkyTransferFlagsMissingUpperWithoutHeightGap()
     {
         var map = new MapSet();
@@ -780,6 +807,34 @@ public class MapAnalysisTests
         map.AddSidedef(line, false, back);
         map.BuildIndexes();
         var ctx = new MapCheckContext { ActionHasSkyTransferStaticInit = (action, args) => action == 190 && args[1] == 255 };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void StaticInitSkyTransferStillFlagsMissingUpperAgainstSkyNeighbor()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.CeilHeight = 128;
+        var sky = map.AddSector();
+        sky.CeilHeight = 128;
+        sky.CeilTexture = "F_SKY1";
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = 190;
+        line.Args[1] = 255;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, sky);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            ActionHasSkyTransferStaticInit = (action, args) => action == 190 && args[1] == 255,
+            IsSkyFlat = name => name == "F_SKY1",
+        };
 
         var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
 
@@ -962,6 +1017,37 @@ public class MapAnalysisTests
         control.Args[2] = 16;
         map.BuildIndexes();
         var ctx = new MapCheckContext { CheckThreeDFloorTextures = true };
+
+        var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
+
+        Assert.Contains(issues, i => ReferenceEquals(i.Target, checkedLine) && i.Message.Contains("upper texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ThreeDFloorUseUpperStillFlagsMissingUpperAgainstSkyNeighbor()
+    {
+        var map = new MapSet();
+        var untagged = map.AddSector();
+        untagged.CeilHeight = 128;
+        var target = map.AddSector();
+        target.CeilHeight = 128;
+        target.CeilTexture = "F_SKY1";
+        target.Tag = 7;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var checkedLine = map.AddLinedef(a, b);
+        map.AddSidedef(checkedLine, true, untagged);
+        map.AddSidedef(checkedLine, false, target);
+        var control = map.AddLinedef(map.AddVertex(new Vector2D(256, 0)), map.AddVertex(new Vector2D(384, 0)));
+        control.Action = ThreeDFloors.Sector3DFloorAction;
+        control.Args[0] = 7;
+        control.Args[2] = 16;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            CheckThreeDFloorTextures = true,
+            IsSkyFlat = name => name == "F_SKY1",
+        };
 
         var issues = MapAnalysis.Check(map, ctx).Where(i => i.Kind == MapIssueKind.MissingTexture).ToArray();
 
