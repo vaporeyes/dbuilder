@@ -68,6 +68,7 @@ public partial class MainWindow : Window
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
     private BlockmapExplorerWindow? _blockmapExplorer;
+    private InterpolationTools.Mode _gradientInterpolationMode = InterpolationTools.Mode.LINEAR;
 
     // The game-config directory, overridable via settings (falls back to the bundled location).
     private string ConfigDir => string.IsNullOrWhiteSpace(_settings.ConfigDir) ? DefaultConfigDir : _settings.ConfigDir!;
@@ -1558,6 +1559,10 @@ public partial class MainWindow : Window
     private void OnGradientFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FadeColor);
     private void OnGradientLightAndFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightAndFadeColor);
     private void OnGradientLinedefBrightness(object? sender, RoutedEventArgs e) => ApplyLinedefBrightnessGradient();
+    private void OnGradientInterpolationLinear(object? sender, RoutedEventArgs e) => SetGradientInterpolation(InterpolationTools.Mode.LINEAR);
+    private void OnGradientInterpolationEaseInOutSine(object? sender, RoutedEventArgs e) => SetGradientInterpolation(InterpolationTools.Mode.EASE_IN_OUT_SINE);
+    private void OnGradientInterpolationEaseInSine(object? sender, RoutedEventArgs e) => SetGradientInterpolation(InterpolationTools.Mode.EASE_IN_SINE);
+    private void OnGradientInterpolationEaseOutSine(object? sender, RoutedEventArgs e) => SetGradientInterpolation(InterpolationTools.Mode.EASE_OUT_SINE);
 
     private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
@@ -1659,7 +1664,7 @@ public partial class MainWindow : Window
         };
         CreateUndo(undoName);
 
-        SectorGradientResult result = SectorGradient.Apply(selected, target);
+        SectorGradientResult result = SectorGradient.Apply(selected, target, _gradientInterpolationMode);
         MapView.MarkGeometryDirty();
         UpdateInfo();
         MapView.Focus();
@@ -1683,7 +1688,7 @@ public partial class MainWindow : Window
         }
 
         CreateUndo("Linedefs gradient brightness");
-        LinedefGradientResult result = LinedefGradient.ApplyBrightness(selected);
+        LinedefGradientResult result = LinedefGradient.ApplyBrightness(selected, _gradientInterpolationMode);
         if (result.Applied)
         {
             foreach (var line in selected)
@@ -1698,6 +1703,23 @@ public partial class MainWindow : Window
         MapView.Focus();
         SetStatus(result.Message);
     }
+
+    private void SetGradientInterpolation(InterpolationTools.Mode mode)
+    {
+        if (!Enum.IsDefined(mode)) return;
+        _gradientInterpolationMode = mode;
+        UpdateCommandAvailability();
+        SetStatus($"Gradient interpolation: {GradientInterpolationLabel(mode)}.");
+    }
+
+    private static string GradientInterpolationLabel(InterpolationTools.Mode mode) => mode switch
+    {
+        InterpolationTools.Mode.LINEAR => "Linear",
+        InterpolationTools.Mode.EASE_IN_OUT_SINE => "Ease In/Out Sine",
+        InterpolationTools.Mode.EASE_IN_SINE => "Ease In Sine",
+        InterpolationTools.Mode.EASE_OUT_SINE => "Ease Out Sine",
+        _ => mode.ToString(),
+    };
 
     // Saves the current selection to a .prefab file (the clipboard byte format).
     private async void OnSavePrefab(object? sender, RoutedEventArgs e)
@@ -3902,6 +3924,7 @@ public partial class MainWindow : Window
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
         bool hasGradientLinedefs = _mapFormat == MapFormat.Udmf && _map?.SelectedLinedefsCount >= LinedefGradient.MinimumLinedefCount;
+        bool hasGradientTarget = hasGradientSectors || hasGradientLinedefs;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
         bool hasEditableProperties =
@@ -3957,6 +3980,9 @@ public partial class MainWindow : Window
             GradientFloorLightMenuItem, GradientCeilingLightMenuItem, GradientLightColorMenuItem, GradientFadeColorMenuItem,
             GradientLightAndFadeColorMenuItem);
         SetEnabled(hasGradientLinedefs, LinedefGradientsMenuItem, GradientLinedefBrightnessMenuItem);
+        SetEnabled(hasGradientTarget,
+            GradientInterpolationMenuItem, GradientInterpolationLinearMenuItem, GradientInterpolationEaseInOutSineMenuItem,
+            GradientInterpolationEaseInSineMenuItem, GradientInterpolationEaseOutSineMenuItem);
         SetEnabled(hasSelectedSector, ToggleAutomapTexturedHiddenSectorMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);
@@ -3991,6 +4017,10 @@ public partial class MainWindow : Window
         SetChecked(DrawRectangleMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Rectangle);
         SetChecked(DrawEllipseMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Ellipse);
         SetChecked(DrawGridMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Grid);
+        SetChecked(GradientInterpolationLinearMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.LINEAR);
+        SetChecked(GradientInterpolationEaseInOutSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_IN_OUT_SINE);
+        SetChecked(GradientInterpolationEaseInSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_IN_SINE);
+        SetChecked(GradientInterpolationEaseOutSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_OUT_SINE);
         UpdateAutomapOptionControls();
     }
 

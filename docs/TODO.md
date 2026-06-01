@@ -717,6 +717,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient commands.
   - [x] Add UDB-style UDMF sector floor/ceiling light and light/fade color gradient commands.
   - [x] Add UDB-style UDMF selected-linedef brightness gradient command.
+  - [x] Add UDB-style gradient interpolation mode selection for sector and linedef gradients.
 - [ ] Port texture alignment tools.
   - [x] Add UDB-style sidedef unused texture cleanup behavior.
   - [x] Add UDB-style auto-clear sidedef textures command and menu toggle.
@@ -1119,6 +1120,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient model and editor commands.
   - [x] Add UDB-style UDMF sector surface light and light/fade color gradient model and editor commands.
   - [x] Add UDB-style UDMF selected-linedef brightness gradient model and editor command.
+  - [x] Add UDB-style gradient interpolation mode selection for sector and linedef gradient commands.
 - [ ] Port edit selection panel behavior.
   - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
   - [x] Add UDB-style 15-degree edit-selection rotation snapping.

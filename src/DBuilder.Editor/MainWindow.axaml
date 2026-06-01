@@ -185,6 +185,12 @@
                 <MenuItem Header="_Linedef Gradients" x:Name="LinedefGradientsMenuItem">
                     <MenuItem Header="Gradient _Brightness" x:Name="GradientLinedefBrightnessMenuItem" Click="OnGradientLinedefBrightness" />
                 </MenuItem>
+                <MenuItem Header="Gradient _Interpolation" x:Name="GradientInterpolationMenuItem">
+                    <MenuItem Header="_Linear" x:Name="GradientInterpolationLinearMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationLinear" />
+                    <MenuItem Header="Ease _In/Out Sine" x:Name="GradientInterpolationEaseInOutSineMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationEaseInOutSine" />
+                    <MenuItem Header="Ease _In Sine" x:Name="GradientInterpolationEaseInSineMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationEaseInSine" />
+                    <MenuItem Header="Ease _Out Sine" x:Name="GradientInterpolationEaseOutSineMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationEaseOutSine" />
+                </MenuItem>
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="USDF _Conversations..." x:Name="UsdfConversationsMenuItem" Click="OnUsdfConversations" />
