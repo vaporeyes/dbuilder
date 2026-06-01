@@ -617,6 +617,22 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void PngEncoderWritesDecodableRgbaPng()
+    {
+        byte[] png = WavefrontPngEncoder.EncodeRgba(
+            2,
+            1,
+            [255, 0, 0, 255, 0, 255, 0, 128]);
+
+        var image = DBuilder.IO.PngDecoder.Decode(png);
+
+        Assert.NotNull(image);
+        Assert.Equal(2, image.Width);
+        Assert.Equal(1, image.Height);
+        Assert.Equal([255, 0, 0, 255, 0, 255, 0, 128], image.Rgba);
+    }
+
+    [Fact]
     public void CreateFilePlanIncludesObjAndMtlForClassicExport()
     {
         WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions

@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Collections;
+using System.IO.Compression;
 using System.Text;
 using DBuilder.Geometry;
 
@@ -679,6 +680,93 @@ public static class WavefrontGeometryCollector
         => $"# {mapTitle}, map {levelName}\n"
             + $"# Created by Ultimate Doom Builder {productVersion}\n\n"
             + $"o {levelName}\n";
+}
+
+public static class WavefrontPngEncoder
+{
+    private static readonly byte[] Signature = [137, 80, 78, 71, 13, 10, 26, 10];
+
+    public static byte[] EncodeRgba(int width, int height, IReadOnlyList<byte> rgba)
+    {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+        if (rgba.Count != width * height * 4)
+            throw new ArgumentException("RGBA buffer length must match the image dimensions.", nameof(rgba));
+
+        using var output = new MemoryStream();
+        output.Write(Signature);
+        WriteChunk(output, "IHDR", Header(width, height));
+        WriteChunk(output, "IDAT", CompressRows(width, height, rgba));
+        WriteChunk(output, "IEND", []);
+        return output.ToArray();
+    }
+
+    private static byte[] Header(int width, int height)
+    {
+        byte[] header = new byte[13];
+        WriteInt(header, 0, width);
+        WriteInt(header, 4, height);
+        header[8] = 8;
+        header[9] = 6;
+        return header;
+    }
+
+    private static byte[] CompressRows(int width, int height, IReadOnlyList<byte> rgba)
+    {
+        using var data = new MemoryStream();
+        int stride = width * 4;
+        for (int y = 0; y < height; y++)
+        {
+            data.WriteByte(0);
+            for (int x = 0; x < stride; x++)
+                data.WriteByte(rgba[y * stride + x]);
+        }
+
+        using var compressed = new MemoryStream();
+        using (var zlib = new ZLibStream(compressed, CompressionLevel.Optimal, leaveOpen: true))
+            zlib.Write(data.GetBuffer(), 0, (int)data.Length);
+        return compressed.ToArray();
+    }
+
+    private static void WriteChunk(Stream output, string type, byte[] data)
+    {
+        byte[] length = new byte[4];
+        WriteInt(length, 0, data.Length);
+        output.Write(length);
+
+        byte[] typeBytes = Encoding.ASCII.GetBytes(type);
+        output.Write(typeBytes);
+        output.Write(data);
+
+        uint crc = Crc32(typeBytes, data);
+        byte[] crcBytes = new byte[4];
+        WriteInt(crcBytes, 0, unchecked((int)crc));
+        output.Write(crcBytes);
+    }
+
+    private static void WriteInt(byte[] buffer, int offset, int value)
+    {
+        buffer[offset] = (byte)((value >> 24) & 0xff);
+        buffer[offset + 1] = (byte)((value >> 16) & 0xff);
+        buffer[offset + 2] = (byte)((value >> 8) & 0xff);
+        buffer[offset + 3] = (byte)(value & 0xff);
+    }
+
+    private static uint Crc32(byte[] type, byte[] data)
+    {
+        uint crc = 0xffffffffu;
+        foreach (byte b in type) crc = UpdateCrc(crc, b);
+        foreach (byte b in data) crc = UpdateCrc(crc, b);
+        return crc ^ 0xffffffffu;
+    }
+
+    private static uint UpdateCrc(uint crc, byte value)
+    {
+        crc ^= value;
+        for (int i = 0; i < 8; i++)
+            crc = (crc & 1) != 0 ? 0xedb88320u ^ (crc >> 1) : crc >> 1;
+        return crc;
+    }
 }
 
 public static class WavefrontExportContent

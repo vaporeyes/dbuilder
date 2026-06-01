@@ -995,6 +995,7 @@ public partial class MainWindow : Window
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
+            case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
                 MapView.ExitDrawModes();
@@ -3510,6 +3511,117 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnExportWavefront(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+
+        WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(_map);
+        if (!preflight.CanExport)
+        {
+            SetStatus(preflight.Warning ?? "OBJ export failed.");
+            return;
+        }
+
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export Wavefront OBJ",
+            SuggestedFileName = DefaultWavefrontFileName(),
+            DefaultExtension = "obj",
+            FileTypeChoices = new[] { new FilePickerFileType("Wavefront OBJ") { Patterns = new[] { "*.obj" } } },
+        });
+        if (file?.TryGetLocalPath() is not { } path) return;
+
+        var dlg = new WavefrontExportDialog(DefaultWavefrontExportOptions(path));
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        WavefrontExportOptions options = dlg.ResultOptions;
+        IReadOnlyList<string> errors = WavefrontExportValidation.Validate(options);
+        if (errors.Count > 0)
+        {
+            SetStatus("Wavefront export blocked: " + string.Join(" ", errors));
+            return;
+        }
+
+        if (options.ExportTextures && _resources is null)
+        {
+            SetStatus("Wavefront export blocked: load resources before exporting textures.");
+            return;
+        }
+
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(options);
+        string obj = WavefrontGeometryCollector.CreateObjFromSectors(
+            preflight.Sectors,
+            settings,
+            System.IO.Path.GetFileName(_wadPath ?? _pk3Path ?? "untitled"),
+            _mapMarker ?? "MAP01",
+            typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "");
+        if (obj.Length == 0)
+        {
+            SetStatus("Wavefront export failed: no geometry was generated.");
+            return;
+        }
+
+        try
+        {
+            WavefrontExportPlanner.WriteFiles(WavefrontExportPlanner.CreateFilePlan(
+                settings,
+                System.IO.Path.GetFileName(_wadPath ?? _pk3Path ?? "untitled"),
+                _mapMarker ?? "MAP01",
+                typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? ""));
+            WavefrontImagePlan imagePlan = WavefrontExportPlanner.CreateImagePlan(
+                settings,
+                name => WavefrontImage(name, flats: false),
+                name => WavefrontImage(name, flats: true));
+            WavefrontExportPlanner.WriteImageFiles(imagePlan.Files);
+            string images = imagePlan.Files.Count == 0 ? "" : $" {imagePlan.Files.Count} image file(s).";
+            string warnings = imagePlan.Warnings.Count == 0 ? "" : $" {imagePlan.Warnings.Count} image warning(s).";
+            SetStatus($"Exported Wavefront OBJ: {settings.Textures?.Count ?? 0} texture material(s), {settings.Flats?.Count ?? 0} flat material(s).{images}{warnings}");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "Wavefront export failed");
+        }
+    }
+
+    private WavefrontExportOptions DefaultWavefrontExportOptions(string filePath)
+    {
+        string directory = System.IO.Path.GetDirectoryName(filePath)
+            ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string actorName = (_mapMarker ?? "MapModel").Replace("-", "", StringComparison.Ordinal);
+        if (actorName.Length == 0 || char.IsDigit(actorName[0])) actorName = "MapModel";
+        return new WavefrontExportOptions
+        {
+            FilePath = filePath,
+            Scale = 1.0,
+            ExportTextures = _resources is not null,
+            ActorName = actorName,
+            BasePath = directory,
+            ActorPath = directory,
+            ModelPath = directory,
+            Sprite = "PLAY",
+            GenerateCode = true,
+            GenerateModeldef = true,
+        };
+    }
+
+    private string DefaultWavefrontFileName()
+    {
+        string baseName = System.IO.Path.GetFileNameWithoutExtension(_wadPath ?? _pk3Path ?? "map");
+        string mapName = _mapMarker ?? "MAP01";
+        return $"{baseName}_{mapName}.obj";
+    }
+
+    private WavefrontImageData? WavefrontImage(string name, bool flats)
+    {
+        if (_resources is null) return null;
+        ImageData? image = flats ? _resources.GetFlat(name) : _resources.GetWallTexture(name);
+        return image is null
+            ? null
+            : new WavefrontImageData(image.Width, image.Height, WavefrontPngEncoder.EncodeRgba(image.Width, image.Height, image.Rgba));
+    }
+
     private IdStudioExportOptions DefaultIdStudioExportOptions()
     {
         string modPath = _wadPath is null
@@ -3976,7 +4088,7 @@ public partial class MainWindow : Window
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
-            ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
+            ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,

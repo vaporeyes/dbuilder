@@ -1171,8 +1171,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Wavefront material image export planning and PNG write helper.
   - [x] Add UDB-style Wavefront settings form enablement state for classic and GZDoom export modes.
   - [x] Add UDB-style Wavefront visual-sector geometry collection for ordinary floors, ceilings, walls, skip textures, control-sector filtering, and OBJ settings write-back.
+  - [x] Add editor command integration for Wavefront OBJ export with options, file writing, and material image export.
   - [ ] Add UDB-style Wavefront 3D-floor visual surface collection.
-  - [ ] Add editor command integration for Wavefront export.
 - [ ] Port id Studio export tools.
   - [x] Add UDB-style idStudio export settings, map-name validation, refmap hierarchy, and func/static writer helpers.
   - [x] Add UDB-style idStudio form defaults and texture-count labels.

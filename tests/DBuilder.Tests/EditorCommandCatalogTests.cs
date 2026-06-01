@@ -122,6 +122,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void WavefrontExportCommandIsWindowMenuAction()
+    {
+        var command = EditorCommandCatalog.Find("window.export-wavefront");
+
+        Assert.NotNull(command);
+        Assert.Equal("Export Wavefront OBJ", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void WadAuthorModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-wadauthor");
