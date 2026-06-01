@@ -186,6 +186,34 @@ public sealed class ColorPickerModelTests
     }
 
     [Fact]
+    public void DynamicLightSliderPresentationUsesUdbArgTitles()
+    {
+        var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
+        string[] argTitles = ["Red", "Green", "Blue", "Primary radius", "Secondary radius"];
+
+        DynamicLightSliderPresentation presentation = ColorPickerModel.DynamicLightSliderPresentationFor(definition, argTitles);
+
+        Assert.Equal("Primary radius:", presentation.PrimaryLabel);
+        Assert.Equal("Secondary radius:", presentation.SecondaryLabel);
+        Assert.Equal("Interval:", presentation.IntervalLabel);
+        Assert.True(presentation.ShowAllControls);
+    }
+
+    [Fact]
+    public void DynamicLightSliderPresentationHidesSecondaryControlsForSimpleLights()
+    {
+        var definition = new DynamicLightDefinition(9803, LightVavoom: true, DynamicLightColorMode.VavoomColored);
+        string[] argTitles = ["Radius", "Red", "Green", "Blue", "Unused"];
+
+        DynamicLightSliderPresentation presentation = ColorPickerModel.DynamicLightSliderPresentationFor(definition, argTitles);
+
+        Assert.Equal("Radius:", presentation.PrimaryLabel);
+        Assert.Equal("", presentation.SecondaryLabel);
+        Assert.Equal("", presentation.IntervalLabel);
+        Assert.False(presentation.ShowAllControls);
+    }
+
+    [Fact]
     public void DynamicLightPickerStateUsesReferenceThingValuesInAbsoluteMode()
     {
         var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);

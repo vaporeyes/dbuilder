@@ -49,6 +49,12 @@ public sealed record DynamicLightSliderLimits(
     int NumericMinimum,
     int NumericMaximum);
 
+public sealed record DynamicLightSliderPresentation(
+    string PrimaryLabel,
+    string SecondaryLabel,
+    string IntervalLabel,
+    bool ShowAllControls);
+
 public sealed record DynamicLightPickerState(
     ColorRgb Color,
     int PrimaryRadius,
@@ -212,6 +218,20 @@ public static class ColorPickerModel
         => relativeMode
             ? new DynamicLightSliderLimits(-180, 180, -16384, 16384)
             : new DynamicLightSliderLimits(0, 359, 0, 16384);
+
+    public static DynamicLightSliderPresentation DynamicLightSliderPresentationFor(
+        DynamicLightDefinition definition,
+        IReadOnlyList<string> argTitles)
+    {
+        int firstArg = FirstDynamicLightRadiusArgument(definition.LightVavoom);
+        bool showAllControls = DynamicLightUsesAngleValue(definition.LightNumber);
+
+        return new DynamicLightSliderPresentation(
+            SliderLabel(argTitles, firstArg),
+            showAllControls ? SliderLabel(argTitles, 4) : "",
+            showAllControls ? "Interval:" : "",
+            showAllControls);
+    }
 
     public static DynamicLightPickerState CreateDynamicLightPickerState(
         DynamicLightDefinition definition,
@@ -427,6 +447,9 @@ public static class ColorPickerModel
 
     private static int GetArgument(IReadOnlyList<int> args, int index)
         => index >= 0 && index < args.Count ? args[index] : 0;
+
+    private static string SliderLabel(IReadOnlyList<string> argTitles, int index)
+        => (index >= 0 && index < argTitles.Count ? argTitles[index] : "") + ":";
 
     private static int[] CopyArguments(IReadOnlyList<int> args, int minimumLength)
     {
