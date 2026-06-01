@@ -28,7 +28,7 @@ public sealed class FindReplaceWindow : Window
 
     private sealed record CategoryItem(FindCategory Value, string Label) { public override string ToString() => Label; }
 
-    public FindReplaceWindow()
+    public FindReplaceWindow(bool mixTexturesFlats = false)
     {
         Title = "Find & Replace";
         Width = 380;
@@ -99,6 +99,8 @@ public sealed class FindReplaceWindow : Window
         findBtn.Click += (_, _) => FindRequested?.Invoke();
         var replaceBtn = new Button { Content = "Replace all", MinWidth = 100 };
         replaceBtn.Click += (_, _) => ReplaceRequested?.Invoke();
+        _category.SelectionChanged += (_, _) => replaceBtn.IsEnabled = CanReplaceSelected(mixTexturesFlats);
+        replaceBtn.IsEnabled = CanReplaceSelected(mixTexturesFlats);
         var freeTagBtn = new Button { Content = "Next free tag", MinWidth = 110 };
         freeTagBtn.Click += (_, _) => NextFreeTagRequested?.Invoke();
 
@@ -111,6 +113,9 @@ public sealed class FindReplaceWindow : Window
 
         Content = rows;
     }
+
+    private bool CanReplaceSelected(bool mixTexturesFlats)
+        => _category.SelectedItem is CategoryItem ci && MapSearch.CanReplace(ci.Value, mixTexturesFlats);
 
     /// <summary>Pre-fills the Find box (used by "next free tag").</summary>
     public void SetFindText(string text) => _find.Text = text;

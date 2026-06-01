@@ -62,6 +62,36 @@ public class ConfiguredMapSearchTests
         """;
 
     [Fact]
+    public void ReplaceAnyTextureOrFlatHonorsMixedTexturesAndFlatsConfig()
+    {
+        var config = GameConfiguration.FromText("mixtexturesflats = true;");
+        var map = BuildMap();
+        map.Sectors[0].FloorTexture = "FLOOR4_8";
+        map.Linedefs[0].Front!.MidTexture = "FLOOR4_8";
+
+        int changed = ConfiguredMapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1", config);
+
+        Assert.Equal(2, changed);
+        Assert.Equal("STONE1", map.Sectors[0].FloorTexture);
+        Assert.Equal("STONE1", map.Linedefs[0].Front!.MidTexture);
+    }
+
+    [Fact]
+    public void ReplaceAnyTextureOrFlatIsDisabledWithoutMixedTexturesAndFlatsConfig()
+    {
+        var config = GameConfiguration.FromText("");
+        var map = BuildMap();
+        map.Sectors[0].FloorTexture = "FLOOR4_8";
+        map.Linedefs[0].Front!.MidTexture = "FLOOR4_8";
+
+        int changed = ConfiguredMapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1", config);
+
+        Assert.Equal(0, changed);
+        Assert.Equal("FLOOR4_8", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLOOR4_8", map.Linedefs[0].Front!.MidTexture);
+    }
+
+    [Fact]
     public void FindLinedefActionMatchesGeneralizedActionsWithSharedBits()
     {
         var config = GameConfiguration.FromText(Cfg);

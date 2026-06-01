@@ -435,7 +435,7 @@ public class MapSearchTests
     }
 
     [Fact]
-    public void FindAndReplaceAnyTextureOrFlatTouchesBothSidedefsAndSectors()
+    public void FindAnyTextureOrFlatTouchesBothSidedefsAndSectors()
     {
         var map = Build();
 
@@ -445,10 +445,38 @@ public class MapSearchTests
         Assert.True(map.Sectors[1].Selected);
 
         Assert.Equal(4, MapSearch.Find(map, FindCategory.TextureOrFlat, "START*").Count);
-        Assert.Equal(2, MapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1"));
+    }
+
+    [Fact]
+    public void ReplaceAnyTextureOrFlatRequiresMixedTexturesAndFlats()
+    {
+        var map = Build();
+
+        Assert.False(MapSearch.CanReplace(FindCategory.TextureOrFlat));
+        Assert.True(MapSearch.CanReplace(FindCategory.TextureOrFlat, mixTexturesFlats: true));
+        Assert.Equal(0, MapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1"));
+        Assert.Equal("FLOOR4_8", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLOOR4_8", map.Sectors[1].CeilTexture);
+
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.TextureOrFlat, "FLOOR4_8", "STONE1", withinSelection: false, mixTexturesFlats: true));
 
         Assert.Equal("STONE1", map.Sectors[0].FloorTexture);
         Assert.Equal("STONE1", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
+    public void NonReplaceableFindCategoriesReturnNoChanges()
+    {
+        var map = Build();
+        map.Things[0].SetStringField("comment", "old");
+
+        Assert.False(MapSearch.CanReplace(FindCategory.ThingIndex));
+        Assert.False(MapSearch.CanReplace(FindCategory.ThingUdmfField));
+
+        Assert.Equal(0, MapSearch.Replace(map, FindCategory.ThingIndex, "0", "1"));
+        Assert.Equal(0, MapSearch.Replace(map, FindCategory.ThingUdmfField, "comment old", "comment new"));
+        Assert.Equal(3001, map.Things[0].Type);
+        Assert.Equal("old", map.Things[0].GetStringField("comment"));
     }
 
     [Fact]

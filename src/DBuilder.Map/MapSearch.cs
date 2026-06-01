@@ -106,6 +106,23 @@ public static class MapSearch
         _ => false,
     };
 
+    public static bool CanReplace(FindCategory cat, bool mixTexturesFlats = false) => cat switch
+    {
+        FindCategory.VertexIndex or
+        FindCategory.LinedefIndex or
+        FindCategory.SidedefIndex or
+        FindCategory.SectorIndex or
+        FindCategory.ThingIndex or
+        FindCategory.AnyUdmfField or
+        FindCategory.VertexUdmfField or
+        FindCategory.LinedefUdmfField or
+        FindCategory.SidedefUdmfField or
+        FindCategory.SectorUdmfField or
+        FindCategory.ThingUdmfField => false,
+        FindCategory.TextureOrFlat => mixTexturesFlats,
+        _ => true,
+    };
+
     /// <summary>
     /// Selects every element matching <paramref name="value"/> in <paramref name="cat"/> (clearing prior selection)
     /// and returns the match count plus a focus point (the first match's location).
@@ -362,10 +379,13 @@ public static class MapSearch
     /// the number of elements changed. Numeric categories parse both values; textual ones compare case-insensitively.
     /// </summary>
     public static int Replace(MapSet map, FindCategory cat, string find, string replace)
-        => Replace(map, cat, find, replace, TagSearchOptions.All);
+        => Replace(map, cat, find, replace, TagSearchOptions.All, null, null, false, false);
 
     public static int Replace(MapSet map, FindCategory cat, string find, string replace, bool withinSelection)
-        => Replace(map, cat, find, replace, TagSearchOptions.All, null, null, withinSelection);
+        => Replace(map, cat, find, replace, TagSearchOptions.All, null, null, withinSelection, false);
+
+    public static int Replace(MapSet map, FindCategory cat, string find, string replace, bool withinSelection, bool mixTexturesFlats)
+        => Replace(map, cat, find, replace, TagSearchOptions.All, null, null, withinSelection, mixTexturesFlats);
 
     public static int Replace(MapSet map, FindCategory cat, string find, string replace, TagSearchOptions tagOptions)
         => Replace(map, cat, find, replace, tagOptions, null);
@@ -387,7 +407,7 @@ public static class MapSearch
         TagSearchOptions tagOptions,
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, int, bool>? sectorEffectMatcher)
-        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, false);
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, false, false);
 
     public static int Replace(
         MapSet map,
@@ -398,7 +418,21 @@ public static class MapSearch
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, int, bool>? sectorEffectMatcher,
         bool withinSelection)
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, false);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection,
+        bool mixTexturesFlats)
     {
+        if (!CanReplace(cat, mixTexturesFlats)) return 0;
+
         int changed = 0;
         SearchLists lists = SearchLists.From(map, withinSelection);
         if (IsTextual(cat))

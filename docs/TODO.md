@@ -1025,6 +1025,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port find and replace infrastructure.
   - [x] Add UDB-style within-current-selection scoping for find and replace.
+  - [x] Add UDB-style replace availability rules for index, UDMF, and mixed texture/flat categories.
 - [ ] Port all find and replace object types.
   - [x] Add UDB-style index, sector scalar, sidedef texture slot, sector flat slot, and thing angle categories.
   - [x] Add UDB-style wildcard UDMF field find categories for any, vertex, linedef, sidedef, sector, and thing fields.
