@@ -791,6 +791,26 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownFlatIssueCanBrowseFlat()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.CeilTexture = "WAT99";
+        var ctx = new MapCheckContext
+        {
+            FlatExists = name => name == "BROWSEFL",
+            BrowseFlat = (_, ceiling) => ceiling ? "BROWSEFL" : null,
+        };
+        var issue = MapAnalysis.Check(map, ctx)
+            .First(i => i.Kind == MapIssueKind.UnknownFlat && i.Message.Contains("ceiling flat", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Flat...");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWSEFL", sector.CeilTexture);
+    }
+
+    [Fact]
     public void MissingFlatIssueCanAddDefaultFlat()
     {
         var map = Square(true);
@@ -807,6 +827,24 @@ public class MapAnalysisTests
         Assert.True(fix.Apply(map));
 
         Assert.Equal("FLOOR7_2", sector.FloorTexture);
+    }
+
+    [Fact]
+    public void MissingFlatIssueCanBrowseFlat()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.FloorTexture = "-";
+        var ctx = new MapCheckContext
+        {
+            BrowseFlat = (_, ceiling) => ceiling ? null : "BROWSEFL",
+        };
+        var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingFlat);
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Flat...");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWSEFL", sector.FloorTexture);
     }
 
     [Fact]

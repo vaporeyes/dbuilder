@@ -121,6 +121,8 @@ public sealed class MapCheckContext
     public Func<int, SidedefPart, bool>? IgnoreUnknownTexture { get; init; }
     /// <summary>Returns a replacement wall texture name for UDB-style browse texture fixes, or null/"-" when cancelled.</summary>
     public Func<Sidedef, SidedefPart, string?>? BrowseTexture { get; init; }
+    /// <summary>Returns a replacement flat name for UDB-style browse flat fixes, or null/"-" when cancelled.</summary>
+    public Func<Sector, bool, string?>? BrowseFlat { get; init; }
     /// <summary>Returns true when a linedef action forces an upper texture even without a height gap.</summary>
     public Func<int, bool>? ActionRequiresUpperTexture { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
@@ -269,10 +271,10 @@ public static class MapAnalysis
             foreach (var (slot, name) in new[] { ("floor", s.FloorTexture), ("ceiling", s.CeilTexture) })
             {
                 if (IsBlank(name))
-                    issues.Add(MissingFlatIssue(s, slot == "ceiling", ctx.FixOptions,
+                    issues.Add(MissingFlatIssue(s, slot == "ceiling", ctx,
                         $"Sector {i} has no {slot} flat."));
                 else if (ctx.FlatExists != null && !ctx.FlatExists(name))
-                    issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx.FixOptions,
+                    issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx,
                         $"Sector {i} {slot} flat \"{name}\" is not found."));
             }
         }
@@ -1040,37 +1042,56 @@ public static class MapAnalysis
         };
     }
 
-    private static MapIssue MissingFlatIssue(Sector sector, bool ceiling, MapIssueFixOptions options, string message)
-        => new(MapIssueSeverity.Error, MapIssueKind.MissingFlat, message)
+    private static MapIssue MissingFlatIssue(Sector sector, bool ceiling, MapCheckContext ctx, string message)
+    {
+        var fixes = FlatFixes(sector, ceiling, ctx);
+
+        return new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingFlat, message)
         {
             Target = sector,
-            Fixes = new[]
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue UnknownFlatIssue(Sector sector, bool ceiling, MapCheckContext ctx, string message)
+    {
+        var fixes = FlatFixes(sector, ceiling, ctx);
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat, message)
+        {
+            Target = sector,
+            Fixes = fixes,
+        };
+    }
+
+    private static IReadOnlyList<MapIssueFix> FlatFixes(Sector sector, bool ceiling, MapCheckContext ctx)
+    {
+        var fixes = new List<MapIssueFix>
+        {
+            new("Add Default Flat", map =>
             {
-                new MapIssueFix("Add Default Flat", map =>
-                {
-                    if (!map.Sectors.Contains(sector)) return false;
-                    if (ceiling) sector.SetCeilTexture(options.DefaultCeilingTexture);
-                    else sector.SetFloorTexture(options.DefaultFloorTexture);
-                    return true;
-                }),
-            },
+                if (!map.Sectors.Contains(sector)) return false;
+                if (ceiling) sector.SetCeilTexture(ctx.FixOptions.DefaultCeilingTexture);
+                else sector.SetFloorTexture(ctx.FixOptions.DefaultFloorTexture);
+                return true;
+            }),
         };
 
-    private static MapIssue UnknownFlatIssue(Sector sector, bool ceiling, MapIssueFixOptions options, string message)
-        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat, message)
+        if (ctx.BrowseFlat != null)
         {
-            Target = sector,
-            Fixes = new[]
+            fixes.Add(new MapIssueFix("Browse Flat...", map =>
             {
-                new MapIssueFix("Add Default Flat", map =>
-                {
-                    if (!map.Sectors.Contains(sector)) return false;
-                    if (ceiling) sector.SetCeilTexture(options.DefaultCeilingTexture);
-                    else sector.SetFloorTexture(options.DefaultFloorTexture);
-                    return true;
-                }),
-            },
-        };
+                if (!map.Sectors.Contains(sector)) return false;
+                string? flat = ctx.BrowseFlat(sector, ceiling);
+                if (IsBlank(flat)) return false;
+                if (ceiling) sector.SetCeilTexture(flat);
+                else sector.SetFloorTexture(flat);
+                return true;
+            }));
+        }
+
+        return fixes;
+    }
 
     private static string DefaultTexture(SidedefPart part, MapIssueFixOptions options) => part switch
     {
