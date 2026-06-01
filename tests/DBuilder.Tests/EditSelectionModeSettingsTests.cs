@@ -1,8 +1,8 @@
 // ABOUTME: Tests UDB BuilderModes edit-selection setting keys, defaults, and enum fallback behavior.
 // ABOUTME: Covers precise-position and sector height-adjust option persistence without UI.
 
-using DBuilder.Map;
 using DBuilder.Geometry;
+using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
@@ -61,5 +61,116 @@ public class EditSelectionModeSettingsTests
         double snapped = EditSelectionTransform.SnapRotationToUdbGrid(Angle2D.DegToRad(degrees));
 
         Assert.Equal(expectedDegrees, Angle2D.RadToDeg(snapped), 3);
+    }
+
+    [Fact]
+    public void AdjustSectorHeightsAppliesSelectedUdbFloorAndCeilingModes()
+    {
+        var sector = new Sector { FloorHeight = 8, CeilHeight = 96 };
+
+        EditSelectionTransform.AdjustSectorHeights(
+            new[] { sector },
+            EditSelectionHeightAdjustMode.AdjustFloors,
+            oldFloorHeight: 8,
+            oldCeilingHeight: 96,
+            outsideFloorHeight: 24,
+            outsideCeilingHeight: 128,
+            udmf: false);
+
+        Assert.Equal(24, sector.FloorHeight);
+        Assert.Equal(96, sector.CeilHeight);
+
+        EditSelectionTransform.AdjustSectorHeights(
+            new[] { sector },
+            EditSelectionHeightAdjustMode.AdjustCeilings,
+            oldFloorHeight: 24,
+            oldCeilingHeight: 96,
+            outsideFloorHeight: 40,
+            outsideCeilingHeight: 112,
+            udmf: false);
+
+        Assert.Equal(24, sector.FloorHeight);
+        Assert.Equal(112, sector.CeilHeight);
+    }
+
+    [Fact]
+    public void AdjustSectorHeightsLeavesSectorsUnchangedWithoutOutsideHeights()
+    {
+        var sector = new Sector { FloorHeight = 8, CeilHeight = 96 };
+
+        EditSelectionTransform.AdjustSectorHeights(
+            new[] { sector },
+            EditSelectionHeightAdjustMode.AdjustBoth,
+            oldFloorHeight: 8,
+            oldCeilingHeight: 96,
+            outsideFloorHeight: null,
+            outsideCeilingHeight: null,
+            udmf: false);
+
+        Assert.Equal(8, sector.FloorHeight);
+        Assert.Equal(96, sector.CeilHeight);
+    }
+
+    [Fact]
+    public void AdjustSectorHeightsMovesUdmfSlopeOffsets()
+    {
+        var sector = new Sector
+        {
+            FloorHeight = 0,
+            CeilHeight = 128,
+            FloorSlope = new Vector3D(1, 0, 1),
+            FloorSlopeOffset = 64,
+            CeilSlope = new Vector3D(0, 1, 1),
+            CeilSlopeOffset = 96,
+        };
+
+        EditSelectionTransform.AdjustSectorHeights(
+            new[] { sector },
+            EditSelectionHeightAdjustMode.AdjustBoth,
+            oldFloorHeight: 0,
+            oldCeilingHeight: 128,
+            outsideFloorHeight: 16,
+            outsideCeilingHeight: 160,
+            udmf: true);
+
+        Assert.Equal(16, sector.FloorHeight);
+        Assert.Equal(160, sector.CeilHeight);
+        Assert.Equal(64 - 16 * Math.Sin(sector.FloorSlope.GetAngleZ()), sector.FloorSlopeOffset, 6);
+        Assert.Equal(96 - 32 * Math.Sin(sector.CeilSlope.GetAngleZ()), sector.CeilSlopeOffset, 6);
+    }
+
+    [Fact]
+    public void AdjustSectorHeightsMovesTriangleVertexHeights()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(0, 64));
+        a.ZFloor = 1;
+        b.ZFloor = 2;
+        c.ZFloor = double.NaN;
+        a.ZCeiling = 10;
+        b.ZCeiling = 11;
+        c.ZCeiling = 12;
+        Sector sector = SectorBuilder.CreateSector(map, new[] { a, b, c })!;
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        map.BuildIndexes();
+
+        EditSelectionTransform.AdjustSectorHeights(
+            new[] { sector },
+            EditSelectionHeightAdjustMode.AdjustBoth,
+            oldFloorHeight: 0,
+            oldCeilingHeight: 128,
+            outsideFloorHeight: 8,
+            outsideCeilingHeight: 144,
+            udmf: true);
+
+        Assert.Equal(9, a.ZFloor);
+        Assert.Equal(10, b.ZFloor);
+        Assert.True(double.IsNaN(c.ZFloor));
+        Assert.Equal(26, a.ZCeiling);
+        Assert.Equal(27, b.ZCeiling);
+        Assert.Equal(28, c.ZCeiling);
     }
 }
