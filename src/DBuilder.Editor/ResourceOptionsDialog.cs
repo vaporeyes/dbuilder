@@ -29,13 +29,13 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         _location = AddField("Location", location.Location);
         _location.IsReadOnly = true;
         _strictPatches = AddCheckBox("Strict WAD patch namespace", _type == DataLocationType.Wad && location.Option1);
-        _rootTextures = AddCheckBox("Load root textures", _type == DataLocationType.Pk3 && location.Option1);
-        _rootFlats = AddCheckBox("Load root flats", _type == DataLocationType.Pk3 && location.Option2);
+        _rootTextures = AddCheckBox("Load root textures", SupportsRootImages(_type) && location.Option1);
+        _rootFlats = AddCheckBox("Load root flats", SupportsRootImages(_type) && location.Option2);
         _notForTesting = AddCheckBox("Exclude from Test Map launch", location.NotForTesting);
 
         _strictPatches.IsVisible = _type == DataLocationType.Wad;
-        _rootTextures.IsVisible = _type == DataLocationType.Pk3;
-        _rootFlats.IsVisible = _type == DataLocationType.Pk3;
+        _rootTextures.IsVisible = SupportsRootImages(_type);
+        _rootFlats.IsVisible = SupportsRootImages(_type);
     }
 
     protected override void OnConfirm()
@@ -43,7 +43,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         string path = _location.Text?.Trim() ?? "";
         var location = new DataLocation(_type, path);
         if (_type == DataLocationType.Wad) location.Option1 = _strictPatches.IsChecked == true;
-        if (_type == DataLocationType.Pk3)
+        if (SupportsRootImages(_type))
         {
             location.Option1 = _rootTextures.IsChecked == true;
             location.Option2 = _rootFlats.IsChecked == true;
@@ -59,4 +59,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         DataLocationType.Directory => "Directory",
         _ => type.ToString(),
     };
+
+    private static bool SupportsRootImages(DataLocationType type)
+        => type is DataLocationType.Pk3 or DataLocationType.Directory;
 }

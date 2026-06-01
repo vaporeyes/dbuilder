@@ -503,7 +503,7 @@ public partial class MainWindow : Window
         SetStatus("Map closed.");
     }
 
-    // Adds a base resource (IWAD or PK3) beneath the current map's WAD so its textures/flats/sprites resolve.
+    // Adds a base resource beneath the current map's WAD so its textures/flats/sprites resolve.
     private async void OnAddResource(object? sender, RoutedEventArgs e)
     {
         if (_resources is null) { SetStatus("Open a WAD first."); return; }
@@ -517,7 +517,29 @@ public partial class MainWindow : Window
         });
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
 
-        var options = new ResourceOptionsDialog(new DataLocation(DataLocation.InferType(path), path));
+        await AddResourceLocation(new DataLocation(DataLocation.InferType(path), path));
+    }
+
+    private async void OnAddResourceDirectory(object? sender, RoutedEventArgs e)
+    {
+        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var folders = await top.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Add Resource Directory",
+            AllowMultiple = false,
+        });
+        if (folders.Count == 0 || folders[0].TryGetLocalPath() is not { } path) return;
+
+        await AddResourceLocation(new DataLocation(DataLocationType.Directory, path));
+    }
+
+    private async Task AddResourceLocation(DataLocation resource)
+    {
+        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+
+        var options = new ResourceOptionsDialog(resource);
         if (!await options.ShowDialog<bool>(this)) return;
         var location = options.ResultLocation;
 
