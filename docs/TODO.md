@@ -753,6 +753,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port flags and bit flags dialogs.
   - [x] Add selected thing/linedef named UDMF flags dialog.
   - [x] Add selected sector named UDMF flags dialog with configured sector and portal flags.
+  - [x] Add front and back sidedef flag editing in the linedef property dialog.
 - [ ] Port custom fields dialog.
   - [x] Add generic selected-element custom UDMF fields dialog.
 - [ ] Port map options dialog.

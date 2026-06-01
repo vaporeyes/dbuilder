@@ -1115,12 +1115,16 @@ public partial class MainWindow : Window
                     front.HighTexture = dlg.ResultFrontHighTex ?? front.HighTexture;
                     front.MidTexture = dlg.ResultFrontMidTex ?? front.MidTexture;
                     front.LowTexture = dlg.ResultFrontLowTex ?? front.LowTexture;
+                    if (dlg.ResultFrontSidedefFlags != null)
+                        UdmfFlagChoices.ApplyFlags(front.UdmfFlags, dlg.ResultFrontSidedefFlags);
                 }
                 if (l.Back is { } back)
                 {
                     back.HighTexture = dlg.ResultBackHighTex ?? back.HighTexture;
                     back.MidTexture = dlg.ResultBackMidTex ?? back.MidTexture;
                     back.LowTexture = dlg.ResultBackLowTex ?? back.LowTexture;
+                    if (dlg.ResultBackSidedefFlags != null)
+                        UdmfFlagChoices.ApplyFlags(back.UdmfFlags, dlg.ResultBackSidedefFlags);
                 }
                 Array.Copy(dlg.ResultArgs, l.Args, l.Args.Length);
                 ApplyFields(l.Fields, dlg.ResultFields);

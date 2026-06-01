@@ -28,6 +28,18 @@ public class UdmfFlagChoicesTests
     }
 
     [Fact]
+    public void KnownSidedefFlagsIncludeConfiguredAndCurrentFlags()
+    {
+        var config = GameConfiguration.FromText("""sidedefflags { lightabsolute = "Absolute light"; }""");
+        var side = new Sidedef();
+        side.UdmfFlags.Add("customside");
+
+        var known = UdmfFlagChoices.KnownSidedefFlags(config, side);
+
+        Assert.Equal(new[] { "customside", "lightabsolute" }, known);
+    }
+
+    [Fact]
     public void KnownLinedefAndThingFlagsIncludeCurrentAndTranslatedFlags()
     {
         var config = GameConfiguration.FromText("""

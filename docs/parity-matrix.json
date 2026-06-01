@@ -86,7 +86,7 @@
       "udbArea": "Source/Core/Properties",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Basic thing, linedef, sector, sidedef, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef sidedef texture fields, sector flat fields, and selected linedef, thing, and sector UDMF flag editing. Full UDB property panel and field editor parity remains incomplete."
+      "notes": "Basic thing, linedef, sector, sidedef, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef sidedef texture fields, sector flat fields, and selected linedef, thing, sector, and sidedef UDMF flag editing. Full UDB property panel and field editor parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Rendering",

@@ -38,6 +38,12 @@ public static class UdmfFlagChoices
                     .Concat(config.FloorPortalFlags.Keys));
     }
 
+    public static IReadOnlyList<string> KnownSidedefFlags(GameConfiguration? config, Sidedef sidedef)
+    {
+        ArgumentNullException.ThrowIfNull(sidedef);
+        return OrderedKnownFlags(sidedef.UdmfFlags, config?.SidedefFlags.Keys ?? Array.Empty<string>());
+    }
+
     public static void ApplyFlags(HashSet<string> target, IEnumerable<string> result)
     {
         ArgumentNullException.ThrowIfNull(target);

@@ -30,6 +30,23 @@ public sealed class FlagChecks
     }
 }
 
+public sealed class StringFlagChecks
+{
+    private readonly Dictionary<string, CheckBox> _boxes = new(StringComparer.OrdinalIgnoreCase);
+    public void Add(string flag, CheckBox box) => _boxes[flag] = box;
+
+    public HashSet<string> Value
+    {
+        get
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (flag, box) in _boxes)
+                if (box.IsChecked == true) result.Add(flag);
+            return result;
+        }
+    }
+}
+
 /// <summary>Up to 5 per-arg editors (combo for enum args, text box otherwise) that recombine into an int[5] on demand.</summary>
 public sealed class ArgEditors
 {
@@ -239,6 +256,21 @@ public abstract class PropertyDialog : Window
         }
         _rows.Children.Insert(_rows.Children.Count - 1, panel);
         return fc;
+    }
+
+    protected StringFlagChecks AddStringFlagChecks(string label, IEnumerable<string> flags, IReadOnlySet<string> current)
+    {
+        var checks = new StringFlagChecks();
+        var panel = new StackPanel { Spacing = 1 };
+        panel.Children.Add(new TextBlock { Text = label, Margin = new Avalonia.Thickness(0, 2, 0, 2) });
+        foreach (string flag in flags.Where(flag => !string.IsNullOrWhiteSpace(flag)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(flag => flag, StringComparer.OrdinalIgnoreCase))
+        {
+            var cb = new CheckBox { Content = flag, IsChecked = current.Contains(flag), Padding = new Avalonia.Thickness(4, 0) };
+            checks.Add(flag, cb);
+            panel.Children.Add(cb);
+        }
+        _rows.Children.Insert(_rows.Children.Count - 1, panel);
+        return checks;
     }
 
     // Adds up to 5 labeled arg editors driven by action/thing argument metadata: a dropdown for
@@ -529,6 +561,7 @@ public sealed class LinedefEditDialog : PropertyDialog
     private readonly TextBox? _frontHighTex, _frontMidTex, _frontLowTex;
     private readonly TextBox? _backHighTex, _backMidTex, _backLowTex;
     private readonly FlagChecks? _flagChecks;
+    private readonly StringFlagChecks? _frontSidedefFlags, _backSidedefFlags;
     private readonly TextBox? _flagsBox;
     private readonly ArgEditors? _args;
     private readonly UniversalFieldEditors? _fieldEditors;
@@ -538,6 +571,7 @@ public sealed class LinedefEditDialog : PropertyDialog
     public int[] ResultArgs;
     public string? ResultFrontHighTex, ResultFrontMidTex, ResultFrontLowTex;
     public string? ResultBackHighTex, ResultBackMidTex, ResultBackLowTex;
+    public HashSet<string>? ResultFrontSidedefFlags, ResultBackSidedefFlags;
     public Dictionary<string, object> ResultFields = new();
 
     public LinedefEditDialog(Linedef l, GameConfiguration? config, ResourceManager? resources = null) : base("Edit Linedef")
@@ -558,12 +592,18 @@ public sealed class LinedefEditDialog : PropertyDialog
             _frontHighTex = AddLinedefTextureField("Front upper texture", front.HighTexture, resources);
             _frontMidTex = AddLinedefTextureField("Front middle texture", front.MidTexture, resources);
             _frontLowTex = AddLinedefTextureField("Front lower texture", front.LowTexture, resources);
+            var frontFlags = UdmfFlagChoices.KnownSidedefFlags(config, front);
+            if (frontFlags.Count > 0)
+                _frontSidedefFlags = AddStringFlagChecks("Front sidedef flags", frontFlags, front.UdmfFlags);
         }
         if (l.Back is { } back)
         {
             _backHighTex = AddLinedefTextureField("Back upper texture", back.HighTexture, resources);
             _backMidTex = AddLinedefTextureField("Back middle texture", back.MidTexture, resources);
             _backLowTex = AddLinedefTextureField("Back lower texture", back.LowTexture, resources);
+            var backFlags = UdmfFlagChoices.KnownSidedefFlags(config, back);
+            if (backFlags.Count > 0)
+                _backSidedefFlags = AddStringFlagChecks("Back sidedef flags", backFlags, back.UdmfFlags);
         }
 
         _args = AddArgEditors(config, config?.GetLinedefAction(l.Action)?.Args ?? Array.Empty<ArgInfo>(), l.Args);
@@ -593,6 +633,8 @@ public sealed class LinedefEditDialog : PropertyDialog
         ResultBackHighTex = TextureValue(_backHighTex);
         ResultBackMidTex = TextureValue(_backMidTex);
         ResultBackLowTex = TextureValue(_backLowTex);
+        ResultFrontSidedefFlags = _frontSidedefFlags?.Value;
+        ResultBackSidedefFlags = _backSidedefFlags?.Value;
         ResultFlags = _flagChecks != null ? _flagChecks.Value : ParseInt(_flagsBox!, 0);
         if (_args != null) ResultArgs = _args.Read(ResultArgs);
         ResultFields = UdmfFields.Parse(_custom.Text);
