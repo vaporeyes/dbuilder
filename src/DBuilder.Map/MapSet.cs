@@ -96,6 +96,8 @@ public class MapSet : IDisposable
                 line.Back.Other = line.Front;
             }
         }
+
+        foreach (var sector in Sectors) sector.UpdateBBox();
     }
 
     // ============================================================

@@ -3,11 +3,15 @@
 
 namespace DBuilder.Map;
 
+using System.Drawing;
 using DBuilder.Geometry;
 
 public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IMultiTaggedMapElement
 {
+    private RectangleF bbox;
+
     public int Index { get; set; }
+    public RectangleF BBox => bbox;
 
     /// <summary>True after this element has been removed from its owning map.</summary>
     public bool IsDisposed { get; set; }
@@ -173,7 +177,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public bool Intersect(Vector2D point, bool countOnTopAsTrue)
     {
         if (Sidedefs.Count == 0) return false;
-        if (!ContainsBoundingBox(point)) return false;
+        if (point.x < bbox.Left || point.x > bbox.Right || point.y < bbox.Top || point.y > bbox.Bottom) return false;
 
         uint crossings = 0;
         bool selfReferencing = true;
@@ -204,8 +208,13 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
             : crossings % 2 != 0;
     }
 
-    private bool ContainsBoundingBox(Vector2D point)
+    public void UpdateBBox()
+        => bbox = CreateBBox();
+
+    private RectangleF CreateBBox()
     {
+        if (Sidedefs.Count == 0) return new RectangleF();
+
         double left = double.MaxValue;
         double top = double.MaxValue;
         double right = double.MinValue;
@@ -218,7 +227,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
             AddVertex(side.Line.End);
         }
 
-        return point.x >= left && point.x <= right && point.y >= top && point.y <= bottom;
+        return new RectangleF((float)left, (float)top, (float)(right - left), (float)(bottom - top));
 
         void AddVertex(Vertex vertex)
         {

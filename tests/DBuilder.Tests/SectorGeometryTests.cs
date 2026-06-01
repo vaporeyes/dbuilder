@@ -3,6 +3,7 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -42,6 +43,42 @@ public class SectorGeometryTests
         var sector = new Sector();
 
         Assert.False(sector.Intersect(new Vector2D(0, 0)));
+    }
+
+    [Fact]
+    public void BuildIndexesUpdatesSectorBoundingBox()
+    {
+        var (sector, _) = BuildSquareSector(selfReferencing: false);
+
+        Assert.Equal(new RectangleF(0, 0, 64, 64), sector.BBox);
+    }
+
+    [Fact]
+    public void UpdateBBoxCreatesUniqueVertexBounds()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(-8, 4));
+        var b = map.AddVertex(new Vector2D(24, 4));
+        var c = map.AddVertex(new Vector2D(24, 40));
+        var d = map.AddVertex(new Vector2D(-8, 40));
+        map.AddSidedef(map.AddLinedef(a, b), true, sector);
+        map.AddSidedef(map.AddLinedef(b, c), true, sector);
+        map.AddSidedef(map.AddLinedef(c, d), true, sector);
+        map.AddSidedef(map.AddLinedef(d, a), true, sector);
+        map.BuildIndexes();
+
+        Assert.Equal(new RectangleF(-8, 4, 32, 36), sector.BBox);
+    }
+
+    [Fact]
+    public void EmptySectorBoundingBoxMatchesUdbDefault()
+    {
+        var sector = new Sector();
+
+        sector.UpdateBBox();
+
+        Assert.Equal(new RectangleF(), sector.BBox);
     }
 
     private static (Sector Sector, MapSet Map) BuildSquareSector(bool selfReferencing)
