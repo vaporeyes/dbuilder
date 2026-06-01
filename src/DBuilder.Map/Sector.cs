@@ -167,6 +167,70 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public void SetCeilTexture(string? name)
         => CeilTexture = NormalizeTextureName(name);
 
+    public bool Intersect(Vector2D point)
+        => Intersect(point, countOnTopAsTrue: true);
+
+    public bool Intersect(Vector2D point, bool countOnTopAsTrue)
+    {
+        if (Sidedefs.Count == 0) return false;
+        if (!ContainsBoundingBox(point)) return false;
+
+        uint crossings = 0;
+        bool selfReferencing = true;
+
+        foreach (Sidedef side in Sidedefs)
+        {
+            Vector2D v1 = side.Line.Start.Position;
+            Vector2D v2 = side.Line.End.Position;
+
+            if (point == v1 || point == v2) return countOnTopAsTrue;
+
+            if (side.Other == null || side.Other.Sector != this)
+                selfReferencing = false;
+
+            if (v1.y != v2.y
+                && point.y > (v1.y < v2.y ? v1.y : v2.y)
+                && point.y <= (v1.y > v2.y ? v1.y : v2.y)
+                && (point.x < (v1.x < v2.x ? v1.x : v2.x)
+                    || (point.x <= (v1.x > v2.x ? v1.x : v2.x)
+                        && (v1.x == v2.x || point.x <= (point.y - v1.y) * (v2.x - v1.x) / (v2.y - v1.y) + v1.x))))
+            {
+                crossings++;
+            }
+        }
+
+        return selfReferencing
+            ? crossings % 2 == 0
+            : crossings % 2 != 0;
+    }
+
+    private bool ContainsBoundingBox(Vector2D point)
+    {
+        double left = double.MaxValue;
+        double top = double.MaxValue;
+        double right = double.MinValue;
+        double bottom = double.MinValue;
+        var processed = new HashSet<Vertex>();
+
+        foreach (Sidedef side in Sidedefs)
+        {
+            AddVertex(side.Line.Start);
+            AddVertex(side.Line.End);
+        }
+
+        return point.x >= left && point.x <= right && point.y >= top && point.y <= bottom;
+
+        void AddVertex(Vertex vertex)
+        {
+            if (!processed.Add(vertex)) return;
+            Vector2D position = vertex.Position;
+            if (position.x < left) left = position.x;
+            if (position.y < top) top = position.y;
+            if (position.x > right) right = position.x;
+            if (position.y > bottom) bottom = position.y;
+        }
+    }
+
     /// <summary>All sidedefs belonging to this sector. Populated by MapSet.BuildIndexes().</summary>
     public List<Sidedef> Sidedefs { get; } = new();
 
