@@ -696,6 +696,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.
+  - [x] Clamp persisted grid background scale when reading map options.
 - [ ] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
   - [x] Integrate configured things filters into the existing thing filter window.

@@ -76,6 +76,20 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void ReadBackgroundScaleClampsToUdbPercentRange()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.WriteSetting("grid.backscalex", 0);
+        configuration.WriteSetting("grid.backscaley", 25000);
+
+        var grid = new GridSetup();
+        grid.ReadFromConfig(configuration, "grid");
+
+        Assert.Equal(GridSetup.MinimumBackgroundScale, grid.BackgroundScaleX);
+        Assert.Equal(GridSetup.MaximumBackgroundScale, grid.BackgroundScaleY);
+    }
+
+    [Fact]
     public void SetGridSizeClampsToMinimumAndRoundsDisplaySize()
     {
         var grid = new GridSetup();

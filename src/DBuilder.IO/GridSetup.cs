@@ -59,8 +59,8 @@ public sealed class GridSetup
         BackgroundSource = configuration.ReadSetting(path + ".backsource", 0);
         BackgroundX = configuration.ReadSetting(path + ".backoffsetx", 0);
         BackgroundY = configuration.ReadSetting(path + ".backoffsety", 0);
-        BackgroundScaleX = configuration.ReadSetting(path + ".backscalex", 100) / 100.0;
-        BackgroundScaleY = configuration.ReadSetting(path + ".backscaley", 100) / 100.0;
+        BackgroundScaleX = ClampBackgroundScale(configuration.ReadSetting(path + ".backscalex", 100) / 100.0);
+        BackgroundScaleY = ClampBackgroundScale(configuration.ReadSetting(path + ".backscaley", 100) / 100.0);
         GridOriginX = configuration.ReadSetting(path + ".gridoriginx", 0.0);
         GridOriginY = configuration.ReadSetting(path + ".gridoriginy", 0.0);
         GridRotate = configuration.ReadSetting(path + ".gridrotate", 0.0);
