@@ -1010,6 +1010,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.
   - [x] Add UDB-style in-session step and relative-mode defaults.
   - [x] Add UDB-style Tag Range form title, end-tag preview, and warning state model.
+  - [x] Add UDB-style Tag Range action, toolbar, dialog label, warning, and undo text metadata.
 - [ ] Port `UDBScript`.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.

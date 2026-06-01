@@ -22,7 +22,7 @@ public sealed class TagRangeDialog : PropertyDialog
     public TagRangeOptions ResultOptions { get; private set; }
 
     public TagRangeDialog(TagRangeTargetKind target, int startTag)
-        : base("Tag Range")
+        : base(TagRangeModel.ToolWindowTitle)
     {
         ResultTarget = target;
         ResultOptions = new TagRangeOptions(startTag, storedOptions.Step, storedOptions.Relative, SkipUsedTags: false);
@@ -36,11 +36,11 @@ public sealed class TagRangeDialog : PropertyDialog
                 new CatalogItem((int)TagRangeTargetKind.Things, "Things"),
             },
             (int)target);
-        _startTag = AddField("Start tag", startTag.ToString(CultureInfo.InvariantCulture));
-        _step = AddField("Step", storedOptions.Step.ToString(CultureInfo.InvariantCulture));
+        _startTag = AddField(TagRangeModel.StartTagLabel, startTag.ToString(CultureInfo.InvariantCulture));
+        _step = AddField(TagRangeModel.IncrementLabel, storedOptions.Step.ToString(CultureInfo.InvariantCulture));
         _maxTag = AddField("Max tag", int.MaxValue.ToString(CultureInfo.InvariantCulture));
-        _relative = AddCheckBox("Relative to existing tags", storedOptions.Relative);
-        _skipUsedTags = AddCheckBox("Skip used tags", false);
+        _relative = AddCheckBox(TagRangeModel.RelativeModeText, storedOptions.Relative);
+        _skipUsedTags = AddCheckBox(TagRangeModel.SkipUsedTagsText, false);
     }
 
     protected override void OnConfirm()

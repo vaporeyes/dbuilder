@@ -8,6 +8,29 @@ namespace DBuilder.Tests;
 
 public sealed class TagRangeModelTests
 {
+    [Fact]
+    public void MetadataMatchesUdbActionButtonAndDialogText()
+    {
+        Assert.Equal("rangetagselection", TagRangeModel.ActionName);
+        Assert.Equal("Tag Range", TagRangeModel.ToolWindowTitle);
+        Assert.Equal("Tag Range", TagRangeModel.ToolButtonText);
+        Assert.Equal("Tag Selected Range", TagRangeModel.FormDesignerTitle);
+        Assert.Equal("Start Tag:", TagRangeModel.StartTagLabel);
+        Assert.Equal("Increment:", TagRangeModel.IncrementLabel);
+        Assert.Equal("End Tag:", TagRangeModel.EndTagLabel);
+        Assert.Equal("Relative to existing tags", TagRangeModel.RelativeModeText);
+        Assert.Equal("Skip over already used tags", TagRangeModel.SkipUsedTagsText);
+        Assert.Equal("Warning: The tag range contains already used tags.", TagRangeModel.DuplicateWarningText);
+        Assert.Equal(
+            "The range exceeds the maximum or minimum allowed tags and cannot be created.",
+            TagRangeModel.OutOfTagsWarningText);
+        Assert.Equal(
+            "The range exceeds the maximum allowed tags and cannot be created.",
+            TagRangeModel.OutOfTagsMessage);
+        Assert.Equal("OK", TagRangeModel.OkText);
+        Assert.Equal("Cancel", TagRangeModel.CancelText);
+    }
+
     [Theory]
     [InlineData("SectorsMode", false, false, true)]
     [InlineData("LinedefsMode", true, false, true)]
@@ -33,6 +56,15 @@ public sealed class TagRangeModelTests
         Assert.False(TagRangeModel.HasSelection(0));
         Assert.True(TagRangeModel.HasSelection(1));
         Assert.Equal("This action requires a selection!", TagRangeModel.NoSelectionWarning);
+    }
+
+    [Theory]
+    [InlineData(TagRangeTargetKind.Sectors, 2, "Set 2 sector tags")]
+    [InlineData(TagRangeTargetKind.Linedefs, 1, "Set 1 linedef tags")]
+    [InlineData(TagRangeTargetKind.Things, 3, "Set 3 thing tags")]
+    public void UndoDescriptionMatchesUdbText(TagRangeTargetKind target, int selectionCount, string expected)
+    {
+        Assert.Equal(expected, TagRangeModel.UndoDescription(target, selectionCount));
     }
 
     [Fact]

@@ -39,6 +39,20 @@ public sealed record TagRangeFormatCapabilities(
 
 public static class TagRangeModel
 {
+    public const string ActionName = "rangetagselection";
+    public const string ToolWindowTitle = "Tag Range";
+    public const string ToolButtonText = "Tag Range";
+    public const string FormDesignerTitle = "Tag Selected Range";
+    public const string StartTagLabel = "Start Tag:";
+    public const string IncrementLabel = "Increment:";
+    public const string EndTagLabel = "End Tag:";
+    public const string RelativeModeText = "Relative to existing tags";
+    public const string SkipUsedTagsText = "Skip over already used tags";
+    public const string DuplicateWarningText = "Warning: The tag range contains already used tags.";
+    public const string OutOfTagsWarningText = "The range exceeds the maximum or minimum allowed tags and cannot be created.";
+    public const string OutOfTagsMessage = "The range exceeds the maximum allowed tags and cannot be created.";
+    public const string OkText = "OK";
+    public const string CancelText = "Cancel";
     public const string NoSelectionWarning = "This action requires a selection!";
 
     public static bool ShouldShowToolbarButton(string? modeName, TagRangeFormatCapabilities capabilities)
@@ -202,6 +216,19 @@ public static class TagRangeModel
         }
 
         return index;
+    }
+
+    public static string UndoDescription(TagRangeTargetKind target, int selectionCount)
+    {
+        string name = target switch
+        {
+            TagRangeTargetKind.Sectors => "sector",
+            TagRangeTargetKind.Linedefs => "linedef",
+            TagRangeTargetKind.Things => "thing",
+            _ => "element",
+        };
+
+        return "Set " + selectionCount + " " + name + " tags";
     }
 
     private static bool OutsideRange(int tag, TagRangeOptions options)
