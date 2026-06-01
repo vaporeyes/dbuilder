@@ -571,6 +571,37 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void CollectMapAddsResolvedThreeDFloorFlatsAndSideSurfaces()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0);
+        Sector control = AddSquareSector(map, 128);
+        target.Tag = 7;
+        control.FloorHeight = 24;
+        control.CeilHeight = 64;
+        control.FloorTexture = "BOTTOM3D";
+        control.CeilTexture = "TOP3D";
+        Linedef action = control.Sidedefs[0].Line;
+        action.Action = ThreeDFloors.Sector3DFloorAction;
+        action.Args[0] = 7;
+        action.Front!.MidTexture = "SIDE3D";
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+
+        WavefrontGeometryCollection collection = WavefrontGeometryCollector.Collect(map, [target], settings);
+
+        Assert.True(collection.Valid);
+        Assert.Contains("SIDE3D", collection.Textures);
+        Assert.Contains("BOTTOM3D", collection.Flats);
+        Assert.Contains("TOP3D", collection.Flats);
+        Assert.Equal(8, collection.GeometryByTexture[0]["SIDE3D"].Count);
+        Assert.Contains(collection.GeometryByTexture[1]["BOTTOM3D"].SelectMany(group => group), vertex => vertex.Z == 24);
+        Assert.Contains(collection.GeometryByTexture[1]["TOP3D"].SelectMany(group => group), vertex => vertex.Z == 64);
+    }
+
+    [Fact]
     public void CollectReportsNoVisualSectorsWhenAllSectorsAreFiltered()
     {
         var map = new MapSet();

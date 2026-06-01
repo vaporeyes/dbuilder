@@ -461,6 +461,18 @@ public static class WavefrontGeometryCollector
     public static WavefrontGeometryCollection Collect(
         IEnumerable<Sector> sectors,
         WavefrontExportSettings settings)
+        => Collect(sectors, settings, floorsBySector: null);
+
+    public static WavefrontGeometryCollection Collect(
+        MapSet map,
+        IEnumerable<Sector> sectors,
+        WavefrontExportSettings settings)
+        => Collect(sectors, settings, ThreeDFloors.Resolve(map, udmf: true));
+
+    private static WavefrontGeometryCollection Collect(
+        IEnumerable<Sector> sectors,
+        WavefrontExportSettings settings,
+        IReadOnlyDictionary<Sector, List<ThreeDFloor>>? floorsBySector)
     {
         var textureGeometry = new Dictionary<string, List<WavefrontSurfaceVertex[]>>(StringComparer.Ordinal);
         var flatGeometry = new Dictionary<string, List<WavefrontSurfaceVertex[]>>(StringComparer.Ordinal);
@@ -478,6 +490,8 @@ public static class WavefrontGeometryCollector
             visualSectorCount++;
             AddFloorAndCeilingGeometry(sector, settings, flatGeometry);
             AddWallGeometry(sector, settings, textureGeometry);
+            if (floorsBySector?.TryGetValue(sector, out List<ThreeDFloor>? floors) == true)
+                AddThreeDFloorGeometry(sector, floors, settings, textureGeometry, flatGeometry);
         }
 
         if (visualSectorCount == 0)
@@ -509,6 +523,27 @@ public static class WavefrontGeometryCollector
         string productVersion = "")
     {
         WavefrontGeometryCollection collection = Collect(sectors, settings);
+        if (!collection.Valid) return string.Empty;
+
+        string obj = WavefrontGeometryExporter.CreateObjGeometry(collection.GeometryByTexture, settings);
+        if (obj.Length == 0) return string.Empty;
+
+        settings.Textures = collection.Textures;
+        settings.Flats = collection.Flats;
+        settings.Obj = BuildHeader(mapTitle, levelName, productVersion) + obj;
+        settings.Valid = true;
+        return settings.Obj;
+    }
+
+    public static string CreateObjFromMap(
+        MapSet map,
+        IEnumerable<Sector> sectors,
+        WavefrontExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        WavefrontGeometryCollection collection = Collect(map, sectors, settings);
         if (!collection.Valid) return string.Empty;
 
         string obj = WavefrontGeometryExporter.CreateObjGeometry(collection.GeometryByTexture, settings);
@@ -582,6 +617,78 @@ public static class WavefrontGeometryCollector
         }
     }
 
+    private static void AddThreeDFloorGeometry(
+        Sector sector,
+        IReadOnlyList<ThreeDFloor> floors,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> textureGeometry,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> flatGeometry)
+    {
+        foreach (ThreeDFloor floor in floors)
+        {
+            AddThreeDFloorFlats(sector, floor, settings, flatGeometry);
+            AddThreeDFloorSides(sector, floor, settings, textureGeometry);
+        }
+    }
+
+    private static void AddThreeDFloorFlats(
+        Sector sector,
+        ThreeDFloor floor,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> flatGeometry)
+    {
+        Triangulation triangulation = Triangulation.Create(sector);
+        for (int i = 0; i + 2 < triangulation.Vertices.Count; i += 3)
+        {
+            string topFlat = floor.TopFlat;
+            if (!settings.SkipTextures.Contains(topFlat))
+            {
+                WavefrontExportSettings.EnsureMaterial(flatGeometry, ref topFlat);
+                flatGeometry[topFlat].Add(
+                [
+                    FlatVertex(floor.Control, triangulation.Vertices[i], floor: false),
+                    FlatVertex(floor.Control, triangulation.Vertices[i + 1], floor: false),
+                    FlatVertex(floor.Control, triangulation.Vertices[i + 2], floor: false),
+                ]);
+            }
+
+            string bottomFlat = floor.BottomFlat;
+            if (!settings.SkipTextures.Contains(bottomFlat))
+            {
+                WavefrontExportSettings.EnsureMaterial(flatGeometry, ref bottomFlat);
+                flatGeometry[bottomFlat].Add(
+                [
+                    FlatVertex(floor.Control, triangulation.Vertices[i + 2], floor: true),
+                    FlatVertex(floor.Control, triangulation.Vertices[i + 1], floor: true),
+                    FlatVertex(floor.Control, triangulation.Vertices[i], floor: true),
+                ]);
+            }
+        }
+    }
+
+    private static void AddThreeDFloorSides(
+        Sector sector,
+        ThreeDFloor floor,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> textureGeometry)
+    {
+        string texture = floor.SideTexture;
+        if (settings.SkipTextures.Contains(texture)) return;
+
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            Vector2D start = side.IsFront ? side.Line.Start.Position : side.Line.End.Position;
+            Vector2D end = side.IsFront ? side.Line.End.Position : side.Line.Start.Position;
+            double startBottom = floor.Control.GetFloorZ(start);
+            double endBottom = floor.Control.GetFloorZ(end);
+            double startTop = floor.Control.GetCeilZ(start);
+            double endTop = floor.Control.GetCeilZ(end);
+            if (startTop <= startBottom && endTop <= endBottom) continue;
+
+            AddWallQuad(side, settings, textureGeometry, texture, start, end, startBottom, endBottom, startTop, endTop, skipRectangleOptimization: true);
+        }
+    }
+
     private static void AddWallPart(
         Sidedef side,
         WavefrontExportSettings settings,
@@ -597,6 +704,22 @@ public static class WavefrontGeometryCollector
         (double endBottom, double endTop) = WallPartHeights(side, part, end);
         if (startTop <= startBottom && endTop <= endBottom) return;
 
+        AddWallQuad(side, settings, textureGeometry, texture, start, end, startBottom, endBottom, startTop, endTop, skipRectangleOptimization: false);
+    }
+
+    private static void AddWallQuad(
+        Sidedef side,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> textureGeometry,
+        string texture,
+        Vector2D start,
+        Vector2D end,
+        double startBottom,
+        double endBottom,
+        double startTop,
+        double endTop,
+        bool skipRectangleOptimization)
+    {
         WavefrontExportSettings.EnsureMaterial(textureGeometry, ref texture);
         var vertices = new List<WavefrontSurfaceVertex>
         {
@@ -608,7 +731,7 @@ public static class WavefrontGeometryCollector
             WallVertex(side, start, startTop, u: 0, v: (float)startTop),
         };
 
-        textureGeometry[texture].AddRange(WavefrontGeometryExporter.OptimizeGeometry(vertices, WavefrontSurfaceType.Wall));
+        textureGeometry[texture].AddRange(WavefrontGeometryExporter.OptimizeGeometry(vertices, WavefrontSurfaceType.Wall, skipRectangleOptimization));
     }
 
     private static (double Bottom, double Top) WallPartHeights(Sidedef side, SidedefPart part, Vector2D position)

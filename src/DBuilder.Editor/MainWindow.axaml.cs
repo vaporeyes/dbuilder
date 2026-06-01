@@ -3551,7 +3551,8 @@ public partial class MainWindow : Window
         }
 
         WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(options);
-        string obj = WavefrontGeometryCollector.CreateObjFromSectors(
+        string obj = WavefrontGeometryCollector.CreateObjFromMap(
+            _map,
             preflight.Sectors,
             settings,
             System.IO.Path.GetFileName(_wadPath ?? _pk3Path ?? "untitled"),
