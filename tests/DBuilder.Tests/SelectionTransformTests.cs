@@ -75,6 +75,40 @@ public class SelectionTransformTests
     }
 
     [Fact]
+    public void RotateArbitraryAngleMovesSelectionAndTurnsThing()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        a.Selected = true;
+        b.Selected = true;
+        var thing = map.AddThing(new Vector2D(10, 0), 1);
+        thing.Angle = 0;
+        thing.Selected = true;
+
+        Assert.True(SelectionTransform.Rotate(map, Angle2D.DegToRad(45)));
+
+        Assert.Equal(8.536, b.Position.x, 3);
+        Assert.Equal(3.536, b.Position.y, 3);
+        Assert.Equal(45, thing.Angle);
+    }
+
+    [Fact]
+    public void RotateCanUseUdbGridSnap()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        a.Selected = true;
+        b.Selected = true;
+
+        SelectionTransform.Rotate(map, Angle2D.DegToRad(44), snapToUdbGrid: true);
+
+        Assert.Equal(8.536, b.Position.x, 3);
+        Assert.Equal(3.536, b.Position.y, 3);
+    }
+
+    [Fact]
     public void NoSelectionReturnsFalse()
     {
         var map = new MapSet();

@@ -1,4 +1,4 @@
-// ABOUTME: Geometric transforms (flip, rotate 90, scale) over the current selection about its bounding-box center.
+// ABOUTME: Geometric transforms (flip, rotate, scale) over the current selection about its bounding-box center.
 // ABOUTME: Moves the implied vertices and selected things, adjusting thing angles for flips/rotations.
 
 using System.Collections.Generic;
@@ -36,6 +36,25 @@ public static class SelectionTransform
         return true;
     }
 
+    public static bool Rotate(MapSet map, double radians, bool snapToUdbGrid = false)
+    {
+        var verts = map.SelectedGeometryVertices();
+        var things = map.GetSelectedThings();
+        if (verts.Count == 0 && things.Count == 0) return false;
+
+        double rotation = snapToUdbGrid ? EditSelectionTransform.SnapRotationToUdbGrid(radians) : radians;
+        var (cx, cy) = Center(verts, things);
+        var center = new Vector2D(cx, cy);
+        foreach (var v in verts) v.Position = RotatePoint(v.Position, center, rotation);
+        foreach (var t in things)
+        {
+            t.Position = RotatePoint(t.Position, center, rotation);
+            t.Angle = Angle2D.RealToDoom(Angle2D.Normalized(Angle2D.DoomToReal(t.Angle) + rotation));
+        }
+
+        return true;
+    }
+
     private static (double cx, double cy) Center(HashSet<Vertex> verts, List<Thing> things)
     {
         double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
@@ -58,6 +77,9 @@ public static class SelectionTransform
         Op.RotateCW => new Vector2D(cx + (p.y - cy), cy - (p.x - cx)),
         _ => p,
     };
+
+    private static Vector2D RotatePoint(Vector2D point, Vector2D center, double rotation)
+        => (point - center).GetRotated(rotation) + center;
 
     private static int Angle(int a, Op op)
     {
