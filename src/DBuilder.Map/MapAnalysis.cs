@@ -1285,7 +1285,7 @@ public static class MapAnalysis
             double len = (l.End.Position - l.Start.Position).GetLength();
             if (len < ctx.ShortLinedefLength)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
-                    $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} map unit.")
+                    $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} mu.")
                     { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
         }
     }
@@ -1740,10 +1740,10 @@ public static class MapAnalysis
         if (!tooWide && !tooHigh) return;
 
         string message = tooWide && tooHigh
-            ? $"Map width and height exceed the safe boundary of {ctx.SafeBoundary} map units."
+            ? $"Map's width and height is bigger than {ctx.SafeBoundary} m.u. This can cause rendering and physics issues."
             : tooWide
-                ? $"Map width exceeds the safe boundary of {ctx.SafeBoundary} map units."
-                : $"Map height exceeds the safe boundary of {ctx.SafeBoundary} map units.";
+                ? $"Map is wider than {ctx.SafeBoundary} m.u. This can cause rendering and physics issues."
+                : $"Map is taller than {ctx.SafeBoundary} m.u. This can cause rendering and physics issues.";
         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MapTooBig, message)
         {
             Focus = new Vector2D((minX + maxX) * 0.5, (minY + maxY) * 0.5),

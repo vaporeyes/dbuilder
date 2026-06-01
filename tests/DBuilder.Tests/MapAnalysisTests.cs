@@ -314,8 +314,20 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { SafeBoundary = 1024 };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MapTooBig);
-        Assert.Contains("width", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Map is wider than 1024 m.u. This can cause rendering and physics issues.", issue.Message);
         Assert.NotNull(issue.Focus);
+    }
+
+    [Fact]
+    public void MapWiderAndTallerThanSafeBoundaryUsesUdbResultText()
+    {
+        var map = Square(true);
+        map.Vertices[2].Position = new Vector2D(2000, 2000);
+        var ctx = new MapCheckContext { SafeBoundary = 1024 };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MapTooBig);
+
+        Assert.Equal("Map's width and height is bigger than 1024 m.u. This can cause rendering and physics issues.", issue.Message);
     }
 
     [Fact]
@@ -2164,7 +2176,7 @@ public class MapAnalysisTests
         map.AddLinedef(a, b);
         map.BuildIndexes();
         var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.ShortLinedef);
-        Assert.Contains("shorter than 1 map unit", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Linedef 0 is shorter than 1 mu.", issue.Message);
     }
 
     [Fact]
