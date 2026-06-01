@@ -172,6 +172,11 @@
                 <MenuItem Header="Build _Bridge" x:Name="BuildBridgeMenuItem" Click="OnBuildBridge" />
                 <MenuItem Header="Make _Door" x:Name="MakeDoorMenuItem" Click="OnMakeDoor" />
                 <MenuItem Header="Build _Stairs..." x:Name="BuildStairsMenuItem" Click="OnBuildStairs" />
+                <MenuItem Header="_Sector Gradients" x:Name="SectorGradientsMenuItem">
+                    <MenuItem Header="Gradient _Floor Heights" x:Name="GradientFloorHeightsMenuItem" Click="OnGradientFloorHeights" />
+                    <MenuItem Header="Gradient _Ceiling Heights" x:Name="GradientCeilingHeightsMenuItem" Click="OnGradientCeilingHeights" />
+                    <MenuItem Header="Gradient _Brightness" x:Name="GradientBrightnessMenuItem" Click="OnGradientBrightness" />
+                </MenuItem>
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="USDF _Conversations..." x:Name="UsdfConversationsMenuItem" Click="OnUsdfConversations" />

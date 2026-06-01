@@ -1549,6 +1549,9 @@ public partial class MainWindow : Window
 
     private void OnJoinSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: false);
     private void OnMergeSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: true);
+    private void OnGradientFloorHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorHeight);
+    private void OnGradientCeilingHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingHeight);
+    private void OnGradientBrightness(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.Brightness);
 
     private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
@@ -1624,6 +1627,32 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus(merge ? $"Merged {sel.Count} sectors." : $"Joined {sel.Count} sectors.");
+    }
+
+    private void ApplySectorGradient(SectorGradientTarget target)
+    {
+        if (_map is null || _undo is null) return;
+        var selected = _map.GetSelectedSectors();
+        if (selected.Count < SectorGradient.MinimumSectorCount)
+        {
+            SetStatus("Select at least 3 sectors first!");
+            return;
+        }
+
+        string undoName = target switch
+        {
+            SectorGradientTarget.FloorHeight => "Gradient floor heights",
+            SectorGradientTarget.CeilingHeight => "Gradient ceiling heights",
+            SectorGradientTarget.Brightness => "Gradient brightness",
+            _ => "Gradient sectors",
+        };
+        CreateUndo(undoName);
+
+        SectorGradientResult result = SectorGradient.Apply(selected, target);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(result.Message);
     }
 
     // Saves the current selection to a .prefab file (the clipboard byte format).
@@ -3827,6 +3856,7 @@ public partial class MainWindow : Window
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
+        bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
         bool hasEditableProperties =
@@ -3877,6 +3907,8 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
+        SetEnabled(hasGradientSectors,
+            SectorGradientsMenuItem, GradientFloorHeightsMenuItem, GradientCeilingHeightsMenuItem, GradientBrightnessMenuItem);
         SetEnabled(hasSelectedSector, ToggleAutomapTexturedHiddenSectorMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);
