@@ -400,7 +400,7 @@ public static class StairBuilder
             Vector2D t1 = spline.Tangents[i + 1];
 
             for (int k = 0; k <= samples; k++)
-                sectionPoints.Add(HermiteSpline(p0, t0, p1, t1, (double)k / samples));
+                sectionPoints.Add(Tools.HermiteSpline(p0, t0, p1, t1, (double)k / samples));
 
             for (int k = 0; k < samples; k++)
                 sectionDistance += Vector2D.Distance(sectionPoints[k], sectionPoints[k + 1]);
@@ -437,21 +437,10 @@ public static class StairBuilder
             Vector2D p1 = spline.ControlPoints[section + 1];
             Vector2D t0 = spline.Tangents[section];
             Vector2D t1 = spline.Tangents[section + 1];
-            vertices.Add(HermiteSpline(p0, t0, p1, t1, u));
+            vertices.Add(Tools.HermiteSpline(p0, t0, p1, t1, u));
         }
 
         return vertices;
-    }
-
-    private static Vector2D HermiteSpline(Vector2D p1, Vector2D t1, Vector2D p2, Vector2D t2, double u)
-    {
-        double u2 = u * u;
-        double u3 = u2 * u;
-        double h1 = 2 * u3 - 3 * u2 + 1;
-        double h2 = -2 * u3 + 3 * u2;
-        double h3 = u3 - 2 * u2 + u;
-        double h4 = u3 - u2;
-        return p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4;
     }
 
     private sealed record SplineData(IReadOnlyList<Vector2D> ControlPoints, IReadOnlyList<Vector2D> Tangents);

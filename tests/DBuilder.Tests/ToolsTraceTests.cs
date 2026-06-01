@@ -11,6 +11,37 @@ namespace DBuilder.Tests;
 public class ToolsTraceTests
 {
     [Fact]
+    public void HermiteSpline2DMatchesUdbEndpointsAndMidpoint()
+    {
+        var p1 = new Vector2D(0, 0);
+        var t1 = new Vector2D(10, 0);
+        var p2 = new Vector2D(10, 10);
+        var t2 = new Vector2D(0, 10);
+
+        Assert.Equal(p1, Tools.HermiteSpline(p1, t1, p2, t2, 0));
+        Assert.Equal(p2, Tools.HermiteSpline(p1, t1, p2, t2, 1));
+
+        var midpoint = Tools.HermiteSpline(p1, t1, p2, t2, 0.5);
+        Assert.Equal(6.25, midpoint.x, 1e-9);
+        Assert.Equal(3.75, midpoint.y, 1e-9);
+    }
+
+    [Fact]
+    public void HermiteSpline3DInterpolatesEveryAxis()
+    {
+        var p1 = new Vector3D(0, 0, 0);
+        var t1 = new Vector3D(10, 0, 4);
+        var p2 = new Vector3D(10, 10, 20);
+        var t2 = new Vector3D(0, 10, -4);
+
+        var midpoint = Tools.HermiteSpline(p1, t1, p2, t2, 0.5);
+
+        Assert.Equal(6.25, midpoint.x, 1e-9);
+        Assert.Equal(3.75, midpoint.y, 1e-9);
+        Assert.Equal(11.0, midpoint.z, 1e-9);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]

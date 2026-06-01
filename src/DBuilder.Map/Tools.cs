@@ -17,6 +17,34 @@ namespace DBuilder.Map;
 
 public static class Tools
 {
+    /// <summary>
+    /// Performs Hermite spline interpolation for the position between p1 using tangent t1 and p2 using tangent t2.
+    /// </summary>
+    public static Vector2D HermiteSpline(Vector2D p1, Vector2D t1, Vector2D p2, Vector2D t2, double u)
+    {
+        double u2 = u * u;
+        double u3 = u2 * u;
+        double h1 = 2 * u3 - 3 * u2 + 1;
+        double h2 = -2 * u3 + 3 * u2;
+        double h3 = u3 - 2 * u2 + u;
+        double h4 = u3 - u2;
+        return p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4;
+    }
+
+    /// <summary>
+    /// Performs Hermite spline interpolation for the position between p1 using tangent t1 and p2 using tangent t2.
+    /// </summary>
+    public static Vector3D HermiteSpline(Vector3D p1, Vector3D t1, Vector3D p2, Vector3D t2, double u)
+    {
+        double u2 = u * u;
+        double u3 = u2 * u;
+        double h1 = 2 * u3 - 3 * u2 + 1;
+        double h2 = -2 * u3 + 3 * u2;
+        double h3 = u3 - 2 * u2 + u;
+        double h4 = u3 - u2;
+        return p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4;
+    }
+
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
     public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)
     {
