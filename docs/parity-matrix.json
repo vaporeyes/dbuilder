@@ -110,7 +110,7 @@
       "udbArea": "Source/Core/VisualModes",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.Map",
-      "notes": "Mode switching, 3D entry, selected geometry editing surfaces, command shortcuts, status hints, rendering scaffolding, visual vertex handle floor/ceiling pair modeling, explicit height-offset state, adjacent-sector height fallback, visual slope sidedef and vertex handle placement and pivot models, UDB-style slope handle height-change plane application, Move Camera to Cursor placement, visual thing relative movement, cursor placement, rotation, pitch, roll, camera-rotation application, and Look Through Selection actions, visual culling deduplication, and culled 3D thing billboard drawing exist. Full UDB visual mode tools and interaction behavior remain incomplete."
+      "notes": "Mode switching, 3D entry, selected geometry editing surfaces, command shortcuts, status hints, rendering scaffolding, visual vertex handle floor/ceiling pair modeling, explicit height-offset state, adjacent-sector height fallback, visual slope sidedef and vertex handle placement and pivot models, UDB-style slope handle height-change plane application, Move Camera to Cursor placement, visual thing relative movement, cursor placement, rotation, pitch, roll, camera-rotation application, Look Through Selection, and Align Things to Nearest Linedef actions, visual culling deduplication, and culled 3D thing billboard drawing exist. Full UDB visual mode tools and interaction behavior remain incomplete."
     },
     {
       "udbArea": "Source/Core/Windows",

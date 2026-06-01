@@ -620,6 +620,16 @@ public class EditorCommandCatalogTests
         Assert.False(lookThrough.AllowMouse);
         Assert.True(lookThrough.AllowScroll);
         Assert.False(lookThrough.Repeat);
+
+        var align = EditorCommandCatalog.Find("map3d.align-things-to-wall");
+
+        Assert.NotNull(align);
+        Assert.Equal("Align Things to Nearest Linedef", align.Title);
+        Assert.Equal(EditorCommandScope.Map3D, align.Scope);
+        Assert.True(align.AllowKeys);
+        Assert.True(align.AllowMouse);
+        Assert.True(align.AllowScroll);
+        Assert.False(align.Repeat);
     }
 
     [Fact]
@@ -707,6 +717,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
+        Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));

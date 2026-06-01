@@ -69,6 +69,26 @@ public class ThingGeometryToolsTests
     }
 
     [Fact]
+    public void AlignExplicitThingsToNearestWallsIgnoresOtherSelectedThings()
+    {
+        GameConfiguration config = ThingConfig();
+        var (map, _, front) = OneSidedLine(0, 128);
+        var visualThing = map.AddThing(new Vector2D(64, -16), 31010);
+        var otherSelected = map.AddThing(new Vector2D(96, -16), 31010);
+        visualThing.Sector = front;
+        otherSelected.Sector = front;
+        otherSelected.Selected = true;
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignThingsToNearestWalls(map, config, new[] { visualThing });
+
+        Assert.Equal(1, result.SelectedCount);
+        Assert.Equal(1, result.EligibleCount);
+        Assert.Equal(1, result.AlignedCount);
+        Assert.Equal(new Vector2D(64, -1), visualThing.Position);
+        Assert.Equal(new Vector2D(96, -16), otherSelected.Position);
+    }
+
+    [Fact]
     public void AlignSelectedThingsToNearestWallsReportsNoEligibleSelection()
     {
         var config = GameConfiguration.FromText("""

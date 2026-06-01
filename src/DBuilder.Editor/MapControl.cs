@@ -1837,6 +1837,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool AlignSelectedVisualThingsToWall3D()
+    {
+        var things = SelectedThings3D();
+        if (_map == null) return false;
+        if (_gameConfig == null)
+        {
+            Target3DChanged?.Invoke("no game configuration");
+            return false;
+        }
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignThingsToNearestWalls(_map, _gameConfig, things);
+        if (result.EligibleCount == 0)
+        {
+            Target3DChanged?.Invoke(result.Message);
+            return false;
+        }
+
+        EditBegun?.Invoke(things.Count == 1 ? "Align thing" : $"Align {things.Count} things");
+        _blockmapCache = null;
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(result.Message);
+        return result.AlignedCount > 0;
+    }
+
     private DBuilder.Geometry.Vector3D ThingCenter3D(Thing thing)
     {
         var sector = _blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position);
@@ -3385,6 +3412,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.look-through-thing":
                 LookThroughSelectedThing3D();
+                return true;
+            case "map3d.align-things-to-wall":
+                AlignSelectedVisualThingsToWall3D();
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);

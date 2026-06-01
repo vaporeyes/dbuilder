@@ -912,6 +912,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected or targeted thing rotation, pitch, and roll actions.
   - [x] Add UDB-style Apply Camera Rotation To Things visual action.
   - [x] Add UDB-style Look Through Selection visual action.
+  - [x] Add UDB-style visual Align Things to Nearest Linedef action.
 - [ ] Port visual vertex behavior.
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
 - [ ] Port visual slope behavior.

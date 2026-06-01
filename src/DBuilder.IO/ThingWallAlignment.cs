@@ -24,7 +24,18 @@ public static class ThingWallAlignment
         bool preserveHeight = true)
     {
         var selected = map.GetSelectedThings();
-        if (selected.Count == 0)
+        return AlignThingsToNearestWalls(map, config, selected, vertexDecimals, usePrecisePosition, preserveHeight);
+    }
+
+    public static ThingWallAlignmentResult AlignThingsToNearestWalls(
+        MapSet map,
+        GameConfiguration? config,
+        IReadOnlyList<Thing> things,
+        int vertexDecimals = 3,
+        bool usePrecisePosition = true,
+        bool preserveHeight = true)
+    {
+        if (things.Count == 0)
             return new ThingWallAlignmentResult(0, 0, 0, 0, Array.Empty<int>(), "This action requires a selection!");
 
         map.BuildIndexes();
@@ -33,7 +44,7 @@ public static class ThingWallAlignment
         int eligible = 0;
         int aligned = 0;
 
-        foreach (var thing in selected)
+        foreach (var thing in things)
         {
             ThingTypeInfo? info = config?.GetThing(thing.Type);
             if (info == null || !IsAlignable(info.RenderMode)) continue;
@@ -52,7 +63,7 @@ public static class ThingWallAlignment
         if (eligible == 0)
         {
             return new ThingWallAlignmentResult(
-                selected.Count,
+                things.Count,
                 eligible,
                 aligned,
                 failures.Count,
@@ -60,7 +71,7 @@ public static class ThingWallAlignment
                 "This action only works for models or things with FLATSPRITE/WALLSPRITE flags!");
         }
 
-        return new ThingWallAlignmentResult(selected.Count, eligible, aligned, failures.Count, failures, Message(aligned, failures.Count));
+        return new ThingWallAlignmentResult(things.Count, eligible, aligned, failures.Count, failures, Message(aligned, failures.Count));
     }
 
     public static bool IsAlignable(ThingRenderMode renderMode)
