@@ -44,6 +44,22 @@ public class WadAuthorModeModelTests
     }
 
     [Fact]
+    public void ToolsMetadataMatchesUdbDesigner()
+    {
+        WadAuthorToolsMetadata metadata = WadAuthorModeModel.ToolsMetadata;
+
+        Assert.Equal("WAuthorTools", metadata.FormTitle);
+        Assert.Equal(243, metadata.ClientWidth);
+        Assert.Equal(130, metadata.ClientHeight);
+        Assert.False(metadata.ControlBox);
+        Assert.False(metadata.MaximizeBox);
+        Assert.False(metadata.MinimizeBox);
+        Assert.Equal("FixedDialog", metadata.FormBorderStyle);
+        Assert.Equal(147, metadata.PopupWidth);
+        Assert.Equal(120, metadata.PopupHeight);
+    }
+
+    [Fact]
     public void LinedefPopupExecutableStateMatchesPortedEditorActions()
     {
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Properties));

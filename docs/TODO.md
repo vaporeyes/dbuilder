@@ -1033,6 +1033,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor WadAuthor mode menu, toolbar action, and hover highlight rendering.
   - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
   - [x] Add editor WadAuthor linedef curve popup execution with UDB default curve settings.
+  - [x] Add UDB-style WadAuthor tool form and linedef popup metadata.
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.

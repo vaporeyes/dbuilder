@@ -32,6 +32,17 @@ public sealed record WadAuthorLinedefPopupItem(string Title, WadAuthorLinedefPop
 
 public sealed record WadAuthorLinedefPopupResult(bool Changed, string Status);
 
+public sealed record WadAuthorToolsMetadata(
+    string FormTitle,
+    int ClientWidth,
+    int ClientHeight,
+    bool ControlBox,
+    bool MaximizeBox,
+    bool MinimizeBox,
+    string FormBorderStyle,
+    int PopupWidth,
+    int PopupHeight);
+
 public sealed record WadAuthorModeDescriptor(
     string DisplayName,
     string SwitchAction,
@@ -46,6 +57,17 @@ public static class WadAuthorModeModel
     public const double LinedefHighlightRange = 10.0;
     public const double VertexHighlightRange = 8.0;
     public const double ThingHighlightRange = 2.0;
+
+    public static WadAuthorToolsMetadata ToolsMetadata { get; } = new(
+        "WAuthorTools",
+        ClientWidth: 243,
+        ClientHeight: 130,
+        ControlBox: false,
+        MaximizeBox: false,
+        MinimizeBox: false,
+        FormBorderStyle: "FixedDialog",
+        PopupWidth: 147,
+        PopupHeight: 120);
 
     public static WadAuthorModeDescriptor ModeDescriptor { get; } = new(
         "WadAuthor Mode",
