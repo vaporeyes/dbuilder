@@ -555,10 +555,13 @@ public static class MapAnalysis
     private static void CheckThingsAndActions(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
         if (ctx.ThingTypeKnown != null)
-            foreach (var t in map.Things)
+            for (int i = 0; i < map.Things.Count; i++)
+            {
+                var t = map.Things[i];
                 if (!ctx.ThingTypeKnown(t.Type))
                     issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingType, t, ctx.EditThing,
-                        $"Thing type {t.Type} is not in the game config."));
+                        $"Thing {i} has unknown type ({t.Type})."));
+            }
 
         if (ctx.ThingObsoleteMessage != null)
             foreach (var t in map.Things)
@@ -678,7 +681,7 @@ public static class MapAnalysis
             if (warnings.Count == 0) continue;
 
             issues.Add(UnusedThingIssue(t, ctx.DefaultThingFlags,
-                $"Thing {i} type {t.Type} is unused: {string.Join(" ", warnings)}"));
+                $"Thing {ThingDisplay(ctx, t, i)} is unused. {string.Join(" ", warnings)}"));
         }
     }
 

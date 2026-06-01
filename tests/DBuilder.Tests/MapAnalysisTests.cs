@@ -1405,6 +1405,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingType);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Thing 0 has unknown type (99999).", issue.Message);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1504,6 +1505,7 @@ public class MapAnalysisTests
         {
             ThingUnusedWarnings = _ => new[] { "Thing is not used in any skill level." },
             DefaultThingFlags = new[] { "skill1", "skill2" },
+            ThingTitle = type => type == 3004 ? "Former Human" : "Unknown",
         };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnusedThing);
@@ -1511,7 +1513,7 @@ public class MapAnalysisTests
             fix => Assert.Equal("Delete Thing", fix.Label),
             fix => Assert.Equal("Apply default flags", fix.Label));
         Assert.Same(thing, issue.Target);
-        Assert.Contains("Thing is not used in any skill level.", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing 0 (Former Human) is unused. Thing is not used in any skill level.", issue.Message);
         Assert.True(issue.Fixes[1].Apply(map));
         Assert.Contains("skill1", thing.UdmfFlags);
         Assert.Contains("skill2", thing.UdmfFlags);

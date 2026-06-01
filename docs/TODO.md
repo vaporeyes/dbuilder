@@ -1084,6 +1084,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style edit linedef fix for unknown linedef script results.
   - [x] Match UDB short-linedef and map-size result text.
   - [x] Match UDB thing-title text for outside-map and stuck-thing results.
+  - [x] Match UDB unknown and unused thing result text.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
