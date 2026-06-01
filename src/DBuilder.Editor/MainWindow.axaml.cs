@@ -3572,6 +3572,10 @@ public partial class MainWindow : Window
             CheckThingActions = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             IgnoreUnknownTexture = ignoreUnknownTexture,
             ActionRequiresUpperTexture = actionRequiresUpperTexture,
+            ActionHasSkyTransferStaticInit = (action, args) =>
+                string.Equals(_config?.GetLinedefAction(action)?.Id, "Static_Init", StringComparison.OrdinalIgnoreCase)
+                && args.Length > 1
+                && args[1] == 255,
             ActionTextureChecks = actionTextureChecks,
             ActionTextureSectorTags = actionTextureSectorTags,
             CheckThingActionTextures = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,

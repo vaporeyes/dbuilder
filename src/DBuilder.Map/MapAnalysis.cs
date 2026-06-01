@@ -142,6 +142,8 @@ public sealed class MapCheckContext
     public Func<Sector, bool, string?>? BrowseFlat { get; init; }
     /// <summary>Returns true when a linedef action forces an upper texture even without a height gap.</summary>
     public Func<int, bool>? ActionRequiresUpperTexture { get; init; }
+    /// <summary>Returns true when a linedef action and args match UDB Static_Init sky transfer behavior.</summary>
+    public Func<int, int[], bool>? ActionHasSkyTransferStaticInit { get; init; }
     /// <summary>Returns UDB action-texture checks enabled for a linedef or thing action.</summary>
     public Func<int, ActionTextureCheckKind>? ActionTextureChecks { get; init; }
     /// <summary>Returns sector tags from action arguments for Hexen/UDMF action-texture checks.</summary>
@@ -290,6 +292,7 @@ public static class MapAnalysis
                 {
                     if ((other.Sector.CeilHeight < side.Sector.CeilHeight ||
                          ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true ||
+                         IsSkyTransferStaticInit(l, ctx) ||
                          threeDFloorTextures.RequiresUpperTexture(side)) &&
                         !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
                         IsBlank(side.HighTexture) &&
@@ -320,12 +323,14 @@ public static class MapAnalysis
             if (!IsBlank(side.HighTexture) &&
                 !side.HighRequired() &&
                 ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true &&
+                !IsSkyTransferStaticInit(l, ctx) &&
                 !threeDFloorTextures.RequiresUpperTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
                     $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.", mid));
 
             if (!IsBlank(side.LowTexture) &&
                 !side.LowRequired() &&
+                !IsSkyTransferStaticInit(l, ctx) &&
                 !actionTextures.RequiresLowerTexture(side) &&
                 !threeDFloorTextures.RequiresLowerTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Lower,
@@ -335,6 +340,9 @@ public static class MapAnalysis
 
     private static bool SuppressPlaneAlignTexture(Linedef line, MapCheckContext ctx, bool ceiling)
         => ctx.ActionIsPlaneAlign?.Invoke(line.Action) == true && line.Args[ceiling ? 1 : 0] > 0;
+
+    private static bool IsSkyTransferStaticInit(Linedef line, MapCheckContext ctx)
+        => ctx.ActionHasSkyTransferStaticInit?.Invoke(line.Action, line.Args) == true;
 
     private static void CheckFlats(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
