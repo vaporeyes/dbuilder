@@ -1779,7 +1779,9 @@ public static class MapAnalysis
                 var vertices = list.Select(i => map.Vertices[i]).ToArray();
                 var p = vertices[0].Position;
                 issues.Add(OverlappingVerticesIssue(vertices,
-                    $"{vertices.Length} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)})."));
+                    vertices.Length == 2
+                        ? $"Vertices {list[0]} and {list[1]} have the same position"
+                        : $"{vertices.Length} vertices overlap at ({p.x.ToString("0.###", CultureInfo.InvariantCulture)}, {p.y.ToString("0.###", CultureInfo.InvariantCulture)})."));
             }
     }
 
@@ -1820,7 +1822,7 @@ public static class MapAnalysis
                 if (Math.Round(l.Line.GetDistanceToLine(v.Position, bounded: true), 3) != 0.0) continue;
 
                 issues.Add(VertexOverlappingLinedefIssue(v, l,
-                    $"Vertex {vertexIndex[v]} overlaps linedef {lineIndex} without splitting it."));
+                    $"Vertex {vertexIndex[v]} overlaps line {lineIndex} without splitting it"));
             }
         }
     }
@@ -1853,7 +1855,7 @@ public static class MapAnalysis
         foreach (var v in map.Vertices)
             if (!used.Contains(v))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex,
-                    $"Vertex {vertexIndex[v]} is not used by any linedef.")
+                    $"Vertex {vertexIndex[v]} at {Coordinate(v.Position.x)}, {Coordinate(v.Position.y)} is not connected to any linedef.")
                 {
                     Target = v,
                     Focus = v.Position,

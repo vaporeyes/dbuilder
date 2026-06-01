@@ -366,6 +366,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.OverlappingVertices);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Vertices 0 and 1 have the same position", issue.Message);
         Assert.Equal("Merge Vertices", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(remove, map.Vertices);
@@ -385,7 +386,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
         Assert.Same(vertex, issue.Target);
-        Assert.Contains("linedef 0", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Vertex 2 overlaps line 0 without splitting it", issue.Message);
         Assert.Same(line, map.Linedefs[0]);
     }
 
@@ -659,6 +660,7 @@ public class MapAnalysisTests
         var issue = MapAnalysis.Check(map).First(i => i.Kind == MapIssueKind.UnusedVertex);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Vertex 4 at 900, 900 is not connected to any linedef.", issue.Message);
         Assert.Equal("Delete Vertex", fix.Label);
         Assert.True(fix.Apply(map));
 
