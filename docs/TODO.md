@@ -1039,6 +1039,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector brightness comparison prefixes and replacement validation.
   - [x] Add UDB-style any-action matching for action-with-arguments find categories.
   - [x] Add UDB-style named script `arg0str` matching for action-with-arguments find categories.
+  - [x] Add UDB-style generalized linedef action bit matching for action find categories.
 - [ ] Port map error checker infrastructure.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
   - [x] Add map-check window support for ignoring selected results.

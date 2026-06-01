@@ -2785,7 +2785,7 @@ public partial class MainWindow : Window
                 ? ConfiguredTagSearch.FindReference(_map, win.Category, win.FindText, _config)
                 : win.Category == FindCategory.Tag
                     ? ConfiguredTagSearch.Find(_map, win.FindText, _config)
-                    : MapSearch.Find(_map, win.Category, win.FindText);
+                    : ConfiguredMapSearch.Find(_map, win.Category, win.FindText, _config);
             MapView.RevealSelection(ModeFor(win.Category), r.Focus);
             win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
             UpdateInfo();
@@ -2798,7 +2798,7 @@ public partial class MainWindow : Window
                 ? ConfiguredTagSearch.ReplaceReference(_map, win.Category, win.FindText, win.ReplaceText, _config)
                 : win.Category == FindCategory.Tag
                     ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config)
-                    : MapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText);
+                    : ConfiguredMapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText, _config);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
             win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
             UpdateInfo();

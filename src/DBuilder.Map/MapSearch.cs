@@ -96,6 +96,14 @@ public static class MapSearch
         => Find(map, cat, value, TagSearchOptions.All);
 
     public static SearchResult Find(MapSet map, FindCategory cat, string value, TagSearchOptions tagOptions)
+        => Find(map, cat, value, tagOptions, null);
+
+    public static SearchResult Find(
+        MapSet map,
+        FindCategory cat,
+        string value,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher)
     {
         map.ClearAllSelected();
         int count = 0;
@@ -133,12 +141,12 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.LinedefAction:
-                if (numOk) foreach (var l in map.Linedefs) if (l.Action == num) { l.Selected = true; count++; focus ??= Mid(l); }
+                if (numOk) foreach (var l in map.Linedefs) if (ActionNumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.LinedefActionArguments:
                 if (TryParseActionQuery(value, out var lineActionQuery))
                     foreach (var l in map.Linedefs)
-                        if (ActionQueryMatches(l, l.Action, l.Args, lineActionQuery)) { l.Selected = true; count++; focus ??= Mid(l); }
+                        if (ActionQueryMatches(l, l.Action, l.Args, lineActionQuery, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.VertexIndex:
                 if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
@@ -316,6 +324,15 @@ public static class MapSearch
         => Replace(map, cat, find, replace, TagSearchOptions.All);
 
     public static int Replace(MapSet map, FindCategory cat, string find, string replace, TagSearchOptions tagOptions)
+        => Replace(map, cat, find, replace, tagOptions, null);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher)
     {
         int changed = 0;
         if (IsTextual(cat))
@@ -377,7 +394,7 @@ public static class MapSearch
             return ReplaceFlags(map, cat, find, replace);
 
         if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
-            return ReplaceActionArguments(map, cat, find, replace);
+            return ReplaceActionArguments(map, cat, find, replace, linedefActionMatcher);
 
         if (cat == FindCategory.ThingType)
         {
@@ -411,7 +428,7 @@ public static class MapSearch
                 foreach (var t in map.Things) if (t.Angle == from) { t.Angle = to; changed++; }
                 break;
             case FindCategory.LinedefAction:
-                foreach (var l in map.Linedefs) if (l.Action == from) { l.Action = to; changed++; }
+                foreach (var l in map.Linedefs) if (ActionNumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
                 foreach (var s in map.Sectors)
@@ -617,13 +634,24 @@ public static class MapSearch
         return true;
     }
 
+    private static bool ActionNumberMatches(int actual, int expected, Func<int, int, bool>? matcher)
+        => actual == expected || (matcher?.Invoke(actual, expected) ?? false);
+
     private static bool ActionQueryMatches(IFielded element, int action, int[] args, ActionArgQuery query)
+        => ActionQueryMatches(element, action, args, query, null);
+
+    private static bool ActionQueryMatches(
+        IFielded element,
+        int action,
+        int[] args,
+        ActionArgQuery query,
+        Func<int, int, bool>? actionMatcher)
     {
         if (query.Action == -1)
         {
             if (action == 0) return false;
         }
-        else if (action != query.Action)
+        else if (!ActionNumberMatches(action, query.Action, actionMatcher))
         {
             return false;
         }
@@ -637,7 +665,12 @@ public static class MapSearch
         return true;
     }
 
-    private static int ReplaceActionArguments(MapSet map, FindCategory category, string find, string replace)
+    private static int ReplaceActionArguments(
+        MapSet map,
+        FindCategory category,
+        string find,
+        string replace,
+        Func<int, int, bool>? linedefActionMatcher)
     {
         if (!TryParseActionQuery(find, out var findQuery) ||
             !TryParseActionQuery(replace, out var replaceQuery) ||
@@ -650,7 +683,7 @@ public static class MapSearch
         {
             foreach (var line in map.Linedefs)
             {
-                if (!ActionQueryMatches(line, line.Action, line.Args, findQuery)) continue;
+                if (!ActionQueryMatches(line, line.Action, line.Args, findQuery, linedefActionMatcher)) continue;
                 ApplyActionReplacement(line.Args, replaceQuery);
                 if (replaceQuery.Arg0String != null) line.SetStringField("arg0str", replaceQuery.Arg0String);
                 line.Action = replaceQuery.Action;
