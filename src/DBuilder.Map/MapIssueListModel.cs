@@ -55,6 +55,14 @@ public sealed class MapIssueListModel
         RefreshVisible();
     }
 
+    public IReadOnlyList<MapIssue> VisibleIssuesWithSelectedKinds(IEnumerable<MapIssue> selected)
+    {
+        var selectedKinds = selected.Select(issue => issue.Kind).ToHashSet();
+        if (selectedKinds.Count == 0) return Array.Empty<MapIssue>();
+
+        return visibleIssues.Where(issue => selectedKinds.Contains(issue.Kind)).ToArray();
+    }
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)

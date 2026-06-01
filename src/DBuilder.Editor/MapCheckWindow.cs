@@ -58,6 +58,14 @@ public sealed class MapCheckWindow : Window
         };
         hideType.Click += (_, _) => HideSelectedTypes();
 
+        var selectType = new Button
+        {
+            Content = "Select Type",
+            Margin = new Avalonia.Thickness(0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        selectType.Click += (_, _) => SelectSelectedTypes();
+
         var showOnlyType = new Button
         {
             Content = "Show Only Type",
@@ -74,7 +82,7 @@ public sealed class MapCheckWindow : Window
                 new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
-                    Children = { ignoreSelected, showAll, hideType, showOnlyType },
+                    Children = { ignoreSelected, showAll, hideType, selectType, showOnlyType },
                 },
             },
         };
@@ -112,6 +120,21 @@ public sealed class MapCheckWindow : Window
             ?? Array.Empty<MapIssue>();
         _model.HideSelectedKinds(selected);
         RefreshRows();
+    }
+
+    private void SelectSelectedTypes()
+    {
+        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
+            ?? Array.Empty<MapIssue>();
+        var matching = _model.VisibleIssuesWithSelectedKinds(selected).ToHashSet();
+        if (matching.Count == 0) return;
+
+        _list.SelectedItems?.Clear();
+        foreach (var row in _rows)
+        {
+            if (row.Tag is MapIssue issue && matching.Contains(issue))
+                _list.SelectedItems?.Add(row);
+        }
     }
 
     private void ShowOnlySelectedTypes()

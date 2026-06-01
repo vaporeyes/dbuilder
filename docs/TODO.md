@@ -1039,6 +1039,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add map-check window support for ignoring selected results.
   - [x] Add map-check window support for restoring ignored results.
   - [x] Add map-check window support for hiding and showing selected result types.
+  - [x] Add map-check window support for selecting all visible results of the selected type.
 - [ ] Port all map error checks.
 - [ ] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.

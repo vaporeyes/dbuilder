@@ -510,6 +510,22 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelFindsVisibleIssuesWithSelectedKinds()
+    {
+        var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var anotherUnused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused again");
+        var missingTexture = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");
+        var model = new MapIssueListModel(new[] { unused, shortLine, anotherUnused, missingTexture });
+
+        model.HideSelectedKinds(new[] { missingTexture });
+
+        var matching = model.VisibleIssuesWithSelectedKinds(new[] { unused, missingTexture });
+
+        Assert.Equal(new[] { unused, anotherUnused }, matching);
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);
