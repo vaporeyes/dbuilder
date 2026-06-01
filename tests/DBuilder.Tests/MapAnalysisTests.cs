@@ -2183,7 +2183,9 @@ public class MapAnalysisTests
         // Add a second line over the first edge (0,0)-(0,100).
         map.AddLinedef(map.Vertices[0], map.Vertices[1]);
         map.BuildIndexes();
-        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+        var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.OverlappingLinedefs);
+
+        Assert.Equal("Linedefs 4 and 0 are overlapping and reference different sectors", issue.Message);
     }
 
     [Fact]
@@ -2198,7 +2200,9 @@ public class MapAnalysisTests
         map.AddLinedef(c, d);
         map.BuildIndexes();
 
-        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+        var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.OverlappingLinedefs);
+
+        Assert.Equal("Linedefs 1 and 0 are overlapping and reference different sectors", issue.Message);
     }
 
     [Fact]

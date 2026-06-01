@@ -1254,7 +1254,7 @@ public static class MapAnalysis
             var key = Compare(a, b) <= 0 ? (a.Item1, a.Item2, b.Item1, b.Item2) : (b.Item1, b.Item2, a.Item1, a.Item2);
             if (seen.TryGetValue(key, out var matchingLine))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
-                    $"Linedef {i} overlaps another linedef (same endpoints).")
+                    $"Linedefs {i} and {map.IndexOfLinedef(matchingLine)} are overlapping and reference different sectors")
                     { Target = l, RelatedTargets = new[] { matchingLine }, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
             else
                 seen[key] = l;
@@ -1267,7 +1267,7 @@ public static class MapAnalysis
                 if (ReferencesSameSectorOnAllSides(l, other)) continue;
 
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
-                    $"Linedef {i} crosses linedef {j}.")
+                    $"Linedefs {i} and {j} are overlapping and reference different sectors")
                     { Target = l, RelatedTargets = new[] { other }, Focus = l.Line.GetCoordinatesAt(uLine) });
                 break;
             }
