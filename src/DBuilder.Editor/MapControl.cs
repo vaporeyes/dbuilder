@@ -1691,6 +1691,70 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private System.Collections.Generic.List<VisualHit> DragTargets3D()
         => _sel3D.Count > 0 ? _sel3D : (_drag3DTarget != null ? new() { _drag3DTarget } : new());
 
+    private System.Collections.Generic.List<Thing> ThingTargets3D()
+    {
+        var result = new System.Collections.Generic.List<Thing>();
+        var seen = new HashSet<Thing>();
+        foreach (VisualHit hit in _sel3D)
+            if (hit.Thing is { } selected && seen.Add(selected))
+                result.Add(selected);
+
+        if (result.Count == 0 && _target3D?.Thing is { } target)
+            result.Add(target);
+
+        return result;
+    }
+
+    private bool MoveThingTargets3D(Vector2D direction)
+    {
+        var things = ThingTargets3D();
+        if (things.Count == 0) return false;
+
+        DBuilder.Geometry.Vector3D[] coordinates = things
+            .Select(thing => new DBuilder.Geometry.Vector3D(thing.Position, thing.Height))
+            .ToArray();
+        IReadOnlyList<DBuilder.Geometry.Vector3D> translated = VisualThingMovement.TranslateRelative(
+            coordinates,
+            direction,
+            _yaw + Angle2D.PIHALF);
+
+        EditBegun?.Invoke(things.Count == 1 ? "Move thing" : $"Move {things.Count} things");
+        for (int i = 0; i < things.Count; i++)
+            things[i].Move(translated[i]);
+
+        _blockmapCache = null;
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(things.Count == 1 ? "moved thing" : $"moved {things.Count} things");
+        return true;
+    }
+
+    private bool PlaceThingTargetsAtCursor3D()
+    {
+        var things = ThingTargets3D();
+        if (things.Count == 0 || _target3D is not { } target) return false;
+
+        DBuilder.Geometry.Vector3D[] coordinates = things
+            .Select(thing => new DBuilder.Geometry.Vector3D(thing.Position, thing.Height))
+            .ToArray();
+        var cursor = new Vector2D(Math.Round(target.Point.x), Math.Round(target.Point.y));
+        IReadOnlyList<DBuilder.Geometry.Vector3D> translated = VisualThingMovement.TranslateToCursor(coordinates, cursor);
+
+        EditBegun?.Invoke(things.Count == 1 ? "Move thing" : $"Move {things.Count} things");
+        for (int i = 0; i < things.Count; i++)
+            things[i].Move(translated[i]);
+
+        _blockmapCache = null;
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(things.Count == 1 ? "placed thing at cursor" : $"placed {things.Count} things at cursor");
+        return true;
+    }
+
     // Routes a right-drag by the captured target's kind: a thing moves on the plane; a surface changes height.
     private void Drag3D(double dx, double dy)
     {
@@ -3177,6 +3241,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.move-camera-to-cursor":
                 MoveCameraToCursor();
+                return true;
+            case "map3d.move-thing-left":
+                MoveThingTargets3D(new Vec2D(0, -_grid.GridSizeF));
+                return true;
+            case "map3d.move-thing-right":
+                MoveThingTargets3D(new Vec2D(0, _grid.GridSizeF));
+                return true;
+            case "map3d.move-thing-forward":
+                MoveThingTargets3D(new Vec2D(-_grid.GridSizeF, 0));
+                return true;
+            case "map3d.move-thing-backward":
+                MoveThingTargets3D(new Vec2D(_grid.GridSizeF, 0));
+                return true;
+            case "map3d.place-thing-at-cursor":
+                PlaceThingTargetsAtCursor3D();
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);

@@ -567,6 +567,32 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisualThingMovementCommandsMatchUdbActionSurface()
+    {
+        var expected = new Dictionary<string, (string Title, bool AllowScroll, bool Repeat)>
+        {
+            ["map3d.move-thing-left"] = ("Move Thing Left", true, true),
+            ["map3d.move-thing-right"] = ("Move Thing Right", true, true),
+            ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
+            ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
+            ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
+        };
+
+        foreach ((string commandId, (string title, bool allowScroll, bool repeat)) in expected)
+        {
+            var command = EditorCommandCatalog.Find(commandId);
+
+            Assert.NotNull(command);
+            Assert.Equal(title, command.Title);
+            Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+            Assert.True(command.AllowKeys);
+            Assert.True(command.AllowMouse);
+            Assert.Equal(allowScroll, command.AllowScroll);
+            Assert.Equal(repeat, command.Repeat);
+        }
+    }
+
+    [Fact]
     public void DefaultShortcutsReferenceKnownCommands()
     {
         var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
