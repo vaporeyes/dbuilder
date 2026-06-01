@@ -539,6 +539,12 @@ public partial class MainWindow : Window
     {
         if (_resources is null) { SetStatus("Open a WAD first."); return; }
 
+        var requiredArchives = RequiredArchiveDetector.Detect(_config, resource);
+        resource.RequiredArchives.Clear();
+        resource.RequiredArchives.AddRange(requiredArchives);
+        if (RequiredArchiveDetector.RequiresTestExclusion(_config, requiredArchives))
+            resource.NotForTesting = true;
+
         var options = new ResourceOptionsDialog(resource);
         if (!await options.ShowDialog<bool>(this)) return;
         var location = options.ResultLocation;
