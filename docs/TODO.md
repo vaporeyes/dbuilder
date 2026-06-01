@@ -1060,6 +1060,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB off-grid vertex checks to fractional map coordinates.
   - [x] Run UDB off-grid vertex checks without resource context.
   - [x] Include zero-length lines in UDB-style short-linedef checks.
+  - [x] Limit UDB-style short-linedef checks to UDMF maps.
   - [x] Match UDB Polyobj_ExplicitLine mirror-number error text.
   - [x] Match remaining UDB polyobject diagnostic punctuation and suffix text.
 - [ ] Port all map error result types and fix actions.

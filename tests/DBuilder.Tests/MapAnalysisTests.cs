@@ -2179,6 +2179,18 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ShortLinedefCheckSkipsNonUdmfMaps()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(0.5, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        Assert.False(Has(map, new MapCheckContext { IsUdmf = false }, MapIssueKind.ShortLinedef));
+    }
+
+    [Fact]
     public void ZeroLengthLinedefIsAlsoFlaggedAsShortLikeUdb()
     {
         var map = new MapSet();

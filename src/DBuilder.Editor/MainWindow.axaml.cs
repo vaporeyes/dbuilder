@@ -3553,6 +3553,7 @@ public partial class MainWindow : Window
         }
         return new MapCheckContext
         {
+            IsUdmf = _mapFormat == MapFormat.Udmf,
             TextureExists = texExists,
             TextureSize = textureSize,
             FlatExists = flatExists,

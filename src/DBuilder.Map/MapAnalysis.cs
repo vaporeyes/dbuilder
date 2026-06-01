@@ -88,6 +88,8 @@ public sealed record MapIssueFixOptions(
 public sealed class MapCheckContext
 {
     public MapIssueFixOptions FixOptions { get; init; } = new();
+    /// <summary>True when the current map uses UDMF; controls UDB checks that only run for UDMF maps.</summary>
+    public bool IsUdmf { get; init; } = true;
     /// <summary>Returns true when a wall-texture name resolves in the loaded resources.</summary>
     public Func<string, bool>? TextureExists { get; init; }
     /// <summary>Returns wall-texture dimensions when an image is available.</summary>
@@ -1275,6 +1277,8 @@ public static class MapAnalysis
 
     private static void CheckShortLinedefs(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
+        if (!ctx.IsUdmf) return;
+
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var l = map.Linedefs[i];
