@@ -2174,7 +2174,7 @@ public class MapAnalysisTests
         var map = new MapSet();
         map.AddVertex(new Vector2D(7.25, 3));
 
-        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OffGridVertex));
+        Assert.Contains(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.OffGridVertex);
     }
 
     [Fact]

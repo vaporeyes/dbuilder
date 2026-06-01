@@ -236,6 +236,7 @@ public static class MapAnalysis
         CheckOverlappingVertices(map, issues);
         CheckVerticesOverlappingLinedefs(map, vertexIndex, issues);
         CheckUnusedVertices(map, vertexIndex, issues);
+        CheckOffGridVertices(map, vertexIndex, issues);
         CheckSectors(map, issues);
 
         if (ctx != null)
@@ -247,7 +248,6 @@ public static class MapAnalysis
             CheckTextureAlignment(map, ctx, issues);
             CheckOverlappingLinedefs(map, issues);
             CheckShortLinedefs(map, ctx, issues);
-            CheckOffGridVertices(map, vertexIndex, issues);
         }
 
         return issues.Where(issue => !IsIgnored(issue)).ToArray();

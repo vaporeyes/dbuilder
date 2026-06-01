@@ -1058,6 +1058,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style texture-alignment filtering to required wall slots.
   - [x] Limit UDB-style sky-flat upper texture suppression to ordinary height gaps.
   - [x] Match UDB off-grid vertex checks to fractional map coordinates.
+  - [x] Run UDB off-grid vertex checks without resource context.
   - [x] Include zero-length lines in UDB-style short-linedef checks.
   - [x] Match UDB Polyobj_ExplicitLine mirror-number error text.
 - [ ] Port all map error result types and fix actions.
