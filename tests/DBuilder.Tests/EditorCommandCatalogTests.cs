@@ -16,6 +16,7 @@ public class EditorCommandCatalogTests
         Assert.DoesNotContain(ids, string.IsNullOrWhiteSpace);
         Assert.Equal(ids.Length, ids.Distinct(StringComparer.Ordinal).Count());
         Assert.Contains("window.save", ids);
+        Assert.Contains("window.properties", ids);
         Assert.Contains("window.select-similar", ids);
         Assert.Contains("window.toggle-auto-clear-sidedef-textures", ids);
         Assert.Contains("map2d.toggle-3d", ids);
@@ -92,6 +93,24 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void PropertiesCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.properties");
+
+        Assert.NotNull(command);
+        Assert.Equal("Properties", command.Title);
+        Assert.Equal("Enter", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Contains(EditorCommandCatalog.DefaultShortcuts,
+            shortcut => shortcut.CommandId == "window.properties"
+                && shortcut.Scope == EditorCommandScope.Window
+                && shortcut.Key == "Enter");
     }
 
     [Fact]

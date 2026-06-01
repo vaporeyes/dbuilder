@@ -8,8 +8,8 @@
     {
       "udbArea": "Source/Core/Actions",
       "status": "partial",
-      "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, auto-clear sidedef texture toggle action, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
+      "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
+      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, explicit Properties command binding, auto-clear sidedef texture toggle action, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Compilers",

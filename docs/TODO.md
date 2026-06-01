@@ -98,6 +98,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
   - [x] Resolve discrete 3D map keyboard shortcuts through stable command ids.
+  - [x] Resolve the explicit Properties command through a stable command id.
 - [ ] Port configurable key bindings.
   - [x] Persist shortcut overrides and merge them with default command bindings.
   - [x] Show effective shortcut bindings in the shortcuts reference window.

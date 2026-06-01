@@ -1043,6 +1043,7 @@ public partial class MainWindow : Window
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;

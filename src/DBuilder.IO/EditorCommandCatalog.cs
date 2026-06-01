@@ -43,6 +43,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.paste", "Paste selection", "Ctrl/Cmd+V", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.duplicate", "Duplicate selection", "Ctrl/Cmd+D", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.delete", "Remove selection", "Delete", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.properties", "Properties", "Enter", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-similar", "Select Similar Map Elements", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
@@ -143,6 +144,7 @@ public static class EditorCommandCatalog
         new EditorShortcutBinding("window.duplicate", EditorCommandScope.Window, "D", Accelerator: true),
         new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Delete"),
         new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Back"),
+        new EditorShortcutBinding("window.properties", EditorCommandScope.Window, "Enter"),
         new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Escape"),
 
         new EditorShortcutBinding("map2d.select", EditorCommandScope.Map2D, EditorPointerInput.LeftButton),
