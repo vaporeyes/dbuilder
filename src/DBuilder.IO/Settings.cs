@@ -20,6 +20,7 @@ public sealed class Settings
     public const int MaxStatusHistoryLimit = 1000;
 
     public string? ConfigDir { get; set; }
+    public string? LastUsedConfigName { get; set; }
     public string? NodeBuilderPath { get; set; }
     public string? NodeBuilderArgs { get; set; }
     public string? TestPort { get; set; }
@@ -120,6 +121,31 @@ public sealed class Settings
     {
         RecentMaps ??= new();
         return RecentMaps.Where(map => fileExists(map.Path)).ToArray();
+    }
+
+    public static string? ResolveStartupConfigPath(
+        string? environmentPath,
+        string configDir,
+        string? lastUsedConfigName,
+        Func<string, bool> fileExists,
+        string fallbackFileName = "Doom_DoomDoom.cfg")
+    {
+        if (!string.IsNullOrWhiteSpace(environmentPath) && fileExists(environmentPath))
+            return environmentPath;
+
+        string? lastUsedPath = ResolveConfigPath(configDir, lastUsedConfigName);
+        if (lastUsedPath is not null && fileExists(lastUsedPath))
+            return lastUsedPath;
+
+        string fallback = Path.Combine(configDir, fallbackFileName);
+        return fileExists(fallback) ? fallback : null;
+    }
+
+    private static string? ResolveConfigPath(string configDir, string? configName)
+    {
+        if (string.IsNullOrWhiteSpace(configName)) return null;
+        string trimmed = configName.Trim();
+        return Path.IsPathRooted(trimmed) ? trimmed : Path.Combine(configDir, trimmed);
     }
 
     /// <summary>Default settings file location: &lt;app-data&gt;/DBuilder/settings.json.</summary>

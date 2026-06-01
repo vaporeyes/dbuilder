@@ -136,6 +136,7 @@ public class SettingsTests
             var s = new Settings
             {
                 ConfigDir = "/cfg",
+                LastUsedConfigName = "Hexen_HexenHexen.cfg",
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
@@ -185,6 +186,7 @@ public class SettingsTests
 
             var loaded = Settings.Load(path);
             Assert.Equal("/cfg", loaded.ConfigDir);
+            Assert.Equal("Hexen_HexenHexen.cfg", loaded.LastUsedConfigName);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal(12, loaded.MaxRecentFiles);
@@ -239,6 +241,77 @@ public class SettingsTests
             Assert.Contains(loaded.ShortcutOverrides, b => b.CommandId == "window.save" && b.Key == "F5");
         }
         finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
+    [Fact]
+    public void StartupConfigPrefersExistingEnvironmentPath()
+    {
+        var existing = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/env/Hexen.cfg",
+            "/configs/Doom_DoomDoom.cfg",
+        };
+
+        string? path = Settings.ResolveStartupConfigPath(
+            "/env/Hexen.cfg",
+            "/configs",
+            "Doom_Doom2Doom.cfg",
+            existing.Contains);
+
+        Assert.Equal("/env/Hexen.cfg", path);
+    }
+
+    [Fact]
+    public void StartupConfigFallsBackToLastUsedConfigName()
+    {
+        var existing = new HashSet<string>(StringComparer.Ordinal)
+        {
+            Path.Combine("/configs", "Doom_Doom2Doom.cfg"),
+            Path.Combine("/configs", "Doom_DoomDoom.cfg"),
+        };
+
+        string? path = Settings.ResolveStartupConfigPath(
+            "/missing/Hexen.cfg",
+            "/configs",
+            "Doom_Doom2Doom.cfg",
+            existing.Contains);
+
+        Assert.Equal(Path.Combine("/configs", "Doom_Doom2Doom.cfg"), path);
+    }
+
+    [Fact]
+    public void StartupConfigAcceptsRootedLastUsedConfigPath()
+    {
+        var existing = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "/external/Custom.cfg",
+            Path.Combine("/configs", "Doom_DoomDoom.cfg"),
+        };
+
+        string? path = Settings.ResolveStartupConfigPath(
+            null,
+            "/configs",
+            "/external/Custom.cfg",
+            existing.Contains);
+
+        Assert.Equal("/external/Custom.cfg", path);
+    }
+
+    [Fact]
+    public void StartupConfigFallsBackToDoomDefaultWhenLastUsedIsMissing()
+    {
+        var existing = new HashSet<string>(StringComparer.Ordinal)
+        {
+            Path.Combine("/configs", "Doom_DoomDoom.cfg"),
+        };
+
+        string? path = Settings.ResolveStartupConfigPath(
+            null,
+            "/configs",
+            "Missing.cfg",
+            existing.Contains);
+
+        Assert.Equal(Path.Combine("/configs", "Doom_DoomDoom.cfg"), path);
     }
 
     [Fact]

@@ -254,15 +254,14 @@ public partial class MainWindow : Window
         else await LoadWad(map.Path, promptForMap: false, preferredMapName: map.MapName);
     }
 
-    // Attempts to load a game config on startup from DBUILDER_GAMECONFIG, else a known UDB asset path.
+    // Attempts to load a game config on startup from DBUILDER_GAMECONFIG, the last used config, or the bundled Doom default.
     private void TryLoadDefaultConfig()
     {
-        string? path = Environment.GetEnvironmentVariable("DBUILDER_GAMECONFIG");
-        if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
-        {
-            string fallback = System.IO.Path.Combine(ConfigDir, "Doom_DoomDoom.cfg");
-            path = System.IO.File.Exists(fallback) ? fallback : null;
-        }
+        string? path = Settings.ResolveStartupConfigPath(
+            Environment.GetEnvironmentVariable("DBUILDER_GAMECONFIG"),
+            ConfigDir,
+            _settings.LastUsedConfigName,
+            System.IO.File.Exists);
         if (path != null) LoadConfig(path, auto: true);
     }
 
@@ -343,6 +342,11 @@ public partial class MainWindow : Window
             _configFile = System.IO.Path.GetFileName(path);
             _configIsAuto = auto;
             MapView.GameConfig = _config; // enables thing sprites in the map view
+            if (!auto)
+            {
+                _settings.LastUsedConfigName = System.IO.Path.IsPathRooted(path) ? path : _configFile;
+                SaveSettings();
+            }
             ApplyResourceConfig();
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateStatusDetails();
