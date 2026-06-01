@@ -155,6 +155,7 @@
                     <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
                 </MenuItem>
                 <MenuItem Header="Toggle _3D Mode" x:Name="Toggle3DModeMenuItem" ToggleType="CheckBox" Click="OnToggle3DMode" />
+                <MenuItem Header="Full _Brightness" x:Name="ToggleFullBrightnessMenuItem" ToggleType="CheckBox" Click="OnToggleFullBrightness" />
                 <MenuItem Header="_View Mode">
                     <MenuItem Header="_Wireframe" x:Name="ViewModeWireframeMenuItem" ToggleType="CheckBox" Click="OnViewModeWireframe" />
                     <MenuItem Header="_Brightness Levels" x:Name="ViewModeBrightnessMenuItem" ToggleType="CheckBox" Click="OnViewModeBrightness" />

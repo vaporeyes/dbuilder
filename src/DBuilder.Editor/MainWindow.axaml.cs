@@ -2636,6 +2636,13 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleFullBrightness(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleFullBrightness();
+        SetStatus($"Full brightness is now {(enabled ? "ON" : "OFF")}.");
+        MapView.Focus();
+    }
+
     private void OnViewModeWireframe(object? sender, RoutedEventArgs e)
         => SetClassicViewMode(MapControl.ClassicViewMode.Wireframe);
 
@@ -4652,7 +4659,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
-            ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
+            ToggleFullBrightnessMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -4729,6 +4736,7 @@ public partial class MainWindow : Window
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
         SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);
         SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
+        SetChecked(ToggleFullBrightnessMenuItem, MapView.FullBrightness);
         SetChecked(ViewModeWireframeMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Wireframe);
         SetChecked(ViewModeBrightnessMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Brightness);
         SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);

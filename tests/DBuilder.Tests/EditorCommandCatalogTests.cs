@@ -325,6 +325,22 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("map2d.toggle-full-brightness", EditorCommandScope.Map2D)]
+    [InlineData("map3d.toggle-full-brightness", EditorCommandScope.Map3D)]
+    public void FullBrightnessCommandsMatchUdbActionSurface(string commandId, EditorCommandScope scope)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Full Brightness", command.Title);
+        Assert.Equal("B", command.DefaultGesture);
+        Assert.Equal(scope, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     private static void AssertKeyOnlyMap2DCommand(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -591,6 +607,7 @@ public class EditorCommandCatalogTests
     public void DefaultShortcutsResolveMap2DCommands()
     {
         Assert.Equal("map2d.toggle-sector-fills", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S"));
+        Assert.Equal("map2d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "B"));
         Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
@@ -612,6 +629,7 @@ public class EditorCommandCatalogTests
     public void DefaultShortcutsResolveDiscreteMap3DCommands()
     {
         Assert.Equal("map3d.walk-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
+        Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));

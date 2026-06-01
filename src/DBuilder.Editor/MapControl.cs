@@ -178,12 +178,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showThings = true;
     private bool _fixedThingsScale = true;
     private bool _alwaysShowVertices = true;
+    private bool _fullBrightness = true;
     private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
+    public bool FullBrightness => _fullBrightness;
     public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
@@ -221,6 +223,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _alwaysShowVertices;
+    }
+
+    public bool ToggleFullBrightness()
+    {
+        _fullBrightness = !_fullBrightness;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _fullBrightness;
     }
 
     public ClassicViewMode SetViewMode2D(ClassicViewMode mode)
@@ -1710,9 +1722,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         static System.Collections.Generic.List<FlatVertex> Bucket(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> d, string k)
         { if (!d.TryGetValue(k, out var l)) { l = new(); d[k] = l; } return l; }
 
-        static int Gray(int brightness, double scale)
+        int Gray(int brightness, double scale)
         {
-            double b = Math.Clamp(brightness / 255.0, 0.15, 1.0) * scale;
+            double b = _fullBrightness ? 1.0 : Math.Clamp(brightness / 255.0, 0.15, 1.0);
+            b *= scale;
             byte g = (byte)Math.Clamp(b * 255, 0, 255);
             return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
         }
@@ -2240,9 +2253,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         };
 
     // Brightness-shaded color used to modulate a textured flat (selected sectors tint cyan).
-    private static int TexturedFillColor(Sector s)
+    private int TexturedFillColor(Sector s)
     {
-        double b = Math.Clamp(s.Brightness / 255.0, 0.2, 1.0);
+        double b = _fullBrightness && _classicViewMode != ClassicViewMode.Brightness
+            ? 1.0
+            : Math.Clamp(s.Brightness / 255.0, 0.2, 1.0);
         byte g = (byte)(b * 255);
         if (s.Selected)
             return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)g << 8) | g));
@@ -2250,9 +2265,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Untextured fallback fill: dim gray so the line/thing overlays stay legible (selected -> cyan).
-    private static int SectorFillColor(Sector s)
+    private int SectorFillColor(Sector s)
     {
-        double br = Math.Clamp(s.Brightness / 255.0, 0.12, 1.0) * 0.45;
+        double br = _fullBrightness && _classicViewMode != ClassicViewMode.Brightness
+            ? 0.45
+            : Math.Clamp(s.Brightness / 255.0, 0.12, 1.0) * 0.45;
         byte g = (byte)Math.Clamp(br * 255, 0, 255);
         if (s.Selected)
             return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)Math.Min(255, g + 60) << 8) | (uint)Math.Min(255, g + 80)));
@@ -3027,6 +3044,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-always-show-vertices":
                 ToggleAlwaysShowVertices();
+                return true;
+            case "map2d.toggle-full-brightness":
+            case "map3d.toggle-full-brightness":
+                ToggleFullBrightness();
                 return true;
             case "map2d.view-mode-wireframe":
                 SetViewMode2D(ClassicViewMode.Wireframe);
