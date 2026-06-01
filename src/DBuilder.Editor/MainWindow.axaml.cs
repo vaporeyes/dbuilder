@@ -4417,12 +4417,12 @@ public partial class MainWindow : Window
             _map.SelectedSidedefsCount,
             _map.SelectedSectorsCount,
             _map.SelectedThingsCount);
-        bool hasSingleFlagSelection =
-            _map is not null &&
-            ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&
-              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0) ||
-             (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 &&
-              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0));
+        bool hasSingleFlagSelection = _map is not null && EditorPropertySelection.CanEditFlags(
+            _map.SelectedVerticesCount,
+            _map.SelectedLinedefsCount,
+            _map.SelectedSidedefsCount,
+            _map.SelectedSectorsCount,
+            _map.SelectedThingsCount);
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
         bool canEditUsdf = hasMap && UsdfDialogueParser.CanEditDialogue(_config);
