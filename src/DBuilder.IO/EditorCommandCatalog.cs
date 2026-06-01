@@ -54,6 +54,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.test-map", "Test Map", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.things-filters-setup", "Configure Things Filters", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.reload-resources", "Reload Resources", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.grid-setup", "Grid and Backdrop Setup", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.usdf-dialog-editor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-object", "Export Object OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-image", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),

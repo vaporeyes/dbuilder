@@ -146,7 +146,8 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("window.test-map", "Test Map")]
     [InlineData("window.things-filters-setup", "Configure Things Filters")]
-    public void ToolCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.reload-resources", "Reload Resources")]
+    public void KeyOnlyToolCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
@@ -157,6 +158,20 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void GridSetupCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.grid-setup");
+
+        Assert.NotNull(command);
+        Assert.Equal("Grid and Backdrop Setup", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
     }
 
     [Theory]

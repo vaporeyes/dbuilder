@@ -125,6 +125,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Enable Flags command availability for single linedef, sector, and thing selections.
   - [x] Gate Custom Fields command availability by UDMF custom-field support.
   - [x] Add stable UDB action ids for Test Map and Things Filters setup.
+  - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
 
 ## Plugin Architecture
 
