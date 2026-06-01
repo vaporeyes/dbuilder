@@ -676,6 +676,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore cross-format unknown thing flag fields when evaluating things filters.
   - [x] Adjust things filter criteria by UDB map-format interface capabilities.
 - [ ] Port custom things filters.
+  - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.

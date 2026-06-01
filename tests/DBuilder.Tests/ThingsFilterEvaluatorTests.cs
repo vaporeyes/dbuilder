@@ -272,4 +272,72 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal(new[] { player }, classicOnly.HiddenThings);
         Assert.True(classicOnly.VisualVisibility[player]);
     }
+
+    [Fact]
+    public void DraftUsesUdbDefaultsAndValidationRules()
+    {
+        var draft = new ThingsFilterDraft();
+
+        Assert.Equal(ThingsFilterDraft.DefaultName, draft.Name);
+        Assert.Equal("", draft.Category);
+        Assert.Equal(-1, draft.ThingType);
+        Assert.Equal(-1, draft.ThingAngle);
+        Assert.Equal(int.MinValue, draft.ThingZHeight);
+        Assert.Equal(-1, draft.ThingAction);
+        Assert.Equal([-1, -1, -1, -1, -1], draft.ThingArgs);
+        Assert.Equal(-1, draft.ThingTag);
+        Assert.False(draft.IsValid());
+
+        draft.ThingArgs[0] = 7;
+        Assert.False(draft.IsValid());
+
+        draft.RequiredFields.Add("skill1");
+        Assert.True(draft.IsValid());
+    }
+
+    [Fact]
+    public void DraftWritesUdbThingsFilterSettings()
+    {
+        var draft = new ThingsFilterDraft
+        {
+            Name = "Custom imps",
+            Category = "monsters",
+            Invert = true,
+            DisplayMode = (int)ThingsFilterDisplayMode.ClassicModesOnly,
+            ThingType = 3001,
+            ThingAngle = 90,
+            ThingZHeight = 32,
+            ThingAction = 80,
+            ThingTag = 4,
+        };
+        draft.ThingArgs[0] = 7;
+        draft.ThingArgs[4] = 9;
+        draft.RequiredFields.Add("skill1");
+        draft.ForbiddenFields.Add("ambush");
+        draft.CustomFields["species"] = new ThingsFilterCustomFieldInfo("species", (int)UniversalType.String, "DoomImp");
+
+        var configuration = new Configuration(sorted: true);
+        draft.WriteSettings(configuration, "thingsfilters.custom0");
+
+        var config = GameConfiguration.FromText(configuration.OutputConfiguration("\n"));
+        var filter = Assert.Single(config.ThingsFilters);
+
+        Assert.Equal("custom0", filter.Key);
+        Assert.Equal("Custom imps", filter.Name);
+        Assert.Equal("monsters", filter.Category);
+        Assert.True(filter.Invert);
+        Assert.Equal((int)ThingsFilterDisplayMode.ClassicModesOnly, filter.DisplayMode);
+        Assert.Equal(3001, filter.ThingType);
+        Assert.Equal(90, filter.ThingAngle);
+        Assert.Equal(32, filter.ThingZHeight);
+        Assert.Equal(80, filter.ThingAction);
+        Assert.Equal([7, -1, -1, -1, 9], filter.ThingArgs);
+        Assert.Equal(4, filter.ThingTag);
+        Assert.Equal(["skill1"], filter.RequiredFields);
+        Assert.Equal(["ambush"], filter.ForbiddenFields);
+        var custom = Assert.Single(filter.CustomFields);
+        Assert.Equal("species", custom.Key);
+        Assert.Equal((int)UniversalType.String, custom.Value.Type);
+        Assert.Equal("DoomImp", custom.Value.Value);
+    }
 }
