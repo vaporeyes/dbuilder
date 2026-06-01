@@ -93,7 +93,10 @@ public class EditorCommandCatalogTests
     [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
     [InlineData("window.game-configurations", "Game Configurations", "Menu")]
     [InlineData("window.preferences", "Preferences", "Menu")]
-    public void FileAndMapOptionCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
+    [InlineData("window.view-used-tags", "View Used Tags", "Menu")]
+    [InlineData("window.view-thing-types", "View Thing Types", "Menu")]
+    [InlineData("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
+    public void KeyOnlyWindowCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
@@ -107,6 +110,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ShowErrorsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.show-errors");
+
+        Assert.NotNull(command);
+        Assert.Equal("Show Errors and Warnings", command.Title);
+        Assert.Equal("F11", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void OpenMapInCurrentWadShortcutMatchesUdbDefault()
     {
         Assert.Equal("window.open-map-in-current-wad", EditorCommandCatalog.ResolveShortcut(
@@ -114,6 +131,17 @@ public class EditorCommandCatalogTests
             "O",
             accelerator: true,
             shift: true));
+    }
+
+    [Fact]
+    public void CoreViewToolShortcutsMatchUdbDefaults()
+    {
+        Assert.Equal("window.go-to-coordinates", EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Window,
+            "G",
+            accelerator: true,
+            shift: true));
+        Assert.Equal("window.show-errors", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "F11"));
     }
 
     [Fact]

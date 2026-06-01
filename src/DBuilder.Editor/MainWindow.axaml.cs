@@ -1049,6 +1049,10 @@ public partial class MainWindow : Window
             case "window.snap-selection-to-grid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
             case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
+            case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
+            case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
+            case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
+            case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
