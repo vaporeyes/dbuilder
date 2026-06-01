@@ -27,6 +27,7 @@ public sealed record RecentMenuEntry(
 public static class RecentMenuModel
 {
     public const string EmptyHeader = "(none)";
+    public const int MaxDisplayCharacters = 80;
 
     public static IReadOnlyList<RecentMenuEntry> Build(Settings settings, Func<string, bool> fileExists)
     {
@@ -53,7 +54,7 @@ public static class RecentMenuModel
             string path = recentFiles[i];
             entries.Add(new RecentMenuEntry(
                 RecentMenuEntryKind.File,
-                NumberedHeader(i, path),
+                NumberedHeader(i, DisplayFilename(path)),
                 path));
         }
 
@@ -68,6 +69,14 @@ public static class RecentMenuModel
         string fileName = Path.GetFileName(map.Path);
         string mapName = string.IsNullOrWhiteSpace(map.ArchivePath) ? map.MapName : $"{map.ArchivePath}:{map.MapName}";
         return $"{fileName} ({mapName})";
+    }
+
+    public static string DisplayFilename(string filename)
+    {
+        if (filename.Length <= MaxDisplayCharacters) return filename;
+
+        int suffixLength = MaxDisplayCharacters - 6;
+        return filename[..3] + "..." + filename[^suffixLength..];
     }
 
     private static string NumberedHeader(int index, string text)

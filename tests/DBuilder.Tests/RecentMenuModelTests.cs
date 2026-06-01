@@ -64,4 +64,16 @@ public sealed class RecentMenuModelTests
         Assert.True(entries[1].IsSeparator);
         Assert.Equal("&1  /present.wad", entries[2].Header);
     }
+
+    [Fact]
+    public void DisplayFilenameTrimsLongPathsLikeUdbRecentFiles()
+    {
+        string path = "/" + new string('a', 90) + "/maps/doom2.wad";
+
+        string display = RecentMenuModel.DisplayFilename(path);
+
+        Assert.Equal(RecentMenuModel.MaxDisplayCharacters, display.Length);
+        Assert.StartsWith("/aa...", display);
+        Assert.EndsWith("/maps/doom2.wad", display);
+    }
 }
