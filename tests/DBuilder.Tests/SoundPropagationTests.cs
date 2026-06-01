@@ -346,6 +346,56 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void ColorConfigurationMetadataMatchesUdbDialogAndAction()
+    {
+        SoundPropagationActionDescriptor action = SoundPropagationColorSettings.ColorConfigurationAction;
+        IReadOnlyList<SoundPropagationColorField> fields = SoundPropagationColorSettings.ColorConfigurationFields;
+
+        Assert.Equal("Color Configuration", SoundPropagationColorSettings.ColorConfigurationTitle);
+        Assert.Equal("Reset colors", SoundPropagationColorSettings.ResetColorsText);
+        Assert.Equal("soundpropagationcolorconfiguration", action.Id);
+        Assert.Equal("Configure colors", action.Title);
+        Assert.Equal("soundpropagationmode", action.Category);
+        Assert.Equal("Configure colors for sound propagation mode", action.Description);
+        Assert.True(action.AllowKeys);
+        Assert.True(action.AllowMouse);
+        Assert.True(action.AllowScroll);
+        Assert.Equal(5, fields.Count);
+        Assert.Equal(new SoundPropagationColorField("highlightcolor", "Highlight color:", 0xFF00C000u), fields[0]);
+        Assert.Equal(new SoundPropagationColorField("level1color", "Level 1 color:", 0xFF00FF00u), fields[1]);
+        Assert.Equal(new SoundPropagationColorField("level2color", "Level 2 color:", 0xFFFFFF00u), fields[2]);
+        Assert.Equal(new SoundPropagationColorField("nosoundcolor", "No sound color:", 0xFFA0A0A0u), fields[3]);
+        Assert.Equal(new SoundPropagationColorField("blocksoundcolor", "Block sound color:", 0xFFFF0000u), fields[4]);
+    }
+
+    [Fact]
+    public void ColorSettingsReadAndWriteUdbPluginKeys()
+    {
+        var settings = new Dictionary<string, object?>
+        {
+            [SoundPropagationColorSettings.HighlightColorKey] = unchecked((int)0xFF010203u),
+            [SoundPropagationColorSettings.Level1ColorKey] = 0xFF040506u,
+            [SoundPropagationColorSettings.Level2ColorKey] = "4278650889",
+            [SoundPropagationColorSettings.NoSoundColorKey] = 0xFF0A0B0Cu,
+            [SoundPropagationColorSettings.BlockSoundColorKey] = "invalid",
+        };
+
+        SoundPropagationColorSettings colors = SoundPropagationColorSettings.FromSettings(settings);
+        IReadOnlyDictionary<string, object> written = colors.ToSettings();
+
+        Assert.Equal(0xFF010203u, colors.HighlightColor);
+        Assert.Equal(0xFF040506u, colors.Level1Color);
+        Assert.Equal(0xFF070809u, colors.Level2Color);
+        Assert.Equal(0xFF0A0B0Cu, colors.NoSoundColor);
+        Assert.Equal(SoundPropagationColorSettings.Default.BlockSoundColor, colors.BlockSoundColor);
+        Assert.Equal(unchecked((int)0xFF010203u), written[SoundPropagationColorSettings.HighlightColorKey]);
+        Assert.Equal(unchecked((int)0xFF040506u), written[SoundPropagationColorSettings.Level1ColorKey]);
+        Assert.Equal(unchecked((int)0xFF070809u), written[SoundPropagationColorSettings.Level2ColorKey]);
+        Assert.Equal(unchecked((int)0xFF0A0B0Cu), written[SoundPropagationColorSettings.NoSoundColorKey]);
+        Assert.Equal(unchecked((int)SoundPropagationColorSettings.Default.BlockSoundColor), written[SoundPropagationColorSettings.BlockSoundColorKey]);
+    }
+
+    [Fact]
     public void DomainColorForIndexWrapsLikeUdbDomainAssignment()
     {
         SoundPropagationColorSettings colors = SoundPropagationColorSettings.Default;

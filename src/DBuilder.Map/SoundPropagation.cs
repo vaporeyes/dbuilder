@@ -18,6 +18,20 @@ public sealed record SoundLeakPath(
     IReadOnlyList<Linedef> Linedefs,
     IReadOnlyList<Linedef> BlockingLinedefs);
 
+public sealed record SoundPropagationActionDescriptor(
+    string Id,
+    string Title,
+    string Category,
+    string Description,
+    bool AllowKeys,
+    bool AllowMouse,
+    bool AllowScroll);
+
+public sealed record SoundPropagationColorField(
+    string Key,
+    string Label,
+    uint DefaultColor);
+
 public sealed record SoundPropagationColorSettings(
     uint HighlightColor,
     uint Level1Color,
@@ -26,6 +40,14 @@ public sealed record SoundPropagationColorSettings(
     uint BlockSoundColor,
     IReadOnlyList<uint> DistinctDomainColors)
 {
+    public const string HighlightColorKey = "highlightcolor";
+    public const string Level1ColorKey = "level1color";
+    public const string Level2ColorKey = "level2color";
+    public const string NoSoundColorKey = "nosoundcolor";
+    public const string BlockSoundColorKey = "blocksoundcolor";
+    public const string ColorConfigurationTitle = "Color Configuration";
+    public const string ResetColorsText = "Reset colors";
+
     public static SoundPropagationColorSettings Default { get; } = new(
         0xFF00C000,
         0xFF00FF00,
@@ -60,12 +82,68 @@ public sealed record SoundPropagationColorSettings(
             0xFF8DD3C7u,
         });
 
+    public static SoundPropagationActionDescriptor ColorConfigurationAction { get; } = new(
+        "soundpropagationcolorconfiguration",
+        "Configure colors",
+        "soundpropagationmode",
+        "Configure colors for sound propagation mode",
+        AllowKeys: true,
+        AllowMouse: true,
+        AllowScroll: true);
+
+    public static IReadOnlyList<SoundPropagationColorField> ColorConfigurationFields { get; } =
+    [
+        new(HighlightColorKey, "Highlight color:", Default.HighlightColor),
+        new(Level1ColorKey, "Level 1 color:", Default.Level1Color),
+        new(Level2ColorKey, "Level 2 color:", Default.Level2Color),
+        new(NoSoundColorKey, "No sound color:", Default.NoSoundColor),
+        new(BlockSoundColorKey, "Block sound color:", Default.BlockSoundColor),
+    ];
+
+    public static SoundPropagationColorSettings FromSettings(IReadOnlyDictionary<string, object?> settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        SoundPropagationColorSettings fallback = Default;
+        return fallback with
+        {
+            HighlightColor = ReadColor(settings, HighlightColorKey, fallback.HighlightColor),
+            Level1Color = ReadColor(settings, Level1ColorKey, fallback.Level1Color),
+            Level2Color = ReadColor(settings, Level2ColorKey, fallback.Level2Color),
+            NoSoundColor = ReadColor(settings, NoSoundColorKey, fallback.NoSoundColor),
+            BlockSoundColor = ReadColor(settings, BlockSoundColorKey, fallback.BlockSoundColor),
+        };
+    }
+
+    public IReadOnlyDictionary<string, object> ToSettings()
+        => new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [HighlightColorKey] = unchecked((int)HighlightColor),
+            [Level1ColorKey] = unchecked((int)Level1Color),
+            [Level2ColorKey] = unchecked((int)Level2Color),
+            [NoSoundColorKey] = unchecked((int)NoSoundColor),
+            [BlockSoundColorKey] = unchecked((int)BlockSoundColor),
+        };
+
     public uint DomainColorForIndex(int index)
     {
         if (DistinctDomainColors.Count == 0) return Level1Color;
         int wrapped = index % DistinctDomainColors.Count;
         if (wrapped < 0) wrapped += DistinctDomainColors.Count;
         return DistinctDomainColors[wrapped];
+    }
+
+    private static uint ReadColor(IReadOnlyDictionary<string, object?> settings, string key, uint fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return fallback;
+        return value switch
+        {
+            uint color => color,
+            int color => unchecked((uint)color),
+            long color when color is >= int.MinValue and <= uint.MaxValue => unchecked((uint)color),
+            string text when uint.TryParse(text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out uint color) => color,
+            _ => fallback,
+        };
     }
 }
 
