@@ -119,6 +119,50 @@ public class UndoManagerTests
     }
 
     [Fact]
+    public void UndoClearsSelectionCapturedInSnapshotLikeUdb()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Selected = true;
+        map.Linedefs[0].Selected = true;
+        map.Sectors[0].Selected = true;
+        map.Things[0].Selected = true;
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("move selected elements");
+        map.Vertices[0].Position = new Vector2D(32, 16);
+
+        Assert.True(undo.Undo());
+
+        Assert.Equal(0, map.SelectedVerticesCount);
+        Assert.Equal(0, map.SelectedLinedefsCount);
+        Assert.Equal(0, map.SelectedSectorsCount);
+        Assert.Equal(0, map.SelectedThingsCount);
+    }
+
+    [Fact]
+    public void RedoClearsSelectionCapturedAfterEditLikeUdb()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("select after edit");
+        map.Vertices[0].Position = new Vector2D(64, 16);
+        map.Vertices[0].Selected = true;
+        map.Linedefs[0].Selected = true;
+        map.Sectors[0].Selected = true;
+        map.Things[0].Selected = true;
+        undo.Undo();
+
+        Assert.True(undo.Redo());
+
+        Assert.Equal(0, map.SelectedVerticesCount);
+        Assert.Equal(0, map.SelectedLinedefsCount);
+        Assert.Equal(0, map.SelectedSectorsCount);
+        Assert.Equal(0, map.SelectedThingsCount);
+        Assert.Equal(new Vector2D(64, 16), map.Vertices[0].Position);
+    }
+
+    [Fact]
     public void NewEditClearsRedoStack()
     {
         var map = BuildMap();

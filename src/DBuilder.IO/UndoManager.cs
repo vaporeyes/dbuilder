@@ -96,6 +96,7 @@ public sealed class UndoManager
         // Push the current (post-edit) state onto the redo stack so Redo can return to it.
         redos.AddFirst(Capture(snap.Description));
         Restore(snap);
+        map.ClearAllSelected();
         ClearGrouping();
         return true;
     }
@@ -116,6 +117,7 @@ public sealed class UndoManager
         redos.RemoveFirst();
         undos.AddFirst(Capture(snap.Description));
         Restore(snap);
+        map.ClearAllSelected();
         ClearGrouping();
         return true;
     }

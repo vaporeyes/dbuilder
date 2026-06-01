@@ -709,6 +709,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
+  - [x] Clear restored selections after undo and redo like UDB.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.
@@ -1363,7 +1364,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Add golden-file tests for WAD output where deterministic output is expected.
 - [ ] Add parser regression tests from representative real-world mods.
 - [ ] Add property tests for geometry operations.
-- [ ] Add editor-model tests for undo and redo.
+- [x] Add editor-model tests for undo and redo.
 - [ ] Add UI smoke tests for opening, editing, saving, and reopening maps.
 - [ ] Add rendering smoke tests for 2D and 3D views.
 - [ ] Add plugin lifecycle tests.
