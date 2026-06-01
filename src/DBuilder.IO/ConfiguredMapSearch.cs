@@ -12,8 +12,14 @@ public static class ConfiguredMapSearch
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config)
         => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
 
+    public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config, bool withinSelection)
+        => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
+
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
         => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
+
+    public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
+        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
 
     private static Func<int, int, bool>? LinedefActionMatcher(GameConfiguration? config)
         => config?.GeneralizedActions == true && config.GeneralizedLinedefs.Count > 0

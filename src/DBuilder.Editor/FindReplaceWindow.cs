@@ -14,11 +14,13 @@ public sealed class FindReplaceWindow : Window
     private readonly ComboBox _category;
     private readonly TextBox _find;
     private readonly TextBox _replace;
+    private readonly CheckBox _withinSelection;
     private readonly TextBlock _result;
 
     public FindCategory Category => _category.SelectedItem is CategoryItem ci ? ci.Value : FindCategory.ThingType;
     public string FindText => _find.Text ?? "";
     public string ReplaceText => _replace.Text ?? "";
+    public bool WithinSelection => _withinSelection.IsChecked == true;
 
     public event Action? FindRequested;
     public event Action? ReplaceRequested;
@@ -84,12 +86,14 @@ public sealed class FindReplaceWindow : Window
         _category.SelectedIndex = 0;
         _find = new TextBox();
         _replace = new TextBox();
+        _withinSelection = new CheckBox { Content = "Within current selection" };
         _result = new TextBlock { Foreground = Brushes.LightSkyBlue, TextWrapping = TextWrapping.Wrap, Margin = new Avalonia.Thickness(0, 4, 0, 0) };
 
         var rows = new StackPanel { Margin = new Avalonia.Thickness(12), Spacing = 6 };
         rows.Children.Add(Labeled("Category", _category));
         rows.Children.Add(Labeled("Find", _find));
         rows.Children.Add(Labeled("Replace", _replace));
+        rows.Children.Add(_withinSelection);
 
         var findBtn = new Button { Content = "Find", MinWidth = 80 };
         findBtn.Click += (_, _) => FindRequested?.Invoke();

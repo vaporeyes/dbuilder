@@ -75,6 +75,72 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void FindWithinSelectionLimitsConfiguredTagOwners()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Linedefs[1].Args[0] = 17;
+        map.Things[1].Args[1] = 17;
+        map.Linedefs[1].Selected = true;
+        map.Things[1].Selected = true;
+
+        SearchResult result = ConfiguredTagSearch.Find(map, "17", config, withinSelection: true);
+
+        Assert.Equal(2, result.Count);
+        Assert.False(map.Linedefs[0].Selected);
+        Assert.True(map.Linedefs[1].Selected);
+        Assert.False(map.Things[0].Selected);
+        Assert.True(map.Things[1].Selected);
+    }
+
+    [Fact]
+    public void ReplaceWithinSelectionLimitsConfiguredTagOwners()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Things[1].Args[1] = 17;
+        map.Linedefs[0].Selected = true;
+        map.Things[1].Selected = true;
+
+        int changed = ConfiguredTagSearch.Replace(map, "17", "23", config, withinSelection: true);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(23, map.Linedefs[0].Args[0]);
+        Assert.Equal(17, map.Things[0].Args[1]);
+        Assert.Equal(23, map.Things[1].Args[1]);
+    }
+
+    [Fact]
+    public void ReferenceSearchWithinSelectionLimitsConfiguredArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Things[1].Args[1] = 17;
+        map.Linedefs[0].Selected = true;
+        map.Things[1].Selected = true;
+
+        SearchResult lineResult = ConfiguredTagSearch.FindReference(
+            map,
+            FindCategory.LinedefSectorReference,
+            "17",
+            config,
+            withinSelection: true);
+        Assert.Equal(1, lineResult.Count);
+        Assert.True(map.Linedefs[0].Selected);
+
+        map.Things[1].Selected = true;
+        SearchResult thingResult = ConfiguredTagSearch.FindReference(
+            map,
+            FindCategory.ThingThingReference,
+            "17",
+            config,
+            withinSelection: true);
+        Assert.Equal(1, thingResult.Count);
+        Assert.False(map.Things[0].Selected);
+        Assert.True(map.Things[1].Selected);
+    }
+
+    [Fact]
     public void RemoveMarkedTagsClearsDirectTagsAndTagTypedActionArgs()
     {
         var config = GameConfiguration.FromText(Cfg);

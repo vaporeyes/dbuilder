@@ -2782,10 +2782,10 @@ public partial class MainWindow : Window
         {
             if (_map is null) return;
             var r = ConfiguredTagSearch.IsReferenceCategory(win.Category)
-                ? ConfiguredTagSearch.FindReference(_map, win.Category, win.FindText, _config)
+                ? ConfiguredTagSearch.FindReference(_map, win.Category, win.FindText, _config, win.WithinSelection)
                 : win.Category == FindCategory.Tag
-                    ? ConfiguredTagSearch.Find(_map, win.FindText, _config)
-                    : ConfiguredMapSearch.Find(_map, win.Category, win.FindText, _config);
+                    ? ConfiguredTagSearch.Find(_map, win.FindText, _config, win.WithinSelection)
+                    : ConfiguredMapSearch.Find(_map, win.Category, win.FindText, _config, win.WithinSelection);
             MapView.RevealSelection(ModeFor(win.Category), r.Focus);
             win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
             UpdateInfo();
@@ -2795,10 +2795,10 @@ public partial class MainWindow : Window
             if (_map is null || _undo is null) return;
             CreateUndo("Find & replace");
             int n = ConfiguredTagSearch.IsReferenceCategory(win.Category)
-                ? ConfiguredTagSearch.ReplaceReference(_map, win.Category, win.FindText, win.ReplaceText, _config)
+                ? ConfiguredTagSearch.ReplaceReference(_map, win.Category, win.FindText, win.ReplaceText, _config, win.WithinSelection)
                 : win.Category == FindCategory.Tag
-                    ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config)
-                    : ConfiguredMapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText, _config);
+                    ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config, win.WithinSelection)
+                    : ConfiguredMapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText, _config, win.WithinSelection);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
             win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
             UpdateInfo();

@@ -15,7 +15,12 @@ public static class ConfiguredTagSearch
             or FindCategory.ThingSectorReference or FindCategory.ThingThingReference;
 
     public static SearchResult FindReference(MapSet map, FindCategory category, string value, GameConfiguration? config)
+        => FindReference(map, category, value, config, false);
+
+    public static SearchResult FindReference(MapSet map, FindCategory category, string value, GameConfiguration? config, bool withinSelection)
     {
+        var lines = withinSelection ? map.GetSelectedLinedefs() : map.Linedefs;
+        var things = withinSelection ? map.GetSelectedThings() : map.Things;
         map.ClearAllSelected();
         if (!TryParseReference(value, requireByteRange: false, out int reference) || !IsReferenceCategory(category))
             return new SearchResult(0, null);
@@ -27,7 +32,7 @@ public static class ConfiguredTagSearch
         {
             if (!(config?.HasActionArgs ?? true)) return new SearchResult(0, null);
             UniversalType type = category == FindCategory.LinedefSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
-            foreach (var line in map.Linedefs)
+            foreach (var line in lines)
                 if (HasMatchingActionArg(line.Action, line.Args, reference, config, type))
                     SelectLine(line, ref count, ref focus);
         }
@@ -35,7 +40,7 @@ public static class ConfiguredTagSearch
         {
             if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return new SearchResult(0, null);
             UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
-            foreach (var thing in map.Things)
+            foreach (var thing in things)
                 if (HasMatchingActionArg(thing.Action, thing.Args, reference, config, type))
                     SelectThing(thing, ref count, ref focus);
         }
@@ -44,6 +49,9 @@ public static class ConfiguredTagSearch
     }
 
     public static int ReplaceReference(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
+        => ReplaceReference(map, category, find, replace, config, false);
+
+    public static int ReplaceReference(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
         if (!TryParseReference(find, requireByteRange: false, out int from) ||
             !TryParseReference(replace, requireByteRange: true, out int to) ||
@@ -55,14 +63,14 @@ public static class ConfiguredTagSearch
         {
             if (!(config?.HasActionArgs ?? true)) return 0;
             UniversalType type = category == FindCategory.LinedefSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
-            foreach (var line in map.Linedefs)
+            foreach (var line in withinSelection ? map.GetSelectedLinedefs() : map.Linedefs)
                 if (ReplaceActionArgs(line.Action, line.Args, from, to, config, type)) changed++;
         }
         else
         {
             if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return 0;
             UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
-            foreach (var thing in map.Things)
+            foreach (var thing in withinSelection ? map.GetSelectedThings() : map.Things)
                 if (ReplaceActionArgs(thing.Action, thing.Args, from, to, config, type)) changed++;
         }
 
@@ -70,7 +78,13 @@ public static class ConfiguredTagSearch
     }
 
     public static SearchResult Find(MapSet map, string value, GameConfiguration? config)
+        => Find(map, value, config, false);
+
+    public static SearchResult Find(MapSet map, string value, GameConfiguration? config, bool withinSelection)
     {
+        var sectors = withinSelection ? map.GetSelectedSectors() : map.Sectors;
+        var things = withinSelection ? map.GetSelectedThings() : map.Things;
+        var lines = withinSelection ? map.GetSelectedLinedefs() : map.Linedefs;
         map.ClearAllSelected();
         if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int tag))
             return new SearchResult(0, null);
@@ -78,7 +92,7 @@ public static class ConfiguredTagSearch
         int count = 0;
         Vector2D? focus = null;
 
-        foreach (var sector in map.Sectors)
+        foreach (var sector in sectors)
         {
             if (!MapElementTags.HasTag(sector, tag)) continue;
             sector.Selected = true;
@@ -87,25 +101,25 @@ public static class ConfiguredTagSearch
 
         if (config?.HasThingTag ?? true)
         {
-            foreach (var thing in map.Things)
+            foreach (var thing in things)
                 if (MapElementTags.HasTag(thing, tag)) SelectThing(thing, ref count, ref focus);
         }
 
         if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
         {
-            foreach (var thing in map.Things)
+            foreach (var thing in things)
                 if (HasMatchingActionArg(thing.Action, thing.Args, tag, config)) SelectThing(thing, ref count, ref focus);
         }
 
         if (config?.HasLinedefTag ?? true)
         {
-            foreach (var line in map.Linedefs)
+            foreach (var line in lines)
                 if (MapElementTags.HasTag(line, tag)) SelectLine(line, ref count, ref focus);
         }
 
         if (config?.HasActionArgs ?? true)
         {
-            foreach (var line in map.Linedefs)
+            foreach (var line in lines)
                 if (HasMatchingActionArg(line.Action, line.Args, tag, config)) SelectLine(line, ref count, ref focus);
         }
 
@@ -113,15 +127,18 @@ public static class ConfiguredTagSearch
     }
 
     public static int Replace(MapSet map, string find, string replace, GameConfiguration? config)
+        => Replace(map, find, replace, config, false);
+
+    public static int Replace(MapSet map, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
 
         int changed = 0;
-        foreach (var sector in map.Sectors)
+        foreach (var sector in withinSelection ? map.GetSelectedSectors() : map.Sectors)
             if (MapElementTags.ReplaceTag(sector, from, to)) changed++;
 
-        foreach (var thing in map.Things)
+        foreach (var thing in withinSelection ? map.GetSelectedThings() : map.Things)
         {
             bool hit = false;
             if (config?.HasThingTag ?? true) hit |= MapElementTags.ReplaceTag(thing, from, to);
@@ -130,7 +147,7 @@ public static class ConfiguredTagSearch
             if (hit) changed++;
         }
 
-        foreach (var line in map.Linedefs)
+        foreach (var line in withinSelection ? map.GetSelectedLinedefs() : map.Linedefs)
         {
             bool hit = false;
             if (config?.HasLinedefTag ?? true) hit |= MapElementTags.ReplaceTag(line, from, to);

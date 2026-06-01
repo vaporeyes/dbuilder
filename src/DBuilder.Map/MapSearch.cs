@@ -74,6 +74,24 @@ public readonly record struct ThingTypeStatistic(int Type, int Count);
 
 public static class MapSearch
 {
+    private readonly record struct SearchLists(
+        IReadOnlyList<Vertex> Vertices,
+        IReadOnlyList<Linedef> Linedefs,
+        IReadOnlyList<Sidedef> Sidedefs,
+        IReadOnlyList<Sector> Sectors,
+        IReadOnlyList<Thing> Things)
+    {
+        public static SearchLists From(MapSet map, bool withinSelection)
+            => withinSelection
+                ? new SearchLists(
+                    map.GetSelectedVertices(),
+                    map.GetSelectedLinedefs(),
+                    map.GetSidedefsFromSelectedLinedefs(true),
+                    map.GetSelectedSectors(),
+                    map.GetSelectedThings())
+                : new SearchLists(map.Vertices, map.Linedefs, map.Sidedefs, map.Sectors, map.Things);
+    }
+
     /// <summary>True for categories whose value is a string (texture/flat names); the rest are integers.</summary>
     public static bool IsTextual(FindCategory cat) => cat switch
     {
@@ -95,6 +113,9 @@ public static class MapSearch
     public static SearchResult Find(MapSet map, FindCategory cat, string value)
         => Find(map, cat, value, TagSearchOptions.All);
 
+    public static SearchResult Find(MapSet map, FindCategory cat, string value, bool withinSelection)
+        => Find(map, cat, value, TagSearchOptions.All, null, null, withinSelection);
+
     public static SearchResult Find(MapSet map, FindCategory cat, string value, TagSearchOptions tagOptions)
         => Find(map, cat, value, tagOptions, null);
 
@@ -113,7 +134,18 @@ public static class MapSearch
         TagSearchOptions tagOptions,
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, int, bool>? sectorEffectMatcher)
+        => Find(map, cat, value, tagOptions, linedefActionMatcher, sectorEffectMatcher, false);
+
+    public static SearchResult Find(
+        MapSet map,
+        FindCategory cat,
+        string value,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection)
     {
+        SearchLists lists = SearchLists.From(map, withinSelection);
         map.ClearAllSelected();
         int count = 0;
         Vector2D? focus = null;
@@ -123,45 +155,45 @@ public static class MapSearch
         {
             case FindCategory.ThingType:
                 if (TryParseIntList(value, out var thingTypes))
-                    foreach (var t in map.Things)
+                    foreach (var t in lists.Things)
                         if (thingTypes.Contains(t.Type)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingIndex:
                 if (numOk && num >= 0 && num < map.Things.Count) { map.Things[num].Selected = true; count = 1; focus = map.Things[num].Position; }
                 break;
             case FindCategory.ThingAngle:
-                if (numOk) foreach (var t in map.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
+                if (numOk) foreach (var t in lists.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingActionArguments:
                 if (TryParseActionQuery(value, out var thingActionQuery))
-                    foreach (var t in map.Things)
+                    foreach (var t in lists.Things)
                         if (ActionQueryMatches(t, t.Action, t.Args, thingActionQuery)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingFlags:
                 if (TryParseFlagQuery(value, out var thingFlags))
-                    foreach (var t in map.Things)
+                    foreach (var t in lists.Things)
                         if (FlagsMatch(t, thingFlags)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingUdmfField:
-                foreach (var t in map.Things)
+                foreach (var t in lists.Things)
                 {
                     int matches = CountUdmfFieldMatches(t, value);
                     if (matches > 0) { t.Selected = true; count += matches; focus ??= t.Position; }
                 }
                 break;
             case FindCategory.LinedefAction:
-                if (numOk) foreach (var l in map.Linedefs) if (NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
+                if (numOk) foreach (var l in lists.Linedefs) if (NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.LinedefActionArguments:
                 if (TryParseActionQuery(value, out var lineActionQuery))
-                    foreach (var l in map.Linedefs)
+                    foreach (var l in lists.Linedefs)
                         if (ActionQueryMatches(l, l.Action, l.Args, lineActionQuery, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.VertexIndex:
                 if (numOk && num >= 0 && num < map.Vertices.Count) { map.Vertices[num].Selected = true; count = 1; focus = map.Vertices[num].Position; }
                 break;
             case FindCategory.VertexUdmfField:
-                foreach (var v in map.Vertices)
+                foreach (var v in lists.Vertices)
                 {
                     int matches = CountUdmfFieldMatches(v, value);
                     if (matches > 0) { v.Selected = true; count += matches; focus ??= v.Position; }
@@ -171,7 +203,7 @@ public static class MapSearch
                 if (numOk && num >= 0 && num < map.Linedefs.Count) { map.Linedefs[num].Selected = true; count = 1; focus = Mid(map.Linedefs[num]); }
                 break;
             case FindCategory.LinedefUdmfField:
-                foreach (var l in map.Linedefs)
+                foreach (var l in lists.Linedefs)
                 {
                     int matches = CountUdmfFieldMatches(l, value);
                     if (matches > 0) { l.Selected = true; count += matches; focus ??= Mid(l); }
@@ -179,7 +211,7 @@ public static class MapSearch
                 break;
             case FindCategory.LinedefFlags:
                 if (TryParseFlagQuery(value, out var lineFlags))
-                    foreach (var l in map.Linedefs)
+                    foreach (var l in lists.Linedefs)
                         if (FlagsMatch(l, lineFlags)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.SidedefIndex:
@@ -191,7 +223,7 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.SidedefUdmfField:
-                foreach (var sd in map.Sidedefs)
+                foreach (var sd in lists.Sidedefs)
                 {
                     int matches = CountUdmfFieldMatches(sd, value);
                     if (matches > 0)
@@ -203,7 +235,7 @@ public static class MapSearch
                 break;
             case FindCategory.SidedefFlags:
                 if (TryParseFlagQuery(value, out var sideFlags))
-                    foreach (var sd in map.Sidedefs)
+                    foreach (var sd in lists.Sidedefs)
                         if (FlagsMatch(sd, sideFlags))
                         {
                             if (sd.Line != null) { sd.Line.Selected = true; focus ??= Mid(sd.Line); }
@@ -212,59 +244,59 @@ public static class MapSearch
                 break;
             case FindCategory.SectorEffect:
                 if (numOk)
-                    foreach (var s in map.Sectors)
+                    foreach (var s in lists.Sectors)
                         if (num == -1 ? s.Special > 0 : NumberMatches(s.Special, num, sectorEffectMatcher)) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorIndex:
                 if (numOk && num >= 0 && num < map.Sectors.Count) { map.Sectors[num].Selected = true; count = 1; }
                 break;
             case FindCategory.SectorUdmfField:
-                foreach (var s in map.Sectors)
+                foreach (var s in lists.Sectors)
                 {
                     int matches = CountUdmfFieldMatches(s, value);
                     if (matches > 0) { s.Selected = true; count += matches; }
                 }
                 break;
             case FindCategory.SectorFloorHeight:
-                if (numOk) foreach (var s in map.Sectors) if (s.FloorHeight == num) { s.Selected = true; count++; }
+                if (numOk) foreach (var s in lists.Sectors) if (s.FloorHeight == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorCeilingHeight:
-                if (numOk) foreach (var s in map.Sectors) if (s.CeilHeight == num) { s.Selected = true; count++; }
+                if (numOk) foreach (var s in lists.Sectors) if (s.CeilHeight == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorBrightness:
                 if (TryParseComparison(value, out var brightnessQuery))
-                    foreach (var s in map.Sectors)
+                    foreach (var s in lists.Sectors)
                         if (ComparisonMatches(s.Brightness, brightnessQuery)) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorFlags:
                 if (TryParseFlagQuery(value, out var sectorFlags))
-                    foreach (var s in map.Sectors)
+                    foreach (var s in lists.Sectors)
                         if (FlagsMatch(s, sectorFlags)) { s.Selected = true; count++; }
                 break;
             case FindCategory.Tag:
                 if (numOk)
                 {
                     if (tagOptions.IncludeLinedefs)
-                        foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
-                    foreach (var s in map.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
+                        foreach (var l in lists.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
+                    foreach (var s in lists.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
                     if (tagOptions.IncludeThings)
-                        foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
+                        foreach (var t in lists.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 }
                 break;
             case FindCategory.LinedefTag:
                 if (numOk)
-                    foreach (var l in map.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
+                    foreach (var l in lists.Linedefs) if (MapElementTags.HasTag(l, num)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.SectorTag:
                 if (numOk)
-                    foreach (var s in map.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
+                    foreach (var s in lists.Sectors) if (MapElementTags.HasTag(s, num)) { s.Selected = true; count++; }
                 break;
             case FindCategory.ThingTag:
                 if (numOk)
-                    foreach (var t in map.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
+                    foreach (var t in lists.Things) if (MapElementTags.HasTag(t, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.Texture:
-                foreach (var sd in map.Sidedefs)
+                foreach (var sd in lists.Sidedefs)
                 {
                     if (sd.Line == null) continue;
                     bool selected = false;
@@ -275,12 +307,12 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.TextureOrFlat:
-                foreach (var s in map.Sectors)
+                foreach (var s in lists.Sectors)
                 {
                     if (TexturePatternMatches(s.CeilTexture, value)) { s.Selected = true; count++; }
                     if (TexturePatternMatches(s.FloorTexture, value)) { s.Selected = true; count++; }
                 }
-                foreach (var sd in map.Sidedefs)
+                foreach (var sd in lists.Sidedefs)
                 {
                     if (sd.Line == null) continue;
                     bool selected = false;
@@ -291,16 +323,16 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.SidedefUpperTexture:
-                foreach (var sd in map.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.HighTexture, value, sd.HighRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                foreach (var sd in lists.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.HighTexture, value, sd.HighRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
             case FindCategory.SidedefMiddleTexture:
-                foreach (var sd in map.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.MidTexture, value, sd.MiddleRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                foreach (var sd in lists.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.MidTexture, value, sd.MiddleRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
             case FindCategory.SidedefLowerTexture:
-                foreach (var sd in map.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.LowTexture, value, sd.LowRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                foreach (var sd in lists.Sidedefs) if (sd.Line != null && TextureSlotMatches(sd.LowTexture, value, sd.LowRequired())) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
                 break;
             case FindCategory.Flat:
-                foreach (var s in map.Sectors)
+                foreach (var s in lists.Sectors)
                 {
                     bool selected = false;
                     if (TexturePatternMatches(s.FloorTexture, value)) selected = true;
@@ -309,17 +341,17 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.SectorFloorFlat:
-                foreach (var s in map.Sectors) if (TexturePatternMatches(s.FloorTexture, value)) { s.Selected = true; count++; }
+                foreach (var s in lists.Sectors) if (TexturePatternMatches(s.FloorTexture, value)) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorCeilingFlat:
-                foreach (var s in map.Sectors) if (TexturePatternMatches(s.CeilTexture, value)) { s.Selected = true; count++; }
+                foreach (var s in lists.Sectors) if (TexturePatternMatches(s.CeilTexture, value)) { s.Selected = true; count++; }
                 break;
             case FindCategory.AnyUdmfField:
-                count += SelectUdmfFieldMatches(map.Vertices, value, element => element.Selected = true, element => focus ??= element.Position);
-                count += SelectUdmfFieldMatches(map.Linedefs, value, element => element.Selected = true, element => focus ??= Mid(element));
-                count += SelectUdmfFieldMatches(map.Sidedefs, value, element => { if (element.Line != null) element.Line.Selected = true; }, element => { if (element.Line != null) focus ??= Mid(element.Line); });
-                count += SelectUdmfFieldMatches(map.Sectors, value, element => element.Selected = true, _ => { });
-                count += SelectUdmfFieldMatches(map.Things, value, element => element.Selected = true, element => focus ??= element.Position);
+                count += SelectUdmfFieldMatches(lists.Vertices, value, element => element.Selected = true, element => focus ??= element.Position);
+                count += SelectUdmfFieldMatches(lists.Linedefs, value, element => element.Selected = true, element => focus ??= Mid(element));
+                count += SelectUdmfFieldMatches(lists.Sidedefs, value, element => { if (element.Line != null) element.Line.Selected = true; }, element => { if (element.Line != null) focus ??= Mid(element.Line); });
+                count += SelectUdmfFieldMatches(lists.Sectors, value, element => element.Selected = true, _ => { });
+                count += SelectUdmfFieldMatches(lists.Things, value, element => element.Selected = true, element => focus ??= element.Position);
                 break;
         }
         return new SearchResult(count, focus);
@@ -331,6 +363,9 @@ public static class MapSearch
     /// </summary>
     public static int Replace(MapSet map, FindCategory cat, string find, string replace)
         => Replace(map, cat, find, replace, TagSearchOptions.All);
+
+    public static int Replace(MapSet map, FindCategory cat, string find, string replace, bool withinSelection)
+        => Replace(map, cat, find, replace, TagSearchOptions.All, null, null, withinSelection);
 
     public static int Replace(MapSet map, FindCategory cat, string find, string replace, TagSearchOptions tagOptions)
         => Replace(map, cat, find, replace, tagOptions, null);
@@ -352,14 +387,26 @@ public static class MapSearch
         TagSearchOptions tagOptions,
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, int, bool>? sectorEffectMatcher)
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, false);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection)
     {
         int changed = 0;
+        SearchLists lists = SearchLists.From(map, withinSelection);
         if (IsTextual(cat))
         {
             switch (cat)
             {
                 case FindCategory.Texture:
-                    foreach (var sd in map.Sidedefs)
+                    foreach (var sd in lists.Sidedefs)
                     {
                         bool hit = false;
                         if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; hit = true; }
@@ -369,12 +416,12 @@ public static class MapSearch
                     }
                     break;
                 case FindCategory.TextureOrFlat:
-                    foreach (var s in map.Sectors)
+                    foreach (var s in lists.Sectors)
                     {
                         if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
                         if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
                     }
-                    foreach (var sd in map.Sidedefs)
+                    foreach (var sd in lists.Sidedefs)
                     {
                         if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; changed++; }
                         if (TextureSlotMatches(sd.MidTexture, find, sd.MiddleRequired())) { sd.MidTexture = replace; changed++; }
@@ -382,16 +429,16 @@ public static class MapSearch
                     }
                     break;
                 case FindCategory.SidedefUpperTexture:
-                    foreach (var sd in map.Sidedefs) if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; changed++; }
+                    foreach (var sd in lists.Sidedefs) if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; changed++; }
                     break;
                 case FindCategory.SidedefMiddleTexture:
-                    foreach (var sd in map.Sidedefs) if (TextureSlotMatches(sd.MidTexture, find, sd.MiddleRequired())) { sd.MidTexture = replace; changed++; }
+                    foreach (var sd in lists.Sidedefs) if (TextureSlotMatches(sd.MidTexture, find, sd.MiddleRequired())) { sd.MidTexture = replace; changed++; }
                     break;
                 case FindCategory.SidedefLowerTexture:
-                    foreach (var sd in map.Sidedefs) if (TextureSlotMatches(sd.LowTexture, find, sd.LowRequired())) { sd.LowTexture = replace; changed++; }
+                    foreach (var sd in lists.Sidedefs) if (TextureSlotMatches(sd.LowTexture, find, sd.LowRequired())) { sd.LowTexture = replace; changed++; }
                     break;
                 case FindCategory.Flat:
-                    foreach (var s in map.Sectors)
+                    foreach (var s in lists.Sectors)
                     {
                         bool hit = false;
                         if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; hit = true; }
@@ -400,25 +447,25 @@ public static class MapSearch
                     }
                     break;
                 case FindCategory.SectorFloorFlat:
-                    foreach (var s in map.Sectors) if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
+                    foreach (var s in lists.Sectors) if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
                     break;
                 case FindCategory.SectorCeilingFlat:
-                    foreach (var s in map.Sectors) if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
+                    foreach (var s in lists.Sectors) if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
                     break;
             }
             return changed;
         }
 
         if (IsFlagCategory(cat))
-            return ReplaceFlags(map, cat, find, replace);
+            return ReplaceFlags(lists, cat, find, replace);
 
         if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
-            return ReplaceActionArguments(map, cat, find, replace, linedefActionMatcher);
+            return ReplaceActionArguments(lists, cat, find, replace, linedefActionMatcher);
 
         if (cat == FindCategory.ThingType)
         {
             if (!TryParseIntList(find, out var findTypes) || !TryParseIntList(replace, out var replaceTypes)) return 0;
-            foreach (var t in map.Things)
+            foreach (var t in lists.Things)
             {
                 if (!findTypes.Contains(t.Type)) continue;
                 t.Type = replaceTypes[Random.Shared.Next(replaceTypes.Count)];
@@ -432,7 +479,7 @@ public static class MapSearch
         {
             if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int brightness)) return 0;
             if (brightness < 0 || brightness > 255 || !TryParseComparison(find, out var brightnessQuery)) return 0;
-            foreach (var s in map.Sectors)
+            foreach (var s in lists.Sectors)
                 if (ComparisonMatches(s.Brightness, brightnessQuery)) { s.Brightness = brightness; changed++; }
 
             return changed;
@@ -444,36 +491,36 @@ public static class MapSearch
         switch (cat)
         {
             case FindCategory.ThingAngle:
-                foreach (var t in map.Things) if (t.Angle == from) { t.Angle = to; changed++; }
+                foreach (var t in lists.Things) if (t.Angle == from) { t.Angle = to; changed++; }
                 break;
             case FindCategory.LinedefAction:
-                foreach (var l in map.Linedefs) if (NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
+                foreach (var l in lists.Linedefs) if (NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
-                foreach (var s in map.Sectors)
+                foreach (var s in lists.Sectors)
                     if (from == -1 ? s.Special > 0 : NumberMatches(s.Special, from, sectorEffectMatcher)) { s.Special = to; changed++; }
                 break;
             case FindCategory.SectorFloorHeight:
-                foreach (var s in map.Sectors) if (s.FloorHeight == from) { s.FloorHeight = to; changed++; }
+                foreach (var s in lists.Sectors) if (s.FloorHeight == from) { s.FloorHeight = to; changed++; }
                 break;
             case FindCategory.SectorCeilingHeight:
-                foreach (var s in map.Sectors) if (s.CeilHeight == from) { s.CeilHeight = to; changed++; }
+                foreach (var s in lists.Sectors) if (s.CeilHeight == from) { s.CeilHeight = to; changed++; }
                 break;
             case FindCategory.Tag:
                 if (tagOptions.IncludeLinedefs)
-                    foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
-                foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
+                    foreach (var l in lists.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
+                foreach (var s in lists.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
                 if (tagOptions.IncludeThings)
-                    foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
+                    foreach (var t in lists.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
             case FindCategory.LinedefTag:
-                foreach (var l in map.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
+                foreach (var l in lists.Linedefs) if (MapElementTags.ReplaceTag(l, from, to)) changed++;
                 break;
             case FindCategory.SectorTag:
-                foreach (var s in map.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
+                foreach (var s in lists.Sectors) if (MapElementTags.ReplaceTag(s, from, to)) changed++;
                 break;
             case FindCategory.ThingTag:
-                foreach (var t in map.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
+                foreach (var t in lists.Things) if (MapElementTags.ReplaceTag(t, from, to)) changed++;
                 break;
         }
 
@@ -685,7 +732,7 @@ public static class MapSearch
     }
 
     private static int ReplaceActionArguments(
-        MapSet map,
+        SearchLists lists,
         FindCategory category,
         string find,
         string replace,
@@ -700,7 +747,7 @@ public static class MapSearch
         int changed = 0;
         if (category == FindCategory.LinedefActionArguments)
         {
-            foreach (var line in map.Linedefs)
+            foreach (var line in lists.Linedefs)
             {
                 if (!ActionQueryMatches(line, line.Action, line.Args, findQuery, linedefActionMatcher)) continue;
                 ApplyActionReplacement(line.Args, replaceQuery);
@@ -711,7 +758,7 @@ public static class MapSearch
         }
         else
         {
-            foreach (var thing in map.Things)
+            foreach (var thing in lists.Things)
             {
                 if (!ActionQueryMatches(thing, thing.Action, thing.Args, findQuery)) continue;
                 ApplyActionReplacement(thing.Args, replaceQuery);
@@ -781,7 +828,7 @@ public static class MapSearch
     private static bool IsFlagCategory(FindCategory category)
         => category is FindCategory.LinedefFlags or FindCategory.SidedefFlags or FindCategory.SectorFlags or FindCategory.ThingFlags;
 
-    private static int ReplaceFlags(MapSet map, FindCategory category, string find, string replace)
+    private static int ReplaceFlags(SearchLists lists, FindCategory category, string find, string replace)
     {
         if (!TryParseFlagQuery(find, out var findFlags) || !TryParseFlagQuery(replace, out var replaceFlags)) return 0;
 
@@ -789,7 +836,7 @@ public static class MapSearch
         switch (category)
         {
             case FindCategory.LinedefFlags:
-                foreach (var line in map.Linedefs)
+                foreach (var line in lists.Linedefs)
                 {
                     if (!FlagsMatch(line, findFlags)) continue;
                     foreach (var flag in replaceFlags) line.SetFlag(flag.Flag, flag.Set);
@@ -797,7 +844,7 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.SidedefFlags:
-                foreach (var side in map.Sidedefs)
+                foreach (var side in lists.Sidedefs)
                 {
                     if (!FlagsMatch(side, findFlags)) continue;
                     foreach (var flag in replaceFlags) side.SetFlag(flag.Flag, flag.Set);
@@ -805,7 +852,7 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.SectorFlags:
-                foreach (var sector in map.Sectors)
+                foreach (var sector in lists.Sectors)
                 {
                     if (!FlagsMatch(sector, findFlags)) continue;
                     foreach (var flag in replaceFlags) sector.SetFlag(flag.Flag, flag.Set);
@@ -813,7 +860,7 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.ThingFlags:
-                foreach (var thing in map.Things)
+                foreach (var thing in lists.Things)
                 {
                     if (!FlagsMatch(thing, findFlags)) continue;
                     foreach (var flag in replaceFlags) thing.SetFlag(flag.Flag, flag.Set);

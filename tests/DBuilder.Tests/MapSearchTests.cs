@@ -95,6 +95,50 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindWithinSelectionLimitsElementScansBeforeClearingSelection()
+    {
+        var map = Build();
+        map.Linedefs[0].Selected = true;
+        map.Sectors[1].Selected = true;
+        map.Things[1].Selected = true;
+        map.Things[2].Selected = true;
+
+        SearchResult thingResult = MapSearch.Find(map, FindCategory.ThingAngle, "90", withinSelection: true);
+        Assert.Equal(1, thingResult.Count);
+        Assert.False(map.Things[0].Selected);
+        Assert.False(map.Things[1].Selected);
+        Assert.True(map.Things[2].Selected);
+
+        map.Linedefs[0].Selected = true;
+        SearchResult sidedefResult = MapSearch.Find(map, FindCategory.SidedefMiddleTexture, "STARTAN3", withinSelection: true);
+        Assert.Equal(1, sidedefResult.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Linedefs[1].Selected);
+
+        map.Sectors[1].Selected = true;
+        SearchResult flatResult = MapSearch.Find(map, FindCategory.Flat, "FLOOR4_8", withinSelection: true);
+        Assert.Equal(1, flatResult.Count);
+        Assert.False(map.Sectors[0].Selected);
+        Assert.True(map.Sectors[1].Selected);
+    }
+
+    [Fact]
+    public void ReplaceWithinSelectionLimitsMutations()
+    {
+        var map = Build();
+        map.Sectors[1].Selected = true;
+        map.Linedefs[0].Selected = true;
+
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.Flat, "FLOOR4_8", "STONE1", withinSelection: true));
+        Assert.Equal("FLOOR4_8", map.Sectors[0].FloorTexture);
+        Assert.Equal("STONE1", map.Sectors[1].CeilTexture);
+
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.SidedefMiddleTexture, "STARTAN3", "BROWN1", withinSelection: true));
+        Assert.Equal("BROWN1", map.Sidedefs[0].MidTexture);
+        Assert.Equal("STARTAN3", map.Sidedefs[1].MidTexture);
+    }
+
+    [Fact]
     public void FindTagHonorsFormatSpecificTagOwners()
     {
         var map = Build();
