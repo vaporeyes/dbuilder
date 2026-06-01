@@ -367,6 +367,50 @@ public class MapSearchTests
         Assert.Equal(224, map.Sectors[1].Brightness);
     }
 
+    [Theory]
+    [InlineData("< 192", 1)]
+    [InlineData("<= 192", 2)]
+    [InlineData(">192", 0)]
+    [InlineData(">=192", 1)]
+    public void FindSectorBrightnessSupportsUdbComparisonPrefixes(string value, int expectedCount)
+    {
+        var map = Build();
+        map.Sectors[0].Brightness = 128;
+        map.Sectors[1].Brightness = 192;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.SectorBrightness, value);
+
+        Assert.Equal(expectedCount, result.Count);
+    }
+
+    [Fact]
+    public void ReplaceSectorBrightnessSupportsComparisonPrefixes()
+    {
+        var map = Build();
+        map.Sectors[0].Brightness = 128;
+        map.Sectors[1].Brightness = 192;
+
+        int changed = MapSearch.Replace(map, FindCategory.SectorBrightness, "<= 192", "224");
+
+        Assert.Equal(2, changed);
+        Assert.Equal(224, map.Sectors[0].Brightness);
+        Assert.Equal(224, map.Sectors[1].Brightness);
+    }
+
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("256")]
+    public void ReplaceSectorBrightnessRejectsInvalidReplacementValues(string replacement)
+    {
+        var map = Build();
+        map.Sectors[0].Brightness = 128;
+
+        int changed = MapSearch.Replace(map, FindCategory.SectorBrightness, "128", replacement);
+
+        Assert.Equal(0, changed);
+        Assert.Equal(128, map.Sectors[0].Brightness);
+    }
+
     [Fact]
     public void FindAndReplaceSpecificTextureAndFlatSlots()
     {

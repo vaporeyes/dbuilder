@@ -215,7 +215,9 @@ public static class MapSearch
                 if (numOk) foreach (var s in map.Sectors) if (s.CeilHeight == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorBrightness:
-                if (numOk) foreach (var s in map.Sectors) if (s.Brightness == num) { s.Selected = true; count++; }
+                if (TryParseComparison(value, out var brightnessQuery))
+                    foreach (var s in map.Sectors)
+                        if (ComparisonMatches(s.Brightness, brightnessQuery)) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorFlags:
                 if (TryParseFlagQuery(value, out var sectorFlags))
@@ -390,6 +392,16 @@ public static class MapSearch
             return changed;
         }
 
+        if (cat == FindCategory.SectorBrightness)
+        {
+            if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int brightness)) return 0;
+            if (brightness < 0 || brightness > 255 || !TryParseComparison(find, out var brightnessQuery)) return 0;
+            foreach (var s in map.Sectors)
+                if (ComparisonMatches(s.Brightness, brightnessQuery)) { s.Brightness = brightness; changed++; }
+
+            return changed;
+        }
+
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
         if (cat == FindCategory.SectorEffect && (to < 0 || to > short.MaxValue)) return 0;
@@ -410,9 +422,6 @@ public static class MapSearch
                 break;
             case FindCategory.SectorCeilingHeight:
                 foreach (var s in map.Sectors) if (s.CeilHeight == from) { s.CeilHeight = to; changed++; }
-                break;
-            case FindCategory.SectorBrightness:
-                foreach (var s in map.Sectors) if (s.Brightness == from) { s.Brightness = to; changed++; }
                 break;
             case FindCategory.Tag:
                 if (tagOptions.IncludeLinedefs)
@@ -515,6 +524,38 @@ public static class MapSearch
     }
 
     private static bool Eq(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    private readonly record struct NumericComparison(string Prefix, int Value);
+
+    private static bool TryParseComparison(string input, out NumericComparison comparison)
+    {
+        string value = input.Trim().Replace(" ", "", StringComparison.Ordinal);
+        string prefix = "";
+        if (value.StartsWith(">=", StringComparison.Ordinal) || value.StartsWith("<=", StringComparison.Ordinal))
+            prefix = value[..2];
+        else if (value.StartsWith(">", StringComparison.Ordinal) || value.StartsWith("<", StringComparison.Ordinal))
+            prefix = value[..1];
+
+        value = value[prefix.Length..];
+        if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
+        {
+            comparison = default;
+            return false;
+        }
+
+        comparison = new NumericComparison(prefix, number);
+        return true;
+    }
+
+    private static bool ComparisonMatches(int value, NumericComparison comparison) => comparison.Prefix switch
+    {
+        "" => value == comparison.Value,
+        "<=" => value <= comparison.Value,
+        ">=" => value >= comparison.Value,
+        "<" => value < comparison.Value,
+        ">" => value > comparison.Value,
+        _ => false,
+    };
 
     private static bool TryParseIntList(string input, out List<int> values)
     {
