@@ -150,6 +150,56 @@ public static class Tools
         }
     }
 
+    /// <summary>Flips sector linedefs so they all face either inward or outward, matching UDB Tools.FlipSectorLinedefs.</summary>
+    public static void FlipSectorLinedefs(ICollection<Sector> sectors, bool selectedLinesOnly)
+    {
+        var processed = new HashSet<Linedef>();
+
+        foreach (Sector sector in sectors)
+        {
+            var frontLines = new List<Linedef>();
+            var backLines = new List<Linedef>();
+            int unselectedFrontLines = 0;
+            int unselectedBackLines = 0;
+
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                if (processed.Contains(side.Line)) continue;
+
+                if (selectedLinesOnly && !side.Line.Selected)
+                {
+                    if (ReferenceEquals(side, side.Line.Front)) unselectedFrontLines++;
+                    else unselectedBackLines++;
+                    continue;
+                }
+
+                if (ReferenceEquals(side, side.Line.Front)) frontLines.Add(side.Line);
+                else backLines.Add(side.Line);
+
+                processed.Add(side.Line);
+            }
+
+            if (frontLines.Count == 0 || (frontLines.Count + unselectedFrontLines > backLines.Count + unselectedBackLines && backLines.Count > 0))
+            {
+                foreach (Linedef line in backLines)
+                {
+                    line.FlipVertices();
+                    line.FlipSidedefs();
+                }
+            }
+            else
+            {
+                foreach (Linedef line in frontLines)
+                {
+                    if (line.Back == null) continue;
+
+                    line.FlipVertices();
+                    line.FlipSidedefs();
+                }
+            }
+        }
+    }
+
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
     public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)
     {

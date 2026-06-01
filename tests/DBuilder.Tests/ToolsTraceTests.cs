@@ -116,6 +116,79 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FlipSectorLinedefsFlipsBackLinesWhenFrontLinesDominate()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var other = map.AddSector();
+        var frontA = AddTwoSidedLine(map, sector, other, targetOnFront: true);
+        var frontB = AddTwoSidedLine(map, sector, other, targetOnFront: true);
+        var back = AddTwoSidedLine(map, sector, other, targetOnFront: false);
+        map.BuildIndexes();
+
+        Tools.FlipSectorLinedefs(new[] { sector }, selectedLinesOnly: false);
+
+        Assert.Same(sector, frontA.Front!.Sector);
+        Assert.Same(sector, frontB.Front!.Sector);
+        Assert.Same(sector, back.Front!.Sector);
+    }
+
+    [Fact]
+    public void FlipSectorLinedefsSkipsSingleSidedFrontLines()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var line = AddOneSidedLine(map, sector);
+        Vertex start = line.Start;
+        Vertex end = line.End;
+        map.BuildIndexes();
+
+        Tools.FlipSectorLinedefs(new[] { sector }, selectedLinesOnly: false);
+
+        Assert.Same(start, line.Start);
+        Assert.Same(end, line.End);
+        Assert.Same(sector, line.Front!.Sector);
+        Assert.Null(line.Back);
+    }
+
+    [Fact]
+    public void FlipSectorLinedefsUsesUnselectedLinesForSelectedOnlyDecision()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var other = map.AddSector();
+        var unselectedFront = AddTwoSidedLine(map, sector, other, targetOnFront: true);
+        var selectedFront = AddTwoSidedLine(map, sector, other, targetOnFront: true);
+        var selectedBackA = AddTwoSidedLine(map, sector, other, targetOnFront: false);
+        var selectedBackB = AddTwoSidedLine(map, sector, other, targetOnFront: false);
+        selectedFront.Selected = true;
+        selectedBackA.Selected = true;
+        selectedBackB.Selected = true;
+        map.BuildIndexes();
+
+        Tools.FlipSectorLinedefs(new[] { sector }, selectedLinesOnly: true);
+
+        Assert.Same(sector, unselectedFront.Front!.Sector);
+        Assert.Same(sector, selectedFront.Back!.Sector);
+        Assert.Same(sector, selectedBackA.Back!.Sector);
+        Assert.Same(sector, selectedBackB.Back!.Sector);
+    }
+
+    [Fact]
+    public void FlipSectorLinedefsProcessesSharedLinesOnceAcrossSectors()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var other = map.AddSector();
+        var shared = AddTwoSidedLine(map, sector, other, targetOnFront: false);
+        map.BuildIndexes();
+
+        Tools.FlipSectorLinedefs(new[] { sector, other }, selectedLinesOnly: false);
+
+        Assert.Same(sector, shared.Front!.Sector);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]
@@ -137,6 +210,25 @@ public class ToolsTraceTests
     {
         var (map, _, lines) = BuildSectorPolygon(cwLoop);
         return (map, lines);
+    }
+
+    private static Linedef AddOneSidedLine(MapSet map, Sector sector)
+    {
+        var start = map.AddVertex(new Vector2D(map.Linedefs.Count * 16, 0));
+        var end = map.AddVertex(new Vector2D(map.Linedefs.Count * 16 + 8, 0));
+        var line = map.AddLinedef(start, end);
+        map.AddSidedef(line, isFront: true, sector);
+        return line;
+    }
+
+    private static Linedef AddTwoSidedLine(MapSet map, Sector target, Sector other, bool targetOnFront)
+    {
+        var start = map.AddVertex(new Vector2D(map.Linedefs.Count * 16, 0));
+        var end = map.AddVertex(new Vector2D(map.Linedefs.Count * 16 + 8, 0));
+        var line = map.AddLinedef(start, end);
+        map.AddSidedef(line, isFront: true, targetOnFront ? target : other);
+        map.AddSidedef(line, isFront: false, targetOnFront ? other : target);
+        return line;
     }
 
     private static (MapSet map, Sector sector, List<Linedef> lines) BuildSectorPolygon(Vector2D[] cwLoop)
