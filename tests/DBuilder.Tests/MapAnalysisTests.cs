@@ -1700,7 +1700,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
         Assert.Same(line, issue.Target);
-        Assert.Contains("non-existing Polyobject Start Spot (7)", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("\"Polyobj_StartLine\" action targets non-existing Polyobject Start Spot (7)", issue.Message);
     }
 
     [Fact]
@@ -1718,7 +1718,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
         Assert.Same(thing, issue.Target);
-        Assert.Contains("not targeted", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Polyobject Start Spot 7 is not targeted by any Polyobject Anchor", issue.Message);
     }
 
     [Fact]
@@ -1760,7 +1760,31 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
 
-        Assert.Contains("\"Polyobj_StartLine\" action has non-existing Mirror Polyobject Number assigned (9)", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("\"Polyobj_StartLine\" action have non-existing Mirror Polyobject Number assigned (9). It won't function correctly ingame.", issue.Message);
+    }
+
+    [Fact]
+    public void PolyobjectDuplicateStartLinesUseUdbMessage()
+    {
+        var map = Square(true);
+        map.Linedefs[0].Action = 1;
+        map.Linedefs[0].Args[0] = 7;
+        map.Linedefs[1].Action = 1;
+        map.Linedefs[1].Args[0] = 7;
+        var start = map.AddThing(new Vector2D(64, 64), 9300);
+        start.Angle = 7;
+        var anchor = map.AddThing(new Vector2D(96, 64), 9301);
+        anchor.Angle = 7;
+        var ctx = new MapCheckContext
+        {
+            CheckPolyobjects = true,
+            LinedefActionId = action => action == 1 ? "Polyobj_StartLine" : null,
+            ThingClassName = type => type == 9300 ? "$polyspawn" : type == 9301 ? "$polyanchor" : null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
+
+        Assert.Equal("Several \"Polyobj_StartLine\" actions have the same Polyobject Number assigned (7). They won't function correctly ingame.", issue.Message);
     }
 
     [Fact]

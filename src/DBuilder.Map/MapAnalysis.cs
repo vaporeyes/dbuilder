@@ -1074,13 +1074,13 @@ public static class MapAnalysis
         foreach (var group in polyLines)
             foreach (var linesByNumber in group.Value)
                 if (!startSpots.ContainsKey(linesByNumber.Key))
-                    AddPolyLineIssue(issues, linesByNumber.Value, $"\"{group.Key}\" action targets non-existing Polyobject Start Spot ({linesByNumber.Key}).");
+                    AddPolyLineIssue(issues, linesByNumber.Value, $"\"{group.Key}\" action targets non-existing Polyobject Start Spot ({linesByNumber.Key})");
 
         if (polyLines.TryGetValue(polyobjStartLine, out var startLines))
             foreach (var linesByNumber in startLines)
             {
                 if (linesByNumber.Value.Count > 1)
-                    AddPolyLineIssue(issues, linesByNumber.Value, $"Several \"{polyobjStartLine}\" actions have the same Polyobject Number assigned ({linesByNumber.Key}).");
+                    AddPolyLineIssue(issues, linesByNumber.Value, $"Several \"{polyobjStartLine}\" actions have the same Polyobject Number assigned ({linesByNumber.Key}). They won't function correctly ingame.");
 
                 foreach (var line in linesByNumber.Value)
                     CheckMirror(linesByNumber.Key, line.Line.Args[1], line, polyobjStartLine);
@@ -1094,26 +1094,26 @@ public static class MapAnalysis
         foreach (var group in anchors)
         {
             if (!startSpots.ContainsKey(group.Key))
-                AddPolyThingIssue(issues, group.Value, $"Polyobject {(group.Value.Count > 1 ? "Anchors target" : "Anchor targets")} non-existing Polyobject Start Spot ({group.Key}).");
+                AddPolyThingIssue(issues, group.Value, $"Polyobject {(group.Value.Count > 1 ? "Anchors target" : "Anchor targets")} non-existing Polyobject Start Spot ({group.Key})");
             if (group.Value.Count > 1)
-                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Anchors target the same Polyobject Start Spot ({group.Key}).");
+                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Anchors target the same Polyobject Start Spot ({group.Key}). They won't function correctly ingame.");
         }
 
         foreach (var group in startSpots)
         {
             if (!anchors.ContainsKey(group.Key))
-                AddPolyThingIssue(issues, group.Value, $"Polyobject Start {(group.Value.Count > 1 ? "Spots are not targeted" : "Spot " + group.Key.ToString(CultureInfo.InvariantCulture) + " is not targeted")} by any Polyobject Anchor.");
+                AddPolyThingIssue(issues, group.Value, $"Polyobject Start {(group.Value.Count > 1 ? "Spots are not targeted" : "Spot " + group.Key.ToString(CultureInfo.InvariantCulture) + " is not targeted")} by any Polyobject Anchor");
             if (group.Value.Count > 1)
-                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Start Spots have the same Polyobject number ({group.Key}).");
+                AddPolyThingIssue(issues, group.Value, $"Several Polyobject Start Spots have the same Polyobject number ({group.Key}). They won't function correctly ingame.");
         }
 
         void CheckMirror(int polyNumber, int mirrorNumber, (int Index, Linedef Line) line, string actionId)
         {
             if (mirrorNumber <= 0) return;
             if (!startSpots.ContainsKey(mirrorNumber))
-                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action has non-existing Mirror Polyobject Number assigned ({mirrorNumber}).");
+                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action have non-existing Mirror Polyobject Number assigned ({mirrorNumber}). It won't function correctly ingame.");
             if (mirrorNumber == polyNumber)
-                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action has the same Polyobject and Mirror Polyobject numbers assigned ({mirrorNumber}).");
+                AddPolyLineIssue(issues, new[] { line }, $"\"{actionId}\" action have the same Polyobject and Mirror Polyobject numbers assigned ({mirrorNumber}). It won't function correctly ingame.");
         }
 
         static void Add(Dictionary<int, List<(int Index, Thing Thing)>> map, int number, int index, Thing thing)

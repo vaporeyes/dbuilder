@@ -1061,6 +1061,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Run UDB off-grid vertex checks without resource context.
   - [x] Include zero-length lines in UDB-style short-linedef checks.
   - [x] Match UDB Polyobj_ExplicitLine mirror-number error text.
+  - [x] Match remaining UDB polyobject diagnostic punctuation and suffix text.
 - [ ] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
   - [x] Add UDB-style fix actions for missing-front and sidedness flag mismatch linedefs.
