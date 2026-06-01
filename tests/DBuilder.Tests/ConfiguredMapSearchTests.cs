@@ -1,5 +1,5 @@
 // ABOUTME: Tests game-configuration-aware map find/replace behavior outside direct tag searches.
-// ABOUTME: Covers UDB generalized linedef action matching while keeping core MapSearch config-free.
+// ABOUTME: Covers UDB generalized action/effect matching while keeping core MapSearch config-free.
 
 using DBuilder.Geometry;
 using DBuilder.IO;
@@ -11,6 +11,7 @@ public class ConfiguredMapSearchTests
 {
     private const string Cfg = """
         generalizedlinedefs = true;
+        generalizedsectors = true;
         gen_linedeftypes
         {
             floors
@@ -36,6 +37,26 @@ public class ConfiguredMapSearchTests
                     0 = "Down";
                     64 = "Up";
                 }
+            }
+        }
+        sectortypes
+        {
+            9 = "Secret";
+            11 = "End damage";
+        }
+        gen_sectortypes
+        {
+            damage
+            {
+                0 = "None";
+                32 = "5 per second";
+                64 = "10 per second";
+                96 = "20 per second";
+            }
+            friction
+            {
+                0 = "Disabled";
+                256 = "Friction";
             }
         }
         """;
@@ -98,10 +119,77 @@ public class ConfiguredMapSearchTests
         Assert.Equal(0, result.Count);
     }
 
+    [Fact]
+    public void FindSectorEffectMatchesGeneralizedEffectSubsets()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Special = 9 + 32 + 256;
+        map.Sectors[1].Special = 32 + 256;
+        map.Sectors[2].Special = 9 + 64;
+
+        SearchResult result = ConfiguredMapSearch.Find(map, FindCategory.SectorEffect, "32", config);
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Sectors[1].Selected);
+        Assert.False(map.Sectors[2].Selected);
+    }
+
+    [Fact]
+    public void FindSectorEffectMatchesNormalBaseWithAdditionalGeneralizedBits()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Special = 9 + 32 + 256;
+        map.Sectors[1].Special = 32 + 256;
+        map.Sectors[2].Special = 9 + 64;
+
+        SearchResult result = ConfiguredMapSearch.Find(map, FindCategory.SectorEffect, "9", config);
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.False(map.Sectors[1].Selected);
+        Assert.True(map.Sectors[2].Selected);
+    }
+
+    [Fact]
+    public void ReplaceSectorEffectMatchesGeneralizedEffectSubsets()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Special = 9 + 32 + 256;
+        map.Sectors[1].Special = 32 + 256;
+        map.Sectors[2].Special = 9 + 64;
+
+        int changed = ConfiguredMapSearch.Replace(map, FindCategory.SectorEffect, "32", "11", config);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(11, map.Sectors[0].Special);
+        Assert.Equal(11, map.Sectors[1].Special);
+        Assert.Equal(9 + 64, map.Sectors[2].Special);
+    }
+
+    [Fact]
+    public void GeneralizedSectorEffectMatchingDoesNotApplyWithoutConfiguredGeneralizedEffects()
+    {
+        var config = GameConfiguration.FromText(Cfg.Replace("generalizedsectors = true;", ""));
+        var map = BuildMap();
+        map.Sectors[0].Special = 9 + 32 + 256;
+        map.Sectors[1].Special = 32 + 256;
+        map.Sectors[2].Special = 9 + 64;
+
+        SearchResult result = ConfiguredMapSearch.Find(map, FindCategory.SectorEffect, "32", config);
+
+        Assert.Equal(0, result.Count);
+    }
+
     private static MapSet BuildMap()
     {
         var map = new MapSet();
         var sector = map.AddSector();
+        map.AddSector();
+        map.AddSector();
         var v1 = map.AddVertex(new Vector2D(0, 0));
         var v2 = map.AddVertex(new Vector2D(64, 0));
         var v3 = map.AddVertex(new Vector2D(64, 64));

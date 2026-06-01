@@ -104,6 +104,15 @@ public static class MapSearch
         string value,
         TagSearchOptions tagOptions,
         Func<int, int, bool>? linedefActionMatcher)
+        => Find(map, cat, value, tagOptions, linedefActionMatcher, null);
+
+    public static SearchResult Find(
+        MapSet map,
+        FindCategory cat,
+        string value,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher)
     {
         map.ClearAllSelected();
         int count = 0;
@@ -141,7 +150,7 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.LinedefAction:
-                if (numOk) foreach (var l in map.Linedefs) if (ActionNumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
+                if (numOk) foreach (var l in map.Linedefs) if (NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.LinedefActionArguments:
                 if (TryParseActionQuery(value, out var lineActionQuery))
@@ -204,7 +213,7 @@ public static class MapSearch
             case FindCategory.SectorEffect:
                 if (numOk)
                     foreach (var s in map.Sectors)
-                        if (num == -1 ? s.Special > 0 : s.Special == num) { s.Selected = true; count++; }
+                        if (num == -1 ? s.Special > 0 : NumberMatches(s.Special, num, sectorEffectMatcher)) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorIndex:
                 if (numOk && num >= 0 && num < map.Sectors.Count) { map.Sectors[num].Selected = true; count = 1; }
@@ -333,6 +342,16 @@ public static class MapSearch
         string replace,
         TagSearchOptions tagOptions,
         Func<int, int, bool>? linedefActionMatcher)
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, null);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher)
     {
         int changed = 0;
         if (IsTextual(cat))
@@ -428,11 +447,11 @@ public static class MapSearch
                 foreach (var t in map.Things) if (t.Angle == from) { t.Angle = to; changed++; }
                 break;
             case FindCategory.LinedefAction:
-                foreach (var l in map.Linedefs) if (ActionNumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
+                foreach (var l in map.Linedefs) if (NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
                 foreach (var s in map.Sectors)
-                    if (from == -1 ? s.Special > 0 : s.Special == from) { s.Special = to; changed++; }
+                    if (from == -1 ? s.Special > 0 : NumberMatches(s.Special, from, sectorEffectMatcher)) { s.Special = to; changed++; }
                 break;
             case FindCategory.SectorFloorHeight:
                 foreach (var s in map.Sectors) if (s.FloorHeight == from) { s.FloorHeight = to; changed++; }
@@ -634,7 +653,7 @@ public static class MapSearch
         return true;
     }
 
-    private static bool ActionNumberMatches(int actual, int expected, Func<int, int, bool>? matcher)
+    private static bool NumberMatches(int actual, int expected, Func<int, int, bool>? matcher)
         => actual == expected || (matcher?.Invoke(actual, expected) ?? false);
 
     private static bool ActionQueryMatches(IFielded element, int action, int[] args, ActionArgQuery query)
@@ -651,7 +670,7 @@ public static class MapSearch
         {
             if (action == 0) return false;
         }
-        else if (!ActionNumberMatches(action, query.Action, actionMatcher))
+        else if (!NumberMatches(action, query.Action, actionMatcher))
         {
             return false;
         }
