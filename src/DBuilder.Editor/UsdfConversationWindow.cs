@@ -17,7 +17,7 @@ public sealed class UsdfConversationWindow : Window
 
     public UsdfConversationWindow(UsdfParseResult result)
     {
-        Title = "USDF Conversation Editor";
+        Title = UsdfDialogEditorModel.MainFormTitle;
         Width = 760;
         Height = 560;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;

@@ -29,6 +29,21 @@ public class UsdfDialogueParserTests
     }
 
     [Fact]
+    public void DialogEditorMainFormMetadataMatchesUdbDesigner()
+    {
+        Assert.Equal("Dialog Editor", UsdfDialogEditorModel.MainFormTitle);
+        Assert.Equal(942, UsdfDialogEditorModel.DefaultClientWidth);
+        Assert.Equal(612, UsdfDialogEditorModel.DefaultClientHeight);
+        Assert.Equal(257, UsdfDialogEditorModel.TreeWidth);
+        Assert.Equal(".", UsdfDialogEditorModel.TreeMetadata.PathSeparator);
+        Assert.Equal(22, UsdfDialogEditorModel.TreeMetadata.Indent);
+        Assert.Equal(18, UsdfDialogEditorModel.TreeMetadata.ItemHeight);
+        Assert.Equal(
+            new[] { "Dialog2.png", "book_closed.png", "book_open.png", "page_user.png" },
+            UsdfDialogEditorModel.TreeMetadata.ImageKeys);
+    }
+
+    [Fact]
     public void DialogEditorWindowStateReadsUdbPluginSettings()
     {
         var fallback = new UsdfDialogEditorWindowState(1, 2, 300, 200, UsdfDialogEditorModel.NormalWindowState);

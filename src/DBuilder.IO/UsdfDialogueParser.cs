@@ -70,6 +70,12 @@ public sealed record UsdfDialogEditorWindowState(
     int SizeHeight,
     int WindowState);
 
+public sealed record UsdfDialogEditorTreeMetadata(
+    string PathSeparator,
+    int Indent,
+    int ItemHeight,
+    IReadOnlyList<string> ImageKeys);
+
 public static class UsdfDialogueParser
 {
     public static bool CanEditDialogue(GameConfiguration? config)
@@ -217,6 +223,7 @@ public static class UsdfDialogueParser
 public static class UsdfDialogEditorModel
 {
     public const string ActionId = "opendialogeditor";
+    public const string MainFormTitle = "Dialog Editor";
     public const string PositionXKey = "mainwindow.positionx";
     public const string PositionYKey = "mainwindow.positiony";
     public const string SizeWidthKey = "mainwindow.sizewidth";
@@ -224,10 +231,13 @@ public static class UsdfDialogEditorModel
     public const string WindowStateKey = "mainwindow.windowstate";
     public const int NormalWindowState = 0;
     public const int MinimizedWindowState = 1;
+    public const int DefaultClientWidth = 942;
+    public const int DefaultClientHeight = 612;
+    public const int TreeWidth = 257;
 
     public static UsdfDialogEditorAction Action { get; } = new(
         ActionId,
-        "Dialog Editor",
+        MainFormTitle,
         "view",
         "This opens the dialog editor that allows you to edit DIALOGUE conversations in your map.",
         AllowKeys: true,
@@ -243,6 +253,12 @@ public static class UsdfDialogEditorModel
         "Dialog Editor...",
         ActionId,
         "Dialog.png");
+
+    public static UsdfDialogEditorTreeMetadata TreeMetadata { get; } = new(
+        ".",
+        22,
+        18,
+        ["Dialog2.png", "book_closed.png", "book_open.png", "page_user.png"]);
 
     public static UsdfDialogEditorWindowState ReadWindowState(
         IReadOnlyDictionary<string, object?> settings,

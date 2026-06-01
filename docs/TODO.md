@@ -1015,6 +1015,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
+  - [x] Add UDB-style Dialog Editor form title, tree metadata, and image-key metadata.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
