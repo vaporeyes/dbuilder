@@ -1705,6 +1705,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return result;
     }
 
+    private System.Collections.Generic.List<Thing> SelectedThings3D()
+    {
+        var result = new System.Collections.Generic.List<Thing>();
+        var seen = new HashSet<Thing>();
+        foreach (VisualHit hit in _sel3D)
+            if (hit.Thing is { } selected && seen.Add(selected))
+                result.Add(selected);
+
+        return result;
+    }
+
     private bool MoveThingTargets3D(Vector2D direction)
     {
         var things = ThingTargets3D();
@@ -1782,6 +1793,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         VisualThingRotation.ChangeRoll(things, increment);
         FinishThingOrientationChange3D(things, "Change thing roll", "Change thing rolls", "changed thing roll", "changed thing rolls");
+        return true;
+    }
+
+    private bool ApplyCameraRotationToSelectedThings3D()
+    {
+        var things = SelectedThings3D();
+        if (things.Count == 0)
+        {
+            Target3DChanged?.Invoke("no selected things");
+            return false;
+        }
+
+        VisualThingRotation.ApplyCameraRotation(things, _yaw, _pitch, _mapFormat == MapFormat.Udmf);
+        FinishThingOrientationChange3D(
+            things,
+            "Apply camera rotation to thing",
+            "Apply camera rotation to things",
+            "applied camera rotation to thing",
+            "applied camera rotation to things");
         return true;
     }
 
@@ -3319,6 +3349,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.roll-thing-counterclockwise":
                 ChangeThingRollTargets3D(5);
+                return true;
+            case "map3d.apply-camera-rotation-to-things":
+                ApplyCameraRotationToSelectedThings3D();
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);

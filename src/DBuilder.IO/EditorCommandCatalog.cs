@@ -185,6 +185,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.pitch-thing-counterclockwise", "Pitch Thing Counter-clockwise", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.roll-thing-clockwise", "Roll Thing Clockwise", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.roll-thing-counterclockwise", "Roll Thing Counter-clockwise", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
+        new EditorCommandDescriptor("map3d.apply-camera-rotation-to-things", "Apply Camera Rotation To Things", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.target-height", "Raise/lower floor, ceiling or thing Z (Shift = by 1)", "Wheel", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.drag-height", "Move a thing or drag a surface height", "Right-drag", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.brightness-down", "Sector brightness down", "[", EditorCommandScope.Map3D, Repeat: true),

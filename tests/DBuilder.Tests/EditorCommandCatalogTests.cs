@@ -599,6 +599,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisualCameraThingCommandsMatchUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.apply-camera-rotation-to-things");
+
+        Assert.NotNull(command);
+        Assert.Equal("Apply Camera Rotation To Things", command.Title);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
     public void DefaultShortcutsReferenceKnownCommands()
     {
         var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
