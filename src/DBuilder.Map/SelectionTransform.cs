@@ -20,6 +20,7 @@ public static class SelectionTransform
         var (cx, cy) = Center(verts, things);
         foreach (var v in verts) v.Position = Move(v.Position, op, cx, cy);
         foreach (var t in things) { t.Position = Move(t.Position, op, cx, cy); t.Angle = Angle(t.Angle, op); }
+        if (op is Op.FlipHorizontal or Op.FlipVertical) FlipMirroredLinedefs(map, verts);
         return true;
     }
 
@@ -42,6 +43,7 @@ public static class SelectionTransform
             if (factorY < 0) t.Angle = Angle(t.Angle, Op.FlipVertical);
         }
 
+        if ((factorX < 0) ^ (factorY < 0)) FlipMirroredLinedefs(map, verts);
         return true;
     }
 
@@ -92,6 +94,23 @@ public static class SelectionTransform
 
     private static Vector2D ScalePoint(Vector2D point, double cx, double cy, double factorX, double factorY)
         => new(cx + (point.x - cx) * factorX, cy + (point.y - cy) * factorY);
+
+    private static void FlipMirroredLinedefs(MapSet map, HashSet<Vertex> selectedVertices)
+    {
+        var selectedLines = map.GetSelectedLinedefs();
+        if (selectedLines.Count == 0) return;
+
+        var selectedLineSet = new HashSet<Linedef>(selectedLines, ReferenceEqualityComparer.Instance);
+        bool flipSides = map.Linedefs.Any(line =>
+            !selectedLineSet.Contains(line) &&
+            (selectedVertices.Contains(line.Start) || selectedVertices.Contains(line.End)));
+
+        foreach (var line in selectedLines)
+        {
+            line.FlipVertices();
+            if (flipSides) line.FlipSidedefs();
+        }
+    }
 
     private static int Angle(int a, Op op)
     {

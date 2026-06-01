@@ -102,6 +102,57 @@ public class SelectionTransformTests
     }
 
     [Fact]
+    public void MirroringSelectionReversesSelectedLinedefs()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(a, b);
+        line.Selected = true;
+
+        SelectionTransform.Scale(map, factorX: -1.0, factorY: 1.0);
+
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+    }
+
+    [Fact]
+    public void RotatingSelectionDoesNotReverseSelectedLinedefs()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(a, b);
+        line.Selected = true;
+
+        SelectionTransform.Apply(map, SelectionTransform.Op.RotateCW);
+
+        Assert.Same(a, line.Start);
+        Assert.Same(b, line.End);
+    }
+
+    [Fact]
+    public void MirroringSelectionSwapsSidedefsWhenSelectedVerticesTouchUnselectedLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(128, 0));
+        var selected = map.AddLinedef(a, b);
+        var unselected = map.AddLinedef(b, c);
+        var front = map.AddSidedef(selected, isFront: true, map.AddSector());
+        var back = map.AddSidedef(selected, isFront: false, map.AddSector());
+        selected.Selected = true;
+
+        SelectionTransform.Apply(map, SelectionTransform.Op.FlipHorizontal);
+
+        Assert.Same(back, selected.Front);
+        Assert.Same(front, selected.Back);
+        Assert.Same(b, unselected.Start);
+        Assert.Same(c, unselected.End);
+    }
+
+    [Fact]
     public void RotateArbitraryAngleMovesSelectionAndTurnsThing()
     {
         var map = new MapSet();
