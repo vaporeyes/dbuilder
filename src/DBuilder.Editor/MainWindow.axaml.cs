@@ -1118,7 +1118,7 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) return;
 
-        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0)
+        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var t = _map.GetSelectedThings()[0];
             var dlg = new ThingEditDialog(t, _config, _resources);
@@ -1134,7 +1134,7 @@ public partial class MainWindow : Window
                 AfterEdit("Thing updated");
             }
         }
-        else if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSectorsCount == 0)
+        else if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var l = _map.GetSelectedLinedefs()[0];
             var dlg = new LinedefEditDialog(l, _config, _resources);
@@ -1163,7 +1163,25 @@ public partial class MainWindow : Window
                 AfterEdit("Linedef updated");
             }
         }
-        else if (_map.SelectedSectorsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0)
+        else if (_map.SelectedSidedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        {
+            var side = _map.GetSelectedSidedefs()[0];
+            var dlg = new SidedefEditDialog(side, _config, _resources);
+            if (await dlg.ShowDialog<bool>(this))
+            {
+                CreateUndo("Edit sidedef");
+                side.HighTexture = dlg.ResultHighTexture;
+                side.MidTexture = dlg.ResultMidTexture;
+                side.LowTexture = dlg.ResultLowTexture;
+                side.OffsetX = dlg.ResultOffsetX;
+                side.OffsetY = dlg.ResultOffsetY;
+                if (dlg.ResultSidedefFlags != null)
+                    UdmfFlagChoices.ApplyFlags(side.UdmfFlags, dlg.ResultSidedefFlags);
+                ApplyFields(side.Fields, dlg.ResultFields);
+                AfterEdit("Sidedef updated");
+            }
+        }
+        else if (_map.SelectedSectorsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var s = _map.GetSelectedSectors()[0];
             var dlg = new SectorEditDialog(s, _config, _resources);
@@ -1177,7 +1195,19 @@ public partial class MainWindow : Window
                 AfterEdit("Sector updated");
             }
         }
-        else SetStatus("Select exactly one linedef, sector or thing to edit properties.");
+        else if (_map.SelectedVerticesCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedSectorsCount == 0)
+        {
+            var vertex = _map.GetSelectedVertices()[0];
+            var dlg = new VertexEditDialog(vertex, _config);
+            if (await dlg.ShowDialog<bool>(this))
+            {
+                CreateUndo("Edit vertex");
+                vertex.Position = new DBuilder.Geometry.Vector2D(dlg.ResultX, dlg.ResultY);
+                ApplyFields(vertex.Fields, dlg.ResultFields);
+                AfterEdit("Vertex updated");
+            }
+        }
+        else SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit properties.");
     }
 
     private void OnEditProperties(object? sender, RoutedEventArgs e) => OnEditSelected();
@@ -4352,14 +4382,12 @@ public partial class MainWindow : Window
         bool hasGradientTarget = hasGradientSectors || hasGradientLinedefs;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
-        bool hasEditableProperties =
-            _map is not null &&
-            ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&
-              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0) ||
-             (_map.SelectedSectorsCount == 1 && _map.SelectedLinedefsCount == 0 &&
-              _map.SelectedThingsCount == 0 && _map.SelectedVerticesCount == 0) ||
-             (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 &&
-              _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0));
+        bool hasEditableProperties = _map is not null && EditorPropertySelection.CanEdit(
+            _map.SelectedVerticesCount,
+            _map.SelectedLinedefsCount,
+            _map.SelectedSidedefsCount,
+            _map.SelectedSectorsCount,
+            _map.SelectedThingsCount);
         bool hasSingleFlagSelection =
             _map is not null &&
             ((_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 &&

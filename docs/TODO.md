@@ -119,6 +119,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
   - [x] Expose an explicit Properties command for single linedef, sector, and thing selections.
+  - [x] Expose the explicit Properties command for single vertex and sidedef selections.
 
 ## Plugin Architecture
 

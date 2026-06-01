@@ -553,6 +553,93 @@ public sealed class ThingEditDialog : PropertyDialog
     }
 }
 
+public sealed class VertexEditDialog : PropertyDialog
+{
+    private readonly TextBox _x, _y;
+    private readonly double _originalX, _originalY;
+    private readonly UniversalFieldEditors? _fieldEditors;
+    private readonly TextBox _custom;
+
+    public double ResultX, ResultY;
+    public Dictionary<string, object> ResultFields = new();
+
+    public VertexEditDialog(Vertex vertex, GameConfiguration? config)
+        : base("Edit Vertex")
+    {
+        _originalX = vertex.Position.x;
+        _originalY = vertex.Position.y;
+        _x = AddField("X", vertex.Position.x.ToString("0.###", CultureInfo.InvariantCulture));
+        _y = AddField("Y", vertex.Position.y.ToString("0.###", CultureInfo.InvariantCulture));
+        var configuredFields = UniversalFieldEditorValues.ForElement(config, "vertex", vertex.Fields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, config);
+        _custom = AddTextArea("Custom UDMF fields",
+            UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(vertex.Fields, editorFields)));
+    }
+
+    protected override void OnConfirm()
+    {
+        ResultX = double.TryParse(_x.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var x) ? x : _originalX;
+        ResultY = double.TryParse(_y.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var y) ? y : _originalY;
+        ResultFields = UdmfFields.Parse(_custom.Text);
+        _fieldEditors?.Apply(ResultFields);
+    }
+}
+
+public sealed class SidedefEditDialog : PropertyDialog
+{
+    private readonly TextBox _high, _mid, _low, _offsetX, _offsetY;
+    private readonly int _originalOffsetX, _originalOffsetY;
+    private readonly StringFlagChecks? _sidedefFlags;
+    private readonly UniversalFieldEditors? _fieldEditors;
+    private readonly TextBox _custom;
+
+    public string ResultHighTexture = "-", ResultMidTexture = "-", ResultLowTexture = "-";
+    public int ResultOffsetX, ResultOffsetY;
+    public HashSet<string>? ResultSidedefFlags;
+    public Dictionary<string, object> ResultFields = new();
+
+    public SidedefEditDialog(Sidedef side, GameConfiguration? config, ResourceManager? resources = null)
+        : base("Edit Sidedef")
+    {
+        _high = AddSidedefTextureField("Upper texture", side.HighTexture, resources);
+        _mid = AddSidedefTextureField("Middle texture", side.MidTexture, resources);
+        _low = AddSidedefTextureField("Lower texture", side.LowTexture, resources);
+        _originalOffsetX = side.OffsetX;
+        _originalOffsetY = side.OffsetY;
+        _offsetX = AddField("Offset X", side.OffsetX.ToString(CultureInfo.InvariantCulture));
+        _offsetY = AddField("Offset Y", side.OffsetY.ToString(CultureInfo.InvariantCulture));
+
+        var sideFlags = UdmfFlagChoices.KnownSidedefFlags(config, side);
+        if (sideFlags.Count > 0)
+            _sidedefFlags = AddStringFlagChecks("Sidedef flags", sideFlags, side.UdmfFlags);
+
+        var configuredFields = UniversalFieldEditorValues.ForElement(config, "sidedef", side.Fields);
+        _fieldEditors = AddUniversalFieldEditors(configuredFields, out var editorFields, config, resources);
+        _custom = AddTextArea("Custom UDMF fields",
+            UdmfFields.Format(UniversalFieldEditorValues.WithoutConfiguredFields(side.Fields, editorFields)));
+    }
+
+    private TextBox AddSidedefTextureField(string label, string value, ResourceManager? resources)
+        => resources != null
+            ? AddTextureField(label, value, resources, flats: false, "Browse Textures")
+            : AddField(label, value);
+
+    protected override void OnConfirm()
+    {
+        ResultHighTexture = TextureValue(_high);
+        ResultMidTexture = TextureValue(_mid);
+        ResultLowTexture = TextureValue(_low);
+        ResultOffsetX = ParseInt(_offsetX, _originalOffsetX);
+        ResultOffsetY = ParseInt(_offsetY, _originalOffsetY);
+        ResultSidedefFlags = _sidedefFlags?.Value;
+        ResultFields = UdmfFields.Parse(_custom.Text);
+        _fieldEditors?.Apply(ResultFields);
+    }
+
+    private static string TextureValue(TextBox box)
+        => string.IsNullOrWhiteSpace(box.Text) ? "-" : box.Text!;
+}
+
 public sealed class LinedefEditDialog : PropertyDialog
 {
     private readonly ComboBox? _actionCombo;
