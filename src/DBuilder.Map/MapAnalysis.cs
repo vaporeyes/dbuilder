@@ -174,8 +174,6 @@ public sealed class MapCheckContext
     public string? ImpassableFlag { get; init; }
     /// <summary>Maximum safe map width or height in map units; 0 disables the map-size check.</summary>
     public int SafeBoundary { get; init; }
-    /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
-    public int GridSize { get; init; }
     /// <summary>Linedefs shorter than this (but non-zero) are flagged. UDB's check uses 1 map unit.</summary>
     public double ShortLinedefLength { get; init; } = 1;
 }
@@ -249,7 +247,7 @@ public static class MapAnalysis
             CheckTextureAlignment(map, ctx, issues);
             CheckOverlappingLinedefs(map, issues);
             CheckShortLinedefs(map, ctx, issues);
-            CheckOffGridVertices(map, ctx, vertexIndex, issues);
+            CheckOffGridVertices(map, vertexIndex, issues);
         }
 
         return issues.Where(issue => !IsIgnored(issue)).ToArray();
@@ -1288,19 +1286,18 @@ public static class MapAnalysis
         }
     }
 
-    private static void CheckOffGridVertices(MapSet map, MapCheckContext ctx, Dictionary<Vertex, int> index, List<MapIssue> issues)
+    private static void CheckOffGridVertices(MapSet map, Dictionary<Vertex, int> index, List<MapIssue> issues)
     {
-        if (ctx.GridSize <= 0) return;
         foreach (var v in map.Vertices)
-            if (!IsOnGrid(v.Position.x, ctx.GridSize) || !IsOnGrid(v.Position.y, ctx.GridSize))
-                issues.Add(OffGridVertexIssue(v, ctx.GridSize,
-                    $"Vertex {index[v]} is off the {ctx.GridSize}-unit grid."));
+            if (!IsWholeMapUnit(v.Position.x) || !IsWholeMapUnit(v.Position.y))
+                issues.Add(OffGridVertexIssue(v,
+                    $"Vertex {index[v]} at {v.Position.x}, {v.Position.y} is not aligned with the grid."));
     }
 
-    private static bool IsOnGrid(double value, int gridSize)
-        => Math.Abs(value - Math.Round(value / gridSize) * gridSize) < 1e-9;
+    private static bool IsWholeMapUnit(double value)
+        => Math.Abs(value - Math.Round(value)) < 1e-9;
 
-    private static MapIssue OffGridVertexIssue(Vertex vertex, int gridSize, string message)
+    private static MapIssue OffGridVertexIssue(Vertex vertex, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex, message)
         {
             Target = vertex,
@@ -1311,8 +1308,8 @@ public static class MapAnalysis
                 {
                     if (!map.Vertices.Contains(vertex)) return false;
                     vertex.Move(
-                        Math.Round(vertex.Position.x / gridSize) * gridSize,
-                        Math.Round(vertex.Position.y / gridSize) * gridSize);
+                        Math.Round(vertex.Position.x),
+                        Math.Round(vertex.Position.y));
                     map.BuildIndexes();
                     return true;
                 }),

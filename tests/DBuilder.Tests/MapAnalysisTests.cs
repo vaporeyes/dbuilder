@@ -2131,28 +2131,36 @@ public class MapAnalysisTests
     }
 
     [Fact]
-    public void OffGridVertexFlaggedOnlyWithGrid()
+    public void OffGridVertexFlagsFractionalCoordinates()
     {
         var map = new MapSet();
-        map.AddVertex(new Vector2D(7, 3)); // off a 64 grid
-        var withGrid = new MapCheckContext { GridSize = 64 };
-        Assert.True(Has(map, withGrid, MapIssueKind.OffGridVertex));
-        Assert.False(Has(map, new MapCheckContext { GridSize = 0 }, MapIssueKind.OffGridVertex));
+        map.AddVertex(new Vector2D(7.25, 3));
+
+        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OffGridVertex));
     }
 
     [Fact]
-    public void OffGridVertexIssueCanAlignVertexToGrid()
+    public void OffGridVertexIgnoresWholeCoordinatesOutsideCurrentGrid()
     {
         var map = new MapSet();
-        var vertex = map.AddVertex(new Vector2D(70, 95));
-        var ctx = new MapCheckContext { GridSize = 64 };
+        map.AddVertex(new Vector2D(7, 3));
+
+        Assert.False(Has(map, new MapCheckContext(), MapIssueKind.OffGridVertex));
+    }
+
+    [Fact]
+    public void OffGridVertexIssueCanAlignVertexToWholeMapUnits()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(70.25, 95.75));
+        var ctx = new MapCheckContext();
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.OffGridVertex);
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Align Vertex", fix.Label);
         Assert.True(fix.Apply(map));
-        Assert.Equal(new Vector2D(64, 64), vertex.Position);
+        Assert.Equal(new Vector2D(70, 96), vertex.Position);
         Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.OffGridVertex);
     }
 }
