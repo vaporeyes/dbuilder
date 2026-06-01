@@ -1897,7 +1897,7 @@ public static class MapAnalysis
             if (!referenced.Contains(s))
             {
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.EmptySector,
-                    $"Sector {i} has no sidedefs.") { Target = s });
+                    $"Sector {i} has no sidedefs") { Target = s });
                 continue;
             }
             // A closed boundary visits every vertex an even number of times; an odd degree means a gap.
@@ -1906,7 +1906,7 @@ public static class MapAnalysis
                 if ((count & 1) != 0) { unclosed = true; break; }
             if (unclosed)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.UnclosedSector,
-                    $"Sector {i} is not closed (a boundary vertex has an odd number of edges).")
+                    $"Sector {i} is not closed")
                     { Target = s, Focus = Centroid(degrees[s].Keys) });
             else if (IsInvalidSector(s))
                 issues.Add(InvalidSectorIssue(s, i, Centroid(degrees[s].Keys)));
@@ -1916,7 +1916,7 @@ public static class MapAnalysis
     private static MapIssue InvalidSectorIssue(Sector sector, int index, Vector2D? focus)
     {
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.InvalidSector,
-            $"Sector {index} is invalid (it has fewer than 3 sidedefs or linedefs).")
+            $"Sector {index} has {sector.Sidedefs.Count} sidedefs")
         {
             Target = sector,
             Focus = focus,

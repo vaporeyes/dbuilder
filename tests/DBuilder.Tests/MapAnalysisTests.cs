@@ -89,7 +89,8 @@ public class MapAnalysisTests
     [Fact]
     public void DetectsUnclosedSector()
     {
-        Assert.True(Has(Square(false), MapIssueKind.UnclosedSector));
+        var issue = Assert.Single(MapAnalysis.Check(Square(false)), i => i.Kind == MapIssueKind.UnclosedSector);
+        Assert.Equal("Sector 0 is not closed", issue.Message);
     }
 
     [Fact]
@@ -558,9 +559,11 @@ public class MapAnalysisTests
     public void DetectsEmptySector()
     {
         var map = Square(true);
-        map.AddSector(); // no sidedefs reference it
+        var sector = map.AddSector(); // no sidedefs reference it
         map.BuildIndexes();
-        Assert.True(Has(map, MapIssueKind.EmptySector));
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.EmptySector);
+        Assert.Same(sector, issue.Target);
+        Assert.Equal("Sector 1 has no sidedefs", issue.Message);
     }
 
     [Fact]
@@ -577,6 +580,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.InvalidSector);
         Assert.Same(sector, issue.Target);
+        Assert.Equal("Sector 0 has 2 sidedefs", issue.Message);
         Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.UnclosedSector);
     }
 
