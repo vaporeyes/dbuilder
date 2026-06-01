@@ -51,6 +51,38 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindThingTypeAcceptsCommaSeparatedValues()
+    {
+        var map = Build();
+
+        var result = MapSearch.Find(map, FindCategory.ThingType, "3001, 9");
+
+        Assert.Equal(3, result.Count);
+        Assert.All(map.Things, thing => Assert.True(thing.Selected));
+    }
+
+    [Fact]
+    public void ReplaceThingTypeAcceptsCommaSeparatedValues()
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(map, FindCategory.ThingType, "3001, 9", "2001, 2002");
+
+        Assert.Equal(3, changed);
+        Assert.All(map.Things, thing => Assert.Contains(thing.Type, new[] { 2001, 2002 }));
+    }
+
+    [Fact]
+    public void ThingTypeCommaListRejectsInvalidEntries()
+    {
+        var map = Build();
+
+        Assert.Equal(0, MapSearch.Find(map, FindCategory.ThingType, "3001, nope").Count);
+        Assert.Equal(0, MapSearch.Replace(map, FindCategory.ThingType, "3001", "2001, nope"));
+        Assert.Equal(2, map.Things.Count(thing => thing.Type == 3001));
+    }
+
+    [Fact]
     public void FindTagSpansLinesSectorsThings()
     {
         var map = Build();

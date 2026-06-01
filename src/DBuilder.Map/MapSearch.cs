@@ -105,7 +105,9 @@ public static class MapSearch
         switch (cat)
         {
             case FindCategory.ThingType:
-                if (numOk) foreach (var t in map.Things) if (t.Type == num) { t.Selected = true; count++; focus ??= t.Position; }
+                if (TryParseIntList(value, out var thingTypes))
+                    foreach (var t in map.Things)
+                        if (thingTypes.Contains(t.Type)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingIndex:
                 if (numOk && num >= 0 && num < map.Things.Count) { map.Things[num].Selected = true; count = 1; focus = map.Things[num].Position; }
@@ -373,13 +375,23 @@ public static class MapSearch
         if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
             return ReplaceActionArguments(map, cat, find, replace);
 
+        if (cat == FindCategory.ThingType)
+        {
+            if (!TryParseIntList(find, out var findTypes) || !TryParseIntList(replace, out var replaceTypes)) return 0;
+            foreach (var t in map.Things)
+            {
+                if (!findTypes.Contains(t.Type)) continue;
+                t.Type = replaceTypes[Random.Shared.Next(replaceTypes.Count)];
+                changed++;
+            }
+
+            return changed;
+        }
+
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
         switch (cat)
         {
-            case FindCategory.ThingType:
-                foreach (var t in map.Things) if (t.Type == from) { t.Type = to; changed++; }
-                break;
             case FindCategory.ThingAngle:
                 foreach (var t in map.Things) if (t.Angle == from) { t.Angle = to; changed++; }
                 break;
@@ -499,6 +511,23 @@ public static class MapSearch
     }
 
     private static bool Eq(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    private static bool TryParseIntList(string input, out List<int> values)
+    {
+        values = new List<int>();
+        foreach (string part in input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!int.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+            {
+                values.Clear();
+                return false;
+            }
+
+            values.Add(value);
+        }
+
+        return values.Count > 0;
+    }
 
     private static bool TexturePatternMatches(string name, string pattern)
     {
