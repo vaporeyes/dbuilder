@@ -1740,6 +1740,30 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void PolyobjectExplicitLineMirrorUsesUdbStartLineMessage()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 2;
+        line.Args[0] = 7;
+        line.Args[2] = 9;
+        var start = map.AddThing(new Vector2D(64, 64), 9300);
+        start.Angle = 7;
+        var anchor = map.AddThing(new Vector2D(96, 64), 9301);
+        anchor.Angle = 7;
+        var ctx = new MapCheckContext
+        {
+            CheckPolyobjects = true,
+            LinedefActionId = action => action == 2 ? "Polyobj_ExplicitLine" : null,
+            ThingClassName = type => type == 9300 ? "$polyspawn" : type == 9301 ? "$polyanchor" : null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
+
+        Assert.Contains("\"Polyobj_StartLine\" action has non-existing Mirror Polyobject Number assigned (9)", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefReferencingUnknownAcsScriptNumberIsFlagged()
     {
         var map = Square(true);

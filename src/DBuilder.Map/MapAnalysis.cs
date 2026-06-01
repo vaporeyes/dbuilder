@@ -1089,7 +1089,7 @@ public static class MapAnalysis
         if (polyLines.TryGetValue(polyobjExplicitLine, out var explicitLines))
             foreach (var linesByNumber in explicitLines)
                 foreach (var line in linesByNumber.Value)
-                    CheckMirror(linesByNumber.Key, line.Line.Args[2], line, polyobjExplicitLine);
+                    CheckMirror(linesByNumber.Key, line.Line.Args[2], line, polyobjStartLine);
 
         foreach (var group in anchors)
         {
