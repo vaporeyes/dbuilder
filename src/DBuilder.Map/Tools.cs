@@ -10,6 +10,7 @@
  * Requires MapSet.BuildIndexes() to have populated Vertex.Linedefs.
  */
 
+using System;
 using System.Collections.Generic;
 using DBuilder.Geometry;
 
@@ -43,6 +44,92 @@ public static class Tools
         double h3 = u3 - 2 * u2 + u;
         double h4 = u3 - u2;
         return p1 * h1 + p2 * h2 + t1 * h3 + t2 * h4;
+    }
+
+    /// <summary>Finds UDB-style sector label positions from the sector triangulation.</summary>
+    public static List<LabelPositionInfo> FindLabelPositions(Sector sector)
+    {
+        var positions = new List<LabelPositionInfo>(2);
+        int islandoffset = 0;
+        Triangulation triangles = Triangulation.Create(sector);
+
+        for (int i = 0; i < triangles.IslandVertices.Count; i++)
+        {
+            var sides = new Dictionary<Sidedef, Linedef>(triangles.IslandVertices[i] >> 1);
+            var candidatepositions = new List<Vector2D>(triangles.IslandVertices[i] >> 1);
+            double founddistance = double.MinValue;
+            Vector2D foundposition = new Vector2D();
+            double minx = double.MaxValue;
+            double miny = double.MaxValue;
+            double maxx = double.MinValue;
+            double maxy = double.MinValue;
+
+            for (int t = 0; t < triangles.IslandVertices[i]; t += 3)
+            {
+                int triangleoffset = islandoffset + t;
+                Vector2D v1 = triangles.Vertices[triangleoffset + 2];
+                Sidedef? sd = triangles.Sidedefs[triangleoffset + 2];
+                for (int v = 0; v < 3; v++)
+                {
+                    Vector2D v2 = triangles.Vertices[triangleoffset + v];
+
+                    if (sd == null)
+                    {
+                        candidatepositions.Add(v1 + (v2 - v1) * 0.5);
+                    }
+                    else
+                    {
+                        sides[sd] = sd.Line;
+                    }
+
+                    minx = Math.Min(minx, v1.x);
+                    miny = Math.Min(miny, v1.y);
+                    maxx = Math.Max(maxx, v1.x);
+                    maxy = Math.Max(maxy, v1.y);
+
+                    sd = triangles.Sidedefs[triangleoffset + v];
+                    v1 = v2;
+                }
+            }
+
+            if (candidatepositions.Count > 0)
+            {
+                foreach (Vector2D candidatepos in candidatepositions)
+                {
+                    double smallestdist = int.MaxValue;
+                    foreach (KeyValuePair<Sidedef, Linedef> sd in sides)
+                    {
+                        double distance = sd.Value.DistanceToSq(candidatepos, true);
+                        smallestdist = Math.Min(smallestdist, distance);
+                    }
+
+                    if (smallestdist > founddistance)
+                    {
+                        foundposition = candidatepos;
+                        founddistance = smallestdist;
+                    }
+                }
+
+                positions.Add(new LabelPositionInfo(foundposition, Math.Sqrt(founddistance)));
+            }
+            else if (triangles.IslandVertices[i] == 3)
+            {
+                Vector2D v = (triangles.Vertices[islandoffset] + triangles.Vertices[islandoffset + 1] + triangles.Vertices[islandoffset + 2]) / 3.0;
+                double d = Line2D.GetDistanceToLineSq(triangles.Vertices[islandoffset], triangles.Vertices[islandoffset + 1], v, false);
+                d = Math.Min(d, Line2D.GetDistanceToLineSq(triangles.Vertices[islandoffset + 1], triangles.Vertices[islandoffset + 2], v, false));
+                d = Math.Min(d, Line2D.GetDistanceToLineSq(triangles.Vertices[islandoffset + 2], triangles.Vertices[islandoffset], v, false));
+                positions.Add(new LabelPositionInfo(v, Math.Sqrt(d)));
+            }
+            else
+            {
+                double d = Math.Min((maxx - minx) * 0.5, (maxy - miny) * 0.5);
+                positions.Add(new LabelPositionInfo(new Vector2D(minx + (maxx - minx) * 0.5, miny + (maxy - miny) * 0.5), d));
+            }
+
+            islandoffset += triangles.IslandVertices[i];
+        }
+
+        return positions;
     }
 
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>

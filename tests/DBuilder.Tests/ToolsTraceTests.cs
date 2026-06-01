@@ -42,6 +42,41 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FindLabelPositionsUsesTriangleCentroidWhenNoInteriorCandidatesExist()
+    {
+        var (_, sector, _) = BuildSectorPolygon(new[]
+        {
+            new Vector2D(0, 0),
+            new Vector2D(0, 100),
+            new Vector2D(100, 0),
+        });
+
+        LabelPositionInfo label = Assert.Single(Tools.FindLabelPositions(sector));
+
+        Assert.Equal(100.0 / 3.0, label.position.x, 1e-9);
+        Assert.Equal(100.0 / 3.0, label.position.y, 1e-9);
+        Assert.True(label.radius > 0);
+    }
+
+    [Fact]
+    public void FindLabelPositionsPicksInteriorCandidateFarthestFromBoundary()
+    {
+        var (_, sector, _) = BuildSectorPolygon(new[]
+        {
+            new Vector2D(100, 0),
+            new Vector2D(0, 0),
+            new Vector2D(0, 100),
+            new Vector2D(100, 100),
+        });
+
+        LabelPositionInfo label = Assert.Single(Tools.FindLabelPositions(sector));
+
+        Assert.Equal(50, label.position.x, 1e-9);
+        Assert.Equal(50, label.position.y, 1e-9);
+        Assert.Equal(50, label.radius, 1e-9);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]
@@ -61,6 +96,12 @@ public class ToolsTraceTests
     // Builds a closed polygon of linedefs (front sidedef inward, CW winding) and returns the map.
     private static (MapSet map, List<Linedef> lines) BuildPolygon(Vector2D[] cwLoop)
     {
+        var (map, _, lines) = BuildSectorPolygon(cwLoop);
+        return (map, lines);
+    }
+
+    private static (MapSet map, Sector sector, List<Linedef> lines) BuildSectorPolygon(Vector2D[] cwLoop)
+    {
         var map = new MapSet();
         var sector = map.AddSector();
         var verts = cwLoop.Select(p => map.AddVertex(p)).ToList();
@@ -72,7 +113,7 @@ public class ToolsTraceTests
             lines.Add(l);
         }
         map.BuildIndexes();
-        return (map, lines);
+        return (map, sector, lines);
     }
 
     [Fact]
