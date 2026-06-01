@@ -130,6 +130,7 @@ public partial class MainWindow : Window
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
@@ -941,10 +942,12 @@ public partial class MainWindow : Window
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
+        _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
+        MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         RebuildRecentMenu();

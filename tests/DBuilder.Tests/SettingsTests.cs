@@ -142,6 +142,7 @@ public class SettingsTests
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
+                DefaultViewMode = 3,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -194,6 +195,8 @@ public class SettingsTests
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
+            Assert.Equal(3, loaded.DefaultViewMode);
+            Assert.Equal(3, loaded.NormalizedDefaultViewMode);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);
@@ -261,6 +264,21 @@ public class SettingsTests
             existing.Contains);
 
         Assert.Equal("/env/Hexen.cfg", path);
+    }
+
+    [Theory]
+    [InlineData(null, 0)]
+    [InlineData(-1, 0)]
+    [InlineData(0, 0)]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 3)]
+    [InlineData(4, 3)]
+    public void DefaultViewModeUsesUdbRange(int? value, int expected)
+    {
+        var settings = new Settings { DefaultViewMode = value };
+
+        Assert.Equal(expected, settings.NormalizedDefaultViewMode);
     }
 
     [Fact]

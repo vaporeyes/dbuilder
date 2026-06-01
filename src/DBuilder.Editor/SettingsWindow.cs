@@ -9,12 +9,13 @@ namespace DBuilder.Editor;
 public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
-    private readonly ComboBox _pasteTagMode;
+    private readonly ComboBox _defaultViewMode, _pasteTagMode;
     private readonly CheckBox _autoClearSidedefTextures, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
+    public int DefaultViewMode;
     public int? StatusHistoryLimit;
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
@@ -32,6 +33,7 @@ public sealed class SettingsWindow : PropertyDialog
         _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
+        _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);
         _pasteTagMode = AddCombo("Pasted tags", PasteTagModeItems(), (int)s.NormalizedPasteOptions.ChangeTags);
         _pasteRemoveActions = AddCheckBox("Remove pasted actions", s.NormalizedPasteOptions.RemoveActions);
     }
@@ -47,6 +49,7 @@ public sealed class SettingsWindow : PropertyDialog
         MaxRecentFiles = int.TryParse(_maxRecentFiles.Text, out int maxRecent) && maxRecent > 0 ? maxRecent : null;
         StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
+        DefaultViewMode = ComboNumber(_defaultViewMode, 0);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {
@@ -56,6 +59,14 @@ public sealed class SettingsWindow : PropertyDialog
     }
 
     private static string? NullIfBlank(string? t) => string.IsNullOrWhiteSpace(t) ? null : t.Trim();
+
+    private static IEnumerable<CatalogItem> DefaultViewModeItems()
+    {
+        yield return new CatalogItem(0, "Wireframe");
+        yield return new CatalogItem(1, "Brightness Levels");
+        yield return new CatalogItem(2, "Floor Textures");
+        yield return new CatalogItem(3, "Ceiling Textures");
+    }
 
     private static IEnumerable<CatalogItem> PasteTagModeItems()
     {

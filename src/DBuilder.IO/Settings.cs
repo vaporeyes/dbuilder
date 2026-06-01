@@ -29,6 +29,7 @@ public sealed class Settings
     public string? TestIwad { get; set; }
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
+    public int? DefaultViewMode { get; set; }
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();
@@ -53,6 +54,9 @@ public sealed class Settings
 
     public int NormalizedMaxRecentFiles =>
         Math.Clamp(MaxRecentFiles ?? DefaultMaxRecentFiles, MinMaxRecentFiles, MaxMaxRecentFiles);
+
+    public int NormalizedDefaultViewMode =>
+        Math.Clamp(DefaultViewMode ?? 0, 0, 3);
 
     public MergeGeometryMode NormalizedMergeGeometryMode =>
         Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;
