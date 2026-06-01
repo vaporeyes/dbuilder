@@ -286,7 +286,7 @@ public static class MapAnalysis
             {
                 if (IsBlank(side.MidTexture))
                     issues.Add(MissingTextureIssue(l, side, SidedefPart.Middle, ctx,
-                        $"Linedef {index} ({which}) is one-sided but has no middle texture.", mid));
+                        $"Linedef {index} has missing middle texture ({which} side)", mid));
             }
             else
             {
@@ -298,14 +298,14 @@ public static class MapAnalysis
                         IsBlank(side.HighTexture) &&
                         !SuppressPlaneAlignTexture(l, ctx, ceiling: true))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,
-                            $"Linedef {index} ({which}) needs an upper texture.", mid));
+                            $"Linedef {index} has missing upper texture ({which} side)", mid));
                     if ((other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) ||
                          actionTextures.RequiresLowerTexture(side) ||
                          threeDFloorTextures.RequiresLowerTexture(side)) &&
                         IsBlank(side.LowTexture) &&
                         !SuppressPlaneAlignTexture(l, ctx, ceiling: false))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx,
-                            $"Linedef {index} ({which}) needs a lower texture.", mid));
+                            $"Linedef {index} has missing lower texture ({which} side)", mid));
                 }
             }
 
@@ -318,7 +318,7 @@ public static class MapAnalysis
                 })
                     if (!IsBlank(name) && !ctx.TextureExists(name) && ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
                         issues.Add(UnknownTextureIssue(l, side, part, ctx,
-                            $"Linedef {index} ({which}) {slot} texture \"{name}\" is not found.", mid));
+                            $"Linedef {index} has unknown {slot} texture \"{name}\" ({which} side)", mid));
 
             if (!IsBlank(side.HighTexture) &&
                 !side.HighRequired() &&
@@ -356,7 +356,7 @@ public static class MapAnalysis
                         $"Sector {i} has no {slot} flat."));
                 else if (ctx.FlatExists != null && !ctx.FlatExists(name))
                     issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx,
-                        $"Sector {i} {slot} flat \"{name}\" is not found."));
+                        $"Sector {i} has unknown {slot} flat \"{name}\""));
             }
         }
     }

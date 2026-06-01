@@ -695,6 +695,7 @@ public class MapAnalysisTests
         var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingTexture);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Linedef 0 has missing middle texture (front side)", issue.Message);
         Assert.Equal("Add Default Texture", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -1155,6 +1156,7 @@ public class MapAnalysisTests
             .First(i => i.Kind == MapIssueKind.UnknownTexture && i.Message.Contains("middle texture", StringComparison.Ordinal));
         var fix = Assert.Single(issue.Fixes, f => f.Label == "Remove Texture");
 
+        Assert.Equal("Linedef 0 has unknown middle texture \"NOPE99\" (front side)", issue.Message);
         Assert.True(fix.Apply(map));
 
         Assert.Equal("-", side.MidTexture);
@@ -1331,6 +1333,7 @@ public class MapAnalysisTests
             .First(i => i.Kind == MapIssueKind.UnknownFlat && i.Message.Contains("ceiling flat", StringComparison.Ordinal));
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Sector 0 has unknown ceiling flat \"WAT99\"", issue.Message);
         Assert.Equal("Add Default Flat", fix.Label);
         Assert.True(fix.Apply(map));
 
