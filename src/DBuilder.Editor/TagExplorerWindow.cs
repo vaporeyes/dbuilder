@@ -26,8 +26,8 @@ public sealed class TagExplorerWindow : Window
     public event Action<string>? ExportRequested;
 
     public TagExplorerOptions Options => new(
-        DisplayMode: _displayMode.SelectedItem is TagExplorerDisplayMode display ? display : TagExplorerDisplayMode.TagsAndActions,
-        SortMode: _sortMode.SelectedItem is TagExplorerSortMode sort ? sort : TagExplorerSortMode.ByIndex,
+        DisplayMode: _displayMode.SelectedItem is TagExplorerModeOption<TagExplorerDisplayMode> display ? display.Value : TagExplorerDisplayMode.TagsAndActions,
+        SortMode: _sortMode.SelectedItem is TagExplorerModeOption<TagExplorerSortMode> sort ? sort.Value : TagExplorerSortMode.ByIndex,
         SearchText: _search.Text ?? "",
         CommentsOnly: _commentsOnly.IsChecked == true);
 
@@ -38,32 +38,20 @@ public sealed class TagExplorerWindow : Window
         Height = 440;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        _displayMode.ItemsSource = new[]
-        {
-            TagExplorerDisplayMode.TagsAndActions,
-            TagExplorerDisplayMode.Tags,
-            TagExplorerDisplayMode.Actions,
-            TagExplorerDisplayMode.Polyobjects,
-        };
-        _displayMode.SelectedItem = TagExplorerDisplayMode.TagsAndActions;
+        _displayMode.ItemsSource = TagExplorerModel.DisplayModeOptions;
+        _displayMode.SelectedItem = TagExplorerModel.DisplayModeOptions[0];
         _displayMode.SelectionChanged += (_, _) => OptionsChanged?.Invoke();
 
-        _sortMode.ItemsSource = new[]
-        {
-            TagExplorerSortMode.ByIndex,
-            TagExplorerSortMode.ByTag,
-            TagExplorerSortMode.ByAction,
-            TagExplorerSortMode.ByPolyobjectNumber,
-        };
-        _sortMode.SelectedItem = TagExplorerSortMode.ByIndex;
+        _sortMode.ItemsSource = TagExplorerModel.SortModeOptions;
+        _sortMode.SelectedItem = TagExplorerModel.SortModeOptions[0];
         _sortMode.SelectionChanged += (_, _) => OptionsChanged?.Invoke();
 
         _search.Watermark = "Search, #tag, $action, ^polyobject";
         _search.TextChanged += (_, _) => OptionsChanged?.Invoke();
-        _commentsOnly.Content = "Comments only";
+        _commentsOnly.Content = TagExplorerModel.CommentsOnlyText;
         _commentsOnly.Margin = new Avalonia.Thickness(0, 4, 0, 0);
         _commentsOnly.IsCheckedChanged += (_, _) => OptionsChanged?.Invoke();
-        _export.Content = "Export";
+        _export.Content = TagExplorerModel.ExportToFileText;
         _export.HorizontalAlignment = HorizontalAlignment.Right;
         _export.Click += (_, _) => ExportRequested?.Invoke(_exportText);
 
@@ -73,8 +61,8 @@ public sealed class TagExplorerWindow : Window
             ColumnDefinitions = new ColumnDefinitions("*,*"),
             RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
         };
-        optionsGrid.Children.Add(Labeled("Show", _displayMode, 0, 0));
-        optionsGrid.Children.Add(Labeled("Sort", _sortMode, 1, 0));
+        optionsGrid.Children.Add(Labeled(TagExplorerModel.ShowLabel, _displayMode, 0, 0));
+        optionsGrid.Children.Add(Labeled(TagExplorerModel.SortLabel, _sortMode, 1, 0));
         Grid.SetColumnSpan(_search, 2);
         Grid.SetRow(_search, 1);
         optionsGrid.Children.Add(_search);

@@ -1004,6 +1004,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style configured action and effect labels in Tag Explorer action grouping.
   - [x] Add UDB-style generalized sector effect expansion in Tag Explorer action grouping.
   - [x] Wire editor Tag Explorer grouped view and text export command.
+  - [x] Add UDB-style Tag Explorer docker, control-label, tooltip, export, and plugin-setting metadata.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style absolute and relative tag range calculation model.
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.

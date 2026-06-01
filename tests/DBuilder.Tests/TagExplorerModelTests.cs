@@ -20,6 +20,68 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void UiMetadataMatchesUdbTagExplorerPanel()
+    {
+        Assert.Equal("tagexplorerdockerpanel", TagExplorerModel.DockerId);
+        Assert.Equal("Tag Explorer", TagExplorerModel.DockerTitle);
+        Assert.Equal("Show:", TagExplorerModel.ShowLabel);
+        Assert.Equal("Sort:", TagExplorerModel.SortLabel);
+        Assert.Equal("Filter:", TagExplorerModel.FilterLabel);
+        Assert.Equal("Hide elements without comments", TagExplorerModel.CommentsOnlyText);
+        Assert.Equal("Export to file...", TagExplorerModel.ExportToFileText);
+        Assert.Equal("Text files|*.txt", TagExplorerModel.ExportFileFilter);
+        Assert.Equal(
+            new[] { "Tags and Action Specials", "Tags", "Action Specials", "Polyobjects" },
+            TagExplorerModel.DisplayModeOptions.Select(option => option.Title));
+        Assert.Equal(
+            new[] { "By Index", "By Tag", "By Action Special" },
+            TagExplorerModel.SortModeOptions.Select(option => option.Title));
+        Assert.Contains("Example: #667", TagExplorerModel.SearchHint, StringComparison.Ordinal);
+        Assert.Contains("Example: $80", TagExplorerModel.SearchHint, StringComparison.Ordinal);
+        Assert.Contains("Example: ^22", TagExplorerModel.SearchHint, StringComparison.Ordinal);
+        Assert.Contains("edit item's comment", TagExplorerModel.UdmfNodeTooltip, StringComparison.Ordinal);
+        Assert.DoesNotContain("edit item's comment", TagExplorerModel.NonUdmfNodeTooltip, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReadSettingsUsesUdbPluginKeysAndClampsIndices()
+    {
+        var settings = new Dictionary<string, object?>
+        {
+            [TagExplorerModel.DisplayModeSettingKey] = 99,
+            [TagExplorerModel.SortModeSettingKey] = "-4",
+            [TagExplorerModel.CommentsOnlySettingKey] = "true",
+            [TagExplorerModel.CenterOnSelectedSettingKey] = true,
+            [TagExplorerModel.SelectOnClickSettingKey] = "true",
+        };
+
+        TagExplorerPersistedSettings result = TagExplorerModel.ReadSettings(settings);
+
+        Assert.Equal(TagExplorerDisplayMode.Polyobjects, result.DisplayMode);
+        Assert.Equal(TagExplorerSortMode.ByIndex, result.SortMode);
+        Assert.True(result.CommentsOnly);
+        Assert.True(result.CenterOnSelected);
+        Assert.True(result.SelectOnClick);
+    }
+
+    [Fact]
+    public void WriteSettingsUsesUdbPluginKeysAndModeIndices()
+    {
+        var result = TagExplorerModel.WriteSettings(new TagExplorerPersistedSettings(
+            TagExplorerDisplayMode.Actions,
+            TagExplorerSortMode.ByTag,
+            CommentsOnly: true,
+            CenterOnSelected: false,
+            SelectOnClick: true));
+
+        Assert.Equal(2, result[TagExplorerModel.DisplayModeSettingKey]);
+        Assert.Equal(1, result[TagExplorerModel.SortModeSettingKey]);
+        Assert.True((bool)result[TagExplorerModel.CommentsOnlySettingKey]);
+        Assert.False((bool)result[TagExplorerModel.CenterOnSelectedSettingKey]);
+        Assert.True((bool)result[TagExplorerModel.SelectOnClickSettingKey]);
+    }
+
+    [Fact]
     public void BuildEntriesIncludesTaggedAndActionObjects()
     {
         var map = new MapSet();

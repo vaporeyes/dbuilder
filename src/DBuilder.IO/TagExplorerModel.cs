@@ -36,6 +36,18 @@ public sealed record TagExplorerOptions(
     bool CommentsOnly = false,
     bool IsUdmf = true);
 
+public sealed record TagExplorerModeOption<T>(T Value, string Title)
+{
+    public override string ToString() => Title;
+}
+
+public sealed record TagExplorerPersistedSettings(
+    TagExplorerDisplayMode DisplayMode,
+    TagExplorerSortMode SortMode,
+    bool CommentsOnly,
+    bool CenterOnSelected,
+    bool SelectOnClick);
+
 public sealed record TagExplorerSpecialFilters(
     IReadOnlySet<int> Tags,
     IReadOnlySet<int> Actions,
@@ -72,6 +84,43 @@ public sealed record TagExplorerTreeNode(
 public static class TagExplorerModel
 {
     public const int NoPolyobjectNumber = int.MinValue;
+    public const string DockerId = "tagexplorerdockerpanel";
+    public const string DockerTitle = "Tag Explorer";
+    public const string DisplayModeSettingKey = "displaymode";
+    public const string SortModeSettingKey = "sortmode";
+    public const string CommentsOnlySettingKey = "commentsonly";
+    public const string CenterOnSelectedSettingKey = "centeronselected";
+    public const string SelectOnClickSettingKey = "doselect";
+    public const string ShowLabel = "Show:";
+    public const string SortLabel = "Sort:";
+    public const string FilterLabel = "Filter:";
+    public const string CommentsOnlyText = "Hide elements without comments";
+    public const string ExportToFileText = "Export to file...";
+    public const string ExportFileFilter = "Text files|*.txt";
+    public static readonly string SearchHint =
+        "Enter '#' + tag number to show only specified tag. Example: #667" + Environment.NewLine +
+        "Enter '$' + effect number to show only specified effect. Example: $80" + Environment.NewLine +
+        "Enter '^' + polyobject number to filter by polyobject number. Example: ^22" + Environment.NewLine +
+        "Several wildcards can be combined.";
+    public static readonly string UdmfSearchTooltip = "Enter text to find comment" + Environment.NewLine + SearchHint;
+    public static readonly string NonUdmfSearchTooltip = SearchHint;
+    public const string UdmfNodeTooltip = "Double-click item to edit item's comment\r\nRight-click item to open item's Properties";
+    public const string NonUdmfNodeTooltip = "Right-click item to open item's Properties";
+
+    public static readonly IReadOnlyList<TagExplorerModeOption<TagExplorerDisplayMode>> DisplayModeOptions =
+    [
+        new(TagExplorerDisplayMode.TagsAndActions, "Tags and Action Specials"),
+        new(TagExplorerDisplayMode.Tags, "Tags"),
+        new(TagExplorerDisplayMode.Actions, "Action Specials"),
+        new(TagExplorerDisplayMode.Polyobjects, "Polyobjects"),
+    ];
+
+    public static readonly IReadOnlyList<TagExplorerModeOption<TagExplorerSortMode>> SortModeOptions =
+    [
+        new(TagExplorerSortMode.ByIndex, "By Index"),
+        new(TagExplorerSortMode.ByTag, "By Tag"),
+        new(TagExplorerSortMode.ByAction, "By Action Special"),
+    ];
 
     public static IReadOnlyList<TagExplorerEntry> BuildEntries(
         MapSet map,
@@ -147,6 +196,29 @@ public static class TagExplorerModel
 
         return new TagExplorerSpecialFilters(tags, actions, polyobjects);
     }
+
+    public static TagExplorerPersistedSettings ReadSettings(IReadOnlyDictionary<string, object?> settings)
+    {
+        int displayMode = Math.Clamp(ReadInt(settings, DisplayModeSettingKey, 0), 0, DisplayModeOptions.Count - 1);
+        int sortMode = Math.Clamp(ReadInt(settings, SortModeSettingKey, 0), 0, SortModeOptions.Count - 1);
+
+        return new TagExplorerPersistedSettings(
+            DisplayModeOptions[displayMode].Value,
+            SortModeOptions[sortMode].Value,
+            ReadBool(settings, CommentsOnlySettingKey, false),
+            ReadBool(settings, CenterOnSelectedSettingKey, false),
+            ReadBool(settings, SelectOnClickSettingKey, false));
+    }
+
+    public static IReadOnlyDictionary<string, object> WriteSettings(TagExplorerPersistedSettings settings)
+        => new Dictionary<string, object>
+        {
+            [DisplayModeSettingKey] = IndexOf(DisplayModeOptions, settings.DisplayMode),
+            [SortModeSettingKey] = IndexOf(SortModeOptions, settings.SortMode),
+            [CommentsOnlySettingKey] = settings.CommentsOnly,
+            [CenterOnSelectedSettingKey] = settings.CenterOnSelected,
+            [SelectOnClickSettingKey] = settings.SelectOnClick,
+        };
 
     private static void AddKindRoot(
         List<TagExplorerTreeNode> roots,
@@ -501,6 +573,41 @@ public static class TagExplorerModel
         return int.TryParse(text[..pos], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
             ? value
             : NoPolyobjectNumber;
+    }
+
+    private static int IndexOf<T>(IReadOnlyList<TagExplorerModeOption<T>> options, T value)
+    {
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (EqualityComparer<T>.Default.Equals(options[i].Value, value)) return i;
+        }
+
+        return 0;
+    }
+
+    private static int ReadInt(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value) || value == null) return fallback;
+
+        return value switch
+        {
+            int typed => typed,
+            long typed when typed >= int.MinValue && typed <= int.MaxValue => (int)typed,
+            string text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) => parsed,
+            _ => fallback,
+        };
+    }
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value) || value == null) return fallback;
+
+        return value switch
+        {
+            bool typed => typed,
+            string text when bool.TryParse(text, out bool parsed) => parsed,
+            _ => fallback,
+        };
     }
 
     private static string Comment(IFielded element, bool isUdmf)
