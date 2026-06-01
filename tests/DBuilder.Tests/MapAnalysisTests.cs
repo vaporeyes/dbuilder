@@ -1421,12 +1421,16 @@ public class MapAnalysisTests
     {
         var map = Square(true);
         var thing = map.AddThing(new Vector2D(50, 50), 31007);
-        var ctx = new MapCheckContext { ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null };
+        var ctx = new MapCheckContext
+        {
+            ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null,
+            ThingTitle = type => type == 31007 ? "Old Torch" : "Unknown",
+        };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ObsoleteThingType);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
-        Assert.Contains("Use ReplacementThing instead", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing 0 (Old Torch) at 50, 50 is obsolete.", issue.Message);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1871,7 +1875,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingScript);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
-        Assert.Contains("unknown ACS script name \"OpenDoor\"", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing references unknown ACS script name \"OpenDoor\".", issue.Message);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);

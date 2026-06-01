@@ -564,12 +564,13 @@ public static class MapAnalysis
             }
 
         if (ctx.ThingObsoleteMessage != null)
-            foreach (var t in map.Things)
+            for (int i = 0; i < map.Things.Count; i++)
             {
+                var t = map.Things[i];
                 string? message = ctx.ThingObsoleteMessage(t.Type);
                 if (!string.IsNullOrWhiteSpace(message))
                     issues.Add(DeleteThingIssue(MapIssueKind.ObsoleteThingType, t, ctx.EditThing,
-                        $"Thing type {t.Type} is obsolete: {message}"));
+                        $"Thing {ThingDisplay(ctx, t, i)} at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)} is obsolete."));
             }
 
         CheckThingsOutsideMap(map, ctx, issues);
@@ -660,12 +661,12 @@ public static class MapAnalysis
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
                     issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
-                        $"Thing {i} references unknown ACS script name \"{scriptName}\"."));
+                        $"Thing references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(thing.Args[0]))
             {
                 issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
-                    $"Thing {i} references unknown ACS script number \"{thing.Args[0]}\"."));
+                    $"Thing references unknown ACS script number \"{thing.Args[0]}\"."));
             }
         }
     }
