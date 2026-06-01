@@ -1065,8 +1065,44 @@ public partial class MainWindow : Window
                 SetStatus("Draw mode off.");
                 return true;
             default:
-                return false;
+                return RunSelectionGroupCommand(commandId);
         }
+    }
+
+    private bool RunSelectionGroupCommand(string commandId)
+    {
+        const string selectPrefix = "window.select-group-";
+        const string assignPrefix = "window.assign-group-";
+        const string clearPrefix = "window.clear-group-";
+
+        if (TryReadSelectionGroup(commandId, selectPrefix, out int selectGroup))
+        {
+            SelectGroup(selectGroup);
+            return true;
+        }
+        if (TryReadSelectionGroup(commandId, assignPrefix, out int assignGroup))
+        {
+            AddSelectionToGroup(assignGroup);
+            return true;
+        }
+        if (TryReadSelectionGroup(commandId, clearPrefix, out int clearGroup))
+        {
+            ClearGroup(clearGroup);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryReadSelectionGroup(string commandId, string prefix, out int groupIndex)
+    {
+        groupIndex = -1;
+        if (!commandId.StartsWith(prefix, StringComparison.Ordinal)) return false;
+        string suffix = commandId[prefix.Length..];
+        if (!int.TryParse(suffix, NumberStyles.Integer, CultureInfo.InvariantCulture, out int groupNumber)) return false;
+        if (groupNumber is < 1 or > MapOptions.SelectionGroupCount) return false;
+        groupIndex = groupNumber - 1;
+        return true;
     }
 
     private async void OnExit(object? sender, RoutedEventArgs e)

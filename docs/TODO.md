@@ -731,6 +731,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.
+  - [x] Add UDB-style stable selection-group action ids and clear-group shortcuts.
   - [x] Add menu commands to scale the current selection.
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.

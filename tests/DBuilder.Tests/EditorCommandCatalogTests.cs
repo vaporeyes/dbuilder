@@ -143,6 +143,46 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("select", "Select Group", "Menu")]
+    [InlineData("assign", "Assign Group", "Menu")]
+    [InlineData("clear", "Clear Group", "Ctrl/Cmd+Shift")]
+    public void SelectionGroupCommandsMatchUdbActionSurface(string verb, string titlePrefix, string gesturePrefix)
+    {
+        for (int group = 1; group <= 10; group++)
+        {
+            var command = EditorCommandCatalog.Find($"window.{verb}-group-{group}");
+
+            Assert.NotNull(command);
+            Assert.Equal($"{titlePrefix} {group}", command.Title);
+            Assert.Equal(EditorCommandScope.Window, command.Scope);
+            Assert.True(command.AllowKeys);
+            Assert.True(command.AllowMouse);
+            Assert.False(command.AllowScroll);
+            Assert.StartsWith(gesturePrefix, command.DefaultGesture, StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData("D1", "window.clear-group-1")]
+    [InlineData("D2", "window.clear-group-2")]
+    [InlineData("D3", "window.clear-group-3")]
+    [InlineData("D4", "window.clear-group-4")]
+    [InlineData("D5", "window.clear-group-5")]
+    [InlineData("D6", "window.clear-group-6")]
+    [InlineData("D7", "window.clear-group-7")]
+    [InlineData("D8", "window.clear-group-8")]
+    [InlineData("D9", "window.clear-group-9")]
+    [InlineData("D0", "window.clear-group-10")]
+    public void ClearSelectionGroupShortcutsMatchUdbDefaults(string key, string commandId)
+    {
+        Assert.Equal(commandId, EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Window,
+            key,
+            accelerator: true,
+            shift: true));
+    }
+
     [Fact]
     public void PropertiesCommandMatchesUdbActionSurface()
     {
