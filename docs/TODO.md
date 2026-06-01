@@ -675,6 +675,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add preset editors for configured degree-angle property and argument fields.
   - [x] Add preset editors for configured decimal-degree property and argument fields.
   - [x] Add preset editors for configured byte-angle property and argument fields.
+  - [x] Add configured thing-class property field dropdowns.
 
 ## Editing Core
 

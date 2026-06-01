@@ -822,6 +822,50 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void UniversalStringOptionsExposeThingClassChoicesFromConfig()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                monsters
+                {
+                    3001
+                    {
+                        title = "Imp";
+                        class = "DoomImp";
+                    }
+                    3002
+                    {
+                        title = "Duplicate Imp";
+                        class = "doomimp";
+                    }
+                    3003
+                    {
+                        title = "Demon";
+                        class = "Demon";
+                    }
+                    3004
+                    {
+                        title = "No Class";
+                    }
+                }
+            }
+            """;
+        var config = GameConfiguration.FromText(cfg);
+        var registry = new UniversalTypeRegistry();
+
+        var options = UniversalStringOptions.ForThingClassEditor(
+            registry.CreateHandler(UniversalType.ThingClass, defaultValue: "DoomImp"),
+            config);
+
+        Assert.Equal(new[] { "Demon", "DoomImp" }, options.Select(option => option.Value));
+        Assert.Equal(new[] { "Demon", "Imp" }, options.Select(option => option.Title));
+        Assert.Empty(UniversalStringOptions.ForThingClassEditor(
+            registry.CreateHandler(UniversalType.String),
+            config));
+    }
+
+    [Fact]
     public void UniversalFieldEditorValuesSelectConfiguredFieldsAndStripRawDuplicates()
     {
         const string cfg = """

@@ -19,6 +19,12 @@ public sealed record CatalogItem(int Number, string Label)
     public override string ToString() => Label;
 }
 
+/// <summary>A pickable catalog entry (text value + display label) for config-driven dropdowns.</summary>
+public sealed record CatalogTextItem(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
 /// <summary>A set of flag checkboxes (bit -> CheckBox) that recombines into an int on demand.</summary>
 public sealed class FlagChecks
 {
@@ -73,13 +79,15 @@ public sealed class ArgEditors
 
 public sealed class UniversalFieldEditors
 {
-    private readonly List<(UniversalFieldEditorValue Value, TextBox? Box, ComboBox? Combo, FlagChecks? Flags)> _editors = new();
+    private readonly List<(UniversalFieldEditorValue Value, TextBox? Box, ComboBox? Combo, ComboBox? StringCombo, FlagChecks? Flags)> _editors = new();
 
-    public void AddBox(UniversalFieldEditorValue value, TextBox box) => _editors.Add((value, box, null, null));
+    public void AddBox(UniversalFieldEditorValue value, TextBox box) => _editors.Add((value, box, null, null, null));
 
-    public void AddCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, combo, null));
+    public void AddCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, combo, null, null));
 
-    public void AddFlags(UniversalFieldEditorValue value, FlagChecks flags) => _editors.Add((value, null, null, flags));
+    public void AddStringCombo(UniversalFieldEditorValue value, ComboBox combo) => _editors.Add((value, null, null, combo, null));
+
+    public void AddFlags(UniversalFieldEditorValue value, FlagChecks flags) => _editors.Add((value, null, null, null, flags));
 
     public void Apply(Dictionary<string, object> fields)
     {
@@ -89,6 +97,11 @@ public sealed class UniversalFieldEditors
             if (editor.Combo != null)
             {
                 handler.SetValue(ComboNumber(editor.Combo, 0));
+                fields[editor.Value.Field.Name] = handler.GetValue();
+            }
+            else if (editor.StringCombo != null)
+            {
+                handler.SetValue(ComboText(editor.StringCombo, ""));
                 fields[editor.Value.Field.Name] = handler.GetValue();
             }
             else if (editor.Flags != null)
@@ -106,6 +119,9 @@ public sealed class UniversalFieldEditors
 
     private static int ComboNumber(ComboBox combo, int fallback)
         => combo.SelectedItem is CatalogItem ci ? ci.Number : fallback;
+
+    private static string ComboText(ComboBox combo, string fallback)
+        => combo.SelectedItem is CatalogTextItem ci ? ci.Value : fallback;
 }
 
 // Shared helpers for building simple label/input forms without XAML.
@@ -192,6 +208,25 @@ public abstract class PropertyDialog : Window
 
         var combo = new ComboBox { ItemsSource = list, HorizontalAlignment = HorizontalAlignment.Stretch };
         combo.SelectedItem = list.Find(i => i.Number == current);
+
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*") };
+        grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(combo, 1);
+        grid.Children.Add(combo);
+        _rows.Children.Insert(_rows.Children.Count - 1, grid);
+        return combo;
+    }
+
+    // Adds a labeled dropdown of text catalog items, preserving an unknown current value.
+    protected ComboBox AddStringCombo(string label, IEnumerable<CatalogTextItem> items, string current)
+    {
+        var list = items.OrderBy(i => i.Value, StringComparer.OrdinalIgnoreCase).ToList();
+        if (!string.IsNullOrWhiteSpace(current)
+            && !list.Exists(i => string.Equals(i.Value, current, StringComparison.OrdinalIgnoreCase)))
+            list.Insert(0, new CatalogTextItem(current, $"{current} - (current)"));
+
+        var combo = new ComboBox { ItemsSource = list, HorizontalAlignment = HorizontalAlignment.Stretch };
+        combo.SelectedItem = list.Find(i => string.Equals(i.Value, current, StringComparison.OrdinalIgnoreCase));
 
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*") };
         grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
@@ -385,6 +420,22 @@ public abstract class PropertyDialog : Window
                     "Browse Things",
                     () => CatalogBrowse.Things(config));
                 editors.AddCombo(item, combo);
+            }
+            else if (handler is ThingClassTypeHandler)
+            {
+                var classOptions = UniversalStringOptions.ForThingClassEditor(handler, config);
+                if (classOptions.Count > 0)
+                {
+                    var combo = AddStringCombo(
+                        item.Field.Name,
+                        classOptions.Select(option => new CatalogTextItem(option.Value, $"{option.Value} - {option.Title}")),
+                        handler.GetStringValue());
+                    editors.AddStringCombo(item, combo);
+                }
+                else
+                {
+                    editors.AddBox(item, AddField(item.Field.Name, handler.GetStringValue()));
+                }
             }
             else if (config != null && handler is LinedefTypeHandler)
             {
