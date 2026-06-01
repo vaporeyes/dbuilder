@@ -82,6 +82,37 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.new-map", "New Map", "Menu")]
+    [InlineData("window.open-map", "Open Map", "Menu")]
+    [InlineData("window.open-map-in-current-wad", "Open Map in current WAD", "Ctrl/Cmd+Shift+O")]
+    [InlineData("window.close-map", "Close Map", "Menu")]
+    [InlineData("window.save-map", "Save Map", "Ctrl/Cmd+S")]
+    [InlineData("window.save-map-as", "Save Map As", "Menu")]
+    [InlineData("window.map-options", "Map Options", "Menu")]
+    public void FileAndMapOptionCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void OpenMapInCurrentWadShortcutMatchesUdbDefault()
+    {
+        Assert.Equal("window.open-map-in-current-wad", EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Window,
+            "O",
+            accelerator: true,
+            shift: true));
+    }
+
     [Fact]
     public void SelectSimilarCommandMatchesUdbActionSurface()
     {

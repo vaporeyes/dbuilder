@@ -1038,7 +1038,14 @@ public partial class MainWindow : Window
         {
             case "window.undo": OnUndo(this, new RoutedEventArgs()); return true;
             case "window.redo": OnRedo(this, new RoutedEventArgs()); return true;
+            case "window.new-map": OnNewMap(this, new RoutedEventArgs()); return true;
+            case "window.open-map": OnOpen(this, new RoutedEventArgs()); return true;
+            case "window.open-map-in-current-wad": OnOpenMap(this, new RoutedEventArgs()); return true;
+            case "window.close-map": OnCloseMap(this, new RoutedEventArgs()); return true;
             case "window.save": OnSave(this, new RoutedEventArgs()); return true;
+            case "window.save-map": OnSave(this, new RoutedEventArgs()); return true;
+            case "window.save-map-as": OnSaveAs(this, new RoutedEventArgs()); return true;
+            case "window.map-options": OnMapOptions(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
