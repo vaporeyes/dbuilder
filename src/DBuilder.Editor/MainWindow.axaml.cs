@@ -1552,6 +1552,11 @@ public partial class MainWindow : Window
     private void OnGradientFloorHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorHeight);
     private void OnGradientCeilingHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingHeight);
     private void OnGradientBrightness(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.Brightness);
+    private void OnGradientFloorLight(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorLight);
+    private void OnGradientCeilingLight(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingLight);
+    private void OnGradientLightColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightColor);
+    private void OnGradientFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FadeColor);
+    private void OnGradientLightAndFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightAndFadeColor);
 
     private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
@@ -1644,6 +1649,11 @@ public partial class MainWindow : Window
             SectorGradientTarget.FloorHeight => "Gradient floor heights",
             SectorGradientTarget.CeilingHeight => "Gradient ceiling heights",
             SectorGradientTarget.Brightness => "Gradient brightness",
+            SectorGradientTarget.FloorLight => "Gradient floor brightness",
+            SectorGradientTarget.CeilingLight => "Gradient ceiling brightness",
+            SectorGradientTarget.LightColor => "Gradient light color",
+            SectorGradientTarget.FadeColor => "Gradient fade color",
+            SectorGradientTarget.LightAndFadeColor => "Gradient light and fade colors",
             _ => "Gradient sectors",
         };
         CreateUndo(undoName);
@@ -3908,7 +3918,9 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasGradientSectors,
-            SectorGradientsMenuItem, GradientFloorHeightsMenuItem, GradientCeilingHeightsMenuItem, GradientBrightnessMenuItem);
+            SectorGradientsMenuItem, GradientFloorHeightsMenuItem, GradientCeilingHeightsMenuItem, GradientBrightnessMenuItem,
+            GradientFloorLightMenuItem, GradientCeilingLightMenuItem, GradientLightColorMenuItem, GradientFadeColorMenuItem,
+            GradientLightAndFadeColorMenuItem);
         SetEnabled(hasSelectedSector, ToggleAutomapTexturedHiddenSectorMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);

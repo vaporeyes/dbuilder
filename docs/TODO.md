@@ -715,6 +715,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire draw-grid mode into the editor box-drag workflow.
 - [ ] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient commands.
+  - [x] Add UDB-style UDMF sector floor/ceiling light and light/fade color gradient commands.
 - [ ] Port texture alignment tools.
   - [x] Add UDB-style sidedef unused texture cleanup behavior.
   - [x] Add UDB-style auto-clear sidedef textures command and menu toggle.
@@ -1115,6 +1116,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient model and editor commands.
+  - [x] Add UDB-style UDMF sector surface light and light/fade color gradient model and editor commands.
 - [ ] Port edit selection panel behavior.
   - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
   - [x] Add UDB-style 15-degree edit-selection rotation snapping.

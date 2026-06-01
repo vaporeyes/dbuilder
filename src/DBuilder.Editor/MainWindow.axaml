@@ -176,6 +176,11 @@
                     <MenuItem Header="Gradient _Floor Heights" x:Name="GradientFloorHeightsMenuItem" Click="OnGradientFloorHeights" />
                     <MenuItem Header="Gradient _Ceiling Heights" x:Name="GradientCeilingHeightsMenuItem" Click="OnGradientCeilingHeights" />
                     <MenuItem Header="Gradient _Brightness" x:Name="GradientBrightnessMenuItem" Click="OnGradientBrightness" />
+                    <MenuItem Header="Gradient Floor _Light" x:Name="GradientFloorLightMenuItem" Click="OnGradientFloorLight" />
+                    <MenuItem Header="Gradient Ceiling L_ight" x:Name="GradientCeilingLightMenuItem" Click="OnGradientCeilingLight" />
+                    <MenuItem Header="Gradient Light _Color" x:Name="GradientLightColorMenuItem" Click="OnGradientLightColor" />
+                    <MenuItem Header="Gradient _Fade Color" x:Name="GradientFadeColorMenuItem" Click="OnGradientFadeColor" />
+                    <MenuItem Header="Gradient Light and Fade C_olors" x:Name="GradientLightAndFadeColorMenuItem" Click="OnGradientLightAndFadeColor" />
                 </MenuItem>
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
