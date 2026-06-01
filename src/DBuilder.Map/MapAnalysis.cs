@@ -617,7 +617,7 @@ public static class MapAnalysis
 
                 if (!hasActivation)
                     issues.Add(MissingActivationIssue(l, ctx,
-                        $"Linedef {i} has an action with no activation."));
+                        $"Linedef {i} has an action with no activation"));
             }
     }
 
@@ -639,12 +639,12 @@ public static class MapAnalysis
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
                     issues.Add(UnknownLinedefScriptIssue(line, ctx,
-                        $"Linedef {i} references unknown ACS script name \"{scriptName}\"."));
+                        $"Linedef references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(line.Args[0]))
             {
                 issues.Add(UnknownLinedefScriptIssue(line, ctx,
-                    $"Linedef {i} references unknown ACS script number \"{line.Args[0]}\"."));
+                    $"Linedef references unknown ACS script number \"{line.Args[0]}\"."));
             }
         }
 

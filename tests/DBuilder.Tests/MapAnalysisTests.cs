@@ -1831,7 +1831,27 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownLinedefScript);
         Assert.Same(line, issue.Target);
-        Assert.Contains("unknown ACS script number \"12\"", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Linedef references unknown ACS script number \"12\".", issue.Message);
+    }
+
+    [Fact]
+    public void LinedefReferencingUnknownNamedAcsScriptIsFlagged()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Fields["arg0str"] = "OpenDoor";
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            CheckNamedScripts = true,
+            ScriptNameExists = name => name == "KnownScript",
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownLinedefScript);
+
+        Assert.Same(line, issue.Target);
+        Assert.Equal("Linedef references unknown ACS script name \"OpenDoor\".", issue.Message);
     }
 
     [Fact]
@@ -2112,6 +2132,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MissingActivation);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Linedef 0 has an action with no activation", issue.Message);
         Assert.Equal("Edit Linedef", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Contains("playeruse", line.UdmfFlags);
