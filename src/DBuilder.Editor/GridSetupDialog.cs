@@ -14,7 +14,7 @@ public sealed class GridSetupDialog : PropertyDialog
     private readonly TextBox _originY;
     private readonly TextBox _rotation;
     private readonly TextBox _background;
-    private readonly TextBox _backgroundSource;
+    private readonly ComboBox _backgroundSource;
     private readonly TextBox _backgroundX;
     private readonly TextBox _backgroundY;
     private readonly TextBox _backgroundScaleX;
@@ -50,7 +50,7 @@ public sealed class GridSetupDialog : PropertyDialog
         _originY = AddField("Origin Y", grid.GridOriginY.ToString("0.###", CultureInfo.InvariantCulture));
         _rotation = AddField("Rotation radians", grid.GridRotate.ToString("0.###", CultureInfo.InvariantCulture));
         _background = AddField("Background", grid.BackgroundName);
-        _backgroundSource = AddField("Background source", grid.BackgroundSource.ToString(CultureInfo.InvariantCulture));
+        _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
         _backgroundX = AddField("Background X", grid.BackgroundX.ToString(CultureInfo.InvariantCulture));
         _backgroundY = AddField("Background Y", grid.BackgroundY.ToString(CultureInfo.InvariantCulture));
         _backgroundScaleX = AddField("Background scale X", grid.BackgroundScaleX.ToString("0.###", CultureInfo.InvariantCulture));
@@ -64,10 +64,18 @@ public sealed class GridSetupDialog : PropertyDialog
         ResultOriginY = ParseDouble(_originY, ResultOriginY);
         ResultRotation = ParseDouble(_rotation, ResultRotation);
         ResultBackground = _background.Text?.Trim() ?? "";
-        ResultBackgroundSource = ParseInt(_backgroundSource, ResultBackgroundSource);
+        ResultBackgroundSource = ComboNumber(_backgroundSource, ResultBackgroundSource);
         ResultBackgroundX = ParseInt(_backgroundX, ResultBackgroundX);
         ResultBackgroundY = ParseInt(_backgroundY, ResultBackgroundY);
         ResultBackgroundScaleX = ParseDouble(_backgroundScaleX, ResultBackgroundScaleX);
         ResultBackgroundScaleY = ParseDouble(_backgroundScaleY, ResultBackgroundScaleY);
     }
+
+    private static IEnumerable<CatalogItem> BackgroundSourceItems()
+        =>
+        [
+            new CatalogItem(GridSetup.SourceTextures, "Textures"),
+            new CatalogItem(GridSetup.SourceFlats, "Flats"),
+            new CatalogItem(GridSetup.SourceFile, "File"),
+        ];
 }
