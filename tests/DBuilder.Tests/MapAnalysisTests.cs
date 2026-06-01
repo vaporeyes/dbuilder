@@ -526,6 +526,18 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelFormatsDescriptionsForClipboard()
+    {
+        var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+
+        string text = MapIssueListModel.FormatIssueDescriptions(new[] { unused, shortLine });
+
+        Assert.Equal($"unused{Environment.NewLine}short{Environment.NewLine}", text);
+        Assert.Equal(string.Empty, MapIssueListModel.FormatIssueDescriptions(Array.Empty<MapIssue>()));
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);

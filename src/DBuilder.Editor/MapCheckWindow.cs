@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using DBuilder.Map;
@@ -50,6 +51,14 @@ public sealed class MapCheckWindow : Window
         };
         showAll.Click += (_, _) => ShowAll();
 
+        var copySelected = new Button
+        {
+            Content = "Copy",
+            Margin = new Avalonia.Thickness(0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        copySelected.Click += async (_, _) => await CopySelectedToClipboard();
+
         var hideType = new Button
         {
             Content = "Hide Type",
@@ -82,7 +91,7 @@ public sealed class MapCheckWindow : Window
                 new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
-                    Children = { ignoreSelected, showAll, hideType, selectType, showOnlyType },
+                    Children = { ignoreSelected, showAll, copySelected, hideType, selectType, showOnlyType },
                 },
             },
         };
@@ -92,6 +101,14 @@ public sealed class MapCheckWindow : Window
         _list.SelectionChanged += (_, _) =>
         {
             if (_list.SelectedItem is ListBoxItem { Tag: MapIssue mi }) IssueActivated?.Invoke(mi);
+        };
+        _list.KeyUp += async (_, e) =>
+        {
+            if (e.Key == Key.C && HasCopyModifier(e.KeyModifiers))
+            {
+                await CopySelectedToClipboard();
+                e.Handled = true;
+            }
         };
 
         var root = new DockPanel();
@@ -103,8 +120,7 @@ public sealed class MapCheckWindow : Window
 
     private void IgnoreSelected()
     {
-        var selected = _list.SelectedItems?.OfType<ListBoxItem>().ToArray() ?? Array.Empty<ListBoxItem>();
-        _model.HideSelected(selected.Select(row => (MapIssue)row.Tag!));
+        _model.HideSelected(SelectedIssues());
         RefreshRows();
     }
 
@@ -116,17 +132,13 @@ public sealed class MapCheckWindow : Window
 
     private void HideSelectedTypes()
     {
-        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
-            ?? Array.Empty<MapIssue>();
-        _model.HideSelectedKinds(selected);
+        _model.HideSelectedKinds(SelectedIssues());
         RefreshRows();
     }
 
     private void SelectSelectedTypes()
     {
-        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
-            ?? Array.Empty<MapIssue>();
-        var matching = _model.VisibleIssuesWithSelectedKinds(selected).ToHashSet();
+        var matching = _model.VisibleIssuesWithSelectedKinds(SelectedIssues()).ToHashSet();
         if (matching.Count == 0) return;
 
         _list.SelectedItems?.Clear();
@@ -139,11 +151,27 @@ public sealed class MapCheckWindow : Window
 
     private void ShowOnlySelectedTypes()
     {
-        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
-            ?? Array.Empty<MapIssue>();
-        _model.ShowOnlySelectedKinds(selected);
+        _model.ShowOnlySelectedKinds(SelectedIssues());
         RefreshRows();
     }
+
+    private async System.Threading.Tasks.Task CopySelectedToClipboard()
+    {
+        string text = MapIssueListModel.FormatIssueDescriptions(SelectedIssues());
+        if (text.Length == 0) return;
+
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard == null) return;
+
+        await clipboard.SetTextAsync(text);
+    }
+
+    private MapIssue[] SelectedIssues() =>
+        _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
+        ?? Array.Empty<MapIssue>();
+
+    private static bool HasCopyModifier(KeyModifiers modifiers) =>
+        modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
 
     private void RefreshRows()
     {

@@ -63,6 +63,14 @@ public sealed class MapIssueListModel
         return visibleIssues.Where(issue => selectedKinds.Contains(issue.Kind)).ToArray();
     }
 
+    public static string FormatIssueDescriptions(IEnumerable<MapIssue> issues)
+    {
+        var lines = issues.Select(issue => issue.Message).ToArray();
+        if (lines.Length == 0) return string.Empty;
+
+        return string.Join(Environment.NewLine, lines) + Environment.NewLine;
+    }
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)
