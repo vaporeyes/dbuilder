@@ -75,6 +75,55 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void RemoveMarkedTagsClearsDirectTagsAndTagTypedActionArgs()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tags.AddRange(new[] { 5, 7 });
+        map.Sectors[0].Marked = true;
+        map.Linedefs[0].Tag = 11;
+        map.Linedefs[0].Marked = true;
+        map.Things[0].Tag = 12;
+        map.Things[0].Marked = true;
+
+        int changed = ConfiguredTagSearch.RemoveMarkedTags(map, config);
+
+        Assert.Equal(3, changed);
+        Assert.Equal(new[] { 0 }, map.Sectors[0].Tags);
+        Assert.Equal(new[] { 0 }, map.Linedefs[0].Tags);
+        Assert.Equal(0, map.Linedefs[0].Args[0]);
+        Assert.Equal(0, map.Linedefs[0].Args[1]);
+        Assert.Equal(0, map.Things[0].Tag);
+        Assert.Equal(0, map.Things[0].Args[1]);
+        Assert.Equal(99, map.Linedefs[1].Args[3]);
+        Assert.Equal(17, map.Things[1].Args[3]);
+    }
+
+    [Fact]
+    public void RemoveMarkedTagsHonorsConfiguredTagOwnerCapabilities()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "HexenMapSetIO";
+            linedeftypes { tags { 80 { title = "Tag args"; arg0 { type = 13; } } } }
+            """);
+        var map = BuildMap();
+        map.Linedefs[0].Tag = 17;
+        map.Linedefs[0].Args[0] = 18;
+        map.Linedefs[0].Marked = true;
+        map.Things[0].Tag = 19;
+        map.Things[0].Args[1] = 20;
+        map.Things[0].Marked = true;
+
+        int changed = ConfiguredTagSearch.RemoveMarkedTags(map, config);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(17, map.Linedefs[0].Tag);
+        Assert.Equal(0, map.Linedefs[0].Args[0]);
+        Assert.Equal(0, map.Things[0].Tag);
+        Assert.Equal(20, map.Things[0].Args[1]);
+    }
+
+    [Fact]
     public void FindsAndReplacesConfiguredLinedefReferenceArgs()
     {
         var config = GameConfiguration.FromText(Cfg);

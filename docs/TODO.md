@@ -214,6 +214,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style point-in-polygon helper.
   - [x] Add UDB-style Hermite spline helpers.
   - [x] Add UDB-style marked action removal helper.
+  - [x] Add config-aware UDB-style marked tag removal helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
 - [ ] Port curve tools and interpolation behavior fully.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.

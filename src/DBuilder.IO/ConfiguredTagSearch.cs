@@ -141,6 +141,53 @@ public static class ConfiguredTagSearch
         return changed;
     }
 
+    public static int RemoveMarkedTags(MapSet map, GameConfiguration? config)
+    {
+        int changed = 0;
+
+        foreach (var sector in map.Sectors)
+        {
+            if (!sector.Marked) continue;
+            if (SetMultiTagsToZero(sector)) changed++;
+        }
+
+        foreach (var thing in map.Things)
+        {
+            if (!thing.Marked) continue;
+
+            bool hit = false;
+            if (config?.HasThingTag ?? true)
+            {
+                if (thing.Tag != 0)
+                {
+                    thing.Tag = 0;
+                    hit = true;
+                }
+            }
+
+            if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
+                hit |= ClearTagActionArgs(thing.Action, thing.Args, config);
+
+            if (hit) changed++;
+        }
+
+        foreach (var line in map.Linedefs)
+        {
+            if (!line.Marked) continue;
+
+            bool hit = false;
+            if (config?.HasLinedefTag ?? true)
+                hit |= SetMultiTagsToZero(line);
+
+            if (config?.HasActionArgs ?? true)
+                hit |= ClearTagActionArgs(line.Action, line.Args, config);
+
+            if (hit) changed++;
+        }
+
+        return changed;
+    }
+
     public static List<(int Tag, int Count)> UsedTags(MapSet map, GameConfiguration? config)
     {
         var stats = UsedTagStatistics(map, config);
@@ -264,6 +311,22 @@ public static class ConfiguredTagSearch
         return changed;
     }
 
+    private static bool ClearTagActionArgs(int action, int[] values, GameConfiguration? config)
+    {
+        var args = config?.GetLinedefAction(action)?.Args;
+        if (args == null) return false;
+
+        bool changed = false;
+        for (int i = 0; i < args.Length && i < values.Length; i++)
+        {
+            if (!IsTagArg(args[i]) || values[i] == 0) continue;
+            values[i] = 0;
+            changed = true;
+        }
+
+        return changed;
+    }
+
     private static IEnumerable<int> PositiveActionArgTags(int action, int[] values, GameConfiguration? config)
     {
         var args = config?.GetLinedefAction(action)?.Args;
@@ -293,4 +356,21 @@ public static class ConfiguredTagSearch
 
     private static Vector2D Mid(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
+
+    private static bool SetMultiTagsToZero(IMultiTaggedMapElement element)
+    {
+        bool hasPositiveTag = false;
+        foreach (int tag in element.Tags)
+        {
+            if (tag <= 0) continue;
+            hasPositiveTag = true;
+            break;
+        }
+
+        if (!hasPositiveTag) return false;
+
+        element.Tags.Clear();
+        element.Tags.Add(0);
+        return true;
+    }
 }
