@@ -700,6 +700,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style paste options for tag renumbering, tag removal, and action removal.
   - [x] Persist paste options and apply them to editor paste, duplicate, and prefab insertion.
   - [x] Add paste option controls to the settings dialog.
+  - [x] Add UDB-style Paste Special command for one-shot paste options.
   - [x] Add UDB-style paste-properties option tab model for copied and target element combinations.
   - [x] Add UDB-style selective paste-properties applier for copied map element fields.
   - [x] Add UDB-style selected-element paste-properties clipboard snapshots and apply results.

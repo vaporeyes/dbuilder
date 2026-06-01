@@ -1041,6 +1041,7 @@ public partial class MainWindow : Window
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
+            case "window.paste-special": OnPasteSpecial(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.copy-properties": OnCopyProperties(this, new RoutedEventArgs()); return true;
             case "window.paste-properties": OnPasteProperties(this, new RoutedEventArgs()); return true;
@@ -1116,6 +1117,22 @@ public partial class MainWindow : Window
     private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
 
     private void OnPaste(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PasteClipboard());
+
+    private async void OnPasteSpecial(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null)
+        {
+            SetStatus("No map loaded.");
+            MapView.Focus();
+            return;
+        }
+
+        var dialog = new PasteOptionsDialog(_settings.NormalizedPasteOptions);
+        if (await dialog.ShowDialog<bool>(this))
+            RunClipboardEdit(MapView.PasteClipboard(dialog.PasteOptions));
+        else
+            MapView.Focus();
+    }
 
     private void OnCopyProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopyPropertiesSelection());
 
@@ -4480,7 +4497,7 @@ public partial class MainWindow : Window
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
-            CloseMapMenuItem, MapOptionsMenuItem, PasteMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
+            CloseMapMenuItem, MapOptionsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,

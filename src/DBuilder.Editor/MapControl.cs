@@ -3733,6 +3733,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>Pastes the clipboard one grid cell from the originals and selects the result (undoable).</summary>
     public string PasteClipboard()
+        => PasteClipboard(PasteOptions);
+
+    public string PasteClipboard(PasteOptions options)
     {
         if (_map == null) return "No map loaded.";
         if (_clipboard == null)
@@ -3742,7 +3745,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return empty;
         }
         EditBegun?.Invoke("Paste");
-        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize), PasteOptions, _gameConfig);
+        var res = SelectionClipboard.Paste(_map, _clipboard, new Vec2D(_grid.GridSize, _grid.GridSize), options, _gameConfig);
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"pasted {res.LinedefCount} lines, {res.SectorCount} sectors, {res.ThingCount} things";

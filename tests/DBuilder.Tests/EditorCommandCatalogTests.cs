@@ -113,6 +113,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void PasteSpecialCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.paste-special");
+
+        Assert.NotNull(command);
+        Assert.Equal("Paste Selection Special", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void PropertiesCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.properties");

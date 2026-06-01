@@ -77,6 +77,7 @@
                 <MenuItem Header="Cu_t" x:Name="CutMenuItem" Click="OnCut" />
                 <MenuItem Header="_Copy" x:Name="CopyMenuItem" Click="OnCopy" />
                 <MenuItem Header="_Paste" x:Name="PasteMenuItem" Click="OnPaste" />
+                <MenuItem Header="Paste _Special..." x:Name="PasteSpecialMenuItem" Click="OnPasteSpecial" />
                 <MenuItem Header="D_uplicate" x:Name="DuplicateMenuItem" Click="OnDuplicate" />
                 <Separator />
                 <MenuItem Header="Copy _Properties" x:Name="CopyPropertiesMenuItem" Click="OnCopyProperties" />
