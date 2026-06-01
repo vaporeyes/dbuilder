@@ -4526,9 +4526,20 @@ public partial class MainWindow : Window
         SetEnabled(hasEditableProperties, PropertiesMenuItem);
         SetEnabled(hasSingleFlagSelection, FlagsMenuItem);
         SetEnabled(hasCustomFieldSelection, CustomFieldsMenuItem);
+        UpdateUndoRedoLabels();
         SetEnabled(canUndo, UndoMenuItem, UndoButton);
         SetEnabled(canRedo, RedoMenuItem, RedoButton);
         UpdateCommandCheckedState();
+    }
+
+    private void UpdateUndoRedoLabels()
+    {
+        string? undo = _undo?.NextUndoDescription;
+        string? redo = _undo?.NextRedoDescription;
+        UndoMenuItem.Header = string.IsNullOrWhiteSpace(undo) ? "_Undo" : $"_Undo {undo}";
+        RedoMenuItem.Header = string.IsNullOrWhiteSpace(redo) ? "_Redo" : $"_Redo {redo}";
+        ToolTip.SetTip(UndoButton, string.IsNullOrWhiteSpace(undo) ? "Undo" : $"Undo {undo}");
+        ToolTip.SetTip(RedoButton, string.IsNullOrWhiteSpace(redo) ? "Redo" : $"Redo {redo}");
     }
 
     private bool SupportsCustomFields()
