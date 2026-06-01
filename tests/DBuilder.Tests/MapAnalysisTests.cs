@@ -140,6 +140,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.LinedefMissingFront);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Linedef 0 is missing front side", issue.Message);
         Assert.Equal("Flip Linedef", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -180,6 +181,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
         Assert.Same(line, issue.Target);
+        Assert.Equal("Linedef 0 is marked double-sided but has no back side", issue.Message);
     }
 
     [Fact]
@@ -233,6 +235,7 @@ public class MapAnalysisTests
         var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefWithoutSidedefs);
 
+        Assert.Equal("Linedef 1 is missing both sides", issue.Message);
         Assert.Equal(new[] { "Create One Side", "Create Both Sides" }, issue.Fixes.Select(fix => fix.Label).ToArray());
         Assert.True(issue.Fixes[1].Apply(map));
 
@@ -260,6 +263,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
         Assert.Same(line, issue.Target);
+        Assert.Equal("Linedef 0 is marked single-sided but has two sides", issue.Message);
     }
 
     [Fact]

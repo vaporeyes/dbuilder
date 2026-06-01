@@ -1516,10 +1516,10 @@ public static class MapAnalysis
 
             if (l.Front == null && l.Back == null)
                 issues.Add(LinedefWithoutSidedefsIssue(map, l, ctx?.DoubleSidedFlag,
-                    $"Linedef {i} has no sidedefs.", mid));
+                    $"Linedef {i} is missing both sides", mid));
             else if (l.Front == null)
                 issues.Add(MissingFrontIssue(map, l, ctx?.DoubleSidedFlag,
-                    $"Linedef {i} has only a back sidedef (a front sidedef is required).", mid));
+                    $"Linedef {i} is missing front side", mid));
         }
     }
 
@@ -1534,10 +1534,10 @@ public static class MapAnalysis
             bool markedDoubleSided = IsLineFlagSet(l, ctx.DoubleSidedFlag);
             if (markedDoubleSided && l.Back == null)
                 issues.Add(LineNotDoubleSidedIssue(map, l, ctx.DoubleSidedFlag,
-                    $"Linedef {i} is marked double-sided but has no back sidedef.", mid));
+                    $"Linedef {i} is marked double-sided but has no back side", mid));
             else if (!markedDoubleSided && l.Back != null)
                 issues.Add(LineNotSingleSidedIssue(l, ctx.DoubleSidedFlag,
-                    $"Linedef {i} has a back sidedef but is not marked double-sided.", mid));
+                    $"Linedef {i} is marked single-sided but has two sides", mid));
         }
     }
 
