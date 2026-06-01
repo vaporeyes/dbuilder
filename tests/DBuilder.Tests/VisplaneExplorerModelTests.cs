@@ -51,6 +51,37 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void InterfaceToolbarTextMatchesUdbDesigner()
+    {
+        Assert.Equal("Statistics to view", VisplaneExplorerInterfaceModel.StatisticsToolTip);
+        Assert.Equal("Open Doors", VisplaneExplorerInterfaceModel.OpenDoorsText);
+        Assert.Equal("Heat Colors", VisplaneExplorerInterfaceModel.HeatColorsText);
+        Assert.Equal("View Height", VisplaneExplorerInterfaceModel.ViewHeightText);
+        Assert.Equal("Position above the floor to calculate stats", VisplaneExplorerInterfaceModel.ViewHeightToolTip);
+        Assert.Equal("Set custom height", VisplaneExplorerInterfaceModel.CustomHeightText);
+        Assert.Equal("-1", VisplaneExplorerInterfaceModel.CustomHeightTag);
+        Assert.Equal("Add", VisplaneExplorerInterfaceModel.CustomHeightImageName);
+    }
+
+    [Fact]
+    public void ViewHeightMenuItemMatchesUdbDesignerFormatting()
+    {
+        var defaultItem = VisplaneExplorerInterfaceModel.ViewHeightMenuItem(
+            height: 41,
+            label: "Doom",
+            defaultHeight: 41,
+            selectedHeight: 41);
+        var item = VisplaneExplorerInterfaceModel.ViewHeightMenuItem(
+            height: 56,
+            label: "Heretic",
+            defaultHeight: 41,
+            selectedHeight: 41);
+
+        Assert.Equal(new VisplaneExplorerViewHeightMenuItem("viewheight41", "41 - Doom (default)", "41", Checked: true), defaultItem);
+        Assert.Equal(new VisplaneExplorerViewHeightMenuItem("viewheight56", "56 - Heretic", "56", Checked: false), item);
+    }
+
+    [Fact]
     public void InterfaceSettingsReadStoredPluginValues()
     {
         VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(

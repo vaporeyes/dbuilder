@@ -83,6 +83,12 @@ public sealed record VisplaneExplorerViewHeightState(
     string CustomItemText,
     bool SettingsChanged);
 
+public sealed record VisplaneExplorerViewHeightMenuItem(
+    string Name,
+    string Text,
+    string Tag,
+    bool Checked);
+
 public static class VisplaneExplorerViewHeight
 {
     public const int DefaultCustomHeight = 0;
@@ -133,6 +139,14 @@ public static class VisplaneExplorerInterfaceModel
     public const string ShowHeatmapSettingsKey = "showheatmap";
     public const string ViewHeightSettingsKey = "viewheight";
     public const string ViewHeightCustomSettingsKey = "viewheightcustom";
+    public const string StatisticsToolTip = "Statistics to view";
+    public const string OpenDoorsText = "Open Doors";
+    public const string HeatColorsText = "Heat Colors";
+    public const string ViewHeightText = "View Height";
+    public const string ViewHeightToolTip = "Position above the floor to calculate stats";
+    public const string CustomHeightText = "Set custom height";
+    public const string CustomHeightTag = "-1";
+    public const string CustomHeightImageName = "Add";
 
     public static VisplaneExplorerModeDescriptor ModeDescriptor { get; } = new(
         "Visplane Explorer",
@@ -205,6 +219,17 @@ public static class VisplaneExplorerInterfaceModel
 
     public static string FormatViewHeightButtonText(int viewHeight)
         => "View Height (" + viewHeight.ToString(CultureInfo.InvariantCulture) + ")";
+
+    public static VisplaneExplorerViewHeightMenuItem ViewHeightMenuItem(
+        int height,
+        string label,
+        int defaultHeight,
+        int selectedHeight)
+    {
+        string tag = height.ToString(CultureInfo.InvariantCulture);
+        string text = tag + " - " + label + (height == defaultHeight ? " (default)" : "");
+        return new VisplaneExplorerViewHeightMenuItem("viewheight" + tag, text, tag, height == selectedHeight);
+    }
 
     private static VisplaneExplorerStatMenuItem StatMenuItem(
         VisplaneExplorerStat stat,
