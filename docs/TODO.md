@@ -1035,6 +1035,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style any texture or flat find category.
   - [x] Add UDB-style wildcard matching for sidedef texture and sector flat find categories.
   - [x] Add UDB-style comma-separated thing type find and replace values.
+  - [x] Add UDB-style sector effect any-effect search and replacement validation.
 - [ ] Port map error checker infrastructure.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
   - [x] Add map-check window support for ignoring selected results.

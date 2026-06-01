@@ -155,6 +155,46 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindSectorEffectMinusOneSelectsAnyNonzeroEffect()
+    {
+        var map = Build();
+        map.Sectors[1].Special = 0;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.SectorEffect, "-1");
+
+        Assert.Equal(1, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.False(map.Sectors[1].Selected);
+    }
+
+    [Fact]
+    public void ReplaceSectorEffectMinusOneChangesAnyNonzeroEffect()
+    {
+        var map = Build();
+        map.Sectors[1].Special = 0;
+
+        int changed = MapSearch.Replace(map, FindCategory.SectorEffect, "-1", "11");
+
+        Assert.Equal(1, changed);
+        Assert.Equal(11, map.Sectors[0].Special);
+        Assert.Equal(0, map.Sectors[1].Special);
+    }
+
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("32768")]
+    public void ReplaceSectorEffectRejectsInvalidReplacementValues(string replacement)
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(map, FindCategory.SectorEffect, "9", replacement);
+
+        Assert.Equal(0, changed);
+        Assert.Equal(9, map.Sectors[0].Special);
+        Assert.Equal(9, map.Sectors[1].Special);
+    }
+
+    [Fact]
     public void ReplaceLinedefAction()
     {
         var map = Build();

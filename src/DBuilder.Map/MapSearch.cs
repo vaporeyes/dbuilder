@@ -194,7 +194,9 @@ public static class MapSearch
                         }
                 break;
             case FindCategory.SectorEffect:
-                if (numOk) foreach (var s in map.Sectors) if (s.Special == num) { s.Selected = true; count++; }
+                if (numOk)
+                    foreach (var s in map.Sectors)
+                        if (num == -1 ? s.Special > 0 : s.Special == num) { s.Selected = true; count++; }
                 break;
             case FindCategory.SectorIndex:
                 if (numOk && num >= 0 && num < map.Sectors.Count) { map.Sectors[num].Selected = true; count = 1; }
@@ -390,6 +392,7 @@ public static class MapSearch
 
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
+        if (cat == FindCategory.SectorEffect && (to < 0 || to > short.MaxValue)) return 0;
         switch (cat)
         {
             case FindCategory.ThingAngle:
@@ -399,7 +402,8 @@ public static class MapSearch
                 foreach (var l in map.Linedefs) if (l.Action == from) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
-                foreach (var s in map.Sectors) if (s.Special == from) { s.Special = to; changed++; }
+                foreach (var s in map.Sectors)
+                    if (from == -1 ? s.Special > 0 : s.Special == from) { s.Special = to; changed++; }
                 break;
             case FindCategory.SectorFloorHeight:
                 foreach (var s in map.Sectors) if (s.FloorHeight == from) { s.FloorHeight = to; changed++; }
