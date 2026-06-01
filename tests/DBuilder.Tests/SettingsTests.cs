@@ -161,6 +161,15 @@ public class SettingsTests
                     ShowLocks: false,
                     ShowTextures: false,
                     ColorPreset: AutomapColorPreset.Strife),
+                MakeDoorSettings = new MakeDoorModeSettings(
+                    HasValues: true,
+                    DoorTexture: " BIGDOOR2 ",
+                    TrackTexture: "DOORTRAK",
+                    CeilingTexture: "CEIL5_1",
+                    FloorTexture: "STEP1",
+                    ResetOffsets: false,
+                    ApplyActionSpecials: false,
+                    ApplyTag: true),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -213,6 +222,14 @@ public class SettingsTests
             Assert.False(loaded.AutomapSettings.ShowTextures);
             Assert.Equal(AutomapColorPreset.Strife, loaded.AutomapSettings.ColorPreset);
             Assert.Equal(AutomapColorPreset.Strife, loaded.NormalizedAutomapSettings.ColorPreset);
+            Assert.True(loaded.MakeDoorSettings.HasValues);
+            Assert.Equal("BIGDOOR2", loaded.NormalizedMakeDoorSettings.DoorTexture);
+            Assert.Equal("DOORTRAK", loaded.NormalizedMakeDoorSettings.TrackTexture);
+            Assert.Equal("CEIL5_1", loaded.NormalizedMakeDoorSettings.CeilingTexture);
+            Assert.Equal("STEP1", loaded.NormalizedMakeDoorSettings.FloorTexture);
+            Assert.False(loaded.NormalizedMakeDoorSettings.ResetOffsets);
+            Assert.False(loaded.NormalizedMakeDoorSettings.ApplyActionSpecials);
+            Assert.True(loaded.NormalizedMakeDoorSettings.ApplyTag);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);
@@ -242,6 +259,7 @@ public class SettingsTests
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
         Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);
+        Assert.Equal(new MakeDoorModeSettings(), s.NormalizedMakeDoorSettings);
     }
 
     [Fact]

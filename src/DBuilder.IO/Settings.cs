@@ -37,6 +37,7 @@ public sealed class Settings
     public DrawGridModeSettings DrawGridSettings { get; set; } = new();
     public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public AutomapModeSettings AutomapSettings { get; set; } = new();
+    public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -77,6 +78,9 @@ public sealed class Settings
 
     public AutomapModeSettings NormalizedAutomapSettings =>
         (AutomapSettings ?? new AutomapModeSettings()).Normalized();
+
+    public MakeDoorModeSettings NormalizedMakeDoorSettings =>
+        (MakeDoorSettings ?? new MakeDoorModeSettings()).Normalized();
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -156,6 +160,7 @@ public sealed class Settings
             settings.DrawGridSettings ??= new();
             settings.EditSelectionSettings ??= new();
             settings.AutomapSettings ??= new();
+            settings.MakeDoorSettings ??= new();
             return settings;
         }
         catch { return new Settings(); }
@@ -185,4 +190,29 @@ public sealed class RecentMapReference
         string.Equals(Path, other.Path, StringComparison.OrdinalIgnoreCase)
         && string.Equals(MapName, other.MapName, StringComparison.OrdinalIgnoreCase)
         && string.Equals(ArchivePath ?? "", other.ArchivePath ?? "", StringComparison.OrdinalIgnoreCase);
+}
+
+public sealed record MakeDoorModeSettings(
+    bool HasValues = false,
+    string? DoorTexture = null,
+    string? TrackTexture = null,
+    string? CeilingTexture = null,
+    string? FloorTexture = null,
+    bool ResetOffsets = true,
+    bool ApplyActionSpecials = true,
+    bool ApplyTag = false)
+{
+    public MakeDoorModeSettings Normalized()
+        => new(
+            HasValues,
+            Normalize(DoorTexture),
+            Normalize(TrackTexture),
+            Normalize(CeilingTexture),
+            Normalize(FloorTexture),
+            ResetOffsets,
+            ApplyActionSpecials,
+            ApplyTag);
+
+    private static string? Normalize(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

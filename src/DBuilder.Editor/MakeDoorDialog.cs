@@ -9,8 +9,6 @@ namespace DBuilder.Editor;
 
 public sealed class MakeDoorDialog : PropertyDialog
 {
-    private static StoredMakeDoorOptions storedOptions = new();
-
     private readonly TextBox _doorTexture;
     private readonly TextBox _trackTexture;
     private readonly TextBox _ceilingTexture;
@@ -25,18 +23,19 @@ public sealed class MakeDoorDialog : PropertyDialog
 
     public MakeDoorOptions ResultOptions { get; private set; }
 
-    public MakeDoorDialog(MakeDoorOptions defaults, ResourceManager? resources)
+    public MakeDoorDialog(MakeDoorOptions defaults, MakeDoorModeSettings storedOptions, ResourceManager? resources)
         : base("Make Door")
     {
+        storedOptions = storedOptions.Normalized();
         _action = defaults.Action;
         _activate = defaults.Activate;
         _args = defaults.Args.ToArray();
         _flags = defaults.Flags;
 
-        string doorTexture = storedOptions.HasValues ? storedOptions.DoorTexture : defaults.DoorTexture;
-        string trackTexture = storedOptions.HasValues ? storedOptions.TrackTexture : defaults.TrackTexture;
-        string ceilingTexture = storedOptions.HasValues ? storedOptions.CeilingTexture : defaults.CeilingTexture;
-        string floorTexture = storedOptions.HasValues ? storedOptions.FloorTexture : defaults.FloorTexture ?? "";
+        string doorTexture = storedOptions.HasValues ? storedOptions.DoorTexture ?? "" : defaults.DoorTexture;
+        string trackTexture = storedOptions.HasValues ? storedOptions.TrackTexture ?? "" : defaults.TrackTexture;
+        string ceilingTexture = storedOptions.HasValues ? storedOptions.CeilingTexture ?? "" : defaults.CeilingTexture;
+        string floorTexture = storedOptions.HasValues ? storedOptions.FloorTexture ?? "" : defaults.FloorTexture ?? "";
 
         _doorTexture = AddTextureInput("Door texture", doorTexture, resources, flats: false, "Browse Door Texture");
         _trackTexture = AddTextureInput("Track texture", trackTexture, resources, flats: false, "Browse Track Texture");
@@ -51,7 +50,7 @@ public sealed class MakeDoorDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        storedOptions = new StoredMakeDoorOptions(
+        var storedOptions = new MakeDoorModeSettings(
             HasValues: true,
             DoorTexture: Value(_doorTexture),
             TrackTexture: Value(_trackTexture),
@@ -63,10 +62,10 @@ public sealed class MakeDoorDialog : PropertyDialog
 
         ResultOptions = new MakeDoorOptions
         {
-            DoorTexture = storedOptions.DoorTexture,
-            TrackTexture = storedOptions.TrackTexture,
-            CeilingTexture = storedOptions.CeilingTexture,
-            FloorTexture = string.IsNullOrWhiteSpace(storedOptions.FloorTexture) ? null : storedOptions.FloorTexture,
+            DoorTexture = storedOptions.DoorTexture ?? "",
+            TrackTexture = storedOptions.TrackTexture ?? "",
+            CeilingTexture = storedOptions.CeilingTexture ?? "",
+            FloorTexture = storedOptions.FloorTexture,
             ResetOffsets = storedOptions.ResetOffsets,
             ApplyActionSpecials = storedOptions.ApplyActionSpecials,
             ApplyTag = storedOptions.ApplyTag,
@@ -81,14 +80,4 @@ public sealed class MakeDoorDialog : PropertyDialog
         => resources is null ? AddField(label, value) : AddTextureField(label, value, resources, flats, title);
 
     private static string Value(TextBox box) => (box.Text ?? "").Trim();
-
-    private readonly record struct StoredMakeDoorOptions(
-        bool HasValues = false,
-        string DoorTexture = "",
-        string TrackTexture = "",
-        string CeilingTexture = "",
-        string FloorTexture = "",
-        bool ResetOffsets = true,
-        bool ApplyActionSpecials = true,
-        bool ApplyTag = false);
 }

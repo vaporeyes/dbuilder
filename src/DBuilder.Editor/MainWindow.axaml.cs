@@ -3510,7 +3510,7 @@ public partial class MainWindow : Window
             Flags = _config?.MakeDoorFlags ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
         };
 
-        var dlg = new MakeDoorDialog(defaults, _resources);
+        var dlg = new MakeDoorDialog(defaults, _settings.NormalizedMakeDoorSettings, _resources);
         if (!await dlg.ShowDialog<bool>(this))
         {
             MapView.Focus();
@@ -3525,6 +3525,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        _settings.MakeDoorSettings = MakeDoorSettingsFrom(options);
+        SaveSettings();
         CreateUndo("Make door");
         MakeDoorResult result = MakeDoorTool.Apply(_map, sectors, options);
         MapView.MarkGeometryDirty();
@@ -3532,6 +3534,17 @@ public partial class MainWindow : Window
         SetStatus($"Made {result.SectorsChanged} door sector(s), updated {result.DoorLinesChanged} door line(s) and {result.OneSidedLinesChanged} track line(s).");
         MapView.Focus();
     }
+
+    private static MakeDoorModeSettings MakeDoorSettingsFrom(MakeDoorOptions options)
+        => new(
+            HasValues: true,
+            DoorTexture: options.DoorTexture,
+            TrackTexture: options.TrackTexture,
+            CeilingTexture: options.CeilingTexture,
+            FloorTexture: options.FloorTexture,
+            ResetOffsets: options.ResetOffsets,
+            ApplyActionSpecials: options.ApplyActionSpecials,
+            ApplyTag: options.ApplyTag);
 
     private async void OnExportIdStudio(object? sender, RoutedEventArgs e)
     {
