@@ -136,6 +136,32 @@ public class UndoManagerTests
     }
 
     [Fact]
+    public void WithdrawUndoRestoresLatestSnapshotAndClearsRedo()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("Preview move");
+        map.Vertices[0].Position = new Vector2D(64, 64);
+
+        Assert.True(undo.WithdrawUndo());
+
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+        Assert.False(undo.CanUndo);
+        Assert.False(undo.CanRedo);
+    }
+
+    [Fact]
+    public void WithdrawUndoWithEmptyStackReturnsFalse()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        Assert.False(undo.WithdrawUndo());
+        Assert.False(undo.CanRedo);
+    }
+
+    [Fact]
     public void MultiLevelUndoRedo()
     {
         var map = BuildMap();

@@ -101,6 +101,14 @@ public sealed class UndoManager
         return performed;
     }
 
+    /// <summary>Restores and removes the latest undo snapshot, then discards the redo it created.</summary>
+    public bool WithdrawUndo()
+    {
+        if (!Undo()) return false;
+        redos.Clear();
+        return true;
+    }
+
     /// <summary>Discards all undo and redo history.</summary>
     public void Clear()
     {
