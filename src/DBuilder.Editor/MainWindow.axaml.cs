@@ -1311,7 +1311,7 @@ public partial class MainWindow : Window
         SetStatus($"Inverted {MapView.CurrentEditMode.ToString().ToLowerInvariant()} selection: {count} selected.");
     }
 
-    private void OnSelectSimilar(object? sender, RoutedEventArgs e)
+    private async void OnSelectSimilar(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (CountSelectionInCurrentMode() == 0)
@@ -1320,12 +1320,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        var dlg = new SelectSimilarDialog(MapView.CurrentEditMode);
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
         int changed = MapView.CurrentEditMode switch
         {
-            MapControl.EditMode.Vertices => SelectSimilar.SelectVertices(_map),
-            MapControl.EditMode.Linedefs => SelectSimilar.SelectLinedefs(_map),
-            MapControl.EditMode.Sectors => SelectSimilar.SelectSectors(_map),
-            MapControl.EditMode.Things => SelectSimilar.SelectThings(_map),
+            MapControl.EditMode.Vertices => SelectSimilar.SelectVertices(_map, dlg.VertexOptions),
+            MapControl.EditMode.Linedefs => SelectSimilar.SelectLinedefs(_map, dlg.LinedefOptions, dlg.SidedefOptions),
+            MapControl.EditMode.Sectors => SelectSimilar.SelectSectors(_map, dlg.SectorOptions),
+            MapControl.EditMode.Things => SelectSimilar.SelectThings(_map, dlg.ThingOptions),
             _ => 0,
         };
 

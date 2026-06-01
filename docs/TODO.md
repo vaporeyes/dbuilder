@@ -1137,6 +1137,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port select similar element behavior.
   - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
   - [x] Add Edit menu command for selecting similar elements in the active edit mode.
+  - [x] Add mode-specific Select Similar options dialog before applying selection.
 - [ ] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
