@@ -1231,6 +1231,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
   - [x] Add UDB-style linedef blocksound toggle behavior for classic and UDMF maps.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
+  - [x] Add UDB-style Sound Environment thing discovery, zone-boundary rules, dormant handling, names, and environment grouping.
 - [ ] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.

@@ -69,6 +69,21 @@ public sealed record SoundPropagationColorSettings(
     }
 }
 
+public readonly record struct SoundEnvironmentReverb(int Arg0, int Arg1);
+
+public sealed record SoundEnvironmentInfo(
+    IReadOnlySet<Sector> Sectors,
+    IReadOnlyList<Thing> Things,
+    IReadOnlyList<Linedef> BoundaryLinedefs,
+    uint Color,
+    int Id,
+    string Name);
+
+public sealed record SoundEnvironmentModeModel(
+    IReadOnlyList<SoundEnvironmentInfo> Environments,
+    IReadOnlySet<Sector> UnassignedSectors,
+    IReadOnlySet<Linedef> BoundaryLinedefs);
+
 public sealed class SoundPropagationModeModel
 {
     private readonly Dictionary<Sector, SoundPropagationDomain> sectorDomains;
@@ -197,6 +212,131 @@ public static class SoundPropagation
     public const int DefaultAmbushBit = 8;
 
     public const string DefaultUdmfSoundBlockFlag = "blocksound";
+    public const string DefaultUdmfZoneBoundaryFlag = "zoneboundary";
+    public const string DefaultUdmfDormantFlag = "dormant";
+    public const string DefaultClassicDormantFlag = "14";
+    public const int SoundEnvironmentThingType = 9048;
+    public const string UnknownSoundEnvironmentName = "Unknown sound environment";
+
+    public static SoundEnvironmentModeModel BuildSoundEnvironmentModel(
+        MapSet map,
+        IReadOnlyDictionary<string, SoundEnvironmentReverb>? reverbs = null,
+        SoundPropagationColorSettings? colors = null,
+        bool udmf = false)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+
+        colors ??= SoundPropagationColorSettings.Default;
+        var allSectors = new HashSet<Sector>(map.Sectors, ReferenceEqualityComparer.Instance);
+        var checkedSectors = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+        var remainingThings = GetSoundEnvironmentThings(map, allSectors).ToList();
+        var environments = new List<SoundEnvironmentInfo>();
+        var boundaryLinedefs = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        var colorsByThing = new Dictionary<Thing, uint>(ReferenceEqualityComparer.Instance);
+        var numbersByThing = new Dictionary<Thing, int>(ReferenceEqualityComparer.Instance);
+
+        for (int i = 0; i < remainingThings.Count; i++)
+        {
+            Thing thing = remainingThings[i];
+            int colorId = ((Math.Abs(thing.Args[0]) % 256) << 8) + Math.Abs(thing.Args[1]) % 256;
+            colorsByThing[thing] = colors.DomainColorForIndex(colorId);
+            numbersByThing[thing] = i + 1;
+        }
+
+        while (remainingThings.Count > 0)
+        {
+            Thing thing = remainingThings[0];
+            if (thing.Sector == null) thing.DetermineSector(map);
+            if (thing.Sector == null || !allSectors.Contains(thing.Sector))
+            {
+                remainingThings.RemoveAt(0);
+                continue;
+            }
+
+            var sectorsToCheck = new Queue<Sector>();
+            var environmentSectors = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+            var environmentLines = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+            sectorsToCheck.Enqueue(thing.Sector);
+
+            while (sectorsToCheck.Count > 0)
+            {
+                Sector sector = sectorsToCheck.Dequeue();
+                if (checkedSectors.Contains(sector)) continue;
+
+                environmentSectors.Add(sector);
+                checkedSectors.Add(sector);
+                allSectors.Remove(sector);
+
+                foreach (Sidedef sidedef in sector.Sidedefs)
+                {
+                    Linedef line = sidedef.Line;
+                    if (LinedefBlocksSoundEnvironment(line, udmf))
+                    {
+                        environmentLines.Add(line);
+                        boundaryLinedefs.Add(line);
+                        continue;
+                    }
+
+                    Sector? other = ReferenceEquals(line.Front?.Sector, sector) ? line.Back?.Sector : line.Front?.Sector;
+                    if (other != null && !checkedSectors.Contains(other)) sectorsToCheck.Enqueue(other);
+                }
+            }
+
+            List<Thing> environmentThings = GetSoundEnvironmentThings(map, environmentSectors)
+                .OrderBy(map.Things.IndexOf)
+                .ToList();
+            foreach (Thing environmentThing in environmentThings)
+                remainingThings.Remove(environmentThing);
+
+            Thing colorThing = environmentThings.Count > 0 ? environmentThings[0] : thing;
+            int id = numbersByThing.TryGetValue(colorThing, out int number) ? number : environments.Count + 1;
+            environments.Add(new SoundEnvironmentInfo(
+                environmentSectors,
+                environmentThings,
+                environmentLines.OrderBy(map.Linedefs.IndexOf).ToArray(),
+                colorsByThing.TryGetValue(colorThing, out uint color) ? color : colors.DomainColorForIndex(0),
+                id,
+                SoundEnvironmentName(environmentThings, reverbs, udmf, id)));
+        }
+
+        return new SoundEnvironmentModeModel(environments, allSectors, boundaryLinedefs);
+    }
+
+    public static IReadOnlyList<Thing> GetSoundEnvironmentThings(MapSet map, IEnumerable<Sector> sectors)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        if (sectors == null) throw new ArgumentNullException(nameof(sectors));
+
+        var sectorSet = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance);
+        var things = new List<Thing>();
+        foreach (Thing thing in map.Things)
+        {
+            if (thing.Type != SoundEnvironmentThingType) continue;
+            if (thing.Sector == null) thing.DetermineSector(map);
+            if (thing.Sector != null && sectorSet.Contains(thing.Sector)) things.Add(thing);
+        }
+
+        return things;
+    }
+
+    public static bool LinedefBlocksSoundEnvironment(Linedef linedef, bool udmf = false)
+    {
+        if (linedef == null) throw new ArgumentNullException(nameof(linedef));
+        if (udmf) return linedef.IsFlagSet(DefaultUdmfZoneBoundaryFlag);
+        return linedef.Action == 121 && (linedef.Args[1] & 1) == 1;
+    }
+
+    public static bool ThingDormant(Thing thing, bool udmf = false)
+    {
+        if (thing == null) throw new ArgumentNullException(nameof(thing));
+        return thing.IsFlagSet(udmf ? DefaultUdmfDormantFlag : DefaultClassicDormantFlag);
+    }
+
+    public static void SetThingDormant(Thing thing, bool dormant, bool udmf = false)
+    {
+        if (thing == null) throw new ArgumentNullException(nameof(thing));
+        thing.SetFlag(udmf ? DefaultUdmfDormantFlag : DefaultClassicDormantFlag, dormant);
+    }
 
     public static SoundPropagationModeModel BuildModeModel(
         MapSet map,
@@ -227,6 +367,27 @@ public static class SoundPropagation
             sectorDomains,
             domains.AsReadOnly(),
             blockingLinedefs);
+    }
+
+    private static string SoundEnvironmentName(
+        IReadOnlyList<Thing> things,
+        IReadOnlyDictionary<string, SoundEnvironmentReverb>? reverbs,
+        bool udmf,
+        int fallbackId)
+    {
+        Thing? active = things.FirstOrDefault(thing => !ThingDormant(thing, udmf));
+        if (active == null) return $"{UnknownSoundEnvironmentName} {fallbackId}";
+
+        if (reverbs != null)
+        {
+            foreach ((string name, SoundEnvironmentReverb reverb) in reverbs)
+            {
+                if (reverb.Arg0 == active.Args[0] && reverb.Arg1 == active.Args[1])
+                    return $"{name} ({active.Args[0]} {active.Args[1]})";
+            }
+        }
+
+        return $"{UnknownSoundEnvironmentName} ({active.Args[0]} {active.Args[1]})";
     }
 
     /// <summary>

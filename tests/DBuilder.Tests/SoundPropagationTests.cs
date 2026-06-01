@@ -386,4 +386,104 @@ public class SoundPropagationTests
         Assert.Equal(colors.Level2Color, overlay[3]);
         Assert.Equal(colors.NoSoundColor, overlay[4]);
     }
+
+    [Fact]
+    public void SoundEnvironmentBoundaryUsesClassicLineIdentificationArgument()
+    {
+        var (map, _) = Chain(2, new[] { false });
+        Linedef line = map.Linedefs[0];
+
+        Assert.False(SoundPropagation.LinedefBlocksSoundEnvironment(line));
+
+        line.Action = 121;
+        line.Args[1] = 1;
+
+        Assert.True(SoundPropagation.LinedefBlocksSoundEnvironment(line));
+    }
+
+    [Fact]
+    public void SoundEnvironmentBoundaryUsesUdmfZoneBoundaryFlag()
+    {
+        var (map, _) = Chain(2, new[] { false });
+        Linedef line = map.Linedefs[0];
+        line.Action = 121;
+        line.Args[1] = 1;
+
+        Assert.False(SoundPropagation.LinedefBlocksSoundEnvironment(line, udmf: true));
+
+        line.SetFlag(SoundPropagation.DefaultUdmfZoneBoundaryFlag, true);
+
+        Assert.True(SoundPropagation.LinedefBlocksSoundEnvironment(line, udmf: true));
+    }
+
+    [Fact]
+    public void SoundEnvironmentThingsAreFilteredByTypeAndSectorSet()
+    {
+        var (map, s) = Chain(3, new[] { false, false });
+        Thing environment = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        environment.Sector = s[0];
+        Thing otherEnvironment = map.AddThing(new Vector2D(128, 0), SoundPropagation.SoundEnvironmentThingType);
+        otherEnvironment.Sector = s[2];
+        Thing notEnvironment = map.AddThing(new Vector2D(0, 0), 3001);
+        notEnvironment.Sector = s[0];
+
+        IReadOnlyList<Thing> things = SoundPropagation.GetSoundEnvironmentThings(map, new[] { s[0], s[1] });
+
+        Thing result = Assert.Single(things);
+        Assert.Same(environment, result);
+    }
+
+    [Fact]
+    public void BuildSoundEnvironmentModelGroupsSectorsAcrossNonBoundaryLines()
+    {
+        var (map, s) = Chain(4, new[] { false, false, false });
+        map.Linedefs[1].Action = 121;
+        map.Linedefs[1].Args[1] = 1;
+        Thing environment = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        environment.Sector = s[0];
+        environment.Args[0] = 1;
+        environment.Args[1] = 2;
+        var reverbs = new Dictionary<string, SoundEnvironmentReverb>
+        {
+            ["Stone Room"] = new(1, 2)
+        };
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map, reverbs);
+
+        SoundEnvironmentInfo info = Assert.Single(model.Environments);
+        Assert.Equal(new[] { s[0], s[1] }, info.Sectors);
+        Assert.Equal(new[] { environment }, info.Things);
+        Assert.Equal(new[] { map.Linedefs[1] }, info.BoundaryLinedefs);
+        Assert.Equal(new[] { map.Linedefs[1] }, model.BoundaryLinedefs);
+        Assert.Equal(new[] { s[2], s[3] }, model.UnassignedSectors);
+        Assert.Equal("Stone Room (1 2)", info.Name);
+        Assert.Equal(1, info.Id);
+        Assert.Equal(SoundPropagationColorSettings.Default.DomainColorForIndex((1 << 8) + 2), info.Color);
+    }
+
+    [Fact]
+    public void SoundEnvironmentNameUsesFirstNonDormantThing()
+    {
+        var (map, s) = Chain(2, new[] { false });
+        Thing dormant = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        dormant.Sector = s[0];
+        dormant.Args[0] = 5;
+        dormant.Args[1] = 6;
+        Thing active = map.AddThing(new Vector2D(32, 0), SoundPropagation.SoundEnvironmentThingType);
+        active.Sector = s[1];
+        active.Args[0] = 7;
+        active.Args[1] = 8;
+        SoundPropagation.SetThingDormant(dormant, true, udmf: true);
+        var reverbs = new Dictionary<string, SoundEnvironmentReverb>
+        {
+            ["Hall"] = new(7, 8)
+        };
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map, reverbs, udmf: true);
+
+        SoundEnvironmentInfo info = Assert.Single(model.Environments);
+        Assert.Equal("Hall (7 8)", info.Name);
+        Assert.True(SoundPropagation.ThingDormant(dormant, udmf: true));
+        Assert.False(SoundPropagation.ThingDormant(active, udmf: true));
+    }
 }
