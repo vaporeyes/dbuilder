@@ -1154,6 +1154,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Route draw-grid sector cells through UDB-style traced sector creation.
   - [x] Add UDB-style selected-linedef curve defaults, point generation, and materialization.
   - [x] Add UDB-style draw-mode thing placement from generated rectangle, ellipse, and curve vertices.
+  - [x] Apply UDB-style continuous drawing accept lifecycle to line, sector, curve, rectangle, ellipse, and grid drawing.
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port sector gradient tools.

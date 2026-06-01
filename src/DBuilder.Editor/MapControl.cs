@@ -3300,6 +3300,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             Changed?.Invoke();
             Picked?.Invoke($"placed {count} thing{(count == 1 ? "" : "s")} at draw vertices");
             if (!string.IsNullOrEmpty(plan.HintText)) Picked?.Invoke(plan.HintText);
+            CompleteShapeDraw();
             return;
         }
 
@@ -3321,6 +3322,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         if (!string.IsNullOrEmpty(plan.HintText)) Picked?.Invoke(plan.HintText);
+        CompleteShapeDraw();
     }
 
     private void CreateDrawGridFromBox(Vec2D p0, Vec2D p1)
@@ -3382,6 +3384,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"drew grid {plan.HorizontalSlices} x {plan.VerticalSlices}: {sectorCount} sector(s), {lineCount} line(s)");
+        CompleteShapeDraw();
+    }
+
+    private void CompleteShapeDraw()
+    {
+        if (_shapeKind == ShapeKind.None) return;
+
+        bool continuous = _shapeKind switch
+        {
+            ShapeKind.Rectangle => _drawRectangleSettings.ContinuousDrawing,
+            ShapeKind.Ellipse => _drawEllipseSettings.ContinuousDrawing,
+            ShapeKind.Grid => _drawGridSettings.ContinuousDrawing,
+            _ => false,
+        };
+        DrawModeTool tool = _shapeKind switch
+        {
+            ShapeKind.Rectangle => DrawModeTool.Rectangle,
+            ShapeKind.Ellipse => DrawModeTool.Ellipse,
+            ShapeKind.Grid => DrawModeTool.Grid,
+            _ => DrawModeTool.Sector,
+        };
+
+        ApplyDrawLifecycle(DrawModeLifecycle.AfterAccept(tool, continuous));
     }
 
     private Vertex MaterializeVertex(Vec2D point)
@@ -3971,13 +3996,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             int count = DrawThingPlacement.PlaceAtPositions(_map, points, InsertThingType);
             if (count == 0) { CancelDraw(); return; }
             _map.BuildIndexes();
-            _drawPoints.Clear();
-            _drawClosed = false;
-            _drawCurve = false;
-            _drawDirty = true;
             MarkGeometryDirty();
             Changed?.Invoke();
             Picked?.Invoke($"placed {count} thing{(count == 1 ? "" : "s")} at draw vertices");
+            CompletePolylineDraw();
             return;
         }
 
@@ -4006,12 +4028,44 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.SplitLinedefsAtVertices(0.5); // weld drawn vertices that landed on existing walls (T-junctions)
         _map.BuildIndexes();
 
-        _drawPoints.Clear();
-        _drawClosed = false;
-        _drawCurve = false;
-        _drawDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
+        CompletePolylineDraw();
+    }
+
+    private void CompletePolylineDraw()
+    {
+        DrawModeTool tool = _drawCurve ? DrawModeTool.Curve : _drawLinesOnly ? DrawModeTool.Lines : DrawModeTool.Sector;
+        bool continuous = tool switch
+        {
+            DrawModeTool.Curve => _drawCurveSettings.ContinuousDrawing,
+            DrawModeTool.Lines => _drawLineSettings.ContinuousDrawing,
+            _ => _drawLineSettings.ContinuousDrawing,
+        };
+
+        ApplyDrawLifecycle(DrawModeLifecycle.AfterAccept(tool, continuous));
+    }
+
+    private void ApplyDrawLifecycle(DrawModeLifecycleState state)
+    {
+        bool was = InDrawMode;
+        _drawMode = state.DrawMode;
+        _drawLinesOnly = state.LinesOnly;
+        _drawCurve = state.Curve;
+        _shapeKind = state.Shape switch
+        {
+            DrawModeTool.Rectangle => ShapeKind.Rectangle,
+            DrawModeTool.Ellipse => ShapeKind.Ellipse,
+            DrawModeTool.Grid => ShapeKind.Grid,
+            _ => ShapeKind.None,
+        };
+        _drawPoints.Clear();
+        _drawClosed = false;
+        _drawDirty = true;
+        _drawLineCount = 0;
+        if (was != InDrawMode || was) DrawModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
     }
 
     private System.Collections.Generic.List<Vec2D> MaterializedDrawPoints(bool includeCursor)
