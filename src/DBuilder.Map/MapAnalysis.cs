@@ -326,7 +326,7 @@ public static class MapAnalysis
                 !IsSkyTransferStaticInit(l, ctx) &&
                 !threeDFloorTextures.RequiresUpperTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
-                    $"Linedef {index} ({which}) upper texture \"{side.HighTexture}\" is not needed.", mid));
+                    $"Sidedef {map.IndexOfSidedef(side)} has unused upper texture \"{side.HighTexture}\"", mid));
 
             if (!IsBlank(side.LowTexture) &&
                 !side.LowRequired() &&
@@ -334,7 +334,7 @@ public static class MapAnalysis
                 !actionTextures.RequiresLowerTexture(side) &&
                 !threeDFloorTextures.RequiresLowerTexture(side))
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Lower,
-                    $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.", mid));
+                    $"Sidedef {map.IndexOfSidedef(side)} has unused lower texture \"{side.LowTexture}\"", mid));
         }
     }
 

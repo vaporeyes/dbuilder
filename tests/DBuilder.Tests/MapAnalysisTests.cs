@@ -1252,6 +1252,7 @@ public class MapAnalysisTests
             .First(i => i.Kind == MapIssueKind.UnusedTexture && i.Message.Contains("UNUSEDHI", StringComparison.Ordinal));
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("Sidedef 0 has unused upper texture \"UNUSEDHI\"", issue.Message);
         Assert.Equal("Remove Texture", fix.Label);
         Assert.True(fix.Apply(map));
 

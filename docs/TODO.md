@@ -1089,6 +1089,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB unknown action and sector-effect result text.
   - [x] Match UDB missing-activation and unknown linedef-script result text.
   - [x] Match UDB missing and unknown texture and flat result text.
+  - [x] Match UDB unused texture result text.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
