@@ -244,6 +244,90 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     public Vector2D GetCenterPoint() => Start.Position + (End.Position - Start.Position) * 0.5;
 
+    public List<Vector2D> GetGridIntersections(
+        double gridSize,
+        Vector2D gridOffset = default,
+        double gridRotation = 0.0,
+        double gridOriginX = 0.0,
+        double gridOriginY = 0.0)
+    {
+        var coordinates = new List<Vector2D>();
+        if (!double.IsFinite(gridSize) || gridSize <= 0.0) return coordinates;
+
+        Vector2D v1 = Start.Position;
+        Vector2D v2 = End.Position;
+        bool transformed = Math.Abs(gridRotation) > 0.0001
+            || Math.Abs(gridOriginX) > 0.0001
+            || Math.Abs(gridOriginY) > 0.0001;
+
+        if (transformed)
+        {
+            var origin = new Vector2D(gridOriginX, gridOriginY);
+            v1 = (v1 - origin).GetRotated(-gridRotation);
+            v2 = (v2 - origin).GetRotated(-gridRotation);
+        }
+
+        double minX;
+        double maxX;
+        bool reverseX;
+        if (v1.x > v2.x)
+        {
+            minX = v2.x;
+            maxX = v1.x;
+            reverseX = true;
+        }
+        else
+        {
+            minX = v1.x;
+            maxX = v2.x;
+            reverseX = false;
+        }
+
+        double minY;
+        double maxY;
+        bool reverseY;
+        if (v1.y > v2.y)
+        {
+            minY = v2.y;
+            maxY = v1.y;
+            reverseY = true;
+        }
+        else
+        {
+            minY = v1.y;
+            maxY = v2.y;
+            reverseY = false;
+        }
+
+        double gx = GetHigherGridCoordinate(minX, gridSize) + gridOffset.x;
+        for (; maxX > minX && gx < maxX; gx += gridSize)
+        {
+            double u = (gx - minX) / (maxX - minX);
+            if (reverseX) u = 1.0 - u;
+            coordinates.Add(new Vector2D(gx, v1.y + (v2.y - v1.y) * u));
+        }
+
+        double gy = GetHigherGridCoordinate(minY, gridSize) + gridOffset.y;
+        for (; maxY > minY && gy < maxY; gy += gridSize)
+        {
+            double u = (gy - minY) / (maxY - minY);
+            if (reverseY) u = 1.0 - u;
+            coordinates.Add(new Vector2D(v1.x + (v2.x - v1.x) * u, gy));
+        }
+
+        if (transformed)
+        {
+            var origin = new Vector2D(gridOriginX, gridOriginY);
+            for (int i = 0; i < coordinates.Count; i++)
+                coordinates[i] = coordinates[i].GetRotated(gridRotation) + origin;
+        }
+
+        return coordinates;
+    }
+
+    private static double GetHigherGridCoordinate(double offset, double gridSize)
+        => Math.Round((offset + gridSize * 0.5) / gridSize) * gridSize;
+
     public Vector2D NearestOnLine(Vector2D pos)
     {
         double u = Line2D.GetNearestOnLine(Start.Position, End.Position, pos);

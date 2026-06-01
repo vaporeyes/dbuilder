@@ -142,6 +142,74 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void GridIntersectionsReturnUdbGridCrossings()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(96, 48));
+        var line = map.AddLinedef(a, b);
+
+        List<Vector2D> points = line.GetGridIntersections(gridSize: 32.0);
+
+        Assert.Equal(5, points.Count);
+        AssertVector(new Vector2D(0, 0), points[0]);
+        AssertVector(new Vector2D(32, 16), points[1]);
+        AssertVector(new Vector2D(64, 32), points[2]);
+        AssertVector(new Vector2D(0, 0), points[3]);
+        AssertVector(new Vector2D(64, 32), points[4]);
+    }
+
+    [Fact]
+    public void GridIntersectionsIncludeStartButNotEndGridCrossing()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(a, b);
+
+        List<Vector2D> points = line.GetGridIntersections(gridSize: 32.0);
+
+        Assert.Equal(2, points.Count);
+        AssertVector(new Vector2D(0, 0), points[0]);
+        AssertVector(new Vector2D(32, 0), points[1]);
+    }
+
+    [Fact]
+    public void GridIntersectionsHonorOffsetAndReverseDirection()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(70, 0));
+        var b = map.AddVertex(new Vector2D(0, 0));
+        var line = map.AddLinedef(a, b);
+
+        List<Vector2D> points = line.GetGridIntersections(gridSize: 32.0, gridOffset: new Vector2D(8, 0));
+
+        Assert.Equal(2, points.Count);
+        AssertVector(new Vector2D(8, 0), points[0]);
+        AssertVector(new Vector2D(40, 0), points[1]);
+    }
+
+    [Fact]
+    public void GridIntersectionsHonorRotationAndOrigin()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(10, 0));
+        var b = map.AddVertex(new Vector2D(10, 64));
+        var line = map.AddLinedef(a, b);
+
+        List<Vector2D> points = line.GetGridIntersections(
+            gridSize: 32.0,
+            gridRotation: Math.PI / 2.0,
+            gridOriginX: 10.0,
+            gridOriginY: 0.0);
+
+        Assert.Equal(3, points.Count);
+        AssertVector(new Vector2D(10, 0), points[0]);
+        AssertVector(new Vector2D(10, 32), points[1]);
+        AssertVector(new Vector2D(10, 0), points[2]);
+    }
+
+    [Fact]
     public void LinedefUpdateHelperMatchesUdbSurface()
     {
         var line = new Linedef();
@@ -191,6 +259,12 @@ public class LinedefFlipTests
         var line = map.AddLinedef(a, b);
 
         Assert.True(line.SafeDistanceToSq(new Vector2D(-5, 0), bounded: true) > line.DistanceToSq(new Vector2D(-5, 0), bounded: true));
+    }
+
+    private static void AssertVector(Vector2D expected, Vector2D actual)
+    {
+        Assert.Equal(expected.x, actual.x, 1e-9);
+        Assert.Equal(expected.y, actual.y, 1e-9);
     }
 
     [Fact]
