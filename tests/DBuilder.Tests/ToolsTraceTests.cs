@@ -412,6 +412,39 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FindClosestPathCanStopAtSpecificEndSide()
+    {
+        var (map, lines) = BuildPolygon(new[]
+        {
+            new Vector2D(0, 0), new Vector2D(0, 100), new Vector2D(100, 100), new Vector2D(100, 0),
+        });
+
+        var path = Tools.FindClosestPath(lines[0], true, lines[2], true, turnatends: true);
+
+        Assert.NotNull(path);
+        Assert.Equal(3, path!.Count);
+        Assert.Equal(new LinedefSide(lines[0], true), path[0]);
+        Assert.Equal(new LinedefSide(lines[1], true), path[1]);
+        Assert.Equal(new LinedefSide(lines[2], true), path[2]);
+    }
+
+    [Fact]
+    public void FindClosestPathAddsDistinctEndSideAtDeadEnd()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(50, 0));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, map.AddSector());
+        map.BuildIndexes();
+
+        var path = Tools.FindClosestPath(line, true, line, false, turnatends: true);
+
+        Assert.NotNull(path);
+        Assert.Equal(new[] { new LinedefSide(line, true), new LinedefSide(line, false) }, path);
+    }
+
+    [Fact]
     public void TracesLShapeLoop()
     {
         // 6-vertex L, wound CW so the front faces inward.

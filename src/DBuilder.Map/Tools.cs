@@ -480,6 +480,12 @@ public static class Tools
     /// is true, dead-end vertices reverse along the other side of the line.
     /// </summary>
     public static List<LinedefSide>? FindClosestPath(Linedef startline, bool startfront, bool turnatends)
+        => FindClosestPath(startline, startfront, startline, startfront, turnatends);
+
+    /// <summary>
+    /// Traces the closest path from a start linedef side to an end linedef side, matching UDB Tools.FindClosestPath.
+    /// </summary>
+    public static List<LinedefSide>? FindClosestPath(Linedef startline, bool startfront, Linedef endline, bool endfront, bool turnatends)
     {
         var path = new List<LinedefSide>();
         var tracecount = new Dictionary<Linedef, int>(ReferenceEqualityComparer.Instance);
@@ -512,6 +518,20 @@ public static class Tools
             {
                 Linedef prevline = nextline;
                 nextline = (lines[0] == nextline ? lines[1] : lines[0]);
+                int curcount = tracecount.TryGetValue(nextline, out int current) ? current : 0;
+
+                if (curcount > 0 && !nextline.Marked && nextline != startline && nextline != endline)
+                {
+                    foreach (Linedef line in lines)
+                    {
+                        int linecount = tracecount.TryGetValue(line, out int value) ? value : 0;
+                        if (line != nextline && line != prevline && linecount < curcount)
+                        {
+                            nextline = line;
+                            break;
+                        }
+                    }
+                }
 
                 if (!tracecount.TryGetValue(nextline, out int tc2) || tc2 < 3)
                 {
@@ -527,7 +547,10 @@ public static class Tools
 
             if (++guard > maxSteps) { path = null; break; }
         }
-        while (path != null && (nextline != startline || nextfront != startfront));
+        while (path != null && (nextline != endline || nextfront != endfront));
+
+        if (path != null && (startline != endline || startfront != endfront))
+            path.Add(new LinedefSide(endline, endfront));
 
         return path;
     }
