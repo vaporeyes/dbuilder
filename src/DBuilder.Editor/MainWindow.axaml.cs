@@ -3492,16 +3492,17 @@ public partial class MainWindow : Window
         UpdateCommandAvailability();
     }
 
-    private void OnMakeDoor(object? sender, RoutedEventArgs e)
+    private async void OnMakeDoor(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count == 0) { SetStatus("Select one or more sectors to make doors."); return; }
 
-        var options = new MakeDoorOptions
+        var defaults = new MakeDoorOptions
         {
             DoorTexture = _config?.MakeDoorDoor ?? "-",
             TrackTexture = _config?.MakeDoorTrack ?? "-",
+            FloorTexture = sectors[0].FloorTexture,
             CeilingTexture = _config?.MakeDoorCeiling ?? "-",
             Action = _config?.MakeDoorAction ?? 0,
             Activate = _config?.MakeDoorActivate ?? 0,
@@ -3509,11 +3510,27 @@ public partial class MainWindow : Window
             Flags = _config?.MakeDoorFlags ?? new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase),
         };
 
+        var dlg = new MakeDoorDialog(defaults, _resources);
+        if (!await dlg.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
+        MakeDoorOptions options = dlg.ResultOptions;
+        if (string.IsNullOrWhiteSpace(options.DoorTexture))
+        {
+            SetStatus("Choose a door texture before making a door.");
+            MapView.Focus();
+            return;
+        }
+
         CreateUndo("Make door");
         MakeDoorResult result = MakeDoorTool.Apply(_map, sectors, options);
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Made {result.SectorsChanged} door sector(s), updated {result.DoorLinesChanged} door line(s) and {result.OneSidedLinesChanged} track line(s).");
+        MapView.Focus();
     }
 
     private async void OnExportIdStudio(object? sender, RoutedEventArgs e)
