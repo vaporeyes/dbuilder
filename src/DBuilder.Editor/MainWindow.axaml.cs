@@ -1581,6 +1581,7 @@ public partial class MainWindow : Window
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
     private void OnFitSelectedTextures(object? sender, RoutedEventArgs e) => FitSelectedTextures();
+    private void OnAlignThingsToWall(object? sender, RoutedEventArgs e) => AlignThingsToWall();
     private void OnAlignFloorToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: true);
     private void OnAlignFloorToBack(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: false);
     private void OnAlignCeilingToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: false, frontSide: true);
@@ -1589,6 +1590,14 @@ public partial class MainWindow : Window
     private void AlignTextures(bool vertical)
     {
         string status = MapView.AutoAlignSelectedTextures(vertical);
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(status);
+    }
+
+    private void AlignThingsToWall()
+    {
+        string status = MapView.AlignSelectedThingsToWall();
         UpdateInfo();
         MapView.Focus();
         SetStatus(status);
@@ -4312,6 +4321,7 @@ public partial class MainWindow : Window
         bool hasExactlyOneSelection = hasMap && CountSelection() == 1;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
+        bool hasSelectedThing = _map?.SelectedThingsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
@@ -4365,6 +4375,7 @@ public partial class MainWindow : Window
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
+        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);

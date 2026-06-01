@@ -3657,6 +3657,34 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    public string AlignSelectedThingsToWall()
+    {
+        if (_map == null) return "No map loaded.";
+        if (_gameConfig == null) return "No game configuration loaded.";
+        if (_map.SelectedThingsCount == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        bool hasEligible = _map.GetSelectedThings().Any(thing =>
+            ThingWallAlignment.IsAlignable(_gameConfig.GetThing(thing.Type)?.RenderMode ?? ThingRenderMode.Normal));
+        if (!hasEligible)
+        {
+            const string message = "This action only works for models or things with FLATSPRITE/WALLSPRITE flags!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(_map.SelectedThingsCount == 1 ? "Align thing" : $"Align {_map.SelectedThingsCount} things");
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(_map, _gameConfig);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke(result.Message);
+        return result.Message;
+    }
+
     private int FitSideTextures(Sidedef? side, ref int skipped)
     {
         if (side == null) return 0;

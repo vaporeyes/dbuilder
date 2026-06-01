@@ -105,6 +105,7 @@
                     <MenuItem Header="Align _Ceiling to Front Side" x:Name="AlignCeilingToFrontMenuItem" Click="OnAlignCeilingToFront" />
                     <MenuItem Header="Align Ceiling to B_ack Side" x:Name="AlignCeilingToBackMenuItem" Click="OnAlignCeilingToBack" />
                 </MenuItem>
+                <MenuItem Header="Align _Things to Wall" x:Name="AlignThingsToWallMenuItem" Click="OnAlignThingsToWall" />
                 <MenuItem Header="Auto _Clear Sidedef Textures" x:Name="AutoClearSidedefTexturesMenuItem" ToggleType="CheckBox" Click="OnToggleAutoClearSidedefTextures" />
                 <Separator />
                 <MenuItem Header="Save _Prefab..." x:Name="SavePrefabMenuItem" Click="OnSavePrefab" />

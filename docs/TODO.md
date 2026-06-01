@@ -713,6 +713,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let the thing browser choose the insert-at-cursor thing type.
   - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.
   - [x] Wire draw-grid mode into the editor box-drag workflow.
+  - [x] Add UDB-style selected thing align-to-wall command.
 - [ ] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient commands.
   - [x] Add UDB-style UDMF sector floor/ceiling light and light/fade color gradient commands.

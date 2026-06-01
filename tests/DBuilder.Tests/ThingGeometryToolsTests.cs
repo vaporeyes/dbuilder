@@ -10,6 +10,85 @@ namespace DBuilder.Tests;
 public class ThingGeometryToolsTests
 {
     [Fact]
+    public void AlignSelectedThingsToNearestWallsSkipsNonAlignableThings()
+    {
+        GameConfiguration config = ThingConfig();
+        var (map, line, front) = OneSidedLine(0, 128);
+        var alignable = map.AddThing(new Vector2D(64, -16), 31010);
+        var normal = map.AddThing(new Vector2D(96, -16), 2);
+        alignable.Selected = true;
+        normal.Selected = true;
+        alignable.Sector = front;
+        normal.Sector = front;
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(map, config);
+
+        Assert.Equal(2, result.SelectedCount);
+        Assert.Equal(1, result.EligibleCount);
+        Assert.Equal(1, result.AlignedCount);
+        Assert.Equal(0, result.FailedCount);
+        Assert.Equal(new Vector2D(64, -1), alignable.Position);
+        Assert.Equal(270, alignable.Angle);
+        Assert.Equal(new Vector2D(96, -16), normal.Position);
+        Assert.Equal(0, normal.Angle);
+        Assert.Equal("Aligned a thing.", result.Message);
+        Assert.Same(line, map.NearestLinedef(alignable.Position));
+    }
+
+    [Fact]
+    public void AlignSelectedThingsToNearestWallsTriesNextLineWhenNearestCannotAlign()
+    {
+        GameConfiguration config = ThingConfig();
+        var map = new MapSet();
+        var low = map.AddSector();
+        low.FloorHeight = 0;
+        low.CeilHeight = 8;
+        var tall = map.AddSector();
+        tall.FloorHeight = 0;
+        tall.CeilHeight = 128;
+        var nearA = map.AddVertex(new Vector2D(0, 0));
+        var nearB = map.AddVertex(new Vector2D(128, 0));
+        var farA = map.AddVertex(new Vector2D(0, 16));
+        var farB = map.AddVertex(new Vector2D(128, 16));
+        var near = map.AddLinedef(nearA, nearB);
+        var far = map.AddLinedef(farA, farB);
+        map.AddSidedef(near, isFront: true, low);
+        map.AddSidedef(far, isFront: true, tall);
+        var thing = map.AddThing(new Vector2D(64, -4), 31009);
+        thing.Height = 32;
+        thing.Selected = true;
+        thing.Sector = tall;
+        map.BuildIndexes();
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(map, config);
+
+        Assert.Equal(1, result.AlignedCount);
+        Assert.Equal(new Vector2D(64, 15), thing.Position);
+        Assert.Equal(270, thing.Angle);
+        Assert.Same(far, map.NearestLinedef(thing.Position));
+    }
+
+    [Fact]
+    public void AlignSelectedThingsToNearestWallsReportsNoEligibleSelection()
+    {
+        var config = GameConfiguration.FromText("""
+            thingtypes { 1 { title = "Normal sprite"; renderstyle = "normal"; } }
+            """);
+        var (map, _, front) = OneSidedLine(0, 128);
+        var thing = map.AddThing(new Vector2D(64, -16), 1);
+        thing.Selected = true;
+        thing.Sector = front;
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(map, config);
+
+        Assert.Equal(1, result.SelectedCount);
+        Assert.Equal(0, result.EligibleCount);
+        Assert.Equal(0, result.AlignedCount);
+        Assert.Equal("This action only works for models or things with FLATSPRITE/WALLSPRITE flags!", result.Message);
+        Assert.Equal(new Vector2D(64, -16), thing.Position);
+    }
+
+    [Fact]
     public void AlignThingToOneSidedFrontWallMovesToLineAndRotates()
     {
         var (_, line, front) = OneSidedLine(0, 128);
@@ -104,6 +183,36 @@ public class ThingGeometryToolsTests
 
     private static Sector Sector(int floor, int ceiling)
         => new() { FloorHeight = floor, CeilHeight = ceiling };
+
+    private static GameConfiguration ThingConfig()
+    {
+        const string text = @"
+ACTOR WallSpriteThing 31009
+{
+    +WALLSPRITE
+    Height 16
+    States { Spawn: WSPR A -1 stop }
+}
+
+ACTOR FlatSpriteThing 31010
+{
+    +FLATSPRITE
+    Height 16
+    States { Spawn: FSPR A -1 stop }
+}";
+        var config = GameConfiguration.FromText("""
+            thingtypes
+            {
+                test
+                {
+                    title = "Test";
+                    2 { title = "Normal sprite"; height = 16; }
+                }
+            }
+            """);
+        config.MergeActors(DecorateParser.Parse(text));
+        return config;
+    }
 
     private static (MapSet Map, Linedef Line, Sector Front) OneSidedLine(int floor, int ceiling)
     {
