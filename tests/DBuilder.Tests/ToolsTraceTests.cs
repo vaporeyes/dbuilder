@@ -656,6 +656,58 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorUsesNearestSectorWhenOnlyOppositeNearbySideExists()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector nearby = map.AddSector();
+        nearby.FloorHeight = 12;
+        nearby.CeilHeight = 136;
+        nearby.Brightness = 176;
+        nearby.SetFloorTexture("NEARFLAT");
+        nearby.SetCeilTexture("NEARCEIL");
+
+        Vertex a = map.AddVertex(new Vector2D(96, 0));
+        Vertex b = map.AddVertex(new Vector2D(96, 64));
+        Linedef nearbyLine = map.AddLinedef(a, b);
+        Sidedef opposite = map.AddSidedef(nearbyLine, isFront: false, nearby);
+        opposite.SetTextureMid("NEARWALL");
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSector(
+            map,
+            lines.Select(line => new LinedefSide(line, true)).ToList(),
+            new[] { nearbyLine });
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Equal(12, sector!.FloorHeight);
+        Assert.Equal(136, sector.CeilHeight);
+        Assert.Equal(176, sector.Brightness);
+        Assert.Equal("NEARFLAT", sector.FloorTexture);
+        Assert.Equal("NEARCEIL", sector.CeilTexture);
+        Assert.All(lines, line => Assert.Equal("NEARWALL", line.Front!.MidTexture));
+    }
+
+    [Fact]
+    public void MakeSectorClampsInvalidCopiedCeilingWhenOverridesAreOff()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector source = map.AddSector();
+        source.FloorHeight = 128;
+        source.CeilHeight = 64;
+        map.AddSidedef(lines[0], true, source);
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList(), useOverrides: false);
+
+        Assert.NotNull(sector);
+        Assert.Equal(128, sector!.FloorHeight);
+        Assert.Equal(128, sector.CeilHeight);
+    }
+
+    [Fact]
     public void JoinSectorCreatesMissingSidedefsOnExistingSector()
     {
         var map = new MapSet();

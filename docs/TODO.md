@@ -727,6 +727,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.
+  - [x] Wire make-sector-at-cursor to UDB-style traced sector creation.
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
   - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.

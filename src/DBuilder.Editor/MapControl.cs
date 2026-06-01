@@ -3826,13 +3826,43 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke("Make sector");
-        ApplyNewSectorDefaults(SectorBuilder.CreateSectorFromSides(_map, path));
+        var tracedLines = new HashSet<Linedef>(path.Select(side => side.Line));
+        var nearbyLines = _map.Linedefs.Where(line => !tracedLines.Contains(line)).ToList();
+        Tools.MakeSector(_map, path, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"made sector from {path.Count} lines";
         Picked?.Invoke(status);
         return status;
+    }
+
+    private Tools.SectorCreationOptions CreateSectorCreationOptions()
+        => new()
+        {
+            DefaultFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,
+            DefaultCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,
+            DefaultBrightness = _mapOptions?.CustomBrightness ?? 160,
+            DefaultFloorTexture = FirstNonBlankOr("-", _mapOptions?.DefaultFloorTexture, _gameConfig?.DefaultFloorTexture),
+            DefaultCeilingTexture = FirstNonBlankOr("-", _mapOptions?.DefaultCeilingTexture, _gameConfig?.DefaultCeilingTexture),
+            DefaultHighTexture = FirstNonBlankOr("-", _mapOptions?.DefaultTopTexture),
+            DefaultMiddleTexture = FirstNonBlankOr("-", _mapOptions?.DefaultWallTexture, _gameConfig?.DefaultWallTexture),
+            DefaultLowTexture = FirstNonBlankOr("-", _mapOptions?.DefaultBottomTexture),
+            OverrideFloorTexture = _mapOptions?.OverrideFloorTexture == true,
+            OverrideCeilingTexture = _mapOptions?.OverrideCeilingTexture == true,
+            OverrideFloorHeight = _mapOptions?.OverrideFloorHeight == true,
+            OverrideCeilingHeight = _mapOptions?.OverrideCeilingHeight == true,
+            OverrideBrightness = _mapOptions?.OverrideBrightness == true,
+            CustomFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,
+            CustomCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,
+            CustomBrightness = _mapOptions?.CustomBrightness ?? 160,
+        };
+
+    private static string FirstNonBlankOr(string fallback, params string?[] values)
+    {
+        foreach (string? value in values)
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        return fallback;
     }
 
     // ---- Draw-geometry tool ----
