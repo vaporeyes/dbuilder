@@ -464,6 +464,33 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelHidesSelectedAndShowAllClearsIgnoredChecks()
+    {
+        var vertex = new Vertex(new Vector2D(0, 0));
+        var line = new Linedef(new Vertex(new Vector2D(-64, 0)), new Vertex(new Vector2D(64, 0)));
+        var vertexIssue = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused")
+        {
+            Target = vertex,
+        };
+        var lineIssue = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short")
+        {
+            Target = line,
+        };
+        var model = new MapIssueListModel(new[] { vertexIssue, lineIssue });
+
+        int hidden = model.HideSelected(new[] { vertexIssue });
+
+        Assert.Equal(1, hidden);
+        Assert.Equal(new[] { lineIssue }, model.VisibleIssues);
+        Assert.Contains(MapIssueKind.UnusedVertex, vertex.IgnoredErrorChecks);
+
+        model.ShowAll();
+
+        Assert.Equal(new[] { vertexIssue, lineIssue }, model.VisibleIssues);
+        Assert.DoesNotContain(MapIssueKind.UnusedVertex, vertex.IgnoredErrorChecks);
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);

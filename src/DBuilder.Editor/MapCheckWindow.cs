@@ -16,12 +16,15 @@ public sealed class MapCheckWindow : Window
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
     private readonly List<ListBoxItem> _rows = new();
+    private readonly MapIssueListModel _model;
 
     /// <summary>Raised when the user selects an issue row, carrying the issue so the host can navigate to it.</summary>
     public event Action<MapIssue>? IssueActivated;
 
     public MapCheckWindow(IReadOnlyList<MapIssue> issues)
     {
+        _model = new MapIssueListModel(issues);
+
         Title = "Map Analysis";
         Width = 480;
         Height = 360;
@@ -29,7 +32,7 @@ public sealed class MapCheckWindow : Window
 
         _header.Margin = new Avalonia.Thickness(10, 8);
         _header.TextWrapping = TextWrapping.Wrap;
-        UpdateHeader(issues.Count, issues);
+        UpdateHeader(_model.VisibleIssues.Count, _model.VisibleIssues);
 
         var ignoreSelected = new Button
         {
@@ -39,27 +42,29 @@ public sealed class MapCheckWindow : Window
         };
         ignoreSelected.Click += (_, _) => IgnoreSelected();
 
+        var showAll = new Button
+        {
+            Content = "Show All",
+            Margin = new Avalonia.Thickness(0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        showAll.Click += (_, _) => ShowAll();
+
         var header = new StackPanel
         {
-            Children = { _header, ignoreSelected },
+            Children =
+            {
+                _header,
+                new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children = { ignoreSelected, showAll },
+                },
+            },
         };
 
-        foreach (var iss in issues)
-        {
-            bool err = iss.Severity == MapIssueSeverity.Error;
-            _rows.Add(new ListBoxItem
-            {
-                Content = new TextBlock
-                {
-                    Text = $"{(err ? "ERROR" : "warn")}: {iss.Message}",
-                    Foreground = err ? Brushes.Salmon : Brushes.Khaki,
-                    TextWrapping = TextWrapping.Wrap,
-                },
-                Tag = iss,
-            });
-        }
         _list.SelectionMode = SelectionMode.Multiple;
-        _list.ItemsSource = _rows;
+        RefreshRows();
         _list.SelectionChanged += (_, _) =>
         {
             if (_list.SelectedItem is ListBoxItem { Tag: MapIssue mi }) IssueActivated?.Invoke(mi);
@@ -75,16 +80,37 @@ public sealed class MapCheckWindow : Window
     private void IgnoreSelected()
     {
         var selected = _list.SelectedItems?.OfType<ListBoxItem>().ToArray() ?? Array.Empty<ListBoxItem>();
-        foreach (var row in selected)
+        _model.HideSelected(selected.Select(row => (MapIssue)row.Tag!));
+        RefreshRows();
+    }
+
+    private void ShowAll()
+    {
+        _model.ShowAll();
+        RefreshRows();
+    }
+
+    private void RefreshRows()
+    {
+        _rows.Clear();
+        foreach (var issue in _model.VisibleIssues)
         {
-            if (row.Tag is MapIssue issue)
-                issue.SetIgnored(true);
-            _rows.Remove(row);
+            bool err = issue.Severity == MapIssueSeverity.Error;
+            _rows.Add(new ListBoxItem
+            {
+                Content = new TextBlock
+                {
+                    Text = $"{(err ? "ERROR" : "warn")}: {issue.Message}",
+                    Foreground = err ? Brushes.Salmon : Brushes.Khaki,
+                    TextWrapping = TextWrapping.Wrap,
+                },
+                Tag = issue,
+            });
         }
 
         _list.ItemsSource = null;
         _list.ItemsSource = _rows;
-        UpdateHeader(_rows.Count, _rows.Select(row => (MapIssue)row.Tag!));
+        UpdateHeader(_model.VisibleIssues.Count, _model.VisibleIssues);
     }
 
     private void UpdateHeader(int count, IEnumerable<MapIssue> issues)
