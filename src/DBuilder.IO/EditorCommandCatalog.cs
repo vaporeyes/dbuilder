@@ -44,6 +44,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.duplicate", "Duplicate selection", "Ctrl/Cmd+D", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.copy-properties", "Copy Properties", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.paste-properties", "Paste Properties", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.paste-properties-options", "Paste Properties With Options", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.delete", "Remove selection", "Delete", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.properties", "Properties", "Enter", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-similar", "Select Similar Map Elements", "Menu", EditorCommandScope.Window),

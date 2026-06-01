@@ -438,7 +438,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return result.StatusMessage;
     }
 
-    public string PastePropertiesSelection()
+    public PastePropertiesOptionsResult BuildPastePropertiesOptionsForCurrentMode()
+    {
+        if (_map == null)
+            return new PastePropertiesOptionsResult(false, "No map loaded.", []);
+
+        return _pastePropertiesClipboard.BuildOptions(
+            [CurrentPropertyKind()],
+            supportsUdmf: _mapFormat == MapFormat.Udmf);
+    }
+
+    public string PastePropertiesSelection(ISet<string>? enabledKeys = null)
     {
         if (_map == null) return "No map loaded.";
 
@@ -455,12 +465,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             Picked?.Invoke(required);
             return required;
         }
+        if (enabledKeys is { Count: 0 })
+        {
+            const string none = "No paste properties selected.";
+            Picked?.Invoke(none);
+            return none;
+        }
 
         EditBegun?.Invoke($"Paste {PropertyKindText(kind)} properties");
         PastePropertiesApplyResult result = _pastePropertiesClipboard.ApplySelected(
             _map,
             kind,
-            supportsUdmf: _mapFormat == MapFormat.Udmf);
+            supportsUdmf: _mapFormat == MapFormat.Udmf,
+            enabledKeys);
         if (result.Applied)
         {
             MarkGeometryDirty();

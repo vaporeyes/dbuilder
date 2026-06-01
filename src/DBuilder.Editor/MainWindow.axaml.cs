@@ -1044,6 +1044,7 @@ public partial class MainWindow : Window
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.copy-properties": OnCopyProperties(this, new RoutedEventArgs()); return true;
             case "window.paste-properties": OnPasteProperties(this, new RoutedEventArgs()); return true;
+            case "window.paste-properties-options": OnPastePropertiesWithOptions(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
@@ -1119,6 +1120,35 @@ public partial class MainWindow : Window
     private void OnCopyProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopyPropertiesSelection());
 
     private void OnPasteProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PastePropertiesSelection());
+
+    private async void OnPastePropertiesWithOptions(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null)
+        {
+            SetStatus("No map loaded.");
+            MapView.Focus();
+            return;
+        }
+
+        PastePropertiesOptionsResult options = MapView.BuildPastePropertiesOptionsForCurrentMode();
+        if (!options.IsAvailable)
+        {
+            SetStatus(options.StatusMessage ?? PastePropertiesOptionsModel.NoCopiedPropertiesMessage);
+            MapView.Focus();
+            return;
+        }
+
+        var dialog = new PastePropertiesOptionsDialog(options);
+        if (await dialog.ShowDialog<bool>(this))
+        {
+            ISet<string> enabledKeys = PastePropertiesApplier.EnabledKeys(options);
+            RunClipboardEdit(MapView.PastePropertiesSelection(enabledKeys));
+        }
+        else
+        {
+            MapView.Focus();
+        }
+    }
 
     private void OnDuplicate(object? sender, RoutedEventArgs e)
     {
@@ -4464,7 +4494,7 @@ public partial class MainWindow : Window
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
         SetEnabled(hasCurrentModeSelection, CopyPropertiesMenuItem);
-        SetEnabled(canPasteProperties, PastePropertiesMenuItem);
+        SetEnabled(canPasteProperties, PastePropertiesMenuItem, PastePropertiesOptionsMenuItem);
         SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
         SetEnabled(hasTransformableSelection,
             TransformSelectionMenuItem,

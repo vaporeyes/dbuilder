@@ -98,6 +98,7 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("window.copy-properties", "Copy Properties")]
     [InlineData("window.paste-properties", "Paste Properties")]
+    [InlineData("window.paste-properties-options", "Paste Properties With Options")]
     public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
