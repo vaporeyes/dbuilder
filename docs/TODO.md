@@ -1293,6 +1293,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style point hover value lookup and `value / limit` label formatting.
   - [x] Add UDB-style custom view-height input normalization.
   - [x] Add UDB-style mode/action metadata and toolbar settings state for open doors, heatmap, and view height.
+  - [x] Add UDB-style stat dropdown item metadata for Visplanes, Drawsegs, Solidsegs, and Openings.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.

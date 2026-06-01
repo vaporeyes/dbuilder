@@ -68,6 +68,13 @@ public sealed record VisplaneExplorerInterfaceSettings(
     int ViewHeight,
     int ViewHeightCustom);
 
+public sealed record VisplaneExplorerStatMenuItem(
+    VisplaneExplorerStat Stat,
+    string Text,
+    string ImageName,
+    string Tag,
+    bool Checked);
+
 public sealed record VisplaneExplorerViewHeightState(
     int ViewHeight,
     int ViewHeightCustom,
@@ -138,6 +145,15 @@ public static class VisplaneExplorerInterfaceModel
         new[] { "DoomMapSetIO", "HexenMapSetIO" },
         AllowCopyPaste: false);
 
+    public static IReadOnlyList<VisplaneExplorerStatMenuItem> StatMenuItems(VisplaneExplorerStat selected)
+        =>
+        [
+            StatMenuItem(VisplaneExplorerStat.Visplanes, "Visplanes", "Visplanes", selected),
+            StatMenuItem(VisplaneExplorerStat.Drawsegs, "Drawsegs", "Drawsegs", selected),
+            StatMenuItem(VisplaneExplorerStat.Solidsegs, "Solidsegs", "Solidsegs", selected),
+            StatMenuItem(VisplaneExplorerStat.Openings, "Openings", "Openings", selected),
+        ];
+
     public static VisplaneExplorerInterfaceSettings CreateSettings(
         IReadOnlyDictionary<string, object?> settings,
         int viewHeightDefault)
@@ -189,6 +205,13 @@ public static class VisplaneExplorerInterfaceModel
 
     public static string FormatViewHeightButtonText(int viewHeight)
         => "View Height (" + viewHeight.ToString(CultureInfo.InvariantCulture) + ")";
+
+    private static VisplaneExplorerStatMenuItem StatMenuItem(
+        VisplaneExplorerStat stat,
+        string text,
+        string imageName,
+        VisplaneExplorerStat selected)
+        => new(stat, text, imageName, ((int)stat).ToString(CultureInfo.InvariantCulture), stat == selected);
 
     private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
     {

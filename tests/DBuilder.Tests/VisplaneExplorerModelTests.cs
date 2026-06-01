@@ -38,6 +38,19 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void StatMenuItemsMatchUdbToolbarDropdown()
+    {
+        IReadOnlyList<VisplaneExplorerStatMenuItem> items =
+            VisplaneExplorerInterfaceModel.StatMenuItems(VisplaneExplorerStat.Solidsegs);
+
+        Assert.Equal(4, items.Count);
+        Assert.Equal(new VisplaneExplorerStatMenuItem(VisplaneExplorerStat.Visplanes, "Visplanes", "Visplanes", "0", Checked: false), items[0]);
+        Assert.Equal(new VisplaneExplorerStatMenuItem(VisplaneExplorerStat.Drawsegs, "Drawsegs", "Drawsegs", "1", Checked: false), items[1]);
+        Assert.Equal(new VisplaneExplorerStatMenuItem(VisplaneExplorerStat.Solidsegs, "Solidsegs", "Solidsegs", "2", Checked: true), items[2]);
+        Assert.Equal(new VisplaneExplorerStatMenuItem(VisplaneExplorerStat.Openings, "Openings", "Openings", "3", Checked: false), items[3]);
+    }
+
+    [Fact]
     public void InterfaceSettingsReadStoredPluginValues()
     {
         VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(
