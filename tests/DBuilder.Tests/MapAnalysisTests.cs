@@ -885,6 +885,52 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownThingIssueCanEditThing()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 99999);
+        var ctx = new MapCheckContext
+        {
+            ThingTypeKnown = type => type == 1,
+            EditThing = edited =>
+            {
+                edited.Type = 1;
+                return true;
+            },
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingType);
+
+        Assert.Equal(new[] { "Edit Thing...", "Delete Thing" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[0].Apply(map));
+
+        Assert.Equal(1, thing.Type);
+        Assert.Contains(thing, map.Things);
+    }
+
+    [Fact]
+    public void ObsoleteThingIssueCanEditThing()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 31007);
+        var ctx = new MapCheckContext
+        {
+            ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null,
+            EditThing = edited =>
+            {
+                edited.Type = 3004;
+                return true;
+            },
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ObsoleteThingType);
+
+        Assert.Equal(new[] { "Edit Thing...", "Delete Thing" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[0].Apply(map));
+
+        Assert.Equal(3004, thing.Type);
+        Assert.Contains(thing, map.Things);
+    }
+
+    [Fact]
     public void UnknownLinedefActionIssueCanBrowseAction()
     {
         var map = Square(true);
@@ -1197,6 +1243,32 @@ public class MapAnalysisTests
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
+    }
+
+    [Fact]
+    public void UnknownThingScriptIssueCanEditThing()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 1);
+        thing.Action = 80;
+        thing.Args[0] = 99;
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            ScriptNumberExists = number => number == 1,
+            EditThing = edited =>
+            {
+                edited.Args[0] = 1;
+                return true;
+            },
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingScript);
+
+        Assert.Equal(new[] { "Edit Thing...", "Delete Thing" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[0].Apply(map));
+
+        Assert.Equal(1, thing.Args[0]);
+        Assert.Contains(thing, map.Things);
     }
 
     [Fact]

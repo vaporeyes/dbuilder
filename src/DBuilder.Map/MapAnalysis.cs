@@ -89,6 +89,8 @@ public sealed class MapCheckContext
     public Func<string, bool>? IsSkyFlat { get; init; }
     /// <summary>Returns true when a thing editor number is known to the game config.</summary>
     public Func<int, bool>? ThingTypeKnown { get; init; }
+    /// <summary>Runs host thing editing for UDB-style edit thing fixes; returns true when edits were accepted.</summary>
+    public Func<Thing, bool>? EditThing { get; init; }
     /// <summary>Returns an obsolete warning for a known thing type, or null when the thing type is current.</summary>
     public Func<int, string?>? ThingObsoleteMessage { get; init; }
     /// <summary>Returns UDB thing error-check mode for a thing type, or null when unavailable.</summary>
@@ -289,7 +291,7 @@ public static class MapAnalysis
         if (ctx.ThingTypeKnown != null)
             foreach (var t in map.Things)
                 if (!ctx.ThingTypeKnown(t.Type))
-                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingType, t,
+                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingType, t, ctx.EditThing,
                         $"Thing type {t.Type} is not in the game config."));
 
         if (ctx.ThingObsoleteMessage != null)
@@ -297,7 +299,7 @@ public static class MapAnalysis
             {
                 string? message = ctx.ThingObsoleteMessage(t.Type);
                 if (!string.IsNullOrWhiteSpace(message))
-                    issues.Add(DeleteThingIssue(MapIssueKind.ObsoleteThingType, t,
+                    issues.Add(DeleteThingIssue(MapIssueKind.ObsoleteThingType, t, ctx.EditThing,
                         $"Thing type {t.Type} is obsolete: {message}"));
             }
 
@@ -391,12 +393,12 @@ public static class MapAnalysis
             if (named)
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
-                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing,
+                    issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
                         $"Thing {i} references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(thing.Args[0]))
             {
-                issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing,
+                issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
                     $"Thing {i} references unknown ACS script number \"{thing.Args[0]}\"."));
             }
         }
@@ -627,20 +629,34 @@ public static class MapAnalysis
     }
 
     private static MapIssue DeleteThingIssue(MapIssueKind kind, Thing thing, string message)
-        => new(MapIssueSeverity.Warning, kind, message)
+        => DeleteThingIssue(kind, thing, null, message);
+
+    private static MapIssue DeleteThingIssue(MapIssueKind kind, Thing thing, Func<Thing, bool>? editThing, string message)
+    {
+        var fixes = new List<MapIssueFix>();
+        if (editThing != null)
+        {
+            fixes.Add(new MapIssueFix("Edit Thing...", map =>
+            {
+                if (!map.Things.Contains(thing)) return false;
+                return editThing(thing);
+            }));
+        }
+
+        fixes.Add(new MapIssueFix("Delete Thing", map =>
+        {
+            if (!map.Things.Contains(thing)) return false;
+            map.RemoveThing(thing);
+            return true;
+        }));
+
+        return new MapIssue(MapIssueSeverity.Warning, kind, message)
         {
             Target = thing,
             Focus = thing.Position,
-            Fixes = new[]
-            {
-                new MapIssueFix("Delete Thing", map =>
-                {
-                    if (!map.Things.Contains(thing)) return false;
-                    map.RemoveThing(thing);
-                    return true;
-                }),
-            },
+            Fixes = fixes,
         };
+    }
 
     private static MapIssue UnusedThingIssue(Thing thing, IReadOnlyList<string> defaultFlags, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.UnusedThing, message)

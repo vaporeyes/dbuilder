@@ -1051,6 +1051,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style browse texture fixes for missing and unknown texture results.
   - [x] Add UDB-style browse flat fixes for missing and unknown flat results.
   - [x] Add UDB-style browse action and sector-effect fixes for unknown action/effect results.
+  - [x] Add UDB-style edit thing fixes for unknown, obsolete, and unknown-script thing results.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
