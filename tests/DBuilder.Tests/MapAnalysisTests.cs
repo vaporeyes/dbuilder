@@ -1535,12 +1535,16 @@ public class MapAnalysisTests
     {
         var map = Square(true);
         var thing = map.AddThing(new Vector2D(-32, 50), 3004);
-        var ctx = new MapCheckContext { ThingErrorCheck = type => type == 3004 ? 1 : 0 };
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = type => type == 3004 ? 1 : 0,
+            ThingTitle = type => type == 3004 ? "Former Human" : "Unknown",
+        };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingOutsideMap);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
-        Assert.Contains("outside the map", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing 0 (Former Human) is outside the map at -32, 50", issue.Message);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1577,12 +1581,17 @@ public class MapAnalysisTests
         map.AddSidedef(line, true, sector);
         var thing = map.AddThing(new Vector2D(64, 64), 3004);
         thing.Size = 20;
-        var ctx = new MapCheckContext { ThingErrorCheck = _ => 2, ThingBlocking = _ => 2 };
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = _ => 2,
+            ThingBlocking = _ => 2,
+            ThingTitle = type => type == 3004 ? "Former Human" : "Unknown",
+        };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
-        Assert.Contains("linedef 0", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing 0 (Former Human) is stuck in linedef 0 at 64, 64", issue.Message);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1641,11 +1650,12 @@ public class MapAnalysisTests
             ThingBlocking = _ => 2,
             ThingHeight = _ => 56,
             ThingFlagsOverlap = (a, b) => a.UdmfFlags.Overlaps(b.UdmfFlags),
+            ThingTitle = type => type == 3004 ? "Former Human" : "Unknown",
         };
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
         Assert.Same(first, issue.Target);
-        Assert.Contains("thing 1", issue.Message, StringComparison.Ordinal);
+        Assert.Equal("Thing 0 (Former Human) is stuck in thing 1 (Former Human) at 64, 64", issue.Message);
         Assert.Collection(issue.Fixes,
             fix => Assert.Equal("Delete 1-st Thing", fix.Label),
             fix => Assert.Equal("Delete 2-nd Thing", fix.Label));

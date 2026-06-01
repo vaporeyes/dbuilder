@@ -100,6 +100,8 @@ public sealed class MapCheckContext
     public Func<string, bool>? IsSkyFlat { get; init; }
     /// <summary>Returns true when a thing editor number is known to the game config.</summary>
     public Func<int, bool>? ThingTypeKnown { get; init; }
+    /// <summary>Returns the configured display title for a thing type.</summary>
+    public Func<int, string>? ThingTitle { get; init; }
     /// <summary>Runs host thing editing for UDB-style edit thing fixes; returns true when edits were accepted.</summary>
     public Func<Thing, bool>? EditThing { get; init; }
     /// <summary>Returns an obsolete warning for a known thing type, or null when the thing type is current.</summary>
@@ -849,7 +851,7 @@ public static class MapAnalysis
             bool outside = l.SideOfLine(t.Position) <= 0.0 ? l.Front == null : l.Back == null;
             if (outside)
                 issues.Add(DeleteThingIssue(MapIssueKind.ThingOutsideMap, t,
-                    $"Thing {i} type {t.Type} is outside the map at {t.Position.x.ToString("0.###", CultureInfo.InvariantCulture)}, {t.Position.y.ToString("0.###", CultureInfo.InvariantCulture)}."));
+                    $"Thing {ThingDisplay(ctx, t, i)} is outside the map at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)}"));
         }
     }
 
@@ -878,7 +880,7 @@ public static class MapAnalysis
             {
                 stuck = true;
                 issues.Add(DeleteThingIssue(MapIssueKind.ThingStuckInLinedef, thing,
-                    $"Thing {thingIndex} type {thing.Type} is stuck in linedef {lineIndex}."));
+                    $"Thing {ThingDisplay(ctx, thing, thingIndex)} is stuck in linedef {lineIndex} at {Coordinate(thing.Position.x)}, {Coordinate(thing.Position.y)}"));
             }
         }
 
@@ -904,11 +906,17 @@ public static class MapAnalysis
 
             stuck = true;
             issues.Add(ThingStuckInThingIssue(thing, other,
-                $"Thing {thingIndex} type {thing.Type} is stuck in thing {otherIndex} type {other.Type}."));
+                $"Thing {ThingDisplay(ctx, thing, thingIndex)} is stuck in thing {ThingDisplay(ctx, other, otherIndex)} at {Coordinate(thing.Position.x)}, {Coordinate(thing.Position.y)}"));
         }
 
         return stuck;
     }
+
+    private static string ThingDisplay(MapCheckContext ctx, Thing thing, int index)
+        => $"{index} ({(ctx.ThingTitle?.Invoke(thing.Type) ?? thing.Type.ToString(CultureInfo.InvariantCulture))})";
+
+    private static string Coordinate(double value)
+        => value.ToString("0.###", CultureInfo.InvariantCulture);
 
     private static bool ThingsOverlap(MapCheckContext ctx, Thing a, Thing b)
     {

@@ -3559,6 +3559,7 @@ public partial class MainWindow : Window
             FlatExists = flatExists,
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
+            ThingTitle = type => _config?.ThingTitle(type) ?? type.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ThingObsoleteMessage = thingObsoleteMessage,
             ThingErrorCheck = thingErrorCheck,
             ThingBlocking = thingBlocking,
