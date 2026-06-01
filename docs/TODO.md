@@ -1154,6 +1154,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port object export tools.
   - [x] Add UDB-style legacy object export settings defaults, scale and texture options, and path validation.
   - [x] Add UDB-style legacy object export geometry writer and OBJ/MTL file planning.
+  - [x] Add editor command integration for legacy object OBJ export with options, file writing, and texture image export.
 - [ ] Port image export tools.
   - [x] Add UDB-style image export settings model for format, pixel depth, scale, tiles, brightmaps, transparency, and default output paths.
   - [x] Add UDB-style image export bounds, tile count, and output-name planning helpers.
