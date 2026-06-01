@@ -480,6 +480,143 @@ public class WavefrontExportModelTests
     }
 
     [Fact]
+    public void CollectGroupsSectorFloorsCeilingsAndWallsLikeUdbBuckets()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0);
+        sector.FloorTexture = "FLOOR1";
+        sector.CeilTexture = "CEIL1";
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        foreach (Sidedef side in sector.Sidedefs) side.MidTexture = "STARTAN3";
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+
+        WavefrontGeometryCollection collection = WavefrontGeometryCollector.Collect([sector], settings);
+
+        Assert.True(collection.Valid);
+        Assert.Equal([WavefrontExportSettings.DefaultMaterial, "STARTAN3"], collection.Textures);
+        Assert.Equal(["CEIL1", WavefrontExportSettings.DefaultMaterial, "FLOOR1"], collection.Flats);
+        Assert.True(collection.GeometryByTexture[0]["STARTAN3"].Count > 0);
+        Assert.True(collection.GeometryByTexture[1]["FLOOR1"].Count > 0);
+        Assert.True(collection.GeometryByTexture[1]["CEIL1"].Count > 0);
+    }
+
+    [Fact]
+    public void CollectHonorsGzdoomSkipTexturesAndControlSectorFilter()
+    {
+        var map = new MapSet();
+        Sector skippedControl = AddSquareSector(map, 0);
+        Sector exported = AddSquareSector(map, 128);
+        skippedControl.Sidedefs[0].Line.Action = 160;
+        skippedControl.FloorTexture = "CONTROL";
+        skippedControl.CeilTexture = "CONTROL";
+        exported.FloorTexture = "FLOOR1";
+        exported.CeilTexture = "CEIL1";
+        foreach (Sidedef side in skippedControl.Sidedefs) side.MidTexture = "CONTROLWALL";
+        foreach (Sidedef side in exported.Sidedefs) side.MidTexture = "SKIPWALL";
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportForGZDoom = true,
+            IgnoreControlSectors = true,
+            SkipTextures = ["SKIPWALL", "FLOOR1"]
+        });
+
+        WavefrontGeometryCollection collection = WavefrontGeometryCollector.Collect([skippedControl, exported], settings);
+
+        Assert.True(collection.Valid);
+        Assert.Empty(collection.Textures);
+        Assert.Equal(["CEIL1"], collection.Flats);
+        Assert.False(collection.GeometryByTexture[1].ContainsKey("FLOOR1"));
+        Assert.False(collection.GeometryByTexture[0].ContainsKey("CONTROLWALL"));
+    }
+
+    [Fact]
+    public void CollectAddsTwoSidedUpperAndLowerWallSpans()
+    {
+        var start = new Vertex(new Vector2D(0, 0));
+        var end = new Vertex(new Vector2D(64, 0));
+        var line = new Linedef(start, end);
+        var frontSector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+        var backSector = new Sector { FloorHeight = 32, CeilHeight = 96 };
+        var front = new Sidedef(line, true)
+        {
+            Sector = frontSector,
+            HighTexture = "UPPER",
+            MidTexture = "MIDDLE",
+            LowTexture = "LOWER",
+        };
+        var back = new Sidedef(line, false) { Sector = backSector };
+        line.Front = front;
+        line.Back = back;
+        front.Other = back;
+        back.Other = front;
+        frontSector.Sidedefs.Add(front);
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+
+        WavefrontGeometryCollection collection = WavefrontGeometryCollector.Collect([frontSector], settings);
+
+        Assert.True(collection.Valid);
+        Assert.Contains("UPPER", collection.Textures);
+        Assert.Contains("LOWER", collection.Textures);
+        Assert.DoesNotContain("MIDDLE", collection.Textures);
+        Assert.Single(collection.GeometryByTexture[0]["UPPER"]);
+        Assert.Single(collection.GeometryByTexture[0]["LOWER"]);
+    }
+
+    [Fact]
+    public void CollectReportsNoVisualSectorsWhenAllSectorsAreFiltered()
+    {
+        var map = new MapSet();
+        Sector control = AddSquareSector(map, 0);
+        control.Sidedefs[0].Line.Action = 160;
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj",
+            ExportForGZDoom = true,
+            IgnoreControlSectors = true
+        });
+
+        WavefrontGeometryCollection collection = WavefrontGeometryCollector.Collect([control], settings);
+
+        Assert.False(collection.Valid);
+        Assert.Equal(WavefrontGeometryCollector.NoVisualSectorsError, collection.Error);
+    }
+
+    [Fact]
+    public void CreateObjFromSectorsSetsSettingsContentAndMaterials()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0);
+        sector.FloorTexture = "FLOOR1";
+        sector.CeilTexture = "CEIL1";
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        foreach (Sidedef side in sector.Sidedefs) side.MidTexture = "STARTAN3";
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+
+        string obj = WavefrontGeometryCollector.CreateObjFromSectors([sector], settings, "doom2.wad", "MAP01", "1.0");
+
+        Assert.True(settings.Valid);
+        Assert.Same(settings.Obj, obj);
+        Assert.StartsWith("# doom2.wad, map MAP01\n# Created by Ultimate Doom Builder 1.0\n\no MAP01\n", obj);
+        Assert.Contains("usemtl STARTAN3\n", obj);
+        Assert.Contains("usemtl FLOOR1\n", obj);
+        Assert.Contains("usemtl CEIL1\n", obj);
+        Assert.Equal([WavefrontExportSettings.DefaultMaterial, "STARTAN3"], settings.Textures);
+        Assert.Equal(["CEIL1", WavefrontExportSettings.DefaultMaterial, "FLOOR1"], settings.Flats);
+    }
+
+    [Fact]
     public void CreateFilePlanIncludesObjAndMtlForClassicExport()
     {
         WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions

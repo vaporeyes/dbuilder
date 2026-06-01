@@ -254,6 +254,14 @@ public readonly record struct WavefrontExportFile(string Path, string Content);
 public sealed record WavefrontImageData(int Width, int Height, byte[] PngBytes);
 public readonly record struct WavefrontExportImageFile(string Path, byte[] Content, string MaterialName, bool IsFlat);
 public sealed record WavefrontImagePlan(IReadOnlyList<WavefrontExportImageFile> Files, IReadOnlyList<string> Warnings);
+public sealed record WavefrontGeometryCollection(
+    IReadOnlyList<IDictionary<string, List<WavefrontSurfaceVertex[]>>> GeometryByTexture,
+    IReadOnlyList<string> Textures,
+    IReadOnlyList<string> Flats,
+    string? Error)
+{
+    public bool Valid => Error == null;
+}
 
 public static class WavefrontObjFormatter
 {
@@ -442,6 +450,235 @@ public static class WavefrontGeometryExporter
     private readonly record struct WavefrontUv(float U, float V);
 
     private readonly record struct VertexIndices(int PositionIndex, int UvIndex, int NormalIndex);
+}
+
+public static class WavefrontGeometryCollector
+{
+    public const string NoVisualSectorsError = "OBJ Exporter: no visual sectors to export!";
+    public const string EmptyGeometryError = "OBJ Exporter: failed to create geometry!";
+
+    public static WavefrontGeometryCollection Collect(
+        IEnumerable<Sector> sectors,
+        WavefrontExportSettings settings)
+    {
+        var textureGeometry = new Dictionary<string, List<WavefrontSurfaceVertex[]>>(StringComparer.Ordinal);
+        var flatGeometry = new Dictionary<string, List<WavefrontSurfaceVertex[]>>(StringComparer.Ordinal);
+
+        if (!settings.ExportForGZDoom)
+        {
+            textureGeometry.Add(WavefrontExportSettings.DefaultMaterial, new List<WavefrontSurfaceVertex[]>());
+            flatGeometry.Add(WavefrontExportSettings.DefaultMaterial, new List<WavefrontSurfaceVertex[]>());
+        }
+
+        int visualSectorCount = 0;
+        foreach (Sector sector in sectors)
+        {
+            if (ShouldSkipSector(sector, settings)) continue;
+            visualSectorCount++;
+            AddFloorAndCeilingGeometry(sector, settings, flatGeometry);
+            AddWallGeometry(sector, settings, textureGeometry);
+        }
+
+        if (visualSectorCount == 0)
+            return new WavefrontGeometryCollection(
+                [textureGeometry, flatGeometry],
+                SortedKeys(textureGeometry),
+                SortedKeys(flatGeometry),
+                NoVisualSectorsError);
+
+        if (!HasGeometry(textureGeometry) && !HasGeometry(flatGeometry))
+            return new WavefrontGeometryCollection(
+                [textureGeometry, flatGeometry],
+                SortedKeys(textureGeometry),
+                SortedKeys(flatGeometry),
+                EmptyGeometryError);
+
+        return new WavefrontGeometryCollection(
+            [textureGeometry, flatGeometry],
+            SortedKeys(textureGeometry),
+            SortedKeys(flatGeometry),
+            null);
+    }
+
+    public static string CreateObjFromSectors(
+        IEnumerable<Sector> sectors,
+        WavefrontExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        WavefrontGeometryCollection collection = Collect(sectors, settings);
+        if (!collection.Valid) return string.Empty;
+
+        string obj = WavefrontGeometryExporter.CreateObjGeometry(collection.GeometryByTexture, settings);
+        if (obj.Length == 0) return string.Empty;
+
+        settings.Textures = collection.Textures;
+        settings.Flats = collection.Flats;
+        settings.Obj = BuildHeader(mapTitle, levelName, productVersion) + obj;
+        settings.Valid = true;
+        return settings.Obj;
+    }
+
+    private static bool ShouldSkipSector(Sector sector, WavefrontExportSettings settings)
+    {
+        if (!settings.ExportForGZDoom || !settings.IgnoreControlSectors) return false;
+        return sector.Sidedefs.Any(side => side.Line?.Action == 160);
+    }
+
+    private static void AddFloorAndCeilingGeometry(
+        Sector sector,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> flatGeometry)
+    {
+        Triangulation triangulation = Triangulation.Create(sector);
+        for (int i = 0; i + 2 < triangulation.Vertices.Count; i += 3)
+        {
+            string floorTexture = sector.FloorTexture;
+            if (!settings.SkipTextures.Contains(floorTexture))
+            {
+                WavefrontExportSettings.EnsureMaterial(flatGeometry, ref floorTexture);
+                flatGeometry[floorTexture].Add(
+                [
+                    FlatVertex(sector, triangulation.Vertices[i], floor: true),
+                    FlatVertex(sector, triangulation.Vertices[i + 1], floor: true),
+                    FlatVertex(sector, triangulation.Vertices[i + 2], floor: true),
+                ]);
+            }
+
+            string ceilingTexture = sector.CeilTexture;
+            if (!settings.SkipTextures.Contains(ceilingTexture))
+            {
+                WavefrontExportSettings.EnsureMaterial(flatGeometry, ref ceilingTexture);
+                flatGeometry[ceilingTexture].Add(
+                [
+                    FlatVertex(sector, triangulation.Vertices[i + 2], floor: false),
+                    FlatVertex(sector, triangulation.Vertices[i + 1], floor: false),
+                    FlatVertex(sector, triangulation.Vertices[i], floor: false),
+                ]);
+            }
+        }
+    }
+
+    private static void AddWallGeometry(
+        Sector sector,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> textureGeometry)
+    {
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (side.MiddleRequired())
+            {
+                AddWallPart(side, settings, textureGeometry, side.MidTexture, SidedefPart.Middle);
+                continue;
+            }
+
+            if (side.HighRequired())
+                AddWallPart(side, settings, textureGeometry, side.HighTexture, SidedefPart.Upper);
+
+            if (side.LowRequired())
+                AddWallPart(side, settings, textureGeometry, side.LowTexture, SidedefPart.Lower);
+        }
+    }
+
+    private static void AddWallPart(
+        Sidedef side,
+        WavefrontExportSettings settings,
+        Dictionary<string, List<WavefrontSurfaceVertex[]>> textureGeometry,
+        string texture,
+        SidedefPart part)
+    {
+        if (settings.SkipTextures.Contains(texture)) return;
+
+        Vector2D start = side.IsFront ? side.Line.Start.Position : side.Line.End.Position;
+        Vector2D end = side.IsFront ? side.Line.End.Position : side.Line.Start.Position;
+        (double startBottom, double startTop) = WallPartHeights(side, part, start);
+        (double endBottom, double endTop) = WallPartHeights(side, part, end);
+        if (startTop <= startBottom && endTop <= endBottom) return;
+
+        WavefrontExportSettings.EnsureMaterial(textureGeometry, ref texture);
+        var vertices = new List<WavefrontSurfaceVertex>
+        {
+            WallVertex(side, start, startBottom, u: 0, v: (float)startBottom),
+            WallVertex(side, end, endBottom, u: (float)side.Line.Length, v: (float)endBottom),
+            WallVertex(side, end, endTop, u: (float)side.Line.Length, v: (float)endTop),
+            WallVertex(side, start, startBottom, u: 0, v: (float)startBottom),
+            WallVertex(side, end, endTop, u: (float)side.Line.Length, v: (float)endTop),
+            WallVertex(side, start, startTop, u: 0, v: (float)startTop),
+        };
+
+        textureGeometry[texture].AddRange(WavefrontGeometryExporter.OptimizeGeometry(vertices, WavefrontSurfaceType.Wall));
+    }
+
+    private static (double Bottom, double Top) WallPartHeights(Sidedef side, SidedefPart part, Vector2D position)
+    {
+        Sector sector = side.Sector!;
+        Sector? other = side.Other?.Sector;
+        return part switch
+        {
+            SidedefPart.Upper when other != null => (other.GetCeilZ(position), sector.GetCeilZ(position)),
+            SidedefPart.Lower when other != null => (sector.GetFloorZ(position), other.GetFloorZ(position)),
+            _ => (sector.GetFloorZ(position), sector.GetCeilZ(position)),
+        };
+    }
+
+    private static WavefrontSurfaceVertex FlatVertex(Sector sector, Vector2D position, bool floor)
+    {
+        double z = floor ? sector.GetFloorZ(position) : sector.GetCeilZ(position);
+        Vector3D normal = floor ? SurfaceNormal(sector, floor: true) : SurfaceNormal(sector, floor: false);
+        return new WavefrontSurfaceVertex(
+            (float)position.x,
+            (float)position.y,
+            (float)z,
+            (float)position.x,
+            (float)position.y,
+            (float)normal.x,
+            (float)normal.y,
+            (float)normal.z);
+    }
+
+    private static WavefrontSurfaceVertex WallVertex(Sidedef side, Vector2D position, double z, float u, float v)
+    {
+        Vector2D delta = side.IsFront
+            ? side.Line.End.Position - side.Line.Start.Position
+            : side.Line.Start.Position - side.Line.End.Position;
+        double length = Math.Sqrt(delta.GetLengthSq());
+        Vector3D normal = length == 0
+            ? new Vector3D(0, -1, 0)
+            : new Vector3D(delta.y / length, -delta.x / length, 0);
+
+        return new WavefrontSurfaceVertex(
+            (float)position.x,
+            (float)position.y,
+            (float)z,
+            side.OffsetX + u,
+            side.OffsetY + v,
+            (float)normal.x,
+            (float)normal.y,
+            (float)normal.z);
+    }
+
+    private static Vector3D SurfaceNormal(Sector sector, bool floor)
+    {
+        if (floor && sector.HasFloorSlope) return sector.FloorSlope.GetNormal();
+        if (!floor && sector.HasCeilSlope) return -sector.CeilSlope.GetNormal();
+        return floor ? new Vector3D(0, 0, 1) : new Vector3D(0, 0, -1);
+    }
+
+    private static bool HasGeometry(Dictionary<string, List<WavefrontSurfaceVertex[]>> geometry)
+        => geometry.Values.Any(group => group.Count > 0);
+
+    private static IReadOnlyList<string> SortedKeys(Dictionary<string, List<WavefrontSurfaceVertex[]>> geometry)
+    {
+        string[] keys = geometry.Keys.ToArray();
+        Array.Sort(keys, StringComparer.Ordinal);
+        return keys;
+    }
+
+    private static string BuildHeader(string mapTitle, string levelName, string productVersion)
+        => $"# {mapTitle}, map {levelName}\n"
+            + $"# Created by Ultimate Doom Builder {productVersion}\n\n"
+            + $"o {levelName}\n";
 }
 
 public static class WavefrontExportContent
