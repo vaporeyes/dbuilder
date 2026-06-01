@@ -162,6 +162,59 @@ public class UndoManagerTests
     }
 
     [Fact]
+    public void GroupedCreateUndoCoalescesConsecutiveMatchingEdits()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+        var source = new GroupedUndoSource();
+
+        int firstTicket = undo.CreateUndo("Drag vertex", source, groupId: 3, groupTag: 9);
+        map.Vertices[0].Position = new Vector2D(1, 0);
+        int secondTicket = undo.CreateUndo("Drag vertex", source, groupId: 3, groupTag: 9);
+        map.Vertices[0].Position = new Vector2D(2, 0);
+
+        Assert.True(firstTicket > 0);
+        Assert.Equal(-1, secondTicket);
+        Assert.Equal(1, undo.UndoCount);
+
+        Assert.True(undo.Undo());
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+    }
+
+    [Fact]
+    public void GroupedCreateUndoCreatesNewLevelWhenGroupTagChanges()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+        var source = new GroupedUndoSource();
+
+        int firstTicket = undo.CreateUndo("Move vertex", source, groupId: 3, groupTag: 9);
+        map.Vertices[0].Position = new Vector2D(1, 0);
+        int secondTicket = undo.CreateUndo("Move vertex", source, groupId: 3, groupTag: 10);
+        map.Vertices[0].Position = new Vector2D(2, 0);
+
+        Assert.True(firstTicket > 0);
+        Assert.True(secondTicket > firstTicket);
+        Assert.Equal(2, undo.UndoCount);
+    }
+
+    [Fact]
+    public void UndoClearsGroupingForNextCreateUndo()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+        var source = new GroupedUndoSource();
+
+        undo.CreateUndo("Drag vertex", source, groupId: 3, groupTag: 9);
+        map.Vertices[0].Position = new Vector2D(1, 0);
+        undo.Undo();
+        int ticket = undo.CreateUndo("Drag vertex", source, groupId: 3, groupTag: 9);
+
+        Assert.True(ticket > 0);
+        Assert.Equal(1, undo.UndoCount);
+    }
+
+    [Fact]
     public void MultiLevelUndoRedo()
     {
         var map = BuildMap();
@@ -244,5 +297,9 @@ public class UndoManagerTests
 
         Assert.Equal(new[] { "move 1" }, undo.GetUndoDescriptions());
         Assert.Equal(new[] { "move 2", "move 3" }, undo.GetRedoDescriptions());
+    }
+
+    private sealed class GroupedUndoSource
+    {
     }
 }

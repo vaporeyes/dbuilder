@@ -667,6 +667,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add paste option controls to the settings dialog.
 - [ ] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
+  - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.

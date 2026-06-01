@@ -17,6 +17,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using DBuilder.Map;
 
 namespace DBuilder.IO;
@@ -27,6 +28,10 @@ public sealed class UndoManager
     private readonly int maxLevels;
     private readonly LinkedList<Snapshot> undos = new();
     private readonly LinkedList<Snapshot> redos = new();
+    private int ticketId;
+    private Assembly? lastGroupAssembly;
+    private int lastGroupId;
+    private int lastGroupTag;
 
     public UndoManager(MapSet map, int maxLevels = 50)
     {
@@ -56,10 +61,30 @@ public sealed class UndoManager
     /// Clears the redo stack (a new edit invalidates the redo history). Call this BEFORE mutating the map.
     /// </summary>
     public void CreateUndo(string description)
+        => CreateUndo(description, null, 0, 0);
+
+    public int CreateUndo(string description, object? groupSource, int groupId, int groupTag)
     {
+        Assembly? groupAssembly = groupSource?.GetType().Assembly;
+        if (groupAssembly != null
+            && lastGroupAssembly != null
+            && groupAssembly == lastGroupAssembly
+            && groupId != 0
+            && lastGroupId != 0
+            && groupId == lastGroupId
+            && groupTag == lastGroupTag)
+        {
+            return -1;
+        }
+
         undos.AddFirst(Capture(description));
         while (undos.Count > maxLevels) undos.RemoveLast();
         redos.Clear();
+        lastGroupAssembly = groupAssembly;
+        lastGroupId = groupId;
+        lastGroupTag = groupTag;
+        if (++ticketId == int.MaxValue) ticketId = 1;
+        return ticketId;
     }
 
     /// <summary>Reverts to the most recent snapshot. Returns false when there is nothing to undo.</summary>
@@ -71,6 +96,7 @@ public sealed class UndoManager
         // Push the current (post-edit) state onto the redo stack so Redo can return to it.
         redos.AddFirst(Capture(snap.Description));
         Restore(snap);
+        ClearGrouping();
         return true;
     }
 
@@ -90,6 +116,7 @@ public sealed class UndoManager
         redos.RemoveFirst();
         undos.AddFirst(Capture(snap.Description));
         Restore(snap);
+        ClearGrouping();
         return true;
     }
 
@@ -106,6 +133,7 @@ public sealed class UndoManager
     {
         if (!Undo()) return false;
         redos.Clear();
+        ClearGrouping();
         return true;
     }
 
@@ -114,6 +142,14 @@ public sealed class UndoManager
     {
         undos.Clear();
         redos.Clear();
+        ClearGrouping();
+    }
+
+    private void ClearGrouping()
+    {
+        lastGroupAssembly = null;
+        lastGroupId = 0;
+        lastGroupTag = 0;
     }
 
     private Snapshot Capture(string description)
