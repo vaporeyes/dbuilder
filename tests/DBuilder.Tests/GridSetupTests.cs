@@ -54,6 +54,28 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void BackgroundScaleClampsToUdbPercentRange()
+    {
+        var grid = new GridSetup();
+
+        grid.SetBackgroundView(0, 0, 0.0, 250.0);
+
+        Assert.Equal(GridSetup.MinimumBackgroundScale, grid.BackgroundScaleX);
+        Assert.Equal(GridSetup.MaximumBackgroundScale, grid.BackgroundScaleY);
+    }
+
+    [Fact]
+    public void BackgroundScaleRecoversNonFiniteValues()
+    {
+        var grid = new GridSetup();
+
+        grid.SetBackgroundView(0, 0, double.NaN, double.PositiveInfinity);
+
+        Assert.Equal(1.0, grid.BackgroundScaleX);
+        Assert.Equal(1.0, grid.BackgroundScaleY);
+    }
+
+    [Fact]
     public void SetGridSizeClampsToMinimumAndRoundsDisplaySize()
     {
         var grid = new GridSetup();

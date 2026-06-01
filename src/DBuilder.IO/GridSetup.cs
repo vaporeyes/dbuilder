@@ -14,6 +14,8 @@ public sealed class GridSetup
     public const int SourceTextures = 0;
     public const int SourceFlats = 1;
     public const int SourceFile = 2;
+    public const double MinimumBackgroundScale = 0.01;
+    public const double MaximumBackgroundScale = 100.0;
 
     private readonly double minimumGridSize;
     private double gridSizeF;
@@ -119,8 +121,14 @@ public sealed class GridSetup
     {
         BackgroundX = offsetX;
         BackgroundY = offsetY;
-        BackgroundScaleX = scaleX;
-        BackgroundScaleY = scaleY;
+        BackgroundScaleX = ClampBackgroundScale(scaleX);
+        BackgroundScaleY = ClampBackgroundScale(scaleY);
+    }
+
+    public static double ClampBackgroundScale(double scale)
+    {
+        if (!double.IsFinite(scale)) return 1.0;
+        return Math.Clamp(scale, MinimumBackgroundScale, MaximumBackgroundScale);
     }
 
     public double GetHigher(double offset)

@@ -668,6 +668,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port undo manager behavior fully.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
+  - [x] Clamp grid background scale to UDB's 1-10000 percent range.
 - [ ] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
   - [x] Integrate configured things filters into the existing thing filter window.
