@@ -150,6 +150,27 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void StairSectorBuilderCommandsMatchUdbActionSurface()
+    {
+        var mode = EditorCommandCatalog.Find("map2d.mode-stair-sector-builder");
+        var outline = EditorCommandCatalog.Find("map2d.select-sectors-outline");
+
+        Assert.NotNull(mode);
+        Assert.Equal("Stair Sector Builder Mode", mode.Title);
+        Assert.Equal(EditorCommandScope.Map2D, mode.Scope);
+        Assert.True(mode.AllowKeys);
+        Assert.True(mode.AllowMouse);
+        Assert.True(mode.AllowScroll);
+
+        Assert.NotNull(outline);
+        Assert.Equal("Select Sectors Outline", outline.Title);
+        Assert.Equal(EditorCommandScope.Map2D, outline.Scope);
+        Assert.True(outline.AllowKeys);
+        Assert.True(outline.AllowMouse);
+        Assert.True(outline.AllowScroll);
+    }
+
+    [Fact]
     public void ThreeDFloorModeCommandsMatchUdbActionSurface()
     {
         var floor = EditorCommandCatalog.Find("map2d.mode-3d-floor");

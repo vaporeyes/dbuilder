@@ -197,6 +197,46 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void SelectSectorsOutlineSelectsBoundaryAndClearsSharedLines()
+    {
+        var map = new MapSet();
+        Sector left = map.AddSector();
+        Sector right = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Vertex e = map.AddVertex(new Vector2D(128, 0));
+        Vertex f = map.AddVertex(new Vector2D(128, 64));
+
+        Linedef ab = map.AddLinedef(a, b);
+        Linedef bc = map.AddLinedef(b, c);
+        Linedef cd = map.AddLinedef(c, d);
+        Linedef da = map.AddLinedef(d, a);
+        Linedef be = map.AddLinedef(b, e);
+        Linedef ef = map.AddLinedef(e, f);
+        Linedef fc = map.AddLinedef(f, c);
+
+        map.AddSidedef(ab, true, left);
+        map.AddSidedef(bc, true, left);
+        map.AddSidedef(bc, false, right);
+        map.AddSidedef(cd, true, left);
+        map.AddSidedef(da, true, left);
+        map.AddSidedef(be, true, right);
+        map.AddSidedef(ef, true, right);
+        map.AddSidedef(fc, true, right);
+        map.BuildIndexes();
+
+        IReadOnlyList<Linedef> outline = StairBuilder.SelectSectorsOutline(map, [left, right]);
+
+        Assert.Equal(new[] { ab, cd, da, be, ef, fc }, outline);
+        Assert.False(bc.Selected);
+        Assert.False(bc.Marked);
+        Assert.All(outline, line => Assert.True(line.Selected));
+        Assert.All(outline, line => Assert.True(line.Marked));
+    }
+
+    [Fact]
     public void StraightLinePlanBuildsFrontSideLoopsLikeUdb()
     {
         var map = new MapSet();

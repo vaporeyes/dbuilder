@@ -12,6 +12,30 @@ public static class StairBuilder
     public const int DefaultUpperUnpeggedBit = 8;
     public const int DefaultLowerUnpeggedBit = 16;
 
+    public static IReadOnlyList<Linedef> SelectSectorsOutline(MapSet map, IReadOnlyList<Sector>? sectors = null)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+
+        IReadOnlyList<Sector> selectedSectors = sectors ?? map.Sectors.Where(sector => sector.Selected).ToArray();
+        if (selectedSectors.Count == 0) return Array.Empty<Linedef>();
+
+        var selectedSet = new HashSet<Sector>(selectedSectors, ReferenceEqualityComparer.Instance);
+        var outline = new List<Linedef>();
+
+        foreach (Linedef line in map.Linedefs)
+        {
+            bool frontSelected = line.Front?.Sector != null && selectedSet.Contains(line.Front.Sector);
+            bool backSelected = line.Back?.Sector != null && selectedSet.Contains(line.Back.Sector);
+            bool boundary = frontSelected != backSelected;
+
+            line.Selected = boundary;
+            line.Marked = boundary;
+            if (boundary) outline.Add(line);
+        }
+
+        return outline;
+    }
+
     public static IReadOnlyList<StairBuilderSectorPlan> PlanStraightSectorsFromLines(
         IReadOnlyList<Linedef> selectedLinedefs,
         StairBuilderStraightOptions options)
