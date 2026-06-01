@@ -909,6 +909,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual sector behavior.
 - [ ] Port visual thing behavior.
   - [x] Add UDB-style selected or targeted thing movement actions for relative grid moves and cursor placement.
+  - [x] Add UDB-style selected or targeted thing rotation, pitch, and roll actions.
 - [ ] Port visual vertex behavior.
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
 - [ ] Port visual slope behavior.

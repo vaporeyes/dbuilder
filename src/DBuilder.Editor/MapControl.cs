@@ -1755,6 +1755,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool RotateThingTargets3D(int angleIncrement)
+    {
+        var things = ThingTargets3D();
+        if (things.Count == 0) return false;
+
+        VisualThingRotation.Rotate(things, angleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
+        FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "rotated thing", "rotated things");
+        return true;
+    }
+
+    private bool ChangeThingPitchTargets3D(int increment)
+    {
+        var things = ThingTargets3D();
+        if (things.Count == 0) return false;
+
+        VisualThingRotation.ChangePitch(things, increment);
+        FinishThingOrientationChange3D(things, "Change thing pitch", "Change thing pitches", "changed thing pitch", "changed thing pitches");
+        return true;
+    }
+
+    private bool ChangeThingRollTargets3D(int increment)
+    {
+        var things = ThingTargets3D();
+        if (things.Count == 0) return false;
+
+        VisualThingRotation.ChangeRoll(things, increment);
+        FinishThingOrientationChange3D(things, "Change thing roll", "Change thing rolls", "changed thing roll", "changed thing rolls");
+        return true;
+    }
+
+    private void FinishThingOrientationChange3D(
+        IReadOnlyList<Thing> things,
+        string singleEditLabel,
+        string pluralEditLabel,
+        string singleTargetMessage,
+        string pluralTargetMessage)
+    {
+        EditBegun?.Invoke(things.Count == 1 ? singleEditLabel : pluralEditLabel);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(things.Count == 1 ? singleTargetMessage : $"{pluralTargetMessage}: {things.Count}");
+    }
+
     // Routes a right-drag by the captured target's kind: a thing moves on the plane; a surface changes height.
     private void Drag3D(double dx, double dy)
     {
@@ -3256,6 +3301,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.place-thing-at-cursor":
                 PlaceThingTargetsAtCursor3D();
+                return true;
+            case "map3d.rotate-thing-clockwise":
+                RotateThingTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5);
+                return true;
+            case "map3d.rotate-thing-counterclockwise":
+                RotateThingTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5);
+                return true;
+            case "map3d.pitch-thing-clockwise":
+                ChangeThingPitchTargets3D(-5);
+                return true;
+            case "map3d.pitch-thing-counterclockwise":
+                ChangeThingPitchTargets3D(5);
+                return true;
+            case "map3d.roll-thing-clockwise":
+                ChangeThingRollTargets3D(-5);
+                return true;
+            case "map3d.roll-thing-counterclockwise":
+                ChangeThingRollTargets3D(5);
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);

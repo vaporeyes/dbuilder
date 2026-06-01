@@ -576,6 +576,12 @@ public class EditorCommandCatalogTests
             ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
+            ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
+            ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
+            ["map3d.pitch-thing-clockwise"] = ("Pitch Thing Clockwise", true, true),
+            ["map3d.pitch-thing-counterclockwise"] = ("Pitch Thing Counter-clockwise", true, true),
+            ["map3d.roll-thing-clockwise"] = ("Roll Thing Clockwise", true, true),
+            ["map3d.roll-thing-counterclockwise"] = ("Roll Thing Counter-clockwise", true, true),
         };
 
         foreach ((string commandId, (string title, bool allowScroll, bool repeat)) in expected)
