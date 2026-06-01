@@ -885,6 +885,24 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownLinedefActionIssueCanBrowseAction()
+    {
+        var map = Square(true);
+        map.Linedefs[0].Action = 4242;
+        var ctx = new MapCheckContext
+        {
+            ActionKnown = action => action == 80,
+            BrowseAction = action => action == 4242 ? 80 : null,
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownAction);
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Action...");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal(80, map.Linedefs[0].Action);
+    }
+
+    [Fact]
     public void UnusedThingFlaggedWithWarnings()
     {
         var map = Square(true);
@@ -1265,6 +1283,24 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownSectorEffectIssueCanBrowseEffect()
+    {
+        var map = Square(true);
+        map.Sectors[0].Special = 4242;
+        var ctx = new MapCheckContext
+        {
+            SectorEffectKnown = effect => effect == 9,
+            BrowseSectorEffect = effect => effect == 4242 ? 9 : null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownSectorEffect);
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Effect...");
+
+        Assert.True(fix.Apply(map));
+        Assert.Equal(9, map.Sectors[0].Special);
+    }
+
+    [Fact]
     public void UnknownThingActionFlaggedOnlyWhenThingActionsAreEnabled()
     {
         var map = Square(true);
@@ -1282,6 +1318,26 @@ public class MapAnalysisTests
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, thing.Action);
+    }
+
+    [Fact]
+    public void UnknownThingActionIssueCanBrowseAction()
+    {
+        var map = Square(true);
+        var thing = map.AddThing(new Vector2D(50, 50), 1);
+        thing.Action = 4242;
+        var ctx = new MapCheckContext
+        {
+            ActionKnown = action => action == 80,
+            CheckThingActions = true,
+            BrowseAction = action => action == 4242 ? 80 : null,
+        };
+
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingAction);
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Action...");
+
+        Assert.True(fix.Apply(map));
+        Assert.Equal(80, thing.Action);
     }
 
     [Fact]

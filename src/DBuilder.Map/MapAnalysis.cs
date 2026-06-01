@@ -113,8 +113,12 @@ public sealed class MapCheckContext
     public Func<string, bool>? ScriptNameExists { get; init; }
     /// <summary>Returns true when a linedef action number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? ActionKnown { get; init; }
+    /// <summary>Returns a replacement linedef/thing action for UDB-style browse action fixes, or null when cancelled.</summary>
+    public Func<int, int?>? BrowseAction { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? SectorEffectKnown { get; init; }
+    /// <summary>Returns a replacement sector effect for UDB-style browse effect fixes, or null when cancelled.</summary>
+    public Func<int, int?>? BrowseSectorEffect { get; init; }
     /// <summary>Enable Hexen/UDMF thing action checks.</summary>
     public bool CheckThingActions { get; init; }
     /// <summary>Returns true when an action deliberately uses unresolved names in the given texture slot.</summary>
@@ -307,7 +311,7 @@ public static class MapAnalysis
             {
                 var l = map.Linedefs[i];
                 if (l.Action != 0 && !ctx.ActionKnown(l.Action))
-                    issues.Add(UnknownLinedefActionIssue(l,
+                    issues.Add(UnknownLinedefActionIssue(l, ctx,
                         $"Linedef {i} action {l.Action} is not in the game config."));
             }
 
@@ -316,7 +320,7 @@ public static class MapAnalysis
                 {
                     var t = map.Things[i];
                     if (t.Action != 0 && !ctx.ActionKnown(t.Action))
-                        issues.Add(UnknownThingActionIssue(t,
+                        issues.Add(UnknownThingActionIssue(t, ctx,
                             $"Thing {i} action {t.Action} is not in the game config."));
                 }
         }
@@ -326,7 +330,7 @@ public static class MapAnalysis
             {
                 var s = map.Sectors[i];
                 if (s.Special != 0 && !ctx.SectorEffectKnown(s.Special))
-                    issues.Add(UnknownSectorEffectIssue(s,
+                    issues.Add(UnknownSectorEffectIssue(s, ctx,
                         $"Sector {i} effect {s.Special} is not in the game config."));
             }
 
@@ -428,52 +432,100 @@ public static class MapAnalysis
     private static Vector2D LinedefMidpoint(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
 
-    private static MapIssue UnknownLinedefActionIssue(Linedef line, string message)
-        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownAction, message)
+    private static MapIssue UnknownLinedefActionIssue(Linedef line, MapCheckContext ctx, string message)
+    {
+        var fixes = new List<MapIssueFix>
+        {
+            new("Remove Action", map =>
+            {
+                if (!map.Linedefs.Contains(line)) return false;
+                line.Action = 0;
+                return true;
+            }),
+        };
+
+        if (ctx.BrowseAction != null)
+        {
+            fixes.Add(new MapIssueFix("Browse Action...", map =>
+            {
+                if (!map.Linedefs.Contains(line)) return false;
+                int? action = ctx.BrowseAction(line.Action);
+                if (action == null) return false;
+                line.Action = action.Value;
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction, message)
         {
             Target = line,
             Focus = LinedefMidpoint(line),
-            Fixes = new[]
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue UnknownThingActionIssue(Thing thing, MapCheckContext ctx, string message)
+    {
+        var fixes = new List<MapIssueFix>
+        {
+            new("Remove Action", map =>
             {
-                new MapIssueFix("Remove Action", map =>
-                {
-                    if (!map.Linedefs.Contains(line)) return false;
-                    line.Action = 0;
-                    return true;
-                }),
-            },
+                if (!map.Things.Contains(thing)) return false;
+                thing.Action = 0;
+                return true;
+            }),
         };
 
-    private static MapIssue UnknownThingActionIssue(Thing thing, string message)
-        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction, message)
+        if (ctx.BrowseAction != null)
+        {
+            fixes.Add(new MapIssueFix("Browse Action...", map =>
+            {
+                if (!map.Things.Contains(thing)) return false;
+                int? action = ctx.BrowseAction(thing.Action);
+                if (action == null) return false;
+                thing.Action = action.Value;
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction, message)
         {
             Target = thing,
             Focus = thing.Position,
-            Fixes = new[]
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue UnknownSectorEffectIssue(Sector sector, MapCheckContext ctx, string message)
+    {
+        var fixes = new List<MapIssueFix>
+        {
+            new("Remove Effect", map =>
             {
-                new MapIssueFix("Remove Action", map =>
-                {
-                    if (!map.Things.Contains(thing)) return false;
-                    thing.Action = 0;
-                    return true;
-                }),
-            },
+                if (!map.Sectors.Contains(sector)) return false;
+                sector.Special = 0;
+                return true;
+            }),
         };
 
-    private static MapIssue UnknownSectorEffectIssue(Sector sector, string message)
-        => new(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect, message)
+        if (ctx.BrowseSectorEffect != null)
+        {
+            fixes.Add(new MapIssueFix("Browse Effect...", map =>
+            {
+                if (!map.Sectors.Contains(sector)) return false;
+                int? effect = ctx.BrowseSectorEffect(sector.Special);
+                if (effect == null) return false;
+                sector.Special = effect.Value;
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect, message)
         {
             Target = sector,
-            Fixes = new[]
-            {
-                new MapIssueFix("Remove Effect", map =>
-                {
-                    if (!map.Sectors.Contains(sector)) return false;
-                    sector.Special = 0;
-                    return true;
-                }),
-            },
+            Fixes = fixes,
         };
+    }
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
