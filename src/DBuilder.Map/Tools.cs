@@ -18,6 +18,8 @@ namespace DBuilder.Map;
 
 public static class Tools
 {
+    private readonly record struct SidedefFillJob(Sidedef Sidedef, bool Forward);
+
     /// <summary>
     /// Performs Hermite spline interpolation for the position between p1 using tangent t1 and p2 using tangent t2.
     /// </summary>
@@ -230,6 +232,74 @@ public static class Tools
 
     private static bool TextureMatches(Sector sector, bool ceiling, ISet<string> textures)
         => textures.Contains(ceiling ? sector.CeilTexture : sector.FloorTexture);
+
+    /// <summary>Flood-fills matching wall textures through vertex-connected sidedefs, matching UDB Tools.FloodfillTextures.</summary>
+    public static void FloodfillTextures(MapSet map, Sidedef start, ISet<string> originalTextures, string fillTexture, bool resetSideMarks)
+    {
+        var todo = new Stack<SidedefFillJob>();
+
+        if (resetSideMarks) map.ClearMarkedSidedefs(false);
+
+        if (SidedefTextureMatch(start, originalTextures))
+            todo.Push(new SidedefFillJob(start, Forward: true));
+
+        while (todo.Count > 0)
+        {
+            SidedefFillJob job = todo.Pop();
+            Sidedef sidedef = job.Sidedef;
+
+            if (sidedef.HighRequired() && originalTextures.Contains(sidedef.HighTexture))
+                sidedef.SetTextureHigh(fillTexture);
+            if ((sidedef.MidTexture != "-" || sidedef.MiddleRequired()) && originalTextures.Contains(sidedef.MidTexture))
+                sidedef.SetTextureMid(fillTexture);
+            if (sidedef.LowRequired() && originalTextures.Contains(sidedef.LowTexture))
+                sidedef.SetTextureLow(fillTexture);
+
+            sidedef.Marked = true;
+
+            if (job.Forward)
+            {
+                AddSidedefsForFloodfill(todo, sidedef.IsFront ? sidedef.Line.End : sidedef.Line.Start, forward: true, originalTextures);
+                AddSidedefsForFloodfill(todo, sidedef.IsFront ? sidedef.Line.Start : sidedef.Line.End, forward: false, originalTextures);
+            }
+            else
+            {
+                AddSidedefsForFloodfill(todo, sidedef.IsFront ? sidedef.Line.Start : sidedef.Line.End, forward: false, originalTextures);
+                AddSidedefsForFloodfill(todo, sidedef.IsFront ? sidedef.Line.End : sidedef.Line.Start, forward: true, originalTextures);
+            }
+        }
+    }
+
+    private static void AddSidedefsForFloodfill(Stack<SidedefFillJob> stack, Vertex vertex, bool forward, ISet<string> textureNames)
+    {
+        foreach (Linedef line in vertex.Linedefs)
+        {
+            Sidedef? side1 = forward ? line.Front : line.Back;
+            Sidedef? side2 = forward ? line.Back : line.Front;
+
+            if ((side1 != null && side1.Marked) || (side2 != null && side2.Marked))
+                continue;
+
+            if (line.Start == vertex && side1 != null && !side1.Marked)
+            {
+                if (SidedefTextureMatch(side1, textureNames))
+                    stack.Push(new SidedefFillJob(side1, forward));
+            }
+            else if (line.End == vertex && side2 != null && !side2.Marked)
+            {
+                if (SidedefTextureMatch(side2, textureNames))
+                    stack.Push(new SidedefFillJob(side2, forward));
+            }
+        }
+    }
+
+    /// <summary>Returns true when a required or non-empty sidedef texture slot matches one of the texture names.</summary>
+    public static bool SidedefTextureMatch(Sidedef sidedef, ISet<string> textureNames)
+    {
+        return (textureNames.Contains(sidedef.HighTexture) && sidedef.HighRequired()) ||
+               (textureNames.Contains(sidedef.LowTexture) && sidedef.LowRequired()) ||
+               (textureNames.Contains(sidedef.MidTexture) && (sidedef.MiddleRequired() || sidedef.MidTexture != "-"));
+    }
 
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
     public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)

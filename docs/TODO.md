@@ -223,6 +223,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sidedef `lightfog` flag maintenance helper.
   - [x] Add UDB-style sector fade color helper.
   - [x] Add UDB-style flat floodfill helper.
+  - [x] Add UDB-style wall texture floodfill helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
 - [ ] Port curve tools and interpolation behavior fully.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.

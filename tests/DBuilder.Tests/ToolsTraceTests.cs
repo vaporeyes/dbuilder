@@ -236,6 +236,65 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FloodfillTexturesFillsVertexConnectedMatchingMiddleTextures()
+    {
+        var (map, first, second, third) = ThreeOneSidedLineChain();
+        first.MidTexture = "STONE";
+        second.MidTexture = "STONE";
+        third.MidTexture = "BRICK";
+
+        Tools.FloodfillTextures(map, first, new HashSet<string> { "STONE" }, "METAL", resetSideMarks: true);
+
+        Assert.Equal("METAL", first.MidTexture);
+        Assert.Equal("METAL", second.MidTexture);
+        Assert.Equal("BRICK", third.MidTexture);
+        Assert.True(first.Marked);
+        Assert.True(second.Marked);
+        Assert.False(third.Marked);
+    }
+
+    [Fact]
+    public void FloodfillTexturesRespectsPremarkedSidedefBoundariesWhenMarksAreNotReset()
+    {
+        var (map, first, second, third) = ThreeOneSidedLineChain();
+        first.MidTexture = second.MidTexture = third.MidTexture = "STONE";
+        second.Marked = true;
+
+        Tools.FloodfillTextures(map, first, new HashSet<string> { "STONE" }, "METAL", resetSideMarks: false);
+
+        Assert.Equal("METAL", first.MidTexture);
+        Assert.Equal("STONE", second.MidTexture);
+        Assert.Equal("STONE", third.MidTexture);
+    }
+
+    [Fact]
+    public void FloodfillTexturesUpdatesRequiredUpperLowerAndNonEmptyMiddleSlots()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        backSector.FloorHeight = 32;
+        backSector.CeilHeight = 64;
+
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        Sidedef side = map.AddSidedef(line, isFront: true, frontSector);
+        map.AddSidedef(line, isFront: false, backSector);
+        side.HighTexture = side.MidTexture = side.LowTexture = "STONE";
+        map.BuildIndexes();
+
+        Tools.FloodfillTextures(map, side, new HashSet<string> { "STONE" }, "METAL", resetSideMarks: true);
+
+        Assert.Equal("METAL", side.HighTexture);
+        Assert.Equal("METAL", side.MidTexture);
+        Assert.Equal("METAL", side.LowTexture);
+        Assert.True(side.Marked);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]
@@ -288,6 +347,21 @@ public class ToolsTraceTests
         AddTwoSidedLine(map, middle, right, targetOnFront: true);
         map.BuildIndexes();
         return (map, left, middle, right);
+    }
+
+    private static (MapSet Map, Sidedef First, Sidedef Second, Sidedef Third) ThreeOneSidedLineChain()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(64, 0));
+        var v2 = map.AddVertex(new Vector2D(128, 0));
+        var v3 = map.AddVertex(new Vector2D(192, 0));
+        Sidedef first = map.AddSidedef(map.AddLinedef(v0, v1), isFront: true, sector);
+        Sidedef second = map.AddSidedef(map.AddLinedef(v1, v2), isFront: true, sector);
+        Sidedef third = map.AddSidedef(map.AddLinedef(v2, v3), isFront: true, sector);
+        map.BuildIndexes();
+        return (map, first, second, third);
     }
 
     private static (MapSet map, Sector sector, List<Linedef> lines) BuildSectorPolygon(Vector2D[] cwLoop)
