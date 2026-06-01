@@ -117,6 +117,8 @@ public sealed class MapCheckContext
     public Func<int, bool>? ActionKnown { get; init; }
     /// <summary>Returns a replacement linedef/thing action for UDB-style browse action fixes, or null when cancelled.</summary>
     public Func<int, int?>? BrowseAction { get; init; }
+    /// <summary>Runs host linedef editing for UDB-style edit linedef fixes; returns true when edits were accepted.</summary>
+    public Func<Linedef, bool>? EditLinedef { get; init; }
     /// <summary>Returns true when a sector effect number is known (incl. generalized) to the game config.</summary>
     public Func<int, bool>? SectorEffectKnown { get; init; }
     /// <summary>Returns a replacement sector effect for UDB-style browse effect fixes, or null when cancelled.</summary>
@@ -346,9 +348,8 @@ public static class MapAnalysis
                     if (l.UdmfFlags.Contains(flag)) { hasActivation = true; break; }
 
                 if (!hasActivation)
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MissingActivation,
-                        $"Linedef {i} has an action with no activation.")
-                        { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+                    issues.Add(MissingActivationIssue(l, ctx,
+                        $"Linedef {i} has an action with no activation."));
             }
     }
 
@@ -525,6 +526,26 @@ public static class MapAnalysis
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect, message)
         {
             Target = sector,
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue MissingActivationIssue(Linedef line, MapCheckContext ctx, string message)
+    {
+        var fixes = new List<MapIssueFix>();
+        if (ctx.EditLinedef != null)
+        {
+            fixes.Add(new MapIssueFix("Edit Linedef", map =>
+            {
+                if (!map.Linedefs.Contains(line)) return false;
+                return ctx.EditLinedef(line);
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MissingActivation, message)
+        {
+            Target = line,
+            Focus = LinedefMidpoint(line),
             Fixes = fixes,
         };
     }

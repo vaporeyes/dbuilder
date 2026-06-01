@@ -1428,6 +1428,31 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingActivationIssueCanEditLinedef()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        var ctx = new MapCheckContext
+        {
+            CheckMissingActivations = true,
+            ActionRequiresActivation = action => action == 80,
+            TriggerActivationFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "playeruse" },
+            EditLinedef = edited =>
+            {
+                edited.UdmfFlags.Add("playeruse");
+                return true;
+            },
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MissingActivation);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Edit Linedef", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Contains("playeruse", line.UdmfFlags);
+    }
+
+    [Fact]
     public void MissingActivationIgnoresNonUdmfAndTriggeredLines()
     {
         var map = Square(true);
