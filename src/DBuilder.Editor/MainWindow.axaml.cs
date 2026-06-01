@@ -1137,6 +1137,12 @@ public partial class MainWindow : Window
             MapView.Focus();
             return;
         }
+        if (!MapView.HasCurrentPropertyTarget)
+        {
+            SetStatus("This action requires highlight or selection!");
+            MapView.Focus();
+            return;
+        }
 
         var dialog = new PastePropertiesOptionsDialog(options);
         if (await dialog.ShowDialog<bool>(this))
@@ -4436,7 +4442,8 @@ public partial class MainWindow : Window
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
-        bool canPasteProperties = hasMap && hasCurrentModeSelection && MapView.HasCopiedPropertiesForCurrentMode;
+        bool canCopyProperties = hasMap;
+        bool canPasteProperties = hasMap && MapView.HasCopiedPropertiesForCurrentMode;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
@@ -4493,7 +4500,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
-        SetEnabled(hasCurrentModeSelection, CopyPropertiesMenuItem);
+        SetEnabled(canCopyProperties, CopyPropertiesMenuItem);
         SetEnabled(canPasteProperties, PastePropertiesMenuItem, PastePropertiesOptionsMenuItem);
         SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
         SetEnabled(hasTransformableSelection,

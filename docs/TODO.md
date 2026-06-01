@@ -705,6 +705,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-element paste-properties clipboard snapshots and apply results.
   - [x] Add editor menu and command wiring for active-mode copy/paste properties.
   - [x] Add editor paste-properties options dialog for active-mode property fields.
+  - [x] Add UDB-style highlight fallback for active-mode copy/paste properties.
 - [ ] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.

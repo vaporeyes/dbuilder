@@ -428,11 +428,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => false,
     };
 
+    public bool HasCurrentPropertyTarget => _map != null &&
+        (CurrentPropertySelectionCount() > 0 || CurrentPropertyHighlight() != null);
+
     public string CopyPropertiesSelection()
     {
         if (_map == null) return "No map loaded.";
 
-        PastePropertiesCopyResult result = _pastePropertiesClipboard.CopySelected(_map, CurrentPropertyKind());
+        PastePropertiesElementKind kind = CurrentPropertyKind();
+        PastePropertiesCopyResult result;
+        if (CurrentPropertySelectionCount() > 0)
+        {
+            result = _pastePropertiesClipboard.CopySelected(_map, kind);
+        }
+        else if (CurrentPropertyHighlight() is { } highlight)
+        {
+            result = WithTemporarySelection(highlight, () => _pastePropertiesClipboard.CopySelected(_map, kind));
+        }
+        else
+        {
+            result = new PastePropertiesCopyResult(false, kind, "This action requires highlight or selection!");
+        }
+
         Picked?.Invoke(result.StatusMessage);
         ActionStateChanged?.Invoke();
         return result.StatusMessage;
@@ -459,11 +476,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             Picked?.Invoke(missing);
             return missing;
         }
+        ISelectable? highlight = null;
         if (CurrentPropertySelectionCount() == 0)
         {
-            const string required = "This action requires highlight or selection!";
-            Picked?.Invoke(required);
-            return required;
+            highlight = CurrentPropertyHighlight();
+            if (highlight == null)
+            {
+                const string required = "This action requires highlight or selection!";
+                Picked?.Invoke(required);
+                return required;
+            }
         }
         if (enabledKeys is { Count: 0 })
         {
@@ -473,11 +495,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke($"Paste {PropertyKindText(kind)} properties");
-        PastePropertiesApplyResult result = _pastePropertiesClipboard.ApplySelected(
-            _map,
-            kind,
-            supportsUdmf: _mapFormat == MapFormat.Udmf,
-            enabledKeys);
+        PastePropertiesApplyResult result = highlight == null
+            ? _pastePropertiesClipboard.ApplySelected(
+                _map,
+                kind,
+                supportsUdmf: _mapFormat == MapFormat.Udmf,
+                enabledKeys)
+            : WithTemporarySelection(
+                highlight,
+                () => _pastePropertiesClipboard.ApplySelected(
+                    _map,
+                    kind,
+                    supportsUdmf: _mapFormat == MapFormat.Udmf,
+                    enabledKeys));
         if (result.Applied)
         {
             MarkGeometryDirty();
@@ -505,6 +535,34 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         EditMode.Things => _map.SelectedThingsCount,
         _ => 0,
     };
+
+    private ISelectable? CurrentPropertyHighlight()
+    {
+        if (_map == null) return null;
+
+        return _editMode switch
+        {
+            EditMode.Vertices => _map.NearestVertex(_cursorWorld, 10 * _zoom),
+            EditMode.Linedefs => _map.NearestLinedef(_cursorWorld, 8 * _zoom),
+            EditMode.Sectors => _map.GetSectorAt(_cursorWorld),
+            EditMode.Things => NearestVisibleThing(_cursorWorld, 12 * _zoom),
+            _ => null,
+        };
+    }
+
+    private static T WithTemporarySelection<T>(ISelectable target, Func<T> action)
+    {
+        bool wasSelected = target.Selected;
+        target.Selected = true;
+        try
+        {
+            return action();
+        }
+        finally
+        {
+            target.Selected = wasSelected;
+        }
+    }
 
     private static string PropertyKindText(PastePropertiesElementKind kind) => kind switch
     {
