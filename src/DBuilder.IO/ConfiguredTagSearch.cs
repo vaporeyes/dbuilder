@@ -188,6 +188,72 @@ public static class ConfiguredTagSearch
         return changed;
     }
 
+    public static int RenumberMarkedTags(MapSet map, GameConfiguration? config, int maxTag = int.MaxValue)
+    {
+        var markedTags = new List<int>();
+        CollectTagsByMark(map, marked: true, config, tag =>
+        {
+            if (!markedTags.Contains(tag)) markedTags.Add(tag);
+        });
+        if (markedTags.Count == 0) return 0;
+
+        var usedUnmarkedTags = new HashSet<int>();
+        CollectTagsByMark(map, marked: false, config, tag => usedUnmarkedTags.Add(tag));
+
+        int replacement = 1;
+        var tagMap = new Dictionary<int, int>(markedTags.Count);
+        foreach (int oldTag in markedTags)
+        {
+            while (replacement <= maxTag && usedUnmarkedTags.Contains(replacement)) replacement++;
+            if (replacement > maxTag) break;
+            tagMap[oldTag] = replacement;
+            usedUnmarkedTags.Add(replacement);
+            replacement++;
+        }
+
+        if (tagMap.Count == 0) return 0;
+
+        int changed = 0;
+        foreach (var sector in map.Sectors)
+        {
+            if (!sector.Marked) continue;
+            if (ReplaceMultiTags(sector, tagMap)) changed++;
+        }
+
+        foreach (var thing in map.Things)
+        {
+            if (!thing.Marked) continue;
+
+            bool hit = false;
+            if ((config?.HasThingTag ?? true) && tagMap.TryGetValue(thing.Tag, out int thingTag))
+            {
+                thing.Tag = thingTag;
+                hit = true;
+            }
+
+            if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
+                hit |= ReplaceActionArgs(thing.Action, thing.Args, tagMap, config);
+
+            if (hit) changed++;
+        }
+
+        foreach (var line in map.Linedefs)
+        {
+            if (!line.Marked) continue;
+
+            bool hit = false;
+            if (config?.HasLinedefTag ?? true)
+                hit |= ReplaceMultiTags(line, tagMap);
+
+            if (config?.HasActionArgs ?? true)
+                hit |= ReplaceActionArgs(line.Action, line.Args, tagMap, config);
+
+            if (hit) changed++;
+        }
+
+        return changed;
+    }
+
     public static List<(int Tag, int Count)> UsedTags(MapSet map, GameConfiguration? config)
     {
         var stats = UsedTagStatistics(map, config);
@@ -311,6 +377,22 @@ public static class ConfiguredTagSearch
         return changed;
     }
 
+    private static bool ReplaceActionArgs(int action, int[] values, Dictionary<int, int> tagMap, GameConfiguration? config)
+    {
+        var args = config?.GetLinedefAction(action)?.Args;
+        if (args == null) return false;
+
+        bool changed = false;
+        for (int i = 0; i < args.Length && i < values.Length; i++)
+        {
+            if (!IsTagArg(args[i]) || !tagMap.TryGetValue(values[i], out int to)) continue;
+            values[i] = to;
+            changed = true;
+        }
+
+        return changed;
+    }
+
     private static bool ClearTagActionArgs(int action, int[] values, GameConfiguration? config)
     {
         var args = config?.GetLinedefAction(action)?.Args;
@@ -356,6 +438,58 @@ public static class ConfiguredTagSearch
 
     private static Vector2D Mid(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);
+
+    private static void CollectTagsByMark(MapSet map, bool marked, GameConfiguration? config, Action<int> add)
+    {
+        foreach (var sector in map.Sectors)
+            if (sector.Marked == marked)
+                foreach (int tag in MapElementTags.PositiveTags(sector)) add(tag);
+
+        foreach (var thing in map.Things)
+        {
+            if (thing.Marked != marked) continue;
+
+            if (config?.HasThingTag ?? true)
+                foreach (int tag in MapElementTags.PositiveTags(thing)) add(tag);
+
+            if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
+                foreach (int tag in PositiveActionArgTags(thing.Action, thing.Args, config)) add(tag);
+        }
+
+        foreach (var line in map.Linedefs)
+        {
+            if (line.Marked != marked) continue;
+
+            if (config?.HasLinedefTag ?? true)
+                foreach (int tag in MapElementTags.PositiveTags(line)) add(tag);
+
+            if (config?.HasActionArgs ?? true)
+                foreach (int tag in PositiveActionArgTags(line.Action, line.Args, config)) add(tag);
+        }
+    }
+
+    private static bool ReplaceMultiTags(IMultiTaggedMapElement element, Dictionary<int, int> tagMap)
+    {
+        bool changed = false;
+        var tags = new List<int>(element.Tags.Count);
+        foreach (int tag in element.Tags)
+        {
+            if (tagMap.TryGetValue(tag, out int replacement))
+            {
+                tags.Add(replacement);
+                changed = true;
+            }
+            else
+            {
+                tags.Add(tag);
+            }
+        }
+
+        if (!changed) return false;
+
+        MapElementTags.SetTags(element, tags);
+        return true;
+    }
 
     private static bool SetMultiTagsToZero(IMultiTaggedMapElement element)
     {

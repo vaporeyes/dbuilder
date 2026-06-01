@@ -124,6 +124,60 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void RenumberMarkedTagsAllocatesTagsOutsideUnmarkedGeometry()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tags.AddRange(new[] { 5, 7 });
+        map.Sectors[0].Marked = true;
+        map.Linedefs[0].Tag = 7;
+        map.Linedefs[0].Args[0] = 5;
+        map.Linedefs[0].Args[1] = 0;
+        map.Linedefs[0].Marked = true;
+        map.Things[0].Tag = 5;
+        map.Things[0].Args[1] = 5;
+        map.Things[0].Marked = true;
+
+        map.Linedefs[1].Tag = 1;
+        map.Things[1].Tag = 2;
+
+        int changed = ConfiguredTagSearch.RenumberMarkedTags(map, config, maxTag: 10);
+
+        Assert.Equal(3, changed);
+        Assert.Equal(new[] { 3, 4 }, map.Sectors[0].Tags);
+        Assert.Equal(new[] { 4 }, map.Linedefs[0].Tags);
+        Assert.Equal(3, map.Things[0].Tag);
+        Assert.Equal(3, map.Linedefs[0].Args[0]);
+        Assert.Equal(3, map.Things[0].Args[1]);
+        Assert.Equal(1, map.Linedefs[1].Tag);
+        Assert.Equal(2, map.Things[1].Tag);
+    }
+
+    [Fact]
+    public void RenumberMarkedTagsHonorsConfiguredTagOwnerCapabilities()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "HexenMapSetIO";
+            linedeftypes { tags { 80 { title = "Tag args"; arg0 { type = 13; } } } }
+            """);
+        var map = BuildMap();
+        map.Linedefs[0].Tag = 6;
+        map.Linedefs[0].Args[0] = 7;
+        map.Linedefs[0].Marked = true;
+        map.Things[0].Tag = 8;
+        map.Things[0].Args[1] = 9;
+        map.Things[0].Marked = true;
+
+        int changed = ConfiguredTagSearch.RenumberMarkedTags(map, config, maxTag: 10);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(6, map.Linedefs[0].Tag);
+        Assert.Equal(2, map.Linedefs[0].Args[0]);
+        Assert.Equal(1, map.Things[0].Tag);
+        Assert.Equal(9, map.Things[0].Args[1]);
+    }
+
+    [Fact]
     public void FindsAndReplacesConfiguredLinedefReferenceArgs()
     {
         var config = GameConfiguration.FromText(Cfg);
