@@ -306,6 +306,25 @@ public class EditorCommandCatalogTests
     public void ViewToggleCommandsMatchUdbActionSurface(string commandId, string title)
         => AssertKeyOnlyMap2DCommand(commandId, title);
 
+    [Theory]
+    [InlineData("map2d.view-mode-wireframe", "View Wireframe")]
+    [InlineData("map2d.view-mode-brightness", "View Brightness Levels")]
+    [InlineData("map2d.view-mode-floors", "View Floor Textures")]
+    [InlineData("map2d.view-mode-ceilings", "View Ceiling Textures")]
+    [InlineData("map2d.next-view-mode", "Next View Mode")]
+    [InlineData("map2d.previous-view-mode", "Previous View Mode")]
+    public void ClassicViewModeCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     private static void AssertKeyOnlyMap2DCommand(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);

@@ -31,6 +31,14 @@ namespace DBuilder.Editor;
 
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
+    public enum ClassicViewMode
+    {
+        Wireframe = 0,
+        Brightness = 1,
+        FloorTextures = 2,
+        CeilingTextures = 3,
+    }
+
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
     public PasteOptions PasteOptions { get; set; } = new();
     public event Action? ActionStateChanged;
@@ -170,11 +178,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showThings = true;
     private bool _fixedThingsScale = true;
     private bool _alwaysShowVertices = true;
+    private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
+    public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
     public bool WadAuthorMode { get; private set; }
@@ -211,6 +221,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _alwaysShowVertices;
+    }
+
+    public ClassicViewMode SetViewMode2D(ClassicViewMode mode)
+    {
+        _classicViewMode = mode;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _classicViewMode;
+    }
+
+    public ClassicViewMode NextViewMode2D()
+    {
+        int next = ((int)_classicViewMode + 1) % 4;
+        return SetViewMode2D((ClassicViewMode)next);
+    }
+
+    public ClassicViewMode PreviousViewMode2D()
+    {
+        int previous = (int)_classicViewMode == 0 ? 3 : (int)_classicViewMode - 1;
+        return SetViewMode2D((ClassicViewMode)previous);
     }
 
     public bool ToggleImageExampleMode()
@@ -1893,7 +1924,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             // Draw order: sector fills (textured) -> lines -> things/sprites -> selection markers.
-            bool drawFills = AutomapMode ? automapPlan?.RenderTexturedSurfaces == true : _showFills;
+            bool drawFills = AutomapMode ? automapPlan?.RenderTexturedSurfaces == true : _showFills && _classicViewMode != ClassicViewMode.Wireframe;
             if (drawFills)
             {
                 foreach (var bucket in _fillBuckets)
@@ -2000,7 +2031,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null || _device is null) return;
 
-        // Sector fills, bucketed by floor flat texture (when resolvable) else an untextured gray bucket.
+        // Sector fills, bucketed by the active view mode texture when resolvable.
         RebuildFills();
 
         // Lines (each linedef segment plus a short front-side tick at its midpoint showing orientation).
@@ -2160,7 +2191,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
-    // Builds sector fills bucketed by floor flat texture (when resolvable) else a single untextured gray bucket.
+    // Builds sector fills bucketed by the active view mode texture when resolvable.
     private void RebuildFills()
     {
         foreach (var b in _fillBuckets) b.Vb.Dispose();
@@ -2177,10 +2208,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             catch { continue; }
             if (tri.Vertices.Count == 0) continue;
 
-            string flatName = sector.FloorTexture ?? "-";
-            bool textured = GetFlatTexture(flatName) != null;
-            string key = textured ? flatName : "";
-            int c = textured ? TexturedFillColor(sector) : SectorFillColor(sector);
+            var fill = SectorFillForViewMode(sector);
+            bool textured = fill.TextureName.Length > 0 && GetFlatTexture(fill.TextureName) != null;
+            string key = textured ? fill.TextureName : "";
+            int c = textured ? TexturedFillColor(sector) : fill.Color;
 
             if (!buckets.TryGetValue(key, out var list)) { list = new(); buckets[key] = list; }
             for (int i = 0; i < tri.Vertices.Count; i++)
@@ -2199,6 +2230,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    private (string TextureName, int Color) SectorFillForViewMode(Sector sector)
+        => _classicViewMode switch
+        {
+            ClassicViewMode.FloorTextures => (sector.FloorTexture ?? "-", SectorFillColor(sector)),
+            ClassicViewMode.CeilingTextures => (sector.CeilTexture ?? "-", SectorFillColor(sector)),
+            ClassicViewMode.Brightness => ("", BrightnessFillColor(sector)),
+            _ => ("", SectorFillColor(sector)),
+        };
+
     // Brightness-shaded color used to modulate a textured flat (selected sectors tint cyan).
     private static int TexturedFillColor(Sector s)
     {
@@ -2216,6 +2256,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         byte g = (byte)Math.Clamp(br * 255, 0, 255);
         if (s.Selected)
             return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)Math.Min(255, g + 60) << 8) | (uint)Math.Min(255, g + 80)));
+        return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
+    }
+
+    private static int BrightnessFillColor(Sector s)
+    {
+        byte g = (byte)Math.Clamp(s.Brightness, 0, 255);
+        if (s.Selected)
+            return unchecked((int)(0xff000000u | ((uint)(g / 2) << 16) | ((uint)g << 8) | (uint)Math.Min(255, g + 32)));
         return unchecked((int)(0xff000000u | ((uint)g << 16) | ((uint)g << 8) | g));
     }
 
@@ -2979,6 +3027,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-always-show-vertices":
                 ToggleAlwaysShowVertices();
+                return true;
+            case "map2d.view-mode-wireframe":
+                SetViewMode2D(ClassicViewMode.Wireframe);
+                return true;
+            case "map2d.view-mode-brightness":
+                SetViewMode2D(ClassicViewMode.Brightness);
+                return true;
+            case "map2d.view-mode-floors":
+                SetViewMode2D(ClassicViewMode.FloorTextures);
+                return true;
+            case "map2d.view-mode-ceilings":
+                SetViewMode2D(ClassicViewMode.CeilingTextures);
+                return true;
+            case "map2d.next-view-mode":
+                NextViewMode2D();
+                return true;
+            case "map2d.previous-view-mode":
+                PreviousViewMode2D();
                 return true;
             case "map2d.draw-sector":
                 ToggleDrawMode(linesOnly: false);

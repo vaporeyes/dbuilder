@@ -2633,6 +2633,46 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnViewModeWireframe(object? sender, RoutedEventArgs e)
+        => SetClassicViewMode(MapControl.ClassicViewMode.Wireframe);
+
+    private void OnViewModeBrightness(object? sender, RoutedEventArgs e)
+        => SetClassicViewMode(MapControl.ClassicViewMode.Brightness);
+
+    private void OnViewModeFloors(object? sender, RoutedEventArgs e)
+        => SetClassicViewMode(MapControl.ClassicViewMode.FloorTextures);
+
+    private void OnViewModeCeilings(object? sender, RoutedEventArgs e)
+        => SetClassicViewMode(MapControl.ClassicViewMode.CeilingTextures);
+
+    private void OnNextViewMode(object? sender, RoutedEventArgs e)
+        => ReportClassicViewMode(MapView.NextViewMode2D());
+
+    private void OnPreviousViewMode(object? sender, RoutedEventArgs e)
+        => ReportClassicViewMode(MapView.PreviousViewMode2D());
+
+    private void SetClassicViewMode(MapControl.ClassicViewMode mode)
+    {
+        MapView.SetViewMode2D(mode);
+        ReportClassicViewMode(mode);
+    }
+
+    private void ReportClassicViewMode(MapControl.ClassicViewMode mode)
+    {
+        SetStatus($"View mode: {ClassicViewModeLabel(mode)}.");
+        MapView.Focus();
+    }
+
+    private static string ClassicViewModeLabel(MapControl.ClassicViewMode mode)
+        => mode switch
+        {
+            MapControl.ClassicViewMode.Wireframe => "Wireframe",
+            MapControl.ClassicViewMode.Brightness => "Brightness Levels",
+            MapControl.ClassicViewMode.FloorTextures => "Floor Textures",
+            MapControl.ClassicViewMode.CeilingTextures => "Ceiling Textures",
+            _ => mode.ToString(),
+        };
+
     private void OnToggle3DFloors(object? sender, RoutedEventArgs e)
     {
         MapView.Show3DFloors = !MapView.Show3DFloors;
@@ -4609,6 +4649,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -4685,6 +4726,10 @@ public partial class MainWindow : Window
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
         SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);
         SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
+        SetChecked(ViewModeWireframeMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Wireframe);
+        SetChecked(ViewModeBrightnessMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Brightness);
+        SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);
+        SetChecked(ViewModeCeilingsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.CeilingTextures);
         SetChecked(Toggle3DFloorsMenuItem, MapView.Show3DFloors);
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
