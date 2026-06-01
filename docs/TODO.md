@@ -994,6 +994,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style loaded-prefab option mapping for straight geometry and stair option application.
   - [x] Add UDB-style curved stair geometry planning between selected linedefs.
   - [x] Add UDB-style Catmull-Rom spline stair geometry planning between selected linedefs.
+  - [x] Add UDB-style connected straight stair planning for single-step chains and single-direction mode.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.

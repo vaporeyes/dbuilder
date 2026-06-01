@@ -40,6 +40,9 @@ public static class StairBuilder
         IReadOnlyList<Linedef> selectedLinedefs,
         StairBuilderStraightOptions options)
     {
+        if (options.SingleSteps)
+            return PlanConnectedStraightSectorsFromLines(selectedLinedefs, options);
+
         var sectors = new List<StairBuilderSectorPlan>();
 
         foreach (Linedef line in selectedLinedefs)
@@ -67,6 +70,196 @@ public static class StairBuilder
         }
 
         return sectors;
+    }
+
+    private static IReadOnlyList<StairBuilderSectorPlan> PlanConnectedStraightSectorsFromLines(
+        IReadOnlyList<Linedef> selectedLinedefs,
+        StairBuilderStraightOptions options)
+    {
+        var sectors = new List<StairBuilderSectorPlan>();
+        foreach (ConnectedLineChain chain in BuildConnectedLineChains(selectedLinedefs))
+        {
+            IReadOnlyList<Vector2D> vertices = chain.Vertices;
+            if (vertices.Count < 2) continue;
+
+            Vector2D globalDirection = Vector2D.FromAngle(
+                chain.FirstLine.Angle + (options.SideFront ? -Angle2D.PIHALF : Angle2D.PIHALF));
+            bool closed = ChainIsClosed(chain);
+            var directions = new List<Vector2D>(vertices.Count);
+            var lengths = new List<double>(vertices.Count);
+
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                if (i == 0 && !closed)
+                {
+                    directions.Add(Vector2D.FromAngle(
+                        Vector2D.GetAngle(vertices[0], vertices[1]) +
+                        (options.SideFront ? Angle2D.PIHALF : -Angle2D.PIHALF)));
+                    lengths.Add(options.SectorDepth);
+                }
+                else if (i == vertices.Count - 1 && !closed)
+                {
+                    directions.Add(Vector2D.FromAngle(
+                        Vector2D.GetAngle(vertices[i], vertices[i - 1]) +
+                        (options.SideFront ? -Angle2D.PIHALF : Angle2D.PIHALF)));
+                    lengths.Add(options.SectorDepth);
+                }
+                else
+                {
+                    Vector2D v1;
+                    Vector2D v2;
+
+                    if (closed && i == 0)
+                    {
+                        v1 = new Line2D(vertices[1], vertices[0]).GetPerpendicular();
+                        v2 = new Line2D(vertices[0], vertices[^1]).GetPerpendicular();
+                    }
+                    else if (closed && i == vertices.Count - 1)
+                    {
+                        v1 = new Line2D(vertices[0], vertices[i]).GetPerpendicular();
+                        v2 = new Line2D(vertices[i], vertices[i - 1]).GetPerpendicular();
+                    }
+                    else
+                    {
+                        v1 = new Line2D(vertices[i + 1], vertices[i]).GetPerpendicular();
+                        v2 = new Line2D(vertices[i], vertices[i - 1]).GetPerpendicular();
+                    }
+
+                    double angle = (v1.GetNormal() + v2.GetNormal()).GetAngle();
+                    double offsetAngle = angle - v1.GetNormal().GetAngle();
+                    double opposite = Math.Tan(offsetAngle) * options.SectorDepth;
+                    double length = Math.Sqrt(options.SectorDepth * options.SectorDepth + opposite * opposite);
+
+                    directions.Add(Vector2D.FromAngle(angle + (options.SideFront ? 0.0 : Angle2D.PI)));
+                    lengths.Add(length);
+                }
+            }
+
+            for (int step = 0; step < options.NumberOfSectors; step++)
+            {
+                var loop = new List<Vector2D>();
+                if (!closed)
+                {
+                    for (int i = 0; i < vertices.Count; i++)
+                    {
+                        Vector2D direction = options.SingleDirection ? globalDirection : directions[i];
+                        double length = options.SingleDirection ? options.SectorDepth : lengths[i];
+                        loop.Add(vertices[i] + direction * length * step + direction * options.Spacing * step);
+                    }
+                }
+
+                for (int i = vertices.Count - 1; i >= 0; i--)
+                {
+                    Vector2D direction = options.SingleDirection ? globalDirection : directions[i];
+                    double length = options.SingleDirection ? options.SectorDepth : lengths[i];
+                    loop.Add(vertices[i] + direction * length * (step + 1) + direction * options.Spacing * step);
+                }
+
+                if (!closed)
+                {
+                    Vector2D direction = options.SingleDirection ? globalDirection : directions[0];
+                    loop.Add(vertices[0] + direction * options.SectorDepth * step + direction * options.Spacing * step);
+                }
+                else
+                {
+                    loop.Add(loop[0]);
+                }
+
+                if (!options.SideFront) loop.Reverse();
+                sectors.Add(new StairBuilderSectorPlan(loop));
+            }
+        }
+
+        return sectors;
+    }
+
+    private static IReadOnlyList<ConnectedLineChain> BuildConnectedLineChains(IReadOnlyList<Linedef> selectedLinedefs)
+    {
+        var remaining = new List<Linedef>(selectedLinedefs);
+        var chains = new List<ConnectedLineChain>();
+
+        while (remaining.Count > 0)
+        {
+            Linedef first = remaining[0];
+            remaining.RemoveAt(0);
+            var lines = new List<Linedef> { first };
+            var vertices = new List<Vector2D> { first.Start.Position, first.End.Position };
+
+            bool changed;
+            do
+            {
+                changed = false;
+                for (int i = 0; i < remaining.Count; i++)
+                {
+                    Linedef line = remaining[i];
+                    if (TryAttachLine(vertices, line))
+                    {
+                        lines.Add(line);
+                        remaining.RemoveAt(i);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            while (changed);
+
+            chains.Add(new ConnectedLineChain(first, lines, vertices));
+        }
+
+        return chains;
+    }
+
+    private static bool TryAttachLine(List<Vector2D> vertices, Linedef line)
+    {
+        Vector2D first = vertices[0];
+        Vector2D last = vertices[^1];
+        Vector2D start = line.Start.Position;
+        Vector2D end = line.End.Position;
+
+        if (last == start)
+        {
+            if (end == first) return true;
+            vertices.Add(end);
+            return true;
+        }
+
+        if (last == end)
+        {
+            if (start == first) return true;
+            vertices.Add(start);
+            return true;
+        }
+
+        if (first == end)
+        {
+            if (start == last) return true;
+            vertices.Insert(0, start);
+            return true;
+        }
+
+        if (first == start)
+        {
+            if (end == last) return true;
+            vertices.Insert(0, end);
+            return true;
+        }
+
+        if ((first == start && last == end) || (first == end && last == start))
+            return true;
+
+        return false;
+    }
+
+    private static bool ChainIsClosed(ConnectedLineChain chain)
+    {
+        Vector2D first = chain.Vertices[0];
+        Vector2D last = chain.Vertices[^1];
+        if (first == last) return true;
+        if (chain.Lines.Count < chain.Vertices.Count) return false;
+
+        return chain.Lines.Any(line =>
+            (line.Start.Position == first && line.End.Position == last) ||
+            (line.Start.Position == last && line.End.Position == first));
     }
 
     public static IReadOnlyList<StairBuilderSectorPlan> PlanCurvedSectorsFromLines(
@@ -468,6 +661,7 @@ public static class StairBuilder
     }
 
     private sealed record SplineData(IReadOnlyList<Vector2D> ControlPoints, IReadOnlyList<Vector2D> Tangents);
+    private sealed record ConnectedLineChain(Linedef FirstLine, IReadOnlyList<Linedef> Lines, IReadOnlyList<Vector2D> Vertices);
 }
 
 public sealed record StairBuilderSectorPlan(IReadOnlyList<Vector2D> Vertices);
@@ -478,6 +672,9 @@ public sealed record StairBuilderStraightOptions
     public int SectorDepth { get; init; } = 32;
     public int Spacing { get; init; }
     public bool SideFront { get; init; } = true;
+    public bool SingleSteps { get; init; }
+    public bool DistinctSectors { get; init; }
+    public bool SingleDirection { get; init; }
 }
 
 public sealed record StairBuilderCurvedOptions
@@ -544,6 +741,9 @@ public sealed record StairBuilderPrefab
             SectorDepth = SectorDepth,
             Spacing = Spacing,
             SideFront = FrontSide,
+            SingleSteps = SingleSteps,
+            DistinctSectors = DistinctSectors,
+            SingleDirection = SingleDirection,
         };
 
     public StairBuilderCurvedOptions ToCurvedOptions()
