@@ -610,6 +610,16 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+
+        var lookThrough = EditorCommandCatalog.Find("map3d.look-through-thing");
+
+        Assert.NotNull(lookThrough);
+        Assert.Equal("Look Through Selection", lookThrough.Title);
+        Assert.Equal(EditorCommandScope.Map3D, lookThrough.Scope);
+        Assert.True(lookThrough.AllowKeys);
+        Assert.False(lookThrough.AllowMouse);
+        Assert.True(lookThrough.AllowScroll);
+        Assert.False(lookThrough.Repeat);
     }
 
     [Fact]
@@ -696,6 +706,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
+        Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));

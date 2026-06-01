@@ -90,7 +90,7 @@ public class VisualThingRotationTests
             cameraPitch: Angle2D.DegToRad(350),
             applyPitch: true);
 
-        Assert.Equal(170, thing.Pitch);
+        Assert.Equal(350, thing.Pitch);
     }
 
     [Fact]

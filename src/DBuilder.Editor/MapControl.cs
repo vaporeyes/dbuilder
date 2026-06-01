@@ -1815,6 +1815,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool LookThroughSelectedThing3D()
+    {
+        var things = SelectedThings3D();
+        if (_map == null || things.Count != 1)
+        {
+            Target3DChanged?.Invoke("select one thing");
+            return false;
+        }
+
+        VisualCameraPose pose = VisualCameraMovement.LookThroughThing(
+            things[0],
+            _map.Things,
+            ThingCenter3D,
+            _mapFormat == MapFormat.Udmf);
+        _cam3DPos = new Vector3((float)pose.Position.x, (float)pose.Position.y, (float)pose.Position.z);
+        _yaw = pose.Yaw;
+        _pitch = pose.Pitch;
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke("looking through thing");
+        return true;
+    }
+
+    private DBuilder.Geometry.Vector3D ThingCenter3D(Thing thing)
+    {
+        var sector = _blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position);
+        double floorZ = sector?.GetFloorZ(thing.Position) ?? 0;
+        double height = ThingSize3D(thing).height;
+        return new DBuilder.Geometry.Vector3D(thing.Position, floorZ + thing.Height + height * 0.5);
+    }
+
     private void FinishThingOrientationChange3D(
         IReadOnlyList<Thing> things,
         string singleEditLabel,
@@ -3352,6 +3382,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.apply-camera-rotation-to-things":
                 ApplyCameraRotationToSelectedThings3D();
+                return true;
+            case "map3d.look-through-thing":
+                LookThroughSelectedThing3D();
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);
