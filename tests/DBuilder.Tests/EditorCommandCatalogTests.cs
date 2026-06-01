@@ -204,6 +204,29 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisualSlopeCommandsMatchUdbActionSurface()
+    {
+        var expected = new Dictionary<string, string>
+        {
+            ["map3d.toggle-visual-sidedef-slope-picking"] = "Toggle Visual Sidedef Slope Picking",
+            ["map3d.toggle-visual-vertex-slope-picking"] = "Toggle Visual Vertex Slope Picking",
+            ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = "Toggle Adjacent Visual Vertex Slope Selection",
+        };
+
+        foreach ((string commandId, string title) in expected)
+        {
+            var command = EditorCommandCatalog.Find(commandId);
+
+            Assert.NotNull(command);
+            Assert.Equal(title, command.Title);
+            Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+            Assert.True(command.AllowKeys);
+            Assert.True(command.AllowMouse);
+            Assert.False(command.AllowScroll);
+        }
+    }
+
+    [Fact]
     public void DefaultShortcutsReferenceKnownCommands()
     {
         var commandIds = EditorCommandCatalog.All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);

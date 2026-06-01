@@ -191,6 +191,71 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void SmartVertexPivotUsesFarthestSameLevelVertexHandle()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(sector.Sidedefs[0].Line.Start, sector, level);
+        VisualSlopeHandle near = VisualSlopeHandles.CreateVertex(sector.Sidedefs[0].Line.End, sector, level);
+        VisualSlopeHandle far = VisualSlopeHandles.CreateVertex(sector.Sidedefs[2].Line.Start, sector, level);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartVertexPivot(handle, [handle, near, far]);
+
+        Assert.Same(far, pivot);
+    }
+
+    [Fact]
+    public void SmartVertexPivotCanUseOppositeTriangularLineHandle()
+    {
+        var map = new MapSet();
+        Sector sector = AddTriangleSector(map);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        Vertex vertex = sector.Sidedefs[0].Line.Start;
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(vertex, sector, level);
+        VisualSlopeHandle near = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle opposite = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartVertexPivot(
+            handle,
+            [handle, near, opposite],
+            useOppositeLineHandle: true);
+
+        Assert.Same(opposite, pivot);
+    }
+
+    [Fact]
+    public void AdjacentVertexSlopeHandlesMatchSameVertexAndRoundedHeight()
+    {
+        var map = new MapSet();
+        Sector first = AddSquareSector(map, 0, 64);
+        Sector second = AddAdjacentSquareSector(map, first);
+        Vertex shared = first.Sidedefs[1].Line.End;
+        var firstLevel = new VisualSlopeLevel(
+            first,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), 0));
+        var secondLevel = new VisualSlopeLevel(
+            second,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), -0.000001));
+        var otherHeightLevel = new VisualSlopeLevel(
+            second,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), -16));
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(shared, first, firstLevel);
+        VisualSlopeHandle adjacent = VisualSlopeHandles.CreateVertex(shared, second, secondLevel);
+        VisualSlopeHandle otherHeight = VisualSlopeHandles.CreateVertex(shared, second, otherHeightLevel);
+
+        IReadOnlyList<VisualSlopeHandle> selected = VisualSlopeHandles.GetAdjacentVertexSlopeHandles(
+            handle,
+            [handle, adjacent, otherHeight]);
+
+        VisualSlopeHandle result = Assert.Single(selected);
+        Assert.Same(adjacent, result);
+    }
+
+    [Fact]
     public void ApplySlopeResetsHorizontalFloorPlaneToHeight()
     {
         var map = new MapSet();
@@ -258,6 +323,47 @@ public class VisualSlopeHandleTests
         Linedef l4 = map.AddLinedef(v4, v1);
 
         map.AddSidedef(l1, true, sector);
+        map.AddSidedef(l2, true, sector);
+        map.AddSidedef(l3, true, sector);
+        map.AddSidedef(l4, true, sector);
+        map.BuildIndexes();
+
+        return sector;
+    }
+
+    private static Sector AddTriangleSector(MapSet map)
+    {
+        Sector sector = map.AddSector();
+        Vertex v1 = map.AddVertex(new Vector2D(0, 0));
+        Vertex v2 = map.AddVertex(new Vector2D(64, 0));
+        Vertex v3 = map.AddVertex(new Vector2D(0, 64));
+
+        Linedef l1 = map.AddLinedef(v1, v2);
+        Linedef l2 = map.AddLinedef(v2, v3);
+        Linedef l3 = map.AddLinedef(v3, v1);
+
+        map.AddSidedef(l1, true, sector);
+        map.AddSidedef(l2, true, sector);
+        map.AddSidedef(l3, true, sector);
+        map.BuildIndexes();
+
+        return sector;
+    }
+
+    private static Sector AddAdjacentSquareSector(MapSet map, Sector first)
+    {
+        Sector sector = map.AddSector();
+        Vertex v1 = first.Sidedefs[1].Line.End;
+        Vertex v2 = first.Sidedefs[1].Line.Start;
+        Vertex v3 = map.AddVertex(new Vector2D(128, 64));
+        Vertex v4 = map.AddVertex(new Vector2D(128, 0));
+
+        Linedef l1 = first.Sidedefs[1].Line;
+        Linedef l2 = map.AddLinedef(v2, v4);
+        Linedef l3 = map.AddLinedef(v4, v3);
+        Linedef l4 = map.AddLinedef(v3, v1);
+
+        map.AddSidedef(l1, false, sector);
         map.AddSidedef(l2, true, sector);
         map.AddSidedef(l3, true, sector);
         map.AddSidedef(l4, true, sector);

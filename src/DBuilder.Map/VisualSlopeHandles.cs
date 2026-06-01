@@ -239,6 +239,65 @@ public static class VisualSlopeHandles
         return VisualSlopeChangeResult.Changed;
     }
 
+    public static VisualSlopeHandle? GetSmartVertexPivot(
+        VisualSlopeHandle handle,
+        IEnumerable<VisualSlopeHandle> handles,
+        bool useOppositeLineHandle = false)
+    {
+        if (handle == null) throw new ArgumentNullException(nameof(handle));
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+        if (handle.Kind != VisualSlopeHandleKind.Vertex)
+            throw new ArgumentException("Smart vertex pivot requires a vertex slope handle.", nameof(handle));
+        if (handle.Vertex == null || handle.Sector == null)
+            throw new ArgumentException("Vertex slope handle requires a vertex and sector.", nameof(handle));
+
+        VisualSlopeHandle[] candidates = handles.Where(candidate => !ReferenceEquals(candidate, handle)).ToArray();
+        if (useOppositeLineHandle && handle.Sector.Sidedefs.Count == 3)
+        {
+            VisualSlopeHandle? opposite = candidates.FirstOrDefault(candidate =>
+                candidate.Kind == VisualSlopeHandleKind.Line
+                && candidate.Sidedef != null
+                && SameLevel(candidate.Level, handle.Level)
+                && !ReferenceEquals(candidate.Sidedef.Line.Start, handle.Vertex)
+                && !ReferenceEquals(candidate.Sidedef.Line.End, handle.Vertex));
+            if (opposite != null) return opposite;
+        }
+
+        return candidates
+            .Where(candidate =>
+                candidate.Kind == VisualSlopeHandleKind.Vertex
+                && candidate.Vertex != null
+                && ReferenceEquals(candidate.Sector, handle.Sector)
+                && SameLevel(candidate.Level, handle.Level))
+            .OrderByDescending(candidate => Vector2D.Distance(candidate.Vertex!.Position, handle.Vertex.Position))
+            .FirstOrDefault();
+    }
+
+    public static IReadOnlyList<VisualSlopeHandle> GetAdjacentVertexSlopeHandles(
+        VisualSlopeHandle handle,
+        IEnumerable<VisualSlopeHandle> handles)
+    {
+        if (handle == null) throw new ArgumentNullException(nameof(handle));
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+        if (handle.Kind != VisualSlopeHandleKind.Vertex)
+            throw new ArgumentException("Adjacent selection requires a vertex slope handle.", nameof(handle));
+        if (handle.Vertex == null)
+            throw new ArgumentException("Vertex slope handle requires a vertex.", nameof(handle));
+
+        HashSet<Sector> sectors = AdjacentSectors(handle.Vertex);
+        double z = Math.Round(handle.Level.Plane.GetZ(handle.Vertex.Position), 5);
+
+        return handles
+            .Where(candidate =>
+                !ReferenceEquals(candidate, handle)
+                && candidate.Kind == VisualSlopeHandleKind.Vertex
+                && ReferenceEquals(candidate.Vertex, handle.Vertex)
+                && candidate.Sector != null
+                && sectors.Contains(candidate.Sector)
+                && Math.Round(candidate.Level.Plane.GetZ(handle.Vertex.Position), 5) == z)
+            .ToArray();
+    }
+
     public static void ApplySlope(VisualSlopeLevel level, Plane plane)
     {
         bool applyToCeiling = level.ExtraFloor
@@ -318,6 +377,25 @@ public static class VisualSlopeHandles
         }
 
         return new Plane(p1, p2, p3, true);
+    }
+
+    private static bool SameLevel(VisualSlopeLevel left, VisualSlopeLevel right)
+        => ReferenceEquals(left.Sector, right.Sector)
+           && left.Type == right.Type
+           && left.ExtraFloor == right.ExtraFloor
+           && left.Plane.Normal == right.Plane.Normal
+           && left.Plane.Offset == right.Plane.Offset;
+
+    private static HashSet<Sector> AdjacentSectors(Vertex vertex)
+    {
+        var sectors = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
+        foreach (Linedef line in vertex.Linedefs)
+        {
+            if (line.Front?.Sector != null) sectors.Add(line.Front.Sector);
+            if (line.Back?.Sector != null) sectors.Add(line.Back.Sector);
+        }
+
+        return sectors;
     }
 
     private readonly record struct LineAngleInfo(double Angle, bool Clockwise)
