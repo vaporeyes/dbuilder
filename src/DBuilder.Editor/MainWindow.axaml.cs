@@ -1055,6 +1055,8 @@ public partial class MainWindow : Window
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
+            case "window.create-prefab": OnSavePrefab(this, new RoutedEventArgs()); return true;
+            case "window.insert-prefab-file": OnInsertPrefab(this, new RoutedEventArgs()); return true;
             case "window.insert-previous-prefab": OnInsertPreviousPrefab(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
@@ -4526,7 +4528,7 @@ public partial class MainWindow : Window
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
-            CloseMapMenuItem, MapOptionsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
+            CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,

@@ -56,6 +56,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.export-object", "Export Object OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-image", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-wavefront", "Export Wavefront OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.create-prefab", "Create Prefab", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.insert-prefab-file", "Insert Prefab File", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.insert-previous-prefab", "Insert Previous Prefab", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.align-things-to-wall", "Align Things to Wall", "Menu", EditorCommandScope.Window),
 

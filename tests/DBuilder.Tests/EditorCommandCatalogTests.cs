@@ -126,13 +126,16 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
-    [Fact]
-    public void InsertPreviousPrefabCommandMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("window.create-prefab", "Create Prefab")]
+    [InlineData("window.insert-prefab-file", "Insert Prefab File")]
+    [InlineData("window.insert-previous-prefab", "Insert Previous Prefab")]
+    public void PrefabCommandsMatchUdbActionSurface(string commandId, string title)
     {
-        var command = EditorCommandCatalog.Find("window.insert-previous-prefab");
+        var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
-        Assert.Equal("Insert Previous Prefab", command.Title);
+        Assert.Equal(title, command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
