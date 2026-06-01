@@ -2,6 +2,7 @@
 // ABOUTME: Covers precise-position and sector height-adjust option persistence without UI.
 
 using DBuilder.Map;
+using DBuilder.Geometry;
 
 namespace DBuilder.Tests;
 
@@ -47,5 +48,18 @@ public class EditSelectionModeSettingsTests
             HeightAdjustMode: (EditSelectionHeightAdjustMode)99);
 
         Assert.Equal(EditSelectionHeightAdjustMode.None, settings.Normalized().HeightAdjustMode);
+    }
+
+    [Theory]
+    [InlineData(7.0, 0.0)]
+    [InlineData(8.0, 15.0)]
+    [InlineData(44.0, 45.0)]
+    [InlineData(-10.0, 345.0)]
+    [InlineData(361.0, 0.0)]
+    public void TransformRotationSnapsToNearestUdbGridVector(double degrees, double expectedDegrees)
+    {
+        double snapped = EditSelectionTransform.SnapRotationToUdbGrid(Angle2D.DegToRad(degrees));
+
+        Assert.Equal(expectedDegrees, Angle2D.RadToDeg(snapped), 3);
     }
 }

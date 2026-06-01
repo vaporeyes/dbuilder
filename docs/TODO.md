@@ -1074,6 +1074,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port edit selection panel behavior.
   - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
+  - [x] Add UDB-style 15-degree edit-selection rotation snapping.
 - [ ] Port undo/redo panel behavior.
   - [x] Add UDB-style undo/redo panel timeline model, current row selection, elision, and multi-level operation planning.
 - [ ] Port select similar element behavior.
