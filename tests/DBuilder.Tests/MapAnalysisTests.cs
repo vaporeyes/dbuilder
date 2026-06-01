@@ -491,6 +491,25 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelCanHideAndShowOnlySelectedKinds()
+    {
+        var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var anotherUnused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused again");
+        var model = new MapIssueListModel(new[] { unused, shortLine, anotherUnused });
+
+        int hidden = model.HideSelectedKinds(new[] { unused });
+
+        Assert.Equal(2, hidden);
+        Assert.Equal(new[] { shortLine }, model.VisibleIssues);
+
+        model.ShowAll();
+        model.ShowOnlySelectedKinds(new[] { shortLine });
+
+        Assert.Equal(new[] { shortLine }, model.VisibleIssues);
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);

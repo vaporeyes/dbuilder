@@ -50,6 +50,22 @@ public sealed class MapCheckWindow : Window
         };
         showAll.Click += (_, _) => ShowAll();
 
+        var hideType = new Button
+        {
+            Content = "Hide Type",
+            Margin = new Avalonia.Thickness(0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        hideType.Click += (_, _) => HideSelectedTypes();
+
+        var showOnlyType = new Button
+        {
+            Content = "Show Only Type",
+            Margin = new Avalonia.Thickness(0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        showOnlyType.Click += (_, _) => ShowOnlySelectedTypes();
+
         var header = new StackPanel
         {
             Children =
@@ -58,7 +74,7 @@ public sealed class MapCheckWindow : Window
                 new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
-                    Children = { ignoreSelected, showAll },
+                    Children = { ignoreSelected, showAll, hideType, showOnlyType },
                 },
             },
         };
@@ -87,6 +103,22 @@ public sealed class MapCheckWindow : Window
     private void ShowAll()
     {
         _model.ShowAll();
+        RefreshRows();
+    }
+
+    private void HideSelectedTypes()
+    {
+        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
+            ?? Array.Empty<MapIssue>();
+        _model.HideSelectedKinds(selected);
+        RefreshRows();
+    }
+
+    private void ShowOnlySelectedTypes()
+    {
+        var selected = _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
+            ?? Array.Empty<MapIssue>();
+        _model.ShowOnlySelectedKinds(selected);
         RefreshRows();
     }
 

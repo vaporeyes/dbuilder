@@ -7,6 +7,7 @@ public sealed class MapIssueListModel
 {
     private readonly List<MapIssue> allIssues;
     private readonly List<MapIssue> visibleIssues;
+    private readonly HashSet<MapIssueKind> hiddenKinds = new();
 
     public MapIssueListModel(IEnumerable<MapIssue> issues)
     {
@@ -31,12 +32,47 @@ public sealed class MapIssueListModel
         return hidden;
     }
 
+    public int HideSelectedKinds(IEnumerable<MapIssue> selected)
+    {
+        foreach (var issue in selected)
+            hiddenKinds.Add(issue.Kind);
+
+        int before = visibleIssues.Count;
+        RefreshVisible();
+        return before - visibleIssues.Count;
+    }
+
+    public void ShowOnlySelectedKinds(IEnumerable<MapIssue> selected)
+    {
+        var shownKinds = selected.Select(issue => issue.Kind).ToHashSet();
+        if (shownKinds.Count == 0) return;
+
+        hiddenKinds.Clear();
+        foreach (var issue in visibleIssues.ToArray())
+            if (!shownKinds.Contains(issue.Kind))
+                hiddenKinds.Add(issue.Kind);
+
+        RefreshVisible();
+    }
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)
             issue.SetIgnored(false);
 
+        hiddenKinds.Clear();
+        RefreshVisible();
+    }
+
+    private void RefreshVisible()
+    {
         visibleIssues.Clear();
-        visibleIssues.AddRange(allIssues);
+        visibleIssues.AddRange(allIssues.Where(issue => !hiddenKinds.Contains(issue.Kind) && !IsIgnored(issue)));
+    }
+
+    private static bool IsIgnored(MapIssue issue)
+    {
+        var elements = issue.SuppressionTargets;
+        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
     }
 }
