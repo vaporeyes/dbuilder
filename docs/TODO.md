@@ -39,6 +39,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Save opened WAD maps back to their source path without forcing Save As.
   - [x] Reload the current WAD or PK3 map from disk with dirty-change confirmation.
   - [x] Close the current map and release active archive resources with dirty-change confirmation.
+  - [x] Create new maps using the active game configuration's map format interface.
 - [ ] Port autosave and recovery behavior.
   - [x] Write recoverable autosave WAD snapshots for dirty editor maps.
   - [x] List and recover autosave snapshots from the File menu.

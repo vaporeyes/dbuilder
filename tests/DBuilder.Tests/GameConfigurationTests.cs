@@ -127,6 +127,20 @@ public class GameConfigurationTests
         Assert.True(udmf.HasCustomFields);
     }
 
+    [Theory]
+    [InlineData("DoomMapSetIO", MapFormat.Doom)]
+    [InlineData("HexenMapSetIO", MapFormat.Hexen)]
+    [InlineData("UniversalMapSetIO", MapFormat.Udmf)]
+    [InlineData("", MapFormat.Doom)]
+    [InlineData("UnknownMapSetIO", MapFormat.Doom)]
+    public void MapsUdbFormatInterfaceToMapFormat(string formatInterface, MapFormat expected)
+    {
+        var gc = GameConfiguration.FromText($"""formatinterface = "{formatInterface}";""");
+
+        Assert.Equal(expected, gc.MapFormat);
+        Assert.Equal(expected, GameConfiguration.MapFormatFromInterface(formatInterface));
+    }
+
     [Fact]
     public void ParsesGameAndEngineNames()
     {

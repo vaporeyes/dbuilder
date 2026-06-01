@@ -475,6 +475,7 @@ public sealed class GameConfiguration
     public string MapNameFormat { get; private set; } = "";
     public bool ScaledTextureOffsets { get; private set; } = true;
     public string FormatInterface { get; private set; } = "";
+    public MapFormat MapFormat => MapFormatFromInterface(FormatInterface);
     public bool HasLinedefTag => FormatInterfaceSupports("HasLinedefTag");
     public bool HasThingTag => FormatInterfaceSupports("HasThingTag");
     public bool HasThingAction => FormatInterfaceSupports("HasThingAction");
@@ -2097,6 +2098,14 @@ public sealed class GameConfiguration
             _ => true,
         };
     }
+
+    public static MapFormat MapFormatFromInterface(string? formatInterface)
+        => formatInterface switch
+        {
+            "HexenMapSetIO" => MapFormat.Hexen,
+            "UniversalMapSetIO" => MapFormat.Udmf,
+            _ => MapFormat.Doom,
+        };
 
     // Parses the maplumpnames block: each key is a lump name, each value its property sub-dict.
     private void ParseMapLumpNames(IDictionary block, ScriptConfigurationCatalog? scriptConfigurations)

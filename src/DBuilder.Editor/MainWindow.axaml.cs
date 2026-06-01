@@ -369,17 +369,17 @@ public partial class MainWindow : Window
         _pk3Path = null;
         _pk3Maps = null;
         _pk3MapArchivePath = null;
-        _mapOptions = new MapOptions { CurrentName = _mapMarker };
+        _mapOptions = new MapOptions { CurrentName = _mapMarker, ConfigFile = _configFile };
         SyncMapOptionsToView();
         _mapSettings = new Configuration(sorted: true);
-        _mapFormat = MapFormat.Doom;
+        _mapFormat = _config?.MapFormat ?? MapFormat.Doom;
         MapView.MapFormat = _mapFormat;
         _undo = new UndoManager(map);
         MapView.Map = map;
         MapView.Focus();
         MarkMapDirty();
         UpdateInfo();
-        SetStatus($"New empty map for {CurrentConfigLabel()}. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
+        SetStatus($"New empty {_mapFormat} map for {CurrentConfigLabel()}. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
     }
 
     private async void OnOpen(object? sender, RoutedEventArgs e)
