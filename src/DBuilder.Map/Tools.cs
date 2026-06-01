@@ -200,6 +200,37 @@ public static class Tools
         }
     }
 
+    /// <summary>Flood-fills matching floor or ceiling flats through adjacent sectors, matching UDB Tools.FloodfillFlats.</summary>
+    public static void FloodfillFlats(MapSet map, Sector start, bool fillCeilings, ISet<string> originalFlats, string fillFlat, bool resetSectorMarks)
+    {
+        var todo = new Stack<Sector>();
+
+        if (resetSectorMarks) map.ClearMarkedSectors(false);
+
+        if (TextureMatches(start, fillCeilings, originalFlats))
+            todo.Push(start);
+
+        while (todo.Count > 0)
+        {
+            Sector sector = todo.Pop();
+
+            if (fillCeilings) sector.SetCeilTexture(fillFlat);
+            else sector.SetFloorTexture(fillFlat);
+            sector.Marked = true;
+
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                Sector? other = side.Other?.Sector;
+                if (other == null || other.Marked) continue;
+                if (TextureMatches(other, fillCeilings, originalFlats))
+                    todo.Push(other);
+            }
+        }
+    }
+
+    private static bool TextureMatches(Sector sector, bool ceiling, ISet<string> textures)
+        => textures.Contains(ceiling ? sector.CeilTexture : sector.FloorTexture);
+
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
     public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)
     {

@@ -189,6 +189,53 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FloodfillFlatsFillsConnectedMatchingFloors()
+    {
+        var (map, left, middle, right) = ThreeSectorChain();
+        left.FloorTexture = "FLAT1";
+        middle.FloorTexture = "FLAT1";
+        right.FloorTexture = "FLAT2";
+
+        Tools.FloodfillFlats(map, left, fillCeilings: false, new HashSet<string> { "FLAT1" }, "NEWFLAT", resetSectorMarks: true);
+
+        Assert.Equal("NEWFLAT", left.FloorTexture);
+        Assert.Equal("NEWFLAT", middle.FloorTexture);
+        Assert.Equal("FLAT2", right.FloorTexture);
+        Assert.True(left.Marked);
+        Assert.True(middle.Marked);
+        Assert.False(right.Marked);
+    }
+
+    [Fact]
+    public void FloodfillFlatsCanFillCeilingsWithoutChangingFloors()
+    {
+        var (map, left, middle, _) = ThreeSectorChain();
+        left.FloorTexture = middle.FloorTexture = "FLOOR";
+        left.CeilTexture = middle.CeilTexture = "CEIL1";
+
+        Tools.FloodfillFlats(map, left, fillCeilings: true, new HashSet<string> { "CEIL1" }, "NEWCEIL", resetSectorMarks: true);
+
+        Assert.Equal("FLOOR", left.FloorTexture);
+        Assert.Equal("FLOOR", middle.FloorTexture);
+        Assert.Equal("NEWCEIL", left.CeilTexture);
+        Assert.Equal("NEWCEIL", middle.CeilTexture);
+    }
+
+    [Fact]
+    public void FloodfillFlatsRespectsPremarkedBoundariesWhenMarksAreNotReset()
+    {
+        var (map, left, middle, right) = ThreeSectorChain();
+        left.FloorTexture = middle.FloorTexture = right.FloorTexture = "FLAT1";
+        middle.Marked = true;
+
+        Tools.FloodfillFlats(map, left, fillCeilings: false, new HashSet<string> { "FLAT1" }, "NEWFLAT", resetSectorMarks: false);
+
+        Assert.Equal("NEWFLAT", left.FloorTexture);
+        Assert.Equal("FLAT1", middle.FloorTexture);
+        Assert.Equal("FLAT1", right.FloorTexture);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]
@@ -229,6 +276,18 @@ public class ToolsTraceTests
         map.AddSidedef(line, isFront: true, targetOnFront ? target : other);
         map.AddSidedef(line, isFront: false, targetOnFront ? other : target);
         return line;
+    }
+
+    private static (MapSet Map, Sector Left, Sector Middle, Sector Right) ThreeSectorChain()
+    {
+        var map = new MapSet();
+        var left = map.AddSector();
+        var middle = map.AddSector();
+        var right = map.AddSector();
+        AddTwoSidedLine(map, left, middle, targetOnFront: true);
+        AddTwoSidedLine(map, middle, right, targetOnFront: true);
+        map.BuildIndexes();
+        return (map, left, middle, right);
     }
 
     private static (MapSet map, Sector sector, List<Linedef> lines) BuildSectorPolygon(Vector2D[] cwLoop)
