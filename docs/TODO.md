@@ -876,6 +876,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.
+  - [x] Add UDB-style highlight toggle action ids, default shortcut, persisted setting, menu state, and 3D target overlay gating.
   - [x] Add UDB-style full-brightness display toggle for 2D and 3D rendering.
 - [ ] Port vertex formats and buffers.
 - [ ] Port index buffer behavior.
@@ -915,6 +916,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual picking behavior to full UDB behavior.
 - [ ] Port surface highlighting and selection behavior.
+  - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
 - [ ] Port brightness editing behavior.

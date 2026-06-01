@@ -107,6 +107,11 @@ public partial class MainWindow : Window
         };
         MapView.ActionStateChanged += () =>
         {
+            if (_settings.UseHighlight != MapView.UseHighlight)
+            {
+                _settings.UseHighlight = MapView.UseHighlight;
+                SaveSettings();
+            }
             UpdateCommandAvailability();
             UpdateStatusDetails();
         };
@@ -130,6 +135,7 @@ public partial class MainWindow : Window
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
@@ -2643,6 +2649,13 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleHighlight(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleHighlight();
+        SetStatus($"Highlight is now {(enabled ? "ON" : "OFF")}.");
+        MapView.Focus();
+    }
+
     private void OnViewModeWireframe(object? sender, RoutedEventArgs e)
         => SetClassicViewMode(MapControl.ClassicViewMode.Wireframe);
 
@@ -4659,7 +4672,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
-            ToggleFullBrightnessMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
+            ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -4737,6 +4750,7 @@ public partial class MainWindow : Window
         SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);
         SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
         SetChecked(ToggleFullBrightnessMenuItem, MapView.FullBrightness);
+        SetChecked(ToggleHighlightMenuItem, MapView.UseHighlight);
         SetChecked(ViewModeWireframeMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Wireframe);
         SetChecked(ViewModeBrightnessMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Brightness);
         SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);

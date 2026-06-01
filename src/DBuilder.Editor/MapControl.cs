@@ -179,6 +179,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _fixedThingsScale = true;
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
+    private bool _useHighlight = true;
     private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
 
     public bool ShowSectorFills => _showFills;
@@ -186,6 +187,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool FullBrightness => _fullBrightness;
+    public bool UseHighlight => _useHighlight;
     public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
@@ -233,6 +235,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _fullBrightness;
+    }
+
+    public bool SetUseHighlight(bool enabled)
+    {
+        if (_useHighlight == enabled) return _useHighlight;
+        _useHighlight = enabled;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _useHighlight;
+    }
+
+    public bool ToggleHighlight()
+    {
+        SetUseHighlight(!_useHighlight);
+        return _useHighlight;
     }
 
     public ClassicViewMode SetViewMode2D(ClassicViewMode mode)
@@ -1259,7 +1277,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         DrawThings3D();
 
         UpdateTarget3D();
-        DrawTargetHighlight3D();
+        if (_useHighlight) DrawTargetHighlight3D();
     }
 
     // Draws things as upright camera-facing sprite billboards (rebuilt each frame; depth-tested against geometry).
@@ -1932,7 +1950,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     options,
                     settings,
                     AutomapModeModel.Palette(settings.ColorPreset),
-                    _automapHighlight,
+                    _useHighlight ? _automapHighlight : null,
                     _automapEditSectors);
             }
 
@@ -2005,7 +2023,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 DrawBlockmap(); // debug overlay on top of geometry
                 DrawNodes();    // BSP partition lines overlay
                 DrawSoundLeakPath();
-                DrawWadAuthorHighlight();
+                if (_useHighlight) DrawWadAuthorHighlight();
             }
 
             // In-progress draw-tool polyline on top. Rebuild its buffer here (render thread) when dirty.
@@ -2060,7 +2078,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     AutomapModeModel.ToOptions(settings, _automapInvertLineVisibility, isUdmf: _mapFormat == MapFormat.Udmf, isDoom: _mapFormat == MapFormat.Doom),
                     settings,
                     AutomapModeModel.Palette(settings.ColorPreset),
-                    _automapHighlight,
+                    _useHighlight ? _automapHighlight : null,
                     _automapEditSectors);
                 foreach (var renderLine in plan.Lines)
                 {
@@ -3048,6 +3066,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.toggle-full-brightness":
             case "map3d.toggle-full-brightness":
                 ToggleFullBrightness();
+                return true;
+            case "map2d.toggle-highlight":
+            case "map3d.toggle-highlight":
+                ToggleHighlight();
                 return true;
             case "map2d.view-mode-wireframe":
                 SetViewMode2D(ClassicViewMode.Wireframe);
