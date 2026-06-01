@@ -221,6 +221,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add config-aware UDB-style sidedef Y-offset normalization helpers.
   - [x] Add UDB-style sector linedef flip orientation helper.
   - [x] Add UDB-style sidedef `lightfog` flag maintenance helper.
+  - [x] Add UDB-style sector fade color helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
 - [ ] Port curve tools and interpolation behavior fully.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
