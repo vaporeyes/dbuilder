@@ -77,6 +77,45 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void RemoveMarkedActionsClearsMarkedThingsAndLinedefsOnly()
+    {
+        var map = new MapSet();
+        var markedThing = map.AddThing(new Vector2D(0, 0), type: 1);
+        markedThing.Marked = true;
+        markedThing.Action = 80;
+        markedThing.Args[0] = 12;
+        markedThing.Args[4] = 99;
+
+        var unmarkedThing = map.AddThing(new Vector2D(64, 0), type: 2);
+        unmarkedThing.Action = 81;
+        unmarkedThing.Args[1] = 7;
+
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(128, 0));
+        var markedLine = map.AddLinedef(v0, v1);
+        markedLine.Marked = true;
+        markedLine.Action = 12;
+        markedLine.Args[2] = 34;
+
+        var v2 = map.AddVertex(new Vector2D(128, 64));
+        var unmarkedLine = map.AddLinedef(v1, v2);
+        unmarkedLine.Action = 13;
+        unmarkedLine.Args[3] = 35;
+
+        Tools.RemoveMarkedActions(map);
+
+        Assert.Equal(0, markedThing.Action);
+        Assert.All(markedThing.Args, arg => Assert.Equal(0, arg));
+        Assert.Equal(81, unmarkedThing.Action);
+        Assert.Equal(7, unmarkedThing.Args[1]);
+
+        Assert.Equal(0, markedLine.Action);
+        Assert.All(markedLine.Args, arg => Assert.Equal(0, arg));
+        Assert.Equal(13, unmarkedLine.Action);
+        Assert.Equal(35, unmarkedLine.Args[3]);
+    }
+
+    [Fact]
     public void PointInPolygonUsesUdbCrossingRule()
     {
         var polygon = new[]

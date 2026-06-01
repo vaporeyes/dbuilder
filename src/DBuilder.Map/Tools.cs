@@ -132,6 +132,24 @@ public static class Tools
         return positions;
     }
 
+    /// <summary>Removes actions and action arguments from marked linedefs and things, matching UDB Tools.RemoveMarkedActions.</summary>
+    public static void RemoveMarkedActions(MapSet map)
+    {
+        foreach (Thing thing in map.Things)
+        {
+            if (!thing.Marked) continue;
+            thing.Action = 0;
+            Array.Clear(thing.Args);
+        }
+
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (!line.Marked) continue;
+            line.Action = 0;
+            Array.Clear(line.Args);
+        }
+    }
+
     /// <summary>Returns true when a point is inside a polygon using UDB's crossing rule.</summary>
     public static bool PointInPolygon(ICollection<Vector2D> polygon, Vector2D point)
     {
