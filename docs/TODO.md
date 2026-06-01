@@ -63,6 +63,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port program configuration loading and persistence.
   - [x] Persist and restore the main editor window placement.
   - [x] Persist and restore the last used game configuration for startup.
+  - [x] Persist and restore the last used map folder for open and save dialogs.
 - [ ] Port preferences categories and persistence.
   - [x] Persist and apply the editor status history limit preference.
   - [x] Persist the UDB auto-clear sidedef textures preference.

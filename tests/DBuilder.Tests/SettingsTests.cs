@@ -137,6 +137,7 @@ public class SettingsTests
             {
                 ConfigDir = "/cfg",
                 LastUsedConfigName = "Hexen_HexenHexen.cfg",
+                LastUsedMapFolder = "/maps",
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
@@ -187,6 +188,7 @@ public class SettingsTests
             var loaded = Settings.Load(path);
             Assert.Equal("/cfg", loaded.ConfigDir);
             Assert.Equal("Hexen_HexenHexen.cfg", loaded.LastUsedConfigName);
+            Assert.Equal("/maps", loaded.LastUsedMapFolder);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal(12, loaded.MaxRecentFiles);
@@ -312,6 +314,36 @@ public class SettingsTests
             existing.Contains);
 
         Assert.Equal(Path.Combine("/configs", "Doom_DoomDoom.cfg"), path);
+    }
+
+    [Fact]
+    public void RememberMapFolderForPathStoresContainingFolder()
+    {
+        var s = new Settings();
+        string path = Path.Combine("/maps", "doom2.wad");
+
+        s.RememberMapFolderForPath(path);
+
+        Assert.Equal("/maps", s.LastUsedMapFolder);
+    }
+
+    [Fact]
+    public void RememberMapFolderForPathIgnoresMissingFoldersWhenChecked()
+    {
+        var s = new Settings { LastUsedMapFolder = "/old" };
+        string path = Path.Combine("/missing", "doom2.wad");
+
+        s.RememberMapFolderForPath(path, _ => false);
+
+        Assert.Equal("/old", s.LastUsedMapFolder);
+    }
+
+    [Fact]
+    public void ExistingMapFolderReturnsOnlyExistingFolders()
+    {
+        Assert.Equal("/maps", Settings.ExistingMapFolder(" /maps ", path => path == "/maps"));
+        Assert.Null(Settings.ExistingMapFolder("/missing", _ => false));
+        Assert.Null(Settings.ExistingMapFolder("", _ => true));
     }
 
     [Fact]

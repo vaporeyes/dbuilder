@@ -149,6 +149,20 @@ public partial class MainWindow : Window
 
     private void SyncMapOptionsToView() => MapView.MapOptions = _mapOptions;
 
+    private void RememberLastMapFolder(string path)
+    {
+        _settings.RememberMapFolderForPath(path, System.IO.Directory.Exists);
+        SaveSettings();
+    }
+
+    private async Task<IStorageFolder?> LastUsedMapFolderAsync(TopLevel top)
+    {
+        string? folder = Settings.ExistingMapFolder(_settings.LastUsedMapFolder, System.IO.Directory.Exists);
+        if (folder is null) return null;
+        try { return await top.StorageProvider.TryGetFolderFromPathAsync(folder); }
+        catch { return null; }
+    }
+
     private void ApplyShortcutBindings()
     {
         _shortcutBindings = EditorCommandCatalog.EffectiveShortcuts(_settings.ShortcutOverrides);
@@ -394,6 +408,7 @@ public partial class MainWindow : Window
         {
             Title = "Open WAD or PK3",
             AllowMultiple = false,
+            SuggestedStartLocation = await LastUsedMapFolderAsync(top),
             FileTypeFilter = new[] { new FilePickerFileType("Doom WAD or PK3") { Patterns = new[] { "*.wad", "*.pk3", "*.pk7", "*.zip" } } },
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
@@ -721,6 +736,7 @@ public partial class MainWindow : Window
             var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
                 Title = "Save WAD As",
+                SuggestedStartLocation = await LastUsedMapFolderAsync(top),
                 SuggestedFileName = _wadPath != null
                     ? System.IO.Path.GetFileNameWithoutExtension(_wadPath) + ".edited.wad"
                     : (_mapMarker ?? "MAP01") + ".wad",
@@ -769,6 +785,7 @@ public partial class MainWindow : Window
             string nodeStatus = BuildNodesIfConfigured(ref bytes, forTesting: false);
 
             System.IO.File.WriteAllBytes(outPath, bytes);
+            RememberLastMapFolder(outPath);
             SaveCurrentMapOptions(outPath, marker);
             DeleteCurrentAutosave();
             if (savedCurrentFormat)
@@ -2653,6 +2670,7 @@ public partial class MainWindow : Window
     {
         _settings.AddRecent(path);
         _settings.AddRecentMap(path, mapName, archivePath);
+        _settings.RememberMapFolderForPath(path, System.IO.Directory.Exists);
         SaveSettings();
         RebuildRecentMenu();
     }

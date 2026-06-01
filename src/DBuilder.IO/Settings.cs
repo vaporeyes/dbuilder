@@ -21,6 +21,7 @@ public sealed class Settings
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
+    public string? LastUsedMapFolder { get; set; }
     public string? NodeBuilderPath { get; set; }
     public string? NodeBuilderArgs { get; set; }
     public string? TestPort { get; set; }
@@ -121,6 +122,22 @@ public sealed class Settings
     {
         RecentMaps ??= new();
         return RecentMaps.Where(map => fileExists(map.Path)).ToArray();
+    }
+
+    public void RememberMapFolderForPath(string? path, Func<string, bool>? directoryExists = null)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return;
+        string? folder = Path.GetDirectoryName(path);
+        if (string.IsNullOrWhiteSpace(folder)) return;
+        if (directoryExists is not null && !directoryExists(folder)) return;
+        LastUsedMapFolder = folder;
+    }
+
+    public static string? ExistingMapFolder(string? folder, Func<string, bool> directoryExists)
+    {
+        if (string.IsNullOrWhiteSpace(folder)) return null;
+        string trimmed = folder.Trim();
+        return directoryExists(trimmed) ? trimmed : null;
     }
 
     public static string? ResolveStartupConfigPath(
