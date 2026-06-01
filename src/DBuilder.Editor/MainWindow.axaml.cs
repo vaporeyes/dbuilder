@@ -1557,6 +1557,7 @@ public partial class MainWindow : Window
     private void OnGradientLightColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightColor);
     private void OnGradientFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FadeColor);
     private void OnGradientLightAndFadeColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightAndFadeColor);
+    private void OnGradientLinedefBrightness(object? sender, RoutedEventArgs e) => ApplyLinedefBrightnessGradient();
 
     private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
@@ -1659,6 +1660,39 @@ public partial class MainWindow : Window
         CreateUndo(undoName);
 
         SectorGradientResult result = SectorGradient.Apply(selected, target);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(result.Message);
+    }
+
+    private void ApplyLinedefBrightnessGradient()
+    {
+        if (_map is null || _undo is null) return;
+        if (_mapFormat != MapFormat.Udmf)
+        {
+            SetStatus("Linedef brightness gradients are only available for UDMF maps.");
+            return;
+        }
+
+        var selected = _map.GetSelectedLinedefs();
+        if (selected.Count < LinedefGradient.MinimumLinedefCount)
+        {
+            SetStatus("Select at least 3 linedefs first!");
+            return;
+        }
+
+        CreateUndo("Linedefs gradient brightness");
+        LinedefGradientResult result = LinedefGradient.ApplyBrightness(selected);
+        if (result.Applied)
+        {
+            foreach (var line in selected)
+            {
+                if (line.Front is not null) SidedefFogTools.UpdateLightFogFlag(line.Front, mapInfo: null, _config);
+                if (line.Back is not null) SidedefFogTools.UpdateLightFogFlag(line.Back, mapInfo: null, _config);
+            }
+        }
+
         MapView.MarkGeometryDirty();
         UpdateInfo();
         MapView.Focus();
@@ -3867,6 +3901,7 @@ public partial class MainWindow : Window
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
+        bool hasGradientLinedefs = _mapFormat == MapFormat.Udmf && _map?.SelectedLinedefsCount >= LinedefGradient.MinimumLinedefCount;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
         bool hasEditableProperties =
@@ -3921,6 +3956,7 @@ public partial class MainWindow : Window
             SectorGradientsMenuItem, GradientFloorHeightsMenuItem, GradientCeilingHeightsMenuItem, GradientBrightnessMenuItem,
             GradientFloorLightMenuItem, GradientCeilingLightMenuItem, GradientLightColorMenuItem, GradientFadeColorMenuItem,
             GradientLightAndFadeColorMenuItem);
+        SetEnabled(hasGradientLinedefs, LinedefGradientsMenuItem, GradientLinedefBrightnessMenuItem);
         SetEnabled(hasSelectedSector, ToggleAutomapTexturedHiddenSectorMenuItem);
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);

@@ -182,6 +182,9 @@
                     <MenuItem Header="Gradient _Fade Color" x:Name="GradientFadeColorMenuItem" Click="OnGradientFadeColor" />
                     <MenuItem Header="Gradient Light and Fade C_olors" x:Name="GradientLightAndFadeColorMenuItem" Click="OnGradientLightAndFadeColor" />
                 </MenuItem>
+                <MenuItem Header="_Linedef Gradients" x:Name="LinedefGradientsMenuItem">
+                    <MenuItem Header="Gradient _Brightness" x:Name="GradientLinedefBrightnessMenuItem" Click="OnGradientLinedefBrightness" />
+                </MenuItem>
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="USDF _Conversations..." x:Name="UsdfConversationsMenuItem" Click="OnUsdfConversations" />
