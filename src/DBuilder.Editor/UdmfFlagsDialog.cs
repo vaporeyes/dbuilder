@@ -1,4 +1,4 @@
-// ABOUTME: Modal dialog for editing named UDMF flags on a selected thing or linedef.
+// ABOUTME: Modal dialog for editing named UDMF flags on a selected map element.
 // ABOUTME: Combines config-known flag checkboxes with a freeform list for mod-specific flag names.
 
 using System;

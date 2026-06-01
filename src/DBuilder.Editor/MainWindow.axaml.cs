@@ -1146,7 +1146,7 @@ public partial class MainWindow : Window
 
     private void OnEditProperties(object? sender, RoutedEventArgs e) => OnEditSelected();
 
-    // Opens the named UDMF flags dialog for one selected thing or linedef.
+    // Opens the named UDMF flags dialog for one selected thing, linedef or sector.
     private async void OnFlags(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
@@ -1157,13 +1157,12 @@ public partial class MainWindow : Window
             var current = new HashSet<string>(line.UdmfFlags, StringComparer.OrdinalIgnoreCase);
             if (_config != null) current.UnionWith(_config.LinedefFlagsToUdmf(line.Flags));
 
-            var known = _config?.LinedefFlagsTranslation.SelectMany(flag => flag.Fields) ?? current;
             var name = $"Linedef {_map.Linedefs.IndexOf(line)}";
-            var dlg = new UdmfFlagsDialog(name, known, current);
+            var dlg = new UdmfFlagsDialog(name, UdmfFlagChoices.KnownLinedefFlags(_config, line), current);
             if (!await dlg.ShowDialog<bool>(this)) return;
 
             CreateUndo("Edit linedef flags");
-            ApplyFlags(line.UdmfFlags, dlg.ResultFlags);
+            UdmfFlagChoices.ApplyFlags(line.UdmfFlags, dlg.ResultFlags);
             if (_config != null) line.Flags = _config.LinedefFlagsFromUdmf(line.UdmfFlags);
             AfterEdit($"{name} flags updated");
             return;
@@ -1175,19 +1174,31 @@ public partial class MainWindow : Window
             var current = new HashSet<string>(thing.UdmfFlags, StringComparer.OrdinalIgnoreCase);
             if (_config != null) current.UnionWith(_config.ThingFlagsToUdmf(thing.Flags));
 
-            var known = _config?.ThingFlagsTranslation.SelectMany(flag => flag.Fields) ?? current;
             var name = $"Thing {_map.Things.IndexOf(thing)}";
-            var dlg = new UdmfFlagsDialog(name, known, current);
+            var dlg = new UdmfFlagsDialog(name, UdmfFlagChoices.KnownThingFlags(_config, thing), current);
             if (!await dlg.ShowDialog<bool>(this)) return;
 
             CreateUndo("Edit thing flags");
-            ApplyFlags(thing.UdmfFlags, dlg.ResultFlags);
+            UdmfFlagChoices.ApplyFlags(thing.UdmfFlags, dlg.ResultFlags);
             if (_config != null) thing.Flags = _config.ThingFlagsFromUdmf(thing.UdmfFlags);
             AfterEdit($"{name} flags updated");
             return;
         }
 
-        SetStatus("Select exactly one linedef or thing to edit flags.");
+        if (_map.SelectedSectorsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedThingsCount == 0 && _map.SelectedVerticesCount == 0)
+        {
+            var sector = _map.GetSelectedSectors()[0];
+            var name = $"Sector {_map.Sectors.IndexOf(sector)}";
+            var dlg = new UdmfFlagsDialog(name, UdmfFlagChoices.KnownSectorFlags(_config, sector), sector.UdmfFlags);
+            if (!await dlg.ShowDialog<bool>(this)) return;
+
+            CreateUndo("Edit sector flags");
+            UdmfFlagChoices.ApplyFlags(sector.UdmfFlags, dlg.ResultFlags);
+            AfterEdit($"{name} flags updated");
+            return;
+        }
+
+        SetStatus("Select exactly one linedef, sector or thing to edit flags.");
     }
 
     // Opens the generic UDMF custom-fields dialog for one selected map element, including vertices.
@@ -1213,13 +1224,6 @@ public partial class MainWindow : Window
     {
         target.Clear();
         foreach (var kv in result) target[kv.Key] = kv.Value;
-    }
-
-    private static void ApplyFlags(HashSet<string> target, IEnumerable<string> result)
-    {
-        target.Clear();
-        foreach (string flag in result)
-            if (!string.IsNullOrWhiteSpace(flag)) target.Add(flag.Trim());
     }
 
     private bool TryGetSingleFieldedSelection(out IFielded element, out string name)
