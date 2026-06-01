@@ -138,6 +138,7 @@ public static class StairBuilder
             for (int step = 0; step < options.NumberOfSectors; step++)
             {
                 var loop = new List<Vector2D>();
+                var postLines = new List<IReadOnlyList<Vector2D>>();
                 if (!closed)
                 {
                     for (int i = 0; i < vertices.Count; i++)
@@ -153,6 +154,15 @@ public static class StairBuilder
                     Vector2D direction = options.SingleDirection ? globalDirection : directions[i];
                     double length = options.SingleDirection ? options.SectorDepth : lengths[i];
                     loop.Add(vertices[i] + direction * length * (step + 1) + direction * options.Spacing * step);
+
+                    if (options.DistinctSectors && (closed || i != vertices.Count - 1 && i != 0))
+                    {
+                        postLines.Add(new[]
+                        {
+                            vertices[i] + direction * length * step + direction * options.Spacing * step,
+                            vertices[i] + direction * length * (step + 1) + direction * options.Spacing * step
+                        });
+                    }
                 }
 
                 if (!closed)
@@ -166,7 +176,7 @@ public static class StairBuilder
                 }
 
                 if (!options.SideFront) loop.Reverse();
-                sectors.Add(new StairBuilderSectorPlan(loop));
+                sectors.Add(new StairBuilderSectorPlan(loop, postLines));
             }
         }
 
@@ -456,9 +466,52 @@ public static class StairBuilder
 
         map.BuildIndexes();
         Apply(sectors, options);
+        CreatePostLines(map, plans, verticesByPosition);
         map.BuildIndexes();
 
         return sectors;
+    }
+
+    private static void CreatePostLines(
+        MapSet map,
+        IReadOnlyList<StairBuilderSectorPlan> plans,
+        Dictionary<Vector2D, Vertex> verticesByPosition)
+    {
+        foreach (StairBuilderSectorPlan plan in plans)
+        {
+            foreach (IReadOnlyList<Vector2D> postLine in plan.PostLines)
+            {
+                if (postLine.Count < 2) continue;
+
+                Vertex start = GetOrCreateVertex(map, verticesByPosition, postLine[0]);
+                Vertex end = GetOrCreateVertex(map, verticesByPosition, postLine[^1]);
+                if (ReferenceEquals(start, end)) continue;
+                if (FindLinedef(map, start, end) != null) continue;
+
+                map.AddLinedef(start, end);
+            }
+        }
+    }
+
+    private static Vertex GetOrCreateVertex(MapSet map, Dictionary<Vector2D, Vertex> verticesByPosition, Vector2D point)
+    {
+        if (verticesByPosition.TryGetValue(point, out Vertex? vertex)) return vertex;
+
+        vertex = map.AddVertex(point);
+        verticesByPosition.Add(point, vertex);
+        return vertex;
+    }
+
+    private static Linedef? FindLinedef(MapSet map, Vertex start, Vertex end)
+    {
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (ReferenceEquals(line.Start, start) && ReferenceEquals(line.End, end) ||
+                ReferenceEquals(line.Start, end) && ReferenceEquals(line.End, start))
+                return line;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -664,7 +717,17 @@ public static class StairBuilder
     private sealed record ConnectedLineChain(Linedef FirstLine, IReadOnlyList<Linedef> Lines, IReadOnlyList<Vector2D> Vertices);
 }
 
-public sealed record StairBuilderSectorPlan(IReadOnlyList<Vector2D> Vertices);
+public sealed record StairBuilderSectorPlan
+{
+    public StairBuilderSectorPlan(IReadOnlyList<Vector2D> vertices, IReadOnlyList<IReadOnlyList<Vector2D>>? postLines = null)
+    {
+        Vertices = vertices;
+        PostLines = postLines ?? Array.Empty<IReadOnlyList<Vector2D>>();
+    }
+
+    public IReadOnlyList<Vector2D> Vertices { get; init; }
+    public IReadOnlyList<IReadOnlyList<Vector2D>> PostLines { get; init; }
+}
 
 public sealed record StairBuilderStraightOptions
 {

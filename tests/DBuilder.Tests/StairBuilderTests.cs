@@ -388,6 +388,34 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void StraightLinePlanAddsDistinctSectorPostLinesLikeUdb()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(b, c);
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 2,
+                SectorDepth = 16,
+                SideFront = true,
+                SingleSteps = true,
+                DistinctSectors = true
+            });
+
+        Assert.Equal(2, plan.Count);
+        IReadOnlyList<Vector2D> firstPostLine = Assert.Single(plan[0].PostLines);
+        IReadOnlyList<Vector2D> secondPostLine = Assert.Single(plan[1].PostLines);
+        AssertEqualVertices(new[] { new Vector2D(64, 0), new Vector2D(80, -16) }, firstPostLine);
+        AssertEqualVertices(new[] { new Vector2D(80, -16), new Vector2D(96, -32) }, secondPostLine);
+    }
+
+    [Fact]
     public void StraightLinePlanSingleStepsKeepsDisconnectedGroupsSeparate()
     {
         var map = new MapSet();
@@ -448,6 +476,40 @@ public class StairBuilderTests
         Assert.Equal(6, map.Vertices.Count);
         Assert.Equal(7, map.Linedefs.Count);
         Assert.Contains(map.Linedefs, linedef => linedef.Front?.Sector != null && linedef.Back?.Sector != null);
+    }
+
+    [Fact]
+    public void CreateSectorsFromPlansMaterializesDistinctSectorPostLines()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(b, c);
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanStraightSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderStraightOptions
+            {
+                NumberOfSectors = 1,
+                SectorDepth = 16,
+                SideFront = true,
+                SingleSteps = true,
+                DistinctSectors = true
+            });
+
+        IReadOnlyList<Sector> sectors = StairBuilder.CreateSectorsFromPlans(
+            map,
+            plan,
+            new StairBuilderOptions { FloorStep = 8 });
+
+        Assert.Single(sectors);
+        Assert.Contains(map.Linedefs, linedef =>
+            (linedef.Start.Position == new Vector2D(64, 0) &&
+            linedef.End.Position == new Vector2D(80, -16)) ||
+            (linedef.Start.Position == new Vector2D(80, -16) &&
+            linedef.End.Position == new Vector2D(64, 0)));
     }
 
     [Fact]
