@@ -3287,6 +3287,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             : ShapeGenerator.UdbEllipse(p0, p1, _drawEllipseSettings);
         if (plan.Points.Count < 3) return;
 
+        bool placeThings = _shapeKind == ShapeKind.Rectangle
+            ? _drawRectangleSettings.PlaceThingsAtVertices
+            : _drawEllipseSettings.PlaceThingsAtVertices;
+        if (placeThings)
+        {
+            EditBegun?.Invoke(_shapeKind == ShapeKind.Rectangle ? "Place things at rectangle vertices" : "Place things at ellipse vertices");
+            int count = DrawThingPlacement.PlaceAtPositions(_map, plan.Points, InsertThingType);
+            if (count == 0) return;
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Picked?.Invoke($"placed {count} thing{(count == 1 ? "" : "s")} at draw vertices");
+            if (!string.IsNullOrEmpty(plan.HintText)) Picked?.Invoke(plan.HintText);
+            return;
+        }
+
         EditBegun?.Invoke(_shapeKind == ShapeKind.Rectangle ? "Draw rectangle" : "Draw ellipse");
         var verts = new System.Collections.Generic.List<Vertex>(plan.Points.Count);
         for (int i = 0; i < plan.Points.Count; i++)
@@ -3857,6 +3873,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         var points = MaterializedDrawPoints(includeCursor: false);
         if (points.Count < min) { CancelDraw(); return; }
+
+        if (_drawCurve && _drawCurveSettings.PlaceThingsAtVertices)
+        {
+            EditBegun?.Invoke("Place things at curve vertices");
+            int count = DrawThingPlacement.PlaceAtPositions(_map, points, InsertThingType);
+            if (count == 0) { CancelDraw(); return; }
+            _map.BuildIndexes();
+            _drawPoints.Clear();
+            _drawClosed = false;
+            _drawCurve = false;
+            _drawDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Picked?.Invoke($"placed {count} thing{(count == 1 ? "" : "s")} at draw vertices");
+            return;
+        }
 
         // Materialize the drawn points as vertices, reusing any that snapped exactly onto existing ones.
         var verts = new System.Collections.Generic.List<Vertex>(points.Count);

@@ -711,6 +711,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for cursor insert and make-sector actions.
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
+  - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.
   - [x] Wire draw-grid mode into the editor box-drag workflow.
 - [ ] Port texture alignment tools.
   - [x] Add UDB-style sidedef unused texture cleanup behavior.
@@ -1107,6 +1108,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
   - [x] Add UDB-style selected-linedef curve defaults, point generation, and materialization.
+  - [x] Add UDB-style draw-mode thing placement from generated rectangle, ellipse, and curve vertices.
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port edit selection panel behavior.
