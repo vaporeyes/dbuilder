@@ -995,6 +995,7 @@ public partial class MainWindow : Window
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
+            case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
             case "window.cancel-draw":
                 if (!MapView.InDrawMode) return false;
@@ -3511,6 +3512,62 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnExportImage(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+
+        ImageExportSectorSelection selection = ImageExportPlanner.SelectSectorsForExport(_map);
+        if (!selection.CanExport)
+        {
+            SetStatus(selection.Warning ?? "Image export failed.");
+            return;
+        }
+
+        var top = GetTopLevel(this);
+        if (top is null) return;
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export Image PNG",
+            SuggestedFileName = DefaultImageExportFileName(),
+            DefaultExtension = "png",
+            FileTypeChoices = new[] { new FilePickerFileType("PNG Image") { Patterns = new[] { "*.png" } } },
+        });
+        if (file?.TryGetLocalPath() is not { } path) return;
+
+        var dlg = new ImageExportDialog(DefaultImageExportOptions(path));
+        if (!await dlg.ShowDialog<bool>(this)) return;
+
+        ImageExportOptions options = dlg.ResultOptions;
+        IReadOnlyList<string> errors = ValidateImageExportOptions(options);
+        if (errors.Count > 0)
+        {
+            SetStatus("Image export blocked: " + string.Join(" ", errors));
+            return;
+        }
+
+        ImageExportSettings settings = ImageExportSettings.FromOptions(options);
+        try
+        {
+            IReadOnlyList<ImageExportImageFile> files = ImageExportRenderer.CreateImageFiles(
+                selection.Sectors,
+                settings,
+                ImageExportFlat);
+            ImageExportRenderer.WriteImageFiles(files);
+            string brightmaps = settings.Brightmap ? " including brightmaps" : "";
+            string tiles = settings.Tiles ? " as 64x64 tiles" : "";
+            SetStatus($"Exported {files.Count} image file(s){brightmaps}{tiles}.");
+        }
+        catch (OutOfMemoryException)
+        {
+            ImageExportResultMessage message = ImageExportResultMessage.FromResult(ImageExportResult.OutOfMemory);
+            SetStatus(message.Message);
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "Image export failed");
+        }
+    }
+
     private async void OnExportWavefront(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
@@ -3584,6 +3641,46 @@ public partial class MainWindow : Window
         {
             LogAndSetStatus(ex, "Wavefront export failed");
         }
+    }
+
+    private ImageExportOptions DefaultImageExportOptions(string filePath)
+        => new(
+            filePath,
+            Floor: true,
+            Fullbright: true,
+            ApplySectorColors: true,
+            Brightmap: false,
+            Transparency: false,
+            Tiles: false,
+            ScaleIndex: 0,
+            ImageFormatIndex: 0,
+            PixelFormatIndex: 0);
+
+    private string DefaultImageExportFileName()
+    {
+        string baseName = System.IO.Path.GetFileNameWithoutExtension(_wadPath ?? _pk3Path ?? "map");
+        string mapName = _mapMarker ?? "MAP01";
+        return $"{baseName}_{mapName}.png";
+    }
+
+    private static IReadOnlyList<string> ValidateImageExportOptions(ImageExportOptions options)
+    {
+        var errors = new List<string>();
+        string path = options.FilePath.Trim();
+        string? directory = System.IO.Path.GetDirectoryName(path);
+        if (string.IsNullOrWhiteSpace(path)) errors.Add("Output path is required.");
+        else if (string.IsNullOrEmpty(directory) || !System.IO.Directory.Exists(directory)) errors.Add("Output directory does not exist.");
+        if (!string.Equals(System.IO.Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase))
+            errors.Add("Only PNG image export is currently supported.");
+        return errors;
+    }
+
+    private ImageExportTextureData? ImageExportFlat(string name)
+    {
+        ImageData? image = _resources?.GetFlat(name);
+        return image is null
+            ? null
+            : new ImageExportTextureData(image.Width, image.Height, image.Rgba, (float)Math.Max(0.0001, image.ScaleX));
     }
 
     private WavefrontExportOptions DefaultWavefrontExportOptions(string filePath)
@@ -4089,7 +4186,7 @@ public partial class MainWindow : Window
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
-            ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
+            ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,

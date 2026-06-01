@@ -136,6 +136,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ImageExportCommandIsWindowMenuAction()
+    {
+        var command = EditorCommandCatalog.Find("window.export-image");
+
+        Assert.NotNull(command);
+        Assert.Equal("Export Image PNG", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void WadAuthorModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-wadauthor");
