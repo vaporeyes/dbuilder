@@ -815,6 +815,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.
   - [x] Persist added WAD resources through UDB-compatible per-map options sidecars.
   - [x] Add directory resource picker and root texture/flat options.
+  - [x] Add required-archive editing to resource options.
 - [ ] Port config dialog.
   - [x] Add bundled configuration picker with external cfg browse fallback.
 - [x] Port find and replace dialog.

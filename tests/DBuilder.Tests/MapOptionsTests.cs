@@ -785,6 +785,22 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationRequiredArchivesTextTrimsCommaSeparatedEntries()
+    {
+        var location = new DataLocation(DataLocationType.Pk3, "/tmp/mod.pk3")
+        {
+            RequiredArchivesText = "doom.wad, textures.pk3, , extras.pk3 ",
+        };
+
+        Assert.Equal(new[] { "doom.wad", "textures.pk3", "extras.pk3" }, location.RequiredArchives);
+        Assert.Equal("doom.wad, textures.pk3, extras.pk3", location.RequiredArchivesText);
+
+        location.RequiredArchivesText = "";
+
+        Assert.Empty(location.RequiredArchives);
+    }
+
+    [Fact]
     public void DataLocationListCombinedKeepsLaterDuplicates()
     {
         var first = new DataLocationList

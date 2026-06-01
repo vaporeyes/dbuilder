@@ -14,6 +14,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
     private readonly CheckBox _rootTextures;
     private readonly CheckBox _rootFlats;
     private readonly CheckBox _notForTesting;
+    private readonly TextBox _requiredArchives;
 
     public DataLocation ResultLocation { get; private set; }
 
@@ -25,6 +26,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         {
             InitialLocation = location.InitialLocation,
         };
+        ResultLocation.RequiredArchives.AddRange(location.RequiredArchives);
 
         _location = AddField("Location", location.Location);
         _location.IsReadOnly = true;
@@ -32,6 +34,7 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         _rootTextures = AddCheckBox("Load root textures", SupportsRootImages(_type) && location.Option1);
         _rootFlats = AddCheckBox("Load root flats", SupportsRootImages(_type) && location.Option2);
         _notForTesting = AddCheckBox("Exclude from Test Map launch", location.NotForTesting);
+        _requiredArchives = AddField("Required archives", location.RequiredArchivesText);
 
         _strictPatches.IsVisible = _type == DataLocationType.Wad;
         _rootTextures.IsVisible = SupportsRootImages(_type);
@@ -41,7 +44,11 @@ public sealed class ResourceOptionsDialog : PropertyDialog
     protected override void OnConfirm()
     {
         string path = _location.Text?.Trim() ?? "";
-        var location = new DataLocation(_type, path);
+        var location = new DataLocation(_type, path)
+        {
+            InitialLocation = ResultLocation.InitialLocation,
+            RequiredArchivesText = _requiredArchives.Text?.Trim() ?? "",
+        };
         if (_type == DataLocationType.Wad) location.Option1 = _strictPatches.IsChecked == true;
         if (SupportsRootImages(_type))
         {

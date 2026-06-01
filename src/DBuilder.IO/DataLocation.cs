@@ -48,6 +48,22 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
 
     public override string ToString() => Location;
 
+    public string RequiredArchivesText
+    {
+        get => string.Join(", ", RequiredArchives);
+        set
+        {
+            RequiredArchives.Clear();
+            if (string.IsNullOrWhiteSpace(value)) return;
+
+            foreach (string entry in value.Split(','))
+            {
+                string archive = entry.Trim();
+                if (archive.Length > 0) RequiredArchives.Add(archive);
+            }
+        }
+    }
+
     public string GetDisplayName()
     {
         return Type switch
