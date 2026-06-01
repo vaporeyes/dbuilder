@@ -730,6 +730,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for cursor insert and make-sector actions.
   - [x] Wire make-sector-at-cursor to UDB-style traced sector creation.
   - [x] Wire draw-sector materialization to UDB-style traced sector creation.
+  - [x] Wire rectangle and ellipse sector materialization to UDB-style traced sector creation.
+  - [x] Normalize one-sided sector lines onto the front side after UDB-style sector creation.
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
   - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.

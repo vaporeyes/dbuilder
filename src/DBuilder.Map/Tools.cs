@@ -410,9 +410,34 @@ public static class Tools
             sides.Add(new LinedefSide(line, useFront));
         }
 
-        return sides.Count < 3
+        Sector? sector = sides.Count < 3
             ? null
             : MakeSector(map, sides, nearbyLines, useOverrides, options, autoClearSidedefTextures);
+        if (sector != null) FlipBackOnlyLinedefs(sides.Select(side => side.Line));
+
+        return sector;
+    }
+
+    /// <summary>Flips one-sided sector lines that only have a back side, matching UDB MakeSectorMode cleanup.</summary>
+    public static int FlipBackOnlyLinedefs(Sector sector)
+        => FlipBackOnlyLinedefs(sector.Sidedefs.Select(side => side.Line));
+
+    /// <summary>Flips one-sided lines that only have a back side, even before sector indexes are rebuilt.</summary>
+    public static int FlipBackOnlyLinedefs(IEnumerable<Linedef> lines)
+    {
+        int flipped = 0;
+        var seen = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (Linedef line in lines)
+        {
+            if (!seen.Add(line)) continue;
+            if (line.Front != null || line.Back == null) continue;
+
+            line.FlipVertices();
+            line.FlipSidedefs();
+            flipped++;
+        }
+
+        return flipped;
     }
 
     private readonly record struct SidedefTextureDefaults(string? High, string? Middle, string? Low)

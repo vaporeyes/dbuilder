@@ -3313,7 +3313,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             verts.Add(existing ?? _map.AddVertex(p));
         }
         if (verts.Count < 3) return;
-        ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
+        var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
+        Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
@@ -3828,7 +3829,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         EditBegun?.Invoke("Make sector");
         var tracedLines = new HashSet<Linedef>(path.Select(side => side.Line));
         var nearbyLines = _map.Linedefs.Where(line => !tracedLines.Contains(line)).ToList();
-        Tools.MakeSector(_map, path, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
+        Sector? sector = Tools.MakeSector(_map, path, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
+        if (sector != null) Tools.FlipBackOnlyLinedefs(path.Select(side => side.Line));
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();

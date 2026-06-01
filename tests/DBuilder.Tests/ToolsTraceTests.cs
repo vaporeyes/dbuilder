@@ -769,6 +769,48 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorFromLoopNormalizesReusedBackOnlyLines()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Linedef existing = map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSectorFromLoop(map, new[] { a, b, c, d });
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Same(sector, existing.Front!.Sector);
+        Assert.Null(existing.Back);
+        Assert.Same(b, existing.Start);
+        Assert.Same(a, existing.End);
+    }
+
+    [Fact]
+    public void FlipBackOnlyLinedefsNormalizesOneSidedSectorLines()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sector sector = map.AddSector();
+        Sidedef back = map.AddSidedef(line, isFront: false, sector);
+        map.BuildIndexes();
+
+        int flipped = Tools.FlipBackOnlyLinedefs(sector);
+
+        Assert.Equal(1, flipped);
+        Assert.Same(back, line.Front);
+        Assert.Null(line.Back);
+        Assert.True(back.IsFront);
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+    }
+
+    [Fact]
     public void JoinSectorCreatesMissingSidedefsOnExistingSector()
     {
         var map = new MapSet();
