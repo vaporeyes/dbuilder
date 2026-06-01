@@ -51,7 +51,7 @@
       "udbArea": "Source/Core/General",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Editor startup, window placement, dirty-state prompts, reload, close, autosave recovery, recent files and maps, UDB-style numbered recent menu presentation, status history, error logs, update-check replacement, file conflict checks, before/after command launch plans, UDB-style nodebuilder output validation, UDB-style auto-clear sidedef texture preference persistence, and UDB-style Test Map token expansion are covered. Full UDB application orchestration remains incomplete."
+      "notes": "Editor startup, window placement, dirty-state prompts, reload, close, autosave recovery, recent files and maps, UDB-style numbered recent menu presentation, status history, error logs, update-check replacement, file conflict checks, before/after command launch plans, UDB-style nodebuilder output validation, UDB-style auto-clear sidedef texture preference persistence, UDB-style Test Map token expansion, and Test Map skill menu modeling are covered. Full UDB application orchestration remains incomplete."
     },
     {
       "udbArea": "Source/Core/Geometry",
