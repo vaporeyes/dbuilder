@@ -3688,6 +3688,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return changed ? 1 : 0;
     }
 
+    public string AlignSelectedFlatsToLinedefs(bool floors, bool frontSide)
+    {
+        if (_map == null) return "No map loaded.";
+        var lines = _map.GetSelectedLinedefs();
+        if (lines.Count == 0) return "This action requires a selection!";
+
+        string target = (floors ? "Floors" : "Ceilings") + " to " + (frontSide ? "Front" : "Back") + " Side";
+        EditBegun?.Invoke("Align " + target);
+        SectorFlatAlignmentResult result = SectorFlatAlignment.AlignToLinedefs(
+            lines,
+            floors,
+            frontSide,
+            sector =>
+            {
+                var image = _resources?.GetFlat(sector.FloorTexture);
+                return image is { Width: > 0, Height: > 0 }
+                    ? new SectorFlatAlignmentTexture(image.Width, image.Height)
+                    : null;
+            });
+
+        if (result.Applied)
+        {
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+
+        Picked?.Invoke(result.Message);
+        return result.Message;
+    }
+
     // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.
     private void FlipSelected(bool sidedefs)
     {

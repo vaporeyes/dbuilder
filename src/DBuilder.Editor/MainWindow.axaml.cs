@@ -1573,6 +1573,10 @@ public partial class MainWindow : Window
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
     private void OnFitSelectedTextures(object? sender, RoutedEventArgs e) => FitSelectedTextures();
+    private void OnAlignFloorToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: true);
+    private void OnAlignFloorToBack(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: false);
+    private void OnAlignCeilingToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: false, frontSide: true);
+    private void OnAlignCeilingToBack(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: false, frontSide: false);
 
     private void AlignTextures(bool vertical)
     {
@@ -1585,6 +1589,20 @@ public partial class MainWindow : Window
     private void FitSelectedTextures()
     {
         string status = MapView.FitSelectedTextures();
+        UpdateInfo();
+        MapView.Focus();
+        SetStatus(status);
+    }
+
+    private void AlignFlatToLine(bool floors, bool frontSide)
+    {
+        if (_mapFormat != MapFormat.Udmf)
+        {
+            SetStatus("Flat alignment to linedefs is only available for UDMF maps.");
+            return;
+        }
+
+        string status = MapView.AlignSelectedFlatsToLinedefs(floors, frontSide);
         UpdateInfo();
         MapView.Focus();
         SetStatus(status);
@@ -3922,6 +3940,7 @@ public partial class MainWindow : Window
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
+        bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
         bool hasGradientLinedefs = _mapFormat == MapFormat.Udmf && _map?.SelectedLinedefsCount >= LinedefGradient.MinimumLinedefCount;
         bool hasGradientTarget = hasGradientSectors || hasGradientLinedefs;
@@ -3973,6 +3992,8 @@ public partial class MainWindow : Window
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
+        SetEnabled(hasSelectedUdmfLinedef,
+            AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasGradientSectors,

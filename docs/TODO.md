@@ -724,6 +724,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for selected wall texture auto-alignment.
   - [x] Propagate selected wall texture auto-alignment across connected matching walls in both directions.
   - [x] Wrap fit-texture offsets to loaded texture dimensions.
+  - [x] Add UDB-style UDMF floor and ceiling flat alignment to selected linedef front/back sides.
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.
 - [ ] Port slope editing behavior fully.
@@ -1137,6 +1138,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
   - [x] Add editor command to fit selected wall texture fields from resource dimensions.
+- [ ] Port flat alignment behavior.
+  - [x] Add UDB-style UDMF floor and ceiling alignment to selected linedef front/back sides.
 - [ ] Port bridge mode.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
