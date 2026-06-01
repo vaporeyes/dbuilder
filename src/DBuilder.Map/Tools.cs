@@ -20,6 +20,26 @@ public static class Tools
 {
     private readonly record struct SidedefFillJob(Sidedef Sidedef, bool Forward);
 
+    public sealed record SectorCreationOptions
+    {
+        public int DefaultFloorHeight { get; init; }
+        public int DefaultCeilingHeight { get; init; } = 128;
+        public int DefaultBrightness { get; init; } = 160;
+        public string DefaultFloorTexture { get; init; } = "-";
+        public string DefaultCeilingTexture { get; init; } = "-";
+        public string DefaultHighTexture { get; init; } = "-";
+        public string DefaultMiddleTexture { get; init; } = "-";
+        public string DefaultLowTexture { get; init; } = "-";
+        public bool OverrideFloorTexture { get; init; }
+        public bool OverrideCeilingTexture { get; init; }
+        public bool OverrideFloorHeight { get; init; }
+        public bool OverrideCeilingHeight { get; init; }
+        public bool OverrideBrightness { get; init; }
+        public int CustomFloorHeight { get; init; }
+        public int CustomCeilingHeight { get; init; } = 128;
+        public int CustomBrightness { get; init; } = 160;
+    }
+
     /// <summary>
     /// Performs Hermite spline interpolation for the position between p1 using tangent t1 and p2 using tangent t2.
     /// </summary>
@@ -239,7 +259,132 @@ public static class Tools
         return sector;
     }
 
-    private readonly record struct SidedefTextureDefaults(string High, string Middle, string Low)
+    /// <summary>Creates a sector from traced linedef sides, matching UDB Tools.MakeSector without editor globals.</summary>
+    public static Sector? MakeSector(
+        MapSet map,
+        IReadOnlyList<LinedefSide> allLines,
+        IReadOnlyList<Linedef>? nearbyLines = null,
+        bool useOverrides = false,
+        SectorCreationOptions? options = null,
+        bool autoClearSidedefTextures = true)
+    {
+        if (allLines.Count == 0) return null;
+
+        options ??= new SectorCreationOptions();
+        Sector? sourceSector = null;
+        Sector? nearestSector = null;
+        SidedefTextureDefaults sourceSide = new(null, null, null);
+        bool foundSideDefaults = false;
+
+        foreach (LinedefSide lineSide in allLines)
+        {
+            Sidedef? side = lineSide.Front ? lineSide.Line.Front : lineSide.Line.Back;
+            if (side == null) continue;
+
+            sourceSector ??= side.Sector;
+            sourceSide = TakeSidedefSettings(sourceSide, side);
+            foundSideDefaults = true;
+            break;
+        }
+
+        foreach (LinedefSide lineSide in allLines)
+        {
+            Sidedef? side = lineSide.Front ? lineSide.Line.Back : lineSide.Line.Front;
+            if (side == null) continue;
+
+            sourceSector ??= side.Sector;
+            sourceSide = TakeSidedefSettings(sourceSide, side);
+            foundSideDefaults = true;
+            break;
+        }
+
+        if (nearbyLines != null && allLines.Count > 0 && (!foundSideDefaults || sourceSector == null))
+        {
+            Vector2D testPoint = allLines[0].Line.GetSidePoint(allLines[0].Front);
+            Linedef? nearest = MapSet.NearestLinedef(new List<Linedef>(nearbyLines), testPoint);
+            if (nearest != null)
+            {
+                double sideOfLine = nearest.SideOfLine(testPoint);
+                Sidedef? defaultSide = sideOfLine < 0.0 ? nearest.Front : nearest.Back;
+
+                if (defaultSide != null)
+                {
+                    sourceSector ??= defaultSide.Sector;
+                    sourceSide = TakeSidedefSettings(sourceSide, defaultSide);
+                }
+                else
+                {
+                    defaultSide = sideOfLine < 0.0 ? nearest.Back : nearest.Front;
+                    if (defaultSide != null)
+                    {
+                        sourceSide = TakeSidedefSettings(sourceSide, defaultSide);
+                        nearestSector = defaultSide.Sector;
+                    }
+                }
+            }
+        }
+
+        sourceSide = TakeSidedefDefaults(sourceSide, options);
+
+        Sector newSector = map.AddSector();
+        if (sourceSector != null)
+        {
+            sourceSector.CopyPropertiesTo(newSector);
+        }
+        else if (nearestSector != null)
+        {
+            newSector.SetFloorTexture(nearestSector.FloorTexture);
+            newSector.SetCeilTexture(nearestSector.CeilTexture);
+            newSector.FloorHeight = nearestSector.FloorHeight;
+            newSector.CeilHeight = nearestSector.CeilHeight;
+            newSector.Brightness = nearestSector.Brightness;
+        }
+        else
+        {
+            newSector.SetFloorTexture(options.DefaultFloorTexture);
+            newSector.SetCeilTexture(options.DefaultCeilingTexture);
+            newSector.FloorHeight = options.DefaultFloorHeight;
+            newSector.CeilHeight = options.DefaultCeilingHeight;
+            newSector.Brightness = options.DefaultBrightness;
+        }
+
+        if (useOverrides)
+        {
+            if (options.OverrideCeilingTexture) newSector.SetCeilTexture(options.DefaultCeilingTexture);
+            if (options.OverrideFloorTexture) newSector.SetFloorTexture(options.DefaultFloorTexture);
+            if (options.OverrideCeilingHeight) newSector.CeilHeight = options.CustomCeilingHeight;
+            if (options.OverrideFloorHeight) newSector.FloorHeight = options.CustomFloorHeight;
+            if (options.OverrideBrightness) newSector.Brightness = options.CustomBrightness;
+        }
+        else if (newSector.CeilHeight < newSector.FloorHeight)
+        {
+            newSector.CeilHeight = newSector.FloorHeight;
+        }
+
+        foreach (LinedefSide lineSide in allLines)
+        {
+            bool wasSingleSided = lineSide.Line.Back == null || lineSide.Line.Front == null;
+            Sidedef? target = lineSide.Front ? lineSide.Line.Front : lineSide.Line.Back;
+            if (target == null)
+            {
+                target = map.AddSidedef(lineSide.Line, lineSide.Front, newSector);
+                LinkOppositeSidedef(target);
+            }
+            else if (!ReferenceEquals(target.Sector, newSector))
+            {
+                target.SetSector(newSector);
+            }
+
+            ApplyDefaultsToSidedef(target, sourceSide);
+
+            lineSide.Line.Front?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
+            lineSide.Line.Back?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
+        }
+
+        return newSector;
+    }
+
+    private readonly record struct SidedefTextureDefaults(string? High, string? Middle, string? Low)
     {
         public static SidedefTextureDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
             => new(
@@ -247,6 +392,18 @@ public static class Tools
                 IsBlankTexture(side.MidTexture) ? defaultMiddle : side.MidTexture,
                 IsBlankTexture(side.LowTexture) ? defaultLow : side.LowTexture);
     }
+
+    private static SidedefTextureDefaults TakeSidedefDefaults(SidedefTextureDefaults settings, SectorCreationOptions options)
+        => new(
+            settings.High ?? options.DefaultHighTexture,
+            settings.Middle ?? options.DefaultMiddleTexture,
+            settings.Low ?? options.DefaultLowTexture);
+
+    private static SidedefTextureDefaults TakeSidedefSettings(SidedefTextureDefaults settings, Sidedef side)
+        => new(
+            settings.High ?? (IsBlankTexture(side.HighTexture) ? null : side.HighTexture),
+            settings.Middle ?? (IsBlankTexture(side.MidTexture) ? null : side.MidTexture),
+            settings.Low ?? (IsBlankTexture(side.LowTexture) ? null : side.LowTexture));
 
     private static void LinkOppositeSidedef(Sidedef side)
     {

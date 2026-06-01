@@ -560,6 +560,102 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorCreatesMissingSidedefsWithDefaultOptions()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        var sides = lines.Select(line => new LinedefSide(line, true)).ToList();
+        var options = new Tools.SectorCreationOptions
+        {
+            DefaultFloorHeight = -16,
+            DefaultCeilingHeight = 160,
+            DefaultBrightness = 192,
+            DefaultFloorTexture = "FLOOR",
+            DefaultCeilingTexture = "CEIL",
+            DefaultMiddleTexture = "WALL",
+        };
+
+        Sector? sector = Tools.MakeSector(map, sides, options: options);
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Equal(-16, sector!.FloorHeight);
+        Assert.Equal(160, sector.CeilHeight);
+        Assert.Equal(192, sector.Brightness);
+        Assert.Equal("FLOOR", sector.FloorTexture);
+        Assert.Equal("CEIL", sector.CeilTexture);
+        Assert.Equal(4, sector.Sidedefs.Count);
+        Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
+        Assert.All(lines, line => Assert.Equal("WALL", line.Front!.MidTexture));
+    }
+
+    [Fact]
+    public void MakeSectorCopiesSourceSectorAndSidedefDefaultsFromExistingSide()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector source = map.AddSector();
+        source.FloorHeight = 24;
+        source.CeilHeight = 96;
+        source.Brightness = 144;
+        source.SetFloorTexture("SRCFLAT");
+        source.SetCeilTexture("SRCCEIL");
+        Sidedef sourceSide = map.AddSidedef(lines[0], true, source);
+        sourceSide.SetTextureMid("SRCWALL");
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList());
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.NotSame(source, sector);
+        Assert.Equal(24, sector!.FloorHeight);
+        Assert.Equal(96, sector.CeilHeight);
+        Assert.Equal(144, sector.Brightness);
+        Assert.Equal("SRCFLAT", sector.FloorTexture);
+        Assert.Equal("SRCCEIL", sector.CeilTexture);
+        Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
+        Assert.All(lines, line => Assert.Equal("SRCWALL", line.Front!.MidTexture));
+    }
+
+    [Fact]
+    public void MakeSectorAppliesOverridesAfterSourceCopy()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector source = map.AddSector();
+        source.FloorHeight = 24;
+        source.CeilHeight = 96;
+        source.Brightness = 144;
+        source.SetFloorTexture("SRCFLAT");
+        source.SetCeilTexture("SRCCEIL");
+        map.AddSidedef(lines[0], true, source);
+        map.BuildIndexes();
+        var options = new Tools.SectorCreationOptions
+        {
+            OverrideFloorTexture = true,
+            OverrideCeilingTexture = true,
+            OverrideFloorHeight = true,
+            OverrideCeilingHeight = true,
+            OverrideBrightness = true,
+            DefaultFloorTexture = "OVRFLOOR",
+            DefaultCeilingTexture = "OVRCEIL",
+            CustomFloorHeight = -32,
+            CustomCeilingHeight = 192,
+            CustomBrightness = 208,
+        };
+
+        Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList(), useOverrides: true, options: options);
+
+        Assert.NotNull(sector);
+        Assert.Equal(-32, sector!.FloorHeight);
+        Assert.Equal(192, sector.CeilHeight);
+        Assert.Equal(208, sector.Brightness);
+        Assert.Equal("OVRFLOOR", sector.FloorTexture);
+        Assert.Equal("OVRCEIL", sector.CeilTexture);
+    }
+
+    [Fact]
     public void JoinSectorCreatesMissingSidedefsOnExistingSector()
     {
         var map = new MapSet();
@@ -637,5 +733,21 @@ public class ToolsTraceTests
         Assert.Equal(2, path!.Count);
         Assert.True(path[0].Front);
         Assert.False(path[1].Front);
+    }
+
+    private static List<Linedef> BuildSidelessSquare(MapSet map)
+    {
+        var vertices = new[]
+        {
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(0, 64)),
+            map.AddVertex(new Vector2D(64, 64)),
+            map.AddVertex(new Vector2D(64, 0)),
+        };
+        var lines = new List<Linedef>();
+        for (int i = 0; i < vertices.Length; i++)
+            lines.Add(map.AddLinedef(vertices[i], vertices[(i + 1) % vertices.Length]));
+        map.BuildIndexes();
+        return lines;
     }
 }

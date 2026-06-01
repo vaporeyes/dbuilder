@@ -237,6 +237,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style flat floodfill helper.
   - [x] Add UDB-style wall texture floodfill helper.
   - [x] Add UDB-style traced-side sector join helper.
+  - [x] Add UDB-style traced-side sector creation helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
 - [ ] Port curve tools and interpolation behavior fully.
