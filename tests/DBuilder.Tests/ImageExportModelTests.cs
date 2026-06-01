@@ -284,6 +284,70 @@ public sealed class ImageExportModelTests
             plan.ImageNames);
     }
 
+    [Fact]
+    public void RendererRasterizesTexturedSectorPixels()
+    {
+        Sector sector = BuildSector((64, 0), (0, 0), (0, -64), (64, -64));
+        sector.FloorTexture = "RED";
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png")));
+
+        ImageExportRaster raster = ImageExportRenderer.RenderImage(
+            [sector],
+            settings,
+            name => name == "RED" ? SolidTexture(255, 0, 0) : null,
+            brightmap: false);
+
+        int pixel = (32 * raster.Width + 32) * 4;
+        Assert.Equal(64, raster.Width);
+        Assert.Equal(64, raster.Height);
+        Assert.Equal(255, raster.Rgba[pixel]);
+        Assert.Equal(0, raster.Rgba[pixel + 1]);
+        Assert.Equal(0, raster.Rgba[pixel + 2]);
+        Assert.Equal(255, raster.Rgba[pixel + 3]);
+    }
+
+    [Fact]
+    public void RendererCreatesBrightmapFromSectorBrightness()
+    {
+        Sector sector = BuildSector((64, 0), (0, 0), (0, -64), (64, -64));
+        sector.Brightness = 96;
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Brightmap: true));
+
+        ImageExportRaster raster = ImageExportRenderer.RenderImage(
+            [sector],
+            settings,
+            _ => SolidTexture(255, 0, 0),
+            brightmap: true);
+
+        int pixel = (32 * raster.Width + 32) * 4;
+        Assert.Equal(96, raster.Rgba[pixel]);
+        Assert.Equal(96, raster.Rgba[pixel + 1]);
+        Assert.Equal(96, raster.Rgba[pixel + 2]);
+        Assert.Equal(255, raster.Rgba[pixel + 3]);
+    }
+
+    [Fact]
+    public void RendererCreatesPngFilesUsingPlannerNames()
+    {
+        Sector sector = BuildSector((0, 0), (128, 0), (128, -64), (0, -64));
+        sector.FloorTexture = "RED";
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Brightmap: true,
+            Tiles: true));
+
+        IReadOnlyList<ImageExportImageFile> files = ImageExportRenderer.CreateImageFiles(
+            [sector],
+            settings,
+            name => name == "RED" ? SolidTexture(255, 0, 0) : null);
+
+        Assert.Equal(ImageExportPlanner.CreateOutputPlan([sector], settings).ImageNames, files.Select(file => file.Path).ToArray());
+        Assert.All(files, file => AssertPngSize(file.Content, 64, 64));
+    }
+
     private static Sector BuildSector(params (double X, double Y)[] points)
     {
         var sector = new Sector();
@@ -301,4 +365,23 @@ public sealed class ImageExportModelTests
 
         return sector;
     }
+
+    private static ImageExportTextureData SolidTexture(byte r, byte g, byte b)
+        => new(1, 1, [r, g, b, 255]);
+
+    private static void AssertPngSize(byte[] png, int width, int height)
+    {
+        Assert.Equal(0x89, png[0]);
+        Assert.Equal((byte)'P', png[1]);
+        Assert.Equal((byte)'N', png[2]);
+        Assert.Equal((byte)'G', png[3]);
+        Assert.Equal(width, ReadBigEndianInt32(png, 16));
+        Assert.Equal(height, ReadBigEndianInt32(png, 20));
+    }
+
+    private static int ReadBigEndianInt32(byte[] bytes, int offset)
+        => bytes[offset] << 24
+            | bytes[offset + 1] << 16
+            | bytes[offset + 2] << 8
+            | bytes[offset + 3];
 }

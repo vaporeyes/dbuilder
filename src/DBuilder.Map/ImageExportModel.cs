@@ -181,6 +181,10 @@ public sealed record ImageExportOutputPlan(
     int ProgressItems,
     IReadOnlyList<string> ImageNames);
 
+public sealed record ImageExportTextureData(int Width, int Height, byte[] Rgba, float Scale = 1.0f);
+public sealed record ImageExportRaster(int Width, int Height, byte[] Rgba);
+public readonly record struct ImageExportImageFile(string Path, byte[] Content, bool Brightmap, int TileIndex);
+
 public sealed record ImageExportSectorSelection(
     IReadOnlyList<Sector> Sectors,
     string? Warning)
@@ -289,5 +293,253 @@ public static class ImageExportPlanner
         if (position.x > size.x) size.x = position.x;
         if (position.y > offset.y) offset.y = position.y;
         if (position.y < size.y) size.y = position.y;
+    }
+}
+
+public static class ImageExportRenderer
+{
+    public static IReadOnlyList<ImageExportImageFile> CreateImageFiles(
+        IEnumerable<Sector> sectors,
+        ImageExportSettings settings,
+        Func<string, ImageExportTextureData?> getFlat)
+    {
+        var files = new List<ImageExportImageFile>();
+        AddImageFiles(files, RenderImage(sectors, settings, getFlat, brightmap: false), settings, brightmap: false);
+        if (settings.Brightmap)
+            AddImageFiles(files, RenderImage(sectors, settings, getFlat, brightmap: true), settings, brightmap: true);
+        return files;
+    }
+
+    public static ImageExportRaster RenderImage(
+        IEnumerable<Sector> sectors,
+        ImageExportSettings settings,
+        Func<string, ImageExportTextureData?> getFlat,
+        bool brightmap)
+    {
+        IReadOnlyList<Sector> sectorList = sectors.ToArray();
+        ImageExportLayout layout = ImageExportPlanner.GetLayout(sectorList);
+        int width = Math.Max(1, (int)Math.Ceiling(layout.Size.x * settings.Scale));
+        int height = Math.Max(1, (int)Math.Ceiling(layout.Size.y * settings.Scale));
+        byte[] rgba = new byte[width * height * 4];
+
+        if (!settings.Transparency)
+        {
+            for (int i = 0; i < rgba.Length; i += 4)
+            {
+                rgba[i + 3] = 255;
+            }
+        }
+
+        foreach (Sector sector in sectorList)
+        {
+            IReadOnlyList<Vector2D> vertices = Triangulation.Create(sector).Vertices;
+            for (int i = 0; i + 2 < vertices.Count; i += 3)
+            {
+                DrawTriangle(rgba, width, height, layout.Offset, settings, sector, vertices[i], vertices[i + 1], vertices[i + 2], getFlat, brightmap);
+            }
+        }
+
+        return new ImageExportRaster(width, height, rgba);
+    }
+
+    public static void WriteImageFiles(IEnumerable<ImageExportImageFile> files)
+    {
+        foreach (ImageExportImageFile file in files)
+        {
+            string? directory = Path.GetDirectoryName(file.Path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            File.WriteAllBytes(file.Path, file.Content);
+        }
+    }
+
+    private static void AddImageFiles(
+        List<ImageExportImageFile> files,
+        ImageExportRaster raster,
+        ImageExportSettings settings,
+        bool brightmap)
+    {
+        if (!settings.Tiles)
+        {
+            string suffix = brightmap ? "_brightmap" : "";
+            files.Add(new ImageExportImageFile(
+                Path.Combine(settings.Directory, settings.Name) + suffix + settings.Extension,
+                WavefrontPngEncoder.EncodeRgba(raster.Width, raster.Height, raster.Rgba),
+                brightmap,
+                TileIndex: 0));
+            return;
+        }
+
+        int xnum = (int)Math.Ceiling(raster.Width / (double)ImageExportPlanner.TileSize);
+        int ynum = (int)Math.Ceiling(raster.Height / (double)ImageExportPlanner.TileSize);
+        int tileIndex = 1;
+        for (int y = 0; y < ynum; y++)
+        {
+            for (int x = 0; x < xnum; x++)
+            {
+                byte[] tile = CreateTile(raster, x, y);
+                string suffix = brightmap ? "_brightmap" : "";
+                files.Add(new ImageExportImageFile(
+                    $"{Path.Combine(settings.Directory, settings.Name)}{tileIndex}{suffix}{settings.Extension}",
+                    WavefrontPngEncoder.EncodeRgba(ImageExportPlanner.TileSize, ImageExportPlanner.TileSize, tile),
+                    brightmap,
+                    tileIndex));
+                tileIndex++;
+            }
+        }
+    }
+
+    private static byte[] CreateTile(ImageExportRaster raster, int tileX, int tileY)
+    {
+        byte[] tile = new byte[ImageExportPlanner.TileSize * ImageExportPlanner.TileSize * 4];
+        for (int i = 0; i < tile.Length; i += 4)
+            tile[i + 3] = 255;
+
+        int sourceX = tileX * ImageExportPlanner.TileSize;
+        int sourceY = tileY * ImageExportPlanner.TileSize;
+        int copyWidth = Math.Min(ImageExportPlanner.TileSize, raster.Width - sourceX);
+        int copyHeight = Math.Min(ImageExportPlanner.TileSize, raster.Height - sourceY);
+
+        for (int y = 0; y < copyHeight; y++)
+        {
+            for (int x = 0; x < copyWidth; x++)
+            {
+                int source = ((sourceY + y) * raster.Width + sourceX + x) * 4;
+                int target = (y * ImageExportPlanner.TileSize + x) * 4;
+                Array.Copy(raster.Rgba, source, tile, target, 4);
+            }
+        }
+
+        return tile;
+    }
+
+    private static void DrawTriangle(
+        byte[] rgba,
+        int width,
+        int height,
+        Vector2D offset,
+        ImageExportSettings settings,
+        Sector sector,
+        Vector2D a,
+        Vector2D b,
+        Vector2D c,
+        Func<string, ImageExportTextureData?> getFlat,
+        bool brightmap)
+    {
+        (double ax, double ay) = ToPixel(a, offset, settings.Scale);
+        (double bx, double by) = ToPixel(b, offset, settings.Scale);
+        (double cx, double cy) = ToPixel(c, offset, settings.Scale);
+        int minX = Math.Clamp((int)Math.Floor(Math.Min(ax, Math.Min(bx, cx))), 0, width - 1);
+        int maxX = Math.Clamp((int)Math.Ceiling(Math.Max(ax, Math.Max(bx, cx))), 0, width - 1);
+        int minY = Math.Clamp((int)Math.Floor(Math.Min(ay, Math.Min(by, cy))), 0, height - 1);
+        int maxY = Math.Clamp((int)Math.Ceiling(Math.Max(ay, Math.Max(by, cy))), 0, height - 1);
+        double area = Edge(ax, ay, bx, by, cx, cy);
+        if (area == 0) return;
+
+        string textureName = settings.Floor ? sector.FloorTexture : sector.CeilTexture;
+        ImageExportTextureData? texture = brightmap ? null : getFlat(textureName);
+
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
+            {
+                double px = x + 0.5;
+                double py = y + 0.5;
+                double w0 = Edge(bx, by, cx, cy, px, py);
+                double w1 = Edge(cx, cy, ax, ay, px, py);
+                double w2 = Edge(ax, ay, bx, by, px, py);
+                bool inside = area > 0
+                    ? w0 >= 0 && w1 >= 0 && w2 >= 0
+                    : w0 <= 0 && w1 <= 0 && w2 <= 0;
+                if (!inside) continue;
+
+                double mapX = offset.x + px / settings.Scale;
+                double mapY = offset.y - py / settings.Scale;
+                WritePixel(rgba, width, x, y, sector, texture, mapX, mapY, settings, brightmap);
+            }
+        }
+    }
+
+    private static void WritePixel(
+        byte[] rgba,
+        int width,
+        int x,
+        int y,
+        Sector sector,
+        ImageExportTextureData? texture,
+        double mapX,
+        double mapY,
+        ImageExportSettings settings,
+        bool brightmap)
+    {
+        int target = (y * width + x) * 4;
+        byte r;
+        byte g;
+        byte b;
+
+        if (brightmap)
+        {
+            r = g = b = (byte)Math.Clamp(sector.Brightness, 0, 255);
+        }
+        else if (texture is not null && texture.Width > 0 && texture.Height > 0 && texture.Rgba.Length >= texture.Width * texture.Height * 4)
+        {
+            (r, g, b) = SampleTexture(texture, mapX, mapY, settings.Floor);
+            if (!settings.Fullbright)
+            {
+                double factor = Math.Clamp(sector.Brightness, 0, 255) / 255.0;
+                r = (byte)Math.Round(r * factor);
+                g = (byte)Math.Round(g * factor);
+                b = (byte)Math.Round(b * factor);
+            }
+        }
+        else
+        {
+            (r, g, b) = FallbackColor(settings.Floor ? sector.FloorTexture : sector.CeilTexture);
+        }
+
+        rgba[target] = r;
+        rgba[target + 1] = g;
+        rgba[target + 2] = b;
+        rgba[target + 3] = 255;
+    }
+
+    private static (byte R, byte G, byte B) SampleTexture(ImageExportTextureData texture, double mapX, double mapY, bool floor)
+    {
+        double scale = texture.Scale == 0 ? 1.0 : texture.Scale;
+        int tx = PositiveModulo((int)Math.Floor(mapX / scale), texture.Width);
+        int ty = PositiveModulo((int)Math.Floor((floor ? -mapY : mapY) / scale), texture.Height);
+        int source = (ty * texture.Width + tx) * 4;
+        return (texture.Rgba[source], texture.Rgba[source + 1], texture.Rgba[source + 2]);
+    }
+
+    private static (byte R, byte G, byte B) FallbackColor(string textureName)
+    {
+        int hash = StableHash(textureName);
+        return (
+            (byte)(64 + (hash & 0x7f)),
+            (byte)(64 + ((hash >> 8) & 0x7f)),
+            (byte)(64 + ((hash >> 16) & 0x7f)));
+    }
+
+    private static int StableHash(string value)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (char ch in value)
+                hash = hash * 31 + char.ToUpperInvariant(ch);
+            return hash;
+        }
+    }
+
+    private static (double X, double Y) ToPixel(Vector2D point, Vector2D offset, double scale)
+        => ((point.x - offset.x) * scale, (offset.y - point.y) * scale);
+
+    private static double Edge(double ax, double ay, double bx, double by, double cx, double cy)
+        => (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
+
+    private static int PositiveModulo(int value, int modulo)
+    {
+        int result = value % modulo;
+        return result < 0 ? result + modulo : result;
     }
 }
