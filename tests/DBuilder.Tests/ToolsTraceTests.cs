@@ -790,6 +790,35 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorFromLoopCreatesAdjacentCellsWithSharedTwoSidedLine()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Vertex e = map.AddVertex(new Vector2D(128, 0));
+        Vertex f = map.AddVertex(new Vector2D(128, 64));
+
+        Sector? left = Tools.MakeSectorFromLoop(map, new[] { a, b, c, d });
+        map.BuildIndexes();
+        Sector? right = Tools.MakeSectorFromLoop(map, new[] { b, e, f, c });
+        map.BuildIndexes();
+
+        Assert.NotNull(left);
+        Assert.NotNull(right);
+        Linedef shared = Assert.Single(map.Linedefs, line =>
+            (ReferenceEquals(line.Start, b) && ReferenceEquals(line.End, c)) ||
+            (ReferenceEquals(line.Start, c) && ReferenceEquals(line.End, b)));
+        Assert.NotNull(shared.Front);
+        Assert.NotNull(shared.Back);
+        Assert.Contains(shared.Front!.Sector, new[] { left, right });
+        Assert.Contains(shared.Back!.Sector, new[] { left, right });
+        Assert.NotSame(shared.Front.Sector, shared.Back.Sector);
+        Assert.Equal(7, map.Linedefs.Count);
+    }
+
+    [Fact]
     public void FlipBackOnlyLinedefsNormalizesOneSidedSectorLines()
     {
         var map = new MapSet();

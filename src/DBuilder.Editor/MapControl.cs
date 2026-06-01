@@ -3371,8 +3371,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             if (verts.Count < 3) continue;
-            ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
-            sectorCount++;
+            var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
+            if (Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions()) != null)
+                sectorCount++;
         }
 
         _map.MergeOverlappingVertices(0.01);

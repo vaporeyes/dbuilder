@@ -731,6 +731,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire make-sector-at-cursor to UDB-style traced sector creation.
   - [x] Wire draw-sector materialization to UDB-style traced sector creation.
   - [x] Wire rectangle and ellipse sector materialization to UDB-style traced sector creation.
+  - [x] Wire draw-grid sector materialization to UDB-style traced sector creation.
   - [x] Normalize one-sided sector lines onto the front side after UDB-style sector creation.
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
@@ -1150,6 +1151,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire editor curve and grid drawing to persisted UDB-style draw settings.
   - [x] Add UDB-style draw-grid geometry planner for subdivisions, interpolation, grid locking, and triangulation.
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
+  - [x] Route draw-grid sector cells through UDB-style traced sector creation.
   - [x] Add UDB-style selected-linedef curve defaults, point generation, and materialization.
   - [x] Add UDB-style draw-mode thing placement from generated rectangle, ellipse, and curve vertices.
 - [ ] Port sector drawing options.
