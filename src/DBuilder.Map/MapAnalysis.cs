@@ -370,15 +370,13 @@ public static class MapAnalysis
             if (named)
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
-                    issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript,
-                        $"Linedef {i} references unknown ACS script name \"{scriptName}\".")
-                        { Target = line, Focus = LinedefMidpoint(line) });
+                    issues.Add(UnknownLinedefScriptIssue(line, ctx,
+                        $"Linedef {i} references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(line.Args[0]))
             {
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript,
-                    $"Linedef {i} references unknown ACS script number \"{line.Args[0]}\".")
-                    { Target = line, Focus = LinedefMidpoint(line) });
+                issues.Add(UnknownLinedefScriptIssue(line, ctx,
+                    $"Linedef {i} references unknown ACS script number \"{line.Args[0]}\"."));
             }
         }
 
@@ -543,6 +541,26 @@ public static class MapAnalysis
         }
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MissingActivation, message)
+        {
+            Target = line,
+            Focus = LinedefMidpoint(line),
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue UnknownLinedefScriptIssue(Linedef line, MapCheckContext ctx, string message)
+    {
+        var fixes = new List<MapIssueFix>();
+        if (ctx.EditLinedef != null)
+        {
+            fixes.Add(new MapIssueFix("Edit Linedef...", map =>
+            {
+                if (!map.Linedefs.Contains(line)) return false;
+                return ctx.EditLinedef(line);
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript, message)
         {
             Target = line,
             Focus = LinedefMidpoint(line),

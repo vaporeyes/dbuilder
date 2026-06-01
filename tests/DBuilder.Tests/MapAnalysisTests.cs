@@ -1223,6 +1223,31 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownLinedefScriptIssueCanEditLinedef()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 12;
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            ScriptNumberExists = number => number == 1,
+            EditLinedef = edited =>
+            {
+                edited.Args[0] = 1;
+                return true;
+            },
+        };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownLinedefScript);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Edit Linedef...", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.Equal(1, line.Args[0]);
+    }
+
+    [Fact]
     public void ThingReferencingUnknownNamedAcsScriptIsFlagged()
     {
         var map = Square(true);
