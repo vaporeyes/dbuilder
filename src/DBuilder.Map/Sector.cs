@@ -79,6 +79,50 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
             ? new Plane(CeilSlope, double.IsNaN(CeilSlopeOffset) ? 0.0 : CeilSlopeOffset).GetZ(pos)
             : CeilHeight;
 
+    /// <summary>Creates the sector floor plane from explicit UDMF slope data, triangular vertex heights, or flat height.</summary>
+    public static Plane GetFloorPlane(Sector sector, bool isUdmf = true)
+    {
+        if (isUdmf && sector.FloorSlope.GetLengthSq() > 0 && sector.FloorSlope.z != 0 && !double.IsNaN(sector.FloorSlopeOffset / sector.FloorSlope.z))
+            return new Plane(sector.FloorSlope, sector.FloorSlopeOffset);
+
+        var flat = new Plane(new Vector3D(0, 0, 1), -sector.FloorHeight);
+        if (!isUdmf || sector.Sidedefs.Count != 3) return flat;
+
+        var vertices = new Vector3D[3];
+        bool hasSlopedVertex = false;
+        for (int i = 0; i < sector.Sidedefs.Count; i++)
+        {
+            Vertex vertex = sector.Sidedefs[i].IsFront ? sector.Sidedefs[i].Line.End : sector.Sidedefs[i].Line.Start;
+            double z = double.IsNaN(vertex.ZFloor) ? sector.FloorHeight : vertex.ZFloor;
+            hasSlopedVertex |= !double.IsNaN(vertex.ZFloor);
+            vertices[i] = new Vector3D(vertex.Position, z);
+        }
+
+        return hasSlopedVertex ? new Plane(vertices[0], vertices[1], vertices[2], up: true) : flat;
+    }
+
+    /// <summary>Creates the sector ceiling plane from explicit UDMF slope data, triangular vertex heights, or flat height.</summary>
+    public static Plane GetCeilingPlane(Sector sector, bool isUdmf = true)
+    {
+        if (isUdmf && sector.CeilSlope.GetLengthSq() > 0 && sector.CeilSlope.z != 0 && !double.IsNaN(sector.CeilSlopeOffset / sector.CeilSlope.z))
+            return new Plane(sector.CeilSlope, sector.CeilSlopeOffset);
+
+        var flat = new Plane(new Vector3D(0, 0, -1), sector.CeilHeight);
+        if (!isUdmf || sector.Sidedefs.Count != 3) return flat;
+
+        var vertices = new Vector3D[3];
+        bool hasSlopedVertex = false;
+        for (int i = 0; i < sector.Sidedefs.Count; i++)
+        {
+            Vertex vertex = sector.Sidedefs[i].IsFront ? sector.Sidedefs[i].Line.End : sector.Sidedefs[i].Line.Start;
+            double z = double.IsNaN(vertex.ZCeiling) ? sector.CeilHeight : vertex.ZCeiling;
+            hasSlopedVertex |= !double.IsNaN(vertex.ZCeiling);
+            vertices[i] = new Vector3D(vertex.Position, z);
+        }
+
+        return hasSlopedVertex ? new Plane(vertices[0], vertices[2], vertices[1], up: false) : flat;
+    }
+
     public bool IsFlagSet(string flagName)
         => UdmfFlags.Contains(flagName);
 

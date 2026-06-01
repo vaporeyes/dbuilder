@@ -247,6 +247,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sector geometry validation.
   - [x] Add UDB-style sector point-intersection helper.
   - [x] Add UDB-style sector bounding-box helper.
+  - [x] Add UDB-style sector floor and ceiling plane helpers.
 - [ ] Port line intersection, snapping, nearest-point, and hit-test helpers.
   - [x] Add UDB-style linedef geometry measurement helpers.
   - [x] Use UDB safe linedef distance for nearest-line queries.

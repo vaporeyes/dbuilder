@@ -95,6 +95,78 @@ public class SectorSlopeTests
     }
 
     [Fact]
+    public void FloorAndCeilingPlaneHelpersReturnFlatPlanes()
+    {
+        var sector = new Sector { FloorHeight = 32, CeilHeight = 128 };
+
+        Plane floor = Sector.GetFloorPlane(sector);
+        Plane ceiling = Sector.GetCeilingPlane(sector);
+
+        Assert.Equal(32, floor.GetZ(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(32, floor.GetZ(new Vector2D(128, -64)), 1e-9);
+        Assert.Equal(128, ceiling.GetZ(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(128, ceiling.GetZ(new Vector2D(128, -64)), 1e-9);
+    }
+
+    [Fact]
+    public void FloorAndCeilingPlaneHelpersReturnExplicitSlopePlanes()
+    {
+        var sector = new Sector
+        {
+            FloorSlope = new Vector3D(0, 1, -1).GetNormal(),
+            FloorSlopeOffset = 0,
+            CeilSlope = new Vector3D(0, 1, 1).GetNormal(),
+            CeilSlopeOffset = -128 * new Vector3D(0, 1, 1).GetNormal().z,
+        };
+
+        Plane floor = Sector.GetFloorPlane(sector);
+        Plane ceiling = Sector.GetCeilingPlane(sector);
+
+        Assert.Equal(16, floor.GetZ(new Vector2D(0, 16)), 1e-9);
+        Assert.Equal(112, ceiling.GetZ(new Vector2D(0, 16)), 1e-9);
+    }
+
+    [Fact]
+    public void TriangularFloorPlaneUsesVertexFloorHeights()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(0, 64));
+        a.ZFloor = 0;
+        b.ZFloor = 64;
+        c.ZFloor = 0;
+        Sector sector = SectorBuilder.CreateSector(map, new[] { a, b, c })!;
+        map.BuildIndexes();
+
+        Plane floor = Sector.GetFloorPlane(sector);
+
+        Assert.Equal(0, floor.GetZ(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(64, floor.GetZ(new Vector2D(64, 0)), 1e-9);
+        Assert.Equal(32, floor.GetZ(new Vector2D(32, 16)), 1e-9);
+    }
+
+    [Fact]
+    public void TriangularCeilingPlaneUsesVertexCeilingHeights()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(0, 64));
+        a.ZCeiling = 128;
+        b.ZCeiling = 128;
+        c.ZCeiling = 192;
+        Sector sector = SectorBuilder.CreateSector(map, new[] { a, b, c })!;
+        map.BuildIndexes();
+
+        Plane ceiling = Sector.GetCeilingPlane(sector);
+
+        Assert.Equal(128, ceiling.GetZ(new Vector2D(0, 0)), 1e-9);
+        Assert.Equal(192, ceiling.GetZ(new Vector2D(0, 64)), 1e-9);
+        Assert.Equal(144, ceiling.GetZ(new Vector2D(32, 16)), 1e-9);
+    }
+
+    [Fact]
     public void FloorSlopeProducesLinearHeight()
     {
         // A plane rising 1 unit in z per 1 unit in y, passing through z=0 at y=0.
