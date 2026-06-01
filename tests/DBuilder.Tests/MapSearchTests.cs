@@ -228,6 +228,22 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void FindLinedefActionArgumentsMinusOneMatchesAnyNonzeroAction()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Args[0] = 17;
+        map.Linedefs[1].Action = 0;
+        map.Linedefs[1].Args[0] = 17;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.LinedefActionArguments, "-1 17");
+
+        Assert.Equal(1, result.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Linedefs[1].Selected);
+    }
+
+    [Fact]
     public void FindAndReplaceThingActionArguments()
     {
         var map = Build();
@@ -248,6 +264,22 @@ public class MapSearchTests
         Assert.Equal(25, map.Things[0].Args[0]);
         Assert.Equal(41, map.Things[0].Args[1]);
         Assert.Equal(80, map.Things[1].Action);
+    }
+
+    [Fact]
+    public void FindThingActionArgumentsMinusOneMatchesAnyNonzeroAction()
+    {
+        var map = Build();
+        map.Things[0].Action = 80;
+        map.Things[0].Args[0] = 17;
+        map.Things[1].Action = 0;
+        map.Things[1].Args[0] = 17;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.ThingActionArguments, "-1 17");
+
+        Assert.Equal(1, result.Count);
+        Assert.True(map.Things[0].Selected);
+        Assert.False(map.Things[1].Selected);
     }
 
     [Fact]

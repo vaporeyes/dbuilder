@@ -613,7 +613,7 @@ public static class MapSearch
     {
         if (query.Action == -1)
         {
-            if (action != 0) return false;
+            if (action == 0) return false;
         }
         else if (action != query.Action)
         {
