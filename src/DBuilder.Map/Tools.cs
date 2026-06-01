@@ -202,6 +202,69 @@ public static class Tools
         }
     }
 
+    /// <summary>Assigns traced linedef sides to an existing sector, matching UDB Tools.JoinSector.</summary>
+    public static Sector? JoinSector(
+        MapSet map,
+        IReadOnlyList<LinedefSide> allLines,
+        Sidedef original,
+        string defaultHighTexture = "-",
+        string defaultMiddleTexture = "-",
+        string defaultLowTexture = "-",
+        bool autoClearSidedefTextures = true)
+    {
+        Sector? sector = original.Sector;
+        if (sector == null || sector.IsDisposed) return sector;
+
+        SidedefTextureDefaults defaults = SidedefTextureDefaults.From(original, defaultHighTexture, defaultMiddleTexture, defaultLowTexture);
+
+        foreach (LinedefSide side in allLines)
+        {
+            Sidedef? target = side.Front ? side.Line.Front : side.Line.Back;
+            if (target == null)
+            {
+                target = map.AddSidedef(side.Line, side.Front, sector);
+                LinkOppositeSidedef(target);
+                ApplyDefaultsToSidedef(target, defaults);
+
+                Sidedef? other = target.Other;
+                if (other != null)
+                    other.RemoveUnneededTextures(removeMiddle: true, force: true, shiftMiddle: true, autoClearSidedefTextures);
+            }
+            else
+            {
+                target.SetSector(sector);
+            }
+        }
+
+        return sector;
+    }
+
+    private readonly record struct SidedefTextureDefaults(string High, string Middle, string Low)
+    {
+        public static SidedefTextureDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
+            => new(
+                IsBlankTexture(side.HighTexture) ? defaultHigh : side.HighTexture,
+                IsBlankTexture(side.MidTexture) ? defaultMiddle : side.MidTexture,
+                IsBlankTexture(side.LowTexture) ? defaultLow : side.LowTexture);
+    }
+
+    private static void LinkOppositeSidedef(Sidedef side)
+    {
+        Sidedef? other = side.IsFront ? side.Line.Back : side.Line.Front;
+        side.Other = other;
+        if (other != null) other.Other = side;
+    }
+
+    private static void ApplyDefaultsToSidedef(Sidedef side, SidedefTextureDefaults defaults)
+    {
+        if (side.HighRequired() && IsBlankTexture(side.HighTexture)) side.SetTextureHigh(defaults.High);
+        if (side.MiddleRequired() && IsBlankTexture(side.MidTexture)) side.SetTextureMid(defaults.Middle);
+        if (side.LowRequired() && IsBlankTexture(side.LowTexture)) side.SetTextureLow(defaults.Low);
+    }
+
+    private static bool IsBlankTexture(string? texture)
+        => string.IsNullOrWhiteSpace(texture) || texture == "-";
+
     /// <summary>Flood-fills matching floor or ceiling flats through adjacent sectors, matching UDB Tools.FloodfillFlats.</summary>
     public static void FloodfillFlats(MapSet map, Sector start, bool fillCeilings, ISet<string> originalFlats, string fillFlat, bool resetSectorMarks)
     {

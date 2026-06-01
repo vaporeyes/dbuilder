@@ -559,6 +559,64 @@ public class ToolsTraceTests
         Assert.Equal(4, path!.Count);
     }
 
+    [Fact]
+    public void JoinSectorCreatesMissingSidedefsOnExistingSector()
+    {
+        var map = new MapSet();
+        var vertices = new[]
+        {
+            new Vector2D(0, 0), new Vector2D(0, 64), new Vector2D(64, 64), new Vector2D(64, 0),
+        }.Select(p => map.AddVertex(p)).ToList();
+        var lines = new List<Linedef>();
+        for (int i = 0; i < vertices.Count; i++)
+            lines.Add(map.AddLinedef(vertices[i], vertices[(i + 1) % vertices.Count]));
+
+        Sector sector = map.AddSector();
+        Sidedef original = map.AddSidedef(lines[0], true, sector);
+        original.SetTextureMid("STONE");
+
+        var sides = lines.Select(line => new LinedefSide(line, true)).ToList();
+        Sector? joined = Tools.JoinSector(map, sides, original, defaultMiddleTexture: "STARTAN");
+        map.BuildIndexes();
+
+        Assert.Same(sector, joined);
+        Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
+        Assert.Equal(4, sector.Sidedefs.Count);
+        Assert.All(lines.Select(line => line.Front!), side => Assert.Equal("STONE", side.MidTexture));
+    }
+
+    [Fact]
+    public void JoinSectorCreatesTwoSidedGapsAndClearsOppositeMiddleTexture()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(a, b);
+        Sector otherSector = map.AddSector();
+        Sector sourceSector = map.AddSector();
+        sourceSector.FloorHeight = -16;
+        sourceSector.CeilHeight = 160;
+        Sidedef other = map.AddSidedef(line, true, otherSector);
+        other.SetTextureMid("OLDMID");
+
+        var sourceLine = map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(192, 0)));
+        Sidedef original = map.AddSidedef(sourceLine, true, sourceSector);
+        original.SetTextureHigh("UPPER");
+        original.SetTextureMid("MIDDLE");
+        original.SetTextureLow("LOWER");
+        map.BuildIndexes();
+
+        Sector? joined = Tools.JoinSector(map, new[] { new LinedefSide(line, false) }, original);
+        map.BuildIndexes();
+
+        Assert.Same(sourceSector, joined);
+        Assert.Same(sourceSector, line.Back!.Sector);
+        Assert.Equal("UPPER", line.Back.HighTexture);
+        Assert.Equal("-", line.Back.MidTexture);
+        Assert.Equal("LOWER", line.Back.LowTexture);
+        Assert.Equal("-", other.MidTexture);
+    }
+
     private static double TriArea(Vector2D a, Vector2D b, Vector2D c)
         => System.Math.Abs(a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)) * 0.5;
 

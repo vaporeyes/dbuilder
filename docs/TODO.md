@@ -178,6 +178,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.
+  - [x] Add UDB-style join-existing-sector helper for traced linedef sides.
 - [ ] Port split-line and merge-geometry behavior to full UDB behavior.
   - [x] Add UDB-style linedef center and side-point helpers.
   - [x] Add UDB-style backward linedef flipping helper.
@@ -231,6 +232,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector fade color helper.
   - [x] Add UDB-style flat floodfill helper.
   - [x] Add UDB-style wall texture floodfill helper.
+  - [x] Add UDB-style traced-side sector join helper.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
 - [ ] Port curve tools and interpolation behavior fully.
