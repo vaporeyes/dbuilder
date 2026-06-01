@@ -172,6 +172,26 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
     public Vector2D? Focus { get; init; }
 
     public IReadOnlyList<MapIssueFix> Fixes { get; init; } = Array.Empty<MapIssueFix>();
+
+    public IReadOnlyList<IMapElement> SuppressionTargets
+    {
+        get
+        {
+            var elements = new List<IMapElement>();
+            if (Target is IMapElement target) elements.Add(target);
+            elements.AddRange(RelatedTargets);
+            return elements;
+        }
+    }
+
+    public void SetIgnored(bool ignored)
+    {
+        foreach (var element in SuppressionTargets)
+        {
+            if (ignored) element.IgnoredErrorChecks.Add(Kind);
+            else element.IgnoredErrorChecks.Remove(Kind);
+        }
+    }
 }
 
 public static class MapAnalysis
@@ -216,9 +236,7 @@ public static class MapAnalysis
 
     private static bool IsIgnored(MapIssue issue)
     {
-        var elements = new List<IMapElement>();
-        if (issue.Target is IMapElement target) elements.Add(target);
-        elements.AddRange(issue.RelatedTargets);
+        var elements = issue.SuppressionTargets;
         return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
     }
 

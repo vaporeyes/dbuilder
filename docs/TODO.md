@@ -1036,6 +1036,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style wildcard matching for sidedef texture and sector flat find categories.
 - [ ] Port map error checker infrastructure.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
+  - [x] Add map-check window support for ignoring selected results.
 - [ ] Port all map error checks.
 - [ ] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.

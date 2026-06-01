@@ -442,6 +442,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueSetIgnoredMarksAndClearsAllSuppressionTargets()
+    {
+        var vertex = new Vertex(new Vector2D(0, 0));
+        var line = new Linedef(new Vertex(new Vector2D(-64, 0)), new Vertex(new Vector2D(64, 0)));
+        var issue = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef, "overlap")
+        {
+            Target = vertex,
+            RelatedTargets = new[] { line },
+        };
+
+        issue.SetIgnored(true);
+
+        Assert.Contains(MapIssueKind.VertexOverlappingLinedef, vertex.IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.VertexOverlappingLinedef, line.IgnoredErrorChecks);
+
+        issue.SetIgnored(false);
+
+        Assert.DoesNotContain(MapIssueKind.VertexOverlappingLinedef, vertex.IgnoredErrorChecks);
+        Assert.DoesNotContain(MapIssueKind.VertexOverlappingLinedef, line.IgnoredErrorChecks);
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);
