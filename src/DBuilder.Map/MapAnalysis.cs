@@ -1169,7 +1169,7 @@ public static class MapAnalysis
         var checkedPairs = new HashSet<(int Source, int Target)>();
         foreach (var side in AllSidedefs(map))
         {
-            string texture = SidedefTextureAlignment.PrimaryTexture(side);
+            string texture = RequiredAlignmentTexture(side);
             if (IsBlank(texture)) continue;
             var size = ctx.TextureSize(texture);
             if (size is not { Width: > 0, Height: > 0 }) continue;
@@ -1207,9 +1207,9 @@ public static class MapAnalysis
         foreach (var other in map.Linedefs)
         {
             if (ReferenceEquals(other, line)) continue;
-            if (other.Front != null && ReferenceEquals(other.Start, forward) && SameTexture(SidedefTextureAlignment.PrimaryTexture(other.Front), texture))
+            if (other.Front != null && ReferenceEquals(other.Start, forward) && SameTexture(RequiredAlignmentTexture(other.Front), texture))
                 return other.Front;
-            if (other.Back != null && ReferenceEquals(other.End, forward) && SameTexture(SidedefTextureAlignment.PrimaryTexture(other.Back), texture))
+            if (other.Back != null && ReferenceEquals(other.End, forward) && SameTexture(RequiredAlignmentTexture(other.Back), texture))
                 return other.Back;
         }
 
@@ -1220,6 +1220,14 @@ public static class MapAnalysis
 
     private static bool SameTexture(string left, string right)
         => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+
+    private static string RequiredAlignmentTexture(Sidedef side)
+    {
+        if (side.MiddleRequired() && !IsBlank(side.MidTexture)) return side.MidTexture;
+        if (side.HighRequired() && !IsBlank(side.HighTexture)) return side.HighTexture;
+        if (side.LowRequired() && !IsBlank(side.LowTexture)) return side.LowTexture;
+        return "-";
+    }
 
     private static int Mod(int value, int modulus)
         => ((value % modulus) + modulus) % modulus;

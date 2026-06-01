@@ -1814,6 +1814,32 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void TextureAlignmentIgnoresUnusedMiddleTexturesOnTwoSidedLines()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        var back = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(128, 0));
+        var first = map.AddLinedef(a, b);
+        var second = map.AddLinedef(b, c);
+        map.AddSidedef(first, true, front).MidTexture = "WALL";
+        map.AddSidedef(first, false, back);
+        map.AddSidedef(second, true, front).MidTexture = "WALL";
+        map.AddSidedef(second, false, back);
+        second.Front!.OffsetX = 17;
+        map.BuildIndexes();
+        var ctx = new MapCheckContext
+        {
+            CheckTextureAlignment = true,
+            TextureSize = texture => texture == "WALL" ? (128, 128) : null,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MisalignedTexture);
+    }
+
+    [Fact]
     public void UnknownSectorEffectFlagged()
     {
         var map = Square(true);
