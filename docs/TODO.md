@@ -1155,6 +1155,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and toolbar Make Door command for selected sectors.
   - [x] Add UDB-style Make Door options dialog for textures, offsets, action specials, and tags.
   - [x] Persist Make Door dialog defaults in editor settings.
+  - [x] Match UDB Make Door floor-flat defaults for same-floor and mixed-floor selections.
 - [ ] Port object export tools.
   - [x] Add UDB-style legacy object export settings defaults, scale and texture options, and path validation.
   - [x] Add UDB-style legacy object export geometry writer and OBJ/MTL file planning.

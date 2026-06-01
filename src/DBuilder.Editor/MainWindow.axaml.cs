@@ -3502,7 +3502,7 @@ public partial class MainWindow : Window
         {
             DoorTexture = _config?.MakeDoorDoor ?? "-",
             TrackTexture = _config?.MakeDoorTrack ?? "-",
-            FloorTexture = sectors[0].FloorTexture,
+            FloorTexture = MakeDoorTool.DefaultFloorTexture(sectors),
             CeilingTexture = _config?.MakeDoorCeiling ?? "-",
             Action = _config?.MakeDoorAction ?? 0,
             Activate = _config?.MakeDoorActivate ?? 0,

@@ -24,6 +24,29 @@ public readonly record struct MakeDoorResult(int SectorsChanged, int OneSidedLin
 
 public static class MakeDoorTool
 {
+    public static string DefaultFloorTexture(IEnumerable<Sector> sectors)
+    {
+        ArgumentNullException.ThrowIfNull(sectors);
+
+        string? floorTexture = null;
+        bool found = false;
+        foreach (Sector sector in sectors)
+        {
+            if (sector == null || sector.IsDisposed) continue;
+            if (!found)
+            {
+                floorTexture = sector.FloorTexture;
+                found = true;
+                continue;
+            }
+
+            if (!string.Equals(floorTexture, sector.FloorTexture, StringComparison.Ordinal))
+                return "";
+        }
+
+        return found ? floorTexture ?? "" : "";
+    }
+
     public static MakeDoorResult Apply(MapSet map, IEnumerable<Sector> sectors, MakeDoorOptions options)
     {
         ArgumentNullException.ThrowIfNull(map);

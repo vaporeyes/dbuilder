@@ -110,6 +110,22 @@ public class MakeDoorToolTests
         Assert.Equal(32, outsideSide.OffsetY);
     }
 
+    [Fact]
+    public void DefaultFloorTextureIsBlankForMixedSelectedFloors()
+    {
+        var map = new MapSet();
+        Sector first = map.AddSector();
+        first.FloorTexture = "STEP1";
+        Sector second = map.AddSector();
+        second.FloorTexture = "STEP1";
+        Sector third = map.AddSector();
+        third.FloorTexture = "NUKAGE1";
+
+        Assert.Equal("STEP1", MakeDoorTool.DefaultFloorTexture(new[] { first, second }));
+        Assert.Equal("", MakeDoorTool.DefaultFloorTexture(new[] { first, third }));
+        Assert.Equal("", MakeDoorTool.DefaultFloorTexture(Array.Empty<Sector>()));
+    }
+
     private static (MapSet Map, Sector Sector, Sidedef TrackSide, Sidedef DoorSide, Sidedef OutsideSide) DoorMap()
     {
         var map = new MapSet();
