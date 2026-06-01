@@ -904,6 +904,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual camera behavior.
+  - [x] Add UDB-style Move Camera to Cursor visual action with 64-unit target offset.
 - [ ] Port visual geometry behavior.
 - [ ] Port visual sector behavior.
 - [ ] Port visual thing behavior.

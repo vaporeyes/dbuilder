@@ -253,6 +253,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return _useHighlight;
     }
 
+    public bool MoveCameraToCursor()
+    {
+        if (!_mode3D || _map == null) return false;
+
+        _blockmapCache ??= new DBuilder.Map.BlockMap(_map);
+        UpdateTarget3D();
+        if (_target3D is not { } target) return false;
+
+        var current = new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z);
+        if (!VisualCameraMovement.TryMoveCameraToCursor(current, target.Point, out DBuilder.Geometry.Vector3D next)) return false;
+
+        _cam3DPos = new Vector3((float)next.x, (float)next.y, (float)next.z);
+        RequestNextFrameRendering();
+        return true;
+    }
+
     public ClassicViewMode SetViewMode2D(ClassicViewMode mode)
     {
         _classicViewMode = mode;
@@ -3158,6 +3174,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.walk-mode":
                 _walkMode = !_walkMode;
                 RequestNextFrameRendering();
+                return true;
+            case "map3d.move-camera-to-cursor":
+                MoveCameraToCursor();
                 return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);

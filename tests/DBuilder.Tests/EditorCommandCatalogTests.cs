@@ -543,13 +543,14 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
-    public void VisualSlopeCommandsMatchUdbActionSurface()
+    public void VisualModeCommandsMatchUdbActionSurface()
     {
         var expected = new Dictionary<string, string>
         {
             ["map3d.toggle-visual-sidedef-slope-picking"] = "Toggle Visual Sidedef Slope Picking",
             ["map3d.toggle-visual-vertex-slope-picking"] = "Toggle Visual Vertex Slope Picking",
             ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = "Toggle Adjacent Visual Vertex Slope Selection",
+            ["map3d.move-camera-to-cursor"] = "Move Camera to Cursor",
         };
 
         foreach ((string commandId, string title) in expected)
