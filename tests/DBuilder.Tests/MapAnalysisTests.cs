@@ -415,6 +415,33 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void IgnoredSingleElementErrorCheckSuppressesIssue()
+    {
+        var map = Square(true);
+        var vertex = map.AddVertex(new Vector2D(900, 900));
+        vertex.IgnoredErrorChecks.Add(MapIssueKind.UnusedVertex);
+        map.BuildIndexes();
+
+        Assert.DoesNotContain(MapAnalysis.Check(map), issue => issue.Kind == MapIssueKind.UnusedVertex);
+    }
+
+    [Fact]
+    public void IgnoredMultiElementErrorCheckRequiresAllElements()
+    {
+        var map = Square(true);
+        var vertex = map.AddVertex(new Vector2D(0, 50));
+        var line = map.Linedefs[0];
+        vertex.IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
+        map.BuildIndexes();
+
+        Assert.Contains(MapAnalysis.Check(map), issue => issue.Kind == MapIssueKind.VertexOverlappingLinedef);
+
+        line.IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
+
+        Assert.DoesNotContain(MapAnalysis.Check(map), issue => issue.Kind == MapIssueKind.VertexOverlappingLinedef);
+    }
+
+    [Fact]
     public void DetectsEmptySector()
     {
         var map = Square(true);

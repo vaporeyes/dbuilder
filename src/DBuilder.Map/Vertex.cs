@@ -12,6 +12,9 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     /// <summary>True after this element has been removed from its owning map.</summary>
     public bool IsDisposed { get; set; }
 
+    /// <summary>Map error results ignored for this element, matching UDB's per-element error suppression.</summary>
+    public HashSet<MapIssueKind> IgnoredErrorChecks { get; } = new();
+
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }
 
@@ -53,6 +56,10 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         vertex.Groups = Groups;
         vertex.ZCeiling = ZCeiling;
         vertex.ZFloor = ZFloor;
+
+        vertex.IgnoredErrorChecks.Clear();
+        foreach (var check in IgnoredErrorChecks) vertex.IgnoredErrorChecks.Add(check);
+
         CopyFieldsTo(vertex);
     }
 

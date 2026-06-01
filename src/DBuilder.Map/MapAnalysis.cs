@@ -165,6 +165,9 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
     /// <summary>The offending element, so the editor can select it (null when the issue has no single element).</summary>
     public ISelectable? Target { get; init; }
 
+    /// <summary>Additional map elements tied to this result, used for UDB-style ignored-error suppression.</summary>
+    public IReadOnlyList<IMapElement> RelatedTargets { get; init; } = Array.Empty<IMapElement>();
+
     /// <summary>A representative world location to center the view on (null when unknown).</summary>
     public Vector2D? Focus { get; init; }
 
@@ -208,7 +211,15 @@ public static class MapAnalysis
             CheckOffGridVertices(map, ctx, vertexIndex, issues);
         }
 
-        return issues;
+        return issues.Where(issue => !IsIgnored(issue)).ToArray();
+    }
+
+    private static bool IsIgnored(MapIssue issue)
+    {
+        var elements = new List<IMapElement>();
+        if (issue.Target is IMapElement target) elements.Add(target);
+        elements.AddRange(issue.RelatedTargets);
+        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
     }
 
     // A two-sided line needs an upper/lower texture where its sector is taller/lower than the neighbor; a
@@ -725,6 +736,7 @@ public static class MapAnalysis
         => new(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInThing, message)
         {
             Target = first,
+            RelatedTargets = new[] { second },
             Focus = first.Position,
             Fixes = new[]
             {
@@ -868,23 +880,27 @@ public static class MapAnalysis
 
     private static void AddPolyLineIssue(List<MapIssue> issues, IEnumerable<(int Index, Linedef Line)> lines, string message)
     {
-        var first = lines.FirstOrDefault();
-        if (first.Line == null) return;
+        var elements = lines.Select(item => item.Line).Where(line => line != null).ToArray();
+        var first = elements.FirstOrDefault();
+        if (first == null) return;
         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
         {
-            Target = first.Line,
-            Focus = new Vector2D((first.Line.Start.Position.x + first.Line.End.Position.x) * 0.5, (first.Line.Start.Position.y + first.Line.End.Position.y) * 0.5),
+            Target = first,
+            RelatedTargets = elements.Skip(1).Cast<IMapElement>().ToArray(),
+            Focus = new Vector2D((first.Start.Position.x + first.End.Position.x) * 0.5, (first.Start.Position.y + first.End.Position.y) * 0.5),
         });
     }
 
     private static void AddPolyThingIssue(List<MapIssue> issues, IEnumerable<(int Index, Thing Thing)> things, string message)
     {
-        var first = things.FirstOrDefault();
-        if (first.Thing == null) return;
+        var elements = things.Select(item => item.Thing).Where(thing => thing != null).ToArray();
+        var first = elements.FirstOrDefault();
+        if (first == null) return;
         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
         {
-            Target = first.Thing,
-            Focus = first.Thing.Position,
+            Target = first,
+            RelatedTargets = elements.Skip(1).Cast<IMapElement>().ToArray(),
+            Focus = first.Position,
         });
     }
 
@@ -918,7 +934,7 @@ public static class MapAnalysis
             int targetIndex = lineIndexes.TryGetValue(target.Line, out int ti) ? ti : -1;
             issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture,
                 $"Texture \"{texture}\" is not aligned on linedefs {sourceIndex} ({(side.IsFront ? "front" : "back")}) and {targetIndex} ({(target.IsFront ? "front" : "back")}).")
-                { Target = side.Line, Focus = LinedefMidpoint(side.Line) });
+                { Target = side.Line, RelatedTargets = new[] { target.Line }, Focus = LinedefMidpoint(side.Line) });
         }
     }
 
@@ -958,17 +974,19 @@ public static class MapAnalysis
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.
     private static void CheckOverlappingLinedefs(MapSet map, List<MapIssue> issues)
     {
-        var seen = new HashSet<(long, long, long, long)>();
+        var seen = new Dictionary<(long, long, long, long), Linedef>();
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var l = map.Linedefs[i];
             var a = Key(l.Start.Position);
             var b = Key(l.End.Position);
             var key = Compare(a, b) <= 0 ? (a.Item1, a.Item2, b.Item1, b.Item2) : (b.Item1, b.Item2, a.Item1, a.Item2);
-            if (!seen.Add(key))
+            if (seen.TryGetValue(key, out var matchingLine))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedef {i} overlaps another linedef (same endpoints).")
-                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+                    { Target = l, RelatedTargets = new[] { matchingLine }, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+            else
+                seen[key] = l;
 
             for (int j = 0; j < i; j++)
             {
@@ -979,7 +997,7 @@ public static class MapAnalysis
 
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedef {i} crosses linedef {j}.")
-                    { Target = l, Focus = l.Line.GetCoordinatesAt(uLine) });
+                    { Target = l, RelatedTargets = new[] { other }, Focus = l.Line.GetCoordinatesAt(uLine) });
                 break;
             }
         }
@@ -1497,6 +1515,7 @@ public static class MapAnalysis
         => new(MapIssueSeverity.Warning, MapIssueKind.OverlappingVertices, message)
         {
             Target = vertices[0],
+            RelatedTargets = vertices.Skip(1).Cast<IMapElement>().ToArray(),
             Focus = vertices[0].Position,
             Fixes = new[]
             {
@@ -1538,6 +1557,7 @@ public static class MapAnalysis
         => new(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef, message)
         {
             Target = vertex,
+            RelatedTargets = new[] { line },
             Focus = vertex.Position,
             Fixes = new[]
             {

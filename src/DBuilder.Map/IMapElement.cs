@@ -6,4 +6,5 @@ namespace DBuilder.Map;
 public interface IMapElement
 {
     bool IsDisposed { get; set; }
+    HashSet<MapIssueKind> IgnoredErrorChecks { get; }
 }

@@ -12,6 +12,9 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     /// <summary>True after this element has been removed from its owning map.</summary>
     public bool IsDisposed { get; set; }
 
+    /// <summary>Map error results ignored for this element, matching UDB's per-element error suppression.</summary>
+    public HashSet<MapIssueKind> IgnoredErrorChecks { get; } = new();
+
     /// <summary>Transient editor selection state. Not part of the saved map; reset after undo/redo.</summary>
     public bool Selected { get; set; }
 
@@ -102,6 +105,9 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
 
         sector.UdmfFlags.Clear();
         foreach (var flag in UdmfFlags) sector.UdmfFlags.Add(flag);
+
+        sector.IgnoredErrorChecks.Clear();
+        foreach (var check in IgnoredErrorChecks) sector.IgnoredErrorChecks.Add(check);
 
         CopyFieldsTo(sector);
     }
