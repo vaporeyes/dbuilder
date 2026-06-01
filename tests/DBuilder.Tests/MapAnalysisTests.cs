@@ -53,6 +53,32 @@ public class MapAnalysisTests
     private static bool Has(MapSet map, MapIssueKind kind)
         => MapAnalysis.Check(map).Any(i => i.Kind == kind);
 
+    private static (MapSet Map, Linedef Shared) AdjacentSquares()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var c = map.AddVertex(new Vector2D(100, 100));
+        var d = map.AddVertex(new Vector2D(0, 100));
+        var e = map.AddVertex(new Vector2D(200, 0));
+        var f = map.AddVertex(new Vector2D(200, 100));
+
+        SectorBuilder.CreateSector(map, new[] { a, b, c, d });
+        SectorBuilder.CreateSector(map, new[] { b, e, f, c });
+        map.BuildIndexes();
+
+        var shared = map.Linedefs.Single(line =>
+            (ReferenceEquals(line.Start, b) && ReferenceEquals(line.End, c)) ||
+            (ReferenceEquals(line.Start, c) && ReferenceEquals(line.End, b)));
+        return (map, shared);
+    }
+
+    private static void MarkSectorSides(Sector sector, string texture)
+    {
+        foreach (var side in sector.Sidedefs)
+            side.MidTexture = texture;
+    }
+
     [Fact]
     public void CleanSquareHasNoIssues()
     {
@@ -124,6 +150,27 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingFrontIssueCanCreateSidedefFromNeighbor()
+    {
+        var (map, line) = AdjacentSquares();
+        var sourceSector = Assert.IsType<Sector>(line.Front?.Sector);
+        MarkSectorSides(sourceSector, "COPYME");
+        map.RemoveSidedef(line.Front!);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefMissingFront);
+
+        Assert.Equal(new[] { "Flip Linedef", "Create Sidedef" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[1].Apply(map));
+
+        Assert.NotNull(line.Front);
+        Assert.NotNull(line.Back);
+        Assert.Same(sourceSector, line.Front!.Sector);
+        Assert.Equal("COPYME", line.Front.MidTexture);
+        Assert.Equal(4, line.Flags);
+    }
+
+    [Fact]
     public void DoubleSidedFlagWithoutBackSidedefIsFlagged()
     {
         var map = Square(true);
@@ -143,12 +190,59 @@ public class MapAnalysisTests
         line.UdmfFlags.Add("twosided");
         var ctx = new MapCheckContext { DoubleSidedFlag = "twosided" };
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
-        var fix = Assert.Single(issue.Fixes);
+        var fix = Assert.Single(issue.Fixes, fix => fix.Label == "Make Single-Sided");
 
         Assert.Equal("Make Single-Sided", fix.Label);
         Assert.True(fix.Apply(map));
 
         Assert.DoesNotContain("twosided", line.UdmfFlags);
+    }
+
+    [Fact]
+    public void NotDoubleSidedIssueCanCreateBackSidedefFromNeighbor()
+    {
+        var (map, line) = AdjacentSquares();
+        var sourceSector = Assert.IsType<Sector>(line.Back?.Sector);
+        MarkSectorSides(sourceSector, "COPYME");
+        map.RemoveSidedef(line.Back!);
+        map.BuildIndexes();
+        line.Flags = 4;
+        var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
+
+        Assert.Equal(new[] { "Make Single-Sided", "Create Sidedef" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[1].Apply(map));
+
+        Assert.NotNull(line.Back);
+        Assert.Same(sourceSector, line.Back!.Sector);
+        Assert.Equal("COPYME", line.Back.MidTexture);
+        Assert.Equal(4, line.Flags);
+    }
+
+    [Fact]
+    public void LinedefWithoutSidedefsIssueCanCreateBothSidesFromNeighbors()
+    {
+        var (map, line) = AdjacentSquares();
+        var frontSector = Assert.IsType<Sector>(line.Front?.Sector);
+        var backSector = Assert.IsType<Sector>(line.Back?.Sector);
+        MarkSectorSides(frontSector, "FRONTCOPY");
+        MarkSectorSides(backSector, "BACKCOPY");
+        map.RemoveSidedef(line.Front!);
+        map.RemoveSidedef(line.Back!);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { DoubleSidedFlag = "4" };
+        var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefWithoutSidedefs);
+
+        Assert.Equal(new[] { "Create One Side", "Create Both Sides" }, issue.Fixes.Select(fix => fix.Label).ToArray());
+        Assert.True(issue.Fixes[1].Apply(map));
+
+        Assert.NotNull(line.Front);
+        Assert.NotNull(line.Back);
+        Assert.Same(frontSector, line.Front!.Sector);
+        Assert.Same(backSector, line.Back!.Sector);
+        Assert.Equal("FRONTCOPY", line.Front.MidTexture);
+        Assert.Equal("BACKCOPY", line.Back.MidTexture);
+        Assert.Equal(4, line.Flags);
     }
 
     [Fact]

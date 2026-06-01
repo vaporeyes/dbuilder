@@ -174,7 +174,7 @@ public static class MapAnalysis
         var vertexIndex = new Dictionary<Vertex, int>(ReferenceEqualityComparer.Instance);
         for (int i = 0; i < map.Vertices.Count; i++) vertexIndex[map.Vertices[i]] = i;
 
-        CheckLinedefs(map, issues);
+        CheckLinedefs(map, ctx, issues);
         if (ctx?.DoubleSidedFlag != null)
             CheckLineReferenceFlags(map, ctx, issues);
         if (ctx != null)
@@ -1050,7 +1050,7 @@ public static class MapAnalysis
     private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
         => !IsBlank(flat) && ctx.IsSkyFlat?.Invoke(flat!) == true;
 
-    private static void CheckLinedefs(MapSet map, List<MapIssue> issues)
+    private static void CheckLinedefs(MapSet map, MapCheckContext? ctx, List<MapIssue> issues)
     {
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
@@ -1063,10 +1063,11 @@ public static class MapAnalysis
                     $"Linedef {i} has zero length.") { Target = l, Focus = mid });
 
             if (l.Front == null && l.Back == null)
-                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefWithoutSidedefs,
-                    $"Linedef {i} has no sidedefs.") { Target = l, Focus = mid });
+                issues.Add(LinedefWithoutSidedefsIssue(map, l, ctx?.DoubleSidedFlag,
+                    $"Linedef {i} has no sidedefs.", mid));
             else if (l.Front == null)
-                issues.Add(MissingFrontIssue(l, $"Linedef {i} has only a back sidedef (a front sidedef is required).", mid));
+                issues.Add(MissingFrontIssue(map, l, ctx?.DoubleSidedFlag,
+                    $"Linedef {i} has only a back sidedef (a front sidedef is required).", mid));
         }
     }
 
@@ -1080,7 +1081,7 @@ public static class MapAnalysis
             var mid = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);
             bool markedDoubleSided = IsLineFlagSet(l, ctx.DoubleSidedFlag);
             if (markedDoubleSided && l.Back == null)
-                issues.Add(LineNotDoubleSidedIssue(l, ctx.DoubleSidedFlag,
+                issues.Add(LineNotDoubleSidedIssue(map, l, ctx.DoubleSidedFlag,
                     $"Linedef {i} is marked double-sided but has no back sidedef.", mid));
             else if (!markedDoubleSided && l.Back != null)
                 issues.Add(LineNotSingleSidedIssue(l, ctx.DoubleSidedFlag,
@@ -1096,39 +1097,151 @@ public static class MapAnalysis
         return line.UdmfFlags.Contains(flag);
     }
 
-    private static MapIssue MissingFrontIssue(Linedef line, string message, Vector2D focus)
-        => new(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront, message)
+    private static MapIssue LinedefWithoutSidedefsIssue(MapSet map, Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
+    {
+        Sidedef? frontSource = FindCopySidedef(map, line, true);
+        Sidedef? backSource = FindCopySidedef(map, line, false);
+        var fixes = new List<MapIssueFix>();
+
+        if (frontSource != null || backSource != null)
+        {
+            fixes.Add(new MapIssueFix("Create One Side", targetMap =>
+            {
+                if (!targetMap.Linedefs.Contains(line) || line.Front != null || line.Back != null) return false;
+                if (frontSource != null)
+                {
+                    CreateSidedefFromSource(targetMap, line, true, frontSource);
+                }
+                else
+                {
+                    CreateSidedefFromSource(targetMap, line, true, backSource!);
+                    line.FlipVertices();
+                }
+
+                targetMap.BuildIndexes();
+                return true;
+            }));
+        }
+
+        if (frontSource != null && backSource != null)
+        {
+            fixes.Add(new MapIssueFix("Create Both Sides", targetMap =>
+            {
+                if (!targetMap.Linedefs.Contains(line) || line.Front != null || line.Back != null) return false;
+                CreateSidedefFromSource(targetMap, line, true, frontSource);
+                CreateSidedefFromSource(targetMap, line, false, backSource);
+                SetLineFlag(line, doubleSidedFlag, true);
+                targetMap.BuildIndexes();
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefWithoutSidedefs, message)
         {
             Target = line,
             Focus = focus,
-            Fixes = new[]
+            Fixes = fixes,
+        };
+    }
+
+    private static MapIssue MissingFrontIssue(MapSet map, Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
+    {
+        Sidedef? source = FindCopySidedef(map, line, true);
+        var fixes = new List<MapIssueFix>
+        {
+            new("Flip Linedef", targetMap =>
             {
-                new MapIssueFix("Flip Linedef", map =>
-                {
-                    if (!map.Linedefs.Contains(line) || line.Back == null || line.Front != null) return false;
-                    line.FlipVertices();
-                    line.FlipSidedefs();
-                    map.BuildIndexes();
-                    return true;
-                }),
-            },
+                if (!targetMap.Linedefs.Contains(line) || line.Back == null || line.Front != null) return false;
+                line.FlipVertices();
+                line.FlipSidedefs();
+                targetMap.BuildIndexes();
+                return true;
+            }),
         };
 
-    private static MapIssue LineNotDoubleSidedIssue(Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
-        => new(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided, message)
+        if (source != null)
+        {
+            fixes.Add(new MapIssueFix("Create Sidedef", targetMap =>
+            {
+                if (!targetMap.Linedefs.Contains(line) || line.Front != null || line.Back == null) return false;
+                CreateSidedefFromSource(targetMap, line, true, source);
+                SetLineFlag(line, doubleSidedFlag, true);
+                targetMap.BuildIndexes();
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront, message)
         {
             Target = line,
             Focus = focus,
-            Fixes = new[]
-            {
-                new MapIssueFix("Make Single-Sided", map =>
-                {
-                    if (!map.Linedefs.Contains(line)) return false;
-                    SetLineFlag(line, doubleSidedFlag, false);
-                    return true;
-                }),
-            },
+            Fixes = fixes,
         };
+    }
+
+    private static MapIssue LineNotDoubleSidedIssue(MapSet map, Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
+    {
+        Sidedef? source = FindCopySidedef(map, line, false);
+        var fixes = new List<MapIssueFix>
+        {
+            new("Make Single-Sided", targetMap =>
+            {
+                if (!targetMap.Linedefs.Contains(line)) return false;
+                SetLineFlag(line, doubleSidedFlag, false);
+                return true;
+            }),
+        };
+
+        if (source != null)
+        {
+            fixes.Add(new MapIssueFix("Create Sidedef", targetMap =>
+            {
+                if (!targetMap.Linedefs.Contains(line) || line.Back != null) return false;
+                CreateSidedefFromSource(targetMap, line, false, source);
+                SetLineFlag(line, doubleSidedFlag, true);
+                targetMap.BuildIndexes();
+                return true;
+            }));
+        }
+
+        return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided, message)
+        {
+            Target = line,
+            Focus = focus,
+            Fixes = fixes,
+        };
+    }
+
+    private static Sidedef? FindCopySidedef(MapSet map, Linedef line, bool front)
+    {
+        List<LinedefSide>? sides;
+        try
+        {
+            sides = Tools.FindPotentialSectorAt(map, line, front);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+
+        if (sides == null) return null;
+
+        foreach (var side in sides)
+        {
+            if (ReferenceEquals(side.Line, line)) continue;
+            var sidedef = side.Front ? side.Line.Front : side.Line.Back;
+            if (sidedef != null) return sidedef;
+        }
+
+        return null;
+    }
+
+    private static Sidedef CreateSidedefFromSource(MapSet map, Linedef line, bool front, Sidedef source)
+    {
+        var sidedef = map.AddSidedef(line, front, source.Sector);
+        source.CopyPropertiesTo(sidedef);
+        return sidedef;
+    }
 
     private static MapIssue LineNotSingleSidedIssue(Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
         => new(MapIssueSeverity.Error, MapIssueKind.LinedefNotSingleSided, message)

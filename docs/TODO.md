@@ -1046,6 +1046,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style remove fixes for unknown actions and sector effects.
   - [x] Add UDB-style delete fix for unknown thing script results.
   - [x] Add UDB-style apply-default-flags fix for unused things.
+  - [x] Add UDB-style create-sidedef fixes for missing linedef sides and sidedness mismatches.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
