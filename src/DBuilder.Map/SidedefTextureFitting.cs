@@ -52,6 +52,7 @@ public static class SidedefTextureFitting
             double offsetX = useSurfaceBounds
                 ? options.BoundsX * scaleX - side.OffsetX - options.ControlSideOffsetX
                 : -side.OffsetX - options.ControlSideOffsetX;
+            if (useSurfaceBounds) offsetX = WrapOffset(offsetX, texture.Width);
 
             changed |= SetFloat(side, ScaleXField(part), Math.Round(scaleX, decimals), 1.0);
             changed |= SetFloat(side, OffsetXField(part), Math.Round(offsetX, decimals), 0.0);
@@ -72,6 +73,7 @@ public static class SidedefTextureFitting
             double offsetY = useSurfaceBounds
                 ? options.BoundsY * scaleY - side.OffsetY - options.ControlSideOffsetY
                 : -side.OffsetY - options.ControlSideOffsetY;
+            offsetY = WrapOffset(offsetY, texture.Height);
 
             changed |= SetFloat(side, ScaleYField(part), Math.Round(scaleY, decimals), 1.0);
             changed |= SetFloat(side, OffsetYField(part), Math.Round(offsetY, decimals), 0.0);
@@ -109,6 +111,9 @@ public static class SidedefTextureFitting
 
     private static double NormalizedRepeat(double repeat)
         => double.IsNaN(repeat) || repeat == 0.0 ? 1.0 : repeat;
+
+    private static double WrapOffset(double offset, int textureSize)
+        => textureSize > 0 ? offset % textureSize : offset;
 
     private static bool SetFloat(Sidedef side, string field, double value, double defaultValue)
     {
