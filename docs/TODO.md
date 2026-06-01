@@ -700,6 +700,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style paste options for tag renumbering, tag removal, and action removal.
   - [x] Persist paste options and apply them to editor paste, duplicate, and prefab insertion.
   - [x] Add paste option controls to the settings dialog.
+  - [x] Add UDB-style paste-properties option tab model for copied and target element combinations.
 - [ ] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
