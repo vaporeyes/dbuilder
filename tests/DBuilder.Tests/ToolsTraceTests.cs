@@ -708,6 +708,67 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorFromLoopCreatesLoopLinesAndUsesUdbDefaults()
+    {
+        var map = new MapSet();
+        var loop = new[]
+        {
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(64, 0)),
+            map.AddVertex(new Vector2D(64, 64)),
+            map.AddVertex(new Vector2D(0, 64)),
+        };
+        var options = new Tools.SectorCreationOptions
+        {
+            DefaultFloorTexture = "FLOOR",
+            DefaultCeilingTexture = "CEIL",
+            DefaultMiddleTexture = "WALL",
+            DefaultFloorHeight = -8,
+            DefaultCeilingHeight = 144,
+            DefaultBrightness = 176,
+        };
+
+        Sector? sector = Tools.MakeSectorFromLoop(map, loop, options: options);
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Equal(4, sector!.Sidedefs.Count);
+        Assert.Equal("FLOOR", sector.FloorTexture);
+        Assert.Equal("CEIL", sector.CeilTexture);
+        Assert.All(sector.Sidedefs, side => Assert.Equal("WALL", side.MidTexture));
+    }
+
+    [Fact]
+    public void MakeSectorFromLoopReusesExistingLinedefsAndSourceSideDefaults()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Linedef existing = map.AddLinedef(a, b);
+        Sector source = map.AddSector();
+        source.SetFloorTexture("SRCFLAT");
+        source.SetCeilTexture("SRCCEIL");
+        Sidedef sourceSide = map.AddSidedef(existing, isFront: true, source);
+        sourceSide.SetTextureMid("SRCWALL");
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSectorFromLoop(map, new[] { a, b, c, d });
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Contains(existing, map.Linedefs);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Same(sector, existing.Back!.Sector);
+        Assert.Equal("SRCFLAT", sector!.FloorTexture);
+        Assert.Equal("SRCCEIL", sector.CeilTexture);
+        Assert.Equal("-", existing.Back.MidTexture);
+        Assert.All(sector.Sidedefs.Where(side => !ReferenceEquals(side, existing.Back)), side => Assert.Equal("SRCWALL", side.MidTexture));
+    }
+
+    [Fact]
     public void JoinSectorCreatesMissingSidedefsOnExistingSector()
     {
         var map = new MapSet();

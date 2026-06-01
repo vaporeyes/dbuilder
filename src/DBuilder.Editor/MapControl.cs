@@ -3995,7 +3995,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
-            ApplyNewSectorDefaults(SectorBuilder.CreateSector(_map, verts));
+            var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
+            Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
         }
 
         _map.MergeOverlappingVertices(0.01);
@@ -4022,6 +4023,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private static bool SamePoint(Vec2D a, Vec2D b)
         => Math.Abs(a.x - b.x) < 0.001 && Math.Abs(a.y - b.y) < 0.001;
+
+    private static bool LineTouchesOnlyDrawnVertices(Linedef line, IReadOnlyCollection<Vertex> vertices)
+        => vertices.Contains(line.Start) && vertices.Contains(line.End);
 
     // Builds the in-progress draw overlay: placed-point segments + a preview segment to the cursor.
     private void RebuildDrawPreview()

@@ -384,6 +384,37 @@ public static class Tools
         return newSector;
     }
 
+    /// <summary>Creates or reuses loop linedefs, then materializes a sector through UDB-style traced-side creation.</summary>
+    public static Sector? MakeSectorFromLoop(
+        MapSet map,
+        IReadOnlyList<Vertex> loop,
+        IReadOnlyList<Linedef>? nearbyLines = null,
+        bool useOverrides = false,
+        SectorCreationOptions? options = null,
+        bool autoClearSidedefTextures = true)
+    {
+        if (loop.Count < 3) return null;
+
+        var vertices = new List<Vertex>(loop);
+        if (SignedArea(vertices) > 0) vertices.Reverse();
+
+        var sides = new List<LinedefSide>(vertices.Count);
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Vertex start = vertices[i];
+            Vertex end = vertices[(i + 1) % vertices.Count];
+            if (ReferenceEquals(start, end)) continue;
+
+            Linedef line = FindLinedef(map, start, end) ?? map.AddLinedef(start, end);
+            bool useFront = ReferenceEquals(line.Start, start);
+            sides.Add(new LinedefSide(line, useFront));
+        }
+
+        return sides.Count < 3
+            ? null
+            : MakeSector(map, sides, nearbyLines, useOverrides, options, autoClearSidedefTextures);
+    }
+
     private readonly record struct SidedefTextureDefaults(string? High, string? Middle, string? Low)
     {
         public static SidedefTextureDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
@@ -421,6 +452,29 @@ public static class Tools
 
     private static bool IsBlankTexture(string? texture)
         => string.IsNullOrWhiteSpace(texture) || texture == "-";
+
+    private static double SignedArea(IReadOnlyList<Vertex> vertices)
+    {
+        double sum = 0;
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Vector2D a = vertices[i].Position;
+            Vector2D b = vertices[(i + 1) % vertices.Count].Position;
+            sum += a.x * b.y - b.x * a.y;
+        }
+        return sum * 0.5;
+    }
+
+    private static Linedef? FindLinedef(MapSet map, Vertex a, Vertex b)
+    {
+        foreach (Linedef line in map.Linedefs)
+        {
+            if ((ReferenceEquals(line.Start, a) && ReferenceEquals(line.End, b)) ||
+                (ReferenceEquals(line.Start, b) && ReferenceEquals(line.End, a)))
+                return line;
+        }
+        return null;
+    }
 
     /// <summary>Flood-fills matching floor or ceiling flats through adjacent sectors, matching UDB Tools.FloodfillFlats.</summary>
     public static void FloodfillFlats(MapSet map, Sector start, bool fillCeilings, ISet<string> originalFlats, string fillFlat, bool resetSectorMarks)

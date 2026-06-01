@@ -238,6 +238,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style wall texture floodfill helper.
   - [x] Add UDB-style traced-side sector join helper.
   - [x] Add UDB-style traced-side sector creation helper.
+  - [x] Add UDB-style loop sector creation through traced sides.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
 - [ ] Port curve tools and interpolation behavior fully.
@@ -728,6 +729,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.
   - [x] Wire make-sector-at-cursor to UDB-style traced sector creation.
+  - [x] Wire draw-sector materialization to UDB-style traced sector creation.
   - [x] Add menu command for curve line drawing.
   - [x] Let the thing browser choose the insert-at-cursor thing type.
   - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.
