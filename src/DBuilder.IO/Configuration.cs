@@ -54,7 +54,8 @@ public sealed class Configuration
     private IDictionary root;
 
     //mxd. Cache shared across all Configuration instances - matches UDB behavior.
-    private static Dictionary<string, IDictionary> cfgcache = new Dictionary<string, IDictionary>(StringComparer.Ordinal);
+    private static readonly Dictionary<string, IDictionary> cfgcache = new Dictionary<string, IDictionary>(StringComparer.Ordinal);
+    private static readonly object cfgcacheLock = new object();
 
     public bool ErrorResult => cpErrorResult;
     public string ErrorDescription => cpErrorDescription;
@@ -513,9 +514,15 @@ public sealed class Configuration
         includefile = includefile.Replace('\\', '/');
 
         //mxd. Caching of parsed includes
-        if (cfgcache.ContainsKey(includefile))
+        IDictionary? cachedInclude;
+        lock (cfgcacheLock)
         {
-            IDictionary cinc = cfgcache[includefile];
+            cfgcache.TryGetValue(includefile, out cachedInclude);
+        }
+
+        if (cachedInclude != null)
+        {
+            IDictionary cinc = cachedInclude;
 
             if ((args.Count > 1) && !string.IsNullOrEmpty(args[1]?.ToString()))
             {
@@ -559,7 +566,11 @@ public sealed class Configuration
         InputStructure(inc, ref includefile, ref data, ref npos, ref nline);
         if (!cpErrorResult)
         {
-            cfgcache.Add(includefile, inc);
+            lock (cfgcacheLock)
+            {
+                if (!cfgcache.ContainsKey(includefile))
+                    cfgcache.Add(includefile, inc);
+            }
 
             if ((args.Count > 1) && !string.IsNullOrEmpty(args[1]?.ToString()))
             {

@@ -290,6 +290,44 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void IncludeCacheSupportsConcurrentLoads()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_cfg_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        string include = Path.Combine(dir, "base.cfg");
+        string root = Path.Combine(dir, "root.cfg");
+        try
+        {
+            File.WriteAllText(include, """
+                game
+                {
+                    title = "Included";
+                }
+                """);
+            File.WriteAllText(root, """include("base.cfg");""");
+
+            var errors = new List<string>();
+            Parallel.For(0, 64, i =>
+            {
+                var cfg = new Configuration(root, sorted: i % 2 == 0);
+                if (cfg.ErrorResult || cfg.ReadSetting("game.title", "") != "Included")
+                {
+                    lock (errors)
+                    {
+                        errors.Add(cfg.ErrorDescription);
+                    }
+                }
+            });
+
+            Assert.Empty(errors);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void RepeatedStructureBlocksMergeRecursively()
     {
         var cfg = new Configuration();

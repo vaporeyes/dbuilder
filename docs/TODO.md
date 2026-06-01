@@ -815,6 +815,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual mode lifecycle behavior.
   - [x] Add menu and toolbar commands for toggling 3D visual mode.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
+  - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual camera behavior.
 - [ ] Port visual geometry behavior.
 - [ ] Port visual sector behavior.
@@ -825,6 +826,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
 - [ ] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
+  - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual picking behavior to full UDB behavior.
 - [ ] Port surface highlighting and selection behavior.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.

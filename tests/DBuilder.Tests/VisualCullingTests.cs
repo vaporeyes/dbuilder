@@ -55,4 +55,25 @@ public class VisualCullingTests
         Assert.Equal(new[] { line }, geometryOnly.Linedefs);
         Assert.Empty(geometryOnly.Things);
     }
+
+    [Fact]
+    public void CreateFrustumMapsEditorYawToProjectedFrustumAngle()
+    {
+        var blockMap = new BlockMap(new RectangleF(-128, -128, 256, 256), 64);
+        var aheadX = new Thing(new Vector2D(96, 0), 1);
+        var behindX = new Thing(new Vector2D(-96, 0), 2);
+        var aheadY = new Thing(new Vector2D(0, 96), 3);
+        blockMap.AddThings(new[] { aheadX, behindX, aheadY });
+
+        VisualCullingPlan east = VisualCulling.BuildPlan(
+            blockMap,
+            VisualCulling.CreateFrustum(new Vector2D(0, 0), yaw: 0.0, pitch: 0.0, near: 8, far: 160, fovDegrees: 75));
+        VisualCullingPlan north = VisualCulling.BuildPlan(
+            blockMap,
+            VisualCulling.CreateFrustum(new Vector2D(0, 0), yaw: Math.PI * 0.5, pitch: 0.0, near: 8, far: 160, fovDegrees: 75));
+
+        Assert.Contains(aheadX, east.Things);
+        Assert.DoesNotContain(behindX, east.Things);
+        Assert.Contains(aheadY, north.Things);
+    }
 }

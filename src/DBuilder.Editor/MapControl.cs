@@ -1049,9 +1049,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var up = new Vector3(0, 0, 1);
 
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var t in _map.Things)
+        foreach (var t in VisibleThings3D())
         {
-            if (ThingHidden3D(t)) continue;
             string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
             if (string.IsNullOrEmpty(sprite)) continue;
             var img = _resources?.GetSprite(sprite!);
@@ -1095,6 +1094,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetAlphaBlendEnable(false);
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
+    }
+
+    private IReadOnlyList<Thing> VisibleThings3D()
+    {
+        if (_map == null) return Array.Empty<Thing>();
+        if (_blockmapCache == null)
+            return _map.Things.Where(t => !ThingHidden3D(t)).ToArray();
+
+        var frustum = VisualCulling.CreateFrustum(
+            new Vec2D(_cam3DPos.X, _cam3DPos.Y),
+            _yaw,
+            _pitch,
+            near: 1.0,
+            far: 20000.0,
+            fovDegrees: 75.0);
+
+        return VisualCulling.BuildPlan(
+            _blockmapCache,
+            frustum,
+            includeGeometry: false,
+            includeThings: true,
+            thingFilter: t => !ThingHidden3D(t)).Things;
     }
 
     // Raycasts from the camera crosshair and records the targeted surface (for editing + highlight).

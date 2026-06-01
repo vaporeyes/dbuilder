@@ -14,6 +14,19 @@ public sealed record VisualCullingPlan(
 
 public static class VisualCulling
 {
+    public static ProjectedFrustum2D CreateFrustum(
+        Vector2D position,
+        double yaw,
+        double pitch,
+        double near = 1.0,
+        double far = 20000.0,
+        double fovDegrees = 75.0)
+    {
+        double xyangle = yaw + Angle2D.PIHALF;
+        double fov = fovDegrees * Math.PI / 180.0;
+        return new ProjectedFrustum2D(position, (float)xyangle, (float)pitch, (float)near, (float)far, (float)fov);
+    }
+
     public static VisualCullingPlan BuildPlan(
         BlockMap blockMap,
         ProjectedFrustum2D frustum,
