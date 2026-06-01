@@ -16,6 +16,9 @@ public static class UniversalValueOptions
             EnumOptionTypeHandler option => NumericOptions(option.Values),
             EnumStringsTypeHandler strings => NumericOptions(strings.Values),
             TagTypeHandler tag => NumericOptions(tag.Values),
+            AngleByteTypeHandler => DoomByteAngleOptions(),
+            AngleDegreesTypeHandler => DoomDegreeAngleOptions(),
+            AngleDegreesFloatTypeHandler => DoomDegreeAngleOptions(),
             _ => Array.Empty<UniversalValueOption>(),
         };
 
@@ -31,4 +34,30 @@ public static class UniversalValueOptions
             .Where(item => int.TryParse(item.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
             .Select(item => new UniversalValueOption(item.GetIntValue(), item.Title))
             .ToArray();
+
+    private static UniversalValueOption[] DoomDegreeAngleOptions()
+        =>
+        [
+            new UniversalValueOption(0, "East"),
+            new UniversalValueOption(45, "Northeast"),
+            new UniversalValueOption(90, "North"),
+            new UniversalValueOption(135, "Northwest"),
+            new UniversalValueOption(180, "West"),
+            new UniversalValueOption(225, "Southwest"),
+            new UniversalValueOption(270, "South"),
+            new UniversalValueOption(315, "Southeast"),
+        ];
+
+    private static UniversalValueOption[] DoomByteAngleOptions()
+        =>
+        [
+            new UniversalValueOption(0, "East"),
+            new UniversalValueOption(32, "Northeast"),
+            new UniversalValueOption(64, "North"),
+            new UniversalValueOption(96, "Northwest"),
+            new UniversalValueOption(128, "West"),
+            new UniversalValueOption(160, "Southwest"),
+            new UniversalValueOption(192, "South"),
+            new UniversalValueOption(224, "Southeast"),
+        ];
 }

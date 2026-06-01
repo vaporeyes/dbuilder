@@ -801,6 +801,27 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void UniversalValueOptionsExposeAnglePresetChoicesFromHandlers()
+    {
+        var registry = new UniversalTypeRegistry();
+
+        var degrees = UniversalValueOptions.ForIntegerEditor(
+            registry.CreateHandler(UniversalType.AngleDegrees, defaultValue: 90));
+        var decimalDegrees = UniversalValueOptions.ForIntegerEditor(
+            registry.CreateHandler(UniversalType.AngleDegreesFloat, defaultValue: 45.0));
+        var byteAngle = UniversalValueOptions.ForIntegerEditor(
+            registry.CreateHandler(UniversalType.AngleByte, defaultValue: 64));
+        var radians = UniversalValueOptions.ForIntegerEditor(
+            registry.CreateHandler(UniversalType.AngleRadians, defaultValue: Math.PI));
+
+        Assert.Equal(new[] { 0, 45, 90, 135, 180, 225, 270, 315 }, degrees.Select(option => option.Value));
+        Assert.Equal(degrees, decimalDegrees);
+        Assert.Equal(new[] { 0, 32, 64, 96, 128, 160, 192, 224 }, byteAngle.Select(option => option.Value));
+        Assert.Equal(new[] { "East", "Northeast", "North", "Northwest", "West", "Southwest", "South", "Southeast" }, degrees.Select(option => option.Title));
+        Assert.Empty(radians);
+    }
+
+    [Fact]
     public void UniversalFieldEditorValuesSelectConfiguredFieldsAndStripRawDuplicates()
     {
         const string cfg = """

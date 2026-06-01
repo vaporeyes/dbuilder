@@ -673,6 +673,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add checkbox editors for configured enum-bit property fields.
   - [x] Add checkbox editors for configured enum-bit argument fields.
   - [x] Add preset editors for configured degree-angle property and argument fields.
+  - [x] Add preset editors for configured decimal-degree property and argument fields.
   - [x] Add preset editors for configured byte-angle property and argument fields.
 
 ## Editing Core
