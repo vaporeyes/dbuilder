@@ -521,6 +521,24 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingTextureIssueCanBrowseTexture()
+    {
+        var map = Square(true);
+        var side = map.Sidedefs[0];
+        side.MidTexture = "-";
+        var ctx = new MapCheckContext
+        {
+            BrowseTexture = (_, part) => part == SidedefPart.Middle ? "BROWSED" : null,
+        };
+        var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingTexture);
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Texture...");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWSED", side.MidTexture);
+    }
+
+    [Fact]
     public void SkyNeighborSuppressesUpperAndLowerMissingTextures()
     {
         var map = new MapSet();
@@ -638,6 +656,26 @@ public class MapAnalysisTests
         Assert.True(fix.Apply(map));
 
         Assert.Equal("BROWN1", side.HighTexture);
+    }
+
+    [Fact]
+    public void UnknownTextureIssueCanBrowseTexture()
+    {
+        var map = Square(true);
+        var side = map.Sidedefs[0];
+        side.MidTexture = "MISS";
+        var ctx = new MapCheckContext
+        {
+            TextureExists = name => name == "BROWSED",
+            BrowseTexture = (_, part) => part == SidedefPart.Middle ? "BROWSED" : null,
+        };
+        var issue = MapAnalysis.Check(map, ctx)
+            .First(i => i.Kind == MapIssueKind.UnknownTexture && i.Message.Contains("middle texture", StringComparison.Ordinal));
+        var fix = Assert.Single(issue.Fixes, f => f.Label == "Browse Texture...");
+
+        Assert.True(fix.Apply(map));
+
+        Assert.Equal("BROWSED", side.MidTexture);
     }
 
     [Fact]
