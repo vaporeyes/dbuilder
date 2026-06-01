@@ -1411,6 +1411,7 @@ public class MapAnalysisTests
         Assert.DoesNotContain(thing, map.Things);
         issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownAction);
         fix = Assert.Single(issue.Fixes);
+        Assert.Equal("Linedef 0 uses unknown action 4242", issue.Message);
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, map.Linedefs[0].Action);
@@ -2011,6 +2012,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownSectorEffect);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(map.Sectors[0], issue.Target);
+        Assert.Equal("Sector 0 uses unknown effect 4242", issue.Message);
         Assert.Equal("Remove Effect", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, map.Sectors[0].Special);
@@ -2049,6 +2051,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownThingAction);
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
+        Assert.Equal("Thing 0 uses unknown action 4242", issue.Message);
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, thing.Action);

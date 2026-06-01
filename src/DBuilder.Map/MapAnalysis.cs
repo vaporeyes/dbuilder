@@ -584,7 +584,7 @@ public static class MapAnalysis
                 var l = map.Linedefs[i];
                 if (l.Action != 0 && !ctx.ActionKnown(l.Action))
                     issues.Add(UnknownLinedefActionIssue(l, ctx,
-                        $"Linedef {i} action {l.Action} is not in the game config."));
+                        $"Linedef {i} uses unknown action {l.Action}"));
             }
 
             if (ctx.CheckThingActions)
@@ -593,7 +593,7 @@ public static class MapAnalysis
                     var t = map.Things[i];
                     if (t.Action != 0 && !ctx.ActionKnown(t.Action))
                         issues.Add(UnknownThingActionIssue(t, ctx,
-                            $"Thing {i} action {t.Action} is not in the game config."));
+                            $"Thing {i} uses unknown action {t.Action}"));
                 }
         }
 
@@ -603,7 +603,7 @@ public static class MapAnalysis
                 var s = map.Sectors[i];
                 if (s.Special != 0 && !ctx.SectorEffectKnown(s.Special))
                     issues.Add(UnknownSectorEffectIssue(s, ctx,
-                        $"Sector {i} effect {s.Special} is not in the game config."));
+                        $"Sector {i} uses unknown effect {s.Special}"));
             }
 
         if (ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
