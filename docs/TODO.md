@@ -1153,6 +1153,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and toolbar Make Door command for selected sectors.
 - [ ] Port object export tools.
   - [x] Add UDB-style legacy object export settings defaults, scale and texture options, and path validation.
+  - [x] Add UDB-style legacy object export geometry writer and OBJ/MTL file planning.
 - [ ] Port image export tools.
   - [x] Add UDB-style image export settings model for format, pixel depth, scale, tiles, brightmaps, transparency, and default output paths.
   - [x] Add UDB-style image export bounds, tile count, and output-name planning helpers.

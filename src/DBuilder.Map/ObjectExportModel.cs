@@ -42,3 +42,61 @@ public sealed record ObjectExportSettings(
         return errors;
     }
 }
+
+public static class ObjectExportWriter
+{
+    public static string CreateObjFromMap(
+        MapSet map,
+        IEnumerable<Sector> sectors,
+        ObjectExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+        => CreateWavefrontExport(map, sectors, settings, mapTitle, levelName, productVersion).Obj;
+
+    public static WavefrontExportSettings CreateWavefrontExport(
+        MapSet map,
+        IEnumerable<Sector> sectors,
+        ObjectExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        WavefrontExportSettings wavefront = CreateWavefrontSettings(settings);
+        WavefrontGeometryCollector.CreateObjFromMap(map, sectors, wavefront, mapTitle, levelName, productVersion);
+        return wavefront;
+    }
+
+    public static IReadOnlyList<WavefrontExportFile> CreateFilePlan(
+        MapSet map,
+        IEnumerable<Sector> sectors,
+        ObjectExportSettings settings,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        WavefrontExportSettings wavefront = CreateWavefrontExport(map, sectors, settings, mapTitle, levelName, productVersion);
+        return WavefrontExportPlanner.CreateFilePlan(wavefront, mapTitle, levelName, productVersion);
+    }
+
+    public static IReadOnlyList<WavefrontExportFile> CreateFilePlan(
+        ObjectExportSettings settings,
+        string obj,
+        string mapTitle,
+        string levelName,
+        string productVersion = "")
+    {
+        WavefrontExportSettings wavefront = CreateWavefrontSettings(settings);
+        wavefront.Obj = obj;
+        return WavefrontExportPlanner.CreateFilePlan(wavefront, mapTitle, levelName, productVersion);
+    }
+
+    public static WavefrontExportSettings CreateWavefrontSettings(ObjectExportSettings settings)
+        => WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = settings.FilePath,
+            ExportForGZDoom = settings.FixScale,
+            ExportTextures = settings.ExportTextures,
+            Scale = 1.0,
+        });
+}

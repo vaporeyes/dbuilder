@@ -1,6 +1,7 @@
 // ABOUTME: Tests the legacy UDB object export settings model, defaults, and path validation.
 // ABOUTME: Covers OBJ naming, fix-scale, texture export, and missing-directory behavior without UI.
 
+using DBuilder.Geometry;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -57,5 +58,121 @@ public sealed class ObjectExportModelTests
             _ => true);
 
         Assert.Equal(new[] { ObjectExportSettings.InvalidPathMessage }, errors);
+    }
+
+    [Fact]
+    public void CreateWavefrontSettingsMapsLegacyFixScaleAndTextureOptions()
+    {
+        ObjectExportSettings settings = ObjectExportSettings.FromOptions(new ObjectExportOptions(
+            "/tmp/export/map.obj",
+            FixScale: true,
+            ExportTextures: true));
+
+        WavefrontExportSettings wavefront = ObjectExportWriter.CreateWavefrontSettings(settings);
+
+        Assert.Equal("map", wavefront.ObjName);
+        Assert.Equal("/tmp/export", wavefront.ObjPath);
+        Assert.True(wavefront.ExportForGZDoom);
+        Assert.True(wavefront.ExportTextures);
+        Assert.Equal(1.0, wavefront.Scale);
+    }
+
+    [Fact]
+    public void CreateWavefrontExportBuildsObjGeometryAndMaterialLists()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map);
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        sector.FloorTexture = "FLOOR1";
+        sector.CeilTexture = "CEIL1";
+        foreach (Sidedef side in sector.Sidedefs) side.MidTexture = "STARTAN3";
+        ObjectExportSettings settings = ObjectExportSettings.FromOptions(new ObjectExportOptions(
+            "/tmp/export/map.obj",
+            FixScale: false,
+            ExportTextures: true));
+
+        WavefrontExportSettings wavefront = ObjectExportWriter.CreateWavefrontExport(
+            map,
+            [sector],
+            settings,
+            "doom2.wad",
+            "MAP01",
+            "1.0");
+
+        Assert.True(wavefront.Valid);
+        Assert.Contains("# doom2.wad, map MAP01", wavefront.Obj);
+        Assert.Contains("mtllib map.mtl", wavefront.Obj);
+        Assert.Contains("usemtl STARTAN3", wavefront.Obj);
+        Assert.Contains("STARTAN3", wavefront.Textures!);
+        Assert.Contains("FLOOR1", wavefront.Flats!);
+        Assert.Contains("CEIL1", wavefront.Flats!);
+    }
+
+    [Fact]
+    public void CreateFilePlanUsesLegacyOutputPathAndClassicMtl()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map);
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        sector.FloorTexture = "FLOOR1";
+        sector.CeilTexture = "CEIL1";
+        foreach (Sidedef side in sector.Sidedefs) side.MidTexture = "STARTAN3";
+        ObjectExportSettings settings = ObjectExportSettings.FromOptions(new ObjectExportOptions(
+            "/tmp/export/map.obj",
+            FixScale: false,
+            ExportTextures: true));
+
+        IReadOnlyList<WavefrontExportFile> files = ObjectExportWriter.CreateFilePlan(
+            map,
+            [sector],
+            settings,
+            "doom2.wad",
+            "MAP01",
+            "1.0");
+
+        Assert.Collection(
+            files,
+            obj =>
+            {
+                Assert.Equal("/tmp/export/map.obj", obj.Path);
+                Assert.Contains("usemtl STARTAN3", obj.Content);
+            },
+            mtl =>
+            {
+                Assert.Equal("/tmp/export/map.mtl", mtl.Path);
+                Assert.Contains("# MTL for doom2.wad, map MAP01", mtl.Content);
+                Assert.Contains("newmtl STARTAN3", mtl.Content);
+            });
+    }
+
+    private static Sector AddSquareSector(MapSet map)
+    {
+        var sector = new Sector { Index = map.Sectors.Count };
+        var vertices = new[]
+        {
+            new Vertex(new Vector2D(64, 0)),
+            new Vertex(new Vector2D(0, 0)),
+            new Vertex(new Vector2D(0, 64)),
+            new Vertex(new Vector2D(64, 64)),
+        };
+
+        foreach (Vertex vertex in vertices) map.Vertices.Add(vertex);
+        map.Sectors.Add(sector);
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var line = new Linedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            var side = new Sidedef(line, true) { Sector = sector };
+            line.Front = side;
+            line.Start.Linedefs.Add(line);
+            line.End.Linedefs.Add(line);
+            sector.Sidedefs.Add(side);
+            map.Linedefs.Add(line);
+            map.Sidedefs.Add(side);
+        }
+
+        return sector;
     }
 }
