@@ -804,6 +804,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add texture and flat browser buttons to map drawing defaults.
   - [x] Apply active game configuration default textures to newly drawn sectors.
   - [x] Add external command fields to the map options dialog.
+  - [x] Add external command working directories and behavior flags to the map options dialog.
   - [x] Persist view position and zoom through map options.
   - [x] Add script compiler field to the map options dialog.
 - [ ] Port open map options dialog.

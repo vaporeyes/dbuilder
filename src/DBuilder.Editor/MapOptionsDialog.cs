@@ -29,9 +29,25 @@ public sealed class MapOptionsDialog : PropertyDialog
     private readonly CheckBox _useLongTextureNames;
     private readonly TextBox _scriptCompiler;
     private readonly TextBox _reloadResourcePreCommand;
+    private readonly TextBox _reloadResourcePreWorkingDirectory;
+    private readonly CheckBox _reloadResourcePreAutoClose;
+    private readonly CheckBox _reloadResourcePreExitCodeIsError;
+    private readonly CheckBox _reloadResourcePreStdErrIsError;
     private readonly TextBox _reloadResourcePostCommand;
+    private readonly TextBox _reloadResourcePostWorkingDirectory;
+    private readonly CheckBox _reloadResourcePostAutoClose;
+    private readonly CheckBox _reloadResourcePostExitCodeIsError;
+    private readonly CheckBox _reloadResourcePostStdErrIsError;
     private readonly TextBox _testPreCommand;
+    private readonly TextBox _testPreWorkingDirectory;
+    private readonly CheckBox _testPreAutoClose;
+    private readonly CheckBox _testPreExitCodeIsError;
+    private readonly CheckBox _testPreStdErrIsError;
     private readonly TextBox _testPostCommand;
+    private readonly TextBox _testPostWorkingDirectory;
+    private readonly CheckBox _testPostAutoClose;
+    private readonly CheckBox _testPostExitCodeIsError;
+    private readonly CheckBox _testPostStdErrIsError;
     private readonly bool _longTextureNamesSupported;
 
     public string ResultMarker { get; private set; }
@@ -77,9 +93,25 @@ public sealed class MapOptionsDialog : PropertyDialog
         _useLongTextureNames.IsEnabled = longTextureNamesSupported;
         _scriptCompiler = AddField("Script compiler", options.ScriptCompiler);
         _reloadResourcePreCommand = AddField("Before reload resources", options.ReloadResourcePreCommand.Commands);
+        _reloadResourcePreWorkingDirectory = AddField("Reload pre dir", options.ReloadResourcePreCommand.WorkingDirectory);
+        _reloadResourcePreAutoClose = AddCheckBox("Reload pre auto close", options.ReloadResourcePreCommand.AutoCloseOnSuccess);
+        _reloadResourcePreExitCodeIsError = AddCheckBox("Reload pre fail on exit code", options.ReloadResourcePreCommand.ExitCodeIsError);
+        _reloadResourcePreStdErrIsError = AddCheckBox("Reload pre fail on stderr", options.ReloadResourcePreCommand.StdErrIsError);
         _reloadResourcePostCommand = AddField("After reload resources", options.ReloadResourcePostCommand.Commands);
+        _reloadResourcePostWorkingDirectory = AddField("Reload post dir", options.ReloadResourcePostCommand.WorkingDirectory);
+        _reloadResourcePostAutoClose = AddCheckBox("Reload post auto close", options.ReloadResourcePostCommand.AutoCloseOnSuccess);
+        _reloadResourcePostExitCodeIsError = AddCheckBox("Reload post fail on exit code", options.ReloadResourcePostCommand.ExitCodeIsError);
+        _reloadResourcePostStdErrIsError = AddCheckBox("Reload post fail on stderr", options.ReloadResourcePostCommand.StdErrIsError);
         _testPreCommand = AddField("Before test map", options.TestPreCommand.Commands);
+        _testPreWorkingDirectory = AddField("Test pre dir", options.TestPreCommand.WorkingDirectory);
+        _testPreAutoClose = AddCheckBox("Test pre auto close", options.TestPreCommand.AutoCloseOnSuccess);
+        _testPreExitCodeIsError = AddCheckBox("Test pre fail on exit code", options.TestPreCommand.ExitCodeIsError);
+        _testPreStdErrIsError = AddCheckBox("Test pre fail on stderr", options.TestPreCommand.StdErrIsError);
         _testPostCommand = AddField("After test map", options.TestPostCommand.Commands);
+        _testPostWorkingDirectory = AddField("Test post dir", options.TestPostCommand.WorkingDirectory);
+        _testPostAutoClose = AddCheckBox("Test post auto close", options.TestPostCommand.AutoCloseOnSuccess);
+        _testPostExitCodeIsError = AddCheckBox("Test post fail on exit code", options.TestPostCommand.ExitCodeIsError);
+        _testPostStdErrIsError = AddCheckBox("Test post fail on stderr", options.TestPostCommand.StdErrIsError);
     }
 
     public void ApplyTo(MapOptions options)
@@ -103,9 +135,25 @@ public sealed class MapOptionsDialog : PropertyDialog
         options.UseLongTextureNames = _longTextureNamesSupported && _useLongTextureNames.IsChecked == true;
         options.ScriptCompiler = _scriptCompiler.Text?.Trim() ?? "";
         options.ReloadResourcePreCommand.Commands = _reloadResourcePreCommand.Text?.Trim() ?? "";
+        options.ReloadResourcePreCommand.WorkingDirectory = _reloadResourcePreWorkingDirectory.Text?.Trim() ?? "";
+        options.ReloadResourcePreCommand.AutoCloseOnSuccess = _reloadResourcePreAutoClose.IsChecked == true;
+        options.ReloadResourcePreCommand.ExitCodeIsError = _reloadResourcePreExitCodeIsError.IsChecked == true;
+        options.ReloadResourcePreCommand.StdErrIsError = _reloadResourcePreStdErrIsError.IsChecked == true;
         options.ReloadResourcePostCommand.Commands = _reloadResourcePostCommand.Text?.Trim() ?? "";
+        options.ReloadResourcePostCommand.WorkingDirectory = _reloadResourcePostWorkingDirectory.Text?.Trim() ?? "";
+        options.ReloadResourcePostCommand.AutoCloseOnSuccess = _reloadResourcePostAutoClose.IsChecked == true;
+        options.ReloadResourcePostCommand.ExitCodeIsError = _reloadResourcePostExitCodeIsError.IsChecked == true;
+        options.ReloadResourcePostCommand.StdErrIsError = _reloadResourcePostStdErrIsError.IsChecked == true;
         options.TestPreCommand.Commands = _testPreCommand.Text?.Trim() ?? "";
+        options.TestPreCommand.WorkingDirectory = _testPreWorkingDirectory.Text?.Trim() ?? "";
+        options.TestPreCommand.AutoCloseOnSuccess = _testPreAutoClose.IsChecked == true;
+        options.TestPreCommand.ExitCodeIsError = _testPreExitCodeIsError.IsChecked == true;
+        options.TestPreCommand.StdErrIsError = _testPreStdErrIsError.IsChecked == true;
         options.TestPostCommand.Commands = _testPostCommand.Text?.Trim() ?? "";
+        options.TestPostCommand.WorkingDirectory = _testPostWorkingDirectory.Text?.Trim() ?? "";
+        options.TestPostCommand.AutoCloseOnSuccess = _testPostAutoClose.IsChecked == true;
+        options.TestPostCommand.ExitCodeIsError = _testPostExitCodeIsError.IsChecked == true;
+        options.TestPostCommand.StdErrIsError = _testPostStdErrIsError.IsChecked == true;
     }
 
     protected override void OnConfirm()

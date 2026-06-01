@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using DBuilder.IO;
@@ -161,7 +162,13 @@ public abstract class PropertyDialog : Window
         buttons.Children.Add(cancel);
         _rows.Children.Add(buttons);
 
-        Content = _rows;
+        Content = new ScrollViewer
+        {
+            Content = _rows,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            MaxHeight = 760,
+        };
     }
 
     protected void SetLiveLabel(string text) { if (_liveLabel != null) _liveLabel.Text = text; }

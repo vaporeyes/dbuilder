@@ -658,6 +658,55 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void MapOptionsRoundTripsFullExternalCommandSections()
+    {
+        var options = new MapOptions
+        {
+            ReloadResourcePreCommand = new ExternalCommandSettings
+            {
+                Commands = "reload-pre",
+                WorkingDirectory = "/tmp/reload-pre",
+                AutoCloseOnSuccess = false,
+                ExitCodeIsError = true,
+                StdErrIsError = false,
+            },
+            ReloadResourcePostCommand = new ExternalCommandSettings
+            {
+                Commands = "reload-post",
+                WorkingDirectory = "/tmp/reload-post",
+                AutoCloseOnSuccess = true,
+                ExitCodeIsError = false,
+                StdErrIsError = true,
+            },
+            TestPreCommand = new ExternalCommandSettings
+            {
+                Commands = "test-pre",
+                WorkingDirectory = "/tmp/test-pre",
+                AutoCloseOnSuccess = false,
+                ExitCodeIsError = false,
+                StdErrIsError = true,
+            },
+            TestPostCommand = new ExternalCommandSettings
+            {
+                Commands = "test-post",
+                WorkingDirectory = "/tmp/test-post",
+                AutoCloseOnSuccess = true,
+                ExitCodeIsError = true,
+                StdErrIsError = false,
+            },
+        };
+
+        options.WriteExternalCommandSettings();
+        var restored = new MapOptions(options.MapConfiguration);
+        restored.ReadExternalCommandSettings();
+
+        AssertCommand(restored.ReloadResourcePreCommand, "reload-pre", "/tmp/reload-pre", false, true, false);
+        AssertCommand(restored.ReloadResourcePostCommand, "reload-post", "/tmp/reload-post", true, false, true);
+        AssertCommand(restored.TestPreCommand, "test-pre", "/tmp/test-pre", false, false, true);
+        AssertCommand(restored.TestPostCommand, "test-post", "/tmp/test-post", true, true, false);
+    }
+
+    [Fact]
     public void DataLocationListWritesUdbCompatibleResourceEntries()
     {
         var configuration = new Configuration(sorted: true);
@@ -954,5 +1003,20 @@ public class MapOptionsTests
         map.AddThing(new Vector2D(32, 16), 3001);
         map.BuildIndexes();
         return map;
+    }
+
+    private static void AssertCommand(
+        ExternalCommandSettings settings,
+        string commands,
+        string workingDirectory,
+        bool autoCloseOnSuccess,
+        bool exitCodeIsError,
+        bool stdErrIsError)
+    {
+        Assert.Equal(commands, settings.Commands);
+        Assert.Equal(workingDirectory, settings.WorkingDirectory);
+        Assert.Equal(autoCloseOnSuccess, settings.AutoCloseOnSuccess);
+        Assert.Equal(exitCodeIsError, settings.ExitCodeIsError);
+        Assert.Equal(stdErrIsError, settings.StdErrIsError);
     }
 }
