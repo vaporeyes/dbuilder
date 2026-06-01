@@ -764,6 +764,50 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void PlaneAlignCeilingArgumentSuppressesMissingUpperTexture()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.CeilHeight = 64;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = SlopeEffects.PlaneAlignAction;
+        line.Args[1] = 1;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { ActionIsPlaneAlign = action => action == SlopeEffects.PlaneAlignAction };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx),
+            i => i.Kind == MapIssueKind.MissingTexture && i.Message.Contains("upper texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PlaneAlignFloorArgumentSuppressesMissingLowerTexture()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        var back = map.AddSector();
+        back.FloorHeight = 64;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        line.Action = SlopeEffects.PlaneAlignAction;
+        line.Args[0] = 1;
+        map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        map.BuildIndexes();
+        var ctx = new MapCheckContext { ActionIsPlaneAlign = action => action == SlopeEffects.PlaneAlignAction };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx),
+            i => i.Kind == MapIssueKind.MissingTexture && i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void FloorLowerToLowestActionFlagsMissingLowerWithoutCurrentHeightGap()
     {
         var map = new MapSet();

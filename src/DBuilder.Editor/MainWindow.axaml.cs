@@ -3576,6 +3576,7 @@ public partial class MainWindow : Window
             ActionTextureSectorTags = actionTextureSectorTags,
             CheckThingActionTextures = _mapFormat is MapFormat.Hexen or MapFormat.Udmf,
             CheckThreeDFloorTextures = _config?.GetLinedefAction(ThreeDFloors.Sector3DFloorAction)?.Id == "Sector_Set3dFloor",
+            ActionIsPlaneAlign = action => string.Equals(_config?.GetLinedefAction(action)?.Id, "plane_align", StringComparison.OrdinalIgnoreCase),
             ActionRequiresActivation = actionRequiresActivation,
             TriggerActivationFlags = triggerActivationFlags,
             CheckMissingActivations = _mapFormat == MapFormat.Udmf,

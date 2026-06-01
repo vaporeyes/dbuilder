@@ -150,6 +150,8 @@ public sealed class MapCheckContext
     public bool CheckThingActionTextures { get; init; }
     /// <summary>Enable UDB Sector_Set3dFloor texture requirement checks.</summary>
     public bool CheckThreeDFloorTextures { get; init; }
+    /// <summary>Returns true when a linedef action is UDB/ZDoom Plane_Align.</summary>
+    public Func<int, bool>? ActionIsPlaneAlign { get; init; }
     /// <summary>Returns true when a linedef action requires an activation flag.</summary>
     public Func<int, bool>? ActionRequiresActivation { get; init; }
     /// <summary>UDMF linedef flags that activate an action; non-trigger flags are excluded.</summary>
@@ -290,13 +292,15 @@ public static class MapAnalysis
                          ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true ||
                          threeDFloorTextures.RequiresUpperTexture(side)) &&
                         !IsSkyFlat(ctx, other.Sector.CeilTexture) &&
-                        IsBlank(side.HighTexture))
+                        IsBlank(side.HighTexture) &&
+                        !SuppressPlaneAlignTexture(l, ctx, ceiling: true))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,
                             $"Linedef {index} ({which}) needs an upper texture.", mid));
                     if ((other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) ||
                          actionTextures.RequiresLowerTexture(side) ||
                          threeDFloorTextures.RequiresLowerTexture(side)) &&
-                        IsBlank(side.LowTexture))
+                        IsBlank(side.LowTexture) &&
+                        !SuppressPlaneAlignTexture(l, ctx, ceiling: false))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx,
                             $"Linedef {index} ({which}) needs a lower texture.", mid));
                 }
@@ -328,6 +332,9 @@ public static class MapAnalysis
                     $"Linedef {index} ({which}) lower texture \"{side.LowTexture}\" is not needed.", mid));
         }
     }
+
+    private static bool SuppressPlaneAlignTexture(Linedef line, MapCheckContext ctx, bool ceiling)
+        => ctx.ActionIsPlaneAlign?.Invoke(line.Action) == true && line.Args[ceiling ? 1 : 0] > 0;
 
     private static void CheckFlats(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
