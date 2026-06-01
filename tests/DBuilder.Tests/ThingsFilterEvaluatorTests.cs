@@ -340,4 +340,68 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal((int)UniversalType.String, custom.Value.Type);
         Assert.Equal("DoomImp", custom.Value.Value);
     }
+
+    [Fact]
+    public void CollectionDraftSortsAddsDeletesAndPreservesActiveFilterByName()
+    {
+        var config = GameConfiguration.FromText("""
+            thingsfilters
+            {
+                zed
+                {
+                    name = "Zeds";
+                    type = 9;
+                }
+
+                active
+                {
+                    name = "Active";
+                    type = 3001;
+                }
+            }
+            """);
+
+        var collection = ThingsFilterCollectionDraft.FromFilters(config.ThingsFilters);
+
+        Assert.Equal(["Active", "Zeds"], collection.Filters.Select(entry => entry.Draft.Name).ToArray());
+
+        var added = collection.AddNew();
+        Assert.Equal("filter0", added.Key);
+        added.Draft.Name = "Middle";
+        added.Draft.ThingType = 2001;
+
+        Assert.False(collection.RemoveAt(-1));
+        Assert.True(collection.RemoveAt(1));
+        collection.SortByName();
+
+        Assert.Equal(["Active", "Middle"], collection.Filters.Select(entry => entry.Draft.Name).ToArray());
+        ThingsFilterInfo? active = collection.FindByName("Active");
+        Assert.NotNull(active);
+        Assert.Equal(3001, active.ThingType);
+        Assert.Null(collection.FindByName("Zeds"));
+    }
+
+    [Fact]
+    public void CollectionDraftReplacesThingsFiltersConfigurationBlock()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.WriteSetting("thingsfilters.stale.name", "Stale");
+        configuration.WriteSetting("thingsfilters.stale.type", 1);
+
+        var collection = new ThingsFilterCollectionDraft();
+        var first = collection.AddNew();
+        first.Draft.Name = "First";
+        first.Draft.ThingType = 3001;
+        var second = collection.AddNew();
+        second.Draft.Name = "Second";
+        second.Draft.ThingType = 3002;
+
+        collection.WriteSettings(configuration);
+
+        var config = GameConfiguration.FromText(configuration.OutputConfiguration("\n"));
+
+        Assert.Equal(["First", "Second"], config.ThingsFilters.Select(filter => filter.Name).ToArray());
+        Assert.Equal(["filter0", "filter1"], config.ThingsFilters.Select(filter => filter.Key).ToArray());
+        Assert.DoesNotContain(config.ThingsFilters, filter => filter.Name == "Stale");
+    }
 }
