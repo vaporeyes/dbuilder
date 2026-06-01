@@ -1048,6 +1048,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style apply-default-flags fix for unused things.
   - [x] Add UDB-style create-sidedef fixes for missing linedef sides and sidedness mismatches.
   - [x] Align the short-linedef check with UDB's 1 map unit threshold.
+  - [x] Add UDB-style dissolve fix for zero-length and neighboring invalid-sector results.
   - [x] Add UDB-style browse texture fixes for missing and unknown texture results.
   - [x] Add UDB-style browse flat fixes for missing and unknown flat results.
   - [x] Add UDB-style browse action and sector-effect fixes for unknown action/effect results.

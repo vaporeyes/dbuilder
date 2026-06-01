@@ -1615,10 +1615,73 @@ public static class MapAnalysis
                     $"Sector {i} is not closed (a boundary vertex has an odd number of edges).")
                     { Target = s, Focus = Centroid(degrees[s].Keys) });
             else if (IsInvalidSector(s))
-                issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.InvalidSector,
-                    $"Sector {i} is invalid (it has fewer than 3 sidedefs or linedefs).")
-                    { Target = s, Focus = Centroid(degrees[s].Keys) });
+                issues.Add(InvalidSectorIssue(s, i, Centroid(degrees[s].Keys)));
         }
+    }
+
+    private static MapIssue InvalidSectorIssue(Sector sector, int index, Vector2D? focus)
+    {
+        return new MapIssue(MapIssueSeverity.Error, MapIssueKind.InvalidSector,
+            $"Sector {index} is invalid (it has fewer than 3 sidedefs or linedefs).")
+        {
+            Target = sector,
+            Focus = focus,
+            Fixes = new[]
+            {
+                new MapIssueFix("Dissolve", map => DissolveInvalidSector(map, sector)),
+            },
+        };
+    }
+
+    private static bool DissolveInvalidSector(MapSet map, Sector sector)
+    {
+        if (!map.Sectors.Contains(sector)) return false;
+
+        map.BuildIndexes();
+
+        foreach (var line in UniqueSectorLines(sector).ToArray())
+        {
+            if (line.LengthSq == 0 && map.Linedefs.Contains(line))
+                map.RemoveLinedef(line);
+        }
+
+        map.BuildIndexes();
+
+        var lines = UniqueSectorLines(sector);
+        if (lines.Count == 0)
+        {
+            map.RemoveSector(sector);
+            map.BuildIndexes();
+            return true;
+        }
+
+        if (lines.Count >= 3) return false;
+
+        var neighbor = sector.Sidedefs
+            .Select(side => side.Other?.Sector)
+            .FirstOrDefault(other => other != null && !ReferenceEquals(other, sector));
+
+        if (neighbor != null)
+        {
+            foreach (var side in sector.Sidedefs.ToArray())
+                side.Sector = neighbor;
+        }
+
+        map.RemoveSector(sector);
+        map.BuildIndexes();
+        return true;
+    }
+
+    private static List<Linedef> UniqueSectorLines(Sector sector)
+    {
+        var lines = new List<Linedef>();
+        foreach (var side in sector.Sidedefs)
+        {
+            if (side.Line == null || lines.Contains(side.Line)) continue;
+            lines.Add(side.Line);
+        }
+
+        return lines;
     }
 
     private static bool IsInvalidSector(Sector sector)

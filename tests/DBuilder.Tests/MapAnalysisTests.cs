@@ -441,6 +441,52 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void InvalidSectorDissolveRemovesZeroLengthLinesAndSector()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        var line = map.AddLinedef(vertex, vertex);
+        map.AddSidedef(line, true, sector);
+        map.AddSidedef(line, false, sector);
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.InvalidSector);
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Dissolve", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(sector, map.Sectors);
+        Assert.DoesNotContain(line, map.Linedefs);
+    }
+
+    [Fact]
+    public void InvalidSectorDissolveMergesIntoNeighbor()
+    {
+        var map = new MapSet();
+        var invalid = map.AddSector();
+        var neighbor = map.AddSector();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line1 = map.AddLinedef(a, b);
+        var line2 = map.AddLinedef(b, a);
+        var invalidSide1 = map.AddSidedef(line1, true, invalid);
+        map.AddSidedef(line1, false, neighbor);
+        var invalidSide2 = map.AddSidedef(line2, true, invalid);
+        map.AddSidedef(line2, false, neighbor);
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => ReferenceEquals(i.Target, invalid));
+        var fix = Assert.Single(issue.Fixes);
+
+        Assert.Equal("Dissolve", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(invalid, map.Sectors);
+        Assert.Same(neighbor, invalidSide1.Sector);
+        Assert.Same(neighbor, invalidSide2.Sector);
+    }
+
+    [Fact]
     public void LinedefIssueCarriesTargetAndFocus()
     {
         var map = Square(true);
