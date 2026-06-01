@@ -20,8 +20,20 @@ public sealed class IdStudioExportDialog : PropertyDialog
 
     public IdStudioExportOptions ResultOptions { get; private set; }
 
+    public IdStudioExportDialog(IdStudioExportFormState state)
+        : this(
+            state.DefaultOptions,
+            $"Map textures: {state.MapTextureCountText}\nAll textures: {state.AllTextureCountText}")
+    {
+    }
+
     public IdStudioExportDialog(IdStudioExportOptions options)
-        : base("Export idStudio", "Exports the current map as idStudio refmap and material files.")
+        : this(options, "Exports the current map as idStudio refmap and material files.")
+    {
+    }
+
+    private IdStudioExportDialog(IdStudioExportOptions options, string liveLabel)
+        : base("Export idStudio", liveLabel)
     {
         ResultOptions = options;
         _modPath = AddField("Mod path", options.ModPath);

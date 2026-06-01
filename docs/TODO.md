@@ -1197,6 +1197,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio geometry refmap file-plan orchestration helper.
   - [x] Add UDB-style idStudio combined geometry and texture export planner.
   - [x] Add editor command integration for idStudio geometry and texture export.
+  - [x] Use UDB-style idStudio dialog defaults and texture-count labels in the editor.
 - [ ] Port visual vertex slope behavior.
   - [x] Add UDB-style smart pivot selection, adjacent-handle selection, and command metadata for visual vertex slope handles.
 - [ ] Port all BuilderModes visual modes.

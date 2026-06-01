@@ -3550,7 +3550,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
 
-        var dlg = new IdStudioExportDialog(DefaultIdStudioExportOptions());
+        var dlg = new IdStudioExportDialog(DefaultIdStudioExportFormState());
         if (!await dlg.ShowDialog<bool>(this)) return;
 
         IdStudioExportOptions options = dlg.ResultOptions;
@@ -3890,19 +3890,13 @@ public partial class MainWindow : Window
             : new WavefrontImageData(image.Width, image.Height, WavefrontPngEncoder.EncodeRgba(image.Width, image.Height, image.Rgba));
     }
 
-    private IdStudioExportOptions DefaultIdStudioExportOptions()
+    private IdStudioExportFormState DefaultIdStudioExportFormState()
     {
-        string modPath = _wadPath is null
-            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
-            : System.IO.Path.GetDirectoryName(_wadPath) ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string mapName = (_mapMarker ?? "map01").ToLowerInvariant();
-        return new IdStudioExportOptions
-        {
-            ModPath = modPath,
-            MapName = mapName,
-            Downscale = 20,
-            ExportTextures = _resources is not null,
-        };
+        string mapFilePath = _wadPath ?? _pk3Path ?? "map.wad";
+        string levelName = _mapMarker ?? "map01";
+        int textureCount = _resources?.GetTextureNames().Count ?? 0;
+        int flatCount = _resources?.GetFlatNames().Count ?? 0;
+        return IdStudioExportFormState.FromMap(_map!, mapFilePath, levelName, textureCount, flatCount);
     }
 
     private static IReadOnlyList<string> ValidateIdStudioExportOptions(IdStudioExportOptions options)
