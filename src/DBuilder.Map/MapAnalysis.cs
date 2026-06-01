@@ -143,8 +143,8 @@ public sealed class MapCheckContext
     public int SafeBoundary { get; init; }
     /// <summary>Grid size for the off-grid vertex check; 0 disables it.</summary>
     public int GridSize { get; init; }
-    /// <summary>Linedefs shorter than this (but non-zero) are flagged. Default 8.</summary>
-    public double ShortLinedefLength { get; init; } = 8;
+    /// <summary>Linedefs shorter than this (but non-zero) are flagged. UDB's check uses 1 map unit.</summary>
+    public double ShortLinedefLength { get; init; } = 1;
 }
 
 /// <summary>A single detected map problem with a human-readable message and optional navigation hints.</summary>
@@ -895,7 +895,7 @@ public static class MapAnalysis
             double len = (l.End.Position - l.Start.Position).GetLength();
             if (len > 1e-4 && len < ctx.ShortLinedefLength)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
-                    $"Linedef {i} is very short ({len:0.##} units).")
+                    $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} map unit.")
                     { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
         }
     }

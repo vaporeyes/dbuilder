@@ -1297,10 +1297,22 @@ public class MapAnalysisTests
     {
         var map = new MapSet();
         var a = map.AddVertex(new Vector2D(0, 0));
-        var b = map.AddVertex(new Vector2D(4, 0)); // length 4 < default 8
+        var b = map.AddVertex(new Vector2D(0.5, 0));
         map.AddLinedef(a, b);
         map.BuildIndexes();
-        Assert.True(Has(map, new MapCheckContext { ShortLinedefLength = 8 }, MapIssueKind.ShortLinedef));
+        var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.ShortLinedef);
+        Assert.Contains("shorter than 1 map unit", issue.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OneMapUnitLinedefIsNotShort()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(1, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+        Assert.False(Has(map, new MapCheckContext(), MapIssueKind.ShortLinedef));
     }
 
     [Fact]
