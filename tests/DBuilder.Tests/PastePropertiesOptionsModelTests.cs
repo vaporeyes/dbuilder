@@ -137,6 +137,34 @@ public class PastePropertiesOptionsModelTests
         Assert.All(tab.Options, option => Assert.False(option.IsChecked));
     }
 
+    [Fact]
+    public void CreateDefaultCatalogUsesStablePastePropertyKeys()
+    {
+        PastePropertiesOptionsResult result = PastePropertiesOptionsModel.Build(
+            new PastePropertiesCopiedState(Linedef: true),
+            [PastePropertiesElementKind.Linedef],
+            PastePropertiesOptionsModel.CreateDefaultCatalog());
+
+        string[] keys = result.Tabs.SelectMany(tab => tab.Options).Select(option => option.Key).ToArray();
+
+        Assert.Contains(PastePropertiesKeys.LinedefAction, keys);
+        Assert.Contains(PastePropertiesKeys.LinedefArguments, keys);
+        Assert.Contains(PastePropertiesKeys.SidedefUpperTexture, keys);
+        Assert.Contains(PastePropertiesKeys.SidedefOffsetY, keys);
+    }
+
+    [Fact]
+    public void CreateDefaultCatalogHidesUdmfOnlyOptionsWhenUnsupported()
+    {
+        PastePropertiesOptionsResult result = PastePropertiesOptionsModel.Build(
+            new PastePropertiesCopiedState(Vertex: true),
+            [PastePropertiesElementKind.Vertex],
+            PastePropertiesOptionsModel.CreateDefaultCatalog(supportsUdmf: false));
+
+        Assert.False(result.IsAvailable);
+        Assert.Equal(PastePropertiesOptionsModel.NoSupportedPropertiesMessage, result.StatusMessage);
+    }
+
     private static PastePropertiesOptionsCatalog CreateCatalog(
         IReadOnlyList<PastePropertiesOption>? vertexOptions = null,
         IReadOnlyList<PastePropertiesOption>? linedefOptions = null,

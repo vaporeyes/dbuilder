@@ -72,6 +72,74 @@ public static class PastePropertiesOptionsModel
     public const string NoSupportedPropertiesMessage =
         "Current map format doesn't support any properties for selected map elements!";
 
+    public static PastePropertiesOptionsCatalog CreateDefaultCatalog(bool supportsUdmf = true)
+    {
+        return new PastePropertiesOptionsCatalog(
+            new PastePropertiesOptionGroup(
+                PastePropertiesElementKind.Vertex,
+                "Vertices",
+                [
+                    new PastePropertiesOption(PastePropertiesKeys.VertexZFloor, "Vertex floor height", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.VertexZCeiling, "Vertex ceiling height", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.VertexFields, "Custom fields", true, supportsUdmf),
+                ]),
+            new PastePropertiesOptionGroup(
+                PastePropertiesElementKind.Linedef,
+                "Linedefs",
+                [
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefAction, "Action", true),
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefArguments, "Action arguments", true),
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefActivation, "Activation", true),
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefTag, "Tags", true),
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefFlags, "Flags", true),
+                    new PastePropertiesOption(PastePropertiesKeys.LinedefFields, "Custom fields", true, supportsUdmf),
+                ]),
+            new PastePropertiesOptionGroup(
+                PastePropertiesElementKind.Sidedef,
+                "Sidedefs",
+                [
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefUpperTexture, "Upper texture", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefMiddleTexture, "Middle texture", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefLowerTexture, "Lower texture", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefOffsetX, "Texture offset X", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefOffsetY, "Texture offset Y", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefFlags, "Flags", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.SidedefFields, "Custom fields", true, supportsUdmf),
+                ]),
+            new PastePropertiesOptionGroup(
+                PastePropertiesElementKind.Sector,
+                "Sectors",
+                [
+                    new PastePropertiesOption(PastePropertiesKeys.SectorFloorHeight, "Floor height", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorCeilingHeight, "Ceiling height", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorFloorTexture, "Floor texture", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorCeilingTexture, "Ceiling texture", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorBrightness, "Sector brightness", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorTag, "Tags", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorSpecial, "Special", true),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorFloorSlope, "Floor slope", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorCeilingSlope, "Ceiling slope", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorFlags, "Flags", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.SectorFields, "Custom fields", true, supportsUdmf),
+                ]),
+            new PastePropertiesOptionGroup(
+                PastePropertiesElementKind.Thing,
+                "Things",
+                [
+                    new PastePropertiesOption(PastePropertiesKeys.ThingType, "Type", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingAngle, "Angle", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingZHeight, "Z height", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingPitch, "Pitch", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingRoll, "Roll", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingScale, "Scale", true, supportsUdmf),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingFlags, "Flags", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingTag, "Tag", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingAction, "Action", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingArguments, "Action arguments", true),
+                    new PastePropertiesOption(PastePropertiesKeys.ThingFields, "Custom fields", true, supportsUdmf),
+                ]));
+    }
+
     public static PastePropertiesOptionsResult Build(
         PastePropertiesCopiedState copied,
         IEnumerable<PastePropertiesElementKind> targetKinds,

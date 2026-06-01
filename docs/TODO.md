@@ -701,6 +701,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist paste options and apply them to editor paste, duplicate, and prefab insertion.
   - [x] Add paste option controls to the settings dialog.
   - [x] Add UDB-style paste-properties option tab model for copied and target element combinations.
+  - [x] Add UDB-style selective paste-properties applier for copied map element fields.
 - [ ] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
