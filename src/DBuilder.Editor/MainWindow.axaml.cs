@@ -4289,10 +4289,10 @@ public partial class MainWindow : Window
     {
         UpdateCommandAvailability();
         if (_map is null) { ShowText("No map loaded."); PreviewPanel.Children.Clear(); return; }
-        int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
-        UpdatePreviews(sv, sl, ss, st);
+        int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, sd = _map.SelectedSidedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
+        UpdatePreviews(sv, sl, sd, ss, st);
 
-        if (sv + sl + ss + st == 0)
+        if (sv + sl + sd + ss + st == 0)
         {
             ShowText($"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
                      $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode}.   {CommandHints("map2d.mode-vertices", "map2d.mode-linedefs", "map2d.mode-sectors", "map2d.mode-things")}.   {CommandHint("map2d.toggle-3d")}.   See Help > Shortcuts for all controls.");
@@ -4300,13 +4300,14 @@ public partial class MainWindow : Window
         }
 
         // Detailed read-out for a single selected element (config-aware names); otherwise a counts summary.
-        if (st == 1 && sl == 0 && ss == 0 && sv == 0) ShowThingFields(_map.GetSelectedThings()[0]);
-        else if (sl == 1 && st == 0 && ss == 0 && sv == 0) ShowLinedefFields(_map.GetSelectedLinedefs()[0]);
-        else if (ss == 1 && st == 0 && sl == 0 && sv == 0) ShowSectorFields(_map.GetSelectedSectors()[0]);
-        else if (sv == 1 && st == 0 && sl == 0 && ss == 0) ShowVertexFields(_map.GetSelectedVertices()[0]);
+        if (st == 1 && sl == 0 && sd == 0 && ss == 0 && sv == 0) ShowThingFields(_map.GetSelectedThings()[0]);
+        else if (sl == 1 && st == 0 && sd == 0 && ss == 0 && sv == 0) ShowLinedefFields(_map.GetSelectedLinedefs()[0]);
+        else if (sd == 1 && st == 0 && sl == 0 && ss == 0 && sv == 0) ShowSidedefFields(_map.GetSelectedSidedefs()[0]);
+        else if (ss == 1 && st == 0 && sl == 0 && sd == 0 && sv == 0) ShowSectorFields(_map.GetSelectedSectors()[0]);
+        else if (sv == 1 && st == 0 && sl == 0 && sd == 0 && ss == 0) ShowVertexFields(_map.GetSelectedVertices()[0]);
         else
         {
-            ShowText($"Selected: {sv} vertices, {sl} linedefs, {ss} sectors, {st} things." +
+            ShowText($"Selected: {sv} vertices, {sl} linedefs, {sd} sidedefs, {ss} sectors, {st} things." +
                      (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : ""));
         }
     }
@@ -4512,6 +4513,12 @@ public partial class MainWindow : Window
         ShowFields($"Linedef {_map!.Linedefs.IndexOf(l)}", fields);
     }
 
+    private void ShowSidedefFields(Sidedef side)
+    {
+        SidedefInfoPanelState state = SidedefInfoPanelModel.Build(_map!, side);
+        ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
+    }
+
     private void ShowSectorFields(Sector s)
     {
         string eff = _config?.SectorEffectTitle(s.Special) ?? (s.Special == 0 ? "None" : $"effect {s.Special}");
@@ -4634,18 +4641,23 @@ public partial class MainWindow : Window
     }
 
     // Shows texture/sprite thumbnails for a single selected element (sidedef textures, sector flats, thing sprite).
-    private void UpdatePreviews(int sv, int sl, int ss, int st)
+    private void UpdatePreviews(int sv, int sl, int sd, int ss, int st)
     {
         PreviewPanel.Children.Clear();
         if (_map is null || _resources is null) return;
 
-        if (sl == 1 && st == 0 && ss == 0 && sv == 0)
+        if (sl == 1 && sd == 0 && st == 0 && ss == 0 && sv == 0)
         {
             var l = _map.GetSelectedLinedefs()[0];
             if (l.Front is { } f) PreviewPanel.Children.Add(SidePreviews("Front", f));
             if (l.Back is { } b) PreviewPanel.Children.Add(SidePreviews("Back", b));
         }
-        else if (ss == 1 && st == 0 && sl == 0 && sv == 0)
+        else if (sd == 1 && st == 0 && sl == 0 && ss == 0 && sv == 0)
+        {
+            var side = _map.GetSelectedSidedefs()[0];
+            PreviewPanel.Children.Add(SidePreviews(side.IsFront ? "Front" : "Back", side));
+        }
+        else if (ss == 1 && st == 0 && sl == 0 && sd == 0 && sv == 0)
         {
             var s = _map.GetSelectedSectors()[0];
             PreviewPanel.Children.Add(Group("Sector", new[]
@@ -4656,7 +4668,7 @@ public partial class MainWindow : Window
                     () => _ = ChangeFlat(s, ceiling: true)),
             }));
         }
-        else if (st == 1 && sl == 0 && ss == 0 && sv == 0)
+        else if (st == 1 && sl == 0 && sd == 0 && ss == 0 && sv == 0)
         {
             var t = _map.GetSelectedThings()[0];
             string sprite = _config?.GetThing(t.Type)?.Sprite ?? "";

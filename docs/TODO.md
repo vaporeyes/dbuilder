@@ -777,6 +777,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.
   - [x] Add structured single-thing, linedef, and sector metadata details.
+  - [x] Add structured single-sidedef info panel details and texture previews.
 - [x] Port thing browser.
 - [x] Port texture browser.
 - [x] Port flat browser.

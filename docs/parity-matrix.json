@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields, map markers, and map options are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields, map markers, map options, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",
