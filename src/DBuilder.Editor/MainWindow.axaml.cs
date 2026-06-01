@@ -1052,6 +1052,8 @@ public partial class MainWindow : Window
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
+            case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
+            case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;

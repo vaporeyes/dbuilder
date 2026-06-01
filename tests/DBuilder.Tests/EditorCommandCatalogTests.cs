@@ -144,6 +144,22 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.test-map", "Test Map")]
+    [InlineData("window.things-filters-setup", "Configure Things Filters")]
+    public void ToolCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("select", "Select Group", "Menu")]
     [InlineData("assign", "Assign Group", "Menu")]
     [InlineData("clear", "Clear Group", "Ctrl/Cmd+Shift")]
