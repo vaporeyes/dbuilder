@@ -202,6 +202,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add explicit-range blockmap construction for incremental population.
   - [x] Match UDB blockmap world-range containment semantics.
   - [x] Index things by editor radius for visual block queries like UDB `VisualBlockMap`.
+  - [x] Add UDB-style visual block point, rectangle, line-bound, and frustum queries.
 - [x] Port map options and map metadata.
 - [x] Port map element collections and lookup behavior.
 - [x] Port static limits and map-format constraints.

@@ -251,6 +251,66 @@ public class BlockMapTests
     }
 
     [Fact]
+    public void GetBlocksReturnsPointBlockWhenNonEmpty()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var thing = new Thing(new Vector2D(20, 20), 3001);
+        bm.AddThing(thing);
+
+        var blocks = bm.GetBlocks(new Vector2D(20, 20));
+
+        var block = Assert.Single(blocks);
+        Assert.Contains(thing, block.Things);
+        Assert.Empty(bm.GetBlocks(new Vector2D(96, 96)));
+        Assert.Empty(bm.GetBlocks(new Vector2D(-1, -1)));
+    }
+
+    [Fact]
+    public void GetBlocksRectangleUsesUdbFloorAndRightPlusOneBounds()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var edgeThing = new Thing(new Vector2D(64, 16), 3001);
+        var outside = new Thing(new Vector2D(96, 96), 3001);
+        bm.AddThings(new[] { edgeThing, outside });
+
+        var blocks = bm.GetBlocks(new RectangleF(0, 0, 64, 16));
+
+        Assert.Contains(blocks, block => block.Things.Contains(edgeThing));
+        Assert.DoesNotContain(blocks, block => block.Things.Contains(outside));
+    }
+
+    [Fact]
+    public void GetLineBlocksUsesBoundingRectangleLikeVisualBlockMap()
+    {
+        var bm = new BlockMap(new RectangleF(0, 0, 128, 128), 64);
+        var diagonalCell = new Thing(new Vector2D(96, 96), 3001);
+        var boundingOnlyCell = new Thing(new Vector2D(96, 16), 3001);
+        bm.AddThings(new[] { diagonalCell, boundingOnlyCell });
+
+        var blocks = bm.GetLineBlocks(new Vector2D(0, 0), new Vector2D(128, 128));
+        var traversed = bm.GetLineCellCoordinates(new Vector2D(0, 0), new Vector2D(128, 128));
+
+        Assert.Contains(blocks, block => block.Things.Contains(diagonalCell));
+        Assert.Contains(blocks, block => block.Things.Contains(boundingOnlyCell));
+        Assert.DoesNotContain((1, 0), traversed);
+    }
+
+    [Fact]
+    public void GetFrustumBlocksReturnsVisibleNonEmptyBlocks()
+    {
+        var bm = new BlockMap(new RectangleF(-128, -128, 256, 256), 64);
+        var inside = new Thing(new Vector2D(0, -64), 3001);
+        var behind = new Thing(new Vector2D(0, 96), 3001);
+        bm.AddThings(new[] { inside, behind });
+        var frustum = new ProjectedFrustum2D(new Vector2D(0, 0), xyangle: 0, zangle: 0, near: 8, far: 128, fov: (float)(Math.PI / 2));
+
+        var blocks = bm.GetFrustumBlocks(frustum);
+
+        Assert.Contains(blocks, block => block.Things.Contains(inside));
+        Assert.DoesNotContain(blocks, block => block.Things.Contains(behind));
+    }
+
+    [Fact]
     public void ClearRemovesIndexedContentsButKeepsRange()
     {
         var (map, _) = SquareSector(0, 0, 64);

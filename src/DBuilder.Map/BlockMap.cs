@@ -66,6 +66,47 @@ public sealed class BlockMap
     public IReadOnlyList<Vertex> GetVerticesAt(int col, int row)
         => IsCellInRange(col, row) ? vertCells[Index(col, row)] : Array.Empty<Vertex>();
 
+    /// <summary>Returns non-empty visual blocks containing <paramref name="pos"/>, matching UDB's point block query shape.</summary>
+    public IReadOnlyList<BlockMapCell> GetBlocks(Vector2D pos)
+    {
+        var (col, row) = GetCellCoordinates(pos);
+        return IsCellInRange(col, row) && CellHasContents(col, row)
+            ? new[] { GetCell(col, row) }
+            : Array.Empty<BlockMapCell>();
+    }
+
+    /// <summary>Returns non-empty visual blocks intersecting a rectangle using UDB's floor/right-plus-one bounds.</summary>
+    public IReadOnlyList<BlockMapCell> GetBlocks(RectangleF box)
+    {
+        int x0 = (int)Math.Floor(box.Left);
+        int y0 = (int)Math.Floor(box.Top);
+        int x1 = (int)Math.Floor(box.Right) + 1;
+        int y1 = (int)Math.Floor(box.Bottom) + 1;
+        return GetBlocksInWorldRange(x0, y0, x1, y1);
+    }
+
+    /// <summary>Returns non-empty visual blocks in the bounding rectangle of a line, matching UDB VisualBlockMap.</summary>
+    public IReadOnlyList<BlockMapCell> GetLineBlocks(Vector2D start, Vector2D end)
+    {
+        int x0 = (int)Math.Floor(Math.Min(start.x, end.x));
+        int y0 = (int)Math.Floor(Math.Min(start.y, end.y));
+        int x1 = (int)Math.Floor(Math.Max(start.x, end.x)) + 1;
+        int y1 = (int)Math.Floor(Math.Max(start.y, end.y)) + 1;
+        return GetBlocksInWorldRange(x0, y0, x1, y1);
+    }
+
+    /// <summary>Returns non-empty visual blocks intersecting a projected 2D frustum.</summary>
+    public IReadOnlyList<BlockMapCell> GetFrustumBlocks(ProjectedFrustum2D frustum)
+    {
+        var blocks = new List<BlockMapCell>();
+        for (int col = 0; col < cols; col++)
+            for (int row = 0; row < rows; row++)
+                if (CellHasContents(col, row) && CellIntersectsFrustum(col, row, frustum))
+                    blocks.Add(GetCell(col, row));
+
+        return blocks;
+    }
+
     /// <summary>Returns a view of the block containing <paramref name="pos"/>, or null when outside range.</summary>
     public BlockMapCell? GetBlockAt(Vector2D pos)
     {
@@ -170,10 +211,55 @@ public sealed class BlockMap
     private int CellX(double x) => Math.Clamp((int)Math.Floor((x - originX) / blockSize), 0, cols - 1);
     private int CellY(double y) => Math.Clamp((int)Math.Floor((y - originY) / blockSize), 0, rows - 1);
     private int Index(int cx, int cy) => cy * cols + cx;
+    private bool CellHasContents(int col, int row)
+    {
+        int index = Index(col, row);
+        return lineCells[index].Count > 0
+            || sectorCells[index].Count > 0
+            || thingCells[index].Count > 0
+            || vertCells[index].Count > 0;
+    }
+
     private BlockMapCell GetCell(int col, int row)
     {
         int index = Index(col, row);
         return new BlockMapCell(lineCells[index], thingCells[index], sectorCells[index], vertCells[index]);
+    }
+
+    private IReadOnlyList<BlockMapCell> GetBlocksInWorldRange(double left, double top, double right, double bottom)
+    {
+        if (!BoxIntersectsRange(left, top, right, bottom)) return Array.Empty<BlockMapCell>();
+
+        int cx0 = CellX(left);
+        int cy0 = CellY(top);
+        int cx1 = CellX(right);
+        int cy1 = CellY(bottom);
+        var blocks = new List<BlockMapCell>();
+        for (int cx = cx0; cx <= cx1; cx++)
+            for (int cy = cy0; cy <= cy1; cy++)
+                if (CellHasContents(cx, cy))
+                    blocks.Add(GetCell(cx, cy));
+
+        return blocks;
+    }
+
+    private bool CellIntersectsFrustum(int col, int row, ProjectedFrustum2D frustum)
+    {
+        double half = blockSize * 0.5;
+        var center = GetCellCenter(col, row);
+        foreach (var line in frustum.Lines)
+        {
+            double dx = line.v2.x - line.v1.x;
+            double dy = line.v2.y - line.v1.y;
+            double a = -dy;
+            double b = dx;
+            double d = -(line.v1.x * a + line.v1.y * b);
+            double e = half * Math.Abs(a) + half * Math.Abs(b);
+            double s = center.x * a + center.y * b + d;
+            if (s + e < 0.0) return false;
+        }
+
+        return true;
     }
 
     private IEnumerable<(int Col, int Row)> LineCellCoordinates(Vector2D start, Vector2D end)
