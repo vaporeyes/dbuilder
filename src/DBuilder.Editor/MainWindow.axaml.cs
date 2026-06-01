@@ -1300,7 +1300,7 @@ public partial class MainWindow : Window
     private async void OnCustomFields(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
-        if (!TryGetSingleFieldedSelection(out var element, out string name))
+        if (!SupportsCustomFields() || !TryGetSingleFieldedSelection(out var element, out string name))
         {
             SetStatus("Select exactly one vertex, linedef, sector or thing to edit custom fields.");
             return;
@@ -4400,7 +4400,6 @@ public partial class MainWindow : Window
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
-        bool hasExactlyOneSelection = hasMap && CountSelection() == 1;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
@@ -4411,6 +4410,7 @@ public partial class MainWindow : Window
         bool hasGradientTarget = hasGradientSectors || hasGradientLinedefs;
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
+        bool supportsCustomFields = SupportsCustomFields();
         bool hasEditableProperties = _map is not null && EditorPropertySelection.CanEdit(
             _map.SelectedVerticesCount,
             _map.SelectedLinedefsCount,
@@ -4418,6 +4418,13 @@ public partial class MainWindow : Window
             _map.SelectedSectorsCount,
             _map.SelectedThingsCount);
         bool hasSingleFlagSelection = _map is not null && EditorPropertySelection.CanEditFlags(
+            _map.SelectedVerticesCount,
+            _map.SelectedLinedefsCount,
+            _map.SelectedSidedefsCount,
+            _map.SelectedSectorsCount,
+            _map.SelectedThingsCount);
+        bool hasCustomFieldSelection = _map is not null && EditorPropertySelection.CanEditCustomFields(
+            supportsCustomFields,
             _map.SelectedVerticesCount,
             _map.SelectedLinedefsCount,
             _map.SelectedSidedefsCount,
@@ -4472,11 +4479,14 @@ public partial class MainWindow : Window
         SetEnabled(hasMultipleSelectedSectors, JoinSectorsMenuItem, MergeSectorsMenuItem);
         SetEnabled(hasEditableProperties, PropertiesMenuItem);
         SetEnabled(hasSingleFlagSelection, FlagsMenuItem);
-        SetEnabled(hasExactlyOneSelection, CustomFieldsMenuItem);
+        SetEnabled(hasCustomFieldSelection, CustomFieldsMenuItem);
         SetEnabled(canUndo, UndoMenuItem, UndoButton);
         SetEnabled(canRedo, RedoMenuItem, RedoButton);
         UpdateCommandCheckedState();
     }
+
+    private bool SupportsCustomFields()
+        => _config?.HasCustomFields == true || _mapFormat == MapFormat.Udmf;
 
     private void UpdateCommandCheckedState()
     {

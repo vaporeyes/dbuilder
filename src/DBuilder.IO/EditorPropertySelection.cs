@@ -14,4 +14,9 @@ public static class EditorPropertySelection
            && ((linedefs == 1 && sectors == 0 && things == 0)
                || (sectors == 1 && linedefs == 0 && things == 0)
                || (things == 1 && linedefs == 0 && sectors == 0));
+
+    public static bool CanEditCustomFields(bool supportsCustomFields, int vertices, int linedefs, int sidedefs, int sectors, int things)
+        => supportsCustomFields
+           && sidedefs == 0
+           && vertices + linedefs + sectors + things == 1;
 }
