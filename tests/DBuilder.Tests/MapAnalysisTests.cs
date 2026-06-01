@@ -2131,6 +2131,20 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ZeroLengthLinedefIsAlsoFlaggedAsShortLikeUdb()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(0, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+        var issues = MapAnalysis.Check(map, new MapCheckContext());
+
+        Assert.Contains(issues, i => i.Kind == MapIssueKind.ZeroLengthLinedef);
+        Assert.Contains(issues, i => i.Kind == MapIssueKind.ShortLinedef);
+    }
+
+    [Fact]
     public void OffGridVertexFlagsFractionalCoordinates()
     {
         var map = new MapSet();

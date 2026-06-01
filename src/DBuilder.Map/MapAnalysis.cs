@@ -174,7 +174,7 @@ public sealed class MapCheckContext
     public string? ImpassableFlag { get; init; }
     /// <summary>Maximum safe map width or height in map units; 0 disables the map-size check.</summary>
     public int SafeBoundary { get; init; }
-    /// <summary>Linedefs shorter than this (but non-zero) are flagged. UDB's check uses 1 map unit.</summary>
+    /// <summary>Linedefs shorter than this are flagged. UDB's check uses 1 map unit.</summary>
     public double ShortLinedefLength { get; init; } = 1;
 }
 
@@ -1279,7 +1279,7 @@ public static class MapAnalysis
         {
             var l = map.Linedefs[i];
             double len = (l.End.Position - l.Start.Position).GetLength();
-            if (len > 1e-4 && len < ctx.ShortLinedefLength)
+            if (len < ctx.ShortLinedefLength)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
                     $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} map unit.")
                     { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
