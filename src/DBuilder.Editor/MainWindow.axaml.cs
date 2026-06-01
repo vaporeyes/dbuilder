@@ -200,39 +200,44 @@ public partial class MainWindow : Window
     private void RebuildRecentMenu()
     {
         var items = new List<object>();
-        var recentMaps = _settings.ExistingRecentMaps(System.IO.File.Exists);
-        var recentFiles = _settings.ExistingRecentFiles(System.IO.File.Exists);
-        foreach (var map in recentMaps)
+        foreach (RecentMenuEntry entry in RecentMenuModel.Build(_settings, System.IO.File.Exists))
         {
-            var item = new MenuItem { Header = RecentMapHeader(map) };
-            var captured = map;
-            item.Click += async (_, _) => await LoadRecentMap(captured);
-            items.Add(item);
-        }
-        if (recentMaps.Count > 0 && recentFiles.Count > 0)
-            items.Add(new Separator());
-
-        foreach (var path in recentFiles)
-        {
-            var item = new MenuItem { Header = path };
-            string captured = path;
-            item.Click += async (_, _) =>
+            if (entry.IsSeparator)
             {
-                await LoadArchive(captured, promptForMap: true);
-            };
-            items.Add(item);
+                items.Add(new Separator());
+            }
+            else if (entry.IsMap)
+            {
+                var item = new MenuItem { Header = entry.Header };
+                var captured = new RecentMapReference
+                {
+                    Path = entry.Path ?? "",
+                    MapName = entry.MapName ?? "",
+                    ArchivePath = entry.ArchivePath,
+                };
+                item.Click += async (_, _) => await LoadRecentMap(captured);
+                items.Add(item);
+            }
+            else if (entry.IsFile)
+            {
+                var item = new MenuItem { Header = entry.Header };
+                string captured = entry.Path ?? "";
+                item.Click += async (_, _) =>
+                {
+                    await LoadArchive(captured, promptForMap: true);
+                };
+                items.Add(item);
+            }
+            else
+            {
+                items.Add(new MenuItem { Header = entry.Header, IsEnabled = false });
+            }
         }
-        if (items.Count == 0)
-            items.Add(new MenuItem { Header = "(none)", IsEnabled = false });
         OpenRecentMenu.ItemsSource = items;
     }
 
     private static string RecentMapHeader(RecentMapReference map)
-    {
-        string fileName = System.IO.Path.GetFileName(map.Path);
-        string mapName = string.IsNullOrWhiteSpace(map.ArchivePath) ? map.MapName : $"{map.ArchivePath}:{map.MapName}";
-        return $"{fileName} ({mapName})";
-    }
+        => RecentMenuModel.RecentMapHeader(map);
 
     private async Task LoadRecentMap(RecentMapReference map)
     {

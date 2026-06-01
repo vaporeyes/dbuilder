@@ -56,6 +56,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.
   - [x] Persist UDB-style configurable recent-file count with the same 8-25 preference range.
   - [x] Hide missing recent files from the Open Recent menu like UDB.
+  - [x] Build UDB-style numbered recent menu entries with map-aware archive labels.
 - [ ] Port file lock checks and save conflict handling.
   - [x] Block in-place WAD saves when the source archive changed on disk after load.
 - [ ] Port program configuration loading and persistence.
