@@ -22,8 +22,8 @@ public sealed class SectorColorDialog : PropertyDialog
     public ColorRgb ResultColor { get; private set; }
     public bool ResultRemoveDefaults { get; private set; } = true;
 
-    public SectorColorDialog(Sector sector, SectorColorField field)
-        : base("Sector Color")
+    public SectorColorDialog(Sector sector, SectorColorField field, int sectorCount = 1)
+        : base(ColorPickerModel.SectorColorPickerTitle(sectorCount))
     {
         ResultField = field;
         _activeField = field;
@@ -34,7 +34,7 @@ public sealed class SectorColorDialog : PropertyDialog
             "Field",
             new[]
             {
-                new CatalogItem((int)SectorColorField.LightColor, "Light color"),
+                new CatalogItem((int)SectorColorField.LightColor, "Sector color"),
                 new CatalogItem((int)SectorColorField.FadeColor, "Fade color"),
             },
             (int)field);
@@ -73,8 +73,9 @@ public sealed class SectorColorDialog : PropertyDialog
             ClampByte(ParseInt(_green, _state.ActiveColor.Green)),
             ClampByte(ParseInt(_blue, _state.ActiveColor.Blue)));
         string originalHex = ColorPickerModel.Format(_state.ActiveColor, ColorPickerInfoMode.Hex);
-        ColorRgb color = HexChanged(_hex.Text, originalHex) && TryParseHex(_hex.Text, out ColorRgb hexColor)
-            ? hexColor
+        ColorRgb? hexColor = ColorPickerModel.TryParse(ColorPickerInfoMode.Hex, (_hex.Text ?? "").Trim().TrimStart('#'));
+        ColorRgb color = HexChanged(_hex.Text, originalHex) && hexColor.HasValue
+            ? hexColor.Value
             : rgbColor;
         _state = ColorPickerModel.SetSectorColorPickerActiveColor(_state, color);
     }
@@ -92,19 +93,6 @@ public sealed class SectorColorDialog : PropertyDialog
 
     private static string NormalizeHex(string? text)
         => (text ?? "").Trim().TrimStart('#').ToUpperInvariant();
-
-    private static bool TryParseHex(string? text, out ColorRgb color)
-    {
-        string value = (text ?? "").Trim().TrimStart('#');
-        if (value.Length == 6 && int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int packed))
-        {
-            color = ColorPickerModel.UnpackRgb(packed);
-            return true;
-        }
-
-        color = default;
-        return false;
-    }
 
     private static int ClampByte(int value)
         => Math.Clamp(value, 0, 255);

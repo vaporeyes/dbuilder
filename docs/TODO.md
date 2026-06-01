@@ -1308,6 +1308,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style dynamic light picker metadata, color storage, slider limits, and radius/interval mutation rules.
   - [x] Add UDB-style dynamic light slider labels and secondary-control visibility planning.
   - [x] Add UDB-style multi-light fixed-value capture and selection-wide dynamic light color/property mutations.
+  - [x] Match UDB sector color dialog title, sector-color label, typed HEX parsing, and paired-field apply behavior.
 
 ## Validation And Test Strategy
 

@@ -133,6 +133,25 @@ public sealed class ColorPickerModelTests
     }
 
     [Fact]
+    public void ApplySectorColorEditSeedsPairedFieldFromFirstSectorLikeUdb()
+    {
+        var first = new Sector();
+        first.Fields[ColorPickerModel.FadeColorField] = 0x445566;
+        var second = new Sector();
+        var sectors = new[] { first, second };
+
+        int count = ColorPickerModel.ApplySectorColorEdit(
+            sectors,
+            SectorColorField.LightColor,
+            new ColorRgb(0x11, 0x22, 0x33),
+            removeDefaults: true);
+
+        Assert.Equal(2, count);
+        Assert.All(sectors, sector => Assert.Equal(0x112233, sector.Fields[ColorPickerModel.LightColorField]));
+        Assert.All(sectors, sector => Assert.Equal(0x445566, sector.Fields[ColorPickerModel.FadeColorField]));
+    }
+
+    [Fact]
     public void RemoveDefaultSectorColorsDropsOnlyDefaultValues()
     {
         var first = new Sector();
@@ -153,6 +172,8 @@ public sealed class ColorPickerModelTests
     public void DynamicLightPickerMetadataMatchesUdbSelectionMessages()
     {
         Assert.Equal("No lights found in selection!", ColorPickerModel.NoDynamicLightsWarning);
+        Assert.Equal("Editing 1 sector", ColorPickerModel.SectorColorPickerTitle(1));
+        Assert.Equal("Editing 2 sectors", ColorPickerModel.SectorColorPickerTitle(2));
         Assert.Equal("Editing 1 light", ColorPickerModel.DynamicLightPickerTitle(1));
         Assert.Equal("Editing 2 lights", ColorPickerModel.DynamicLightPickerTitle(2));
         Assert.Equal(3, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: false));

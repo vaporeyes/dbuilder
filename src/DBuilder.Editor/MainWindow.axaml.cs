@@ -3177,7 +3177,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dlg = new SectorColorDialog(sectors[0], SectorColorField.LightColor);
+        var dlg = new SectorColorDialog(sectors[0], SectorColorField.LightColor, sectors.Count);
         if (!await dlg.ShowDialog<bool>(this))
         {
             MapView.Focus();
@@ -3185,8 +3185,7 @@ public partial class MainWindow : Window
         }
 
         CreateUndo("Set sector color");
-        ColorPickerModel.SetSectorColor(sectors, dlg.ResultField, dlg.ResultColor);
-        if (dlg.ResultRemoveDefaults) ColorPickerModel.RemoveDefaultSectorColors(sectors);
+        ColorPickerModel.ApplySectorColorEdit(sectors, dlg.ResultField, dlg.ResultColor, dlg.ResultRemoveDefaults);
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Set {dlg.ResultField.ToString().ToLowerInvariant()} on {sectors.Count} sector(s) to {ColorPickerModel.Format(dlg.ResultColor, ColorPickerInfoMode.Hex)}.");

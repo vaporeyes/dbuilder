@@ -209,6 +209,9 @@ public static class ColorPickerModel
     public static string DynamicLightPickerTitle(int selectedLightCount)
         => $"Editing {selectedLightCount} light{(selectedLightCount > 1 ? "s" : "")}";
 
+    public static string SectorColorPickerTitle(int selectedSectorCount)
+        => $"Editing {selectedSectorCount} sector{(selectedSectorCount > 1 ? "s" : "")}";
+
     public static bool DynamicLightUsesAngleValue(int lightNumber)
         => LightsUsingAngleValue.Contains(lightNumber);
 
@@ -460,6 +463,18 @@ public static class ColorPickerModel
         int value = PackRgb(rgb);
         foreach (var sector in sectors)
             sector.Fields[key] = value;
+    }
+
+    public static int ApplySectorColorEdit(IReadOnlyList<Sector> sectors, SectorColorField field, ColorRgb rgb, bool removeDefaults)
+    {
+        if (sectors.Count == 0) return 0;
+
+        int lightColor = GetSectorColor(sectors[0], SectorColorField.LightColor);
+        int fadeColor = GetSectorColor(sectors[0], SectorColorField.FadeColor);
+        EnsureSectorColorFields(sectors, lightColor, fadeColor);
+        SetSectorColor(sectors, field, rgb);
+        if (removeDefaults) RemoveDefaultSectorColors(sectors);
+        return sectors.Count;
     }
 
     public static void RemoveDefaultSectorColors(IEnumerable<Sector> sectors)
