@@ -1077,6 +1077,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 15-degree edit-selection rotation snapping.
   - [x] Add UDB-style arbitrary edit-selection rotation for vertices and things.
   - [x] Add UDB-style edit-selection sector height adjustment for moved geometry.
+  - [x] Add UDB-style non-uniform edit-selection scaling for vertices and things.
 - [ ] Port undo/redo panel behavior.
   - [x] Add UDB-style undo/redo panel timeline model, current row selection, elision, and multi-level operation planning.
 - [ ] Port select similar element behavior.

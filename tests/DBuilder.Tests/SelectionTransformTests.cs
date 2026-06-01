@@ -75,6 +75,33 @@ public class SelectionTransformTests
     }
 
     [Fact]
+    public void NonUniformScaleAboutCenter()
+    {
+        var (map, a, b, _) = Selection();
+
+        SelectionTransform.Scale(map, factorX: 2.0, factorY: 0.5);
+
+        Assert.Equal(-50, a.Position.x, 3);
+        Assert.Equal(10, a.Position.y, 3);
+        Assert.Equal(150, b.Position.x, 3);
+        Assert.Equal(30, b.Position.y, 3);
+    }
+
+    [Fact]
+    public void NegativeScaleFlipsThingAngles()
+    {
+        var (map, _, _, thing) = Selection();
+
+        SelectionTransform.Scale(map, factorX: -1.0, factorY: 1.0);
+
+        Assert.Equal(180, thing.Angle);
+
+        SelectionTransform.Scale(map, factorX: 1.0, factorY: -1.0);
+
+        Assert.Equal(180, thing.Angle);
+    }
+
+    [Fact]
     public void RotateArbitraryAngleMovesSelectionAndTurnsThing()
     {
         var map = new MapSet();

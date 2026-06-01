@@ -25,14 +25,23 @@ public static class SelectionTransform
 
     /// <summary>Scales the selection about its center by <paramref name="factor"/>. Returns false when nothing is selected.</summary>
     public static bool Scale(MapSet map, double factor)
+        => Scale(map, factor, factor);
+
+    public static bool Scale(MapSet map, double factorX, double factorY)
     {
         var verts = map.SelectedGeometryVertices();
         var things = map.GetSelectedThings();
         if (verts.Count == 0 && things.Count == 0) return false;
 
         var (cx, cy) = Center(verts, things);
-        foreach (var v in verts) v.Position = new Vector2D(cx + (v.Position.x - cx) * factor, cy + (v.Position.y - cy) * factor);
-        foreach (var t in things) t.Position = new Vector2D(cx + (t.Position.x - cx) * factor, cy + (t.Position.y - cy) * factor);
+        foreach (var v in verts) v.Position = ScalePoint(v.Position, cx, cy, factorX, factorY);
+        foreach (var t in things)
+        {
+            t.Position = ScalePoint(t.Position, cx, cy, factorX, factorY);
+            if (factorX < 0) t.Angle = Angle(t.Angle, Op.FlipHorizontal);
+            if (factorY < 0) t.Angle = Angle(t.Angle, Op.FlipVertical);
+        }
+
         return true;
     }
 
@@ -80,6 +89,9 @@ public static class SelectionTransform
 
     private static Vector2D RotatePoint(Vector2D point, Vector2D center, double rotation)
         => (point - center).GetRotated(rotation) + center;
+
+    private static Vector2D ScalePoint(Vector2D point, double cx, double cy, double factorX, double factorY)
+        => new(cx + (point.x - cx) * factorX, cy + (point.y - cy) * factorY);
 
     private static int Angle(int a, Op op)
     {
