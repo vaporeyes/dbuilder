@@ -1775,6 +1775,39 @@ public class MapSet : IDisposable
         return n;
     }
 
+    public SnapSelectionResult SnapSelectedMapElementsToGrid(Func<Vector2D, Vector2D> snap)
+    {
+        ArgumentNullException.ThrowIfNull(snap);
+
+        var vertices = new HashSet<Vertex>();
+        foreach (var vertex in GetSelectedVertices()) vertices.Add(vertex);
+        foreach (var line in GetSelectedLinedefs())
+        {
+            vertices.Add(line.Start);
+            vertices.Add(line.End);
+        }
+
+        int snappedVertices = 0;
+        foreach (var vertex in vertices)
+        {
+            var snapped = snap(vertex.Position);
+            if (snapped == vertex.Position) continue;
+            vertex.Move(snapped);
+            snappedVertices++;
+        }
+
+        int snappedThings = 0;
+        foreach (var thing in GetSelectedThings())
+        {
+            var snapped = snap(thing.Position);
+            if (snapped == thing.Position) continue;
+            thing.Move(snapped);
+            snappedThings++;
+        }
+
+        return new SnapSelectionResult(vertices.Count, GetSelectedThings().Count, snappedVertices, snappedThings);
+    }
+
     /// <summary>Reverses the direction of every selected linedef. Returns the number flipped. Call BuildIndexes() after.</summary>
     public int FlipSelectedLinedefs()
     {

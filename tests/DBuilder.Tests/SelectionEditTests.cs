@@ -56,6 +56,43 @@ public class SelectionEditTests
     }
 
     [Fact]
+    public void SnapSelectedMapElementsMovesSelectedVerticesLinedefEndpointsAndThings()
+    {
+        var map = BuildTwoRooms();
+        map.Vertices[0].Move(3, 5);
+        map.Vertices[1].Move(31, 2);
+        map.Vertices[2].Move(65, 63);
+        map.Things[0].Move(new Vector2D(47, 47));
+        map.Vertices[0].Selected = true;
+        map.Linedefs[1].Selected = true;
+        map.Things[0].Selected = true;
+
+        var result = map.SnapSelectedMapElementsToGrid(SnapTo32);
+
+        Assert.Equal(3, result.VertexTargets);
+        Assert.Equal(1, result.ThingTargets);
+        Assert.Equal(4, result.SnappedCount);
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+        Assert.Equal(new Vector2D(32, 0), map.Vertices[1].Position);
+        Assert.Equal(new Vector2D(64, 64), map.Vertices[2].Position);
+        Assert.Equal(new Vector2D(32, 32), map.Things[0].Position);
+    }
+
+    [Fact]
+    public void SnapSelectedMapElementsReportsAlreadySnappedSelection()
+    {
+        var map = BuildTwoRooms();
+        map.Vertices[0].Selected = true;
+
+        var result = map.SnapSelectedMapElementsToGrid(SnapTo32);
+
+        Assert.Equal(1, result.VertexTargets);
+        Assert.Equal(0, result.ThingTargets);
+        Assert.Equal(0, result.SnappedCount);
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+    }
+
+    [Fact]
     public void DeleteSelectionRemovesThings()
     {
         var map = BuildTwoRooms();
@@ -153,4 +190,7 @@ public class SelectionEditTests
         Assert.Same(map.Sectors[0], div.Front!.Sector);
         Assert.Same(map.Sectors[1], div.Back!.Sector);
     }
+
+    private static Vector2D SnapTo32(Vector2D point)
+        => new(Math.Round(point.x / 32.0) * 32.0, Math.Round(point.y / 32.0) * 32.0);
 }

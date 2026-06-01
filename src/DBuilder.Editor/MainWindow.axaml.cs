@@ -1046,6 +1046,9 @@ public partial class MainWindow : Window
             case "window.save-map": OnSave(this, new RoutedEventArgs()); return true;
             case "window.save-map-as": OnSaveAs(this, new RoutedEventArgs()); return true;
             case "window.map-options": OnMapOptions(this, new RoutedEventArgs()); return true;
+            case "window.snap-selection-to-grid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
+            case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
+            case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
@@ -2389,6 +2392,14 @@ public partial class MainWindow : Window
     private void OnToggleSnapToGrid(object? sender, RoutedEventArgs e)
     {
         SetStatus(MapView.ToggleSnapToGrid());
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
+    private void OnSnapSelectionToGrid(object? sender, RoutedEventArgs e)
+    {
+        SetStatus(MapView.SnapSelectedMapElementsToGrid());
+        UpdateInfo();
         UpdateStatusDetails();
         MapView.Focus();
     }

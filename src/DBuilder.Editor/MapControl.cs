@@ -2360,6 +2360,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    public string SnapSelectedMapElementsToGrid()
+    {
+        if (_map is null) return "No map loaded.";
+
+        var vertices = new HashSet<Vertex>(_map.GetSelectedVertices());
+        foreach (var line in _map.GetSelectedLinedefs())
+        {
+            vertices.Add(line.Start);
+            vertices.Add(line.End);
+        }
+
+        var things = _map.GetSelectedThings();
+        if (vertices.Count == 0 && things.Count == 0)
+            return "Select any map element first.";
+
+        bool willMove = vertices.Any(vertex => _grid.SnappedToGrid(vertex.Position) != vertex.Position)
+            || things.Any(thing => _grid.SnappedToGrid(thing.Position) != thing.Position);
+
+        if (!willMove)
+            return "Selected map elements were already on the grid.";
+
+        EditBegun?.Invoke("Snap map elements to grid");
+        var result = _map.SnapSelectedMapElementsToGrid(_grid.SnappedToGrid);
+        MarkGeometryDirty();
+
+        var parts = new List<string>();
+        if (result.SnappedVertices > 0) parts.Add($"{result.SnappedVertices} vertices");
+        if (result.SnappedThings > 0) parts.Add($"{result.SnappedThings} things");
+        return "Snapped " + string.Join(" and ", parts);
+    }
+
     public string ChangeGridSize(bool larger)
     {
         bool changed = _grid.TryStepGridSize(larger);

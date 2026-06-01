@@ -127,6 +127,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for Test Map and Things Filters setup.
   - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
   - [x] Add stable UDB action ids for file actions and Map Options.
+  - [x] Add stable UDB action ids for Preferences, Game Configurations, and Snap Selection to Grid.
 
 ## Plugin Architecture
 

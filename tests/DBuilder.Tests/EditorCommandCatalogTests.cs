@@ -90,6 +90,9 @@ public class EditorCommandCatalogTests
     [InlineData("window.save-map", "Save Map", "Ctrl/Cmd+S")]
     [InlineData("window.save-map-as", "Save Map As", "Menu")]
     [InlineData("window.map-options", "Map Options", "Menu")]
+    [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
+    [InlineData("window.game-configurations", "Game Configurations", "Menu")]
+    [InlineData("window.preferences", "Preferences", "Menu")]
     public void FileAndMapOptionCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
         var command = EditorCommandCatalog.Find(commandId);
