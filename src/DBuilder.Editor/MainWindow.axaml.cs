@@ -65,6 +65,7 @@ public partial class MainWindow : Window
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
     private bool _syncingAutomapControls;
     private CommentsPanelWindow? _commentsPanel;
+    private UndoRedoPanelWindow? _undoRedoPanel;
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
     private BlockmapExplorerWindow? _blockmapExplorer;
@@ -995,6 +996,7 @@ public partial class MainWindow : Window
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
+            case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
@@ -1035,12 +1037,12 @@ public partial class MainWindow : Window
 
     private void OnUndo(object? sender, RoutedEventArgs e)
     {
-        if (_undo?.Undo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Undo"); }
+        if (_undo?.Undo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); RefreshUndoRedoPanel(); SetStatus("Undo"); }
     }
 
     private void OnRedo(object? sender, RoutedEventArgs e)
     {
-        if (_undo?.Redo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); SetStatus("Redo"); }
+        if (_undo?.Redo() == true) { MarkMapDirty(); MapView.MarkGeometryDirty(); UpdateInfo(); RefreshUndoRedoPanel(); SetStatus("Redo"); }
     }
 
     private void OnCut(object? sender, RoutedEventArgs e)
@@ -1978,6 +1980,52 @@ public partial class MainWindow : Window
         win.Show(this);
     }
 
+    private void OnUndoRedoPanel(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_undoRedoPanel != null)
+        {
+            RefreshUndoRedoPanel();
+            _undoRedoPanel.Activate();
+            return;
+        }
+
+        var win = new UndoRedoPanelWindow(UndoRedoPanelState());
+        _undoRedoPanel = win;
+        win.Closed += (_, _) => _undoRedoPanel = null;
+        win.OperationRequested += PerformUndoRedoPanelOperation;
+        win.Show(this);
+    }
+
+    private void RefreshUndoRedoPanel()
+    {
+        _undoRedoPanel?.SetState(UndoRedoPanelState());
+    }
+
+    private UndoRedoPanelState UndoRedoPanelState()
+        => UndoRedoPanelModel.Build("Map loaded", _undo);
+
+    private void PerformUndoRedoPanelOperation(UndoRedoPanelOperation operation)
+    {
+        if (_map is null || _undo is null) return;
+
+        int performed = operation.Kind switch
+        {
+            UndoRedoPanelOperationKind.Undo => _undo.PerformUndo(operation.Levels),
+            UndoRedoPanelOperationKind.Redo => _undo.PerformRedo(operation.Levels),
+            _ => 0,
+        };
+        if (performed == 0) return;
+
+        MarkMapDirty();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        RefreshUndoRedoPanel();
+        SetStatus(operation.Kind == UndoRedoPanelOperationKind.Undo
+            ? $"Undo {performed} level(s)."
+            : $"Redo {performed} level(s).");
+    }
+
     private void OnCommentsPanel(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
@@ -2725,6 +2773,7 @@ public partial class MainWindow : Window
     {
         _undo?.CreateUndo(description);
         MarkMapDirty();
+        RefreshUndoRedoPanel();
         UpdateCommandAvailability();
     }
 
@@ -4268,7 +4317,7 @@ public partial class MainWindow : Window
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,

@@ -46,6 +46,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.select-similar", "Select Similar Map Elements", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.usdf-dialog-editor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-object", "Export Object OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-image", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),

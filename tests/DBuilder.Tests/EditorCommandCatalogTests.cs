@@ -164,6 +164,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void UndoRedoPanelCommandIsWindowMenuAction()
+    {
+        var command = EditorCommandCatalog.Find("window.undo-redo-panel");
+
+        Assert.NotNull(command);
+        Assert.Equal("Undo / Redo Panel", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void WadAuthorModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-wadauthor");

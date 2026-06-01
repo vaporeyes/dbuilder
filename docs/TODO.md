@@ -1133,6 +1133,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-linedef and sidedef flipping during edit-selection mirroring.
 - [ ] Port undo/redo panel behavior.
   - [x] Add UDB-style undo/redo panel timeline model, current row selection, elision, and multi-level operation planning.
+  - [x] Add non-modal editor undo/redo panel with multi-level undo and redo row selection.
 - [ ] Port select similar element behavior.
   - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
   - [x] Add Edit menu command for selecting similar elements in the active edit mode.
