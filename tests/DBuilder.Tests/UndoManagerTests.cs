@@ -180,6 +180,66 @@ public class UndoManagerTests
     }
 
     [Fact]
+    public void ClearRedosPreservesUndoHistory()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("move 1");
+        map.Vertices[0].Position = new Vector2D(10, 0);
+        undo.CreateUndo("move 2");
+        map.Vertices[0].Position = new Vector2D(20, 0);
+        undo.Undo();
+        Assert.True(undo.CanRedo);
+
+        undo.ClearRedos();
+
+        Assert.False(undo.CanRedo);
+        Assert.True(undo.CanUndo);
+        Assert.True(undo.Undo());
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+    }
+
+    [Fact]
+    public void ClearUndosPreservesRedoHistory()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("move 1");
+        map.Vertices[0].Position = new Vector2D(10, 0);
+        undo.CreateUndo("move 2");
+        map.Vertices[0].Position = new Vector2D(20, 0);
+        undo.Undo();
+        Assert.True(undo.CanUndo);
+        Assert.True(undo.CanRedo);
+
+        undo.ClearUndos();
+
+        Assert.False(undo.CanUndo);
+        Assert.True(undo.CanRedo);
+        Assert.True(undo.Redo());
+        Assert.Equal(new Vector2D(20, 0), map.Vertices[0].Position);
+    }
+
+    [Fact]
+    public void ClearUndosResetsGroupingForNextCreateUndo()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map);
+        var source = new GroupedUndoSource();
+
+        undo.CreateUndo("drag", source, groupId: 2, groupTag: 7);
+        map.Vertices[0].Position = new Vector2D(5, 0);
+        undo.ClearUndos();
+
+        int ticket = undo.CreateUndo("drag", source, groupId: 2, groupTag: 7);
+
+        Assert.True(ticket > 0);
+        Assert.Equal(1, undo.UndoCount);
+    }
+
+    [Fact]
     public void WithdrawUndoRestoresLatestSnapshotAndClearsRedo()
     {
         var map = BuildMap();

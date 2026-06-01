@@ -711,6 +711,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
   - [x] Clear restored selections after undo and redo like UDB.
   - [x] Show the next undo and redo descriptions in Edit menu labels and toolbar tips.
+  - [x] Add separate undo and redo history clearing operations.
 - [ ] Port undo snapshot behavior.
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.

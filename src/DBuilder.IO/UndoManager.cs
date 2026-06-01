@@ -142,9 +142,22 @@ public sealed class UndoManager
     /// <summary>Discards all undo and redo history.</summary>
     public void Clear()
     {
-        undos.Clear();
-        redos.Clear();
+        ClearUndos();
+        ClearRedos();
         ClearGrouping();
+    }
+
+    /// <summary>Discards undo history while preserving redo history.</summary>
+    public void ClearUndos()
+    {
+        undos.Clear();
+        ClearGrouping();
+    }
+
+    /// <summary>Discards redo history while preserving undo history.</summary>
+    public void ClearRedos()
+    {
+        redos.Clear();
     }
 
     private void ClearGrouping()
