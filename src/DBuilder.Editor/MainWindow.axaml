@@ -158,6 +158,8 @@
                 <MenuItem Header="Show Sector _Fills" x:Name="ToggleSectorFillsMenuItem" ToggleType="CheckBox" Click="OnToggleSectorFills" />
                 <MenuItem Header="Show _Things" x:Name="ToggleThingsMenuItem" ToggleType="CheckBox" Click="OnToggleThings" />
                 <MenuItem Header="Things as _arrows" x:Name="ToggleThingArrowsMenuItem" ToggleType="CheckBox" Click="OnToggleThingArrows" />
+                <MenuItem Header="_Fixed Things Scale" x:Name="ToggleFixedThingsScaleMenuItem" ToggleType="CheckBox" Click="OnToggleFixedThingsScale" />
+                <MenuItem Header="Always Show _Vertices" x:Name="ToggleAlwaysShowVerticesMenuItem" ToggleType="CheckBox" Click="OnToggleAlwaysShowVertices" />
                 <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" ToggleType="CheckBox" Click="OnToggle3DFloors" />
                 <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
                 <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />

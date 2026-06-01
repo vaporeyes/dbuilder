@@ -2619,6 +2619,20 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleFixedThingsScale(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleFixedThingsScale();
+        SetStatus($"Fixed things scale {(enabled ? "enabled" : "disabled")}.");
+        MapView.Focus();
+    }
+
+    private void OnToggleAlwaysShowVertices(object? sender, RoutedEventArgs e)
+    {
+        bool enabled = MapView.ToggleAlwaysShowVertices();
+        SetStatus($"Always show vertices {(enabled ? "enabled" : "disabled")}.");
+        MapView.Focus();
+    }
+
     private void OnToggle3DFloors(object? sender, RoutedEventArgs e)
     {
         MapView.Show3DFloors = !MapView.Show3DFloors;
@@ -4595,7 +4609,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
-            ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem,
+            ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
@@ -4669,6 +4683,8 @@ public partial class MainWindow : Window
         SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
         SetChecked(ToggleThingsMenuItem, MapView.ShowThings);
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
+        SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);
+        SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
         SetChecked(Toggle3DFloorsMenuItem, MapView.Show3DFloors);
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);

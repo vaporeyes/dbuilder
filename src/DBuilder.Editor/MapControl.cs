@@ -168,9 +168,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 2D view-layer visibility toggles.
     private bool _showFills = true;
     private bool _showThings = true;
+    private bool _fixedThingsScale = true;
+    private bool _alwaysShowVertices = true;
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
+    public bool FixedThingsScale => _fixedThingsScale;
+    public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
     public bool WadAuthorMode { get; private set; }
@@ -189,6 +193,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showThings;
+    }
+
+    public bool ToggleFixedThingsScale()
+    {
+        _fixedThingsScale = !_fixedThingsScale;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _fixedThingsScale;
+    }
+
+    public bool ToggleAlwaysShowVertices()
+    {
+        _alwaysShowVertices = !_alwaysShowVertices;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _alwaysShowVertices;
     }
 
     public bool ToggleImageExampleMode()
@@ -2033,7 +2055,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var dv = new System.Collections.Generic.List<FlatVertex>();
             if (!_thingArrows)
             {
-                const double tickLen = 18;
+                double tickLen = ThingMarkerSize(18);
                 foreach (var t in _map.Things)
                 {
                     if (ThingHidden2D(t)) continue;
@@ -2058,7 +2080,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_thingsVb != null)
         {
             var tv = new System.Collections.Generic.List<FlatVertex>();
-            const double s = 10;
+            double s = ThingMarkerSize(10);
             foreach (var t in _map.Things)
             {
                 if (ThingHidden2D(t)) continue;
@@ -2073,7 +2095,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (!string.IsNullOrEmpty(sprite) && GetSpriteTexture(sprite!) is { } && _resources?.GetSprite(sprite!) is { } img)
                 {
                     int sc = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
-                    double hw = img.Width * 0.5, hh = img.Height * 0.5;
+                    double scale = _fixedThingsScale ? _zoom : 1.0;
+                    double hw = img.Width * 0.5 * scale, hh = img.Height * 0.5 * scale;
                     var p = t.Position;
                     if (!spriteVerts.TryGetValue(sprite!, out var list)) { list = new(); spriteVerts[sprite!] = list; }
                     // Image top (v=0) maps to higher world-y so the sprite stands upright on screen.
@@ -2119,16 +2142,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             double s = 6;
             foreach (var v in _map.Vertices)
             {
-                if (!v.Selected) continue;
+                if (!_alwaysShowVertices && _editMode != EditMode.Vertices && !v.Selected) continue;
                 var p = v.Position;
+                int c = v.Selected ? mc : unchecked((int)0xffd8d8d8);
                 var n = new Vec2D(p.x, p.y + s);
                 var e = new Vec2D(p.x + s, p.y);
                 var so = new Vec2D(p.x, p.y - s);
                 var w = new Vec2D(p.x - s, p.y);
-                vv.Add(FV(p, mc)); vv.Add(FV(n, mc)); vv.Add(FV(e, mc));
-                vv.Add(FV(p, mc)); vv.Add(FV(e, mc)); vv.Add(FV(so, mc));
-                vv.Add(FV(p, mc)); vv.Add(FV(so, mc)); vv.Add(FV(w, mc));
-                vv.Add(FV(p, mc)); vv.Add(FV(w, mc)); vv.Add(FV(n, mc));
+                vv.Add(FV(p, c)); vv.Add(FV(n, c)); vv.Add(FV(e, c));
+                vv.Add(FV(p, c)); vv.Add(FV(e, c)); vv.Add(FV(so, c));
+                vv.Add(FV(p, c)); vv.Add(FV(so, c)); vv.Add(FV(w, c));
+                vv.Add(FV(p, c)); vv.Add(FV(w, c)); vv.Add(FV(n, c));
             }
             var arr = vv.ToArray();
             if (arr.Length > 0) _device.SetBufferData(_selVertsVb, arr);
@@ -2204,6 +2228,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => unchecked((int)0xffd0d0d0),
     };
 
+    private double ThingMarkerSize(double baseSize)
+        => _fixedThingsScale ? baseSize * _zoom : baseSize;
+
     // Classic 16-colour console palette used by the .cfg thing category "color" index.
     private static int Color16(int i)
     {
@@ -2220,7 +2247,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Appends a Doom-Builder-style colored disc + direction arrow for a thing into the (untextured) list.
     private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t)
     {
-        const double radius = 11;
+        double radius = ThingMarkerSize(11);
         const int segments = 14;
         var p = t.Position;
         int catColor = _gameConfig?.GetThing(t.Type) is { } info ? Color16(info.Color) : ThingColor(t.Type);
@@ -2946,6 +2973,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-thing-arrows":
                 ThingArrows = !ThingArrows;
+                return true;
+            case "map2d.toggle-fixed-things-scale":
+                ToggleFixedThingsScale();
+                return true;
+            case "map2d.toggle-always-show-vertices":
+                ToggleAlwaysShowVertices();
                 return true;
             case "map2d.draw-sector":
                 ToggleDrawMode(linesOnly: false);

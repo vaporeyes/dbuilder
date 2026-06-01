@@ -297,10 +297,21 @@ public class EditorCommandCatalogTests
     [Fact]
     public void ToggleCommentsCommandMatchesUdbActionSurface()
     {
-        var command = EditorCommandCatalog.Find("map2d.toggle-comments");
+        AssertKeyOnlyMap2DCommand("map2d.toggle-comments", "Toggle Comments");
+    }
+
+    [Theory]
+    [InlineData("map2d.toggle-fixed-things-scale", "Toggle Fixed Things Scale")]
+    [InlineData("map2d.toggle-always-show-vertices", "Toggle Always Show Vertices")]
+    public void ViewToggleCommandsMatchUdbActionSurface(string commandId, string title)
+        => AssertKeyOnlyMap2DCommand(commandId, title);
+
+    private static void AssertKeyOnlyMap2DCommand(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
-        Assert.Equal("Toggle Comments", command.Title);
+        Assert.Equal(title, command.Title);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
