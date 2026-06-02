@@ -830,6 +830,22 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("map2d.flip", "Flip Linedefs", "F")]
+    [InlineData("map2d.flip-sidedefs", "Flip Sidedefs", "Shift+F")]
+    public void FlipLinedefCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Fact]
     public void DefaultShortcutsResolveMap3DToggle()
     {

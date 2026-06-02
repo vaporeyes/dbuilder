@@ -3411,7 +3411,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ToggleWadAuthorMode();
                 return true;
             case "map2d.flip":
-                FlipSelected(sidedefs: false);
+                FlipLinedefs();
                 return true;
             case "map2d.flip-sidedefs":
                 FlipSelected(sidedefs: true);
@@ -4501,7 +4501,79 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
-    // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.
+    // Flips selected linedefs or sector boundary linedefs, matching UDB's fliplinedefs action.
+    public string FlipLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+
+        if (_editMode == EditMode.Sectors)
+            return FlipSectorLinedefs();
+
+        bool deselect = false;
+        List<Linedef> selected = _map.GetSelectedLinedefs();
+        int selectedCount = selected.Count;
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        {
+            highlighted.Selected = true;
+            selected.Add(highlighted);
+            selectedCount = selected.Count;
+            deselect = true;
+        }
+
+        if (selected.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(selected.Count == 1 ? "Flip linedef" : "Flip " + selected.Count + " linedefs");
+        int count = _map.FlipSelectedLinedefs();
+        if (deselect)
+            selected[0].Selected = false;
+
+        if (count == 0)
+        {
+            string message = selectedCount == 1
+                ? "Selected linedef already points in the right direction!"
+                : "Selected linedefs already point in the right direction!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = count == 1 ? "Flipped a linedef." : "Flipped " + count + " linedefs.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    private string FlipSectorLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(sectors.Count == 1 ? "Flip sector linedefs" : "Flip linedefs of " + sectors.Count + " sectors");
+        int count = _map.FlipLinedefsOfSectors(sectors);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = sectors.Count == 1 ? "Flipped sector linedefs." : "Flipped linedefs of " + sectors.Count + " sectors.";
+        if (count == 0)
+            status = "Selected sector linedefs already point in the right direction!";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    // Flips selected sidedefs (Shift+F), undoable.
     private void FlipSelected(bool sidedefs)
     {
         if (_map == null || _map.SelectedLinedefsCount == 0) { Picked?.Invoke("no linedefs selected"); return; }

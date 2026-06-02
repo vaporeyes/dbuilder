@@ -104,6 +104,7 @@
                 </MenuItem>
                 <MenuItem Header="Select _Single-sided Linedefs" x:Name="SelectSingleSidedMenuItem" Click="OnSelectSingleSidedLinedefs" />
                 <MenuItem Header="Select _Double-sided Linedefs" x:Name="SelectDoubleSidedMenuItem" Click="OnSelectDoubleSidedLinedefs" />
+                <MenuItem Header="_Flip Linedefs" x:Name="FlipLinedefsMenuItem" Click="OnFlipLinedefs" />
                 <MenuItem Header="_Align Linedefs" x:Name="AlignLinedefsMenuItem" Click="OnAlignLinedefs" />
                 <MenuItem Header="_Split Linedefs" x:Name="SplitLinedefsMenuItem" Click="OnSplitLinedefs" />
                 <MenuItem Header="_Align textures" x:Name="AlignTexturesMenuItem">

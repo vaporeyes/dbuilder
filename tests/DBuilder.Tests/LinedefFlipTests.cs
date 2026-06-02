@@ -289,6 +289,66 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void FlipSelectedLinedefsSwapsSidedefsAndSkipsFrontOnlyLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var c = map.AddVertex(new Vector2D(0, 100));
+        var d = map.AddVertex(new Vector2D(100, 100));
+        var sector = map.AddSector();
+        var flip = map.AddLinedef(a, b);
+        var skipped = map.AddLinedef(c, d);
+        var back = map.AddSidedef(flip, false, sector);
+        var front = map.AddSidedef(skipped, true, sector);
+        flip.Selected = true;
+        skipped.Selected = true;
+        map.BuildIndexes();
+
+        int n = map.FlipSelectedLinedefs();
+        map.BuildIndexes();
+
+        Assert.Equal(1, n);
+        Assert.Same(b, flip.Start);
+        Assert.Same(a, flip.End);
+        Assert.Same(back, flip.Front);
+        Assert.Null(flip.Back);
+        Assert.Same(c, skipped.Start);
+        Assert.Same(d, skipped.End);
+        Assert.Same(front, skipped.Front);
+        Assert.Null(skipped.Back);
+    }
+
+    [Fact]
+    public void FlipLinedefsOfSectorsFlipsBoundaryLinesOnce()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var c = map.AddVertex(new Vector2D(0, 100));
+        var d = map.AddVertex(new Vector2D(100, 100));
+        var sector = map.AddSector();
+        var flip = map.AddLinedef(a, b);
+        var skipped = map.AddLinedef(c, d);
+        var back = map.AddSidedef(flip, false, sector);
+        var front = map.AddSidedef(skipped, true, sector);
+        map.BuildIndexes();
+
+        int n = map.FlipLinedefsOfSectors([sector]);
+        map.BuildIndexes();
+
+        Assert.Equal(1, n);
+        Assert.Same(b, flip.Start);
+        Assert.Same(a, flip.End);
+        Assert.Same(back, flip.Front);
+        Assert.Null(flip.Back);
+        Assert.Same(c, skipped.Start);
+        Assert.Same(d, skipped.End);
+        Assert.Same(front, skipped.Front);
+        Assert.Null(skipped.Back);
+    }
+
+    [Fact]
     public void FlipBackwardLinedefsFlipsLinesWithOnlyBackSide()
     {
         var map = new MapSet();

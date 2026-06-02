@@ -1309,6 +1309,30 @@ public class MapSet : IDisposable
         return sectors.Count;
     }
 
+    public int FlipLinedefsOfSectors(IReadOnlyList<Sector> sectors)
+    {
+        if (sectors.Count == 0) return 0;
+
+        var lines = new HashSet<Linedef>();
+        foreach (Sector sector in sectors)
+        {
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                Linedef line = side.Line;
+                if (line.Back == null && line.Front != null) continue;
+                lines.Add(line);
+            }
+        }
+
+        foreach (Linedef line in lines)
+        {
+            line.FlipVertices();
+            line.FlipSidedefs();
+        }
+
+        return lines.Count;
+    }
+
     public void SelectAllVertices() => SetSelected(Vertices, true);
     public void SelectAllLinedefs() => SetSelected(Linedefs, true);
     public void SelectAllSidedefs() => SetSelected(Sidedefs, true);
@@ -1881,12 +1905,17 @@ public class MapSet : IDisposable
         return new SnapSelectionResult(vertices.Count, GetSelectedThings().Count, snappedVertices, snappedThings);
     }
 
-    /// <summary>Reverses the direction of every selected linedef. Returns the number flipped. Call BuildIndexes() after.</summary>
+    /// <summary>Flips valid selected linedefs. Returns the number flipped. Call BuildIndexes() after.</summary>
     public int FlipSelectedLinedefs()
     {
         int n = 0;
         foreach (var l in Linedefs)
-            if (l.Selected) { l.FlipVertices(); n++; }
+        {
+            if (!l.Selected || (l.Back == null && l.Front != null)) continue;
+            l.FlipVertices();
+            l.FlipSidedefs();
+            n++;
+        }
         return n;
     }
 

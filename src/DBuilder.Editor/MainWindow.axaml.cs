@@ -1787,6 +1787,7 @@ public partial class MainWindow : Window
     private void OnScaleDown(object? sender, RoutedEventArgs e) => ScaleSelection(0.5, "Scale down");
     private void OnSelectSingleSidedLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.KeepSelectedLinedefsBySidedness(doubleSided: false));
     private void OnSelectDoubleSidedLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.KeepSelectedLinedefsBySidedness(doubleSided: true));
+    private void OnFlipLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.FlipLinedefs());
     private void OnAlignLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AlignLinedefs());
     private void OnSplitLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.SplitLinedefs());
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
@@ -4707,7 +4708,7 @@ public partial class MainWindow : Window
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
-            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
+            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, FlipLinedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
