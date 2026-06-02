@@ -90,6 +90,29 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void DialogModelFormatsBackgroundScaleAsPercent()
+    {
+        Assert.Equal("150", GridSetupDialogModel.FormatBackgroundScalePercent(1.5));
+        Assert.Equal("75", GridSetupDialogModel.FormatBackgroundScalePercent(0.75));
+    }
+
+    [Fact]
+    public void DialogModelParsesBackgroundScalePercentToScaleFactor()
+    {
+        Assert.Equal(1.5, GridSetupDialogModel.ParseBackgroundScalePercent("150", 1.0));
+        Assert.Equal(0.75, GridSetupDialogModel.ParseBackgroundScalePercent("75", 1.0));
+        Assert.Equal(1.25, GridSetupDialogModel.ParseBackgroundScalePercent("125", 1.0));
+    }
+
+    [Fact]
+    public void DialogModelClampsAndFallsBackForInvalidBackgroundScalePercent()
+    {
+        Assert.Equal(GridSetup.MinimumBackgroundScale, GridSetupDialogModel.ParseBackgroundScalePercent("0", 1.0));
+        Assert.Equal(GridSetup.MaximumBackgroundScale, GridSetupDialogModel.ParseBackgroundScalePercent("25000", 1.0));
+        Assert.Equal(1.5, GridSetupDialogModel.ParseBackgroundScalePercent("not a number", 1.5));
+    }
+
+    [Fact]
     public void SetGridSizeClampsToMinimumAndRoundsDisplaySize()
     {
         var grid = new GridSetup();

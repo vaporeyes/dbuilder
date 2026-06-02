@@ -53,8 +53,8 @@ public sealed class GridSetupDialog : PropertyDialog
         _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
         _backgroundX = AddField("Background X", grid.BackgroundX.ToString(CultureInfo.InvariantCulture));
         _backgroundY = AddField("Background Y", grid.BackgroundY.ToString(CultureInfo.InvariantCulture));
-        _backgroundScaleX = AddField("Background scale X", grid.BackgroundScaleX.ToString("0.###", CultureInfo.InvariantCulture));
-        _backgroundScaleY = AddField("Background scale Y", grid.BackgroundScaleY.ToString("0.###", CultureInfo.InvariantCulture));
+        _backgroundScaleX = AddField("Background scale X %", GridSetupDialogModel.FormatBackgroundScalePercent(grid.BackgroundScaleX));
+        _backgroundScaleY = AddField("Background scale Y %", GridSetupDialogModel.FormatBackgroundScalePercent(grid.BackgroundScaleY));
     }
 
     protected override void OnConfirm()
@@ -67,8 +67,8 @@ public sealed class GridSetupDialog : PropertyDialog
         ResultBackgroundSource = ComboNumber(_backgroundSource, ResultBackgroundSource);
         ResultBackgroundX = ParseInt(_backgroundX, ResultBackgroundX);
         ResultBackgroundY = ParseInt(_backgroundY, ResultBackgroundY);
-        ResultBackgroundScaleX = ParseDouble(_backgroundScaleX, ResultBackgroundScaleX);
-        ResultBackgroundScaleY = ParseDouble(_backgroundScaleY, ResultBackgroundScaleY);
+        ResultBackgroundScaleX = GridSetupDialogModel.ParseBackgroundScalePercent(_backgroundScaleX.Text, ResultBackgroundScaleX);
+        ResultBackgroundScaleY = GridSetupDialogModel.ParseBackgroundScalePercent(_backgroundScaleY.Text, ResultBackgroundScaleY);
     }
 
     private static IEnumerable<CatalogItem> BackgroundSourceItems()

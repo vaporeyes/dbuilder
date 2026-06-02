@@ -882,6 +882,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist grid setup through UDB-compatible map options.
   - [x] Add grid background metadata fields.
   - [x] Add named grid background source choices.
+  - [x] Use UDB-style percent fields for grid background scale.
 - [x] Port center-on-coordinates dialog.
 - [x] Port error/check results dialog.
 - [x] Port exception dialog.
