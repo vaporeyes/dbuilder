@@ -19,11 +19,22 @@ public sealed class ThingDisplayResolverTests
                     Path "models"
                     Model 0 "lamp.md3"
                     Skin 0 "lamp.png"
+                    SurfaceSkin 0 2 "lamp_alt.png"
+                    Scale 1.5 2.5 3.5
+                    Offset 4 5 6
+                    AngleOffset 45
+                    PitchOffset 10
+                    RollOffset 15
+                    Rotation-Center 7 8 9
+                    UseActorPitch
+                    UseActorRoll
+                    Userotationcenter
                     FrameIndex LAMP A 0 0
                 }
                 """)),
             ("models/lamp.md3", [1, 2, 3]),
-            ("models/lamp.png", [4, 5, 6]));
+            ("models/lamp.png", [4, 5, 6]),
+            ("models/lamp_alt.png", [7, 8, 9]));
 
         try
         {
@@ -37,6 +48,25 @@ public sealed class ThingDisplayResolverTests
             Assert.NotNull(source.Model);
             Assert.Equal("LampActor", source.Model!.ActorName);
             Assert.Equal("LAMPA0", source.SpriteName);
+            Assert.NotNull(source.ModelDisplay);
+            ThingModelDisplay display = source.ModelDisplay!;
+            Assert.Equal("models", display.Path);
+            Assert.Equal(new ModeldefVector(2.5f, 1.5f, 3.5f), display.Scale);
+            Assert.Equal(new ModeldefVector(4.0f, 5.0f, 6.0f), display.Offset);
+            Assert.Equal(new ModeldefVector(7.0f, 8.0f, 9.0f), display.RotationCenter);
+            Assert.Equal(45.0f, display.AngleOffset);
+            Assert.Equal(10.0f, display.PitchOffset);
+            Assert.Equal(15.0f, display.RollOffset);
+            Assert.False(display.InheritActorPitch);
+            Assert.True(display.UseActorPitch);
+            Assert.True(display.UseActorRoll);
+            Assert.True(display.UseRotationCenter);
+            ThingModelDisplayPart part = Assert.Single(display.Parts);
+            Assert.Equal("models/lamp.md3", part.ModelName);
+            Assert.Equal("models/lamp.png", part.SkinName);
+            Assert.Equal("", part.FrameName);
+            Assert.Equal(0, part.FrameIndex);
+            Assert.Equal("models/lamp_alt.png", Assert.Single(part.SurfaceSkinNames).Value);
         }
         finally
         {
@@ -165,6 +195,9 @@ public sealed class ThingDisplayResolverTests
             Assert.NotNull(source.Model);
             ModeldefFrame frame = Assert.Single(source.Model!.Frames);
             Assert.Equal("Idle", frame.ModelFrame);
+            ThingModelDisplayPart part = Assert.Single(source.ModelDisplay!.Parts);
+            Assert.Equal("Idle", part.FrameName);
+            Assert.Equal(0, part.FrameIndex);
         }
         finally
         {

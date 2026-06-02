@@ -15,7 +15,30 @@ public sealed record ThingDisplaySource(
     ThingDisplayKind Kind,
     string? SpriteName = null,
     Modeldef? Model = null,
-    string? VoxelModelName = null);
+    string? VoxelModelName = null,
+    ThingModelDisplay? ModelDisplay = null);
+
+public sealed record ThingModelDisplay(
+    Modeldef Definition,
+    string Path,
+    ModeldefVector Scale,
+    ModeldefVector Offset,
+    ModeldefVector RotationCenter,
+    float AngleOffset,
+    float PitchOffset,
+    float RollOffset,
+    bool InheritActorPitch,
+    bool UseActorPitch,
+    bool UseActorRoll,
+    bool UseRotationCenter,
+    IReadOnlyList<ThingModelDisplayPart> Parts);
+
+public sealed record ThingModelDisplayPart(
+    string ModelName,
+    string SkinName,
+    IReadOnlyDictionary<int, string> SurfaceSkinNames,
+    string FrameName,
+    int FrameIndex);
 
 public static class ThingDisplayResolver
 {
@@ -25,7 +48,11 @@ public static class ThingDisplayResolver
             return new ThingDisplaySource(ThingDisplayKind.Marker);
 
         if (ResolveModel(thingInfo, resources) is { } model)
-            return new ThingDisplaySource(ThingDisplayKind.Model, SpriteName: thingInfo.Sprite, Model: model);
+            return new ThingDisplaySource(
+                ThingDisplayKind.Model,
+                SpriteName: thingInfo.Sprite,
+                Model: model.Definition,
+                ModelDisplay: model);
 
         string? voxel = ResolveVoxel(thingInfo.Sprite, resources);
         if (voxel != null)
@@ -37,7 +64,7 @@ public static class ThingDisplayResolver
         return new ThingDisplaySource(ThingDisplayKind.Marker);
     }
 
-    public static Modeldef? ResolveModel(ThingTypeInfo thingInfo, ResourceManager resources)
+    public static ThingModelDisplay? ResolveModel(ThingTypeInfo thingInfo, ResourceManager resources)
     {
         if (string.IsNullOrWhiteSpace(thingInfo.ClassName)) return null;
         string? modelFrameKey = ResolveModelFrameKey(thingInfo.Sprite);
@@ -50,14 +77,17 @@ public static class ThingDisplayResolver
             if (!string.Equals(def.ActorName, thingInfo.ClassName, StringComparison.OrdinalIgnoreCase)) continue;
             if (def.Models.Count == 0) continue;
 
+            var parts = new List<ThingModelDisplayPart>();
             foreach (ModeldefFrame frame in def.Frames)
             {
                 if (!IsTargetFrame(frame, modelFrameKey)) continue;
                 if (frame.FrameIndex < 0) continue;
                 ModeldefModel? model = FindModel(def, frame.ModelIndex);
                 if (model != null && resources.GetModelResourceBytes(def, model.File) != null)
-                    return def;
+                    parts.Add(CreateModelPart(def, frame, model));
             }
+
+            if (parts.Count > 0) return CreateModelDisplay(def, parts);
         }
 
         return null;
@@ -101,5 +131,46 @@ public static class ThingDisplayResolver
                 return model;
 
         return null;
+    }
+
+    private static ThingModelDisplay CreateModelDisplay(Modeldef def, IReadOnlyList<ThingModelDisplayPart> parts)
+        => new(
+            def,
+            def.Path,
+            def.Scale,
+            def.Offset,
+            def.RotationCenter,
+            def.AngleOffset,
+            def.PitchOffset,
+            def.RollOffset,
+            def.InheritActorPitch,
+            def.UseActorPitch,
+            def.UseActorRoll,
+            def.UseRotationCenter,
+            parts);
+
+    private static ThingModelDisplayPart CreateModelPart(Modeldef def, ModeldefFrame frame, ModeldefModel model)
+    {
+        string skinName = "";
+        foreach (ModeldefSkin skin in def.Skins)
+        {
+            if (skin.Index == frame.ModelIndex)
+            {
+                skinName = ResourceManager.CombineModelPath(def.Path, skin.File);
+                break;
+            }
+        }
+
+        var surfaceSkinNames = new Dictionary<int, string>();
+        foreach (ModeldefSurfaceSkin skin in def.SurfaceSkins)
+            if (skin.ModelIndex == frame.ModelIndex)
+                surfaceSkinNames[skin.SurfaceIndex] = ResourceManager.CombineModelPath(def.Path, skin.File);
+
+        return new ThingModelDisplayPart(
+            ResourceManager.CombineModelPath(def.Path, model.File),
+            skinName,
+            surfaceSkinNames,
+            frame.ModelFrame ?? "",
+            frame.FrameIndex);
     }
 }
