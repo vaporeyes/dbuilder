@@ -3126,13 +3126,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             var tv = new System.Collections.Generic.List<FlatVertex>();
             double s = ThingMarkerSize(10);
+            Gldefs? gldefs = _resources?.GetGldefs();
             foreach (var t in _map.Things)
             {
                 if (ThingHidden2D(t)) continue;
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
-                    BuildThingDisc(tv, t);
+                    BuildThingDisc(tv, t, gldefs);
                     continue;
                 }
 
@@ -3155,7 +3156,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                int c = t.Selected ? unchecked((int)0xffffee00) : ThingColor(t.Type);
+                int c = t.Selected ? unchecked((int)0xffffee00) : DynamicLightDisplay.ThingColor(t, _gameConfig, gldefs) ?? ThingColor(t.Type);
                 var pp = t.Position;
                 var n = new Vec2D(pp.x, pp.y + s);
                 var e = new Vec2D(pp.x + s, pp.y);
@@ -3311,12 +3312,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Appends a Doom-Builder-style colored disc + direction arrow for a thing into the (untextured) list.
-    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t)
+    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t, Gldefs? gldefs)
     {
         double radius = ThingMarkerSize(11);
         const int segments = 14;
         var p = t.Position;
-        int catColor = _gameConfig?.GetThing(t.Type) is { } info ? Color16(info.Color) : ThingColor(t.Type);
+        int catColor = DynamicLightDisplay.ThingColor(t, _gameConfig, gldefs)
+            ?? (_gameConfig?.GetThing(t.Type) is { } info ? Color16(info.Color) : ThingColor(t.Type));
         int disc = t.Selected ? Brighten(catColor) : catColor;
 
         // Disc as a triangle fan around the center.
