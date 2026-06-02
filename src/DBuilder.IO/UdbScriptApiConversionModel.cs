@@ -1614,6 +1614,258 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
     }
 }
 
+public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
+{
+    private readonly Thing thing;
+    private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
+
+    public UdbScriptThingWrapper(Thing thing)
+    {
+        this.thing = thing;
+        elementArgs = new UdbScriptMapElementArgumentsWrapper(thing);
+    }
+
+    public Thing Thing
+        => thing;
+
+    public int type
+    {
+        get
+        {
+            ThrowIfDisposed("type");
+            return thing.Type;
+        }
+        set
+        {
+            ThrowIfDisposed("type");
+            thing.Type = value;
+        }
+    }
+
+    public int angle
+    {
+        get
+        {
+            ThrowIfDisposed("angle");
+            return thing.Angle;
+        }
+        set
+        {
+            ThrowIfDisposed("angle");
+            thing.Rotate(value);
+        }
+    }
+
+    public double angleRad
+    {
+        get
+        {
+            ThrowIfDisposed("angleRad");
+            return Angle2D.DoomToReal(thing.Angle);
+        }
+        set
+        {
+            ThrowIfDisposed("angleRad");
+            thing.Rotate(value);
+        }
+    }
+
+    public UdbScriptMapElementArgumentsWrapper args
+    {
+        get
+        {
+            ThrowIfDisposed("args");
+            return elementArgs;
+        }
+    }
+
+    public int action
+    {
+        get
+        {
+            ThrowIfDisposed("action");
+            return thing.Action;
+        }
+        set
+        {
+            ThrowIfDisposed("action");
+            thing.Action = value;
+        }
+    }
+
+    public int tag
+    {
+        get
+        {
+            ThrowIfDisposed("tag");
+            return thing.Tag;
+        }
+        set
+        {
+            ThrowIfDisposed("tag");
+            thing.Tag = value;
+        }
+    }
+
+    public bool selected
+    {
+        get
+        {
+            ThrowIfDisposed("selected");
+            return thing.Selected;
+        }
+        set
+        {
+            ThrowIfDisposed("selected");
+            thing.Selected = value;
+        }
+    }
+
+    public bool marked
+    {
+        get
+        {
+            ThrowIfDisposed("marked");
+            return thing.Marked;
+        }
+        set
+        {
+            ThrowIfDisposed("marked");
+            thing.Marked = value;
+        }
+    }
+
+    public IReadOnlyDictionary<string, bool> flags
+    {
+        get
+        {
+            ThrowIfDisposed("flags");
+            return thing.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    public object position
+    {
+        get
+        {
+            ThrowIfDisposed("position");
+            return new UdbScriptVector3DWrapper(thing.Position.x, thing.Position.y, thing.Height);
+        }
+        set
+        {
+            ThrowIfDisposed("position");
+            thing.Move(UdbScriptApiConversionModel.GetVector3DFromObject(value));
+        }
+    }
+
+    public int pitch
+    {
+        get
+        {
+            ThrowIfDisposed("pitch");
+            return thing.Pitch;
+        }
+        set
+        {
+            ThrowIfDisposed("pitch");
+            thing.SetPitch(value);
+        }
+    }
+
+    public int roll
+    {
+        get
+        {
+            ThrowIfDisposed("roll");
+            return thing.Roll;
+        }
+        set
+        {
+            ThrowIfDisposed("roll");
+            thing.SetRoll(value);
+        }
+    }
+
+    public double scaleX
+    {
+        get
+        {
+            ThrowIfDisposed("scaleX");
+            return thing.ScaleX;
+        }
+        set
+        {
+            ThrowIfDisposed("scaleX");
+            thing.SetScale(value, thing.ScaleY);
+        }
+    }
+
+    public double scaleY
+    {
+        get
+        {
+            ThrowIfDisposed("scaleY");
+            return thing.ScaleY;
+        }
+        set
+        {
+            ThrowIfDisposed("scaleY");
+            thing.SetScale(thing.ScaleX, value);
+        }
+    }
+
+    public void copyPropertiesTo(UdbScriptThingWrapper wrapper)
+    {
+        ThrowIfDisposed("copyPropertiesTo");
+        thing.CopyPropertiesTo(wrapper.thing);
+    }
+
+    public void clearFlags()
+    {
+        ThrowIfDisposed("clearFlags");
+        thing.UdmfFlags.Clear();
+        thing.Flags = 0;
+    }
+
+    public double distanceToSq(object pos)
+    {
+        ThrowIfDisposed("distanceToSq");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return thing.DistanceToSq(new Vector2D(point.x, point.y));
+    }
+
+    public double distanceTo(object pos)
+    {
+        ThrowIfDisposed("distanceTo");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return thing.DistanceTo(new Vector2D(point.x, point.y));
+    }
+
+    public UdbScriptSectorWrapper? getSector()
+    {
+        ThrowIfDisposed("getSector");
+        return thing.Sector == null ? null : new UdbScriptSectorWrapper(thing.Sector);
+    }
+
+    public bool Equals(UdbScriptThingWrapper? other)
+        => other is not null && ReferenceEquals(thing, other.thing);
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptThingWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => thing.GetHashCode();
+
+    public override string ToString()
+        => "Thing " + thing.Type;
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (thing.IsDisposed)
+            throw new InvalidOperationException("Thing is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
 public sealed class UdbScriptMapElementArgumentsWrapper : IEnumerable<int>
 {
     private readonly IHasArguments element;

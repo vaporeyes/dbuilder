@@ -714,6 +714,126 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void ThingWrapperExposesCorePropertiesAndArguments()
+    {
+        var sector = new Sector { Tag = 99 };
+        var thing = new Thing(new Vector2D(16, 32), 3001, 90)
+        {
+            Sector = sector,
+        };
+        thing.SetFlag("ambush", true);
+        var wrapper = new UdbScriptThingWrapper(thing);
+
+        wrapper.type = 3002;
+        wrapper.angle = 180;
+        wrapper.action = 80;
+        wrapper.tag = 7;
+        wrapper.selected = true;
+        wrapper.marked = true;
+        wrapper.args[3] = 44;
+        wrapper.position = new object[] { 64.0, 96.0, 12.0 };
+        wrapper.pitch = 450;
+        wrapper.roll = -90;
+        wrapper.scaleX = 1.5;
+        wrapper.scaleY = 0.75;
+
+        Assert.Equal(3002, thing.Type);
+        Assert.Equal(180, thing.Angle);
+        Assert.Equal(80, thing.Action);
+        Assert.Equal(7, thing.Tag);
+        Assert.True(thing.Selected);
+        Assert.True(thing.Marked);
+        Assert.Equal(44, thing.Args[3]);
+        Assert.Equal(new Vector2D(64, 96), thing.Position);
+        Assert.Equal(12.0, thing.Height);
+        Assert.Equal(90, thing.Pitch);
+        Assert.Equal(270, thing.Roll);
+        Assert.Equal(1.5, thing.ScaleX);
+        Assert.Equal(0.75, thing.ScaleY);
+        Assert.True(wrapper.flags["ambush"]);
+        Assert.Same(sector, wrapper.getSector()?.Sector);
+        Assert.Equal(new UdbScriptVector3DWrapper(64, 96, 12), wrapper.position);
+    }
+
+    [Fact]
+    public void ThingWrapperExposesAngleAndDistanceHelpers()
+    {
+        var thing = new Thing(new Vector2D(3, 4), 1);
+        var wrapper = new UdbScriptThingWrapper(thing);
+
+        wrapper.angleRad = 0;
+
+        Assert.Equal(Angle2D.RealToDoom(0), thing.Angle);
+        Assert.Equal(Angle2D.DoomToReal(thing.Angle), wrapper.angleRad);
+        Assert.Equal(25, wrapper.distanceToSq(new object[] { 0.0, 0.0 }));
+        Assert.Equal(5, wrapper.distanceTo(new UdbScriptVector2DWrapper(0, 0)));
+    }
+
+    [Fact]
+    public void ThingWrapperCopiesPropertiesAndClearsFlags()
+    {
+        var source = new Thing(new Vector2D(1, 2), 3001, 90)
+        {
+            Selected = true,
+            Marked = true,
+            Groups = 3,
+            Height = 4.0,
+            Pitch = 5,
+            Roll = 6,
+            ScaleX = 1.25,
+            ScaleY = 0.5,
+            Size = 16,
+            FixedSize = true,
+            Flags = 32,
+            Tag = 7,
+            Action = 80,
+        };
+        source.Args[2] = 11;
+        source.SetFlag("ambush", true);
+        source.Fields["comment"] = "copied";
+        var target = new Thing();
+        var sourceWrapper = new UdbScriptThingWrapper(source);
+        var targetWrapper = new UdbScriptThingWrapper(target);
+
+        sourceWrapper.copyPropertiesTo(targetWrapper);
+        sourceWrapper.clearFlags();
+
+        Assert.Equal(source.Position, target.Position);
+        Assert.True(target.Selected);
+        Assert.True(target.Marked);
+        Assert.Equal(3, target.Groups);
+        Assert.Equal(4.0, target.Height);
+        Assert.Equal(3001, target.Type);
+        Assert.Equal(90, target.Angle);
+        Assert.Equal(5, target.Pitch);
+        Assert.Equal(6, target.Roll);
+        Assert.Equal(1.25, target.ScaleX);
+        Assert.Equal(0.5, target.ScaleY);
+        Assert.Equal(16, target.Size);
+        Assert.True(target.FixedSize);
+        Assert.Equal(32, target.Flags);
+        Assert.Equal(7, target.Tag);
+        Assert.Equal(80, target.Action);
+        Assert.Equal(11, target.Args[2]);
+        Assert.True(target.IsFlagSet("ambush"));
+        Assert.Equal("copied", target.Fields["comment"]);
+        Assert.Empty(source.UdmfFlags);
+        Assert.Equal(0, source.Flags);
+        Assert.True(sourceWrapper.Equals(new UdbScriptThingWrapper(source)));
+        Assert.False(sourceWrapper.Equals(targetWrapper));
+    }
+
+    [Fact]
+    public void ThingWrapperRejectsDisposedThingAccess()
+    {
+        var wrapper = new UdbScriptThingWrapper(new Thing { IsDisposed = true });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.type);
+
+        Assert.Equal("Thing is disposed, the type member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
