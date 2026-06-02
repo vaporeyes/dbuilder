@@ -1013,6 +1013,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Share MODELDEF, VOXELDEF, sprite, and marker display-source planning for 2D and 3D billboard fallback rendering.
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
+  - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
@@ -1025,6 +1026,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style model parser dispatch, Skin and SurfaceSkin texture planning, frame constraint errors, Unreal companion lookup, aggregate bounds, and radius calculation.
 - [ ] Port GZ model representation.
   - [x] Add UDB-style loader-facing model data projection from resolved MODELDEF display parts.
+  - [x] Add loaded model mesh render-batch planning for future 3D model drawing.
 - [ ] Port MD2 loader.
   - [x] Add UDB-style MD2 model parser for header validation, frame selection, coordinate rotation, UV handling, vertex duplication, and parse errors.
 - [ ] Port MD3 loader.
