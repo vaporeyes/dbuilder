@@ -212,6 +212,90 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void AppliesSavedOptionValuesByUdbSettingKey()
+    {
+        string file = Path.Combine(TempDir(), "saved.js");
+        try
+        {
+            UdbScriptInfo script = UdbScriptDiscovery.ParseScript(WriteScriptWithOptions(file));
+            UdbScriptOption length = script.Options.Single(option => option.Name == "length");
+            UdbScriptOption texture = script.Options.Single(option => option.Name == "texture");
+
+            UdbScriptInfo result = UdbScriptDiscovery.ApplySavedOptionValues(script, new Dictionary<string, object?>
+            {
+                [length.SettingKey] = "256",
+                [texture.SettingKey] = "   ",
+            });
+
+            Assert.Equal("256", result.Options.Single(option => option.Name == "length").Value);
+            Assert.Equal(texture.DefaultValue, result.Options.Single(option => option.Name == "texture").Value);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void PlansUdbOptionValuePersistenceOperations()
+    {
+        string file = Path.Combine(TempDir(), "saveops.js");
+        try
+        {
+            UdbScriptInfo script = UdbScriptDiscovery.ParseScript(WriteScriptWithOptions(file));
+            UdbScriptInfo edited = script with
+            {
+                Options = script.Options
+                    .Select(option => option.Name == "length" ? option with { Value = 256 } : option)
+                    .ToArray(),
+            };
+
+            IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDiscovery.SaveOptionValueOperations(edited);
+
+            Assert.Equal(2, operations.Count);
+            UdbScriptSettingOperation write = operations[0];
+            Assert.Equal(UdbScriptSettingOperationKind.Write, write.Kind);
+            Assert.Equal("scripts." + script.PathHash + ".options.length", write.Key);
+            Assert.Equal(256, write.Value);
+            UdbScriptSettingOperation delete = operations[1];
+            Assert.Equal(UdbScriptSettingOperationKind.Delete, delete.Kind);
+            Assert.Equal("scripts." + script.PathHash + ".options.texture", delete.Key);
+            Assert.Null(delete.Value);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void PlansUdbOptionBlockCleanupWhenAllOptionsAreDefaults()
+    {
+        string file = Path.Combine(TempDir(), "defaults.js");
+        try
+        {
+            UdbScriptInfo script = UdbScriptDiscovery.ParseScript(WriteScriptWithOptions(file));
+
+            IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDiscovery.SaveOptionValueOperations(script);
+
+            Assert.Equal(
+                new[]
+                {
+                    "scripts." + script.PathHash + ".options.length",
+                    "scripts." + script.PathHash + ".options.texture",
+                    "scripts." + script.PathHash + ".options",
+                    "scripts." + script.PathHash,
+                },
+                operations.Select(operation => operation.Key));
+            Assert.All(operations, operation => Assert.Equal(UdbScriptSettingOperationKind.Delete, operation.Kind));
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
     public void DiscoversUdbScriptDirectoryTree()
     {
         string app = TempDir();
@@ -268,4 +352,23 @@ public class UdbScriptDiscoveryTests
 
     private static string ExpectedAsciiSha256(string text)
         => Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(text))).ToLowerInvariant();
+
+    private static string WriteScriptWithOptions(string file)
+    {
+        File.WriteAllText(file, """
+            `#scriptoptions
+            length
+            {
+                default = 128;
+                type = 0;
+            }
+            texture
+            {
+                default = "STARTAN3";
+                type = 6;
+            }
+            `;
+            """);
+        return file;
+    }
 }

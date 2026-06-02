@@ -28,6 +28,17 @@ public sealed record UdbScriptOption(
 
 public sealed record UdbScriptEnumValue(string Key, string? Label);
 
+public enum UdbScriptSettingOperationKind
+{
+    Write,
+    Delete,
+}
+
+public sealed record UdbScriptSettingOperation(
+    UdbScriptSettingOperationKind Kind,
+    string Key,
+    object? Value = null);
+
 public sealed record UdbScriptDirectory(
     string Path,
     string Name,
@@ -167,6 +178,44 @@ public static class UdbScriptDiscovery
     public static bool IsValidOptionType(int type)
         => ValidOptionTypes.Any(valid => (int)valid == type);
 
+    public static UdbScriptInfo ApplySavedOptionValues(
+        UdbScriptInfo script,
+        IReadOnlyDictionary<string, object?> settings)
+    {
+        var options = script.Options
+            .Select(option => ApplySavedOptionValue(option, settings))
+            .ToArray();
+
+        return script with { Options = options };
+    }
+
+    public static IReadOnlyList<UdbScriptSettingOperation> SaveOptionValueOperations(UdbScriptInfo script)
+    {
+        var operations = new List<UdbScriptSettingOperation>();
+        int writtenOptions = 0;
+
+        foreach (UdbScriptOption option in script.Options)
+        {
+            if (ValueText(option.Value) == ValueText(option.DefaultValue))
+            {
+                operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Delete, option.SettingKey));
+            }
+            else
+            {
+                operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Write, option.SettingKey, option.Value));
+                writtenOptions++;
+            }
+        }
+
+        if (script.Options.Count > 0 && writtenOptions == 0)
+        {
+            operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Delete, $"scripts.{script.PathHash}.options"));
+            operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Delete, $"scripts.{script.PathHash}"));
+        }
+
+        return operations;
+    }
+
     private static IReadOnlyList<UdbScriptEnumValue> ReadEnumValues(IDictionary? values)
     {
         if (values is null || values.Count == 0)
@@ -193,6 +242,22 @@ public static class UdbScriptDiscovery
 
         return defaultValue;
     }
+
+    private static UdbScriptOption ApplySavedOptionValue(
+        UdbScriptOption option,
+        IReadOnlyDictionary<string, object?> settings)
+    {
+        if (!settings.TryGetValue(option.SettingKey, out object? savedValue))
+            return option;
+
+        string text = savedValue?.ToString() ?? "";
+        return string.IsNullOrWhiteSpace(text)
+            ? option with { Value = option.DefaultValue }
+            : option with { Value = text };
+    }
+
+    private static string ValueText(object? value)
+        => value?.ToString() ?? "";
 
     private static IEnumerable<(string Command, string Payload)> ReadMetadata(string text)
     {
