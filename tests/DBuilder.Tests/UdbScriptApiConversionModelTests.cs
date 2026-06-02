@@ -1660,6 +1660,28 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void VisualCameraWrapperExposesPose()
+    {
+        var wrapper = new UdbScriptVisualCameraWrapper(
+            new VisualCameraPose(new Vector3D(1, 2, 3), 0.5, -0.25));
+
+        Assert.Equal(new UdbScriptVector3DWrapper(1, 2, 3), wrapper.position);
+        Assert.Equal(0.5, wrapper.angleXY);
+        Assert.Equal(-0.25, wrapper.angleZ);
+    }
+
+    [Fact]
+    public void MapWrapperExposesVisualCamera()
+    {
+        var pose = new VisualCameraPose(new Vector3D(64, 96, 32), 1.25, -0.5);
+        var wrapper = new UdbScriptMapWrapper(new MapSet(), visualCamera: pose);
+
+        Assert.Equal(new UdbScriptVector3DWrapper(64, 96, 32), wrapper.camera.position);
+        Assert.Equal(1.25, wrapper.camera.angleXY);
+        Assert.Equal(-0.5, wrapper.camera.angleZ);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();

@@ -2536,6 +2536,25 @@ public sealed class UdbScriptBlockMapWrapper
     }
 }
 
+public sealed class UdbScriptVisualCameraWrapper
+{
+    private readonly VisualCameraPose camera;
+
+    public UdbScriptVisualCameraWrapper(VisualCameraPose camera)
+    {
+        this.camera = camera;
+    }
+
+    public UdbScriptVector3DWrapper position
+        => new(camera.Position.x, camera.Position.y, camera.Position.z);
+
+    public double angleXY
+        => camera.Yaw;
+
+    public double angleZ
+        => camera.Pitch;
+}
+
 public sealed class UdbScriptMapWrapper
 {
     public enum MergeGeometryMode
@@ -2550,19 +2569,22 @@ public sealed class UdbScriptMapWrapper
     private readonly MapSet map;
     private readonly MapFormat mapFormat;
     private readonly Vector2D mouseMapPosition;
+    private readonly VisualCameraPose visualCamera;
 
     public UdbScriptMapWrapper(
         MapSet map,
         GridSetup? grid = null,
         object? highlightedObject = null,
         MapFormat mapFormat = MapFormat.Doom,
-        Vector2D? mousePosition = null)
+        Vector2D? mousePosition = null,
+        VisualCameraPose? visualCamera = null)
     {
         this.map = map;
         this.grid = grid ?? new GridSetup();
         this.highlightedObject = highlightedObject;
         this.mapFormat = mapFormat;
         mouseMapPosition = mousePosition ?? new Vector2D();
+        this.visualCamera = visualCamera ?? new VisualCameraPose(new Vector3D(), 0.0, 0.0);
     }
 
     public MapSet Map
@@ -2579,6 +2601,9 @@ public sealed class UdbScriptMapWrapper
 
     public UdbScriptVector2DWrapper mousePosition
         => new(mouseMapPosition.x, mouseMapPosition.y);
+
+    public UdbScriptVisualCameraWrapper camera
+        => new(visualCamera);
 
     public UdbScriptVector2DWrapper snappedToGrid(object pos)
     {
