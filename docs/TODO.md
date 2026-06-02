@@ -1021,6 +1021,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
+  - [x] Apply UDB-style fullbright and UDMF surface-lighting tints to visual 3D floors and ceilings.
 
 ## Model Loading
 

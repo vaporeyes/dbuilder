@@ -3005,6 +3005,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var floorB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         var ceilB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         var wallB = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        Gldefs? gldefs = _resources?.GetGldefs();
 
         static System.Collections.Generic.List<FlatVertex> Bucket(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> d, string k)
         { if (!d.TryGetValue(k, out var l)) { l = new(); d[k] = l; } return l; }
@@ -3030,8 +3031,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             string cName = s.CeilTexture ?? "-";
             string fKey = GetFlatTexture(fName) != null ? fName : "";
             string cKey = GetFlatTexture(cName) != null ? cName : "";
-            int fc = Gray(s.Brightness, 1.0);
-            int cc = Gray(s.Brightness, 0.85);
+            int fc = GlowingFlatDisplay.SurfaceRenderTint(
+                s.Brightness,
+                GlowingFlatDisplay.SurfaceLighting(s, GlowingFlatSurface.Floor, gldefs),
+                _fullBrightness,
+                1.0);
+            int cc = GlowingFlatDisplay.SurfaceRenderTint(
+                s.Brightness,
+                GlowingFlatDisplay.SurfaceLighting(s, GlowingFlatSurface.Ceiling, gldefs),
+                _fullBrightness,
+                0.85);
             var fl = Bucket(floorB, fKey);
             var cl = Bucket(ceilB, cKey);
             for (int i = 0; i < tri.Vertices.Count; i++)

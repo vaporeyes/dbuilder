@@ -31,6 +31,30 @@ public static class GlowingFlatDisplay
     public const int WhiteColor = 0xffffff;
     public const int NoColorOverride = -1;
 
+    public static int SurfaceRenderTint(
+        int sectorBrightness,
+        GlowingFlatSurfaceLighting lighting,
+        bool fullBrightness,
+        double scale)
+    {
+        int brightness = fullBrightness
+            ? DefaultGlowBrightness
+            : lighting.Absolute ? lighting.Light : sectorBrightness + lighting.Light;
+        double factor = Math.Clamp(Math.Clamp(brightness, 0, DefaultGlowBrightness) / 255.0, 0.15, 1.0)
+            * scale;
+
+        if (lighting.Color == NoColorOverride)
+        {
+            byte gray = Channel(DefaultGlowBrightness, factor);
+            return unchecked((int)(0xff000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray));
+        }
+
+        byte red = Channel((lighting.Color >> 16) & 0xff, factor);
+        byte green = Channel((lighting.Color >> 8) & 0xff, factor);
+        byte blue = Channel(lighting.Color & 0xff, factor);
+        return unchecked((int)(0xff000000u | ((uint)red << 16) | ((uint)green << 8) | blue));
+    }
+
     public static GlowingFlatDisplayState? Resolve(Sector sector, GlowingFlatSurface surface, Gldefs? gldefs, bool isUdmf)
     {
         if (isUdmf)
@@ -103,6 +127,9 @@ public static class GlowingFlatDisplay
 
     private static int Brightness(int color)
         => (((color >> 16) & 0xff) + ((color >> 8) & 0xff) + (color & 0xff)) / 3;
+
+    private static byte Channel(int value, double factor)
+        => (byte)Math.Clamp(value * factor, 0.0, 255.0);
 
     private static int ModulateColors(int lightColor, int surfaceColor)
     {

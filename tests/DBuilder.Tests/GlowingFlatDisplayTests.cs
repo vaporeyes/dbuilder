@@ -113,4 +113,43 @@ public sealed class GlowingFlatDisplayTests
         Assert.Equal(32, lighting.Light);
         Assert.True(lighting.Absolute);
     }
+
+    [Fact]
+    public void SurfaceRenderTintUsesFullbrightOverride()
+    {
+        var lighting = new GlowingFlatSurfaceLighting(
+            GlowingFlatDisplay.NoColorOverride,
+            GlowingFlatDisplay.DefaultGlowBrightness,
+            Absolute: true);
+
+        int tint = GlowingFlatDisplay.SurfaceRenderTint(64, lighting, fullBrightness: false, scale: 0.85);
+
+        Assert.Equal(unchecked((int)0xffd8d8d8), tint);
+    }
+
+    [Fact]
+    public void SurfaceRenderTintAppliesRelativeLight()
+    {
+        var lighting = new GlowingFlatSurfaceLighting(
+            GlowingFlatDisplay.NoColorOverride,
+            Light: 32,
+            Absolute: false);
+
+        int tint = GlowingFlatDisplay.SurfaceRenderTint(96, lighting, fullBrightness: false, scale: 1.0);
+
+        Assert.Equal(unchecked((int)0xff808080), tint);
+    }
+
+    [Fact]
+    public void SurfaceRenderTintUsesSurfaceColor()
+    {
+        var lighting = new GlowingFlatSurfaceLighting(
+            Color: 0x804020,
+            Light: 128,
+            Absolute: true);
+
+        int tint = GlowingFlatDisplay.SurfaceRenderTint(255, lighting, fullBrightness: false, scale: 1.0);
+
+        Assert.Equal(unchecked((int)0xff402010), tint);
+    }
 }
