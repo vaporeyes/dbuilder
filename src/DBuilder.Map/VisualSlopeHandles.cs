@@ -164,7 +164,8 @@ public static class VisualSlopeHandles
 
     public static VisualSlopeHandleStateResult ToggleSelection(
         VisualSlopeHandle target,
-        IEnumerable<VisualSlopeHandle> handles)
+        IEnumerable<VisualSlopeHandle> handles,
+        bool selectAdjacentVertexHandles = false)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
         if (handles == null) throw new ArgumentNullException(nameof(handles));
@@ -173,8 +174,16 @@ public static class VisualSlopeHandles
         if (target.Pivot)
             return new VisualSlopeHandleStateResult(all, CannotSelectPivotMessage);
 
+        bool selected = !target.Selected;
+        HashSet<VisualSlopeHandle> adjacent = selectAdjacentVertexHandles && target.Kind == VisualSlopeHandleKind.Vertex
+            ? new HashSet<VisualSlopeHandle>(GetAdjacentVertexSlopeHandles(target, all), ReferenceEqualityComparer.Instance)
+            : [];
+
         return new VisualSlopeHandleStateResult(
-            all.Select(handle => ReferenceEquals(handle, target) ? handle with { Selected = !handle.Selected } : handle).ToArray());
+            all.Select(handle =>
+                ReferenceEquals(handle, target) || adjacent.Contains(handle)
+                    ? handle with { Selected = selected }
+                    : handle).ToArray());
     }
 
     public static VisualSlopeHandleStateResult TogglePivot(

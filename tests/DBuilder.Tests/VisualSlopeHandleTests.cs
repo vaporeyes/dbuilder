@@ -171,6 +171,82 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void ToggleSelectionCanSelectAdjacentSameHeightVertexHandlesLikeUdb()
+    {
+        var map = new MapSet();
+        Sector first = AddSquareSector(map, 0, 64);
+        Sector second = AddAdjacentSquareSector(map, first);
+        Vertex shared = first.Sidedefs[1].Line.End;
+        var firstLevel = new VisualSlopeLevel(
+            first,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), 0));
+        var secondLevel = new VisualSlopeLevel(
+            second,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), -0.000001));
+        var otherHeightLevel = new VisualSlopeLevel(
+            second,
+            VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), -16));
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(shared, first, firstLevel);
+        VisualSlopeHandle adjacent = VisualSlopeHandles.CreateVertex(shared, second, secondLevel);
+        VisualSlopeHandle otherHeight = VisualSlopeHandles.CreateVertex(shared, second, otherHeightLevel);
+
+        VisualSlopeHandleStateResult result = VisualSlopeHandles.ToggleSelection(
+            handle,
+            [handle, adjacent, otherHeight],
+            selectAdjacentVertexHandles: true);
+
+        Assert.Null(result.WarningMessage);
+        Assert.True(result.Handles[0].Selected);
+        Assert.True(result.Handles[1].Selected);
+        Assert.False(result.Handles[2].Selected);
+    }
+
+    [Fact]
+    public void ToggleSelectionCanDeselectAdjacentSameHeightVertexHandlesLikeUdb()
+    {
+        var map = new MapSet();
+        Sector first = AddSquareSector(map, 0, 64);
+        Sector second = AddAdjacentSquareSector(map, first);
+        Vertex shared = first.Sidedefs[1].Line.End;
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(first);
+        VisualSlopeLevel adjacentLevel = VisualSlopeLevel.Floor(second);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(shared, first, level) with { Selected = true };
+        VisualSlopeHandle adjacent = VisualSlopeHandles.CreateVertex(shared, second, adjacentLevel) with { Selected = true };
+
+        VisualSlopeHandleStateResult result = VisualSlopeHandles.ToggleSelection(
+            handle,
+            [handle, adjacent],
+            selectAdjacentVertexHandles: true);
+
+        Assert.Null(result.WarningMessage);
+        Assert.False(result.Handles[0].Selected);
+        Assert.False(result.Handles[1].Selected);
+    }
+
+    [Fact]
+    public void ToggleSelectionRejectsPivotBeforeAdjacentVertexSelectionLikeUdb()
+    {
+        var map = new MapSet();
+        Sector first = AddSquareSector(map, 0, 64);
+        Sector second = AddAdjacentSquareSector(map, first);
+        Vertex shared = first.Sidedefs[1].Line.End;
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateVertex(shared, first, VisualSlopeLevel.Floor(first)) with { Pivot = true };
+        VisualSlopeHandle adjacent = VisualSlopeHandles.CreateVertex(shared, second, VisualSlopeLevel.Floor(second));
+
+        VisualSlopeHandleStateResult result = VisualSlopeHandles.ToggleSelection(
+            pivot,
+            [pivot, adjacent],
+            selectAdjacentVertexHandles: true);
+
+        Assert.Equal(VisualSlopeHandles.CannotSelectPivotMessage, result.WarningMessage);
+        Assert.False(result.Handles[0].Selected);
+        Assert.False(result.Handles[1].Selected);
+    }
+
+    [Fact]
     public void TogglePivotKeepsOnlyOnePivotLikeUdb()
     {
         var map = new MapSet();
