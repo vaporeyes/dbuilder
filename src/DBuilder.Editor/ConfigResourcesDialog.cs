@@ -132,13 +132,7 @@ public sealed class ConfigResourcesDialog : Window
     }
 
     private void ApplyRequiredArchiveDefaults(DataLocation resource)
-    {
-        var requiredArchives = RequiredArchiveDetector.Detect(_config, resource);
-        resource.RequiredArchives.Clear();
-        resource.RequiredArchives.AddRange(requiredArchives);
-        if (RequiredArchiveDetector.RequiresTestExclusion(_config, requiredArchives))
-            resource.NotForTesting = true;
-    }
+        => ConfigResourceDefaultsModel.ApplyRequiredArchiveDefaults(_config, resource);
 
     private void Accept()
     {

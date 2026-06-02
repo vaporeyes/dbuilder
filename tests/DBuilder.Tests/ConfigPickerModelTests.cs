@@ -115,6 +115,37 @@ public class ConfigPickerModelTests
         }
     }
 
+    [Fact]
+    public void ConfigResourceDefaultsReplaceDetectedRequiredArchives()
+    {
+        var location = new DataLocation(DataLocationType.Wad, "/maps/existing.wad")
+        {
+            RequiredArchives = new List<string> { "old.wad" },
+        };
+
+        ConfigResourceDefaultsModel.ApplyRequiredArchiveDefaults(
+            location,
+            new[] { "doom2.wad", "textures.pk3" },
+            notForTesting: true);
+
+        Assert.Equal(new[] { "doom2.wad", "textures.pk3" }, location.RequiredArchives);
+        Assert.True(location.NotForTesting);
+    }
+
+    [Fact]
+    public void ConfigResourceDefaultsDoNotClearExistingTestingExclusion()
+    {
+        var location = new DataLocation(DataLocationType.Pk3, "/maps/textures.pk3", notForTesting: true);
+
+        ConfigResourceDefaultsModel.ApplyRequiredArchiveDefaults(
+            location,
+            Array.Empty<string>(),
+            notForTesting: false);
+
+        Assert.Empty(location.RequiredArchives);
+        Assert.True(location.NotForTesting);
+    }
+
     private static string NewTempDir()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder-config-picker-" + Path.GetRandomFileName());

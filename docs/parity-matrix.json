@@ -98,7 +98,7 @@
       "udbArea": "Source/Core/Resources",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, nested WAD folder-resource and hires priority, editor add-resource options for WAD, PK3, directory resources, required archives, and required-archive default detection, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
+      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, nested WAD folder-resource and hires priority, editor add-resource options for WAD, PK3, directory resources, required archives, required-archive default detection, configuration-resource required-archive default mapping, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
     },
     {
       "udbArea": "Source/Core/Types",
@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map with active-config candidate filtering, sidecar game-configuration loading, script-compiler override/default selection, strict-patch toggling, and config-aware long-texture-name toggling, settings, game configuration selection with active-row matching and per-configuration resource editing and persistence, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options including compiled ACS script compiler selection, resource options with tested UDB-compatible option mapping, grid setup with named background source choices, percent background scale fields, background texture and flat browsers, background image file picking, show-background toggling and disabled-state behavior, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map with active-config candidate filtering, sidecar game-configuration loading, script-compiler override/default selection, strict-patch toggling, and config-aware long-texture-name toggling, settings, game configuration selection with active-row matching, per-configuration resource editing and persistence, and tested required-archive default mapping, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options including compiled ACS script compiler selection, resource options with tested UDB-compatible option mapping, grid setup with named background source choices, percent background scale fields, background texture and flat browsers, background image file picking, show-background toggling and disabled-state behavior, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",
