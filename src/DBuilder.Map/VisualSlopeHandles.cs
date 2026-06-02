@@ -190,6 +190,13 @@ public static class VisualSlopeHandles
             warning ? CannotPivotSelectedMessage : null);
     }
 
+    public static IReadOnlyList<VisualSlopeHandle> GetUsedHandles(IEnumerable<VisualSlopeHandle> handles)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        return handles.Where(handle => handle.Selected || handle.Pivot || handle.SmartPivot).ToArray();
+    }
+
     public static Line2D GetSidedefBaseLine(Sidedef sidedef, VisualSlopeLevel level, bool up)
     {
         if (sidedef == null) throw new ArgumentNullException(nameof(sidedef));

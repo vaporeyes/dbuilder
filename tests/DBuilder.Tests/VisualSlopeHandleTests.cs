@@ -206,6 +206,43 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void UsedHandlesKeepSelectedPivotAndSmartPivotStateLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle ordinary = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { Selected = true };
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Pivot = true };
+        VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateVertex(
+            sector.Sidedefs[3].Line.Start,
+            sector,
+            level) with { SmartPivot = true };
+
+        IReadOnlyList<VisualSlopeHandle> used = VisualSlopeHandles.GetUsedHandles([ordinary, selected, pivot, smartPivot]);
+
+        Assert.Equal(3, used.Count);
+        Assert.DoesNotContain(ordinary, used);
+        Assert.Contains(selected, used);
+        Assert.Contains(pivot, used);
+        Assert.Contains(smartPivot, used);
+    }
+
+    [Fact]
+    public void UsedHandlesDropDeselectedNonPivotHandlesLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandleStateResult deselected = VisualSlopeHandles.ToggleSelection(handle, [handle]);
+
+        IReadOnlyList<VisualSlopeHandle> used = VisualSlopeHandles.GetUsedHandles(deselected.Handles);
+
+        Assert.Empty(used);
+    }
+
+    [Fact]
     public void LineHandleHeightChangeAppliesFloorSlopeAroundPivotHandle()
     {
         var map = new MapSet();
