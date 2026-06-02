@@ -922,6 +922,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "H"));
         Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
+        Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
         Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
@@ -945,6 +946,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
+    public void DrawCurveCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.draw-curve");
+
+        Assert.NotNull(command);
+        Assert.Equal("Start Curve Drawing", command.Title);
+        Assert.Equal("Ctrl/Cmd+Alt+D", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
     }
 
     [Theory]
@@ -1574,6 +1590,7 @@ public class EditorCommandCatalogTests
 
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.toggle-3d"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-sector"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-curve"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }
 
