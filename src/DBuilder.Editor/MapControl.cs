@@ -3214,6 +3214,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null || _device is null || _gl is null) return;
 
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        Gldefs? gldefs = _resources?.GetGldefs();
         foreach (var sector in _map.Sectors)
         {
             if (AutomapMode && !AutomapModeModel.IsSectorVisible(sector)) continue;
@@ -3226,7 +3227,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var fill = SectorFillForViewMode(sector);
             bool textured = fill.TextureName.Length > 0 && GetFlatTexture(fill.TextureName) != null;
             string key = textured ? fill.TextureName : "";
-            int c = textured ? TexturedFillColor(sector) : fill.Color;
+            int c = textured ? TexturedFillColor(sector, gldefs) : fill.Color;
 
             if (!buckets.TryGetValue(key, out var list)) { list = new(); buckets[key] = list; }
             for (int i = 0; i < tri.Vertices.Count; i++)
@@ -3255,8 +3256,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         };
 
     // Brightness-shaded color used to modulate a textured flat (selected sectors tint cyan).
-    private int TexturedFillColor(Sector s)
+    private int TexturedFillColor(Sector s, Gldefs? gldefs)
     {
+        GlowingFlatSurface? surface = _classicViewMode switch
+        {
+            ClassicViewMode.FloorTextures => GlowingFlatSurface.Floor,
+            ClassicViewMode.CeilingTextures => GlowingFlatSurface.Ceiling,
+            _ => null,
+        };
+        if (surface is { } flatSurface)
+        {
+            GlowingFlatSurfaceLighting lighting = GlowingFlatDisplay.SurfaceLighting(s, flatSurface, gldefs);
+            if (lighting.Absolute && lighting.Light == GlowingFlatDisplay.DefaultGlowBrightness && lighting.Color == GlowingFlatDisplay.NoColorOverride)
+                return s.Selected ? unchecked((int)0xff7fffff) : unchecked((int)0xffffffff);
+        }
+
         double b = _fullBrightness && _classicViewMode != ClassicViewMode.Brightness
             ? 1.0
             : Math.Clamp(s.Brightness / 255.0, 0.2, 1.0);

@@ -1004,6 +1004,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port model and voxel display.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
+  - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
 
 ## Model Loading
 
