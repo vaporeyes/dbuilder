@@ -474,6 +474,32 @@ public static class VisualSlopeHandles
             "Sloped between slope handles.");
     }
 
+    public static VisualSlopeBetweenHandlesApplyResult ApplySlopeBetweenSelectedHandles(
+        IEnumerable<VisualSlopeLevel> selectedLevels,
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? highlightedHandle = null,
+        bool useOppositeSmartPivotHandle = false)
+    {
+        VisualSlopeLevel[] levels = SelectedLevels(selectedLevels);
+        if (levels.Length == 0)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingSelectedLevels,
+                0,
+                MissingSelectedLevelsMessage);
+
+        VisualSlopeHandlePairResult pair = GetSlopeHandlePair(
+            handles,
+            highlightedHandle,
+            useOppositeSmartPivotHandle);
+        if (pair.Handles.Count != 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingHandlePair,
+                0,
+                MissingHandlePairMessage);
+
+        return ApplySlopeBetweenHandles(levels, pair.Handles);
+    }
+
     public static VisualSlopeBetweenHandlesApplyResult ApplyArchBetweenHandles(
         IEnumerable<VisualSlopeLevel> selectedLevels,
         IReadOnlyList<VisualSlopeHandle> handles,
@@ -550,6 +576,34 @@ public static class VisualSlopeHandles
             VisualSlopeBetweenHandlesResult.Changed,
             changed,
             "Arched between slope handles.");
+    }
+
+    public static VisualSlopeBetweenHandlesApplyResult ApplyArchBetweenSelectedHandles(
+        IEnumerable<VisualSlopeLevel> selectedLevels,
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? highlightedHandle = null,
+        bool useOppositeSmartPivotHandle = false,
+        double scale = 1.0,
+        double heightOffset = 0.0)
+    {
+        VisualSlopeLevel[] levels = SelectedLevels(selectedLevels);
+        if (levels.Length < 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingSelectedLevels,
+                0,
+                MissingArchSelectedLevelsMessage);
+
+        VisualSlopeHandlePairResult pair = GetSlopeHandlePair(
+            handles,
+            highlightedHandle,
+            useOppositeSmartPivotHandle);
+        if (pair.Handles.Count != 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingHandlePair,
+                0,
+                MissingHandlePairMessage);
+
+        return ApplyArchBetweenHandles(levels, pair.Handles, scale, heightOffset);
     }
 
     public static VisualSlopeHandle? GetSmartVertexPivot(

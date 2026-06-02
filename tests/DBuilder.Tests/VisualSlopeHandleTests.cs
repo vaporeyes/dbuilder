@@ -812,6 +812,52 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void ApplySlopeBetweenSelectedHandlesUsesHighlightedHandleAndSmartPivotLikeUdb()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0, 64);
+        Sector source = AddSquareSector(map, 0, 64);
+        var sourcePlane = new Plane(
+            new Vector3D(0, 0, 0),
+            new Vector3D(64, 0, 0),
+            new Vector3D(0, 64, 16),
+            true);
+        var sourceLevel = new VisualSlopeLevel(source, VisualSlopeLevelType.Floor, sourcePlane);
+        VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(source.Sidedefs[2], sourceLevel, up: true);
+        VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateSidedef(source.Sidedefs[0], sourceLevel, up: true);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
+            [VisualSlopeLevel.Floor(target)],
+            [highlighted, smartPivot],
+            highlighted);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal("Sloped between slope handles.", result.StatusMessage);
+        Assert.True(target.HasFloorSlope);
+        Assert.Equal(16, target.GetFloorZ(new Vector2D(32, 64)), 1e-9);
+        Assert.Equal(0, target.GetFloorZ(new Vector2D(32, 0)), 1e-9);
+    }
+
+    [Fact]
+    public void ApplySlopeBetweenSelectedHandlesValidatesSelectedLevelsBeforeHandlePairLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle first = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle second = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { Selected = true };
+        VisualSlopeHandle third = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Selected = true };
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
+            [],
+            [first, second, third]);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.MissingSelectedLevels, result.Result);
+        Assert.Equal(VisualSlopeHandles.MissingSelectedLevelsMessage, result.StatusMessage);
+    }
+
+    [Fact]
     public void ApplyArchBetweenHandlesUsesUdbDefaultThetaAndOffset()
     {
         var map = new MapSet();
@@ -870,6 +916,30 @@ public class VisualSlopeHandleTests
 
         Assert.Equal(VisualSlopeBetweenHandlesResult.MissingSelectedLevels, result.Result);
         Assert.Equal(VisualSlopeHandles.MissingArchSelectedLevelsMessage, result.StatusMessage);
+    }
+
+    [Fact]
+    public void ApplyArchBetweenSelectedHandlesUsesSelectedAndHighlightedHandlePairLikeUdb()
+    {
+        var map = new MapSet();
+        Sector left = AddRectSector(map, 0, 0, 50, 10);
+        Sector right = AddRectSector(map, 50, 0, 100, 10);
+        VisualSlopeHandle selected = AddLineHandle(map, new Vector2D(-10, 0), new Vector2D(10, 0), 128) with { Selected = true };
+        VisualSlopeHandle highlighted = AddLineHandle(map, new Vector2D(90, 0), new Vector2D(110, 0), 128);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenSelectedHandles(
+            [VisualSlopeLevel.Floor(left), VisualSlopeLevel.Floor(right)],
+            [selected, highlighted],
+            highlighted);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(2, result.ChangedLevels);
+        Assert.Equal("Arched between slope handles.", result.StatusMessage);
+        Assert.True(left.HasFloorSlope);
+        Assert.True(right.HasFloorSlope);
+        Assert.Equal(128.0, left.GetFloorZ(new Vector2D(0, 5)), 2);
+        Assert.Equal(178.0, left.GetFloorZ(new Vector2D(50, 5)), 1);
+        Assert.Equal(128.0, right.GetFloorZ(new Vector2D(100, 5)), 1);
     }
 
     private static void AssertVector(Vector3D expected, Vector3D actual, double precision = 1e-9)

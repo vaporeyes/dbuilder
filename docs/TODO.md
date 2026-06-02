@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3160 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3163 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -955,6 +955,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual slope target-change state transitions for stale and new smart pivots.
   - [x] Add UDB-style adjacent same-height vertex slope handle selection transitions.
   - [x] Add UDB-style slope handle pair selection for selected and highlighted sidedef handles.
+  - [x] Add UDB-style command-level slope and arch handle pair resolution.
 - [ ] Port comments rendering.
   - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
 - [ ] Port color settings and color collections.
@@ -1010,6 +1011,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB visual slope target-change cleanup and smart-pivot retargeting.
   - [x] Match UDB adjacent vertex slope handle select and deselect behavior.
   - [x] Match UDB slope-between handle-pair fallback and warning behavior.
+  - [x] Match UDB slope-between and arch-between command validation and handle-pair resolution.
 - [ ] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
