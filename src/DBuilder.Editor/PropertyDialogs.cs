@@ -185,6 +185,25 @@ public abstract class PropertyDialog : Window
         return box;
     }
 
+    protected TextBox AddFieldWithButton(
+        string label,
+        string value,
+        string buttonText,
+        Func<TextBox, System.Threading.Tasks.Task> action)
+    {
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*,Auto") };
+        grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
+        var box = new TextBox { Text = value };
+        Grid.SetColumn(box, 1);
+        grid.Children.Add(box);
+        var button = new Button { Content = buttonText, MinWidth = 34, Margin = new Avalonia.Thickness(4, 0, 0, 0) };
+        button.Click += async (_, _) => await action(box);
+        Grid.SetColumn(button, 2);
+        grid.Children.Add(button);
+        _rows.Children.Insert(_rows.Children.Count - 1, grid);
+        return box;
+    }
+
     // Adds a labeled text box with a texture/flat browser button.
     protected TextBox AddTextureField(string label, string value, ResourceManager resources, bool flats, string title)
     {

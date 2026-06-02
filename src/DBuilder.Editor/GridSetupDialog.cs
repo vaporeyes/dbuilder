@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using DBuilder.IO;
 
 namespace DBuilder.Editor;
@@ -49,7 +50,7 @@ public sealed class GridSetupDialog : PropertyDialog
         _originX = AddField("Origin X", grid.GridOriginX.ToString("0.###", CultureInfo.InvariantCulture));
         _originY = AddField("Origin Y", grid.GridOriginY.ToString("0.###", CultureInfo.InvariantCulture));
         _rotation = AddField("Rotation radians", grid.GridRotate.ToString("0.###", CultureInfo.InvariantCulture));
-        _background = AddField("Background", grid.BackgroundName);
+        _background = AddFieldWithButton("Background", grid.BackgroundName, "...", BrowseBackgroundFile);
         _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
         _backgroundX = AddField("Background X", grid.BackgroundX.ToString(CultureInfo.InvariantCulture));
         _backgroundY = AddField("Background Y", grid.BackgroundY.ToString(CultureInfo.InvariantCulture));
@@ -78,4 +79,40 @@ public sealed class GridSetupDialog : PropertyDialog
             new CatalogItem(GridSetup.SourceFlats, "Flats"),
             new CatalogItem(GridSetup.SourceFile, "File"),
         ];
+
+    private async Task BrowseBackgroundFile(TextBox box)
+    {
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Background Image File",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("All supported images") { Patterns = new[] { "*.bmp", "*.gif", "*.png" } },
+                FilePickerFileTypes.All,
+            },
+        });
+
+        if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+
+        box.Text = path;
+        SelectBackgroundSource(GridSetup.SourceFile);
+    }
+
+    private void SelectBackgroundSource(int source)
+    {
+        if (_backgroundSource.ItemsSource is not IEnumerable<CatalogItem> items) return;
+
+        foreach (var item in items)
+        {
+            if (item.Number == source)
+            {
+                _backgroundSource.SelectedItem = item;
+                return;
+            }
+        }
+    }
 }
