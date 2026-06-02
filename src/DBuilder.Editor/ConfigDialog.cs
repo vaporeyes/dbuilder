@@ -1,10 +1,7 @@
 // ABOUTME: Modal dialog for choosing a UDB game configuration from the configured config directory.
 // ABOUTME: Shows parsed game titles when available and preserves a browse path for external cfg files.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
@@ -15,7 +12,7 @@ namespace DBuilder.Editor;
 public sealed class ConfigDialog : Window
 {
     private readonly ListBox _list;
-    private readonly List<ConfigRow> _rows;
+    private readonly List<ConfigPickerRow> _rows;
 
     public string? SelectedPath { get; private set; }
 
@@ -27,10 +24,9 @@ public sealed class ConfigDialog : Window
         CanResize = true;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        _rows = LoadRows(configDir);
+        _rows = ConfigPickerModel.LoadRows(configDir);
         _list = new ListBox { ItemsSource = _rows };
-        int current = _rows.FindIndex(row => string.Equals(row.Title, currentName, StringComparison.OrdinalIgnoreCase));
-        _list.SelectedIndex = current >= 0 ? current : (_rows.Count > 0 ? 0 : -1);
+        _list.SelectedIndex = ConfigPickerModel.SelectedIndex(_rows, currentName);
         _list.DoubleTapped += (_, _) => Accept();
 
         var info = new TextBlock
@@ -69,7 +65,7 @@ public sealed class ConfigDialog : Window
 
     private void Accept()
     {
-        if (_list.SelectedItem is ConfigRow row)
+        if (_list.SelectedItem is ConfigPickerRow row)
         {
             SelectedPath = row.Path;
             Close(true);
@@ -94,43 +90,4 @@ public sealed class ConfigDialog : Window
         }
     }
 
-    private static List<ConfigRow> LoadRows(string configDir)
-    {
-        if (!Directory.Exists(configDir)) return new List<ConfigRow>();
-
-        return Directory.EnumerateFiles(configDir, "*.cfg", SearchOption.AllDirectories)
-            .Where(path => !IsIncludeFile(configDir, path))
-            .Select(ReadRow)
-            .OrderBy(row => row.Title, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
-
-    private static bool IsIncludeFile(string configDir, string path)
-    {
-        string relative = Path.GetRelativePath(configDir, path);
-        return relative.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            .Any(part => string.Equals(part, "Includes", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static ConfigRow ReadRow(string path)
-    {
-        string fallback = Path.GetFileNameWithoutExtension(path);
-        try
-        {
-            var cfg = new Configuration(path);
-            string title = cfg.ReadSetting("game", fallback) ?? fallback;
-            string engine = cfg.ReadSetting("engine", "") ?? "";
-            return new ConfigRow(title, engine, path);
-        }
-        catch
-        {
-            return new ConfigRow(fallback, "", path);
-        }
-    }
-
-    private sealed record ConfigRow(string Title, string Engine, string Path)
-    {
-        public override string ToString()
-            => string.IsNullOrWhiteSpace(Engine) ? Title : $"{Title} [{Engine}]";
-    }
 }
