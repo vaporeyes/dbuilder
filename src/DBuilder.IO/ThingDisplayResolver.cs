@@ -38,7 +38,13 @@ public sealed record ThingModelDisplayPart(
     string SkinName,
     IReadOnlyDictionary<int, string> SurfaceSkinNames,
     string FrameName,
-    int FrameIndex);
+    int FrameIndex)
+{
+    public IReadOnlyDictionary<int, string> EffectiveSurfaceSkinNames
+        => string.IsNullOrEmpty(SkinName) ? SurfaceSkinNames : EmptySurfaceSkinNames;
+
+    private static readonly IReadOnlyDictionary<int, string> EmptySurfaceSkinNames = new Dictionary<int, string>();
+}
 
 public static class ThingDisplayResolver
 {

@@ -67,6 +67,42 @@ public sealed class ThingDisplayResolverTests
             Assert.Equal("", part.FrameName);
             Assert.Equal(0, part.FrameIndex);
             Assert.Equal("models/lamp_alt.png", Assert.Single(part.SurfaceSkinNames).Value);
+            Assert.Empty(part.EffectiveSurfaceSkinNames);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void SurfaceSkinsRemainEffectiveWhenSkinIsNotDefined()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    SurfaceSkin 0 2 "lamp_alt.png"
+                    FrameIndex LAMP A 0 0
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]),
+            ("models/lamp_alt.png", [7, 8, 9]));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+
+            ThingModelDisplayPart part = Assert.Single(source.ModelDisplay!.Parts);
+            Assert.Equal("", part.SkinName);
+            Assert.Equal("models/lamp_alt.png", Assert.Single(part.SurfaceSkinNames).Value);
+            Assert.Equal("models/lamp_alt.png", Assert.Single(part.EffectiveSurfaceSkinNames).Value);
         }
         finally
         {
