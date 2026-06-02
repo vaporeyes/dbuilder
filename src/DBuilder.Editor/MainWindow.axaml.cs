@@ -5137,26 +5137,8 @@ public partial class MainWindow : Window
 
     private void ShowThingFields(Thing t)
     {
-        string name = _config?.ThingTitle(t.Type) ?? $"type {t.Type}";
-        string action = _config?.LinedefActionTitle(t.Action) ?? (t.Action == 0 ? "None" : $"action {t.Action}");
-        string flags = _config != null ? string.Join(", ", _config.DescribeThingFlags(t.Flags)) : $"0x{t.Flags:X4}";
-        if (flags.Length == 0) flags = "none";
-        var fields = new List<(string, string)>
-        {
-            ("Type", $"{t.Type} - {name}"),
-            ("Action", $"{t.Action} - {action}"),
-            ("Position", $"({t.Position.x:0}, {t.Position.y:0}, {t.Height:0})"),
-            ("Angle", $"{t.Angle}°"),
-            ("Pitch / roll", $"{t.Pitch}° / {t.Roll}°"),
-            ("Scale", $"{t.ScaleX:0.###} x {t.ScaleY:0.###}"),
-            ("Tag", t.Tag.ToString()),
-            ("Flags", flags),
-            ("UDMF flags", DescribeStringSet(t.UdmfFlags)),
-            ("Groups", DescribeGroups(t.Groups)),
-            ("Custom fields", t.Fields.Count.ToString()),
-        };
-        if (HasArgs) AddArgFields(fields, t.Args, _config?.GetThing(t.Type)?.Args);
-        ShowFields($"Thing {_map!.Things.IndexOf(t)}", fields);
+        ThingInfoPanelState state = ThingInfoPanelModel.Build(_map!, t, _config, HasArgs);
+        ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
     }
 
     private void ShowLinedefFields(Linedef l)

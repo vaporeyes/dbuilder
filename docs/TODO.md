@@ -838,6 +838,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add structured single-thing, linedef, and sector metadata details.
   - [x] Add structured single-sidedef info panel details and texture previews.
   - [x] Add tested single-sector info panel model.
+  - [x] Add tested single-thing info panel model.
 - [x] Port thing browser.
 - [x] Port texture browser.
 - [x] Port flat browser.
