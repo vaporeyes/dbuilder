@@ -4,6 +4,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace DBuilder.IO;
 
@@ -13,7 +14,19 @@ public sealed record UdbScriptInfo(
     uint Version,
     string ScriptFile,
     string PathHash,
-    string? RawOptions);
+    string? RawOptions,
+    IReadOnlyList<UdbScriptOption> Options);
+
+public sealed record UdbScriptOption(
+    string Name,
+    string Description,
+    int Type,
+    object DefaultValue,
+    object Value,
+    IReadOnlyList<UdbScriptEnumValue> EnumValues,
+    string SettingKey);
+
+public sealed record UdbScriptEnumValue(string Key, string? Label);
 
 public sealed record UdbScriptDirectory(
     string Path,
@@ -28,6 +41,31 @@ public static class UdbScriptDiscovery
     public const string ScriptsSubfolder = "Scripts";
     public const uint DefaultVersion = 1;
     public const string DefaultDescription = "No description.";
+    public const string DefaultOptionDescription = "no description";
+
+    public static IReadOnlyList<UniversalType> ValidOptionTypes { get; } = new[]
+    {
+        UniversalType.Integer,
+        UniversalType.Float,
+        UniversalType.String,
+        UniversalType.Boolean,
+        UniversalType.LinedefType,
+        UniversalType.SectorEffect,
+        UniversalType.Texture,
+        UniversalType.Flat,
+        UniversalType.AngleDegrees,
+        UniversalType.AngleRadians,
+        UniversalType.Color,
+        UniversalType.EnumOption,
+        UniversalType.SectorTag,
+        UniversalType.ThingTag,
+        UniversalType.LinedefTag,
+        UniversalType.AngleDegreesFloat,
+        UniversalType.ThingType,
+        UniversalType.ThingClass,
+        UniversalType.AngleByte,
+        UniversalType.PolyobjectNumber,
+    };
 
     public static UdbScriptDirectory DiscoverFromAppPath(string appPath)
         => Discover(Path.Combine(appPath, ScriptFolder, ScriptsSubfolder));
@@ -59,6 +97,7 @@ public static class UdbScriptDiscovery
         string description = DefaultDescription;
         uint version = DefaultVersion;
         string? rawOptions = null;
+        IReadOnlyList<UdbScriptOption> options = Array.Empty<UdbScriptOption>();
 
         foreach ((string command, string payload) in ReadMetadata(text))
         {
@@ -78,15 +117,82 @@ public static class UdbScriptDiscovery
                     break;
                 case "scriptoptions":
                     rawOptions = payload;
+                    options = ParseOptions(payload, scriptFile);
                     break;
             }
         }
 
-        return new UdbScriptInfo(name, description, version, scriptFile, HashPath(scriptFile), rawOptions);
+        return new UdbScriptInfo(name, description, version, scriptFile, HashPath(scriptFile), rawOptions, options);
     }
 
     public static string HashPath(string path)
         => Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(path))).ToLowerInvariant();
+
+    public static IReadOnlyList<UdbScriptOption> ParseOptions(string configText, string scriptFile)
+    {
+        var cfg = new Configuration();
+        if (!cfg.InputConfiguration(configText, sorted: true))
+            throw new ArgumentException("Error parsing script options: " + cfg.ErrorDescription);
+
+        string scriptHash = HashPath(scriptFile);
+        var options = new List<UdbScriptOption>();
+        foreach (DictionaryEntry entry in cfg.Root)
+        {
+            if (entry.Value is not IDictionary)
+                continue;
+
+            string optionName = entry.Key.ToString() ?? "";
+            string description = cfg.ReadSetting($"{optionName}.description", DefaultOptionDescription) ?? DefaultOptionDescription;
+            int type = cfg.ReadSetting($"{optionName}.type", 0);
+            object defaultValue = cfg.ReadSettingObject($"{optionName}.default", "") ?? "";
+            IReadOnlyList<UdbScriptEnumValue> enumValues = ReadEnumValues(cfg.ReadSetting($"{optionName}.enumvalues", (IDictionary?)null));
+
+            if (!IsValidOptionType(type))
+                throw new ArgumentException("Error in script configuration of file " + scriptFile + ": option " + optionName + " has invalid type " + type);
+
+            object effectiveDefault = EffectiveDefault(defaultValue, enumValues);
+            options.Add(new UdbScriptOption(
+                optionName,
+                description,
+                type,
+                effectiveDefault,
+                effectiveDefault,
+                enumValues,
+                $"scripts.{scriptHash}.options.{optionName}"));
+        }
+
+        return options;
+    }
+
+    public static bool IsValidOptionType(int type)
+        => ValidOptionTypes.Any(valid => (int)valid == type);
+
+    private static IReadOnlyList<UdbScriptEnumValue> ReadEnumValues(IDictionary? values)
+    {
+        if (values is null || values.Count == 0)
+            return Array.Empty<UdbScriptEnumValue>();
+
+        var result = new List<UdbScriptEnumValue>();
+        foreach (DictionaryEntry entry in values)
+            result.Add(new UdbScriptEnumValue(entry.Key.ToString() ?? "", entry.Value?.ToString()));
+
+        return result;
+    }
+
+    private static object EffectiveDefault(object defaultValue, IReadOnlyList<UdbScriptEnumValue> enumValues)
+    {
+        if (enumValues.Count == 0)
+            return defaultValue;
+
+        string defaultText = defaultValue.ToString() ?? "";
+        foreach (UdbScriptEnumValue value in enumValues)
+        {
+            if (value.Key == defaultText)
+                return value.Label ?? value.Key;
+        }
+
+        return defaultValue;
+    }
 
     private static IEnumerable<(string Command, string Payload)> ReadMetadata(string text)
     {

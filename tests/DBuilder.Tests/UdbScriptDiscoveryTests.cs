@@ -50,6 +50,13 @@ public class UdbScriptDiscoveryTests
             Assert.Equal(ExpectedAsciiSha256(file), info.PathHash);
             Assert.NotNull(info.RawOptions);
             Assert.Contains("global_x", info.RawOptions, StringComparison.Ordinal);
+            var option = Assert.Single(info.Options);
+            Assert.Equal("global_x", option.Name);
+            Assert.Equal("Global X Offset", option.Description);
+            Assert.Equal((int)UniversalType.Boolean, option.Type);
+            Assert.Equal("False", option.DefaultValue);
+            Assert.Equal(option.DefaultValue, option.Value);
+            Assert.Equal("scripts." + ExpectedAsciiSha256(file) + ".options.global_x", option.SettingKey);
         }
         finally
         {
@@ -72,6 +79,7 @@ public class UdbScriptDiscoveryTests
             Assert.Equal("No description.", info.Description);
             Assert.Equal(1u, info.Version);
             Assert.Null(info.RawOptions);
+            Assert.Empty(info.Options);
         }
         finally
         {
@@ -119,6 +127,87 @@ public class UdbScriptDiscoveryTests
         finally
         {
             Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ParsesUdbScriptOptionsWithEnumDefaults()
+    {
+        string file = Path.Combine(TempDir(), "options.js");
+        try
+        {
+            const string options = """
+                length
+                {
+                    description = "Length";
+                    default = 128;
+                    type = 0;
+                }
+
+                direction
+                {
+                    description = "Direction";
+                    default = 2;
+                    type = 11;
+                    enumvalues
+                    {
+                        1 = "Up";
+                        2 = "Down";
+                    }
+                }
+
+                texture
+                {
+                    type = 6;
+                }
+                """;
+
+            IReadOnlyList<UdbScriptOption> parsed = UdbScriptDiscovery.ParseOptions(options, file);
+
+            Assert.Equal(3, parsed.Count);
+            var length = parsed[0];
+            Assert.Equal("length", length.Name);
+            Assert.Equal("Length", length.Description);
+            Assert.Equal((int)UniversalType.Integer, length.Type);
+            Assert.Equal(128, length.DefaultValue);
+            Assert.Empty(length.EnumValues);
+
+            var direction = parsed[1];
+            Assert.Equal("direction", direction.Name);
+            Assert.Equal((int)UniversalType.EnumOption, direction.Type);
+            Assert.Equal("Down", direction.DefaultValue);
+            Assert.Equal("Down", direction.Value);
+            Assert.Equal(new[] { "1:Up", "2:Down" }, direction.EnumValues.Select(v => v.Key + ":" + v.Label).ToArray());
+
+            var texture = parsed[2];
+            Assert.Equal("texture", texture.Name);
+            Assert.Equal("no description", texture.Description);
+            Assert.Equal((int)UniversalType.Texture, texture.Type);
+            Assert.Equal("", texture.DefaultValue);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void RejectsInvalidScriptOptionConfig()
+    {
+        string file = Path.Combine(TempDir(), "badoptions.js");
+        try
+        {
+            Assert.Throws<ArgumentException>(() => UdbScriptDiscovery.ParseOptions("broken = @;", file));
+            Assert.Throws<ArgumentException>(() => UdbScriptDiscovery.ParseOptions("""
+                unsupported
+                {
+                    type = 12;
+                }
+                """, file));
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
         }
     }
 
