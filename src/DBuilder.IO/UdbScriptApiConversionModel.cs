@@ -745,6 +745,123 @@ public sealed class UdbScriptDataWrapper
             isFlat);
 }
 
+public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
+{
+    private readonly IFielded element;
+
+    public UdbScriptFieldsWrapper(IFielded element)
+    {
+        this.element = element;
+    }
+
+    public object? this[string key]
+    {
+        get => element.Fields.TryGetValue(key, out object? value) ? value : null;
+        set => SetValue(key, value);
+    }
+
+    public ICollection<string> Keys => element.Fields.Keys;
+
+    public ICollection<object?> Values => element.Fields.Values.Cast<object?>().ToArray();
+
+    public int Count => element.Fields.Count;
+
+    public bool IsReadOnly => false;
+
+    public void Add(string key, object? value)
+        => SetValue(key, value);
+
+    public bool ContainsKey(string key)
+        => element.Fields.ContainsKey(key);
+
+    public bool Remove(string key)
+        => element.Fields.Remove(key);
+
+    public bool TryGetValue(string key, out object? value)
+    {
+        if (element.Fields.TryGetValue(key, out object? fieldValue))
+        {
+            value = fieldValue;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    public void Add(KeyValuePair<string, object?> item)
+        => SetValue(item.Key, item.Value);
+
+    public void Clear()
+        => element.Fields.Clear();
+
+    public bool Contains(KeyValuePair<string, object?> item)
+        => element.Fields.TryGetValue(item.Key, out object? value) && Equals(value, item.Value);
+
+    public void CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)
+    {
+        foreach (var item in this)
+            array[arrayIndex++] = item;
+    }
+
+    public bool Remove(KeyValuePair<string, object?> item)
+        => Contains(item) && element.Fields.Remove(item.Key);
+
+    public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+    {
+        foreach (var item in element.Fields)
+            yield return new KeyValuePair<string, object?>(item.Key, item.Value);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    private void SetValue(string key, object? value)
+    {
+        ValidateFieldName(key);
+
+        if (value == null)
+        {
+            element.Fields.Remove(key);
+            return;
+        }
+
+        element.Fields[key] = ConvertValue(key, value);
+    }
+
+    private static void ValidateFieldName(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+            throw new InvalidOperationException("UDMF field names can not be empty.");
+
+        if (key != key.ToLowerInvariant())
+            throw new InvalidOperationException("UDMF field names must be lowercase.");
+    }
+
+    private static object ConvertValue(string key, object value)
+    {
+        if (value is string or bool or int or double)
+            return value;
+
+        if (value is BigInteger big)
+        {
+            if (big > int.MaxValue)
+                throw new InvalidOperationException("Value " + big + " for UDMF field \"" + key + "\" is too big. Maximum value is " + int.MaxValue + ".");
+
+            if (big < int.MinValue)
+                throw new InvalidOperationException("Value " + big + " for UDMF field \"" + key + "\" is too small. Minimum value is " + int.MinValue + ".");
+
+            return (int)big;
+        }
+
+        if (value is UdbScriptUniversalValue universal)
+            return UdbScriptApiConversionModel.GetConvertedUniversalValue(universal)
+                ?? throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + ".");
+
+        throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + ".");
+    }
+}
+
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 {
     private readonly Vertex vertex;
@@ -756,6 +873,15 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 
     public Vertex Vertex
         => vertex;
+
+    public UdbScriptFieldsWrapper fields
+    {
+        get
+        {
+            ThrowIfDisposed("fields");
+            return new UdbScriptFieldsWrapper(vertex);
+        }
+    }
 
     public object position
     {
@@ -872,6 +998,15 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
 
     public Linedef Linedef
         => linedef;
+
+    public UdbScriptFieldsWrapper fields
+    {
+        get
+        {
+            ThrowIfDisposed("fields");
+            return new UdbScriptFieldsWrapper(linedef);
+        }
+    }
 
     public UdbScriptVertexWrapper start
     {
@@ -1202,6 +1337,15 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
     public Sidedef Sidedef
         => sidedef;
 
+    public UdbScriptFieldsWrapper fields
+    {
+        get
+        {
+            ThrowIfDisposed("fields");
+            return new UdbScriptFieldsWrapper(sidedef);
+        }
+    }
+
     public bool isFront
     {
         get
@@ -1398,6 +1542,15 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
 
     public Sector Sector
         => sector;
+
+    public UdbScriptFieldsWrapper fields
+    {
+        get
+        {
+            ThrowIfDisposed("fields");
+            return new UdbScriptFieldsWrapper(sector);
+        }
+    }
 
     public int index
     {
@@ -1708,6 +1861,15 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 
     public Thing Thing
         => thing;
+
+    public UdbScriptFieldsWrapper fields
+    {
+        get
+        {
+            ThrowIfDisposed("fields");
+            return new UdbScriptFieldsWrapper(thing);
+        }
+    }
 
     public int type
     {

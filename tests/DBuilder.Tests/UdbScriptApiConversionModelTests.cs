@@ -1258,6 +1258,62 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementWrappersExposeMutableCustomFields()
+    {
+        var vertex = new Vertex(new Vector2D(1, 2));
+        var line = new Linedef(vertex, new Vertex(new Vector2D(3, 4)));
+        var sector = new Sector();
+        var side = new Sidedef(line, isFront: true);
+        var thing = new Thing(new Vector2D(5, 6), 3001);
+
+        new UdbScriptVertexWrapper(vertex).fields["user_vertex"] = "v";
+        new UdbScriptLinedefWrapper(line).fields["user_line"] = 1.5;
+        new UdbScriptSidedefWrapper(side).fields["user_side"] = true;
+        new UdbScriptSectorWrapper(sector).fields["user_sector"] = new BigInteger(42);
+        new UdbScriptThingWrapper(thing).fields["user_thing"] = new UdbScriptUniversalValue((int)UniversalType.String, 7);
+
+        Assert.Equal("v", vertex.Fields["user_vertex"]);
+        Assert.Equal(1.5, line.Fields["user_line"]);
+        Assert.Equal(true, side.Fields["user_side"]);
+        Assert.Equal(42, sector.Fields["user_sector"]);
+        Assert.Equal("7", thing.Fields["user_thing"]);
+
+        var fields = new UdbScriptThingWrapper(thing).fields;
+        Assert.True(fields.ContainsKey("user_thing"));
+        Assert.Equal("7", fields["user_thing"]);
+
+        fields["user_thing"] = null;
+
+        Assert.False(thing.Fields.ContainsKey("user_thing"));
+    }
+
+    [Fact]
+    public void MapElementFieldsRejectInvalidNamesAndValues()
+    {
+        var fields = new UdbScriptThingWrapper(new Thing()).fields;
+
+        InvalidOperationException uppercase = Assert.Throws<InvalidOperationException>(() => fields["User"] = 1);
+        InvalidOperationException empty = Assert.Throws<InvalidOperationException>(() => fields[""] = 1);
+        InvalidOperationException tooBig = Assert.Throws<InvalidOperationException>(() => fields["user_big"] = new BigInteger(int.MaxValue) + 1);
+        InvalidOperationException badType = Assert.Throws<InvalidOperationException>(() => fields["user_bad"] = new object());
+
+        Assert.Equal("UDMF field names must be lowercase.", uppercase.Message);
+        Assert.Equal("UDMF field names can not be empty.", empty.Message);
+        Assert.StartsWith("Value 2147483648 for UDMF field \"user_big\" is too big.", tooBig.Message, StringComparison.Ordinal);
+        Assert.StartsWith("UDMF field 'user_bad' is of incompatible type", badType.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MapElementWrappersRejectDisposedFieldsAccess()
+    {
+        var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.fields);
+
+        Assert.Equal("Vertex is disposed, the fields member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
