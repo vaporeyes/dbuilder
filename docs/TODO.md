@@ -871,6 +871,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port config dialog.
   - [x] Add bundled configuration picker with external cfg browse fallback.
   - [x] Preselect the active configuration by parsed title, filename, or external path.
+  - [x] Add settings persistence and load path for UDB-style per-configuration resource lists.
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
   - [x] Display and edit UDB-compatible tag labels from map options.

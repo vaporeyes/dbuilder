@@ -383,7 +383,7 @@ public partial class MainWindow : Window
                 _settings.LastUsedConfigName = System.IO.Path.IsPathRooted(path) ? path : _configFile;
                 SaveSettings();
             }
-            ApplyResourceConfig();
+            RebuildResourcesForActiveSource();
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateStatusDetails();
             UpdateInfo();
@@ -3092,10 +3092,7 @@ public partial class MainWindow : Window
             SyncMapOptionsToView();
             _mapSettings = null;
 
-            _resources?.Dispose();
-            _resources = new ResourceManager(_config);
-            _resources.AddResource(path);
-            ApplyResourceConfig();
+            RebuildPk3Resources(path);
             MergeActorsFromResources();
 
             LoadPk3MapEntry(selected);
@@ -3269,11 +3266,55 @@ public partial class MainWindow : Window
     {
         _resources?.Dispose();
         _resources = new ResourceManager(_config);
+
+        var baseResources = new DataLocationList(CurrentConfigurationResources());
+        baseResources.AddRange(options.GetResources());
+        int failures = AddBaseResourcesInOrder(baseResources);
         _resources.AddResource(wadPath);
 
-        int failures = 0;
-        foreach (var location in options.GetResources())
+        ApplyResourceConfig();
+        MergeActorsFromResources();
+        return failures;
+    }
+
+    private void RebuildPk3Resources(string pk3Path)
+    {
+        _resources?.Dispose();
+        _resources = new ResourceManager(_config);
+        AddBaseResourcesInOrder(CurrentConfigurationResources());
+        _resources.AddResource(pk3Path);
+        ApplyResourceConfig();
+    }
+
+    private void RebuildResourcesForActiveSource()
+    {
+        if (_wadPath is not null && _mapOptions is not null)
         {
+            RebuildWadResources(_wadPath, _mapOptions);
+            return;
+        }
+
+        if (_pk3Path is not null)
+        {
+            RebuildPk3Resources(_pk3Path);
+            MergeActorsFromResources();
+            return;
+        }
+
+        ApplyResourceConfig();
+    }
+
+    private DataLocationList CurrentConfigurationResources()
+        => _settings.ResourcesForConfiguration(_configFile);
+
+    private int AddBaseResourcesInOrder(IEnumerable<DataLocation> locations)
+    {
+        if (_resources is null) return 0;
+        var ordered = locations.ToList();
+        int failures = 0;
+        for (int i = ordered.Count - 1; i >= 0; i--)
+        {
+            var location = ordered[i];
             try
             {
                 if (location.IsValid()) _resources.AddBaseResource(location);
@@ -3285,8 +3326,6 @@ public partial class MainWindow : Window
             }
         }
 
-        ApplyResourceConfig();
-        MergeActorsFromResources();
         return failures;
     }
 

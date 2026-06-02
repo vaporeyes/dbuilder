@@ -1,6 +1,8 @@
 // ABOUTME: Tests Settings persistence (JSON round-trip, resilient load) and the recent-files list semantics.
 // ABOUTME: Uses a temp file path so it never touches the real user settings.
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DBuilder.IO;
@@ -197,6 +199,13 @@ public class SettingsTests
                     new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
                 },
             };
+            s.SetResourcesForConfiguration("Doom_Doom2Doom.cfg", new[]
+            {
+                new DataLocation(DataLocationType.Pk3, "/textures.pk3", option1: true, option2: true)
+                {
+                    RequiredArchives = new List<string> { "doom2.wad" },
+                },
+            });
             s.AddRecent("/x.wad");
             s.AddRecentMap("/x.wad", "MAP01");
             Assert.True(s.Save(path));
@@ -262,8 +271,33 @@ public class SettingsTests
             Assert.Contains("/x.wad", loaded.RecentFiles);
             Assert.Contains(loaded.RecentMaps, m => m.Path == "/x.wad" && m.MapName == "MAP01");
             Assert.Contains(loaded.ShortcutOverrides, b => b.CommandId == "window.save" && b.Key == "F5");
+            var configResource = Assert.Single(loaded.ResourcesForConfiguration("Doom_Doom2Doom"));
+            Assert.Equal(DataLocationType.Pk3, configResource.Type);
+            Assert.Equal("/textures.pk3", configResource.Location);
+            Assert.True(configResource.Option1);
+            Assert.True(configResource.Option2);
+            Assert.Equal(new[] { "doom2.wad" }, configResource.RequiredArchives);
         }
         finally { if (File.Exists(path)) File.Delete(path); }
+    }
+
+    [Fact]
+    public void ConfigurationResourcesUseLowercaseFilenameStemKeys()
+    {
+        var settings = new Settings();
+        var location = new DataLocation(DataLocationType.Wad, "/iwad.wad");
+
+        settings.SetResourcesForConfiguration("/Configs/Doom_Doom2Doom.cfg", new[] { location });
+
+        Assert.Equal("doom_doom2doom", Settings.ConfigurationResourceKey("/Configs/Doom_Doom2Doom.cfg"));
+        Assert.Single(settings.ResourcesForConfiguration("Doom_Doom2Doom"));
+        Assert.Single(settings.ResourcesForConfiguration("doom_doom2doom.cfg"));
+
+        location.Location = "/changed.wad";
+        Assert.Equal("/iwad.wad", Assert.Single(settings.ResourcesForConfiguration("Doom_Doom2Doom")).Location);
+
+        settings.SetResourcesForConfiguration("Doom_Doom2Doom", Array.Empty<DataLocation>());
+        Assert.Empty(settings.ResourcesForConfiguration("Doom_Doom2Doom"));
     }
 
     [Fact]

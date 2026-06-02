@@ -52,6 +52,7 @@ public sealed class Settings
     public List<string> RecentFiles { get; set; } = new();
     public List<RecentMapReference> RecentMaps { get; set; } = new();
     public List<EditorShortcutBinding> ShortcutOverrides { get; set; } = new();
+    public Dictionary<string, List<DataLocation>> ConfigurationResources { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public int NormalizedStatusHistoryLimit =>
         Math.Clamp(StatusHistoryLimit ?? DefaultStatusHistoryLimit, MinStatusHistoryLimit, MaxStatusHistoryLimit);
@@ -132,6 +133,34 @@ public sealed class Settings
         return RecentMaps.Where(map => fileExists(map.Path)).ToArray();
     }
 
+    public DataLocationList ResourcesForConfiguration(string configNameOrPath)
+    {
+        ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
+        string key = ConfigurationResourceKey(configNameOrPath);
+        if (key.Length == 0 || !ConfigurationResources.TryGetValue(key, out var resources))
+            return new DataLocationList();
+        return new DataLocationList(resources);
+    }
+
+    public void SetResourcesForConfiguration(string configNameOrPath, IEnumerable<DataLocation> resources)
+    {
+        ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
+        string key = ConfigurationResourceKey(configNameOrPath);
+        if (key.Length == 0) return;
+
+        var list = resources.Select(location => location.Clone()).ToList();
+        if (list.Count == 0) ConfigurationResources.Remove(key);
+        else ConfigurationResources[key] = list;
+    }
+
+    public static string ConfigurationResourceKey(string? configNameOrPath)
+    {
+        if (string.IsNullOrWhiteSpace(configNameOrPath)) return "";
+        string trimmed = configNameOrPath.Trim();
+        string fileName = Path.GetFileNameWithoutExtension(trimmed);
+        return (fileName.Length == 0 ? trimmed : fileName).ToLowerInvariant();
+    }
+
     public void RememberMapFolderForPath(string? path, Func<string, bool>? directoryExists = null)
     {
         if (string.IsNullOrWhiteSpace(path)) return;
@@ -203,6 +232,8 @@ public sealed class Settings
             settings.RecentFiles ??= new();
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
+            settings.ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
+            NormalizeConfigurationResources(settings.ConfigurationResources);
             settings.PasteOptions ??= new();
             settings.DrawLineSettings ??= new();
             settings.DrawRectangleSettings ??= new();
@@ -228,6 +259,16 @@ public sealed class Settings
             return true;
         }
         catch { return false; }
+    }
+
+    private static void NormalizeConfigurationResources(Dictionary<string, List<DataLocation>> resources)
+    {
+        foreach (var key in resources.Keys.ToArray())
+        {
+            if (resources[key] is null) resources[key] = new List<DataLocation>();
+            foreach (var location in resources[key])
+                location.RequiredArchives ??= new List<string>();
+        }
     }
 }
 

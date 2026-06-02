@@ -18,7 +18,7 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
     public bool Option1 { get; set; }
     public bool Option2 { get; set; }
     public bool NotForTesting { get; set; }
-    public List<string> RequiredArchives { get; } = new();
+    public List<string> RequiredArchives { get; set; } = new();
 
     public DataLocation() { }
 
@@ -90,4 +90,14 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
         DataLocationType.Wad or DataLocationType.Pk3 => File.Exists(Location),
         _ => false,
     };
+
+    public DataLocation Clone()
+    {
+        var clone = new DataLocation(Type, Location, Option1, Option2, NotForTesting)
+        {
+            InitialLocation = InitialLocation,
+        };
+        clone.RequiredArchives.AddRange(RequiredArchives);
+        return clone;
+    }
 }
