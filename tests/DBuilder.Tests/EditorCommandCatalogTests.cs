@@ -935,6 +935,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.reset-local-offsets", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "R", accelerator: true, shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
+        Assert.Equal("map3d.toggle-slope", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "S", alt: true));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left"));
@@ -1071,6 +1072,21 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualToggleSlopeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.toggle-slope");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Slope", command.Title);
+        Assert.Equal("Alt+S", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);

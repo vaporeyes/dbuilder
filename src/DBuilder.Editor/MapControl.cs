@@ -2081,6 +2081,56 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke("reset offsets");
     }
 
+    private void ToggleSlope3D()
+    {
+        if (_map == null) return;
+        if (_sel3D.Count == 0)
+        {
+            Target3DChanged?.Invoke(VisualSlopeToggle.EmptySelectionMessage);
+            return;
+        }
+
+        var targets = new List<VisualSlopeToggleTarget>();
+        foreach (VisualHit hit in _sel3D)
+        {
+            switch (hit.Kind)
+            {
+                case VisualHitKind.Floor:
+                    if (hit.Sector != null) targets.Add(new VisualSlopeToggleTarget(Sector: hit.Sector, Floor: true));
+                    break;
+                case VisualHitKind.Ceiling:
+                    if (hit.Sector != null) targets.Add(new VisualSlopeToggleTarget(Sector: hit.Sector, Ceiling: true));
+                    break;
+                case VisualHitKind.Wall:
+                    if (hit.Line != null)
+                    {
+                        Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+                        if (side != null) targets.Add(new VisualSlopeToggleTarget(Sidedef: side, Part: hit.Part));
+                    }
+                    break;
+            }
+        }
+
+        if (targets.Count == 0)
+        {
+            Target3DChanged?.Invoke("Toggled Slope for 0 surfaces.");
+            return;
+        }
+
+        EditBegun?.Invoke("Toggle Slope");
+        VisualSlopeToggleResult result = VisualSlopeToggle.Toggle(targets);
+        if (result.Changed)
+        {
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+            ClearSelection3D();
+        }
+
+        Target3DChanged?.Invoke(result.StatusMessage);
+    }
+
     // Deletes the targeted thing, undoable.
     private void DeleteTargetThing3D()
     {
@@ -4230,6 +4280,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-lower-unpegged":
                 ToggleUnpegged3D(upper: false);
+                return true;
+            case "map3d.toggle-slope":
+                ToggleSlope3D();
                 return true;
             case "map3d.delete-target":
                 DeleteTargetThing3D();

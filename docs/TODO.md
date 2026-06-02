@@ -931,6 +931,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
 - [ ] Port visual slope behavior.
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
+  - [x] Add UDB-style visual Toggle Slope action metadata and Plane_Align dispatch for selected surfaces.
 - [ ] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
