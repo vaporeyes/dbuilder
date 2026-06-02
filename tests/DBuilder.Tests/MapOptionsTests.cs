@@ -68,18 +68,25 @@ public class MapOptionsTests
     [Fact]
     public void OpenMapSelectionOptionsHonorLongTextureNameSupport()
     {
-        var options = new MapOptions { UseLongTextureNames = true };
+        var options = new MapOptions { StrictPatches = true, UseLongTextureNames = true };
 
         var supported = OpenMapSelectionOptions.FromMapOptions(options, longTextureNamesSupported: true);
         var unsupported = OpenMapSelectionOptions.FromMapOptions(options, longTextureNamesSupported: false);
 
+        Assert.True(supported.StrictPatches);
         Assert.True(supported.UseLongTextureNames);
         Assert.False(unsupported.UseLongTextureNames);
 
+        supported.WithStrictPatches(false).ApplyTo(options);
+        Assert.False(options.StrictPatches);
+        Assert.True(options.UseLongTextureNames);
+
         unsupported.ApplyTo(options);
+        Assert.True(options.StrictPatches);
         Assert.False(options.UseLongTextureNames);
 
         supported.ApplyTo(options);
+        Assert.True(options.StrictPatches);
         Assert.True(options.UseLongTextureNames);
 
         supported.WithUseLongTextureNames(false).ApplyTo(options);

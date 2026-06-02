@@ -3298,7 +3298,7 @@ public partial class MainWindow : Window
         var baseResources = new DataLocationList(CurrentConfigurationResources());
         baseResources.AddRange(options.GetResources());
         int failures = AddBaseResourcesInOrder(baseResources);
-        _resources.AddResource(wadPath);
+        _resources.AddResource(new DataLocation(DataLocationType.Wad, wadPath, option1: options.StrictPatches));
 
         ApplyResourceConfig();
         MergeActorsFromResources();

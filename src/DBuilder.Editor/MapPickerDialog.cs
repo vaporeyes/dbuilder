@@ -15,6 +15,7 @@ public sealed class MapPickerDialog : Window
     private readonly ListBox _list;
     private readonly List<MapEntry> _maps;
     private readonly Func<MapEntry, OpenMapSelectionOptions>? _optionsForMap;
+    private readonly CheckBox? _strictPatches;
     private readonly CheckBox? _longTextureNames;
     private OpenMapSelectionOptions _currentOptions;
 
@@ -40,6 +41,17 @@ public sealed class MapPickerDialog : Window
         _list.SelectedIndex = cur < 0 ? 0 : cur;
         _list.SelectionChanged += (_, _) => UpdateSelectedMapOptions();
         _list.DoubleTapped += (_, _) => Accept();
+
+        _strictPatches = optionsForMap is null
+            ? null
+            : new CheckBox
+            {
+                Content = "Strictly load patches between P_START and P_END only for this file",
+                Margin = new Avalonia.Thickness(0, 8, 0, 0),
+            };
+        if (_strictPatches is not null)
+            _strictPatches.IsCheckedChanged += (_, _) =>
+                _currentOptions = _currentOptions.WithStrictPatches(_strictPatches.IsChecked == true);
 
         _longTextureNames = optionsForMap is null
             ? null
@@ -71,12 +83,17 @@ public sealed class MapPickerDialog : Window
         {
             RowDefinitions = _longTextureNames is null
                 ? new RowDefinitions("*")
-                : new RowDefinitions("*,Auto"),
+                : new RowDefinitions("*,Auto,Auto"),
         };
         content.Children.Add(_list);
+        if (_strictPatches is not null)
+        {
+            Grid.SetRow(_strictPatches, 1);
+            content.Children.Add(_strictPatches);
+        }
         if (_longTextureNames is not null)
         {
-            Grid.SetRow(_longTextureNames, 1);
+            Grid.SetRow(_longTextureNames, 2);
             content.Children.Add(_longTextureNames);
         }
 
@@ -102,6 +119,7 @@ public sealed class MapPickerDialog : Window
         _currentOptions = i >= 0 && i < _maps.Count
             ? _optionsForMap(_maps[i])
             : default;
+        if (_strictPatches is not null) _strictPatches.IsChecked = _currentOptions.StrictPatches;
         _longTextureNames.IsEnabled = _currentOptions.LongTextureNamesSupported;
         _longTextureNames.IsChecked = _currentOptions.UseLongTextureNames;
     }

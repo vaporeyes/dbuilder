@@ -3,16 +3,20 @@
 
 namespace DBuilder.IO;
 
-public readonly record struct OpenMapSelectionOptions(bool LongTextureNamesSupported, bool UseLongTextureNames)
+public readonly record struct OpenMapSelectionOptions(bool StrictPatches, bool LongTextureNamesSupported, bool UseLongTextureNames)
 {
     public static OpenMapSelectionOptions FromMapOptions(MapOptions? options, bool longTextureNamesSupported)
-        => new(longTextureNamesSupported, longTextureNamesSupported && options?.UseLongTextureNames == true);
+        => new(options?.StrictPatches == true, longTextureNamesSupported, longTextureNamesSupported && options?.UseLongTextureNames == true);
 
     public OpenMapSelectionOptions WithUseLongTextureNames(bool enabled)
-        => new(LongTextureNamesSupported, LongTextureNamesSupported && enabled);
+        => new(StrictPatches, LongTextureNamesSupported, LongTextureNamesSupported && enabled);
+
+    public OpenMapSelectionOptions WithStrictPatches(bool enabled)
+        => new(enabled, LongTextureNamesSupported, UseLongTextureNames);
 
     public void ApplyTo(MapOptions options)
     {
+        options.StrictPatches = StrictPatches;
         options.UseLongTextureNames = LongTextureNamesSupported && UseLongTextureNames;
     }
 }
