@@ -1100,6 +1100,35 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperCreatesVerticesAndThings()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        UdbScriptVertexWrapper vertex = wrapper.createVertex(new object[] { 16.0, 32.0 });
+        UdbScriptThingWrapper thing = wrapper.createThing(new UdbScriptVector3DWrapper(64, 96, 12), type: 3001);
+
+        Assert.Same(vertex.Vertex, Assert.Single(map.Vertices));
+        Assert.Equal(new Vector2D(16, 32), vertex.Vertex.Position);
+        Assert.Same(thing.Thing, Assert.Single(map.Things));
+        Assert.Equal(new Vector2D(64, 96), thing.Thing.Position);
+        Assert.Equal(12, thing.Thing.Height);
+        Assert.Equal(3001, thing.Thing.Type);
+        Assert.Equal(new UdbScriptVector3DWrapper(64, 96, 12), thing.position);
+    }
+
+    [Fact]
+    public void MapWrapperRejectsInvalidCreationAccess()
+    {
+        var wrapper = new UdbScriptMapWrapper(new MapSet());
+
+        InvalidOperationException negativeType = Assert.Throws<InvalidOperationException>(
+            () => wrapper.createThing(new object[] { 0.0, 0.0 }, type: -1));
+
+        Assert.Equal("Thing type can not be negative.", negativeType.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();

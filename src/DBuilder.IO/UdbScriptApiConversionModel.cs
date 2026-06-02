@@ -2234,6 +2234,26 @@ public sealed class UdbScriptMapWrapper
         map.ClearSelectedSidedefs();
     }
 
+    public UdbScriptVertexWrapper createVertex(object pos)
+    {
+        ThrowIfDisposed("createVertex");
+        Vector2D point = ToVector2D(pos);
+        return new UdbScriptVertexWrapper(map.AddVertex(point));
+    }
+
+    public UdbScriptThingWrapper createThing(object pos, int type = 0)
+    {
+        ThrowIfDisposed("createThing");
+        if (type < 0)
+            throw new InvalidOperationException("Thing type can not be negative.");
+
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        Thing thing = map.AddThing(new Vector2D(point.x, point.y), type);
+        thing.Height = point.z;
+        thing.DetermineSector(map);
+        return new UdbScriptThingWrapper(thing);
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)
