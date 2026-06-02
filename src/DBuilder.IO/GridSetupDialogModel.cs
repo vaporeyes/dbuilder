@@ -17,4 +17,10 @@ public static class GridSetupDialogModel
 
         return GridSetup.ClampBackgroundScale(percent / 100.0);
     }
+
+    public static (string Name, int Source) BackgroundSelection(bool showBackground, string? name, int source)
+    {
+        if (!showBackground) return ("", 0);
+        return ((name ?? "").Trim(), source);
+    }
 }

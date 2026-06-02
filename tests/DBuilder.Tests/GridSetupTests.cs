@@ -113,6 +113,24 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void DialogModelClearsBackgroundWhenShowBackgroundIsDisabled()
+    {
+        var result = GridSetupDialogModel.BackgroundSelection(false, "GRIDPIC", GridSetup.SourceTextures);
+
+        Assert.Equal("", result.Name);
+        Assert.Equal(0, result.Source);
+    }
+
+    [Fact]
+    public void DialogModelKeepsTrimmedBackgroundWhenShowBackgroundIsEnabled()
+    {
+        var result = GridSetupDialogModel.BackgroundSelection(true, " GRIDPIC ", GridSetup.SourceTextures);
+
+        Assert.Equal("GRIDPIC", result.Name);
+        Assert.Equal(GridSetup.SourceTextures, result.Source);
+    }
+
+    [Fact]
     public void SetGridSizeClampsToMinimumAndRoundsDisplaySize()
     {
         var grid = new GridSetup();

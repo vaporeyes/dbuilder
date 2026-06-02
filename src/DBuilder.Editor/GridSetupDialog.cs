@@ -14,6 +14,7 @@ public sealed class GridSetupDialog : PropertyDialog
     private readonly TextBox _originX;
     private readonly TextBox _originY;
     private readonly TextBox _rotation;
+    private readonly CheckBox _showBackground;
     private readonly TextBox _background;
     private readonly ComboBox _backgroundSource;
     private readonly TextBox _backgroundX;
@@ -52,6 +53,7 @@ public sealed class GridSetupDialog : PropertyDialog
         _originX = AddField("Origin X", grid.GridOriginX.ToString("0.###", CultureInfo.InvariantCulture));
         _originY = AddField("Origin Y", grid.GridOriginY.ToString("0.###", CultureInfo.InvariantCulture));
         _rotation = AddField("Rotation radians", grid.GridRotate.ToString("0.###", CultureInfo.InvariantCulture));
+        _showBackground = AddCheckBox("Show background image", !string.IsNullOrWhiteSpace(grid.BackgroundName));
         _background = AddBackgroundField(grid.BackgroundName);
         _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
         _backgroundX = AddField("Background X", grid.BackgroundX.ToString(CultureInfo.InvariantCulture));
@@ -66,8 +68,10 @@ public sealed class GridSetupDialog : PropertyDialog
         ResultOriginX = ParseDouble(_originX, ResultOriginX);
         ResultOriginY = ParseDouble(_originY, ResultOriginY);
         ResultRotation = ParseDouble(_rotation, ResultRotation);
-        ResultBackground = _background.Text?.Trim() ?? "";
-        ResultBackgroundSource = ComboNumber(_backgroundSource, ResultBackgroundSource);
+        (ResultBackground, ResultBackgroundSource) = GridSetupDialogModel.BackgroundSelection(
+            _showBackground.IsChecked == true,
+            _background.Text,
+            ComboNumber(_backgroundSource, ResultBackgroundSource));
         ResultBackgroundX = ParseInt(_backgroundX, ResultBackgroundX);
         ResultBackgroundY = ParseInt(_backgroundY, ResultBackgroundY);
         ResultBackgroundScaleX = GridSetupDialogModel.ParseBackgroundScalePercent(_backgroundScaleX.Text, ResultBackgroundScaleX);
@@ -101,6 +105,7 @@ public sealed class GridSetupDialog : PropertyDialog
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
 
         box.Text = path;
+        _showBackground.IsChecked = true;
         SelectBackgroundSource(GridSetup.SourceFile);
     }
 
@@ -133,6 +138,7 @@ public sealed class GridSetupDialog : PropertyDialog
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } selected)
         {
             box.Text = selected;
+            _showBackground.IsChecked = true;
             SelectBackgroundSource(source);
         }
     }
