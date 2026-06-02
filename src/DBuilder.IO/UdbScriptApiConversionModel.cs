@@ -554,6 +554,48 @@ public sealed record UdbScriptLine2DWrapper(UdbScriptVector2DWrapper V1, UdbScri
         => UdbScriptApiConversionModel.GetVector3DFromObject(value);
 }
 
+public static class UdbScriptAngle2DWrapper
+{
+    public static double doomToReal(int doomangle)
+        => normalized(doomangle + 90);
+
+    public static double doomToRealRad(int doomangle)
+        => Angle2D.DoomToReal(doomangle);
+
+    public static int realToDoom(double realangle)
+        => normalized((int)(realangle - 90));
+
+    public static int realToDoomRad(double realangle)
+        => Angle2D.RealToDoom(realangle);
+
+    public static double radToDeg(double rad)
+        => Angle2D.RadToDeg(rad);
+
+    public static double degToRad(double deg)
+        => Angle2D.DegToRad(deg);
+
+    public static int normalized(int angle)
+    {
+        while (angle < 0) angle += 360;
+        while (angle >= 360) angle -= 360;
+        return angle;
+    }
+
+    public static double normalizedRad(double angle)
+        => Angle2D.Normalized(angle);
+
+    public static double getAngle(object p1, object p2, object p3)
+        => Angle2D.RadToDeg(getAngleRad(p1, p2, p3));
+
+    public static double getAngleRad(object p1, object p2, object p3)
+    {
+        Vector2D first = UdbScriptApiConversionModel.GetVector3DFromObject(p1);
+        Vector2D second = UdbScriptApiConversionModel.GetVector3DFromObject(p2);
+        Vector2D third = UdbScriptApiConversionModel.GetVector3DFromObject(p3);
+        return Angle2D.GetAngle(first, second, third);
+    }
+}
+
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
 
 public sealed class UdbScriptVectorConversionException : Exception

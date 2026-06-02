@@ -191,6 +191,32 @@ public class UdbScriptApiConversionModelTests
         Assert.True(double.IsNaN(point.Y));
     }
 
+    [Fact]
+    public void Angle2DWrapperExposesUdbAngleConversions()
+    {
+        Assert.Equal(90, UdbScriptAngle2DWrapper.doomToReal(0));
+        Assert.Equal(0, UdbScriptAngle2DWrapper.doomToReal(270));
+        Assert.Equal(270, UdbScriptAngle2DWrapper.realToDoom(0));
+        Assert.Equal(0, UdbScriptAngle2DWrapper.realToDoom(90));
+        Assert.Equal(45, UdbScriptAngle2DWrapper.radToDeg(UdbScriptAngle2DWrapper.degToRad(45)), 12);
+        Assert.Equal(5, UdbScriptAngle2DWrapper.normalized(365));
+        Assert.Equal(355, UdbScriptAngle2DWrapper.normalized(-5));
+        Assert.Equal(Angle2D.Normalized(-Angle2D.PIHALF), UdbScriptAngle2DWrapper.normalizedRad(-Angle2D.PIHALF));
+    }
+
+    [Fact]
+    public void Angle2DWrapperExposesThreePointAngleHelpers()
+    {
+        object first = new object[] { 1.0, 0.0 };
+        object second = new UdbScriptVector2DWrapper(0, 0);
+        object third = new UdbScriptVector3DWrapper(0, 1, 5);
+
+        double radians = UdbScriptAngle2DWrapper.getAngleRad(first, second, third);
+
+        Assert.Equal(Angle2D.GetAngle(new Vector2D(1, 0), new Vector2D(0, 0), new Vector2D(0, 1)), radians);
+        Assert.Equal(Angle2D.RadToDeg(radians), UdbScriptAngle2DWrapper.getAngle(first, second, third));
+    }
+
     [Theory]
     [InlineData(UniversalType.Float, "1.5", 1.5)]
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]
