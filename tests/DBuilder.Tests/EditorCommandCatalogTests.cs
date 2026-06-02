@@ -769,6 +769,16 @@ public class EditorCommandCatalogTests
         Assert.True(align.AllowMouse);
         Assert.True(align.AllowScroll);
         Assert.False(align.Repeat);
+
+        var showThings = EditorCommandCatalog.Find("map3d.show-visual-things");
+
+        Assert.NotNull(showThings);
+        Assert.Equal("Show Things", showThings.Title);
+        Assert.Equal(EditorCommandScope.Map3D, showThings.Scope);
+        Assert.True(showThings.AllowKeys);
+        Assert.True(showThings.AllowMouse);
+        Assert.True(showThings.AllowScroll);
+        Assert.False(showThings.Repeat);
     }
 
     [Fact]

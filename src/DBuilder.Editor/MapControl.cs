@@ -177,6 +177,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 2D view-layer visibility toggles.
     private bool _showFills = true;
     private bool _showThings = true;
+    private int _showVisualThings = 2;
     private bool _fixedThingsScale = true;
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
@@ -185,6 +186,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
+    public int ShowVisualThings => _showVisualThings;
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool FullBrightness => _fullBrightness;
@@ -208,6 +210,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showThings;
+    }
+
+    public int CycleVisualThings()
+    {
+        _showVisualThings++;
+        if (_showVisualThings > 2) _showVisualThings = 0;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _showVisualThings;
     }
 
     public bool ToggleFixedThingsScale()
@@ -1301,7 +1312,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Draws things as upright camera-facing sprite billboards (rebuilt each frame; depth-tested against geometry).
     private void DrawThings3D()
     {
-        if (_device is null || _map is null || _things3DVb is null) return;
+        if (_showVisualThings == 0 || _device is null || _map is null || _things3DVb is null) return;
         var right = new Vector3((float)Math.Sin(_yaw), -(float)Math.Cos(_yaw), 0);
         var up = new Vector3(0, 0, 1);
 
@@ -1351,6 +1362,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetAlphaBlendEnable(false);
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
+    }
+
+    private void CycleVisualThings3D()
+    {
+        int state = CycleVisualThings();
+        string text = state switch
+        {
+            0 => "off",
+            1 => "sprite only",
+            _ => "on",
+        };
+        Target3DChanged?.Invoke($"thing visibility is now {text}");
     }
 
     private IReadOnlyList<Thing> VisibleThings3D()
@@ -3723,6 +3746,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.align-things-to-wall":
                 AlignSelectedVisualThingsToWall3D();
+                return true;
+            case "map3d.show-visual-things":
+                CycleVisualThings3D();
                 return true;
             case "map3d.lower-sector-1":
                 AdjustTarget3D(-1);

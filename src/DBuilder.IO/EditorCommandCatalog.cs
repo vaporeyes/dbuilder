@@ -209,6 +209,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.apply-camera-rotation-to-things", "Apply Camera Rotation To Things", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.look-through-thing", "Look Through Selection", "Y", EditorCommandScope.Map3D, AllowMouse: false, AllowScroll: true),
         new EditorCommandDescriptor("map3d.align-things-to-wall", "Align Things to Nearest Linedef", "Ctrl/Cmd+Shift+A", EditorCommandScope.Map3D, AllowScroll: true),
+        new EditorCommandDescriptor("map3d.show-visual-things", "Show Things", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.target-height", "Raise/lower floor, ceiling or thing Z (Shift = by 1)", "Wheel", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.drag-height", "Move a thing or drag a surface height", "Right-drag", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.lower-sector-1", "Lower Floor/Ceiling/Thing by 1 mp", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
