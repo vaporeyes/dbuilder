@@ -69,6 +69,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.change-map-element-index", "Change Map Element Index", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.make-door", "Make Door", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.tag-range", "Tag Range", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.blockmap-explorer", "Blockmap Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),

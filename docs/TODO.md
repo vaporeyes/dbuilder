@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3182 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3183 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1481,6 +1481,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
   - [x] Add editor Automap Mode toolbar options with persisted show-hidden-lines, show-secret-sectors, show-locks, show-textures, and color-preset settings.
 - [ ] Port blockmap explorer UI and data model.
+  - [x] Add UDB-style Blockmap Explorer action metadata and window command dispatch.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
   - [x] Add non-modal Blockmap Explorer summary and block-list window.
   - [x] Wire Blockmap Explorer selections and overlay options into the editor blockmap renderer.

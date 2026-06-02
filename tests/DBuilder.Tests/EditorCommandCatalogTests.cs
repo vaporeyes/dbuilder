@@ -21,6 +21,7 @@ public class EditorCommandCatalogTests
         Assert.Contains("window.toggle-auto-clear-sidedef-textures", ids);
         Assert.Contains("window.make-door", ids);
         Assert.Contains("window.tag-range", ids);
+        Assert.Contains("window.blockmap-explorer", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
     }
@@ -106,6 +107,21 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(TagRangeModel.ToolWindowTitle, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void BlockmapExplorerCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.blockmap-explorer");
+
+        Assert.NotNull(command);
+        Assert.Equal("Blockmap Explorer mode", command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
