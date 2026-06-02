@@ -1,23 +1,32 @@
 // ABOUTME: Computes visual-mode lighting tints for renderable map surfaces.
-// ABOUTME: Keeps wall sidedef light and sector lightcolor behavior testable outside editor rendering.
+// ABOUTME: Keeps wall sidedef light and sector wall-color behavior testable outside editor rendering.
 
 using DBuilder.Map;
 
 namespace DBuilder.IO;
+
+public enum VisualWallPart
+{
+    Middle,
+    Top,
+    Bottom,
+}
 
 public static class VisualSurfaceLighting
 {
     public const int NoColorOverride = -1;
     public const int FullBrightness = 255;
 
-    public static int WallRenderTint(Sidedef side, bool fullBrightness, double scale)
+    public static int WallRenderTint(Sidedef side, VisualWallPart part, bool fullBrightness, double scale)
     {
         int brightness = fullBrightness
             ? FullBrightness
             : side.GetField("lightabsolute", false)
                 ? side.GetIntegerField("light")
                 : (side.Sector?.Brightness ?? 0) + side.GetIntegerField("light");
-        int color = side.Sector?.GetIntegerField("lightcolor", NoColorOverride) ?? NoColorOverride;
+        int color = ModulateColors(
+            side.Sector?.GetIntegerField("lightcolor", NoColorOverride) ?? NoColorOverride,
+            WallPartColor(side.Sector, part));
         return RenderTint(brightness, color, scale);
     }
 
@@ -40,4 +49,23 @@ public static class VisualSurfaceLighting
 
     private static byte Channel(int value, double factor)
         => (byte)Math.Clamp(value * factor, 0.0, 255.0);
+
+    private static int WallPartColor(Sector? sector, VisualWallPart part)
+        => part switch
+        {
+            VisualWallPart.Top => sector?.GetIntegerField("color_walltop", NoColorOverride) ?? NoColorOverride,
+            VisualWallPart.Bottom => sector?.GetIntegerField("color_wallbottom", NoColorOverride) ?? NoColorOverride,
+            _ => NoColorOverride,
+        };
+
+    private static int ModulateColors(int lightColor, int surfaceColor)
+    {
+        if (lightColor == NoColorOverride) return surfaceColor;
+        if (surfaceColor == NoColorOverride) return lightColor;
+
+        int red = (((lightColor >> 16) & 0xff) * ((surfaceColor >> 16) & 0xff)) / 255;
+        int green = (((lightColor >> 8) & 0xff) * ((surfaceColor >> 8) & 0xff)) / 255;
+        int blue = ((lightColor & 0xff) * (surfaceColor & 0xff)) / 255;
+        return (red << 16) | (green << 8) | blue;
+    }
 }

@@ -3063,7 +3063,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 // One-sided middle: top-pegged by default, floor-pegged when lower-unpegged.
                 var peg = unpegBottom ? WallPeg.BottomUp : WallPeg.Top;
-                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
+                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Middle, _fullBrightness, scale));
             }
             else if (fs != null && bs != null && front != null)
             {
@@ -3072,14 +3072,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 {
                     // Lower step: top-pegged at the higher floor by default; pegged to the ceiling when lower-unpegged.
                     var peg = unpegBottom ? WallPeg.Custom : WallPeg.Top;
-                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
+                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Bottom, _fullBrightness, scale));
                 }
                 double fCa = fs.GetCeilZ(a), fCb = fs.GetCeilZ(b), bCa = bs.GetCeilZ(a), bCb = bs.GetCeilZ(b);
                 if (fCa != bCa || fCb != bCb)
                 {
                     // Upper step: bottom-pegged at the lower ceiling by default; top-pegged when upper-unpegged.
                     var peg = unpegTop ? WallPeg.Top : WallPeg.BottomUp;
-                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
+                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Top, _fullBrightness, scale));
                 }
             }
         }
