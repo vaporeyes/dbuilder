@@ -273,6 +273,20 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Fact]
+    public void PlaceThingsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.place-things");
+
+        Assert.NotNull(command);
+        Assert.Equal("Place Things", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("select", "Select Group", "Menu")]
     [InlineData("assign", "Assign Group", "Menu")]

@@ -157,6 +157,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.draw-sector", "Draw sector", "D", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.draw-lines", "Draw lines", "Shift+D", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.insert", "Insert vertex or thing", "I", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.place-things", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.point-thing-to-cursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),
         new EditorCommandDescriptor("map2d.make-sector", "Make sector at cursor", "M", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.flip", "Flip linedef", "F", EditorCommandScope.Map2D),

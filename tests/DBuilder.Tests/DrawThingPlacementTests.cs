@@ -66,4 +66,81 @@ public class DrawThingPlacementTests
         Assert.Equal(0, count);
         Assert.Empty(map.Things);
     }
+
+    [Fact]
+    public void PositionsFromVerticesDeduplicatesSelectedVertexPositions()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex duplicate = map.AddVertex(new Vector2D(0, 0));
+        Vertex second = map.AddVertex(new Vector2D(64, 0));
+
+        IReadOnlyList<Vector2D> positions = DrawThingPlacement.PositionsFromVertices(
+            [first, duplicate, second]);
+
+        Assert.Equal([new Vector2D(0, 0), new Vector2D(64, 0)], positions);
+    }
+
+    [Fact]
+    public void PositionsFromLinedefsUsesUniqueEndpointsInSelectionOrder()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(b, c);
+
+        IReadOnlyList<Vector2D> positions = DrawThingPlacement.PositionsFromLinedefs(
+            [first, second]);
+
+        Assert.Equal(
+            [new Vector2D(0, 0), new Vector2D(64, 0), new Vector2D(64, 64)],
+            positions);
+    }
+
+    [Fact]
+    public void PositionsFromSectorsUsesUdbLabelPositionBeforeBoundsCenter()
+    {
+        (Sector sector, _) = BuildTriangleSector();
+
+        IReadOnlyList<Vector2D> positions = DrawThingPlacement.PositionsFromSectors([sector]);
+
+        Vector2D position = Assert.Single(positions);
+        Assert.Equal(Tools.FindLabelPositions(sector)[0].position, position);
+        Assert.NotEqual(new Vector2D(48, 32), position);
+    }
+
+    [Fact]
+    public void PositionsFromSectorsFallsBackToBoundsCenterForEmptySector()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.UpdateBBox();
+
+        IReadOnlyList<Vector2D> positions = DrawThingPlacement.PositionsFromSectors([sector]);
+
+        Assert.Equal([new Vector2D(0, 0)], positions);
+    }
+
+    private static (Sector Sector, MapSet Map) BuildTriangleSector()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex[] vertices =
+        [
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(96, 0)),
+            map.AddVertex(new Vector2D(0, 64)),
+        ];
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Linedef line = map.AddLinedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            map.AddSidedef(line, true, sector);
+        }
+
+        map.BuildIndexes();
+        return (sector, map);
+    }
 }

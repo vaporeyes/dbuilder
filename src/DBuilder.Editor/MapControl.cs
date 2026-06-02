@@ -3386,6 +3386,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.insert":
                 InsertAtCursor();
                 return true;
+            case "map2d.place-things":
+                PlaceThingsFromSelection();
+                return true;
             case "map2d.point-thing-to-cursor":
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
@@ -4553,6 +4556,69 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
         Picked?.Invoke(status);
         return status;
+    }
+
+    public string PlaceThingsFromSelection()
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Vector2D> positions = _editMode switch
+        {
+            EditMode.Vertices => DrawThingPlacement.PositionsFromVertices(SelectedVerticesOrHighlighted()),
+            EditMode.Linedefs => DrawThingPlacement.PositionsFromLinedefs(SelectedLinedefsOrHighlighted()),
+            EditMode.Sectors => DrawThingPlacement.PositionsFromSectors(SelectedSectorsOrHighlighted()),
+            _ => [],
+        };
+
+        if (positions.Count == 0)
+        {
+            const string message = "This action requires selection of some description!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(positions.Count == 1 ? "Place thing" : "Place things");
+        int count = DrawThingPlacement.PlaceAtPositions(_map, positions, InsertThingType);
+        if (count == 0)
+        {
+            const string message = "This action requires selection of some description!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = "Placed " + count + " thing" + (count == 1 ? "." : "s.");
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    private IReadOnlyList<Vertex> SelectedVerticesOrHighlighted()
+    {
+        if (_map == null) return [];
+        List<Vertex> vertices = _map.GetSelectedVertices();
+        if (vertices.Count == 0 && _editMode == EditMode.Vertices && _map.NearestVertex(_cursorWorld, 10 * _zoom) is { } highlighted)
+            vertices.Add(highlighted);
+        return vertices;
+    }
+
+    private IReadOnlyList<Linedef> SelectedLinedefsOrHighlighted()
+    {
+        if (_map == null) return [];
+        List<Linedef> linedefs = _map.GetSelectedLinedefs();
+        if (linedefs.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+            linedefs.Add(highlighted);
+        return linedefs;
+    }
+
+    private IReadOnlyList<Sector> SelectedSectorsOrHighlighted()
+    {
+        if (_map == null) return [];
+        List<Sector> sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0 && _editMode == EditMode.Sectors && _map.GetSectorAt(_cursorWorld) is { } highlighted)
+            sectors.Add(highlighted);
+        return sectors;
     }
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).

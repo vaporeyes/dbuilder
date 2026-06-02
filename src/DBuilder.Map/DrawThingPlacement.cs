@@ -35,4 +35,39 @@ public static class DrawThingPlacement
 
         return count;
     }
+
+    public static IReadOnlyList<Vector2D> PositionsFromVertices(IEnumerable<Vertex> vertices)
+        => UniquePositions(vertices.Select(vertex => vertex.Position));
+
+    public static IReadOnlyList<Vector2D> PositionsFromLinedefs(IEnumerable<Linedef> linedefs)
+    {
+        var positions = new List<Vector2D>();
+        foreach (Linedef linedef in linedefs)
+        {
+            positions.Add(linedef.Start.Position);
+            positions.Add(linedef.End.Position);
+        }
+
+        return UniquePositions(positions);
+    }
+
+    public static IReadOnlyList<Vector2D> PositionsFromSectors(IEnumerable<Sector> sectors)
+    {
+        var positions = new List<Vector2D>();
+        foreach (Sector sector in sectors)
+        {
+            List<LabelPositionInfo> labels = Tools.FindLabelPositions(sector);
+            if (labels.Count > 0)
+            {
+                positions.Add(labels[0].position);
+                continue;
+            }
+
+            positions.Add(new Vector2D(
+                sector.BBox.X + sector.BBox.Width * 0.5,
+                sector.BBox.Y + sector.BBox.Height * 0.5));
+        }
+
+        return UniquePositions(positions);
+    }
 }

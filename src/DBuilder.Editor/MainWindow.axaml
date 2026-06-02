@@ -119,6 +119,7 @@
                 <MenuItem Header="_Custom Fields..." x:Name="CustomFieldsMenuItem" Click="OnCustomFields" />
                 <MenuItem Header="Ta_gs..." x:Name="TagsMenuItem" Click="OnTagList" />
                 <MenuItem Header="_Insert at Cursor" x:Name="InsertAtCursorMenuItem" Click="OnInsertAtCursor" />
+                <MenuItem Header="Place _Things" x:Name="PlaceThingsMenuItem" Click="OnPlaceThings" />
             </MenuItem>
             <MenuItem Header="_Prefabs" x:Name="PrefabsMenuItem">
                 <MenuItem Header="_Insert Prefab from File..." x:Name="InsertPrefabMenuItem" Click="OnInsertPrefab" />

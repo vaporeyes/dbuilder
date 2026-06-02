@@ -2029,6 +2029,7 @@ public partial class MainWindow : Window
     private void OnDrawCurve(object? sender, RoutedEventArgs e) => ToggleDrawMode(linesOnly: true, "curve", curve: true);
     private void OnMakeSectorAtCursor(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MakeSectorAtCursor());
     private void OnInsertAtCursor(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.InsertAtCursor());
+    private void OnPlaceThings(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.PlaceThingsFromSelection());
     private void OnDrawRectangle(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Rectangle, "rectangle");
     private void OnDrawEllipse(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Ellipse, "ellipse");
     private void OnDrawGrid(object? sender, RoutedEventArgs e) => ToggleShape(MapControl.ShapeKind.Grid, "grid");
@@ -4677,6 +4678,7 @@ public partial class MainWindow : Window
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
+        bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
@@ -4730,6 +4732,7 @@ public partial class MainWindow : Window
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
+        SetEnabled(canPlaceThings, PlaceThingsMenuItem);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(hasSelection,
