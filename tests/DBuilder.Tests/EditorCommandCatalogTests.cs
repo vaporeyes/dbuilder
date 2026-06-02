@@ -1157,6 +1157,22 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisualOrbitCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.orbit");
+
+        Assert.NotNull(command);
+        Assert.Equal("Orbit", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
     public void VisualPaintSelectCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.visual-paint-select");

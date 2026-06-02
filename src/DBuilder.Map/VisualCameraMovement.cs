@@ -8,6 +8,9 @@ namespace DBuilder.Map;
 public static class VisualCameraMovement
 {
     public const double MoveCameraToCursorDistance = 64.0;
+    public const double OrbitAngleFromMouse = 0.005;
+    public const double MinOrbitPitch = -1.5;
+    public const double MaxOrbitPitch = 1.5;
     public const int AimingCameraThingType = 9072;
     public const int MovingCameraThingType = 9073;
     public const int InterpolationPointThingType = 9070;
@@ -25,6 +28,35 @@ public static class VisualCameraMovement
         if (delta.GetLengthSq() <= 0.0000000001) return false;
 
         nextPosition = hitPosition + delta.GetFixedLength(distance);
+        return true;
+    }
+
+    public static bool TryOrbit(
+        Vector3D currentPosition,
+        Vector3D orbitPoint,
+        double deltaX,
+        double deltaY,
+        out VisualCameraPose nextPose)
+    {
+        nextPose = new VisualCameraPose(currentPosition, 0.0, 0.0);
+        if (!currentPosition.IsFinite() || !orbitPoint.IsFinite()) return false;
+
+        Vector3D offset = currentPosition - orbitPoint;
+        double radius = offset.GetLength();
+        if (radius <= 0.0000000001) return false;
+
+        double azimuth = Math.Atan2(offset.y, offset.x) - deltaX * OrbitAngleFromMouse;
+        double elevation = Math.Asin(Math.Clamp(offset.z / radius, -1.0, 1.0)) + deltaY * OrbitAngleFromMouse;
+        elevation = Math.Clamp(elevation, MinOrbitPitch, MaxOrbitPitch);
+
+        double flat = Math.Cos(elevation) * radius;
+        Vector3D nextPosition = new Vector3D(
+            orbitPoint.x + Math.Cos(azimuth) * flat,
+            orbitPoint.y + Math.Sin(azimuth) * flat,
+            orbitPoint.z + Math.Sin(elevation) * radius);
+
+        Vector3D direction = orbitPoint - nextPosition;
+        nextPose = new VisualCameraPose(nextPosition, YawFromDirection(direction), PitchFromDirection(direction));
         return true;
     }
 

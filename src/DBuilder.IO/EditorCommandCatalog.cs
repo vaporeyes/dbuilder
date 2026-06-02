@@ -197,6 +197,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.move-backward", "Move Backward", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
         new EditorCommandDescriptor("map3d.move-left", "Move Left (strafe)", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
         new EditorCommandDescriptor("map3d.move-right", "Move Right (strafe)", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
+        new EditorCommandDescriptor("map3d.orbit", "Orbit", "Menu", EditorCommandScope.Map3D, DisregardShift: true),
         new EditorCommandDescriptor("map3d.look", "Look around", "Arrows / drag", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.move-up", "Move Up", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
         new EditorCommandDescriptor("map3d.move-down", "Move Down", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),

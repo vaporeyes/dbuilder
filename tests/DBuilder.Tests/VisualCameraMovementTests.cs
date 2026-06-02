@@ -49,6 +49,44 @@ public class VisualCameraMovementTests
     }
 
     [Fact]
+    public void OrbitKeepsCameraAtRadiusAndLookingAtTarget()
+    {
+        var current = new Vector3D(64, 0, 0);
+        var target = new Vector3D(0, 0, 0);
+
+        bool moved = VisualCameraMovement.TryOrbit(current, target, deltaX: 20, deltaY: 0, out VisualCameraPose pose);
+
+        Assert.True(moved);
+        Assert.Equal(64, (pose.Position - target).GetLength(), 6);
+        Assert.Equal(Math.Atan2(-pose.Position.y, -pose.Position.x), pose.Yaw, 0.0001);
+        Assert.Equal(0, pose.Pitch, 0.0001);
+    }
+
+    [Fact]
+    public void OrbitClampsVerticalPitch()
+    {
+        var current = new Vector3D(64, 0, 0);
+        var target = new Vector3D(0, 0, 0);
+
+        bool moved = VisualCameraMovement.TryOrbit(current, target, deltaX: 0, deltaY: 1000, out VisualCameraPose pose);
+
+        Assert.True(moved);
+        Assert.Equal(-VisualCameraMovement.MaxOrbitPitch, pose.Pitch, 0.0001);
+    }
+
+    [Fact]
+    public void OrbitRejectsInvalidTarget()
+    {
+        var current = new Vector3D(64, 0, 0);
+        var target = new Vector3D(double.NaN, 0, 0);
+
+        bool moved = VisualCameraMovement.TryOrbit(current, target, deltaX: 1, deltaY: 1, out VisualCameraPose pose);
+
+        Assert.False(moved);
+        Assert.Equal(current, pose.Position);
+    }
+
+    [Fact]
     public void LookThroughGenericThingUsesThingPositionAngleAndPitch()
     {
         var thing = new Thing(new Vector2D(10, 20), 1, 90);

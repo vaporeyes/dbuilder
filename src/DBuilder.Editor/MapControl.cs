@@ -128,6 +128,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _look3D;            // left-drag mouse-look active in 3D
     private bool _lookMoved;         // whether the left-drag actually moved (vs a click to select)
     private VisualHit? _drag3DTarget; // surface/thing captured for a right-drag height change
+    private DBuilder.Geometry.Vector3D? _orbit3DPoint; // target point captured while orbiting the 3D camera
     private double _drag3DAccum;       // accumulated sub-unit drag movement
     private readonly System.Collections.Generic.List<VisualHit> _sel3D = new(); // multi-surface selection
     private GlVertexBuffer? _pick3DVb;
@@ -1007,7 +1008,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             _sel3D.Clear();
             _heldKeys.Clear();
+            _heldMapCommands.Clear();
             _look3D = false;
+            _orbit3DPoint = null;
             _drag3DTarget = null;
         }
         ModeChanged?.Invoke();
@@ -1026,7 +1029,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             _mode3D = false;
             _heldKeys.Clear();
+            _heldMapCommands.Clear();
             _look3D = false;
+            _orbit3DPoint = null;
             _drag3DTarget = null;
             ExitDrawModes();
             UpdateAutomapHighlight(_cursorWorld, KeyModifiers.None);
@@ -3162,6 +3167,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    private bool TryOrbit3D(double dx, double dy)
+    {
+        if (_orbit3DPoint == null)
+        {
+            UpdateTarget3D();
+            if (_target3D is not { } target) return false;
+            _orbit3DPoint = target.Point;
+        }
+
+        var current = new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z);
+        if (!VisualCameraMovement.TryOrbit(current, _orbit3DPoint.Value, dx, dy, out VisualCameraPose pose)) return false;
+
+        _cam3DPos = new Vector3((float)pose.Position.x, (float)pose.Position.y, (float)pose.Position.z);
+        _yaw = pose.Yaw;
+        _pitch = pose.Pitch;
+        return true;
+    }
+
     private void DrawBuckets3D(System.Collections.Generic.List<(GlVertexBuffer Vb, int Tris, string Name)> buckets, bool wall)
     {
         if (_device is null) return;
@@ -4585,6 +4608,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         "map3d.move-up" or
         "map3d.move-down";
 
+    private static bool IsHeldMapCommand(string commandId)
+        => IsFlyMovementCommand(commandId) || commandId == "map3d.orbit";
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
         bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
@@ -4628,6 +4654,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.move-right":
             case "map3d.move-up":
             case "map3d.move-down":
+            case "map3d.orbit":
                 _heldMapCommands.Add(commandId);
                 return true;
             case "map2d.toggle-sector-fills":
@@ -5098,9 +5125,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
         var scope = _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D;
         if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, scope, e.Key.ToString(), accel, shift, alt) is { } commandId
-            && IsFlyMovementCommand(commandId))
+            && IsHeldMapCommand(commandId))
         {
             _heldMapCommands.Remove(commandId);
+            if (commandId == "map3d.orbit") _orbit3DPoint = null;
             e.Handled = true;
         }
 
@@ -6776,8 +6804,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 if (Math.Abs(pos.X - _lastPointer.X) + Math.Abs(pos.Y - _lastPointer.Y) > 2) _lookMoved = true;
                 const double sens = 0.005;
-                _yaw -= (pos.X - _lastPointer.X) * sens;
-                _pitch = Math.Clamp(_pitch - (pos.Y - _lastPointer.Y) * sens, -1.5, 1.5);
+                double dx = pos.X - _lastPointer.X;
+                double dy = pos.Y - _lastPointer.Y;
+                if (_heldMapCommands.Contains("map3d.orbit") && TryOrbit3D(dx, dy))
+                {
+                    _lastPointer = pos;
+                    RequestNextFrameRendering();
+                    return;
+                }
+
+                _yaw -= dx * sens;
+                _pitch = Math.Clamp(_pitch - dy * sens, -1.5, 1.5);
                 _lastPointer = pos;
                 RequestNextFrameRendering();
             }
