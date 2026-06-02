@@ -1113,6 +1113,7 @@ public partial class MainWindow : Window
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
+            case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
@@ -4999,6 +5000,14 @@ public partial class MainWindow : Window
 
     private string CurrentConfigLabel()
         => StatusBarModel.ConfigLabel(_configName, _config?.GameName);
+
+    private void OnToggleInfoPanel(object? sender, RoutedEventArgs e)
+    {
+        bool visible = !InfoPanel.IsVisible;
+        InfoPanel.IsVisible = visible;
+        InfoPanelMenuItem.IsChecked = visible;
+        SetStatus(visible ? "Info panel expanded." : "Info panel collapsed.");
+    }
 
     private string CommandHint(string commandId) => EditorCommandCatalog.CommandHint(commandId, _shortcutBindings);
 

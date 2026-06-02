@@ -95,6 +95,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style shortcut option metadata to command descriptors.
   - [x] Enforce UDB-style key, mouse, and scroll shortcut option metadata during command resolution.
   - [x] Add UDB-style Go To Coordinates action alias.
+  - [x] Add UDB-style Toggle Info Panel action metadata and dispatch.
   - [x] Honor UDB-style modifier-disregard shortcut options during command resolution.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
@@ -848,6 +849,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add tested single-thing info panel model.
   - [x] Add tested single-linedef info panel model.
   - [x] Add tested map overview and multi-selection summary info-panel model.
+  - [x] Add a UDB-style view command to collapse and expand the info panel.
 - [x] Port thing browser.
 - [x] Port texture browser.
 - [x] Port flat browser.

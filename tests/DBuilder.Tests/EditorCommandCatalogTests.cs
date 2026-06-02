@@ -125,6 +125,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ToggleInfoPanelCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.toggle-info-panel");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Info Panel", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void OpenMapInCurrentWadShortcutMatchesUdbDefault()
     {
         Assert.Equal("window.open-map-in-current-wad", EditorCommandCatalog.ResolveShortcut(

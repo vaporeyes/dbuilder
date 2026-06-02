@@ -158,6 +158,7 @@
                 <MenuItem Header="View Used _Tags..." x:Name="TagStatisticsMenuItem" Click="OnTagStatistics" />
                 <MenuItem Header="_Tag Explorer..." x:Name="TagExplorerMenuItem" Click="OnTagExplorer" />
                 <MenuItem Header="View Thing _Types..." x:Name="ThingStatisticsMenuItem" Click="OnThingStatistics" />
+                <MenuItem Header="_Info Panel" x:Name="InfoPanelMenuItem" ToggleType="CheckBox" IsChecked="True" Click="OnToggleInfoPanel" />
                 <MenuItem Header="View _Undo / Redo..." x:Name="UndoRedoPanelMenuItem" Click="OnUndoRedoPanel" />
                 <MenuItem Header="View _Comments..." x:Name="CommentsPanelMenuItem" Click="OnCommentsPanel" />
                 <MenuItem Header="View _Nodes..." x:Name="NodesViewerMenuItem" Click="OnNodesViewer" />
@@ -421,7 +422,7 @@
         <local:MapControl Grid.Row="2" x:Name="MapView" />
 
         <!-- Info panel: text on the left, texture/sprite previews on the right -->
-        <Border Grid.Row="3" Background="#1c2028" Padding="8,6" Height="124"
+        <Border Grid.Row="3" x:Name="InfoPanel" Background="#1c2028" Padding="8,6" Height="124"
                 BorderBrush="#10000000" BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto">
                 <Panel Grid.Column="0">
