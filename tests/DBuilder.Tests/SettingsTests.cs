@@ -233,6 +233,13 @@ public class SettingsTests
                     Bidirectional: unchecked((int)0xFF070809),
                     UnidirectionalFrom: unchecked((int)0xFF0A0B0C),
                     UnidirectionalTo: unchecked((int)0xFF0D0E0F)),
+                SoundPropagationColors = new SoundPropagationColorSettings(
+                    HighlightColor: 0xFF101112u,
+                    Level1Color: 0xFF131415u,
+                    Level2Color: 0xFF161718u,
+                    NoSoundColor: 0xFF191A1Bu,
+                    BlockSoundColor: 0xFF1C1D1Eu,
+                    DistinctDomainColors: new[] { 0xFF202122u }),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -322,6 +329,12 @@ public class SettingsTests
             Assert.Equal(unchecked((int)0xFF070809), loaded.RejectExplorerColors.Bidirectional);
             Assert.Equal(unchecked((int)0xFF0A0B0C), loaded.RejectExplorerColors.UnidirectionalFrom);
             Assert.Equal(unchecked((int)0xFF0D0E0F), loaded.RejectExplorerColors.UnidirectionalTo);
+            Assert.Equal(0xFF101112u, loaded.SoundPropagationColors.HighlightColor);
+            Assert.Equal(0xFF131415u, loaded.SoundPropagationColors.Level1Color);
+            Assert.Equal(0xFF161718u, loaded.SoundPropagationColors.Level2Color);
+            Assert.Equal(0xFF191A1Bu, loaded.SoundPropagationColors.NoSoundColor);
+            Assert.Equal(0xFF1C1D1Eu, loaded.SoundPropagationColors.BlockSoundColor);
+            Assert.Equal(new[] { 0xFF202122u }, loaded.SoundPropagationColors.DistinctDomainColors);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);

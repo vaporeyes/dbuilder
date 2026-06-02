@@ -55,6 +55,7 @@ public sealed class Settings
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
     public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
     public RejectExplorerColorSettings RejectExplorerColors { get; set; } = RejectExplorerModel.DefaultColors;
+    public SoundPropagationColorSettings SoundPropagationColors { get; set; } = SoundPropagationColorSettings.Default;
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -265,6 +266,7 @@ public sealed class Settings
             settings.MakeDoorSettings ??= new();
             settings.CommentsPanelSettings ??= new(false, false);
             settings.RejectExplorerColors ??= RejectExplorerModel.DefaultColors;
+            settings.SoundPropagationColors ??= SoundPropagationColorSettings.Default;
             return settings;
         }
         catch { return new Settings(); }

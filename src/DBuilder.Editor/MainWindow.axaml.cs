@@ -1177,6 +1177,7 @@ public partial class MainWindow : Window
             case "window.reject-explorer": OnRejectViewer(this, new RoutedEventArgs()); return true;
             case "window.nodes-viewer": OnNodesViewer(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-mode": OnSoundPropagation(this, new RoutedEventArgs()); return true;
+            case "window.sound-propagation-colors": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
@@ -4269,7 +4270,7 @@ public partial class MainWindow : Window
         bool udmf = _mapFormat == MapFormat.Udmf;
         var reach = SoundPropagation.Reachable(_map, sel[0], udmf: udmf);
         SoundPropagationModeModel model = SoundPropagation.BuildModeModel(_map, udmf: udmf);
-        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, sel[0]), 128);
+        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, sel[0], _settings.SoundPropagationColors), 128);
         MapView.SetSoundLeakPath(null);
         _map.ClearAllSelected();
         int direct = 0, viaBlock = 0;
@@ -4286,7 +4287,7 @@ public partial class MainWindow : Window
         bool udmf = _mapFormat == MapFormat.Udmf;
         SoundPropagationModeModel model = SoundPropagation.BuildModeModel(_map, udmf: udmf);
         IReadOnlySet<Sector> sectors = model.GetLeakSearchSectors(source);
-        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, source), 128);
+        MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, source, _settings.SoundPropagationColors), 128);
 
         if (!sectors.Contains(destination))
         {
@@ -4313,6 +4314,15 @@ public partial class MainWindow : Window
         SetStatus(path == null
             ? "No sound leak path found between the two selected sectors."
             : $"Sound leak path: {path.Linedefs.Count} line(s), {path.BlockingLinedefs.Count} sound-blocking line(s).");
+    }
+
+    private async void OnSoundPropagationColors(object? sender, RoutedEventArgs e)
+    {
+        var dialog = new SoundPropagationColorDialog(_settings.SoundPropagationColors);
+        if (!await dialog.ShowDialog<bool>(this)) return;
+        _settings.SoundPropagationColors = dialog.ResultColors;
+        SaveSettings();
+        SetStatus("Sound propagation colors updated.");
     }
 
     private void OnBuildBridge(object? sender, RoutedEventArgs e)

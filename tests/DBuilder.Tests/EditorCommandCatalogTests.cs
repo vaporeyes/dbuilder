@@ -27,6 +27,7 @@ public class EditorCommandCatalogTests
         Assert.Contains("window.reject-explorer", ids);
         Assert.Contains("window.nodes-viewer", ids);
         Assert.Contains("window.sound-propagation-mode", ids);
+        Assert.Contains("window.sound-propagation-colors", ids);
         Assert.Contains("map2d.mode-image-example", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
@@ -173,6 +174,21 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Sound propagation mode", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void SoundPropagationColorCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.sound-propagation-colors");
+
+        Assert.NotNull(command);
+        Assert.Equal(SoundPropagationColorSettings.ColorConfigurationAction.Title, command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
