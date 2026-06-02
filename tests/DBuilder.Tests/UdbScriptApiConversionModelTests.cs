@@ -1129,6 +1129,34 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperJoinsSectors()
+    {
+        var (map, first, second, shared) = CreateTwoSharedSectors();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.joinSectors(new[] { new UdbScriptSectorWrapper(first), new UdbScriptSectorWrapper(second) });
+
+        Sector remaining = Assert.Single(map.Sectors);
+        Assert.Same(first, remaining);
+        Assert.Same(first, shared.Front!.Sector);
+        Assert.Same(first, shared.Back!.Sector);
+        Assert.Single(map.Linedefs);
+    }
+
+    [Fact]
+    public void MapWrapperMergesSectors()
+    {
+        var (map, first, second, _) = CreateTwoSharedSectors();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.mergeSectors(new[] { new UdbScriptSectorWrapper(first), new UdbScriptSectorWrapper(second) });
+
+        Assert.Same(first, Assert.Single(map.Sectors));
+        Assert.Empty(map.Linedefs);
+        Assert.Empty(map.Vertices);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
@@ -1210,5 +1238,19 @@ localsidedeftextureoffsets = true;
 
         sector.UpdateBBox();
         return sector;
+    }
+
+    private static (MapSet Map, Sector First, Sector Second, Linedef Shared) CreateTwoSharedSectors()
+    {
+        var map = new MapSet();
+        var first = map.AddSector();
+        var second = map.AddSector();
+        var start = map.AddVertex(new Vector2D(64, 0));
+        var end = map.AddVertex(new Vector2D(64, 64));
+        var shared = map.AddLinedef(start, end);
+        map.AddSidedef(shared, isFront: true, first);
+        map.AddSidedef(shared, isFront: false, second);
+        map.BuildIndexes();
+        return (map, first, second, shared);
     }
 }

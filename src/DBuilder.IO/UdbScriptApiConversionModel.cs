@@ -2254,6 +2254,20 @@ public sealed class UdbScriptMapWrapper
         return new UdbScriptThingWrapper(thing);
     }
 
+    public void joinSectors(UdbScriptSectorWrapper[] sectors)
+    {
+        ThrowIfDisposed("joinSectors");
+        map.JoinSectors(sectors.Select(sector => sector.Sector).ToArray());
+        map.BuildIndexes();
+    }
+
+    public void mergeSectors(UdbScriptSectorWrapper[] sectors)
+    {
+        ThrowIfDisposed("mergeSectors");
+        map.MergeSectors(sectors.Select(sector => sector.Sector).ToArray());
+        map.BuildIndexes();
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)
