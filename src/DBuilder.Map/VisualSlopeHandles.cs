@@ -413,6 +413,56 @@ public static class VisualSlopeHandles
             .FirstOrDefault();
     }
 
+    public static VisualSlopeHandle? GetSmartSidedefPivot(
+        VisualSlopeHandle handle,
+        IEnumerable<VisualSlopeHandle> handles,
+        bool useOppositeVertexHandle = false)
+    {
+        if (handle == null) throw new ArgumentNullException(nameof(handle));
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+        if (handle.Kind != VisualSlopeHandleKind.Line)
+            throw new ArgumentException("Smart sidedef pivot requires a sidedef slope handle.", nameof(handle));
+        Sidedef side = handle.Sidedef ?? throw new ArgumentException("Line slope handle requires a sidedef.", nameof(handle));
+
+        Sector sector = side.Sector ?? throw new ArgumentException("Line slope handle requires a sector.", nameof(handle));
+        VisualSlopeHandle[] candidates = handles.Where(candidate => !ReferenceEquals(candidate, handle)).ToArray();
+        if (useOppositeVertexHandle && sector.Sidedefs.Count == 3)
+        {
+            VisualSlopeHandle? opposite = candidates.FirstOrDefault(candidate =>
+                candidate.Kind == VisualSlopeHandleKind.Vertex
+                && candidate.Vertex != null
+                && ReferenceEquals(candidate.Sector, sector)
+                && SameLevel(candidate.Level, handle.Level)
+                && !ReferenceEquals(side.Line.Start, candidate.Vertex)
+                && !ReferenceEquals(side.Line.End, candidate.Vertex));
+            if (opposite != null) return opposite;
+        }
+
+        int angle = NormalizedAngleDeg(side.Line);
+        var potential = candidates
+            .Where(candidate =>
+                candidate.Kind == VisualSlopeHandleKind.Line
+                && candidate.Sidedef != null
+                && ReferenceEquals(candidate.Sidedef.Sector, sector)
+                && SameLevel(candidate.Level, handle.Level))
+            .Select(candidate => new
+            {
+                Handle = candidate,
+                Angle = NormalizedAngleDeg(candidate.Sidedef!.Line),
+            })
+            .OrderBy(candidate => Math.Abs(angle - candidate.Angle))
+            .ToArray();
+
+        if (potential.Length == 0) return null;
+
+        int bestAngle = potential[0].Angle;
+        return potential
+            .Where(candidate => candidate.Angle == bestAngle)
+            .OrderByDescending(candidate => Math.Abs(side.Line.Line.GetDistanceToLine(candidate.Handle.Sidedef!.Line.GetCenterPoint(), false)))
+            .First()
+            .Handle;
+    }
+
     public static IReadOnlyList<VisualSlopeHandle> GetAdjacentVertexSlopeHandles(
         VisualSlopeHandle handle,
         IEnumerable<VisualSlopeHandle> handles)
@@ -525,6 +575,9 @@ public static class VisualSlopeHandles
            && left.ExtraFloor == right.ExtraFloor
            && left.Plane.Normal == right.Plane.Normal
            && left.Plane.Offset == right.Plane.Offset;
+
+    private static int NormalizedAngleDeg(Linedef line)
+        => line.AngleDeg >= 180 ? line.AngleDeg - 180 : line.AngleDeg;
 
     private static VisualSlopeLevel[] SelectedLevels(IEnumerable<VisualSlopeLevel> selectedLevels)
     {

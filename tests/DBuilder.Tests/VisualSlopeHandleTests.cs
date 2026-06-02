@@ -225,6 +225,42 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void SmartSidedefPivotUsesClosestAngleThenFarthestSameLevelLineHandle()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle perpendicular = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true);
+        VisualSlopeHandle parallel = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true);
+        VisualSlopeHandle otherParallel = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[3], level, up: true);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartSidedefPivot(
+            handle,
+            [handle, perpendicular, parallel, otherParallel]);
+
+        Assert.Same(parallel, pivot);
+    }
+
+    [Fact]
+    public void SmartSidedefPivotCanUseOppositeTriangularVertexHandle()
+    {
+        var map = new MapSet();
+        Sector sector = AddTriangleSector(map);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle nearVertex = VisualSlopeHandles.CreateVertex(sector.Sidedefs[0].Line.Start, sector, level);
+        VisualSlopeHandle oppositeVertex = VisualSlopeHandles.CreateVertex(sector.Sidedefs[1].Line.End, sector, level);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartSidedefPivot(
+            handle,
+            [handle, nearVertex, oppositeVertex],
+            useOppositeVertexHandle: true);
+
+        Assert.Same(oppositeVertex, pivot);
+    }
+
+    [Fact]
     public void AdjacentVertexSlopeHandlesMatchSameVertexAndRoundedHeight()
     {
         var map = new MapSet();
