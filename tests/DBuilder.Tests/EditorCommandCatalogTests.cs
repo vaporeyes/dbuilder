@@ -941,6 +941,33 @@ public class EditorCommandCatalogTests
         Assert.True(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("map3d.move-texture-left-1", "Move Texture Left by 1")]
+    [InlineData("map3d.move-texture-right-1", "Move Texture Right by 1")]
+    [InlineData("map3d.move-texture-up-1", "Move Texture Up by 1")]
+    [InlineData("map3d.move-texture-down-1", "Move Texture Down by 1")]
+    [InlineData("map3d.move-texture-left-8", "Move Texture Left by 8")]
+    [InlineData("map3d.move-texture-right-8", "Move Texture Right by 8")]
+    [InlineData("map3d.move-texture-up-8", "Move Texture Up by 8")]
+    [InlineData("map3d.move-texture-down-8", "Move Texture Down by 8")]
+    [InlineData("map3d.move-texture-left-grid", "Move Texture Left by Grid Size")]
+    [InlineData("map3d.move-texture-right-grid", "Move Texture Right by Grid Size")]
+    [InlineData("map3d.move-texture-up-grid", "Move Texture Up by Grid Size")]
+    [InlineData("map3d.move-texture-down-grid", "Move Texture Down by Grid Size")]
+    public void VisualTextureOffsetStepCommandsMatchUdbActionSurface(string id, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
     [Fact]
     public void RepeatableCommandMetadataMatchesAdjustmentActions()
     {
@@ -949,6 +976,7 @@ public class EditorCommandCatalogTests
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.lower-floor-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.raise-brightness-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.raise-sector-128"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.move-texture-left-grid"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
 

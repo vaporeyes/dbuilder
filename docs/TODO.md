@@ -938,6 +938,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
+  - [x] Add UDB-style visual wall texture offset step action metadata and dispatch.
 - [ ] Port brightness editing behavior.
 - [ ] Port 3D floors visual editing.
   - [x] Add a view toggle for resolved 3D floor slabs.

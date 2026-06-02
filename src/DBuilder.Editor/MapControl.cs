@@ -1514,24 +1514,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return h.Front ? h.Line.Front : h.Line.Back;
     }
 
-    // Nudges the targeted wall's texture offset by 8 (Shift+arrows), undoable.
-    private void NudgeTargetOffset3D(Key key)
+    private System.Collections.Generic.List<Sidedef> TextureOffsetTargets3D()
     {
-        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to offset its texture"); return; }
-        EditBegun?.Invoke("Texture offset");
-        const int step = 8;
-        switch (key)
+        var targets = new System.Collections.Generic.List<Sidedef>();
+        var seen = new System.Collections.Generic.HashSet<Sidedef>();
+        foreach (VisualHit hit in EditTargets3D())
         {
-            case Key.Left: sd.OffsetX -= step; break;
-            case Key.Right: sd.OffsetX += step; break;
-            case Key.Up: sd.OffsetY -= step; break;
-            case Key.Down: sd.OffsetY += step; break;
+            if (hit.Kind != VisualHitKind.Wall || hit.Line == null) continue;
+            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+            if (side != null && seen.Add(side)) targets.Add(side);
+        }
+
+        return targets;
+    }
+
+    // Nudges the targeted or selected walls' texture offsets, undoable.
+    private void NudgeTargetOffset3D(int deltaX, int deltaY)
+    {
+        var targets = TextureOffsetTargets3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to offset its texture"); return; }
+        EditBegun?.Invoke("Texture offset");
+        foreach (Sidedef side in targets)
+        {
+            side.OffsetX += deltaX;
+            side.OffsetY += deltaY;
         }
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"offset {sd.OffsetX}, {sd.OffsetY}");
+        Target3DChanged?.Invoke($"offset {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
     }
 
     // Resets the targeted wall's texture offsets to zero, undoable.
@@ -3608,16 +3620,52 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
                 return true;
             case "map3d.nudge-offset-left":
-                NudgeTargetOffset3D(Key.Left);
+                NudgeTargetOffset3D(-8, 0);
                 return true;
             case "map3d.nudge-offset-right":
-                NudgeTargetOffset3D(Key.Right);
+                NudgeTargetOffset3D(8, 0);
                 return true;
             case "map3d.nudge-offset-up":
-                NudgeTargetOffset3D(Key.Up);
+                NudgeTargetOffset3D(0, -8);
                 return true;
             case "map3d.nudge-offset-down":
-                NudgeTargetOffset3D(Key.Down);
+                NudgeTargetOffset3D(0, 8);
+                return true;
+            case "map3d.move-texture-left-1":
+                NudgeTargetOffset3D(-1, 0);
+                return true;
+            case "map3d.move-texture-right-1":
+                NudgeTargetOffset3D(1, 0);
+                return true;
+            case "map3d.move-texture-up-1":
+                NudgeTargetOffset3D(0, -1);
+                return true;
+            case "map3d.move-texture-down-1":
+                NudgeTargetOffset3D(0, 1);
+                return true;
+            case "map3d.move-texture-left-8":
+                NudgeTargetOffset3D(-8, 0);
+                return true;
+            case "map3d.move-texture-right-8":
+                NudgeTargetOffset3D(8, 0);
+                return true;
+            case "map3d.move-texture-up-8":
+                NudgeTargetOffset3D(0, -8);
+                return true;
+            case "map3d.move-texture-down-8":
+                NudgeTargetOffset3D(0, 8);
+                return true;
+            case "map3d.move-texture-left-grid":
+                NudgeTargetOffset3D(-_grid.GridSize, 0);
+                return true;
+            case "map3d.move-texture-right-grid":
+                NudgeTargetOffset3D(_grid.GridSize, 0);
+                return true;
+            case "map3d.move-texture-up-grid":
+                NudgeTargetOffset3D(0, -_grid.GridSize);
+                return true;
+            case "map3d.move-texture-down-grid":
+                NudgeTargetOffset3D(0, _grid.GridSize);
                 return true;
             default:
                 return false;
