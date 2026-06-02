@@ -228,7 +228,7 @@ public static class UdbScriptDiscovery
         return result;
     }
 
-    private static object EffectiveDefault(object defaultValue, IReadOnlyList<UdbScriptEnumValue> enumValues)
+    internal static object EffectiveDefault(object defaultValue, IReadOnlyList<UdbScriptEnumValue> enumValues)
     {
         if (enumValues.Count == 0)
             return defaultValue;

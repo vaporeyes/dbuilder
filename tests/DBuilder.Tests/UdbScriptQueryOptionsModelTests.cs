@@ -1,0 +1,114 @@
+// ABOUTME: Tests UDBScript QueryOptions runtime option state against upstream behavior.
+// ABOUTME: Covers addOption validation, enum defaults, clear, and queried option values.
+
+using System.Dynamic;
+using DBuilder.IO;
+
+namespace DBuilder.Tests;
+
+public class UdbScriptQueryOptionsModelTests
+{
+    [Fact]
+    public void AddOptionAcceptsValidTypesAndReturnsQueriedValues()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        UdbScriptQueryOptionAddResult added = model.AddOption(
+            "demo.js",
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128);
+
+        Assert.True(added.Added);
+        UdbScriptOption option = Assert.Single(model.Options);
+        Assert.Equal("length", option.Name);
+        Assert.Equal("Length", option.Description);
+        Assert.Equal((int)UniversalType.Integer, option.Type);
+        Assert.Equal(128, option.DefaultValue);
+        Assert.Equal(128, option.Value);
+        Assert.Equal("length", option.SettingKey);
+
+        Assert.True(model.SetValue("length", 256));
+        Assert.Equal(256, model.GetScriptOptions()["length"]);
+    }
+
+    [Fact]
+    public void AddOptionRejectsInvalidTypesWithUdbErrorText()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        UdbScriptQueryOptionAddResult added = model.AddOption(
+            "demo.js",
+            "broken",
+            "Broken",
+            (int)UniversalType.EnumBits,
+            0);
+
+        Assert.False(added.Added);
+        Assert.Equal("Error in script demo.js: option broken has invalid type 12", added.ErrorDescription);
+        Assert.Empty(model.Options);
+    }
+
+    [Fact]
+    public void AddOptionMapsDictionaryEnumDefaults()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            2,
+            new Dictionary<string, object?>
+            {
+                ["1"] = "Up",
+                ["2"] = "Down",
+                ["3"] = null,
+            });
+
+        UdbScriptOption option = Assert.Single(model.Options);
+        Assert.Equal("Down", option.DefaultValue);
+        Assert.Equal("Down", option.Value);
+        Assert.Equal(new[] { "1:Up", "2:Down", "3:" }, option.EnumValues.Select(value => value.Key + ":" + value.Label).ToArray());
+    }
+
+    [Fact]
+    public void AddOptionMapsExpandoEnumDefaults()
+    {
+        dynamic values = new ExpandoObject();
+        values.One = "First";
+        values.Two = "Second";
+        var model = new UdbScriptQueryOptionsModel();
+
+        model.AddOption(
+            "demo.js",
+            "mode",
+            "Mode",
+            (int)UniversalType.EnumOption,
+            "Two",
+            values);
+
+        UdbScriptOption option = Assert.Single(model.Options);
+        Assert.Equal("Second", option.DefaultValue);
+        Assert.Equal(new[] { "One:First", "Two:Second" }, option.EnumValues.Select(value => value.Key + ":" + value.Label).ToArray());
+    }
+
+    [Fact]
+    public void ClearRemovesOptionsAndDuplicateNamesReturnLastValue()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        model.AddOption("demo.js", "size", "Size", (int)UniversalType.Integer, 64);
+        model.AddOption("demo.js", "size", "Size override", (int)UniversalType.Integer, 128);
+
+        Assert.Equal(2, model.Options.Count);
+        Assert.Equal(128, model.GetScriptOptions()["size"]);
+
+        model.Clear();
+
+        Assert.Empty(model.Options);
+        Assert.Empty(model.GetScriptOptions());
+    }
+}

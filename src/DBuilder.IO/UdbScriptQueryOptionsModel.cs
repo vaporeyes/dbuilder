@@ -1,0 +1,104 @@
+// ABOUTME: Models UDBScript QueryOptions runtime prompt state and option validation.
+// ABOUTME: Keeps query option behavior aligned with upstream addOption and clear semantics.
+
+using System.Collections;
+
+namespace DBuilder.IO;
+
+public sealed record UdbScriptQueryOptionAddResult(
+    bool Added,
+    string ErrorDescription = "");
+
+public sealed class UdbScriptQueryOptionsModel
+{
+    private readonly List<UdbScriptOption> options = new();
+
+    public IReadOnlyList<UdbScriptOption> Options => options;
+
+    public UdbScriptQueryOptionAddResult AddOption(
+        string scriptFile,
+        string name,
+        string description,
+        int type,
+        object defaultValue,
+        object? enumValues = null)
+    {
+        if (!UdbScriptDiscovery.IsValidOptionType(type))
+        {
+            return new UdbScriptQueryOptionAddResult(
+                false,
+                "Error in script " + scriptFile + ": option " + name + " has invalid type " + type);
+        }
+
+        IReadOnlyList<UdbScriptEnumValue> values = ReadEnumValues(enumValues);
+        object effectiveDefault = UdbScriptDiscovery.EffectiveDefault(defaultValue, values);
+
+        options.Add(new UdbScriptOption(
+            name,
+            description,
+            type,
+            effectiveDefault,
+            effectiveDefault,
+            values,
+            name));
+
+        return new UdbScriptQueryOptionAddResult(true);
+    }
+
+    public IReadOnlyDictionary<string, object> GetScriptOptions()
+    {
+        var values = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (UdbScriptOption option in options)
+            values[option.Name] = option.Value;
+
+        return values;
+    }
+
+    public bool SetValue(string name, object value)
+    {
+        int index = options.FindIndex(option => option.Name == name);
+        if (index == -1)
+            return false;
+
+        options[index] = options[index] with { Value = value };
+        return true;
+    }
+
+    public void Clear()
+        => options.Clear();
+
+    private static IReadOnlyList<UdbScriptEnumValue> ReadEnumValues(object? values)
+    {
+        if (values is null)
+            return Array.Empty<UdbScriptEnumValue>();
+
+        if (values is IDictionary dictionary)
+            return ReadDictionary(dictionary);
+
+        if (values is IEnumerable<KeyValuePair<string, object?>> typedDictionary)
+            return ReadDictionary(typedDictionary);
+
+        return Array.Empty<UdbScriptEnumValue>();
+    }
+
+    private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IDictionary values)
+    {
+        if (values.Count == 0)
+            return Array.Empty<UdbScriptEnumValue>();
+
+        var result = new List<UdbScriptEnumValue>();
+        foreach (DictionaryEntry entry in values)
+            result.Add(new UdbScriptEnumValue(entry.Key.ToString() ?? "", entry.Value?.ToString()));
+
+        return result;
+    }
+
+    private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IEnumerable<KeyValuePair<string, object?>> values)
+    {
+        var result = new List<UdbScriptEnumValue>();
+        foreach (KeyValuePair<string, object?> entry in values)
+            result.Add(new UdbScriptEnumValue(entry.Key, entry.Value?.ToString()));
+
+        return result;
+    }
+}

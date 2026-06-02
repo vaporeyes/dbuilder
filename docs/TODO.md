@@ -1259,6 +1259,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
   - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
+  - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -1479,13 +1480,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
 - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
 - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
+- [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI.
 - [ ] Port script runner UI.
 - [ ] Port full script runtime constraint integration.
 - [ ] Port script exception handling.
-- [ ] Port query options.
+- [ ] Port QueryOptions runner UI integration.
 - [ ] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.
 - [ ] Add API compatibility tests for common UDBScript scripts.
 
