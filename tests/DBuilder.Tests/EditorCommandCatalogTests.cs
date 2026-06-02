@@ -769,15 +769,21 @@ public class EditorCommandCatalogTests
         Assert.True(lookThrough.AllowScroll);
         Assert.False(lookThrough.Repeat);
 
-        var align = EditorCommandCatalog.Find("map3d.align-things-to-wall");
+        var align = EditorCommandCatalog.Find("map3d.thing-align-to-wall");
+        var alignAlias = EditorCommandCatalog.Find("map3d.align-things-to-wall");
 
         Assert.NotNull(align);
         Assert.Equal("Align Things to Nearest Linedef", align.Title);
+        Assert.Equal("Ctrl/Cmd+Shift+A", align.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, align.Scope);
         Assert.True(align.AllowKeys);
         Assert.True(align.AllowMouse);
         Assert.True(align.AllowScroll);
         Assert.False(align.Repeat);
+
+        Assert.NotNull(alignAlias);
+        Assert.Equal(align.Title, alignAlias.Title);
+        Assert.Equal(align.DefaultGesture, alignAlias.DefaultGesture);
 
         var showThings = EditorCommandCatalog.Find("map3d.show-visual-things");
 
@@ -938,7 +944,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
         Assert.Equal("map3d.paste-properties-options", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, shift: true));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
-        Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
+        Assert.Equal("map3d.thing-align-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
         Assert.Equal("map3d.select-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "T"));
         Assert.Equal("map3d.scale-up", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad9"));
         Assert.Equal("map3d.scale-down", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad7"));

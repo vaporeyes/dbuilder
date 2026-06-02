@@ -4839,6 +4839,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.look-through-thing":
                 LookThroughSelectedThing3D();
                 return true;
+            case "map3d.thing-align-to-wall":
             case "map3d.align-things-to-wall":
                 AlignSelectedVisualThingsToWall3D();
                 return true;
