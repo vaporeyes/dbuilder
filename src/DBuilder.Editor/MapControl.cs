@@ -4889,6 +4889,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return AdjustDrawBevel(increase: true);
             case "map2d.decrease-bevel":
                 return AdjustDrawBevel(increase: false);
+            case "map2d.draw-point":
+                if (!_drawMode) return false;
+                PlaceDrawPoint(_drawCursor);
+                return true;
+            case "map2d.remove-draw-point":
+                return RemoveDrawPoint(_drawPoints.Count - 1);
+            case "map2d.remove-first-draw-point":
+                return RemoveDrawPoint(0);
             case "map2d.make-sector":
                 MakeSectorAtCursor();
                 return true;
@@ -6908,6 +6916,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawPoints.Add(p);
         _drawDirty = true;
         RequestNextFrameRendering();
+    }
+
+    private bool RemoveDrawPoint(int index)
+    {
+        if (!_drawMode || index < 0 || index >= _drawPoints.Count) return false;
+        _drawPoints.RemoveAt(index);
+        _drawClosed = false;
+        _drawDirty = true;
+        RequestNextFrameRendering();
+        return true;
     }
 
     private void FinishDraw()

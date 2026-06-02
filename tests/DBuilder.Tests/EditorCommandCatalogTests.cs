@@ -929,6 +929,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.decrease-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
         Assert.Equal("map2d.increase-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
         Assert.Equal("map2d.decrease-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
+        Assert.Equal("map2d.remove-first-draw-point", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back", accelerator: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
         Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
@@ -989,6 +990,34 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map2d.draw-point", "Draw Vertex", "Menu", true, true, true)]
+    [InlineData("map2d.remove-draw-point", "Remove Last Vertex", "Menu", false, false, false)]
+    [InlineData("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
+    [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", false, false, false)]
+    public void DrawSessionCommandsMatchUdbActionSurface(
+        string id,
+        string title,
+        string gesture,
+        bool disregardShift,
+        bool disregardAccelerator,
+        bool disregardAlt)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal(disregardShift, command.DisregardShift);
+        Assert.Equal(disregardAccelerator, command.DisregardAccelerator);
+        Assert.Equal(disregardAlt, command.DisregardAlt);
         Assert.False(command.Repeat);
     }
 
@@ -1627,6 +1656,10 @@ public class EditorCommandCatalogTests
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.decrease-subdivision-level"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.increase-bevel"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.decrease-bevel"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-point"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.remove-draw-point"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.remove-first-draw-point"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.finish-draw"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }
 
