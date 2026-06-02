@@ -13,16 +13,19 @@ public sealed class ConfigDialog : Window
 {
     private readonly ListBox _list;
     private readonly List<ConfigPickerRow> _rows;
+    private readonly Settings _settings;
 
     public string? SelectedPath { get; private set; }
+    public bool ResourceListChanged { get; private set; }
 
-    public ConfigDialog(string configDir, string currentName)
+    public ConfigDialog(string configDir, string currentName, Settings settings)
     {
         Title = "Game Configuration";
         Width = 520;
         Height = 460;
         CanResize = true;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        _settings = settings;
 
         _rows = ConfigPickerModel.LoadRows(configDir);
         _list = new ListBox { ItemsSource = _rows };
@@ -38,6 +41,8 @@ public sealed class ConfigDialog : Window
 
         var ok = new Button { Content = "Load", MinWidth = 72, IsDefault = true };
         ok.Click += (_, _) => Accept();
+        var resources = new Button { Content = "Resources...", MinWidth = 96 };
+        resources.Click += async (_, _) => await EditResources();
         var browse = new Button { Content = "Browse...", MinWidth = 86 };
         browse.Click += async (_, _) => await Browse();
         var cancel = new Button { Content = "Cancel", MinWidth = 72, IsCancel = true };
@@ -50,6 +55,7 @@ public sealed class ConfigDialog : Window
             Spacing = 8,
             Margin = new Avalonia.Thickness(0, 8, 0, 0),
         };
+        buttons.Children.Add(resources);
         buttons.Children.Add(browse);
         buttons.Children.Add(ok);
         buttons.Children.Add(cancel);
@@ -69,6 +75,22 @@ public sealed class ConfigDialog : Window
         {
             SelectedPath = row.Path;
             Close(true);
+        }
+    }
+
+    private async System.Threading.Tasks.Task EditResources()
+    {
+        if (_list.SelectedItem is not ConfigPickerRow row) return;
+
+        GameConfiguration? config = null;
+        try { config = GameConfiguration.FromFile(row.Path); }
+        catch { }
+
+        var dlg = new ConfigResourcesDialog(row, _settings.ResourcesForConfiguration(row.Path), config);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            _settings.SetResourcesForConfiguration(row.Path, dlg.ResultResources);
+            ResourceListChanged = true;
         }
     }
 

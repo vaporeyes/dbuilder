@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map with active-config candidate filtering, settings, game configuration selection with active-row matching and per-configuration resource persistence, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map with active-config candidate filtering, settings, game configuration selection with active-row matching and per-configuration resource editing and persistence, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",

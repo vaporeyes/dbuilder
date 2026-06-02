@@ -985,8 +985,10 @@ public partial class MainWindow : Window
 
     private async void OnLoadConfig(object? sender, RoutedEventArgs e)
     {
-        var dlg = new ConfigDialog(ConfigDir, _configName);
-        if (await dlg.ShowDialog<bool>(this) && dlg.SelectedPath is { } path) LoadConfig(path);
+        var dlg = new ConfigDialog(ConfigDir, _configName, _settings);
+        bool load = await dlg.ShowDialog<bool>(this);
+        if (dlg.ResourceListChanged) SaveSettings();
+        if (load && dlg.SelectedPath is { } path) LoadConfig(path);
     }
 
     protected override void OnOpened(EventArgs e)
