@@ -34,6 +34,53 @@ public class ConfigPickerModelTests
     }
 
     [Fact]
+    public void LoadRowsAddsCurrentExternalConfig()
+    {
+        string dir = NewTempDir();
+        string external = Path.Combine(NewTempDir(), "External.cfg");
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "Doom_Doom2Doom.cfg"), "game = \"Doom 2\";");
+            File.WriteAllText(external, """
+                game = "External";
+                engine = "ZDoom";
+                """);
+
+            var rows = ConfigPickerModel.LoadRows(dir, external, File.Exists);
+
+            var row = Assert.Single(rows, row => row.Path == external);
+            Assert.Equal("External", row.Title);
+            Assert.Equal("ZDoom", row.Engine);
+            Assert.Equal(ConfigPickerModel.SelectedIndex(rows, external), rows.IndexOf(row));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+            Directory.Delete(Path.GetDirectoryName(external)!, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadRowsDoesNotDuplicateBundledCurrentConfig()
+    {
+        string dir = NewTempDir();
+        string bundled = Path.Combine(dir, "Doom_Doom2Doom.cfg");
+        try
+        {
+            File.WriteAllText(bundled, "game = \"Doom 2\";");
+
+            var rows = ConfigPickerModel.LoadRows(dir, bundled, File.Exists);
+
+            Assert.Single(rows);
+            Assert.Equal(bundled, rows[0].Path);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SelectedIndexMatchesFilenameStem()
     {
         var rows = new[]

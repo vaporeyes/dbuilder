@@ -27,7 +27,7 @@ public sealed class ConfigDialog : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         _settings = settings;
 
-        _rows = ConfigPickerModel.LoadRows(configDir);
+        _rows = ConfigPickerModel.LoadRows(configDir, currentName, System.IO.File.Exists);
         _list = new ListBox { ItemsSource = _rows };
         _list.SelectedIndex = ConfigPickerModel.SelectedIndex(_rows, currentName);
         _list.DoubleTapped += (_, _) => Accept();

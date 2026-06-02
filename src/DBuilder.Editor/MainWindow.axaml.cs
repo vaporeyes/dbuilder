@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     private ScriptConfigurationCatalog _scriptConfigurations = new();
     private string _configName = "(none)";
     private string _configFile = "";
+    private string _configPath = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
     private bool _mapDirty;
     private bool _allowDirtyClose;
@@ -387,6 +388,7 @@ public partial class MainWindow : Window
             _config = GameConfiguration.FromFile(path);
             _configName = System.IO.Path.GetFileNameWithoutExtension(path);
             _configFile = System.IO.Path.GetFileName(path);
+            _configPath = path;
             _configIsAuto = auto;
             MapView.GameConfig = _config; // enables thing sprites in the map view
             if (!auto)
@@ -1003,7 +1005,8 @@ public partial class MainWindow : Window
 
     private async void OnLoadConfig(object? sender, RoutedEventArgs e)
     {
-        var dlg = new ConfigDialog(ConfigDir, _configName, _settings);
+        var currentConfig = string.IsNullOrWhiteSpace(_configPath) ? _configName : _configPath;
+        var dlg = new ConfigDialog(ConfigDir, currentConfig, _settings);
         bool load = await dlg.ShowDialog<bool>(this);
         if (dlg.ResourceListChanged) SaveSettings();
         if (load && dlg.SelectedPath is { } path) LoadConfig(path);
@@ -3170,6 +3173,7 @@ public partial class MainWindow : Window
         _config = GameConfiguration.FromFile(path);
         _configName = System.IO.Path.GetFileNameWithoutExtension(path);
         _configFile = file;
+        _configPath = path;
         _configIsAuto = false;
         MapView.GameConfig = _config;
         ReloadCompilerConfiguration();

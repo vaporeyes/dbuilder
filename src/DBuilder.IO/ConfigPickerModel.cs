@@ -30,6 +30,22 @@ public static class ConfigPickerModel
             .ToList();
     }
 
+    public static List<ConfigPickerRow> LoadRows(string configDir, string currentNameOrPath, Func<string, bool> fileExists)
+    {
+        var rows = LoadRows(configDir);
+        string current = currentNameOrPath.Trim();
+        if (current.Length == 0 || !Path.IsPathRooted(current) || !fileExists(current))
+            return rows;
+
+        if (FindIndex(rows, row => string.Equals(row.Path, current, StringComparison.OrdinalIgnoreCase)) >= 0)
+            return rows;
+
+        rows.Add(ReadRow(current));
+        return rows
+            .OrderBy(row => row.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     public static int SelectedIndex(IReadOnlyList<ConfigPickerRow> rows, string currentNameOrPath)
     {
         if (rows.Count == 0) return -1;
