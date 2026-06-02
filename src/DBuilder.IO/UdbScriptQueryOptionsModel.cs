@@ -9,11 +9,32 @@ public sealed record UdbScriptQueryOptionAddResult(
     bool Added,
     string ErrorDescription = "");
 
+public sealed record UdbScriptQueryOptionsPromptMetadata(
+    string Title,
+    string OkButtonText,
+    string CancelButtonText,
+    bool IsFixedDialog,
+    bool AcceptsOk,
+    bool Cancels);
+
 public sealed class UdbScriptQueryOptionsModel
 {
+    public const string PromptTitle = "Query options";
+    public const string OkButtonText = "OK";
+    public const string CancelButtonText = "Cancel";
+
     private readonly List<UdbScriptOption> options = new();
 
     public IReadOnlyList<UdbScriptOption> Options => options;
+
+    public static UdbScriptQueryOptionsPromptMetadata PromptMetadata()
+        => new(
+            PromptTitle,
+            OkButtonText,
+            CancelButtonText,
+            IsFixedDialog: true,
+            AcceptsOk: true,
+            Cancels: true);
 
     public UdbScriptQueryOptionAddResult AddOption(
         string scriptFile,

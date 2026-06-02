@@ -9,6 +9,19 @@ namespace DBuilder.Tests;
 public class UdbScriptQueryOptionsModelTests
 {
     [Fact]
+    public void PromptMetadataMatchesUdbQueryOptionsDialog()
+    {
+        UdbScriptQueryOptionsPromptMetadata metadata = UdbScriptQueryOptionsModel.PromptMetadata();
+
+        Assert.Equal("Query options", metadata.Title);
+        Assert.Equal("OK", metadata.OkButtonText);
+        Assert.Equal("Cancel", metadata.CancelButtonText);
+        Assert.True(metadata.IsFixedDialog);
+        Assert.True(metadata.AcceptsOk);
+        Assert.True(metadata.Cancels);
+    }
+
+    [Fact]
     public void AddOptionAcceptsValidTypesAndReturnsQueriedValues()
     {
         var model = new UdbScriptQueryOptionsModel();
