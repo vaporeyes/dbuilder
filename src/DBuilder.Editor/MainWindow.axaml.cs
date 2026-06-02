@@ -4926,14 +4926,19 @@ public partial class MainWindow : Window
     private void UpdateInfo()
     {
         UpdateCommandAvailability();
-        if (_map is null) { ShowText("No map loaded."); PreviewPanel.Children.Clear(); return; }
-        int sv = _map.SelectedVerticesCount, sl = _map.SelectedLinedefsCount, sd = _map.SelectedSidedefsCount, ss = _map.SelectedSectorsCount, st = _map.SelectedThingsCount;
+        if (_map is null) { ShowText(InfoSummaryPanelModel.NoMapLoadedText()); PreviewPanel.Children.Clear(); return; }
+        InfoPanelSelectionCounts counts = InfoSummaryPanelModel.SelectionCounts(_map);
+        int sv = counts.Vertices, sl = counts.Linedefs, sd = counts.Sidedefs, ss = counts.Sectors, st = counts.Things;
         UpdatePreviews(sv, sl, sd, ss, st);
 
-        if (sv + sl + sd + ss + st == 0)
+        if (counts.Total == 0)
         {
-            ShowText($"Map: {_map.Vertices.Count} vertices, {_map.Linedefs.Count} linedefs, {_map.Sectors.Count} sectors, {_map.Things.Count} things." +
-                     $"   Config: {_configName}.   Mode: {MapView.CurrentEditMode}.   {CommandHints("map2d.mode-vertices", "map2d.mode-linedefs", "map2d.mode-sectors", "map2d.mode-things")}.   {CommandHint("map2d.toggle-3d")}.   See Help > Shortcuts for all controls.");
+            ShowText(InfoSummaryPanelModel.MapOverviewText(
+                _map,
+                _configName,
+                MapView.CurrentEditMode.ToString(),
+                CommandHints("map2d.mode-vertices", "map2d.mode-linedefs", "map2d.mode-sectors", "map2d.mode-things"),
+                CommandHint("map2d.toggle-3d")));
             return;
         }
 
@@ -4945,8 +4950,10 @@ public partial class MainWindow : Window
         else if (sv == 1 && st == 0 && sl == 0 && sd == 0 && ss == 0) ShowVertexFields(_map.GetSelectedVertices()[0]);
         else
         {
-            ShowText($"Selected: {sv} vertices, {sl} linedefs, {sd} sidedefs, {ss} sectors, {st} things." +
-                     (_undo is { } u ? $"   Undo: {(u.CanUndo ? u.NextUndoDescription : "-")}  Redo: {(u.CanRedo ? u.NextRedoDescription : "-")}" : ""));
+            ShowText(InfoSummaryPanelModel.SelectionSummaryText(
+                counts,
+                _undo?.CanUndo == true ? _undo.NextUndoDescription : _undo is null ? null : "-",
+                _undo?.CanRedo == true ? _undo.NextRedoDescription : _undo is null ? null : "-"));
         }
     }
 
