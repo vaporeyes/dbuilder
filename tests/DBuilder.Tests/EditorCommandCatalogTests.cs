@@ -1003,6 +1003,21 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void VisualFitTexturesCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.fit-textures");
+
+        Assert.NotNull(command);
+        Assert.Equal("Fit Textures", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
     public void RepeatableCommandMetadataMatchesAdjustmentActions()
     {
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoom-in"));

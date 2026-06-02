@@ -1538,6 +1538,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return targets;
     }
 
+    private System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)> SelectedWallTextureParts3D()
+    {
+        var targets = new System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)>();
+        var seen = new System.Collections.Generic.HashSet<(Sidedef Side, SidedefPart Part)>();
+        foreach (VisualHit hit in _sel3D)
+        {
+            if (hit.Kind != VisualHitKind.Wall || hit.Line == null || hit.Part == SidedefPart.None) continue;
+            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+            if (side != null && seen.Add((side, hit.Part))) targets.Add((side, hit.Part));
+        }
+
+        return targets;
+    }
+
     // Nudges the targeted or selected walls' texture offsets, undoable.
     private void NudgeTargetOffset3D(int deltaX, int deltaY)
     {
@@ -1625,6 +1639,43 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         RequestNextFrameRendering();
         Target3DChanged?.Invoke($"pasted offsets to {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
+    }
+
+    private void FitSelectedVisualTextures3D()
+    {
+        if (_resources == null) { Target3DChanged?.Invoke("no resources loaded for texture dimensions"); return; }
+        var targets = SelectedWallTextureParts3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("select wall surfaces to fit textures"); return; }
+
+        int changed = 0;
+        int skipped = 0;
+        EditBegun?.Invoke("Fit visual textures");
+        foreach ((Sidedef side, SidedefPart part) in targets)
+        {
+            string textureName = side.GetTexture(part);
+            if (IsBlankTexture(textureName)) continue;
+
+            var image = _resources.GetWallTexture(textureName);
+            if (image == null)
+            {
+                skipped++;
+                continue;
+            }
+
+            bool fitted = SidedefTextureFitting.Fit(
+                side,
+                part,
+                new TextureFitImage(image.Width, image.Height, image.ScaleX, image.ScaleY));
+            if (fitted) changed++;
+        }
+
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(changed == 0
+            ? $"no selected wall textures fitted ({skipped} missing image{(skipped == 1 ? "" : "s")})"
+            : $"fit {changed} wall texture{(changed == 1 ? "" : "s")} ({skipped} missing image{(skipped == 1 ? "" : "s")})");
     }
 
     // Resets the targeted wall's texture offsets to zero, undoable.
@@ -3698,6 +3749,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.paste-offsets":
                 PasteTextureOffsets3D();
+                return true;
+            case "map3d.fit-textures":
+                FitSelectedVisualTextures3D();
                 return true;
             case "map3d.toggle-upper-unpegged":
                 ToggleUnpegged3D(upper: true);

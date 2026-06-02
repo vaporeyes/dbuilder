@@ -246,6 +246,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.reset-offsets", "Reset texture offsets", "O", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.copy-offsets", "Copy Offsets", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.paste-offsets", "Paste Offsets", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
+        new EditorCommandDescriptor("map3d.fit-textures", "Fit Textures", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-visual-sidedef-slope-picking", "Toggle Visual Sidedef Slope Picking", "Menu", EditorCommandScope.Map3D),
