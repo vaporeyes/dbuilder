@@ -401,6 +401,47 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void VertexWrapperDeletesStandaloneVertex()
+    {
+        var vertex = new Vertex(new Vector2D(1, 2));
+        var wrapper = new UdbScriptVertexWrapper(vertex);
+
+        wrapper.delete();
+        wrapper.delete();
+
+        Assert.True(vertex.IsDisposed);
+    }
+
+    [Fact]
+    public void MapOwnedVertexWrappersDeleteAndJoinVertices()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptVertexWrapper keep = wrapper.createVertex(new object[] { 0.0, 0.0 });
+        UdbScriptVertexWrapper remove = wrapper.createVertex(new object[] { 32.0, 0.0 });
+        Vertex end = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(remove.Vertex, end);
+
+        remove.join(keep);
+
+        Assert.DoesNotContain(remove.Vertex, map.Vertices);
+        Assert.Same(keep.Vertex, line.Start);
+        Assert.Same(end, line.End);
+        Assert.True(remove.Vertex.IsDisposed);
+
+        UdbScriptVertexWrapper vertex = wrapper.createVertex(new object[] { 64.0, 0.0 });
+        Linedef attached = map.AddLinedef(keep.Vertex, vertex.Vertex);
+
+        vertex.delete();
+        vertex.delete();
+
+        Assert.DoesNotContain(vertex.Vertex, map.Vertices);
+        Assert.DoesNotContain(attached, map.Linedefs);
+        Assert.True(vertex.Vertex.IsDisposed);
+        Assert.True(attached.IsDisposed);
+    }
+
+    [Fact]
     public void VertexWrapperRejectsDisposedVertexAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
@@ -586,6 +627,39 @@ localsidedeftextureoffsets = true;
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.length);
 
         Assert.Equal("Linedef is disposed, the length member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
+    public void LinedefWrapperDeletesStandaloneLinedef()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0)));
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        wrapper.delete();
+        wrapper.delete();
+
+        Assert.True(line.IsDisposed);
+    }
+
+    [Fact]
+    public void MapOwnedLinedefWrappersDeleteLinedefsAndSidedefs()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var sector = map.AddSector();
+        Sidedef side = map.AddSidedef(line, isFront: true, sector);
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptLinedefWrapper lineWrapper = Assert.Single(wrapper.getLinedefs());
+
+        lineWrapper.delete();
+        lineWrapper.delete();
+
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.DoesNotContain(side, map.Sidedefs);
+        Assert.True(line.IsDisposed);
+        Assert.True(side.IsDisposed);
     }
 
     [Fact]
@@ -823,6 +897,44 @@ localsidedeftextureoffsets = true;
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.floorHeight);
 
         Assert.Equal("Sector is disposed, the floorHeight member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
+    public void SectorWrapperDeletesStandaloneSector()
+    {
+        var sector = new Sector();
+        var wrapper = new UdbScriptSectorWrapper(sector);
+
+        wrapper.delete();
+        wrapper.delete();
+
+        Assert.True(sector.IsDisposed);
+    }
+
+    [Fact]
+    public void MapOwnedSectorWrappersDeleteAndJoinSectors()
+    {
+        var map = new MapSet();
+        var keep = map.AddSector();
+        var remove = map.AddSector();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Sidedef side = map.AddSidedef(line, isFront: true, remove);
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.getSectors().First(sector => ReferenceEquals(sector.Sector, remove))
+            .join(wrapper.getSectors().First(sector => ReferenceEquals(sector.Sector, keep)));
+
+        Assert.DoesNotContain(remove, map.Sectors);
+        Assert.Same(keep, side.Sector);
+        Assert.True(remove.IsDisposed);
+
+        UdbScriptSectorWrapper keepWrapper = wrapper.getSectors().First(sector => ReferenceEquals(sector.Sector, keep));
+        keepWrapper.delete();
+        keepWrapper.delete();
+
+        Assert.DoesNotContain(keep, map.Sectors);
+        Assert.Null(side.Sector);
+        Assert.True(keep.IsDisposed);
     }
 
     [Fact]
