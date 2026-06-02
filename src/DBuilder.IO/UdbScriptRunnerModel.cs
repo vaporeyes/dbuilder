@@ -29,6 +29,13 @@ public enum UdbScriptMessageResult
     Abort,
 }
 
+public enum UdbScriptHostMemberKind
+{
+    Object,
+    TypeReference,
+    ScriptOptions,
+}
+
 public sealed record UdbScriptRunnerExceptionOutcome(
     UdbScriptRunnerExceptionKind Kind,
     bool WithdrawUndo,
@@ -41,6 +48,12 @@ public sealed record UdbScriptVersionGate(
     string Message);
 
 public sealed record UdbScriptLegacyBinding(string Name, string Target);
+
+public sealed record UdbScriptHostMember(
+    string Name,
+    UdbScriptHostMemberKind Kind,
+    string Target,
+    uint MinVersion = 1);
 
 public sealed record UdbScriptRuntimeConstraintPrompt(
     bool ShouldPrompt,
@@ -158,6 +171,27 @@ public static class UdbScriptRunnerModel
     public const string UserAbortStatusText = "Script aborted";
     public const string ScriptFinishedTitle = "Script finished";
     public const string CloseButtonText = "Close";
+
+    public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
+    [
+        new("GameConfiguration", UdbScriptHostMemberKind.Object, "GameConfigurationWrapper"),
+        new("QueryOptions", UdbScriptHostMemberKind.TypeReference, "QueryOptions"),
+        new("ScriptOptions", UdbScriptHostMemberKind.ScriptOptions, "ExpandoObject"),
+        new("Angle2D", UdbScriptHostMemberKind.TypeReference, "Angle2DWrapper"),
+        new("Data", UdbScriptHostMemberKind.Object, "DataWrapper"),
+        new("Line2D", UdbScriptHostMemberKind.TypeReference, "Line2DWrapper"),
+        new("Map", UdbScriptHostMemberKind.Object, "MapWrapper"),
+        new("UniValue", UdbScriptHostMemberKind.TypeReference, "UniValue"),
+        new("Vector2D", UdbScriptHostMemberKind.TypeReference, "Vector2DWrapper"),
+        new("Vector3D", UdbScriptHostMemberKind.TypeReference, "Vector3DWrapper"),
+        new("Linedef", UdbScriptHostMemberKind.TypeReference, "LinedefWrapper"),
+        new("Sector", UdbScriptHostMemberKind.TypeReference, "SectorWrapper"),
+        new("Sidedef", UdbScriptHostMemberKind.TypeReference, "SidedefWrapper"),
+        new("Thing", UdbScriptHostMemberKind.TypeReference, "ThingWrapper"),
+        new("Vertex", UdbScriptHostMemberKind.TypeReference, "VertexWrapper"),
+        new("Plane", UdbScriptHostMemberKind.TypeReference, "PlaneWrapper", MinVersion: 5),
+        new("BlockMap", UdbScriptHostMemberKind.TypeReference, "BlockMapWrapper", MinVersion: 5),
+    ];
 
     public static IReadOnlyList<UdbScriptLegacyBinding> LegacyBindings { get; } =
     [

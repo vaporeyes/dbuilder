@@ -136,6 +136,61 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void HostMembersMatchUdbTopLevelPropertySurface()
+    {
+        Assert.Equal(17, UdbScriptRunnerModel.HostMembers.Count);
+        Assert.Equal(
+            [
+                "GameConfiguration",
+                "QueryOptions",
+                "ScriptOptions",
+                "Angle2D",
+                "Data",
+                "Line2D",
+                "Map",
+                "UniValue",
+                "Vector2D",
+                "Vector3D",
+                "Linedef",
+                "Sector",
+                "Sidedef",
+                "Thing",
+                "Vertex",
+                "Plane",
+                "BlockMap",
+            ],
+            UdbScriptRunnerModel.HostMembers.Select(member => member.Name).ToArray());
+
+        Assert.Contains(
+            UdbScriptRunnerModel.HostMembers,
+            member => member.Name == "ScriptOptions"
+                && member.Kind == UdbScriptHostMemberKind.ScriptOptions
+                && member.Target == "ExpandoObject");
+        Assert.Contains(
+            UdbScriptRunnerModel.HostMembers,
+            member => member.Name == "Map"
+                && member.Kind == UdbScriptHostMemberKind.Object
+                && member.Target == "MapWrapper");
+        Assert.Contains(
+            UdbScriptRunnerModel.HostMembers,
+            member => member.Name == "Vector2D"
+                && member.Kind == UdbScriptHostMemberKind.TypeReference
+                && member.Target == "Vector2DWrapper");
+        Assert.Contains(
+            UdbScriptRunnerModel.HostMembers,
+            member => member.Name == "Plane"
+                && member.Kind == UdbScriptHostMemberKind.TypeReference
+                && member.Target == "PlaneWrapper"
+                && member.MinVersion == 5);
+        Assert.Contains(
+            UdbScriptRunnerModel.HostMembers,
+            member => member.Name == "BlockMap"
+                && member.Kind == UdbScriptHostMemberKind.TypeReference
+                && member.Target == "BlockMapWrapper"
+                && member.MinVersion == 5);
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);
