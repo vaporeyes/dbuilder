@@ -923,7 +923,7 @@ public class EditorCommandCatalogTests
     [Fact]
     public void DefaultShortcutsResolveDiscreteMap3DCommands()
     {
-        Assert.Equal("map3d.walk-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
+        Assert.Equal("map3d.toggle-gravity", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
         Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "I"));
         Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Insert"));
         Assert.Equal("map3d.copy-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
@@ -1015,6 +1015,25 @@ public class EditorCommandCatalogTests
             Assert.False(command.Repeat);
         else
             Assert.True(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualToggleGravityCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.toggle-gravity");
+        var legacyAlias = EditorCommandCatalog.Find("map3d.walk-mode");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Gravity", command.Title);
+        Assert.Equal("G", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
     }
 
     [Theory]

@@ -4780,6 +4780,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.zoom-out":
                 ZoomBy(1.25);
                 return true;
+            case "map3d.toggle-gravity":
             case "map3d.walk-mode":
                 _walkMode = !_walkMode;
                 RequestNextFrameRendering();

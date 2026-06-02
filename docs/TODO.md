@@ -958,6 +958,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual camera behavior.
   - [x] Add UDB-style Move Camera to Cursor visual action with 64-unit target offset.
+  - [x] Add UDB-style visual Toggle Gravity action alias.
 - [ ] Port visual geometry behavior.
   - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.
   - [x] Add UDB-style visual raise/lower Floor/Ceiling/Thing to adjacent Sector/Thing actions.
