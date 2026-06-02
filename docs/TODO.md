@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 2007 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3119 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1030,6 +1030,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
+  - [x] Add UDB-style Toggle dynamic lights rendering action and persisted display-mode cycling.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.
@@ -1038,6 +1039,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Tint live 3D MODELDEF model and KVX voxel mesh batches with UDB-style dynamic light display colors.
+  - [x] Gate dynamic light tinting with UDB-style NONE, ALL, and ANIMATED render modes.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
   - [x] Apply UDB-style fullbright and UDMF surface-lighting tints to visual 3D floors and ceilings.
   - [x] Apply visual 3D surface-lighting tints to resolved 3D floor top and bottom faces.

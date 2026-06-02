@@ -357,6 +357,20 @@ public class SettingsTests
         Assert.Equal(expected, settings.NormalizedModelRenderMode);
     }
 
+    [Theory]
+    [InlineData(null, ThingLightRenderMode.All)]
+    [InlineData(-1, ThingLightRenderMode.All)]
+    [InlineData(0, ThingLightRenderMode.None)]
+    [InlineData(1, ThingLightRenderMode.All)]
+    [InlineData(2, ThingLightRenderMode.Animated)]
+    [InlineData(3, ThingLightRenderMode.All)]
+    public void LightRenderModeUsesUdbRange(int? value, ThingLightRenderMode expected)
+    {
+        var settings = new Settings { LightRenderMode = value };
+
+        Assert.Equal(expected, settings.NormalizedLightRenderMode);
+    }
+
     [Fact]
     public void StartupConfigFallsBackToLastUsedConfigName()
     {

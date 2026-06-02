@@ -1405,6 +1405,21 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
     }
 
+    [Fact]
+    public void VisualDynamicLightsRenderingCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.toggle-dynamic-lights-rendering");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle dynamic lights rendering", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
     [Theory]
     [InlineData("map3d.copy-offsets", "Copy Offsets")]
     [InlineData("map3d.paste-offsets", "Paste Offsets")]

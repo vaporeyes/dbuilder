@@ -198,6 +198,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
+    private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -211,6 +212,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool FullBrightness => _fullBrightness;
     public bool UseHighlight => _useHighlight;
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
+    public ThingLightRenderMode LightRenderMode => _lightRenderMode;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -301,6 +303,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public ThingModelRenderMode CycleModelRenderMode()
         => SetModelRenderMode(ThingModelRenderPlanner.NextMode(_modelRenderMode));
+
+    public ThingLightRenderMode SetLightRenderMode(ThingLightRenderMode mode)
+    {
+        if (_lightRenderMode == mode) return _lightRenderMode;
+        _lightRenderMode = mode;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _lightRenderMode;
+    }
+
+    public ThingLightRenderMode CycleLightRenderMode()
+        => SetLightRenderMode(ThingLightRenderPlanner.NextMode(_lightRenderMode));
 
     public bool SetAlphaBasedTextureHighlighting(bool enabled)
     {
@@ -1788,11 +1804,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private int VisualThingTint(Thing thing, Sector? sector, Gldefs? gldefs)
     {
-        int billboardTint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, gldefs);
+        int billboardTint = ThingBillboardTint(thing, gldefs);
         return billboardTint == DynamicLightDisplay.DefaultBillboardTint
             ? VisualSurfaceLighting.ThingRenderTint(sector, _fullBrightness, 1.0)
             : billboardTint;
     }
+
+    private int ThingBillboardTint(Thing thing, Gldefs? gldefs)
+    {
+        if (thing.Selected) return DynamicLightDisplay.SelectedBillboardTint;
+        return ThingLightColor(thing, gldefs) ?? DynamicLightDisplay.DefaultBillboardTint;
+    }
+
+    private int? ThingLightColor(Thing thing, Gldefs? gldefs)
+        => ThingLightRenderPlanner.ShouldRender(_lightRenderMode)
+            ? DynamicLightDisplay.ThingColor(thing, _gameConfig, gldefs)
+            : null;
 
     private bool DrawPreparedModelBatches(
         IReadOnlyList<GzModelRenderBatch> batches,
@@ -3657,7 +3684,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
-                    int sc = DynamicLightDisplay.BillboardTint(t, _gameConfig, gldefs);
+                    int sc = ThingBillboardTint(t, gldefs);
                     double scale = _fixedThingsScale ? _zoom : 1.0;
                     double hw = img.Width * 0.5 * scale, hh = img.Height * 0.5 * scale;
                     var p = t.Position;
@@ -3673,7 +3700,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                int c = t.Selected ? unchecked((int)0xffffee00) : DynamicLightDisplay.ThingColor(t, _gameConfig, gldefs) ?? ThingColor(t.Type);
+                int c = t.Selected ? unchecked((int)0xffffee00) : ThingLightColor(t, gldefs) ?? ThingColor(t.Type);
                 var pp = t.Position;
                 var n = new Vec2D(pp.x, pp.y + s);
                 var e = new Vec2D(pp.x + s, pp.y);
@@ -5041,6 +5068,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.toggle-model-rendering":
                 CycleModelRenderMode();
                 Target3DChanged?.Invoke($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(_modelRenderMode)}");
+                return true;
+            case "map3d.toggle-dynamic-lights-rendering":
+                CycleLightRenderMode();
+                Target3DChanged?.Invoke($"Dynamic lights rendering mode: {ThingLightRenderPlanner.StatusLabel(_lightRenderMode)}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
                 ToggleVisualSidedefSlopePicking();

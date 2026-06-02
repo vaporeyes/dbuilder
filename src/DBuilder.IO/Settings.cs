@@ -32,6 +32,7 @@ public sealed class Settings
     public bool DynamicGridSize { get; set; } = true;
     public int? DefaultViewMode { get; set; }
     public int? ModelRenderMode { get; set; }
+    public int? LightRenderMode { get; set; }
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
@@ -68,6 +69,11 @@ public sealed class Settings
         Enum.IsDefined(typeof(ThingModelRenderMode), ModelRenderMode ?? (int)ThingModelRenderMode.All)
             ? (ThingModelRenderMode)(ModelRenderMode ?? (int)ThingModelRenderMode.All)
             : ThingModelRenderMode.All;
+
+    public ThingLightRenderMode NormalizedLightRenderMode =>
+        Enum.IsDefined(typeof(ThingLightRenderMode), LightRenderMode ?? (int)ThingLightRenderMode.All)
+            ? (ThingLightRenderMode)(LightRenderMode ?? (int)ThingLightRenderMode.All)
+            : ThingLightRenderMode.All;
 
     public MergeGeometryMode NormalizedMergeGeometryMode =>
         Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;

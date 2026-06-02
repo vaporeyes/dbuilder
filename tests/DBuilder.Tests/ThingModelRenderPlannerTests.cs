@@ -46,6 +46,18 @@ public sealed class ThingModelRenderPlannerTests
     }
 
     [Fact]
+    public void CyclesDynamicLightRenderModesLikeUdbVisualMode()
+    {
+        Assert.Equal(ThingLightRenderMode.All, ThingLightRenderPlanner.NextMode(ThingLightRenderMode.None));
+        Assert.Equal(ThingLightRenderMode.Animated, ThingLightRenderPlanner.NextMode(ThingLightRenderMode.All));
+        Assert.Equal(ThingLightRenderMode.None, ThingLightRenderPlanner.NextMode(ThingLightRenderMode.Animated));
+        Assert.False(ThingLightRenderPlanner.ShouldRender(ThingLightRenderMode.None));
+        Assert.True(ThingLightRenderPlanner.ShouldRender(ThingLightRenderMode.All));
+        Assert.True(ThingLightRenderPlanner.ShouldRender(ThingLightRenderMode.Animated));
+        Assert.Equal("ANIMATED", ThingLightRenderPlanner.StatusLabel(ThingLightRenderMode.Animated));
+    }
+
+    [Fact]
     public void BuildsModeldefTransformWithUdbOffsetAndScaleAxes()
     {
         ThingModelDisplay display = Display(
