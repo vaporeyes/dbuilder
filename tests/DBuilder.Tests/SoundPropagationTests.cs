@@ -536,4 +536,31 @@ public class SoundPropagationTests
         Assert.True(SoundPropagation.ThingDormant(dormant, udmf: true));
         Assert.False(SoundPropagation.ThingDormant(active, udmf: true));
     }
+
+    [Fact]
+    public void SoundEnvironmentOverlayColorsUseEnvironmentAndUnassignedColors()
+    {
+        var (map, s) = Chain(2, new[] { true });
+        map.Linedefs[0].Action = 121;
+        map.Linedefs[0].Args[1] = 1;
+        Thing environment = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        environment.Sector = s[0];
+        var colors = SoundPropagationColorSettings.Default with
+        {
+            HighlightColor = 0xFF010203u,
+            NoSoundColor = 0xFF040506u,
+            DistinctDomainColors = new[] { 0xFF070809u },
+        };
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map, colors: colors);
+        SoundEnvironmentInfo info = Assert.Single(model.Environments);
+
+        uint[] normal = model.SectorOverlayColors(map.Sectors, colors);
+        Assert.Equal(0xFF070809u, normal[0]);
+        Assert.Equal(0xFF040506u, normal[1]);
+
+        uint[] highlighted = model.SectorOverlayColors(map.Sectors, colors, info);
+        Assert.Equal(0xFF010203u, highlighted[0]);
+        Assert.Equal(0xFF040506u, highlighted[1]);
+    }
 }

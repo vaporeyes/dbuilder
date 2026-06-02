@@ -71,6 +71,8 @@ public partial class MainWindow : Window
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
     private BlockmapExplorerWindow? _blockmapExplorer;
+    private SoundEnvironmentWindow? _soundEnvironments;
+    private SoundEnvironmentModeModel? _soundEnvironmentModel;
     private InterpolationTools.Mode _gradientInterpolationMode = InterpolationTools.Mode.LINEAR;
     private string? _lastPrefabPath;
 
@@ -1188,6 +1190,7 @@ public partial class MainWindow : Window
             case "window.reject-explorer": OnRejectViewer(this, new RoutedEventArgs()); return true;
             case "window.nodes-viewer": OnNodesViewer(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-mode": OnSoundPropagation(this, new RoutedEventArgs()); return true;
+            case "window.sound-environment-mode": OnSoundEnvironments(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-colors": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
@@ -4391,6 +4394,91 @@ public partial class MainWindow : Window
             : $"Sound leak path: {path.Linedefs.Count} line(s), {path.BlockingLinedefs.Count} sound-blocking line(s).");
     }
 
+    private void OnSoundEnvironments(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+
+        _soundEnvironmentModel = SoundPropagation.BuildSoundEnvironmentModel(
+            _map,
+            colors: _settings.SoundPropagationColors,
+            udmf: _mapFormat == MapFormat.Udmf);
+        MapView.SetSectorOverlayColors(_soundEnvironmentModel.SectorOverlayColors(_map.Sectors, _settings.SoundPropagationColors), 128);
+        MapView.SetSoundLeakPath(null);
+
+        if (_soundEnvironments != null)
+        {
+            _soundEnvironments.SetModel(_soundEnvironmentModel);
+            _soundEnvironments.Activate();
+            SetStatus(SoundEnvironmentStatus(_soundEnvironmentModel));
+            return;
+        }
+
+        var win = new SoundEnvironmentWindow(_soundEnvironmentModel, _mapFormat == MapFormat.Udmf);
+        _soundEnvironments = win;
+        win.Closed += (_, _) => _soundEnvironments = null;
+        win.SelectionActivated += SelectSoundEnvironmentRow;
+        win.Show(this);
+        SetStatus(SoundEnvironmentStatus(_soundEnvironmentModel));
+    }
+
+    private void SelectSoundEnvironmentRow(SoundEnvironmentSelection selection)
+    {
+        if (_map is null) return;
+
+        _map.ClearAllSelected();
+        _soundEnvironmentModel ??= SoundPropagation.BuildSoundEnvironmentModel(
+            _map,
+            colors: _settings.SoundPropagationColors,
+            udmf: _mapFormat == MapFormat.Udmf);
+        MapView.SetSectorOverlayColors(
+            _soundEnvironmentModel.SectorOverlayColors(_map.Sectors, _settings.SoundPropagationColors, selection.Environment),
+            128);
+        MapView.SetSoundLeakPath(null);
+
+        if (selection.Thing != null)
+        {
+            selection.Thing.Selected = true;
+            MapView.RevealSelection(MapControl.EditMode.Things, selection.Thing.Position);
+            UpdateInfo();
+            SetStatus($"Sound Environment: selected thing {_map.Things.IndexOf(selection.Thing)}.");
+            return;
+        }
+
+        if (selection.Linedef != null)
+        {
+            selection.Linedef.Selected = true;
+            Vector2D focus = (selection.Linedef.Start.Position + selection.Linedef.End.Position) * 0.5;
+            MapView.RevealSelection(MapControl.EditMode.Linedefs, focus);
+            UpdateInfo();
+            SetStatus($"Sound Environment: selected linedef {_map.Linedefs.IndexOf(selection.Linedef)}.");
+            return;
+        }
+
+        if (selection.Environment == null) return;
+        foreach (Sector sector in selection.Environment.Sectors) sector.Selected = true;
+        MapView.RevealSelection(MapControl.EditMode.Sectors, SoundEnvironmentFocus(selection.Environment));
+        UpdateInfo();
+        SetStatus($"Sound Environment: selected {selection.Environment.Name}.");
+    }
+
+    private static Vector2D SoundEnvironmentFocus(SoundEnvironmentInfo environment)
+    {
+        if (environment.Sectors.Count == 0) return new Vector2D(0, 0);
+        double x = 0;
+        double y = 0;
+        foreach (Sector sector in environment.Sectors)
+        {
+            Vector2D center = SoundPropagation.SectorCenter(sector);
+            x += center.x;
+            y += center.y;
+        }
+
+        return new Vector2D(x / environment.Sectors.Count, y / environment.Sectors.Count);
+    }
+
+    private static string SoundEnvironmentStatus(SoundEnvironmentModeModel model)
+        => $"Sound Environments: {model.Environments.Count} environment(s), {model.UnassignedSectors.Count} unassigned sector(s), {model.BoundaryLinedefs.Count} boundary linedef(s).";
+
     private async void OnSoundPropagationColors(object? sender, RoutedEventArgs e)
     {
         var dialog = new SoundPropagationColorDialog(_settings.SoundPropagationColors);
@@ -5293,7 +5381,7 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleDynamicGridSizeMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,

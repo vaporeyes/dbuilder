@@ -75,6 +75,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.reject-explorer", "Reject Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.nodes-viewer", "Nodes Viewer Mode", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.sound-propagation-mode", "Sound propagation mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.sound-environment-mode", "Sound environment mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.sound-propagation-colors", "Configure colors", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),

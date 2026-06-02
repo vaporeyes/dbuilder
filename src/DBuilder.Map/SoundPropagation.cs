@@ -160,7 +160,49 @@ public sealed record SoundEnvironmentInfo(
 public sealed record SoundEnvironmentModeModel(
     IReadOnlyList<SoundEnvironmentInfo> Environments,
     IReadOnlySet<Sector> UnassignedSectors,
-    IReadOnlySet<Linedef> BoundaryLinedefs);
+    IReadOnlySet<Linedef> BoundaryLinedefs)
+{
+    public static SoundPropagationActionDescriptor ModeAction { get; } = new(
+        "soundenvironmentmode",
+        "Sound environment mode",
+        "modes",
+        "Shows ZDoom sound environments",
+        AllowKeys: true,
+        AllowMouse: true,
+        AllowScroll: true);
+
+    public const string DockerId = "soundenvironments";
+    public const string DockerTitle = "Sound Environments";
+    public const string ShowWarningsOnlyText = "Show nodes with warnings only";
+
+    public uint[] SectorOverlayColors(
+        IReadOnlyList<Sector> sectors,
+        SoundPropagationColorSettings? colors = null,
+        SoundEnvironmentInfo? highlighted = null)
+    {
+        ArgumentNullException.ThrowIfNull(sectors);
+        colors ??= SoundPropagationColorSettings.Default;
+
+        var result = new uint[sectors.Count];
+        var indexes = new Dictionary<Sector, int>(ReferenceEqualityComparer.Instance);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            indexes[sectors[i]] = i;
+            if (UnassignedSectors.Contains(sectors[i])) result[i] = colors.NoSoundColor;
+        }
+
+        foreach (SoundEnvironmentInfo environment in Environments)
+        {
+            uint color = ReferenceEquals(environment, highlighted) ? colors.HighlightColor : environment.Color;
+            foreach (Sector sector in environment.Sectors)
+            {
+                if (indexes.TryGetValue(sector, out int index)) result[index] = color;
+            }
+        }
+
+        return result;
+    }
+}
 
 public sealed class SoundPropagationModeModel
 {
