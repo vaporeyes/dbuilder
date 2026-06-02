@@ -4993,6 +4993,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.delete-target":
                 DeleteTargetThing3D();
                 return true;
+            case "map3d.select-texture":
             case "map3d.browse-texture":
                 if (_target3D is null) return false;
                 BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);

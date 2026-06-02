@@ -938,6 +938,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.paste-properties-options", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, shift: true));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
+        Assert.Equal("map3d.select-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "T"));
         Assert.Equal("map3d.scale-up", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad9"));
         Assert.Equal("map3d.scale-down", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad7"));
         Assert.Equal("map3d.scale-up-x", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad6"));
@@ -1076,6 +1077,25 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualTextureSelectCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.select-texture");
+        var legacyAlias = EditorCommandCatalog.Find("map3d.browse-texture");
+
+        Assert.NotNull(command);
+        Assert.Equal("Select Texture", command.Title);
+        Assert.Equal("T", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(command.Title, legacyAlias.Title);
     }
 
     [Fact]

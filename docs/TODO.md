@@ -996,6 +996,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
+  - [x] Add UDB-style visual Select Texture action metadata and dispatch alias.
   - [x] Add UDB-style visual wall texture offset step action metadata and dispatch.
   - [x] Add UDB-style visual upper and lower unpegged toggle action metadata and dispatch.
   - [x] Add UDB-style visual wall texture offset copy and paste action metadata and dispatch.
