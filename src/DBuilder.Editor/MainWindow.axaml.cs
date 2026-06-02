@@ -2561,7 +2561,7 @@ public partial class MainWindow : Window
 
     private async void OnGridSetup(object? sender, RoutedEventArgs e)
     {
-        var dlg = new GridSetupDialog(MapView.GridSetupSnapshot());
+        var dlg = new GridSetupDialog(MapView.GridSetupSnapshot(), _resources);
         if (await dlg.ShowDialog<bool>(this))
         {
             var grid = new GridSetup(_mapFormat == MapFormat.Udmf);

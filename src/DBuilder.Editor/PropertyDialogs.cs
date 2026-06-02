@@ -190,16 +190,29 @@ public abstract class PropertyDialog : Window
         string value,
         string buttonText,
         Func<TextBox, System.Threading.Tasks.Task> action)
+        => AddFieldWithButtons(label, value, [(buttonText, action)]);
+
+    protected TextBox AddFieldWithButtons(
+        string label,
+        string value,
+        IReadOnlyList<(string Text, Func<TextBox, System.Threading.Tasks.Task> Action)> buttons)
     {
-        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*,Auto") };
+        var columns = "130,*" + string.Concat(Enumerable.Repeat(",Auto", buttons.Count));
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions(columns) };
         grid.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
         var box = new TextBox { Text = value };
         Grid.SetColumn(box, 1);
         grid.Children.Add(box);
-        var button = new Button { Content = buttonText, MinWidth = 34, Margin = new Avalonia.Thickness(4, 0, 0, 0) };
-        button.Click += async (_, _) => await action(box);
-        Grid.SetColumn(button, 2);
-        grid.Children.Add(button);
+
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            var descriptor = buttons[i];
+            var button = new Button { Content = descriptor.Text, MinWidth = 34, Margin = new Avalonia.Thickness(4, 0, 0, 0) };
+            button.Click += async (_, _) => await descriptor.Action(box);
+            Grid.SetColumn(button, i + 2);
+            grid.Children.Add(button);
+        }
+
         _rows.Children.Insert(_rows.Children.Count - 1, grid);
         return box;
     }

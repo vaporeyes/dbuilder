@@ -20,6 +20,7 @@ public sealed class GridSetupDialog : PropertyDialog
     private readonly TextBox _backgroundY;
     private readonly TextBox _backgroundScaleX;
     private readonly TextBox _backgroundScaleY;
+    private readonly ResourceManager? _resources;
 
     public double ResultSize { get; private set; }
     public double ResultOriginX { get; private set; }
@@ -32,9 +33,10 @@ public sealed class GridSetupDialog : PropertyDialog
     public double ResultBackgroundScaleX { get; private set; }
     public double ResultBackgroundScaleY { get; private set; }
 
-    public GridSetupDialog(GridSetup grid)
+    public GridSetupDialog(GridSetup grid, ResourceManager? resources = null)
         : base("Grid Setup", "Grid size and transform affect drawing, movement and insertion snapping.")
     {
+        _resources = resources;
         ResultSize = grid.GridSizeF;
         ResultOriginX = grid.GridOriginX;
         ResultOriginY = grid.GridOriginY;
@@ -50,7 +52,7 @@ public sealed class GridSetupDialog : PropertyDialog
         _originX = AddField("Origin X", grid.GridOriginX.ToString("0.###", CultureInfo.InvariantCulture));
         _originY = AddField("Origin Y", grid.GridOriginY.ToString("0.###", CultureInfo.InvariantCulture));
         _rotation = AddField("Rotation radians", grid.GridRotate.ToString("0.###", CultureInfo.InvariantCulture));
-        _background = AddFieldWithButton("Background", grid.BackgroundName, "...", BrowseBackgroundFile);
+        _background = AddBackgroundField(grid.BackgroundName);
         _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
         _backgroundX = AddField("Background X", grid.BackgroundX.ToString(CultureInfo.InvariantCulture));
         _backgroundY = AddField("Background Y", grid.BackgroundY.ToString(CultureInfo.InvariantCulture));
@@ -100,6 +102,39 @@ public sealed class GridSetupDialog : PropertyDialog
 
         box.Text = path;
         SelectBackgroundSource(GridSetup.SourceFile);
+    }
+
+    private TextBox AddBackgroundField(string value)
+    {
+        if (_resources is null)
+            return AddFieldWithButton("Background", value, "...", BrowseBackgroundFile);
+
+        return AddFieldWithButtons(
+            "Background",
+            value,
+            [
+                ("Tex", BrowseBackgroundTexture),
+                ("Flat", BrowseBackgroundFlat),
+                ("File", BrowseBackgroundFile),
+            ]);
+    }
+
+    private async Task BrowseBackgroundTexture(TextBox box)
+        => await BrowseBackgroundResource(box, flats: false, GridSetup.SourceTextures, "Browse Background Texture");
+
+    private async Task BrowseBackgroundFlat(TextBox box)
+        => await BrowseBackgroundResource(box, flats: true, GridSetup.SourceFlats, "Browse Background Flat");
+
+    private async Task BrowseBackgroundResource(TextBox box, bool flats, int source, string title)
+    {
+        if (_resources is null) return;
+
+        var dlg = new TextureBrowserDialog(_resources, flats) { Title = title };
+        if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } selected)
+        {
+            box.Text = selected;
+            SelectBackgroundSource(source);
+        }
     }
 
     private void SelectBackgroundSource(int source)
