@@ -469,6 +469,29 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void LinedefWrapperExposesMultiTagHelpers()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(8, 0)));
+        line.Tag = 1;
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        bool added = wrapper.addTag(3);
+        bool duplicate = wrapper.addTag(3);
+        bool removed = wrapper.removeTag(1);
+        bool missing = wrapper.removeTag(9);
+
+        Assert.True(added);
+        Assert.False(duplicate);
+        Assert.True(removed);
+        Assert.False(missing);
+        Assert.Equal(new[] { 3 }, wrapper.getTags());
+
+        Assert.True(wrapper.removeTag(3));
+        Assert.Equal(new[] { 0 }, wrapper.getTags());
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
     public void LinedefWrapperFlipsVerticesAndSidedefs()
     {
         var start = new Vertex(new Vector2D(0, 0));

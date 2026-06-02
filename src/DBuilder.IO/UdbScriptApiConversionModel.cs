@@ -1090,6 +1090,37 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         return linedef.SideOfLine(new Vector2D(point.x, point.y));
     }
 
+    public int[] getTags()
+    {
+        ThrowIfDisposed("getTags");
+        return linedef.Tags.ToArray();
+    }
+
+    public bool addTag(int tag)
+    {
+        ThrowIfDisposed("addTag");
+        if (linedef.Tags.Contains(tag))
+            return false;
+
+        linedef.Tags.Add(tag);
+        linedef.Tags.Remove(0);
+        return true;
+    }
+
+    public bool removeTag(int tag)
+    {
+        ThrowIfDisposed("removeTag");
+        if (!linedef.Tags.Contains(tag))
+            return false;
+
+        if (linedef.Tags.Count == 1)
+            linedef.Tag = 0;
+        else
+            linedef.Tags.Remove(tag);
+
+        return true;
+    }
+
     public bool Equals(UdbScriptLinedefWrapper? other)
         => other is not null && ReferenceEquals(linedef, other.linedef);
 
