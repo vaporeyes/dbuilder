@@ -185,6 +185,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port remaining map options.
 - [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add UDB-style custom UDMF field name validation for editable field text.
+  - [x] Preserve raw custom-field string values through quoted text editing.
 - [x] Port argument handling and typed field access.
 - [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.
@@ -855,6 +856,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Include selected sidedefs in custom-fields dialog availability and dispatch.
   - [x] Show configured universal fields separately from raw custom fields in the custom-fields dialog.
   - [x] Persist dynamic custom-field type metadata from the custom-fields dialog.
+  - [x] Preserve string custom-field values that look like booleans or numbers.
 - [ ] Port map options dialog.
   - [x] Add basic map marker and UDMF namespace dialog.
   - [x] Add drawing default fields to the map options dialog.

@@ -27,7 +27,7 @@
       "udbArea": "Source/Core/Controls",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area with active game configuration, tested mode, snap-grid, and coordinate detail formatting, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, basic property dialogs, explicit selected-element Properties command, Insert at Cursor toolbar access, universal handler option lists for boolean, enum, byte-angle, integer degree-angle, decimal degree-angle, and thing-class editors, including the standalone custom-fields dialog, dynamic custom-field type metadata persistence, active external game-configuration picker rows, UDB-style script document tab identity with persisted view settings, script compiler error routing by tab type, and script tab title updates. Full UDB control set parity remains incomplete."
+      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area with active game configuration, tested mode, snap-grid, and coordinate detail formatting, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields with quoted string preservation, basic property dialogs, explicit selected-element Properties command, Insert at Cursor toolbar access, universal handler option lists for boolean, enum, byte-angle, integer degree-angle, decimal degree-angle, and thing-class editors, including the standalone custom-fields dialog, dynamic custom-field type metadata persistence, active external game-configuration picker rows, UDB-style script document tab identity with persisted view settings, script compiler error routing by tab type, and script tab title updates. Full UDB control set parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Data",
@@ -75,7 +75,7 @@
       "udbArea": "Source/Core/Map",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Map model coverage includes element collections, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
+      "notes": "Map model coverage includes element collections, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation and quoted string preservation for editable fields, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
     },
     {
       "udbArea": "Source/Core/Plugins",
@@ -86,7 +86,7 @@
       "udbArea": "Source/Core/Properties",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, selected linedef, thing, sector, and sidedef UDMF flag editing, selected sidedef custom-fields editing, configured universal fields in the standalone custom-fields dialog, and dynamic custom-field type metadata persistence. Full UDB property panel and field editor parity remains incomplete."
+      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, selected linedef, thing, sector, and sidedef UDMF flag editing, selected sidedef custom-fields editing, configured universal fields in the standalone custom-fields dialog, raw string value preservation in custom-field text editing, and dynamic custom-field type metadata persistence. Full UDB property panel and field editor parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Rendering",
@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map with active-config candidate filtering, sidecar game-configuration loading by resolved path, script-compiler override/default selection, strict-patch toggling, and config-aware long-texture-name toggling, settings, game configuration selection with active-row matching, active external cfg rows, per-configuration resource editing and persistence, and tested required-archive default mapping, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options including compiled ACS script compiler selection, resource options with tested UDB-compatible option mapping, grid setup with named background source choices, percent background scale fields, background texture and flat browsers, background image file picking, show-background toggling and disabled-state behavior, structured single-element info panels including tested vertex, linedef, thing, sector, and sidedef rows plus previews, and tested map overview and multi-selection info summaries are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map with active-config candidate filtering, sidecar game-configuration loading by resolved path, script-compiler override/default selection, strict-patch toggling, and config-aware long-texture-name toggling, settings, game configuration selection with active-row matching, active external cfg rows, per-configuration resource editing and persistence, and tested required-archive default mapping, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, raw string value preservation, and dynamic field type persistence, map markers, map options including compiled ACS script compiler selection, resource options with tested UDB-compatible option mapping, grid setup with named background source choices, percent background scale fields, background texture and flat browsers, background image file picking, show-background toggling and disabled-state behavior, structured single-element info panels including tested vertex, linedef, thing, sector, and sidedef rows plus previews, and tested map overview and multi-selection info summaries are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",

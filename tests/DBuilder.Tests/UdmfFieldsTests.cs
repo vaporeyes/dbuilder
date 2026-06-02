@@ -1,4 +1,5 @@
-// ABOUTME: Tests custom UDMF field format/parse with type inference (bool/int/double/string) and round-tripping.
+// ABOUTME: Tests custom UDMF field format/parse with type inference and string escaping.
+// ABOUTME: Covers the property-dialog text model used for raw UDMF custom field editing.
 
 using System.Collections.Generic;
 using DBuilder.Map;
@@ -22,6 +23,14 @@ public class UdmfFieldsTests
     {
         var f = UdmfFields.Parse("label = \"123\"");
         Assert.Equal("123", Assert.IsType<string>(f["label"])); // quoted -> string even though numeric
+    }
+
+    [Fact]
+    public void QuotedValueUnescapesUdmfStringCharacters()
+    {
+        var f = UdmfFields.Parse("label = \"line 1\\n\\\"quoted\\\"\\\\path\"");
+
+        Assert.Equal("line 1\n\"quoted\"\\path", Assert.IsType<string>(f["label"]));
     }
 
     [Fact]
@@ -68,10 +77,46 @@ public class UdmfFieldsTests
     }
 
     [Fact]
+    public void FormatQuotesStringsSoTypeInferenceDoesNotChangeThem()
+    {
+        var src = new Dictionary<string, object>
+        {
+            ["bool_text"] = "true",
+            ["number_text"] = "123",
+            ["decimal_text"] = "1.25",
+            ["quoted"] = "say \"hello\"",
+            ["path"] = "a\\b",
+            ["multiline"] = "line 1\nline 2",
+        };
+
+        string text = UdmfFields.Format(src);
+        var round = UdmfFields.Parse(text);
+
+        Assert.Equal("\"true\"", ExtractValue(text, "bool_text"));
+        Assert.Equal("\"123\"", ExtractValue(text, "number_text"));
+        Assert.Equal("\"1.25\"", ExtractValue(text, "decimal_text"));
+        Assert.Equal("\"say \\\"hello\\\"\"", ExtractValue(text, "quoted"));
+        Assert.Equal("\"a\\\\b\"", ExtractValue(text, "path"));
+        Assert.Equal("\"line 1\\nline 2\"", ExtractValue(text, "multiline"));
+        Assert.Equal(src, round);
+    }
+
+    [Fact]
     public void FormatIsSortedAndEmptyForEmpty()
     {
         Assert.Equal("", UdmfFields.Format(new Dictionary<string, object>()));
         var s = UdmfFields.Format(new Dictionary<string, object> { ["zeta"] = 1, ["alpha"] = 2 });
         Assert.StartsWith("alpha = 2", s); // sorted by key
+    }
+
+    private static string ExtractValue(string text, string key)
+    {
+        foreach (string line in text.Split('\n'))
+        {
+            if (!line.StartsWith(key + " = ", System.StringComparison.Ordinal)) continue;
+            return line[(key.Length + 3)..];
+        }
+
+        return "";
     }
 }

@@ -1,6 +1,7 @@
 // ABOUTME: Formats and parses an element's custom UDMF fields as editable "key = value" text (for the property dialogs).
 // ABOUTME: Round-trips bool/int/double/string with UDMF-style type inference; covers comment, lightcolor, gravity, etc.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -60,12 +61,39 @@ public static class UdmfFields
 
     private static object InferValue(string v)
     {
-        if (v.Length >= 2 && v[0] == '"' && v[^1] == '"') return v[1..^1]; // explicit string
+        if (v.Length >= 2 && v[0] == '"' && v[^1] == '"') return UnescapeString(v[1..^1]);
         if (string.Equals(v, "true", System.StringComparison.OrdinalIgnoreCase)) return true;
         if (string.Equals(v, "false", System.StringComparison.OrdinalIgnoreCase)) return false;
         if (int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i)) return i;
         if (double.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out double d)) return d;
         return v;
+    }
+
+    private static string UnescapeString(string value)
+    {
+        var sb = new StringBuilder(value.Length);
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (c != '\\' || i + 1 >= value.Length)
+            {
+                sb.Append(c);
+                continue;
+            }
+
+            char next = value[++i];
+            sb.Append(next switch
+            {
+                'n' => '\n',
+                'r' => '\r',
+                't' => '\t',
+                '"' => '"',
+                '\\' => '\\',
+                _ => next,
+            });
+        }
+
+        return sb.ToString();
     }
 
     private static string ValueToString(object value) => value switch
@@ -75,6 +103,28 @@ public static class UdmfFields
         long l => l.ToString(CultureInfo.InvariantCulture),
         double db => db.ToString("0.######", CultureInfo.InvariantCulture),
         float f => ((double)f).ToString("0.######", CultureInfo.InvariantCulture),
-        _ => value?.ToString() ?? "",
+        string s => QuoteString(s),
+        _ => QuoteString(Convert.ToString(value, CultureInfo.InvariantCulture) ?? ""),
     };
+
+    private static string QuoteString(string value)
+    {
+        var sb = new StringBuilder(value.Length + 2);
+        sb.Append('"');
+        foreach (char c in value)
+        {
+            sb.Append(c switch
+            {
+                '\n' => "\\n",
+                '\r' => "\\r",
+                '\t' => "\\t",
+                '"' => "\\\"",
+                '\\' => "\\\\",
+                _ => c.ToString(),
+            });
+        }
+
+        sb.Append('"');
+        return sb.ToString();
+    }
 }
