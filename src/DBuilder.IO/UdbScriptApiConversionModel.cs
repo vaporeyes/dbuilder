@@ -954,10 +954,35 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         }
     }
 
-    public Linedef[] getLinedefs()
+    public UdbScriptLinedefWrapper[] getLinedefs()
     {
         ThrowIfDisposed("getLinedefs");
-        return vertex.Linedefs.Where(line => !line.IsDisposed).ToArray();
+        return vertex.Linedefs
+            .Where(line => !line.IsDisposed)
+            .Select(line => new UdbScriptLinedefWrapper(line))
+            .ToArray();
+    }
+
+    public double distanceToSq(object pos)
+    {
+        ThrowIfDisposed("distanceToSq");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return vertex.DistanceToSq(new Vector2D(point.x, point.y));
+    }
+
+    public double distanceTo(object pos)
+    {
+        ThrowIfDisposed("distanceTo");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return vertex.DistanceTo(new Vector2D(point.x, point.y));
+    }
+
+    public UdbScriptLinedefWrapper? nearestLinedef(object pos)
+    {
+        ThrowIfDisposed("nearestLinedef");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        Linedef? line = vertex.NearestLinedef(new Vector2D(point.x, point.y));
+        return line == null ? null : new UdbScriptLinedefWrapper(line);
     }
 
     public void copyPropertiesTo(UdbScriptVertexWrapper wrapper)

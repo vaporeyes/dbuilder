@@ -360,10 +360,28 @@ localsidedeftextureoffsets = true;
         vertex.Linedefs.Add(disposed);
         var wrapper = new UdbScriptVertexWrapper(vertex);
 
-        Linedef[] linedefs = wrapper.getLinedefs();
+        UdbScriptLinedefWrapper[] linedefs = wrapper.getLinedefs();
 
         Assert.Single(linedefs);
-        Assert.Same(active, linedefs[0]);
+        Assert.Same(active, linedefs[0].Linedef);
+    }
+
+    [Fact]
+    public void VertexWrapperReturnsDistanceAndNearestLinedef()
+    {
+        var vertex = new Vertex(new Vector2D(0, 0));
+        var horizontal = new Linedef(vertex, new Vertex(new Vector2D(64, 0)));
+        var vertical = new Linedef(vertex, new Vertex(new Vector2D(0, 64)));
+        vertex.Linedefs.Add(horizontal);
+        vertex.Linedefs.Add(vertical);
+        var wrapper = new UdbScriptVertexWrapper(vertex);
+
+        Assert.Equal(25.0, wrapper.distanceToSq(new object[] { 3.0, 4.0 }));
+        Assert.Equal(5.0, wrapper.distanceTo(new UdbScriptVector2DWrapper(3, 4)));
+        UdbScriptLinedefWrapper? nearest = wrapper.nearestLinedef(new object[] { 4.0, 20.0 });
+
+        Assert.NotNull(nearest);
+        Assert.Same(vertical, nearest.Linedef);
     }
 
     [Fact]
