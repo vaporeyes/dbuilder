@@ -276,6 +276,34 @@ properties
     }
 
     [Fact]
+    public void OpenMapScriptCompilerSelectionAppliesOverrideOrGameConfigDefault()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("default_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Default ACS";
+            scripttype = "ACS";
+            compiler = "acc";
+            """));
+        catalog.Add("map_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Map ACS";
+            scripttype = "ACS";
+            compiler = "acc";
+            """));
+
+        var mapOverride = new MapOptions { ScriptCompiler = "map_acs.cfg" };
+        MapOptionsScriptCompilerModel.ApplyOpenMapSelection(mapOverride, catalog, "default_acs.cfg");
+        Assert.Equal("map_acs.cfg", mapOverride.ScriptCompiler);
+
+        var defaultFallback = new MapOptions { ScriptCompiler = "missing.cfg" };
+        MapOptionsScriptCompilerModel.ApplyOpenMapSelection(defaultFallback, catalog, "default_acs.cfg");
+        Assert.Equal("default_acs.cfg", defaultFallback.ScriptCompiler);
+
+        var disabled = new MapOptions { ScriptCompiler = "missing.cfg" };
+        MapOptionsScriptCompilerModel.ApplyOpenMapSelection(disabled, catalog, "decorate.cfg");
+        Assert.Equal("", disabled.ScriptCompiler);
+    }
+
+    [Fact]
     public void CatalogSelectsDefaultAcsScriptConfigurationWhenMapOverrideIsEmpty()
     {
         var catalog = new ScriptConfigurationCatalog();

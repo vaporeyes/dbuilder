@@ -73,6 +73,15 @@ public static class MapOptionsScriptCompilerModel
         return new ScriptCompilerSelection(choices, selected, selected.Length > 0);
     }
 
+    public static void ApplyOpenMapSelection(
+        MapOptions options,
+        ScriptConfigurationCatalog? catalog,
+        string defaultScriptCompiler)
+    {
+        var selection = BuildSelection(catalog, options.ScriptCompiler, defaultScriptCompiler);
+        options.ScriptCompiler = selection.Enabled ? selection.SelectedKey : "";
+    }
+
     public static IReadOnlyList<ScriptCompilerChoice> CompiledChoices(ScriptConfigurationCatalog? catalog)
     {
         if (catalog is null) return Array.Empty<ScriptCompilerChoice>();

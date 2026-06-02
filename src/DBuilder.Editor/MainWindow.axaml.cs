@@ -3135,6 +3135,7 @@ public partial class MainWindow : Window
             _mapOptions = LoadMapOptions(_wadPath, entry.Name, out _mapSettings);
             selectedOptions?.ApplyTo(_mapOptions);
             LoadConfigFromMapOptions(_mapOptions);
+            ApplyOpenMapScriptCompiler(_mapOptions);
             SyncMapOptionsToView();
             int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
 
@@ -3172,6 +3173,14 @@ public partial class MainWindow : Window
         _configIsAuto = false;
         MapView.GameConfig = _config;
         ReloadCompilerConfiguration();
+    }
+
+    private void ApplyOpenMapScriptCompiler(MapOptions options)
+    {
+        MapOptionsScriptCompilerModel.ApplyOpenMapSelection(
+            options,
+            _scriptConfigurations,
+            _config?.DefaultScriptCompiler ?? "");
     }
 
     private OpenMapSelectionOptions OpenMapOptionsForWadEntry(MapEntry entry)
