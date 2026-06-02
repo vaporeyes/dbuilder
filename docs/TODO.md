@@ -901,6 +901,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
 - [ ] Port visual slope handles.
   - [x] Add UDB-style visual slope handle local meshes, sidedef and vertex placement basis, side inversion rules, and pivot points.
+  - [x] Add UDB-style slope-between-handles and default arch-between-handles plane application helpers for selected visual levels.
 - [ ] Port comments rendering.
   - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
 - [ ] Port color settings and color collections.
@@ -935,6 +936,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual Reset Plane Slope action metadata and selected floor/ceiling slope reset behavior.
   - [x] Add UDB-style visual slope picking mode toggles and adjacent vertex-slope selection setting.
   - [x] Honor game-configuration plane-equation support before enabling visual slope picking.
+  - [x] Add UDB-style Slope Between Handles and Arch Between Slope Handles action metadata.
 - [ ] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.

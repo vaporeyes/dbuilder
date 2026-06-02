@@ -302,6 +302,114 @@ public class VisualSlopeHandleTests
         Assert.Equal(VisualSlopeChangeResult.VerticalPlane, VisualSlopeHandles.ChangeTargetHeight(handle, sameLinePivot, 16));
     }
 
+    [Fact]
+    public void ApplySlopeBetweenHandlesUsesFirstHandleLineAndSecondHandleCenter()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0, 64);
+        VisualSlopeHandle sourceHandle = AddLineHandle(map, new Vector2D(0, 64), new Vector2D(64, 64), 16);
+        VisualSlopeHandle pivotHandle = AddLineHandle(map, new Vector2D(0, 0), new Vector2D(64, 0), 0);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenHandles(
+            [VisualSlopeLevel.Floor(target)],
+            [sourceHandle, pivotHandle]);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal("Sloped between slope handles.", result.StatusMessage);
+        Assert.True(target.HasFloorSlope);
+        Assert.Equal(16, target.GetFloorZ(new Vector2D(32, 64)), 1e-9);
+        Assert.Equal(0, target.GetFloorZ(new Vector2D(32, 0)), 1e-9);
+    }
+
+    [Fact]
+    public void ApplySlopeBetweenHandlesValidatesSelectionAndHandlePairLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle lineHandle = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle vertexHandle = VisualSlopeHandles.CreateVertex(sector.Sidedefs[0].Line.Start, sector, level);
+
+        VisualSlopeBetweenHandlesApplyResult noSelection = VisualSlopeHandles.ApplySlopeBetweenHandles(
+            [],
+            [lineHandle, lineHandle]);
+        VisualSlopeBetweenHandlesApplyResult oneHandle = VisualSlopeHandles.ApplySlopeBetweenHandles(
+            [level],
+            [lineHandle]);
+        VisualSlopeBetweenHandlesApplyResult vertex = VisualSlopeHandles.ApplySlopeBetweenHandles(
+            [level],
+            [lineHandle, vertexHandle]);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.MissingSelectedLevels, noSelection.Result);
+        Assert.Equal(VisualSlopeHandles.MissingSelectedLevelsMessage, noSelection.StatusMessage);
+        Assert.Equal(VisualSlopeBetweenHandlesResult.MissingHandlePair, oneHandle.Result);
+        Assert.Equal(VisualSlopeHandles.MissingHandlePairMessage, oneHandle.StatusMessage);
+        Assert.Equal(VisualSlopeBetweenHandlesResult.UnsupportedHandleKind, vertex.Result);
+        Assert.Equal(VisualSlopeHandles.UnsupportedHandleKindMessage, vertex.StatusMessage);
+    }
+
+    [Fact]
+    public void ApplyArchBetweenHandlesUsesUdbDefaultThetaAndOffset()
+    {
+        var map = new MapSet();
+        Sector left = AddRectSector(map, 0, 0, 50, 10);
+        Sector right = AddRectSector(map, 50, 0, 100, 10);
+        VisualSlopeHandle handle1 = AddLineHandle(map, new Vector2D(-10, 0), new Vector2D(10, 0), 128);
+        VisualSlopeHandle handle2 = AddLineHandle(map, new Vector2D(90, 0), new Vector2D(110, 0), 128);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenHandles(
+            [VisualSlopeLevel.Floor(left), VisualSlopeLevel.Floor(right)],
+            [handle1, handle2]);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(2, result.ChangedLevels);
+        Assert.Equal("Arched between slope handles.", result.StatusMessage);
+        Assert.True(left.HasFloorSlope);
+        Assert.True(right.HasFloorSlope);
+        Assert.Equal(128.0, left.GetFloorZ(new Vector2D(0, 5)), 2);
+        Assert.Equal(178.0, left.GetFloorZ(new Vector2D(50, 5)), 1);
+        Assert.Equal(128.0, right.GetFloorZ(new Vector2D(100, 5)), 1);
+    }
+
+    [Fact]
+    public void ApplyArchBetweenHandlesCanApplyCeilingLevels()
+    {
+        var map = new MapSet();
+        Sector target = AddRectSector(map, 0, 0, 50, 10);
+        Sector second = AddRectSector(map, 50, 0, 100, 10);
+        VisualSlopeHandle handle1 = AddLineHandle(map, new Vector2D(-10, 0), new Vector2D(10, 0), 256, ceiling: true);
+        VisualSlopeHandle handle2 = AddLineHandle(map, new Vector2D(90, 0), new Vector2D(110, 0), 256, ceiling: true);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenHandles(
+            [VisualSlopeLevel.Ceiling(target), VisualSlopeLevel.Ceiling(second)],
+            [handle1, handle2],
+            heightOffset: 16);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(2, result.ChangedLevels);
+        Assert.True(target.HasCeilSlope);
+        Assert.False(target.HasFloorSlope);
+        Assert.Equal(272.0, target.GetCeilZ(new Vector2D(0, 5)), 2);
+        Assert.Equal(322.0, target.GetCeilZ(new Vector2D(50, 5)), 1);
+    }
+
+    [Fact]
+    public void ApplyArchBetweenHandlesRequiresTwoSelectedLevels()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenHandles(
+            [level],
+            [handle, handle]);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.MissingSelectedLevels, result.Result);
+        Assert.Equal(VisualSlopeHandles.MissingArchSelectedLevelsMessage, result.StatusMessage);
+    }
+
     private static void AssertVector(Vector3D expected, Vector3D actual, double precision = 1e-9)
     {
         Assert.Equal(expected.x, actual.x, precision);
@@ -370,5 +478,39 @@ public class VisualSlopeHandleTests
         map.BuildIndexes();
 
         return sector;
+    }
+
+    private static Sector AddRectSector(MapSet map, double left, double top, double right, double bottom)
+    {
+        Sector sector = map.AddSector();
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+
+        Vertex a = map.AddVertex(new Vector2D(left, top));
+        Vertex b = map.AddVertex(new Vector2D(right, top));
+        Vertex c = map.AddVertex(new Vector2D(right, bottom));
+        Vertex d = map.AddVertex(new Vector2D(left, bottom));
+
+        map.AddSidedef(map.AddLinedef(a, b), true, sector);
+        map.AddSidedef(map.AddLinedef(b, c), true, sector);
+        map.AddSidedef(map.AddLinedef(c, d), true, sector);
+        map.AddSidedef(map.AddLinedef(d, a), true, sector);
+        map.BuildIndexes();
+        return sector;
+    }
+
+    private static VisualSlopeHandle AddLineHandle(MapSet map, Vector2D start, Vector2D end, int height, bool ceiling = false)
+    {
+        Sector sector = map.AddSector();
+        sector.FloorHeight = height;
+        sector.CeilHeight = height;
+        Linedef line = map.AddLinedef(map.AddVertex(start), map.AddVertex(end));
+        Sidedef side = map.AddSidedef(line, true, sector);
+        var level = new VisualSlopeLevel(
+            sector,
+            ceiling ? VisualSlopeLevelType.Ceiling : VisualSlopeLevelType.Floor,
+            new Plane(new Vector3D(0, 0, 1), -height));
+        map.BuildIndexes();
+        return VisualSlopeHandles.CreateSidedef(side, level, up: true);
     }
 }

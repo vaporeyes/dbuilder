@@ -690,6 +690,8 @@ public class EditorCommandCatalogTests
             ["map3d.toggle-visual-vertex-slope-picking"] = "Toggle Visual Vertex Slope Picking",
             ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = "Toggle Adjacent Visual Vertex Slope Selection",
             ["map3d.reset-slope"] = "Reset Plane Slope",
+            ["map3d.slope-between-handles"] = "Slope Between Handles",
+            ["map3d.arch-between-handles"] = "Arch Between Slope Handles",
             ["map3d.move-camera-to-cursor"] = "Move Camera to Cursor",
         };
 

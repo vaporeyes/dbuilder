@@ -82,10 +82,27 @@ public enum VisualSlopeChangeResult
     VerticalPlane,
 }
 
+public enum VisualSlopeBetweenHandlesResult
+{
+    Changed,
+    MissingSelectedLevels,
+    MissingHandlePair,
+    UnsupportedHandleKind,
+}
+
+public sealed record VisualSlopeBetweenHandlesApplyResult(
+    VisualSlopeBetweenHandlesResult Result,
+    int ChangedLevels,
+    string StatusMessage);
+
 public static class VisualSlopeHandles
 {
     public const uint White = 0xffffffff;
     public const uint TransparentWhite = 0x00ffffff;
+    public const string MissingSelectedLevelsMessage = "You need to select floors or ceilings to slope between slope handles.";
+    public const string MissingArchSelectedLevelsMessage = "You need to select at least two floors and ceilings to slope arch between slope handles.";
+    public const string MissingHandlePairMessage = "You need to select exactly two slope handles.";
+    public const string UnsupportedHandleKindMessage = "Slope between handles requires sidedef slope handles.";
 
     public static VisualSlopeHandleMesh LineMesh { get; } = new(
     [
@@ -239,6 +256,129 @@ public static class VisualSlopeHandles
         return VisualSlopeChangeResult.Changed;
     }
 
+    public static VisualSlopeBetweenHandlesApplyResult ApplySlopeBetweenHandles(
+        IEnumerable<VisualSlopeLevel> selectedLevels,
+        IReadOnlyList<VisualSlopeHandle> handles)
+    {
+        VisualSlopeLevel[] levels = SelectedLevels(selectedLevels);
+        if (levels.Length == 0)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingSelectedLevels,
+                0,
+                MissingSelectedLevelsMessage);
+
+        if (handles == null || handles.Count != 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingHandlePair,
+                0,
+                MissingHandlePairMessage);
+
+        Sidedef? firstSide = handles[0].Sidedef;
+        Sidedef? secondSide = handles[1].Sidedef;
+        if (handles[0].Kind != VisualSlopeHandleKind.Line || handles[1].Kind != VisualSlopeHandleKind.Line ||
+            firstSide == null || secondSide == null)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.UnsupportedHandleKind,
+                0,
+                UnsupportedHandleKindMessage);
+
+        Linedef firstLine = firstSide.Line;
+        Vector2D start = firstLine.Start.Position;
+        Vector2D end = firstLine.End.Position;
+        Vector2D secondCenter = secondSide.Line.GetCenterPoint();
+        var plane = new Plane(
+            new Vector3D(start, handles[0].Level.Plane.GetZ(start)),
+            new Vector3D(end, handles[0].Level.Plane.GetZ(end)),
+            new Vector3D(secondCenter, handles[1].Level.Plane.GetZ(secondCenter)),
+            true);
+
+        foreach (VisualSlopeLevel level in levels)
+            ApplySlope(level, plane);
+
+        return new VisualSlopeBetweenHandlesApplyResult(
+            VisualSlopeBetweenHandlesResult.Changed,
+            levels.Length,
+            "Sloped between slope handles.");
+    }
+
+    public static VisualSlopeBetweenHandlesApplyResult ApplyArchBetweenHandles(
+        IEnumerable<VisualSlopeLevel> selectedLevels,
+        IReadOnlyList<VisualSlopeHandle> handles,
+        double scale = 1.0,
+        double heightOffset = 0.0)
+    {
+        VisualSlopeLevel[] levels = SelectedLevels(selectedLevels);
+        if (levels.Length < 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingSelectedLevels,
+                0,
+                MissingArchSelectedLevelsMessage);
+
+        if (handles == null || handles.Count != 2)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.MissingHandlePair,
+                0,
+                MissingHandlePairMessage);
+
+        Sidedef? firstSide = handles[0].Sidedef;
+        Sidedef? secondSide = handles[1].Sidedef;
+        if (handles[0].Kind != VisualSlopeHandleKind.Line || handles[1].Kind != VisualSlopeHandleKind.Line ||
+            firstSide == null || secondSide == null)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.UnsupportedHandleKind,
+                0,
+                UnsupportedHandleKindMessage);
+
+        Vector3D p1 = handles[0].GetPivotPoint();
+        Vector3D p2 = handles[1].GetPivotPoint();
+        double lineLength = Line2D.GetLength(p2.x - p1.x, p2.y - p1.y);
+        if (lineLength <= 0.0)
+            return new VisualSlopeBetweenHandlesApplyResult(
+                VisualSlopeBetweenHandlesResult.UnsupportedHandleKind,
+                0,
+                UnsupportedHandleKindMessage);
+
+        double zDiff = Math.Abs(p1.z - p2.z);
+        double theta;
+        double offsetAngle;
+        if (zDiff == 0.0)
+        {
+            theta = Math.PI;
+            offsetAngle = 0.0;
+        }
+        else
+        {
+            theta = Math.Atan(zDiff / lineLength) * 2;
+            offsetAngle = Math.PI / 2.0;
+            if (p2.z < p1.z) offsetAngle -= theta;
+        }
+
+        int baseHeight = BaseHeightForArch(handles[0].Level);
+        int changed = 0;
+        foreach (IGrouping<(VisualSlopeLevelType Type, bool ExtraFloor), VisualSlopeLevel> group in levels.GroupBy(level => (level.Type, level.ExtraFloor)))
+        {
+            bool ceiling = group.Key.ExtraFloor
+                ? group.Key.Type == VisualSlopeLevelType.Floor
+                : group.Key.Type == VisualSlopeLevelType.Ceiling;
+            var options = new SlopeArchOptions
+            {
+                Theta = theta,
+                OffsetAngle = offsetAngle,
+                Scale = scale,
+                BaseHeight = baseHeight,
+                HeightOffset = heightOffset,
+                ApplyToCeiling = ceiling,
+            };
+
+            changed += SlopeArchTool.Apply(group.Select(level => level.Sector), new Vector2D(p1.x, p1.y), new Vector2D(p2.x, p2.y), options);
+        }
+
+        return new VisualSlopeBetweenHandlesApplyResult(
+            VisualSlopeBetweenHandlesResult.Changed,
+            changed,
+            "Arched between slope handles.");
+    }
+
     public static VisualSlopeHandle? GetSmartVertexPivot(
         VisualSlopeHandle handle,
         IEnumerable<VisualSlopeHandle> handles,
@@ -385,6 +525,20 @@ public static class VisualSlopeHandles
            && left.ExtraFloor == right.ExtraFloor
            && left.Plane.Normal == right.Plane.Normal
            && left.Plane.Offset == right.Plane.Offset;
+
+    private static VisualSlopeLevel[] SelectedLevels(IEnumerable<VisualSlopeLevel> selectedLevels)
+    {
+        if (selectedLevels == null) throw new ArgumentNullException(nameof(selectedLevels));
+        return selectedLevels.Where(level => level?.Sector != null && !level.Sector.IsDisposed).ToArray();
+    }
+
+    private static int BaseHeightForArch(VisualSlopeLevel level)
+    {
+        if (level.Type == VisualSlopeLevelType.Ceiling)
+            return level.ExtraFloor ? level.Sector.FloorHeight : level.Sector.CeilHeight;
+
+        return level.ExtraFloor ? level.Sector.CeilHeight : level.Sector.FloorHeight;
+    }
 
     private static HashSet<Sector> AdjacentSectors(Vertex vertex)
     {
