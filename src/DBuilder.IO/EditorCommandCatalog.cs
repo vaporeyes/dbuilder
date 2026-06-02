@@ -49,6 +49,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.game-configurations", "Game Configurations", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.preferences", "Preferences", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.view-used-tags", "View Used Tags", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.tag-explorer", "Tag Explorer", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.view-thing-types", "View Thing Types", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false),

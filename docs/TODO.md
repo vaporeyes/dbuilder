@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3187 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3188 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1225,6 +1225,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style distinct-sector post-line planning and materialization for connected straight stairs.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
+  - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
   - [x] Add UDB-style grouped Tag Explorer tree and export text model.
   - [x] Add UDB-style thing category grouping in Tag Explorer index view.
@@ -1525,6 +1526,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Stair Sector Builder mode and Select Sectors Outline command metadata and outline selection helper.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
+  - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.
   - [x] Add UDB-style thing category grouping in index view.
   - [x] Add UDB-style configured action and effect labels in action grouping.
   - [x] Add UDB-style generalized sector effect expansion in action grouping.

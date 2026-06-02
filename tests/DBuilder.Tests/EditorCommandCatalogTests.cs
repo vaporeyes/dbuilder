@@ -21,6 +21,7 @@ public class EditorCommandCatalogTests
         Assert.Contains("window.toggle-auto-clear-sidedef-textures", ids);
         Assert.Contains("window.make-door", ids);
         Assert.Contains("window.tag-range", ids);
+        Assert.Contains("window.tag-explorer", ids);
         Assert.Contains("window.blockmap-explorer", ids);
         Assert.Contains("window.reject-explorer", ids);
         Assert.Contains("window.nodes-viewer", ids);
@@ -176,6 +177,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void TagExplorerCommandMatchesUdbDockerSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.tag-explorer");
+
+        Assert.NotNull(command);
+        Assert.Equal(TagExplorerModel.DockerTitle, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
     }
 
