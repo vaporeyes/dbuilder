@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3158 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3159 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -997,6 +997,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
   - [x] Add UDB-style visual Toggle Slope action metadata and Plane_Align dispatch for selected surfaces.
   - [x] Add UDB-style visual Reset Plane Slope action metadata and selected floor/ceiling slope reset behavior.
+  - [x] Match UDB visual Reset Plane Slope empty-selection warning in the reset model.
   - [x] Add UDB-style visual slope picking mode toggles and adjacent vertex-slope selection setting.
   - [x] Honor game-configuration plane-equation support before enabling visual slope picking.
   - [x] Add UDB-style Slope Between Handles and Arch Between Slope Handles action metadata.

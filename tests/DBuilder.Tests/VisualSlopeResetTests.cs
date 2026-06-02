@@ -9,6 +9,16 @@ namespace DBuilder.Tests;
 public class VisualSlopeResetTests
 {
     [Fact]
+    public void EmptySelectionReportsUdbWarning()
+    {
+        VisualSlopeResetResult result = VisualSlopeReset.Reset([]);
+
+        Assert.False(result.Changed);
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal(VisualSlopeReset.EmptySelectionMessage, result.StatusMessage);
+    }
+
+    [Fact]
     public void FloorSelectionClearsFloorSlopeOnly()
     {
         var sector = SlopedSector();

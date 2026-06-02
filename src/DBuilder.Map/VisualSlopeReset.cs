@@ -19,11 +19,15 @@ public static class VisualSlopeReset
     {
         if (targets == null) throw new ArgumentNullException(nameof(targets));
 
+        VisualSlopeResetTarget[] all = targets.ToArray();
+        if (all.Length == 0)
+            return new VisualSlopeResetResult(0, 0, EmptySelectionMessage);
+
         int floors = 0;
         int ceilings = 0;
         var seen = new HashSet<(Sector Sector, bool Ceiling)>();
 
-        foreach (VisualSlopeResetTarget target in targets)
+        foreach (VisualSlopeResetTarget target in all)
         {
             if (!seen.Add((target.Sector, target.Ceiling))) continue;
 
