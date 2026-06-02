@@ -1339,6 +1339,27 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         return linedef.SideOfLine(new Vector2D(point.x, point.y));
     }
 
+    public UdbScriptLinedefWrapper split(object pos)
+    {
+        ThrowIfDisposed("split");
+        Vertex vertex = pos is UdbScriptVertexWrapper wrapper
+            ? wrapper.Vertex
+            : CreateSplitVertex(pos);
+
+        Linedef newLine;
+        if (owner != null)
+        {
+            newLine = owner.SplitLinedefAt(linedef, vertex);
+            owner.BuildIndexes();
+        }
+        else
+        {
+            newLine = SplitStandalone(linedef, vertex);
+        }
+
+        return new UdbScriptLinedefWrapper(newLine, owner);
+    }
+
     public int[] getTags()
     {
         ThrowIfDisposed("getTags");
@@ -1397,6 +1418,38 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
     {
         if (linedef.IsDisposed)
             throw new InvalidOperationException("Linedef is disposed, the " + member + " member can not be accessed.");
+    }
+
+    private Vertex CreateSplitVertex(object pos)
+    {
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return owner?.AddVertex(new Vector2D(point.x, point.y)) ?? new Vertex(new Vector2D(point.x, point.y));
+    }
+
+    private static Linedef SplitStandalone(Linedef line, Vertex vertex)
+    {
+        double firstHalfLen = (vertex.Position - line.Start.Position).GetLength();
+        Vertex oldEnd = line.End;
+        var newLine = new Linedef(vertex, oldEnd);
+        line.CopyPropertiesTo(newLine);
+        line.SetEndVertex(vertex);
+
+        if (line.Front != null)
+        {
+            var front = new Sidedef(newLine, isFront: true) { Sector = line.Front.Sector };
+            line.Front.CopyPropertiesTo(front);
+            front.OffsetX += (int)Math.Round(firstHalfLen);
+            newLine.AttachFront(front);
+        }
+
+        if (line.Back != null)
+        {
+            var back = new Sidedef(newLine, isFront: false) { Sector = line.Back.Sector };
+            line.Back.CopyPropertiesTo(back);
+            newLine.AttachBack(back);
+        }
+
+        return newLine;
     }
 }
 
