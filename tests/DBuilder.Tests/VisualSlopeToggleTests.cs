@@ -9,6 +9,16 @@ namespace DBuilder.Tests;
 public class VisualSlopeToggleTests
 {
     [Fact]
+    public void EmptySelectionReportsUdbWarning()
+    {
+        VisualSlopeToggleResult result = VisualSlopeToggle.Toggle([]);
+
+        Assert.False(result.Changed);
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal(VisualSlopeToggle.EmptySelectionMessage, result.StatusMessage);
+    }
+
+    [Fact]
     public void LowerWallSelectionAssignsFloorPlaneAlignForTargetSide()
     {
         var map = new MapSet();

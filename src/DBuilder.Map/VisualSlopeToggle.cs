@@ -24,8 +24,12 @@ public static class VisualSlopeToggle
     {
         if (targets == null) throw new ArgumentNullException(nameof(targets));
 
+        VisualSlopeToggleTarget[] all = targets.ToArray();
+        if (all.Length == 0)
+            return new VisualSlopeToggleResult(0, EmptySelectionMessage);
+
         int changed = 0;
-        foreach (VisualSlopeToggleTarget target in targets)
+        foreach (VisualSlopeToggleTarget target in all)
         {
             bool targetChanged = target.Part switch
             {
