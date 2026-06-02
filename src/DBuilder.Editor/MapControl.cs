@@ -1528,6 +1528,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return targets;
     }
 
+    private System.Collections.Generic.List<Linedef> WallLineTargets3D()
+    {
+        var targets = new System.Collections.Generic.List<Linedef>();
+        var seen = new System.Collections.Generic.HashSet<Linedef>();
+        foreach (VisualHit hit in EditTargets3D())
+            if (hit.Kind == VisualHitKind.Wall && hit.Line != null && seen.Add(hit.Line)) targets.Add(hit.Line);
+        return targets;
+    }
+
     // Nudges the targeted or selected walls' texture offsets, undoable.
     private void NudgeTargetOffset3D(int deltaX, int deltaY)
     {
@@ -1544,6 +1553,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         RequestNextFrameRendering();
         Target3DChanged?.Invoke($"offset {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
+    }
+
+    private static bool IsLineFlagSet3D(Linedef line, string flag)
+    {
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0") return false;
+        if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+            return bit != 0 && (line.Flags & bit) == bit;
+        return line.IsFlagSet(flag);
+    }
+
+    private static void SetLineFlag3D(Linedef line, string flag, bool value)
+    {
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0") return;
+        if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+        {
+            if (value) line.Flags |= bit;
+            else line.Flags &= ~bit;
+            return;
+        }
+
+        line.SetFlag(flag, value);
+    }
+
+    private void ToggleUnpegged3D(bool upper)
+    {
+        string flag = upper ? _gameConfig?.UpperUnpeggedFlag ?? "0" : _gameConfig?.LowerUnpeggedFlag ?? "0";
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0")
+        {
+            Target3DChanged?.Invoke($"{(upper ? "upper" : "lower")} unpegged flag is not configured");
+            return;
+        }
+
+        var targets = WallLineTargets3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to toggle unpegged"); return; }
+
+        bool next = !IsLineFlagSet3D(targets[0], flag);
+        EditBegun?.Invoke(next
+            ? (upper ? "Set upper unpegged" : "Set lower unpegged")
+            : (upper ? "Remove upper unpegged" : "Remove lower unpegged"));
+        foreach (Linedef line in targets) SetLineFlag3D(line, flag, next);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"{(next ? "set" : "removed")} {(upper ? "upper" : "lower")} unpegged");
     }
 
     // Resets the targeted wall's texture offsets to zero, undoable.
@@ -3611,6 +3665,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.reset-offsets":
                 ResetTargetOffsets3D();
+                return true;
+            case "map3d.toggle-upper-unpegged":
+                ToggleUnpegged3D(upper: true);
+                return true;
+            case "map3d.toggle-lower-unpegged":
+                ToggleUnpegged3D(upper: false);
                 return true;
             case "map3d.delete-target":
                 DeleteTargetThing3D();

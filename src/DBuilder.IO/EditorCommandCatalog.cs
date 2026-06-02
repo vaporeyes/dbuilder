@@ -244,6 +244,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.move-texture-up-grid", "Move Texture Up by Grid Size", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.move-texture-down-grid", "Move Texture Down by Grid Size", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.reset-offsets", "Reset texture offsets", "O", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
+        new EditorCommandDescriptor("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-visual-sidedef-slope-picking", "Toggle Visual Sidedef Slope Picking", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-visual-vertex-slope-picking", "Toggle Visual Vertex Slope Picking", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-visual-vertex-slope-adjacent-selection", "Toggle Adjacent Visual Vertex Slope Selection", "Menu", EditorCommandScope.Map3D),

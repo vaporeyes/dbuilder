@@ -968,6 +968,23 @@ public class EditorCommandCatalogTests
         Assert.True(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged")]
+    [InlineData("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged")]
+    public void VisualUnpeggedCommandsMatchUdbActionSurface(string id, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
     [Fact]
     public void RepeatableCommandMetadataMatchesAdjustmentActions()
     {
