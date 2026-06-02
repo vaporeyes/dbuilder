@@ -58,6 +58,24 @@ public sealed class ThingModelRenderPlannerTests
     }
 
     [Fact]
+    public void EnhancedRenderingEffectsToggleBundlesVisualRenderModes()
+    {
+        VisualRenderingEffectsState disabled = VisualRenderingEffectsPlanner.Toggle(VisualRenderingEffectsPlanner.Enabled());
+
+        Assert.False(disabled.EnhancedRenderingEffects);
+        Assert.Equal(ThingLightRenderMode.None, disabled.LightRenderMode);
+        Assert.Equal(ThingModelRenderMode.None, disabled.ModelRenderMode);
+        Assert.False(disabled.Show3DFloors);
+
+        VisualRenderingEffectsState enabled = VisualRenderingEffectsPlanner.Toggle(disabled);
+
+        Assert.True(enabled.EnhancedRenderingEffects);
+        Assert.Equal(ThingLightRenderMode.All, enabled.LightRenderMode);
+        Assert.Equal(ThingModelRenderMode.All, enabled.ModelRenderMode);
+        Assert.True(enabled.Show3DFloors);
+    }
+
+    [Fact]
     public void BuildsModeldefTransformWithUdbOffsetAndScaleAxes()
     {
         ThingModelDisplay display = Display(

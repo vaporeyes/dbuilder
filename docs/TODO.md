@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3119 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3122 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1031,6 +1031,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
   - [x] Add UDB-style Toggle dynamic lights rendering action and persisted display-mode cycling.
+  - [x] Add UDB-style Toggle Enhanced Rendering Effects action for the available visual rendering effect bundle.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.

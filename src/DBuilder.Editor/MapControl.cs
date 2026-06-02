@@ -199,6 +199,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _useHighlight = true;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
+    private bool _enhancedRenderingEffects = true;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -213,6 +214,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool UseHighlight => _useHighlight;
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
+    public bool EnhancedRenderingEffects => _enhancedRenderingEffects;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -317,6 +319,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public ThingLightRenderMode CycleLightRenderMode()
         => SetLightRenderMode(ThingLightRenderPlanner.NextMode(_lightRenderMode));
+
+    public bool SetEnhancedRenderingEffects(bool enabled)
+    {
+        if (!enabled)
+        {
+            ApplyRenderingEffectsState(VisualRenderingEffectsPlanner.Disabled());
+            return _enhancedRenderingEffects;
+        }
+
+        if (_enhancedRenderingEffects == enabled) return _enhancedRenderingEffects;
+        _enhancedRenderingEffects = enabled;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _enhancedRenderingEffects;
+    }
+
+    public VisualRenderingEffectsState ToggleEnhancedRenderingEffects()
+    {
+        VisualRenderingEffectsState state = VisualRenderingEffectsPlanner.Toggle(new VisualRenderingEffectsState(
+            _enhancedRenderingEffects,
+            _lightRenderMode,
+            _modelRenderMode,
+            _show3DFloors));
+        ApplyRenderingEffectsState(state);
+        return state;
+    }
+
+    private void ApplyRenderingEffectsState(VisualRenderingEffectsState state)
+    {
+        bool changed = _enhancedRenderingEffects != state.EnhancedRenderingEffects
+            || _lightRenderMode != state.LightRenderMode
+            || _modelRenderMode != state.ModelRenderMode
+            || _show3DFloors != state.Show3DFloors;
+        if (!changed) return;
+
+        _enhancedRenderingEffects = state.EnhancedRenderingEffects;
+        _lightRenderMode = state.LightRenderMode;
+        _modelRenderMode = state.ModelRenderMode;
+        _show3DFloors = state.Show3DFloors;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+    }
 
     public bool SetAlphaBasedTextureHighlighting(bool enabled)
     {
@@ -5072,6 +5119,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.toggle-dynamic-lights-rendering":
                 CycleLightRenderMode();
                 Target3DChanged?.Invoke($"Dynamic lights rendering mode: {ThingLightRenderPlanner.StatusLabel(_lightRenderMode)}");
+                return true;
+            case "map3d.toggle-enhanced-rendering-effects":
+                ToggleEnhancedRenderingEffects();
+                Target3DChanged?.Invoke($"Enhanced rendering effects are {(_enhancedRenderingEffects ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
                 ToggleVisualSidedefSlopePicking();

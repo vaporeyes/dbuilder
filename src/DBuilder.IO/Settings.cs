@@ -33,6 +33,7 @@ public sealed class Settings
     public int? DefaultViewMode { get; set; }
     public int? ModelRenderMode { get; set; }
     public int? LightRenderMode { get; set; }
+    public bool EnhancedRenderingEffects { get; set; } = true;
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
