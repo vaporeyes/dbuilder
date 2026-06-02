@@ -347,6 +347,29 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void ResolvedThreeDFloorSideReportsTargetSectorOnTwoSidedBoundary()
+    {
+        var map = new MapSet();
+        var target = map.AddSector(); target.FloorHeight = 0; target.CeilHeight = 128;
+        var neighbor = map.AddSector(); neighbor.FloorHeight = 0; neighbor.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(50, 0));
+        var end = map.AddVertex(new Vector2D(50, 100));
+        var line = map.AddLinedef(start, end);
+        map.AddSidedef(line, true, target);
+        map.AddSidedef(line, false, neighbor);
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(20, 50, 48), new Vector3D(1, 0, 0));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Wall, hit!.Kind);
+        Assert.Same(line, hit.Line);
+        Assert.Equal(SidedefPart.Middle, hit.Part);
+        Assert.Same(target, hit.Sector);
+        Assert.False(hit.Front);
+    }
+
+    [Fact]
     public void SlopedFloorIsHitAtItsSlopedHeight()
     {
         var (map, s, _) = Room();

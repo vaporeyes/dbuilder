@@ -79,7 +79,7 @@ public static class VisualPicking
                 TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: true, options, ref best, ref bestDist);
                 TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: false, options, ref best, ref bestDist);
                 foreach (Sidedef side in sector.Sidedefs)
-                    TryThreeDFloorSide(origin, dir, side, floor, options, ref best, ref bestDist);
+                    TryThreeDFloorSide(origin, dir, sector, side, floor, options, ref best, ref bestDist);
             }
         }
 
@@ -239,6 +239,7 @@ public static class VisualPicking
     private static void TryThreeDFloorSide(
         Vector3D o,
         Vector3D d,
+        Sector targetSector,
         Sidedef side,
         ThreeDFloor floor,
         VisualPickingOptions options,
@@ -254,14 +255,14 @@ public static class VisualPicking
         if (startTop <= startBottom && endTop <= endBottom) return;
 
         TryWall(o, d, side.Line, startBottom, endBottom, startTop, endTop, SidedefPart.Middle, options,
-            ref best, ref bestDist, alphaTestTextureSide: side, alphaTestTextureName: floor.SideTexture);
+            ref best, ref bestDist, sectorOverride: targetSector, alphaTestTextureSide: side, alphaTestTextureName: floor.SideTexture);
     }
 
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
         SidedefPart part, VisualPickingOptions options, ref VisualHit? best, ref double bestDist, bool alphaTestMiddleTexture = false,
-        Sidedef? alphaTestTextureSide = null, string? alphaTestTextureName = null)
+        Sector? sectorOverride = null, Sidedef? alphaTestTextureSide = null, string? alphaTestTextureName = null)
     {
         var a = l.Start.Position;
         var b = l.End.Position;
@@ -281,7 +282,7 @@ public static class VisualPicking
 
         // The visible side is the one facing the camera (front when the origin is on the right of start->end).
         bool front = Line2D.GetSideOfLine(a, b, new Vector2D(o.x, o.y)) < 0;
-        var sector = front ? l.Front?.Sector : l.Back?.Sector;
+        var sector = sectorOverride ?? (front ? l.Front?.Sector : l.Back?.Sector);
         var side = front ? l.Front : l.Back;
         if (alphaTestMiddleTexture && side != null && !MiddleTexturePixelIsOpaque(side, seg, z, bot, options))
             return;

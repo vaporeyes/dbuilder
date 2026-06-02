@@ -945,6 +945,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply alpha-based texture highlighting to transparent-pixel 3D floor hit testing.
   - [x] Pick resolved 3D floor side bands before target-sector walls.
   - [x] Pick sloped resolved 3D floor planes from control-sector floor and ceiling slopes.
+  - [x] Report resolved target sectors for 3D floor side-band hits on two-sided boundaries.
 - [ ] Port surface highlighting and selection behavior.
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
