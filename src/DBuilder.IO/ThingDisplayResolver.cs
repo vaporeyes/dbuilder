@@ -46,6 +46,61 @@ public sealed record ThingModelDisplayPart(
     private static readonly IReadOnlyDictionary<int, string> EmptySurfaceSkinNames = new Dictionary<int, string>();
 }
 
+public sealed record ThingModelData(
+    string Path,
+    ModeldefVector Scale,
+    ModeldefVector Offset,
+    ModeldefVector RotationCenter,
+    float AngleOffset,
+    float PitchOffset,
+    float RollOffset,
+    bool InheritActorPitch,
+    bool UseActorPitch,
+    bool UseActorRoll,
+    bool UseRotationCenter,
+    IReadOnlyList<string> ModelNames,
+    IReadOnlyList<string> SkinNames,
+    IReadOnlyList<IReadOnlyDictionary<int, string>> SurfaceSkinNames,
+    IReadOnlyList<string> FrameNames,
+    IReadOnlyList<int> FrameIndices)
+{
+    public static ThingModelData FromDisplay(ThingModelDisplay display)
+    {
+        var modelNames = new List<string>(display.Parts.Count);
+        var skinNames = new List<string>(display.Parts.Count);
+        var surfaceSkinNames = new List<IReadOnlyDictionary<int, string>>(display.Parts.Count);
+        var frameNames = new List<string>(display.Parts.Count);
+        var frameIndices = new List<int>(display.Parts.Count);
+
+        foreach (ThingModelDisplayPart part in display.Parts)
+        {
+            modelNames.Add(part.ModelName.ToLowerInvariant());
+            skinNames.Add(part.SkinName.ToLowerInvariant());
+            surfaceSkinNames.Add(new Dictionary<int, string>(part.EffectiveSurfaceSkinNames));
+            frameNames.Add(part.FrameName);
+            frameIndices.Add(part.FrameIndex);
+        }
+
+        return new ThingModelData(
+            display.Path,
+            display.Scale,
+            display.Offset,
+            display.RotationCenter,
+            display.AngleOffset,
+            display.PitchOffset,
+            display.RollOffset,
+            display.InheritActorPitch,
+            display.UseActorPitch,
+            display.UseActorRoll,
+            display.UseRotationCenter,
+            modelNames,
+            skinNames,
+            surfaceSkinNames,
+            frameNames,
+            frameIndices);
+    }
+}
+
 public static class ThingDisplayResolver
 {
     public static ThingDisplaySource Resolve(ThingTypeInfo? thingInfo, ResourceManager? resources)

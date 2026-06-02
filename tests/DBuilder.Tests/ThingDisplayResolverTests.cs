@@ -76,6 +76,65 @@ public sealed class ThingDisplayResolverTests
     }
 
     [Fact]
+    public void ModelDisplayProjectsToUdbStyleModelData()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "Models"
+                    Model 0 "Lamp.MD3"
+                    Skin 0 "Lamp.PNG"
+                    SurfaceSkin 0 2 "Lamp_Alt.PNG"
+                    Scale 1.5 2.5 3.5
+                    Offset 4 5 6
+                    AngleOffset 45
+                    PitchOffset 10
+                    RollOffset 15
+                    Rotation-Center 7 8 9
+                    UseActorPitch
+                    UseActorRoll
+                    Userotationcenter
+                    Frame LAMP A 0 "Idle"
+                }
+                """)),
+            ("Models/Lamp.MD3", [1, 2, 3]),
+            ("Models/Lamp.PNG", [4, 5, 6]),
+            ("Models/Lamp_Alt.PNG", [7, 8, 9]));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+            ThingModelData data = ThingModelData.FromDisplay(source.ModelDisplay!);
+
+            Assert.Equal("Models", data.Path);
+            Assert.Equal(new ModeldefVector(2.5f, 1.5f, 3.5f), data.Scale);
+            Assert.Equal(new ModeldefVector(4.0f, 5.0f, 6.0f), data.Offset);
+            Assert.Equal(new ModeldefVector(7.0f, 8.0f, 9.0f), data.RotationCenter);
+            Assert.Equal(45.0f, data.AngleOffset);
+            Assert.Equal(10.0f, data.PitchOffset);
+            Assert.Equal(15.0f, data.RollOffset);
+            Assert.False(data.InheritActorPitch);
+            Assert.True(data.UseActorPitch);
+            Assert.True(data.UseActorRoll);
+            Assert.True(data.UseRotationCenter);
+            Assert.Equal(new[] { "models/lamp.md3" }, data.ModelNames);
+            Assert.Equal(new[] { "models/lamp.png" }, data.SkinNames);
+            Assert.Equal(new[] { "Idle" }, data.FrameNames);
+            Assert.Equal(new[] { 0 }, data.FrameIndices);
+            Assert.Empty(Assert.Single(data.SurfaceSkinNames));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void SurfaceSkinsRemainEffectiveWhenSkinIsNotDefined()
     {
         string pk3 = TestArtifacts.BuildPk3(
@@ -103,6 +162,8 @@ public sealed class ThingDisplayResolverTests
             Assert.Equal("", part.SkinName);
             Assert.Equal("models/lamp_alt.png", Assert.Single(part.SurfaceSkinNames).Value);
             Assert.Equal("models/lamp_alt.png", Assert.Single(part.EffectiveSurfaceSkinNames).Value);
+            ThingModelData data = ThingModelData.FromDisplay(source.ModelDisplay);
+            Assert.Equal("models/lamp_alt.png", Assert.Single(Assert.Single(data.SurfaceSkinNames)).Value);
         }
         finally
         {
