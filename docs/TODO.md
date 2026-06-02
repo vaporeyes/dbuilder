@@ -1024,6 +1024,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port MD2 loader.
 - [ ] Port MD3 loader.
 - [ ] Port OBJ loader.
+  - [x] Add UDB-style OBJ model parser for vertices, texture coordinates, normals, quad splitting, material skins, surface-skin overrides, and parse errors.
 - [ ] Port IQM loader.
 - [ ] Port KVX loader.
 - [ ] Port Unreal model loader.
