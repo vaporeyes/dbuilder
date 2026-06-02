@@ -225,6 +225,27 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void SmartVertexPivotUsesSelectedVisualLevelsLikeUdb()
+    {
+        var map = new MapSet();
+        Sector source = AddSquareSector(map, 0, 64);
+        Sector selected = AddSquareSector(map, 256, 64);
+        VisualSlopeLevel sourceLevel = VisualSlopeLevel.Floor(source);
+        VisualSlopeLevel selectedLevel = VisualSlopeLevel.Floor(selected);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(source.Sidedefs[0].Line.Start, source, sourceLevel);
+        VisualSlopeHandle sameSector = VisualSlopeHandles.CreateVertex(source.Sidedefs[0].Line.End, source, sourceLevel);
+        VisualSlopeHandle selectedNear = VisualSlopeHandles.CreateVertex(selected.Sidedefs[0].Line.Start, selected, selectedLevel);
+        VisualSlopeHandle selectedFar = VisualSlopeHandles.CreateVertex(selected.Sidedefs[2].Line.Start, selected, selectedLevel);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartVertexPivot(
+            handle,
+            [handle, sameSector, selectedNear, selectedFar],
+            selectedLevels: [selectedLevel]);
+
+        Assert.Same(selectedFar, pivot);
+    }
+
+    [Fact]
     public void SmartSidedefPivotUsesClosestAngleThenFarthestSameLevelLineHandle()
     {
         var map = new MapSet();
@@ -258,6 +279,27 @@ public class VisualSlopeHandleTests
             useOppositeVertexHandle: true);
 
         Assert.Same(oppositeVertex, pivot);
+    }
+
+    [Fact]
+    public void SmartSidedefPivotUsesSelectedVisualLevelsLikeUdb()
+    {
+        var map = new MapSet();
+        Sector source = AddSquareSector(map, 0, 64);
+        Sector selected = AddSquareSector(map, 256, 64);
+        VisualSlopeLevel sourceLevel = VisualSlopeLevel.Floor(source);
+        VisualSlopeLevel selectedLevel = VisualSlopeLevel.Floor(selected);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(source.Sidedefs[0], sourceLevel, up: true);
+        VisualSlopeHandle sameSector = VisualSlopeHandles.CreateSidedef(source.Sidedefs[2], sourceLevel, up: true);
+        VisualSlopeHandle selectedPerpendicular = VisualSlopeHandles.CreateSidedef(selected.Sidedefs[1], selectedLevel, up: true);
+        VisualSlopeHandle selectedParallel = VisualSlopeHandles.CreateSidedef(selected.Sidedefs[2], selectedLevel, up: true);
+
+        VisualSlopeHandle? pivot = VisualSlopeHandles.GetSmartSidedefPivot(
+            handle,
+            [handle, sameSector, selectedPerpendicular, selectedParallel],
+            selectedLevels: [selectedLevel]);
+
+        Assert.Same(selectedParallel, pivot);
     }
 
     [Fact]

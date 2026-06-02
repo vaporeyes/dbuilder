@@ -382,7 +382,8 @@ public static class VisualSlopeHandles
     public static VisualSlopeHandle? GetSmartVertexPivot(
         VisualSlopeHandle handle,
         IEnumerable<VisualSlopeHandle> handles,
-        bool useOppositeLineHandle = false)
+        bool useOppositeLineHandle = false,
+        IEnumerable<VisualSlopeLevel>? selectedLevels = null)
     {
         if (handle == null) throw new ArgumentNullException(nameof(handle));
         if (handles == null) throw new ArgumentNullException(nameof(handles));
@@ -391,8 +392,9 @@ public static class VisualSlopeHandles
         if (handle.Vertex == null || handle.Sector == null)
             throw new ArgumentException("Vertex slope handle requires a vertex and sector.", nameof(handle));
 
+        VisualSlopeLevel[] selected = SelectedPivotLevels(selectedLevels);
         VisualSlopeHandle[] candidates = handles.Where(candidate => !ReferenceEquals(candidate, handle)).ToArray();
-        if (useOppositeLineHandle && handle.Sector.Sidedefs.Count == 3)
+        if (selected.Length == 0 && useOppositeLineHandle && handle.Sector.Sidedefs.Count == 3)
         {
             VisualSlopeHandle? opposite = candidates.FirstOrDefault(candidate =>
                 candidate.Kind == VisualSlopeHandleKind.Line
@@ -407,8 +409,9 @@ public static class VisualSlopeHandles
             .Where(candidate =>
                 candidate.Kind == VisualSlopeHandleKind.Vertex
                 && candidate.Vertex != null
-                && ReferenceEquals(candidate.Sector, handle.Sector)
-                && SameLevel(candidate.Level, handle.Level))
+                && (selected.Length == 0
+                    ? ReferenceEquals(candidate.Sector, handle.Sector) && SameLevel(candidate.Level, handle.Level)
+                    : selected.Any(level => SameLevel(candidate.Level, level))))
             .OrderByDescending(candidate => Vector2D.Distance(candidate.Vertex!.Position, handle.Vertex.Position))
             .FirstOrDefault();
     }
@@ -416,7 +419,8 @@ public static class VisualSlopeHandles
     public static VisualSlopeHandle? GetSmartSidedefPivot(
         VisualSlopeHandle handle,
         IEnumerable<VisualSlopeHandle> handles,
-        bool useOppositeVertexHandle = false)
+        bool useOppositeVertexHandle = false,
+        IEnumerable<VisualSlopeLevel>? selectedLevels = null)
     {
         if (handle == null) throw new ArgumentNullException(nameof(handle));
         if (handles == null) throw new ArgumentNullException(nameof(handles));
@@ -425,8 +429,9 @@ public static class VisualSlopeHandles
         Sidedef side = handle.Sidedef ?? throw new ArgumentException("Line slope handle requires a sidedef.", nameof(handle));
 
         Sector sector = side.Sector ?? throw new ArgumentException("Line slope handle requires a sector.", nameof(handle));
+        VisualSlopeLevel[] selected = SelectedPivotLevels(selectedLevels);
         VisualSlopeHandle[] candidates = handles.Where(candidate => !ReferenceEquals(candidate, handle)).ToArray();
-        if (useOppositeVertexHandle && sector.Sidedefs.Count == 3)
+        if (selected.Length == 0 && useOppositeVertexHandle && sector.Sidedefs.Count == 3)
         {
             VisualSlopeHandle? opposite = candidates.FirstOrDefault(candidate =>
                 candidate.Kind == VisualSlopeHandleKind.Vertex
@@ -443,8 +448,9 @@ public static class VisualSlopeHandles
             .Where(candidate =>
                 candidate.Kind == VisualSlopeHandleKind.Line
                 && candidate.Sidedef != null
-                && ReferenceEquals(candidate.Sidedef.Sector, sector)
-                && SameLevel(candidate.Level, handle.Level))
+                && (selected.Length == 0
+                    ? ReferenceEquals(candidate.Sidedef.Sector, sector) && SameLevel(candidate.Level, handle.Level)
+                    : selected.Any(level => SameLevel(candidate.Level, level))))
             .Select(candidate => new
             {
                 Handle = candidate,
@@ -578,6 +584,11 @@ public static class VisualSlopeHandles
 
     private static int NormalizedAngleDeg(Linedef line)
         => line.AngleDeg >= 180 ? line.AngleDeg - 180 : line.AngleDeg;
+
+    private static VisualSlopeLevel[] SelectedPivotLevels(IEnumerable<VisualSlopeLevel>? selectedLevels)
+        => selectedLevels == null
+            ? []
+            : selectedLevels.Where(level => level?.Sector != null && !level.Sector.IsDisposed).ToArray();
 
     private static VisualSlopeLevel[] SelectedLevels(IEnumerable<VisualSlopeLevel> selectedLevels)
     {
