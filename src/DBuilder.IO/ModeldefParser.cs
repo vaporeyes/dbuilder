@@ -108,7 +108,13 @@ public static class ModeldefParser
             switch (kw)
             {
                 case "path":
-                    if (i < t.Count) def.Path = t[i++].TrimEnd('/', '\\');
+                    if (i >= t.Count) valid = false;
+                    else
+                    {
+                        string path = t[i++].Replace('\\', '/');
+                        if (string.IsNullOrEmpty(path)) valid = false;
+                        else def.Path = path.TrimEnd('/');
+                    }
                     break;
                 case "model":
                     if (!ParseModel(def, t, ref i)) valid = false;

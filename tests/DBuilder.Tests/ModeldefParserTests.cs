@@ -108,6 +108,27 @@ model Good
     }
 
     [Fact]
+    public void EmptyPathSkipsModelBlockLikeUdb()
+    {
+        const string text = @"
+model Bad
+{
+    Path """"
+    Model 0 ""bad.md3""
+}
+model Good
+{
+    Path ""models""
+    Model 0 ""good.md3""
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal("models", def.Path);
+    }
+
+    [Fact]
     public void ParsesMultipleModelsAndSkipsUnknownDirectives()
     {
         const string text = @"

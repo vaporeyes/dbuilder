@@ -486,6 +486,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject negative MODELDEF model, skin, surface skin, and frame model indexes like UDB.
   - [x] Reject invalid MODELDEF model, skin, and surface-skin path characters like UDB.
   - [x] Skip exact duplicate MODELDEF `FrameIndex` and `Frame` declarations like UDB.
+  - [x] Reject empty MODELDEF `Path` values and normalize backslashes like UDB.
   - [x] Parse UDB-style MODELDEF transform, actor pitch/roll, rotation-center, and named frame metadata.
 - [x] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
