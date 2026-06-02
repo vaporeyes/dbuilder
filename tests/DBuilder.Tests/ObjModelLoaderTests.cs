@@ -24,7 +24,7 @@ f 1/1/1 2/2/1 3/3/1
         ObjModelLoadResult result = ObjModelLoader.Load(text);
 
         Assert.Null(result.Errors);
-        ObjModelMesh mesh = Assert.Single(result.Meshes);
+        GzModelMesh mesh = Assert.Single(result.Meshes);
         Assert.Equal(new[] { 0, 1, 2 }, mesh.Indices);
         Assert.Equal(3, mesh.Vertices.Count);
 
@@ -59,7 +59,7 @@ f 1 2 3 4
         ObjModelLoadResult result = ObjModelLoader.Load(text);
 
         Assert.Null(result.Errors);
-        ObjModelMesh mesh = Assert.Single(result.Meshes);
+        GzModelMesh mesh = Assert.Single(result.Meshes);
         Assert.Equal(6, mesh.Vertices.Count);
         Assert.Equal(new[] { 0, 1, 2, 3, 4, 5 }, mesh.Indices);
         Assert.Equal(0.0f, mesh.Vertices[3].x);

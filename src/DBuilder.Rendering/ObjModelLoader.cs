@@ -8,15 +8,15 @@ namespace DBuilder.Rendering;
 
 public sealed record ObjModelLoadResult(
     IReadOnlyList<string> Skins,
-    IReadOnlyList<ObjModelMesh> Meshes,
+    IReadOnlyList<GzModelMesh> Meshes,
     string? Errors,
-    ObjModelBounds Bounds);
+    GzModelBounds Bounds);
 
-public sealed record ObjModelMesh(IReadOnlyList<WorldVertex> Vertices, IReadOnlyList<int> Indices);
+public sealed record GzModelMesh(IReadOnlyList<WorldVertex> Vertices, IReadOnlyList<int> Indices);
 
-public sealed record ObjModelBounds(float MinX, float MinY, float MinZ, float MaxX, float MaxY, float MaxZ)
+public sealed record GzModelBounds(float MinX, float MinY, float MinZ, float MaxX, float MaxY, float MaxZ)
 {
-    public static ObjModelBounds Empty { get; } = new(0, 0, 0, 0, 0, 0);
+    public static GzModelBounds Empty { get; } = new(0, 0, 0, 0, 0, 0);
 }
 
 public static class ObjModelLoader
@@ -365,7 +365,7 @@ public static class ObjModelLoader
 
     private sealed class ObjModelBuilder
     {
-        private readonly List<ObjModelMesh> meshes = new();
+        private readonly List<GzModelMesh> meshes = new();
         private bool hasBounds;
         private float minX;
         private float minY;
@@ -377,7 +377,7 @@ public static class ObjModelLoader
         public List<string> Skins { get; } = new();
 
         public void AddMesh(IReadOnlyList<WorldVertex> vertices, IReadOnlyList<int> indices)
-            => meshes.Add(new ObjModelMesh(vertices.ToArray(), indices.ToArray()));
+            => meshes.Add(new GzModelMesh(vertices.ToArray(), indices.ToArray()));
 
         public void UpdateBounds(WorldVertex vertex)
         {
@@ -402,6 +402,6 @@ public static class ObjModelLoader
             => Build($"Error in line {lineNumber}: {message}");
 
         public ObjModelLoadResult Build(string? errors = null)
-            => new(Skins.ToArray(), meshes.ToArray(), errors, hasBounds ? new ObjModelBounds(minX, minY, minZ, maxX, maxY, maxZ) : ObjModelBounds.Empty);
+            => new(Skins.ToArray(), meshes.ToArray(), errors, hasBounds ? new GzModelBounds(minX, minY, minZ, maxX, maxY, maxZ) : GzModelBounds.Empty);
     }
 }
