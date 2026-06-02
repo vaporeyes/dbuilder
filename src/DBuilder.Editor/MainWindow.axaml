@@ -162,6 +162,7 @@
                 <MenuItem Header="_Info Panel" x:Name="InfoPanelMenuItem" ToggleType="CheckBox" IsChecked="True" Click="OnToggleInfoPanel" />
                 <MenuItem Header="View _Undo / Redo..." x:Name="UndoRedoPanelMenuItem" Click="OnUndoRedoPanel" />
                 <MenuItem Header="View _Comments..." x:Name="CommentsPanelMenuItem" Click="OnCommentsPanel" />
+                <MenuItem Header="Show Comment _Icons" x:Name="ToggleCommentsMenuItem" ToggleType="CheckBox" IsChecked="True" Click="OnToggleComments" />
                 <MenuItem Header="View _Nodes..." x:Name="NodesViewerMenuItem" Click="OnNodesViewer" />
                 <MenuItem Header="View _Status History..." Click="OnStatusHistory" />
                 <MenuItem Header="View _Error Log..." Click="OnErrorLog" />

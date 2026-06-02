@@ -2983,6 +2983,13 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleComments(object? sender, RoutedEventArgs e)
+    {
+        bool shown = MapView.ToggleComments();
+        SetStatus($"Comment icons {(shown ? "shown" : "hidden")}.");
+        MapView.Focus();
+    }
+
     private void OnToggleFixedThingsScale(object? sender, RoutedEventArgs e)
     {
         bool enabled = MapView.ToggleFixedThingsScale();
@@ -5248,7 +5255,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
             LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, VisplaneExplorerModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, VisplaneExplorerModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, ToggleCommentsMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
@@ -5329,6 +5336,7 @@ public partial class MainWindow : Window
         SetChecked(ToggleSectorFillsMenuItem, MapView.ShowSectorFills);
         SetChecked(ToggleThingsMenuItem, MapView.ShowThings);
         SetChecked(ToggleThingArrowsMenuItem, MapView.ThingArrows);
+        SetChecked(ToggleCommentsMenuItem, MapView.RenderComments);
         SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);
         SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
         SetChecked(ToggleFullBrightnessMenuItem, MapView.FullBrightness);

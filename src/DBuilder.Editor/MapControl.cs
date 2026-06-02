@@ -103,6 +103,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _thingTris;
     private GlVertexBuffer? _selVertsVb;
     private int _selVertTris;
+    private GlVertexBuffer? _commentIconsVb;
+    private int _commentIconTris;
+    private bool _renderComments = true;
+    public bool RenderComments => _renderComments;
     private bool _geometryDirty = true;
 
     // 3D fly-mode state (toggled with Tab). Geometry built lazily into textured buckets.
@@ -413,6 +417,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ToggleEventLines()
         => SetShowEventLines(!_showEventLines);
+
+    public bool ToggleComments()
+    {
+        _renderComments = !_renderComments;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _renderComments;
+    }
 
     public bool SetShowVisualVertices(bool enabled)
     {
@@ -1607,6 +1620,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _thingDirVb = new GlVertexBuffer(_gl);
         _thingsVb = new GlVertexBuffer(_gl);
         _selVertsVb = new GlVertexBuffer(_gl);
+        _commentIconsVb = new GlVertexBuffer(_gl);
         _drawVb = new GlVertexBuffer(_gl);
         _gridVb = new GlVertexBuffer(_gl);
         _blockmapVb = new GlVertexBuffer(_gl);
@@ -1664,6 +1678,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _thingDirVb?.Dispose();
         _thingsVb?.Dispose();
         _selVertsVb?.Dispose();
+        _commentIconsVb?.Dispose();
         _drawVb?.Dispose();
         _gridVb?.Dispose();
         _blockmapVb?.Dispose();
@@ -1684,7 +1699,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _wadAuthorVb = null; _wadAuthorFillVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _model3DVb = null; _model3DIb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _commentIconsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _wadAuthorVb = null; _wadAuthorFillVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _model3DVb = null; _model3DIb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -3674,6 +3689,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             if (!AutomapMode) DrawRejectOverlay();
 
+            if (!AutomapMode && _commentIconTris > 0 && _commentIconsVb != null)
+            {
+                _device.SetVertexBuffer(_commentIconsVb);
+                _device.Draw(DBPrimitiveType.TriangleList, 0, _commentIconTris);
+            }
+
             if (!AutomapMode && _selVertTris > 0 && _selVertsVb != null)
             {
                 _device.SetVertexBuffer(_selVertsVb);
@@ -3884,7 +3905,99 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (arr.Length > 0) _device.SetBufferData(_selVertsVb, arr);
             _selVertTris = arr.Length / 3;
         }
+
+        RebuildCommentIcons();
     }
+
+    private void RebuildCommentIcons()
+    {
+        _commentIconTris = 0;
+        if (_map == null || _commentIconsVb == null) return;
+
+        var labels = new System.Collections.Generic.Dictionary<Sector, System.Collections.Generic.IReadOnlyList<LabelPositionInfo>>();
+        if (_editMode == EditMode.Sectors)
+        {
+            foreach (Sector sector in _map.Sectors)
+            {
+                if (sector.Selected) continue;
+                try { labels[sector] = Tools.FindLabelPositions(sector); }
+                catch { }
+            }
+        }
+
+        var icons = CommentsPanelModel.BuildRenderIcons(
+            _map,
+            new CommentRenderOptions(
+                CommentModeFor(_editMode),
+                IsUdmf: _mapFormat == MapFormat.Udmf,
+                RenderComments: _renderComments,
+                Scale: _zoom,
+                FixedThingsScale: _fixedThingsScale,
+                Highlighted: HighlightedCommentElement(),
+                SectorLabels: labels));
+        if (icons.Count == 0) return;
+
+        var verts = new System.Collections.Generic.List<FlatVertex>(icons.Count * 6);
+        foreach (CommentRenderIcon icon in icons)
+            AddCommentIcon(verts, icon);
+
+        if (verts.Count == 0) return;
+        _device?.SetBufferData(_commentIconsVb, verts.ToArray());
+        _commentIconTris = verts.Count / 3;
+    }
+
+    private IFielded? HighlightedCommentElement()
+        => CurrentPropertyHighlight() as IFielded;
+
+    private static CommentsPanelMode CommentModeFor(EditMode mode)
+        => mode switch
+        {
+            EditMode.Vertices => CommentsPanelMode.Vertices,
+            EditMode.Sectors => CommentsPanelMode.Sectors,
+            EditMode.Things => CommentsPanelMode.Things,
+            _ => CommentsPanelMode.Linedefs,
+        };
+
+    private static void AddCommentIcon(System.Collections.Generic.List<FlatVertex> verts, CommentRenderIcon icon)
+    {
+        int fill = CommentIconColor(icon.Color);
+        int mark = unchecked((int)0xff101820);
+        var rect = icon.Rectangle;
+        double left = rect.X;
+        double right = rect.X + rect.Width;
+        double top = rect.Y;
+        double bottom = rect.Y + rect.Height;
+        var center = new Vec2D((left + right) * 0.5, (top + bottom) * 0.5);
+        double radius = Math.Max(Math.Abs(rect.Width), Math.Abs(rect.Height)) * 0.5;
+
+        if (icon.Icon == CommentIconKind.Regular)
+            AddFilledRect(verts, center, radius, fill);
+        else
+            AddFilledDiamond(verts, center, radius, fill);
+
+        double markRadius = radius * 0.45;
+        if (icon.Icon == CommentIconKind.Problem || icon.Icon == CommentIconKind.Question)
+        {
+            AddFilledRect(verts, center, markRadius, mark);
+        }
+        else if (icon.Icon == CommentIconKind.Info)
+        {
+            AddFilledRect(verts, new Vec2D(center.x, center.y + radius * 0.35), markRadius * 0.55, mark);
+            AddFilledRect(verts, new Vec2D(center.x, center.y - radius * 0.25), markRadius * 0.55, mark);
+        }
+        else if (icon.Icon == CommentIconKind.Smile)
+        {
+            AddFilledDiamond(verts, center, markRadius, mark);
+        }
+    }
+
+    private static int CommentIconColor(CommentIconColorRole role)
+        => role switch
+        {
+            CommentIconColorRole.Selection => unchecked((int)0xffffee00),
+            CommentIconColorRole.Highlight => unchecked((int)0xffff8040),
+            _ => unchecked((int)0xffffffff),
+        };
 
     // Builds sector fills bucketed by the active view mode texture when resolvable.
     private void RebuildFills()
@@ -4832,6 +4945,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.toggle-event-lines":
                 ToggleEventLines();
                 Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map2d.toggle-comments":
+                Target3DChanged?.Invoke($"Comments are {(ToggleComments() ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map2d.toggle-fixed-things-scale":
                 ToggleFixedThingsScale();
