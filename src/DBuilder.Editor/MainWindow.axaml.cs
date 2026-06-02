@@ -496,9 +496,9 @@ public partial class MainWindow : Window
         using (var wad = new WAD(_wadPath!, openreadonly: true)) maps = CurrentWadMaps(wad);
         if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
 
-        var dlg = new MapPickerDialog(maps, _mapMarker);
+        var dlg = new MapPickerDialog(maps, _mapMarker, OpenMapOptionsForWadEntry);
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } entry && await ConfirmDiscardDirtyMap())
-            LoadMapEntry(entry);
+            LoadMapEntry(entry, dlg.SelectedOptions);
     }
 
     private async void OnReloadMap(object? sender, RoutedEventArgs e)
@@ -3123,7 +3123,7 @@ public partial class MainWindow : Window
     }
 
     // Loads a specific map from the currently open WAD into the editor.
-    private void LoadMapEntry(MapEntry entry)
+    private void LoadMapEntry(MapEntry entry, OpenMapSelectionOptions? selectedOptions = null)
     {
         if (_wadPath == null) return;
         try
@@ -3133,6 +3133,7 @@ public partial class MainWindow : Window
             if (map is null) { SetStatus($"Failed to load {entry.Name}"); return; }
 
             _mapOptions = LoadMapOptions(_wadPath, entry.Name, out _mapSettings);
+            selectedOptions?.ApplyTo(_mapOptions);
             SyncMapOptionsToView();
             int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
 
@@ -3155,6 +3156,13 @@ public partial class MainWindow : Window
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
         }
         catch (Exception ex) { LogAndSetStatus(ex, "Load failed"); }
+    }
+
+    private OpenMapSelectionOptions OpenMapOptionsForWadEntry(MapEntry entry)
+    {
+        if (_wadPath is null) return default;
+        var options = LoadMapOptions(_wadPath, entry.Name, out _);
+        return OpenMapSelectionOptions.FromMapOptions(options, _config?.UseLongTextureNames ?? false);
     }
 
     private void LoadPk3MapEntry(Pk3MapEntry entry)

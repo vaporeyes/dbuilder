@@ -862,6 +862,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port open map options dialog.
   - [x] Prompt for initial map selection when opening multi-map WAD or PK3 archives.
   - [x] Filter WAD and PK3 open-map candidates through the active game configuration map-name format.
+  - [x] Add UDB-style long texture names option while switching maps.
 - [x] Port preferences dialog.
 - [ ] Port resource options dialog.
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.

@@ -66,6 +66,27 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void OpenMapSelectionOptionsHonorLongTextureNameSupport()
+    {
+        var options = new MapOptions { UseLongTextureNames = true };
+
+        var supported = OpenMapSelectionOptions.FromMapOptions(options, longTextureNamesSupported: true);
+        var unsupported = OpenMapSelectionOptions.FromMapOptions(options, longTextureNamesSupported: false);
+
+        Assert.True(supported.UseLongTextureNames);
+        Assert.False(unsupported.UseLongTextureNames);
+
+        unsupported.ApplyTo(options);
+        Assert.False(options.UseLongTextureNames);
+
+        supported.ApplyTo(options);
+        Assert.True(options.UseLongTextureNames);
+
+        supported.WithUseLongTextureNames(false).ApplyTo(options);
+        Assert.False(options.UseLongTextureNames);
+    }
+
+    [Fact]
     public void ReadRootOptionsLoadsRootSettingsAndMapConfiguration()
     {
         var wadConfiguration = new Configuration(sorted: true);
