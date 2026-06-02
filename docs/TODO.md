@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3163 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3164 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1434,6 +1434,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use UDB-style idStudio dialog defaults and texture-count labels in the editor.
 - [ ] Port visual vertex slope behavior.
   - [x] Add UDB-style smart pivot selection, adjacent-handle selection, and command metadata for visual vertex slope handles.
+  - [x] Match UDB adjacent visual vertex slope selection status text.
 - [ ] Port all BuilderModes visual modes.
 
 ## UDBScript

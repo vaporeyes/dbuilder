@@ -511,7 +511,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!CanUseVisualSlopePicking()) return _selectAdjacentVisualVertexSlopeHandles;
 
         SetSelectAdjacentVisualVertexSlopeHandles(!_selectAdjacentVisualVertexSlopeHandles);
-        Target3DChanged?.Invoke($"Adjacent selection of visual vertex slope handles is {(_selectAdjacentVisualVertexSlopeHandles ? "ENABLED" : "DISABLED")}");
+        Target3DChanged?.Invoke(VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionStatus(_selectAdjacentVisualVertexSlopeHandles));
         return _selectAdjacentVisualVertexSlopeHandles;
     }
 

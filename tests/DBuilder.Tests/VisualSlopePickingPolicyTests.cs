@@ -40,4 +40,21 @@ public class VisualSlopePickingPolicyTests
         Assert.True(canUse);
         Assert.Equal("", warning);
     }
+
+    [Fact]
+    public void AdjacentVertexSlopeSelectionStatusMatchesUdbText()
+    {
+        Assert.Equal(
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionEnabledMessage,
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionStatus(true));
+        Assert.Equal(
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionDisabledMessage,
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionStatus(false));
+        Assert.Equal(
+            "Adjacant selection of visual vertex slop handles is ENABLED",
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionEnabledMessage);
+        Assert.Equal(
+            "Adjacant selection of visual vertex slop handles is DISABLED",
+            VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionDisabledMessage);
+    }
 }
