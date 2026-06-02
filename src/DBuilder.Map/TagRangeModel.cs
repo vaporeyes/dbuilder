@@ -72,6 +72,13 @@ public static class TagRangeModel
         return new TagRangeStoredOptions(step, options.Relative);
     }
 
+    public static TagRangeStoredOptions NormalizeStoredOptions(TagRangeStoredOptions? options)
+    {
+        options ??= new TagRangeStoredOptions();
+        int step = options.Step == 0 ? 1 : options.Step;
+        return options with { Step = step };
+    }
+
     public static TagRangeResult CreateRange(
         IReadOnlyList<int> initialTags,
         IReadOnlySet<int> usedTags,

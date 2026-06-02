@@ -9,8 +9,6 @@ namespace DBuilder.Editor;
 
 public sealed class TagRangeDialog : PropertyDialog
 {
-    private static TagRangeStoredOptions storedOptions = new();
-
     private readonly ComboBox _target;
     private readonly TextBox _startTag;
     private readonly TextBox _step;
@@ -21,9 +19,10 @@ public sealed class TagRangeDialog : PropertyDialog
     public TagRangeTargetKind ResultTarget { get; private set; }
     public TagRangeOptions ResultOptions { get; private set; }
 
-    public TagRangeDialog(TagRangeTargetKind target, int startTag)
+    public TagRangeDialog(TagRangeTargetKind target, int startTag, TagRangeStoredOptions storedOptions)
         : base(TagRangeModel.ToolWindowTitle)
     {
+        storedOptions = TagRangeModel.NormalizeStoredOptions(storedOptions);
         ResultTarget = target;
         ResultOptions = new TagRangeOptions(startTag, storedOptions.Step, storedOptions.Relative, SkipUsedTags: false);
 
@@ -55,6 +54,5 @@ public sealed class TagRangeDialog : PropertyDialog
             Relative: _relative.IsChecked == true,
             SkipUsedTags: _skipUsedTags.IsChecked == true,
             MaxTag: maxTag);
-        storedOptions = TagRangeModel.StoredOptionsFrom(ResultOptions);
     }
 }

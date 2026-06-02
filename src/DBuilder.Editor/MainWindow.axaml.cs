@@ -4166,8 +4166,10 @@ public partial class MainWindow : Window
         }
 
         int startTag = ConfiguredTagSearch.NextFreeTag(_map, _config);
-        var dlg = new TagRangeDialog(target, startTag);
+        var dlg = new TagRangeDialog(target, startTag, _settings.NormalizedTagRangeSettings);
         if (!await dlg.ShowDialog<bool>(this)) return;
+        _settings.TagRangeSettings = TagRangeModel.StoredOptionsFrom(dlg.ResultOptions);
+        SaveSettings();
 
         IReadOnlyList<int> initialTags = TagRangeModel.SelectedInitialTags(_map, dlg.ResultTarget);
         if (initialTags.Count == 0)

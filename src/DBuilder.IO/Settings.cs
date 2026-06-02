@@ -53,6 +53,7 @@ public sealed class Settings
     public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public AutomapModeSettings AutomapSettings { get; set; } = new();
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
+    public TagRangeStoredOptions TagRangeSettings { get; set; } = new();
     public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
     public TagExplorerPersistedSettings TagExplorerSettings { get; set; } = new(
         TagExplorerDisplayMode.TagsAndActions,
@@ -121,6 +122,9 @@ public sealed class Settings
 
     public MakeDoorModeSettings NormalizedMakeDoorSettings =>
         (MakeDoorSettings ?? new MakeDoorModeSettings()).Normalized();
+
+    public TagRangeStoredOptions NormalizedTagRangeSettings =>
+        TagRangeModel.NormalizeStoredOptions(TagRangeSettings);
 
     /// <summary>Moves <paramref name="path"/> to the front of the recent list (de-duplicated, capped at MaxRecent).</summary>
     public void AddRecent(string path)
@@ -272,6 +276,7 @@ public sealed class Settings
             settings.EditSelectionSettings ??= new();
             settings.AutomapSettings ??= new();
             settings.MakeDoorSettings ??= new();
+            settings.TagRangeSettings = TagRangeModel.NormalizeStoredOptions(settings.TagRangeSettings);
             settings.CommentsPanelSettings ??= new(false, false);
             settings.TagExplorerSettings ??= new(
                 TagExplorerDisplayMode.TagsAndActions,

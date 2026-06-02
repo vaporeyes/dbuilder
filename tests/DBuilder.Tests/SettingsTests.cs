@@ -227,6 +227,7 @@ public class SettingsTests
                     ResetOffsets: false,
                     ApplyActionSpecials: false,
                     ApplyTag: true),
+                TagRangeSettings = new TagRangeStoredOptions(Step: 4, Relative: true),
                 TagExplorerSettings = new TagExplorerPersistedSettings(
                     TagExplorerDisplayMode.Actions,
                     TagExplorerSortMode.ByAction,
@@ -346,6 +347,8 @@ public class SettingsTests
             Assert.False(loaded.NormalizedMakeDoorSettings.ResetOffsets);
             Assert.False(loaded.NormalizedMakeDoorSettings.ApplyActionSpecials);
             Assert.True(loaded.NormalizedMakeDoorSettings.ApplyTag);
+            Assert.Equal(4, loaded.NormalizedTagRangeSettings.Step);
+            Assert.True(loaded.NormalizedTagRangeSettings.Relative);
             Assert.Equal(TagExplorerDisplayMode.Actions, loaded.TagExplorerSettings.DisplayMode);
             Assert.Equal(TagExplorerSortMode.ByAction, loaded.TagExplorerSettings.SortMode);
             Assert.True(loaded.TagExplorerSettings.CommentsOnly);
@@ -572,6 +575,7 @@ public class SettingsTests
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
         Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);
         Assert.Equal(new MakeDoorModeSettings(), s.NormalizedMakeDoorSettings);
+        Assert.Equal(new TagRangeStoredOptions(), s.NormalizedTagRangeSettings);
     }
 
     [Fact]
@@ -607,6 +611,18 @@ public class SettingsTests
         };
 
         Assert.Equal(AutomapColorPreset.Doom, s.NormalizedAutomapSettings.ColorPreset);
+    }
+
+    [Fact]
+    public void InvalidTagRangeStepFallsBackToOne()
+    {
+        var s = new Settings
+        {
+            TagRangeSettings = new TagRangeStoredOptions(Step: 0, Relative: true),
+        };
+
+        Assert.Equal(1, s.NormalizedTagRangeSettings.Step);
+        Assert.True(s.NormalizedTagRangeSettings.Relative);
     }
 
     [Fact]
