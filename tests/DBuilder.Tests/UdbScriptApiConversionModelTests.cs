@@ -1518,6 +1518,34 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperStitchesSelectedGeometry()
+    {
+        var map = new MapSet();
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.25, 0));
+        movingVertex.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        bool changed = wrapper.stitchGeometry();
+
+        Assert.True(changed);
+        Assert.Equal(new Vector2D(0, 0), movingVertex.Position);
+        Assert.Contains(movingVertex, map.Vertices);
+        Assert.DoesNotContain(fixedVertex, map.Vertices);
+    }
+
+    [Fact]
+    public void MapWrapperRejectsUnknownStitchMode()
+    {
+        var wrapper = new UdbScriptMapWrapper(new MapSet());
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => wrapper.stitchGeometry((UdbScriptMapWrapper.MergeGeometryMode)99));
+
+        Assert.Equal("Unknown MergeGeometryMode value", exception.Message);
+    }
+
+    [Fact]
     public void BlockMapWrapperReturnsBlockEntryElements()
     {
         var (map, line, sector, thing, vertex) = CreateBlockMapFixture(64);

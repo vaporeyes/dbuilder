@@ -2538,6 +2538,13 @@ public sealed class UdbScriptBlockMapWrapper
 
 public sealed class UdbScriptMapWrapper
 {
+    public enum MergeGeometryMode
+    {
+        CLASSIC,
+        MERGE,
+        REPLACE,
+    }
+
     private readonly MapSet map;
 
     public UdbScriptMapWrapper(MapSet map)
@@ -2905,6 +2912,22 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("mergeSectors");
         map.MergeSectors(sectors.Select(sector => sector.Sector).ToArray());
         map.BuildIndexes();
+    }
+
+    public bool stitchGeometry(MergeGeometryMode mergemode = MergeGeometryMode.CLASSIC)
+    {
+        ThrowIfDisposed("stitchGeometry");
+        DBuilder.Map.MergeGeometryMode mode = mergemode switch
+        {
+            MergeGeometryMode.CLASSIC => DBuilder.Map.MergeGeometryMode.Classic,
+            MergeGeometryMode.MERGE => DBuilder.Map.MergeGeometryMode.Merge,
+            MergeGeometryMode.REPLACE => DBuilder.Map.MergeGeometryMode.Replace,
+            _ => throw new InvalidOperationException("Unknown MergeGeometryMode value"),
+        };
+
+        GeometryStitchResult result = map.StitchSelectedGeometry(mode);
+        map.BuildIndexes();
+        return result.TotalChanges > 0;
     }
 
     public void snapAllToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
