@@ -191,6 +191,47 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void HeightChangeIncludesHandleLevelWhenSelectedLevelsOmitItLikeUdb()
+    {
+        var map = new MapSet();
+        Sector source = AddSquareSector(map, 0, 64);
+        Sector selected = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel sourceLevel = VisualSlopeLevel.Floor(source);
+        VisualSlopeLevel selectedLevel = VisualSlopeLevel.Floor(selected);
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateSidedef(source.Sidedefs[0], sourceLevel, up: true);
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateSidedef(source.Sidedefs[2], sourceLevel, up: true);
+
+        VisualSlopeChangeResult result = VisualSlopeHandles.ChangeTargetHeight(handle, pivot, 16, [selectedLevel]);
+
+        Assert.Equal(VisualSlopeChangeResult.Changed, result);
+        Assert.True(source.HasFloorSlope);
+        Assert.True(selected.HasFloorSlope);
+        Assert.Equal(16, source.GetFloorZ(new Vector2D(32, 0)), 1e-9);
+        Assert.Equal(16, selected.GetFloorZ(new Vector2D(32, 0)), 1e-9);
+    }
+
+    [Fact]
+    public void VertexHeightChangeFiltersDisposedSelectedLevelsBeforeAddingHandleLevel()
+    {
+        var map = new MapSet();
+        Sector source = AddSquareSector(map, 0, 64);
+        Sector disposed = AddSquareSector(map, 256, 64);
+        disposed.IsDisposed = true;
+        VisualSlopeLevel sourceLevel = VisualSlopeLevel.Floor(source);
+        VisualSlopeLevel disposedLevel = VisualSlopeLevel.Floor(disposed);
+        Vertex vertex = source.Sidedefs[0].Line.Start;
+        VisualSlopeHandle handle = VisualSlopeHandles.CreateVertex(vertex, source, sourceLevel);
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateSidedef(source.Sidedefs[1], sourceLevel, up: true);
+
+        VisualSlopeChangeResult result = VisualSlopeHandles.ChangeTargetHeight(handle, pivot, 16, [disposedLevel]);
+
+        Assert.Equal(VisualSlopeChangeResult.Changed, result);
+        Assert.True(source.HasFloorSlope);
+        Assert.False(disposed.HasFloorSlope);
+        Assert.Equal(16, source.GetFloorZ(vertex.Position), 1e-9);
+    }
+
+    [Fact]
     public void SmartVertexPivotUsesFarthestSameLevelVertexHandle()
     {
         var map = new MapSet();

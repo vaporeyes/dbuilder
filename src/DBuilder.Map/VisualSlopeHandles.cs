@@ -246,9 +246,7 @@ public static class VisualSlopeHandles
         if (Math.Abs(plane.a) == 1.0 || Math.Abs(plane.b) == 1.0)
             return VisualSlopeChangeResult.VerticalPlane;
 
-        IReadOnlyList<VisualSlopeLevel> levels = affectedLevels is { Count: > 0 }
-            ? affectedLevels
-            : [handle.Level];
+        IReadOnlyList<VisualSlopeLevel> levels = AffectedChangeLevels(handle.Level, affectedLevels);
 
         foreach (VisualSlopeLevel level in levels)
             ApplySlope(level, plane);
@@ -589,6 +587,18 @@ public static class VisualSlopeHandles
         => selectedLevels == null
             ? []
             : selectedLevels.Where(level => level?.Sector != null && !level.Sector.IsDisposed).ToArray();
+
+    private static IReadOnlyList<VisualSlopeLevel> AffectedChangeLevels(
+        VisualSlopeLevel handleLevel,
+        IEnumerable<VisualSlopeLevel>? affectedLevels)
+    {
+        VisualSlopeLevel[] levels = affectedLevels == null
+            ? []
+            : affectedLevels.Where(level => level?.Sector != null && !level.Sector.IsDisposed).ToArray();
+        if (levels.Length == 0) return [handleLevel];
+        if (levels.Any(level => SameLevel(level, handleLevel))) return levels;
+        return [.. levels, handleLevel];
+    }
 
     private static VisualSlopeLevel[] SelectedLevels(IEnumerable<VisualSlopeLevel> selectedLevels)
     {
