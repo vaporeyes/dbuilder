@@ -112,6 +112,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private VisualHit? _target3D;
     private string _target3DDesc = "";
     private string? _texClipboard3D; // texture name copied off a surface for painting onto others
+    private (int X, int Y)? _texOffsetClipboard3D; // sidedef texture offsets copied off a wall for paste
     private bool _look3D;            // left-drag mouse-look active in 3D
     private bool _lookMoved;         // whether the left-drag actually moved (vs a click to select)
     private VisualHit? _drag3DTarget; // surface/thing captured for a right-drag height change
@@ -1598,6 +1599,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         RequestNextFrameRendering();
         Target3DChanged?.Invoke($"{(next ? "set" : "removed")} {(upper ? "upper" : "lower")} unpegged");
+    }
+
+    private void CopyTextureOffsets3D()
+    {
+        if (TargetSidedef3D() is not { } side) { Target3DChanged?.Invoke("aim at a wall to copy offsets"); return; }
+        _texOffsetClipboard3D = (side.OffsetX, side.OffsetY);
+        Target3DChanged?.Invoke($"copied offsets {side.OffsetX}, {side.OffsetY}");
+    }
+
+    private void PasteTextureOffsets3D()
+    {
+        if (_texOffsetClipboard3D is not { } offsets) { Target3DChanged?.Invoke("no copied offsets"); return; }
+        var targets = TextureOffsetTargets3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to paste offsets"); return; }
+
+        EditBegun?.Invoke("Paste offsets");
+        foreach (Sidedef side in targets)
+        {
+            side.OffsetX = offsets.X;
+            side.OffsetY = offsets.Y;
+        }
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"pasted offsets to {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
     }
 
     // Resets the targeted wall's texture offsets to zero, undoable.
@@ -3665,6 +3692,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.reset-offsets":
                 ResetTargetOffsets3D();
+                return true;
+            case "map3d.copy-offsets":
+                CopyTextureOffsets3D();
+                return true;
+            case "map3d.paste-offsets":
+                PasteTextureOffsets3D();
                 return true;
             case "map3d.toggle-upper-unpegged":
                 ToggleUnpegged3D(upper: true);
