@@ -78,6 +78,8 @@ public static class VisualPicking
                 if (floor.Alpha == 0 || floor.Top <= floor.Bottom) continue;
                 TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: true, options, ref best, ref bestDist);
                 TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: false, options, ref best, ref bestDist);
+                foreach (Sidedef side in sector.Sidedefs)
+                    TryThreeDFloorSide(origin, dir, side, floor, options, ref best, ref bestDist);
             }
         }
 
@@ -228,10 +230,32 @@ public static class VisualPicking
             z);
     }
 
+    private static void TryThreeDFloorSide(
+        Vector3D o,
+        Vector3D d,
+        Sidedef side,
+        ThreeDFloor floor,
+        VisualPickingOptions options,
+        ref VisualHit? best,
+        ref double bestDist)
+    {
+        var start = side.Line.Start.Position;
+        var end = side.Line.End.Position;
+        double startBottom = floor.Control.GetFloorZ(start);
+        double endBottom = floor.Control.GetFloorZ(end);
+        double startTop = floor.Control.GetCeilZ(start);
+        double endTop = floor.Control.GetCeilZ(end);
+        if (startTop <= startBottom && endTop <= endBottom) return;
+
+        TryWall(o, d, side.Line, startBottom, endBottom, startTop, endTop, SidedefPart.Middle, options,
+            ref best, ref bestDist, alphaTestTextureSide: side, alphaTestTextureName: floor.SideTexture);
+    }
+
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
-        SidedefPart part, VisualPickingOptions options, ref VisualHit? best, ref double bestDist, bool alphaTestMiddleTexture = false)
+        SidedefPart part, VisualPickingOptions options, ref VisualHit? best, ref double bestDist, bool alphaTestMiddleTexture = false,
+        Sidedef? alphaTestTextureSide = null, string? alphaTestTextureName = null)
     {
         var a = l.Start.Position;
         var b = l.End.Position;
@@ -255,17 +279,23 @@ public static class VisualPicking
         var side = front ? l.Front : l.Back;
         if (alphaTestMiddleTexture && side != null && !MiddleTexturePixelIsOpaque(side, seg, z, bot, options))
             return;
+        if (alphaTestTextureSide != null && !WallTexturePixelIsOpaque(alphaTestTextureSide, alphaTestTextureName, seg, z, bot, options))
+            return;
 
         bestDist = u;
         best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, bot, top, part);
     }
 
     private static bool MiddleTexturePixelIsOpaque(Sidedef side, double seg, double z, double bottom, VisualPickingOptions options)
+        => WallTexturePixelIsOpaque(side, side.MidTexture, seg, z, bottom, options);
+
+    private static bool WallTexturePixelIsOpaque(Sidedef side, string? textureName, double seg, double z, double bottom, VisualPickingOptions options)
     {
         if (!options.AlphaBasedTextureHighlighting || options.WallTexture == null) return true;
-        if (!IsSet(side.MidTexture)) return false;
+        if (!IsSet(textureName)) return false;
 
-        VisualPickingTexture? texture = options.WallTexture(side.MidTexture);
+        string textureKey = textureName!;
+        VisualPickingTexture? texture = options.WallTexture(textureKey);
         if (texture == null || texture.Width <= 0 || texture.Height <= 0) return true;
 
         double sideSeg = side.IsFront ? seg : 1.0 - seg;

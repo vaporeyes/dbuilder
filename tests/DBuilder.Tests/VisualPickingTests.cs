@@ -255,6 +255,62 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void ResolvedThreeDFloorSideCanBePickedBeforeTargetWall()
+    {
+        var (map, target, lines) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 48), new Vector3D(1, 0, 0));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Wall, hit!.Kind);
+        Assert.Same(lines[2], hit.Line);
+        Assert.Equal(SidedefPart.Middle, hit.Part);
+        Assert.Equal(32, hit.Bottom, 6);
+        Assert.Equal(64, hit.Top, 6);
+    }
+
+    [Fact]
+    public void AlphaBasedThreeDFloorSidePickingRejectsTransparentPixels()
+    {
+        var (map, target, lines) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+        var options = new VisualPickingOptions(
+            WallTexture: name => name == "SIDE"
+                ? new VisualPickingTexture(100, 32, (x, y) => false)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 48), new Vector3D(1, 0, 0), options);
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Wall, hit!.Kind);
+        Assert.Same(lines[2], hit.Line);
+        Assert.Equal(0, hit.Bottom, 6);
+        Assert.Equal(128, hit.Top, 6);
+    }
+
+    [Fact]
+    public void AlphaBasedThreeDFloorSidePickingAcceptsOpaquePixels()
+    {
+        var (map, target, lines) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+        var options = new VisualPickingOptions(
+            WallTexture: name => name == "SIDE"
+                ? new VisualPickingTexture(100, 32, (x, y) => x == 50 && y == 16)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 48), new Vector3D(1, 0, 0), options);
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Wall, hit!.Kind);
+        Assert.Same(lines[2], hit.Line);
+        Assert.Equal(32, hit.Bottom, 6);
+        Assert.Equal(64, hit.Top, 6);
+    }
+
+    [Fact]
     public void SlopedFloorIsHitAtItsSlopedHeight()
     {
         var (map, s, _) = Room();
