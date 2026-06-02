@@ -171,6 +171,20 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Fact]
+    public void ChangeMapElementIndexCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.change-map-element-index");
+
+        Assert.NotNull(command);
+        Assert.Equal("Change Map Element Index", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("window.copy-properties", "Copy Properties")]
     [InlineData("window.paste-properties", "Paste Properties")]

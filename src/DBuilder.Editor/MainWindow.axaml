@@ -89,6 +89,7 @@
                 <MenuItem Header="_Invert selection" x:Name="InvertSelectionMenuItem" Click="OnInvertSelection" />
                 <MenuItem Header="Select S_imilar" x:Name="SelectSimilarMenuItem" Click="OnSelectSimilar" />
                 <MenuItem Header="Select _none" x:Name="SelectNoneMenuItem" Click="OnSelectNone" />
+                <MenuItem Header="Change Map Element _Index..." x:Name="ChangeMapElementIndexMenuItem" Click="OnChangeMapElementIndex" />
                 <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" x:Name="StitchMenuItem" Click="OnStitch" />

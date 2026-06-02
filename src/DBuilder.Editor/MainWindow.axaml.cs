@@ -1075,6 +1075,7 @@ public partial class MainWindow : Window
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;
+            case "window.change-map-element-index": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
@@ -1571,6 +1572,107 @@ public partial class MainWindow : Window
 
         MapView.Focus();
     }
+
+    private async void OnChangeMapElementIndex(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        if (!TryGetMapElementIndexTarget(out MapElementIndexTarget target, out string error))
+        {
+            SetStatus(error);
+            return;
+        }
+
+        var dlg = new ChangeMapElementIndexDialog(target.ElementName, target.OldIndex, target.MaxIndex);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            if (dlg.NewIndex < 0 || dlg.NewIndex > target.MaxIndex)
+            {
+                SetStatus("Index must be between 0 and " + target.MaxIndex + ".");
+                return;
+            }
+
+            CreateUndo("Change " + target.ElementName + " index");
+            target.Change(dlg.NewIndex);
+            _map.BuildIndexes();
+            MapView.MarkGeometryDirty();
+            UpdateInfo();
+            SetStatus("Changed index of " + target.ElementName + " " + target.OldIndex + " to " + dlg.NewIndex + ".");
+        }
+
+        MapView.Focus();
+    }
+
+    private bool TryGetMapElementIndexTarget(out MapElementIndexTarget target, out string error)
+    {
+        target = default;
+        error = "";
+        if (_map is null)
+        {
+            error = "No map loaded.";
+            return false;
+        }
+
+        switch (MapView.CurrentEditMode)
+        {
+            case MapControl.EditMode.Vertices:
+            {
+                List<Vertex> selected = _map.GetSelectedVertices();
+                if (selected.Count != 1)
+                {
+                    error = "Changing vertex index failed: select exactly 1 vertex.";
+                    return false;
+                }
+
+                Vertex vertex = selected[0];
+                target = new MapElementIndexTarget("vertex", _map.IndexOfVertex(vertex), _map.Vertices.Count - 1, newIndex => _map.ChangeVertexIndex(vertex, newIndex));
+                return true;
+            }
+            case MapControl.EditMode.Linedefs:
+            {
+                List<Linedef> selected = _map.GetSelectedLinedefs();
+                if (selected.Count != 1)
+                {
+                    error = "Changing linedef index failed: select exactly 1 linedef.";
+                    return false;
+                }
+
+                Linedef linedef = selected[0];
+                target = new MapElementIndexTarget("linedef", _map.IndexOfLinedef(linedef), _map.Linedefs.Count - 1, newIndex => _map.ChangeLinedefIndex(linedef, newIndex));
+                return true;
+            }
+            case MapControl.EditMode.Sectors:
+            {
+                List<Sector> selected = _map.GetSelectedSectors();
+                if (selected.Count != 1)
+                {
+                    error = "Changing sector index failed: select exactly 1 sector.";
+                    return false;
+                }
+
+                Sector sector = selected[0];
+                target = new MapElementIndexTarget("sector", _map.IndexOfSector(sector), _map.Sectors.Count - 1, newIndex => _map.ChangeSectorIndex(sector, newIndex));
+                return true;
+            }
+            case MapControl.EditMode.Things:
+            {
+                List<Thing> selected = _map.GetSelectedThings();
+                if (selected.Count != 1)
+                {
+                    error = "Changing thing index failed: select exactly 1 thing.";
+                    return false;
+                }
+
+                Thing thing = selected[0];
+                target = new MapElementIndexTarget("thing", _map.IndexOfThing(thing), _map.Things.Count - 1, newIndex => _map.ChangeThingIndex(thing, newIndex));
+                return true;
+            }
+            default:
+                error = "Change Map Element Index is not available in this mode.";
+                return false;
+        }
+    }
+
+    private readonly record struct MapElementIndexTarget(string ElementName, int OldIndex, int MaxIndex, Func<int, bool> Change);
 
     private int CountSelectionInCurrentMode()
         => _map is null ? 0 : MapView.CurrentEditMode switch
@@ -4685,6 +4787,7 @@ public partial class MainWindow : Window
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
+        bool hasSingleCurrentModeSelection = hasMap && CountSelectionInCurrentMode() == 1;
         bool canCopyProperties = hasMap;
         bool canPasteProperties = hasMap && MapView.HasCopiedPropertiesForCurrentMode;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
@@ -4730,7 +4833,7 @@ public partial class MainWindow : Window
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
-            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
+            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
@@ -4754,6 +4857,7 @@ public partial class MainWindow : Window
         SetEnabled(canCopyProperties, CopyPropertiesMenuItem);
         SetEnabled(canPasteProperties, PastePropertiesMenuItem, PastePropertiesOptionsMenuItem);
         SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
+        SetEnabled(hasSingleCurrentModeSelection, ChangeMapElementIndexMenuItem);
         SetEnabled(canApplyLightFogFlag, ApplyLightFogFlagMenuItem);
         SetEnabled(hasTransformableSelection,
             TransformSelectionMenuItem,

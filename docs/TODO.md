@@ -745,6 +745,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Flip Linedefs action for selected linedefs and sectors.
   - [x] Add UDB-style Flip Sidedefs action for selected or highlighted linedefs.
   - [x] Add UDB-style Filter Selected Things action for narrowing selected thing types.
+  - [x] Add UDB-style Change Map Element Index action for single selected elements.
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.
   - [x] Add menu commands for snap toggle and grid-size stepping.

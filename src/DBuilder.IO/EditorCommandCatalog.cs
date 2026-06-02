@@ -64,6 +64,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.properties", "Properties", "Enter", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-similar", "Select Similar Map Elements", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.filter-selected-things", "Filter Selected Things", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.change-map-element-index", "Change Map Element Index", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
