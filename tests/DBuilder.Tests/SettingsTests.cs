@@ -227,6 +227,12 @@ public class SettingsTests
                     ResetOffsets: false,
                     ApplyActionSpecials: false,
                     ApplyTag: true),
+                RejectExplorerColors = new RejectExplorerColorSettings(
+                    Default: unchecked((int)0xFF010203),
+                    Highlight: unchecked((int)0xFF040506),
+                    Bidirectional: unchecked((int)0xFF070809),
+                    UnidirectionalFrom: unchecked((int)0xFF0A0B0C),
+                    UnidirectionalTo: unchecked((int)0xFF0D0E0F)),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -311,6 +317,11 @@ public class SettingsTests
             Assert.False(loaded.NormalizedMakeDoorSettings.ResetOffsets);
             Assert.False(loaded.NormalizedMakeDoorSettings.ApplyActionSpecials);
             Assert.True(loaded.NormalizedMakeDoorSettings.ApplyTag);
+            Assert.Equal(unchecked((int)0xFF010203), loaded.RejectExplorerColors.Default);
+            Assert.Equal(unchecked((int)0xFF040506), loaded.RejectExplorerColors.Highlight);
+            Assert.Equal(unchecked((int)0xFF070809), loaded.RejectExplorerColors.Bidirectional);
+            Assert.Equal(unchecked((int)0xFF0A0B0C), loaded.RejectExplorerColors.UnidirectionalFrom);
+            Assert.Equal(unchecked((int)0xFF0D0E0F), loaded.RejectExplorerColors.UnidirectionalTo);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);

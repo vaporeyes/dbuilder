@@ -54,6 +54,7 @@ public sealed class Settings
     public AutomapModeSettings AutomapSettings { get; set; } = new();
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
     public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
+    public RejectExplorerColorSettings RejectExplorerColors { get; set; } = RejectExplorerModel.DefaultColors;
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -263,6 +264,7 @@ public sealed class Settings
             settings.AutomapSettings ??= new();
             settings.MakeDoorSettings ??= new();
             settings.CommentsPanelSettings ??= new(false, false);
+            settings.RejectExplorerColors ??= RejectExplorerModel.DefaultColors;
             return settings;
         }
         catch { return new Settings(); }

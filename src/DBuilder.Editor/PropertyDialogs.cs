@@ -173,6 +173,9 @@ public abstract class PropertyDialog : Window
 
     protected void SetLiveLabel(string text) { if (_liveLabel != null) _liveLabel.Text = text; }
 
+    protected void AddCustomRow(Control control)
+        => _rows.Children.Insert(_rows.Children.Count - 1, control);
+
     // Adds a labeled text box (inserted before the buttons row, which is always last).
     protected TextBox AddField(string label, string value)
     {

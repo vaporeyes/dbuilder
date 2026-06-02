@@ -18,6 +18,7 @@ public sealed class RejectExplorerWindow : Window
 
     public event Action<int>? SectorActivated;
     public event Action? SelectNoLineOfSightRequested;
+    public event Action? ConfigureColorsRequested;
 
     public RejectExplorerWindow(
         RejectExplorerValidation validation,
@@ -54,6 +55,9 @@ public sealed class RejectExplorerWindow : Window
         selectNoLos.Click += (_, _) => SelectNoLineOfSightRequested?.Invoke();
         selectNoLos.IsEnabled = reject?.HasData == true && highlightedSector != null;
         buttons.Children.Add(selectNoLos);
+        var configureColors = new Button { Content = RejectExplorerModel.ColorConfigurationAction.Title };
+        configureColors.Click += (_, _) => ConfigureColorsRequested?.Invoke();
+        buttons.Children.Add(configureColors);
 
         var close = new Button { Content = "Close" };
         close.Click += OnClose;

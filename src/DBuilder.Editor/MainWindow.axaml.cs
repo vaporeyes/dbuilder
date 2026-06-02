@@ -3862,6 +3862,16 @@ public partial class MainWindow : Window
             if (reject != null && target is int highlighted)
                 SelectRejectedSectors(reject, highlighted);
         };
+        win.ConfigureColorsRequested += async () =>
+        {
+            var dialog = new RejectExplorerColorDialog(_settings.RejectExplorerColors);
+            if (!await dialog.ShowDialog<bool>(win)) return;
+            _settings.RejectExplorerColors = dialog.ResultColors;
+            SaveSettings();
+            if (reject is { HasData: true })
+                ApplyRejectOverlay(reject, target);
+            SetStatus("Reject Explorer colors updated.");
+        };
         win.Closed += (_, _) => MapView.SetRejectOverlayColors(null);
         win.Show(this);
 
@@ -3884,7 +3894,7 @@ public partial class MainWindow : Window
     private void ApplyRejectOverlay(RejectTable reject, int? highlightedSector)
     {
         if (_map is null) return;
-        int[] colors = RejectExplorerModel.SectorOverlayColors(reject, _map.Sectors.Count, highlightedSector);
+        int[] colors = RejectExplorerModel.SectorOverlayColors(reject, _map.Sectors.Count, highlightedSector, _settings.RejectExplorerColors);
         MapView.SetRejectOverlayColors(colors);
     }
 
