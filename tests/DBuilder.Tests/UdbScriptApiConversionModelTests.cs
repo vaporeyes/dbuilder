@@ -1185,6 +1185,31 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperSnapsAllElementsToAccuracy()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(1.2345, 6.789));
+        var thing = map.AddThing(new Vector2D(3.456, 9.876), 1);
+        thing.Height = 5.4321;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.snapAllToAccuracy(2);
+
+        Assert.Equal(new Vector2D(1.23, 6.79), vertex.Position);
+        Assert.Equal(new Vector2D(3.46, 9.88), thing.Position);
+        Assert.Equal(5.43, thing.Height);
+
+        vertex.Move(1.6, 6.4);
+        thing.Move(new Vector2D(3.4, 9.6));
+        thing.Height = 5.6;
+        wrapper.snapAllToAccuracy(2, usePrecisePosition: false);
+
+        Assert.Equal(new Vector2D(2, 6), vertex.Position);
+        Assert.Equal(new Vector2D(3, 10), thing.Position);
+        Assert.Equal(6, thing.Height);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();

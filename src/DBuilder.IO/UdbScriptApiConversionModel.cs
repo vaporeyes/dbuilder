@@ -2688,6 +2688,12 @@ public sealed class UdbScriptMapWrapper
         map.BuildIndexes();
     }
 
+    public void snapAllToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
+    {
+        ThrowIfDisposed("snapAllToAccuracy");
+        map.SnapAllToAccuracy(vertexDecimals, usePrecisePosition);
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)
