@@ -1019,6 +1019,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port shared model loader infrastructure.
   - [x] Add UDB-style supported skin texture extension probing for model resources.
   - [x] Add UDB-style defined texture, basename texture, and sprite fallback for model skin images.
+  - [x] Add UDB-style model parser dispatch, Skin and SurfaceSkin texture planning, frame constraint errors, Unreal companion lookup, aggregate bounds, and radius calculation.
 - [ ] Port GZ model representation.
   - [x] Add UDB-style loader-facing model data projection from resolved MODELDEF display parts.
 - [ ] Port MD2 loader.
