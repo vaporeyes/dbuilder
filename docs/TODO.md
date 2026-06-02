@@ -1017,6 +1017,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Model Loading
 
 - [ ] Port shared model loader infrastructure.
+  - [x] Add UDB-style supported skin texture extension probing for model resources.
 - [ ] Port GZ model representation.
 - [ ] Port MD2 loader.
 - [ ] Port MD3 loader.
@@ -1027,6 +1028,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port model skins and frame behavior.
   - [x] Match UDB-style actor sprite frame eligibility and disabled frame indexes for MODELDEF display resolution.
   - [x] Build loader-ready MODELDEF display parts for skins, surface skins, named frames, frame indexes, and transform metadata.
+  - [x] Probe model skin resources with UDB's supported texture extension order.
 - [x] Port model resource discovery from MODELDEF.
 - [ ] Integrate models into 3D thing rendering.
 

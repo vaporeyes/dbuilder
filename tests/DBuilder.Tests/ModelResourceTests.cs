@@ -73,6 +73,59 @@ model Zombie
     }
 
     [Fact]
+    public void ModelTextureLookupProbesSupportedExtensionsLikeUdb()
+    {
+        byte[] pngSkin = { 10 };
+        byte[] jpgSkin = { 11 };
+        string pk3 = TestArtifacts.BuildPk3(
+            ("models/zombie.png", pngSkin),
+            ("models/soldier.jpg", jpgSkin));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            Assert.Equal(pngSkin, resources.GetModelTextureResourceBytes("models/zombie"));
+            Assert.Equal(jpgSkin, resources.GetModelTextureResourceBytes("models/soldier.tga"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ModelTextureLookupPrefersExactPathAndNewestResource()
+    {
+        byte[] exactSkin = { 20 };
+        byte[] oldSkin = { 21 };
+        byte[] newSkin = { 22 };
+        string exactPk3 = TestArtifacts.BuildPk3(
+            ("models/skin.dds", exactSkin),
+            ("models/skin.png", oldSkin));
+        string overridePk3 = TestArtifacts.BuildPk3(("models/other.png", newSkin));
+        string oldOverridePk3 = TestArtifacts.BuildPk3(("models/other.png", oldSkin));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(exactPk3);
+            resources.AddResource(oldOverridePk3);
+            resources.AddResource(overridePk3);
+
+            Assert.Equal(exactSkin, resources.GetModelTextureResourceBytes("models/skin.dds"));
+            Assert.Equal(newSkin, resources.GetModelTextureResourceBytes("models/other"));
+        }
+        finally
+        {
+            File.Delete(exactPk3);
+            File.Delete(overridePk3);
+            File.Delete(oldOverridePk3);
+        }
+    }
+
+    [Fact]
     public void DiscoversMultipleRootModeldefFiles()
     {
         string pk3 = TestArtifacts.BuildPk3(

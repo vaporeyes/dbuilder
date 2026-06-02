@@ -132,6 +132,7 @@ public sealed class ResourceTextureSetInfo
 
 public sealed class ResourceManager : IDisposable
 {
+    private static readonly string[] ModelTextureExtensions = { ".png", ".jpg", ".tga", ".pcx", ".dds" };
     private readonly List<IResourceReader> readers = new();
     private GameConfiguration? configuration;
 
@@ -585,6 +586,19 @@ public sealed class ResourceManager : IDisposable
 
     /// <summary>Raw model or skin bytes using a MODELDEF block path plus a referenced file name.</summary>
     public byte[]? GetModelResourceBytes(Modeldef def, string file) => GetModelResourceBytes(CombineModelPath(def.Path, file));
+
+    /// <summary>Raw model skin bytes using UDB's supported model texture extension probing order.</summary>
+    public byte[]? GetModelTextureResourceBytes(string path)
+    {
+        if (GetModelResourceBytes(path) is { } exactBytes) return exactBytes;
+
+        string stem = Path.ChangeExtension(path.Replace('\\', '/'), null) ?? path.Replace('\\', '/');
+        foreach (string extension in ModelTextureExtensions)
+            if (GetModelResourceBytes(stem + extension) is { } bytes)
+                return bytes;
+
+        return null;
+    }
 
     public static string CombineModelPath(string path, string file)
     {
