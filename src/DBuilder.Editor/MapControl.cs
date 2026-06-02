@@ -1690,7 +1690,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _blockmapCache,
             new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z),
             new DBuilder.Geometry.Vector3D(f.X, f.Y, f.Z),
-            ThingSize3D);
+            new VisualPickingOptions(
+                ThingSize: ThingSize3D,
+                WallTexture: VisualPickingWallTexture,
+                AlphaBasedTextureHighlighting: _alphaBasedTextureHighlighting));
 
         string desc = _target3D == null ? "" : _target3D.Kind switch
         {
@@ -1700,6 +1703,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _ => $"wall (linedef {(_target3D.Line != null ? _map.Linedefs.IndexOf(_target3D.Line) : -1)})",
         };
         if (desc != _target3DDesc) { _target3DDesc = desc; Target3DChanged?.Invoke(desc); }
+    }
+
+    private VisualPickingTexture? VisualPickingWallTexture(string name)
+    {
+        ImageData? image = _resources?.GetWallTexture(name);
+        if (image == null) return null;
+
+        return new VisualPickingTexture(
+            image.Width,
+            image.Height,
+            (x, y) =>
+            {
+                int index = (y * image.Width + x) * 4 + 3;
+                return index >= 0 && index < image.Rgba.Length && image.Rgba[index] > 0;
+            },
+            image.ScaleX,
+            image.ScaleY);
     }
 
     // Outlines selected surfaces (cyan) and the current crosshair target (yellow).

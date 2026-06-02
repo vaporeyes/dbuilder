@@ -120,6 +120,87 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void TwoSidedMiddleTextureCanBePickedInSharedOpening()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector(); frontSector.FloorHeight = 0; frontSector.CeilHeight = 128;
+        var backSector = map.AddSector(); backSector.FloorHeight = 0; backSector.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(50, 0));
+        var end = map.AddVertex(new Vector2D(50, 100));
+        var line = map.AddLinedef(start, end);
+        Sidedef front = map.AddSidedef(line, true, frontSector);
+        Sidedef back = map.AddSidedef(line, false, backSector);
+        front.MidTexture = "MID";
+        back.MidTexture = "MID";
+        AddBlockingWall(map, 100);
+        map.BuildIndexes();
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(20, 50, 64), new Vector3D(1, 0, 0));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Wall, hit!.Kind);
+        Assert.Same(line, hit.Line);
+        Assert.Equal(SidedefPart.Middle, hit.Part);
+        Assert.False(hit.Front);
+    }
+
+    [Fact]
+    public void AlphaBasedMiddleTexturePickingRejectsTransparentPixels()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector(); frontSector.FloorHeight = 0; frontSector.CeilHeight = 128;
+        var backSector = map.AddSector(); backSector.FloorHeight = 0; backSector.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(50, 0));
+        var end = map.AddVertex(new Vector2D(50, 100));
+        var line = map.AddLinedef(start, end);
+        Sidedef front = map.AddSidedef(line, true, frontSector);
+        Sidedef back = map.AddSidedef(line, false, backSector);
+        front.MidTexture = "MID";
+        back.MidTexture = "MID";
+        Linedef blocking = AddBlockingWall(map, 100);
+        map.BuildIndexes();
+        var options = new VisualPickingOptions(
+            WallTexture: name => name == "MID"
+                ? new VisualPickingTexture(100, 128, (x, y) => false)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(20, 50, 64), new Vector3D(1, 0, 0), options);
+
+        Assert.NotNull(hit);
+        Assert.Same(blocking, hit!.Line);
+        Assert.Equal(80, hit.Distance, 6);
+    }
+
+    [Fact]
+    public void AlphaBasedMiddleTexturePickingAcceptsOpaquePixels()
+    {
+        var map = new MapSet();
+        var frontSector = map.AddSector(); frontSector.FloorHeight = 0; frontSector.CeilHeight = 128;
+        var backSector = map.AddSector(); backSector.FloorHeight = 0; backSector.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(50, 0));
+        var end = map.AddVertex(new Vector2D(50, 100));
+        var line = map.AddLinedef(start, end);
+        Sidedef front = map.AddSidedef(line, true, frontSector);
+        Sidedef back = map.AddSidedef(line, false, backSector);
+        front.MidTexture = "MID";
+        back.MidTexture = "MID";
+        AddBlockingWall(map, 100);
+        map.BuildIndexes();
+        var options = new VisualPickingOptions(
+            WallTexture: name => name == "MID"
+                ? new VisualPickingTexture(100, 128, (x, y) => x == 50 && y == 64)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(20, 50, 64), new Vector3D(1, 0, 0), options);
+
+        Assert.NotNull(hit);
+        Assert.Same(line, hit!.Line);
+        Assert.Equal(SidedefPart.Middle, hit.Part);
+    }
+
+    [Fact]
     public void SlopedFloorIsHitAtItsSlopedHeight()
     {
         var (map, s, _) = Room();
@@ -196,5 +277,17 @@ public class VisualPickingTests
         // Outside the room looking away from it.
         var hit = VisualPicking.Raycast(map, new Vector3D(-50, -50, 40), new Vector3D(-1, 0, 0));
         Assert.Null(hit);
+    }
+
+    private static Linedef AddBlockingWall(MapSet map, double x)
+    {
+        var sector = map.AddSector();
+        sector.FloorHeight = 0;
+        sector.CeilHeight = 128;
+        var start = map.AddVertex(new Vector2D(x, 0));
+        var end = map.AddVertex(new Vector2D(x, 100));
+        Linedef line = map.AddLinedef(start, end);
+        map.AddSidedef(line, true, sector);
+        return line;
     }
 }

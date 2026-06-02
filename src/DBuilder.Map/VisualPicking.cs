@@ -16,6 +16,18 @@ public sealed record VisualHit(
     VisualHitKind Kind, double Distance, Vector3D Point, Sector? Sector, Linedef? Line, bool Front,
     double Bottom, double Top, SidedefPart Part = SidedefPart.None, Thing? Thing = null);
 
+public sealed record VisualPickingTexture(
+    int Width,
+    int Height,
+    Func<int, int, bool> AlphaTest,
+    double ScaleX = 1.0,
+    double ScaleY = 1.0);
+
+public sealed record VisualPickingOptions(
+    Func<Thing, (double radius, double height)>? ThingSize = null,
+    Func<string, VisualPickingTexture?>? WallTexture = null,
+    bool AlphaBasedTextureHighlighting = false);
+
 public static class VisualPicking
 {
     private const double Eps = 1e-6;
@@ -33,7 +45,15 @@ public static class VisualPicking
     /// </summary>
     public static VisualHit? Raycast(MapSet map, BlockMap? blockMap, Vector3D origin, Vector3D dir,
         Func<Thing, (double radius, double height)>? thingSize = null)
+        => Raycast(map, blockMap, origin, dir, new VisualPickingOptions(ThingSize: thingSize));
+
+    public static VisualHit? Raycast(MapSet map, Vector3D origin, Vector3D dir, VisualPickingOptions options)
+        => Raycast(map, null, origin, dir, options);
+
+    public static VisualHit? Raycast(MapSet map, BlockMap? blockMap, Vector3D origin, Vector3D dir, VisualPickingOptions options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         double len = Math.Sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len < Eps) return null;
         dir = new Vector3D(dir.x / len, dir.y / len, dir.z / len);
@@ -57,26 +77,31 @@ public static class VisualPicking
             var a = l.Start.Position;
             var b = l.End.Position;
             if (fs != null && bs == null)
-                TryWall(origin, dir, l, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), SidedefPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), SidedefPart.Middle, options, ref best, ref bestDist);
             else if (fs == null && bs != null)
-                TryWall(origin, dir, l, bs.GetFloorZ(a), bs.GetFloorZ(b), bs.GetCeilZ(a), bs.GetCeilZ(b), SidedefPart.Middle, ref best, ref bestDist);
+                TryWall(origin, dir, l, bs.GetFloorZ(a), bs.GetFloorZ(b), bs.GetCeilZ(a), bs.GetCeilZ(b), SidedefPart.Middle, options, ref best, ref bestDist);
             else if (fs != null && bs != null)
             {
                 // Lower step: between the two floors (per endpoint, so slopes are followed).
                 double lbA = Math.Min(fs.GetFloorZ(a), bs.GetFloorZ(a)), lbB = Math.Min(fs.GetFloorZ(b), bs.GetFloorZ(b));
                 double ltA = Math.Max(fs.GetFloorZ(a), bs.GetFloorZ(a)), ltB = Math.Max(fs.GetFloorZ(b), bs.GetFloorZ(b));
-                if (ltA > lbA || ltB > lbB) TryWall(origin, dir, l, lbA, lbB, ltA, ltB, SidedefPart.Lower, ref best, ref bestDist);
+                if (ltA > lbA || ltB > lbB) TryWall(origin, dir, l, lbA, lbB, ltA, ltB, SidedefPart.Lower, options, ref best, ref bestDist);
                 // Upper step: between the two ceilings.
                 double ubA = Math.Min(fs.GetCeilZ(a), bs.GetCeilZ(a)), ubB = Math.Min(fs.GetCeilZ(b), bs.GetCeilZ(b));
                 double utA = Math.Max(fs.GetCeilZ(a), bs.GetCeilZ(a)), utB = Math.Max(fs.GetCeilZ(b), bs.GetCeilZ(b));
-                if (utA > ubA || utB > ubB) TryWall(origin, dir, l, ubA, ubB, utA, utB, SidedefPart.Upper, ref best, ref bestDist);
+                if (utA > ubA || utB > ubB) TryWall(origin, dir, l, ubA, ubB, utA, utB, SidedefPart.Upper, options, ref best, ref bestDist);
+
+                double mbA = Math.Max(fs.GetFloorZ(a), bs.GetFloorZ(a)), mbB = Math.Max(fs.GetFloorZ(b), bs.GetFloorZ(b));
+                double mtA = Math.Min(fs.GetCeilZ(a), bs.GetCeilZ(a)), mtB = Math.Min(fs.GetCeilZ(b), bs.GetCeilZ(b));
+                if ((mtA > mbA || mtB > mbB) && (IsSet(l.Front?.MidTexture) || IsSet(l.Back?.MidTexture)))
+                    TryWall(origin, dir, l, mbA, mbB, mtA, mtB, SidedefPart.Middle, options, ref best, ref bestDist, alphaTestMiddleTexture: true);
             }
         }
 
         // Things as upright bounding boxes (only when the caller supplies their radius/height from the config).
-        if (thingSize != null)
+        if (options.ThingSize != null)
             foreach (var t in map.Things)
-                TryThing(map, blockMap, origin, dir, t, thingSize(t), ref best, ref bestDist);
+                TryThing(map, blockMap, origin, dir, t, options.ThingSize(t), ref best, ref bestDist);
 
         return best;
     }
@@ -158,7 +183,7 @@ public static class VisualPicking
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
-        SidedefPart part, ref VisualHit? best, ref double bestDist)
+        SidedefPart part, VisualPickingOptions options, ref VisualHit? best, ref double bestDist, bool alphaTestMiddleTexture = false)
     {
         var a = l.Start.Position;
         var b = l.End.Position;
@@ -179,8 +204,48 @@ public static class VisualPicking
         // The visible side is the one facing the camera (front when the origin is on the right of start->end).
         bool front = Line2D.GetSideOfLine(a, b, new Vector2D(o.x, o.y)) < 0;
         var sector = front ? l.Front?.Sector : l.Back?.Sector;
+        var side = front ? l.Front : l.Back;
+        if (alphaTestMiddleTexture && side != null && !MiddleTexturePixelIsOpaque(side, seg, z, bot, options))
+            return;
 
         bestDist = u;
         best = new VisualHit(VisualHitKind.Wall, u, new Vector3D(o.x + d.x * u, o.y + d.y * u, z), sector, l, front, bot, top, part);
     }
+
+    private static bool MiddleTexturePixelIsOpaque(Sidedef side, double seg, double z, double bottom, VisualPickingOptions options)
+    {
+        if (!options.AlphaBasedTextureHighlighting || options.WallTexture == null) return true;
+        if (!IsSet(side.MidTexture)) return false;
+
+        VisualPickingTexture? texture = options.WallTexture(side.MidTexture);
+        if (texture == null || texture.Width <= 0 || texture.Height <= 0) return true;
+
+        double sideSeg = side.IsFront ? seg : 1.0 - seg;
+        double scaleX = NonZero(side.GetFloatField("scalex_mid", 1.0));
+        double scaleY = NonZero(side.GetFloatField("scaley_mid", 1.0));
+        double textureScaleX = NonZero(texture.ScaleX);
+        double textureScaleY = NonZero(texture.ScaleY);
+        double offsetX = side.OffsetX + side.GetFloatField("offsetx_mid", 0.0);
+
+        int ox = Mod((int)Math.Floor(sideSeg * side.Line.Length * scaleX / textureScaleX + offsetX), texture.Width);
+        int oy = Mod((int)Math.Ceiling(((z - bottom) * scaleY / textureScaleY) % texture.Height), texture.Height);
+        int pixelY = Clamp(texture.Height - oy, 0, texture.Height - 1);
+
+        return texture.AlphaTest(Clamp(ox, 0, texture.Width - 1), pixelY);
+    }
+
+    private static bool IsSet(string? texture)
+        => !string.IsNullOrWhiteSpace(texture) && texture != "-";
+
+    private static double NonZero(double value)
+        => Math.Abs(value) < Eps ? 1.0 : value;
+
+    private static int Mod(int value, int divisor)
+    {
+        int result = value % divisor;
+        return result < 0 ? result + divisor : result;
+    }
+
+    private static int Clamp(int value, int min, int max)
+        => value < min ? min : value > max ? max : value;
 }
