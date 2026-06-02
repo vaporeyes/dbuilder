@@ -31,6 +31,21 @@ public static class VisualVertexHandles
 {
     public const double DefaultSize = 6.0;
 
+    public static IReadOnlyList<VisualVertexHandlePair> CreateVisiblePairs(
+        MapSet map,
+        bool isUdmf,
+        bool vertexHeightSupport,
+        bool showVisualVertices,
+        double scale = 1.0)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+        if (!isUdmf || !vertexHeightSupport || !showVisualVertices) return Array.Empty<VisualVertexHandlePair>();
+
+        return map.Vertices
+            .Select(vertex => CreatePair(map, vertex, scale))
+            .ToArray();
+    }
+
     public static VisualVertexHandlePair CreatePair(MapSet map, Vertex vertex, double scale = 1.0)
         => new(
             Create(map, vertex, VisualVertexHandleKind.Floor, scale),

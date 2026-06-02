@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3134 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3135 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -943,6 +943,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port text font and text label rendering.
 - [ ] Port visual vertex handles.
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
+  - [x] Add UDB-style visual vertex handle visibility gating for UDMF, vertex-height support, and the visual-vertices toggle.
 - [ ] Port visual slope handles.
   - [x] Add UDB-style visual slope handle local meshes, sidedef and vertex placement basis, side inversion rules, and pivot points.
   - [x] Add UDB-style slope-between-handles and default arch-between-handles plane application helpers for selected visual levels.
@@ -983,6 +984,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual thing visibility cycle action metadata and dispatch.
 - [ ] Port visual vertex behavior.
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
+  - [x] Gate available visual vertex handle pairs with UDB-style UDMF, vertex-height support, and visual-vertices settings.
 - [ ] Port visual slope behavior.
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
   - [x] Add UDB-style visual Toggle Slope action metadata and Plane_Align dispatch for selected surfaces.

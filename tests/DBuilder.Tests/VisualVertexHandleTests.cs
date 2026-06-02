@@ -23,6 +23,29 @@ public class VisualVertexHandleTests
     }
 
     [Fact]
+    public void VisiblePairsRequireUdmfVertexHeightSupportAndToggleLikeUdb()
+    {
+        var (map, _, _, _) = TwoSectorSharedVertexMap();
+
+        Assert.Empty(VisualVertexHandles.CreateVisiblePairs(map, isUdmf: false, vertexHeightSupport: true, showVisualVertices: true));
+        Assert.Empty(VisualVertexHandles.CreateVisiblePairs(map, isUdmf: true, vertexHeightSupport: false, showVisualVertices: true));
+        Assert.Empty(VisualVertexHandles.CreateVisiblePairs(map, isUdmf: true, vertexHeightSupport: true, showVisualVertices: false));
+
+        IReadOnlyList<VisualVertexHandlePair> pairs = VisualVertexHandles.CreateVisiblePairs(
+            map,
+            isUdmf: true,
+            vertexHeightSupport: true,
+            showVisualVertices: true);
+
+        Assert.Equal(map.Vertices.Count, pairs.Count);
+        Assert.All(pairs, pair =>
+        {
+            Assert.Equal(VisualVertexHandleKind.Floor, pair.FloorVertex.Kind);
+            Assert.Equal(VisualVertexHandleKind.Ceiling, pair.CeilingVertex.Kind);
+        });
+    }
+
+    [Fact]
     public void FloorFallbackUsesHighestAdjacentSectorFloor()
     {
         var (map, vertex, low, high) = TwoSectorSharedVertexMap();
