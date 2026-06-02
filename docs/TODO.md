@@ -918,6 +918,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual camera behavior.
   - [x] Add UDB-style Move Camera to Cursor visual action with 64-unit target offset.
 - [ ] Port visual geometry behavior.
+  - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.
 - [ ] Port visual sector behavior.
 - [ ] Port visual thing behavior.
   - [x] Add UDB-style selected or targeted thing movement actions for relative grid moves and cursor placement.

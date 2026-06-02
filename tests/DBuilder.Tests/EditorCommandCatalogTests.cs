@@ -918,6 +918,29 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
     }
 
+    [Theory]
+    [InlineData("map3d.lower-sector-1", "Lower Floor/Ceiling/Thing by 1 mp")]
+    [InlineData("map3d.raise-sector-1", "Raise Floor/Ceiling/Thing by 1 mp")]
+    [InlineData("map3d.lower-sector-8", "Lower Floor/Ceiling/Thing by 8 mp")]
+    [InlineData("map3d.raise-sector-8", "Raise Floor/Ceiling/Thing by 8 mp")]
+    [InlineData("map3d.lower-sector-128", "Lower Floor/Ceiling/Thing by 128 mp")]
+    [InlineData("map3d.raise-sector-128", "Raise Floor/Ceiling/Thing by 128 mp")]
+    [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size")]
+    [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size")]
+    public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
     [Fact]
     public void RepeatableCommandMetadataMatchesAdjustmentActions()
     {
@@ -925,6 +948,7 @@ public class EditorCommandCatalogTests
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.grid-up"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.lower-floor-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.raise-brightness-8"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.raise-sector-128"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
 

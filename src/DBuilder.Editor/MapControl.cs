@@ -3549,6 +3549,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.align-things-to-wall":
                 AlignSelectedVisualThingsToWall3D();
                 return true;
+            case "map3d.lower-sector-1":
+                AdjustTarget3D(-1);
+                return true;
+            case "map3d.raise-sector-1":
+                AdjustTarget3D(1);
+                return true;
+            case "map3d.lower-sector-8":
+                AdjustTarget3D(-8);
+                return true;
+            case "map3d.raise-sector-8":
+                AdjustTarget3D(8);
+                return true;
+            case "map3d.lower-sector-128":
+                AdjustTarget3D(-128);
+                return true;
+            case "map3d.raise-sector-128":
+                AdjustTarget3D(128);
+                return true;
+            case "map3d.lower-map-element-by-grid-size":
+                AdjustTarget3D(-_grid.GridSize);
+                return true;
+            case "map3d.raise-map-element-by-grid-size":
+                AdjustTarget3D(_grid.GridSize);
+                return true;
             case "map3d.brightness-down":
                 AdjustTargetBrightness3D(-8);
                 return true;
