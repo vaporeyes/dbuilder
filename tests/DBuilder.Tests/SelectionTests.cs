@@ -70,6 +70,32 @@ public class SelectionTests
     }
 
     [Fact]
+    public void KeepSelectedLinedefsBySidednessKeepsOnlySingleSidedLines()
+    {
+        var map = BuildTwoSidedMap();
+        map.Linedefs[0].Selected = true;
+        map.Linedefs[1].Selected = true;
+
+        int kept = map.KeepSelectedLinedefsBySidedness(doubleSided: false);
+
+        Assert.Equal(1, kept);
+        Assert.Equal(new[] { map.Linedefs[1] }, map.GetSelectedLinedefs());
+    }
+
+    [Fact]
+    public void KeepSelectedLinedefsBySidednessKeepsOnlyDoubleSidedLines()
+    {
+        var map = BuildTwoSidedMap();
+        map.Linedefs[0].Selected = true;
+        map.Linedefs[1].Selected = true;
+
+        int kept = map.KeepSelectedLinedefsBySidedness(doubleSided: true);
+
+        Assert.Equal(1, kept);
+        Assert.Equal(new[] { map.Linedefs[0] }, map.GetSelectedLinedefs());
+    }
+
+    [Fact]
     public void CountsMatchSelection()
     {
         var map = BuildMap();

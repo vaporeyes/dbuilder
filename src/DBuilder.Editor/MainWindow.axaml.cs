@@ -1785,6 +1785,8 @@ public partial class MainWindow : Window
     private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
     private void OnScaleUp(object? sender, RoutedEventArgs e) => ScaleSelection(2.0, "Scale up");
     private void OnScaleDown(object? sender, RoutedEventArgs e) => ScaleSelection(0.5, "Scale down");
+    private void OnSelectSingleSidedLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.KeepSelectedLinedefsBySidedness(doubleSided: false));
+    private void OnSelectDoubleSidedLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.KeepSelectedLinedefsBySidedness(doubleSided: true));
     private void OnSplitLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.SplitLinedefs());
     private void OnAlignTexturesX(object? sender, RoutedEventArgs e) => AlignTextures(vertical: false);
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
@@ -4704,7 +4706,7 @@ public partial class MainWindow : Window
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
-            InsertAtCursorMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
+            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, SplitLinedefsMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,

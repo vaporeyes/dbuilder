@@ -1253,6 +1253,24 @@ public class MapSet : IDisposable
     public void ClearSelectedSectors() { foreach (var s in Sectors) s.Selected = false; }
     public void ClearSelectedThings() { foreach (var t in Things) t.Selected = false; }
 
+    public int KeepSelectedLinedefsBySidedness(bool doubleSided)
+    {
+        int kept = 0;
+        foreach (var line in GetSelectedLinedefs())
+        {
+            bool lineIsDoubleSided = line.Front != null && line.Back != null;
+            if (lineIsDoubleSided == doubleSided)
+            {
+                kept++;
+                continue;
+            }
+
+            line.Selected = false;
+        }
+
+        return kept;
+    }
+
     public void SelectAllVertices() => SetSelected(Vertices, true);
     public void SelectAllLinedefs() => SetSelected(Linedefs, true);
     public void SelectAllSidedefs() => SetSelected(Sidedefs, true);

@@ -3416,6 +3416,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.flip-sidedefs":
                 FlipSelected(sidedefs: true);
                 return true;
+            case "map2d.select-single-sided":
+                KeepSelectedLinedefsBySidedness(doubleSided: false);
+                return true;
+            case "map2d.select-double-sided":
+                KeepSelectedLinedefsBySidedness(doubleSided: true);
+                return true;
             case "map2d.join-sectors":
                 JoinOrMergeSelectedSectors(merge: false);
                 return true;
@@ -4502,6 +4508,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"flipped {n} {(sidedefs ? "sidedef" : "linedef")}{(n == 1 ? "" : "s")}");
+    }
+
+    public string KeepSelectedLinedefsBySidedness(bool doubleSided)
+    {
+        if (_map == null) return "No map loaded.";
+
+        int kept = _map.KeepSelectedLinedefsBySidedness(doubleSided);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string kind = doubleSided ? "double-sided" : "single-sided";
+        string status = "Selected only " + kind + " linedefs (" + kept + ")";
+        Picked?.Invoke(status);
+        return status;
     }
 
     public string JoinOrMergeSelectedSectors(bool merge)
