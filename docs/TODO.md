@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3189 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3191 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1199,6 +1199,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
+  - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
   - [x] Add UDB-style Reject Explorer action metadata and window command dispatch.
   - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
   - [x] Render UDB-style Reject Explorer sector overlay colors for highlighted-sector relations.
@@ -1509,6 +1510,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
+  - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
   - [x] Add UDB-style Reject Explorer action metadata and window command dispatch.
   - [x] Add non-modal Reject Explorer validation and relation summary window.
   - [x] Render highlighted-sector relation overlay colors in the editor.

@@ -36,6 +36,57 @@ public sealed class RejectExplorerModelTests
         Assert.Equal(5, RejectExplorerModel.ColorForRelation(RejectExplorerRelation.UnidirectionalTo, colors));
     }
 
+    [Fact]
+    public void ColorConfigurationMetadataMatchesUdbDialogAndAction()
+    {
+        RejectExplorerActionDescriptor action = RejectExplorerModel.ColorConfigurationAction;
+        IReadOnlyList<RejectExplorerColorField> fields = RejectExplorerModel.ColorConfigurationFields;
+
+        Assert.Equal("Color Configuration", RejectExplorerModel.ColorConfigurationTitle);
+        Assert.Equal("Reset colors", RejectExplorerModel.ResetColorsText);
+        Assert.Equal("rejectexplorercolorconfiguration", action.Id);
+        Assert.Equal("Configure colors", action.Title);
+        Assert.Equal("rejectexplorermode", action.Category);
+        Assert.Equal("Configure colors for reject explorer mode", action.Description);
+        Assert.True(action.AllowKeys);
+        Assert.True(action.AllowMouse);
+        Assert.True(action.AllowScroll);
+
+        Assert.Equal(5, fields.Count);
+        Assert.Equal(new RejectExplorerColorField("colors.default", "Default color:", unchecked((int)0xFFA0A0A0)), fields[0]);
+        Assert.Equal(new RejectExplorerColorField("colors.highlight", "Highlight color:", unchecked((int)0xFF00C000)), fields[1]);
+        Assert.Equal(new RejectExplorerColorField("colors.bidirectional", "Bidirectional color:", unchecked((int)0xFF00A000)), fields[2]);
+        Assert.Equal(new RejectExplorerColorField("colors.unidirectionalfrom", "Unidirectional from color:", unchecked((int)0xFFA0A000)), fields[3]);
+        Assert.Equal(new RejectExplorerColorField("colors.unidirectionalto", "Unidirectional to color:", unchecked((int)0xFFA000A0)), fields[4]);
+    }
+
+    [Fact]
+    public void ColorSettingsRoundTripUsesUdbPluginKeys()
+    {
+        var settings = new Dictionary<string, object?>
+        {
+            [RejectExplorerModel.DefaultColorKey] = unchecked((int)0xFF010203),
+            [RejectExplorerModel.HighlightColorKey] = 0xFF040506u,
+            [RejectExplorerModel.BidirectionalColorKey] = "4278650889",
+            [RejectExplorerModel.UnidirectionalFromColorKey] = "invalid",
+            [RejectExplorerModel.UnidirectionalToColorKey] = unchecked((long)0xFF0A0B0C),
+        };
+
+        RejectExplorerColorSettings colors = RejectExplorerModel.ColorsFromSettings(settings);
+        IReadOnlyDictionary<string, object> written = RejectExplorerModel.ColorsToSettings(colors);
+
+        Assert.Equal(unchecked((int)0xFF010203), colors.Default);
+        Assert.Equal(unchecked((int)0xFF040506), colors.Highlight);
+        Assert.Equal(unchecked((int)0xFF070809), colors.Bidirectional);
+        Assert.Equal(RejectExplorerModel.DefaultColors.UnidirectionalFrom, colors.UnidirectionalFrom);
+        Assert.Equal(unchecked((int)0xFF0A0B0C), colors.UnidirectionalTo);
+        Assert.Equal(unchecked((int)0xFF010203), written[RejectExplorerModel.DefaultColorKey]);
+        Assert.Equal(unchecked((int)0xFF040506), written[RejectExplorerModel.HighlightColorKey]);
+        Assert.Equal(unchecked((int)0xFF070809), written[RejectExplorerModel.BidirectionalColorKey]);
+        Assert.Equal(RejectExplorerModel.DefaultColors.UnidirectionalFrom, written[RejectExplorerModel.UnidirectionalFromColorKey]);
+        Assert.Equal(unchecked((int)0xFF0A0B0C), written[RejectExplorerModel.UnidirectionalToColorKey]);
+    }
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(1, 1)]

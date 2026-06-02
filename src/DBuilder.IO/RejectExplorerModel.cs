@@ -1,6 +1,9 @@
 // ABOUTME: Models UDB RejectExplorer validation and sector visibility relationships.
 // ABOUTME: Keeps REJECT lump size checks and overlay state classification separate from editor rendering.
 
+using System.Collections.Generic;
+using System.Globalization;
+
 namespace DBuilder.IO;
 
 public enum RejectExplorerValidationStatus
@@ -36,14 +39,79 @@ public sealed record RejectExplorerColorSettings(
     int UnidirectionalFrom,
     int UnidirectionalTo);
 
+public sealed record RejectExplorerActionDescriptor(
+    string Id,
+    string Title,
+    string Category,
+    string Description,
+    bool AllowKeys,
+    bool AllowMouse,
+    bool AllowScroll);
+
+public sealed record RejectExplorerColorField(
+    string Key,
+    string Label,
+    int DefaultColor);
+
 public static class RejectExplorerModel
 {
+    public const string DefaultColorKey = "colors.default";
+    public const string HighlightColorKey = "colors.highlight";
+    public const string BidirectionalColorKey = "colors.bidirectional";
+    public const string UnidirectionalFromColorKey = "colors.unidirectionalfrom";
+    public const string UnidirectionalToColorKey = "colors.unidirectionalto";
+    public const string ColorConfigurationTitle = "Color Configuration";
+    public const string ResetColorsText = "Reset colors";
+
     public static RejectExplorerColorSettings DefaultColors { get; } = new(
         Default: unchecked((int)0xFFA0A0A0),
         Highlight: unchecked((int)0xFF00C000),
         Bidirectional: unchecked((int)0xFF00A000),
         UnidirectionalFrom: unchecked((int)0xFFA0A000),
         UnidirectionalTo: unchecked((int)0xFFA000A0));
+
+    public static RejectExplorerActionDescriptor ColorConfigurationAction { get; } = new(
+        "rejectexplorercolorconfiguration",
+        "Configure colors",
+        "rejectexplorermode",
+        "Configure colors for reject explorer mode",
+        AllowKeys: true,
+        AllowMouse: true,
+        AllowScroll: true);
+
+    public static IReadOnlyList<RejectExplorerColorField> ColorConfigurationFields { get; } =
+    [
+        new(DefaultColorKey, "Default color:", DefaultColors.Default),
+        new(HighlightColorKey, "Highlight color:", DefaultColors.Highlight),
+        new(BidirectionalColorKey, "Bidirectional color:", DefaultColors.Bidirectional),
+        new(UnidirectionalFromColorKey, "Unidirectional from color:", DefaultColors.UnidirectionalFrom),
+        new(UnidirectionalToColorKey, "Unidirectional to color:", DefaultColors.UnidirectionalTo),
+    ];
+
+    public static RejectExplorerColorSettings ColorsFromSettings(IReadOnlyDictionary<string, object?> settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        RejectExplorerColorSettings fallback = DefaultColors;
+        return fallback with
+        {
+            Default = ReadColor(settings, DefaultColorKey, fallback.Default),
+            Highlight = ReadColor(settings, HighlightColorKey, fallback.Highlight),
+            Bidirectional = ReadColor(settings, BidirectionalColorKey, fallback.Bidirectional),
+            UnidirectionalFrom = ReadColor(settings, UnidirectionalFromColorKey, fallback.UnidirectionalFrom),
+            UnidirectionalTo = ReadColor(settings, UnidirectionalToColorKey, fallback.UnidirectionalTo),
+        };
+    }
+
+    public static IReadOnlyDictionary<string, object> ColorsToSettings(RejectExplorerColorSettings colors)
+        => new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [DefaultColorKey] = colors.Default,
+            [HighlightColorKey] = colors.Highlight,
+            [BidirectionalColorKey] = colors.Bidirectional,
+            [UnidirectionalFromColorKey] = colors.UnidirectionalFrom,
+            [UnidirectionalToColorKey] = colors.UnidirectionalTo,
+        };
 
     public static int ExpectedByteCount(int sectorCount)
         => sectorCount <= 0 ? 0 : (sectorCount * sectorCount + 7) / 8;
@@ -101,5 +169,19 @@ public static class RejectExplorerModel
             result[i] = ColorForRelation(RelationToHighlight(reject, i, highlightedSector), colors);
 
         return result;
+    }
+
+    private static int ReadColor(IReadOnlyDictionary<string, object?> settings, string key, int fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return fallback;
+        return value switch
+        {
+            int color => color,
+            uint color => unchecked((int)color),
+            long color when color is >= int.MinValue and <= uint.MaxValue => unchecked((int)color),
+            string text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int color) => color,
+            string text when uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint color) => unchecked((int)color),
+            _ => fallback,
+        };
     }
 }
