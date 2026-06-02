@@ -9,6 +9,31 @@ namespace DBuilder.Tests;
 public class StatusHistoryTests
 {
     [Fact]
+    public void StatusBarFormatsConfigLabels()
+    {
+        Assert.Equal("Config: Doom_Doom2Doom", StatusBarModel.ConfigText("Doom_Doom2Doom", null));
+        Assert.Equal("Config: Doom 2 (Doom_Doom2Doom)", StatusBarModel.ConfigText("Doom_Doom2Doom", "Doom 2"));
+    }
+
+    [Fact]
+    public void StatusBarFormatsModePriority()
+    {
+        Assert.Equal("Mode: 3D", StatusBarModel.ModeText("Linedefs", in3DMode: true, automapMode: true));
+        Assert.Equal("Mode: Automap", StatusBarModel.ModeText("Linedefs", automapMode: true));
+        Assert.Equal("Mode: WadAuthor", StatusBarModel.ModeText("Linedefs", wadAuthorMode: true));
+        Assert.Equal("Mode: Image Example", StatusBarModel.ModeText("Linedefs", imageExampleMode: true));
+        Assert.Equal("Mode: Linedefs (draw)", StatusBarModel.ModeText("Linedefs", drawMode: true));
+        Assert.Equal("Mode: Things", StatusBarModel.ModeText("Things"));
+    }
+
+    [Fact]
+    public void StatusBarFormatsSnapGridLabel()
+    {
+        Assert.Equal("Snap: 32", StatusBarModel.GridText(snapToGrid: true, 32.0));
+        Assert.Equal("Free: 0.125", StatusBarModel.GridText(snapToGrid: false, 0.125));
+    }
+
+    [Fact]
     public void AddStoresMessagesNewestFirst()
     {
         var timestamp = new DateTimeOffset(2026, 5, 29, 12, 0, 0, TimeSpan.Zero);

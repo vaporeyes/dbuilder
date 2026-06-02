@@ -829,6 +829,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let Things mode left-click place the configured thing type on empty map space.
 - [ ] Port status bar behavior.
   - [x] Add persistent mode, snap/grid, and coordinate status fields.
+  - [x] Add tested status detail formatting for config, mode, and snap/grid labels.
 - [ ] Port dockers and tabbed dock panels.
 - [ ] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.

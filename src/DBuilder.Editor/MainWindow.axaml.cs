@@ -4903,9 +4903,7 @@ public partial class MainWindow : Window
     }
 
     private string CurrentConfigLabel()
-        => _config is null || string.IsNullOrWhiteSpace(_config.GameName)
-            ? _configName
-            : $"{_config.GameName} ({_configName})";
+        => StatusBarModel.ConfigLabel(_configName, _config?.GameName);
 
     private string CommandHint(string commandId) => EditorCommandCatalog.CommandHint(commandId, _shortcutBindings);
 
@@ -4913,18 +4911,16 @@ public partial class MainWindow : Window
 
     private void UpdateStatusDetails()
     {
-        ConfigText.Text = $"Config: {CurrentConfigLabel()}";
-        ModeText.Text = MapView.In3DMode
-            ? "Mode: 3D"
-            : MapView.AutomapMode ? "Mode: Automap"
-            : MapView.WadAuthorMode ? "Mode: WadAuthor"
-            : MapView.ImageExampleMode ? "Mode: Image Example"
-            : MapView.InDrawMode ? $"Mode: {MapView.CurrentEditMode} (draw)" : $"Mode: {MapView.CurrentEditMode}";
+        ConfigText.Text = StatusBarModel.ConfigText(_configName, _config?.GameName);
+        ModeText.Text = StatusBarModel.ModeText(
+            MapView.CurrentEditMode.ToString(),
+            MapView.In3DMode,
+            MapView.AutomapMode,
+            MapView.WadAuthorMode,
+            MapView.ImageExampleMode,
+            MapView.InDrawMode);
         var grid = MapView.GridSetupSnapshot();
-        string gridSize = grid.GridSizeF % 1.0 == 0.0
-            ? grid.GridSize.ToString(CultureInfo.InvariantCulture)
-            : grid.GridSizeF.ToString("0.###", CultureInfo.InvariantCulture);
-        GridText.Text = $"{(MapView.SnapToGridEnabled ? "Snap" : "Free")}: {gridSize}";
+        GridText.Text = StatusBarModel.GridText(MapView.SnapToGridEnabled, grid.GridSizeF);
     }
 
     private void UpdateInfo()
