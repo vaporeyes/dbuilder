@@ -465,6 +465,30 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void LinedefWrapperAppliesSidedFlags()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(10, 0)))
+        {
+            Flags = Linedef.TwoSidedFlagBit,
+        };
+        line.AttachFront(new Sidedef { IsFront = true });
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        wrapper.applySidedFlags();
+
+        Assert.True(line.IsFlagSet("blocking"));
+        Assert.False(line.IsFlagSet("twosided"));
+        Assert.Equal(Linedef.BlockingFlagBit, line.Flags & (Linedef.BlockingFlagBit | Linedef.TwoSidedFlagBit));
+
+        line.AttachBack(new Sidedef { IsFront = false });
+        wrapper.applySidedFlags();
+
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.True(line.IsFlagSet("twosided"));
+        Assert.Equal(Linedef.TwoSidedFlagBit, line.Flags & (Linedef.BlockingFlagBit | Linedef.TwoSidedFlagBit));
+    }
+
+    [Fact]
     public void LinedefWrapperCopiesPropertiesAndClearsFlags()
     {
         var source = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(8, 0)))

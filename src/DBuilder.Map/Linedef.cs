@@ -9,6 +9,8 @@ using DBuilder.Geometry;
 public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, IMultiTaggedMapElement
 {
     public const double SidePointDistance = 0.01;
+    public const int BlockingFlagBit = 1;
+    public const int TwoSidedFlagBit = 4;
 
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
@@ -94,6 +96,24 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     {
         if (value) UdmfFlags.Add(flagName);
         else UdmfFlags.Remove(flagName);
+    }
+
+    public void ApplySidedFlags()
+    {
+        bool twoSided = Front != null && Back != null;
+        SetFlag("blocking", !twoSided);
+        SetFlag("twosided", twoSided);
+
+        if (twoSided)
+        {
+            Flags &= ~BlockingFlagBit;
+            Flags |= TwoSidedFlagBit;
+        }
+        else
+        {
+            Flags |= BlockingFlagBit;
+            Flags &= ~TwoSidedFlagBit;
+        }
     }
 
     public void CopyPropertiesTo(Linedef linedef)

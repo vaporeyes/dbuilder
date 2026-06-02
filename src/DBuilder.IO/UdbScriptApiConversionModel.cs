@@ -1263,6 +1263,12 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         return new UdbScriptVector2DWrapper(point.x, point.y);
     }
 
+    public void applySidedFlags()
+    {
+        ThrowIfDisposed("applySidedFlags");
+        linedef.ApplySidedFlags();
+    }
+
     public UdbScriptVector2DWrapper nearestOnLine(object pos)
     {
         ThrowIfDisposed("nearestOnLine");
