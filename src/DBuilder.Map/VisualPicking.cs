@@ -206,28 +206,34 @@ public static class VisualPicking
         ref VisualHit? best,
         ref double bestDist)
     {
-        double z = top ? floor.Top : floor.Bottom;
-        if (top && o.z < z) return;
-        if (!top && o.z > z) return;
-        if (Math.Abs(d.z) < Eps) return;
+        var here = new Vector2D(o.x, o.y);
+        double zHere = top ? floor.Control.GetCeilZ(here) : floor.Control.GetFloorZ(here);
+        if (top && o.z < zHere) return;
+        if (!top && o.z > zHere) return;
 
-        double t = (z - o.z) / d.z;
+        var step = new Vector2D(o.x + d.x, o.y + d.y);
+        double g = (top ? floor.Control.GetCeilZ(step) : floor.Control.GetFloorZ(step)) - zHere;
+        double denom = d.z - g;
+        if (Math.Abs(denom) < Eps) return;
+
+        double t = (zHere - o.z) / denom;
         if (t <= Eps || t >= bestDist) return;
 
         var xy = new Vector2D(o.x + d.x * t, o.y + d.y * t);
         if (!ReferenceEquals(SectorAt(map, blockMap, xy), sector)) return;
         if (!ThreeDFloorPixelIsOpaque(floor, xy, top, options)) return;
 
+        double zHit = top ? floor.Control.GetCeilZ(xy) : floor.Control.GetFloorZ(xy);
         bestDist = t;
         best = new VisualHit(
             top ? VisualHitKind.Floor : VisualHitKind.Ceiling,
             t,
-            new Vector3D(xy.x, xy.y, z),
+            new Vector3D(xy.x, xy.y, zHit),
             sector,
             null,
             top,
-            z,
-            z);
+            zHit,
+            zHit);
     }
 
     private static void TryThreeDFloorSide(

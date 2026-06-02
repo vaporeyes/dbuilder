@@ -255,6 +255,42 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void SlopedThreeDFloorTopUsesControlCeilingPlane()
+    {
+        var (map, target, _) = Room();
+        Sector control = AddThreeDFloor(map, target, bottom: 16, top: 64, flat: "MIDFLAT");
+        double k = 1.0 / System.Math.Sqrt(2);
+        control.CeilSlope = new Vector3D(-k, 0, k);
+        control.CeilSlopeOffset = 0;
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 100), new Vector3D(0, 0, -1));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Same(target, hit.Sector);
+        Assert.Equal(50, hit.Point.z, 6);
+        Assert.Equal(50, hit.Distance, 6);
+    }
+
+    [Fact]
+    public void SlopedThreeDFloorBottomUsesControlFloorPlane()
+    {
+        var (map, target, _) = Room();
+        Sector control = AddThreeDFloor(map, target, bottom: 16, top: 96, flat: "MIDFLAT");
+        double k = 1.0 / System.Math.Sqrt(2);
+        control.FloorSlope = new Vector3D(-k, 0, k);
+        control.FloorSlopeOffset = 0;
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 10), new Vector3D(0, 0, 1));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Ceiling, hit!.Kind);
+        Assert.Same(target, hit.Sector);
+        Assert.Equal(50, hit.Point.z, 6);
+        Assert.Equal(40, hit.Distance, 6);
+    }
+
+    [Fact]
     public void ResolvedThreeDFloorSideCanBePickedBeforeTargetWall()
     {
         var (map, target, lines) = Room();
@@ -401,7 +437,7 @@ public class VisualPickingTests
         return line;
     }
 
-    private static void AddThreeDFloor(MapSet map, Sector target, int bottom, int top, string flat)
+    private static Sector AddThreeDFloor(MapSet map, Sector target, int bottom, int top, string flat)
     {
         target.Tag = 7;
 
@@ -420,5 +456,6 @@ public class VisualPickingTests
         line.Args[0] = 7;
         line.Args[3] = 255;
         map.BuildIndexes();
+        return control;
     }
 }
