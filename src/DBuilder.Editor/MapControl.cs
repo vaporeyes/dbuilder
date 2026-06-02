@@ -3416,6 +3416,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.flip-sidedefs":
                 FlipSelected(sidedefs: true);
                 return true;
+            case "map2d.join-sectors":
+                JoinOrMergeSelectedSectors(merge: false);
+                return true;
+            case "map2d.merge-sectors":
+                JoinOrMergeSelectedSectors(merge: true);
+                return true;
             case "map2d.align-textures-x":
                 AutoAlignSelectedTextures(vertical: false);
                 return true;
@@ -4496,6 +4502,34 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke($"flipped {n} {(sidedefs ? "sidedef" : "linedef")}{(n == 1 ? "" : "s")}");
+    }
+
+    public string JoinOrMergeSelectedSectors(bool merge)
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = _map.GetSelectedSectors();
+        if (sectors.Count < 2)
+        {
+            const string message = "Select 2 or more sectors to join/merge.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(merge ? "Merge sectors" : "Join sectors");
+        Sector? keep = merge ? _map.MergeSectors(sectors) : _map.JoinSectors(sectors);
+        _map.BuildIndexes();
+        if (keep != null)
+        {
+            _map.ClearAllSelected();
+            keep.Selected = true;
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = merge ? "Merged " + sectors.Count + " sectors." : "Joined " + sectors.Count + " sectors.";
+        Picked?.Invoke(status);
+        return status;
     }
 
     /// <summary>The thing type used by the insert tool; remembers the last value edited via the dialog.</summary>

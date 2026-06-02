@@ -287,6 +287,22 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("map2d.join-sectors", "Join Sectors")]
+    [InlineData("map2d.merge-sectors", "Merge Sectors")]
+    public void JoinMergeSectorCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Fact]
     public void ApplyLightFogFlagCommandMatchesUdbActionSurface()
     {

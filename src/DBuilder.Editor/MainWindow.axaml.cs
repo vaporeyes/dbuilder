@@ -1763,8 +1763,8 @@ public partial class MainWindow : Window
         SetStatus($"Stitched: {merged} vertices merged, {split} lines split.");
     }
 
-    private void OnJoinSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: false);
-    private void OnMergeSectors(object? sender, RoutedEventArgs e) => JoinOrMergeSectors(merge: true);
+    private void OnJoinSectors(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.JoinOrMergeSelectedSectors(merge: false));
+    private void OnMergeSectors(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.JoinOrMergeSelectedSectors(merge: true));
     private void OnGradientFloorHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorHeight);
     private void OnGradientCeilingHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingHeight);
     private void OnGradientBrightness(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.Brightness);
@@ -1866,22 +1866,6 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"{desc} applied.");
-    }
-
-    // Joins (or merges, also deleting internal walls) the selected sectors into one, undoable.
-    private void JoinOrMergeSectors(bool merge)
-    {
-        if (_map is null || _undo is null) return;
-        var sel = _map.GetSelectedSectors();
-        if (sel.Count < 2) { SetStatus("Select 2 or more sectors to join/merge."); return; }
-
-        CreateUndo(merge ? "Merge sectors" : "Join sectors");
-        var keep = merge ? _map.MergeSectors(sel) : _map.JoinSectors(sel);
-        _map.BuildIndexes();
-        if (keep != null) { _map.ClearAllSelected(); keep.Selected = true; }
-        MapView.MarkGeometryDirty();
-        UpdateInfo();
-        SetStatus(merge ? $"Merged {sel.Count} sectors." : $"Joined {sel.Count} sectors.");
     }
 
     private void ApplySectorGradient(SectorGradientTarget target)
