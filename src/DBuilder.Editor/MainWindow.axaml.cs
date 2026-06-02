@@ -112,6 +112,11 @@ public partial class MainWindow : Window
                 _settings.UseHighlight = MapView.UseHighlight;
                 SaveSettings();
             }
+            if (_settings.AlphaBasedTextureHighlighting != MapView.AlphaBasedTextureHighlighting)
+            {
+                _settings.AlphaBasedTextureHighlighting = MapView.AlphaBasedTextureHighlighting;
+                SaveSettings();
+            }
             UpdateCommandAvailability();
             UpdateStatusDetails();
         };
@@ -138,6 +143,7 @@ public partial class MainWindow : Window
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
+        MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);

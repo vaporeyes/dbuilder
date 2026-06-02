@@ -100,6 +100,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void VisualAlphaBasedTextureHighlightingDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().AlphaBasedTextureHighlighting);
+    }
+
+    [Fact]
     public void ExistingRecentFilesSkipsMissingPathsLikeUdbMenu()
     {
         var s = new Settings
@@ -142,6 +148,7 @@ public class SettingsTests
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
+                AlphaBasedTextureHighlighting = false,
                 DynamicGridSize = false,
                 DefaultViewMode = 3,
                 StatusHistoryLimit = 250,
@@ -196,6 +203,7 @@ public class SettingsTests
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
+            Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);
             Assert.Equal(3, loaded.NormalizedDefaultViewMode);

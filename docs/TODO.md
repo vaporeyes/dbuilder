@@ -936,8 +936,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual picking behavior to full UDB behavior.
+  - [ ] Apply alpha-based texture highlighting to transparent-pixel 3D floor and double-sided middle-texture hit testing.
 - [ ] Port surface highlighting and selection behavior.
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
+  - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
   - [x] Add UDB-style visual wall texture offset step action metadata and dispatch.

@@ -182,6 +182,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
+    private bool _alphaBasedTextureHighlighting = true;
     private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
 
     public bool ShowSectorFills => _showFills;
@@ -191,6 +192,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool FullBrightness => _fullBrightness;
     public bool UseHighlight => _useHighlight;
+    public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
@@ -263,6 +265,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         SetUseHighlight(!_useHighlight);
         return _useHighlight;
+    }
+
+    public bool SetAlphaBasedTextureHighlighting(bool enabled)
+    {
+        if (_alphaBasedTextureHighlighting == enabled) return _alphaBasedTextureHighlighting;
+        _alphaBasedTextureHighlighting = enabled;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _alphaBasedTextureHighlighting;
+    }
+
+    public bool ToggleAlphaBasedTextureHighlighting()
+    {
+        SetAlphaBasedTextureHighlighting(!_alphaBasedTextureHighlighting);
+        Target3DChanged?.Invoke($"Alpha-based texture highlighting is {(_alphaBasedTextureHighlighting ? "ENABLED" : "DISABLED")}");
+        return _alphaBasedTextureHighlighting;
     }
 
     public bool MoveCameraToCursor()
@@ -4283,6 +4302,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-slope":
                 ToggleSlope3D();
+                return true;
+            case "map3d.toggle-alpha-based-texture-highlighting":
+                ToggleAlphaBasedTextureHighlighting();
                 return true;
             case "map3d.delete-target":
                 DeleteTargetThing3D();
