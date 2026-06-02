@@ -680,6 +680,22 @@ public sealed class UdbScriptPlaneWrapper
         => !(a == b);
 }
 
+public sealed class UdbScriptLabelPositionInfoWrapper
+{
+    private readonly LabelPositionInfo label;
+
+    public UdbScriptLabelPositionInfoWrapper(LabelPositionInfo label)
+    {
+        this.label = label;
+    }
+
+    public UdbScriptVector2DWrapper position
+        => new(label.position.x, label.position.y);
+
+    public double radius
+        => label.radius;
+}
+
 public sealed class UdbScriptGameConfigurationWrapper
 {
     private readonly GameConfiguration configuration;
@@ -1781,6 +1797,14 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         return sector.Sidedefs
             .Where(sidedef => !sidedef.IsDisposed)
             .Select(sidedef => new UdbScriptSidedefWrapper(sidedef))
+            .ToArray();
+    }
+
+    public UdbScriptLabelPositionInfoWrapper[] getLabelPositions()
+    {
+        ThrowIfDisposed("getLabelPositions");
+        return Tools.FindLabelPositions(sector)
+            .Select(label => new UdbScriptLabelPositionInfoWrapper(label))
             .ToArray();
     }
 

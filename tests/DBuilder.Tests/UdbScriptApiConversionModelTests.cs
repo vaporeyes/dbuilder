@@ -762,6 +762,19 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void SectorWrapperReturnsLabelPositions()
+    {
+        Sector sector = CreateSquareSector();
+        var wrapper = new UdbScriptSectorWrapper(sector);
+        LabelPositionInfo expected = Assert.Single(Tools.FindLabelPositions(sector));
+
+        UdbScriptLabelPositionInfoWrapper label = Assert.Single(wrapper.getLabelPositions());
+
+        Assert.Equal(new UdbScriptVector2DWrapper(expected.position.x, expected.position.y), label.position);
+        Assert.Equal(expected.radius, label.radius);
+    }
+
+    [Fact]
     public void SectorWrapperRejectsDisposedSectorAccess()
     {
         var wrapper = new UdbScriptSectorWrapper(new Sector { IsDisposed = true });
