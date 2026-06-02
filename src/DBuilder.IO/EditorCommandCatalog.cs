@@ -352,7 +352,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.edit-properties", "Edit properties", "Enter", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.delete-target", "Remove targeted thing", "Delete", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-2d", "Back to 2D mode", "Tab", EditorCommandScope.Map3D),
-    };
+    }.Concat(UdbScriptActions.CommandDescriptors).ToArray();
 
     public static IReadOnlyList<EditorShortcutBinding> DefaultShortcuts { get; } = new[]
     {

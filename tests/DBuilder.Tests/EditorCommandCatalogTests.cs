@@ -712,6 +712,49 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void UdbScriptActionsMatchUdbActionSurface()
+    {
+        Assert.Equal("udbscript", UdbScriptActions.CategoryId);
+        Assert.Equal("Scripting", UdbScriptActions.CategoryTitle);
+        Assert.Equal(30, UdbScriptActions.ScriptSlotCount);
+        Assert.Equal(31, UdbScriptActions.All.Count);
+
+        var execute = UdbScriptActions.Execute;
+        Assert.Equal("udbscriptexecute", execute.Id);
+        Assert.Equal("Execute Script", execute.Title);
+        Assert.Equal("Executes a script", execute.Description);
+        Assert.Equal("udbscript", execute.Category);
+        Assert.True(execute.AllowKeys);
+        Assert.True(execute.AllowMouse);
+        Assert.True(execute.AllowScroll);
+
+        var firstSlot = Assert.Single(UdbScriptActions.Slots, action => action.Id == "udbscriptexecuteslot1");
+        Assert.Equal("Execute Script Slot 1", firstSlot.Title);
+        Assert.Equal("execute script in slot 1", firstSlot.Description);
+
+        var lastSlot = Assert.Single(UdbScriptActions.Slots, action => action.Id == "udbscriptexecuteslot30");
+        Assert.Equal("Execute Script Slot 30", lastSlot.Title);
+        Assert.Equal("execute script in slot 30", lastSlot.Description);
+    }
+
+    [Theory]
+    [InlineData("window.udbscriptexecute", "Execute Script")]
+    [InlineData("window.udbscriptexecuteslot1", "Execute Script Slot 1")]
+    [InlineData("window.udbscriptexecuteslot30", "Execute Script Slot 30")]
+    public void UdbScriptCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void WavefrontExportCommandIsWindowMenuAction()
     {
         var command = EditorCommandCatalog.Find("window.export-wavefront");
