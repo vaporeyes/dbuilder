@@ -912,7 +912,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Rendering
 
-- [ ] Port renderer device behavior or document an equivalent renderer architecture.
+- [x] Port renderer device behavior or document an equivalent renderer architecture.
+  - [x] Document and test the Silk.NET OpenGL renderer replacement contract.
 - [ ] Port renderer 2D parity.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
@@ -938,7 +939,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port color settings and color collections.
   - [x] Add UDB-style `PixelColor` packing helpers, indexed color collection defaults, thing color palette, bright/dark assist variants, and `colors.colorN` setting keys.
   - [x] Add UDB-style image brightness color-correction table generation and pixel-block correction behavior.
-- [ ] Port shader compiler behavior or a documented replacement.
+- [x] Port shader compiler behavior or a documented replacement.
+  - [x] Document and test runtime GLSL shader compilation as the current UDB shader-manager replacement.
 - [ ] Add screenshot and pixel-level regression tests for key render states.
 
 ## Visual Modes And 3D Editing

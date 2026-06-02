@@ -23,6 +23,8 @@ Update checks are intentionally replaced with the policy in `docs/UPDATE_POLICY.
 | `DBuilder.IO` | `Source/Core/Config`, `Data`, `Dehacked`, `IO`, `Resources`, `Types`, `ZDoom` | Map formats, resources, parsers, configuration, and external tooling data. Partial. |
 | `DBuilder.Map` | `Source/Core/Map`, selected `Source/Core/Geometry`, selected `Source/Core/VisualModes` | Map element model, selection, analysis, editing helpers, tracing, triangulation, and picking. Partial. |
 | `DBuilder.Rendering` | `Source/Core/Rendering`, `Source/Native/OpenGL` | Cross-platform Silk.NET rendering layer. Partial. |
+
+See [RENDERING.md](RENDERING.md) for the current documented replacement contract for UDB native OpenGL device and shader compiler behavior.
 | `DBuilder.MapDemo` | Sample coverage for `Map` and `Rendering` | Kept as a manual visual smoke target. |
 | `DBuilder.MapViewer` | Sample coverage for map IO, resources, and rendering | Kept as a manual map loading and viewing target. |
 | `DBuilder.RenderSpike` | Sample coverage for `Rendering` | Kept until rendering has broader automated coverage. |
