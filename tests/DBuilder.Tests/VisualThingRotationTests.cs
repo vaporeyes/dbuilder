@@ -2,6 +2,7 @@
 // ABOUTME: Covers Doom-angle snapping plus pitch and roll wrapping.
 
 using DBuilder.Geometry;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -106,5 +107,91 @@ public class VisualThingRotationTests
             applyPitch: false);
 
         Assert.Equal(45, thing.Pitch);
+    }
+
+    [Fact]
+    public void PointThingsToCursorRotatesTowardCursor()
+    {
+        GameConfiguration config = ThingPointingConfig();
+        var thing = new Thing(new Vector2D(0, 0), 1);
+
+        int count = ThingCursorRotation.PointThingsToCursor(
+            new[] { thing },
+            new Vector2D(100, 0),
+            config,
+            awayFromCursor: false);
+
+        Assert.Equal(1, count);
+        Assert.Equal(0, thing.Angle);
+    }
+
+    [Fact]
+    public void PointThingsToCursorCanRotateAwayFromCursor()
+    {
+        GameConfiguration config = ThingPointingConfig();
+        var thing = new Thing(new Vector2D(0, 0), 1);
+
+        ThingCursorRotation.PointThingsToCursor(
+            new[] { thing },
+            new Vector2D(100, 0),
+            config,
+            awayFromCursor: true);
+
+        Assert.Equal(180, thing.Angle);
+    }
+
+    [Fact]
+    public void PointThingsToCursorSkipsFixedRotationThings()
+    {
+        GameConfiguration config = ThingPointingConfig(fixedRotation: true);
+        var thing = new Thing(new Vector2D(0, 0), 1);
+        thing.Rotate(45);
+
+        int count = ThingCursorRotation.PointThingsToCursor(
+            new[] { thing },
+            new Vector2D(100, 0),
+            config,
+            awayFromCursor: false);
+
+        Assert.Equal(0, count);
+        Assert.Equal(45, thing.Angle);
+    }
+
+    [Fact]
+    public void PointThingsToCursorSnapsToDoomAngles()
+    {
+        GameConfiguration config = ThingPointingConfig(doomThingRotationAngles: true);
+        var thing = new Thing(new Vector2D(0, 0), 1);
+
+        ThingCursorRotation.PointThingsToCursor(
+            new[] { thing },
+            new Vector2D(100, 100),
+            config,
+            awayFromCursor: false);
+
+        Assert.Equal(45, thing.Angle);
+    }
+
+    private static GameConfiguration ThingPointingConfig(
+        bool fixedRotation = false,
+        bool doomThingRotationAngles = false)
+    {
+        string fixedRotationValue = fixedRotation ? "true" : "false";
+        string doomAnglesValue = doomThingRotationAngles ? "true" : "false";
+        return GameConfiguration.FromText($$"""
+            doomthingrotationangles = {{doomAnglesValue}};
+            thingtypes
+            {
+                things
+                {
+                    title = "Things";
+                    1
+                    {
+                        title = "Thing";
+                        fixedrotation = {{fixedRotationValue}};
+                    }
+                }
+            }
+            """);
     }
 }

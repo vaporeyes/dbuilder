@@ -3240,7 +3240,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return;
             }
 
-            if (RunMapCommand(commandId))
+            if (RunMapCommand(commandId, e.KeyModifiers))
             {
                 e.Handled = true;
                 return;
@@ -3252,7 +3252,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         base.OnKeyDown(e);
     }
 
-    private bool RunMapCommand(string commandId)
+    private bool RunMapCommand(string commandId, KeyModifiers modifiers = KeyModifiers.None)
     {
         switch (commandId)
         {
@@ -3312,6 +3312,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.insert":
                 InsertAtCursor();
+                return true;
+            case "map2d.point-thing-to-cursor":
+                PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map2d.mode-vertices":
                 SetEditMode(EditMode.Vertices);
@@ -4362,6 +4365,41 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return result.Message;
     }
 
+    public string PointThingsToCursor(bool awayFromCursor)
+    {
+        if (_map == null) return "No map loaded.";
+        if (_gameConfig == null) return "No game configuration loaded.";
+        if (!_cursorWorld.IsFinite())
+        {
+            const string message = "Now click in the editing area!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        IReadOnlyList<Thing> things = _map.GetSelectedThings();
+        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom) is { } highlighted)
+            things = new[] { highlighted };
+
+        if (things.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(things.Count == 1 ? "Rotate thing" : $"Rotate {things.Count} things");
+        int changed = ThingCursorRotation.PointThingsToCursor(
+            things,
+            _cursorWorld,
+            _gameConfig,
+            awayFromCursor);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = changed == 1 ? "Rotated a thing." : $"Rotated {changed} things.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
     // Flips selected linedefs (F = reverse direction, Shift+F = swap front/back sidedefs), undoable.
     private void FlipSelected(bool sidedefs)
     {
@@ -4858,7 +4896,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
         if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, wheelKey, accel, shift, alt) is { } commandId
-            && RunMapCommand(commandId))
+            && RunMapCommand(commandId, e.KeyModifiers))
         {
             e.Handled = true;
             return;
