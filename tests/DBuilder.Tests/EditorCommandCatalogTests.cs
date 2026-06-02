@@ -95,6 +95,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.preferences", "Preferences", "Menu")]
     [InlineData("window.view-used-tags", "View Used Tags", "Menu")]
     [InlineData("window.view-thing-types", "View Thing Types", "Menu")]
+    [InlineData("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     [InlineData("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     public void KeyOnlyWindowCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
@@ -136,12 +137,25 @@ public class EditorCommandCatalogTests
     [Fact]
     public void CoreViewToolShortcutsMatchUdbDefaults()
     {
-        Assert.Equal("window.go-to-coordinates", EditorCommandCatalog.ResolveShortcut(
+        Assert.Equal("window.center-on-coordinates", EditorCommandCatalog.ResolveShortcut(
             EditorCommandScope.Window,
             "G",
             accelerator: true,
             shift: true));
         Assert.Equal("window.show-errors", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "F11"));
+    }
+
+    [Fact]
+    public void GoToCoordinatesLegacyAliasKeepsUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.center-on-coordinates");
+        var alias = EditorCommandCatalog.Find("window.go-to-coordinates");
+
+        Assert.NotNull(command);
+        Assert.NotNull(alias);
+        Assert.Equal(command.Title, alias.Title);
+        Assert.Equal(command.DefaultGesture, alias.DefaultGesture);
+        Assert.Equal(command.Scope, alias.Scope);
     }
 
     [Fact]

@@ -94,6 +94,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Support UDB-style exclusive begin/end action invocation requests.
   - [x] Add UDB-style shortcut option metadata to command descriptors.
   - [x] Enforce UDB-style key, mouse, and scroll shortcut option metadata during command resolution.
+  - [x] Add UDB-style Go To Coordinates action alias.
   - [x] Honor UDB-style modifier-disregard shortcut options during command resolution.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
