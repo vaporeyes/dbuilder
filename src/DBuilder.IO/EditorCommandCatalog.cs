@@ -164,6 +164,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.draw-grid", "Start Grid Drawing", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.insert", "Insert vertex or thing", "I", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.place-things", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.point-thing-to-cursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),

@@ -954,6 +954,7 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
     [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]
     [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
+    [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu")]
     public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -1598,6 +1599,7 @@ public class EditorCommandCatalogTests
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-rectangle"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-ellipse"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-curve"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-grid"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }
 
