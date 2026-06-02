@@ -117,6 +117,7 @@ public partial class MainWindow : Window
         };
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
+        MapView.PastePropertiesOptionsRequested += () => OnPastePropertiesWithOptions(this, new RoutedEventArgs());
         Opened += OnOpened;
         MapView.DrawModeChanged += () =>
         {
@@ -1204,9 +1205,11 @@ public partial class MainWindow : Window
             MapView.Focus();
     }
 
-    private void OnCopyProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopyPropertiesSelection());
+    private void OnCopyProperties(object? sender, RoutedEventArgs e)
+        => RunClipboardEdit(MapView.In3DMode ? MapView.CopyVisualPropertiesTarget() : MapView.CopyPropertiesSelection());
 
-    private void OnPasteProperties(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.PastePropertiesSelection());
+    private void OnPasteProperties(object? sender, RoutedEventArgs e)
+        => RunClipboardEdit(MapView.In3DMode ? MapView.PasteVisualPropertiesTargets() : MapView.PastePropertiesSelection());
 
     private async void OnPastePropertiesWithOptions(object? sender, RoutedEventArgs e)
     {
@@ -1217,14 +1220,17 @@ public partial class MainWindow : Window
             return;
         }
 
-        PastePropertiesOptionsResult options = MapView.BuildPastePropertiesOptionsForCurrentMode();
+        PastePropertiesOptionsResult options = MapView.In3DMode
+            ? MapView.BuildVisualPastePropertiesOptions()
+            : MapView.BuildPastePropertiesOptionsForCurrentMode();
         if (!options.IsAvailable)
         {
             SetStatus(options.StatusMessage ?? PastePropertiesOptionsModel.NoCopiedPropertiesMessage);
             MapView.Focus();
             return;
         }
-        if (!MapView.HasCurrentPropertyTarget)
+        bool hasTarget = MapView.In3DMode ? MapView.HasVisualPropertyTarget : MapView.HasCurrentPropertyTarget;
+        if (!hasTarget)
         {
             SetStatus("This action requires highlight or selection!");
             MapView.Focus();
@@ -1235,7 +1241,9 @@ public partial class MainWindow : Window
         if (await dialog.ShowDialog<bool>(this))
         {
             ISet<string> enabledKeys = PastePropertiesApplier.EnabledKeys(options);
-            RunClipboardEdit(MapView.PastePropertiesSelection(enabledKeys));
+            RunClipboardEdit(MapView.In3DMode
+                ? MapView.PasteVisualPropertiesTargets(enabledKeys)
+                : MapView.PastePropertiesSelection(enabledKeys));
         }
         else
         {

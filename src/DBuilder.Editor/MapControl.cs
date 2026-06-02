@@ -685,6 +685,202 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => "element",
     };
 
+    public bool HasVisualPropertyTarget => _map != null && (_target3D != null || _sel3D.Count > 0);
+
+    public string CopyVisualPropertiesTarget()
+    {
+        if (_map == null) return "No map loaded.";
+        if (_target3D is not { } target)
+        {
+            const string required = "This action requires highlight or selection!";
+            Target3DChanged?.Invoke(required);
+            return required;
+        }
+
+        string status = WithTemporaryVisualPropertySelection(
+            [target],
+            () =>
+            {
+                if (target.Kind == VisualHitKind.Wall)
+                {
+                    PastePropertiesCopyResult line = _pastePropertiesClipboard.CopySelected(_map, PastePropertiesElementKind.Linedef);
+                    PastePropertiesCopyResult side = _pastePropertiesClipboard.CopySelected(_map, PastePropertiesElementKind.Sidedef);
+                    return line.Copied && side.Copied ? "Copied linedef and sidedef properties." : line.StatusMessage;
+                }
+
+                PastePropertiesElementKind kind = VisualPropertyKind(target);
+                return _pastePropertiesClipboard.CopySelected(_map, kind).StatusMessage;
+            });
+        Target3DChanged?.Invoke(status);
+        ActionStateChanged?.Invoke();
+        return status;
+    }
+
+    public PastePropertiesOptionsResult BuildVisualPastePropertiesOptions()
+    {
+        if (_map == null)
+            return new PastePropertiesOptionsResult(false, "No map loaded.", []);
+        if (!HasVisualPropertyTarget)
+            return new PastePropertiesOptionsResult(false, "This action requires highlight or selection!", []);
+
+        return _pastePropertiesClipboard.BuildOptions(
+            VisualPropertyKinds(EditTargets3D()),
+            supportsUdmf: _mapFormat == MapFormat.Udmf);
+    }
+
+    public string PasteVisualPropertiesTargets(ISet<string>? enabledKeys = null)
+    {
+        if (_map == null) return "No map loaded.";
+        List<VisualHit> targets = EditTargets3D();
+        if (targets.Count == 0)
+        {
+            const string required = "This action requires highlight or selection!";
+            Target3DChanged?.Invoke(required);
+            return required;
+        }
+        if (enabledKeys is { Count: 0 })
+        {
+            const string none = "No paste properties selected.";
+            Target3DChanged?.Invoke(none);
+            return none;
+        }
+
+        IReadOnlyList<PastePropertiesElementKind> targetKinds = VisualPropertyKinds(targets);
+        PastePropertiesOptionsResult availableOptions = _pastePropertiesClipboard.BuildOptions(
+            targetKinds,
+            supportsUdmf: _mapFormat == MapFormat.Udmf);
+        if (!availableOptions.IsAvailable)
+        {
+            string missing = availableOptions.StatusMessage ?? PastePropertiesOptionsModel.NoCopiedPropertiesMessage;
+            Target3DChanged?.Invoke(missing);
+            return missing;
+        }
+
+        var statuses = new List<string>();
+        bool applied = false;
+        bool hasWallTargets = targets.Any(hit => hit.Kind == VisualHitKind.Wall);
+        EditBegun?.Invoke("Paste visual properties");
+        WithTemporaryVisualPropertySelection(
+            targets,
+            () =>
+            {
+                if (hasWallTargets)
+                {
+                    PastePropertiesApplyResult lines = _pastePropertiesClipboard.ApplySelected(
+                        _map,
+                        PastePropertiesElementKind.Linedef,
+                        supportsUdmf: _mapFormat == MapFormat.Udmf,
+                        enabledKeys);
+                    statuses.Add(lines.StatusMessage);
+                    applied |= lines.Applied;
+
+                    PastePropertiesApplyResult sides = _pastePropertiesClipboard.ApplySelected(
+                        _map,
+                        PastePropertiesElementKind.Sidedef,
+                        supportsUdmf: _mapFormat == MapFormat.Udmf,
+                        enabledKeys);
+                    statuses.Add(sides.StatusMessage);
+                    applied |= sides.Applied;
+                }
+
+                foreach (PastePropertiesElementKind kind in targetKinds.Where(kind => kind != PastePropertiesElementKind.Linedef))
+                {
+                    if (hasWallTargets && kind == PastePropertiesElementKind.Sidedef) continue;
+
+                    PastePropertiesApplyResult result = _pastePropertiesClipboard.ApplySelected(
+                        _map,
+                        kind,
+                        supportsUdmf: _mapFormat == MapFormat.Udmf,
+                        enabledKeys);
+                    statuses.Add(result.StatusMessage);
+                    applied |= result.Applied;
+                }
+
+                return true;
+            });
+
+        if (applied)
+        {
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+        }
+
+        string status = string.Join(" ", statuses.Where(text => !string.IsNullOrWhiteSpace(text)).Distinct(StringComparer.Ordinal));
+        Target3DChanged?.Invoke(status);
+        return status;
+    }
+
+    private static PastePropertiesElementKind VisualPropertyKind(VisualHit hit) => hit.Kind switch
+    {
+        VisualHitKind.Floor or VisualHitKind.Ceiling => PastePropertiesElementKind.Sector,
+        VisualHitKind.Wall => PastePropertiesElementKind.Linedef,
+        VisualHitKind.Thing => PastePropertiesElementKind.Thing,
+        _ => PastePropertiesElementKind.Linedef,
+    };
+
+    private static IReadOnlyList<PastePropertiesElementKind> VisualPropertyKinds(IEnumerable<VisualHit> hits)
+    {
+        var result = new List<PastePropertiesElementKind>();
+        foreach (VisualHit hit in hits)
+        {
+            PastePropertiesElementKind kind = VisualPropertyKind(hit);
+            if (!result.Contains(kind)) result.Add(kind);
+            if (hit.Kind == VisualHitKind.Wall && !result.Contains(PastePropertiesElementKind.Sidedef))
+                result.Add(PastePropertiesElementKind.Sidedef);
+        }
+
+        return result;
+    }
+
+    private T WithTemporaryVisualPropertySelection<T>(IReadOnlyList<VisualHit> hits, Func<T> action)
+    {
+        if (_map == null) return action();
+
+        var vertices = _map.GetSelectedVertices();
+        var linedefs = _map.GetSelectedLinedefs();
+        var sidedefs = _map.GetSelectedSidedefs();
+        var sectors = _map.GetSelectedSectors();
+        var things = _map.GetSelectedThings();
+        _map.ClearAllSelected();
+        try
+        {
+            foreach (VisualHit hit in hits)
+            {
+                switch (hit.Kind)
+                {
+                    case VisualHitKind.Floor:
+                    case VisualHitKind.Ceiling:
+                        if (hit.Sector is { } sector) sector.Selected = true;
+                        break;
+                    case VisualHitKind.Wall:
+                        if (hit.Line is { } line)
+                        {
+                            line.Selected = true;
+                            Sidedef? side = hit.Front ? line.Front : line.Back;
+                            if (side != null) side.Selected = true;
+                        }
+                        break;
+                    case VisualHitKind.Thing:
+                        if (hit.Thing is { } thing) thing.Selected = true;
+                        break;
+                }
+            }
+
+            return action();
+        }
+        finally
+        {
+            _map.ClearAllSelected();
+            foreach (Vertex vertex in vertices) vertex.Selected = true;
+            foreach (Linedef linedef in linedefs) linedef.Selected = true;
+            foreach (Sidedef sidedef in sidedefs) sidedef.Selected = true;
+            foreach (Sector sector in sectors) sector.Selected = true;
+            foreach (Thing thing in things) thing.Selected = true;
+        }
+    }
+
     public bool Toggle3DMode()
     {
         SetImageExampleMode(false);
@@ -1489,6 +1685,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>Raised when the 3D user requests the texture browser (true = flats for a floor/ceiling target).</summary>
     public event Action<bool>? BrowseTexturesRequested;
+
+    /// <summary>Raised when the 3D user requests paste-properties options.</summary>
+    public event Action? PastePropertiesOptionsRequested;
 
     /// <summary>Applies a chosen texture name (from the browser) to the current 3D target and remembers it.</summary>
     public void ApplyChosenTexture(string name)
@@ -4013,6 +4212,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.paste-offsets":
                 PasteTextureOffsets3D();
+                return true;
+            case "map3d.copy-properties":
+                CopyVisualPropertiesTarget();
+                return true;
+            case "map3d.paste-properties":
+                PasteVisualPropertiesTargets();
+                return true;
+            case "map3d.paste-properties-options":
+                PastePropertiesOptionsRequested?.Invoke();
                 return true;
             case "map3d.fit-textures":
                 FitSelectedVisualTextures3D();
