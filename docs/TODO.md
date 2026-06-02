@@ -1254,6 +1254,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Tag Range action, toolbar, dialog label, warning, and undo text metadata.
 - [ ] Port `UDBScript`.
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
+  - [x] Add UDBScript script directory discovery and leading metadata parsing.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -1469,6 +1470,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## UDBScript
 
 - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
+- [x] Add UDBScript script directory discovery and leading metadata parsing.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI.

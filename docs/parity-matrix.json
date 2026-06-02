@@ -225,7 +225,7 @@
       "udbPlugin": "UDBScript",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "UDBScript action metadata and editor command catalog entries exist for Execute Script and 30 script slots. Script discovery, options, docker UI, runner UI, runtime constraints, exception handling, query options, and API wrappers remain incomplete."
+      "notes": "UDBScript action metadata and editor command catalog entries exist for Execute Script and 30 script slots. Script directory discovery, hidden-folder skipping, JS file filtering, UDB-style ASCII path hashing, and leading template metadata parsing exist. Script execution, option type handling, docker UI, runner UI, runtime constraints, exception handling, query options, and API wrappers remain incomplete."
     },
     {
       "udbPlugin": "USDF",
