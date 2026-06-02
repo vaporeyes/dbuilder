@@ -463,19 +463,26 @@ public partial class MainWindow : Window
         if (_wadPath is null && _pk3Path is null) { SetStatus("Open a WAD or PK3 first."); return; }
         if (_pk3Path is not null && _pk3Maps is not null)
         {
+            var pk3Maps = CurrentPk3Maps(_pk3Path);
+            if (pk3Maps.Count == 0) { SetStatus("No maps in this PK3 match the active game configuration."); return; }
+
             var displayMaps = new List<MapEntry>();
-            foreach (var pk3Map in _pk3Maps) displayMaps.Add(DisplayEntry(pk3Map));
+            foreach (var pk3Map in pk3Maps) displayMaps.Add(DisplayEntry(pk3Map));
             var pk3Dialog = new MapPickerDialog(displayMaps, CurrentPk3DisplayName());
             if (await pk3Dialog.ShowDialog<bool>(this) && pk3Dialog.Selected is { } selected)
             {
                 int index = displayMaps.FindIndex(m => m.Name == selected.Name && m.Format == selected.Format);
-                if (index >= 0 && await ConfirmDiscardDirtyMap()) LoadPk3MapEntry(_pk3Maps[index]);
+                if (index >= 0 && await ConfirmDiscardDirtyMap())
+                {
+                    _pk3Maps = pk3Maps;
+                    LoadPk3MapEntry(pk3Maps[index]);
+                }
             }
             return;
         }
 
         List<MapEntry> maps;
-        using (var wad = new WAD(_wadPath!, openreadonly: true)) maps = WadMaps.Find(wad);
+        using (var wad = new WAD(_wadPath!, openreadonly: true)) maps = CurrentWadMaps(wad);
         if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
 
         var dlg = new MapPickerDialog(maps, _mapMarker);
@@ -3008,8 +3015,8 @@ public partial class MainWindow : Window
             List<MapEntry> maps;
             using (var wad = new WAD(path, openreadonly: true))
             {
-                maps = WadMaps.Find(wad);
                 AutoDetectConfig(wad); // switch the auto/default config to match this WAD's game
+                maps = CurrentWadMaps(wad);
                 if (wad.IsIWAD) _iwadPath = path; // loaded an IWAD directly - usable as the Test Map base
             }
             if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
@@ -3049,7 +3056,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var maps = Pk3Maps.Find(path);
+            var maps = CurrentPk3Maps(path);
             if (maps.Count == 0) { SetStatus($"No embedded map WAD found in {System.IO.Path.GetFileName(path)}"); return; }
 
             var selected = maps[0];
@@ -3285,6 +3292,12 @@ public partial class MainWindow : Window
 
     private static MapEntry DisplayEntry(Pk3MapEntry entry)
         => new($"{entry.Map.Name} @ {entry.ArchivePath}", entry.Map.Format);
+
+    private List<MapEntry> CurrentWadMaps(WAD wad)
+        => _config is null ? WadMaps.Find(wad) : WadMaps.Find(wad, _config);
+
+    private List<Pk3MapEntry> CurrentPk3Maps(string path)
+        => _config is null ? Pk3Maps.Find(path) : Pk3Maps.Find(path, _config);
 
     private string? CurrentPk3DisplayName()
         => _mapMarker is null || _pk3MapArchivePath is null ? null : $"{_mapMarker} @ {_pk3MapArchivePath}";

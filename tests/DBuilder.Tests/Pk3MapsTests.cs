@@ -10,6 +10,24 @@ namespace DBuilder.Tests;
 
 public class Pk3MapsTests
 {
+    private const string EpisodeMapNameConfig = @"
+mapnameformat = ""ExMy"";
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    TEXTMAP { required = true; }
+    ENDMAP { required = true; }
+}";
+
+    private const string NoEpisodeMapNameConfig = @"
+mapnameformat = ""MAPxy"";
+maplumpnames
+{
+    ~MAP { required = true; blindcopy = true; }
+    TEXTMAP { required = true; }
+    ENDMAP { required = true; }
+}";
+
     [Fact]
     public void FindsMapsInEmbeddedWadEntries()
     {
@@ -25,6 +43,32 @@ public class Pk3MapsTests
             Assert.Equal("maps/map01.wad", entry.ArchivePath);
             Assert.Equal("MAP01", entry.Map.Name);
             Assert.Equal(MapFormat.Udmf, entry.Map.Format);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ConfiguredFindFiltersEmbeddedWadMapNames()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("maps/e1m1.wad", BuildUdmfWad("E1M1")),
+            ("maps/map01.wad", BuildUdmfWad("MAP01")));
+
+        try
+        {
+            var episodeMaps = Pk3Maps.Find(pk3, GameConfiguration.FromText(EpisodeMapNameConfig));
+            var noEpisodeMaps = Pk3Maps.Find(pk3, GameConfiguration.FromText(NoEpisodeMapNameConfig));
+
+            var episode = Assert.Single(episodeMaps);
+            Assert.Equal("maps/e1m1.wad", episode.ArchivePath);
+            Assert.Equal("E1M1", episode.Map.Name);
+
+            var noEpisode = Assert.Single(noEpisodeMaps);
+            Assert.Equal("maps/map01.wad", noEpisode.ArchivePath);
+            Assert.Equal("MAP01", noEpisode.Map.Name);
         }
         finally
         {

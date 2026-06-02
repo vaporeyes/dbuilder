@@ -18,10 +18,23 @@ public static class Pk3Maps
         return Find(zip);
     }
 
+    public static List<Pk3MapEntry> Find(string path, GameConfiguration config)
+    {
+        using var zip = ZipFile.OpenRead(path);
+        return Find(zip, config);
+    }
+
     public static List<Pk3MapEntry> Find(ZipArchive zip)
     {
         var result = new List<Pk3MapEntry>();
-        Find(zip, archivePrefix: "", result);
+        Find(zip, archivePrefix: "", config: null, result);
+        return result;
+    }
+
+    public static List<Pk3MapEntry> Find(ZipArchive zip, GameConfiguration config)
+    {
+        var result = new List<Pk3MapEntry>();
+        Find(zip, archivePrefix: "", config, result);
         return result;
     }
 
@@ -53,7 +66,7 @@ public static class Pk3Maps
         return WadMaps.ReadMapLump(wad, entry.Map.Name, lumpName, config);
     }
 
-    private static void Find(ZipArchive zip, string archivePrefix, List<Pk3MapEntry> result)
+    private static void Find(ZipArchive zip, string archivePrefix, GameConfiguration? config, List<Pk3MapEntry> result)
     {
         foreach (var entry in zip.Entries)
         {
@@ -65,21 +78,21 @@ public static class Pk3Maps
 
             if (IsWadPath(entry.FullName))
             {
-                foreach (var map in FindMaps(entry))
+                foreach (var map in FindMaps(entry, config))
                     result.Add(new Pk3MapEntry(archivePath, map));
             }
             else if (ArchivePath.IsPk3FamilyPath(entry.FullName))
             {
                 using var nested = OpenNestedZip(entry);
-                Find(nested, archivePath, result);
+                Find(nested, archivePath, config, result);
             }
         }
     }
 
-    private static IEnumerable<MapEntry> FindMaps(ZipArchiveEntry entry)
+    private static IEnumerable<MapEntry> FindMaps(ZipArchiveEntry entry, GameConfiguration? config)
     {
         using var wad = OpenWad(entry);
-        return WadMaps.Find(wad);
+        return config is null ? WadMaps.Find(wad) : WadMaps.Find(wad, config);
     }
 
     private static WAD OpenWad(ZipArchiveEntry entry)

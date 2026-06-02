@@ -69,7 +69,7 @@
       "udbArea": "Source/Core/IO",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, stream facades, map conversion, and PK3/WAD resource IO. Directory and PK3 resource options expose root textures and flats like UDB, and nested directory WAD high-resolution replacements participate in priority order. Classic texture composition honors UDB patch offset compatibility flags and WAD patch fallback ordering around flat ranges. Full universal IO parity remains incomplete."
+      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, stream facades, map conversion, config-aware WAD and PK3 embedded-WAD map discovery, and PK3/WAD resource IO. Directory and PK3 resource options expose root textures and flats like UDB, and nested directory WAD high-resolution replacements participate in priority order. Classic texture composition honors UDB patch offset compatibility flags and WAD patch fallback ordering around flat ranges. Full universal IO parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Map",
@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map with active-config candidate filtering, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, configured universal field rows, and dynamic field type persistence, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",
