@@ -1030,6 +1030,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port IQM loader.
   - [x] Add UDB-style static IQM parser for header validation, material names, mesh records, triangles, float position/UV/normal arrays, coordinate rotation, and parse errors.
 - [ ] Port KVX loader.
+  - [x] Add UDB-style KVX voxel parser for slab offsets, visible face generation, pivot transforms, palette atlas pixels, radius calculation, and malformed input errors.
 - [ ] Port Unreal model loader.
 - [ ] Port model skins and frame behavior.
   - [x] Match UDB-style actor sprite frame eligibility and disabled frame indexes for MODELDEF display resolution.
