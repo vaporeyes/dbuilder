@@ -215,6 +215,30 @@ model Good
         Assert.Equal(new ModeldefFrame("POSS", "A", 0, -1), def.Frames.Single());
     }
 
+    [Theory]
+    [InlineData("Model 0 \"bad<model.md3\"")]
+    [InlineData("Skin 0 \"bad|skin.png\"")]
+    [InlineData("SurfaceSkin 0 1 \"bad>skin.png\"")]
+    public void SkipsModelsWithInvalidResourcePathCharactersLikeUdb(string invalidLine)
+    {
+        string text = $$"""
+            model Bad
+            {
+                Model 0 "bad.md3"
+                {{invalidLine}}
+            }
+            model Good
+            {
+                Model 0 "good.md3"
+            }
+            """;
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefModel(0, "good.md3"), def.Models.Single());
+    }
+
     [Fact]
     public void SkipsModelsWithoutModelEntriesLikeUdb()
     {

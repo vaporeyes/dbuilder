@@ -183,6 +183,7 @@ public static class ModeldefParser
         if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
         if (i >= t.Count) return false;
         string file = t[i++];
+        if (!IsValidModelResourcePath(file)) return false;
         if (string.IsNullOrWhiteSpace(Path.GetExtension(file))) return false;
         if (!SupportedModelExtensions.Contains(Path.GetExtension(file))) return false;
         SetModel(def.Models, new ModeldefModel(modelIndex, file));
@@ -193,7 +194,9 @@ public static class ModeldefParser
     {
         if (!ReadInt(t, ref i, out int skinIndex) || skinIndex < 0) return false;
         if (i >= t.Count) return false;
-        SetSkin(def.Skins, new ModeldefSkin(skinIndex, t[i++]));
+        string file = t[i++];
+        if (!IsValidModelResourcePath(file)) return false;
+        SetSkin(def.Skins, new ModeldefSkin(skinIndex, file));
         return true;
     }
 
@@ -202,7 +205,18 @@ public static class ModeldefParser
         if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
         if (!ReadInt(t, ref i, out int surfaceIndex) || surfaceIndex < 0) return false;
         if (i >= t.Count) return false;
-        SetSurfaceSkin(def.SurfaceSkins, new ModeldefSurfaceSkin(modelIndex, surfaceIndex, t[i++]));
+        string file = t[i++];
+        if (!IsValidModelResourcePath(file)) return false;
+        SetSurfaceSkin(def.SurfaceSkins, new ModeldefSurfaceSkin(modelIndex, surfaceIndex, file));
+        return true;
+    }
+
+    private static bool IsValidModelResourcePath(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return false;
+        foreach (char c in path)
+            if (c < 32 || c == '"' || c == '<' || c == '>' || c == '|')
+                return false;
         return true;
     }
 
