@@ -1740,7 +1740,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PitchRadians: thing.Pitch * Math.PI / 180.0,
                 RollRadians: thing.Roll * Math.PI / 180.0,
                 Selected: thing.Selected));
-        int tint = thing.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+        int tint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, _resources?.GetGldefs());
         IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform.World3D, tint);
         if (batches.Count == 0) return false;
 
@@ -1771,7 +1771,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             PitchRadians: thing.Pitch * Math.PI / 180.0,
             RollRadians: thing.Roll * Math.PI / 180.0,
             Selected: thing.Selected));
-        int tint = thing.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+        int tint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, _resources?.GetGldefs());
         IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform, tint);
         if (batches.Count == 0) return false;
 
