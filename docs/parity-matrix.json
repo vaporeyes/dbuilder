@@ -27,7 +27,7 @@
       "udbArea": "Source/Core/Controls",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area with active game configuration, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, basic property dialogs, explicit selected-element Properties command, Insert at Cursor toolbar access, universal handler option lists for boolean, enum, byte-angle, integer degree-angle, decimal degree-angle, and thing-class editors, UDB-style script document tab identity with persisted view settings, script compiler error routing by tab type, and script tab title updates. Full UDB control set parity remains incomplete."
+      "notes": "Avalonia editor controls cover the main shell, menus, toolbar, status area with active game configuration, settings, shortcuts, recent files, error/status history, auto-clear sidedef texture toggle, selection groups, map markers, custom fields, basic property dialogs, explicit selected-element Properties command, Insert at Cursor toolbar access, universal handler option lists for boolean, enum, byte-angle, integer degree-angle, decimal degree-angle, and thing-class editors, including the standalone custom-fields dialog, UDB-style script document tab identity with persisted view settings, script compiler error routing by tab type, and script tab title updates. Full UDB control set parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Data",
@@ -86,7 +86,7 @@
       "udbArea": "Source/Core/Properties",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, selected linedef, thing, sector, and sidedef UDMF flag editing, and selected sidedef custom-fields editing. Full UDB property panel and field editor parity remains incomplete."
+      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, selected linedef, thing, sector, and sidedef UDMF flag editing, selected sidedef custom-fields editing, and configured universal fields in the standalone custom-fields dialog. Full UDB property panel and field editor parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Rendering",
@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs and configured universal field rows, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",

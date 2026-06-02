@@ -846,6 +846,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port custom fields dialog.
   - [x] Add generic selected-element custom UDMF fields dialog.
   - [x] Include selected sidedefs in custom-fields dialog availability and dispatch.
+  - [x] Show configured universal fields separately from raw custom fields in the custom-fields dialog.
 - [ ] Port map options dialog.
   - [x] Add basic map marker and UDMF namespace dialog.
   - [x] Add drawing default fields to the map options dialog.

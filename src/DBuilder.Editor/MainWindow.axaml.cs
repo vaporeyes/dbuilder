@@ -1449,13 +1449,17 @@ public partial class MainWindow : Window
     private async void OnCustomFields(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
-        if (!SupportsCustomFields() || !TryGetSingleFieldedSelection(out var element, out string name))
+        if (!SupportsCustomFields() || !TryGetSingleFieldedSelection(
+                out var element,
+                out string name,
+                out string elementType,
+                out IReadOnlyList<string>? additionalFieldNames))
         {
             SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit custom fields.");
             return;
         }
 
-        var dlg = new CustomFieldsDialog(name, element.Fields);
+        var dlg = new CustomFieldsDialog(name, element.Fields, _config, elementType, additionalFieldNames, _resources);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
         CreateUndo("Edit custom fields");
@@ -1470,10 +1474,16 @@ public partial class MainWindow : Window
         foreach (var kv in result) target[kv.Key] = kv.Value;
     }
 
-    private bool TryGetSingleFieldedSelection(out IFielded element, out string name)
+    private bool TryGetSingleFieldedSelection(
+        out IFielded element,
+        out string name,
+        out string elementType,
+        out IReadOnlyList<string>? additionalFieldNames)
     {
         element = null!;
         name = "";
+        elementType = "";
+        additionalFieldNames = null;
         if (_map is null) return false;
 
         int total = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSidedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
@@ -1484,6 +1494,7 @@ public partial class MainWindow : Window
             var vertex = _map.GetSelectedVertices()[0];
             element = vertex;
             name = $"Vertex {_map.Vertices.IndexOf(vertex)}";
+            elementType = "vertex";
             return true;
         }
         if (_map.SelectedLinedefsCount == 1)
@@ -1491,6 +1502,7 @@ public partial class MainWindow : Window
             var line = _map.GetSelectedLinedefs()[0];
             element = line;
             name = $"Linedef {_map.Linedefs.IndexOf(line)}";
+            elementType = "linedef";
             return true;
         }
         if (_map.SelectedSidedefsCount == 1)
@@ -1498,6 +1510,7 @@ public partial class MainWindow : Window
             var side = _map.GetSelectedSidedefs()[0];
             element = side;
             name = $"Sidedef {_map.Sidedefs.IndexOf(side)}";
+            elementType = "sidedef";
             return true;
         }
         if (_map.SelectedSectorsCount == 1)
@@ -1505,6 +1518,7 @@ public partial class MainWindow : Window
             var sector = _map.GetSelectedSectors()[0];
             element = sector;
             name = $"Sector {sector.Index}";
+            elementType = "sector";
             return true;
         }
         if (_map.SelectedThingsCount == 1)
@@ -1512,6 +1526,8 @@ public partial class MainWindow : Window
             var thing = _map.GetSelectedThings()[0];
             element = thing;
             name = $"Thing {_map.Things.IndexOf(thing)}";
+            elementType = "thing";
+            additionalFieldNames = _config?.GetThing(thing.Type)?.AddUniversalFields;
             return true;
         }
 
