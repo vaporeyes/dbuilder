@@ -1458,6 +1458,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB sector color dialog title, sector-color label, typed HEX parsing, and paired-field apply behavior.
   - [x] Expose typed float color input in the selected-sector color dialog.
   - [x] Gate selected-sector color editing to UDMF maps with UDB's warning.
+  - [x] Add editor command and dialog for selected UDB internal dynamic light things.
 
 ## Validation And Test Strategy
 

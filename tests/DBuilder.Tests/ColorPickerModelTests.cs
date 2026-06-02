@@ -256,6 +256,68 @@ public sealed class ColorPickerModelTests
     public void DynamicLightAngleControlUsesUdbLightNumbers(int lightNumber, bool expected)
         => Assert.Equal(expected, ColorPickerModel.DynamicLightUsesAngleValue(lightNumber));
 
+    [Theory]
+    [InlineData(9800, false, DynamicLightColorMode.Standard)]
+    [InlineData(9840, false, DynamicLightColorMode.SpotOrSun)]
+    [InlineData(9890, false, DynamicLightColorMode.SpotOrSun)]
+    [InlineData(1502, true, DynamicLightColorMode.VavoomGeneric)]
+    [InlineData(1503, true, DynamicLightColorMode.VavoomColored)]
+    public void InternalDynamicLightDefinitionMatchesUdbThingNumbers(int thingType, bool lightVavoom, DynamicLightColorMode colorMode)
+    {
+        DynamicLightDefinition? definition = ColorPickerModel.InternalDynamicLightDefinitionForThingType(thingType);
+
+        Assert.NotNull(definition);
+        Assert.Equal(thingType, definition!.LightNumber);
+        Assert.Equal(lightVavoom, definition.LightVavoom);
+        Assert.Equal(colorMode, definition.ColorMode);
+    }
+
+    [Fact]
+    public void InternalDynamicLightDefinitionRejectsNonLightThings()
+        => Assert.Null(ColorPickerModel.InternalDynamicLightDefinitionForThingType(3001));
+
+    [Fact]
+    public void InternalDynamicLightEditTargetsFilterSelectedInternalLights()
+    {
+        var light = new Thing(new DBuilder.Geometry.Vector2D(0, 0), 9800);
+        light.Args[0] = 1;
+        light.Args[1] = 2;
+        light.Args[2] = 3;
+        light.Args[3] = 128;
+        var ordinary = new Thing(new DBuilder.Geometry.Vector2D(64, 0), 3001);
+
+        IReadOnlyList<DynamicLightThingEditTarget> targets =
+            ColorPickerModel.InternalDynamicLightEditTargets(new[] { light, ordinary });
+
+        DynamicLightThingEditTarget target = Assert.Single(targets);
+        Assert.Same(light, target.Thing);
+        Assert.Equal(new ColorRgb(1, 2, 3), ColorPickerModel.GetDynamicLightColor(target.EditTarget.Definition, target.EditTarget.Args, target.EditTarget.Fields));
+    }
+
+    [Fact]
+    public void ApplyDynamicLightMutationsUpdatesThings()
+    {
+        var thing = new Thing(new DBuilder.Geometry.Vector2D(0, 0), 9840, angle: 90);
+        thing.Args[0] = 0x112233;
+        thing.Args[3] = 128;
+        thing.Fields["keep"] = "value";
+        IReadOnlyList<DynamicLightThingEditTarget> targets = ColorPickerModel.InternalDynamicLightEditTargets(new[] { thing });
+        IReadOnlyList<DynamicLightMutation> mutations = ColorPickerModel.SetDynamicLightSelection(
+            targets.Select(t => t.EditTarget).ToList(),
+            new ColorRgb(10, 20, 30),
+            primaryRadius: 256,
+            secondaryRadius: 0,
+            interval: 0,
+            relativeMode: false);
+
+        ColorPickerModel.ApplyDynamicLightMutations(targets, mutations);
+
+        Assert.Equal(0, thing.Args[0]);
+        Assert.Equal(256, thing.Args[3]);
+        Assert.Equal("0A141E", thing.Fields[ColorPickerModel.DynamicLightPackedColorField]);
+        Assert.Equal("value", thing.Fields["keep"]);
+    }
+
     [Fact]
     public void DynamicLightSliderLimitsMatchUdbAbsoluteAndRelativeModes()
     {

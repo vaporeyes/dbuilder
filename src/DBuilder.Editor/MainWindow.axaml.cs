@@ -3849,6 +3849,61 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private async void OnDynamicLightColor(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        var targets = ColorPickerModel.InternalDynamicLightEditTargets(_map.GetSelectedThings());
+        if (targets.Count == 0)
+        {
+            SetStatus(ColorPickerModel.NoDynamicLightsWarning);
+            return;
+        }
+
+        DynamicLightEditTarget reference = targets[0].EditTarget;
+        DynamicLightPickerState state = ColorPickerModel.CreateDynamicLightPickerState(
+            reference.Definition,
+            reference.Args,
+            reference.AngleDoom,
+            reference.Fields,
+            relativeMode: false);
+        DynamicLightSliderPresentation presentation = ColorPickerModel.DynamicLightSliderPresentationFor(
+            reference.Definition,
+            ArgTitles(reference.Definition.LightNumber));
+        var dlg = new DynamicLightDialog(targets.Count, state, presentation);
+        if (!await dlg.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
+        IReadOnlyList<DynamicLightEditTarget> editTargets = targets.Select(t => t.EditTarget).ToList();
+        IReadOnlyList<DynamicLightPickerState>? fixedValues = dlg.ResultRelativeMode
+            ? ColorPickerModel.CaptureDynamicLightFixedValues(editTargets)
+            : null;
+        IReadOnlyList<DynamicLightMutation> mutations = ColorPickerModel.SetDynamicLightSelection(
+            editTargets,
+            dlg.ResultColor,
+            dlg.ResultPrimaryRadius,
+            dlg.ResultSecondaryRadius,
+            dlg.ResultInterval,
+            dlg.ResultRelativeMode,
+            fixedValues);
+
+        CreateUndo("Set light color");
+        ColorPickerModel.ApplyDynamicLightMutations(targets, mutations);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Set {targets.Count} dynamic light(s) to {ColorPickerModel.Format(dlg.ResultColor, ColorPickerInfoMode.Hex)}.");
+        MapView.Focus();
+    }
+
+    private IReadOnlyList<string> ArgTitles(int thingType)
+    {
+        ThingTypeInfo? info = _config?.GetThing(thingType);
+        if (info == null) return Array.Empty<string>();
+        return info.Args.Select(arg => arg.Title).ToList();
+    }
+
     private void OnToggleAutomapSecretLine(object? sender, RoutedEventArgs e)
         => ToggleSelectedAutomapLines("Toggle automap secret", AutomapModeModel.ToggleSecretFlag, "automap secret");
 
@@ -5025,12 +5080,12 @@ public partial class MainWindow : Window
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleDynamicGridSizeMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveMenuItem, SaveAsMenuItem, SaveAsFormatMenuItem,
             SaveButton, FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);

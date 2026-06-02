@@ -76,6 +76,10 @@ public sealed record DynamicLightEditTarget(
     int AngleDoom,
     IReadOnlyDictionary<string, object> Fields);
 
+public sealed record DynamicLightThingEditTarget(
+    Thing Thing,
+    DynamicLightEditTarget EditTarget);
+
 public static class ColorPickerModel
 {
     public const int DefaultLightColor = 0xffffff;
@@ -100,6 +104,62 @@ public static class ColorPickerModel
         9831,
         9832,
         9834,
+    ];
+
+    private static readonly HashSet<int> InternalPointLights =
+    [
+        9800,
+        9801,
+        9802,
+        9803,
+        9804,
+        9810,
+        9811,
+        9812,
+        9813,
+        9814,
+        9820,
+        9821,
+        9822,
+        9823,
+        9824,
+        9830,
+        9831,
+        9832,
+        9833,
+        9834,
+        9876,
+        9877,
+        9878,
+        9879,
+    ];
+
+    private static readonly HashSet<int> InternalSpotLights =
+    [
+        9840,
+        9841,
+        9842,
+        9843,
+        8944,
+        9850,
+        9851,
+        9852,
+        9853,
+        8954,
+        9860,
+        9861,
+        9862,
+        9863,
+        8964,
+        9870,
+        9871,
+        9872,
+        9873,
+        8974,
+        9881,
+        9882,
+        9883,
+        9884,
     ];
 
     public static ColorRgb HsvToRgb(int hue, int saturation, int value)
@@ -218,6 +278,31 @@ public static class ColorPickerModel
 
     public static bool DynamicLightUsesAngleValue(int lightNumber)
         => LightsUsingAngleValue.Contains(lightNumber);
+
+    public static DynamicLightDefinition? InternalDynamicLightDefinitionForThingType(int thingType)
+    {
+        if (thingType == 1502) return new DynamicLightDefinition(thingType, LightVavoom: true, DynamicLightColorMode.VavoomGeneric);
+        if (thingType == 1503) return new DynamicLightDefinition(thingType, LightVavoom: true, DynamicLightColorMode.VavoomColored);
+        if (thingType == 9890 || InternalSpotLights.Contains(thingType)) return new DynamicLightDefinition(thingType, LightVavoom: false, DynamicLightColorMode.SpotOrSun);
+        if (InternalPointLights.Contains(thingType)) return new DynamicLightDefinition(thingType, LightVavoom: false, DynamicLightColorMode.Standard);
+        return null;
+    }
+
+    public static IReadOnlyList<DynamicLightThingEditTarget> InternalDynamicLightEditTargets(IEnumerable<Thing> things)
+    {
+        var targets = new List<DynamicLightThingEditTarget>();
+        foreach (Thing thing in things)
+        {
+            DynamicLightDefinition? definition = InternalDynamicLightDefinitionForThingType(thing.Type);
+            if (definition == null) continue;
+
+            targets.Add(new DynamicLightThingEditTarget(
+                thing,
+                new DynamicLightEditTarget(definition, thing.Args, thing.Angle, thing.Fields)));
+        }
+
+        return targets;
+    }
 
     public static int FirstDynamicLightRadiusArgument(bool lightVavoom)
         => lightVavoom ? 0 : 3;
@@ -410,6 +495,54 @@ public static class ColorPickerModel
         }
 
         return mutations;
+    }
+
+    public static IReadOnlyList<DynamicLightMutation> SetDynamicLightSelection(
+        IReadOnlyList<DynamicLightEditTarget> targets,
+        ColorRgb color,
+        int primaryRadius,
+        int secondaryRadius,
+        int interval,
+        bool relativeMode,
+        IReadOnlyList<DynamicLightPickerState>? fixedValues = null)
+    {
+        var mutations = new List<DynamicLightMutation>(targets.Count);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            DynamicLightEditTarget target = targets[i];
+            DynamicLightPickerState? fixedValue =
+                fixedValues != null && i < fixedValues.Count ? fixedValues[i] : null;
+            DynamicLightMutation properties = SetDynamicLightProperties(
+                target.Definition,
+                target.Args,
+                target.AngleDoom,
+                target.Fields,
+                primaryRadius,
+                secondaryRadius,
+                interval,
+                relativeMode,
+                fixedValue);
+            mutations.Add(SetDynamicLightColor(target.Definition, properties.Args, properties.AngleDoom, properties.Fields, color));
+        }
+
+        return mutations;
+    }
+
+    public static void ApplyDynamicLightMutations(
+        IReadOnlyList<DynamicLightThingEditTarget> targets,
+        IReadOnlyList<DynamicLightMutation> mutations)
+    {
+        int count = Math.Min(targets.Count, mutations.Count);
+        for (int i = 0; i < count; i++)
+        {
+            Thing thing = targets[i].Thing;
+            DynamicLightMutation mutation = mutations[i];
+            Array.Clear(thing.Args);
+            for (int arg = 0; arg < thing.Args.Length && arg < mutation.Args.Count; arg++) thing.Args[arg] = mutation.Args[arg];
+            thing.Angle = mutation.AngleDoom;
+            thing.Fields.Clear();
+            foreach (var field in mutation.Fields) thing.Fields[field.Key] = field.Value;
+        }
     }
 
     public static string Format(ColorRgb rgb, ColorPickerInfoMode mode)
