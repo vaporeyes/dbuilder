@@ -304,6 +304,14 @@ public static class ColorPickerModel
         return targets;
     }
 
+    public static bool HasInternalDynamicLightSelection(IEnumerable<Thing> things)
+    {
+        foreach (Thing thing in things)
+            if (InternalDynamicLightDefinitionForThingType(thing.Type) != null) return true;
+
+        return false;
+    }
+
     public static int FirstDynamicLightRadiusArgument(bool lightVavoom)
         => lightVavoom ? 0 : 3;
 

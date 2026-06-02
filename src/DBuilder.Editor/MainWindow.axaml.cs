@@ -5031,6 +5031,7 @@ public partial class MainWindow : Window
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
+        bool hasSelectedInternalDynamicLight = _map is not null && ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings());
         bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
         bool canApplyLightFogFlag = hasMap && _mapFormat == MapFormat.Udmf;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
@@ -5104,6 +5105,7 @@ public partial class MainWindow : Window
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
         SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
+        SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);

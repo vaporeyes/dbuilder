@@ -295,6 +295,16 @@ public sealed class ColorPickerModelTests
     }
 
     [Fact]
+    public void HasInternalDynamicLightSelectionMatchesEditableLightThings()
+    {
+        var ordinary = new Thing(new DBuilder.Geometry.Vector2D(0, 0), 3001);
+        var light = new Thing(new DBuilder.Geometry.Vector2D(64, 0), 1503);
+
+        Assert.False(ColorPickerModel.HasInternalDynamicLightSelection(new[] { ordinary }));
+        Assert.True(ColorPickerModel.HasInternalDynamicLightSelection(new[] { ordinary, light }));
+    }
+
+    [Fact]
     public void ApplyDynamicLightMutationsUpdatesThings()
     {
         var thing = new Thing(new DBuilder.Geometry.Vector2D(0, 0), 9840, angle: 90);
