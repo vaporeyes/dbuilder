@@ -768,10 +768,27 @@ localsidedeftextureoffsets = true;
         var wrapper = new UdbScriptSectorWrapper(sector);
         LabelPositionInfo expected = Assert.Single(Tools.FindLabelPositions(sector));
 
-        UdbScriptLabelPositionInfoWrapper label = Assert.Single(wrapper.getLabelPositions());
+        UdbScriptVector2DWrapper label = Assert.Single(wrapper.getLabelPositions());
 
-        Assert.Equal(new UdbScriptVector2DWrapper(expected.position.x, expected.position.y), label.position);
-        Assert.Equal(expected.radius, label.radius);
+        Assert.Equal(new UdbScriptVector2DWrapper(expected.position.x, expected.position.y), label);
+    }
+
+    [Fact]
+    public void SectorWrapperReturnsTriangles()
+    {
+        Sector sector = CreateSquareSector();
+        var wrapper = new UdbScriptSectorWrapper(sector);
+        Triangulation expected = Triangulation.Create(sector);
+
+        UdbScriptVector2DWrapper[][] triangles = wrapper.getTriangles();
+
+        Assert.Equal(expected.Vertices.Count / 3, triangles.Length);
+        Assert.All(triangles, triangle => Assert.Equal(3, triangle.Length));
+        for (int i = 0; i < expected.Vertices.Count; i++)
+        {
+            UdbScriptVector2DWrapper actual = triangles[i / 3][i % 3];
+            Assert.Equal(new UdbScriptVector2DWrapper(expected.Vertices[i].x, expected.Vertices[i].y), actual);
+        }
     }
 
     [Fact]

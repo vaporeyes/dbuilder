@@ -680,22 +680,6 @@ public sealed class UdbScriptPlaneWrapper
         => !(a == b);
 }
 
-public sealed class UdbScriptLabelPositionInfoWrapper
-{
-    private readonly LabelPositionInfo label;
-
-    public UdbScriptLabelPositionInfoWrapper(LabelPositionInfo label)
-    {
-        this.label = label;
-    }
-
-    public UdbScriptVector2DWrapper position
-        => new(label.position.x, label.position.y);
-
-    public double radius
-        => label.radius;
-}
-
 public sealed class UdbScriptGameConfigurationWrapper
 {
     private readonly GameConfiguration configuration;
@@ -1800,12 +1784,33 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
             .ToArray();
     }
 
-    public UdbScriptLabelPositionInfoWrapper[] getLabelPositions()
+    public UdbScriptVector2DWrapper[] getLabelPositions()
     {
         ThrowIfDisposed("getLabelPositions");
         return Tools.FindLabelPositions(sector)
-            .Select(label => new UdbScriptLabelPositionInfoWrapper(label))
+            .Select(label => new UdbScriptVector2DWrapper(label.position.x, label.position.y))
             .ToArray();
+    }
+
+    public UdbScriptVector2DWrapper[][] getTriangles()
+    {
+        ThrowIfDisposed("getTriangles");
+        Triangulation triangles = Triangulation.Create(sector);
+        if (triangles.Vertices.Count % 3 != 0)
+            throw new InvalidOperationException("Sector triangle vertices is not a multiple of 3.");
+
+        var result = new UdbScriptVector2DWrapper[triangles.Vertices.Count / 3][];
+        for (int i = 0; i < result.Length; i++)
+        {
+            result[i] = new[]
+            {
+                new UdbScriptVector2DWrapper(triangles.Vertices[i * 3].x, triangles.Vertices[i * 3].y),
+                new UdbScriptVector2DWrapper(triangles.Vertices[i * 3 + 1].x, triangles.Vertices[i * 3 + 1].y),
+                new UdbScriptVector2DWrapper(triangles.Vertices[i * 3 + 2].x, triangles.Vertices[i * 3 + 2].y),
+            };
+        }
+
+        return result;
     }
 
     public void clearFlags()
