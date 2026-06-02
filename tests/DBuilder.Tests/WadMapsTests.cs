@@ -296,6 +296,19 @@ maplumpnames
     }
 
     [Fact]
+    public void ReadMapLumpOrGlobalLumpFallsBackToGlobalLump()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[] { 9 }, 0);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(wad, "COMMON", new byte[] { 2 }, 2);
+        wad.WriteHeaders();
+
+        Assert.Equal(new byte[] { 1 }, WadMaps.ReadMapLumpOrGlobalLump(wad, "MAP01", "THINGS"));
+        Assert.Equal(new byte[] { 2 }, WadMaps.ReadMapLumpOrGlobalLump(wad, "MAP01", "COMMON"));
+    }
+
+    [Fact]
     public void RenameMapRenamesValidatedMarkerOnly()
     {
         using var wad = new WAD(new MemoryStream());

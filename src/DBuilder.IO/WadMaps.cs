@@ -514,6 +514,9 @@ public static class WadMaps
         return null;
     }
 
+    public static byte[]? ReadMapLumpOrGlobalLump(WAD wad, string marker, string lumpName, GameConfiguration? config = null)
+        => ReadMapLump(wad, marker, lumpName, config) ?? wad.FindLump(lumpName)?.Stream.ReadAllBytes();
+
     private static bool IsMapSubLump(string name, GameConfiguration? config = null)
         => (config != null && config.IsMapLump(name)) || name switch
     {

@@ -196,6 +196,72 @@ public class UsdfDialogueParserTests
     }
 
     [Fact]
+    public void ParseWithIncludesMergesResolvedConversationsInDirectiveOrder()
+    {
+        const string text = """
+        conversation { actor = "Root before"; }
+        include = "COMMON";
+        conversation { actor = "Root after"; }
+        """;
+        var includes = new Dictionary<string, string>
+        {
+            ["COMMON"] = """
+            conversation { actor = "Included"; }
+            """,
+        };
+
+        var result = UsdfDialogueParser.ParseWithIncludes(text, include => includes.GetValueOrDefault(include));
+
+        Assert.True(result.Success);
+        Assert.Equal(new[] { "COMMON" }, result.Document.Includes);
+        Assert.Equal(new[] { "Root before", "Included", "Root after" }, result.Document.Conversations.Select(c => c.Actor));
+        Assert.Equal(new[] { 0, 1, 2 }, result.Document.Conversations.Select(c => c.Index));
+    }
+
+    [Fact]
+    public void ParseWithIncludesKeepsMissingIncludesWithoutFailing()
+    {
+        const string text = """
+        include = "MISSING";
+        conversation { actor = "Root"; }
+        """;
+
+        var result = UsdfDialogueParser.ParseWithIncludes(text, _ => null);
+
+        Assert.True(result.Success);
+        Assert.Equal(new[] { "MISSING" }, result.Document.Includes);
+        Assert.Equal("Root", Assert.Single(result.Document.Conversations).Actor);
+    }
+
+    [Fact]
+    public void ParseWithIncludesSkipsAlreadyParsedIncludes()
+    {
+        const string text = """
+        include = "A";
+        include = "A";
+        conversation { actor = "Root"; }
+        """;
+        var includes = new Dictionary<string, string>
+        {
+            ["A"] = """
+            include = "B";
+            conversation { actor = "A"; }
+            """,
+            ["B"] = """
+            include = "A";
+            conversation { actor = "B"; }
+            """,
+        };
+
+        var result = UsdfDialogueParser.ParseWithIncludes(text, include => includes.GetValueOrDefault(include));
+
+        Assert.True(result.Success);
+        Assert.Equal(new[] { "A", "B", "A", "A" }, result.Document.Includes);
+        Assert.Equal(new[] { "B", "A", "Root" }, result.Document.Conversations.Select(c => c.Actor));
+        Assert.Equal(new[] { 0, 1, 2 }, result.Document.Conversations.Select(c => c.Index));
+    }
+
+    [Fact]
     public void ParseKeepsRepeatedConversationsPagesAndChoicesInOrder()
     {
         const string text = """

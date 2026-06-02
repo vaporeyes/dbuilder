@@ -66,6 +66,20 @@ public static class Pk3Maps
         return WadMaps.ReadMapLump(wad, entry.Map.Name, lumpName, config);
     }
 
+    public static byte[]? ReadMapLumpOrGlobalLump(string path, Pk3MapEntry entry, string lumpName, GameConfiguration? config = null)
+    {
+        using var zip = ZipFile.OpenRead(path);
+        return ReadMapLumpOrGlobalLump(zip, entry, lumpName, config);
+    }
+
+    public static byte[]? ReadMapLumpOrGlobalLump(ZipArchive zip, Pk3MapEntry entry, string lumpName, GameConfiguration? config = null)
+    {
+        byte[]? bytes = ReadArchiveBytes(zip, entry.ArchivePath);
+        if (bytes == null) return null;
+        using var wad = OpenWad(bytes, entry.ArchivePath);
+        return WadMaps.ReadMapLumpOrGlobalLump(wad, entry.Map.Name, lumpName, config);
+    }
+
     private static void Find(ZipArchive zip, string archivePrefix, GameConfiguration? config, List<Pk3MapEntry> result)
     {
         foreach (var entry in zip.Entries)

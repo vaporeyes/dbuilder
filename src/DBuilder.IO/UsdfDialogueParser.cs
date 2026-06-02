@@ -82,6 +82,21 @@ public static class UsdfDialogueParser
         => config?.MapLumpNames.ContainsKey("DIALOGUE") == true;
 
     public static UsdfParseResult Parse(string text)
+        => ParseInternal(text, includeResolver: null);
+
+    public static UsdfParseResult ParseWithIncludes(string text, Func<string, string?> includeResolver)
+    {
+        ArgumentNullException.ThrowIfNull(includeResolver);
+        return ParseInternal(text, includeResolver);
+    }
+
+    private static UsdfParseResult ParseInternal(string text, Func<string, string?>? includeResolver)
+        => ParseInternal(text, includeResolver, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+
+    private static UsdfParseResult ParseInternal(
+        string text,
+        Func<string, string?>? includeResolver,
+        HashSet<string> parsedIncludes)
     {
         var parser = new UniversalParser { StrictChecking = true };
         if (!parser.InputConfiguration(text))
@@ -90,11 +105,44 @@ public static class UsdfDialogueParser
         var includes = new List<string>();
         var conversations = new List<UsdfConversation>();
 
-        foreach (UniversalEntry entry in parser.Root)
+        UsdfParseResult? includeError = ReadEntries(
+            parser.Root,
+            includeResolver,
+            parsedIncludes,
+            includes,
+            conversations);
+        if (includeError is not null) return includeError;
+
+        return new UsdfParseResult(new UsdfDocument(includes, conversations), 0, "");
+    }
+
+    private static UsdfParseResult? ReadEntries(
+        UniversalCollection root,
+        Func<string, string?>? includeResolver,
+        HashSet<string> parsedIncludes,
+        List<string> includes,
+        List<UsdfConversation> conversations)
+    {
+        foreach (UniversalEntry entry in root)
         {
             if (entry.Key.Equals("include", StringComparison.OrdinalIgnoreCase))
             {
-                if (StringValue(entry.Value) is { } include) includes.Add(include);
+                if (StringValue(entry.Value) is { } include)
+                {
+                    includes.Add(include);
+                    if (includeResolver is not null && parsedIncludes.Add(include))
+                    {
+                        string? includeText = includeResolver(include);
+                        if (!string.IsNullOrEmpty(includeText))
+                        {
+                            UsdfParseResult parsed = ParseInternal(includeText, includeResolver, parsedIncludes);
+                            if (!parsed.Success) return parsed;
+                            includes.AddRange(parsed.Document.Includes);
+                            foreach (UsdfConversation conversation in parsed.Document.Conversations)
+                                conversations.Add(conversation with { Index = conversations.Count });
+                        }
+                    }
+                }
             }
             else if (entry.Key.Equals("conversation", StringComparison.OrdinalIgnoreCase) && entry.Value is UniversalCollection conversationBlock)
             {
@@ -102,7 +150,7 @@ public static class UsdfDialogueParser
             }
         }
 
-        return new UsdfParseResult(new UsdfDocument(includes, conversations), 0, "");
+        return null;
     }
 
     private static UsdfConversation ReadConversation(int index, UniversalCollection block)

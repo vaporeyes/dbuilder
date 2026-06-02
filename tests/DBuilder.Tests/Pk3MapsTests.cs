@@ -167,6 +167,26 @@ maplumpnames
     }
 
     [Fact]
+    public void ReadsMapLumpOrGlobalLumpFromEmbeddedWadEntry()
+    {
+        byte[] common = Encoding.ASCII.GetBytes("conversation { actor = \"Common\"; }");
+        string pk3 = TestArtifacts.BuildPk3(("maps/map01.wad", BuildUdmfWad("MAP01", dialogue: null, common: common)));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            byte[]? bytes = Pk3Maps.ReadMapLumpOrGlobalLump(pk3, entry, "COMMON");
+
+            Assert.Equal(common, bytes);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void ReadsMapLumpFromNestedPk3WadEntry()
     {
         byte[] dialogue = Encoding.ASCII.GetBytes("conversation { actor = \"Guard\"; }");
@@ -186,7 +206,7 @@ maplumpnames
         }
     }
 
-    private static byte[] BuildUdmfWad(string marker, byte[]? dialogue = null)
+    private static byte[] BuildUdmfWad(string marker, byte[]? dialogue = null, byte[]? common = null)
     {
         using var ms = new MemoryStream();
         using (var wad = new WAD(ms))
@@ -210,6 +230,7 @@ maplumpnames
                 """));
             if (dialogue != null) WriteLump(wad, "DIALOGUE", dialogue);
             WriteLump(wad, "ENDMAP", Array.Empty<byte>());
+            if (common != null) WriteLump(wad, "COMMON", common);
             wad.WriteHeaders();
         }
 

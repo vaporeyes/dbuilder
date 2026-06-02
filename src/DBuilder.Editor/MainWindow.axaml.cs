@@ -2996,7 +2996,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        UsdfParseResult result = UsdfDialogueParser.Parse(Encoding.UTF8.GetString(bytes));
+        UsdfParseResult result = UsdfDialogueParser.ParseWithIncludes(
+            Encoding.UTF8.GetString(bytes),
+            ResolveCurrentDialogueInclude);
         _usdfConversations?.Close();
         _usdfConversations = new UsdfConversationWindow(result);
         _usdfConversations.Closed += (_, _) => _usdfConversations = null;
@@ -3004,6 +3006,12 @@ public partial class MainWindow : Window
         SetStatus(result.Success
             ? $"USDF: {result.Document.Conversations.Count} conversation(s)."
             : $"USDF parse error on line {result.ErrorLine}.");
+    }
+
+    private string? ResolveCurrentDialogueInclude(string lumpName)
+    {
+        byte[]? bytes = ReadCurrentMapLumpOrGlobalLump(lumpName);
+        return bytes is null || bytes.Length == 0 ? null : Encoding.UTF8.GetString(bytes);
     }
 
     private byte[]? ReadCurrentMapLump(string lumpName)
@@ -3016,6 +3024,20 @@ public partial class MainWindow : Window
 
         if (_pk3Path is not null && _pk3MapArchivePath is not null && _mapMarker is not null)
             return Pk3Maps.ReadMapLump(_pk3Path, new Pk3MapEntry(_pk3MapArchivePath, new MapEntry(_mapMarker, _mapFormat)), lumpName, _config);
+
+        return null;
+    }
+
+    private byte[]? ReadCurrentMapLumpOrGlobalLump(string lumpName)
+    {
+        if (_wadPath is not null && _mapMarker is not null)
+        {
+            using var wad = new WAD(_wadPath, openreadonly: true);
+            return WadMaps.ReadMapLumpOrGlobalLump(wad, _mapMarker, lumpName, _config);
+        }
+
+        if (_pk3Path is not null && _pk3MapArchivePath is not null && _mapMarker is not null)
+            return Pk3Maps.ReadMapLumpOrGlobalLump(_pk3Path, new Pk3MapEntry(_pk3MapArchivePath, new MapEntry(_mapMarker, _mapFormat)), lumpName, _config);
 
         return null;
     }
