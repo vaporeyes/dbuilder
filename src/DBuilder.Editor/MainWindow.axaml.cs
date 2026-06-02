@@ -5143,30 +5143,8 @@ public partial class MainWindow : Window
 
     private void ShowLinedefFields(Linedef l)
     {
-        string act = _config?.LinedefActionTitle(l.Action) ?? (l.Action == 0 ? "None" : $"action {l.Action}");
-        string flags = _config != null ? string.Join(", ", _config.DescribeLinedefFlags(l.Flags)) : $"0x{l.Flags:X4}";
-        if (flags.Length == 0) flags = "none";
-        double length = (l.End.Position - l.Start.Position).GetLength();
-        var fields = new List<(string, string)>
-        {
-            ("Action", $"{l.Action} - {act}"),
-            ("Tags", DescribeTags(l.Tags)),
-            ("Length", $"{length:0.###}"),
-            ("Angle", $"{Angle2D.RadToDeg(l.Angle):0.#}°"),
-            ("Sides", l.Back != null ? "two-sided" : "one-sided"),
-            ("Front sector", l.Front?.Sector is { } fs ? fs.Index.ToString() : "-"),
-            ("Back sector", l.Back?.Sector is { } bs ? bs.Index.ToString() : "-"),
-            ("Front textures", DescribeSideTextures(l.Front)),
-            ("Back textures", DescribeSideTextures(l.Back)),
-            ("Front offsets", DescribeSideOffsets(l.Front)),
-            ("Back offsets", DescribeSideOffsets(l.Back)),
-            ("Flags", flags),
-            ("UDMF flags", DescribeStringSet(l.UdmfFlags)),
-            ("Groups", DescribeGroups(l.Groups)),
-            ("Custom fields", l.Fields.Count.ToString()),
-        };
-        if (HasArgs) AddArgFields(fields, l.Args, _config?.GetLinedefAction(l.Action)?.Args);
-        ShowFields($"Linedef {_map!.Linedefs.IndexOf(l)}", fields);
+        LinedefInfoPanelState state = LinedefInfoPanelModel.Build(_map!, l, _config, HasArgs);
+        ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
     }
 
     private void ShowSidedefFields(Sidedef side)
@@ -5179,39 +5157,6 @@ public partial class MainWindow : Window
     {
         SectorInfoPanelState state = SectorInfoPanelModel.Build(s, _config);
         ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
-    }
-
-    private static string DescribeTags(IReadOnlyList<int> tags) => tags.Count == 0 ? "0" : string.Join(", ", tags);
-
-    private static string DescribeStringSet(IEnumerable<string> names)
-    {
-        var values = names.Where(name => !string.IsNullOrWhiteSpace(name)).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
-        return values.Length == 0 ? "none" : string.Join(", ", values);
-    }
-
-    private static string DescribeGroups(int groups)
-    {
-        if (groups == 0) return "-";
-        var result = new List<string>();
-        for (int i = 0; i < MapOptions.SelectionGroupCount; i++)
-            if ((groups & MapSet.GroupMask(i)) != 0) result.Add((i + 1).ToString());
-        return result.Count == 0 ? groups.ToString() : string.Join(", ", result);
-    }
-
-    private static string DescribeSideTextures(Sidedef? side)
-        => side == null ? "-" : $"U:{side.HighTexture} M:{side.MidTexture} L:{side.LowTexture}";
-
-    private static string DescribeSideOffsets(Sidedef? side)
-        => side == null ? "-" : $"{side.OffsetX}, {side.OffsetY}";
-
-    // Appends Arg1..Arg5 cells, labeling each with its config arg title when available.
-    private static void AddArgFields(List<(string, string)> fields, int[] args, ArgInfo[]? meta)
-    {
-        for (int i = 0; i < args.Length; i++)
-        {
-            string title = meta != null && i < meta.Length && meta[i].Used ? $" ({meta[i].Title})" : "";
-            fields.Add(($"Arg{i + 1}{title}", args[i].ToString()));
-        }
     }
 
     // Shows free text (help / multi-selection) and hides the structured field grid.
