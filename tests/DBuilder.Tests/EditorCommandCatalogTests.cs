@@ -1080,6 +1080,28 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("map3d.texture-copy-offsets", "map3d.copy-offsets", "Copy Offsets")]
+    [InlineData("map3d.texture-paste-offsets", "map3d.paste-offsets", "Paste Offsets")]
+    public void VisualTextureOffsetClipboardAliasesMatchUdbActionSurface(string id, string legacyId, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+        var legacyAlias = EditorCommandCatalog.Find(legacyId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
+    }
+
     [Fact]
     public void VisualTextureSelectCommandMatchesUdbActionSurface()
     {

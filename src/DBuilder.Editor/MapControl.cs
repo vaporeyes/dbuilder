@@ -4946,9 +4946,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.reset-local-offsets":
                 ResetVisualTexture3D(local: true);
                 return true;
+            case "map3d.texture-copy-offsets":
             case "map3d.copy-offsets":
                 CopyTextureOffsets3D();
                 return true;
+            case "map3d.texture-paste-offsets":
             case "map3d.paste-offsets":
                 PasteTextureOffsets3D();
                 return true;

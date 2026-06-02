@@ -1005,6 +1005,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual texture and thing scale action metadata and dispatch.
   - [x] Add UDB-style visual texture and thing reset action metadata and dispatch.
   - [x] Add UDB-style visual texture copy and paste action aliases.
+  - [x] Add UDB-style visual texture offset copy and paste action aliases.
   - [x] Add UDB-style visual texture flood-fill action metadata and dispatch.
   - [x] Add UDB-style visual copy, paste, and paste-properties-special action metadata and dispatch.
 - [ ] Port brightness editing behavior.
