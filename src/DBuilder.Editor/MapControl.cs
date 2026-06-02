@@ -2846,6 +2846,114 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool CopyVisualThingSelection3D()
+    {
+        var things = SelectedThings3D();
+        if (things.Count == 0)
+        {
+            Target3DChanged?.Invoke("nothing selected to copy");
+            return false;
+        }
+
+        byte[]? data = WithTemporaryThingSelection(things, () => _map == null ? null : SelectionClipboard.CopySelection(_map));
+        if (data == null)
+        {
+            Target3DChanged?.Invoke("nothing selected to copy");
+            return false;
+        }
+
+        _visualThingClipboard = data;
+        _clipboard = data;
+        Target3DChanged?.Invoke(things.Count == 1 ? "copied 1 thing" : $"copied {things.Count} things");
+        return true;
+    }
+
+    private bool CutVisualThingSelection3D()
+    {
+        if (_map == null) return false;
+        var things = SelectedThings3D();
+        if (things.Count == 0)
+        {
+            Target3DChanged?.Invoke("nothing selected to cut");
+            return false;
+        }
+
+        if (!CopyVisualThingSelection3D()) return false;
+
+        var selected = new HashSet<Thing>(things, ReferenceEqualityComparer.Instance);
+        EditBegun?.Invoke(things.Count == 1 ? "Cut 1 thing" : $"Cut {things.Count} things");
+        _map.Things.RemoveAll(thing => selected.Contains(thing));
+        _sel3D.RemoveAll(hit => hit.Thing != null && selected.Contains(hit.Thing));
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Target3DChanged?.Invoke(things.Count == 1 ? "cut 1 thing" : $"cut {things.Count} things");
+        return true;
+    }
+
+    private bool PasteVisualThingSelection3D()
+    {
+        if (_map == null || _target3D is not { } target) return false;
+        if (_visualThingClipboard == null)
+        {
+            Target3DChanged?.Invoke("visual clipboard empty");
+            return false;
+        }
+
+        EditBegun?.Invoke("Paste things");
+        PasteResult result = SelectionClipboard.Paste(_map, _visualThingClipboard, new Vec2D(0, 0), PasteOptions, _gameConfig);
+        var pasted = new List<Thing>();
+        for (int i = result.FirstThing; i < result.FirstThing + result.ThingCount; i++)
+            pasted.Add(_map.Things[i]);
+
+        if (pasted.Count > 0)
+        {
+            DBuilder.Geometry.Vector3D[] coordinates = pasted
+                .Select(thing => new DBuilder.Geometry.Vector3D(thing.Position, thing.Height))
+                .ToArray();
+            var cursor = new Vector2D(Math.Round(target.Point.x), Math.Round(target.Point.y));
+            IReadOnlyList<DBuilder.Geometry.Vector3D> translated = VisualThingMovement.TranslateToCursor(coordinates, cursor);
+
+            for (int i = 0; i < pasted.Count; i++)
+                pasted[i].Move(translated[i]);
+        }
+
+        _sel3D.Clear();
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Target3DChanged?.Invoke(pasted.Count == 1 ? "pasted 1 thing" : $"pasted {pasted.Count} things");
+        return true;
+    }
+
+    private T WithTemporaryThingSelection<T>(IReadOnlyList<Thing> things, Func<T> action)
+    {
+        if (_map == null) return action();
+
+        var vertices = _map.GetSelectedVertices();
+        var linedefs = _map.GetSelectedLinedefs();
+        var sidedefs = _map.GetSelectedSidedefs();
+        var sectors = _map.GetSelectedSectors();
+        var priorThings = _map.GetSelectedThings();
+        _map.ClearAllSelected();
+        try
+        {
+            foreach (Thing thing in things)
+                thing.Selected = true;
+
+            return action();
+        }
+        finally
+        {
+            _map.ClearAllSelected();
+            foreach (Vertex vertex in vertices) vertex.Selected = true;
+            foreach (Linedef linedef in linedefs) linedef.Selected = true;
+            foreach (Sidedef sidedef in sidedefs) sidedef.Selected = true;
+            foreach (Sector sector in sectors) sector.Selected = true;
+            foreach (Thing thing in priorThings) thing.Selected = true;
+        }
+    }
+
     private bool RotateThingTargets3D(int angleIncrement)
     {
         var things = ThingTargets3D();
@@ -4636,6 +4744,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.insert-item":
                 InsertThingAtTarget3D();
                 return true;
+            case "map3d.copy-selection":
+                CopyVisualThingSelection3D();
+                return true;
+            case "map3d.cut-selection":
+                CutVisualThingSelection3D();
+                return true;
+            case "map3d.paste-selection":
+                PasteVisualThingSelection3D();
+                return true;
             case "map3d.place-thing-at-cursor":
                 PlaceThingTargetsAtCursor3D();
                 return true;
@@ -5531,6 +5648,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     // Process-wide clipboard buffer for copy/paste of a selection.
     private static byte[]? _clipboard;
+    private static byte[]? _visualThingClipboard;
 
     /// <summary>Copies the current selection (with its dependency closure) to the clipboard.</summary>
     public string CopySelection()

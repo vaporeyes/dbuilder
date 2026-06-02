@@ -720,6 +720,9 @@ public class EditorCommandCatalogTests
             ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
             ["map3d.insert-item"] = ("Insert Item", true, false),
+            ["map3d.copy-selection"] = ("Copy Selection", false, false),
+            ["map3d.cut-selection"] = ("Cut Selection", false, false),
+            ["map3d.paste-selection"] = ("Paste Selection", false, false),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
             ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
@@ -923,12 +926,14 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.walk-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
         Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "I"));
         Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Insert"));
+        Assert.Equal("map3d.copy-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
+        Assert.Equal("map3d.cut-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "X", accelerator: true));
+        Assert.Equal("map3d.paste-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true));
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raise-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
-        Assert.Equal("map3d.flood-fill-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true));
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
         Assert.Equal("map3d.paste-properties-options", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, shift: true));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
@@ -947,7 +952,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left"));
-        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true, shift: true));
     }
 
     [Theory]
@@ -1062,7 +1067,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Paste Texture Flood-Fill", command.Title);
-        Assert.Equal("Ctrl/Cmd+V", command.DefaultGesture);
+        Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
