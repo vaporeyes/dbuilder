@@ -743,6 +743,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Select Single-sided and Select Double-sided linedef actions.
   - [x] Add UDB-style Align Linedefs action for selected linedefs and sectors.
   - [x] Add UDB-style Flip Linedefs action for selected linedefs and sectors.
+  - [x] Add UDB-style Flip Sidedefs action for selected or highlighted linedefs.
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.
   - [x] Add menu commands for snap toggle and grid-size stepping.

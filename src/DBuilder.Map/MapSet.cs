@@ -1919,12 +1919,16 @@ public class MapSet : IDisposable
         return n;
     }
 
-    /// <summary>Swaps front/back sidedefs on every selected linedef. Returns the number swapped. Call BuildIndexes() after.</summary>
+    /// <summary>Swaps front/back sidedefs on selected two-sided linedefs. Returns the number swapped. Call BuildIndexes() after.</summary>
     public int FlipSelectedSidedefs()
     {
         int n = 0;
         foreach (var l in Linedefs)
-            if (l.Selected) { l.FlipSidedefs(); n++; }
+        {
+            if (!l.Selected || l.Front == null || l.Back == null) continue;
+            l.FlipSidedefs();
+            n++;
+        }
         return n;
     }
 

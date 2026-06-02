@@ -3414,7 +3414,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 FlipLinedefs();
                 return true;
             case "map2d.flip-sidedefs":
-                FlipSelected(sidedefs: true);
+                FlipSidedefs();
                 return true;
             case "map2d.select-single-sided":
                 KeepSelectedLinedefsBySidedness(doubleSided: false);
@@ -4573,16 +4573,44 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
-    // Flips selected sidedefs (Shift+F), undoable.
-    private void FlipSelected(bool sidedefs)
+    public string FlipSidedefs()
     {
-        if (_map == null || _map.SelectedLinedefsCount == 0) { Picked?.Invoke("no linedefs selected"); return; }
-        EditBegun?.Invoke(sidedefs ? "Flip sidedefs" : "Flip linedefs");
-        int n = sidedefs ? _map.FlipSelectedSidedefs() : _map.FlipSelectedLinedefs();
+        if (_map == null) return "No map loaded.";
+
+        bool deselect = false;
+        List<Linedef> selected = _map.GetSelectedLinedefs();
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        {
+            highlighted.Selected = true;
+            selected.Add(highlighted);
+            deselect = true;
+        }
+
+        if (selected.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        int count = _map.FlipSelectedSidedefs();
+        if (deselect)
+            selected[0].Selected = false;
+
+        if (count == 0)
+        {
+            const string message = "No sidedefs to flip! Only 2-sided linedefs can be flipped.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(count == 1 ? "Flip sidedef" : "Flip " + count + " sidedefs");
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
-        Picked?.Invoke($"flipped {n} {(sidedefs ? "sidedef" : "linedef")}{(n == 1 ? "" : "s")}");
+        string status = count == 1 ? "Flipped a sidedef." : "Flipped " + count + " sidedefs.";
+        Picked?.Invoke(status);
+        return status;
     }
 
     public string KeepSelectedLinedefsBySidedness(bool doubleSided)

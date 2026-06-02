@@ -320,6 +320,36 @@ public class LinedefFlipTests
     }
 
     [Fact]
+    public void FlipSelectedSidedefsOnlyTouchesTwoSidedLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var c = map.AddVertex(new Vector2D(0, 100));
+        var d = map.AddVertex(new Vector2D(100, 100));
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+        var oneSidedSector = map.AddSector();
+        var twoSided = map.AddLinedef(a, b);
+        var oneSided = map.AddLinedef(c, d);
+        var front = map.AddSidedef(twoSided, true, frontSector);
+        var back = map.AddSidedef(twoSided, false, backSector);
+        var oneSidedFront = map.AddSidedef(oneSided, true, oneSidedSector);
+        twoSided.Selected = true;
+        oneSided.Selected = true;
+        map.BuildIndexes();
+
+        int n = map.FlipSelectedSidedefs();
+        map.BuildIndexes();
+
+        Assert.Equal(1, n);
+        Assert.Same(back, twoSided.Front);
+        Assert.Same(front, twoSided.Back);
+        Assert.Same(oneSidedFront, oneSided.Front);
+        Assert.Null(oneSided.Back);
+    }
+
+    [Fact]
     public void FlipLinedefsOfSectorsFlipsBoundaryLinesOnce()
     {
         var map = new MapSet();
