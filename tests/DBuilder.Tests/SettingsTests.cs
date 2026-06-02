@@ -227,6 +227,12 @@ public class SettingsTests
                     ResetOffsets: false,
                     ApplyActionSpecials: false,
                     ApplyTag: true),
+                TagExplorerSettings = new TagExplorerPersistedSettings(
+                    TagExplorerDisplayMode.Actions,
+                    TagExplorerSortMode.ByAction,
+                    CommentsOnly: true,
+                    CenterOnSelected: true,
+                    SelectOnClick: true),
                 RejectExplorerColors = new RejectExplorerColorSettings(
                     Default: unchecked((int)0xFF010203),
                     Highlight: unchecked((int)0xFF040506),
@@ -340,6 +346,11 @@ public class SettingsTests
             Assert.False(loaded.NormalizedMakeDoorSettings.ResetOffsets);
             Assert.False(loaded.NormalizedMakeDoorSettings.ApplyActionSpecials);
             Assert.True(loaded.NormalizedMakeDoorSettings.ApplyTag);
+            Assert.Equal(TagExplorerDisplayMode.Actions, loaded.TagExplorerSettings.DisplayMode);
+            Assert.Equal(TagExplorerSortMode.ByAction, loaded.TagExplorerSettings.SortMode);
+            Assert.True(loaded.TagExplorerSettings.CommentsOnly);
+            Assert.True(loaded.TagExplorerSettings.CenterOnSelected);
+            Assert.True(loaded.TagExplorerSettings.SelectOnClick);
             Assert.Equal(unchecked((int)0xFF010203), loaded.RejectExplorerColors.Default);
             Assert.Equal(unchecked((int)0xFF040506), loaded.RejectExplorerColors.Highlight);
             Assert.Equal(unchecked((int)0xFF070809), loaded.RejectExplorerColors.Bidirectional);

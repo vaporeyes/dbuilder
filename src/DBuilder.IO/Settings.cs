@@ -54,6 +54,12 @@ public sealed class Settings
     public AutomapModeSettings AutomapSettings { get; set; } = new();
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
     public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
+    public TagExplorerPersistedSettings TagExplorerSettings { get; set; } = new(
+        TagExplorerDisplayMode.TagsAndActions,
+        TagExplorerSortMode.ByIndex,
+        CommentsOnly: false,
+        CenterOnSelected: false,
+        SelectOnClick: false);
     public RejectExplorerColorSettings RejectExplorerColors { get; set; } = RejectExplorerModel.DefaultColors;
     public SoundPropagationColorSettings SoundPropagationColors { get; set; } = SoundPropagationColorSettings.Default;
     public List<StairBuilderPrefab> StairBuilderPrefabs { get; set; } = new();
@@ -267,6 +273,12 @@ public sealed class Settings
             settings.AutomapSettings ??= new();
             settings.MakeDoorSettings ??= new();
             settings.CommentsPanelSettings ??= new(false, false);
+            settings.TagExplorerSettings ??= new(
+                TagExplorerDisplayMode.TagsAndActions,
+                TagExplorerSortMode.ByIndex,
+                CommentsOnly: false,
+                CenterOnSelected: false,
+                SelectOnClick: false);
             settings.RejectExplorerColors ??= RejectExplorerModel.DefaultColors;
             settings.SoundPropagationColors ??= SoundPropagationColorSettings.Default;
             settings.StairBuilderPrefabs ??= new();

@@ -119,6 +119,7 @@ public partial class MainWindow : Window
         {
             UpdateInfo();
             RefreshCommentsPanel();
+            RefreshTagExplorer();
         };
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
@@ -2343,6 +2344,7 @@ public partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(label)) _mapOptions.TagLabels.Remove(tag);
             else _mapOptions.TagLabels[tag] = label;
             MarkMapDirty();
+            RefreshTagExplorer();
         };
         win.TagActivated += (tag, mode) =>
         {
@@ -2365,10 +2367,18 @@ public partial class MainWindow : Window
             return;
         }
 
-        var win = new TagExplorerWindow(BuildTagExplorerEntries(null), _mapOptions?.TagLabels);
+        var win = new TagExplorerWindow(BuildTagExplorerEntries(null), _mapOptions?.TagLabels, _settings.TagExplorerSettings);
         _tagExplorer = win;
         win.Closed += (_, _) => _tagExplorer = null;
-        win.OptionsChanged += RefreshTagExplorer;
+        win.OptionsChanged += () =>
+        {
+            if (_settings.TagExplorerSettings != win.Settings)
+            {
+                _settings.TagExplorerSettings = win.Settings;
+                SaveSettings();
+            }
+            RefreshTagExplorer();
+        };
         win.EntryActivated += SelectTagExplorerEntry;
         win.ExportRequested += ExportTagExplorer;
         win.Show(this);

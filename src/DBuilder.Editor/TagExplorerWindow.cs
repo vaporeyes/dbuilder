@@ -19,6 +19,8 @@ public sealed class TagExplorerWindow : Window
     private readonly Button _export = new();
     private readonly TextBlock _header = new();
     private readonly ListBox _list = new();
+    private readonly bool _centerOnSelected;
+    private readonly bool _selectOnClick;
     private string _exportText = "";
 
     public event Action? OptionsChanged;
@@ -31,25 +33,44 @@ public sealed class TagExplorerWindow : Window
         SearchText: _search.Text ?? "",
         CommentsOnly: _commentsOnly.IsChecked == true);
 
-    public TagExplorerWindow(IReadOnlyList<TagExplorerEntry> entries, IReadOnlyDictionary<int, string>? tagLabels = null)
+    public TagExplorerPersistedSettings Settings => new(
+        Options.DisplayMode,
+        Options.SortMode,
+        Options.CommentsOnly,
+        _centerOnSelected,
+        _selectOnClick);
+
+    public TagExplorerWindow(
+        IReadOnlyList<TagExplorerEntry> entries,
+        IReadOnlyDictionary<int, string>? tagLabels = null,
+        TagExplorerPersistedSettings? settings = null)
     {
         Title = "Tag Explorer";
         Width = 520;
         Height = 440;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        settings ??= new TagExplorerPersistedSettings(
+            TagExplorerDisplayMode.TagsAndActions,
+            TagExplorerSortMode.ByIndex,
+            CommentsOnly: false,
+            CenterOnSelected: false,
+            SelectOnClick: false);
+        _centerOnSelected = settings.CenterOnSelected;
+        _selectOnClick = settings.SelectOnClick;
 
         _displayMode.ItemsSource = TagExplorerModel.DisplayModeOptions;
-        _displayMode.SelectedItem = TagExplorerModel.DisplayModeOptions[0];
+        _displayMode.SelectedItem = FindOption(TagExplorerModel.DisplayModeOptions, settings.DisplayMode);
         _displayMode.SelectionChanged += (_, _) => OptionsChanged?.Invoke();
 
         _sortMode.ItemsSource = TagExplorerModel.SortModeOptions;
-        _sortMode.SelectedItem = TagExplorerModel.SortModeOptions[0];
+        _sortMode.SelectedItem = FindOption(TagExplorerModel.SortModeOptions, settings.SortMode);
         _sortMode.SelectionChanged += (_, _) => OptionsChanged?.Invoke();
 
         _search.Watermark = "Search, #tag, $action, ^polyobject";
         _search.TextChanged += (_, _) => OptionsChanged?.Invoke();
         _commentsOnly.Content = TagExplorerModel.CommentsOnlyText;
         _commentsOnly.Margin = new Avalonia.Thickness(0, 4, 0, 0);
+        _commentsOnly.IsChecked = settings.CommentsOnly;
         _commentsOnly.IsCheckedChanged += (_, _) => OptionsChanged?.Invoke();
         _export.Content = TagExplorerModel.ExportToFileText;
         _export.HorizontalAlignment = HorizontalAlignment.Right;
@@ -131,4 +152,16 @@ public sealed class TagExplorerWindow : Window
         return panel;
     }
 
+    private static TagExplorerModeOption<T> FindOption<T>(
+        IReadOnlyList<TagExplorerModeOption<T>> options,
+        T value)
+        where T : struct, Enum
+    {
+        foreach (TagExplorerModeOption<T> option in options)
+        {
+            if (EqualityComparer<T>.Default.Equals(option.Value, value)) return option;
+        }
+
+        return options[0];
+    }
 }
