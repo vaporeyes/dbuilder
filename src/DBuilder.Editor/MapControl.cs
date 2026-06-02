@@ -3443,6 +3443,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.raise-ceiling-8":
                 AdjustSectorHeights(SectorHeightPart.Ceiling, 8);
                 return true;
+            case "map2d.raise-brightness-8":
+                AdjustSectorBrightness(raise: true);
+                return true;
+            case "map2d.lower-brightness-8":
+                AdjustSectorBrightness(raise: false);
+                return true;
             case "map2d.align-textures-x":
                 AutoAlignSelectedTextures(vertical: false);
                 return true;
@@ -4733,6 +4739,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         EditBegun?.Invoke(SectorHeightAdjustment.UndoDescription(part));
         SectorHeightAdjustmentResult result = SectorHeightAdjustment.Apply(sectors, part, delta);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke(result.StatusMessage);
+        return result.StatusMessage;
+    }
+
+    public string AdjustSectorBrightness(bool raise)
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(SectorBrightnessAdjustment.UndoDescription);
+        SectorBrightnessAdjustmentResult result = SectorBrightnessAdjustment.Apply(sectors, _gameConfig?.BrightnessLevels ?? [], raise);
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke(result.StatusMessage);

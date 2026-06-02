@@ -173,6 +173,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.raise-floor-8", "Raise Floor by 8 mp", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
+        new EditorCommandDescriptor("map2d.raise-brightness-8", "Increase Brightness by 8", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
+        new EditorCommandDescriptor("map2d.lower-brightness-8", "Decrease Brightness by 8", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.align-textures-x", "Align textures X", "A", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.align-textures-y", "Align textures Y", "Shift+A", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.apply-lightfog-flag", "Apply 'lightfog' flag", "Menu", EditorCommandScope.Map2D, AllowMouse: false),

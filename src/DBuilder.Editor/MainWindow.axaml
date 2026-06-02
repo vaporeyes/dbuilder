@@ -100,6 +100,9 @@
                     <MenuItem Header="_Raise Floor by 8 mp" x:Name="RaiseFloor8MenuItem" Click="OnRaiseFloor8" />
                     <MenuItem Header="Lower _Ceiling by 8 mp" x:Name="LowerCeiling8MenuItem" Click="OnLowerCeiling8" />
                     <MenuItem Header="Raise C_eiling by 8 mp" x:Name="RaiseCeiling8MenuItem" Click="OnRaiseCeiling8" />
+                    <Separator />
+                    <MenuItem Header="_Increase Brightness by 8" x:Name="RaiseBrightness8MenuItem" Click="OnRaiseBrightness8" />
+                    <MenuItem Header="_Decrease Brightness by 8" x:Name="LowerBrightness8MenuItem" Click="OnLowerBrightness8" />
                 </MenuItem>
                 <MenuItem Header="_Transform selection" x:Name="TransformSelectionMenuItem">
                     <MenuItem Header="Flip _Horizontal" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />

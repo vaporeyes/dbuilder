@@ -879,6 +879,8 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp")]
     [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp")]
     [InlineData("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp")]
+    [InlineData("map2d.raise-brightness-8", "Increase Brightness by 8")]
+    [InlineData("map2d.lower-brightness-8", "Decrease Brightness by 8")]
     public void SectorHeightCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -922,6 +924,7 @@ public class EditorCommandCatalogTests
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoom-in"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.grid-up"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.lower-floor-8"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.raise-brightness-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
 

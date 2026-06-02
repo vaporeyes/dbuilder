@@ -1892,6 +1892,8 @@ public partial class MainWindow : Window
     private void OnRaiseFloor8(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AdjustSectorHeights(SectorHeightPart.Floor, 8));
     private void OnLowerCeiling8(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AdjustSectorHeights(SectorHeightPart.Ceiling, -8));
     private void OnRaiseCeiling8(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AdjustSectorHeights(SectorHeightPart.Ceiling, 8));
+    private void OnRaiseBrightness8(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AdjustSectorBrightness(raise: true));
+    private void OnLowerBrightness8(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.AdjustSectorBrightness(raise: false));
     private void OnGradientFloorHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorHeight);
     private void OnGradientCeilingHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingHeight);
     private void OnGradientBrightness(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.Brightness);
@@ -4838,7 +4840,7 @@ public partial class MainWindow : Window
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
-            LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseCeiling8MenuItem, VerticesModeMenuItem,
+            LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
