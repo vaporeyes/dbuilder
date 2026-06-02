@@ -35,6 +35,42 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerUiStateMatchesUdbFormLifecycle()
+    {
+        UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();
+
+        Assert.Equal(1000, UdbScriptRunnerModel.RunnerVisibilityThresholdMilliseconds);
+        Assert.Equal(100, UdbScriptRunnerModel.RunnerTimerIntervalMilliseconds);
+        Assert.Equal("Running script", initial.Title);
+        Assert.Equal("Running script...", initial.StatusText);
+        Assert.Equal("Cancel", initial.ActionButtonText);
+        Assert.False(initial.ActionButtonEnabled);
+        Assert.True(initial.ProgressIsMarquee);
+        Assert.Equal(0.0, initial.Opacity);
+
+        TimeSpan runtime = new(0, 1, 2, 3, 4);
+        UdbScriptRunnerUiState finished = UdbScriptRunnerModel.FinishedUiState(runtime, autoClose: false);
+
+        Assert.Equal("Script finished", finished.Title);
+        Assert.Equal("Script finished. Runtime: 01:02:03.4", finished.StatusText);
+        Assert.Equal("Close", finished.ActionButtonText);
+        Assert.True(finished.ActionButtonEnabled);
+        Assert.False(finished.ProgressIsMarquee);
+        Assert.Equal(1.0, finished.Opacity);
+        Assert.Equal(0.0, UdbScriptRunnerModel.FinishedUiState(runtime, autoClose: true).Opacity);
+    }
+
+    [Fact]
+    public void RunnerTimerAndLogFormattingMatchUdb()
+    {
+        Assert.False(UdbScriptRunnerModel.ShouldMakeRunnerVisible(TimeSpan.FromMilliseconds(1000)));
+        Assert.True(UdbScriptRunnerModel.ShouldMakeRunnerVisible(TimeSpan.FromMilliseconds(1001)));
+        Assert.Equal("Running script (01:02:03)", UdbScriptRunnerModel.RunningWindowTitle(new TimeSpan(0, 1, 2, 3, 999)));
+        Assert.Equal("first", UdbScriptRunnerModel.AppendLog("", "first"));
+        Assert.Equal("first" + Environment.NewLine + "second", UdbScriptRunnerModel.AppendLog("first", "second"));
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);

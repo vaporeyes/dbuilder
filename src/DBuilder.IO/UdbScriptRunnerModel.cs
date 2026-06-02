@@ -48,11 +48,24 @@ public sealed record UdbScriptRunSourcePlan(
     IReadOnlyList<UdbScriptSourceFile> Libraries,
     UdbScriptSourceFile Script);
 
+public sealed record UdbScriptRunnerUiState(
+    string Title,
+    string StatusText,
+    string ActionButtonText,
+    bool ActionButtonEnabled,
+    bool ProgressIsMarquee,
+    double Opacity);
+
 public static class UdbScriptRunnerModel
 {
     public const uint CurrentFeatureVersion = 5;
+    public const long RunnerVisibilityThresholdMilliseconds = 1000;
+    public const int RunnerTimerIntervalMilliseconds = 100;
     public const long RuntimeConstraintCheckMilliseconds = 5000;
     public const string FeatureVersionPromptTitle = "UDBScript feature version too low";
+    public const string RunningScriptTitle = "Running script";
+    public const string RunningScriptStatusText = "Running script...";
+    public const string CancelButtonText = "Cancel";
     public const string RuntimeConstraintPromptTitle = "Script";
     public const string RuntimeConstraintPromptMessage = "The script has been running for some time, want to stop it?";
     public const string UserAbortStatusText = "Script aborted";
@@ -90,6 +103,33 @@ public static class UdbScriptRunnerModel
 
     public static string FinishedStatus(TimeSpan runtime)
         => "Script finished. Runtime: " + FormatRuntime(runtime);
+
+    public static UdbScriptRunnerUiState InitialUiState()
+        => new(
+            RunningScriptTitle,
+            RunningScriptStatusText,
+            CancelButtonText,
+            false,
+            true,
+            0.0);
+
+    public static UdbScriptRunnerUiState FinishedUiState(TimeSpan runtime, bool autoClose)
+        => new(
+            ScriptFinishedTitle,
+            FinishedStatus(runtime),
+            CloseButtonText,
+            true,
+            false,
+            autoClose ? 0.0 : 1.0);
+
+    public static bool ShouldMakeRunnerVisible(TimeSpan elapsed)
+        => elapsed.TotalMilliseconds > RunnerVisibilityThresholdMilliseconds;
+
+    public static string RunningWindowTitle(TimeSpan elapsed)
+        => RunningScriptTitle + " (" + string.Format("{0:D2}:{1:D2}:{2:D2}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds) + ")";
+
+    public static string AppendLog(string existingLog, string text)
+        => string.IsNullOrEmpty(existingLog) ? text : existingLog + Environment.NewLine + text;
 
     public static string FormatRuntime(TimeSpan runtime)
         => string.Format(
