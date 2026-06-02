@@ -857,6 +857,48 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperReturnsNonDisposedCoreElements()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        map.Vertices.Add(new Vertex { IsDisposed = true });
+        var line = map.AddLinedef(vertex, map.AddVertex(new Vector2D(64, 0)));
+        map.Linedefs.Add(new Linedef { IsDisposed = true });
+        var sector = map.AddSector();
+        var side = map.AddSidedef(line, isFront: true, sector);
+        map.Sidedefs.Add(new Sidedef { IsDisposed = true });
+        map.Sectors.Add(new Sector { IsDisposed = true });
+        var thing = map.AddThing(new Vector2D(32, 32), 3001);
+        map.Things.Add(new Thing { IsDisposed = true });
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        UdbScriptVertexWrapper[] vertices = wrapper.getVertices();
+        UdbScriptLinedefWrapper[] linedefs = wrapper.getLinedefs();
+        UdbScriptSidedefWrapper[] sidedefs = wrapper.getSidedefs();
+        UdbScriptSectorWrapper[] sectors = wrapper.getSectors();
+        UdbScriptThingWrapper[] things = wrapper.getThings();
+
+        Assert.Equal(2, vertices.Length);
+        Assert.Same(vertex, vertices[0].Vertex);
+        Assert.Same(line, Assert.Single(linedefs).Linedef);
+        Assert.Same(side, Assert.Single(sidedefs).Sidedef);
+        Assert.Same(sector, Assert.Single(sectors).Sector);
+        Assert.Same(thing, Assert.Single(things).Thing);
+    }
+
+    [Fact]
+    public void MapWrapperRejectsDisposedMapAccess()
+    {
+        var map = new MapSet();
+        map.Dispose();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.getVertices());
+
+        Assert.Equal("Map is disposed, the getVertices member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();

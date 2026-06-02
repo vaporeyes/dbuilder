@@ -1897,6 +1897,70 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
     }
 }
 
+public sealed class UdbScriptMapWrapper
+{
+    private readonly MapSet map;
+
+    public UdbScriptMapWrapper(MapSet map)
+    {
+        this.map = map;
+    }
+
+    public MapSet Map
+        => map;
+
+    public UdbScriptThingWrapper[] getThings()
+    {
+        ThrowIfDisposed("getThings");
+        return map.Things
+            .Where(thing => !thing.IsDisposed)
+            .Select(thing => new UdbScriptThingWrapper(thing))
+            .ToArray();
+    }
+
+    public UdbScriptSectorWrapper[] getSectors()
+    {
+        ThrowIfDisposed("getSectors");
+        return map.Sectors
+            .Where(sector => !sector.IsDisposed)
+            .Select(sector => new UdbScriptSectorWrapper(sector))
+            .ToArray();
+    }
+
+    public UdbScriptSidedefWrapper[] getSidedefs()
+    {
+        ThrowIfDisposed("getSidedefs");
+        return map.Sidedefs
+            .Where(sidedef => !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef))
+            .ToArray();
+    }
+
+    public UdbScriptLinedefWrapper[] getLinedefs()
+    {
+        ThrowIfDisposed("getLinedefs");
+        return map.Linedefs
+            .Where(linedef => !linedef.IsDisposed)
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef))
+            .ToArray();
+    }
+
+    public UdbScriptVertexWrapper[] getVertices()
+    {
+        ThrowIfDisposed("getVertices");
+        return map.Vertices
+            .Where(vertex => !vertex.IsDisposed)
+            .Select(vertex => new UdbScriptVertexWrapper(vertex))
+            .ToArray();
+    }
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (map.IsDisposed)
+            throw new InvalidOperationException("Map is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
 public sealed class UdbScriptMapElementArgumentsWrapper : IEnumerable<int>
 {
     private readonly IHasArguments element;
