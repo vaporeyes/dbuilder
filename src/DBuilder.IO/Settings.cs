@@ -53,6 +53,7 @@ public sealed class Settings
     public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public AutomapModeSettings AutomapSettings { get; set; } = new();
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
+    public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -261,6 +262,7 @@ public sealed class Settings
             settings.EditSelectionSettings ??= new();
             settings.AutomapSettings ??= new();
             settings.MakeDoorSettings ??= new();
+            settings.CommentsPanelSettings ??= new(false, false);
             return settings;
         }
         catch { return new Settings(); }

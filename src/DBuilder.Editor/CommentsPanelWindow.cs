@@ -13,23 +13,36 @@ namespace DBuilder.Editor;
 public sealed class CommentsPanelWindow : Window
 {
     private readonly ComboBox _filter = new();
+    private readonly CheckBox _filterCurrentMode = new();
+    private readonly CheckBox _clickSelects = new();
     private readonly TextBox _comment = new();
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
+    private CommentsPanelMode _currentMode;
+    private CommentsPanelMode _selectedFilterMode = CommentsPanelMode.All;
 
     public event Action<CommentsPanelMode>? FilterChanged;
+    public event Action<CommentsPanelPersistedSettings>? OptionsChanged;
     public event Action<CommentGroup>? GroupActivated;
     public event Action<CommentGroup>? RemoveRequested;
     public event Action<string>? SetSelectedCommentRequested;
 
-    public CommentsPanelMode FilterMode { get; private set; } = CommentsPanelMode.All;
+    public CommentsPanelPersistedSettings Settings =>
+        new(_filterCurrentMode.IsChecked == true, _clickSelects.IsChecked == true);
 
-    public CommentsPanelWindow(IReadOnlyList<CommentGroup> groups)
+    public CommentsPanelMode FilterMode =>
+        CommentsPanelModel.EffectiveFilterMode(Settings, _currentMode, _selectedFilterMode);
+
+    public CommentsPanelWindow(
+        IReadOnlyList<CommentGroup> groups,
+        CommentsPanelPersistedSettings settings,
+        CommentsPanelMode currentMode)
     {
         Title = "Comments";
         Width = 420;
         Height = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        _currentMode = currentMode;
 
         _filter.ItemsSource = new[]
         {
@@ -39,13 +52,24 @@ public sealed class CommentsPanelWindow : Window
             CommentsPanelMode.Sectors,
             CommentsPanelMode.Things,
         };
-        _filter.SelectedItem = FilterMode;
+        _filter.SelectedItem = _selectedFilterMode;
         _filter.SelectionChanged += (_, _) =>
         {
-            if (_filter.SelectedItem is not CommentsPanelMode mode || mode == FilterMode) return;
-            FilterMode = mode;
-            FilterChanged?.Invoke(mode);
+            if (_filter.SelectedItem is not CommentsPanelMode mode || mode == _selectedFilterMode) return;
+            _selectedFilterMode = mode;
+            FilterChanged?.Invoke(FilterMode);
         };
+        _filterCurrentMode.Content = "Comments from this mode only";
+        _filterCurrentMode.IsChecked = settings.FilterMode;
+        _filterCurrentMode.IsCheckedChanged += (_, _) =>
+        {
+            UpdateFilterState();
+            OptionsChanged?.Invoke(Settings);
+        };
+        _clickSelects.Content = "Select on click";
+        _clickSelects.IsChecked = settings.ClickSelects;
+        _clickSelects.IsCheckedChanged += (_, _) => OptionsChanged?.Invoke(Settings);
+        UpdateFilterState();
 
         _comment.Watermark = "Comment for current selection";
         var setButton = new Button { Content = "Set Selection" };
@@ -67,15 +91,36 @@ public sealed class CommentsPanelWindow : Window
                 _filter,
             },
         };
+        var optionsRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 16,
+            Margin = new Avalonia.Thickness(8, 0, 8, 8),
+            Children =
+            {
+                _filterCurrentMode,
+                _clickSelects,
+            },
+        };
 
         _header.Margin = new Avalonia.Thickness(8, 0, 8, 6);
         _header.Foreground = Brushes.LightSkyBlue;
         _header.TextWrapping = TextWrapping.Wrap;
         _list.SelectionChanged += (_, _) =>
         {
-            if (_list.SelectedItem is ListBoxItem { Tag: CommentGroup group }) GroupActivated?.Invoke(group);
+            if (_clickSelects.IsChecked == true && _list.SelectedItem is ListBoxItem { Tag: CommentGroup group })
+                GroupActivated?.Invoke(group);
         };
 
+        var selectButton = new Button
+        {
+            Content = "Select Comment",
+            Margin = new Avalonia.Thickness(8, 8, 0, 8),
+        };
+        selectButton.Click += (_, _) =>
+        {
+            if (_list.SelectedItem is ListBoxItem { Tag: CommentGroup group }) GroupActivated?.Invoke(group);
+        };
         var removeButton = new Button
         {
             Content = "Remove Selected Comment",
@@ -86,20 +131,38 @@ public sealed class CommentsPanelWindow : Window
         {
             if (_list.SelectedItem is ListBoxItem { Tag: CommentGroup group }) RemoveRequested?.Invoke(group);
         };
+        var buttonRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Children =
+            {
+                selectButton,
+                removeButton,
+            },
+        };
 
         var root = new DockPanel();
         DockPanel.SetDock(filterRow, Dock.Top);
+        DockPanel.SetDock(optionsRow, Dock.Top);
         DockPanel.SetDock(entryRow, Dock.Top);
         DockPanel.SetDock(_header, Dock.Top);
-        DockPanel.SetDock(removeButton, Dock.Bottom);
+        DockPanel.SetDock(buttonRow, Dock.Bottom);
         root.Children.Add(filterRow);
+        root.Children.Add(optionsRow);
         root.Children.Add(entryRow);
         root.Children.Add(_header);
-        root.Children.Add(removeButton);
+        root.Children.Add(buttonRow);
         root.Children.Add(new ScrollViewer { Content = _list });
         Content = root;
 
         SetGroups(groups);
+    }
+
+    public void SetCurrentMode(CommentsPanelMode mode)
+    {
+        if (_currentMode == mode) return;
+        _currentMode = mode;
+        UpdateFilterState();
     }
 
     public void SetGroups(IReadOnlyList<CommentGroup> groups)
@@ -126,4 +189,10 @@ public sealed class CommentsPanelWindow : Window
 
     private static string FormatGroup(CommentGroup group)
         => $"{group.Group}: {group.Comment} ({group.Elements.Count} element{(group.Elements.Count == 1 ? "" : "s")})";
+
+    private void UpdateFilterState()
+    {
+        _filter.IsEnabled = _filterCurrentMode.IsChecked != true;
+        if (_filterCurrentMode.IsChecked == true) _filter.SelectedItem = _currentMode;
+    }
 }

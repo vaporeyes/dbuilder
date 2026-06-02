@@ -95,6 +95,12 @@ public static class CommentsPanelModel
             [ClickSelectsSettingKey] = settings.ClickSelects,
         };
 
+    public static CommentsPanelMode EffectiveFilterMode(
+        CommentsPanelPersistedSettings settings,
+        CommentsPanelMode currentMode,
+        CommentsPanelMode selectedMode)
+        => settings.FilterMode ? currentMode : selectedMode;
+
     public static IReadOnlyList<CommentGroup> BuildGroups(MapSet map, CommentsPanelMode filterMode = CommentsPanelMode.All)
     {
         var groups = new List<CommentGroup>();

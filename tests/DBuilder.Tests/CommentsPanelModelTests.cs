@@ -33,6 +33,23 @@ public sealed class CommentsPanelModelTests
     }
 
     [Fact]
+    public void EffectiveFilterModeUsesCurrentModeOnlyWhenFilterModeIsEnabled()
+    {
+        Assert.Equal(
+            CommentsPanelMode.Linedefs,
+            CommentsPanelModel.EffectiveFilterMode(
+                new CommentsPanelPersistedSettings(FilterMode: false, ClickSelects: true),
+                CommentsPanelMode.Things,
+                CommentsPanelMode.Linedefs));
+        Assert.Equal(
+            CommentsPanelMode.Things,
+            CommentsPanelModel.EffectiveFilterMode(
+                new CommentsPanelPersistedSettings(FilterMode: true, ClickSelects: false),
+                CommentsPanelMode.Things,
+                CommentsPanelMode.Linedefs));
+    }
+
+    [Fact]
     public void BuildGroupsSeparatesSameCommentByObjectGroup()
     {
         var map = new MapSet();

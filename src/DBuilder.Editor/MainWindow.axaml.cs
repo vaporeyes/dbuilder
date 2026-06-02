@@ -2533,10 +2533,23 @@ public partial class MainWindow : Window
             return;
         }
 
-        var win = new CommentsPanelWindow(CommentsPanelModel.BuildGroups(_map));
+        CommentsPanelMode currentMode = CommentModeFor(MapView.CurrentEditMode);
+        var win = new CommentsPanelWindow(
+            CommentsPanelModel.BuildGroups(_map, CommentsPanelModel.EffectiveFilterMode(
+                _settings.CommentsPanelSettings,
+                currentMode,
+                CommentsPanelMode.All)),
+            _settings.CommentsPanelSettings,
+            currentMode);
         _commentsPanel = win;
         win.Closed += (_, _) => _commentsPanel = null;
         win.FilterChanged += _ => RefreshCommentsPanel();
+        win.OptionsChanged += settings =>
+        {
+            _settings.CommentsPanelSettings = settings;
+            SaveSettings();
+            RefreshCommentsPanel();
+        };
         win.GroupActivated += SelectCommentGroup;
         win.RemoveRequested += RemoveCommentGroup;
         win.SetSelectedCommentRequested += SetCommentOnCurrentSelection;
@@ -2546,6 +2559,7 @@ public partial class MainWindow : Window
     private void RefreshCommentsPanel()
     {
         if (_map is null || _commentsPanel is null) return;
+        _commentsPanel.SetCurrentMode(CommentModeFor(MapView.CurrentEditMode));
         _commentsPanel.SetGroups(CommentsPanelModel.BuildGroups(_map, _commentsPanel.FilterMode));
     }
 
@@ -2619,6 +2633,15 @@ public partial class MainWindow : Window
             CommentsPanelMode.Sectors => MapControl.EditMode.Sectors,
             CommentsPanelMode.Things => MapControl.EditMode.Things,
             _ => MapControl.EditMode.Linedefs,
+        };
+
+    private static CommentsPanelMode CommentModeFor(MapControl.EditMode mode)
+        => mode switch
+        {
+            MapControl.EditMode.Vertices => CommentsPanelMode.Vertices,
+            MapControl.EditMode.Sectors => CommentsPanelMode.Sectors,
+            MapControl.EditMode.Things => CommentsPanelMode.Things,
+            _ => CommentsPanelMode.Linedefs,
         };
 
     private void OnStatusHistory(object? sender, RoutedEventArgs e)
