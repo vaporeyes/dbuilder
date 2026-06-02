@@ -4572,9 +4572,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private bool _selectionDoneOnPress;
     private readonly HashSet<string> _pressedMapShortcuts = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _heldMapCommands = new(StringComparer.Ordinal);
 
     private static bool IsFlyKey(Key k) => k is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E
         or Key.Up or Key.Down or Key.Left or Key.Right;
+
+    private static bool IsFlyMovementCommand(string commandId) => commandId is
+        "map3d.move-forward" or
+        "map3d.move-backward" or
+        "map3d.move-left" or
+        "map3d.move-right" or
+        "map3d.move-up" or
+        "map3d.move-down";
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
@@ -4612,6 +4621,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.toggle-3d":
             case "map3d.toggle-2d":
                 Toggle3DMode();
+                return true;
+            case "map3d.move-forward":
+            case "map3d.move-backward":
+            case "map3d.move-left":
+            case "map3d.move-right":
+            case "map3d.move-up":
+            case "map3d.move-down":
+                _heldMapCommands.Add(commandId);
                 return true;
             case "map2d.toggle-sector-fills":
                 ToggleSectorFills();
@@ -5076,9 +5093,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnKeyUp(KeyEventArgs e)
     {
         if (AutomapMode) UpdateAutomapHighlight(_cursorWorld, e.KeyModifiers);
+        bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        var scope = _mode3D ? EditorCommandScope.Map3D : EditorCommandScope.Map2D;
+        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, scope, e.Key.ToString(), accel, shift, alt) is { } commandId
+            && IsFlyMovementCommand(commandId))
+        {
+            _heldMapCommands.Remove(commandId);
+            e.Handled = true;
+        }
+
         RemovePressedMapShortcut(e.Key.ToString());
         if (_heldKeys.Remove(e.Key)) e.Handled = true;
-        else base.OnKeyUp(e);
+        if (!e.Handled) base.OnKeyUp(e);
     }
 
     private void RemovePressedMapShortcut(string key)
@@ -5285,10 +5313,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         var flatFwd = new Vector3((float)Math.Cos(_yaw), (float)Math.Sin(_yaw), 0);
         var right = new Vector3((float)Math.Sin(_yaw), -(float)Math.Cos(_yaw), 0);
-        if (_heldKeys.Contains(Key.W)) _cam3DPos += flatFwd * move;
-        if (_heldKeys.Contains(Key.S)) _cam3DPos -= flatFwd * move;
-        if (_heldKeys.Contains(Key.D)) _cam3DPos += right * move;
-        if (_heldKeys.Contains(Key.A)) _cam3DPos -= right * move;
+        if (_heldKeys.Contains(Key.W) || _heldMapCommands.Contains("map3d.move-forward")) _cam3DPos += flatFwd * move;
+        if (_heldKeys.Contains(Key.S) || _heldMapCommands.Contains("map3d.move-backward")) _cam3DPos -= flatFwd * move;
+        if (_heldKeys.Contains(Key.D) || _heldMapCommands.Contains("map3d.move-right")) _cam3DPos += right * move;
+        if (_heldKeys.Contains(Key.A) || _heldMapCommands.Contains("map3d.move-left")) _cam3DPos -= right * move;
 
         if (_walkMode)
         {
@@ -5300,8 +5328,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
-            if (_heldKeys.Contains(Key.E)) _cam3DPos.Z += move;
-            if (_heldKeys.Contains(Key.Q)) _cam3DPos.Z -= move;
+            if (_heldKeys.Contains(Key.E) || _heldMapCommands.Contains("map3d.move-up")) _cam3DPos.Z += move;
+            if (_heldKeys.Contains(Key.Q) || _heldMapCommands.Contains("map3d.move-down")) _cam3DPos.Z -= move;
         }
     }
 

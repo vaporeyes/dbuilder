@@ -1106,6 +1106,28 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
     }
 
+    [Theory]
+    [InlineData("map3d.move-forward", "Move Forward", "Menu")]
+    [InlineData("map3d.move-backward", "Move Backward", "Menu")]
+    [InlineData("map3d.move-left", "Move Left (strafe)", "Menu")]
+    [InlineData("map3d.move-right", "Move Right (strafe)", "Menu")]
+    [InlineData("map3d.move-up", "Move Up", "Menu")]
+    [InlineData("map3d.move-down", "Move Down", "Menu")]
+    public void VisualCameraMovementCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.False(command.Repeat);
+    }
+
     [Fact]
     public void VisualPaintSelectCommandMatchesUdbActionSurface()
     {

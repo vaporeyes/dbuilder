@@ -191,7 +191,13 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.toggle-3d", "Enter 3D mode", "Tab", EditorCommandScope.Map2D),
 
         new EditorCommandDescriptor("map3d.move", "Move", "WASD", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.move-forward", "Move Forward", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
+        new EditorCommandDescriptor("map3d.move-backward", "Move Backward", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
+        new EditorCommandDescriptor("map3d.move-left", "Move Left (strafe)", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
+        new EditorCommandDescriptor("map3d.move-right", "Move Right (strafe)", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
         new EditorCommandDescriptor("map3d.look", "Look around", "Arrows / drag", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.move-up", "Move Up", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
+        new EditorCommandDescriptor("map3d.move-down", "Move Down", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true),
         new EditorCommandDescriptor("map3d.move-height", "Move up / down", "Q / E", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-gravity", "Toggle Gravity", "G", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.walk-mode", "Toggle walk mode (gravity)", "G", EditorCommandScope.Map3D),
