@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3122 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3127 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -932,6 +932,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.
   - [x] Add UDB-style highlight toggle action ids, default shortcut, persisted setting, menu state, and 3D target overlay gating.
   - [x] Add UDB-style full-brightness display toggle for 2D and 3D rendering.
+  - [x] Add UDB-style classic rendering toggle action, persistence, dynamic-light tint suppression, and 16-step visual light banding.
 - [ ] Port vertex formats and buffers.
 - [ ] Port index buffer behavior.
 - [ ] Port texture handling and lifecycle.
@@ -1041,6 +1042,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Tint live 3D MODELDEF model and KVX voxel mesh batches with UDB-style dynamic light display colors.
   - [x] Gate dynamic light tinting with UDB-style NONE, ALL, and ANIMATED render modes.
+  - [x] Suppress dynamic light tinting while UDB-style classic rendering is enabled.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
   - [x] Apply UDB-style fullbright and UDMF surface-lighting tints to visual 3D floors and ceilings.
   - [x] Apply visual 3D surface-lighting tints to resolved 3D floor top and bottom faces.

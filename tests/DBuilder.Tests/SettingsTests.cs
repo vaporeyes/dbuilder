@@ -120,6 +120,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ClassicRenderingDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().ClassicRendering);
+    }
+
+    [Fact]
     public void AdjacentVisualVertexSlopeSelectionDefaultsDisabled()
     {
         Assert.False(new Settings().SelectAdjacentVisualVertexSlopeHandles);
@@ -175,6 +181,7 @@ public class SettingsTests
                 ModelRenderMode = (int)ThingModelRenderMode.Selection,
                 LightRenderMode = (int)ThingLightRenderMode.Animated,
                 EnhancedRenderingEffects = false,
+                ClassicRendering = true,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -244,6 +251,7 @@ public class SettingsTests
             Assert.Equal((int)ThingLightRenderMode.Animated, loaded.LightRenderMode);
             Assert.Equal(ThingLightRenderMode.Animated, loaded.NormalizedLightRenderMode);
             Assert.False(loaded.EnhancedRenderingEffects);
+            Assert.True(loaded.ClassicRendering);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);

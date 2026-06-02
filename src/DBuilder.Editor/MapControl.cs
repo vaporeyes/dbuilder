@@ -200,6 +200,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
+    private bool _classicRendering;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -215,6 +216,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
     public bool EnhancedRenderingEffects => _enhancedRenderingEffects;
+    public bool ClassicRendering => _classicRendering;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -346,6 +348,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ApplyRenderingEffectsState(state);
         return state;
     }
+
+    public bool SetClassicRendering(bool enabled)
+    {
+        if (_classicRendering == enabled) return _classicRendering;
+        _classicRendering = enabled;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _classicRendering;
+    }
+
+    public bool ToggleClassicRendering()
+        => SetClassicRendering(!_classicRendering);
 
     private void ApplyRenderingEffectsState(VisualRenderingEffectsState state)
     {
@@ -1853,7 +1869,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         int billboardTint = ThingBillboardTint(thing, gldefs);
         return billboardTint == DynamicLightDisplay.DefaultBillboardTint
-            ? VisualSurfaceLighting.ThingRenderTint(sector, _fullBrightness, 1.0)
+            ? VisualSurfaceLighting.ThingRenderTint(sector, _fullBrightness, 1.0, _classicRendering)
             : billboardTint;
     }
 
@@ -1864,7 +1880,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     private int? ThingLightColor(Thing thing, Gldefs? gldefs)
-        => ThingLightRenderPlanner.ShouldRender(_lightRenderMode)
+        => !_classicRendering && ThingLightRenderPlanner.ShouldRender(_lightRenderMode)
             ? DynamicLightDisplay.ThingColor(thing, _gameConfig, gldefs)
             : null;
 
@@ -3321,12 +3337,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 s.Brightness,
                 GlowingFlatDisplay.SurfaceLighting(s, GlowingFlatSurface.Floor, gldefs),
                 _fullBrightness,
-                1.0);
+                1.0,
+                _classicRendering);
             int cc = GlowingFlatDisplay.SurfaceRenderTint(
                 s.Brightness,
                 GlowingFlatDisplay.SurfaceLighting(s, GlowingFlatSurface.Ceiling, gldefs),
                 _fullBrightness,
-                0.85);
+                0.85,
+                _classicRendering);
             var fl = Bucket(floorB, fKey);
             var cl = Bucket(ceilB, cKey);
             for (int i = 0; i < tri.Vertices.Count; i++)
@@ -3349,7 +3367,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 // One-sided middle: top-pegged by default, floor-pegged when lower-unpegged.
                 var peg = unpegBottom ? WallPeg.BottomUp : WallPeg.Top;
-                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Middle, _fullBrightness, scale));
+                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Middle, _fullBrightness, scale, _classicRendering));
             }
             else if (fs != null && bs != null && front != null)
             {
@@ -3358,14 +3376,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 {
                     // Lower step: top-pegged at the higher floor by default; pegged to the ceiling when lower-unpegged.
                     var peg = unpegBottom ? WallPeg.Custom : WallPeg.Top;
-                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Bottom, _fullBrightness, scale));
+                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Bottom, _fullBrightness, scale, _classicRendering));
                 }
                 double fCa = fs.GetCeilZ(a), fCb = fs.GetCeilZ(b), bCa = bs.GetCeilZ(a), bCb = bs.GetCeilZ(b);
                 if (fCa != bCa || fCb != bCb)
                 {
                     // Upper step: bottom-pegged at the lower ceiling by default; top-pegged when upper-unpegged.
                     var peg = unpegTop ? WallPeg.Top : WallPeg.BottomUp;
-                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Top, _fullBrightness, scale));
+                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, VisualWallPart.Top, _fullBrightness, scale, _classicRendering));
                 }
             }
         }
@@ -3389,12 +3407,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         f.Brightness,
                         GlowingFlatDisplay.SurfaceLighting(f.Control, GlowingFlatSurface.Ceiling, gldefs),
                         _fullBrightness,
-                        1.0);
+                        1.0,
+                        _classicRendering);
                     int bc = GlowingFlatDisplay.SurfaceRenderTint(
                         f.Brightness,
                         GlowingFlatDisplay.SurfaceLighting(f.Control, GlowingFlatSurface.Floor, gldefs),
                         _fullBrightness,
-                        0.85);
+                        0.85,
+                        _classicRendering);
                     var topL = Bucket(floorB, GetFlatTexture(f.TopFlat) != null ? f.TopFlat : "");
                     var botL = Bucket(ceilB, GetFlatTexture(f.BottomFlat) != null ? f.BottomFlat : "");
                     for (int i = 0; i < tri.Vertices.Count; i++)
@@ -5123,6 +5143,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.toggle-enhanced-rendering-effects":
                 ToggleEnhancedRenderingEffects();
                 Target3DChanged?.Invoke($"Enhanced rendering effects are {(_enhancedRenderingEffects ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map3d.toggle-classic-rendering":
+                ToggleClassicRendering();
+                Target3DChanged?.Invoke($"Classic rendering is {(_classicRendering ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
                 ToggleVisualSidedefSlopePicking();

@@ -34,6 +34,7 @@ public sealed class Settings
     public int? ModelRenderMode { get; set; }
     public int? LightRenderMode { get; set; }
     public bool EnhancedRenderingEffects { get; set; } = true;
+    public bool ClassicRendering { get; set; }
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }

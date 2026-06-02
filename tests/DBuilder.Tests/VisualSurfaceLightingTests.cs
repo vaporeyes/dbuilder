@@ -71,6 +71,16 @@ public sealed class VisualSurfaceLightingTests
     }
 
     [Fact]
+    public void WallRenderTintUsesClassicBrightnessBands()
+    {
+        Sidedef side = Side(new Sector { Brightness = 101 });
+
+        int tint = VisualSurfaceLighting.WallRenderTint(side, VisualWallPart.Middle, fullBrightness: false, scale: 1.0, classicRendering: true);
+
+        Assert.Equal(unchecked((int)0xff606060), tint);
+    }
+
+    [Fact]
     public void ThingRenderTintModulatesSectorLightAndSpriteColors()
     {
         var sector = new Sector { Brightness = 128 };
@@ -98,6 +108,16 @@ public sealed class VisualSurfaceLightingTests
         int tint = VisualSurfaceLighting.ThingRenderTint(null, fullBrightness: false, scale: 1.0);
 
         Assert.Equal(unchecked((int)0xffffffff), tint);
+    }
+
+    [Fact]
+    public void ThingRenderTintUsesClassicBrightnessBands()
+    {
+        var sector = new Sector { Brightness = 101 };
+
+        int tint = VisualSurfaceLighting.ThingRenderTint(sector, fullBrightness: false, scale: 1.0, classicRendering: true);
+
+        Assert.Equal(unchecked((int)0xff606060), tint);
     }
 
     private static Sidedef Side(Sector sector)

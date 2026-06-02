@@ -1435,6 +1435,21 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Fact]
+    public void VisualClassicRenderingCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.toggle-classic-rendering");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle classic rendering", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
     [Theory]
     [InlineData("map3d.copy-offsets", "Copy Offsets")]
     [InlineData("map3d.paste-offsets", "Paste Offsets")]

@@ -17,7 +17,7 @@ public static class VisualSurfaceLighting
     public const int NoColorOverride = -1;
     public const int FullBrightness = 255;
 
-    public static int WallRenderTint(Sidedef side, VisualWallPart part, bool fullBrightness, double scale)
+    public static int WallRenderTint(Sidedef side, VisualWallPart part, bool fullBrightness, double scale, bool classicRendering = false)
     {
         int brightness = fullBrightness
             ? FullBrightness
@@ -27,10 +27,10 @@ public static class VisualSurfaceLighting
         int color = ModulateColors(
             side.Sector?.GetIntegerField("lightcolor", NoColorOverride) ?? NoColorOverride,
             WallPartColor(side.Sector, part));
-        return RenderTint(brightness, color, scale);
+        return RenderTint(brightness, color, scale, classicRendering);
     }
 
-    public static int ThingRenderTint(Sector? sector, bool fullBrightness, double scale)
+    public static int ThingRenderTint(Sector? sector, bool fullBrightness, double scale, bool classicRendering = false)
     {
         if (sector == null) return DefaultTint(scale);
 
@@ -38,12 +38,13 @@ public static class VisualSurfaceLighting
         int color = ModulateColors(
             sector?.GetIntegerField("lightcolor", NoColorOverride) ?? NoColorOverride,
             sector?.GetIntegerField("color_sprites", NoColorOverride) ?? NoColorOverride);
-        return RenderTint(brightness, color, scale);
+        return RenderTint(brightness, color, scale, classicRendering);
     }
 
-    public static int RenderTint(int brightness, int color, double scale)
+    public static int RenderTint(int brightness, int color, double scale, bool classicRendering = false)
     {
-        double factor = Math.Clamp(Math.Clamp(brightness, 0, FullBrightness) / 255.0, 0.15, 1.0)
+        int effectiveBrightness = classicRendering ? ClassicBrightness(brightness) : brightness;
+        double factor = Math.Clamp(Math.Clamp(effectiveBrightness, 0, FullBrightness) / 255.0, 0.15, 1.0)
             * scale;
 
         if (color == NoColorOverride)
@@ -60,6 +61,13 @@ public static class VisualSurfaceLighting
 
     private static byte Channel(int value, double factor)
         => (byte)Math.Clamp(value * factor, 0.0, 255.0);
+
+    private static int ClassicBrightness(int brightness)
+    {
+        int clamped = Math.Clamp(brightness, 0, FullBrightness);
+        if (clamped == FullBrightness) return FullBrightness;
+        return (clamped / 16) * 16;
+    }
 
     private static int DefaultTint(double scale)
     {

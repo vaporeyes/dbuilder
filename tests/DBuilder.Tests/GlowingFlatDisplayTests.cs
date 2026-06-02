@@ -141,6 +141,19 @@ public sealed class GlowingFlatDisplayTests
     }
 
     [Fact]
+    public void SurfaceRenderTintUsesClassicBrightnessBands()
+    {
+        var lighting = new GlowingFlatSurfaceLighting(
+            GlowingFlatDisplay.NoColorOverride,
+            Light: 0,
+            Absolute: false);
+
+        int tint = GlowingFlatDisplay.SurfaceRenderTint(101, lighting, fullBrightness: false, scale: 1.0, classicRendering: true);
+
+        Assert.Equal(unchecked((int)0xff606060), tint);
+    }
+
+    [Fact]
     public void SurfaceRenderTintUsesSurfaceColor()
     {
         var lighting = new GlowingFlatSurfaceLighting(

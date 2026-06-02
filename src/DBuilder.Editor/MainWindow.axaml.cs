@@ -143,6 +143,11 @@ public partial class MainWindow : Window
                 _settings.EnhancedRenderingEffects = MapView.EnhancedRenderingEffects;
                 SaveSettings();
             }
+            if (_settings.ClassicRendering != MapView.ClassicRendering)
+            {
+                _settings.ClassicRendering = MapView.ClassicRendering;
+                SaveSettings();
+            }
             if (_settings.SelectAdjacentVisualVertexSlopeHandles != MapView.SelectAdjacentVisualVertexSlopeHandles)
             {
                 _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
@@ -178,6 +183,7 @@ public partial class MainWindow : Window
         MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);
         MapView.SetLightRenderMode(_settings.NormalizedLightRenderMode);
         MapView.SetEnhancedRenderingEffects(_settings.EnhancedRenderingEffects);
+        MapView.SetClassicRendering(_settings.ClassicRendering);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
