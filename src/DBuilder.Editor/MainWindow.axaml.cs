@@ -128,6 +128,11 @@ public partial class MainWindow : Window
                 _settings.AlphaBasedTextureHighlighting = MapView.AlphaBasedTextureHighlighting;
                 SaveSettings();
             }
+            if (_settings.ModelRenderMode != (int)MapView.ModelRenderMode)
+            {
+                _settings.ModelRenderMode = (int)MapView.ModelRenderMode;
+                SaveSettings();
+            }
             if (_settings.SelectAdjacentVisualVertexSlopeHandles != MapView.SelectAdjacentVisualVertexSlopeHandles)
             {
                 _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
@@ -160,6 +165,7 @@ public partial class MainWindow : Window
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
+        MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
@@ -2898,6 +2904,33 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnModelRenderNone(object? sender, RoutedEventArgs e)
+        => SetModelRenderMode(ThingModelRenderMode.None);
+
+    private void OnModelRenderSelection(object? sender, RoutedEventArgs e)
+        => SetModelRenderMode(ThingModelRenderMode.Selection);
+
+    private void OnModelRenderActiveFilter(object? sender, RoutedEventArgs e)
+        => SetModelRenderMode(ThingModelRenderMode.ActiveThingsFilter);
+
+    private void OnModelRenderAll(object? sender, RoutedEventArgs e)
+        => SetModelRenderMode(ThingModelRenderMode.All);
+
+    private void OnNextModelRenderMode(object? sender, RoutedEventArgs e)
+        => ReportModelRenderMode(MapView.CycleModelRenderMode());
+
+    private void SetModelRenderMode(ThingModelRenderMode mode)
+    {
+        MapView.SetModelRenderMode(mode);
+        ReportModelRenderMode(mode);
+    }
+
+    private void ReportModelRenderMode(ThingModelRenderMode mode)
+    {
+        SetStatus($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(mode)}.");
+        MapView.Focus();
+    }
+
     private void OnViewModeWireframe(object? sender, RoutedEventArgs e)
         => SetClassicViewMode(MapControl.ClassicViewMode.Wireframe);
 
@@ -5077,6 +5110,7 @@ public partial class MainWindow : Window
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
+            ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleDynamicGridSizeMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -5159,6 +5193,10 @@ public partial class MainWindow : Window
         SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);
         SetChecked(ToggleFullBrightnessMenuItem, MapView.FullBrightness);
         SetChecked(ToggleHighlightMenuItem, MapView.UseHighlight);
+        SetChecked(ModelRenderNoneMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.None);
+        SetChecked(ModelRenderSelectionMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.Selection);
+        SetChecked(ModelRenderActiveFilterMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.ActiveThingsFilter);
+        SetChecked(ModelRenderAllMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.All);
         SetChecked(ViewModeWireframeMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Wireframe);
         SetChecked(ViewModeBrightnessMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Brightness);
         SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);

@@ -26,6 +26,26 @@ public sealed class ThingModelRenderPlannerTests
     }
 
     [Fact]
+    public void ShouldRender3DMatchesUdbVisualModelModes()
+    {
+        Assert.False(ThingModelRenderPlanner.ShouldRender3D(ThingModelRenderMode.None, selected: true));
+        Assert.False(ThingModelRenderPlanner.ShouldRender3D(ThingModelRenderMode.Selection, selected: false));
+        Assert.True(ThingModelRenderPlanner.ShouldRender3D(ThingModelRenderMode.Selection, selected: true));
+        Assert.True(ThingModelRenderPlanner.ShouldRender3D(ThingModelRenderMode.ActiveThingsFilter, selected: false));
+        Assert.True(ThingModelRenderPlanner.ShouldRender3D(ThingModelRenderMode.All, selected: false));
+    }
+
+    [Fact]
+    public void CyclesModelRenderModesLikeUdb()
+    {
+        Assert.Equal(ThingModelRenderMode.Selection, ThingModelRenderPlanner.NextMode(ThingModelRenderMode.None));
+        Assert.Equal(ThingModelRenderMode.ActiveThingsFilter, ThingModelRenderPlanner.NextMode(ThingModelRenderMode.Selection));
+        Assert.Equal(ThingModelRenderMode.All, ThingModelRenderPlanner.NextMode(ThingModelRenderMode.ActiveThingsFilter));
+        Assert.Equal(ThingModelRenderMode.None, ThingModelRenderPlanner.NextMode(ThingModelRenderMode.All));
+        Assert.Equal("ACTIVE THINGS FILTER ONLY", ThingModelRenderPlanner.StatusLabel(ThingModelRenderMode.ActiveThingsFilter));
+    }
+
+    [Fact]
     public void BuildsModeldefTransformWithUdbOffsetAndScaleAxes()
     {
         ThingModelDisplay display = Display(

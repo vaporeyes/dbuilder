@@ -176,6 +176,14 @@
                 <MenuItem Header="Move 3D Camera to _Cursor" x:Name="MoveCameraToCursorMenuItem" Click="OnMoveCameraToCursor" />
                 <MenuItem Header="Full _Brightness" x:Name="ToggleFullBrightnessMenuItem" ToggleType="CheckBox" Click="OnToggleFullBrightness" />
                 <MenuItem Header="_Highlight" x:Name="ToggleHighlightMenuItem" ToggleType="CheckBox" Click="OnToggleHighlight" />
+                <MenuItem Header="_Model Rendering">
+                    <MenuItem Header="_None" x:Name="ModelRenderNoneMenuItem" ToggleType="CheckBox" Click="OnModelRenderNone" />
+                    <MenuItem Header="_Selection Only" x:Name="ModelRenderSelectionMenuItem" ToggleType="CheckBox" Click="OnModelRenderSelection" />
+                    <MenuItem Header="_Active Things Filter Only" x:Name="ModelRenderActiveFilterMenuItem" ToggleType="CheckBox" Click="OnModelRenderActiveFilter" />
+                    <MenuItem Header="_All" x:Name="ModelRenderAllMenuItem" ToggleType="CheckBox" Click="OnModelRenderAll" />
+                    <Separator />
+                    <MenuItem Header="_Next Model Rendering Mode" x:Name="NextModelRenderModeMenuItem" Click="OnNextModelRenderMode" />
+                </MenuItem>
                 <MenuItem Header="_View Mode">
                     <MenuItem Header="_Wireframe" x:Name="ViewModeWireframeMenuItem" ToggleType="CheckBox" Click="OnViewModeWireframe" />
                     <MenuItem Header="_Brightness Levels" x:Name="ViewModeBrightnessMenuItem" ToggleType="CheckBox" Click="OnViewModeBrightness" />

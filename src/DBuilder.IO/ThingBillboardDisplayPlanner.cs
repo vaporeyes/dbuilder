@@ -11,10 +11,27 @@ public sealed record ThingBillboardDisplay(
 public static class ThingBillboardDisplayPlanner
 {
     public static ThingBillboardDisplay? Plan(ThingTypeInfo? thingInfo, ResourceManager? resources)
+        => Plan(thingInfo, resources, ThingModelRenderMode.All, new ThingModelRenderInput(), visual3D: false);
+
+    public static ThingBillboardDisplay? Plan(
+        ThingTypeInfo? thingInfo,
+        ResourceManager? resources,
+        ThingModelRenderMode modelRenderMode,
+        ThingModelRenderInput modelInput,
+        bool visual3D)
     {
         if (thingInfo == null || resources == null) return null;
 
         ThingDisplaySource display = ThingDisplayResolver.Resolve(thingInfo, resources);
+        if (display.Kind == ThingDisplayKind.Model)
+        {
+            bool renderModel = visual3D
+                ? ThingModelRenderPlanner.ShouldRender3D(modelRenderMode, modelInput.Selected)
+                : ThingModelRenderPlanner.ShouldRender(modelRenderMode, modelInput.Selected, modelInput.ActiveFilterAlpha);
+            if (!renderModel)
+                display = new ThingDisplaySource(ThingDisplayKind.Sprite, SpriteName: display.SpriteName);
+        }
+
         string? sprite = display.Kind is ThingDisplayKind.Sprite or ThingDisplayKind.Voxel or ThingDisplayKind.Model
             ? display.SpriteName
             : thingInfo.Sprite;

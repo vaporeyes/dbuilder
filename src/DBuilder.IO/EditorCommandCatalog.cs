@@ -270,6 +270,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-slope", "Toggle Slope", "Alt+S", EditorCommandScope.Map3D, AllowScroll: true),
+        new EditorCommandDescriptor("map3d.toggle-model-rendering", "Toggle Model Rendering Mode", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-alpha-based-texture-highlighting", "Toggle Alpha-based Texture Highlighting", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-visual-sidedef-slope-picking", "Toggle Visual Sidedef Slope Picking", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-visual-vertex-slope-picking", "Toggle Visual Vertex Slope Picking", "Menu", EditorCommandScope.Map3D),

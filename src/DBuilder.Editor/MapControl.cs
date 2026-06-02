@@ -189,6 +189,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
+    private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -201,6 +202,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool FullBrightness => _fullBrightness;
     public bool UseHighlight => _useHighlight;
+    public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -277,6 +279,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         SetUseHighlight(!_useHighlight);
         return _useHighlight;
     }
+
+    public ThingModelRenderMode SetModelRenderMode(ThingModelRenderMode mode)
+    {
+        if (_modelRenderMode == mode) return _modelRenderMode;
+        _modelRenderMode = mode;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _modelRenderMode;
+    }
+
+    public ThingModelRenderMode CycleModelRenderMode()
+        => SetModelRenderMode(ThingModelRenderPlanner.NextMode(_modelRenderMode));
 
     public bool SetAlphaBasedTextureHighlighting(bool enabled)
     {
@@ -1602,7 +1618,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in VisibleThings3D())
         {
-            ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(_gameConfig?.GetThing(t.Type), _resources);
+            ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(
+                _gameConfig?.GetThing(t.Type),
+                _resources,
+                _modelRenderMode,
+                new ThingModelRenderInput(Selected: t.Selected),
+                visual3D: true);
             if (display == null || GetSpriteTexture(display.SpriteName) == null) continue;
 
             double floorZ = (_blockmapCache?.GetSectorAt(t.Position) ?? _map.GetSectorAt(t.Position))?.GetFloorZ(t.Position) ?? 0;
@@ -4461,6 +4482,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
                 ToggleAlphaBasedTextureHighlighting();
+                return true;
+            case "map3d.toggle-model-rendering":
+                CycleModelRenderMode();
+                Target3DChanged?.Invoke($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(_modelRenderMode)}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
                 ToggleVisualSidedefSlopePicking();

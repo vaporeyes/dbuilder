@@ -108,6 +108,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ModelRenderModeDefaultsToAllLikeUdb()
+    {
+        Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
+    }
+
+    [Fact]
     public void AdjacentVisualVertexSlopeSelectionDefaultsDisabled()
     {
         Assert.False(new Settings().SelectAdjacentVisualVertexSlopeHandles);
@@ -160,6 +166,7 @@ public class SettingsTests
                 SelectAdjacentVisualVertexSlopeHandles = true,
                 DynamicGridSize = false,
                 DefaultViewMode = 3,
+                ModelRenderMode = (int)ThingModelRenderMode.Selection,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -224,6 +231,8 @@ public class SettingsTests
             Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);
             Assert.Equal(3, loaded.NormalizedDefaultViewMode);
+            Assert.Equal((int)ThingModelRenderMode.Selection, loaded.ModelRenderMode);
+            Assert.Equal(ThingModelRenderMode.Selection, loaded.NormalizedModelRenderMode);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);
@@ -331,6 +340,21 @@ public class SettingsTests
         var settings = new Settings { DefaultViewMode = value };
 
         Assert.Equal(expected, settings.NormalizedDefaultViewMode);
+    }
+
+    [Theory]
+    [InlineData(null, ThingModelRenderMode.All)]
+    [InlineData(-1, ThingModelRenderMode.All)]
+    [InlineData(0, ThingModelRenderMode.None)]
+    [InlineData(1, ThingModelRenderMode.Selection)]
+    [InlineData(2, ThingModelRenderMode.ActiveThingsFilter)]
+    [InlineData(3, ThingModelRenderMode.All)]
+    [InlineData(4, ThingModelRenderMode.All)]
+    public void ModelRenderModeUsesUdbRange(int? value, ThingModelRenderMode expected)
+    {
+        var settings = new Settings { ModelRenderMode = value };
+
+        Assert.Equal(expected, settings.NormalizedModelRenderMode);
     }
 
     [Fact]

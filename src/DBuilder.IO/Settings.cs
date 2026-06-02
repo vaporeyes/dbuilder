@@ -31,6 +31,7 @@ public sealed class Settings
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public int? DefaultViewMode { get; set; }
+    public int? ModelRenderMode { get; set; }
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
@@ -62,6 +63,11 @@ public sealed class Settings
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
+
+    public ThingModelRenderMode NormalizedModelRenderMode =>
+        Enum.IsDefined(typeof(ThingModelRenderMode), ModelRenderMode ?? (int)ThingModelRenderMode.All)
+            ? (ThingModelRenderMode)(ModelRenderMode ?? (int)ThingModelRenderMode.All)
+            : ThingModelRenderMode.All;
 
     public MergeGeometryMode NormalizedMergeGeometryMode =>
         Enum.IsDefined(MergeGeometryMode) ? MergeGeometryMode : MergeGeometryMode.Replace;

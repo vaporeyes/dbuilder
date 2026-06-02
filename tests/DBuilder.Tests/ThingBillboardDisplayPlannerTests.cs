@@ -98,6 +98,44 @@ public sealed class ThingBillboardDisplayPlannerTests
     }
 
     [Fact]
+    public void ModelRenderModeDemotesModelBillboardToSpriteFallback()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    FrameIndex LAMP A 0 0
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]),
+            ("sprites/LAMPA0.png", TestArtifacts.Png(4, 5, TestArtifacts.SolidRgba(4, 5, 50, 60, 70, 255))));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(
+                info,
+                resources,
+                ThingModelRenderMode.Selection,
+                new ThingModelRenderInput(Selected: false),
+                visual3D: true);
+
+            Assert.NotNull(display);
+            Assert.Equal(ThingDisplayKind.Sprite, display!.Kind);
+            Assert.Equal("LAMPA0", display.SpriteName);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void MissingThingOrResourceReturnsNoBillboard()
     {
         using var resources = new ResourceManager();

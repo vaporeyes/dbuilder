@@ -36,12 +36,42 @@ public sealed record ThingModelRenderPlan(
 
 public static class ThingModelRenderPlanner
 {
+    public static ThingModelRenderMode NextMode(ThingModelRenderMode mode)
+        => mode switch
+        {
+            ThingModelRenderMode.None => ThingModelRenderMode.Selection,
+            ThingModelRenderMode.Selection => ThingModelRenderMode.ActiveThingsFilter,
+            ThingModelRenderMode.ActiveThingsFilter => ThingModelRenderMode.All,
+            ThingModelRenderMode.All => ThingModelRenderMode.None,
+            _ => ThingModelRenderMode.All,
+        };
+
+    public static string StatusLabel(ThingModelRenderMode mode)
+        => mode switch
+        {
+            ThingModelRenderMode.None => "NONE",
+            ThingModelRenderMode.Selection => "SELECTION ONLY",
+            ThingModelRenderMode.ActiveThingsFilter => "ACTIVE THINGS FILTER ONLY",
+            ThingModelRenderMode.All => "ALL",
+            _ => "ALL",
+        };
+
     public static bool ShouldRender(ThingModelRenderMode mode, bool selected, double activeFilterAlpha = 1.0)
         => mode switch
         {
             ThingModelRenderMode.None => false,
             ThingModelRenderMode.Selection => selected,
             ThingModelRenderMode.ActiveThingsFilter => activeFilterAlpha >= 1.0,
+            ThingModelRenderMode.All => true,
+            _ => false,
+        };
+
+    public static bool ShouldRender3D(ThingModelRenderMode mode, bool selected)
+        => mode switch
+        {
+            ThingModelRenderMode.None => false,
+            ThingModelRenderMode.Selection => selected,
+            ThingModelRenderMode.ActiveThingsFilter => true,
             ThingModelRenderMode.All => true,
             _ => false,
         };
