@@ -600,6 +600,26 @@ public sealed class ResourceManager : IDisposable
         return null;
     }
 
+    /// <summary>Model skin image using UDB's texture and sprite fallback order.</summary>
+    public ImageData? GetModelTextureImage(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return null;
+
+        string normalized = path.Replace('\\', '/');
+        string stem = Path.ChangeExtension(normalized, null) ?? normalized;
+
+        if (GetWallTexture(stem) is { } stemTexture) return stemTexture;
+        foreach (string extension in ModelTextureExtensions)
+            if (GetWallTexture(stem + extension) is { } texture)
+                return texture;
+
+        string basename = Path.GetFileName(stem);
+        if (!string.IsNullOrEmpty(basename) && GetWallTexture(basename) is { } basenameTexture)
+            return basenameTexture;
+
+        return GetSprite(stem);
+    }
+
     public static string CombineModelPath(string path, string file)
     {
         string normalizedFile = file.Replace('\\', '/').TrimStart('/');

@@ -98,7 +98,7 @@
       "udbArea": "Source/Core/Resources",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, nested WAD folder-resource and hires priority, editor add-resource options for WAD, PK3, directory resources, required archives, required-archive default detection, configuration-resource required-archive default mapping, MODELDEF model resource lookup, UDB-style supported model skin texture extension probing, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
+      "notes": "WAD, PK3, nested PK3, directory, mixed stack, texture, flat, patch, sprite, hires, voxel, model, camera texture, dynamic bitmap, unknown image, nested WAD folder-resource and hires priority, editor add-resource options for WAD, PK3, directory resources, required archives, required-archive default detection, configuration-resource required-archive default mapping, MODELDEF model resource lookup, UDB-style supported model skin texture extension probing, defined texture, basename texture, and sprite fallback for model skin images, and cache invalidation behavior have focused coverage. Full lazy loading, advanced namespace behavior, and UDB DataManager parity remain incomplete."
     },
     {
       "udbArea": "Source/Core/Types",

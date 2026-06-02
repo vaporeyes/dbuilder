@@ -126,6 +126,75 @@ model Zombie
     }
 
     [Fact]
+    public void ModelTextureImageLookupUsesDefinedTextureExtensionsLikeUdb()
+    {
+        byte[] texture = TestArtifacts.Png(2, 3, TestArtifacts.SolidRgba(2, 3, 60, 70, 80, 255));
+        string pk3 = TestArtifacts.BuildPk3(("textures/skin.png", texture));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            ImageData? image = resources.GetModelTextureImage("skin.tga");
+
+            Assert.NotNull(image);
+            Assert.Equal(2, image!.Width);
+            Assert.Equal(3, image.Height);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ModelTextureImageLookupFallsBackToBasenameTextureLikeUdb()
+    {
+        byte[] texture = TestArtifacts.Png(4, 5, TestArtifacts.SolidRgba(4, 5, 90, 100, 110, 255));
+        string pk3 = TestArtifacts.BuildPk3(("textures/skin.png", texture));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            ImageData? image = resources.GetModelTextureImage("models/skin.missing");
+
+            Assert.NotNull(image);
+            Assert.Equal(4, image!.Width);
+            Assert.Equal(5, image.Height);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ModelTextureImageLookupFallsBackToSpriteLikeUdb()
+    {
+        byte[] texture = TestArtifacts.Png(6, 7, TestArtifacts.SolidRgba(6, 7, 120, 130, 140, 255));
+        string pk3 = TestArtifacts.BuildPk3(("sprites/POSSA0.png", texture));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            ImageData? image = resources.GetModelTextureImage("POSSA0.png");
+
+            Assert.NotNull(image);
+            Assert.Equal(6, image!.Width);
+            Assert.Equal(7, image.Height);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void DiscoversMultipleRootModeldefFiles()
     {
         string pk3 = TestArtifacts.BuildPk3(
