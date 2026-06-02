@@ -1917,11 +1917,13 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
 public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 {
     private readonly Thing thing;
+    private readonly MapSet? owner;
     private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
 
-    public UdbScriptThingWrapper(Thing thing)
+    public UdbScriptThingWrapper(Thing thing, MapSet? owner = null)
     {
         this.thing = thing;
+        this.owner = owner;
         elementArgs = new UdbScriptMapElementArgumentsWrapper(thing);
     }
 
@@ -2156,6 +2158,17 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         thing.SnapToAccuracy(vertexDecimals, usePrecisePosition);
     }
 
+    public void delete()
+    {
+        if (thing.IsDisposed)
+            return;
+
+        if (owner != null)
+            owner.RemoveThing(thing);
+        else
+            thing.IsDisposed = true;
+    }
+
     public UdbScriptSectorWrapper? getSector()
     {
         ThrowIfDisposed("getSector");
@@ -2369,7 +2382,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getThings");
         return map.Things
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing))
+            .Select(thing => new UdbScriptThingWrapper(thing, map))
             .ToArray();
     }
 
@@ -2438,7 +2451,7 @@ public sealed class UdbScriptMapWrapper
         Vector2D point = ToVector2D(pos);
         Thing? nearest = map.NearestThingSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
 
-        return nearest == null ? null : new UdbScriptThingWrapper(nearest);
+        return nearest == null ? null : new UdbScriptThingWrapper(nearest, map);
     }
 
     public UdbScriptVertexWrapper? nearestVertex(object pos, double maxrange = double.NaN)
@@ -2553,7 +2566,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedThings");
         return map.GetMarkedThings(mark)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing))
+            .Select(thing => new UdbScriptThingWrapper(thing, map))
             .ToArray();
     }
 
@@ -2622,7 +2635,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedThings");
         return map.GetSelectedThings(selected)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing))
+            .Select(thing => new UdbScriptThingWrapper(thing, map))
             .ToArray();
     }
 
@@ -2706,7 +2719,7 @@ public sealed class UdbScriptMapWrapper
         Thing thing = map.AddThing(new Vector2D(point.x, point.y), type);
         thing.Height = point.z;
         thing.DetermineSector(map);
-        return new UdbScriptThingWrapper(thing);
+        return new UdbScriptThingWrapper(thing, map);
     }
 
     public void joinSectors(UdbScriptSectorWrapper[] sectors)

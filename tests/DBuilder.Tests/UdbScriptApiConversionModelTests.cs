@@ -903,6 +903,18 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void ThingWrapperDeletesStandaloneThing()
+    {
+        var thing = new Thing(new Vector2D(1, 2), 3001);
+        var wrapper = new UdbScriptThingWrapper(thing);
+
+        wrapper.delete();
+        wrapper.delete();
+
+        Assert.True(thing.IsDisposed);
+    }
+
+    [Fact]
     public void ThingWrapperCopiesPropertiesAndClearsFlags()
     {
         var source = new Thing(new Vector2D(1, 2), 3001, 90)
@@ -1225,6 +1237,28 @@ localsidedeftextureoffsets = true;
         Assert.Equal(12, thing.Thing.Height);
         Assert.Equal(3001, thing.Thing.Type);
         Assert.Equal(new UdbScriptVector3DWrapper(64, 96, 12), thing.position);
+    }
+
+    [Fact]
+    public void MapOwnedThingWrappersDeleteThings()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptThingWrapper created = wrapper.createThing(new object[] { 8.0, 16.0 }, type: 3001);
+
+        created.delete();
+        created.delete();
+
+        Assert.Empty(map.Things);
+        Assert.True(created.Thing.IsDisposed);
+
+        var remaining = map.AddThing(new Vector2D(32, 32), 3002);
+        UdbScriptThingWrapper nearest = wrapper.nearestThing(new object[] { 32.0, 32.0 })!;
+
+        nearest.delete();
+
+        Assert.DoesNotContain(remaining, map.Things);
+        Assert.Empty(wrapper.getThings());
     }
 
     [Fact]
