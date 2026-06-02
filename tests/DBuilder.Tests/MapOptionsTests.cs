@@ -829,6 +829,53 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void ResourceOptionsDialogModelNormalizesUdbResourceFlags()
+    {
+        var wad = ResourceOptionsDialogModel.BuildLocation(
+            DataLocationType.Wad,
+            " /tmp/base.wad ",
+            "outer.pk3/base.wad",
+            strictPatches: true,
+            rootTextures: true,
+            rootFlats: true,
+            notForTesting: true,
+            requiredArchivesText: "doom.wad, , textures.pk3 ");
+
+        Assert.Equal("/tmp/base.wad", wad.Location);
+        Assert.Equal("outer.pk3/base.wad", wad.InitialLocation);
+        Assert.True(wad.Option1);
+        Assert.False(wad.Option2);
+        Assert.True(wad.NotForTesting);
+        Assert.Equal(new[] { "doom.wad", "textures.pk3" }, wad.RequiredArchives);
+
+        var directory = ResourceOptionsDialogModel.BuildLocation(
+            DataLocationType.Directory,
+            "/tmp/resources",
+            "",
+            strictPatches: true,
+            rootTextures: true,
+            rootFlats: true,
+            notForTesting: false,
+            requiredArchivesText: "");
+
+        Assert.True(directory.Option1);
+        Assert.True(directory.Option2);
+
+        var pk3 = ResourceOptionsDialogModel.BuildLocation(
+            DataLocationType.Pk3,
+            "/tmp/mod.pk3",
+            "",
+            strictPatches: true,
+            rootTextures: false,
+            rootFlats: true,
+            notForTesting: false,
+            requiredArchivesText: "");
+
+        Assert.False(pk3.Option1);
+        Assert.True(pk3.Option2);
+    }
+
+    [Fact]
     public void DataLocationListCombinedKeepsLaterDuplicates()
     {
         var first = new DataLocationList

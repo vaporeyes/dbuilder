@@ -874,6 +874,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add directory resource picker and root texture/flat options.
   - [x] Add required-archive editing to resource options.
   - [x] Prefill required-archive and test-exclusion defaults when adding resources.
+  - [x] Add a tested UDB-compatible dialog option mapping model.
 - [ ] Port config dialog.
   - [x] Add bundled configuration picker with external cfg browse fallback.
   - [x] Preselect the active configuration by parsed title, filename, or external path.

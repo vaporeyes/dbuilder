@@ -43,20 +43,15 @@ public sealed class ResourceOptionsDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        string path = _location.Text?.Trim() ?? "";
-        var location = new DataLocation(_type, path)
-        {
-            InitialLocation = ResultLocation.InitialLocation,
-            RequiredArchivesText = _requiredArchives.Text?.Trim() ?? "",
-        };
-        if (_type == DataLocationType.Wad) location.Option1 = _strictPatches.IsChecked == true;
-        if (SupportsRootImages(_type))
-        {
-            location.Option1 = _rootTextures.IsChecked == true;
-            location.Option2 = _rootFlats.IsChecked == true;
-        }
-        location.NotForTesting = _notForTesting.IsChecked == true;
-        ResultLocation = location;
+        ResultLocation = ResourceOptionsDialogModel.BuildLocation(
+            _type,
+            _location.Text ?? "",
+            ResultLocation.InitialLocation,
+            _strictPatches.IsChecked == true,
+            _rootTextures.IsChecked == true,
+            _rootFlats.IsChecked == true,
+            _notForTesting.IsChecked == true,
+            _requiredArchives.Text ?? "");
     }
 
     private static string Describe(DataLocationType type) => type switch
@@ -68,5 +63,5 @@ public sealed class ResourceOptionsDialog : PropertyDialog
     };
 
     private static bool SupportsRootImages(DataLocationType type)
-        => type is DataLocationType.Pk3 or DataLocationType.Directory;
+        => ResourceOptionsDialogModel.SupportsRootImages(type);
 }
