@@ -1011,6 +1011,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.
   - [x] Build UDB-style MODELDEF display parts with model paths, skin paths, surface skins, frames, and transform metadata.
   - [x] Share MODELDEF, VOXELDEF, sprite, and marker display-source planning for 2D and 3D billboard fallback rendering.
+  - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
