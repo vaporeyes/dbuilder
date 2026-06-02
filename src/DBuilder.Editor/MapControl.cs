@@ -3431,6 +3431,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.merge-sectors":
                 JoinOrMergeSelectedSectors(merge: true);
                 return true;
+            case "map2d.lower-floor-8":
+                AdjustSectorHeights(SectorHeightPart.Floor, -8);
+                return true;
+            case "map2d.raise-floor-8":
+                AdjustSectorHeights(SectorHeightPart.Floor, 8);
+                return true;
+            case "map2d.lower-ceiling-8":
+                AdjustSectorHeights(SectorHeightPart.Ceiling, -8);
+                return true;
+            case "map2d.raise-ceiling-8":
+                AdjustSectorHeights(SectorHeightPart.Ceiling, 8);
+                return true;
             case "map2d.align-textures-x":
                 AutoAlignSelectedTextures(vertical: false);
                 return true;
@@ -4705,6 +4717,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = merge ? "Merged " + sectors.Count + " sectors." : "Joined " + sectors.Count + " sectors.";
         Picked?.Invoke(status);
         return status;
+    }
+
+    public string AdjustSectorHeights(SectorHeightPart part, int delta)
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(SectorHeightAdjustment.UndoDescription(part));
+        SectorHeightAdjustmentResult result = SectorHeightAdjustment.Apply(sectors, part, delta);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        Picked?.Invoke(result.StatusMessage);
+        return result.StatusMessage;
     }
 
     /// <summary>The thing type used by the insert tool; remembers the last value edited via the dialog.</summary>

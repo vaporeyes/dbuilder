@@ -874,6 +874,25 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("map2d.lower-floor-8", "Lower Floor by 8 mp")]
+    [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp")]
+    [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp")]
+    [InlineData("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp")]
+    public void SectorHeightCommandsMatchUdbActionSurface(string id, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
     [Fact]
     public void DefaultShortcutsResolveMap3DToggle()
     {
@@ -902,6 +921,7 @@ public class EditorCommandCatalogTests
     {
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoom-in"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.grid-up"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.lower-floor-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
 

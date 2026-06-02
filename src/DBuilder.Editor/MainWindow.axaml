@@ -95,6 +95,12 @@
                 <MenuItem Header="Stitch _geometry" x:Name="StitchMenuItem" Click="OnStitch" />
                 <MenuItem Header="_Join sectors" x:Name="JoinSectorsMenuItem" Click="OnJoinSectors" />
                 <MenuItem Header="Mer_ge sectors" x:Name="MergeSectorsMenuItem" Click="OnMergeSectors" />
+                <MenuItem Header="Sector _Heights">
+                    <MenuItem Header="_Lower Floor by 8 mp" x:Name="LowerFloor8MenuItem" Click="OnLowerFloor8" />
+                    <MenuItem Header="_Raise Floor by 8 mp" x:Name="RaiseFloor8MenuItem" Click="OnRaiseFloor8" />
+                    <MenuItem Header="Lower _Ceiling by 8 mp" x:Name="LowerCeiling8MenuItem" Click="OnLowerCeiling8" />
+                    <MenuItem Header="Raise C_eiling by 8 mp" x:Name="RaiseCeiling8MenuItem" Click="OnRaiseCeiling8" />
+                </MenuItem>
                 <MenuItem Header="_Transform selection" x:Name="TransformSelectionMenuItem">
                     <MenuItem Header="Flip _Horizontal" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />
                     <MenuItem Header="Flip _Vertical" x:Name="FlipVerticalMenuItem" Click="OnFlipV" />
