@@ -1032,6 +1032,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port KVX loader.
   - [x] Add UDB-style KVX voxel parser for slab offsets, visible face generation, pivot transforms, palette atlas pixels, radius calculation, and malformed input errors.
 - [ ] Port Unreal model loader.
+  - [x] Add UDB-style Unreal _a.3d/_d.3d parser for frame selection, packed and Deus Ex vertices, texture groups, UVs, masked polygons, flat normals, and frame errors.
 - [ ] Port model skins and frame behavior.
   - [x] Match UDB-style actor sprite frame eligibility and disabled frame indexes for MODELDEF display resolution.
   - [x] Build loader-ready MODELDEF display parts for skins, surface skins, named frames, frame indexes, and transform metadata.
