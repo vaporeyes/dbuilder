@@ -981,7 +981,8 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8")]
     [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8")]
-    public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title)
+    [InlineData("map3d.match-brightness", "Match Brightness")]
+    public void VisualBrightnessCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
 
@@ -992,7 +993,10 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        Assert.True(command.Repeat);
+        if (id is "map3d.match-brightness")
+            Assert.False(command.Repeat);
+        else
+            Assert.True(command.Repeat);
     }
 
     [Theory]

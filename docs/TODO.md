@@ -961,6 +961,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual geometry behavior.
   - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.
 - [ ] Port visual sector behavior.
+  - [x] Add UDB-style visual Match Brightness action for UDMF floor, ceiling, and wall surfaces.
 - [ ] Port visual thing behavior.
   - [x] Add UDB-style selected or targeted thing movement actions for relative grid moves and cursor placement.
   - [x] Add UDB-style visual Insert Item command metadata and 3D thing-at-target dispatch.

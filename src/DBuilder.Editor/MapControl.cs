@@ -2663,6 +2663,39 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    private void MatchBrightness3D()
+    {
+        if (_map == null) return;
+        if (_mapFormat != MapFormat.Udmf)
+        {
+            Target3DChanged?.Invoke("'Match Brightness' action works only in UDMF map format!");
+            return;
+        }
+
+        if (_sel3D.Count == 0)
+        {
+            Target3DChanged?.Invoke("'Match Brightness' action requires a selection!");
+            return;
+        }
+
+        int targetBrightness = 0;
+        string message = VisualBrightnessMatch.InvalidTargetMessage;
+        if (_target3D is not { } target ||
+            !VisualBrightnessMatch.TryReadTargetBrightness(target, out targetBrightness, out message))
+        {
+            Target3DChanged?.Invoke(string.IsNullOrWhiteSpace(message) ? VisualBrightnessMatch.InvalidTargetMessage : message);
+            return;
+        }
+
+        EditBegun?.Invoke("Match Brightness");
+        VisualBrightnessMatchResult result = VisualBrightnessMatch.Apply(targetBrightness, _sel3D, target, _gameConfig);
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(result.Message);
+    }
+
     // Whether two hits refer to the same editable surface (ignoring distance/point).
     private static bool SameSurface3D(VisualHit a, VisualHit b)
     {
@@ -4835,6 +4868,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.brightness-up":
             case "map3d.raise-brightness-8":
                 AdjustTargetBrightness3D(8);
+                return true;
+            case "map3d.match-brightness":
+                MatchBrightness3D();
                 return true;
             case "map3d.copy-texture":
                 CopyTexture3D();

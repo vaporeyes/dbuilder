@@ -232,6 +232,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.raise-brightness-8", "Increase Brightness by 8", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.lower-brightness-8", "Decrease Brightness by 8", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
+        new EditorCommandDescriptor("map3d.match-brightness", "Match Brightness", "Menu", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.brightness-down", "Sector brightness down", "[", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.brightness-up", "Sector brightness up", "]", EditorCommandScope.Map3D, Repeat: true),
         new EditorCommandDescriptor("map3d.copy-texture", "Copy texture", "C", EditorCommandScope.Map3D),
