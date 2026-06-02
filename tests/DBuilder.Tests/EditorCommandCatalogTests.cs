@@ -930,6 +930,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.scale-down-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad5"));
         Assert.Equal("map3d.visual-auto-align", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
+        Assert.Equal("map3d.reset-local-offsets", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "R", accelerator: true, shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
@@ -1023,6 +1024,23 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.True(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map3d.reset-offsets", "Reset Texture Offsets", "O")]
+    [InlineData("map3d.reset-local-offsets", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R")]
+    public void VisualTextureResetCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
     }
 
     [Theory]
