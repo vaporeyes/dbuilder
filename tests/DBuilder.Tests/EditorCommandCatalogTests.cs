@@ -287,6 +287,20 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Fact]
+    public void ApplyLightFogFlagCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.apply-lightfog-flag");
+
+        Assert.NotNull(command);
+        Assert.Equal("Apply 'lightfog' flag", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("select", "Select Group", "Menu")]
     [InlineData("assign", "Assign Group", "Menu")]

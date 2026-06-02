@@ -3419,6 +3419,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.align-textures-y":
                 AutoAlignSelectedTextures(vertical: true);
                 return true;
+            case "map2d.apply-lightfog-flag":
+                ApplyLightFogFlag();
+                return true;
             case "map2d.toggle-grid-snap":
                 ToggleSnapToGrid();
                 return true;
@@ -4619,6 +4622,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (sectors.Count == 0 && _editMode == EditMode.Sectors && _map.GetSectorAt(_cursorWorld) is { } highlighted)
             sectors.Add(highlighted);
         return sectors;
+    }
+
+    public string ApplyLightFogFlag()
+    {
+        if (_map == null) return "No map loaded.";
+        if (_mapFormat != MapFormat.Udmf)
+        {
+            const string message = "Apply 'lightfog' flag is only available for UDMF maps.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        IReadOnlyList<Linedef> linedefs = SelectedLinedefsOrHighlighted();
+        if (linedefs.Count == 0)
+        {
+            const string message = "This action requires selection of some description!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke("Apply 'lightfog' flag");
+        SidedefLightFogFlagResult result = SidedefFogTools.ApplyLightFogFlags(linedefs, mapInfo: null, _gameConfig);
+        if (result.Changed)
+        {
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+
+        Picked?.Invoke(result.Message);
+        return result.Message;
     }
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).

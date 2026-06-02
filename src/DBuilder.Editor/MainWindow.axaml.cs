@@ -1789,6 +1789,7 @@ public partial class MainWindow : Window
     private void OnAlignTexturesY(object? sender, RoutedEventArgs e) => AlignTextures(vertical: true);
     private void OnFitSelectedTextures(object? sender, RoutedEventArgs e) => FitSelectedTextures();
     private void OnAlignThingsToWall(object? sender, RoutedEventArgs e) => AlignThingsToWall();
+    private void OnApplyLightFogFlag(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.ApplyLightFogFlag());
     private void OnAlignFloorToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: true);
     private void OnAlignFloorToBack(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: true, frontSide: false);
     private void OnAlignCeilingToFront(object? sender, RoutedEventArgs e) => AlignFlatToLine(floors: false, frontSide: true);
@@ -4679,6 +4680,7 @@ public partial class MainWindow : Window
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
         bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
+        bool canApplyLightFogFlag = hasMap && _mapFormat == MapFormat.Udmf;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
@@ -4741,6 +4743,7 @@ public partial class MainWindow : Window
         SetEnabled(canCopyProperties, CopyPropertiesMenuItem);
         SetEnabled(canPasteProperties, PastePropertiesMenuItem, PastePropertiesOptionsMenuItem);
         SetEnabled(hasCurrentModeSelection, SelectSimilarMenuItem);
+        SetEnabled(canApplyLightFogFlag, ApplyLightFogFlagMenuItem);
         SetEnabled(hasTransformableSelection,
             TransformSelectionMenuItem,
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,

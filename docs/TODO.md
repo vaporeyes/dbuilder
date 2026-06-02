@@ -1216,6 +1216,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command to fit selected wall texture fields from resource dimensions.
 - [ ] Port flat alignment behavior.
   - [x] Add UDB-style UDMF floor and ceiling alignment to selected linedef front/back sides.
+  - [x] Add UDB-style Apply lightfog flag action for selected linedefs.
 - [ ] Port bridge mode.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.

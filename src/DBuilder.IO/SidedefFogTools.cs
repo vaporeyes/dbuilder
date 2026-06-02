@@ -5,6 +5,13 @@ using DBuilder.Map;
 
 namespace DBuilder.IO;
 
+public sealed record SidedefLightFogFlagResult(int AddedCount, int RemovedCount)
+{
+    public bool Changed => AddedCount > 0 || RemovedCount > 0;
+
+    public string Message => "Added 'lightfog' flag to " + AddedCount + " sidedefs, removed it from " + RemovedCount + " sidedefs.";
+}
+
 public static class SidedefFogTools
 {
     public static int UpdateLightFogFlag(Sidedef side, MapInfoEntry? mapInfo, GameConfiguration? config)
@@ -48,6 +55,29 @@ public static class SidedefFogTools
         }
 
         return 0;
+    }
+
+    public static SidedefLightFogFlagResult ApplyLightFogFlags(IEnumerable<Linedef> linedefs, MapInfoEntry? mapInfo, GameConfiguration? config)
+    {
+        int addedCount = 0;
+        int removedCount = 0;
+
+        foreach (Linedef linedef in linedefs)
+        {
+            Count(UpdateSide(linedef.Front));
+            Count(UpdateSide(linedef.Back));
+        }
+
+        return new SidedefLightFogFlagResult(addedCount, removedCount);
+
+        int UpdateSide(Sidedef? side)
+            => side == null ? 0 : UpdateLightFogFlag(side, mapInfo, config);
+
+        void Count(int result)
+        {
+            if (result > 0) addedCount++;
+            else if (result < 0) removedCount++;
+        }
     }
 
     private static bool HasSkyCeiling(Sector sector, string skyFlatName)

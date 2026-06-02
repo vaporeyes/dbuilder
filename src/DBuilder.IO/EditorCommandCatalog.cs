@@ -164,6 +164,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.flip-sidedefs", "Flip sidedefs", "Shift+F", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.align-textures-x", "Align textures X", "A", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.align-textures-y", "Align textures Y", "Shift+A", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.apply-lightfog-flag", "Apply 'lightfog' flag", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-grid-snap", "Toggle grid snap", "G", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.toggle-dynamic-grid-size", "Toggle Dynamic Grid Size", "Ctrl/Cmd+Alt+G", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef", "Menu", EditorCommandScope.Map2D, AllowScroll: true),

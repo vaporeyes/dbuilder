@@ -112,6 +112,7 @@
                     <MenuItem Header="Align Ceiling to B_ack Side" x:Name="AlignCeilingToBackMenuItem" Click="OnAlignCeilingToBack" />
                 </MenuItem>
                 <MenuItem Header="Align _Things to Wall" x:Name="AlignThingsToWallMenuItem" Click="OnAlignThingsToWall" />
+                <MenuItem Header="Update '_lightfog' Flag" x:Name="ApplyLightFogFlagMenuItem" Click="OnApplyLightFogFlag" />
                 <MenuItem Header="Auto _Clear Sidedef Textures" x:Name="AutoClearSidedefTexturesMenuItem" ToggleType="CheckBox" Click="OnToggleAutoClearSidedefTextures" />
                 <MenuItem Header="_Find &amp; Replace..." x:Name="FindReplaceMenuItem" Click="OnFindReplace" />
                 <MenuItem Header="_Properties..." x:Name="PropertiesMenuItem" Click="OnEditProperties" />

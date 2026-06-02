@@ -95,12 +95,35 @@ public class SidedefFogToolsTests
         Assert.True(side.IsFlagSet("lightfog"));
     }
 
-    private static Sidedef Side()
+    [Fact]
+    public void ApplyLightFogFlagsCountsFrontAndBackChanges()
     {
         var line = new Linedef();
+        var front = Side(line, isFront: true);
+        var back = Side(line, isFront: false);
+        front.Fields["light"] = 144;
+        front.Sector!.Fields["fadecolor"] = 0x102030;
+        back.SetFlag("lightfog", true);
+
+        SidedefLightFogFlagResult result = SidedefFogTools.ApplyLightFogFlags([line], mapInfo: null, config: null);
+
+        Assert.Equal(1, result.AddedCount);
+        Assert.Equal(1, result.RemovedCount);
+        Assert.True(result.Changed);
+        Assert.Equal("Added 'lightfog' flag to 1 sidedefs, removed it from 1 sidedefs.", result.Message);
+        Assert.True(front.IsFlagSet("lightfog"));
+        Assert.False(back.IsFlagSet("lightfog"));
+    }
+
+    private static Sidedef Side()
+        => Side(new Linedef(), isFront: true);
+
+    private static Sidedef Side(Linedef line, bool isFront)
+    {
         var sector = new Sector { FloorHeight = 0, CeilHeight = 128, CeilTexture = "-" };
-        var side = new Sidedef(line, isFront: true) { Sector = sector };
-        line.Front = side;
+        var side = new Sidedef(line, isFront) { Sector = sector };
+        if (isFront) line.Front = side;
+        else line.Back = side;
         return side;
     }
 }
