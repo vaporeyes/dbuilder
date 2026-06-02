@@ -2545,15 +2545,25 @@ public sealed class UdbScriptMapWrapper
         REPLACE,
     }
 
+    private readonly GridSetup grid;
     private readonly MapSet map;
 
-    public UdbScriptMapWrapper(MapSet map)
+    public UdbScriptMapWrapper(MapSet map, GridSetup? grid = null)
     {
         this.map = map;
+        this.grid = grid ?? new GridSetup();
     }
 
     public MapSet Map
         => map;
+
+    public UdbScriptVector2DWrapper snappedToGrid(object pos)
+    {
+        ThrowIfDisposed("snappedToGrid");
+        Vector2D point = ToVector2D(pos);
+        Vector2D snapped = grid.SnappedToGrid(point);
+        return new UdbScriptVector2DWrapper(snapped.x, snapped.y);
+    }
 
     public UdbScriptThingWrapper[] getThings()
     {

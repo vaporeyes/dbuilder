@@ -1490,6 +1490,21 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperSnapsPointToCurrentGrid()
+    {
+        var grid = new GridSetup();
+        grid.SetGridSize(10);
+        grid.SetGridOrigin(100, 50);
+        grid.SetGridRotation(Angle2D.PIHALF);
+        var wrapper = new UdbScriptMapWrapper(new MapSet(), grid);
+
+        UdbScriptVector2DWrapper snapped = wrapper.snappedToGrid(new object[] { 100.0, 61.0 });
+
+        Assert.Equal(100, snapped.x, 6);
+        Assert.Equal(60, snapped.y, 6);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();
