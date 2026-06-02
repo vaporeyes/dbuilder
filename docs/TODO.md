@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3127 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3134 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -933,6 +933,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style highlight toggle action ids, default shortcut, persisted setting, menu state, and 3D target overlay gating.
   - [x] Add UDB-style full-brightness display toggle for 2D and 3D rendering.
   - [x] Add UDB-style classic rendering toggle action, persistence, dynamic-light tint suppression, and 16-step visual light banding.
+  - [x] Add UDB-style fog, sky, event-line, and visual-vertices toggle actions and persisted state.
 - [ ] Port vertex formats and buffers.
 - [ ] Port index buffer behavior.
 - [ ] Port texture handling and lifecycle.
@@ -1033,6 +1034,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
   - [x] Add UDB-style Toggle dynamic lights rendering action and persisted display-mode cycling.
   - [x] Add UDB-style Toggle Enhanced Rendering Effects action for the available visual rendering effect bundle.
+  - [x] Include fog and sky state in the available UDB-style enhanced rendering effect bundle.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.

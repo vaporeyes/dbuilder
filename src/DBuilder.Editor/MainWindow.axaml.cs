@@ -148,6 +148,26 @@ public partial class MainWindow : Window
                 _settings.ClassicRendering = MapView.ClassicRendering;
                 SaveSettings();
             }
+            if (_settings.DrawFog != MapView.DrawFog)
+            {
+                _settings.DrawFog = MapView.DrawFog;
+                SaveSettings();
+            }
+            if (_settings.DrawSky != MapView.DrawSky)
+            {
+                _settings.DrawSky = MapView.DrawSky;
+                SaveSettings();
+            }
+            if (_settings.ShowEventLines != MapView.ShowEventLines)
+            {
+                _settings.ShowEventLines = MapView.ShowEventLines;
+                SaveSettings();
+            }
+            if (_settings.ShowVisualVertices != MapView.ShowVisualVertices)
+            {
+                _settings.ShowVisualVertices = MapView.ShowVisualVertices;
+                SaveSettings();
+            }
             if (_settings.SelectAdjacentVisualVertexSlopeHandles != MapView.SelectAdjacentVisualVertexSlopeHandles)
             {
                 _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
@@ -184,6 +204,10 @@ public partial class MainWindow : Window
         MapView.SetLightRenderMode(_settings.NormalizedLightRenderMode);
         MapView.SetEnhancedRenderingEffects(_settings.EnhancedRenderingEffects);
         MapView.SetClassicRendering(_settings.ClassicRendering);
+        MapView.SetDrawFog(_settings.DrawFog);
+        MapView.SetDrawSky(_settings.DrawSky);
+        MapView.SetShowEventLines(_settings.ShowEventLines);
+        MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();

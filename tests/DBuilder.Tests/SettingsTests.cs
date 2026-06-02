@@ -126,6 +126,17 @@ public class SettingsTests
     }
 
     [Fact]
+    public void GzVisualToggleDefaultsMatchUdb()
+    {
+        var settings = new Settings();
+
+        Assert.False(settings.DrawFog);
+        Assert.True(settings.DrawSky);
+        Assert.True(settings.ShowEventLines);
+        Assert.True(settings.ShowVisualVertices);
+    }
+
+    [Fact]
     public void AdjacentVisualVertexSlopeSelectionDefaultsDisabled()
     {
         Assert.False(new Settings().SelectAdjacentVisualVertexSlopeHandles);
@@ -182,6 +193,10 @@ public class SettingsTests
                 LightRenderMode = (int)ThingLightRenderMode.Animated,
                 EnhancedRenderingEffects = false,
                 ClassicRendering = true,
+                DrawFog = true,
+                DrawSky = false,
+                ShowEventLines = false,
+                ShowVisualVertices = false,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -252,6 +267,10 @@ public class SettingsTests
             Assert.Equal(ThingLightRenderMode.Animated, loaded.NormalizedLightRenderMode);
             Assert.False(loaded.EnhancedRenderingEffects);
             Assert.True(loaded.ClassicRendering);
+            Assert.True(loaded.DrawFog);
+            Assert.False(loaded.DrawSky);
+            Assert.False(loaded.ShowEventLines);
+            Assert.False(loaded.ShowVisualVertices);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);

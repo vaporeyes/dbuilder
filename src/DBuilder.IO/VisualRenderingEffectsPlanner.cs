@@ -5,6 +5,8 @@ namespace DBuilder.IO;
 
 public sealed record VisualRenderingEffectsState(
     bool EnhancedRenderingEffects,
+    bool DrawFog,
+    bool DrawSky,
     ThingLightRenderMode LightRenderMode,
     ThingModelRenderMode ModelRenderMode,
     bool Show3DFloors);
@@ -19,6 +21,8 @@ public static class VisualRenderingEffectsPlanner
     public static VisualRenderingEffectsState Enabled()
         => new(
             EnhancedRenderingEffects: true,
+            DrawFog: true,
+            DrawSky: true,
             LightRenderMode: ThingLightRenderMode.All,
             ModelRenderMode: ThingModelRenderMode.All,
             Show3DFloors: true);
@@ -26,6 +30,8 @@ public static class VisualRenderingEffectsPlanner
     public static VisualRenderingEffectsState Disabled()
         => new(
             EnhancedRenderingEffects: false,
+            DrawFog: false,
+            DrawSky: false,
             LightRenderMode: ThingLightRenderMode.None,
             ModelRenderMode: ThingModelRenderMode.None,
             Show3DFloors: false);

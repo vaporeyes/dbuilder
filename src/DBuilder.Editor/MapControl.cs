@@ -201,6 +201,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
     private bool _classicRendering;
+    private bool _drawFog;
+    private bool _drawSky = true;
+    private bool _showEventLines = true;
+    private bool _showVisualVertices = true;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -217,6 +221,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
     public bool EnhancedRenderingEffects => _enhancedRenderingEffects;
     public bool ClassicRendering => _classicRendering;
+    public bool DrawFog => _drawFog;
+    public bool DrawSky => _drawSky;
+    public bool ShowEventLines => _showEventLines;
+    public bool ShowVisualVertices => _showVisualVertices;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -342,6 +350,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         VisualRenderingEffectsState state = VisualRenderingEffectsPlanner.Toggle(new VisualRenderingEffectsState(
             _enhancedRenderingEffects,
+            _drawFog,
+            _drawSky,
             _lightRenderMode,
             _modelRenderMode,
             _show3DFloors));
@@ -363,15 +373,72 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ToggleClassicRendering()
         => SetClassicRendering(!_classicRendering);
 
+    public bool SetDrawFog(bool enabled)
+    {
+        if (_drawFog == enabled) return _drawFog;
+        _drawFog = enabled;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _drawFog;
+    }
+
+    public bool ToggleDrawFog()
+        => SetDrawFog(!_drawFog);
+
+    public bool SetDrawSky(bool enabled)
+    {
+        if (_drawSky == enabled) return _drawSky;
+        _drawSky = enabled;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _drawSky;
+    }
+
+    public bool ToggleDrawSky()
+        => SetDrawSky(!_drawSky);
+
+    public bool SetShowEventLines(bool enabled)
+    {
+        if (_showEventLines == enabled) return _showEventLines;
+        _showEventLines = enabled;
+        _geometryDirty = true;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _showEventLines;
+    }
+
+    public bool ToggleEventLines()
+        => SetShowEventLines(!_showEventLines);
+
+    public bool SetShowVisualVertices(bool enabled)
+    {
+        if (_showVisualVertices == enabled) return _showVisualVertices;
+        _showVisualVertices = enabled;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _showVisualVertices;
+    }
+
+    public bool ToggleVisualVertices()
+        => SetShowVisualVertices(!_showVisualVertices);
+
     private void ApplyRenderingEffectsState(VisualRenderingEffectsState state)
     {
         bool changed = _enhancedRenderingEffects != state.EnhancedRenderingEffects
+            || _drawFog != state.DrawFog
+            || _drawSky != state.DrawSky
             || _lightRenderMode != state.LightRenderMode
             || _modelRenderMode != state.ModelRenderMode
             || _show3DFloors != state.Show3DFloors;
         if (!changed) return;
 
         _enhancedRenderingEffects = state.EnhancedRenderingEffects;
+        _drawFog = state.DrawFog;
+        _drawSky = state.DrawSky;
         _lightRenderMode = state.LightRenderMode;
         _modelRenderMode = state.ModelRenderMode;
         _show3DFloors = state.Show3DFloors;
@@ -4760,6 +4827,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.toggle-thing-arrows":
                 ThingArrows = !ThingArrows;
                 return true;
+            case "map2d.toggle-event-lines":
+                ToggleEventLines();
+                Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
+                return true;
             case "map2d.toggle-fixed-things-scale":
                 ToggleFixedThingsScale();
                 return true;
@@ -5147,6 +5218,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.toggle-classic-rendering":
                 ToggleClassicRendering();
                 Target3DChanged?.Invoke($"Classic rendering is {(_classicRendering ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map3d.toggle-fog-rendering":
+                ToggleDrawFog();
+                Target3DChanged?.Invoke($"Fog rendering is {(_drawFog ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map3d.toggle-sky-rendering":
+                ToggleDrawSky();
+                Target3DChanged?.Invoke($"Sky rendering is {(_drawSky ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map3d.toggle-event-lines":
+                ToggleEventLines();
+                Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
+                return true;
+            case "map3d.toggle-visual-vertices":
+                ToggleVisualVertices();
+                Target3DChanged?.Invoke($"Visual vertices are {(_showVisualVertices ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
                 ToggleVisualSidedefSlopePicking();

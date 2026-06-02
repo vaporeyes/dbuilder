@@ -1451,6 +1451,45 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map3d.toggle-fog-rendering", "Toggle fog rendering", "Menu", true)]
+    [InlineData("map3d.toggle-sky-rendering", "Toggle sky rendering", "Menu", true)]
+    [InlineData("map3d.toggle-event-lines", "Toggle Event lines", "Menu", false)]
+    [InlineData("map3d.toggle-visual-vertices", "Toggle Visual Vertices", "Alt+V", false)]
+    public void VisualGzDoomToggleCommandsMatchUdbActionSurface(string id, string title, string gesture, bool allowMouse)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.Equal(allowMouse, command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void EventLineToggleExistsInClassicMapScopeWithoutStealingInsertShortcut()
+    {
+        var command = EditorCommandCatalog.Find("map2d.toggle-event-lines");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Event lines", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.False(command.AllowMouse);
+        Assert.Equal("map2d.insert", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "I"));
+        Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "I"));
+    }
+
+    [Fact]
+    public void VisualVerticesToggleUsesUdbAltVShortcut()
+    {
+        Assert.Equal("map3d.toggle-visual-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", alt: true));
+    }
+
+    [Theory]
     [InlineData("map3d.copy-offsets", "Copy Offsets")]
     [InlineData("map3d.paste-offsets", "Paste Offsets")]
     public void VisualTextureOffsetClipboardCommandsMatchUdbActionSurface(string id, string title)

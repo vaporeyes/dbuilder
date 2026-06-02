@@ -63,6 +63,8 @@ public sealed class ThingModelRenderPlannerTests
         VisualRenderingEffectsState disabled = VisualRenderingEffectsPlanner.Toggle(VisualRenderingEffectsPlanner.Enabled());
 
         Assert.False(disabled.EnhancedRenderingEffects);
+        Assert.False(disabled.DrawFog);
+        Assert.False(disabled.DrawSky);
         Assert.Equal(ThingLightRenderMode.None, disabled.LightRenderMode);
         Assert.Equal(ThingModelRenderMode.None, disabled.ModelRenderMode);
         Assert.False(disabled.Show3DFloors);
@@ -70,6 +72,8 @@ public sealed class ThingModelRenderPlannerTests
         VisualRenderingEffectsState enabled = VisualRenderingEffectsPlanner.Toggle(disabled);
 
         Assert.True(enabled.EnhancedRenderingEffects);
+        Assert.True(enabled.DrawFog);
+        Assert.True(enabled.DrawSky);
         Assert.Equal(ThingLightRenderMode.All, enabled.LightRenderMode);
         Assert.Equal(ThingModelRenderMode.All, enabled.ModelRenderMode);
         Assert.True(enabled.Show3DFloors);

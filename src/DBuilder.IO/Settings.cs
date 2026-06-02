@@ -35,6 +35,10 @@ public sealed class Settings
     public int? LightRenderMode { get; set; }
     public bool EnhancedRenderingEffects { get; set; } = true;
     public bool ClassicRendering { get; set; }
+    public bool DrawFog { get; set; }
+    public bool DrawSky { get; set; } = true;
+    public bool ShowEventLines { get; set; } = true;
+    public bool ShowVisualVertices { get; set; } = true;
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
