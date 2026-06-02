@@ -187,6 +187,12 @@ public sealed class CommentsPanelWindow : Window
         _list.ItemsSource = rows;
     }
 
+    public void SetSelectionComment(string comment)
+    {
+        if (string.Equals(_comment.Text ?? "", comment, StringComparison.Ordinal)) return;
+        _comment.Text = comment;
+    }
+
     private static string FormatGroup(CommentGroup group)
         => $"{group.Group}: {group.Comment} ({group.Elements.Count} element{(group.Elements.Count == 1 ? "" : "s")})";
 

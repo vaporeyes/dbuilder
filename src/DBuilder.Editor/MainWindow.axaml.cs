@@ -106,15 +106,25 @@ public partial class MainWindow : Window
         ShowActivated = true;
         _autosaveTimer.Tick += (_, _) => WriteAutosaveIfPending();
         MapView.CursorWorldMoved += w => CoordText.Text = StatusBarModel.CoordinateText(w.x, w.y);
-        MapView.Picked += _ => { UpdateInfo(); UpdateStatusDetails(); };
+        MapView.Picked += _ =>
+        {
+            UpdateInfo();
+            UpdateStatusDetails();
+            RefreshCommentsPanel();
+        };
         MapView.EditBegun += desc => CreateUndo(desc);
-        MapView.Changed += UpdateInfo;
+        MapView.Changed += () =>
+        {
+            UpdateInfo();
+            RefreshCommentsPanel();
+        };
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
         {
             SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : MapView.WadAuthorMode ? "Mode: WadAuthor" : MapView.ImageExampleMode ? "Mode: Image Example" : $"Mode: {MapView.CurrentEditMode}");
             UpdateInfo();
             UpdateStatusDetails();
+            RefreshCommentsPanel();
         };
         MapView.ActionStateChanged += () =>
         {
@@ -2563,6 +2573,7 @@ public partial class MainWindow : Window
         if (_map is null || _commentsPanel is null) return;
         _commentsPanel.SetCurrentMode(CommentModeFor(MapView.CurrentEditMode));
         _commentsPanel.SetGroups(CommentsPanelModel.BuildGroups(_map, _commentsPanel.FilterMode));
+        _commentsPanel.SetSelectionComment(CurrentSelectionComment());
     }
 
     private void SelectCommentGroup(CommentGroup group)
@@ -2586,6 +2597,7 @@ public partial class MainWindow : Window
         var focus = new Vector2D(area.X + area.Width * 0.5f, area.Y + area.Height * 0.5f);
         MapView.RevealSelection(EditModeFor(CommentsPanelModel.SelectionMode(group)), focus);
         UpdateInfo();
+        RefreshCommentsPanel();
         SetStatus($"Selected comment group: {group.Comment}");
     }
 
@@ -2627,6 +2639,25 @@ public partial class MainWindow : Window
             MapControl.EditMode.Things => _map?.GetSelectedThings().Cast<IFielded>().ToList() ?? [],
             _ => [],
         };
+
+    private string CurrentSelectionComment()
+    {
+        IReadOnlyList<IFielded> elements = CurrentCommentSelection();
+        if (elements.Count == 0) return "";
+
+        string? shared = null;
+        foreach (IFielded element in elements)
+        {
+            string comment = element.Fields.TryGetValue(CommentsPanelModel.CommentField, out object? raw)
+                ? raw?.ToString() ?? ""
+                : "";
+
+            shared ??= comment;
+            if (!string.Equals(shared, comment, StringComparison.Ordinal)) return "";
+        }
+
+        return shared ?? "";
+    }
 
     private static MapControl.EditMode EditModeFor(CommentsPanelMode mode)
         => mode switch
