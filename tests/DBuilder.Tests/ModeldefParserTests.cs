@@ -87,6 +87,28 @@ model PitchThing
     }
 
     [Fact]
+    public void UnknownDirectivesDoNotConsumeOrientationFlags()
+    {
+        const string text = @"
+model FlagThing
+{
+    Model 0 ""thing.md3""
+    UnknownDirective 1
+    UseActorPitch
+    UnknownDirective 2
+    UseActorRoll
+    UnknownDirective 3
+    Userotationcenter
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.True(def.UseActorPitch);
+        Assert.True(def.UseActorRoll);
+        Assert.True(def.UseRotationCenter);
+    }
+
+    [Fact]
     public void InvalidTransformValuesSkipModelBlockLikeUdb()
     {
         const string text = @"

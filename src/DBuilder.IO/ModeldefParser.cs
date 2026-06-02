@@ -329,6 +329,12 @@ public static class ModeldefParser
             || value.Equals("pitchoffset", StringComparison.OrdinalIgnoreCase)
             || value.Equals("rolloffset", StringComparison.OrdinalIgnoreCase)
             || value.Equals("rotation-center", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("useactorpitch", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("useactorroll", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("inheritactorpitch", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("inheritactorroll", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("rotating", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("userotationcenter", StringComparison.OrdinalIgnoreCase)
             || value.Equals("pitchfrommomentum", StringComparison.OrdinalIgnoreCase);
 
     private static bool ReadInt(List<string> t, ref int i, out int value)
