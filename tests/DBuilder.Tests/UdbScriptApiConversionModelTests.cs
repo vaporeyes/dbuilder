@@ -587,6 +587,133 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void SectorWrapperExposesCorePropertiesAndSidedefs()
+    {
+        Sector sector = CreateSquareSector();
+        sector.Index = 4;
+        sector.SetFlag("secret", true);
+        var wrapper = new UdbScriptSectorWrapper(sector);
+
+        wrapper.floorHeight = 8;
+        wrapper.ceilingHeight = 128;
+        wrapper.floorTexture = "FLOOR0_1";
+        wrapper.ceilingTexture = "CEIL1_1";
+        wrapper.selected = true;
+        wrapper.marked = true;
+        wrapper.special = 9;
+        wrapper.tag = 12;
+        wrapper.brightness = 192;
+        wrapper.floorSlopeOffset = -8.0;
+        wrapper.ceilingSlopeOffset = 16.0;
+
+        Assert.Equal(4, wrapper.index);
+        Assert.Equal(8, sector.FloorHeight);
+        Assert.Equal(128, sector.CeilHeight);
+        Assert.Equal("FLOOR0_1", sector.FloorTexture);
+        Assert.Equal("CEIL1_1", sector.CeilTexture);
+        Assert.True(sector.Selected);
+        Assert.True(sector.Marked);
+        Assert.All(sector.Sidedefs, side => Assert.True(side.Line.Selected));
+        Assert.True(wrapper.floorSelected);
+        Assert.True(wrapper.ceilingSelected);
+        Assert.Equal(9, sector.Special);
+        Assert.Equal(12, sector.Tag);
+        Assert.Equal(192, sector.Brightness);
+        Assert.Equal(-8.0, sector.FloorSlopeOffset);
+        Assert.Equal(16.0, sector.CeilSlopeOffset);
+        Assert.True(wrapper.flags["secret"]);
+        Assert.Equal(4, wrapper.getSidedefs().Length);
+        Assert.Same(sector, wrapper.getSidedefs()[0].sector?.Sector);
+    }
+
+    [Fact]
+    public void SectorWrapperCopiesPropertiesAndClearsFlags()
+    {
+        Sector source = CreateSquareSector();
+        source.Selected = true;
+        source.Marked = true;
+        source.Groups = 3;
+        source.FloorHeight = 12;
+        source.CeilHeight = 120;
+        source.SetFloorTexture("FLOOR");
+        source.SetCeilTexture("CEIL");
+        source.Brightness = 144;
+        source.Special = 7;
+        source.Tag = 5;
+        source.FloorSlope = new Vector3D(0, 1, 1);
+        source.FloorSlopeOffset = -16.0;
+        source.CeilSlope = new Vector3D(0, -1, 1);
+        source.CeilSlopeOffset = 32.0;
+        source.SetFlag("secret", true);
+        source.Fields["comment"] = "copied";
+        Sector target = CreateSquareSector();
+        var sourceWrapper = new UdbScriptSectorWrapper(source);
+        var targetWrapper = new UdbScriptSectorWrapper(target);
+
+        sourceWrapper.copyPropertiesTo(targetWrapper);
+        sourceWrapper.clearFlags();
+
+        Assert.True(target.Selected);
+        Assert.True(target.Marked);
+        Assert.Equal(3, target.Groups);
+        Assert.Equal(12, target.FloorHeight);
+        Assert.Equal(120, target.CeilHeight);
+        Assert.Equal("FLOOR", target.FloorTexture);
+        Assert.Equal("CEIL", target.CeilTexture);
+        Assert.Equal(144, target.Brightness);
+        Assert.Equal(7, target.Special);
+        Assert.Equal(5, target.Tag);
+        Assert.Equal(new Vector3D(0, 1, 1), target.FloorSlope);
+        Assert.Equal(-16.0, target.FloorSlopeOffset);
+        Assert.Equal(new Vector3D(0, -1, 1), target.CeilSlope);
+        Assert.Equal(32.0, target.CeilSlopeOffset);
+        Assert.True(target.IsFlagSet("secret"));
+        Assert.Equal("copied", target.Fields["comment"]);
+        Assert.Empty(source.UdmfFlags);
+        Assert.True(sourceWrapper.Equals(new UdbScriptSectorWrapper(source)));
+        Assert.False(sourceWrapper.Equals(targetWrapper));
+    }
+
+    [Fact]
+    public void SectorWrapperExposesGeometrySlopesAndTagHelpers()
+    {
+        Sector sector = CreateSquareSector();
+        sector.Tag = 1;
+        var wrapper = new UdbScriptSectorWrapper(sector);
+
+        wrapper.setFloorSlope(new object[] { 0.0, 3.0, 4.0 });
+        wrapper.setCeilingSlope(new UdbScriptVector3DWrapper(0, -6, 8));
+        bool added = wrapper.addTag(3);
+        bool addedDuplicate = wrapper.addTag(3);
+        bool removed = wrapper.removeTag(1);
+
+        Assert.True(wrapper.intersect(new object[] { 32.0, 32.0 }));
+        Assert.False(wrapper.intersect(new object[] { 96.0, 96.0 }));
+        UdbScriptVector3DWrapper floorSlope = wrapper.getFloorSlope();
+        UdbScriptVector3DWrapper ceilingSlope = wrapper.getCeilingSlope();
+        Assert.Equal(0, floorSlope.x, 12);
+        Assert.Equal(0.6, floorSlope.y, 12);
+        Assert.Equal(0.8, floorSlope.z, 12);
+        Assert.Equal(0, ceilingSlope.x, 12);
+        Assert.Equal(-0.6, ceilingSlope.y, 12);
+        Assert.Equal(0.8, ceilingSlope.z, 12);
+        Assert.True(added);
+        Assert.False(addedDuplicate);
+        Assert.True(removed);
+        Assert.Equal(new[] { 3 }, wrapper.getTags());
+    }
+
+    [Fact]
+    public void SectorWrapperRejectsDisposedSectorAccess()
+    {
+        var wrapper = new UdbScriptSectorWrapper(new Sector { IsDisposed = true });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.floorHeight);
+
+        Assert.Equal("Sector is disposed, the floorHeight member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
@@ -644,5 +771,29 @@ localsidedeftextureoffsets = true;
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.Flat));
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.ThingClass));
         Assert.Null(UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.PolyobjectNumber));
+    }
+
+    private static Sector CreateSquareSector()
+    {
+        var sector = new Sector();
+        var vertices = new[]
+        {
+            new Vertex(new Vector2D(0, 0)),
+            new Vertex(new Vector2D(64, 0)),
+            new Vertex(new Vector2D(64, 64)),
+            new Vertex(new Vector2D(0, 64)),
+        };
+
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var line = new Linedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            var side = new Sidedef();
+            line.AttachFront(side);
+            side.SetSector(sector);
+            sector.Sidedefs.Add(side);
+        }
+
+        sector.UpdateBBox();
+        return sector;
     }
 }

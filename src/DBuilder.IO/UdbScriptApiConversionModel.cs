@@ -1139,6 +1139,15 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         }
     }
 
+    public UdbScriptSectorWrapper? sector
+    {
+        get
+        {
+            ThrowIfDisposed("sector");
+            return sidedef.Sector == null ? null : new UdbScriptSectorWrapper(sidedef.Sector);
+        }
+    }
+
     public UdbScriptSidedefWrapper? other
     {
         get
@@ -1294,6 +1303,314 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
     {
         if (sidedef.IsDisposed)
             throw new InvalidOperationException("Sidedef is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
+public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
+{
+    private readonly Sector sector;
+
+    public UdbScriptSectorWrapper(Sector sector)
+    {
+        this.sector = sector;
+    }
+
+    public Sector Sector
+        => sector;
+
+    public int index
+    {
+        get
+        {
+            ThrowIfDisposed("index");
+            return sector.Index;
+        }
+    }
+
+    public int floorHeight
+    {
+        get
+        {
+            ThrowIfDisposed("floorHeight");
+            return sector.FloorHeight;
+        }
+        set
+        {
+            ThrowIfDisposed("floorHeight");
+            sector.FloorHeight = value;
+        }
+    }
+
+    public int ceilingHeight
+    {
+        get
+        {
+            ThrowIfDisposed("ceilingHeight");
+            return sector.CeilHeight;
+        }
+        set
+        {
+            ThrowIfDisposed("ceilingHeight");
+            sector.CeilHeight = value;
+        }
+    }
+
+    public string floorTexture
+    {
+        get
+        {
+            ThrowIfDisposed("floorTexture");
+            return sector.FloorTexture;
+        }
+        set
+        {
+            ThrowIfDisposed("floorTexture");
+            sector.SetFloorTexture(value);
+        }
+    }
+
+    public string ceilingTexture
+    {
+        get
+        {
+            ThrowIfDisposed("ceilingTexture");
+            return sector.CeilTexture;
+        }
+        set
+        {
+            ThrowIfDisposed("ceilingTexture");
+            sector.SetCeilTexture(value);
+        }
+    }
+
+    public bool selected
+    {
+        get
+        {
+            ThrowIfDisposed("selected");
+            return sector.Selected;
+        }
+        set
+        {
+            ThrowIfDisposed("selected");
+            sector.Selected = value;
+            foreach (Sidedef side in sector.Sidedefs)
+                side.Line.Selected = value;
+        }
+    }
+
+    public bool floorSelected
+    {
+        get
+        {
+            ThrowIfDisposed("floorSelected");
+            return sector.Selected;
+        }
+    }
+
+    public bool ceilingSelected
+    {
+        get
+        {
+            ThrowIfDisposed("ceilingSelected");
+            return sector.Selected;
+        }
+    }
+
+    public bool marked
+    {
+        get
+        {
+            ThrowIfDisposed("marked");
+            return sector.Marked;
+        }
+        set
+        {
+            ThrowIfDisposed("marked");
+            sector.Marked = value;
+        }
+    }
+
+    public IReadOnlyDictionary<string, bool> flags
+    {
+        get
+        {
+            ThrowIfDisposed("flags");
+            return sector.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    public int special
+    {
+        get
+        {
+            ThrowIfDisposed("special");
+            return sector.Special;
+        }
+        set
+        {
+            ThrowIfDisposed("special");
+            sector.Special = value;
+        }
+    }
+
+    public int tag
+    {
+        get
+        {
+            ThrowIfDisposed("tag");
+            return sector.Tag;
+        }
+        set
+        {
+            ThrowIfDisposed("tag");
+            sector.Tag = value;
+        }
+    }
+
+    public int brightness
+    {
+        get
+        {
+            ThrowIfDisposed("brightness");
+            return sector.Brightness;
+        }
+        set
+        {
+            ThrowIfDisposed("brightness");
+            sector.Brightness = value;
+        }
+    }
+
+    public double floorSlopeOffset
+    {
+        get
+        {
+            ThrowIfDisposed("floorSlopeOffset");
+            return sector.FloorSlopeOffset;
+        }
+        set
+        {
+            ThrowIfDisposed("floorSlopeOffset");
+            sector.FloorSlopeOffset = value;
+        }
+    }
+
+    public double ceilingSlopeOffset
+    {
+        get
+        {
+            ThrowIfDisposed("ceilingSlopeOffset");
+            return sector.CeilSlopeOffset;
+        }
+        set
+        {
+            ThrowIfDisposed("ceilingSlopeOffset");
+            sector.CeilSlopeOffset = value;
+        }
+    }
+
+    public UdbScriptSidedefWrapper[] getSidedefs()
+    {
+        ThrowIfDisposed("getSidedefs");
+        return sector.Sidedefs
+            .Where(sidedef => !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef))
+            .ToArray();
+    }
+
+    public void clearFlags()
+    {
+        ThrowIfDisposed("clearFlags");
+        sector.UdmfFlags.Clear();
+    }
+
+    public void copyPropertiesTo(UdbScriptSectorWrapper wrapper)
+    {
+        ThrowIfDisposed("copyPropertiesTo");
+        sector.CopyPropertiesTo(wrapper.sector);
+    }
+
+    public bool intersect(object point)
+    {
+        ThrowIfDisposed("intersect");
+        Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(point);
+        return sector.Intersect(new Vector2D(vector.x, vector.y));
+    }
+
+    public UdbScriptVector3DWrapper getFloorSlope()
+    {
+        ThrowIfDisposed("getFloorSlope");
+        Vector3D normal = sector.FloorSlope.GetNormal();
+        return new UdbScriptVector3DWrapper(normal.x, normal.y, normal.z);
+    }
+
+    public void setFloorSlope(object normal)
+    {
+        ThrowIfDisposed("setFloorSlope");
+        sector.FloorSlope = UdbScriptApiConversionModel.GetVector3DFromObject(normal);
+    }
+
+    public UdbScriptVector3DWrapper getCeilingSlope()
+    {
+        ThrowIfDisposed("getCeilingSlope");
+        Vector3D normal = sector.CeilSlope.GetNormal();
+        return new UdbScriptVector3DWrapper(normal.x, normal.y, normal.z);
+    }
+
+    public void setCeilingSlope(object normal)
+    {
+        ThrowIfDisposed("setCeilingSlope");
+        sector.CeilSlope = UdbScriptApiConversionModel.GetVector3DFromObject(normal);
+    }
+
+    public int[] getTags()
+    {
+        ThrowIfDisposed("getTags");
+        return sector.Tags.ToArray();
+    }
+
+    public bool addTag(int tag)
+    {
+        ThrowIfDisposed("addTag");
+        if (sector.Tags.Contains(tag))
+            return false;
+
+        sector.Tags.Add(tag);
+        sector.Tags.Remove(0);
+        return true;
+    }
+
+    public bool removeTag(int tag)
+    {
+        ThrowIfDisposed("removeTag");
+        if (!sector.Tags.Contains(tag))
+            return false;
+
+        if (sector.Tags.Count == 1)
+            sector.Tag = 0;
+        else
+            sector.Tags.Remove(tag);
+
+        return true;
+    }
+
+    public bool Equals(UdbScriptSectorWrapper? other)
+        => other is not null && ReferenceEquals(sector, other.sector);
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptSectorWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => sector.GetHashCode();
+
+    public override string ToString()
+        => sector.ToString() ?? string.Empty;
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (sector.IsDisposed)
+            throw new InvalidOperationException("Sector is disposed, the " + member + " member can not be accessed.");
     }
 }
 
