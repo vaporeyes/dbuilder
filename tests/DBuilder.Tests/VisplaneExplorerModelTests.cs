@@ -386,6 +386,75 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void OverlayRectanglesSkipUnsampledPartialTileCells()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(0, 0));
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 4),
+            VisplanePointResult.Ok,
+            Visplanes: 129,
+            Drawsegs: 0,
+            Solidsegs: 0,
+            Openings: 0));
+        var palette = new VisplanePalette(MakePalette(0xFF000000u));
+
+        IReadOnlyList<VisplaneOverlayRectangle> rectangles = scan.BuildOverlayRectangles(
+            VisplaneExplorerStat.Visplanes,
+            palette,
+            showHeatmap: false,
+            configuredVisplaneLimit: 128);
+
+        Assert.Equal(4, rectangles.Count);
+        Assert.Equal(new VisplaneOverlayRectangle(0, 0, 4, 1, palette.ColorForByte(129)), rectangles[0]);
+        Assert.Equal(new VisplaneOverlayRectangle(0, 3, 4, 1, palette.ColorForByte(129)), rectangles[3]);
+    }
+
+    [Fact]
+    public void OverlayRectanglesUseHeatmapPaletteWhenEnabled()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(0, 0));
+        tile.StorePointData(new VisplanePointData(
+            new VisplaneTilePoint(0, 0, 1),
+            VisplanePointResult.Ok,
+            Visplanes: 64,
+            Drawsegs: 66,
+            Solidsegs: 0,
+            Openings: 0));
+        var heatmap = new VisplanePalette(MakePalette(0xFF440000u));
+
+        IReadOnlyList<VisplaneOverlayRectangle> rectangles = scan.BuildOverlayRectangles(
+            VisplaneExplorerStat.Visplanes,
+            heatmap,
+            showHeatmap: true,
+            configuredVisplaneLimit: 256);
+
+        VisplaneOverlayRectangle rectangle = Assert.Single(rectangles);
+        Assert.Equal(new VisplaneOverlayRectangle(0, 0, 1, 1, heatmap.ColorForByte(32)), rectangle);
+    }
+
+    [Fact]
+    public void OverlayRectanglesIncludeZeroValuesAfterTileIsComplete()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile tile = scan.AddTile(new VisplaneTilePosition(64, -64));
+        for (int i = 0; i < VisplaneTile.TileSize * VisplaneTile.TileSize; i++)
+            tile.GetNextPoint();
+        var palette = new VisplanePalette(MakePalette(0xFF000000u));
+
+        IReadOnlyList<VisplaneOverlayRectangle> rectangles = scan.BuildOverlayRectangles(
+            VisplaneExplorerStat.Drawsegs,
+            palette,
+            showHeatmap: false,
+            configuredVisplaneLimit: 128);
+
+        Assert.Equal(VisplaneTile.TileSize, rectangles.Count);
+        Assert.Equal(new VisplaneOverlayRectangle(64, -64, VisplaneTile.TileSize, 1, palette.ColorForByte(0)), rectangles[0]);
+        Assert.Equal(new VisplaneOverlayRectangle(64, -1, VisplaneTile.TileSize, 1, palette.ColorForByte(0)), rectangles[^1]);
+    }
+
+    [Fact]
     public void CreateForMapExpandsVertexBoundsByOneTileLikeUdb()
     {
         MapSet map = ClockwiseSquareMap();

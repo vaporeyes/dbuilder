@@ -36,6 +36,13 @@ public readonly record struct VisplanePointData(
 
 public readonly record struct VisplaneTilePosition(int X, int Y);
 
+public readonly record struct VisplaneOverlayRectangle(
+    int X,
+    int Y,
+    int Width,
+    int Height,
+    uint Color);
+
 public readonly record struct VisplaneMapRectangle(int X, int Y, int Width, int Height)
 {
     public bool Contains(VisplaneTilePosition position)
@@ -451,6 +458,54 @@ public sealed class VisplaneTileScan
             tile.GetPointValue(x, y, stat),
             staticLimit,
             point == VisplaneTile.PointOverflowByte);
+    }
+
+    public IReadOnlyList<VisplaneOverlayRectangle> BuildOverlayRectangles(
+        VisplaneExplorerStat stat,
+        VisplanePalette palette,
+        bool showHeatmap,
+        int configuredVisplaneLimit)
+    {
+        ArgumentNullException.ThrowIfNull(palette);
+
+        var result = new List<VisplaneOverlayRectangle>();
+        foreach (VisplaneTile tile in tiles.Values)
+            AddOverlayRectangles(result, tile, stat, palette, showHeatmap, configuredVisplaneLimit);
+        return result;
+    }
+
+    private static void AddOverlayRectangles(
+        List<VisplaneOverlayRectangle> result,
+        VisplaneTile tile,
+        VisplaneExplorerStat stat,
+        VisplanePalette palette,
+        bool showHeatmap,
+        int configuredVisplaneLimit)
+    {
+        for (int y = 0; y < VisplaneTile.TileSize; y++)
+        {
+            int runStart = -1;
+            uint runColor = 0;
+            for (int x = 0; x < VisplaneTile.TileSize; x++)
+            {
+                byte point = showHeatmap
+                    ? tile.GetHeatmapByte(x, y, stat, configuredVisplaneLimit)
+                    : tile.GetPointByte(x, y, stat);
+                uint color = tile.IsComplete || point != 0 ? palette.ColorForByte(point) : 0;
+                if ((color >> 24) == 0) color = 0;
+
+                if (color == runColor && runStart >= 0) continue;
+
+                if (runStart >= 0)
+                    result.Add(new VisplaneOverlayRectangle(tile.Position.X + runStart, tile.Position.Y + y, x - runStart, 1, runColor));
+
+                runStart = color == 0 ? -1 : x;
+                runColor = color;
+            }
+
+            if (runStart >= 0)
+                result.Add(new VisplaneOverlayRectangle(tile.Position.X + runStart, tile.Position.Y + y, VisplaneTile.TileSize - runStart, 1, runColor));
+        }
     }
 }
 

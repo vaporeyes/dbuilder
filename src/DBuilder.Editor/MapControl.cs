@@ -191,7 +191,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         get => _map;
         // Defer the fit: when a map is set at startup the control isn't laid out yet (Bounds == 0),
         // so fitting now would compute a bogus zoom. Fit on the first render that has real dimensions.
-        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _soundLeakPath = System.Array.Empty<Vec2D>(); _soundLeakDirty = true; _wadAuthorHighlight = WadAuthorHighlight.None; _wadAuthorDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
+        set { _map = value; _thingsFilterResult = null; _thingsFilterHidden.Clear(); _sel3D.Clear(); _rejectOverlayColors = System.Array.Empty<int>(); _rejectOverlayAlpha = 96; _rejectOverlayDirty = true; _visplaneOverlay = System.Array.Empty<VisplaneOverlayRectangle>(); _visplaneOverlayDirty = true; _soundLeakPath = System.Array.Empty<Vec2D>(); _soundLeakDirty = true; _wadAuthorHighlight = WadAuthorHighlight.None; _wadAuthorDirty = true; _geometryDirty = true; _geo3DDirty = true; _needsFit = true; _cam3DInit = false; _blockmapCache = null; _blockmapExplorerData = null; _blockmapExplorerColumn = null; _blockmapExplorerRow = null; RequestNextFrameRendering(); }
     }
 
     // 2D view-layer visibility toggles.
@@ -1301,6 +1301,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private GlVertexBuffer? _nodesVb;
     private GlVertexBuffer? _nodePolygonsVb;
     private GlVertexBuffer? _rejectOverlayVb;
+    private GlVertexBuffer? _visplaneOverlayVb;
     private GlVertexBuffer? _soundLeakPathVb;
     private GlVertexBuffer? _soundLeakMarkerVb;
     private GlVertexBuffer? _wadAuthorVb;
@@ -1308,6 +1309,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _nodesLineCount;
     private int _nodePolygonTriCount;
     private int _rejectOverlayTriCount;
+    private int _visplaneOverlayTriCount;
     private int _soundLeakLineCount;
     private int _soundLeakMarkerTriCount;
     private int _wadAuthorLineCount;
@@ -1318,6 +1320,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int[] _rejectOverlayColors = System.Array.Empty<int>();
     private byte _rejectOverlayAlpha = 96;
     private bool _rejectOverlayDirty;
+    private VisplaneOverlayRectangle[] _visplaneOverlay = System.Array.Empty<VisplaneOverlayRectangle>();
+    private bool _visplaneOverlayDirty;
     private Vec2D[] _soundLeakPath = System.Array.Empty<Vec2D>();
     private bool _soundLeakDirty;
 
@@ -1386,6 +1390,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _rejectOverlayDirty = true;
         RequestNextFrameRendering();
     }
+
+    public void SetVisplaneExplorerOverlay(System.Collections.Generic.IReadOnlyList<VisplaneOverlayRectangle>? rectangles)
+    {
+        if (rectangles == null || rectangles.Count == 0)
+        {
+            _visplaneOverlay = System.Array.Empty<VisplaneOverlayRectangle>();
+        }
+        else
+        {
+            _visplaneOverlay = new VisplaneOverlayRectangle[rectangles.Count];
+            for (int i = 0; i < rectangles.Count; i++) _visplaneOverlay[i] = rectangles[i];
+        }
+
+        _visplaneOverlayDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    public void SetVisplaneExplorerOverlay(
+        VisplaneTileScan? scan,
+        VisplaneExplorerStat stat,
+        VisplanePalette palette,
+        bool showHeatmap,
+        int configuredVisplaneLimit)
+        => SetVisplaneExplorerOverlay(scan?.BuildOverlayRectangles(stat, palette, showHeatmap, configuredVisplaneLimit));
 
     private void SetSectorOverlayColors(System.Collections.Generic.IReadOnlyList<int>? sectorColors, byte alpha)
     {
@@ -1628,6 +1656,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _nodesVb = new GlVertexBuffer(_gl);
         _nodePolygonsVb = new GlVertexBuffer(_gl);
         _rejectOverlayVb = new GlVertexBuffer(_gl);
+        _visplaneOverlayVb = new GlVertexBuffer(_gl);
         _soundLeakPathVb = new GlVertexBuffer(_gl);
         _soundLeakMarkerVb = new GlVertexBuffer(_gl);
         _wadAuthorVb = new GlVertexBuffer(_gl);
@@ -1686,6 +1715,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _nodesVb?.Dispose();
         _nodePolygonsVb?.Dispose();
         _rejectOverlayVb?.Dispose();
+        _visplaneOverlayVb?.Dispose();
         _soundLeakPathVb?.Dispose();
         _soundLeakMarkerVb?.Dispose();
         _wadAuthorVb?.Dispose();
@@ -1699,7 +1729,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _imageExampleTex?.Dispose();
         _shader?.Dispose();
         _device?.Dispose();
-        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _commentIconsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _wadAuthorVb = null; _wadAuthorFillVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _model3DVb = null; _model3DIb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
+        _placeholderTex = null; _linesVb = null; _thingDirVb = null; _thingsVb = null; _selVertsVb = null; _commentIconsVb = null; _drawVb = null; _gridVb = null; _blockmapVb = null; _blockmapFillVb = null; _nodesVb = null; _nodePolygonsVb = null; _rejectOverlayVb = null; _visplaneOverlayVb = null; _soundLeakPathVb = null; _soundLeakMarkerVb = null; _wadAuthorVb = null; _wadAuthorFillVb = null; _boxVb = null; _pick3DVb = null; _things3DVb = null; _model3DVb = null; _model3DIb = null; _imageExampleVb = null; _imageExampleTex = null; _shader = null; _device = null; _gl = null;
     }
 
     private void InvalidateTextures()
@@ -3704,6 +3734,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (!AutomapMode)
             {
                 DrawBlockmap(); // debug overlay on top of geometry
+                DrawVisplaneExplorerOverlay();
                 DrawNodes();    // BSP partition lines overlay
                 DrawSoundLeakPath();
                 if (_useHighlight) DrawWadAuthorHighlight();
@@ -4534,6 +4565,52 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var p10 = new Vec2D(bx1, by0);
         var p11 = new Vec2D(bx1, by1);
         var p01 = new Vec2D(bx0, by1);
+        verts.Add(FV(p00, color));
+        verts.Add(FV(p10, color));
+        verts.Add(FV(p11, color));
+        verts.Add(FV(p00, color));
+        verts.Add(FV(p11, color));
+        verts.Add(FV(p01, color));
+    }
+
+    private void DrawVisplaneExplorerOverlay()
+    {
+        if (_device is null || _visplaneOverlayVb is null) return;
+        if (_visplaneOverlayDirty)
+        {
+            var verts = new System.Collections.Generic.List<FlatVertex>(_visplaneOverlay.Length * 6);
+            foreach (VisplaneOverlayRectangle rectangle in _visplaneOverlay)
+                AddVisplaneOverlayFill(verts, rectangle);
+
+            _device.SetBufferData(_visplaneOverlayVb, verts.ToArray());
+            _visplaneOverlayTriCount = verts.Count / 3;
+            _visplaneOverlayDirty = false;
+        }
+
+        if (_visplaneOverlayTriCount == 0) return;
+        _device.SetUniform("useTexture", 0f);
+        _device.SetTexture(0, _placeholderTex);
+        _device.SetAlphaBlendEnable(true);
+        _device.SetSourceBlend(Blend.SourceAlpha);
+        _device.SetDestinationBlend(Blend.InverseSourceAlpha);
+        _device.SetVertexBuffer(_visplaneOverlayVb);
+        _device.Draw(DBPrimitiveType.TriangleList, 0, _visplaneOverlayTriCount);
+        _device.SetAlphaBlendEnable(false);
+    }
+
+    private static void AddVisplaneOverlayFill(System.Collections.Generic.List<FlatVertex> verts, VisplaneOverlayRectangle rectangle)
+    {
+        if (rectangle.Width <= 0 || rectangle.Height <= 0 || (rectangle.Color >> 24) == 0) return;
+
+        int color = unchecked((int)rectangle.Color);
+        double x0 = rectangle.X;
+        double y0 = rectangle.Y;
+        double x1 = rectangle.X + rectangle.Width;
+        double y1 = rectangle.Y + rectangle.Height;
+        var p00 = new Vec2D(x0, y0);
+        var p10 = new Vec2D(x1, y0);
+        var p11 = new Vec2D(x1, y1);
+        var p01 = new Vec2D(x0, y1);
         verts.Add(FV(p00, color));
         verts.Add(FV(p10, color));
         verts.Add(FV(p11, color));
