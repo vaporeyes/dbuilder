@@ -112,7 +112,7 @@ public partial class MainWindow : Window
         MapView.EditRequested += OnEditSelected;
         MapView.ModeChanged += () =>
         {
-            SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : MapView.WadAuthorMode ? "Mode: WadAuthor" : $"Mode: {MapView.CurrentEditMode}");
+            SetStatus(MapView.In3DMode ? "Mode: 3D" : MapView.AutomapMode ? "Mode: Automap" : MapView.WadAuthorMode ? "Mode: WadAuthor" : MapView.ImageExampleMode ? "Mode: Image Example" : $"Mode: {MapView.CurrentEditMode}");
             UpdateInfo();
             UpdateStatusDetails();
         };

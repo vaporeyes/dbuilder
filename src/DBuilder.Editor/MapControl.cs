@@ -577,6 +577,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         if (ImageExampleMode && _mode3D) _mode3D = false;
         ActionStateChanged?.Invoke();
+        ModeChanged?.Invoke();
         RequestNextFrameRendering();
     }
 
@@ -4926,6 +4927,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.mode-things":
                 SetEditMode(EditMode.Things);
+                return true;
+            case "map2d.mode-image-example":
+                ToggleImageExampleMode();
                 return true;
             case "map2d.mode-wadauthor":
                 ToggleWadAuthorMode();

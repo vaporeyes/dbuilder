@@ -183,7 +183,7 @@
       "udbPlugin": "ImageDrawingExample",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "An editor Image Example mode renders an overlay-only screen-space image like the UDB sample mode. It is wired as a built-in Tools menu command until the full plugin loader and embedded-resource sample plugin workflow exist."
+      "notes": "An editor Image Example mode renders an overlay-only screen-space image like the UDB sample mode. It has UDB-style action metadata and 2D command dispatch, and is wired as a built-in Tools menu command until the full plugin loader and embedded-resource sample plugin workflow exist."
     },
     {
       "udbPlugin": "NodesViewer",

@@ -22,6 +22,7 @@ public class EditorCommandCatalogTests
         Assert.Contains("window.make-door", ids);
         Assert.Contains("window.tag-range", ids);
         Assert.Contains("window.blockmap-explorer", ids);
+        Assert.Contains("map2d.mode-image-example", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
     }
@@ -666,6 +667,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.Equal("wadauthormode", WadAuthorModeModel.ModeDescriptor.SwitchAction);
+    }
+
+    [Fact]
+    public void ImageExampleModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.mode-image-example");
+
+        Assert.NotNull(command);
+        Assert.Equal("Image Example", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
     }
 
     [Fact]
