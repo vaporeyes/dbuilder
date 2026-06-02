@@ -34,10 +34,27 @@ public sealed record UdbScriptVersionGate(
 
 public sealed record UdbScriptLegacyBinding(string Name, string Target);
 
+public sealed record UdbScriptRuntimeConstraintPrompt(
+    bool ShouldPrompt,
+    string Title,
+    string Message);
+
+public sealed record UdbScriptSourceFile(
+    string Path,
+    string EngineSourceName);
+
+public sealed record UdbScriptRunSourcePlan(
+    string LibrariesPath,
+    IReadOnlyList<UdbScriptSourceFile> Libraries,
+    UdbScriptSourceFile Script);
+
 public static class UdbScriptRunnerModel
 {
     public const uint CurrentFeatureVersion = 5;
+    public const long RuntimeConstraintCheckMilliseconds = 5000;
     public const string FeatureVersionPromptTitle = "UDBScript feature version too low";
+    public const string RuntimeConstraintPromptTitle = "Script";
+    public const string RuntimeConstraintPromptMessage = "The script has been running for some time, want to stop it?";
     public const string UserAbortStatusText = "Script aborted";
     public const string ScriptFinishedTitle = "Script finished";
     public const string CloseButtonText = "Close";
@@ -96,6 +113,27 @@ public static class UdbScriptRunnerModel
             "Execute anyway?");
     }
 
+    public static UdbScriptRuntimeConstraintPrompt RuntimeConstraintPrompt(TimeSpan elapsed)
+        => elapsed.TotalMilliseconds > RuntimeConstraintCheckMilliseconds
+            ? new UdbScriptRuntimeConstraintPrompt(true, RuntimeConstraintPromptTitle, RuntimeConstraintPromptMessage)
+            : new UdbScriptRuntimeConstraintPrompt(false, "", "");
+
+    public static UdbScriptRunSourcePlan BuildSourcePlan(string appPath, string scriptFile)
+    {
+        string librariesPath = Path.Combine(appPath, UdbScriptDiscovery.ScriptFolder, "Libraries");
+        IReadOnlyList<UdbScriptSourceFile> libraries = Directory.Exists(librariesPath)
+            ? Directory.GetFiles(librariesPath, "*.js", SearchOption.AllDirectories)
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .Select(path => new UdbScriptSourceFile(path, EngineSourceName(appPath, path)))
+                .ToArray()
+            : Array.Empty<UdbScriptSourceFile>();
+
+        return new UdbScriptRunSourcePlan(
+            librariesPath,
+            libraries,
+            new UdbScriptSourceFile(scriptFile, EngineSourceName(appPath, scriptFile)));
+    }
+
     public static UdbScriptRunnerExceptionOutcome ClassifyException(
         UdbScriptRunnerExceptionKind kind,
         string message = "",
@@ -112,5 +150,13 @@ public static class UdbScriptRunnerModel
             UdbScriptRunnerExceptionKind.ExecutionCanceled => new(kind, true, UdbScriptRunnerStatusKind.None, ""),
             _ => new(UdbScriptRunnerExceptionKind.Unknown, true, UdbScriptRunnerStatusKind.None, ""),
         };
+    }
+
+    private static string EngineSourceName(string appPath, string path)
+    {
+        if (path.StartsWith(appPath, StringComparison.Ordinal))
+            return path[appPath.Length..];
+
+        return path;
     }
 }

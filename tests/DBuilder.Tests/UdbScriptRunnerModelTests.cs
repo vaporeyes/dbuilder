@@ -35,6 +35,70 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
+    {
+        Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);
+        Assert.False(UdbScriptRunnerModel.RuntimeConstraintPrompt(TimeSpan.FromMilliseconds(5000)).ShouldPrompt);
+
+        UdbScriptRuntimeConstraintPrompt prompt = UdbScriptRunnerModel.RuntimeConstraintPrompt(TimeSpan.FromMilliseconds(5001));
+
+        Assert.True(prompt.ShouldPrompt);
+        Assert.Equal("Script", prompt.Title);
+        Assert.Equal("The script has been running for some time, want to stop it?", prompt.Message);
+    }
+
+    [Fact]
+    public void SourcePlanImportsRecursiveLibrariesAndUsesAppRelativeSourceNames()
+    {
+        string app = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_runner_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            string libraries = Path.Combine(app, "UDBScript", "Libraries");
+            string nested = Path.Combine(libraries, "Nested");
+            Directory.CreateDirectory(nested);
+            string first = Path.Combine(libraries, "one.js");
+            string second = Path.Combine(nested, "two.js");
+            string ignored = Path.Combine(nested, "ignore.txt");
+            string script = Path.Combine(app, "UDBScript", "Scripts", "demo.js");
+            Directory.CreateDirectory(Path.GetDirectoryName(script)!);
+            File.WriteAllText(first, "");
+            File.WriteAllText(second, "");
+            File.WriteAllText(ignored, "");
+            File.WriteAllText(script, "");
+
+            UdbScriptRunSourcePlan plan = UdbScriptRunnerModel.BuildSourcePlan(app, script);
+
+            Assert.Equal(libraries, plan.LibrariesPath);
+            Assert.Equal(
+                new[] { first, second }.OrderBy(path => path, StringComparer.Ordinal).ToArray(),
+                plan.Libraries.Select(library => library.Path).ToArray());
+            Assert.Equal(
+                new[] { "/UDBScript/Libraries/Nested/two.js", "/UDBScript/Libraries/one.js" },
+                plan.Libraries.Select(library => library.EngineSourceName).ToArray());
+            Assert.Equal(script, plan.Script.Path);
+            Assert.Equal("/UDBScript/Scripts/demo.js", plan.Script.EngineSourceName);
+        }
+        finally
+        {
+            if (Directory.Exists(app))
+                Directory.Delete(app, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SourcePlanAllowsMissingLibraryDirectory()
+    {
+        string app = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_runner_" + Guid.NewGuid().ToString("N"));
+        string script = Path.Combine(app, "UDBScript", "Scripts", "demo.js");
+
+        UdbScriptRunSourcePlan plan = UdbScriptRunnerModel.BuildSourcePlan(app, script);
+
+        Assert.Empty(plan.Libraries);
+        Assert.Equal(Path.Combine(app, "UDBScript", "Libraries"), plan.LibrariesPath);
+        Assert.Equal("/UDBScript/Scripts/demo.js", plan.Script.EngineSourceName);
+    }
+
+    [Fact]
     public void LegacyGlobalModeUsesScriptVersionsBeforeFour()
     {
         Assert.True(UdbScriptRunnerModel.UsesLegacyGlobals(1));
