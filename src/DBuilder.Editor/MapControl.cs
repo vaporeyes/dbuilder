@@ -347,8 +347,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private bool CanUseVisualSlopePicking()
     {
-        if (_mapFormat == MapFormat.Udmf) return true;
-        Target3DChanged?.Invoke("Visual sloping is supported in UDMF only.");
+        if (VisualSlopePickingPolicy.CanUse(_mapFormat, _gameConfig, out string warning)) return true;
+        Target3DChanged?.Invoke(warning);
         return false;
     }
 
