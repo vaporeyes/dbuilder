@@ -1602,12 +1602,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in VisibleThings3D())
         {
-            string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
-            if (string.IsNullOrEmpty(sprite)) continue;
-            var img = _resources?.GetSprite(sprite!);
-            if (img == null || GetSpriteTexture(sprite!) == null) continue;
+            ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(_gameConfig?.GetThing(t.Type), _resources);
+            if (display == null || GetSpriteTexture(display.SpriteName) == null) continue;
 
             double floorZ = (_blockmapCache?.GetSectorAt(t.Position) ?? _map.GetSectorAt(t.Position))?.GetFloorZ(t.Position) ?? 0;
+            ImageData img = display.Image;
             float hw = img.Width * 0.5f, hh = img.Height * 0.5f;
             double originZ = floorZ + t.Height;
             // Use the sprite hot-spot when present (OffsetX from left, OffsetY above the origin); else
@@ -1625,7 +1624,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             var bl = c - right * hw - up * hh; var br = c + right * hw - up * hh;
             var tr = c + right * hw + up * hh; var tl = c - right * hw + up * hh;
-            if (!buckets.TryGetValue(sprite!, out var list)) { list = new(); buckets[sprite!] = list; }
+            if (!buckets.TryGetValue(display.SpriteName, out var list)) { list = new(); buckets[display.SpriteName] = list; }
             list.Add(V(tl, 0, 0)); list.Add(V(tr, 1, 0)); list.Add(V(br, 1, 1));
             list.Add(V(tl, 0, 0)); list.Add(V(br, 1, 1)); list.Add(V(bl, 0, 1));
         }
@@ -3137,18 +3136,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
-                ThingDisplaySource display = ThingDisplayResolver.Resolve(thingInfo, _resources);
-                string? sprite = display.Kind is ThingDisplayKind.Sprite or ThingDisplayKind.Voxel or ThingDisplayKind.Model
-                    ? display.SpriteName
-                    : thingInfo?.Sprite;
-                if (!string.IsNullOrEmpty(sprite) && GetSpriteTexture(sprite!) is { } && _resources?.GetSprite(sprite!) is { } img)
+                ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(_gameConfig?.GetThing(t.Type), _resources);
+                if (display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
+                    ImageData img = display.Image;
                     int sc = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
                     double scale = _fixedThingsScale ? _zoom : 1.0;
                     double hw = img.Width * 0.5 * scale, hh = img.Height * 0.5 * scale;
                     var p = t.Position;
-                    if (!spriteVerts.TryGetValue(sprite!, out var list)) { list = new(); spriteVerts[sprite!] = list; }
+                    if (!spriteVerts.TryGetValue(display.SpriteName, out var list)) { list = new(); spriteVerts[display.SpriteName] = list; }
                     // Image top (v=0) maps to higher world-y so the sprite stands upright on screen.
                     FlatVertex SV(double x, double y, float u, float v) => new FlatVertex { x = (float)x, y = (float)y, z = 0, w = 1, c = sc, u = u, v = v };
                     var tl = SV(p.x - hw, p.y + hh, 0, 0);
