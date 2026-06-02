@@ -237,6 +237,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
+    [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]
+    [InlineData("map2d.reset-grid-transform", "Reset Grid Transform")]
+    [InlineData("map2d.smart-grid-transform", "Smart Grid Transform")]
+    public void GridTransformCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("select", "Select Group", "Menu")]
     [InlineData("assign", "Assign Group", "Menu")]
     [InlineData("clear", "Clear Group", "Ctrl/Cmd+Shift")]

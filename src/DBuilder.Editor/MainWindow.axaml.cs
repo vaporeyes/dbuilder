@@ -2409,6 +2409,34 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnSmartGridTransform(object? sender, RoutedEventArgs e)
+        => ApplyGridTransformCommand(MapView.SmartGridTransform);
+
+    private void OnAlignGridToLinedef(object? sender, RoutedEventArgs e)
+        => ApplyGridTransformCommand(MapView.AlignGridToSelectedLinedef);
+
+    private void OnSetGridOriginToVertex(object? sender, RoutedEventArgs e)
+        => ApplyGridTransformCommand(MapView.SetGridOriginToSelectedVertex);
+
+    private void OnResetGridTransform(object? sender, RoutedEventArgs e)
+        => ApplyGridTransformCommand(MapView.ResetGridTransform);
+
+    private void ApplyGridTransformCommand(Func<string> action)
+    {
+        GridSetup before = MapView.GridSetupSnapshot();
+        string status = action();
+        GridSetup after = MapView.GridSetupSnapshot();
+        SetStatus(status);
+        if (GridTransformChanged(before, after)) MarkMapDirty();
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
+    private static bool GridTransformChanged(GridSetup before, GridSetup after)
+        => before.GridOriginX != after.GridOriginX
+        || before.GridOriginY != after.GridOriginY
+        || before.GridRotate != after.GridRotate;
+
     private void OnSnapSelectionToGrid(object? sender, RoutedEventArgs e)
     {
         SetStatus(MapView.SnapSelectedMapElementsToGrid());

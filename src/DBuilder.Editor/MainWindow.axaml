@@ -174,7 +174,13 @@
                 <MenuItem Header="Always Show _Vertices" x:Name="ToggleAlwaysShowVerticesMenuItem" ToggleType="CheckBox" Click="OnToggleAlwaysShowVertices" />
                 <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" ToggleType="CheckBox" Click="OnToggle3DFloors" />
                 <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
-                <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
+                <MenuItem Header="_Grid">
+                    <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
+                    <MenuItem Header="_Smart Grid Transform" Click="OnSmartGridTransform" />
+                    <MenuItem Header="_Align Grid To Selected Linedef" Click="OnAlignGridToLinedef" />
+                    <MenuItem Header="Set Grid _Origin To Selected Vertex" Click="OnSetGridOriginToVertex" />
+                    <MenuItem Header="_Reset Grid Transform" Click="OnResetGridTransform" />
+                </MenuItem>
                 <MenuItem Header="_Snap to Grid" x:Name="ToggleSnapToGridMenuItem" ToggleType="CheckBox" Click="OnToggleSnapToGrid" />
                 <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
                 <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />

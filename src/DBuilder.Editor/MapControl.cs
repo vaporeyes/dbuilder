@@ -2725,6 +2725,54 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    public string AlignGridToSelectedLinedef()
+    {
+        if (_map is null) return "No map loaded.";
+        return ApplyGridTransform(DBuilder.IO.SmartGridTransform.AlignToSelectedLinedef(_grid, _map.GetSelectedLinedefs()));
+    }
+
+    public string SetGridOriginToSelectedVertex()
+    {
+        if (_map is null) return "No map loaded.";
+        return ApplyGridTransform(DBuilder.IO.SmartGridTransform.SetOriginToSelectedVertex(_grid, _map.GetSelectedVertices()));
+    }
+
+    public string ResetGridTransform()
+        => ApplyGridTransform(DBuilder.IO.SmartGridTransform.Reset(_grid));
+
+    public string SmartGridTransform()
+    {
+        if (_map is null) return "No map loaded.";
+
+        SmartGridTransformResult result = _editMode switch
+        {
+            EditMode.Vertices => DBuilder.IO.SmartGridTransform.SmartFromVertices(
+                _grid,
+                _map.GetSelectedVertices(),
+                _map.NearestVertex(_cursorWorld, 10 * _zoom)),
+            EditMode.Linedefs => DBuilder.IO.SmartGridTransform.SmartFromLinedefs(
+                _grid,
+                _map.GetSelectedLinedefs(),
+                _map.NearestLinedef(_cursorWorld, 8 * _zoom),
+                _cursorWorld),
+            EditMode.Things => DBuilder.IO.SmartGridTransform.SmartFromThings(
+                _grid,
+                _map.GetSelectedThings(),
+                NearestVisibleThing(_cursorWorld, 12 * _zoom)),
+            EditMode.Sectors => DBuilder.IO.SmartGridTransform.SmartFromSectors(_grid),
+            _ => DBuilder.IO.SmartGridTransform.Reset(_grid),
+        };
+
+        return ApplyGridTransform(result);
+    }
+
+    private string ApplyGridTransform(SmartGridTransformResult result)
+    {
+        if (result.Applied) MarkGeometryDirty();
+        Picked?.Invoke(result.Message);
+        return result.Message;
+    }
+
     public GridSetup GridSetupSnapshot()
     {
         var grid = new GridSetup();
@@ -3345,6 +3393,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-grid-snap":
                 ToggleSnapToGrid();
+                return true;
+            case "map2d.align-grid-to-linedef":
+                AlignGridToSelectedLinedef();
+                return true;
+            case "map2d.set-grid-origin-to-vertex":
+                SetGridOriginToSelectedVertex();
+                return true;
+            case "map2d.reset-grid-transform":
+                ResetGridTransform();
+                return true;
+            case "map2d.smart-grid-transform":
+                SmartGridTransform();
                 return true;
             case "map2d.grid-down":
                 ChangeGridSize(larger: false);
