@@ -951,6 +951,10 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.toggle-slope", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "S", alt: true));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
+        Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageUp"));
+        Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageUp", accelerator: true));
+        Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageDown"));
+        Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageDown", accelerator: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left"));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true, shift: true));
     }
@@ -964,18 +968,28 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.raise-sector-128", "Raise Floor/Ceiling/Thing by 128 mp")]
     [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size")]
     [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size")]
+    [InlineData("map3d.lower-sector-to-nearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing")]
+    [InlineData("map3d.raise-sector-to-nearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing")]
     public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
-        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(id switch
+        {
+            "map3d.lower-sector-to-nearest" => "PageDown",
+            "map3d.raise-sector-to-nearest" => "PageUp",
+            _ => "Menu",
+        }, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        Assert.True(command.Repeat);
+        if (id.EndsWith("-to-nearest", StringComparison.Ordinal))
+            Assert.False(command.Repeat);
+        else
+            Assert.True(command.Repeat);
     }
 
     [Theory]

@@ -2770,6 +2770,31 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
     }
 
+    private void AdjustTargetToNearest3D(bool raise, bool withinSelection)
+    {
+        if (_map == null) return;
+        var targets = EditTargets3D();
+        if (targets.Count == 0)
+        {
+            Target3DChanged?.Invoke(VisualNearestHeight.NoSuitableObjectsMessage);
+            return;
+        }
+
+        EditBegun?.Invoke(raise ? "Raise to nearest" : "Lower to nearest");
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(targets, raise, withinSelection);
+        if (result.ChangedSurfaces == 0)
+        {
+            Target3DChanged?.Invoke(result.Message);
+            return;
+        }
+
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(result.Message);
+    }
+
     private static string? HeightEditLabel(VisualHit h) => h.Kind switch
     {
         VisualHitKind.Floor => "Change floor height",
@@ -4860,6 +4885,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.raise-map-element-by-grid-size":
                 AdjustTarget3D(_grid.GridSize);
+                return true;
+            case "map3d.lower-sector-to-nearest":
+                AdjustTargetToNearest3D(raise: false, withinSelection: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
+                return true;
+            case "map3d.raise-sector-to-nearest":
+                AdjustTargetToNearest3D(raise: true, withinSelection: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map3d.brightness-down":
             case "map3d.lower-brightness-8":
