@@ -5131,16 +5131,8 @@ public partial class MainWindow : Window
 
     private void ShowVertexFields(Vertex v)
     {
-        var fields = new List<(string, string)>
-        {
-            ("Position", $"({v.Position.x:0.###}, {v.Position.y:0.###})"),
-            ("Linedefs", v.Linedefs.Count.ToString()),
-            ("Groups", DescribeGroups(v.Groups)),
-            ("Z floor", double.IsNaN(v.ZFloor) ? "-" : v.ZFloor.ToString("0.###")),
-            ("Z ceiling", double.IsNaN(v.ZCeiling) ? "-" : v.ZCeiling.ToString("0.###")),
-            ("Custom fields", v.Fields.Count.ToString()),
-        };
-        ShowFields($"Vertex {_map!.Vertices.IndexOf(v)}", fields);
+        VertexInfoPanelState state = VertexInfoPanelModel.Build(_map!, v);
+        ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
     }
 
     private void ShowThingFields(Thing t)
