@@ -2003,6 +2003,156 @@ public sealed class UdbScriptMapWrapper
         return nearest == null ? null : new UdbScriptSidedefWrapper(nearest);
     }
 
+    public void clearAllMarks(bool mark = false)
+    {
+        ThrowIfDisposed("clearAllMarks");
+        map.ClearAllMarked(mark);
+    }
+
+    public void clearMarkedVertices(bool mark = false)
+    {
+        ThrowIfDisposed("clearMarkedVertices");
+        map.ClearMarkedVertices(mark);
+    }
+
+    public void clearMarkedThings(bool mark = false)
+    {
+        ThrowIfDisposed("clearMarkedThings");
+        map.ClearMarkedThings(mark);
+    }
+
+    public void clearMarkedLinedefs(bool mark = false)
+    {
+        ThrowIfDisposed("clearMarkedLinedefs");
+        map.ClearMarkedLinedefs(mark);
+    }
+
+    public void clearMarkedSidedefs(bool mark = false)
+    {
+        ThrowIfDisposed("clearMarkedSidedefs");
+        map.ClearMarkedSidedefs(mark);
+    }
+
+    public void clearMarkedSectors(bool mark = false)
+    {
+        ThrowIfDisposed("clearMarkedSectors");
+        map.ClearMarkedSectors(mark);
+    }
+
+    public void clearMarkeLinedefs(bool mark = false)
+        => clearMarkedLinedefs(mark);
+
+    public void clearMarkeSidedefs(bool mark = false)
+        => clearMarkedSidedefs(mark);
+
+    public void clearMarkeSectors(bool mark = false)
+        => clearMarkedSectors(mark);
+
+    public void invertAllMarks()
+    {
+        ThrowIfDisposed("invertAllMarks");
+        map.InvertAllMarked();
+    }
+
+    public void invertMarkedVertices()
+    {
+        ThrowIfDisposed("invertMarkedVertices");
+        map.InvertMarkedVertices();
+    }
+
+    public void invertMarkedThings()
+    {
+        ThrowIfDisposed("invertMarkedThings");
+        map.InvertMarkedThings();
+    }
+
+    public void invertMarkedLinedefs()
+    {
+        ThrowIfDisposed("invertMarkedLinedefs");
+        map.InvertMarkedLinedefs();
+    }
+
+    public void invertMarkedSidedefs()
+    {
+        ThrowIfDisposed("invertMarkedSidedefs");
+        map.InvertMarkedSidedefs();
+    }
+
+    public void invertMarkedSectors()
+    {
+        ThrowIfDisposed("invertMarkedSectors");
+        map.InvertMarkedSectors();
+    }
+
+    public UdbScriptVertexWrapper[] getMarkedVertices(bool mark = true)
+    {
+        ThrowIfDisposed("getMarkedVertices");
+        return map.GetMarkedVertices(mark)
+            .Where(vertex => !vertex.IsDisposed)
+            .Select(vertex => new UdbScriptVertexWrapper(vertex))
+            .ToArray();
+    }
+
+    public UdbScriptThingWrapper[] getMarkedThings(bool mark = true)
+    {
+        ThrowIfDisposed("getMarkedThings");
+        return map.GetMarkedThings(mark)
+            .Where(thing => !thing.IsDisposed)
+            .Select(thing => new UdbScriptThingWrapper(thing))
+            .ToArray();
+    }
+
+    public UdbScriptLinedefWrapper[] getMarkedLinedefs(bool mark = true)
+    {
+        ThrowIfDisposed("getMarkedLinedefs");
+        return map.GetMarkedLinedefs(mark)
+            .Where(linedef => !linedef.IsDisposed)
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef))
+            .ToArray();
+    }
+
+    public UdbScriptSidedefWrapper[] getMarkedSidedefs(bool mark = true)
+    {
+        ThrowIfDisposed("getMarkedSidedefs");
+        return map.GetMarkedSidedefs(mark)
+            .Where(sidedef => !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef))
+            .ToArray();
+    }
+
+    public UdbScriptSectorWrapper[] getMarkedSectors(bool mark = true)
+    {
+        ThrowIfDisposed("getMarkedSectors");
+        return map.GetMarkedSectors(mark)
+            .Where(sector => !sector.IsDisposed)
+            .Select(sector => new UdbScriptSectorWrapper(sector))
+            .ToArray();
+    }
+
+    public void markSelectedVertices(bool mark = true)
+    {
+        ThrowIfDisposed("markSelectedVertices");
+        map.MarkSelectedVertices(selected: true, mark);
+    }
+
+    public void markSelectedLinedefs(bool mark = true)
+    {
+        ThrowIfDisposed("markSelectedLinedefs");
+        map.MarkSelectedLinedefs(selected: true, mark);
+    }
+
+    public void markSelectedSectors(bool mark = true)
+    {
+        ThrowIfDisposed("markSelectedSectors");
+        map.MarkSelectedSectors(selected: true, mark);
+    }
+
+    public void markSelectedThings(bool mark = true)
+    {
+        ThrowIfDisposed("markSelectedThings");
+        map.MarkSelectedThings(selected: true, mark);
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)

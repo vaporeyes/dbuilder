@@ -939,6 +939,96 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesMarkClearInvertAndQueryHelpers()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        var unmarkedVertex = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(vertex, unmarkedVertex);
+        var sector = map.AddSector();
+        var side = map.AddSidedef(line, isFront: true, sector);
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+        vertex.Marked = true;
+        line.Marked = true;
+        side.Marked = true;
+        sector.Marked = true;
+        thing.Marked = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        Assert.Same(vertex, Assert.Single(wrapper.getMarkedVertices()).Vertex);
+        Assert.Same(unmarkedVertex, Assert.Single(wrapper.getMarkedVertices(mark: false)).Vertex);
+        Assert.Same(line, Assert.Single(wrapper.getMarkedLinedefs()).Linedef);
+        Assert.Same(side, Assert.Single(wrapper.getMarkedSidedefs()).Sidedef);
+        Assert.Same(sector, Assert.Single(wrapper.getMarkedSectors()).Sector);
+        Assert.Same(thing, Assert.Single(wrapper.getMarkedThings()).Thing);
+
+        wrapper.clearAllMarks(mark: false);
+
+        Assert.Empty(wrapper.getMarkedVertices());
+        Assert.Empty(wrapper.getMarkedLinedefs());
+        Assert.Empty(wrapper.getMarkedSidedefs());
+        Assert.Empty(wrapper.getMarkedSectors());
+        Assert.Empty(wrapper.getMarkedThings());
+
+        wrapper.invertAllMarks();
+
+        Assert.Equal(2, wrapper.getMarkedVertices().Length);
+        Assert.Same(line, Assert.Single(wrapper.getMarkedLinedefs()).Linedef);
+        Assert.Same(side, Assert.Single(wrapper.getMarkedSidedefs()).Sidedef);
+        Assert.Same(sector, Assert.Single(wrapper.getMarkedSectors()).Sector);
+        Assert.Same(thing, Assert.Single(wrapper.getMarkedThings()).Thing);
+
+        wrapper.clearMarkedVertices();
+        wrapper.clearMarkeLinedefs();
+        wrapper.clearMarkeSidedefs();
+        wrapper.clearMarkeSectors();
+        wrapper.clearMarkedThings();
+
+        Assert.Empty(wrapper.getMarkedVertices());
+        Assert.Empty(wrapper.getMarkedLinedefs());
+        Assert.Empty(wrapper.getMarkedSidedefs());
+        Assert.Empty(wrapper.getMarkedSectors());
+        Assert.Empty(wrapper.getMarkedThings());
+    }
+
+    [Fact]
+    public void MapWrapperMarksSelectedElements()
+    {
+        var map = new MapSet();
+        var first = map.AddVertex(new Vector2D(0, 0));
+        var second = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(first, second);
+        var sector = map.AddSector();
+        map.AddSidedef(line, isFront: true, sector);
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+        first.Selected = true;
+        line.Selected = true;
+        sector.Selected = true;
+        thing.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.markSelectedVertices();
+        wrapper.markSelectedLinedefs();
+        wrapper.markSelectedSectors();
+        wrapper.markSelectedThings();
+
+        Assert.Same(first, Assert.Single(wrapper.getMarkedVertices()).Vertex);
+        Assert.Same(line, Assert.Single(wrapper.getMarkedLinedefs()).Linedef);
+        Assert.Same(sector, Assert.Single(wrapper.getMarkedSectors()).Sector);
+        Assert.Same(thing, Assert.Single(wrapper.getMarkedThings()).Thing);
+
+        wrapper.markSelectedVertices(mark: false);
+        wrapper.markSelectedLinedefs(mark: false);
+        wrapper.markSelectedSectors(mark: false);
+        wrapper.markSelectedThings(mark: false);
+
+        Assert.Empty(wrapper.getMarkedVertices());
+        Assert.Empty(wrapper.getMarkedLinedefs());
+        Assert.Empty(wrapper.getMarkedSectors());
+        Assert.Empty(wrapper.getMarkedThings());
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
