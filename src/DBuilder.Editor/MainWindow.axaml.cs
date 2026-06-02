@@ -5195,22 +5195,8 @@ public partial class MainWindow : Window
 
     private void ShowSectorFields(Sector s)
     {
-        string eff = _config?.SectorEffectTitle(s.Special) ?? (s.Special == 0 ? "None" : $"effect {s.Special}");
-        ShowFields($"Sector {s.Index}", new List<(string, string)>
-        {
-            ("Floor height", s.FloorHeight.ToString()),
-            ("Ceiling height", s.CeilHeight.ToString()),
-            ("Floor texture", s.FloorTexture),
-            ("Ceiling texture", s.CeilTexture),
-            ("Brightness", s.Brightness.ToString()),
-            ("Effect", $"{s.Special} - {eff}"),
-            ("Tags", DescribeTags(s.Tags)),
-            ("Sidedefs", s.Sidedefs.Count.ToString()),
-            ("Groups", DescribeGroups(s.Groups)),
-            ("Floor slope", DescribeSlope(s.HasFloorSlope, s.FloorSlope, s.FloorSlopeOffset)),
-            ("Ceiling slope", DescribeSlope(s.HasCeilSlope, s.CeilSlope, s.CeilSlopeOffset)),
-            ("Custom fields", s.Fields.Count.ToString()),
-        });
+        SectorInfoPanelState state = SectorInfoPanelModel.Build(s, _config);
+        ShowFields(state.Header, state.Fields.Select(field => (field.Label, field.Value)).ToList());
     }
 
     private static string DescribeTags(IReadOnlyList<int> tags) => tags.Count == 0 ? "0" : string.Join(", ", tags);
@@ -5235,13 +5221,6 @@ public partial class MainWindow : Window
 
     private static string DescribeSideOffsets(Sidedef? side)
         => side == null ? "-" : $"{side.OffsetX}, {side.OffsetY}";
-
-    private static string DescribeSlope(bool active, DBuilder.Geometry.Vector3D normal, double offset)
-    {
-        if (!active) return "flat";
-        string d = double.IsNaN(offset) ? "-" : offset.ToString("0.###", CultureInfo.InvariantCulture);
-        return $"({normal.x:0.###}, {normal.y:0.###}, {normal.z:0.###}) d {d}";
-    }
 
     // Appends Arg1..Arg5 cells, labeling each with its config arg title when available.
     private static void AddArgFields(List<(string, string)> fields, int[] args, ArgInfo[]? meta)
