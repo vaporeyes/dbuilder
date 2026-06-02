@@ -1633,6 +1633,33 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesMapFormatFlags()
+    {
+        var doom = new UdbScriptMapWrapper(new MapSet());
+        var hexen = new UdbScriptMapWrapper(new MapSet(), mapFormat: MapFormat.Hexen);
+        var udmf = new UdbScriptMapWrapper(new MapSet(), mapFormat: MapFormat.Udmf);
+
+        Assert.True(doom.isDoom);
+        Assert.False(doom.isHexen);
+        Assert.False(doom.isUDMF);
+        Assert.False(hexen.isDoom);
+        Assert.True(hexen.isHexen);
+        Assert.False(hexen.isUDMF);
+        Assert.False(udmf.isDoom);
+        Assert.False(udmf.isHexen);
+        Assert.True(udmf.isUDMF);
+    }
+
+    [Fact]
+    public void MapWrapperExposesMousePosition()
+    {
+        var wrapper = new UdbScriptMapWrapper(new MapSet(), mousePosition: new Vector2D(12, -34));
+
+        Assert.Equal(12, wrapper.mousePosition.x);
+        Assert.Equal(-34, wrapper.mousePosition.y);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();

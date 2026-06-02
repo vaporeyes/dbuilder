@@ -2548,16 +2548,37 @@ public sealed class UdbScriptMapWrapper
     private readonly GridSetup grid;
     private readonly object? highlightedObject;
     private readonly MapSet map;
+    private readonly MapFormat mapFormat;
+    private readonly Vector2D mouseMapPosition;
 
-    public UdbScriptMapWrapper(MapSet map, GridSetup? grid = null, object? highlightedObject = null)
+    public UdbScriptMapWrapper(
+        MapSet map,
+        GridSetup? grid = null,
+        object? highlightedObject = null,
+        MapFormat mapFormat = MapFormat.Doom,
+        Vector2D? mousePosition = null)
     {
         this.map = map;
         this.grid = grid ?? new GridSetup();
         this.highlightedObject = highlightedObject;
+        this.mapFormat = mapFormat;
+        mouseMapPosition = mousePosition ?? new Vector2D();
     }
 
     public MapSet Map
         => map;
+
+    public bool isDoom
+        => mapFormat == MapFormat.Doom;
+
+    public bool isHexen
+        => mapFormat == MapFormat.Hexen;
+
+    public bool isUDMF
+        => mapFormat == MapFormat.Udmf;
+
+    public UdbScriptVector2DWrapper mousePosition
+        => new(mouseMapPosition.x, mouseMapPosition.y);
 
     public UdbScriptVector2DWrapper snappedToGrid(object pos)
     {
