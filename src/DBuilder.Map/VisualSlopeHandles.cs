@@ -55,7 +55,10 @@ public sealed record VisualSlopeHandle(
     VisualSlopeHandlePlacement Placement,
     Sidedef? Sidedef = null,
     Vertex? Vertex = null,
-    Sector? Sector = null)
+    Sector? Sector = null,
+    bool Selected = false,
+    bool Pivot = false,
+    bool SmartPivot = false)
 {
     public Vector3D GetPivotPoint()
         => Kind == VisualSlopeHandleKind.Line && Sidedef != null
@@ -73,6 +76,10 @@ public sealed record VisualSlopeHandle(
         ];
     }
 }
+
+public sealed record VisualSlopeHandleStateResult(
+    IReadOnlyList<VisualSlopeHandle> Handles,
+    string? WarningMessage = null);
 
 public enum VisualSlopeChangeResult
 {
@@ -103,6 +110,8 @@ public static class VisualSlopeHandles
     public const string MissingArchSelectedLevelsMessage = "You need to select at least two floors and ceilings to slope arch between slope handles.";
     public const string MissingHandlePairMessage = "You need to select exactly two slope handles.";
     public const string UnsupportedHandleKindMessage = "Slope between handles requires sidedef slope handles.";
+    public const string CannotSelectPivotMessage = "It is not allowed to mark pivot slope handles as selected.";
+    public const string CannotPivotSelectedMessage = "It is not allowed to mark selected slope handles as pivot slope handles.";
 
     public static VisualSlopeHandleMesh LineMesh { get; } = new(
     [
@@ -145,6 +154,40 @@ public static class VisualSlopeHandles
             CreatePlacement(new Line2D(vertex.Position, vertex.Position + direction), level.Plane),
             Vertex: vertex,
             Sector: sector);
+    }
+
+    public static VisualSlopeHandleStateResult ToggleSelection(
+        VisualSlopeHandle target,
+        IEnumerable<VisualSlopeHandle> handles)
+    {
+        if (target == null) throw new ArgumentNullException(nameof(target));
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        VisualSlopeHandle[] all = handles.ToArray();
+        if (target.Pivot)
+            return new VisualSlopeHandleStateResult(all, CannotSelectPivotMessage);
+
+        return new VisualSlopeHandleStateResult(
+            all.Select(handle => ReferenceEquals(handle, target) ? handle with { Selected = !handle.Selected } : handle).ToArray());
+    }
+
+    public static VisualSlopeHandleStateResult TogglePivot(
+        VisualSlopeHandle target,
+        IEnumerable<VisualSlopeHandle> handles)
+    {
+        if (target == null) throw new ArgumentNullException(nameof(target));
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        bool warning = target.Selected;
+        return new VisualSlopeHandleStateResult(
+            handles.Select(handle =>
+            {
+                if (ReferenceEquals(handle, target))
+                    return warning ? handle : handle with { Pivot = !handle.Pivot };
+
+                return handle with { Pivot = false };
+            }).ToArray(),
+            warning ? CannotPivotSelectedMessage : null);
     }
 
     public static Line2D GetSidedefBaseLine(Sidedef sidedef, VisualSlopeLevel level, bool up)

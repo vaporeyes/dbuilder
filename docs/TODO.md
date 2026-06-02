@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3141 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3145 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -950,6 +950,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style smart sidedef slope pivot selection, including triangular-sector opposite vertex handling.
   - [x] Add UDB-style selected-level smart pivot scoping for visual vertex and sidedef slope handles.
   - [x] Include the active visual slope handle level in selected-level height changes like UDB.
+  - [x] Add UDB-style visual slope handle selection, pivot, and smart-pivot state rules.
 - [ ] Port comments rendering.
   - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
 - [ ] Port color settings and color collections.
@@ -998,6 +999,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style smart sidedef slope pivot selection for line-handle height changes.
   - [x] Scope smart visual slope pivots through selected visual levels like UDB.
   - [x] Apply visual slope height changes to selected levels plus the active handle level like UDB.
+  - [x] Match UDB visual slope handle select and pivot toggling constraints.
 - [ ] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
