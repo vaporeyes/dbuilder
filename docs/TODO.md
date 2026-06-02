@@ -1015,6 +1015,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
+  - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
@@ -1029,6 +1030,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style loader-facing model data projection from resolved MODELDEF display parts.
   - [x] Add loaded model mesh render-batch planning for future 3D model drawing.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
+  - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.
 - [ ] Port MD2 loader.
   - [x] Add UDB-style MD2 model parser for header validation, frame selection, coordinate rotation, UV handling, vertex duplication, and parse errors.
 - [ ] Port MD3 loader.
