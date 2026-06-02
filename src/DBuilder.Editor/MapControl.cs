@@ -39,6 +39,13 @@ public class MapControl : OpenGlControlBase, ICustomHitTest
         CeilingTextures = 3,
     }
 
+    public enum VisualSlopePickingMode
+    {
+        Default,
+        SidedefSlopeHandles,
+        VertexSlopeHandles,
+    }
+
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
     public PasteOptions PasteOptions { get; set; } = new();
     public event Action? ActionStateChanged;
@@ -183,6 +190,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
     private bool _alphaBasedTextureHighlighting = true;
+    private bool _selectAdjacentVisualVertexSlopeHandles;
+    private VisualSlopePickingMode _visualSlopePickingMode;
     private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
 
     public bool ShowSectorFills => _showFills;
@@ -193,6 +202,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool FullBrightness => _fullBrightness;
     public bool UseHighlight => _useHighlight;
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
+    public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
+    public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
     public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
@@ -282,6 +293,63 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         SetAlphaBasedTextureHighlighting(!_alphaBasedTextureHighlighting);
         Target3DChanged?.Invoke($"Alpha-based texture highlighting is {(_alphaBasedTextureHighlighting ? "ENABLED" : "DISABLED")}");
         return _alphaBasedTextureHighlighting;
+    }
+
+    public VisualSlopePickingMode ToggleVisualSidedefSlopePicking()
+    {
+        if (!CanUseVisualSlopePicking()) return _visualSlopePickingMode;
+
+        SetVisualSlopePickingMode(
+            _visualSlopePickingMode == VisualSlopePickingMode.SidedefSlopeHandles
+                ? VisualSlopePickingMode.Default
+                : VisualSlopePickingMode.SidedefSlopeHandles);
+        return _visualSlopePickingMode;
+    }
+
+    public VisualSlopePickingMode ToggleVisualVertexSlopePicking()
+    {
+        if (!CanUseVisualSlopePicking()) return _visualSlopePickingMode;
+
+        SetVisualSlopePickingMode(
+            _visualSlopePickingMode == VisualSlopePickingMode.VertexSlopeHandles
+                ? VisualSlopePickingMode.Default
+                : VisualSlopePickingMode.VertexSlopeHandles);
+        return _visualSlopePickingMode;
+    }
+
+    public VisualSlopePickingMode SetVisualSlopePickingMode(VisualSlopePickingMode mode)
+    {
+        if (_visualSlopePickingMode == mode) return _visualSlopePickingMode;
+        _visualSlopePickingMode = mode;
+        _geo3DDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _visualSlopePickingMode;
+    }
+
+    public bool SetSelectAdjacentVisualVertexSlopeHandles(bool enabled)
+    {
+        if (_selectAdjacentVisualVertexSlopeHandles == enabled) return _selectAdjacentVisualVertexSlopeHandles;
+        _selectAdjacentVisualVertexSlopeHandles = enabled;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _selectAdjacentVisualVertexSlopeHandles;
+    }
+
+    public bool ToggleVisualVertexSlopeAdjacentSelection()
+    {
+        if (!CanUseVisualSlopePicking()) return _selectAdjacentVisualVertexSlopeHandles;
+
+        SetSelectAdjacentVisualVertexSlopeHandles(!_selectAdjacentVisualVertexSlopeHandles);
+        Target3DChanged?.Invoke($"Adjacent selection of visual vertex slope handles is {(_selectAdjacentVisualVertexSlopeHandles ? "ENABLED" : "DISABLED")}");
+        return _selectAdjacentVisualVertexSlopeHandles;
+    }
+
+    private bool CanUseVisualSlopePicking()
+    {
+        if (_mapFormat == MapFormat.Udmf) return true;
+        Target3DChanged?.Invoke("Visual sloping is supported in UDMF only.");
+        return false;
     }
 
     public bool MoveCameraToCursor()
@@ -4305,6 +4373,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
                 ToggleAlphaBasedTextureHighlighting();
+                return true;
+            case "map3d.toggle-visual-sidedef-slope-picking":
+                ToggleVisualSidedefSlopePicking();
+                return true;
+            case "map3d.toggle-visual-vertex-slope-picking":
+                ToggleVisualVertexSlopePicking();
+                return true;
+            case "map3d.toggle-visual-vertex-slope-adjacent-selection":
+                ToggleVisualVertexSlopeAdjacentSelection();
                 return true;
             case "map3d.delete-target":
                 DeleteTargetThing3D();

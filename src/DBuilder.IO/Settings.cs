@@ -33,6 +33,7 @@ public sealed class Settings
     public int? DefaultViewMode { get; set; }
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
+    public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();

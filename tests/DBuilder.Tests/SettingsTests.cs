@@ -106,6 +106,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AdjacentVisualVertexSlopeSelectionDefaultsDisabled()
+    {
+        Assert.False(new Settings().SelectAdjacentVisualVertexSlopeHandles);
+    }
+
+    [Fact]
     public void ExistingRecentFilesSkipsMissingPathsLikeUdbMenu()
     {
         var s = new Settings
@@ -149,6 +155,7 @@ public class SettingsTests
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
                 AlphaBasedTextureHighlighting = false,
+                SelectAdjacentVisualVertexSlopeHandles = true,
                 DynamicGridSize = false,
                 DefaultViewMode = 3,
                 StatusHistoryLimit = 250,
@@ -204,6 +211,7 @@ public class SettingsTests
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
+            Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
             Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);
             Assert.Equal(3, loaded.NormalizedDefaultViewMode);

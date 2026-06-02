@@ -698,10 +698,12 @@ public class EditorCommandCatalogTests
 
             Assert.NotNull(command);
             Assert.Equal(title, command.Title);
+            Assert.Equal("Menu", command.DefaultGesture);
             Assert.Equal(EditorCommandScope.Map3D, command.Scope);
             Assert.True(command.AllowKeys);
             Assert.True(command.AllowMouse);
             Assert.False(command.AllowScroll);
+            Assert.False(command.Repeat);
         }
     }
 

@@ -117,6 +117,11 @@ public partial class MainWindow : Window
                 _settings.AlphaBasedTextureHighlighting = MapView.AlphaBasedTextureHighlighting;
                 SaveSettings();
             }
+            if (_settings.SelectAdjacentVisualVertexSlopeHandles != MapView.SelectAdjacentVisualVertexSlopeHandles)
+            {
+                _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
+                SaveSettings();
+            }
             UpdateCommandAvailability();
             UpdateStatusDetails();
         };
@@ -144,6 +149,7 @@ public partial class MainWindow : Window
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
+        MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
