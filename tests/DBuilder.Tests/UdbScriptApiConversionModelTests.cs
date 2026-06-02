@@ -217,6 +217,64 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(Angle2D.RadToDeg(radians), UdbScriptAngle2DWrapper.getAngle(first, second, third));
     }
 
+    [Fact]
+    public void PlaneWrapperConstructsFromNormalAndOffset()
+    {
+        var plane = new UdbScriptPlaneWrapper(new object[] { 0.0, 0.0, 1.0 }, -16);
+
+        Assert.Equal(new UdbScriptVector3DWrapper(0, 0, 1), plane.normal);
+        Assert.Equal(0, plane.a);
+        Assert.Equal(0, plane.b);
+        Assert.Equal(1, plane.c);
+        Assert.Equal(-16, plane.offset);
+        Assert.Equal(-16, plane.d);
+
+        plane.d = -8;
+
+        Assert.Equal(-8, plane.offset);
+        Assert.Equal(-8, plane.AsPlane().Offset);
+    }
+
+    [Fact]
+    public void PlaneWrapperConstructsFromThreePointsAndComputesGeometry()
+    {
+        var plane = new UdbScriptPlaneWrapper(
+            new object[] { 0.0, 0.0, 0.0 },
+            new object[] { 32.0, 0.0, 0.0 },
+            new object[] { 32.0, 32.0, 16.0 },
+            up: true);
+
+        Assert.Equal(8, plane.getZ(new object[] { 16.0, 16.0 }));
+        Assert.Equal(21.46625258399798, plane.distance(new object[] { 16.0, 16.0, 32.0 }), 12);
+        Assert.Equal(new UdbScriptVector3DWrapper(16, 25.6, 12.8), plane.closestOnPlane(new object[] { 16.0, 16.0, 32.0 }));
+    }
+
+    [Fact]
+    public void PlaneWrapperReportsLineIntersections()
+    {
+        var plane = new UdbScriptPlaneWrapper(new UdbScriptVector3DWrapper(0, 0, 1), 0);
+
+        object[] hit = plane.getIntersection(new object[] { 0.0, 0.0, 32.0 }, new object[] { 0.0, 0.0, -32.0 });
+        object[] miss = plane.getIntersection(new object[] { 0.0, 0.0, 32.0 }, new object[] { 32.0, 0.0, 32.0 });
+
+        Assert.Equal(new object[] { true, 0.5 }, hit);
+        Assert.False((bool)miss[0]);
+        Assert.True(double.IsNaN((double)miss[1]));
+    }
+
+    [Fact]
+    public void PlaneWrapperUsesPlaneEquality()
+    {
+        var first = new UdbScriptPlaneWrapper(new object[] { 0.0, 0.0, 1.0 }, -16);
+        var second = new UdbScriptPlaneWrapper(new object[] { 0.0, 0.0, 1.0 }, -16);
+        var third = new UdbScriptPlaneWrapper(new object[] { 0.0, 0.0, 1.0 }, -8);
+
+        Assert.True(first == second);
+        Assert.False(first != second);
+        Assert.True(first.Equals(second));
+        Assert.True(first != third);
+    }
+
     [Theory]
     [InlineData(UniversalType.Float, "1.5", 1.5)]
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]

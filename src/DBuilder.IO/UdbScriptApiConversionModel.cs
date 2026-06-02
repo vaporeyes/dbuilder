@@ -596,6 +596,88 @@ public static class UdbScriptAngle2DWrapper
     }
 }
 
+public sealed class UdbScriptPlaneWrapper
+{
+    private DBuilder.Geometry.Plane plane;
+
+    public UdbScriptPlaneWrapper(object normal, double offset)
+    {
+        plane = new DBuilder.Geometry.Plane(UdbScriptApiConversionModel.GetVector3DFromObject(normal), offset);
+    }
+
+    public UdbScriptPlaneWrapper(object p1, object p2, object p3, bool up)
+    {
+        plane = new DBuilder.Geometry.Plane(
+            UdbScriptApiConversionModel.GetVector3DFromObject(p1),
+            UdbScriptApiConversionModel.GetVector3DFromObject(p2),
+            UdbScriptApiConversionModel.GetVector3DFromObject(p3),
+            up);
+    }
+
+    public UdbScriptPlaneWrapper(DBuilder.Geometry.Plane plane)
+    {
+        this.plane = plane;
+    }
+
+    public UdbScriptVector3DWrapper normal
+        => new(plane.Normal.x, plane.Normal.y, plane.Normal.z);
+
+    public double offset
+    {
+        get => plane.Offset;
+        set => plane.Offset = value;
+    }
+
+    public double a => plane.a;
+
+    public double b => plane.b;
+
+    public double c => plane.c;
+
+    public double d
+    {
+        get => plane.d;
+        set => plane.d = value;
+    }
+
+    public DBuilder.Geometry.Plane AsPlane()
+        => plane;
+
+    public object[] getIntersection(object from, object to)
+    {
+        Vector3D start = UdbScriptApiConversionModel.GetVector3DFromObject(from);
+        Vector3D end = UdbScriptApiConversionModel.GetVector3DFromObject(to);
+        double uRay = double.NaN;
+        bool intersects = plane.GetIntersection(start, end, ref uRay);
+
+        return new object[] { intersects, uRay };
+    }
+
+    public double distance(object p)
+        => plane.Distance(UdbScriptApiConversionModel.GetVector3DFromObject(p));
+
+    public UdbScriptVector3DWrapper closestOnPlane(object p)
+    {
+        Vector3D point = plane.ClosestOnPlane(UdbScriptApiConversionModel.GetVector3DFromObject(p));
+        return new UdbScriptVector3DWrapper(point.x, point.y, point.z);
+    }
+
+    public double getZ(object p)
+        => plane.GetZ(UdbScriptApiConversionModel.GetVector3DFromObject(p));
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptPlaneWrapper other && plane.Equals(other.plane);
+
+    public override int GetHashCode()
+        => plane.GetHashCode();
+
+    public static bool operator ==(UdbScriptPlaneWrapper? a, UdbScriptPlaneWrapper? b)
+        => ReferenceEquals(a, b) || (a is not null && b is not null && a.plane == b.plane);
+
+    public static bool operator !=(UdbScriptPlaneWrapper? a, UdbScriptPlaneWrapper? b)
+        => !(a == b);
+}
+
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
 
 public sealed class UdbScriptVectorConversionException : Exception
