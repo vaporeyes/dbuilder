@@ -1170,6 +1170,7 @@ public partial class MainWindow : Window
             case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;
             case "window.change-map-element-index": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
             case "window.make-door": OnMakeDoor(this, new RoutedEventArgs()); return true;
+            case "window.tag-range": OnTagRange(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;

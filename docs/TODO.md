@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3181 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3182 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1230,6 +1230,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire editor Tag Explorer grouped view and text export command.
   - [x] Add UDB-style Tag Explorer docker, control-label, tooltip, export, and plugin-setting metadata.
 - [ ] Port `TagRange`.
+  - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation model.
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.
   - [x] Add UDB-style in-session step and relative-mode defaults.
@@ -1521,6 +1522,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style generalized sector effect expansion in action grouping.
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
 - [ ] Port tag range tools.
+  - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
   - [x] Add Tag Range editor form for target selection, start/step values, relative ranges, skip-used behavior, and selected-element assignment.
   - [x] Add UDB-style in-session step and relative-mode defaults.
