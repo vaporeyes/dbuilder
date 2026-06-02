@@ -137,6 +137,60 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(0, fromAngle.Z, 12);
     }
 
+    [Fact]
+    public void Line2DWrapperConstructsFromAcceptedVectorShapes()
+    {
+        var line = new UdbScriptLine2DWrapper(new object[] { 1.0, 2.0 }, new UdbScriptVector3DWrapper(3, 4, 5));
+
+        Assert.Equal(new UdbScriptVector2DWrapper(1, 2), line.v1);
+        Assert.Equal(new UdbScriptVector2DWrapper(3, 4), line.v2);
+        Assert.Equal(new Line2D(new Vector2D(1, 2), new Vector2D(3, 4)), line.AsLine2D());
+    }
+
+    [Fact]
+    public void Line2DWrapperExposesUdbStaticGeometryHelpers()
+    {
+        var horizontal = new UdbScriptLine2DWrapper(new object[] { 0.0, 0.0 }, new object[] { 10.0, 0.0 });
+        var vertical = new UdbScriptLine2DWrapper(new object[] { 5.0, -5.0 }, new object[] { 5.0, 5.0 });
+
+        Assert.True(UdbScriptLine2DWrapper.areIntersecting(horizontal, vertical));
+        Assert.True(UdbScriptLine2DWrapper.areIntersecting(horizontal.v1, horizontal.v2, vertical.v1, vertical.v2));
+        Assert.Equal(new UdbScriptVector2DWrapper(5, 0), UdbScriptLine2DWrapper.getIntersectionPoint(horizontal.v1, horizontal.v2, vertical.v1, vertical.v2));
+        Assert.Equal(25, UdbScriptLine2DWrapper.getDistanceToLineSq(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
+        Assert.Equal(5, UdbScriptLine2DWrapper.getDistanceToLine(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
+        Assert.Equal(0.5, UdbScriptLine2DWrapper.getNearestOnLine(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
+        Assert.Equal(new UdbScriptVector2DWrapper(2.5, 0), UdbScriptLine2DWrapper.getCoordinatesAt(horizontal.v1, horizontal.v2, 0.25));
+    }
+
+    [Fact]
+    public void Line2DWrapperExposesUdbInstanceGeometryHelpers()
+    {
+        var line = new UdbScriptLine2DWrapper(new object[] { 0.0, 0.0 }, new object[] { 3.0, 4.0 });
+        var crossing = new UdbScriptLine2DWrapper(new object[] { 0.0, 4.0 }, new object[] { 3.0, 0.0 });
+
+        Assert.Equal(new UdbScriptVector2DWrapper(1.5, 2), line.getCoordinatesAt(0.5));
+        Assert.Equal(5, line.getLength());
+        Assert.Equal(Angle2D.RadToDeg(line.getAngleRad()), line.getAngle());
+        Assert.Equal(new UdbScriptVector2DWrapper(-4, 3), line.getPerpendicular());
+        Assert.True(line.isIntersecting(crossing));
+        Assert.Equal(new UdbScriptVector2DWrapper(1.5, 2), line.getIntersectionPoint(crossing));
+        Assert.True(line.getSideOfLine(new object[] { 0.0, 1.0 }) > 0);
+        Assert.Equal("(0, 0) - (3, 4)", line.ToString());
+    }
+
+    [Fact]
+    public void Line2DWrapperReturnsNanIntersectionPointWhenLinesDoNotIntersect()
+    {
+        var horizontal = new UdbScriptLine2DWrapper(new object[] { 0.0, 0.0 }, new object[] { 1.0, 0.0 });
+        var vertical = new UdbScriptLine2DWrapper(new object[] { 2.0, 1.0 }, new object[] { 2.0, 2.0 });
+
+        UdbScriptVector2DWrapper point = UdbScriptLine2DWrapper.getIntersectionPoint(horizontal.v1, horizontal.v2, vertical.v1, vertical.v2);
+
+        Assert.False(UdbScriptLine2DWrapper.areIntersecting(horizontal, vertical));
+        Assert.True(double.IsNaN(point.X));
+        Assert.True(double.IsNaN(point.Y));
+    }
+
     [Theory]
     [InlineData(UniversalType.Float, "1.5", 1.5)]
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]

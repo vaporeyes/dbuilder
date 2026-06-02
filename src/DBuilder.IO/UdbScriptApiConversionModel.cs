@@ -412,6 +412,148 @@ public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z)
         => UdbScriptApiConversionModel.GetVector3DFromObject(value);
 }
 
+public sealed record UdbScriptLine2DWrapper(UdbScriptVector2DWrapper V1, UdbScriptVector2DWrapper V2)
+{
+    public UdbScriptVector2DWrapper v1 => V1;
+
+    public UdbScriptVector2DWrapper v2 => V2;
+
+    public UdbScriptLine2DWrapper(object v1, object v2)
+        : this(new UdbScriptVector2DWrapper(v1), new UdbScriptVector2DWrapper(v2))
+    {
+    }
+
+    public UdbScriptLine2DWrapper(Line2D line)
+        : this(new UdbScriptVector2DWrapper(line.v1.x, line.v1.y), new UdbScriptVector2DWrapper(line.v2.x, line.v2.y))
+    {
+    }
+
+    public Line2D AsLine2D()
+        => new(V1.AsVector2D(), V2.AsVector2D());
+
+    public static bool areIntersecting(UdbScriptLine2DWrapper line1, UdbScriptLine2DWrapper line2, bool bounded = true)
+    {
+        return Line2D.GetIntersection(
+            line1.V1.AsVector2D(),
+            line1.V2.AsVector2D(),
+            line2.V1.X,
+            line2.V1.Y,
+            line2.V2.X,
+            line2.V2.Y,
+            out _,
+            bounded);
+    }
+
+    public static bool areIntersecting(object a1, object a2, object b1, object b2, bool bounded = true)
+    {
+        Vector2D firstStart = ToVector2D(a1);
+        Vector2D firstEnd = ToVector2D(a2);
+        Vector2D secondStart = ToVector2D(b1);
+        Vector2D secondEnd = ToVector2D(b2);
+
+        return Line2D.GetIntersection(
+            firstStart,
+            firstEnd,
+            secondStart.x,
+            secondStart.y,
+            secondEnd.x,
+            secondEnd.y,
+            out _,
+            bounded);
+    }
+
+    public static UdbScriptVector2DWrapper getIntersectionPoint(object a1, object a2, object b1, object b2, bool bounded = true)
+    {
+        Vector2D firstStart = ToVector2D(a1);
+        Vector2D firstEnd = ToVector2D(a2);
+        Vector2D secondStart = ToVector2D(b1);
+        Vector2D secondEnd = ToVector2D(b2);
+        Vector2D point = Line2D.GetIntersectionPoint(new Line2D(firstStart, firstEnd), new Line2D(secondStart, secondEnd), bounded);
+
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public static double getSideOfLine(object v1, object v2, object p)
+        => Line2D.GetSideOfLine(ToVector2D(v1), ToVector2D(v2), ToVector2D(p));
+
+    public static double getDistanceToLine(object v1, object v2, object p, bool bounded = true)
+        => Line2D.GetDistanceToLine(ToVector2D(v1), ToVector2D(v2), ToVector2D(p), bounded);
+
+    public static double getDistanceToLineSq(object v1, object v2, object p, bool bounded = true)
+        => Line2D.GetDistanceToLineSq(ToVector2D(v1), ToVector2D(v2), ToVector2D(p), bounded);
+
+    public static double getNearestOnLine(object v1, object v2, object p)
+        => Line2D.GetNearestOnLine(ToVector2D(v1), ToVector2D(v2), ToVector2D(p));
+
+    public static UdbScriptVector2DWrapper getCoordinatesAt(object v1, object v2, double u)
+    {
+        Vector2D point = Line2D.GetCoordinatesAt(ToVector2D(v1), ToVector2D(v2), u);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public UdbScriptVector2DWrapper getCoordinatesAt(double u)
+    {
+        Vector2D point = AsLine2D().GetCoordinatesAt(u);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public double getLength()
+        => AsLine2D().GetLength();
+
+    public double getAngleRad()
+        => AsLine2D().GetAngle();
+
+    public double getAngle()
+        => Angle2D.RadToDeg(getAngleRad());
+
+    public UdbScriptVector2DWrapper getPerpendicular()
+    {
+        Vector2D perpendicular = AsLine2D().GetPerpendicular();
+        return new UdbScriptVector2DWrapper(perpendicular.x, perpendicular.y);
+    }
+
+    public bool isIntersecting(UdbScriptLine2DWrapper ray, bool bounded = true)
+    {
+        return AsLine2D().GetIntersection(ray.V1.X, ray.V1.Y, ray.V2.X, ray.V2.Y, out _, bounded);
+    }
+
+    public bool isIntersecting(object a1, object a2, bool bounded = true)
+    {
+        Vector2D start = ToVector2D(a1);
+        Vector2D end = ToVector2D(a2);
+        return AsLine2D().GetIntersection(start.x, start.y, end.x, end.y, out _, bounded);
+    }
+
+    public UdbScriptVector2DWrapper getIntersectionPoint(object a1, object a2, bool bounded = true)
+    {
+        Vector2D start = ToVector2D(a1);
+        Vector2D end = ToVector2D(a2);
+        Line2D line = AsLine2D();
+        line.GetIntersection(start.x, start.y, end.x, end.y, out double uRay, bounded);
+        Vector2D point = line.GetCoordinatesAt(uRay);
+
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public UdbScriptVector2DWrapper getIntersectionPoint(UdbScriptLine2DWrapper ray, bool bounded = true)
+    {
+        Line2D line = AsLine2D();
+        line.GetIntersection(ray.AsLine2D(), out double uRay, bounded);
+        Vector2D point = line.GetCoordinatesAt(uRay);
+
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public double getSideOfLine(object p)
+        => AsLine2D().GetSideOfLine(ToVector2D(p));
+
+    public override string ToString()
+        => AsLine2D().ToString();
+
+    private static Vector2D ToVector2D(object value)
+        => UdbScriptApiConversionModel.GetVector3DFromObject(value);
+}
+
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
 
 public sealed class UdbScriptVectorConversionException : Exception
