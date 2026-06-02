@@ -910,6 +910,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
+        Assert.Equal("map3d.visual-auto-align", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
         Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
@@ -1010,6 +1011,27 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal("Fit Textures", command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl+A")]
+    [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu")]
+    [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu")]
+    [InlineData("map3d.visual-auto-align-to-selection", "Auto-align Textures to Selection (X and Y)", "Menu")]
+    [InlineData("map3d.visual-auto-align-to-selection-x", "Auto-align Textures to Selection (X)", "Menu")]
+    [InlineData("map3d.visual-auto-align-to-selection-y", "Auto-align Textures to Selection (Y)", "Menu")]
+    public void VisualAutoAlignCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);

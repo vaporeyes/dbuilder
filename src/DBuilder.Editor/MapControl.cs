@@ -1705,21 +1705,52 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke("deleted thing");
     }
 
-    // Auto-aligns textures along the targeted wall's run (A = X, Shift+A = Y), undoable.
-    private void AutoAlignTarget3D(bool vertical)
+    // Auto-aligns textures along the targeted wall's run, undoable.
+    private void AutoAlignSide3D(Sidedef side, bool alignX, bool alignY, string editName, string statusScope)
     {
-        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to align textures"); return; }
-        string tex = SidedefTextureAlignment.PrimaryTexture(sd);
+        string tex = SidedefTextureAlignment.PrimaryTexture(side);
         var img = _resources?.GetWallTexture(tex);
-        EditBegun?.Invoke(vertical ? "Auto-align (Y)" : "Auto-align (X)");
-        int n = vertical
-            ? SidedefTextureAlignment.AutoAlignY(sd, img?.Height ?? 0)
-            : SidedefTextureAlignment.AutoAlignX(sd, img?.Width ?? 0);
+        EditBegun?.Invoke(editName);
+        int n = 0;
+        if (alignX) n += SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
+        if (alignY) n += SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {(vertical ? "vertically" : "horizontally")}");
+        Target3DChanged?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {statusScope}");
+    }
+
+    private void AutoAlignTarget3D(bool alignX, bool alignY)
+    {
+        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to align textures"); return; }
+        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
+        AutoAlignSide3D(sd, alignX, alignY, $"Auto-align ({axis})", $"on {axis}");
+    }
+
+    private void AutoAlignSelectedVisualTextures3D(bool alignX, bool alignY)
+    {
+        var targets = SelectedWallTextureParts3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("select wall surfaces to align textures"); return; }
+
+        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
+        var seen = new System.Collections.Generic.HashSet<Sidedef>();
+        int aligned = 0;
+        EditBegun?.Invoke($"Auto-align selected textures ({axis})");
+        foreach ((Sidedef side, _) in targets)
+        {
+            if (!seen.Add(side)) continue;
+            string tex = SidedefTextureAlignment.PrimaryTexture(side);
+            var img = _resources?.GetWallTexture(tex);
+            if (alignX) aligned += SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
+            if (alignY) aligned += SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
+        }
+
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"aligned {aligned} sidedef{(aligned == 1 ? "" : "s")} to selection on {axis}");
     }
 
     // Adjusts the selected (or targeted) sectors' brightness ([ darker / ] brighter), undoable.
@@ -3730,10 +3761,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ApplyTexture3D();
                 return true;
             case "map3d.align-texture-x":
-                AutoAlignTarget3D(vertical: false);
+            case "map3d.visual-auto-align-x":
+                AutoAlignTarget3D(alignX: true, alignY: false);
                 return true;
             case "map3d.align-texture-y":
-                AutoAlignTarget3D(vertical: true);
+            case "map3d.visual-auto-align-y":
+                AutoAlignTarget3D(alignX: false, alignY: true);
+                return true;
+            case "map3d.visual-auto-align":
+                AutoAlignTarget3D(alignX: true, alignY: true);
+                return true;
+            case "map3d.visual-auto-align-to-selection-x":
+                AutoAlignSelectedVisualTextures3D(alignX: true, alignY: false);
+                return true;
+            case "map3d.visual-auto-align-to-selection-y":
+                AutoAlignSelectedVisualTextures3D(alignX: false, alignY: true);
+                return true;
+            case "map3d.visual-auto-align-to-selection":
+                AutoAlignSelectedVisualTextures3D(alignX: true, alignY: true);
                 return true;
             case "map3d.edit-properties":
                 OpenTargetDialog3D();
