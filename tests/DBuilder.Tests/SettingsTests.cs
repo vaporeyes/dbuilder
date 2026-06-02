@@ -142,6 +142,7 @@ public class SettingsTests
                 TestIwad = "/iwad.wad",
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
+                DynamicGridSize = false,
                 DefaultViewMode = 3,
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
@@ -195,6 +196,7 @@ public class SettingsTests
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
+            Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);
             Assert.Equal(3, loaded.NormalizedDefaultViewMode);
             Assert.Equal(250, loaded.StatusHistoryLimit);

@@ -76,6 +76,38 @@ public sealed class GridSetup
         gridSizeFInv = 1.0 / gridSizeF;
     }
 
+    public bool MatchSizeToDisplayScale(double viewportWidth, double viewportHeight, double mapUnitsPerPixel)
+    {
+        double target = DynamicGridSizeForView(viewportWidth, viewportHeight, mapUnitsPerPixel);
+        if (target == GridSizeF) return false;
+        SetGridSize(target);
+        return true;
+    }
+
+    public static double DynamicGridSizeForView(double viewportWidth, double viewportHeight, double mapUnitsPerPixel)
+    {
+        if (!double.IsFinite(viewportWidth) || !double.IsFinite(viewportHeight) || !double.IsFinite(mapUnitsPerPixel))
+            return DefaultGridSize;
+
+        double visibleMinimum = Math.Min(viewportWidth, viewportHeight) * mapUnitsPerPixel;
+        if (!double.IsFinite(visibleMinimum) || visibleMinimum <= 0.0) return MinimumGridSize;
+
+        double targetSizeValue = Math.Ceiling(visibleMinimum / 4.0);
+        if (targetSizeValue > int.MaxValue / 2.0) return MaximumGridSize;
+
+        int targetSize = (int)targetSizeValue;
+        if (targetSize <= 1) return MinimumGridSize;
+
+        targetSize--;
+        targetSize |= targetSize >> 1;
+        targetSize |= targetSize >> 2;
+        targetSize |= targetSize >> 4;
+        targetSize |= targetSize >> 8;
+        targetSize |= targetSize >> 16;
+        targetSize++;
+        return Math.Clamp(targetSize / 8.0, MinimumUdmfGridSize, MaximumGridSize);
+    }
+
     public bool TryStepGridSize(bool larger)
     {
         if (!double.IsFinite(gridSizeF))

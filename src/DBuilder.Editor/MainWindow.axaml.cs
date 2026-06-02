@@ -135,6 +135,7 @@ public partial class MainWindow : Window
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
@@ -2409,6 +2410,15 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleDynamicGridSize(object? sender, RoutedEventArgs e)
+    {
+        SetStatus(MapView.ToggleDynamicGridSize());
+        _settings.DynamicGridSize = MapView.DynamicGridSizeEnabled;
+        SaveSettings();
+        UpdateStatusDetails();
+        MapView.Focus();
+    }
+
     private void OnSmartGridTransform(object? sender, RoutedEventArgs e)
         => ApplyGridTransformCommand(MapView.SmartGridTransform);
 
@@ -2451,6 +2461,8 @@ public partial class MainWindow : Window
     private void ChangeGridSize(bool larger)
     {
         SetStatus(MapView.ChangeGridSize(larger));
+        _settings.DynamicGridSize = MapView.DynamicGridSizeEnabled;
+        SaveSettings();
         MarkMapDirty();
         UpdateStatusDetails();
         MapView.Focus();
@@ -4708,7 +4720,7 @@ public partial class MainWindow : Window
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
-            Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
+            Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleDynamicGridSizeMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
@@ -4791,6 +4803,7 @@ public partial class MainWindow : Window
         SetChecked(ViewModeCeilingsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.CeilingTextures);
         SetChecked(Toggle3DFloorsMenuItem, MapView.Show3DFloors);
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
+        SetChecked(ToggleDynamicGridSizeMenuItem, MapView.DynamicGridSizeEnabled);
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
         SetChecked(ToggleNodesMenuItem, MapView.ShowNodes);
         SetChecked(ImageExampleMenuItem, MapView.ImageExampleMode);

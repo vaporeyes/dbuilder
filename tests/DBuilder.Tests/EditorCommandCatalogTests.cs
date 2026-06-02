@@ -236,6 +236,25 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Fact]
+    public void DynamicGridCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.toggle-dynamic-grid-size");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle Dynamic Grid Size", command.Title);
+        Assert.Equal("Ctrl/Cmd+Alt+G", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal("map2d.toggle-dynamic-grid-size", EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Map2D,
+            "G",
+            accelerator: true,
+            alt: true));
+    }
+
     [Theory]
     [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
     [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]

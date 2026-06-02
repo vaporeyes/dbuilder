@@ -777,6 +777,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
     private readonly GridSetup _grid = new();
     private bool _snapToGrid = true;
+    private bool _dynamicGridSize = true;
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
     private GlVertexBuffer? _blockmapVb;
@@ -2715,6 +2716,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public string ChangeGridSize(bool larger)
     {
+        _dynamicGridSize = false;
         bool changed = _grid.TryStepGridSize(larger);
         string status = changed
             ? $"grid {GridSizeLabel()}"
@@ -2723,6 +2725,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Picked?.Invoke(status);
         if (changed) MarkGeometryDirty();
         return status;
+    }
+
+    public string ToggleDynamicGridSize()
+    {
+        _dynamicGridSize = !_dynamicGridSize;
+        if (_dynamicGridSize) MatchGridSizeToDisplayScale();
+        string status = "Dynamic grid size is " + (_dynamicGridSize ? "ENABLED" : "DISABLED");
+        Picked?.Invoke(status);
+        MarkGeometryDirty();
+        return status;
+    }
+
+    private bool MatchGridSizeToDisplayScale()
+    {
+        if (!_dynamicGridSize || Bounds.Width <= 0 || Bounds.Height <= 0) return false;
+        bool changed = _grid.MatchSizeToDisplayScale(Bounds.Width, Bounds.Height, _zoom);
+        if (changed)
+        {
+            Picked?.Invoke($"grid {GridSizeLabel()}");
+            MarkGeometryDirty();
+        }
+
+        return changed;
     }
 
     public string AlignGridToSelectedLinedef()
@@ -3393,6 +3418,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-grid-snap":
                 ToggleSnapToGrid();
+                return true;
+            case "map2d.toggle-dynamic-grid-size":
+                ToggleDynamicGridSize();
                 return true;
             case "map2d.align-grid-to-linedef":
                 AlignGridToSelectedLinedef();
@@ -4587,6 +4615,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawLinesOnly => _drawLinesOnly;
     public bool DrawCurve => _drawCurve;
     public bool SnapToGridEnabled => _snapToGrid;
+    public bool DynamicGridSizeEnabled
+    {
+        get => _dynamicGridSize;
+        set
+        {
+            _dynamicGridSize = value;
+            if (_dynamicGridSize) MatchGridSizeToDisplayScale();
+        }
+    }
     public event Action? DrawModeChanged;
 
     public void ToggleDrawMode(bool linesOnly = false, bool curve = false)
@@ -4969,6 +5006,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ZoomBy(double factor)
     {
         _zoom = Math.Clamp(_zoom * factor, 0.02, 200);
+        MatchGridSizeToDisplayScale();
         _soundLeakDirty = true;
         _wadAuthorDirty = true;
         RequestNextFrameRendering();

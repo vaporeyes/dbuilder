@@ -182,6 +182,7 @@
                     <MenuItem Header="_Reset Grid Transform" Click="OnResetGridTransform" />
                 </MenuItem>
                 <MenuItem Header="_Snap to Grid" x:Name="ToggleSnapToGridMenuItem" ToggleType="CheckBox" Click="OnToggleSnapToGrid" />
+                <MenuItem Header="_Dynamic Grid Size" x:Name="ToggleDynamicGridSizeMenuItem" ToggleType="CheckBox" Click="OnToggleDynamicGridSize" />
                 <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
                 <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />
                 <MenuItem Header="Show _Blockmap" x:Name="ToggleBlockmapMenuItem" ToggleType="CheckBox" Click="OnToggleBlockmap" />

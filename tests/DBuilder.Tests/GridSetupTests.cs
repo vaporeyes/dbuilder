@@ -171,6 +171,25 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void DynamicGridSizeTargetsPowerOfTwoDisplayDensity()
+    {
+        Assert.Equal(32.0, GridSetup.DynamicGridSizeForView(1024, 768, 1.0));
+        Assert.Equal(4.0, GridSetup.DynamicGridSizeForView(1024, 768, 0.1));
+        Assert.Equal(256.0, GridSetup.DynamicGridSizeForView(1024, 768, 10.0));
+    }
+
+    [Fact]
+    public void MatchSizeToDisplayScaleUpdatesOnlyWhenSizeChanges()
+    {
+        var grid = new GridSetup();
+
+        Assert.False(grid.MatchSizeToDisplayScale(1024, 768, 1.0));
+        Assert.Equal(32.0, grid.GridSizeF);
+        Assert.True(grid.MatchSizeToDisplayScale(1024, 768, 10.0));
+        Assert.Equal(256.0, grid.GridSizeF);
+    }
+
+    [Fact]
     public void GetHigherAndLowerMatchGridSize()
     {
         var grid = new GridSetup();

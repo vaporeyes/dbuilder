@@ -29,6 +29,7 @@ public sealed class Settings
     public string? TestIwad { get; set; }
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
+    public bool DynamicGridSize { get; set; } = true;
     public int? DefaultViewMode { get; set; }
     public bool UseHighlight { get; set; } = true;
     public int? StatusHistoryLimit { get; set; }
