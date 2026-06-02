@@ -376,6 +376,133 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void LinedefWrapperExposesCorePropertiesAndArguments()
+    {
+        var start = new Vertex(new Vector2D(0, 0));
+        var end = new Vertex(new Vector2D(3, 4));
+        var line = new Linedef(start, end);
+        line.SetFlag("blocking", true);
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        wrapper.selected = true;
+        wrapper.marked = true;
+        wrapper.activate = 7;
+        wrapper.action = 80;
+        wrapper.tag = 12;
+        wrapper.args[2] = 99;
+
+        Assert.Same(start, wrapper.start.Vertex);
+        Assert.Same(end, wrapper.end.Vertex);
+        Assert.Equal(new UdbScriptLine2DWrapper(new UdbScriptVector2DWrapper(0, 0), new UdbScriptVector2DWrapper(3, 4)), wrapper.line);
+        Assert.True(line.Selected);
+        Assert.True(line.Marked);
+        Assert.Equal(7, line.Activate);
+        Assert.Equal(80, line.Action);
+        Assert.Equal(12, line.Tag);
+        Assert.Equal(99, line.Args[2]);
+        Assert.Equal(25, wrapper.lengthSq);
+        Assert.Equal(5, wrapper.length);
+        Assert.Equal(0.2, wrapper.lengthInv);
+        Assert.Equal(line.AngleDeg, wrapper.angle);
+        Assert.Equal(line.Angle, wrapper.angleRad);
+        Assert.True(wrapper.flags["blocking"]);
+    }
+
+    [Fact]
+    public void LinedefWrapperExposesGeometryHelpers()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(10, 0)));
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        Assert.Equal(new UdbScriptVector2DWrapper(5, 0), wrapper.getCenterPoint());
+        Assert.Equal(new UdbScriptVector2DWrapper(5, 0), wrapper.nearestOnLine(new object[] { 5.0, 3.0 }));
+        Assert.Equal(9, wrapper.distanceToSq(new object[] { 5.0, 3.0 }, bounded: true));
+        Assert.Equal(3, wrapper.distanceTo(new object[] { 5.0, 3.0 }, bounded: true));
+        Assert.Equal(line.SafeDistanceToSq(new Vector2D(5, 3), bounded: true), wrapper.safeDistanceToSq(new object[] { 5.0, 3.0 }, bounded: true));
+        Assert.Equal(line.SafeDistanceTo(new Vector2D(5, 3), bounded: true), wrapper.safeDistanceTo(new object[] { 5.0, 3.0 }, bounded: true));
+        Assert.Equal(line.SideOfLine(new Vector2D(5, 3)), wrapper.sideOfLine(new object[] { 5.0, 3.0 }));
+        Assert.Equal(line.GetSidePoint(front: true).x, wrapper.getSidePoint(front: true).x);
+        Assert.Equal(line.GetSidePoint(front: true).y, wrapper.getSidePoint(front: true).y);
+    }
+
+    [Fact]
+    public void LinedefWrapperCopiesPropertiesAndClearsFlags()
+    {
+        var source = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(8, 0)))
+        {
+            Selected = true,
+            Marked = true,
+            Groups = 5,
+            Flags = 64,
+            Activate = 2,
+            Action = 80,
+        };
+        source.Tag = 9;
+        source.Args[1] = 3;
+        source.SetFlag("blocking", true);
+        source.Fields["comment"] = "copied";
+        var target = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(0, 8)));
+        var sourceWrapper = new UdbScriptLinedefWrapper(source);
+        var targetWrapper = new UdbScriptLinedefWrapper(target);
+
+        sourceWrapper.copyPropertiesTo(targetWrapper);
+        sourceWrapper.clearFlags();
+
+        Assert.True(target.Selected);
+        Assert.True(target.Marked);
+        Assert.Equal(5, target.Groups);
+        Assert.Equal(64, target.Flags);
+        Assert.Equal(2, target.Activate);
+        Assert.Equal(80, target.Action);
+        Assert.Equal(9, target.Tag);
+        Assert.Equal(3, target.Args[1]);
+        Assert.True(target.IsFlagSet("blocking"));
+        Assert.Equal("copied", target.Fields["comment"]);
+        Assert.Empty(source.UdmfFlags);
+        Assert.Equal(0, source.Flags);
+        Assert.True(sourceWrapper.Equals(new UdbScriptLinedefWrapper(source)));
+        Assert.False(sourceWrapper.Equals(targetWrapper));
+    }
+
+    [Fact]
+    public void LinedefWrapperFlipsVerticesAndSidedefs()
+    {
+        var start = new Vertex(new Vector2D(0, 0));
+        var end = new Vertex(new Vector2D(16, 0));
+        var line = new Linedef(start, end);
+        var front = new Sidedef { IsFront = true };
+        var back = new Sidedef { IsFront = false };
+        line.AttachFront(front);
+        line.AttachBack(back);
+        var wrapper = new UdbScriptLinedefWrapper(line);
+
+        wrapper.flipVertices();
+
+        Assert.Same(end, line.Start);
+        Assert.Same(start, line.End);
+
+        wrapper.flipSidedefs();
+
+        Assert.Same(back, line.Front);
+        Assert.Same(front, line.Back);
+        Assert.True(back.IsFront);
+        Assert.False(front.IsFront);
+    }
+
+    [Fact]
+    public void LinedefWrapperRejectsDisposedLinedefAccess()
+    {
+        var wrapper = new UdbScriptLinedefWrapper(new Linedef
+        {
+            IsDisposed = true,
+        });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.length);
+
+        Assert.Equal("Linedef is disposed, the length member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();

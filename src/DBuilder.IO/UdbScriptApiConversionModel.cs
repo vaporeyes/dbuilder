@@ -809,6 +809,288 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
     }
 }
 
+public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper>
+{
+    private readonly Linedef linedef;
+    private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
+
+    public UdbScriptLinedefWrapper(Linedef linedef)
+    {
+        this.linedef = linedef;
+        elementArgs = new UdbScriptMapElementArgumentsWrapper(linedef);
+    }
+
+    public Linedef Linedef
+        => linedef;
+
+    public UdbScriptVertexWrapper start
+    {
+        get
+        {
+            ThrowIfDisposed("start");
+            return new UdbScriptVertexWrapper(linedef.Start);
+        }
+    }
+
+    public UdbScriptVertexWrapper end
+    {
+        get
+        {
+            ThrowIfDisposed("end");
+            return new UdbScriptVertexWrapper(linedef.End);
+        }
+    }
+
+    public UdbScriptLine2DWrapper line
+    {
+        get
+        {
+            ThrowIfDisposed("line");
+            return new UdbScriptLine2DWrapper(linedef.Line);
+        }
+    }
+
+    public bool selected
+    {
+        get
+        {
+            ThrowIfDisposed("selected");
+            return linedef.Selected;
+        }
+        set
+        {
+            ThrowIfDisposed("selected");
+            linedef.Selected = value;
+        }
+    }
+
+    public bool marked
+    {
+        get
+        {
+            ThrowIfDisposed("marked");
+            return linedef.Marked;
+        }
+        set
+        {
+            ThrowIfDisposed("marked");
+            linedef.Marked = value;
+        }
+    }
+
+    public int activate
+    {
+        get
+        {
+            ThrowIfDisposed("activate");
+            return linedef.Activate;
+        }
+        set
+        {
+            ThrowIfDisposed("activate");
+            linedef.Activate = value;
+        }
+    }
+
+    public IReadOnlyDictionary<string, bool> flags
+    {
+        get
+        {
+            ThrowIfDisposed("flags");
+            return linedef.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    public UdbScriptMapElementArgumentsWrapper args
+    {
+        get
+        {
+            ThrowIfDisposed("args");
+            return elementArgs;
+        }
+    }
+
+    public int action
+    {
+        get
+        {
+            ThrowIfDisposed("action");
+            return linedef.Action;
+        }
+        set
+        {
+            ThrowIfDisposed("action");
+            linedef.Action = value;
+        }
+    }
+
+    public int tag
+    {
+        get
+        {
+            ThrowIfDisposed("tag");
+            return linedef.Tag;
+        }
+        set
+        {
+            ThrowIfDisposed("tag");
+            linedef.Tag = value;
+        }
+    }
+
+    public double lengthSq
+    {
+        get
+        {
+            ThrowIfDisposed("lengthSq");
+            return linedef.LengthSq;
+        }
+    }
+
+    public double length
+    {
+        get
+        {
+            ThrowIfDisposed("length");
+            return linedef.Length;
+        }
+    }
+
+    public double lengthInv
+    {
+        get
+        {
+            ThrowIfDisposed("lengthInv");
+            return linedef.LengthInv;
+        }
+    }
+
+    public int angle
+    {
+        get
+        {
+            ThrowIfDisposed("angle");
+            return linedef.AngleDeg;
+        }
+    }
+
+    public double angleRad
+    {
+        get
+        {
+            ThrowIfDisposed("angleRad");
+            return linedef.Angle;
+        }
+    }
+
+    public void copyPropertiesTo(UdbScriptLinedefWrapper wrapper)
+    {
+        ThrowIfDisposed("copyPropertiesTo");
+        linedef.CopyPropertiesTo(wrapper.linedef);
+    }
+
+    public void clearFlags()
+    {
+        ThrowIfDisposed("clearFlags");
+        linedef.UdmfFlags.Clear();
+        linedef.Flags = 0;
+    }
+
+    public void flipVertices()
+    {
+        ThrowIfDisposed("flipVertices");
+        linedef.FlipVertices();
+    }
+
+    public void flipSidedefs()
+    {
+        ThrowIfDisposed("flipSidedefs");
+        linedef.FlipSidedefs();
+    }
+
+    public void flip()
+    {
+        ThrowIfDisposed("flip");
+        linedef.FlipVertices();
+        linedef.FlipSidedefs();
+    }
+
+    public UdbScriptVector2DWrapper getSidePoint(bool front)
+    {
+        ThrowIfDisposed("getSidePoint");
+        Vector2D point = linedef.GetSidePoint(front);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public UdbScriptVector2DWrapper getCenterPoint()
+    {
+        ThrowIfDisposed("getCenterPoint");
+        Vector2D point = linedef.GetCenterPoint();
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
+    public UdbScriptVector2DWrapper nearestOnLine(object pos)
+    {
+        ThrowIfDisposed("nearestOnLine");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        Vector2D nearest = linedef.NearestOnLine(new Vector2D(point.x, point.y));
+        return new UdbScriptVector2DWrapper(nearest.x, nearest.y);
+    }
+
+    public double safeDistanceToSq(object pos, bool bounded)
+    {
+        ThrowIfDisposed("safeDistanceToSq");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return linedef.SafeDistanceToSq(new Vector2D(point.x, point.y), bounded);
+    }
+
+    public double safeDistanceTo(object pos, bool bounded)
+    {
+        ThrowIfDisposed("safeDistanceTo");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return linedef.SafeDistanceTo(new Vector2D(point.x, point.y), bounded);
+    }
+
+    public double distanceToSq(object pos, bool bounded)
+    {
+        ThrowIfDisposed("distanceToSq");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return linedef.DistanceToSq(new Vector2D(point.x, point.y), bounded);
+    }
+
+    public double distanceTo(object pos, bool bounded)
+    {
+        ThrowIfDisposed("distanceTo");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return linedef.DistanceTo(new Vector2D(point.x, point.y), bounded);
+    }
+
+    public double sideOfLine(object pos)
+    {
+        ThrowIfDisposed("sideOfLine");
+        Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
+        return linedef.SideOfLine(new Vector2D(point.x, point.y));
+    }
+
+    public bool Equals(UdbScriptLinedefWrapper? other)
+        => other is not null && ReferenceEquals(linedef, other.linedef);
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptLinedefWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => linedef.GetHashCode();
+
+    public override string ToString()
+        => linedef.ToString() ?? string.Empty;
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (linedef.IsDisposed)
+            throw new InvalidOperationException("Linedef is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
 public sealed class UdbScriptMapElementArgumentsWrapper : IEnumerable<int>
 {
     private readonly IHasArguments element;
