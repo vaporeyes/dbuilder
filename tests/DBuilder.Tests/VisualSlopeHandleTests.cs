@@ -377,6 +377,109 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void SlopeHandlePairUsesHighlightedHandleAndSmartPivotWhenNoneSelectedLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true);
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair(
+            [highlighted, smartPivot],
+            highlighted);
+
+        Assert.Null(result.WarningMessage);
+        Assert.Equal(2, result.Handles.Count);
+        Assert.Same(highlighted, result.Handles[0]);
+        Assert.Same(smartPivot, result.Handles[1]);
+    }
+
+    [Fact]
+    public void SlopeHandlePairUsesSelectedAndHighlightedLineHandleLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true);
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair(
+            [selected, highlighted],
+            highlighted);
+
+        Assert.Null(result.WarningMessage);
+        Assert.Equal(2, result.Handles.Count);
+        Assert.Same(selected, result.Handles[0]);
+        Assert.Same(highlighted, result.Handles[1]);
+    }
+
+    [Fact]
+    public void SlopeHandlePairUsesSelectedHandleSmartPivotWhenHighlightedIsMissingLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true);
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair([selected, smartPivot]);
+
+        Assert.Null(result.WarningMessage);
+        Assert.Equal(2, result.Handles.Count);
+        Assert.Same(selected, result.Handles[0]);
+        Assert.Same(smartPivot, result.Handles[1]);
+    }
+
+    [Fact]
+    public void SlopeHandlePairWarnsWhenSmartPivotIsMissingLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle vertex = VisualSlopeHandles.CreateVertex(sector.Sidedefs[1].Line.Start, sector, level);
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair([selected, vertex]);
+
+        Assert.Equal(VisualSlopeHandles.MissingSmartPivotHandleMessage, result.WarningMessage);
+        VisualSlopeHandle handle = Assert.Single(result.Handles);
+        Assert.Same(selected, handle);
+    }
+
+    [Fact]
+    public void SlopeHandlePairWarnsWhenTooManyLineHandlesAreSelectedLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle first = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle second = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { Selected = true };
+        VisualSlopeHandle third = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Selected = true };
+        VisualSlopeHandle selectedVertex = VisualSlopeHandles.CreateVertex(sector.Sidedefs[3].Line.Start, sector, level) with { Selected = true };
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair([first, second, third, selectedVertex]);
+
+        Assert.Equal(VisualSlopeHandles.TooManySlopeHandlesMessage, result.WarningMessage);
+        Assert.Equal(3, result.Handles.Count);
+        Assert.DoesNotContain(selectedVertex, result.Handles);
+    }
+
+    [Fact]
+    public void SlopeHandlePairWarnsWhenNoLineHandlesAreSelectedOrHighlightedLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle vertex = VisualSlopeHandles.CreateVertex(sector.Sidedefs[0].Line.Start, sector, level) with { Selected = true };
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair([vertex]);
+
+        Assert.Equal(VisualSlopeHandles.NoSlopeHandlesMessage, result.WarningMessage);
+        Assert.Empty(result.Handles);
+    }
+
+    [Fact]
     public void LineHandleHeightChangeAppliesFloorSlopeAroundPivotHandle()
     {
         var map = new MapSet();

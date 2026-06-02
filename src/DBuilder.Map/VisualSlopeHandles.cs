@@ -108,6 +108,10 @@ public sealed record VisualSlopeBetweenHandlesApplyResult(
     int ChangedLevels,
     string StatusMessage);
 
+public sealed record VisualSlopeHandlePairResult(
+    IReadOnlyList<VisualSlopeHandle> Handles,
+    string? WarningMessage = null);
+
 public static class VisualSlopeHandles
 {
     public const uint White = 0xffffffff;
@@ -118,6 +122,9 @@ public static class VisualSlopeHandles
     public const string UnsupportedHandleKindMessage = "Slope between handles requires sidedef slope handles.";
     public const string CannotSelectPivotMessage = "It is not allowed to mark pivot slope handles as selected.";
     public const string CannotPivotSelectedMessage = "It is not allowed to mark selected slope handles as pivot slope handles.";
+    public const string MissingSmartPivotHandleMessage = "Couldn't find a smart pivot handle.";
+    public const string TooManySlopeHandlesMessage = "Too many slope handles selected.";
+    public const string NoSlopeHandlesMessage = "No slope handles selected or highlighted.";
 
     public static VisualSlopeHandleMesh LineMesh { get; } = new(
     [
@@ -254,6 +261,65 @@ public static class VisualSlopeHandles
         }
 
         return new VisualSlopeTargetStateResult(updated, used, pickedHandle, smartPivotHandle);
+    }
+
+    public static VisualSlopeHandlePairResult GetSlopeHandlePair(
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? highlightedHandle = null,
+        bool useOppositeSmartPivotHandle = false,
+        IEnumerable<VisualSlopeLevel>? selectedLevels = null)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        VisualSlopeHandle[] all = handles.ToArray();
+        var pair = all
+            .Where(handle => handle.Selected && handle.Kind == VisualSlopeHandleKind.Line && handle.Sidedef != null)
+            .ToList();
+        bool highlightedLine = highlightedHandle?.Kind == VisualSlopeHandleKind.Line && highlightedHandle.Sidedef != null;
+
+        if (pair.Count == 0 && highlightedLine)
+        {
+            VisualSlopeHandle? smartPivot = GetSmartSidedefPivot(
+                highlightedHandle!,
+                all,
+                useOppositeSmartPivotHandle,
+                selectedLevels);
+            if (smartPivot == null)
+                return new VisualSlopeHandlePairResult(pair, MissingSmartPivotHandleMessage);
+
+            pair.Add(highlightedHandle!);
+            pair.Add(smartPivot);
+        }
+        else if (pair.Count == 1)
+        {
+            if (highlightedLine && !ReferenceEquals(highlightedHandle, pair[0]))
+            {
+                pair.Add(highlightedHandle!);
+            }
+            else
+            {
+                VisualSlopeHandle smartPivotSource = highlightedLine ? highlightedHandle! : pair[0];
+                VisualSlopeHandle? smartPivot = GetSmartSidedefPivot(
+                    smartPivotSource,
+                    all,
+                    useOppositeSmartPivotHandle,
+                    selectedLevels);
+                if (smartPivot == null)
+                    return new VisualSlopeHandlePairResult(pair, MissingSmartPivotHandleMessage);
+
+                pair.Add(smartPivot);
+            }
+        }
+        else if (pair.Count > 2)
+        {
+            return new VisualSlopeHandlePairResult(pair, TooManySlopeHandlesMessage);
+        }
+        else if (pair.Count != 2)
+        {
+            return new VisualSlopeHandlePairResult(pair, NoSlopeHandlesMessage);
+        }
+
+        return new VisualSlopeHandlePairResult(pair);
     }
 
     public static Line2D GetSidedefBaseLine(Sidedef sidedef, VisualSlopeLevel level, bool up)
