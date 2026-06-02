@@ -34,6 +34,12 @@ public class StatusHistoryTests
     }
 
     [Fact]
+    public void StatusBarFormatsCoordinatesAsWholeMapUnits()
+    {
+        Assert.Equal("13 , -8", StatusBarModel.CoordinateText(12.6, -7.5));
+    }
+
+    [Fact]
     public void AddStoresMessagesNewestFirst()
     {
         var timestamp = new DateTimeOffset(2026, 5, 29, 12, 0, 0, TimeSpan.Zero);

@@ -105,7 +105,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         ShowActivated = true;
         _autosaveTimer.Tick += (_, _) => WriteAutosaveIfPending();
-        MapView.CursorWorldMoved += w => CoordText.Text = $"{w.x:0} , {w.y:0}";
+        MapView.CursorWorldMoved += w => CoordText.Text = StatusBarModel.CoordinateText(w.x, w.y);
         MapView.Picked += _ => { UpdateInfo(); UpdateStatusDetails(); };
         MapView.EditBegun += desc => CreateUndo(desc);
         MapView.Changed += UpdateInfo;

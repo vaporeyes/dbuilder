@@ -37,4 +37,7 @@ public static class StatusBarModel
             : gridSize.ToString("0.###", CultureInfo.InvariantCulture);
         return $"{(snapToGrid ? "Snap" : "Free")}: {formatted}";
     }
+
+    public static string CoordinateText(double x, double y)
+        => $"{x.ToString("0", CultureInfo.InvariantCulture)} , {y.ToString("0", CultureInfo.InvariantCulture)}";
 }
