@@ -275,6 +275,30 @@ public class UdbScriptApiConversionModelTests
         Assert.True(first != third);
     }
 
+    [Fact]
+    public void GameConfigurationWrapperExposesUdbConfigurationProperties()
+    {
+        GameConfiguration config = GameConfiguration.FromText("""
+game = "Doom";
+engine = "GZDoom";
+localsidedeftextureoffsets = true;
+""");
+
+        var wrapper = new UdbScriptGameConfigurationWrapper(config);
+
+        Assert.Equal("GZDoom", wrapper.engineName);
+        Assert.True(wrapper.hasLocalSidedefTextureOffsets);
+    }
+
+    [Fact]
+    public void GameConfigurationWrapperUsesParsedDefaultValues()
+    {
+        var wrapper = new UdbScriptGameConfigurationWrapper(GameConfiguration.FromText(""));
+
+        Assert.Equal("", wrapper.engineName);
+        Assert.False(wrapper.hasLocalSidedefTextureOffsets);
+    }
+
     [Theory]
     [InlineData(UniversalType.Float, "1.5", 1.5)]
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]

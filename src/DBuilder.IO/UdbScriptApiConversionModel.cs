@@ -678,6 +678,22 @@ public sealed class UdbScriptPlaneWrapper
         => !(a == b);
 }
 
+public sealed class UdbScriptGameConfigurationWrapper
+{
+    private readonly GameConfiguration configuration;
+
+    public UdbScriptGameConfigurationWrapper(GameConfiguration configuration)
+    {
+        this.configuration = configuration;
+    }
+
+    public string engineName
+        => configuration.EngineName;
+
+    public bool hasLocalSidedefTextureOffsets
+        => configuration.UseLocalSidedefTextureOffsets;
+}
+
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
 
 public sealed class UdbScriptVectorConversionException : Exception
