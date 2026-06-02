@@ -153,6 +153,35 @@ model Repeated
         Assert.Equal(new ModeldefSurfaceSkin(0, 2, "second_alt.png"), def.SurfaceSkins.Single());
     }
 
+    [Fact]
+    public void DuplicateFramesAreSkippedLikeUdb()
+    {
+        const string text = @"
+model RepeatedFrames
+{
+    Model 0 ""thing.md3""
+    Model 1 ""other.md3""
+    FrameIndex POSS A 0 12
+    FrameIndex POSS A 0 12
+    FrameIndex POSS A 1 12
+    Frame POSS B 0 ""Run01""
+    Frame POSS B 0 ""Run01""
+    Frame POSS B 0 ""Run02""
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.Equal(
+            new[]
+            {
+                new ModeldefFrame("POSS", "A", 0, 12),
+                new ModeldefFrame("POSS", "A", 1, 12),
+                new ModeldefFrame("POSS", "B", 0, 0, "Run01"),
+                new ModeldefFrame("POSS", "B", 0, 0, "Run02"),
+            },
+            def.Frames);
+    }
+
     [Theory]
     [InlineData("bad.txt")]
     [InlineData("bad")]

@@ -267,7 +267,7 @@ public static class ModeldefParser
         if (sprite.Length != 4 || frame.Length != 1) return false;
         if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
         if (!ReadInt(t, ref i, out int frameIndex)) return false;
-        def.Frames.Add(new ModeldefFrame(sprite, frame, modelIndex, frameIndex));
+        AddFrame(def.Frames, new ModeldefFrame(sprite, frame, modelIndex, frameIndex));
         return true;
     }
 
@@ -281,8 +281,17 @@ public static class ModeldefParser
         if (i >= t.Count) return false;
         string modelFrame = t[i++];
         if (string.IsNullOrWhiteSpace(modelFrame)) return false;
-        def.Frames.Add(new ModeldefFrame(sprite, frame, modelIndex, 0, modelFrame));
+        AddFrame(def.Frames, new ModeldefFrame(sprite, frame, modelIndex, 0, modelFrame));
         return true;
+    }
+
+    private static void AddFrame(List<ModeldefFrame> frames, ModeldefFrame frame)
+    {
+        foreach (ModeldefFrame existing in frames)
+            if (existing == frame)
+                return;
+
+        frames.Add(frame);
     }
 
     private static bool ParseVector(List<string> t, ref int i, out ModeldefVector vector)
