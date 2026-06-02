@@ -66,16 +66,16 @@ public sealed class GridSetupDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        ResultSize = Math.Max(GridSetup.MinimumGridSize, ParseDouble(_size, ResultSize));
-        ResultOriginX = ParseDouble(_originX, ResultOriginX);
-        ResultOriginY = ParseDouble(_originY, ResultOriginY);
-        ResultRotation = ParseDouble(_rotation, ResultRotation);
+        ResultSize = GridSetupDialogModel.ParseGridSize(_size.Text, ResultSize);
+        ResultOriginX = GridSetupDialogModel.ParseDouble(_originX.Text, ResultOriginX);
+        ResultOriginY = GridSetupDialogModel.ParseDouble(_originY.Text, ResultOriginY);
+        ResultRotation = GridSetupDialogModel.ParseDouble(_rotation.Text, ResultRotation);
         (ResultBackground, ResultBackgroundSource) = GridSetupDialogModel.BackgroundSelection(
             _showBackground.IsChecked == true,
             _background.Text,
             ComboNumber(_backgroundSource, ResultBackgroundSource));
-        ResultBackgroundX = ParseInt(_backgroundX, ResultBackgroundX);
-        ResultBackgroundY = ParseInt(_backgroundY, ResultBackgroundY);
+        ResultBackgroundX = GridSetupDialogModel.ParseInt(_backgroundX.Text, ResultBackgroundX);
+        ResultBackgroundY = GridSetupDialogModel.ParseInt(_backgroundY.Text, ResultBackgroundY);
         ResultBackgroundScaleX = GridSetupDialogModel.ParseBackgroundScalePercent(_backgroundScaleX.Text, ResultBackgroundScaleX);
         ResultBackgroundScaleY = GridSetupDialogModel.ParseBackgroundScalePercent(_backgroundScaleY.Text, ResultBackgroundScaleY);
     }

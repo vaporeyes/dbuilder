@@ -110,6 +110,26 @@ public class GridSetupTests
         Assert.Equal(GridSetup.MinimumBackgroundScale, GridSetupDialogModel.ParseBackgroundScalePercent("0", 1.0));
         Assert.Equal(GridSetup.MaximumBackgroundScale, GridSetupDialogModel.ParseBackgroundScalePercent("25000", 1.0));
         Assert.Equal(1.5, GridSetupDialogModel.ParseBackgroundScalePercent("not a number", 1.5));
+        Assert.Equal(1.5, GridSetupDialogModel.ParseBackgroundScalePercent("NaN", 1.5));
+    }
+
+    [Fact]
+    public void DialogModelParsesGridSizeWithMinimumAndFallback()
+    {
+        Assert.Equal(64.0, GridSetupDialogModel.ParseGridSize("64", 32.0));
+        Assert.Equal(GridSetup.MinimumGridSize, GridSetupDialogModel.ParseGridSize("0", 32.0));
+        Assert.Equal(32.0, GridSetupDialogModel.ParseGridSize("not a number", 32.0));
+        Assert.Equal(32.0, GridSetupDialogModel.ParseGridSize("Infinity", 32.0));
+    }
+
+    [Fact]
+    public void DialogModelParsesNumericFieldsWithFallbacks()
+    {
+        Assert.Equal(-12.5, GridSetupDialogModel.ParseDouble("-12.5", 1.0));
+        Assert.Equal(1.25, GridSetupDialogModel.ParseDouble("not a number", 1.25));
+        Assert.Equal(1.25, GridSetupDialogModel.ParseDouble("NaN", 1.25));
+        Assert.Equal(-8, GridSetupDialogModel.ParseInt("-8", 4));
+        Assert.Equal(4, GridSetupDialogModel.ParseInt("not a number", 4));
     }
 
     [Fact]
