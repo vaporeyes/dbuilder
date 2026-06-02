@@ -326,4 +326,48 @@ public class LinedefFlipTests
         Assert.Same(front, line.Front);
         Assert.Null(line.Back);
     }
+
+    [Fact]
+    public void AlignSelectedLinedefsFlipsLinesToFaceDominantSector()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var sector = map.AddSector();
+        var line = map.AddLinedef(a, b);
+        var back = map.AddSidedef(line, false, sector);
+        line.Selected = true;
+        map.BuildIndexes();
+
+        int count = map.AlignSelectedLinedefs();
+        map.BuildIndexes();
+
+        Assert.Equal(1, count);
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+        Assert.Same(back, line.Front);
+        Assert.Null(line.Back);
+        Assert.False(line.Selected);
+    }
+
+    [Fact]
+    public void AlignLinedefsOfSectorsFlipsBackFacingSectorLines()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var sector = map.AddSector();
+        var line = map.AddLinedef(a, b);
+        var back = map.AddSidedef(line, false, sector);
+        map.BuildIndexes();
+
+        int count = map.AlignLinedefsOfSectors([sector]);
+        map.BuildIndexes();
+
+        Assert.Equal(1, count);
+        Assert.Same(b, line.Start);
+        Assert.Same(a, line.End);
+        Assert.Same(back, line.Front);
+        Assert.Null(line.Back);
+    }
 }

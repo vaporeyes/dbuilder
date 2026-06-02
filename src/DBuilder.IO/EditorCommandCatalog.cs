@@ -164,6 +164,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.flip-sidedefs", "Flip sidedefs", "Shift+F", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.select-single-sided", "Select Single-sided", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.select-double-sided", "Select Double-sided", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.align-linedefs", "Align Linedefs", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.join-sectors", "Join Sectors", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.merge-sectors", "Merge Sectors", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.align-textures-x", "Align textures X", "A", EditorCommandScope.Map2D),

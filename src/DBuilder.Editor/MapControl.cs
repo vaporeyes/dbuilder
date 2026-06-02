@@ -3422,6 +3422,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.select-double-sided":
                 KeepSelectedLinedefsBySidedness(doubleSided: true);
                 return true;
+            case "map2d.align-linedefs":
+                AlignLinedefs();
+                return true;
             case "map2d.join-sectors":
                 JoinOrMergeSelectedSectors(merge: false);
                 return true;
@@ -4519,6 +4522,59 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         string kind = doubleSided ? "double-sided" : "single-sided";
         string status = "Selected only " + kind + " linedefs (" + kept + ")";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string AlignLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+
+        if (_editMode == EditMode.Sectors)
+            return AlignSectorLinedefs();
+
+        List<Linedef> selected = _map.GetSelectedLinedefs();
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        {
+            highlighted.Selected = true;
+            selected.Add(highlighted);
+        }
+
+        if (selected.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(selected.Count == 1 ? "Align linedef" : "Align " + selected.Count + " linedefs");
+        int count = _map.AlignSelectedLinedefs();
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = count == 1 ? "Aligned a linedef." : "Aligned " + count + " linedefs.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    private string AlignSectorLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(sectors.Count == 1 ? "Align sector linedefs" : "Align linedefs of " + sectors.Count + " sectors");
+        int count = _map.AlignLinedefsOfSectors(sectors);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = count == 1 ? "Aligned sector linedefs." : "Aligned linedefs of " + count + " sectors.";
         Picked?.Invoke(status);
         return status;
     }

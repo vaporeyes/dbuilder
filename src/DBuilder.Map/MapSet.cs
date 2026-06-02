@@ -1271,6 +1271,44 @@ public class MapSet : IDisposable
         return kept;
     }
 
+    public int AlignSelectedLinedefs()
+    {
+        List<Linedef> selected = GetSelectedLinedefs();
+        if (selected.Count == 0) return 0;
+
+        var sectors = new Dictionary<Sector, int>(ReferenceEqualityComparer.Instance);
+        foreach (var line in selected)
+        {
+            CountSector(line.Front?.Sector);
+            CountSector(line.Back?.Sector);
+        }
+
+        List<Sector> orderedSectors = sectors
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => pair.Key)
+            .ToList();
+        Tools.FlipSectorLinedefs(orderedSectors, selectedLinesOnly: true);
+
+        if (selected.Count == 1)
+            selected[0].Selected = false;
+
+        return selected.Count;
+
+        void CountSector(Sector? sector)
+        {
+            if (sector == null) return;
+            sectors.TryGetValue(sector, out int count);
+            sectors[sector] = count + 1;
+        }
+    }
+
+    public int AlignLinedefsOfSectors(IReadOnlyList<Sector> sectors)
+    {
+        if (sectors.Count == 0) return 0;
+        Tools.FlipSectorLinedefs(sectors.ToList(), selectedLinesOnly: false);
+        return sectors.Count;
+    }
+
     public void SelectAllVertices() => SetSelected(Vertices, true);
     public void SelectAllLinedefs() => SetSelected(Linedefs, true);
     public void SelectAllSidedefs() => SetSelected(Sidedefs, true);

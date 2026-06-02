@@ -320,6 +320,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void AlignLinedefsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.align-linedefs");
+
+        Assert.NotNull(command);
+        Assert.Equal("Align Linedefs", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void ApplyLightFogFlagCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.apply-lightfog-flag");
