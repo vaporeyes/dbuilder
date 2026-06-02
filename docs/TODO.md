@@ -1022,6 +1022,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
   - [x] Apply UDB-style fullbright and UDMF surface-lighting tints to visual 3D floors and ceilings.
+  - [x] Apply visual 3D surface-lighting tints to resolved 3D floor top and bottom faces.
 
 ## Model Loading
 
@@ -1054,7 +1055,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve model skin images through UDB-style defined texture, basename texture, and sprite fallbacks.
   - [x] Preserve UDB's `Skin` override behavior over `SurfaceSkin` display parts.
 - [x] Port model resource discovery from MODELDEF.
-- [ ] Integrate models into 3D thing rendering.
+- [x] Integrate models into 3D thing rendering.
 
 ## Script Editing And Compilers
 

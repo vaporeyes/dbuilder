@@ -3099,7 +3099,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 foreach (var f in floors)
                 {
                     if (f.Alpha == 0 || f.Top <= f.Bottom) continue;
-                    int tc = Gray(f.Brightness, 1.0), bc = Gray(f.Brightness, 0.85);
+                    int tc = GlowingFlatDisplay.SurfaceRenderTint(
+                        f.Brightness,
+                        GlowingFlatDisplay.SurfaceLighting(f.Control, GlowingFlatSurface.Ceiling, gldefs),
+                        _fullBrightness,
+                        1.0);
+                    int bc = GlowingFlatDisplay.SurfaceRenderTint(
+                        f.Brightness,
+                        GlowingFlatDisplay.SurfaceLighting(f.Control, GlowingFlatSurface.Floor, gldefs),
+                        _fullBrightness,
+                        0.85);
                     var topL = Bucket(floorB, GetFlatTexture(f.TopFlat) != null ? f.TopFlat : "");
                     var botL = Bucket(ceilB, GetFlatTexture(f.BottomFlat) != null ? f.BottomFlat : "");
                     for (int i = 0; i < tri.Vertices.Count; i++)
