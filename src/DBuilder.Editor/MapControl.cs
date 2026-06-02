@@ -4912,6 +4912,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.point-thing-to-cursor":
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
+            case "map2d.bridge-mode":
+                RunBridgeCommand();
+                return true;
             case "map2d.mode-vertices":
                 SetEditMode(EditMode.Vertices);
                 return true;
@@ -5933,6 +5936,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private Vertex MaterializeVertex(Vec2D point)
         => _map!.NearestVertex(point, 0.01) ?? _map.AddVertex(point);
+
+    private void RunBridgeCommand()
+    {
+        string status = BuildBridgeFromSelectedLinedefs();
+        if (!status.StartsWith("built bridge", StringComparison.Ordinal)) Picked?.Invoke(status);
+    }
 
     public string BuildBridgeFromSelectedLinedefs()
     {

@@ -925,6 +925,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-rectangle", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, shift: true));
         Assert.Equal("map2d.draw-ellipse", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true, alt: true));
         Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
+        Assert.Equal("map2d.bridge-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "B", accelerator: true));
         Assert.Equal("map2d.increase-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true));
         Assert.Equal("map2d.decrease-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
         Assert.Equal("map2d.increase-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
@@ -971,6 +972,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void BridgeModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.bridge-mode");
+
+        Assert.NotNull(command);
+        Assert.Equal("Bridge Mode", command.Title);
+        Assert.Equal("Ctrl/Cmd+B", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
     }
 
@@ -1660,6 +1676,7 @@ public class EditorCommandCatalogTests
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.remove-draw-point"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.remove-first-draw-point"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.finish-draw"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.bridge-mode"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }
 
