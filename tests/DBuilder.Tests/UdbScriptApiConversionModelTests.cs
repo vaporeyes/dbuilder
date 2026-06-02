@@ -1505,6 +1505,66 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperDrawLinesCreatesOpenPath()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        bool success = wrapper.drawLines(new object[]
+        {
+            new object[] { 0.0, 0.0 },
+            new UdbScriptVector2DWrapper(64, 0),
+            new object[] { 64.0, 64.0 },
+        });
+
+        Assert.True(success);
+        Assert.Equal(3, map.Vertices.Count);
+        Assert.Equal(2, map.Linedefs.Count);
+        Assert.Empty(map.Sectors);
+        Assert.All(map.Vertices, vertex => Assert.True(vertex.Marked));
+        Assert.All(map.Linedefs, line => Assert.True(line.Marked));
+    }
+
+    [Fact]
+    public void MapWrapperDrawLinesCreatesClosedSectorLoop()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        bool success = wrapper.drawLines(new object[]
+        {
+            new object[] { 0.0, 0.0 },
+            new object[] { 64.0, 0.0 },
+            new object[] { 64.0, 64.0 },
+            new object[] { 0.0, 64.0 },
+            new object[] { 0.0, 0.0 },
+        });
+
+        Sector sector = Assert.Single(map.Sectors);
+        Assert.True(success);
+        Assert.Equal(4, map.Vertices.Count);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Equal(4, sector.Sidedefs.Count);
+        Assert.True(sector.Marked);
+        Assert.All(map.Vertices, vertex => Assert.True(vertex.Marked));
+        Assert.All(map.Linedefs, line => Assert.True(line.Marked));
+    }
+
+    [Fact]
+    public void MapWrapperDrawLinesRejectsInvalidInput()
+    {
+        var wrapper = new UdbScriptMapWrapper(new MapSet());
+
+        InvalidOperationException nonArray = Assert.Throws<InvalidOperationException>(
+            () => wrapper.drawLines("bad"));
+        InvalidOperationException tooShort = Assert.Throws<InvalidOperationException>(
+            () => wrapper.drawLines(Array.Empty<object>()));
+
+        Assert.Equal("Data must be supplied as an array", nonArray.Message);
+        Assert.Equal("Array must have at least 2 values", tooShort.Message);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();

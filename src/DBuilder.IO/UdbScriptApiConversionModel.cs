@@ -2659,6 +2659,36 @@ public sealed class UdbScriptMapWrapper
         return nearest == null ? null : new UdbScriptSidedefWrapper(nearest, map);
     }
 
+    public bool drawLines(object data)
+    {
+        ThrowIfDisposed("drawLines");
+        if (data is not Array array)
+            throw new InvalidOperationException("Data must be supplied as an array");
+
+        var points = new List<Vector2D>(array.Length);
+        foreach (object? item in array)
+        {
+            if (item == null)
+                throw new InvalidOperationException(UdbScriptApiConversionModel.VectorConversionFailureMessage);
+
+            points.Add(ToVector2D(item));
+        }
+
+        if (points.Count < 2)
+            throw new InvalidOperationException("Array must have at least 2 values");
+
+        map.ClearAllMarked(false);
+        bool closed = points.Count > 2 && points[0] == points[^1];
+        List<Vertex> vertices = AddDrawnVertices(points, closed);
+        bool success = closed
+            ? AddDrawnSectorLoop(vertices)
+            : AddDrawnLinedefs(vertices);
+
+        map.SnapAllToAccuracy(3);
+        map.BuildIndexes();
+        return success;
+    }
+
     public void clearAllMarks(bool mark = false)
     {
         ThrowIfDisposed("clearAllMarks");
@@ -2956,6 +2986,63 @@ public sealed class UdbScriptMapWrapper
     {
         Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
         return new Vector2D(vector.x, vector.y);
+    }
+
+    private List<Vertex> AddDrawnVertices(IReadOnlyList<Vector2D> points, bool closed)
+    {
+        int count = closed ? points.Count - 1 : points.Count;
+        var vertices = new List<Vertex>(count);
+        for (int i = 0; i < count; i++)
+        {
+            Vertex vertex = map.AddVertex(points[i]);
+            vertex.Marked = true;
+            vertices.Add(vertex);
+        }
+
+        return vertices;
+    }
+
+    private bool AddDrawnLinedefs(IReadOnlyList<Vertex> vertices)
+    {
+        if (vertices.Count < 2) return false;
+
+        for (int i = 1; i < vertices.Count; i++)
+        {
+            Linedef line = map.AddLinedef(vertices[i - 1], vertices[i]);
+            line.Marked = true;
+            line.ApplySidedFlags();
+        }
+
+        return true;
+    }
+
+    private bool AddDrawnSectorLoop(IReadOnlyList<Vertex> vertices)
+    {
+        Sector? sector = Tools.MakeSectorFromLoop(map, vertices);
+        if (sector == null) return false;
+
+        sector.Marked = true;
+        MarkDrawnLoopLinedefs(vertices);
+
+        return true;
+    }
+
+    private void MarkDrawnLoopLinedefs(IReadOnlyList<Vertex> vertices)
+    {
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Vertex start = vertices[i];
+            Vertex end = vertices[(i + 1) % vertices.Count];
+            foreach (Linedef line in map.Linedefs)
+            {
+                bool matchesForward = ReferenceEquals(line.Start, start) && ReferenceEquals(line.End, end);
+                bool matchesBackward = ReferenceEquals(line.Start, end) && ReferenceEquals(line.End, start);
+                if (!matchesForward && !matchesBackward) continue;
+
+                line.Marked = true;
+                break;
+            }
+        }
     }
 }
 
