@@ -26,6 +26,7 @@ public sealed record VisualPickingTexture(
 public sealed record VisualPickingOptions(
     Func<Thing, (double radius, double height)>? ThingSize = null,
     Func<string, VisualPickingTexture?>? WallTexture = null,
+    Func<string, VisualPickingTexture?>? FlatTexture = null,
     bool AlphaBasedTextureHighlighting = false);
 
 public static class VisualPicking
@@ -67,6 +68,17 @@ public static class VisualPicking
             if (s.Sidedefs.Count == 0) continue;
             TryPlane(map, blockMap, origin, dir, s, VisualHitKind.Floor, ref best, ref bestDist);
             TryPlane(map, blockMap, origin, dir, s, VisualHitKind.Ceiling, ref best, ref bestDist);
+        }
+
+        foreach ((Sector sector, List<ThreeDFloor> floors) in ThreeDFloors.Resolve(map))
+        {
+            if (sector.Sidedefs.Count == 0) continue;
+            foreach (ThreeDFloor floor in floors)
+            {
+                if (floor.Alpha == 0 || floor.Top <= floor.Bottom) continue;
+                TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: true, options, ref best, ref bestDist);
+                TryThreeDFloorPlane(map, blockMap, origin, dir, sector, floor, top: false, options, ref best, ref bestDist);
+            }
         }
 
         // Sidedef walls as vertical quads along each linedef.
@@ -180,6 +192,42 @@ public static class VisualPicking
         best = new VisualHit(kind, t, new Vector3D(xy.x, xy.y, zHit), s, null, floor, zHit, zHit);
     }
 
+    private static void TryThreeDFloorPlane(
+        MapSet map,
+        BlockMap? blockMap,
+        Vector3D o,
+        Vector3D d,
+        Sector sector,
+        ThreeDFloor floor,
+        bool top,
+        VisualPickingOptions options,
+        ref VisualHit? best,
+        ref double bestDist)
+    {
+        double z = top ? floor.Top : floor.Bottom;
+        if (top && o.z < z) return;
+        if (!top && o.z > z) return;
+        if (Math.Abs(d.z) < Eps) return;
+
+        double t = (z - o.z) / d.z;
+        if (t <= Eps || t >= bestDist) return;
+
+        var xy = new Vector2D(o.x + d.x * t, o.y + d.y * t);
+        if (!ReferenceEquals(SectorAt(map, blockMap, xy), sector)) return;
+        if (!ThreeDFloorPixelIsOpaque(floor, xy, top, options)) return;
+
+        bestDist = t;
+        best = new VisualHit(
+            top ? VisualHitKind.Floor : VisualHitKind.Ceiling,
+            t,
+            new Vector3D(xy.x, xy.y, z),
+            sector,
+            null,
+            top,
+            z,
+            z);
+    }
+
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
@@ -234,6 +282,37 @@ public static class VisualPicking
         return texture.AlphaTest(Clamp(ox, 0, texture.Width - 1), pixelY);
     }
 
+    private static bool ThreeDFloorPixelIsOpaque(ThreeDFloor floor, Vector2D position, bool top, VisualPickingOptions options)
+    {
+        if (!options.AlphaBasedTextureHighlighting || options.FlatTexture == null) return true;
+
+        string textureName = top ? floor.TopFlat : floor.BottomFlat;
+        if (!IsSet(textureName)) return false;
+
+        VisualPickingTexture? texture = options.FlatTexture(textureName);
+        if (texture == null || texture.Width <= 0 || texture.Height <= 0) return true;
+
+        Sector control = floor.Control;
+        string suffix = top ? "ceiling" : "floor";
+        double rotate = DegToRad(control.GetFloatField("rotation" + suffix, 0.0));
+        var offset = new Vector2D(
+            control.GetFloatField("xpanning" + suffix, 0.0),
+            control.GetFloatField("ypanning" + suffix, 0.0));
+        var scale = new Vector2D(
+            NonZero(control.GetFloatField("xscale" + suffix, 1.0)),
+            NonZero(control.GetFloatField("yscale" + suffix, 1.0)));
+
+        Vector2D coord = position.GetRotated(rotate);
+        coord.y = -coord.y;
+        coord = new Vector2D(
+            (coord.x + offset.x) * scale.x / NonZero(texture.ScaleX),
+            (coord.y + offset.y) * scale.y / NonZero(texture.ScaleY));
+
+        int ox = Mod((int)Math.Floor(coord.x), texture.Width);
+        int oy = Mod((int)Math.Floor(coord.y), texture.Height);
+        return texture.AlphaTest(Clamp(ox, 0, texture.Width - 1), Clamp(oy, 0, texture.Height - 1));
+    }
+
     private static bool IsSet(string? texture)
         => !string.IsNullOrWhiteSpace(texture) && texture != "-";
 
@@ -248,4 +327,7 @@ public static class VisualPicking
 
     private static int Clamp(int value, int min, int max)
         => value < min ? min : value > max ? max : value;
+
+    private static double DegToRad(double degrees)
+        => degrees * Math.PI / 180.0;
 }

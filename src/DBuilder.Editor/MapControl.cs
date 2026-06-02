@@ -1693,6 +1693,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             new VisualPickingOptions(
                 ThingSize: ThingSize3D,
                 WallTexture: VisualPickingWallTexture,
+                FlatTexture: VisualPickingFlatTexture,
                 AlphaBasedTextureHighlighting: _alphaBasedTextureHighlighting));
 
         string desc = _target3D == null ? "" : _target3D.Kind switch
@@ -1708,6 +1709,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private VisualPickingTexture? VisualPickingWallTexture(string name)
     {
         ImageData? image = _resources?.GetWallTexture(name);
+        return VisualPickingTextureFromImage(image);
+    }
+
+    private VisualPickingTexture? VisualPickingFlatTexture(string name)
+    {
+        ImageData? image = _resources?.GetFlat(name);
+        return VisualPickingTextureFromImage(image);
+    }
+
+    private static VisualPickingTexture? VisualPickingTextureFromImage(ImageData? image)
+    {
         if (image == null) return null;
 
         return new VisualPickingTexture(

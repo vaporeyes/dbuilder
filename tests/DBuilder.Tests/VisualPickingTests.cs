@@ -201,6 +201,60 @@ public class VisualPickingTests
     }
 
     [Fact]
+    public void ResolvedThreeDFloorTopCanBePickedBeforeSectorFloor()
+    {
+        var (map, target, _) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 100), new Vector3D(0, 0, -1));
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Same(target, hit.Sector);
+        Assert.Equal(64, hit.Point.z, 6);
+        Assert.Equal(36, hit.Distance, 6);
+    }
+
+    [Fact]
+    public void AlphaBasedThreeDFloorTopPickingRejectsTransparentPixels()
+    {
+        var (map, target, _) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+        var options = new VisualPickingOptions(
+            FlatTexture: name => name == "MIDFLAT"
+                ? new VisualPickingTexture(128, 128, (x, y) => false)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 100), new Vector3D(0, 0, -1), options);
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Same(target, hit.Sector);
+        Assert.Equal(0, hit.Point.z, 6);
+        Assert.Equal(100, hit.Distance, 6);
+    }
+
+    [Fact]
+    public void AlphaBasedThreeDFloorTopPickingAcceptsOpaquePixels()
+    {
+        var (map, target, _) = Room();
+        AddThreeDFloor(map, target, bottom: 32, top: 64, flat: "MIDFLAT");
+        var options = new VisualPickingOptions(
+            FlatTexture: name => name == "MIDFLAT"
+                ? new VisualPickingTexture(128, 128, (x, y) => x == 50 && y == 78)
+                : null,
+            AlphaBasedTextureHighlighting: true);
+
+        VisualHit? hit = VisualPicking.Raycast(map, new Vector3D(50, 50, 100), new Vector3D(0, 0, -1), options);
+
+        Assert.NotNull(hit);
+        Assert.Equal(VisualHitKind.Floor, hit!.Kind);
+        Assert.Same(target, hit.Sector);
+        Assert.Equal(64, hit.Point.z, 6);
+    }
+
+    [Fact]
     public void SlopedFloorIsHitAtItsSlopedHeight()
     {
         var (map, s, _) = Room();
@@ -289,5 +343,26 @@ public class VisualPickingTests
         Linedef line = map.AddLinedef(start, end);
         map.AddSidedef(line, true, sector);
         return line;
+    }
+
+    private static void AddThreeDFloor(MapSet map, Sector target, int bottom, int top, string flat)
+    {
+        target.Tag = 7;
+
+        var control = map.AddSector();
+        control.FloorHeight = bottom;
+        control.CeilHeight = top;
+        control.FloorTexture = flat;
+        control.CeilTexture = flat;
+
+        var start = map.AddVertex(new Vector2D(200, 0));
+        var end = map.AddVertex(new Vector2D(264, 0));
+        Linedef line = map.AddLinedef(start, end);
+        Sidedef side = map.AddSidedef(line, true, control);
+        side.MidTexture = "SIDE";
+        line.Action = ThreeDFloors.Sector3DFloorAction;
+        line.Args[0] = 7;
+        line.Args[3] = 255;
+        map.BuildIndexes();
     }
 }
