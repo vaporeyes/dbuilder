@@ -100,6 +100,46 @@ public sealed class GzModelRenderPlannerTests
         Assert.Equal(30.0f, transformed.Z, precision: 5);
     }
 
+    [Fact]
+    public void PreparesTransformedVerticesForRenderDeviceUpload()
+    {
+        WorldVertex vertex = new()
+        {
+            x = 1,
+            y = 0,
+            z = 0,
+            c = unchecked((int)0xffffffff),
+            u = 0.25f,
+            v = 0.75f,
+            nx = 1,
+            ny = 0,
+            nz = 0,
+        };
+        Matrix4x4 world = Matrix4x4.CreateScale(2, 3, 4) * Matrix4x4.CreateRotationZ(MathF.PI / 2.0f) * Matrix4x4.CreateTranslation(10, 20, 30);
+        var batch = new GzModelRenderBatch(
+            new GzModelMesh(new[] { vertex }, new[] { 0, 0, 0 }),
+            "skins/model.png",
+            world,
+            unchecked((int)0xfffff080),
+            TriangleCount: 1);
+
+        GzPreparedModelRenderBatch prepared = GzModelRenderPlanner.PrepareVertices(batch);
+
+        WorldVertex transformed = Assert.Single(prepared.Vertices);
+        Assert.Equal(10.0f, transformed.x, precision: 5);
+        Assert.Equal(22.0f, transformed.y, precision: 5);
+        Assert.Equal(30.0f, transformed.z, precision: 5);
+        Assert.Equal(unchecked((int)0xfffff080), transformed.c);
+        Assert.Equal(0.25f, transformed.u);
+        Assert.Equal(0.75f, transformed.v);
+        Assert.Equal(0.0f, transformed.nx, precision: 5);
+        Assert.Equal(1.0f, transformed.ny, precision: 5);
+        Assert.Equal(0.0f, transformed.nz, precision: 5);
+        Assert.Equal(new[] { 0, 0, 0 }, prepared.Indices);
+        Assert.Equal("skins/model.png", prepared.TexturePath);
+        Assert.Equal(1, prepared.TriangleCount);
+    }
+
     private static GzModelMesh Mesh(params WorldVertex[] vertices)
         => new(vertices, new[] { 0, 1, 2 });
 }
