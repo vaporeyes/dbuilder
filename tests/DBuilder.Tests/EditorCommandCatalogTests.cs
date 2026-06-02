@@ -1381,18 +1381,28 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
-    public void VisualModelRenderingCommandMatchesUdbActionSurface()
+    public void VisualModelsRenderingCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.toggle-models-rendering");
+
+        Assert.NotNull(command);
+        Assert.Equal("Toggle models rendering", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualModelRenderingLegacyCommandRemainsAvailable()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-model-rendering");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Model Rendering Mode", command.Title);
-        Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
-        Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
-        Assert.False(command.Repeat);
     }
 
     [Theory]

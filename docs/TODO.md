@@ -1029,6 +1029,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Share MODELDEF, VOXELDEF, sprite, and marker display-source planning for 2D and 3D billboard fallback rendering.
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
+  - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.

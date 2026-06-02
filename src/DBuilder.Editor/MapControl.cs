@@ -5037,6 +5037,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.toggle-alpha-based-texture-highlighting":
                 ToggleAlphaBasedTextureHighlighting();
                 return true;
+            case "map3d.toggle-models-rendering":
             case "map3d.toggle-model-rendering":
                 CycleModelRenderMode();
                 Target3DChanged?.Invoke($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(_modelRenderMode)}");
