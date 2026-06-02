@@ -1,5 +1,5 @@
 // ABOUTME: Plans UDB-style thing model render eligibility and transform matrices.
-// ABOUTME: Keeps MODELDEF and thing transform math testable before live mesh drawing is wired.
+// ABOUTME: Keeps MODELDEF, voxel, and thing transform math testable for live mesh drawing.
 
 using System.Numerics;
 
@@ -104,6 +104,18 @@ public static class ThingModelRenderPlanner
             thingScale,
             thingRotation,
             display.UseRotationCenter);
+    }
+
+    public static Matrix4x4 PlanVoxel3D(ThingModelRenderInput input)
+    {
+        Matrix4x4 thingScale = BuildThingScale(input);
+        Matrix4x4 thingRotation = BuildThingRotation(input);
+        Matrix4x4 position = Matrix4x4.CreateTranslation(
+            (float)input.PositionX,
+            (float)input.PositionY,
+            (float)input.PositionZ);
+
+        return thingScale * thingRotation * position;
     }
 
     private static Matrix4x4 BuildModeldefTransform(ThingModelDisplay display, double invertedVerticalViewStretch)

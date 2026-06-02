@@ -1,5 +1,5 @@
 // ABOUTME: Verifies UDB-style thing model render gating and transform planning.
-// ABOUTME: Pins MODELDEF offsets, scales, thing scale, and rotation center behavior before mesh drawing is wired.
+// ABOUTME: Pins MODELDEF offsets, scales, thing scale, voxel transforms, and rotation center behavior.
 
 using System.Numerics;
 using DBuilder.IO;
@@ -104,6 +104,25 @@ public sealed class ThingModelRenderPlannerTests
 
         Assert.True(plan.UsesRotationCenter);
         AssertVector(new Vector3(1.0f, -1.0f, 0.0f), origin);
+    }
+
+    [Fact]
+    public void PlanVoxel3DAppliesThingScaleRotationAndPosition()
+    {
+        ThingModelRenderInput input = new(
+            PositionX: 10.0,
+            PositionY: 20.0,
+            PositionZ: 30.0,
+            ScaleX: 2.0,
+            ScaleY: 3.0,
+            ActorScaleWidth: 4.0,
+            ActorScaleHeight: 5.0,
+            AngleRadians: MathF.PI / 2.0f);
+
+        Matrix4x4 transform = ThingModelRenderPlanner.PlanVoxel3D(input);
+
+        Vector3 transformed = Vector3.Transform(new Vector3(1.0f, 0.0f, 1.0f), transform);
+        AssertVector(new Vector3(10.0f, 28.0f, 45.0f), transformed);
     }
 
     private static ThingModelDisplay Display(

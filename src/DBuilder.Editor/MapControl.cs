@@ -86,7 +86,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _wallTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _spriteTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _modelTextures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.Dictionary<string, DBTexture?> _voxelTextures = new(StringComparer.OrdinalIgnoreCase);
     private readonly System.Collections.Generic.Dictionary<string, GzLoadedModel?> _loadedModelCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Generic.Dictionary<string, GzLoadedModel?> _loadedVoxelCache = new(StringComparer.OrdinalIgnoreCase);
     private DBTexture? _imageExampleTex;
     private GlVertexBuffer? _imageExampleVb;
     // 2D thing sprite quads, bucketed by sprite lump (alpha-blended). Things without a resolvable sprite
@@ -145,7 +147,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public ResourceManager? MapResources
     {
         get => _resources;
-        set { _resources = value; _loadedModelCache.Clear(); _invalidateTextures = true; _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
+        set { _resources = value; _loadedModelCache.Clear(); _loadedVoxelCache.Clear(); _invalidateTextures = true; _geometryDirty = true; _geo3DDirty = true; RequestNextFrameRendering(); }
     }
 
     private GameConfiguration? _gameConfig;
@@ -1500,7 +1502,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _spriteTextures.Clear();
         foreach (var t in _modelTextures.Values) t?.Dispose();
         _modelTextures.Clear();
+        foreach (var t in _voxelTextures.Values) t?.Dispose();
+        _voxelTextures.Clear();
         _loadedModelCache.Clear();
+        _loadedVoxelCache.Clear();
         _placeholderTex?.Dispose();
         _linesVb?.Dispose();
         _thingDirVb?.Dispose();
@@ -1539,6 +1544,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _spriteTextures.Clear();
         foreach (var t in _modelTextures.Values) t?.Dispose();
         _modelTextures.Clear();
+        foreach (var t in _voxelTextures.Values) t?.Dispose();
+        _voxelTextures.Clear();
+        _loadedVoxelCache.Clear();
     }
 
     // Returns the cached GL texture for a wall texture, uploading it from MapResources on first use.
@@ -1654,6 +1662,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
             if (DrawModelThing3D(t, thingInfo)) continue;
+            if (DrawVoxelThing3D(t, thingInfo)) continue;
 
             ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(
                 thingInfo,
@@ -1734,6 +1743,47 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform.World3D, tint);
         if (batches.Count == 0) return false;
 
+        return DrawPreparedModelBatches(batches, GetModelTexture, TextureAddress.Wrap);
+    }
+
+    private bool DrawVoxelThing3D(Thing thing, ThingTypeInfo? thingInfo)
+    {
+        if (_device is null || _resources is null || _model3DVb is null || _model3DIb is null) return false;
+        if (!ThingModelRenderPlanner.ShouldRender3D(_modelRenderMode, thing.Selected)) return false;
+        if (thingInfo is null) return false;
+
+        string? voxelName = ThingDisplayResolver.ResolveVoxel(thingInfo.Sprite, _resources);
+        if (voxelName is null) return false;
+        GzLoadedModel? model = LoadVoxelDisplay(voxelName);
+        if (model is null || model.Meshes.Count == 0) return false;
+
+        double floorZ = (_blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position))?.GetFloorZ(thing.Position) ?? 0;
+        Matrix4x4 transform = ThingModelRenderPlanner.PlanVoxel3D(new ThingModelRenderInput(
+            PositionX: thing.Position.x,
+            PositionY: thing.Position.y,
+            PositionZ: floorZ + thing.Height,
+            ScaleX: thing.ScaleX,
+            ScaleY: thing.ScaleY,
+            ActorScaleWidth: thingInfo.SpriteScale,
+            ActorScaleHeight: thingInfo.SpriteScale,
+            AngleRadians: thing.Angle * Math.PI / 180.0,
+            PitchRadians: thing.Pitch * Math.PI / 180.0,
+            RollRadians: thing.Roll * Math.PI / 180.0,
+            Selected: thing.Selected));
+        int tint = thing.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+        IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform, tint);
+        if (batches.Count == 0) return false;
+
+        return DrawPreparedModelBatches(batches, GetVoxelTexture, TextureAddress.Clamp);
+    }
+
+    private bool DrawPreparedModelBatches(
+        IReadOnlyList<GzModelRenderBatch> batches,
+        Func<string?, DBTexture?> textureResolver,
+        TextureAddress textureAddress)
+    {
+        if (_device is null || _model3DVb is null || _model3DIb is null) return false;
+
         _device.SetAlphaBlendEnable(true);
         _device.SetSourceBlend(Blend.SourceAlpha);
         _device.SetDestinationBlend(Blend.InverseSourceAlpha);
@@ -1744,14 +1794,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             GzPreparedModelRenderBatch prepared = GzModelRenderPlanner.PrepareVertices(batch);
             if (prepared.Vertices.Count == 0 || prepared.Indices.Count == 0) continue;
-            DBTexture? texture = GetModelTexture(prepared.TexturePath);
+            DBTexture? texture = textureResolver(prepared.TexturePath);
             _device.SetBufferData(_model3DVb, prepared.Vertices.ToArray());
             _device.SetBufferData(_model3DIb, prepared.Indices.ToArray());
             _device.SetVertexBuffer(_model3DVb);
             _device.SetIndexBuffer(_model3DIb);
             _device.SetTexture(0, texture ?? _placeholderTex);
             _device.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
-            _device.SetSamplerState(TextureAddress.Wrap);
+            _device.SetSamplerState(textureAddress);
             _device.SetUniform("useTexture", texture is null ? 0f : 1f);
             _device.DrawIndexed(DBPrimitiveType.TriangleList, 0, prepared.TriangleCount);
             drew = true;
@@ -1762,6 +1812,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _device.SetUniform("useTexture", 0f);
         _device.SetTexture(0, _placeholderTex);
         return drew;
+    }
+
+    private DBTexture? GetVoxelTexture(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+        return _voxelTextures.TryGetValue(name, out DBTexture? cached) ? cached : null;
     }
 
     private GzLoadedModel? LoadModelDisplay(ThingModelDisplay display)
@@ -1785,6 +1841,74 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _loadedModelCache[key] = loaded.Meshes.Count == 0 ? null : loaded;
         return _loadedModelCache[key];
+    }
+
+    private GzLoadedModel? LoadVoxelDisplay(string voxelName)
+    {
+        if (_loadedVoxelCache.TryGetValue(voxelName, out GzLoadedModel? cached)) return cached;
+        byte[]? bytes = _resources?.GetVoxelBytes(voxelName);
+        if (bytes is null)
+        {
+            _loadedVoxelCache[voxelName] = null;
+            return null;
+        }
+
+        KvxModelLoadResult result = KvxModelLoader.Load(bytes, CurrentVoxelPalette());
+        if (!string.IsNullOrEmpty(result.Errors) || result.Meshes.Count == 0)
+        {
+            _loadedVoxelCache[voxelName] = null;
+            return null;
+        }
+
+        _voxelTextures[voxelName] = UploadVoxelTexture(result);
+        var loaded = new GzLoadedModel(
+            result.Meshes,
+            Enumerable.Repeat<string?>(voxelName, result.Meshes.Count).ToArray(),
+            Array.Empty<string>(),
+            result.Bounds,
+            result.Radius);
+        _loadedVoxelCache[voxelName] = loaded;
+        return loaded;
+    }
+
+    private IReadOnlyList<PixelColor>? CurrentVoxelPalette()
+    {
+        DoomPalette? palette = _resources?.Palette;
+        if (palette is null) return null;
+
+        var colors = new PixelColor[palette.Colors.Length];
+        for (int i = 0; i < colors.Length; i++)
+            colors[i] = PixelColor.FromArgb(unchecked((int)palette.Colors[i]));
+        return colors;
+    }
+
+    private DBTexture? UploadVoxelTexture(KvxModelLoadResult result)
+    {
+        if (_gl is null || result.TextureWidth <= 0 || result.TextureHeight <= 0 || result.TexturePixels.Count == 0)
+            return null;
+
+        DBTexture texture = new(_gl);
+        texture.SetPixelsRgba8(result.TextureWidth, result.TextureHeight, ToRgba8(result.TexturePixels), generateMipmaps: false);
+        _device?.SetTexture(0, texture);
+        _device?.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None);
+        _device?.SetSamplerState(TextureAddress.Clamp);
+        return texture;
+    }
+
+    private static byte[] ToRgba8(IReadOnlyList<PixelColor> pixels)
+    {
+        var rgba = new byte[pixels.Count * 4];
+        for (int i = 0; i < pixels.Count; i++)
+        {
+            PixelColor pixel = pixels[i];
+            int offset = i * 4;
+            rgba[offset] = pixel.R;
+            rgba[offset + 1] = pixel.G;
+            rgba[offset + 2] = pixel.B;
+            rgba[offset + 3] = pixel.A;
+        }
+
+        return rgba;
     }
 
     private static string ModelDisplayCacheKey(ThingModelDisplay display)
