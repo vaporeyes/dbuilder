@@ -899,6 +899,46 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesTagAllocationHelpers()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0))).Tag = 1;
+        map.AddSector().Tag = 3;
+        map.AddThing(new Vector2D(32, 32), 3001).Tag = 4;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        Assert.Equal(2, wrapper.getNewTag());
+        Assert.Equal(5, wrapper.getNewTag(new[] { 2 }));
+        Assert.Equal(new[] { 2, 5, 6 }, wrapper.getMultipleNewTags(3));
+    }
+
+    [Fact]
+    public void MapWrapperExposesNearestElementHelpers()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(100, 0));
+        var otherVertex = map.AddVertex(new Vector2D(400, 400));
+        var line = map.AddLinedef(start, end);
+        var sector = map.AddSector();
+        var front = map.AddSidedef(line, isFront: true, sector);
+        var back = map.AddSidedef(line, isFront: false, sector);
+        var nearThing = map.AddThing(new Vector2D(8, -8), 3001);
+        map.AddThing(new Vector2D(300, 300), 3002);
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        Assert.Same(start, wrapper.nearestVertex(new object[] { 3.0, -2.0 })?.Vertex);
+        Assert.Same(otherVertex, wrapper.nearestVertex(new object[] { 390.0, 390.0 })?.Vertex);
+        Assert.Same(line, wrapper.nearestLinedef(new UdbScriptVector2DWrapper(50, 12))?.Linedef);
+        Assert.Same(nearThing, wrapper.nearestThing(new UdbScriptVector3DWrapper(9, -9, 64))?.Thing);
+        Assert.Same(front, wrapper.nearestSidedef(new object[] { 50.0, -8.0 })?.Sidedef);
+        Assert.Same(back, wrapper.nearestSidedef(new object[] { 50.0, 8.0 })?.Sidedef);
+        Assert.Null(wrapper.nearestVertex(new object[] { 390.0, 390.0 }, maxrange: 4));
+        Assert.Null(wrapper.nearestLinedef(new object[] { 50.0, 20.0 }, maxrange: 4));
+        Assert.Null(wrapper.nearestThing(new object[] { 50.0, 50.0 }, maxrange: 4));
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();

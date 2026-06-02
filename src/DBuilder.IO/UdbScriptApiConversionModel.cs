@@ -1954,10 +1954,65 @@ public sealed class UdbScriptMapWrapper
             .ToArray();
     }
 
+    public int getNewTag(int[]? usedtags = null)
+    {
+        ThrowIfDisposed("getNewTag");
+        return usedtags == null ? map.GetNewTag() : map.GetNewTag(usedtags);
+    }
+
+    public int[] getMultipleNewTags(int count)
+    {
+        ThrowIfDisposed("getMultipleNewTags");
+        return map.GetMultipleNewTags(count).ToArray();
+    }
+
+    public UdbScriptLinedefWrapper? nearestLinedef(object pos, double maxrange = double.NaN)
+    {
+        ThrowIfDisposed("nearestLinedef");
+        Vector2D point = ToVector2D(pos);
+        Linedef? nearest = double.IsNaN(maxrange)
+            ? map.NearestLinedef(point)
+            : map.NearestLinedefRange(point, maxrange);
+
+        return nearest == null ? null : new UdbScriptLinedefWrapper(nearest);
+    }
+
+    public UdbScriptThingWrapper? nearestThing(object pos, double maxrange = double.NaN)
+    {
+        ThrowIfDisposed("nearestThing");
+        Vector2D point = ToVector2D(pos);
+        Thing? nearest = map.NearestThingSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
+
+        return nearest == null ? null : new UdbScriptThingWrapper(nearest);
+    }
+
+    public UdbScriptVertexWrapper? nearestVertex(object pos, double maxrange = double.NaN)
+    {
+        ThrowIfDisposed("nearestVertex");
+        Vector2D point = ToVector2D(pos);
+        Vertex? nearest = map.NearestVertexSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
+
+        return nearest == null ? null : new UdbScriptVertexWrapper(nearest);
+    }
+
+    public UdbScriptSidedefWrapper? nearestSidedef(object pos)
+    {
+        ThrowIfDisposed("nearestSidedef");
+        Sidedef? nearest = map.NearestSidedef(ToVector2D(pos));
+
+        return nearest == null ? null : new UdbScriptSidedefWrapper(nearest);
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)
             throw new InvalidOperationException("Map is disposed, the " + member + " member can not be accessed.");
+    }
+
+    private static Vector2D ToVector2D(object value)
+    {
+        Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
+        return new Vector2D(vector.x, vector.y);
     }
 }
 
