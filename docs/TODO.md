@@ -1002,6 +1002,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add a view toggle for resolved 3D floor slabs.
 - [ ] Port slopes visual editing.
 - [ ] Port model and voxel display.
+  - [x] Add UDB-style thing display-source resolution for MODELDEF models, VOXELDEF voxels, sprites, and marker fallbacks.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.

@@ -3137,7 +3137,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                string? sprite = _gameConfig?.GetThing(t.Type)?.Sprite;
+                ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
+                ThingDisplaySource display = ThingDisplayResolver.Resolve(thingInfo, _resources);
+                string? sprite = display.Kind is ThingDisplayKind.Sprite or ThingDisplayKind.Voxel or ThingDisplayKind.Model
+                    ? display.SpriteName
+                    : thingInfo?.Sprite;
                 if (!string.IsNullOrEmpty(sprite) && GetSpriteTexture(sprite!) is { } && _resources?.GetSprite(sprite!) is { } img)
                 {
                     int sc = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
