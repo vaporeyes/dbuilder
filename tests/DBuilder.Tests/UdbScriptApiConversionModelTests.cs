@@ -83,6 +83,18 @@ public class UdbScriptApiConversionModelTests
     }
 
     [Fact]
+    public void Vector2DWrapperSupportsUdbVectorLikeEquality()
+    {
+        var vector = new UdbScriptVector2DWrapper(6, 3);
+
+        Assert.True(vector == new object[] { 6.0, 3.0 });
+        Assert.True(new object[] { 6.0, 3.0 } == vector);
+        Assert.False(vector == new object[] { 6.0, 4.0 });
+        Assert.True(vector != new object[] { 6.0, 4.0 });
+        Assert.True((object)new UdbScriptVector3DWrapper(6, 3, 9) == vector);
+    }
+
+    [Fact]
     public void Vector2DWrapperExposesUdbGeometryHelpers()
     {
         var vector = new UdbScriptVector2DWrapper(3, 4);
@@ -120,6 +132,18 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(new UdbScriptVector3DWrapper(4, 1, 0), 2.0 - vector);
         Assert.Equal(new UdbScriptVector3DWrapper(3, 1.5, 1), 2.0 / vector);
         Assert.Equal("6, 3, 2x", vector + "x");
+    }
+
+    [Fact]
+    public void Vector3DWrapperSupportsUdbVectorLikeEquality()
+    {
+        var vector = new UdbScriptVector3DWrapper(6, 3, 2);
+
+        Assert.True(vector == new object[] { 6.0, 3.0, 2.0 });
+        Assert.True(new object[] { 6.0, 3.0, 2.0 } == vector);
+        Assert.False(vector == new object[] { 6.0, 3.0, 1.0 });
+        Assert.True(vector != new object[] { 6.0, 3.0, 1.0 });
+        Assert.True((object)new UdbScriptVector2DWrapper(6, 3) != vector);
     }
 
     [Fact]

@@ -106,6 +106,30 @@ public sealed record UdbScriptVector2DWrapper(double X, double Y)
         return new UdbScriptVector2DWrapper(vector.x / rhs.X, vector.y / rhs.Y);
     }
 
+    public static bool operator ==(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        Vector2D vector = ToVector2D(rhs);
+        return lhs.X == vector.x && lhs.Y == vector.y;
+    }
+
+    public static bool operator ==(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        Vector2D vector = ToVector2D(lhs);
+        return vector.x == rhs.X && vector.y == rhs.Y;
+    }
+
+    public static bool operator !=(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        Vector2D vector = ToVector2D(rhs);
+        return lhs.X != vector.x || lhs.Y != vector.y;
+    }
+
+    public static bool operator !=(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        Vector2D vector = ToVector2D(lhs);
+        return vector.x != rhs.X || vector.y != rhs.Y;
+    }
+
     public static double dotProduct(UdbScriptVector2DWrapper a, UdbScriptVector2DWrapper b)
         => a.X * b.X + a.Y * b.Y;
 
@@ -314,6 +338,30 @@ public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z)
 
         Vector3D vector = ToVector3D(lhs);
         return new UdbScriptVector3DWrapper(vector.x / rhs.X, vector.y / rhs.Y, vector.z / rhs.Z);
+    }
+
+    public static bool operator ==(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        Vector3D vector = ToVector3D(rhs);
+        return lhs.X == vector.x && lhs.Y == vector.y && lhs.Z == vector.z;
+    }
+
+    public static bool operator ==(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        Vector3D vector = ToVector3D(lhs);
+        return vector.x == rhs.X && vector.y == rhs.Y && vector.z == rhs.Z;
+    }
+
+    public static bool operator !=(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        Vector3D vector = ToVector3D(rhs);
+        return lhs.X != vector.x || lhs.Y != vector.y || lhs.Z != vector.z;
+    }
+
+    public static bool operator !=(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        Vector3D vector = ToVector3D(lhs);
+        return vector.x != rhs.X || vector.y != rhs.Y || vector.z != rhs.Z;
     }
 
     public static double dotProduct(UdbScriptVector3DWrapper a, UdbScriptVector3DWrapper b)
