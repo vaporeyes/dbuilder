@@ -15,6 +15,10 @@ public enum CommentsPanelMode
     Things,
 }
 
+public sealed record CommentsPanelPersistedSettings(
+    bool FilterMode,
+    bool ClickSelects);
+
 public enum CommentedElementKind
 {
     Vertex,
@@ -70,8 +74,26 @@ public static class CommentsPanelModel
 {
     public const string DockerId = "commentsdockerpanel";
     public const string DockerTitle = "Comments";
+    public const string FilterModeSettingKey = "filtermode";
+    public const string ClickSelectsSettingKey = "clickselects";
     public const string CommentField = "comment";
     public static readonly string[] CommentTypePrefixes = ["", "[i]", "[?]", "[!]", "[:]"];
+
+    public static CommentsPanelPersistedSettings ReadSettings(IReadOnlyDictionary<string, object?> settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new CommentsPanelPersistedSettings(
+            ReadBool(settings, FilterModeSettingKey, false),
+            ReadBool(settings, ClickSelectsSettingKey, false));
+    }
+
+    public static IReadOnlyDictionary<string, object> WriteSettings(CommentsPanelPersistedSettings settings)
+        => new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [FilterModeSettingKey] = settings.FilterMode,
+            [ClickSelectsSettingKey] = settings.ClickSelects,
+        };
 
     public static IReadOnlyList<CommentGroup> BuildGroups(MapSet map, CommentsPanelMode filterMode = CommentsPanelMode.All)
     {
@@ -441,5 +463,17 @@ public static class CommentsPanelModel
     {
         if (ReferenceEquals(element, highlighted)) return CommentIconColorRole.Highlight;
         return element.Selected ? CommentIconColorRole.Selection : CommentIconColorRole.White;
+    }
+
+    private static bool ReadBool(IReadOnlyDictionary<string, object?> settings, string key, bool fallback)
+    {
+        if (!settings.TryGetValue(key, out object? value) || value == null) return fallback;
+
+        return value switch
+        {
+            bool typed => typed,
+            string text when bool.TryParse(text, out bool parsed) => parsed,
+            _ => fallback,
+        };
     }
 }

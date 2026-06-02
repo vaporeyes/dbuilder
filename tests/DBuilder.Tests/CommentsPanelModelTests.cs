@@ -10,6 +10,29 @@ namespace DBuilder.Tests;
 public sealed class CommentsPanelModelTests
 {
     [Fact]
+    public void SettingsUseUdbPluginKeysAndFalseDefaults()
+    {
+        CommentsPanelPersistedSettings defaults = CommentsPanelModel.ReadSettings(
+            new Dictionary<string, object?>());
+        CommentsPanelPersistedSettings configured = CommentsPanelModel.ReadSettings(
+            new Dictionary<string, object?>
+            {
+                [CommentsPanelModel.FilterModeSettingKey] = "true",
+                [CommentsPanelModel.ClickSelectsSettingKey] = true,
+            });
+        IReadOnlyDictionary<string, object> written = CommentsPanelModel.WriteSettings(configured);
+
+        Assert.False(defaults.FilterMode);
+        Assert.False(defaults.ClickSelects);
+        Assert.True(configured.FilterMode);
+        Assert.True(configured.ClickSelects);
+        Assert.Equal("filtermode", CommentsPanelModel.FilterModeSettingKey);
+        Assert.Equal("clickselects", CommentsPanelModel.ClickSelectsSettingKey);
+        Assert.True((bool)written[CommentsPanelModel.FilterModeSettingKey]);
+        Assert.True((bool)written[CommentsPanelModel.ClickSelectsSettingKey]);
+    }
+
+    [Fact]
     public void BuildGroupsSeparatesSameCommentByObjectGroup()
     {
         var map = new MapSet();
