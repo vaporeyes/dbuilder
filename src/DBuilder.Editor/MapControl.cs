@@ -3383,6 +3383,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.make-sector":
                 MakeSectorAtCursor();
                 return true;
+            case "map2d.split-line":
+                SplitLinedefs();
+                return true;
             case "map2d.insert":
                 InsertAtCursor();
                 return true;
@@ -3895,24 +3898,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        // Right button up: split the nearest line if it was a click, otherwise it was a pan (do nothing).
+        // Right button up: split selected lines or the nearest line if it was a click.
         if (e.InitialPressMouseButton == MouseButton.Right && _rightPressed)
         {
             bool wasDrag = _rightDragging;
             _rightPressed = false; _rightDragging = false;
             if (!wasDrag && !_drawMode && _map != null)
-            {
-                var world = ToWorld(pos);
-                var l = _map.NearestLinedef(world, 8 * _zoom);
-                if (l != null)
-                {
-                    EditBegun?.Invoke("Split linedef");
-                    _map.SplitLinedef(l, NearestPointOnLine(l, world));
-                    _map.BuildIndexes();
-                    MarkGeometryDirty();
-                    Changed?.Invoke();
-                }
-            }
+                SplitLinedefs(ToWorld(pos));
             return;
         }
 
@@ -4559,6 +4551,45 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
         Picked?.Invoke(status);
         return status;
+    }
+
+    public string SplitLinedefs()
+        => SplitLinedefs(_cursorWorld);
+
+    private string SplitLinedefs(Vec2D cursorWorld)
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Linedef> selected = _map.GetSelectedLinedefs();
+        if (selected.Count > 0)
+        {
+            string editName = selected.Count == 1 ? "Split linedef" : "Split " + selected.Count + " linedefs";
+            EditBegun?.Invoke(editName);
+            int count = _map.SplitLinedefsAtMidpoints(selected);
+            _map.BuildIndexes();
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            string status = count == 1 ? "Split a linedef." : "Split " + count + " linedefs.";
+            Picked?.Invoke(status);
+            return status;
+        }
+
+        Linedef? line = _map.NearestLinedef(cursorWorld, 8 * _zoom);
+        if (line == null)
+        {
+            const string message = "This action requires selection of some description!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke("Split linedef");
+        _map.SplitLinedef(line, NearestPointOnLine(line, cursorWorld));
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        const string splitStatus = "Split a linedef.";
+        Picked?.Invoke(splitStatus);
+        return splitStatus;
     }
 
     public string PlaceThingsFromSelection()

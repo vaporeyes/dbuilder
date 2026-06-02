@@ -138,4 +138,37 @@ public class LinedefSplitTests
         Assert.Equal(2, map.Vertices.Count);
         Assert.Equal(new Vector2D(100, 0), map.Linedefs[0].End.Position);
     }
+
+    [Fact]
+    public void SplitLinedefsAtMidpointsSplitsEachSelectedLineAtCenter()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var c = map.AddVertex(new Vector2D(100, 100));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(b, c);
+        map.BuildIndexes();
+
+        int count = map.SplitLinedefsAtMidpoints([first, second]);
+        map.BuildIndexes();
+
+        Assert.Equal(2, count);
+        Assert.Equal(5, map.Vertices.Count);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Equal(new Vector2D(50, 0), first.End.Position);
+        Assert.Equal(new Vector2D(100, 50), second.End.Position);
+    }
+
+    [Fact]
+    public void SplitLinedefsAtMidpointsIgnoresDuplicateTargets()
+    {
+        var (map, line, _) = BuildOneSidedLine();
+
+        int count = map.SplitLinedefsAtMidpoints([line, line]);
+
+        Assert.Equal(1, count);
+        Assert.Equal(2, map.Linedefs.Count);
+        Assert.Equal(3, map.Vertices.Count);
+    }
 }

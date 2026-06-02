@@ -115,7 +115,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.fit", "Fit map to view", "R", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.edit-properties", "Edit properties", "Double-click", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.split-line", "Split the nearest line", "Right-click", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.split-line", "Split Linedefs", "Right-click", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.zoom-in", "Zoom in", "+", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.zoom-out", "Zoom out", "-", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.mode-vertices", "Vertices mode", "1", EditorCommandScope.Map2D),

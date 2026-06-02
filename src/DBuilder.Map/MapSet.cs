@@ -561,6 +561,23 @@ public class MapSet : IDisposable
         return v;
     }
 
+    /// <summary>Splits each linedef at its midpoint. Returns the number split. Call BuildIndexes() afterward.</summary>
+    public int SplitLinedefsAtMidpoints(IEnumerable<Linedef> linedefs)
+    {
+        var targets = new List<Linedef>();
+        var seen = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (Linedef linedef in linedefs)
+        {
+            if (linedef.IsDisposed || !seen.Add(linedef)) continue;
+            targets.Add(linedef);
+        }
+
+        foreach (Linedef linedef in targets)
+            SplitLinedef(linedef, linedef.GetCenterPoint());
+
+        return targets.Count;
+    }
+
     /// <summary>Splits a linedef at an existing vertex; returns the new (second-half) linedef.</summary>
     public Linedef SplitLinedefAt(Linedef l, Vertex v)
     {

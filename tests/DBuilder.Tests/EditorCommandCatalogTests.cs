@@ -771,6 +771,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void SplitLinedefsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.split-line");
+
+        Assert.NotNull(command);
+        Assert.Equal("Split Linedefs", command.Title);
+        Assert.Equal("Right-click", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void DefaultShortcutsResolveMap3DToggle()
     {
         Assert.Equal("map3d.toggle-2d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Tab"));

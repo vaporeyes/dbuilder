@@ -1186,6 +1186,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and toolbar draw-grid materialization for dragged boxes.
   - [x] Route draw-grid sector cells through UDB-style traced sector creation.
   - [x] Add UDB-style selected-linedef curve defaults, point generation, and materialization.
+  - [x] Add UDB-style Split Linedefs action for selected or hovered linedefs.
   - [x] Add UDB-style draw-mode thing placement from generated rectangle, ellipse, and curve vertices.
   - [x] Add UDB-style Place Things action for selected vertices, linedefs, and sectors.
   - [x] Apply UDB-style continuous drawing accept lifecycle to line, sector, curve, rectangle, ellipse, and grid drawing.

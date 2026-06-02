@@ -102,6 +102,7 @@
                     <MenuItem Header="Scale _Up" x:Name="ScaleUpMenuItem" Click="OnScaleUp" />
                     <MenuItem Header="Scale _Down" x:Name="ScaleDownMenuItem" Click="OnScaleDown" />
                 </MenuItem>
+                <MenuItem Header="_Split Linedefs" x:Name="SplitLinedefsMenuItem" Click="OnSplitLinedefs" />
                 <MenuItem Header="_Align textures" x:Name="AlignTexturesMenuItem">
                     <MenuItem Header="Align _Horizontal" x:Name="AlignHorizontalMenuItem" Click="OnAlignTexturesX" />
                     <MenuItem Header="Align _Vertical" x:Name="AlignVerticalMenuItem" Click="OnAlignTexturesY" />
