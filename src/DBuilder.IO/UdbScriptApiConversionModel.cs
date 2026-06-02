@@ -850,6 +850,24 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         }
     }
 
+    public UdbScriptSidedefWrapper? front
+    {
+        get
+        {
+            ThrowIfDisposed("front");
+            return linedef.Front == null ? null : new UdbScriptSidedefWrapper(linedef.Front);
+        }
+    }
+
+    public UdbScriptSidedefWrapper? back
+    {
+        get
+        {
+            ThrowIfDisposed("back");
+            return linedef.Back == null ? null : new UdbScriptSidedefWrapper(linedef.Back);
+        }
+    }
+
     public bool selected
     {
         get
@@ -1088,6 +1106,194 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
     {
         if (linedef.IsDisposed)
             throw new InvalidOperationException("Linedef is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
+public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper>
+{
+    private readonly Sidedef sidedef;
+
+    public UdbScriptSidedefWrapper(Sidedef sidedef)
+    {
+        this.sidedef = sidedef;
+    }
+
+    public Sidedef Sidedef
+        => sidedef;
+
+    public bool isFront
+    {
+        get
+        {
+            ThrowIfDisposed("isFront");
+            return sidedef.IsFront;
+        }
+    }
+
+    public UdbScriptLinedefWrapper line
+    {
+        get
+        {
+            ThrowIfDisposed("line");
+            return new UdbScriptLinedefWrapper(sidedef.Line);
+        }
+    }
+
+    public UdbScriptSidedefWrapper? other
+    {
+        get
+        {
+            ThrowIfDisposed("other");
+            return sidedef.Other == null ? null : new UdbScriptSidedefWrapper(sidedef.Other);
+        }
+    }
+
+    public double angle
+    {
+        get
+        {
+            ThrowIfDisposed("angle");
+            return Angle2D.RadToDeg(sidedef.Angle);
+        }
+    }
+
+    public double angleRad
+    {
+        get
+        {
+            ThrowIfDisposed("angleRad");
+            return sidedef.Angle;
+        }
+    }
+
+    public int offsetX
+    {
+        get
+        {
+            ThrowIfDisposed("offsetX");
+            return sidedef.OffsetX;
+        }
+        set
+        {
+            ThrowIfDisposed("offsetX");
+            sidedef.OffsetX = value;
+        }
+    }
+
+    public int offsetY
+    {
+        get
+        {
+            ThrowIfDisposed("offsetY");
+            return sidedef.OffsetY;
+        }
+        set
+        {
+            ThrowIfDisposed("offsetY");
+            sidedef.OffsetY = value;
+        }
+    }
+
+    public IReadOnlyDictionary<string, bool> flags
+    {
+        get
+        {
+            ThrowIfDisposed("flags");
+            return sidedef.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    public string upperTexture
+    {
+        get
+        {
+            ThrowIfDisposed("upperTexture");
+            return sidedef.HighTexture;
+        }
+        set
+        {
+            ThrowIfDisposed("upperTexture");
+            sidedef.SetTextureHigh(value);
+        }
+    }
+
+    public string middleTexture
+    {
+        get
+        {
+            ThrowIfDisposed("middleTexture");
+            return sidedef.MidTexture;
+        }
+        set
+        {
+            ThrowIfDisposed("middleTexture");
+            sidedef.SetTextureMid(value);
+        }
+    }
+
+    public string lowerTexture
+    {
+        get
+        {
+            ThrowIfDisposed("lowerTexture");
+            return sidedef.LowTexture;
+        }
+        set
+        {
+            ThrowIfDisposed("lowerTexture");
+            sidedef.SetTextureLow(value);
+        }
+    }
+
+    public bool upperSelected
+    {
+        get
+        {
+            ThrowIfDisposed("upperSelected");
+            return sidedef.Line.Selected;
+        }
+    }
+
+    public bool middleSelected
+    {
+        get
+        {
+            ThrowIfDisposed("middleSelected");
+            return sidedef.Line.Selected;
+        }
+    }
+
+    public bool lowerSelected
+    {
+        get
+        {
+            ThrowIfDisposed("lowerSelected");
+            return sidedef.Line.Selected;
+        }
+    }
+
+    public void copyPropertiesTo(UdbScriptSidedefWrapper wrapper)
+    {
+        ThrowIfDisposed("copyPropertiesTo");
+        sidedef.CopyPropertiesTo(wrapper.sidedef);
+    }
+
+    public bool Equals(UdbScriptSidedefWrapper? other)
+        => other is not null && ReferenceEquals(sidedef, other.sidedef);
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptSidedefWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => sidedef.GetHashCode();
+
+    public override string ToString()
+        => sidedef.ToString() ?? string.Empty;
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (sidedef.IsDisposed)
+            throw new InvalidOperationException("Sidedef is disposed, the " + member + " member can not be accessed.");
     }
 }
 

@@ -381,6 +381,8 @@ localsidedeftextureoffsets = true;
         var start = new Vertex(new Vector2D(0, 0));
         var end = new Vertex(new Vector2D(3, 4));
         var line = new Linedef(start, end);
+        var front = new Sidedef { IsFront = true };
+        line.AttachFront(front);
         line.SetFlag("blocking", true);
         var wrapper = new UdbScriptLinedefWrapper(line);
 
@@ -393,6 +395,8 @@ localsidedeftextureoffsets = true;
 
         Assert.Same(start, wrapper.start.Vertex);
         Assert.Same(end, wrapper.end.Vertex);
+        Assert.Same(front, wrapper.front?.Sidedef);
+        Assert.Null(wrapper.back);
         Assert.Equal(new UdbScriptLine2DWrapper(new UdbScriptVector2DWrapper(0, 0), new UdbScriptVector2DWrapper(3, 4)), wrapper.line);
         Assert.True(line.Selected);
         Assert.True(line.Marked);
@@ -500,6 +504,86 @@ localsidedeftextureoffsets = true;
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.length);
 
         Assert.Equal("Linedef is disposed, the length member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
+    public void SidedefWrapperExposesCoreProperties()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(16, 0)));
+        var front = new Sidedef();
+        var back = new Sidedef();
+        line.AttachFront(front);
+        line.AttachBack(back);
+        front.SetFlag("lightfog", true);
+        line.Selected = true;
+        var wrapper = new UdbScriptSidedefWrapper(front);
+
+        wrapper.offsetX = 8;
+        wrapper.offsetY = 16;
+        wrapper.upperTexture = "STARTAN3";
+        wrapper.middleTexture = "BRICK1";
+        wrapper.lowerTexture = "STONE2";
+
+        Assert.True(wrapper.isFront);
+        Assert.Same(line, wrapper.line.Linedef);
+        Assert.Same(back, wrapper.other?.Sidedef);
+        Assert.Equal(Angle2D.RadToDeg(front.Angle), wrapper.angle);
+        Assert.Equal(front.Angle, wrapper.angleRad);
+        Assert.Equal(8, front.OffsetX);
+        Assert.Equal(16, front.OffsetY);
+        Assert.Equal("STARTAN3", front.HighTexture);
+        Assert.Equal("BRICK1", front.MidTexture);
+        Assert.Equal("STONE2", front.LowTexture);
+        Assert.True(wrapper.flags["lightfog"]);
+        Assert.True(wrapper.upperSelected);
+        Assert.True(wrapper.middleSelected);
+        Assert.True(wrapper.lowerSelected);
+    }
+
+    [Fact]
+    public void SidedefWrapperCopiesPropertiesAndUsesReferenceEquality()
+    {
+        var sourceLine = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(8, 0)));
+        var source = new Sidedef();
+        sourceLine.AttachFront(source);
+        source.Selected = true;
+        source.Marked = true;
+        source.OffsetX = 12;
+        source.OffsetY = 24;
+        source.SetTextureHigh("UPPER");
+        source.SetTextureMid("MID");
+        source.SetTextureLow("LOWER");
+        source.SetFlag("clipmidtex", true);
+        source.Fields["comment"] = "copied";
+        var targetLine = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(0, 8)));
+        var target = new Sidedef();
+        targetLine.AttachFront(target);
+        var sourceWrapper = new UdbScriptSidedefWrapper(source);
+        var targetWrapper = new UdbScriptSidedefWrapper(target);
+
+        sourceWrapper.copyPropertiesTo(targetWrapper);
+
+        Assert.True(target.Selected);
+        Assert.True(target.Marked);
+        Assert.Equal(12, target.OffsetX);
+        Assert.Equal(24, target.OffsetY);
+        Assert.Equal("UPPER", target.HighTexture);
+        Assert.Equal("MID", target.MidTexture);
+        Assert.Equal("LOWER", target.LowTexture);
+        Assert.True(target.IsFlagSet("clipmidtex"));
+        Assert.Equal("copied", target.Fields["comment"]);
+        Assert.True(sourceWrapper.Equals(new UdbScriptSidedefWrapper(source)));
+        Assert.False(sourceWrapper.Equals(targetWrapper));
+    }
+
+    [Fact]
+    public void SidedefWrapperRejectsDisposedSidedefAccess()
+    {
+        var wrapper = new UdbScriptSidedefWrapper(new Sidedef { IsDisposed = true });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.offsetX);
+
+        Assert.Equal("Sidedef is disposed, the offsetX member can not be accessed.", exception.Message);
     }
 
     [Fact]
