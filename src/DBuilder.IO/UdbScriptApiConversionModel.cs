@@ -695,6 +695,120 @@ public sealed class UdbScriptGameConfigurationWrapper
         => configuration.UseLocalSidedefTextureOffsets;
 }
 
+public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
+{
+    private readonly Vertex vertex;
+
+    public UdbScriptVertexWrapper(Vertex vertex)
+    {
+        this.vertex = vertex;
+    }
+
+    public Vertex Vertex
+        => vertex;
+
+    public object position
+    {
+        get
+        {
+            ThrowIfDisposed("position");
+            return new UdbScriptVector2DWrapper(vertex.Position.x, vertex.Position.y);
+        }
+        set
+        {
+            ThrowIfDisposed("position");
+            Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
+            vertex.Move(new Vector2D(vector.x, vector.y));
+        }
+    }
+
+    public bool selected
+    {
+        get
+        {
+            ThrowIfDisposed("selected");
+            return vertex.Selected;
+        }
+        set
+        {
+            ThrowIfDisposed("selected");
+            vertex.Selected = value;
+        }
+    }
+
+    public bool marked
+    {
+        get
+        {
+            ThrowIfDisposed("marked");
+            return vertex.Marked;
+        }
+        set
+        {
+            ThrowIfDisposed("marked");
+            vertex.Marked = value;
+        }
+    }
+
+    public double ceilingZ
+    {
+        get
+        {
+            ThrowIfDisposed("ceilingZ");
+            return vertex.ZCeiling;
+        }
+        set
+        {
+            ThrowIfDisposed("ceilingZ");
+            vertex.ZCeiling = value;
+        }
+    }
+
+    public double floorZ
+    {
+        get
+        {
+            ThrowIfDisposed("floorZ");
+            return vertex.ZFloor;
+        }
+        set
+        {
+            ThrowIfDisposed("floorZ");
+            vertex.ZFloor = value;
+        }
+    }
+
+    public Linedef[] getLinedefs()
+    {
+        ThrowIfDisposed("getLinedefs");
+        return vertex.Linedefs.Where(line => !line.IsDisposed).ToArray();
+    }
+
+    public void copyPropertiesTo(UdbScriptVertexWrapper wrapper)
+    {
+        ThrowIfDisposed("copyPropertiesTo");
+        vertex.CopyPropertiesTo(wrapper.vertex);
+    }
+
+    public bool Equals(UdbScriptVertexWrapper? other)
+        => other is not null && ReferenceEquals(vertex, other.vertex);
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptVertexWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => vertex.GetHashCode();
+
+    public override string ToString()
+        => vertex.ToString() ?? string.Empty;
+
+    private void ThrowIfDisposed(string member)
+    {
+        if (vertex.IsDisposed)
+            throw new InvalidOperationException("Vertex is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
 public sealed class UdbScriptMapElementArgumentsWrapper : IEnumerable<int>
 {
     private readonly IHasArguments element;

@@ -301,6 +301,81 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void VertexWrapperMutatesCoreProperties()
+    {
+        var vertex = new Vertex(new Vector2D(16, 32));
+        var wrapper = new UdbScriptVertexWrapper(vertex);
+
+        wrapper.position = new object[] { 64.0, 96.0 };
+        wrapper.selected = true;
+        wrapper.marked = true;
+        wrapper.floorZ = 8.0;
+        wrapper.ceilingZ = 24.0;
+
+        Assert.Equal(new Vector2D(64, 96), vertex.Position);
+        Assert.Equal(new UdbScriptVector2DWrapper(64, 96), wrapper.position);
+        Assert.True(vertex.Selected);
+        Assert.True(vertex.Marked);
+        Assert.Equal(8.0, vertex.ZFloor);
+        Assert.Equal(24.0, vertex.ZCeiling);
+    }
+
+    [Fact]
+    public void VertexWrapperCopiesPropertiesAndUsesReferenceEquality()
+    {
+        var source = new Vertex(new Vector2D(1, 2))
+        {
+            Selected = true,
+            Marked = true,
+            Groups = 3,
+            ZFloor = 4.0,
+            ZCeiling = 5.0,
+        };
+        source.Fields["comment"] = "copied";
+        var target = new Vertex(new Vector2D(8, 9));
+        var sourceWrapper = new UdbScriptVertexWrapper(source);
+        var targetWrapper = new UdbScriptVertexWrapper(target);
+
+        sourceWrapper.copyPropertiesTo(targetWrapper);
+
+        Assert.Equal(source.Position, target.Position);
+        Assert.True(target.Selected);
+        Assert.True(target.Marked);
+        Assert.Equal(3, target.Groups);
+        Assert.Equal(4.0, target.ZFloor);
+        Assert.Equal(5.0, target.ZCeiling);
+        Assert.Equal("copied", target.Fields["comment"]);
+        Assert.True(sourceWrapper.Equals(new UdbScriptVertexWrapper(source)));
+        Assert.False(sourceWrapper.Equals(targetWrapper));
+    }
+
+    [Fact]
+    public void VertexWrapperReturnsConnectedNonDisposedLinedefs()
+    {
+        var vertex = new Vertex(new Vector2D(0, 0));
+        var active = new Linedef(vertex, new Vertex(new Vector2D(16, 0)));
+        var disposed = new Linedef(vertex, new Vertex(new Vector2D(0, 16))) { IsDisposed = true };
+        vertex.Linedefs.Add(active);
+        vertex.Linedefs.Add(disposed);
+        var wrapper = new UdbScriptVertexWrapper(vertex);
+
+        Linedef[] linedefs = wrapper.getLinedefs();
+
+        Assert.Single(linedefs);
+        Assert.Same(active, linedefs[0]);
+    }
+
+    [Fact]
+    public void VertexWrapperRejectsDisposedVertexAccess()
+    {
+        var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => wrapper.position);
+
+        Assert.Equal("Vertex is disposed, the position member can not be accessed.", exception.Message);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
