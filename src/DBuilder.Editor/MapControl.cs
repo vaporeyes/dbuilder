@@ -4903,9 +4903,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.match-brightness":
                 MatchBrightness3D();
                 return true;
+            case "map3d.texture-copy":
             case "map3d.copy-texture":
                 CopyTexture3D();
                 return true;
+            case "map3d.texture-paste":
             case "map3d.apply-texture":
                 ApplyTexture3D();
                 return true;

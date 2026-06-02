@@ -933,7 +933,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raise-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
-        Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
+        Assert.Equal("map3d.texture-copy", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
+        Assert.Equal("map3d.texture-paste", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V"));
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
         Assert.Equal("map3d.paste-properties-options", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, shift: true));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
@@ -1096,6 +1097,28 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
+    }
+
+    [Theory]
+    [InlineData("map3d.texture-copy", "map3d.copy-texture", "Copy Texture", "C")]
+    [InlineData("map3d.texture-paste", "map3d.apply-texture", "Paste Texture", "V")]
+    public void VisualTextureClipboardCommandsMatchUdbActionSurface(string id, string legacyId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+        var legacyAlias = EditorCommandCatalog.Find(legacyId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
     }
 
     [Fact]
