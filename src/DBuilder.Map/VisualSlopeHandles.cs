@@ -81,6 +81,12 @@ public sealed record VisualSlopeHandleStateResult(
     IReadOnlyList<VisualSlopeHandle> Handles,
     string? WarningMessage = null);
 
+public sealed record VisualSlopeTargetStateResult(
+    IReadOnlyList<VisualSlopeHandle> Handles,
+    IReadOnlyList<VisualSlopeHandle> UsedHandles,
+    VisualSlopeHandle? PickedHandle = null,
+    VisualSlopeHandle? SmartPivotHandle = null);
+
 public enum VisualSlopeChangeResult
 {
     Changed,
@@ -195,6 +201,50 @@ public static class VisualSlopeHandles
         if (handles == null) throw new ArgumentNullException(nameof(handles));
 
         return handles.Where(handle => handle.Selected || handle.Pivot || handle.SmartPivot).ToArray();
+    }
+
+    public static VisualSlopeTargetStateResult UpdateTarget(
+        VisualSlopeHandle? oldTarget,
+        VisualSlopeHandle? newTarget,
+        IEnumerable<VisualSlopeHandle> handles,
+        bool useOppositeSmartPivotHandle = false,
+        IEnumerable<VisualSlopeLevel>? selectedLevels = null)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        VisualSlopeHandle[] original = handles.ToArray();
+        bool clearOldSlopeState = oldTarget != null;
+        VisualSlopeHandle[] updated = original
+            .Select(handle => clearOldSlopeState && handle.SmartPivot ? handle with { SmartPivot = false } : handle)
+            .ToArray();
+        VisualSlopeHandle? pickedHandle = FindMappedHandle(original, updated, newTarget);
+        VisualSlopeHandle? smartPivotHandle = null;
+
+        if (pickedHandle != null)
+        {
+            smartPivotHandle = pickedHandle.Kind == VisualSlopeHandleKind.Vertex
+                ? GetSmartVertexPivot(pickedHandle, updated, useOppositeSmartPivotHandle, selectedLevels)
+                : GetSmartSidedefPivot(pickedHandle, updated, useOppositeSmartPivotHandle, selectedLevels);
+
+            if (smartPivotHandle != null)
+            {
+                int index = Array.FindIndex(updated, handle => ReferenceEquals(handle, smartPivotHandle));
+                if (index >= 0)
+                {
+                    updated[index] = smartPivotHandle with { SmartPivot = true };
+                    smartPivotHandle = updated[index];
+                }
+            }
+        }
+
+        var used = new List<VisualSlopeHandle>();
+        foreach (VisualSlopeHandle handle in updated)
+        {
+            if (handle.Selected || handle.Pivot || handle.SmartPivot || ReferenceEquals(handle, pickedHandle))
+                used.Add(handle);
+        }
+
+        return new VisualSlopeTargetStateResult(updated, used, pickedHandle, smartPivotHandle);
     }
 
     public static Line2D GetSidedefBaseLine(Sidedef sidedef, VisualSlopeLevel level, bool up)
@@ -632,6 +682,22 @@ public static class VisualSlopeHandles
 
     private static int NormalizedAngleDeg(Linedef line)
         => line.AngleDeg >= 180 ? line.AngleDeg - 180 : line.AngleDeg;
+
+    private static VisualSlopeHandle? FindMappedHandle(
+        VisualSlopeHandle[] original,
+        VisualSlopeHandle[] updated,
+        VisualSlopeHandle? target)
+    {
+        if (target == null) return null;
+
+        for (int i = 0; i < original.Length; i++)
+        {
+            if (ReferenceEquals(original[i], target))
+                return updated[i];
+        }
+
+        return null;
+    }
 
     private static VisualSlopeLevel[] SelectedPivotLevels(IEnumerable<VisualSlopeLevel>? selectedLevels)
         => selectedLevels == null
