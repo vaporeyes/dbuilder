@@ -1024,6 +1024,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
   - [x] Apply UDB-style fullbright and UDMF surface-lighting tints to visual 3D floors and ceilings.
   - [x] Apply visual 3D surface-lighting tints to resolved 3D floor top and bottom faces.
+  - [x] Apply UDMF sidedef light and sector lightcolor tints to visual 3D walls.
 
 ## Model Loading
 

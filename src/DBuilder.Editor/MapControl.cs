@@ -3063,7 +3063,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 // One-sided middle: top-pegged by default, floor-pegged when lower-unpegged.
                 var peg = unpegBottom ? WallPeg.BottomUp : WallPeg.Top;
-                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, fs.Brightness, front.OffsetX, front.OffsetY, peg, 0, 0, Gray);
+                PushWall(wallB, a, b, fs.GetFloorZ(a), fs.GetFloorZ(b), fs.GetCeilZ(a), fs.GetCeilZ(b), front.MidTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
             }
             else if (fs != null && bs != null && front != null)
             {
@@ -3072,14 +3072,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 {
                     // Lower step: top-pegged at the higher floor by default; pegged to the ceiling when lower-unpegged.
                     var peg = unpegBottom ? WallPeg.Custom : WallPeg.Top;
-                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, fs.Brightness, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), Gray);
+                    PushWall(wallB, a, b, Math.Min(fFa, bFa), Math.Min(fFb, bFb), Math.Max(fFa, bFa), Math.Max(fFb, bFb), front.LowTexture, front.OffsetX, front.OffsetY, peg, fs.GetCeilZ(a), fs.GetCeilZ(b), scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
                 }
                 double fCa = fs.GetCeilZ(a), fCb = fs.GetCeilZ(b), bCa = bs.GetCeilZ(a), bCb = bs.GetCeilZ(b);
                 if (fCa != bCa || fCb != bCb)
                 {
                     // Upper step: bottom-pegged at the lower ceiling by default; top-pegged when upper-unpegged.
                     var peg = unpegTop ? WallPeg.Top : WallPeg.BottomUp;
-                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, fs.Brightness, front.OffsetX, front.OffsetY, peg, 0, 0, Gray);
+                    PushWall(wallB, a, b, Math.Min(fCa, bCa), Math.Min(fCb, bCb), Math.Max(fCa, bCa), Math.Max(fCb, bCb), front.HighTexture, front.OffsetX, front.OffsetY, peg, 0, 0, scale => VisualSurfaceLighting.WallRenderTint(front, _fullBrightness, scale));
                 }
             }
         }
@@ -3123,7 +3123,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     {
                         if (sd.Line == null) continue;
                         PushWall(wallB, sd.Line.Start.Position, sd.Line.End.Position,
-                            f.Bottom, f.Bottom, f.Top, f.Top, f.SideTexture, f.Brightness, 0, 0, WallPeg.Top, 0, 0, Gray);
+                            f.Bottom, f.Bottom, f.Top, f.Top, f.SideTexture, 0, 0, WallPeg.Top, 0, 0, scale => Gray(f.Brightness, scale));
                     }
                 }
             }
@@ -3139,8 +3139,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private enum WallPeg { Top, BottomUp, Custom }
 
     private void PushWall(System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>> wallB,
-        Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName, int brightness,
-        int offsetX, int offsetY, WallPeg peg, double customPegA, double customPegB, Func<int, double, int> gray)
+        Vec2D a, Vec2D b, double botZa, double botZb, double topZa, double topZb, string texName,
+        int offsetX, int offsetY, WallPeg peg, double customPegA, double customPegB, Func<double, int> tint)
     {
         if (topZa <= botZa && topZb <= botZb) return;
         bool textured = GetWallTexture(texName) != null;
@@ -3151,7 +3151,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // U runs by world distance along the wall + the sidedef X offset.
         double u0 = offsetX / (double)texW;
         double u1 = (len + offsetX) / texW;
-        int c = textured ? gray(brightness, 1.0) : gray(brightness, 0.6);
+        int c = textured ? tint(1.0) : tint(0.6);
 
         // pegZ is the world Z that maps to v=0 (texture top), per endpoint, per pegging mode.
         double pegA = peg switch { WallPeg.Top => topZa, WallPeg.BottomUp => botZa + texH, _ => customPegA };
