@@ -21,6 +21,14 @@ public enum UdbScriptRunnerStatusKind
     Warning,
 }
 
+public enum UdbScriptMessageResult
+{
+    Ok,
+    Yes,
+    No,
+    Abort,
+}
+
 public sealed record UdbScriptRunnerExceptionOutcome(
     UdbScriptRunnerExceptionKind Kind,
     bool WithdrawUndo,
@@ -55,6 +63,85 @@ public sealed record UdbScriptRunnerUiState(
     bool ActionButtonEnabled,
     bool ProgressIsMarquee,
     double Opacity);
+
+public sealed class UdbScriptUserAbortException : Exception
+{
+    public UdbScriptUserAbortException()
+        : base(UdbScriptRunnerModel.UserAbortStatusText)
+    {
+    }
+}
+
+public sealed class UdbScriptExitException : Exception
+{
+    public UdbScriptExitException(string? message = null)
+        : base(message ?? "")
+    {
+    }
+}
+
+public sealed class UdbScriptDieException : Exception
+{
+    public UdbScriptDieException(string? message = null)
+        : base(message ?? "")
+    {
+    }
+}
+
+public sealed class UdbScriptHostWrapper
+{
+    private readonly Action<int>? progress;
+    private readonly Action<string>? logger;
+    private readonly Func<string, UdbScriptMessageResult>? messageCallback;
+    private readonly Func<string, UdbScriptMessageResult>? yesNoMessageCallback;
+
+    public UdbScriptHostWrapper(
+        Action<int>? progress = null,
+        Action<string>? logger = null,
+        Func<string, UdbScriptMessageResult>? messageCallback = null,
+        Func<string, UdbScriptMessageResult>? yesNoMessageCallback = null)
+    {
+        this.progress = progress;
+        this.logger = logger;
+        this.messageCallback = messageCallback;
+        this.yesNoMessageCallback = yesNoMessageCallback;
+    }
+
+    public void setProgress(int value)
+        => progress?.Invoke(value);
+
+    public void log(object? text)
+    {
+        if (text == null)
+            return;
+
+        logger?.Invoke(text.ToString() ?? "");
+    }
+
+    public void showMessage(object? message)
+    {
+        UdbScriptMessageResult result = messageCallback?.Invoke(message?.ToString() ?? "") ?? UdbScriptMessageResult.Ok;
+
+        if (result == UdbScriptMessageResult.Abort)
+            throw new UdbScriptUserAbortException();
+    }
+
+    public bool showMessageYesNo(object? message)
+    {
+        UdbScriptMessageResult result = yesNoMessageCallback?.Invoke(message?.ToString() ?? "") ?? UdbScriptMessageResult.No;
+
+        if (result == UdbScriptMessageResult.Abort)
+            throw new UdbScriptUserAbortException();
+
+        return result is UdbScriptMessageResult.Ok or UdbScriptMessageResult.Yes;
+    }
+
+    public void exit(string? message = null)
+        => throw new UdbScriptExitException(string.IsNullOrEmpty(message) ? null : message);
+
+    public void die(string? message = null)
+        => throw new UdbScriptDieException(string.IsNullOrEmpty(message) ? null : message);
+}
 
 public static class UdbScriptRunnerModel
 {

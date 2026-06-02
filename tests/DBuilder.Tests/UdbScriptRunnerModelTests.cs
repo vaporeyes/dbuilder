@@ -71,6 +71,71 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void HostWrapperReportsProgressAndLogsNonNullText()
+    {
+        List<int> progressValues = [];
+        List<string> logValues = [];
+        UdbScriptHostWrapper host = new(
+            progress: progressValues.Add,
+            logger: logValues.Add);
+
+        host.setProgress(42);
+        host.log("hello");
+        host.log(123);
+        host.log(null);
+
+        Assert.Equal([42], progressValues);
+        Assert.Equal(["hello", "123"], logValues);
+    }
+
+    [Fact]
+    public void HostWrapperShowsMessagesAndNormalizesNull()
+    {
+        List<string> messages = [];
+        UdbScriptHostWrapper host = new(
+            messageCallback: message =>
+            {
+                messages.Add(message);
+                return UdbScriptMessageResult.Ok;
+            },
+            yesNoMessageCallback: message =>
+            {
+                messages.Add(message);
+                return UdbScriptMessageResult.Yes;
+            });
+
+        host.showMessage(null);
+        bool yes = host.showMessageYesNo("continue");
+        bool no = new UdbScriptHostWrapper(yesNoMessageCallback: _ => UdbScriptMessageResult.No)
+            .showMessageYesNo("continue");
+
+        Assert.True(yes);
+        Assert.False(no);
+        Assert.Equal(["", "continue"], messages);
+    }
+
+    [Fact]
+    public void HostWrapperThrowsAbortWhenMessageAborted()
+    {
+        UdbScriptHostWrapper messageHost = new(messageCallback: _ => UdbScriptMessageResult.Abort);
+        UdbScriptHostWrapper yesNoHost = new(yesNoMessageCallback: _ => UdbScriptMessageResult.Abort);
+
+        Assert.Throws<UdbScriptUserAbortException>(() => messageHost.showMessage("stop"));
+        Assert.Throws<UdbScriptUserAbortException>(() => yesNoHost.showMessageYesNo("stop"));
+    }
+
+    [Fact]
+    public void HostWrapperExitAndDieThrowTypedExceptions()
+    {
+        UdbScriptHostWrapper host = new();
+
+        Assert.Equal("", Assert.Throws<UdbScriptExitException>(() => host.exit()).Message);
+        Assert.Equal("done", Assert.Throws<UdbScriptExitException>(() => host.exit("done")).Message);
+        Assert.Equal("", Assert.Throws<UdbScriptDieException>(() => host.die()).Message);
+        Assert.Equal("failed", Assert.Throws<UdbScriptDieException>(() => host.die("failed")).Message);
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);
