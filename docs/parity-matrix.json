@@ -9,7 +9,7 @@
       "udbArea": "Source/Core/Actions",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, explicit Properties command binding, flag and Custom Fields command availability rules, auto-clear sidedef texture toggle action, Select Single-sided and Select Double-sided action metadata, Filter Selected Things action metadata, Change Map Element Index action metadata, Flip Linedefs and Flip Sidedefs action metadata, Align Linedefs action metadata, Join Sectors and Merge Sectors action metadata, fixed-step sector floor and ceiling height action metadata, sector brightness step action metadata, visual height step action metadata, visual brightness step action metadata, visual thing visibility action metadata, visual texture flood-fill action metadata, visual texture and thing reset action metadata, visual texture and thing scale action metadata, visual texture offset step action metadata, visual texture offset clipboard action metadata, visual texture fitting action metadata, visual texture auto-align action metadata, visual unpegged toggle action metadata, visual copy/paste-properties action metadata, visual Toggle Slope action metadata, visual Reset Plane Slope action metadata, visual slope picking action metadata, Slope Between Handles and Arch Between Slope Handles action metadata, visual alpha-based texture highlighting action metadata, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
+      "notes": "Stable command descriptors, begin/end action attributes, shortcut option metadata, keyboard, mouse, and scroll shortcut resolution, configurable shortcut overrides, command hints, repeat suppression, explicit Properties command binding, flag and Custom Fields command availability rules including selected sidedefs, auto-clear sidedef texture toggle action, Select Single-sided and Select Double-sided action metadata, Filter Selected Things action metadata, Change Map Element Index action metadata, Flip Linedefs and Flip Sidedefs action metadata, Align Linedefs action metadata, Join Sectors and Merge Sectors action metadata, fixed-step sector floor and ceiling height action metadata, sector brightness step action metadata, visual height step action metadata, visual brightness step action metadata, visual thing visibility action metadata, visual texture flood-fill action metadata, visual texture and thing reset action metadata, visual texture and thing scale action metadata, visual texture offset step action metadata, visual texture offset clipboard action metadata, visual texture fitting action metadata, visual texture auto-align action metadata, visual unpegged toggle action metadata, visual copy/paste-properties action metadata, visual Toggle Slope action metadata, visual Reset Plane Slope action metadata, visual slope picking action metadata, Slope Between Handles and Arch Between Slope Handles action metadata, visual alpha-based texture highlighting action metadata, and menu/toolbar availability synchronization are implemented. Full UDB action manager parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Compilers",
@@ -86,7 +86,7 @@
       "udbArea": "Source/Core/Properties",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, and selected linedef, thing, sector, and sidedef UDMF flag editing. Full UDB property panel and field editor parity remains incomplete."
+      "notes": "Basic vertex, thing, linedef, sidedef, sector, UDMF flag, custom field, map marker, map options, and namespace dialogs are present, including linedef and sidedef texture fields, sector flat fields, selected linedef, thing, sector, and sidedef UDMF flag editing, and selected sidedef custom-fields editing. Full UDB property panel and field editor parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Rendering",
@@ -116,7 +116,7 @@
       "udbArea": "Source/Core/Windows",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor",
-      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
+      "notes": "Main window, dialogs for open map, settings, shortcuts, status history, errors, autosave recovery, selection groups, custom fields including selected sidedefs, map markers, map options, grid setup with named background source choices, and structured single-element info panels including sidedef rows and previews are present. Full UDB window and docking system parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/ZDoom",

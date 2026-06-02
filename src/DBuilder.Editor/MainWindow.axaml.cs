@@ -1451,7 +1451,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         if (!SupportsCustomFields() || !TryGetSingleFieldedSelection(out var element, out string name))
         {
-            SetStatus("Select exactly one vertex, linedef, sector or thing to edit custom fields.");
+            SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit custom fields.");
             return;
         }
 
@@ -1476,7 +1476,7 @@ public partial class MainWindow : Window
         name = "";
         if (_map is null) return false;
 
-        int total = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
+        int total = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSidedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
         if (total != 1) return false;
 
         if (_map.SelectedVerticesCount == 1)
@@ -1491,6 +1491,13 @@ public partial class MainWindow : Window
             var line = _map.GetSelectedLinedefs()[0];
             element = line;
             name = $"Linedef {_map.Linedefs.IndexOf(line)}";
+            return true;
+        }
+        if (_map.SelectedSidedefsCount == 1)
+        {
+            var side = _map.GetSelectedSidedefs()[0];
+            element = side;
+            name = $"Sidedef {_map.Sidedefs.IndexOf(side)}";
             return true;
         }
         if (_map.SelectedSectorsCount == 1)

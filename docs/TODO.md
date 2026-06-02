@@ -124,6 +124,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose the explicit Properties command for single vertex and sidedef selections.
   - [x] Enable Flags command availability for single linedef, sector, and thing selections.
   - [x] Gate Custom Fields command availability by UDMF custom-field support.
+  - [x] Include single selected sidedefs in Custom Fields command availability.
   - [x] Add stable UDB action ids for Test Map and Things Filters setup.
   - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
   - [x] Add stable UDB action ids for file actions and Map Options.
@@ -844,6 +845,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add front and back sidedef flag editing in the linedef property dialog.
 - [ ] Port custom fields dialog.
   - [x] Add generic selected-element custom UDMF fields dialog.
+  - [x] Include selected sidedefs in custom-fields dialog availability and dispatch.
 - [ ] Port map options dialog.
   - [x] Add basic map marker and UDMF namespace dialog.
   - [x] Add drawing default fields to the map options dialog.

@@ -17,6 +17,5 @@ public static class EditorPropertySelection
 
     public static bool CanEditCustomFields(bool supportsCustomFields, int vertices, int linedefs, int sidedefs, int sectors, int things)
         => supportsCustomFields
-           && sidedefs == 0
-           && vertices + linedefs + sectors + things == 1;
+           && vertices + linedefs + sidedefs + sectors + things == 1;
 }

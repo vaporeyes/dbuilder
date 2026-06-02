@@ -41,15 +41,22 @@ public sealed class EditorPropertySelectionTests
         => Assert.False(EditorPropertySelection.CanEditFlags(vertices, linedefs, sidedefs, sectors, things));
 
     [Theory]
-    [InlineData(1, 0, 0, 0)]
-    [InlineData(0, 1, 0, 0)]
-    [InlineData(0, 0, 1, 0)]
-    [InlineData(0, 0, 0, 1)]
-    public void CanEditCustomFieldsForSingleFieldedSelectionWhenFormatSupportsFields(int vertices, int linedefs, int sectors, int things)
-        => Assert.True(EditorPropertySelection.CanEditCustomFields(true, vertices, linedefs, 0, sectors, things));
+    [InlineData(1, 0, 0, 0, 0)]
+    [InlineData(0, 1, 0, 0, 0)]
+    [InlineData(0, 0, 1, 0, 0)]
+    [InlineData(0, 0, 0, 1, 0)]
+    [InlineData(0, 0, 0, 0, 1)]
+    public void CanEditCustomFieldsForSingleFieldedSelectionWhenFormatSupportsFields(
+        int vertices,
+        int linedefs,
+        int sidedefs,
+        int sectors,
+        int things)
+        => Assert.True(EditorPropertySelection.CanEditCustomFields(true, vertices, linedefs, sidedefs, sectors, things));
 
     [Theory]
     [InlineData(false, 1, 0, 0, 0, 0)]
+    [InlineData(false, 0, 0, 1, 0, 0)]
     [InlineData(true, 0, 0, 0, 0, 0)]
     [InlineData(true, 1, 1, 0, 0, 0)]
     [InlineData(true, 1, 0, 1, 0, 0)]
