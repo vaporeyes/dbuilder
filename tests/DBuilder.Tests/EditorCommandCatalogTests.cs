@@ -746,6 +746,31 @@ public class EditorCommandCatalogTests
         }
     }
 
+    [Theory]
+    [InlineData("map3d.rotate-clockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp")]
+    [InlineData("map3d.rotate-counterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown")]
+    [InlineData("map3d.pitch-clockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp")]
+    [InlineData("map3d.pitch-counterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown")]
+    [InlineData("map3d.roll-clockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp")]
+    [InlineData("map3d.roll-counterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown")]
+    public void VisualRotationAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+        var legacyAlias = EditorCommandCatalog.Find(legacyId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+    }
+
     [Fact]
     public void VisualCameraThingCommandsMatchUdbActionSurface()
     {
@@ -952,6 +977,12 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.scale-down-x", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad4"));
         Assert.Equal("map3d.scale-up-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad8"));
         Assert.Equal("map3d.scale-down-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad5"));
+        Assert.Equal("map3d.rotate-clockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
+        Assert.Equal("map3d.rotate-counterclockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
+        Assert.Equal("map3d.pitch-clockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollUp, accelerator: true, alt: true));
+        Assert.Equal("map3d.pitch-counterclockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollDown, accelerator: true, alt: true));
+        Assert.Equal("map3d.roll-clockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollUp, alt: true));
+        Assert.Equal("map3d.roll-counterclockwise", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.ScrollDown, alt: true));
         Assert.Equal("map3d.visual-auto-align", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.reset-local-offsets", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "R", accelerator: true, shift: true));

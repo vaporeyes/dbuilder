@@ -969,6 +969,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual Insert Item command metadata and 3D thing-at-target dispatch.
   - [x] Add UDB-style visual thing copy, cut, and paste selection actions.
   - [x] Add UDB-style selected or targeted thing rotation, pitch, and roll actions.
+  - [x] Add UDB-style visual rotation, pitch, and roll action aliases and scroll shortcuts.
   - [x] Add UDB-style Apply Camera Rotation To Things visual action.
   - [x] Add UDB-style Look Through Selection visual action.
   - [x] Add UDB-style visual Align Things to Nearest Linedef action alias.
