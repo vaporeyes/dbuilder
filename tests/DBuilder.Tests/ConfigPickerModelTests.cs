@@ -69,6 +69,29 @@ public class ConfigPickerModelTests
         Assert.Equal(-1, ConfigPickerModel.SelectedIndex(System.Array.Empty<ConfigPickerRow>(), "Missing"));
     }
 
+    [Fact]
+    public void ResolveConfigPathMatchesSidecarFilenamesAndExternalPaths()
+    {
+        string dir = NewTempDir();
+        string bundled = Path.Combine(dir, "Doom_Doom2Doom.cfg");
+        string external = Path.Combine(dir, "External.cfg");
+        try
+        {
+            File.WriteAllText(bundled, "game = \"Doom 2\";");
+            File.WriteAllText(external, "game = \"External\";");
+
+            Assert.Equal(bundled, ConfigPickerModel.ResolveConfigPath(dir, "Doom_Doom2Doom.cfg", File.Exists));
+            Assert.Equal(bundled, ConfigPickerModel.ResolveConfigPath(dir, "Doom_Doom2Doom", File.Exists));
+            Assert.Equal(external, ConfigPickerModel.ResolveConfigPath(dir, external, File.Exists));
+            Assert.Null(ConfigPickerModel.ResolveConfigPath(dir, "Missing.cfg", File.Exists));
+            Assert.Null(ConfigPickerModel.ResolveConfigPath(dir, " ", File.Exists));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     private static string NewTempDir()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder-config-picker-" + Path.GetRandomFileName());

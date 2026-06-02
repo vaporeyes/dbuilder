@@ -45,6 +45,21 @@ public static class ConfigPickerModel
         return index >= 0 ? index : 0;
     }
 
+    public static string? ResolveConfigPath(string configDir, string configNameOrPath, Func<string, bool> fileExists)
+    {
+        string value = configNameOrPath.Trim();
+        if (value.Length == 0) return null;
+
+        if (Path.IsPathRooted(value))
+            return fileExists(value) ? value : null;
+
+        string direct = Path.Combine(configDir, value);
+        if (fileExists(direct)) return direct;
+
+        string withExtension = Path.Combine(configDir, value + ".cfg");
+        return fileExists(withExtension) ? withExtension : null;
+    }
+
     private static bool IsIncludeFile(string configDir, string path)
     {
         string relative = Path.GetRelativePath(configDir, path);

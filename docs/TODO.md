@@ -864,6 +864,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Filter WAD and PK3 open-map candidates through the active game configuration map-name format.
   - [x] Add UDB-style long texture names option while switching maps.
   - [x] Add UDB-style strict patch loading option while switching maps.
+  - [x] Honor UDB sidecar game configuration when loading a selected WAD map.
 - [x] Port preferences dialog.
 - [ ] Port resource options dialog.
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.

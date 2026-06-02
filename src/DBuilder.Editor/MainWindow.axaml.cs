@@ -3134,6 +3134,7 @@ public partial class MainWindow : Window
 
             _mapOptions = LoadMapOptions(_wadPath, entry.Name, out _mapSettings);
             selectedOptions?.ApplyTo(_mapOptions);
+            LoadConfigFromMapOptions(_mapOptions);
             SyncMapOptionsToView();
             int resourceIssues = RebuildWadResources(_wadPath, _mapOptions);
 
@@ -3156,6 +3157,21 @@ public partial class MainWindow : Window
             SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
         }
         catch (Exception ex) { LogAndSetStatus(ex, "Load failed"); }
+    }
+
+    private void LoadConfigFromMapOptions(MapOptions options)
+    {
+        string? path = ConfigPickerModel.ResolveConfigPath(ConfigDir, options.ConfigFile, System.IO.File.Exists);
+        if (path is null) return;
+        string file = System.IO.Path.GetFileName(path);
+        if (string.Equals(file, _configFile, StringComparison.OrdinalIgnoreCase)) return;
+
+        _config = GameConfiguration.FromFile(path);
+        _configName = System.IO.Path.GetFileNameWithoutExtension(path);
+        _configFile = file;
+        _configIsAuto = false;
+        MapView.GameConfig = _config;
+        ReloadCompilerConfiguration();
     }
 
     private OpenMapSelectionOptions OpenMapOptionsForWadEntry(MapEntry entry)
