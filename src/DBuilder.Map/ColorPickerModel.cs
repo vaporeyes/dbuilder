@@ -429,6 +429,23 @@ public static class ColorPickerModel
             _ => null,
         };
 
+    public static ColorRgb ResolveTypedColorInput(
+        ColorRgb current,
+        ColorRgb rgbFields,
+        string? hexText,
+        string? floatText)
+    {
+        string originalFloat = Format(current, ColorPickerInfoMode.Float);
+        ColorRgb? floatColor = TryParse(ColorPickerInfoMode.Float, floatText ?? "");
+        if (TypedTextChanged(floatText, originalFloat) && floatColor.HasValue) return floatColor.Value;
+
+        string originalHex = Format(current, ColorPickerInfoMode.Hex);
+        ColorRgb? hexColor = TryParse(ColorPickerInfoMode.Hex, NormalizeHexText(hexText));
+        if (TypedTextChanged(hexText, originalHex) && hexColor.HasValue) return hexColor.Value;
+
+        return rgbFields;
+    }
+
     public static void EnsureSectorColorFields(IEnumerable<Sector> sectors, int lightColor, int fadeColor)
     {
         foreach (var sector in sectors)
@@ -491,7 +508,7 @@ public static class ColorPickerModel
 
     private static ColorRgb? TryParseHex(string text)
     {
-        string hexColor = text.Trim().Replace("-", "", StringComparison.Ordinal);
+        string hexColor = NormalizeHexText(text).Replace("-", "", StringComparison.Ordinal);
         if (hexColor.Length != 6) return null;
 
         if (!int.TryParse(hexColor[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int red)) return null;
@@ -512,6 +529,15 @@ public static class ColorPickerModel
 
         return new ColorRgb(FloatComponentToByte(red), FloatComponentToByte(green), FloatComponentToByte(blue));
     }
+
+    private static bool TypedTextChanged(string? text, string original)
+        => NormalizeTypedText(text) != NormalizeTypedText(original);
+
+    private static string NormalizeTypedText(string? text)
+        => (text ?? "").Trim().ToUpperInvariant();
+
+    private static string NormalizeHexText(string? text)
+        => (text ?? "").Trim().TrimStart('#');
 
     private static int FloatComponentToByte(float value)
         => (int)(Math.Clamp(Math.Abs(value), 0.0f, 1.0f) * 255);

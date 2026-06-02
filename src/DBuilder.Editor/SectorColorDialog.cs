@@ -14,6 +14,7 @@ public sealed class SectorColorDialog : PropertyDialog
     private readonly TextBox _green;
     private readonly TextBox _blue;
     private readonly TextBox _hex;
+    private readonly TextBox _float;
     private readonly CheckBox _removeDefaults;
     private SectorColorPickerState _state;
     private SectorColorField _activeField;
@@ -42,6 +43,7 @@ public sealed class SectorColorDialog : PropertyDialog
         _green = AddField("Green", ResultColor.Green.ToString(CultureInfo.InvariantCulture));
         _blue = AddField("Blue", ResultColor.Blue.ToString(CultureInfo.InvariantCulture));
         _hex = AddField("Hex", ColorPickerModel.Format(ResultColor, ColorPickerInfoMode.Hex));
+        _float = AddField("Float", ColorPickerModel.Format(ResultColor, ColorPickerInfoMode.Float));
         _removeDefaults = AddCheckBox("Remove default color fields", true);
         _field.SelectionChanged += (_, _) => SwitchFieldFromCombo();
     }
@@ -72,11 +74,7 @@ public sealed class SectorColorDialog : PropertyDialog
             ClampByte(ParseInt(_red, _state.ActiveColor.Red)),
             ClampByte(ParseInt(_green, _state.ActiveColor.Green)),
             ClampByte(ParseInt(_blue, _state.ActiveColor.Blue)));
-        string originalHex = ColorPickerModel.Format(_state.ActiveColor, ColorPickerInfoMode.Hex);
-        ColorRgb? hexColor = ColorPickerModel.TryParse(ColorPickerInfoMode.Hex, (_hex.Text ?? "").Trim().TrimStart('#'));
-        ColorRgb color = HexChanged(_hex.Text, originalHex) && hexColor.HasValue
-            ? hexColor.Value
-            : rgbColor;
+        ColorRgb color = ColorPickerModel.ResolveTypedColorInput(_state.ActiveColor, rgbColor, _hex.Text, _float.Text);
         _state = ColorPickerModel.SetSectorColorPickerActiveColor(_state, color);
     }
 
@@ -86,13 +84,8 @@ public sealed class SectorColorDialog : PropertyDialog
         _green.Text = color.Green.ToString(CultureInfo.InvariantCulture);
         _blue.Text = color.Blue.ToString(CultureInfo.InvariantCulture);
         _hex.Text = ColorPickerModel.Format(color, ColorPickerInfoMode.Hex);
+        _float.Text = ColorPickerModel.Format(color, ColorPickerInfoMode.Float);
     }
-
-    private static bool HexChanged(string? text, string originalHex)
-        => NormalizeHex(text) != NormalizeHex(originalHex);
-
-    private static string NormalizeHex(string? text)
-        => (text ?? "").Trim().TrimStart('#').ToUpperInvariant();
 
     private static int ClampByte(int value)
         => Math.Clamp(value, 0, 255);

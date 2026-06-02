@@ -54,6 +54,7 @@ public sealed class ColorPickerModelTests
 
     [Theory]
     [InlineData("2040FF", 0x20, 0x40, 0xff)]
+    [InlineData("#2040FF", 0x20, 0x40, 0xff)]
     [InlineData("20-40-ff", 0x20, 0x40, 0xff)]
     [InlineData("  ff0000  ", 0xff, 0, 0)]
     public void TryParseHexMatchesUdbTypedInput(string text, int red, int green, int blue)
@@ -82,6 +83,57 @@ public sealed class ColorPickerModelTests
     [InlineData(ColorPickerInfoMode.Rgb, "32 64 255")]
     public void TryParseRejectsInvalidTypedInput(ColorPickerInfoMode mode, string text)
         => Assert.Null(ColorPickerModel.TryParse(mode, text));
+
+    [Fact]
+    public void ResolveTypedColorInputUsesRgbFieldsWhenTypedTextIsUnchanged()
+    {
+        var current = new ColorRgb(32, 64, 255);
+        var rgbFields = new ColorRgb(1, 2, 3);
+
+        ColorRgb color = ColorPickerModel.ResolveTypedColorInput(
+            current,
+            rgbFields,
+            "2040FF",
+            "0.13 0.25 1.00");
+
+        Assert.Equal(rgbFields, color);
+    }
+
+    [Fact]
+    public void ResolveTypedColorInputPrefersValidFloatTextOverHexAndRgbFields()
+    {
+        ColorRgb color = ColorPickerModel.ResolveTypedColorInput(
+            new ColorRgb(32, 64, 255),
+            new ColorRgb(1, 2, 3),
+            "112233",
+            "0.5 0.25 1");
+
+        Assert.Equal(new ColorRgb(127, 63, 255), color);
+    }
+
+    [Fact]
+    public void ResolveTypedColorInputUsesHexWhenFloatTextIsUnchanged()
+    {
+        ColorRgb color = ColorPickerModel.ResolveTypedColorInput(
+            new ColorRgb(32, 64, 255),
+            new ColorRgb(1, 2, 3),
+            "#112233",
+            "0.13 0.25 1.00");
+
+        Assert.Equal(new ColorRgb(0x11, 0x22, 0x33), color);
+    }
+
+    [Fact]
+    public void ResolveTypedColorInputFallsBackToRgbFieldsWhenChangedTypedTextIsInvalid()
+    {
+        ColorRgb color = ColorPickerModel.ResolveTypedColorInput(
+            new ColorRgb(32, 64, 255),
+            new ColorRgb(1, 2, 3),
+            "zzzzzz",
+            "bad float");
+
+        Assert.Equal(new ColorRgb(1, 2, 3), color);
+    }
 
     [Fact]
     public void EnsureSectorColorFieldsSeedsMissingFields()
