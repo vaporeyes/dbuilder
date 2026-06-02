@@ -76,6 +76,135 @@ public sealed class ThingDisplayResolverTests
     }
 
     [Fact]
+    public void ModeldefWithoutMatchingSpriteFrameFallsBackToSpriteDisplay()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    FrameIndex OTHR A 0 0
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]),
+            ("sprites/LAMPA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 30, 40, 255))));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+
+            Assert.Equal(ThingDisplayKind.Sprite, source.Kind);
+            Assert.Equal("LAMPA0", source.SpriteName);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void DisabledModelFrameFallsBackToSpriteDisplay()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    FrameIndex LAMP A 0 -1
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]),
+            ("sprites/LAMPA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 30, 40, 255))));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+
+            Assert.Equal(ThingDisplayKind.Sprite, source.Kind);
+            Assert.Equal("LAMPA0", source.SpriteName);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void NamedModelFrameResolvesToModelDisplay()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    Frame LAMP A 0 "Idle"
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+
+            Assert.Equal(ThingDisplayKind.Model, source.Kind);
+            Assert.NotNull(source.Model);
+            ModeldefFrame frame = Assert.Single(source.Model!.Frames);
+            Assert.Equal("Idle", frame.ModelFrame);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void MissingReferencedModelIndexFallsBackToSpriteDisplay()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MODELDEF.txt", Encoding.ASCII.GetBytes("""
+                model LampActor
+                {
+                    Path "models"
+                    Model 0 "lamp.md3"
+                    FrameIndex LAMP A 1 0
+                }
+                """)),
+            ("models/lamp.md3", [1, 2, 3]),
+            ("sprites/LAMPA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 30, 40, 255))));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var info = new ThingTypeInfo { ClassName = "LampActor", Sprite = "LAMPA0" };
+
+            ThingDisplaySource source = ThingDisplayResolver.Resolve(info, resources);
+
+            Assert.Equal(ThingDisplayKind.Sprite, source.Kind);
+            Assert.Equal("LAMPA0", source.SpriteName);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void VoxeldefSpriteMappingResolvesToVoxelDisplay()
     {
         string pk3 = TestArtifacts.BuildPk3(

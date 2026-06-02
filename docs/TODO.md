@@ -1004,6 +1004,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port slopes visual editing.
 - [ ] Port model and voxel display.
   - [x] Add UDB-style thing display-source resolution for MODELDEF models, VOXELDEF voxels, sprites, and marker fallbacks.
+  - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
@@ -1019,6 +1020,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port KVX loader.
 - [ ] Port Unreal model loader.
 - [ ] Port model skins and frame behavior.
+  - [x] Match UDB-style actor sprite frame eligibility and disabled frame indexes for MODELDEF display resolution.
 - [x] Port model resource discovery from MODELDEF.
 - [ ] Integrate models into 3D thing rendering.
 
