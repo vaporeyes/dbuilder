@@ -985,6 +985,12 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         return line == null ? null : new UdbScriptLinedefWrapper(line);
     }
 
+    public void snapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
+    {
+        ThrowIfDisposed("snapToAccuracy");
+        vertex.SnapToAccuracy(vertexDecimals, usePrecisePosition);
+    }
+
     public void copyPropertiesTo(UdbScriptVertexWrapper wrapper)
     {
         ThrowIfDisposed("copyPropertiesTo");
@@ -2107,6 +2113,12 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         ThrowIfDisposed("distanceTo");
         Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
         return thing.DistanceTo(new Vector2D(point.x, point.y));
+    }
+
+    public void snapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
+    {
+        ThrowIfDisposed("snapToAccuracy");
+        thing.SnapToAccuracy(vertexDecimals, usePrecisePosition);
     }
 
     public UdbScriptSectorWrapper? getSector()

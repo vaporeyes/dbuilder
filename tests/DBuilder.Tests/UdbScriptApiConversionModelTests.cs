@@ -385,6 +385,22 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void VertexWrapperSnapsToAccuracy()
+    {
+        var vertex = new Vertex(new Vector2D(1.2345, 6.789));
+        var wrapper = new UdbScriptVertexWrapper(vertex);
+
+        wrapper.snapToAccuracy(2);
+
+        Assert.Equal(new Vector2D(1.23, 6.79), vertex.Position);
+
+        wrapper.position = new object[] { 1.6, 6.4 };
+        wrapper.snapToAccuracy(2, usePrecisePosition: false);
+
+        Assert.Equal(new Vector2D(2, 6), vertex.Position);
+    }
+
+    [Fact]
     public void VertexWrapperRejectsDisposedVertexAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
@@ -809,6 +825,27 @@ localsidedeftextureoffsets = true;
         Assert.Equal(Angle2D.DoomToReal(thing.Angle), wrapper.angleRad);
         Assert.Equal(25, wrapper.distanceToSq(new object[] { 0.0, 0.0 }));
         Assert.Equal(5, wrapper.distanceTo(new UdbScriptVector2DWrapper(0, 0)));
+    }
+
+    [Fact]
+    public void ThingWrapperSnapsToAccuracy()
+    {
+        var thing = new Thing(new Vector2D(1.2345, 6.789), 1)
+        {
+            Height = 3.456,
+        };
+        var wrapper = new UdbScriptThingWrapper(thing);
+
+        wrapper.snapToAccuracy(2);
+
+        Assert.Equal(new Vector2D(1.23, 6.79), thing.Position);
+        Assert.Equal(3.46, thing.Height);
+
+        wrapper.position = new UdbScriptVector3DWrapper(1.6, 6.4, 3.5);
+        wrapper.snapToAccuracy(2, usePrecisePosition: false);
+
+        Assert.Equal(new Vector2D(2, 6), thing.Position);
+        Assert.Equal(4, thing.Height);
     }
 
     [Fact]
