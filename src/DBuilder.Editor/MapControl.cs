@@ -2834,6 +2834,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool InsertThingAtTarget3D()
+    {
+        if (_target3D is not { } target) return false;
+
+        var status = InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);
+        _blockmapCache = null;
+        _geo3DDirty = true;
+        Target3DChanged?.Invoke(status);
+        RequestNextFrameRendering();
+        return true;
+    }
+
     private bool RotateThingTargets3D(int angleIncrement)
     {
         var things = ThingTargets3D();
@@ -4621,6 +4633,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.move-thing-backward":
                 MoveThingTargets3D(new Vec2D(_grid.GridSizeF, 0));
                 return true;
+            case "map3d.insert-item":
+                InsertThingAtTarget3D();
+                return true;
             case "map3d.place-thing-at-cursor":
                 PlaceThingTargetsAtCursor3D();
                 return true;
@@ -6054,7 +6069,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return vertexStatus;
     }
 
-    private string InsertThingAt(Vec2D world, bool snap = true)
+    private string InsertThingAt(Vec2D world, bool snap = true, double? height = null)
     {
         if (_map == null) return "No map loaded.";
         var pos = snap ? SnapToGrid(world) : world;
@@ -6062,6 +6077,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         EditBegun?.Invoke("Insert thing");
         _map.ClearAllSelected();
         var t = _map.AddThing(pos, InsertThingType);
+        if (height.HasValue) t.Height = height.Value;
         t.Selected = true;
         _map.BuildIndexes();
         MarkGeometryDirty();

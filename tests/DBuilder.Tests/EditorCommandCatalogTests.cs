@@ -719,6 +719,7 @@ public class EditorCommandCatalogTests
             ["map3d.move-thing-right"] = ("Move Thing Right", true, true),
             ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
+            ["map3d.insert-item"] = ("Insert Item", true, false),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
             ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
@@ -920,6 +921,8 @@ public class EditorCommandCatalogTests
     public void DefaultShortcutsResolveDiscreteMap3DCommands()
     {
         Assert.Equal("map3d.walk-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
+        Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "I"));
+        Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Insert"));
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
