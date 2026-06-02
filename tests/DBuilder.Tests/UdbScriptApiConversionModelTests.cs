@@ -56,6 +56,87 @@ public class UdbScriptApiConversionModelTests
         Assert.StartsWith("Can not convert 'x' property of data:", badX.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Vector2DWrapperConstructsFromAcceptedVectorShapes()
+    {
+        var fromArray = new UdbScriptVector2DWrapper(new object[] { 3.0, 4.0 });
+        var fromThreeD = new UdbScriptVector2DWrapper(new UdbScriptVector3DWrapper(5, 6, 7));
+
+        Assert.Equal(new UdbScriptVector2DWrapper(3, 4), fromArray);
+        Assert.Equal(new UdbScriptVector2DWrapper(5, 6), fromThreeD);
+        Assert.Equal(3, fromArray.x);
+        Assert.Equal(4, fromArray.y);
+    }
+
+    [Fact]
+    public void Vector2DWrapperSupportsUdbArithmetic()
+    {
+        var vector = new UdbScriptVector2DWrapper(6, 3);
+
+        Assert.Equal(new UdbScriptVector2DWrapper(8, 5), vector + 2.0);
+        Assert.Equal(new UdbScriptVector2DWrapper(7, 5), vector + new object[] { 1.0, 2.0 });
+        Assert.Equal(new UdbScriptVector2DWrapper(0.1, 0.05), 60.0 / vector);
+        Assert.Equal("6, 3x", vector + "x");
+        Assert.Equal("x6, 3", "x" + vector);
+    }
+
+    [Fact]
+    public void Vector2DWrapperExposesUdbGeometryHelpers()
+    {
+        var vector = new UdbScriptVector2DWrapper(3, 4);
+
+        Assert.Equal(11, UdbScriptVector2DWrapper.dotProduct(new UdbScriptVector2DWrapper(1, 2), new UdbScriptVector2DWrapper(3, 4)));
+        Assert.Equal(new UdbScriptVector2DWrapper(-3, -4), UdbScriptVector2DWrapper.reversed(vector));
+        Assert.Equal(new UdbScriptVector2DWrapper(8, 3), UdbScriptVector2DWrapper.crossProduct(vector, new object[] { 2.0, 1.0 }));
+        Assert.Equal(5, vector.getLength());
+
+        UdbScriptVector2DWrapper fromAngle = UdbScriptVector2DWrapper.fromAngle(0);
+        Assert.Equal(0, fromAngle.X, 12);
+        Assert.Equal(-1, fromAngle.Y, 12);
+    }
+
+    [Fact]
+    public void Vector3DWrapperConstructsFromAcceptedVectorShapes()
+    {
+        var fromArray = new UdbScriptVector3DWrapper(new object[] { 3.0, 4.0, 5.0 });
+        var fromTwoD = new UdbScriptVector3DWrapper(new UdbScriptVector2DWrapper(6, 7));
+
+        Assert.Equal(new UdbScriptVector3DWrapper(3, 4, 5), fromArray);
+        Assert.Equal(new UdbScriptVector3DWrapper(6, 7, 0), fromTwoD);
+        Assert.Equal(3, fromArray.x);
+        Assert.Equal(4, fromArray.y);
+        Assert.Equal(5, fromArray.z);
+    }
+
+    [Fact]
+    public void Vector3DWrapperSupportsUdbArithmetic()
+    {
+        var vector = new UdbScriptVector3DWrapper(6, 3, 2);
+
+        Assert.Equal(new UdbScriptVector3DWrapper(8, 5, 4), vector + 2.0);
+        Assert.Equal(new UdbScriptVector3DWrapper(7, 5, 5), vector + new object[] { 1.0, 2.0, 3.0 });
+        Assert.Equal(new UdbScriptVector3DWrapper(4, 1, 0), 2.0 - vector);
+        Assert.Equal(new UdbScriptVector3DWrapper(3, 1.5, 1), 2.0 / vector);
+        Assert.Equal("6, 3, 2x", vector + "x");
+    }
+
+    [Fact]
+    public void Vector3DWrapperExposesUdbGeometryHelpers()
+    {
+        var vector = new UdbScriptVector3DWrapper(2, 0, 0);
+
+        Assert.Equal(32, UdbScriptVector3DWrapper.dotProduct(new UdbScriptVector3DWrapper(1, 2, 3), new UdbScriptVector3DWrapper(4, 5, 6)));
+        Assert.Equal(new UdbScriptVector3DWrapper(0, 0, 1), UdbScriptVector3DWrapper.crossProduct(new object[] { 1.0, 0.0, 0.0 }, new object[] { 0.0, 1.0, 0.0 }));
+        Assert.Equal(new UdbScriptVector3DWrapper(-2, 0, 0), UdbScriptVector3DWrapper.reversed(vector));
+        Assert.Equal(new UdbScriptVector3DWrapper(6, 0, 0), vector.getScaled(3));
+        Assert.False(vector.isNormalized());
+
+        UdbScriptVector3DWrapper fromAngle = UdbScriptVector3DWrapper.fromAngleXYZ(0, 0);
+        Assert.Equal(0, fromAngle.X, 12);
+        Assert.Equal(-1, fromAngle.Y, 12);
+        Assert.Equal(0, fromAngle.Z, 12);
+    }
+
     [Theory]
     [InlineData(UniversalType.Float, "1.5", 1.5)]
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]

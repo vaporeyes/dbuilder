@@ -8,9 +8,409 @@ using DBuilder.Geometry;
 
 namespace DBuilder.IO;
 
-public sealed record UdbScriptVector2DWrapper(double X, double Y);
+public sealed record UdbScriptVector2DWrapper(double X, double Y)
+{
+    public double x => X;
 
-public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z);
+    public double y => Y;
+
+    public UdbScriptVector2DWrapper(object value)
+        : this(ToVector2D(value).x, ToVector2D(value).y)
+    {
+    }
+
+    public Vector2D AsVector2D()
+        => new(X, Y);
+
+    public static implicit operator UdbScriptVector3DWrapper(UdbScriptVector2DWrapper value)
+        => new(value.X, value.Y, 0.0);
+
+    public static object operator +(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector2DWrapper(lhs.X + number, lhs.Y + number);
+
+        if (TryVector2D(rhs, out Vector2D vector))
+            return new UdbScriptVector2DWrapper(lhs.X + vector.x, lhs.Y + vector.y);
+
+        return string.Concat(lhs, rhs);
+    }
+
+    public static object operator +(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector2DWrapper(number + rhs.X, number + rhs.Y);
+
+        if (TryVector2D(lhs, out Vector2D vector))
+            return new UdbScriptVector2DWrapper(vector.x + rhs.X, vector.y + rhs.Y);
+
+        return string.Concat(lhs, rhs);
+    }
+
+    public static object operator -(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector2DWrapper(lhs.X - number, lhs.Y - number);
+
+        Vector2D vector = ToVector2D(rhs);
+        return new UdbScriptVector2DWrapper(lhs.X - vector.x, lhs.Y - vector.y);
+    }
+
+    public static object operator -(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector2DWrapper(number - rhs.X, number - rhs.Y);
+
+        Vector2D vector = ToVector2D(lhs);
+        return new UdbScriptVector2DWrapper(vector.x - rhs.X, vector.y - rhs.Y);
+    }
+
+    public static UdbScriptVector2DWrapper operator -(UdbScriptVector2DWrapper value)
+        => new(-value.X, -value.Y);
+
+    public static object operator *(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector2DWrapper(lhs.X * number, lhs.Y * number);
+
+        Vector2D vector = ToVector2D(rhs);
+        return new UdbScriptVector2DWrapper(lhs.X * vector.x, lhs.Y * vector.y);
+    }
+
+    public static object operator *(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector2DWrapper(number * rhs.X, number * rhs.Y);
+
+        Vector2D vector = ToVector2D(lhs);
+        return new UdbScriptVector2DWrapper(vector.x * rhs.X, vector.y * rhs.Y);
+    }
+
+    public static object operator /(UdbScriptVector2DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector2DWrapper(lhs.X / number, lhs.Y / number);
+
+        Vector2D vector = ToVector2D(rhs);
+        return new UdbScriptVector2DWrapper(lhs.X / vector.x, lhs.Y / vector.y);
+    }
+
+    public static object operator /(object lhs, UdbScriptVector2DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector2DWrapper(rhs.X / number, rhs.Y / number);
+
+        Vector2D vector = ToVector2D(lhs);
+        return new UdbScriptVector2DWrapper(vector.x / rhs.X, vector.y / rhs.Y);
+    }
+
+    public static double dotProduct(UdbScriptVector2DWrapper a, UdbScriptVector2DWrapper b)
+        => a.X * b.X + a.Y * b.Y;
+
+    public static UdbScriptVector2DWrapper crossProduct(object a, object b)
+    {
+        Vector2D first = ToVector2D(a);
+        Vector2D second = ToVector2D(b);
+        return new UdbScriptVector2DWrapper(first.y * second.x, first.x * second.y);
+    }
+
+    public static UdbScriptVector2DWrapper reflect(object value, object mirror)
+    {
+        Vector2D reflected = Vector2D.Reflect(ToVector2D(value), ToVector2D(mirror));
+        return new UdbScriptVector2DWrapper(reflected.x, reflected.y);
+    }
+
+    public static UdbScriptVector2DWrapper reversed(object value)
+    {
+        Vector2D reversed = Vector2D.Reversed(ToVector2D(value));
+        return new UdbScriptVector2DWrapper(reversed.x, reversed.y);
+    }
+
+    public static UdbScriptVector2DWrapper fromAngleRad(double angle)
+    {
+        Vector2D vector = Vector2D.FromAngle(angle);
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public static UdbScriptVector2DWrapper fromAngle(double angle)
+        => fromAngleRad(Angle2D.DegToRad(angle));
+
+    public static double getAngleRad(object a, object b)
+        => Vector2D.GetAngle(ToVector2D(a), ToVector2D(b));
+
+    public static double getAngle(object a, object b)
+        => Angle2D.RadToDeg(getAngleRad(a, b));
+
+    public static double getDistanceSq(object a, object b)
+        => Vector2D.DistanceSq(ToVector2D(a), ToVector2D(b));
+
+    public static double getDistance(object a, object b)
+        => Vector2D.Distance(ToVector2D(a), ToVector2D(b));
+
+    public UdbScriptVector2DWrapper getPerpendicular()
+        => new(-Y, X);
+
+    public UdbScriptVector2DWrapper getSign()
+    {
+        Vector2D vector = AsVector2D().GetSign();
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public double getAngleRad()
+        => AsVector2D().GetAngle();
+
+    public double getAngle()
+        => Angle2D.RadToDeg(getAngleRad());
+
+    public double getLength()
+        => AsVector2D().GetLength();
+
+    public double getLengthSq()
+        => AsVector2D().GetLengthSq();
+
+    public UdbScriptVector2DWrapper getNormal()
+    {
+        Vector2D vector = AsVector2D().GetNormal();
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public UdbScriptVector2DWrapper getTransformed(double offsetx, double offsety, double scalex, double scaley)
+    {
+        Vector2D vector = AsVector2D().GetTransformed(offsetx, offsety, scalex, scaley);
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public UdbScriptVector2DWrapper getInverseTransformed(double invoffsetx, double invoffsety, double invscalex, double invscaley)
+    {
+        Vector2D vector = AsVector2D().GetInvTransformed(invoffsetx, invoffsety, invscalex, invscaley);
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public UdbScriptVector2DWrapper getRotated(double theta)
+        => getRotatedRad(Angle2D.DegToRad(theta));
+
+    public UdbScriptVector2DWrapper getRotatedRad(double theta)
+    {
+        Vector2D vector = AsVector2D().GetRotated(theta);
+        return new UdbScriptVector2DWrapper(vector.x, vector.y);
+    }
+
+    public bool isFinite()
+        => AsVector2D().IsFinite();
+
+    public override string ToString()
+        => AsVector2D().ToString();
+
+    private static bool TryVector2D(object value, out Vector2D vector)
+    {
+        try
+        {
+            vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
+            return true;
+        }
+        catch (UdbScriptVectorConversionException)
+        {
+            vector = default;
+            return false;
+        }
+    }
+
+    private static Vector2D ToVector2D(object value)
+        => UdbScriptApiConversionModel.GetVector3DFromObject(value);
+}
+
+public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z)
+{
+    public double x => X;
+
+    public double y => Y;
+
+    public double z => Z;
+
+    public UdbScriptVector3DWrapper(object value)
+        : this(ToVector3D(value).x, ToVector3D(value).y, ToVector3D(value).z)
+    {
+    }
+
+    public Vector3D AsVector3D()
+        => new(X, Y, Z);
+
+    public static implicit operator UdbScriptVector2DWrapper(UdbScriptVector3DWrapper value)
+        => new(value.X, value.Y);
+
+    public static object operator +(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector3DWrapper(lhs.X + number, lhs.Y + number, lhs.Z + number);
+
+        if (TryVector3D(rhs, out Vector3D vector))
+            return new UdbScriptVector3DWrapper(lhs.X + vector.x, lhs.Y + vector.y, lhs.Z + vector.z);
+
+        return string.Concat(lhs, rhs);
+    }
+
+    public static object operator +(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector3DWrapper(number + rhs.X, number + rhs.Y, number + rhs.Z);
+
+        if (TryVector3D(lhs, out Vector3D vector))
+            return new UdbScriptVector3DWrapper(vector.x + rhs.X, vector.y + rhs.Y, vector.z + rhs.Z);
+
+        return string.Concat(lhs, rhs);
+    }
+
+    public static object operator -(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector3DWrapper(lhs.X - number, lhs.Y - number, lhs.Z - number);
+
+        Vector3D vector = ToVector3D(rhs);
+        return new UdbScriptVector3DWrapper(lhs.X - vector.x, lhs.Y - vector.y, lhs.Z - vector.z);
+    }
+
+    public static object operator -(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector3DWrapper(rhs.X - number, rhs.Y - number, rhs.Z - number);
+
+        Vector3D vector = ToVector3D(lhs);
+        return new UdbScriptVector3DWrapper(vector.x - rhs.X, vector.y - rhs.Y, vector.z - rhs.Z);
+    }
+
+    public static object operator *(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector3DWrapper(lhs.X * number, lhs.Y * number, lhs.Z * number);
+
+        Vector3D vector = ToVector3D(rhs);
+        return new UdbScriptVector3DWrapper(lhs.X * vector.x, lhs.Y * vector.y, lhs.Z * vector.z);
+    }
+
+    public static object operator *(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector3DWrapper(rhs.X * number, rhs.Y * number, rhs.Z * number);
+
+        Vector3D vector = ToVector3D(lhs);
+        return new UdbScriptVector3DWrapper(vector.x * rhs.X, vector.y * rhs.Y, vector.z * rhs.Z);
+    }
+
+    public static object operator /(UdbScriptVector3DWrapper lhs, object rhs)
+    {
+        if (rhs is double number)
+            return new UdbScriptVector3DWrapper(lhs.X / number, lhs.Y / number, lhs.Z / number);
+
+        Vector3D vector = ToVector3D(rhs);
+        return new UdbScriptVector3DWrapper(lhs.X / vector.x, lhs.Y / vector.y, lhs.Z / vector.z);
+    }
+
+    public static object operator /(object lhs, UdbScriptVector3DWrapper rhs)
+    {
+        if (lhs is double number)
+            return new UdbScriptVector3DWrapper(rhs.X / number, rhs.Y / number, rhs.Z / number);
+
+        Vector3D vector = ToVector3D(lhs);
+        return new UdbScriptVector3DWrapper(vector.x / rhs.X, vector.y / rhs.Y, vector.z / rhs.Z);
+    }
+
+    public static double dotProduct(UdbScriptVector3DWrapper a, UdbScriptVector3DWrapper b)
+        => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+
+    public static UdbScriptVector3DWrapper crossProduct(object a, object b)
+    {
+        Vector3D first = ToVector3D(a);
+        Vector3D second = ToVector3D(b);
+        Vector3D vector = Vector3D.CrossProduct(first, second);
+        return new UdbScriptVector3DWrapper(vector.x, vector.y, vector.z);
+    }
+
+    public static UdbScriptVector3DWrapper reflect(object value, object mirror)
+    {
+        Vector3D reflected = Vector3D.Reflect(ToVector3D(value), ToVector3D(mirror));
+        return new UdbScriptVector3DWrapper(reflected.x, reflected.y, reflected.z);
+    }
+
+    public static UdbScriptVector3DWrapper reversed(object value)
+    {
+        Vector3D reversed = Vector3D.Reversed(ToVector3D(value));
+        return new UdbScriptVector3DWrapper(reversed.x, reversed.y, reversed.z);
+    }
+
+    public static UdbScriptVector3DWrapper fromAngleXYRad(double angle)
+    {
+        Vector3D vector = Vector3D.FromAngleXY(angle);
+        return new UdbScriptVector3DWrapper(vector.x, vector.y, vector.z);
+    }
+
+    public static UdbScriptVector3DWrapper fromAngleXY(double angle)
+        => fromAngleXYRad(Angle2D.DegToRad(angle));
+
+    public static UdbScriptVector3DWrapper fromAngleXYZRad(double anglexy, double anglez)
+    {
+        Vector3D vector = Vector3D.FromAngleXYZ(anglexy, anglez);
+        return new UdbScriptVector3DWrapper(vector.x, vector.y, vector.z);
+    }
+
+    public static UdbScriptVector3DWrapper fromAngleXYZ(double anglexy, double anglez)
+        => fromAngleXYZRad(Angle2D.DegToRad(anglexy), Angle2D.DegToRad(anglez));
+
+    public double getAngleXYRad()
+        => AsVector3D().GetAngleXY();
+
+    public double getAngleXY()
+        => Angle2D.RadToDeg(getAngleXYRad());
+
+    public double getAngleZRad()
+        => AsVector3D().GetAngleZ();
+
+    public double getAngleZ()
+        => Angle2D.RadToDeg(getAngleZRad());
+
+    public double getLength()
+        => AsVector3D().GetLength();
+
+    public double getLengthSq()
+        => AsVector3D().GetLengthSq();
+
+    public UdbScriptVector3DWrapper getNormal()
+    {
+        Vector3D vector = AsVector3D().GetNormal();
+        return new UdbScriptVector3DWrapper(vector.x, vector.y, vector.z);
+    }
+
+    public UdbScriptVector3DWrapper getScaled(double scale)
+    {
+        Vector3D vector = AsVector3D().GetScaled(scale);
+        return new UdbScriptVector3DWrapper(vector.x, vector.y, vector.z);
+    }
+
+    public bool isNormalized()
+        => AsVector3D().IsNormalized();
+
+    public bool isFinite()
+        => AsVector3D().IsFinite();
+
+    public override string ToString()
+        => AsVector3D().ToString();
+
+    private static bool TryVector3D(object value, out Vector3D vector)
+    {
+        try
+        {
+            vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
+            return true;
+        }
+        catch (UdbScriptVectorConversionException)
+        {
+            vector = default;
+            return false;
+        }
+    }
+
+    private static Vector3D ToVector3D(object value)
+        => UdbScriptApiConversionModel.GetVector3DFromObject(value);
+}
 
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
 
