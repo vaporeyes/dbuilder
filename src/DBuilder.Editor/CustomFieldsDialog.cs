@@ -14,6 +14,7 @@ public sealed class CustomFieldsDialog : PropertyDialog
     private readonly TextBox _fields;
 
     public Dictionary<string, object> ResultFields { get; private set; } = new();
+    public Dictionary<string, object> ResultRawFields { get; private set; } = new();
 
     public CustomFieldsDialog(
         string elementName,
@@ -33,7 +34,8 @@ public sealed class CustomFieldsDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        ResultFields = UdmfFields.Parse(_fields.Text);
+        ResultRawFields = UdmfFields.Parse(_fields.Text);
+        ResultFields = new Dictionary<string, object>(ResultRawFields);
         _fieldEditors?.Apply(ResultFields);
     }
 }

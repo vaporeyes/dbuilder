@@ -1464,6 +1464,8 @@ public partial class MainWindow : Window
 
         CreateUndo("Edit custom fields");
         ApplyFields(element.Fields, dlg.ResultFields);
+        if (_mapOptions != null)
+            CustomFieldsEditorModelBuilder.StoreRawFieldTypes(_mapOptions, _config, elementType, dlg.ResultRawFields);
         AfterEdit($"{name} custom fields updated");
     }
 

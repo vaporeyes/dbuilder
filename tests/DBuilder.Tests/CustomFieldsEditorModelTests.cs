@@ -98,4 +98,62 @@ public sealed class CustomFieldsEditorModelTests
         Assert.Empty(model.ConfiguredFields);
         Assert.Equal(fields, model.RawFields);
     }
+
+    [Theory]
+    [InlineData(true, (int)UniversalType.Boolean)]
+    [InlineData(1, (int)UniversalType.Integer)]
+    [InlineData(1.5, (int)UniversalType.Float)]
+    [InlineData("text", (int)UniversalType.String)]
+    public void InferCustomFieldTypeMapsPrimitiveValuesToUdbTypeIds(object value, int expectedType)
+        => Assert.Equal(expectedType, CustomFieldsEditorModelBuilder.InferCustomFieldType(value));
+
+    [Fact]
+    public void StoreRawFieldTypesWritesDynamicFieldTypes()
+    {
+        var options = new MapOptions();
+        var fields = new Dictionary<string, object>
+        {
+            ["enabled"] = true,
+            ["count"] = 3,
+            ["ratio"] = 1.25,
+            ["label"] = "alpha",
+        };
+
+        CustomFieldsEditorModelBuilder.StoreRawFieldTypes(options, config: null, "thing", fields);
+
+        Assert.Equal((int)UniversalType.Boolean, options.GetUniversalFieldType("thing", "enabled", -1));
+        Assert.Equal((int)UniversalType.Integer, options.GetUniversalFieldType("thing", "count", -1));
+        Assert.Equal((int)UniversalType.Float, options.GetUniversalFieldType("thing", "ratio", -1));
+        Assert.Equal((int)UniversalType.String, options.GetUniversalFieldType("thing", "label", -1));
+    }
+
+    [Fact]
+    public void StoreRawFieldTypesSkipsConfiguredUniversalFields()
+    {
+        const string cfg = """
+            universalfields
+            {
+                thing
+                {
+                    health
+                    {
+                        type = 0;
+                        default = 100;
+                    }
+                }
+            }
+            """;
+        var config = GameConfiguration.FromText(cfg);
+        var options = new MapOptions();
+        var fields = new Dictionary<string, object>
+        {
+            ["health"] = "wrong type",
+            ["comment"] = "raw",
+        };
+
+        CustomFieldsEditorModelBuilder.StoreRawFieldTypes(options, config, "thing", fields);
+
+        Assert.Equal(-1, options.MapConfiguration.ReadSetting("fieldtypes.thing.health", -1));
+        Assert.Equal((int)UniversalType.String, options.GetUniversalFieldType("thing", "comment", -1));
+    }
 }
