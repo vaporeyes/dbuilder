@@ -3749,9 +3749,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 AdjustTarget3D(_grid.GridSize);
                 return true;
             case "map3d.brightness-down":
+            case "map3d.lower-brightness-8":
                 AdjustTargetBrightness3D(-8);
                 return true;
             case "map3d.brightness-up":
+            case "map3d.raise-brightness-8":
                 AdjustTargetBrightness3D(8);
                 return true;
             case "map3d.copy-texture":

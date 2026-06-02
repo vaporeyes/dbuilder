@@ -907,6 +907,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.walk-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "G"));
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
+        Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
+        Assert.Equal("map3d.raise-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
@@ -929,6 +931,23 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size")]
     [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size")]
     public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8")]
+    [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8")]
+    public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
 
@@ -1048,7 +1067,7 @@ public class EditorCommandCatalogTests
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.raise-brightness-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.raise-sector-128"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.move-texture-left-grid"));
-        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.brightness-down"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map3d.lower-brightness-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
 
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.toggle-3d"));
