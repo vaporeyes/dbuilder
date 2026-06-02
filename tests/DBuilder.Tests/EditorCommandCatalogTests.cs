@@ -920,6 +920,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raise-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
+        Assert.Equal("map3d.flood-fill-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
         Assert.Equal("map3d.scale-up", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad9"));
@@ -1036,6 +1037,21 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualTextureFloodFillCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.flood-fill-texture");
+
+        Assert.NotNull(command);
+        Assert.Equal("Paste Texture Flood-Fill", command.Title);
+        Assert.Equal("Ctrl/Cmd+V", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);

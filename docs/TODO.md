@@ -946,6 +946,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual texture auto-align action metadata and dispatch.
   - [x] Add UDB-style visual texture and thing scale action metadata and dispatch.
   - [x] Add UDB-style visual texture and thing reset action metadata and dispatch.
+  - [x] Add UDB-style visual texture flood-fill action metadata and dispatch.
 - [ ] Port brightness editing behavior.
   - [x] Add UDB-style visual brightness step action metadata and dispatch.
 - [ ] Port 3D floors visual editing.

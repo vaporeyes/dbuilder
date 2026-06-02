@@ -1530,6 +1530,58 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
     }
 
+    private void FloodFillTexture3D()
+    {
+        if (_map == null) return;
+        if (string.IsNullOrEmpty(_texClipboard3D)) { Target3DChanged?.Invoke("no copied texture (use C or T)"); return; }
+        if (_target3D is not { } hit) { Target3DChanged?.Invoke("aim at a surface to flood-fill"); return; }
+
+        string fillTexture = _texClipboard3D!;
+        if (hit.Kind == VisualHitKind.Floor && hit.Sector is { } floor)
+        {
+            if (floor.FloorTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied flat"); return; }
+            if (_resources?.GetFlat(fillTexture) == null) { Target3DChanged?.Invoke("copied flat is not loaded"); return; }
+
+            EditBegun?.Invoke("Flood-fill floors");
+            Tools.FloodfillFlats(_map, floor, fillCeilings: false, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { floor.FloorTexture }, fillTexture, resetSectorMarks: true);
+            FinishFloodFill3D("flood-filled floors");
+        }
+        else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector is { } ceiling)
+        {
+            if (ceiling.CeilTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied flat"); return; }
+            if (_resources?.GetFlat(fillTexture) == null) { Target3DChanged?.Invoke("copied flat is not loaded"); return; }
+
+            EditBegun?.Invoke("Flood-fill ceilings");
+            Tools.FloodfillFlats(_map, ceiling, fillCeilings: true, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ceiling.CeilTexture }, fillTexture, resetSectorMarks: true);
+            FinishFloodFill3D("flood-filled ceilings");
+        }
+        else if (hit.Kind == VisualHitKind.Wall && hit.Line != null)
+        {
+            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+            if (side == null) { Target3DChanged?.Invoke("aim at a wall to flood-fill"); return; }
+            string oldTexture = side.GetTexture(hit.Part);
+            if (oldTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied texture"); return; }
+            if (_resources?.GetWallTexture(fillTexture) == null) { Target3DChanged?.Invoke("copied texture is not loaded"); return; }
+
+            EditBegun?.Invoke("Flood-fill textures");
+            Tools.FloodfillTextures(_map, side, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { oldTexture }, fillTexture, resetSideMarks: true);
+            FinishFloodFill3D("flood-filled textures");
+        }
+        else
+        {
+            Target3DChanged?.Invoke("aim at a surface to flood-fill");
+        }
+    }
+
+    private void FinishFloodFill3D(string status)
+    {
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke(status);
+    }
+
     // The sidedef on the camera-facing side of the targeted wall, or null.
     private Sidedef? TargetSidedef3D()
     {
@@ -3920,6 +3972,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.apply-texture":
                 ApplyTexture3D();
+                return true;
+            case "map3d.flood-fill-texture":
+                FloodFillTexture3D();
                 return true;
             case "map3d.align-texture-x":
             case "map3d.visual-auto-align-x":
