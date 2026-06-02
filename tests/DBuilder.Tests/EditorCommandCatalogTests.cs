@@ -922,6 +922,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "H"));
         Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
+        Assert.Equal("map2d.draw-rectangle", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, shift: true));
+        Assert.Equal("map2d.draw-ellipse", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true, alt: true));
         Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
@@ -948,14 +950,17 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
-    [Fact]
-    public void DrawCurveCommandMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
+    [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]
+    [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
+    public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
-        var command = EditorCommandCatalog.Find("map2d.draw-curve");
+        var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
-        Assert.Equal("Start Curve Drawing", command.Title);
-        Assert.Equal("Ctrl/Cmd+Alt+D", command.DefaultGesture);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
@@ -1590,6 +1595,8 @@ public class EditorCommandCatalogTests
 
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.toggle-3d"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-sector"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-rectangle"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-ellipse"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-curve"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }

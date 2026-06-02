@@ -4869,6 +4869,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.draw-lines":
                 ToggleDrawMode(linesOnly: true);
                 return true;
+            case "map2d.draw-rectangle":
+                SetShapeMode(ShapeKind.Rectangle);
+                return true;
+            case "map2d.draw-ellipse":
+                SetShapeMode(ShapeKind.Ellipse);
+                return true;
             case "map2d.draw-curve":
                 ToggleDrawMode(linesOnly: true, curve: true);
                 return true;

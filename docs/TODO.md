@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3165 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3167 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1337,6 +1337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB overlapping linedef result text.
   - [x] Match UDB misaligned texture result text.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
+  - [x] Add UDB-style draw-rectangle and draw-ellipse action metadata, shortcuts, and command dispatch.
   - [x] Add UDB-style draw-curve action metadata, shortcut, and command dispatch.
   - [x] Add UDB-style persisted draw-mode option keys and defaults for line, rectangle, ellipse, curve, and grid modes.
   - [x] Add UDB-style draw-mode subdivision and curve segment adjustment helpers.
