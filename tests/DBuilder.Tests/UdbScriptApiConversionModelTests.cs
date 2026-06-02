@@ -1565,6 +1565,74 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesHighlightedElements()
+    {
+        var (map, first, _, shared) = CreateTwoSharedSectors();
+        var vertex = shared.Start;
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+
+        Assert.Same(vertex, new UdbScriptMapWrapper(map, highlightedObject: vertex).getHighlightedVertex()!.Vertex);
+        Assert.Same(thing, new UdbScriptMapWrapper(map, highlightedObject: thing).getHighlightedThing()!.Thing);
+        Assert.Same(first, new UdbScriptMapWrapper(map, highlightedObject: first).getHighlightedSector()!.Sector);
+        Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: shared).getHighlightedLinedef()!.Linedef);
+        Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: shared.Front).getHighlightedLinedef()!.Linedef);
+    }
+
+    [Fact]
+    public void MapWrapperSelectedOrHighlightedUsesSelectedElementsFirst()
+    {
+        var map = new MapSet();
+        var selectedVertex = map.AddVertex(new Vector2D(0, 0));
+        var highlightedVertex = map.AddVertex(new Vector2D(64, 0));
+        selectedVertex.Selected = true;
+        var selectedThing = map.AddThing(new Vector2D(0, 32), 3001);
+        var highlightedThing = map.AddThing(new Vector2D(64, 32), 3002);
+        selectedThing.Selected = true;
+        var selectedSector = map.AddSector();
+        var highlightedSector = map.AddSector();
+        selectedSector.Selected = true;
+        var selectedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(32, 64)));
+        var highlightedLine = map.AddLinedef(map.AddVertex(new Vector2D(64, 64)), map.AddVertex(new Vector2D(96, 64)));
+        selectedLine.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map, highlightedObject: highlightedVertex);
+
+        Assert.Same(selectedVertex, Assert.Single(wrapper.getSelectedOrHighlightedVertices()).Vertex);
+        Assert.Same(selectedThing, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedThing).getSelectedOrHighlightedThings()).Thing);
+        Assert.Same(selectedSector, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedSector).getSelectedOrHighlightedSectors()).Sector);
+        Assert.Same(selectedLine, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedLine).getSelectedOrHighlightedLinedefs()).Linedef);
+    }
+
+    [Fact]
+    public void MapWrapperSelectedOrHighlightedFallsBackToHighlightedElements()
+    {
+        var (map, first, _, shared) = CreateTwoSharedSectors();
+        var vertex = shared.Start;
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+
+        Assert.Same(vertex, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: vertex).getSelectedOrHighlightedVertices()).Vertex);
+        Assert.Same(thing, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: thing).getSelectedOrHighlightedThings()).Thing);
+        Assert.Same(first, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: first).getSelectedOrHighlightedSectors()).Sector);
+        Assert.Same(shared, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: shared).getSelectedOrHighlightedLinedefs()).Linedef);
+    }
+
+    [Fact]
+    public void MapWrapperGetsSidedefsFromSelectedOrHighlightedLinedefs()
+    {
+        var (map, _, _, shared) = CreateTwoSharedSectors();
+        UdbScriptSidedefWrapper[] highlighted = new UdbScriptMapWrapper(map, highlightedObject: shared)
+            .getSidedefsFromSelectedOrHighlightedLinedefs();
+
+        Assert.Contains(highlighted, wrapper => ReferenceEquals(shared.Front, wrapper.Sidedef));
+        Assert.Contains(highlighted, wrapper => ReferenceEquals(shared.Back, wrapper.Sidedef));
+
+        shared.Selected = true;
+        UdbScriptSidedefWrapper[] selected = new UdbScriptMapWrapper(map)
+            .getSidedefsFromSelectedOrHighlightedLinedefs();
+
+        Assert.Equal(2, selected.Length);
+    }
+
+    [Fact]
     public void MapWrapperJoinsSectors()
     {
         var (map, first, second, shared) = CreateTwoSharedSectors();

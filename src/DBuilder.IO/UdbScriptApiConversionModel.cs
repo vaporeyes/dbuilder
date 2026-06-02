@@ -2546,12 +2546,14 @@ public sealed class UdbScriptMapWrapper
     }
 
     private readonly GridSetup grid;
+    private readonly object? highlightedObject;
     private readonly MapSet map;
 
-    public UdbScriptMapWrapper(MapSet map, GridSetup? grid = null)
+    public UdbScriptMapWrapper(MapSet map, GridSetup? grid = null, object? highlightedObject = null)
     {
         this.map = map;
         this.grid = grid ?? new GridSetup();
+        this.highlightedObject = highlightedObject;
     }
 
     public MapSet Map
@@ -2848,6 +2850,24 @@ public sealed class UdbScriptMapWrapper
             .ToArray();
     }
 
+    public UdbScriptVertexWrapper? getHighlightedVertex()
+    {
+        ThrowIfDisposed("getHighlightedVertex");
+        return highlightedObject is Vertex vertex && !vertex.IsDisposed
+            ? new UdbScriptVertexWrapper(vertex, map)
+            : null;
+    }
+
+    public UdbScriptVertexWrapper[] getSelectedOrHighlightedVertices()
+    {
+        ThrowIfDisposed("getSelectedOrHighlightedVertices");
+        UdbScriptVertexWrapper[] selected = getSelectedVertices();
+        if (selected.Length > 0) return selected;
+
+        UdbScriptVertexWrapper? highlighted = getHighlightedVertex();
+        return highlighted == null ? Array.Empty<UdbScriptVertexWrapper>() : new[] { highlighted };
+    }
+
     public UdbScriptThingWrapper[] getSelectedThings(bool selected = true)
     {
         ThrowIfDisposed("getSelectedThings");
@@ -2855,6 +2875,24 @@ public sealed class UdbScriptMapWrapper
             .Where(thing => !thing.IsDisposed)
             .Select(thing => new UdbScriptThingWrapper(thing, map))
             .ToArray();
+    }
+
+    public UdbScriptThingWrapper? getHighlightedThing()
+    {
+        ThrowIfDisposed("getHighlightedThing");
+        return highlightedObject is Thing thing && !thing.IsDisposed
+            ? new UdbScriptThingWrapper(thing, map)
+            : null;
+    }
+
+    public UdbScriptThingWrapper[] getSelectedOrHighlightedThings()
+    {
+        ThrowIfDisposed("getSelectedOrHighlightedThings");
+        UdbScriptThingWrapper[] selected = getSelectedThings();
+        if (selected.Length > 0) return selected;
+
+        UdbScriptThingWrapper? highlighted = getHighlightedThing();
+        return highlighted == null ? Array.Empty<UdbScriptThingWrapper>() : new[] { highlighted };
     }
 
     public UdbScriptSectorWrapper[] getSelectedSectors(bool selected = true)
@@ -2866,6 +2904,24 @@ public sealed class UdbScriptMapWrapper
             .ToArray();
     }
 
+    public UdbScriptSectorWrapper? getHighlightedSector()
+    {
+        ThrowIfDisposed("getHighlightedSector");
+        return highlightedObject is Sector sector && !sector.IsDisposed
+            ? new UdbScriptSectorWrapper(sector, map)
+            : null;
+    }
+
+    public UdbScriptSectorWrapper[] getSelectedOrHighlightedSectors()
+    {
+        ThrowIfDisposed("getSelectedOrHighlightedSectors");
+        UdbScriptSectorWrapper[] selected = getSelectedSectors();
+        if (selected.Length > 0) return selected;
+
+        UdbScriptSectorWrapper? highlighted = getHighlightedSector();
+        return highlighted == null ? Array.Empty<UdbScriptSectorWrapper>() : new[] { highlighted };
+    }
+
     public UdbScriptLinedefWrapper[] getSelectedLinedefs(bool selected = true)
     {
         ThrowIfDisposed("getSelectedLinedefs");
@@ -2875,12 +2931,56 @@ public sealed class UdbScriptMapWrapper
             .ToArray();
     }
 
+    public UdbScriptLinedefWrapper? getHighlightedLinedef()
+    {
+        ThrowIfDisposed("getHighlightedLinedef");
+        Linedef? linedef = highlightedObject switch
+        {
+            Linedef line when !line.IsDisposed => line,
+            Sidedef side when !side.IsDisposed && !side.Line.IsDisposed => side.Line,
+            _ => null,
+        };
+
+        return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map);
+    }
+
+    public UdbScriptLinedefWrapper[] getSelectedOrHighlightedLinedefs()
+    {
+        ThrowIfDisposed("getSelectedOrHighlightedLinedefs");
+        UdbScriptLinedefWrapper[] selected = getSelectedLinedefs();
+        if (selected.Length > 0) return selected;
+
+        UdbScriptLinedefWrapper? highlighted = getHighlightedLinedef();
+        return highlighted == null ? Array.Empty<UdbScriptLinedefWrapper>() : new[] { highlighted };
+    }
+
     public UdbScriptSidedefWrapper[] getSidedefsFromSelectedLinedefs(bool selected = true)
     {
         ThrowIfDisposed("getSidedefsFromSelectedLinedefs");
         return map.GetSidedefsFromSelectedLinedefs(selected)
             .Where(sidedef => !sidedef.IsDisposed)
             .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map))
+            .ToArray();
+    }
+
+    public UdbScriptSidedefWrapper[] getSidedefsFromSelectedOrHighlightedLinedefs()
+    {
+        ThrowIfDisposed("getSidedefsFromSelectedOrHighlightedLinedefs");
+        UdbScriptSidedefWrapper[] selected = getSidedefsFromSelectedLinedefs();
+        if (selected.Length > 0) return selected;
+
+        Linedef? highlighted = highlightedObject switch
+        {
+            Linedef line when !line.IsDisposed => line,
+            Sidedef side when !side.IsDisposed && !side.Line.IsDisposed => side.Line,
+            _ => null,
+        };
+
+        if (highlighted == null) return Array.Empty<UdbScriptSidedefWrapper>();
+
+        return new[] { highlighted.Front, highlighted.Back }
+            .Where(sidedef => sidedef != null && !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef!, map))
             .ToArray();
     }
 
