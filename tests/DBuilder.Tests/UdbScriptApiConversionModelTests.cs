@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.Numerics;
 using DBuilder.Geometry;
 using DBuilder.IO;
+using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
@@ -297,6 +298,38 @@ localsidedeftextureoffsets = true;
 
         Assert.Equal("", wrapper.engineName);
         Assert.False(wrapper.hasLocalSidedefTextureOffsets);
+    }
+
+    [Fact]
+    public void MapElementArgumentsWrapperMutatesThingArguments()
+    {
+        var thing = new Thing();
+        thing.Args[0] = 1;
+        thing.Args[1] = 2;
+        var wrapper = new UdbScriptMapElementArgumentsWrapper(thing);
+
+        wrapper[1] = 42;
+
+        Assert.Equal(5, wrapper.length);
+        Assert.Equal(1, wrapper[0]);
+        Assert.Equal(42, thing.Args[1]);
+        Assert.Equal(new[] { 1, 42, 0, 0, 0 }, wrapper.ToArray());
+    }
+
+    [Fact]
+    public void MapElementArgumentsWrapperMutatesLinedefArguments()
+    {
+        var line = new Linedef();
+        line.Args[2] = 7;
+        var wrapper = new UdbScriptMapElementArgumentsWrapper(line);
+
+        wrapper[2] = 9;
+        wrapper[4] = 11;
+
+        Assert.Equal(5, wrapper.length);
+        Assert.Equal(9, line.Args[2]);
+        Assert.Equal(11, wrapper[4]);
+        Assert.Equal(new[] { 0, 0, 9, 0, 11 }, wrapper.ToArray());
     }
 
     [Theory]

@@ -5,6 +5,7 @@ using System.Collections;
 using System.Dynamic;
 using System.Numerics;
 using DBuilder.Geometry;
+using DBuilder.Map;
 
 namespace DBuilder.IO;
 
@@ -692,6 +693,34 @@ public sealed class UdbScriptGameConfigurationWrapper
 
     public bool hasLocalSidedefTextureOffsets
         => configuration.UseLocalSidedefTextureOffsets;
+}
+
+public sealed class UdbScriptMapElementArgumentsWrapper : IEnumerable<int>
+{
+    private readonly IHasArguments element;
+
+    public UdbScriptMapElementArgumentsWrapper(IHasArguments element)
+    {
+        this.element = element;
+    }
+
+    public int this[int i]
+    {
+        get => element.Args[i];
+        set => element.Args[i] = value;
+    }
+
+    public int length
+        => element.Args.Length;
+
+    public IEnumerator<int> GetEnumerator()
+    {
+        foreach (int value in element.Args)
+            yield return value;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 }
 
 public sealed record UdbScriptUniversalValue(int Type, object? Value);
