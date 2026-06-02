@@ -182,6 +182,7 @@
                 <MenuItem Header="Always Show _Vertices" x:Name="ToggleAlwaysShowVerticesMenuItem" ToggleType="CheckBox" Click="OnToggleAlwaysShowVertices" />
                 <MenuItem Header="Show _3D Floors" x:Name="Toggle3DFloorsMenuItem" ToggleType="CheckBox" Click="OnToggle3DFloors" />
                 <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
+                <MenuItem Header="Filter Selected _Things..." x:Name="FilterSelectedThingsMenuItem" Click="OnFilterSelectedThings" />
                 <MenuItem Header="_Grid">
                     <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
                     <MenuItem Header="_Smart Grid Transform" Click="OnSmartGridTransform" />

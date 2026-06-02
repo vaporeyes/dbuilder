@@ -1074,6 +1074,7 @@ public partial class MainWindow : Window
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
+            case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
@@ -1548,6 +1549,26 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Selected {changed} similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()}.");
+        MapView.Focus();
+    }
+
+    private async void OnFilterSelectedThings(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_map.SelectedThingsCount == 0) { SetStatus("This action requires a selection!"); return; }
+
+        IReadOnlyList<int> selectedTypes = ThingSelectionFilter.SelectedTypes(_map);
+        var dlg = new FilterSelectedThingsDialog(selectedTypes, _config);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            CreateUndo("Filter selected things");
+            int kept = ThingSelectionFilter.KeepSelectedTypes(_map, dlg.SelectedTypes);
+            MapView.MarkGeometryDirty();
+            MarkMapDirty();
+            UpdateInfo();
+            SetStatus("Filtered selected things: " + kept + " thing(s) remain selected.");
+        }
+
         MapView.Focus();
     }
 
@@ -4739,7 +4760,7 @@ public partial class MainWindow : Window
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
-        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem);
+        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);

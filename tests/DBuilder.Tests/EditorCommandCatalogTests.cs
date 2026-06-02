@@ -157,6 +157,20 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Fact]
+    public void FilterSelectedThingsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.filter-selected-things");
+
+        Assert.NotNull(command);
+        Assert.Equal("Filter Selected Things", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("window.copy-properties", "Copy Properties")]
     [InlineData("window.paste-properties", "Paste Properties")]
