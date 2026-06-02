@@ -92,6 +92,29 @@ public class ConfigPickerModelTests
         }
     }
 
+    [Fact]
+    public void ResolveLongTextureNameSupportUsesResolvedSidecarConfig()
+    {
+        string dir = NewTempDir();
+        string longNames = Path.Combine(dir, "Long.cfg");
+        string shortNames = Path.Combine(dir, "Short.cfg");
+        try
+        {
+            File.WriteAllText(longNames, "");
+            File.WriteAllText(shortNames, "");
+
+            bool Support(string path) => Path.GetFileName(path).Equals("Long.cfg", StringComparison.OrdinalIgnoreCase);
+
+            Assert.True(ConfigPickerModel.ResolveLongTextureNameSupport(dir, "Long.cfg", fallback: false, File.Exists, Support));
+            Assert.False(ConfigPickerModel.ResolveLongTextureNameSupport(dir, "Short", fallback: true, File.Exists, Support));
+            Assert.True(ConfigPickerModel.ResolveLongTextureNameSupport(dir, "Missing.cfg", fallback: true, File.Exists, Support));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
     private static string NewTempDir()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder-config-picker-" + Path.GetRandomFileName());

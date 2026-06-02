@@ -866,6 +866,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style strict patch loading option while switching maps.
   - [x] Honor UDB sidecar game configuration when loading a selected WAD map.
   - [x] Apply UDB-style script compiler override/default selection when loading a selected WAD map.
+  - [x] Seed long texture names support from the selected WAD map sidecar configuration.
 - [x] Port preferences dialog.
 - [ ] Port resource options dialog.
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.

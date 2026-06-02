@@ -3187,7 +3187,21 @@ public partial class MainWindow : Window
     {
         if (_wadPath is null) return default;
         var options = LoadMapOptions(_wadPath, entry.Name, out _);
-        return OpenMapSelectionOptions.FromMapOptions(options, _config?.UseLongTextureNames ?? false);
+        return OpenMapSelectionOptions.FromMapOptions(options, LongTextureNamesSupportedForMapOptions(options));
+    }
+
+    private bool LongTextureNamesSupportedForMapOptions(MapOptions options)
+    {
+        return ConfigPickerModel.ResolveLongTextureNameSupport(
+            ConfigDir,
+            options.ConfigFile,
+            _config?.UseLongTextureNames ?? false,
+            System.IO.File.Exists,
+            path =>
+            {
+                try { return GameConfiguration.FromFile(path).UseLongTextureNames; }
+                catch { return _config?.UseLongTextureNames ?? false; }
+            });
     }
 
     private void LoadPk3MapEntry(Pk3MapEntry entry)

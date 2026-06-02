@@ -60,6 +60,17 @@ public static class ConfigPickerModel
         return fileExists(withExtension) ? withExtension : null;
     }
 
+    public static bool ResolveLongTextureNameSupport(
+        string configDir,
+        string configNameOrPath,
+        bool fallback,
+        Func<string, bool> fileExists,
+        Func<string, bool> supportsLongTextureNames)
+    {
+        string? path = ResolveConfigPath(configDir, configNameOrPath, fileExists);
+        return path is null ? fallback : supportsLongTextureNames(path);
+    }
+
     private static bool IsIncludeFile(string configDir, string path)
     {
         string relative = Path.GetRelativePath(configDir, path);
