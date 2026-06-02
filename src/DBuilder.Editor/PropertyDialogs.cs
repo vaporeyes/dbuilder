@@ -580,6 +580,9 @@ public abstract class PropertyDialog : Window
     protected static int ComboNumber(ComboBox combo, int fallback)
         => combo.SelectedItem is CatalogItem ci ? ci.Number : fallback;
 
+    protected static string ComboText(ComboBox combo, string fallback)
+        => combo.SelectedItem is CatalogTextItem ci ? ci.Value : fallback;
+
     protected abstract void OnConfirm();
 }
 

@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private Configuration? _mapSettings;
     private GameConfiguration? _config;
     private CompilerConfiguration _compilerConfig = new();
+    private ScriptConfigurationCatalog _scriptConfigurations = new();
     private string _configName = "(none)";
     private string _configFile = "";
     private bool _configIsAuto = true; // true while the config was chosen by default/auto-detect (so WAD open may switch it)
@@ -84,6 +85,15 @@ public partial class MainWindow : Window
             return assetsRoot is null
                 ? ""
                 : System.IO.Path.Combine(assetsRoot, platform, "Compilers", "Nodebuilders");
+        }
+    }
+
+    private string ScriptConfigDir
+    {
+        get
+        {
+            string? assetsRoot = AssetsRootFromConfigDir(ConfigDir);
+            return assetsRoot is null ? "" : System.IO.Path.Combine(assetsRoot, "Common", "Scripting");
         }
     }
 
@@ -232,6 +242,7 @@ public partial class MainWindow : Window
     private void ReloadCompilerConfiguration()
     {
         _compilerConfig = CompilerConfiguration.FromDirectory(NodebuilderConfigDir);
+        _scriptConfigurations = ScriptConfigurationCatalog.FromDirectory(ScriptConfigDir);
     }
 
     // Rebuilds the File > Open Recent submenu from persisted recent map and file lists.
@@ -866,7 +877,14 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
         SyncMapOptionsToView();
-        var dlg = new MapOptionsDialog(_mapMarker ?? "MAP01", _map.Namespace, _mapOptions, _config?.UseLongTextureNames ?? false, _resources);
+        var dlg = new MapOptionsDialog(
+            _mapMarker ?? "MAP01",
+            _map.Namespace,
+            _mapOptions,
+            _config?.UseLongTextureNames ?? false,
+            _resources,
+            _scriptConfigurations,
+            _config?.DefaultScriptCompiler ?? "");
         if (await dlg.ShowDialog<bool>(this))
         {
             _mapMarker = dlg.ResultMarker;

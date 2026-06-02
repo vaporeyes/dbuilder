@@ -27,7 +27,8 @@ public sealed class MapOptionsDialog : PropertyDialog
     private readonly CheckBox _overrideCeilingHeight;
     private readonly CheckBox _overrideBrightness;
     private readonly CheckBox _useLongTextureNames;
-    private readonly TextBox _scriptCompiler;
+    private readonly TextBox? _scriptCompiler;
+    private readonly ComboBox? _scriptCompilerCombo;
     private readonly TextBox _reloadResourcePreCommand;
     private readonly TextBox _reloadResourcePreWorkingDirectory;
     private readonly CheckBox _reloadResourcePreAutoClose;
@@ -53,7 +54,14 @@ public sealed class MapOptionsDialog : PropertyDialog
     public string ResultMarker { get; private set; }
     public string ResultNamespace { get; private set; }
 
-    public MapOptionsDialog(string marker, string mapNamespace, MapOptions options, bool longTextureNamesSupported, ResourceManager? resources = null)
+    public MapOptionsDialog(
+        string marker,
+        string mapNamespace,
+        MapOptions options,
+        bool longTextureNamesSupported,
+        ResourceManager? resources = null,
+        ScriptConfigurationCatalog? scriptConfigurations = null,
+        string defaultScriptCompiler = "")
         : base("Map Options", "Basic map identity options for the currently loaded map.")
     {
         ResultMarker = MapNameRules.NormalizeMarker(marker);
@@ -91,7 +99,22 @@ public sealed class MapOptionsDialog : PropertyDialog
         _overrideBrightness = AddCheckBox("Override brightness", options.OverrideBrightness);
         _useLongTextureNames = AddCheckBox("Use long texture names", longTextureNamesSupported && options.UseLongTextureNames);
         _useLongTextureNames.IsEnabled = longTextureNamesSupported;
-        _scriptCompiler = AddField("Script compiler", options.ScriptCompiler);
+        if (scriptConfigurations is null)
+        {
+            _scriptCompiler = AddField("Script compiler", options.ScriptCompiler);
+        }
+        else
+        {
+            var selection = MapOptionsScriptCompilerModel.BuildSelection(
+                scriptConfigurations,
+                options.ScriptCompiler,
+                defaultScriptCompiler);
+            _scriptCompilerCombo = AddStringCombo(
+                "Script type",
+                selection.Choices.Select(c => new CatalogTextItem(c.Key, c.Description)),
+                selection.SelectedKey);
+            _scriptCompilerCombo.IsEnabled = selection.Enabled;
+        }
         _reloadResourcePreCommand = AddField("Before reload resources", options.ReloadResourcePreCommand.Commands);
         _reloadResourcePreWorkingDirectory = AddField("Reload pre dir", options.ReloadResourcePreCommand.WorkingDirectory);
         _reloadResourcePreAutoClose = AddCheckBox("Reload pre auto close", options.ReloadResourcePreCommand.AutoCloseOnSuccess);
@@ -133,7 +156,9 @@ public sealed class MapOptionsDialog : PropertyDialog
         options.OverrideCeilingHeight = _overrideCeilingHeight.IsChecked == true;
         options.OverrideBrightness = _overrideBrightness.IsChecked == true;
         options.UseLongTextureNames = _longTextureNamesSupported && _useLongTextureNames.IsChecked == true;
-        options.ScriptCompiler = _scriptCompiler.Text?.Trim() ?? "";
+        options.ScriptCompiler = _scriptCompilerCombo is not null
+            ? (_scriptCompilerCombo.IsEnabled ? ComboText(_scriptCompilerCombo, "") : "")
+            : _scriptCompiler?.Text?.Trim() ?? "";
         options.ReloadResourcePreCommand.Commands = _reloadResourcePreCommand.Text?.Trim() ?? "";
         options.ReloadResourcePreCommand.WorkingDirectory = _reloadResourcePreWorkingDirectory.Text?.Trim() ?? "";
         options.ReloadResourcePreCommand.AutoCloseOnSuccess = _reloadResourcePreAutoClose.IsChecked == true;

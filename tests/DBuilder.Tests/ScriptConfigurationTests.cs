@@ -213,6 +213,69 @@ properties
     }
 
     [Fact]
+    public void MapOptionsScriptCompilerSelectionPrefersValidMapOverride()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("default_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Default ACS";
+            scripttype = "ACS";
+            compiler = "acc";
+            """));
+        catalog.Add("map_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Map ACS";
+            scripttype = "ACS";
+            compiler = "acc";
+            """));
+
+        var selection = MapOptionsScriptCompilerModel.BuildSelection(
+            catalog,
+            mapScriptCompiler: "map_acs.cfg",
+            defaultScriptCompiler: "default_acs.cfg");
+
+        Assert.True(selection.Enabled);
+        Assert.Equal("map_acs.cfg", selection.SelectedKey);
+        Assert.Equal(new[] { "default_acs.cfg", "map_acs.cfg" }, selection.Choices.Select(c => c.Key).OrderBy(k => k));
+    }
+
+    [Fact]
+    public void MapOptionsScriptCompilerSelectionFallsBackToValidGameConfigDefault()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("default_acs.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Default ACS";
+            scripttype = "ACS";
+            compiler = "acc";
+            """));
+
+        var selection = MapOptionsScriptCompilerModel.BuildSelection(
+            catalog,
+            mapScriptCompiler: "missing.cfg",
+            defaultScriptCompiler: "default_acs.cfg");
+
+        Assert.True(selection.Enabled);
+        Assert.Equal("default_acs.cfg", selection.SelectedKey);
+    }
+
+    [Fact]
+    public void MapOptionsScriptCompilerSelectionDisablesWhenNoValidCompiledCompilerExists()
+    {
+        var catalog = new ScriptConfigurationCatalog();
+        catalog.Add("decorate.cfg", ScriptConfigurationInfo.FromText("""
+            description = "Decorate";
+            scripttype = "DECORATE";
+            """));
+
+        var selection = MapOptionsScriptCompilerModel.BuildSelection(
+            catalog,
+            mapScriptCompiler: "missing.cfg",
+            defaultScriptCompiler: "decorate.cfg");
+
+        Assert.False(selection.Enabled);
+        Assert.Equal("", selection.SelectedKey);
+        Assert.Empty(selection.Choices);
+    }
+
+    [Fact]
     public void CatalogSelectsDefaultAcsScriptConfigurationWhenMapOverrideIsEmpty()
     {
         var catalog = new ScriptConfigurationCatalog();

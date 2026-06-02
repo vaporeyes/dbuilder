@@ -54,6 +54,52 @@ public sealed class ScriptConfigurationCatalog
     }
 }
 
+public sealed record ScriptCompilerChoice(string Key, string Description)
+{
+    public override string ToString() => Description;
+}
+
+public sealed record ScriptCompilerSelection(IReadOnlyList<ScriptCompilerChoice> Choices, string SelectedKey, bool Enabled);
+
+public static class MapOptionsScriptCompilerModel
+{
+    public static ScriptCompilerSelection BuildSelection(
+        ScriptConfigurationCatalog? catalog,
+        string mapScriptCompiler,
+        string defaultScriptCompiler)
+    {
+        var choices = CompiledChoices(catalog);
+        string selected = FirstConfiguredCompiler(choices, mapScriptCompiler, defaultScriptCompiler);
+        return new ScriptCompilerSelection(choices, selected, selected.Length > 0);
+    }
+
+    public static IReadOnlyList<ScriptCompilerChoice> CompiledChoices(ScriptConfigurationCatalog? catalog)
+    {
+        if (catalog is null) return Array.Empty<ScriptCompilerChoice>();
+
+        return catalog.Configurations
+            .Where(pair => pair.Value.ScriptType == ScriptType.Acs)
+            .OrderBy(pair => pair.Value)
+            .ThenBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(pair => new ScriptCompilerChoice(pair.Key, pair.Value.Description))
+            .ToList();
+    }
+
+    private static string FirstConfiguredCompiler(
+        IReadOnlyList<ScriptCompilerChoice> choices,
+        params string[] keys)
+    {
+        foreach (string key in keys)
+        {
+            if (string.IsNullOrWhiteSpace(key)) continue;
+            foreach (var choice in choices)
+                if (string.Equals(choice.Key, key, StringComparison.OrdinalIgnoreCase)) return choice.Key;
+        }
+
+        return "";
+    }
+}
+
 public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInfo>
 {
     private readonly Dictionary<string, string> keywords = new(StringComparer.Ordinal);
