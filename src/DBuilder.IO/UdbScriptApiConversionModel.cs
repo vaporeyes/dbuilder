@@ -696,6 +696,55 @@ public sealed class UdbScriptGameConfigurationWrapper
         => configuration.UseLocalSidedefTextureOffsets;
 }
 
+public sealed record UdbScriptImageInfo(
+    string name,
+    int width,
+    int height,
+    UdbScriptVector2DWrapper scale,
+    bool isFlat);
+
+public sealed class UdbScriptDataWrapper
+{
+    private readonly ResourceManager resources;
+
+    public UdbScriptDataWrapper(ResourceManager resources)
+    {
+        this.resources = resources;
+    }
+
+    public string[] getTextureNames()
+        => resources.GetTextureNames().ToArray();
+
+    public bool textureExists(string name)
+        => resources.GetTextureNames().Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    public UdbScriptImageInfo? getTextureInfo(string name)
+    {
+        ImageData? image = resources.GetWallTexture(name);
+        return image == null ? null : ImageInfo(name, image, isFlat: false);
+    }
+
+    public string[] getFlatNames()
+        => resources.GetFlatNames().ToArray();
+
+    public bool flatExists(string name)
+        => resources.GetFlatNames().Contains(name, StringComparer.OrdinalIgnoreCase);
+
+    public UdbScriptImageInfo? getFlatInfo(string name)
+    {
+        ImageData? image = resources.GetFlat(name);
+        return image == null ? null : ImageInfo(name, image, isFlat: true);
+    }
+
+    private static UdbScriptImageInfo ImageInfo(string name, ImageData image, bool isFlat)
+        => new(
+            name,
+            image.Width,
+            image.Height,
+            new UdbScriptVector2DWrapper(image.ScaleX, image.ScaleY),
+            isFlat);
+}
+
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 {
     private readonly Vertex vertex;

@@ -2,6 +2,7 @@
 // ABOUTME: Covers accepted input shapes and type mappings used by future script wrappers.
 
 using System.Dynamic;
+using System.IO;
 using System.Numerics;
 using DBuilder.Geometry;
 using DBuilder.IO;
@@ -1214,6 +1215,46 @@ localsidedeftextureoffsets = true;
         UdbScriptBlockMapQueryResult result = wrapper.getRectangleBlocks(0, 0, 32, 32);
 
         Assert.Same(sector, Assert.Single(result.getSectors()).Sector);
+    }
+
+    [Fact]
+    public void DataWrapperExposesTextureAndFlatNamesAndInfo()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("textures/WALLA.png", TestArtifacts.Png(2, 3, TestArtifacts.SolidRgba(2, 3, 10, 20, 30, 255))),
+            ("flats/FLOORA.png", TestArtifacts.Png(4, 5, TestArtifacts.SolidRgba(4, 5, 40, 50, 60, 255))));
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            var wrapper = new UdbScriptDataWrapper(resources);
+
+            Assert.Contains("WALLA", wrapper.getTextureNames());
+            Assert.Contains("FLOORA", wrapper.getFlatNames());
+            Assert.True(wrapper.textureExists("walla"));
+            Assert.False(wrapper.textureExists("missing"));
+            Assert.True(wrapper.flatExists("floora"));
+            Assert.False(wrapper.flatExists("missing"));
+
+            UdbScriptImageInfo? texture = wrapper.getTextureInfo("WALLA");
+            UdbScriptImageInfo? flat = wrapper.getFlatInfo("FLOORA");
+            Assert.NotNull(texture);
+            Assert.NotNull(flat);
+
+            Assert.Equal("WALLA", texture!.name);
+            Assert.Equal(2, texture.width);
+            Assert.Equal(3, texture.height);
+            Assert.Equal(new UdbScriptVector2DWrapper(1, 1), texture.scale);
+            Assert.False(texture.isFlat);
+            Assert.Equal("FLOORA", flat!.name);
+            Assert.Equal(4, flat.width);
+            Assert.Equal(5, flat.height);
+            Assert.True(flat.isFlat);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
     }
 
     [Fact]
