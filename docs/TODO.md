@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3185 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3186 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1192,6 +1192,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Select UDB-style sector comment boundary linedefs when activating sector comments.
 - [ ] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
+  - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
   - [x] Add editor Nodes Viewer window for parsed classic nodes, segs, and subsectors.
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
 - [ ] Port `RejectExplorer`.
@@ -1495,6 +1496,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sector comment selection propagation to boundary linedefs.
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
+  - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
   - [x] Add non-modal Nodes Viewer for classic node structure summaries.
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
   - [x] Add UDB-style classic subsector polygon clipping model for visualization.

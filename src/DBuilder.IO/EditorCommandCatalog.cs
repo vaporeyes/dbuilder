@@ -71,6 +71,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.tag-range", "Tag Range", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.blockmap-explorer", "Blockmap Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.reject-explorer", "Reject Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.nodes-viewer", "Nodes Viewer Mode", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
