@@ -1658,6 +1658,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var up = new Vector3(0, 0, 1);
 
         var buckets = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FlatVertex>>(StringComparer.OrdinalIgnoreCase);
+        Gldefs? gldefs = _resources?.GetGldefs();
         foreach (var t in VisibleThings3D())
         {
             ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
@@ -1686,7 +1687,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
             else { cz = (float)(originZ) + hh; hcx = 0f; }
             var c = new Vector3((float)t.Position.x, (float)t.Position.y, cz) + right * hcx;
-            int col = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+            int col = DynamicLightDisplay.BillboardTint(t, _gameConfig, gldefs);
             FlatVertex V(Vector3 p, float u, float v) => new FlatVertex { x = p.X, y = p.Y, z = p.Z, w = 1, c = col, u = u, v = v };
 
             var bl = c - right * hw - up * hh; var br = c + right * hw - up * hh;
@@ -3426,7 +3427,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
-                    int sc = t.Selected ? unchecked((int)0xfffff080) : unchecked((int)0xffffffff);
+                    int sc = DynamicLightDisplay.BillboardTint(t, _gameConfig, gldefs);
                     double scale = _fixedThingsScale ? _zoom : 1.0;
                     double hw = img.Width * 0.5 * scale, hh = img.Height * 0.5 * scale;
                     var p = t.Position;

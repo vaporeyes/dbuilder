@@ -7,6 +7,12 @@ namespace DBuilder.IO;
 
 public static class DynamicLightDisplay
 {
+    public const int DefaultBillboardTint = unchecked((int)0xffffffff);
+    public const int SelectedBillboardTint = unchecked((int)0xfffff080);
+
+    public static int BillboardTint(Thing thing, GameConfiguration? config, Gldefs? gldefs)
+        => thing.Selected ? SelectedBillboardTint : ThingColor(thing, config, gldefs) ?? DefaultBillboardTint;
+
     public static int? ThingColor(Thing thing, GameConfiguration? config, Gldefs? gldefs)
     {
         DynamicLightDefinition? definition = ColorPickerModel.InternalDynamicLightDefinitionForThingType(thing.Type);

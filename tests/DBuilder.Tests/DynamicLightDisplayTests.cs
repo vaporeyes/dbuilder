@@ -74,4 +74,34 @@ public sealed class DynamicLightDisplayTests
 
         Assert.Null(DynamicLightDisplay.ThingColor(thing, null, null));
     }
+
+    [Fact]
+    public void BillboardTintUsesDynamicLightColorWhenAvailable()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 9800);
+        thing.Args[0] = 10;
+        thing.Args[1] = 20;
+        thing.Args[2] = 30;
+
+        Assert.Equal(unchecked((int)0xff0a141e), DynamicLightDisplay.BillboardTint(thing, null, null));
+    }
+
+    [Fact]
+    public void BillboardTintUsesWhiteForNonLightThings()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 3001);
+
+        Assert.Equal(DynamicLightDisplay.DefaultBillboardTint, DynamicLightDisplay.BillboardTint(thing, null, null));
+    }
+
+    [Fact]
+    public void BillboardTintKeepsSelectedThingsHighlighted()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 9800) { Selected = true };
+        thing.Args[0] = 10;
+        thing.Args[1] = 20;
+        thing.Args[2] = 30;
+
+        Assert.Equal(DynamicLightDisplay.SelectedBillboardTint, DynamicLightDisplay.BillboardTint(thing, null, null));
+    }
 }

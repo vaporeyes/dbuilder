@@ -1019,6 +1019,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Draw loaded KVX voxel mesh batches in live 3D mode before billboard fallback.
 - [ ] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
+  - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Resolve UDB-style UDMF and GLDEFS glowing flat display state, including 2D fullbright surface overrides.
 
 ## Model Loading
