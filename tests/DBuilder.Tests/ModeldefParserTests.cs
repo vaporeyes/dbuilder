@@ -20,6 +20,7 @@ model ZombieMan
     SurfaceSkin 0 2 ""zombie_alt.png""
     Scale 1.0 1.0 1.0
     FrameIndex POSS A 0 12
+    Frame POSS B 0 ""Run01""
 }";
 
         var def = ModeldefParser.Parse(text).Single();
@@ -29,7 +30,81 @@ model ZombieMan
         Assert.Equal(new ModeldefModel(0, "zombie.md3"), def.Models.Single());
         Assert.Equal(new ModeldefSkin(0, "zombie.png"), def.Skins.Single());
         Assert.Equal(new ModeldefSurfaceSkin(0, 2, "zombie_alt.png"), def.SurfaceSkins.Single());
-        Assert.Equal(new ModeldefFrame("POSS", "A", 0, 12), def.Frames.Single());
+        Assert.Equal(new ModeldefFrame("POSS", "A", 0, 12), def.Frames[0]);
+        Assert.Equal(new ModeldefFrame("POSS", "B", 0, 0, "Run01"), def.Frames[1]);
+    }
+
+    [Fact]
+    public void ParsesTransformAndActorOrientationMetadata()
+    {
+        const string text = @"
+model TransformThing
+{
+    Model 0 ""thing.md3""
+    Scale 1.5 2.5 3.5
+    Offset -1 2 -3
+    ZOffset 9
+    AngleOffset 45
+    PitchOffset -10
+    RollOffset 25
+    Rotation-Center 4 5 6
+    UseActorPitch
+    UseActorRoll
+    Userotationcenter
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.Equal(new ModeldefVector(2.5f, 1.5f, 3.5f), def.Scale);
+        Assert.Equal(new ModeldefVector(-1.0f, 2.0f, 9.0f), def.Offset);
+        Assert.Equal(new ModeldefVector(4.0f, 5.0f, 6.0f), def.RotationCenter);
+        Assert.Equal(45.0f, def.AngleOffset);
+        Assert.Equal(-10.0f, def.PitchOffset);
+        Assert.Equal(25.0f, def.RollOffset);
+        Assert.True(def.UseActorPitch);
+        Assert.False(def.InheritActorPitch);
+        Assert.True(def.UseActorRoll);
+        Assert.True(def.UseRotationCenter);
+    }
+
+    [Fact]
+    public void InheritActorPitchClearsUseActorPitchLikeUdb()
+    {
+        const string text = @"
+model PitchThing
+{
+    Model 0 ""thing.md3""
+    UseActorPitch
+    InheritActorPitch
+    InheritActorRoll
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.True(def.InheritActorPitch);
+        Assert.False(def.UseActorPitch);
+        Assert.True(def.UseActorRoll);
+    }
+
+    [Fact]
+    public void InvalidTransformValuesSkipModelBlockLikeUdb()
+    {
+        const string text = @"
+model Bad
+{
+    Model 0 ""bad.md3""
+    Scale 1 bogus 3
+}
+model Good
+{
+    Model 0 ""good.md3""
+    Offset 1 2 3
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefVector(1.0f, 2.0f, 3.0f), def.Offset);
     }
 
     [Fact]

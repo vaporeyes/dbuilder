@@ -13,16 +13,27 @@ public sealed class Modeldef
 {
     public string ActorName { get; init; } = "";
     public string Path { get; set; } = "";
+    public ModeldefVector Scale { get; set; } = new(1.0f, 1.0f, 1.0f);
+    public ModeldefVector Offset { get; set; } = new(0.0f, 0.0f, 0.0f);
+    public ModeldefVector RotationCenter { get; set; } = new(0.0f, 0.0f, 0.0f);
+    public float AngleOffset { get; set; }
+    public float PitchOffset { get; set; }
+    public float RollOffset { get; set; }
+    public bool InheritActorPitch { get; set; }
+    public bool UseActorPitch { get; set; }
+    public bool UseActorRoll { get; set; }
+    public bool UseRotationCenter { get; set; }
     public List<ModeldefModel> Models { get; } = new();
     public List<ModeldefSkin> Skins { get; } = new();
     public List<ModeldefSurfaceSkin> SurfaceSkins { get; } = new();
     public List<ModeldefFrame> Frames { get; } = new();
 }
 
+public sealed record ModeldefVector(float X, float Y, float Z);
 public sealed record ModeldefModel(int Index, string File);
 public sealed record ModeldefSkin(int Index, string File);
 public sealed record ModeldefSurfaceSkin(int ModelIndex, int SurfaceIndex, string File);
-public sealed record ModeldefFrame(string Sprite, string Frame, int ModelIndex, int FrameIndex);
+public sealed record ModeldefFrame(string Sprite, string Frame, int ModelIndex, int FrameIndex, string? ModelFrame = null);
 
 public static class ModeldefParser
 {
@@ -108,8 +119,55 @@ public static class ModeldefParser
                 case "surfaceskin":
                     if (!ParseSurfaceSkin(def, t, ref i)) valid = false;
                     break;
+                case "scale":
+                    if (!ParseVector(t, ref i, out ModeldefVector scale)) valid = false;
+                    else def.Scale = new ModeldefVector(scale.Y, scale.X, scale.Z);
+                    break;
+                case "offset":
+                    if (!ParseVector(t, ref i, out ModeldefVector offset)) valid = false;
+                    else def.Offset = offset;
+                    break;
+                case "zoffset":
+                    if (!ReadFloat(t, ref i, out float zOffset)) valid = false;
+                    else def.Offset = def.Offset with { Z = zOffset };
+                    break;
+                case "angleoffset":
+                    if (!ReadFloat(t, ref i, out float angleOffset)) valid = false;
+                    else def.AngleOffset = angleOffset;
+                    break;
+                case "pitchoffset":
+                    if (!ReadFloat(t, ref i, out float pitchOffset)) valid = false;
+                    else def.PitchOffset = pitchOffset;
+                    break;
+                case "rolloffset":
+                    if (!ReadFloat(t, ref i, out float rollOffset)) valid = false;
+                    else def.RollOffset = rollOffset;
+                    break;
+                case "rotation-center":
+                    if (!ParseVector(t, ref i, out ModeldefVector rotationCenter)) valid = false;
+                    else def.RotationCenter = rotationCenter;
+                    break;
+                case "useactorpitch":
+                    def.InheritActorPitch = false;
+                    def.UseActorPitch = true;
+                    break;
+                case "useactorroll":
+                case "inheritactorroll":
+                    def.UseActorRoll = true;
+                    break;
+                case "rotating":
+                case "userotationcenter":
+                    def.UseRotationCenter = true;
+                    break;
+                case "inheritactorpitch":
+                    def.InheritActorPitch = true;
+                    def.UseActorPitch = false;
+                    break;
                 case "frameindex":
                     if (!ParseFrameIndex(def, t, ref i)) valid = false;
+                    break;
+                case "frame":
+                    if (!ParseFrame(def, t, ref i)) valid = false;
                     break;
                 default:
                     SkipValue(t, ref i);
@@ -199,6 +257,30 @@ public static class ModeldefParser
         return true;
     }
 
+    private static bool ParseFrame(Modeldef def, List<string> t, ref int i)
+    {
+        if (i + 1 >= t.Count) return false;
+        string sprite = t[i++];
+        string frame = t[i++];
+        if (sprite.Length != 4 || frame.Length != 1) return false;
+        if (!ReadInt(t, ref i, out int modelIndex) || modelIndex < 0) return false;
+        if (i >= t.Count) return false;
+        string modelFrame = t[i++];
+        if (string.IsNullOrWhiteSpace(modelFrame)) return false;
+        def.Frames.Add(new ModeldefFrame(sprite, frame, modelIndex, 0, modelFrame));
+        return true;
+    }
+
+    private static bool ParseVector(List<string> t, ref int i, out ModeldefVector vector)
+    {
+        vector = new ModeldefVector(0.0f, 0.0f, 0.0f);
+        if (!ReadFloat(t, ref i, out float x)) return false;
+        if (!ReadFloat(t, ref i, out float y)) return false;
+        if (!ReadFloat(t, ref i, out float z)) return false;
+        vector = new ModeldefVector(x, y, z);
+        return true;
+    }
+
     private static void SkipValue(List<string> t, ref int i)
     {
         while (i < t.Count && t[i] != "}" && !IsKeyword(t[i])) i++;
@@ -210,15 +292,31 @@ public static class ModeldefParser
             || value.Equals("skin", StringComparison.OrdinalIgnoreCase)
             || value.Equals("surfaceskin", StringComparison.OrdinalIgnoreCase)
             || value.Equals("frameindex", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("frame", StringComparison.OrdinalIgnoreCase)
             || value.Equals("scale", StringComparison.OrdinalIgnoreCase)
             || value.Equals("offset", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("zoffset", StringComparison.OrdinalIgnoreCase)
             || value.Equals("angleoffset", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("pitchoffset", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("rolloffset", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("rotation-center", StringComparison.OrdinalIgnoreCase)
             || value.Equals("pitchfrommomentum", StringComparison.OrdinalIgnoreCase);
 
     private static bool ReadInt(List<string> t, ref int i, out int value)
     {
         value = 0;
         if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        {
+            i++;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool ReadFloat(List<string> t, ref int i, out float value)
+    {
+        value = 0.0f;
+        if (i < t.Count && float.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out value))
         {
             i++;
             return true;
