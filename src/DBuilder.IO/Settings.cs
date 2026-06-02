@@ -56,6 +56,7 @@ public sealed class Settings
     public CommentsPanelPersistedSettings CommentsPanelSettings { get; set; } = new(false, false);
     public RejectExplorerColorSettings RejectExplorerColors { get; set; } = RejectExplorerModel.DefaultColors;
     public SoundPropagationColorSettings SoundPropagationColors { get; set; } = SoundPropagationColorSettings.Default;
+    public List<StairBuilderPrefab> StairBuilderPrefabs { get; set; } = new();
     public VisplaneExplorerInterfaceSettings VisplaneExplorerSettings { get; set; } = new(false, false, 41, 0);
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
@@ -268,6 +269,7 @@ public sealed class Settings
             settings.CommentsPanelSettings ??= new(false, false);
             settings.RejectExplorerColors ??= RejectExplorerModel.DefaultColors;
             settings.SoundPropagationColors ??= SoundPropagationColorSettings.Default;
+            settings.StairBuilderPrefabs ??= new();
             settings.VisplaneExplorerSettings ??= new(false, false, 41, 0);
             return settings;
         }

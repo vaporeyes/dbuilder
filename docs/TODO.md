@@ -1232,6 +1232,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Catmull-Rom spline stair geometry planning between selected linedefs.
   - [x] Add UDB-style connected straight stair planning for single-step chains and single-direction mode.
   - [x] Add UDB-style distinct-sector post-line planning and materialization for connected straight stairs.
+  - [x] Add editor Stair Builder prefab save, load, delete, set-default, and previous-prefab persistence.
 - [ ] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.
@@ -1543,6 +1544,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style prefab name suggestion, reserved-name, overwrite, and insert-position behavior.
   - [x] Add UDB-style form startup state for default prefabs, available tabs, and selected-sector overrides.
   - [x] Add UDB-style Stair Sector Builder mode and Select Sectors Outline command metadata and outline selection helper.
+  - [x] Add editor Stair Builder prefab save, load, delete, set-default, and previous-prefab persistence.
 - [ ] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
   - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.

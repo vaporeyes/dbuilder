@@ -240,6 +240,17 @@ public class SettingsTests
                     NoSoundColor: 0xFF191A1Bu,
                     BlockSoundColor: 0xFF1C1D1Eu,
                     DistinctDomainColors: new[] { 0xFF202122u }),
+                StairBuilderPrefabs = new()
+                {
+                    new StairBuilderPrefab
+                    {
+                        Name = "[Default]",
+                        FloorStep = 12,
+                        ApplyFloorHeight = true,
+                        CeilingStep = 24,
+                        ApplyCeilingHeight = true,
+                    },
+                },
                 VisplaneExplorerSettings = new VisplaneExplorerInterfaceSettings(
                     OpenDoors: true,
                     ShowHeatmap: true,
@@ -340,6 +351,12 @@ public class SettingsTests
             Assert.Equal(0xFF191A1Bu, loaded.SoundPropagationColors.NoSoundColor);
             Assert.Equal(0xFF1C1D1Eu, loaded.SoundPropagationColors.BlockSoundColor);
             Assert.Equal(new[] { 0xFF202122u }, loaded.SoundPropagationColors.DistinctDomainColors);
+            StairBuilderPrefab stairPrefab = Assert.Single(loaded.StairBuilderPrefabs);
+            Assert.Equal("[Default]", stairPrefab.Name);
+            Assert.True(stairPrefab.ApplyFloorHeight);
+            Assert.Equal(12, stairPrefab.FloorStep);
+            Assert.True(stairPrefab.ApplyCeilingHeight);
+            Assert.Equal(24, stairPrefab.CeilingStep);
             Assert.True(loaded.VisplaneExplorerSettings.OpenDoors);
             Assert.True(loaded.VisplaneExplorerSettings.ShowHeatmap);
             Assert.Equal(56, loaded.VisplaneExplorerSettings.ViewHeight);

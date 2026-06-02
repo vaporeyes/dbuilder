@@ -4326,8 +4326,14 @@ public partial class MainWindow : Window
         var sel = _map.GetSelectedSectors();
         if (sel.Count < 2) { SetStatus("Select 2 or more sectors to build stairs."); return; }
 
-        var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8, sel[0].CeilHeight, 8);
-        if (!await dlg.ShowDialog<bool>(this)) return;
+        var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8, sel[0].CeilHeight, 8, _settings.StairBuilderPrefabs);
+        bool accepted = await dlg.ShowDialog<bool>(this);
+        if (dlg.PrefabsChanged)
+        {
+            _settings.StairBuilderPrefabs = dlg.ResultPrefabs.ToList();
+            SaveSettings();
+        }
+        if (!accepted) return;
 
         CreateUndo("Build stairs");
         int n = StairBuilder.Apply(sel, dlg.ResultFloorStart, dlg.ResultFloorStep,
