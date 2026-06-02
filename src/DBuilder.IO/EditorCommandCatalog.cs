@@ -274,6 +274,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.toggle-visual-sidedef-slope-picking", "Toggle Visual Sidedef Slope Picking", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-visual-vertex-slope-picking", "Toggle Visual Vertex Slope Picking", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-visual-vertex-slope-adjacent-selection", "Toggle Adjacent Visual Vertex Slope Selection", "Menu", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.reset-slope", "Reset Plane Slope", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-full-brightness", "Toggle Full Brightness", "B", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-highlight", "Toggle Highlight", "H", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.select-target", "Select surfaces", "Click", EditorCommandScope.Map3D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),

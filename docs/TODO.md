@@ -932,6 +932,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port visual slope behavior.
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
   - [x] Add UDB-style visual Toggle Slope action metadata and Plane_Align dispatch for selected surfaces.
+  - [x] Add UDB-style visual Reset Plane Slope action metadata and selected floor/ceiling slope reset behavior.
   - [x] Add UDB-style visual slope picking mode toggles and adjacent vertex-slope selection setting.
   - [x] Honor game-configuration plane-equation support before enabling visual slope picking.
 - [ ] Port visual blockmap behavior.

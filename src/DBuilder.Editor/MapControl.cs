@@ -2218,6 +2218,43 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.StatusMessage);
     }
 
+    private void ResetSlope3D()
+    {
+        if (_map == null) return;
+        if (_sel3D.Count == 0)
+        {
+            Target3DChanged?.Invoke(VisualSlopeReset.EmptySelectionMessage);
+            return;
+        }
+
+        var targets = new List<VisualSlopeResetTarget>();
+        foreach (VisualHit hit in _sel3D)
+        {
+            if (hit.Kind == VisualHitKind.Floor && hit.Sector != null)
+                targets.Add(new VisualSlopeResetTarget(hit.Sector, Ceiling: false));
+            else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector != null)
+                targets.Add(new VisualSlopeResetTarget(hit.Sector, Ceiling: true));
+        }
+
+        if (targets.Count == 0)
+        {
+            Target3DChanged?.Invoke(VisualSlopeReset.EmptySelectionMessage);
+            return;
+        }
+
+        EditBegun?.Invoke("Reset plane slope");
+        VisualSlopeResetResult result = VisualSlopeReset.Reset(targets);
+        if (result.Changed)
+        {
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+        }
+
+        Target3DChanged?.Invoke(result.StatusMessage);
+    }
+
     // Deletes the targeted thing, undoable.
     private void DeleteTargetThing3D()
     {
@@ -4370,6 +4407,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-slope":
                 ToggleSlope3D();
+                return true;
+            case "map3d.reset-slope":
+                ResetSlope3D();
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
                 ToggleAlphaBasedTextureHighlighting();
