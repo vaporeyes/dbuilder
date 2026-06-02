@@ -886,6 +886,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style background image file picker.
   - [x] Add UDB-style background texture and flat browsers.
   - [x] Add UDB-style show background image toggle.
+  - [x] Disable background controls when the UDB-style show-background toggle is off.
 - [x] Port center-on-coordinates dialog.
 - [x] Port error/check results dialog.
 - [x] Port exception dialog.

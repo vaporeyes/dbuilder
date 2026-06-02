@@ -60,6 +60,8 @@ public sealed class GridSetupDialog : PropertyDialog
         _backgroundY = AddField("Background Y", grid.BackgroundY.ToString(CultureInfo.InvariantCulture));
         _backgroundScaleX = AddField("Background scale X %", GridSetupDialogModel.FormatBackgroundScalePercent(grid.BackgroundScaleX));
         _backgroundScaleY = AddField("Background scale Y %", GridSetupDialogModel.FormatBackgroundScalePercent(grid.BackgroundScaleY));
+        _showBackground.IsCheckedChanged += (_, _) => SetBackgroundControlsEnabled(_showBackground.IsChecked == true);
+        SetBackgroundControlsEnabled(_showBackground.IsChecked == true);
     }
 
     protected override void OnConfirm()
@@ -155,5 +157,21 @@ public sealed class GridSetupDialog : PropertyDialog
                 return;
             }
         }
+    }
+
+    private void SetBackgroundControlsEnabled(bool enabled)
+    {
+        SetRowEnabled(_background, enabled);
+        SetRowEnabled(_backgroundSource, enabled);
+        SetRowEnabled(_backgroundX, enabled);
+        SetRowEnabled(_backgroundY, enabled);
+        SetRowEnabled(_backgroundScaleX, enabled);
+        SetRowEnabled(_backgroundScaleY, enabled);
+    }
+
+    private static void SetRowEnabled(Control control, bool enabled)
+    {
+        if (control.Parent is Control row) row.IsEnabled = enabled;
+        else control.IsEnabled = enabled;
     }
 }
