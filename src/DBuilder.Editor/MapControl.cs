@@ -4839,9 +4839,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.roll-thing-counterclockwise":
                 ChangeThingRollTargets3D(5);
                 return true;
+            case "map3d.apply-camera-rotation":
             case "map3d.apply-camera-rotation-to-things":
                 ApplyCameraRotationToSelectedThings3D();
                 return true;
+            case "map3d.look-through-selection":
             case "map3d.look-through-thing":
                 LookThroughSelectedThing3D();
                 return true;

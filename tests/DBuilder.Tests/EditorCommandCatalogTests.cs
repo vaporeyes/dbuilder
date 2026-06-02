@@ -774,25 +774,36 @@ public class EditorCommandCatalogTests
     [Fact]
     public void VisualCameraThingCommandsMatchUdbActionSurface()
     {
-        var command = EditorCommandCatalog.Find("map3d.apply-camera-rotation-to-things");
+        var command = EditorCommandCatalog.Find("map3d.apply-camera-rotation");
+        var commandAlias = EditorCommandCatalog.Find("map3d.apply-camera-rotation-to-things");
 
         Assert.NotNull(command);
         Assert.Equal("Apply Camera Rotation To Things", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
 
-        var lookThrough = EditorCommandCatalog.Find("map3d.look-through-thing");
+        Assert.NotNull(commandAlias);
+        Assert.Equal(command.Title, commandAlias.Title);
+
+        var lookThrough = EditorCommandCatalog.Find("map3d.look-through-selection");
+        var lookThroughAlias = EditorCommandCatalog.Find("map3d.look-through-thing");
 
         Assert.NotNull(lookThrough);
         Assert.Equal("Look Through Selection", lookThrough.Title);
+        Assert.Equal("Y", lookThrough.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, lookThrough.Scope);
         Assert.True(lookThrough.AllowKeys);
         Assert.False(lookThrough.AllowMouse);
         Assert.True(lookThrough.AllowScroll);
         Assert.False(lookThrough.Repeat);
+
+        Assert.NotNull(lookThroughAlias);
+        Assert.Equal(lookThrough.Title, lookThroughAlias.Title);
+        Assert.Equal(lookThrough.DefaultGesture, lookThroughAlias.DefaultGesture);
 
         var align = EditorCommandCatalog.Find("map3d.thing-align-to-wall");
         var alignAlias = EditorCommandCatalog.Find("map3d.align-things-to-wall");
@@ -968,7 +979,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.texture-paste", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V"));
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
         Assert.Equal("map3d.paste-properties-options", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, shift: true));
-        Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
+        Assert.Equal("map3d.look-through-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.thing-align-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
         Assert.Equal("map3d.select-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "T"));
         Assert.Equal("map3d.scale-up", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad9"));
