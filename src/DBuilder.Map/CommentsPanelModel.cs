@@ -68,6 +68,8 @@ public sealed record CommentRenderIcon(
 
 public static class CommentsPanelModel
 {
+    public const string DockerId = "commentsdockerpanel";
+    public const string DockerTitle = "Comments";
     public const string CommentField = "comment";
     public static readonly string[] CommentTypePrefixes = ["", "[i]", "[?]", "[!]", "[:]"];
 

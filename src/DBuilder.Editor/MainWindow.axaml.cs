@@ -1152,6 +1152,7 @@ public partial class MainWindow : Window
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
             case "window.tag-explorer": OnTagExplorer(this, new RoutedEventArgs()); return true;
+            case "window.comments-panel": OnCommentsPanel(this, new RoutedEventArgs()); return true;
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
