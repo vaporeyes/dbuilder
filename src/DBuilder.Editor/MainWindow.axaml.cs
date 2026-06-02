@@ -3168,7 +3168,7 @@ public partial class MainWindow : Window
         string? path = ConfigPickerModel.ResolveConfigPath(ConfigDir, options.ConfigFile, System.IO.File.Exists);
         if (path is null) return;
         string file = System.IO.Path.GetFileName(path);
-        if (string.Equals(file, _configFile, StringComparison.OrdinalIgnoreCase)) return;
+        if (ConfigPickerModel.SameConfigPath(_configPath, path)) return;
 
         _config = GameConfiguration.FromFile(path);
         _configName = System.IO.Path.GetFileNameWithoutExtension(path);

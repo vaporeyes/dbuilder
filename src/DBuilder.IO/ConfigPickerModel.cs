@@ -87,6 +87,15 @@ public static class ConfigPickerModel
         return path is null ? fallback : supportsLongTextureNames(path);
     }
 
+    public static bool SameConfigPath(string? left, string? right)
+    {
+        string? leftPath = NormalizePath(left);
+        string? rightPath = NormalizePath(right);
+        return leftPath is not null
+            && rightPath is not null
+            && string.Equals(leftPath, rightPath, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsIncludeFile(string configDir, string path)
     {
         string relative = Path.GetRelativePath(configDir, path);
@@ -115,5 +124,13 @@ public static class ConfigPickerModel
         for (int i = 0; i < rows.Count; i++)
             if (predicate(rows[i])) return i;
         return -1;
+    }
+
+    private static string? NormalizePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        string trimmed = path.Trim();
+        try { return Path.GetFullPath(trimmed); }
+        catch { return trimmed; }
     }
 }

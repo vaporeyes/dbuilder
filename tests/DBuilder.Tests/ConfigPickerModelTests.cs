@@ -163,6 +163,34 @@ public class ConfigPickerModelTests
     }
 
     [Fact]
+    public void SameConfigPathMatchesNormalizedPaths()
+    {
+        string dir = NewTempDir();
+        try
+        {
+            string path = Path.Combine(dir, "Doom.cfg");
+            string nested = Path.Combine(dir, "nested");
+            Directory.CreateDirectory(nested);
+            string relative = Path.Combine(nested, "..", "Doom.cfg");
+
+            Assert.True(ConfigPickerModel.SameConfigPath(path, relative));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SameConfigPathDoesNotMatchDifferentFoldersWithSameFilename()
+    {
+        string first = Path.Combine("/configs", "Doom.cfg");
+        string second = Path.Combine("/external", "Doom.cfg");
+
+        Assert.False(ConfigPickerModel.SameConfigPath(first, second));
+    }
+
+    [Fact]
     public void ConfigResourceDefaultsReplaceDetectedRequiredArchives()
     {
         var location = new DataLocation(DataLocationType.Wad, "/maps/existing.wad")
