@@ -3,6 +3,7 @@
 
 using System.Collections;
 using System.Dynamic;
+using System.Drawing;
 using System.Numerics;
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -1894,6 +1895,177 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
     {
         if (thing.IsDisposed)
             throw new InvalidOperationException("Thing is disposed, the " + member + " member can not be accessed.");
+    }
+}
+
+public abstract class UdbScriptBlockMapContentBase
+{
+    public abstract UdbScriptLinedefWrapper[] getLinedefs();
+    public abstract UdbScriptThingWrapper[] getThings();
+    public abstract UdbScriptSectorWrapper[] getSectors();
+    public abstract UdbScriptVertexWrapper[] getVertices();
+
+    protected static UdbScriptLinedefWrapper[] WrapLinedefs(IEnumerable<Linedef> lines)
+        => lines
+            .Where(line => !line.IsDisposed)
+            .Select(line => new UdbScriptLinedefWrapper(line))
+            .ToArray();
+
+    protected static UdbScriptThingWrapper[] WrapThings(IEnumerable<Thing> things)
+        => things
+            .Where(thing => !thing.IsDisposed)
+            .Select(thing => new UdbScriptThingWrapper(thing))
+            .ToArray();
+
+    protected static UdbScriptSectorWrapper[] WrapSectors(IEnumerable<Sector> sectors)
+        => sectors
+            .Where(sector => !sector.IsDisposed)
+            .Select(sector => new UdbScriptSectorWrapper(sector))
+            .ToArray();
+
+    protected static UdbScriptVertexWrapper[] WrapVertices(IEnumerable<Vertex> vertices)
+        => vertices
+            .Where(vertex => !vertex.IsDisposed)
+            .Select(vertex => new UdbScriptVertexWrapper(vertex))
+            .ToArray();
+}
+
+public sealed class UdbScriptBlockEntryWrapper : UdbScriptBlockMapContentBase
+{
+    private readonly BlockMapCell entry;
+
+    public UdbScriptBlockEntryWrapper(BlockMapCell entry)
+    {
+        this.entry = entry;
+    }
+
+    public BlockMapCell Entry => entry;
+
+    public override UdbScriptLinedefWrapper[] getLinedefs()
+        => WrapLinedefs(entry.Lines);
+
+    public override UdbScriptThingWrapper[] getThings()
+        => WrapThings(entry.Things);
+
+    public override UdbScriptSectorWrapper[] getSectors()
+        => WrapSectors(entry.Sectors);
+
+    public override UdbScriptVertexWrapper[] getVertices()
+        => WrapVertices(entry.Vertices);
+}
+
+public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase, IEnumerable<UdbScriptBlockEntryWrapper>
+{
+    private readonly IReadOnlyList<BlockMapCell> entries;
+
+    public UdbScriptBlockMapQueryResult(IEnumerable<BlockMapCell> entries)
+    {
+        this.entries = entries.ToArray();
+    }
+
+    public override UdbScriptLinedefWrapper[] getLinedefs()
+        => WrapLinedefs(entries.SelectMany(entry => entry.Lines).Distinct());
+
+    public override UdbScriptThingWrapper[] getThings()
+        => WrapThings(entries.SelectMany(entry => entry.Things).Distinct());
+
+    public override UdbScriptSectorWrapper[] getSectors()
+        => WrapSectors(entries.SelectMany(entry => entry.Sectors).Distinct());
+
+    public override UdbScriptVertexWrapper[] getVertices()
+        => WrapVertices(entries.SelectMany(entry => entry.Vertices).Distinct());
+
+    public IEnumerator<UdbScriptBlockEntryWrapper> GetEnumerator()
+    {
+        foreach (BlockMapCell entry in entries)
+            yield return new UdbScriptBlockEntryWrapper(entry);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+}
+
+public sealed class UdbScriptBlockMapWrapper
+{
+    private readonly BlockMap blockMap;
+
+    public UdbScriptBlockMapWrapper(MapSet map, double blockSize = 128.0)
+        : this(map, lines: true, things: true, sectors: true, vertices: true, blockSize)
+    {
+    }
+
+    public UdbScriptBlockMapWrapper(
+        MapSet map,
+        bool lines,
+        bool things,
+        bool sectors,
+        bool vertices,
+        double blockSize = 128.0)
+    {
+        blockMap = CreateBlockMap(map, lines, things, sectors, vertices, blockSize);
+    }
+
+    public BlockMap BlockMap => blockMap;
+
+    public UdbScriptBlockEntryWrapper getBlockAt(object pos)
+    {
+        Vector2D point = ToVector2D(pos);
+        return new UdbScriptBlockEntryWrapper(blockMap.GetBlockAt(point) ?? EmptyCell());
+    }
+
+    public UdbScriptBlockMapQueryResult getLineBlocks(object v1, object v2)
+        => new(blockMap.GetLineBlocks(ToVector2D(v1), ToVector2D(v2)));
+
+    public UdbScriptBlockMapQueryResult getRectangleBlocks(int x, int y, int width, int height)
+        => new(blockMap.GetBlocks(new RectangleF(x, y, width, height)));
+
+    private static BlockMap CreateBlockMap(
+        MapSet map,
+        bool lines,
+        bool things,
+        bool sectors,
+        bool vertices,
+        double blockSize)
+    {
+        if (lines && things && sectors && vertices)
+            return new BlockMap(map, blockSize);
+
+        RectangleF area = CreateArea(map, things);
+        var blockMap = new BlockMap(area, blockSize);
+
+        if (lines) blockMap.AddLinedefs(map.Linedefs);
+        if (things) blockMap.AddThings(map.Things);
+        if (sectors) blockMap.AddSectors(map.Sectors);
+        if (vertices) blockMap.AddVertices(map.Vertices);
+
+        return blockMap;
+    }
+
+    private static RectangleF CreateArea(MapSet map, bool includeThings)
+    {
+        if (map.Vertices.Count == 0)
+        {
+            if (!includeThings || map.Things.Count == 0)
+                return new RectangleF(0, 0, 1, 1);
+
+            return MapSet.IncreaseArea(new RectangleF(0, 0, 1, 1), map.Things);
+        }
+
+        RectangleF area = MapSet.CreateArea(map.Vertices);
+        return includeThings ? MapSet.IncreaseArea(area, map.Things) : area;
+    }
+
+    private static BlockMapCell EmptyCell()
+        => new(
+            Array.Empty<Linedef>(),
+            Array.Empty<Thing>(),
+            Array.Empty<Sector>(),
+            Array.Empty<Vertex>());
+
+    private static Vector2D ToVector2D(object value)
+    {
+        Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(value);
+        return new Vector2D(vector.x, vector.y);
     }
 }
 

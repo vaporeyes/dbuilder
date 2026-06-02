@@ -1157,6 +1157,66 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void BlockMapWrapperReturnsBlockEntryElements()
+    {
+        var (map, line, sector, thing, vertex) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+
+        UdbScriptBlockEntryWrapper block = wrapper.getBlockAt(new object[] { 32.0, 32.0 });
+
+        Assert.Contains(block.getLinedefs(), item => ReferenceEquals(line, item.Linedef));
+        Assert.Same(sector, Assert.Single(block.getSectors()).Sector);
+        Assert.Same(thing, Assert.Single(block.getThings()).Thing);
+        Assert.Contains(block.getVertices(), item => ReferenceEquals(vertex, item.Vertex));
+    }
+
+    [Fact]
+    public void BlockMapWrapperHonorsElementTypeSelection()
+    {
+        var (map, _, _, thing, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(
+            map,
+            lines: false,
+            things: true,
+            sectors: false,
+            vertices: false);
+
+        UdbScriptBlockEntryWrapper block = wrapper.getBlockAt(new UdbScriptVector2DWrapper(32, 32));
+
+        Assert.Empty(block.getLinedefs());
+        Assert.Same(thing, Assert.Single(block.getThings()).Thing);
+        Assert.Empty(block.getSectors());
+        Assert.Empty(block.getVertices());
+    }
+
+    [Fact]
+    public void BlockMapQueryResultReturnsUniqueElementsAndEnumeratesBlocks()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(256, 0));
+        var line = map.AddLinedef(start, end);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+
+        UdbScriptBlockMapQueryResult result = wrapper.getLineBlocks(new object[] { 0.0, 0.0 }, new object[] { 256.0, 0.0 });
+
+        Assert.True(result.Count() > 1);
+        Assert.Same(line, Assert.Single(result.getLinedefs()).Linedef);
+        Assert.Equal(2, result.getVertices().Length);
+    }
+
+    [Fact]
+    public void BlockMapWrapperReturnsRectangleQueryResult()
+    {
+        var (map, _, sector, _, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+
+        UdbScriptBlockMapQueryResult result = wrapper.getRectangleBlocks(0, 0, 32, 32);
+
+        Assert.Same(sector, Assert.Single(result.getSectors()).Sector);
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();
@@ -1252,5 +1312,30 @@ localsidedeftextureoffsets = true;
         map.AddSidedef(shared, isFront: false, second);
         map.BuildIndexes();
         return (map, first, second, shared);
+    }
+
+    private static (MapSet Map, Linedef Line, Sector Sector, Thing Thing, Vertex Vertex) CreateBlockMapFixture(int size)
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var vertices = new[]
+        {
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(size, 0)),
+            map.AddVertex(new Vector2D(size, size)),
+            map.AddVertex(new Vector2D(0, size)),
+        };
+
+        Linedef? firstLine = null;
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var line = map.AddLinedef(vertices[i], vertices[(i + 1) % vertices.Length]);
+            map.AddSidedef(line, isFront: true, sector);
+            firstLine ??= line;
+        }
+
+        var thing = map.AddThing(new Vector2D(size / 2.0, size / 2.0), 3001);
+        map.BuildIndexes();
+        return (map, firstLine!, sector, thing, vertices[0]);
     }
 }
