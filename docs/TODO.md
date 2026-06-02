@@ -993,6 +993,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Report target sidedef orientation for resolved 3D floor side-band hits.
 - [ ] Port surface highlighting and selection behavior.
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
+  - [x] Add UDB-style visual Select, Edit, and Clear Selection action aliases.
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.

@@ -4934,9 +4934,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.visual-auto-align-to-selection":
                 AutoAlignSelectedVisualTextures3D(alignX: true, alignY: true);
                 return true;
+            case "map3d.visual-edit":
             case "map3d.edit-properties":
                 OpenTargetDialog3D();
                 return true;
+            case "map3d.clear-selection":
             case "map3d.clear-target":
                 ClearSelection3D();
                 return true;

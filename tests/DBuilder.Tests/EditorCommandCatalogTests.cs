@@ -826,7 +826,7 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "S", accelerator: true, shift: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add", shift: true));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton, accelerator: true, shift: true, alt: true));
-        Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton, accelerator: true, shift: true, alt: true));
+        Assert.Equal("map3d.visual-select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton, accelerator: true, shift: true, alt: true));
     }
 
     [Fact]
@@ -951,7 +951,9 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.reset-local-offsets", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "R", accelerator: true, shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
         Assert.Equal("map3d.toggle-slope", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "S", alt: true));
-        Assert.Equal("map3d.select-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
+        Assert.Equal("map3d.visual-select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, EditorPointerInput.LeftButton));
+        Assert.Equal("map3d.visual-edit", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Enter"));
+        Assert.Equal("map3d.clear-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Escape"));
         Assert.Equal("map3d.nudge-offset-left", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Left", shift: true));
         Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageUp"));
         Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "PageUp", accelerator: true));
@@ -1013,6 +1015,28 @@ public class EditorCommandCatalogTests
             Assert.False(command.Repeat);
         else
             Assert.True(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map3d.visual-select", "map3d.select-target", "Select", "Click", false)]
+    [InlineData("map3d.visual-edit", "map3d.edit-properties", "Edit", "Enter", false)]
+    [InlineData("map3d.clear-selection", "map3d.clear-target", "Clear Selection", "Esc", true)]
+    public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture, bool allowScroll)
+    {
+        var command = EditorCommandCatalog.Find(id);
+        var legacyAlias = EditorCommandCatalog.Find(legacyId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.Equal(allowScroll, command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.NotNull(legacyAlias);
+        Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
     }
 
     [Theory]
