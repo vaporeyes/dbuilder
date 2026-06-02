@@ -347,7 +347,7 @@ public class VisualPickingTests
     }
 
     [Fact]
-    public void ResolvedThreeDFloorSideReportsTargetSectorOnTwoSidedBoundary()
+    public void ResolvedThreeDFloorSideReportsTargetSidedefOnTwoSidedBoundary()
     {
         var map = new MapSet();
         var target = map.AddSector(); target.FloorHeight = 0; target.CeilHeight = 128;
@@ -366,7 +366,7 @@ public class VisualPickingTests
         Assert.Same(line, hit.Line);
         Assert.Equal(SidedefPart.Middle, hit.Part);
         Assert.Same(target, hit.Sector);
-        Assert.False(hit.Front);
+        Assert.True(hit.Front);
     }
 
     [Fact]

@@ -255,14 +255,15 @@ public static class VisualPicking
         if (startTop <= startBottom && endTop <= endBottom) return;
 
         TryWall(o, d, side.Line, startBottom, endBottom, startTop, endTop, SidedefPart.Middle, options,
-            ref best, ref bestDist, sectorOverride: targetSector, alphaTestTextureSide: side, alphaTestTextureName: floor.SideTexture);
+            ref best, ref bestDist, sectorOverride: targetSector, frontOverride: side.IsFront,
+            alphaTestTextureSide: side, alphaTestTextureName: floor.SideTexture);
     }
 
     // zBottom/zTop are the span heights at A and B; the hit's span is interpolated along the segment so the
     // wall follows sloped floors/ceilings.
     private static void TryWall(Vector3D o, Vector3D d, Linedef l, double zBotA, double zBotB, double zTopA, double zTopB,
         SidedefPart part, VisualPickingOptions options, ref VisualHit? best, ref double bestDist, bool alphaTestMiddleTexture = false,
-        Sector? sectorOverride = null, Sidedef? alphaTestTextureSide = null, string? alphaTestTextureName = null)
+        Sector? sectorOverride = null, bool? frontOverride = null, Sidedef? alphaTestTextureSide = null, string? alphaTestTextureName = null)
     {
         var a = l.Start.Position;
         var b = l.End.Position;
@@ -280,10 +281,11 @@ public static class VisualPicking
         double z = o.z + d.z * u;
         if (z < bot || z > top) return;
 
-        // The visible side is the one facing the camera (front when the origin is on the right of start->end).
-        bool front = Line2D.GetSideOfLine(a, b, new Vector2D(o.x, o.y)) < 0;
+        // Texture sampling follows the camera-facing side; resolved surfaces may report the target sidedef.
+        bool cameraFront = Line2D.GetSideOfLine(a, b, new Vector2D(o.x, o.y)) < 0;
+        bool front = frontOverride ?? cameraFront;
         var sector = sectorOverride ?? (front ? l.Front?.Sector : l.Back?.Sector);
-        var side = front ? l.Front : l.Back;
+        var side = cameraFront ? l.Front : l.Back;
         if (alphaTestMiddleTexture && side != null && !MiddleTexturePixelIsOpaque(side, seg, z, bot, options))
             return;
         if (alphaTestTextureSide != null && !WallTexturePixelIsOpaque(alphaTestTextureSide, alphaTestTextureName, seg, z, bot, options))
