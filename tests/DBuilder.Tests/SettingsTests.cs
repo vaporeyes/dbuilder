@@ -240,6 +240,11 @@ public class SettingsTests
                     NoSoundColor: 0xFF191A1Bu,
                     BlockSoundColor: 0xFF1C1D1Eu,
                     DistinctDomainColors: new[] { 0xFF202122u }),
+                VisplaneExplorerSettings = new VisplaneExplorerInterfaceSettings(
+                    OpenDoors: true,
+                    ShowHeatmap: true,
+                    ViewHeight: 56,
+                    ViewHeightCustom: 72),
                 WindowX = 120,
                 WindowY = 80,
                 WindowWidth = 1280,
@@ -335,6 +340,10 @@ public class SettingsTests
             Assert.Equal(0xFF191A1Bu, loaded.SoundPropagationColors.NoSoundColor);
             Assert.Equal(0xFF1C1D1Eu, loaded.SoundPropagationColors.BlockSoundColor);
             Assert.Equal(new[] { 0xFF202122u }, loaded.SoundPropagationColors.DistinctDomainColors);
+            Assert.True(loaded.VisplaneExplorerSettings.OpenDoors);
+            Assert.True(loaded.VisplaneExplorerSettings.ShowHeatmap);
+            Assert.Equal(56, loaded.VisplaneExplorerSettings.ViewHeight);
+            Assert.Equal(72, loaded.VisplaneExplorerSettings.ViewHeightCustom);
             Assert.Equal(120, loaded.WindowX);
             Assert.Equal(80, loaded.WindowY);
             Assert.Equal(1280, loaded.WindowWidth);

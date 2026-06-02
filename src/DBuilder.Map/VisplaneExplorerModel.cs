@@ -181,6 +181,15 @@ public static class VisplaneExplorerInterfaceModel
             ReadInt(settings, ViewHeightCustomSettingsKey, 0));
     }
 
+    public static IReadOnlyDictionary<string, object> WriteSettings(VisplaneExplorerInterfaceSettings settings)
+        => new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [OpenDoorsSettingsKey] = settings.OpenDoors,
+            [ShowHeatmapSettingsKey] = settings.ShowHeatmap,
+            [ViewHeightSettingsKey] = settings.ViewHeight,
+            [ViewHeightCustomSettingsKey] = settings.ViewHeightCustom,
+        };
+
     public static VisplaneExplorerViewHeightState ViewHeightState(int viewHeight, int viewHeightCustom)
         => new(
             viewHeight,

@@ -179,6 +179,7 @@ public partial class MainWindow : Window
         MapView.Target3DChanged += desc => { if (desc.Length > 0) SetStatus($"3D target: {desc}  (wheel raises/lowers, Shift = 1)"); };
         MapView.BrowseTexturesRequested += OnBrowseTextures;
         MapView.PastePropertiesOptionsRequested += () => OnPastePropertiesWithOptions(this, new RoutedEventArgs());
+        MapView.VisplaneExplorerRequested += () => OnVisplaneExplorerMode(this, new RoutedEventArgs());
         Opened += OnOpened;
         MapView.DrawModeChanged += () =>
         {
@@ -2879,6 +2880,42 @@ public partial class MainWindow : Window
             : $"Nodes Viewer: {structure.Status}.");
     }
 
+    private void OnVisplaneExplorerMode(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_mapFormat == MapFormat.Udmf) { SetStatus("Visplane Explorer supports Doom and Hexen map formats."); return; }
+
+        VisplaneExplorerPreflightResult preflight = VisplaneExplorerPreflight.CheckNodesLump(ReadCurrentMapLump("NODES"));
+        if (!preflight.Success) { SetStatus($"Visplane Explorer unavailable: {preflight.Message}."); return; }
+
+        VisplaneTileScan scan = VisplaneTileScan.CreateForMap(_map);
+        var settings = _settings.VisplaneExplorerSettings;
+        IReadOnlyList<VisplaneTilePoint> queued = scan.QueuePoints(
+            CurrentVisplaneViewRectangle(),
+            currentQueuedPoints: 0,
+            targetQueuedPoints: 1024);
+        string stat = VisplaneExplorerInterfaceModel.StatMenuItems(VisplaneExplorerStat.Visplanes)[0].Text;
+        SetStatus(
+            $"Visplane Explorer ready: {scan.Tiles.Count} tile(s), {queued.Count} queued point(s), {stat}, " +
+            $"{VisplaneExplorerInterfaceModel.OpenDoorsText}: {(settings.OpenDoors ? "on" : "off")}, " +
+            $"{VisplaneExplorerInterfaceModel.HeatColorsText}: {(settings.ShowHeatmap ? "on" : "off")}, " +
+            $"{VisplaneExplorerInterfaceModel.FormatViewHeightButtonText(settings.ViewHeight)}.");
+        MapView.Focus();
+    }
+
+    private VisplaneMapRectangle CurrentVisplaneViewRectangle()
+    {
+        if (_map is null || _map.Vertices.Count == 0)
+            return new VisplaneMapRectangle(0, 0, VisplaneTile.TileSize, VisplaneTile.TileSize);
+
+        var area = MapSet.CreateArea(_map.Vertices);
+        int left = (int)Math.Floor(area.Left) - VisplaneTile.TileSize;
+        int top = (int)Math.Floor(area.Top) - VisplaneTile.TileSize;
+        int width = Math.Max(VisplaneTile.TileSize, (int)Math.Ceiling(area.Width) + VisplaneTile.TileSize * 2);
+        int height = Math.Max(VisplaneTile.TileSize, (int)Math.Ceiling(area.Height) + VisplaneTile.TileSize * 2);
+        return new VisplaneMapRectangle(left, top, width, height);
+    }
+
     private ClassicNodesStructure ReadClassicNodesStructure()
     {
         if (_wadPath is null || _mapMarker is null)
@@ -5211,7 +5248,7 @@ public partial class MainWindow : Window
             InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
             LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
-            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, VisplaneExplorerModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,

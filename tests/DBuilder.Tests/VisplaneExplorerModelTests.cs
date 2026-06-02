@@ -38,6 +38,23 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void InterfaceSettingsWriteUdbPluginSettings()
+    {
+        var settings = new VisplaneExplorerInterfaceSettings(
+            OpenDoors: true,
+            ShowHeatmap: true,
+            ViewHeight: 56,
+            ViewHeightCustom: 72);
+
+        IReadOnlyDictionary<string, object> written = VisplaneExplorerInterfaceModel.WriteSettings(settings);
+
+        Assert.Equal(true, written[VisplaneExplorerInterfaceModel.OpenDoorsSettingsKey]);
+        Assert.Equal(true, written[VisplaneExplorerInterfaceModel.ShowHeatmapSettingsKey]);
+        Assert.Equal(56, written[VisplaneExplorerInterfaceModel.ViewHeightSettingsKey]);
+        Assert.Equal(72, written[VisplaneExplorerInterfaceModel.ViewHeightCustomSettingsKey]);
+    }
+
+    [Fact]
     public void StatMenuItemsMatchUdbToolbarDropdown()
     {
         IReadOnlyList<VisplaneExplorerStatMenuItem> items =

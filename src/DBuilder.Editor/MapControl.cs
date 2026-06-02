@@ -50,6 +50,7 @@ public class MapControl : OpenGlControlBase, ICustomHitTest
     public IReadOnlyList<EditorShortcutBinding> ShortcutBindings { get; set; } = EditorCommandCatalog.DefaultShortcuts;
     public PasteOptions PasteOptions { get; set; } = new();
     public event Action? ActionStateChanged;
+    public event Action? VisplaneExplorerRequested;
     private readonly PastePropertiesClipboard _pastePropertiesClipboard = new();
 
     // OpenGlControlBase has no hit-testable visual of its own, so pointer events (pan/zoom/click) never
@@ -4933,6 +4934,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.mode-wadauthor":
                 ToggleWadAuthorMode();
+                return true;
+            case "map2d.mode-visplane-explorer":
+                VisplaneExplorerRequested?.Invoke();
                 return true;
             case "map2d.flip":
                 FlipLinedefs();

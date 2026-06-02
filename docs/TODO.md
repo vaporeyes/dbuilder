@@ -1261,6 +1261,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style VisplaneExplorer tile hover value and overflow label model.
   - [x] Add UDB-style custom view-height input normalization.
   - [x] Add UDB-style VisplaneExplorer toolbar text, tooltip, and view-height preset item metadata.
+  - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
 - [ ] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
   - [x] Add UDB-style linedef popup command order model.
@@ -1561,6 +1562,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style custom view-height input normalization.
   - [x] Add UDB-style mode/action metadata and toolbar settings state for open doors, heatmap, and view height.
   - [x] Add UDB-style stat dropdown item metadata for Visplanes, Drawsegs, Solidsegs, and Openings.
+  - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.

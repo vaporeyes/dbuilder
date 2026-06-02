@@ -155,6 +155,7 @@
                 <MenuItem Header="_Go To Coordinates..." x:Name="GoToCoordinatesMenuItem" Click="OnGoToCoordinates" />
                 <MenuItem Header="_Automap Mode" x:Name="AutomapModeMenuItem" ToggleType="CheckBox" Click="OnAutomapMode" />
                 <MenuItem Header="_WadAuthor Mode" x:Name="WadAuthorModeMenuItem" ToggleType="CheckBox" Click="OnWadAuthorMode" />
+                <MenuItem Header="_Visplane Explorer Mode" x:Name="VisplaneExplorerModeMenuItem" Click="OnVisplaneExplorerMode" />
                 <MenuItem Header="View Used _Tags..." x:Name="TagStatisticsMenuItem" Click="OnTagStatistics" />
                 <MenuItem Header="_Tag Explorer..." x:Name="TagExplorerMenuItem" Click="OnTagExplorer" />
                 <MenuItem Header="View Thing _Types..." x:Name="ThingStatisticsMenuItem" Click="OnThingStatistics" />
