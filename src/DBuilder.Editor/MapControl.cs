@@ -1673,7 +1673,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 visual3D: true);
             if (display == null || GetSpriteTexture(display.SpriteName) == null) continue;
 
-            double floorZ = (_blockmapCache?.GetSectorAt(t.Position) ?? _map.GetSectorAt(t.Position))?.GetFloorZ(t.Position) ?? 0;
+            Sector? sector = _blockmapCache?.GetSectorAt(t.Position) ?? _map.GetSectorAt(t.Position);
+            double floorZ = sector?.GetFloorZ(t.Position) ?? 0;
             ImageData img = display.Image;
             float hw = img.Width * 0.5f, hh = img.Height * 0.5f;
             double originZ = floorZ + t.Height;
@@ -1687,7 +1688,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
             else { cz = (float)(originZ) + hh; hcx = 0f; }
             var c = new Vector3((float)t.Position.x, (float)t.Position.y, cz) + right * hcx;
-            int col = DynamicLightDisplay.BillboardTint(t, _gameConfig, gldefs);
+            int col = VisualThingTint(t, sector, gldefs);
             FlatVertex V(Vector3 p, float u, float v) => new FlatVertex { x = p.X, y = p.Y, z = p.Z, w = 1, c = col, u = u, v = v };
 
             var bl = c - right * hw - up * hh; var br = c + right * hw - up * hh;
@@ -1725,7 +1726,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         GzLoadedModel? model = LoadModelDisplay(display);
         if (model is null || model.Meshes.Count == 0) return false;
 
-        double floorZ = (_blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position))?.GetFloorZ(thing.Position) ?? 0;
+        Sector? sector = _blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position);
+        double floorZ = sector?.GetFloorZ(thing.Position) ?? 0;
         ThingModelRenderPlan transform = ThingModelRenderPlanner.Plan3D(
             display,
             new ThingModelRenderInput(
@@ -1740,7 +1742,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PitchRadians: thing.Pitch * Math.PI / 180.0,
                 RollRadians: thing.Roll * Math.PI / 180.0,
                 Selected: thing.Selected));
-        int tint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, _resources?.GetGldefs());
+        int tint = VisualThingTint(thing, sector, _resources?.GetGldefs());
         IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform.World3D, tint);
         if (batches.Count == 0) return false;
 
@@ -1758,7 +1760,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         GzLoadedModel? model = LoadVoxelDisplay(voxelName);
         if (model is null || model.Meshes.Count == 0) return false;
 
-        double floorZ = (_blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position))?.GetFloorZ(thing.Position) ?? 0;
+        Sector? sector = _blockmapCache?.GetSectorAt(thing.Position) ?? _map?.GetSectorAt(thing.Position);
+        double floorZ = sector?.GetFloorZ(thing.Position) ?? 0;
         Matrix4x4 transform = ThingModelRenderPlanner.PlanVoxel3D(new ThingModelRenderInput(
             PositionX: thing.Position.x,
             PositionY: thing.Position.y,
@@ -1771,11 +1774,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             PitchRadians: thing.Pitch * Math.PI / 180.0,
             RollRadians: thing.Roll * Math.PI / 180.0,
             Selected: thing.Selected));
-        int tint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, _resources?.GetGldefs());
+        int tint = VisualThingTint(thing, sector, _resources?.GetGldefs());
         IReadOnlyList<GzModelRenderBatch> batches = GzModelRenderPlanner.Plan(model, transform, tint);
         if (batches.Count == 0) return false;
 
         return DrawPreparedModelBatches(batches, GetVoxelTexture, TextureAddress.Clamp);
+    }
+
+    private int VisualThingTint(Thing thing, Sector? sector, Gldefs? gldefs)
+    {
+        int billboardTint = DynamicLightDisplay.BillboardTint(thing, _gameConfig, gldefs);
+        return billboardTint == DynamicLightDisplay.DefaultBillboardTint
+            ? VisualSurfaceLighting.ThingRenderTint(sector, _fullBrightness, 1.0)
+            : billboardTint;
     }
 
     private bool DrawPreparedModelBatches(

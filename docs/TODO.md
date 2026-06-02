@@ -1026,6 +1026,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply visual 3D surface-lighting tints to resolved 3D floor top and bottom faces.
   - [x] Apply UDMF sidedef light and sector lightcolor tints to visual 3D walls.
   - [x] Apply Doom 64-style sector top and bottom wall color tints to visual 3D walls.
+  - [x] Apply sector lightcolor and Doom 64-style sprite color tints to ordinary visual 3D things.
 
 ## Model Loading
 

@@ -1,5 +1,5 @@
 // ABOUTME: Computes visual-mode lighting tints for renderable map surfaces.
-// ABOUTME: Keeps wall sidedef light and sector wall-color behavior testable outside editor rendering.
+// ABOUTME: Keeps visual wall and thing sector-color behavior testable outside editor rendering.
 
 using DBuilder.Map;
 
@@ -30,6 +30,17 @@ public static class VisualSurfaceLighting
         return RenderTint(brightness, color, scale);
     }
 
+    public static int ThingRenderTint(Sector? sector, bool fullBrightness, double scale)
+    {
+        if (sector == null) return DefaultTint(scale);
+
+        int brightness = fullBrightness ? FullBrightness : sector?.Brightness ?? 0;
+        int color = ModulateColors(
+            sector?.GetIntegerField("lightcolor", NoColorOverride) ?? NoColorOverride,
+            sector?.GetIntegerField("color_sprites", NoColorOverride) ?? NoColorOverride);
+        return RenderTint(brightness, color, scale);
+    }
+
     public static int RenderTint(int brightness, int color, double scale)
     {
         double factor = Math.Clamp(Math.Clamp(brightness, 0, FullBrightness) / 255.0, 0.15, 1.0)
@@ -49,6 +60,12 @@ public static class VisualSurfaceLighting
 
     private static byte Channel(int value, double factor)
         => (byte)Math.Clamp(value * factor, 0.0, 255.0);
+
+    private static int DefaultTint(double scale)
+    {
+        byte gray = Channel(FullBrightness, scale);
+        return unchecked((int)(0xff000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray));
+    }
 
     private static int WallPartColor(Sector? sector, VisualWallPart part)
         => part switch
