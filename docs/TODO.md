@@ -1257,6 +1257,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript script directory discovery and leading metadata parsing.
   - [x] Add UDBScript option config parsing with valid type checks, enum defaults, and setting keys.
   - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
+  - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -1475,6 +1476,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript script directory discovery and leading metadata parsing.
 - [x] Add UDBScript option config parsing with valid type checks, enum defaults, and setting keys.
 - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
+- [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI.
