@@ -78,8 +78,17 @@ public sealed record DrawRectangleModeSettings(
     public DrawRectangleModeSettings DecreaseSubdivisions()
         => this with { Subdivisions = Math.Max(Subdivisions - 1, MinSubdivisions) };
 
+    public DrawRectangleModeSettings IncreaseBevel(double gridSize)
+        => this with { BevelWidth = BevelWidth + ValidGridStep(gridSize) };
+
+    public DrawRectangleModeSettings DecreaseBevel(double gridSize)
+        => this with { BevelWidth = BevelWidth - ValidGridStep(gridSize) };
+
     public DrawRectangleModeSettings Normalized()
         => this with { Subdivisions = Math.Clamp(Subdivisions, MinSubdivisions, MaxSubdivisions) };
+
+    private static int ValidGridStep(double gridSize)
+        => Math.Max(1, (int)Math.Round(double.IsFinite(gridSize) ? Math.Abs(gridSize) : 1.0));
 }
 
 public sealed record DrawEllipseModeSettings(
@@ -135,6 +144,12 @@ public sealed record DrawEllipseModeSettings(
         int decrement = Subdivisions % 2 != 0 ? 1 : 2;
         return this with { Subdivisions = Math.Max(Subdivisions - decrement, MinSubdivisions) };
     }
+
+    public DrawEllipseModeSettings IncreaseBevel(double gridSize)
+        => this with { BevelWidth = BevelWidth + Math.Max(1, (int)Math.Round(double.IsFinite(gridSize) ? Math.Abs(gridSize) : 1.0)) };
+
+    public DrawEllipseModeSettings DecreaseBevel(double gridSize)
+        => this with { BevelWidth = BevelWidth - Math.Max(1, (int)Math.Round(double.IsFinite(gridSize) ? Math.Abs(gridSize) : 1.0)) };
 
     public DrawEllipseModeSettings Normalized()
         => this with { Subdivisions = Math.Clamp(Subdivisions, MinSubdivisions, MaxSubdivisions) };
@@ -246,6 +261,26 @@ public sealed record DrawGridModeSettings(
             HorizontalInterpolation = HorizontalInterpolation,
             VerticalInterpolation = VerticalInterpolation
         };
+
+    public DrawGridModeSettings IncreaseHorizontalSlices()
+        => GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Vertical
+            ? this with { HorizontalSlices = HorizontalSlices + 1 }
+            : this;
+
+    public DrawGridModeSettings DecreaseHorizontalSlices()
+        => GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Vertical
+            ? this with { HorizontalSlices = Math.Max(1, HorizontalSlices - 1) }
+            : this;
+
+    public DrawGridModeSettings IncreaseVerticalSlices()
+        => GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Horizontal
+            ? this with { VerticalSlices = VerticalSlices + 1 }
+            : this;
+
+    public DrawGridModeSettings DecreaseVerticalSlices()
+        => GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Horizontal
+            ? this with { VerticalSlices = Math.Max(1, VerticalSlices - 1) }
+            : this;
 
     public DrawGridModeSettings Normalized()
         => this with

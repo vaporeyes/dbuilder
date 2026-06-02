@@ -4881,6 +4881,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.draw-grid":
                 SetShapeMode(ShapeKind.Grid);
                 return true;
+            case "map2d.increase-subdivision-level":
+                return AdjustDrawSubdivision(increase: true);
+            case "map2d.decrease-subdivision-level":
+                return AdjustDrawSubdivision(increase: false);
+            case "map2d.increase-bevel":
+                return AdjustDrawBevel(increase: true);
+            case "map2d.decrease-bevel":
+                return AdjustDrawBevel(increase: false);
             case "map2d.make-sector":
                 MakeSectorAtCursor();
                 return true;
@@ -5315,6 +5323,75 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             default:
                 return false;
         }
+    }
+
+    private bool AdjustDrawSubdivision(bool increase)
+    {
+        if (_drawMode && _drawCurve)
+        {
+            _drawCurveSettings = increase
+                ? _drawCurveSettings.IncreaseSegmentLength()
+                : _drawCurveSettings.DecreaseSegmentLength();
+            InvalidateDrawPreview();
+            return true;
+        }
+
+        switch (_shapeKind)
+        {
+            case ShapeKind.Rectangle:
+                _drawRectangleSettings = increase
+                    ? _drawRectangleSettings.IncreaseSubdivisions()
+                    : _drawRectangleSettings.DecreaseSubdivisions();
+                break;
+            case ShapeKind.Ellipse:
+                _drawEllipseSettings = increase
+                    ? _drawEllipseSettings.IncreaseSubdivisions()
+                    : _drawEllipseSettings.DecreaseSubdivisions();
+                break;
+            case ShapeKind.Grid:
+                _drawGridSettings = increase
+                    ? _drawGridSettings.IncreaseVerticalSlices()
+                    : _drawGridSettings.DecreaseVerticalSlices();
+                break;
+            default:
+                return false;
+        }
+
+        InvalidateDrawPreview();
+        return true;
+    }
+
+    private bool AdjustDrawBevel(bool increase)
+    {
+        switch (_shapeKind)
+        {
+            case ShapeKind.Rectangle:
+                _drawRectangleSettings = increase
+                    ? _drawRectangleSettings.IncreaseBevel(_grid.GridSizeF)
+                    : _drawRectangleSettings.DecreaseBevel(_grid.GridSizeF);
+                break;
+            case ShapeKind.Ellipse:
+                _drawEllipseSettings = increase
+                    ? _drawEllipseSettings.IncreaseBevel(_grid.GridSizeF)
+                    : _drawEllipseSettings.DecreaseBevel(_grid.GridSizeF);
+                break;
+            case ShapeKind.Grid:
+                _drawGridSettings = increase
+                    ? _drawGridSettings.IncreaseHorizontalSlices()
+                    : _drawGridSettings.DecreaseHorizontalSlices();
+                break;
+            default:
+                return false;
+        }
+
+        InvalidateDrawPreview();
+        return true;
+    }
+
+    private void InvalidateDrawPreview()
+    {
+        _drawDirty = true;
+        RequestNextFrameRendering();
     }
 
     private bool ShouldRunMapShortcut(string commandId, string pressKey)

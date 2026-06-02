@@ -70,6 +70,16 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawRectangleBevelActionsStepByCurrentGridSize()
+    {
+        var settings = new DrawRectangleModeSettings(BevelWidth: -4);
+
+        Assert.Equal(28, settings.IncreaseBevel(32).BevelWidth);
+        Assert.Equal(-36, settings.DecreaseBevel(32).BevelWidth);
+        Assert.Equal(-3, settings.IncreaseBevel(0).BevelWidth);
+    }
+
+    [Fact]
     public void DrawRectangleSettingsNormalizeDeserializedSubdivisions()
     {
         Assert.Equal(DrawRectangleModeSettings.MaxSubdivisions, new DrawRectangleModeSettings(Subdivisions: 99).Normalized().Subdivisions);
@@ -119,6 +129,16 @@ public class DrawModeSettingsTests
         Assert.Equal(6, new DrawEllipseModeSettings(Subdivisions: 8).DecreaseSubdivisions().Subdivisions);
         Assert.Equal(4, new DrawEllipseModeSettings(Subdivisions: 4).DecreaseSubdivisions().Subdivisions);
         Assert.Equal(3, new DrawEllipseModeSettings(Subdivisions: 3).DecreaseSubdivisions().Subdivisions);
+    }
+
+    [Fact]
+    public void DrawEllipseBevelActionsStepByCurrentGridSize()
+    {
+        var settings = new DrawEllipseModeSettings(BevelWidth: 4);
+
+        Assert.Equal(36, settings.IncreaseBevel(32).BevelWidth);
+        Assert.Equal(-28, settings.DecreaseBevel(32).BevelWidth);
+        Assert.Equal(5, settings.IncreaseBevel(double.NaN).BevelWidth);
     }
 
     [Fact]
@@ -251,5 +271,24 @@ public class DrawModeSettingsTests
         Assert.Equal(1, normalized.VerticalSlices);
         Assert.Equal(InterpolationTools.Mode.LINEAR, normalized.HorizontalInterpolation);
         Assert.Equal(InterpolationTools.Mode.LINEAR, normalized.VerticalInterpolation);
+    }
+
+    [Fact]
+    public void DrawGridAdjustmentActionsRespectLockModeAndMinimumSlices()
+    {
+        var settings = new DrawGridModeSettings(HorizontalSlices: 2, VerticalSlices: 2);
+
+        Assert.Equal(3, settings.IncreaseHorizontalSlices().HorizontalSlices);
+        Assert.Equal(1, settings.DecreaseHorizontalSlices().DecreaseHorizontalSlices().HorizontalSlices);
+        Assert.Equal(3, settings.IncreaseVerticalSlices().VerticalSlices);
+        Assert.Equal(1, settings.DecreaseVerticalSlices().DecreaseVerticalSlices().VerticalSlices);
+
+        var horizontalLocked = settings with { GridLockMode = DrawGridLockMode.Horizontal };
+        Assert.Equal(2, horizontalLocked.IncreaseHorizontalSlices().HorizontalSlices);
+        Assert.Equal(3, horizontalLocked.IncreaseVerticalSlices().VerticalSlices);
+
+        var verticalLocked = settings with { GridLockMode = DrawGridLockMode.Vertical };
+        Assert.Equal(3, verticalLocked.IncreaseHorizontalSlices().HorizontalSlices);
+        Assert.Equal(2, verticalLocked.IncreaseVerticalSlices().VerticalSlices);
     }
 }

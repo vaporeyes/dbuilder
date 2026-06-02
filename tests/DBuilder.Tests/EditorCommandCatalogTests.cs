@@ -925,6 +925,10 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-rectangle", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, shift: true));
         Assert.Equal("map2d.draw-ellipse", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true, alt: true));
         Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
+        Assert.Equal("map2d.increase-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true));
+        Assert.Equal("map2d.decrease-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
+        Assert.Equal("map2d.increase-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
+        Assert.Equal("map2d.decrease-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
         Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
@@ -956,6 +960,25 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
     [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu")]
     public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map2d.increase-subdivision-level", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp")]
+    [InlineData("map2d.decrease-subdivision-level", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown")]
+    [InlineData("map2d.increase-bevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp")]
+    [InlineData("map2d.decrease-bevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown")]
+    public void DrawAdjustmentCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
 
@@ -1600,6 +1623,10 @@ public class EditorCommandCatalogTests
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-ellipse"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-curve"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-grid"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.increase-subdivision-level"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.decrease-subdivision-level"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.increase-bevel"));
+        Assert.False(EditorCommandCatalog.IsRepeatable("map2d.decrease-bevel"));
         Assert.False(EditorCommandCatalog.IsRepeatable("window.save"));
     }
 
