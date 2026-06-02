@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3186 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3187 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1205,6 +1205,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
+  - [x] Add UDB-style Sound Propagation mode action metadata and window command dispatch.
   - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
   - [x] Add UDB-style format-aware linedef sound-blocking toggle model.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
@@ -1511,6 +1512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
+  - [x] Add UDB-style Sound Propagation mode action metadata and window command dispatch.
   - [x] Add UDB-style linedef blocksound toggle behavior for classic and UDMF maps.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
   - [x] Add UDB-style Sound Environment thing discovery, zone-boundary rules, dormant handling, names, and environment grouping.

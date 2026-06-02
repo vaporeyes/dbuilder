@@ -1174,6 +1174,7 @@ public partial class MainWindow : Window
             case "window.blockmap-explorer": OnBlockmapExplorer(this, new RoutedEventArgs()); return true;
             case "window.reject-explorer": OnRejectViewer(this, new RoutedEventArgs()); return true;
             case "window.nodes-viewer": OnNodesViewer(this, new RoutedEventArgs()); return true;
+            case "window.sound-propagation-mode": OnSoundPropagation(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
