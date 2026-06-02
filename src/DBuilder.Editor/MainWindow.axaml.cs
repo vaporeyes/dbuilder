@@ -3821,6 +3821,12 @@ public partial class MainWindow : Window
     private async void OnSectorColor(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        if (!ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf))
+        {
+            SetStatus(ColorPickerModel.SectorColorsRequireUdmfWarning);
+            return;
+        }
+
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count == 0)
         {

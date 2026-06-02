@@ -84,6 +84,7 @@ public static class ColorPickerModel
     public const string FadeColorField = "fadecolor";
     public const string DynamicLightPackedColorField = "arg0str";
     public const string NoDynamicLightsWarning = "No lights found in selection!";
+    public const string SectorColorsRequireUdmfWarning = "Sector colors can only be set if map is in UDMF format!";
 
     private static readonly HashSet<int> LightsUsingAngleValue =
     [
@@ -211,6 +212,9 @@ public static class ColorPickerModel
 
     public static string SectorColorPickerTitle(int selectedSectorCount)
         => $"Editing {selectedSectorCount} sector{(selectedSectorCount > 1 ? "s" : "")}";
+
+    public static bool CanEditSectorColors(bool isUdmf)
+        => isUdmf;
 
     public static bool DynamicLightUsesAngleValue(int lightNumber)
         => LightsUsingAngleValue.Contains(lightNumber);

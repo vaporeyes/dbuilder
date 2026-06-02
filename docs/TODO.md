@@ -1094,6 +1094,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command and dialog for selected-sector lightcolor and fadecolor fields.
   - [x] Keep separate UDB-style lightcolor and fadecolor drafts when switching sector color fields.
   - [x] Expose UDB-style float typed color input in the sector color dialog.
+  - [x] Gate selected-sector color editing to UDMF maps with UDB's warning.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
@@ -1456,6 +1457,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style multi-light fixed-value capture and selection-wide dynamic light color/property mutations.
   - [x] Match UDB sector color dialog title, sector-color label, typed HEX parsing, and paired-field apply behavior.
   - [x] Expose typed float color input in the selected-sector color dialog.
+  - [x] Gate selected-sector color editing to UDMF maps with UDB's warning.
 
 ## Validation And Test Strategy
 

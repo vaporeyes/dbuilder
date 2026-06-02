@@ -224,6 +224,7 @@ public sealed class ColorPickerModelTests
     public void DynamicLightPickerMetadataMatchesUdbSelectionMessages()
     {
         Assert.Equal("No lights found in selection!", ColorPickerModel.NoDynamicLightsWarning);
+        Assert.Equal("Sector colors can only be set if map is in UDMF format!", ColorPickerModel.SectorColorsRequireUdmfWarning);
         Assert.Equal("Editing 1 sector", ColorPickerModel.SectorColorPickerTitle(1));
         Assert.Equal("Editing 2 sectors", ColorPickerModel.SectorColorPickerTitle(2));
         Assert.Equal("Editing 1 light", ColorPickerModel.DynamicLightPickerTitle(1));
@@ -231,6 +232,12 @@ public sealed class ColorPickerModelTests
         Assert.Equal(3, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: false));
         Assert.Equal(0, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: true));
     }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void SectorColorEditingRequiresUdmfLikeUdb(bool isUdmf, bool expected)
+        => Assert.Equal(expected, ColorPickerModel.CanEditSectorColors(isUdmf));
 
     [Theory]
     [InlineData(9801, true)]
