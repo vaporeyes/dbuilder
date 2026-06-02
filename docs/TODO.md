@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3307 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3309 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1278,6 +1278,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Map wrapper core element enumeration access.
   - [x] Add UDBScript Map wrapper tag allocation and nearest element query access.
   - [x] Add UDBScript Map wrapper marks clear, invert, query, and selected-mark access.
+  - [x] Add UDBScript Map wrapper selected element query, selected-sidedef, and clear-selected access.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -1517,6 +1518,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Map wrapper core element enumeration access.
 - [x] Add UDBScript Map wrapper tag allocation and nearest element query access.
 - [x] Add UDBScript Map wrapper marks clear, invert, query, and selected-mark access.
+- [x] Add UDBScript Map wrapper selected element query, selected-sidedef, and clear-selected access.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI integration.

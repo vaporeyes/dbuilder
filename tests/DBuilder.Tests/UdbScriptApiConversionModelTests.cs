@@ -1029,6 +1029,77 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesSelectedElementHelpers()
+    {
+        var map = new MapSet();
+        var first = map.AddVertex(new Vector2D(0, 0));
+        var second = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(first, second);
+        var sector = map.AddSector();
+        var side = map.AddSidedef(line, isFront: true, sector);
+        var unselectedThing = map.AddThing(new Vector2D(16, 16), 3001);
+        var selectedThing = map.AddThing(new Vector2D(32, 32), 3002);
+        first.Selected = true;
+        line.Selected = true;
+        side.Selected = true;
+        sector.Selected = true;
+        selectedThing.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        Assert.Same(first, Assert.Single(wrapper.getSelectedVertices()).Vertex);
+        Assert.Same(second, Assert.Single(wrapper.getSelectedVertices(selected: false)).Vertex);
+        Assert.Same(line, Assert.Single(wrapper.getSelectedLinedefs()).Linedef);
+        Assert.Same(side, Assert.Single(wrapper.getSidedefsFromSelectedLinedefs()).Sidedef);
+        Assert.Same(sector, Assert.Single(wrapper.getSelectedSectors()).Sector);
+        Assert.Same(selectedThing, Assert.Single(wrapper.getSelectedThings()).Thing);
+        Assert.Same(unselectedThing, Assert.Single(wrapper.getSelectedThings(selected: false)).Thing);
+    }
+
+    [Fact]
+    public void MapWrapperClearsSelectedElements()
+    {
+        var map = new MapSet();
+        var first = map.AddVertex(new Vector2D(0, 0));
+        var second = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(first, second);
+        var sector = map.AddSector();
+        var side = map.AddSidedef(line, isFront: true, sector);
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+        first.Selected = true;
+        line.Selected = true;
+        side.Selected = true;
+        sector.Selected = true;
+        thing.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.clearSelectedVertices();
+        wrapper.clearSelectedLinedefs();
+        wrapper.clearSelectedSidedefs();
+        wrapper.clearSelectedSectors();
+        wrapper.clearSelectedThings();
+
+        Assert.Empty(wrapper.getSelectedVertices());
+        Assert.Empty(wrapper.getSelectedLinedefs());
+        Assert.Empty(map.GetSelectedSidedefs());
+        Assert.Empty(wrapper.getSelectedSectors());
+        Assert.Empty(wrapper.getSelectedThings());
+
+        first.Selected = true;
+        line.Selected = true;
+        side.Selected = true;
+        sector.Selected = true;
+        thing.Selected = true;
+
+        wrapper.clearAllSelected();
+
+        Assert.Empty(wrapper.getSelectedVertices());
+        Assert.Empty(wrapper.getSelectedLinedefs());
+        Assert.Empty(map.GetSelectedSidedefs());
+        Assert.Empty(wrapper.getSelectedSectors());
+        Assert.Empty(wrapper.getSelectedThings());
+    }
+
+    [Fact]
     public void MapElementArgumentsWrapperMutatesThingArguments()
     {
         var thing = new Thing();

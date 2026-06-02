@@ -2153,6 +2153,87 @@ public sealed class UdbScriptMapWrapper
         map.MarkSelectedThings(selected: true, mark);
     }
 
+    public UdbScriptVertexWrapper[] getSelectedVertices(bool selected = true)
+    {
+        ThrowIfDisposed("getSelectedVertices");
+        return map.GetSelectedVertices(selected)
+            .Where(vertex => !vertex.IsDisposed)
+            .Select(vertex => new UdbScriptVertexWrapper(vertex))
+            .ToArray();
+    }
+
+    public UdbScriptThingWrapper[] getSelectedThings(bool selected = true)
+    {
+        ThrowIfDisposed("getSelectedThings");
+        return map.GetSelectedThings(selected)
+            .Where(thing => !thing.IsDisposed)
+            .Select(thing => new UdbScriptThingWrapper(thing))
+            .ToArray();
+    }
+
+    public UdbScriptSectorWrapper[] getSelectedSectors(bool selected = true)
+    {
+        ThrowIfDisposed("getSelectedSectors");
+        return map.GetSelectedSectors(selected)
+            .Where(sector => !sector.IsDisposed)
+            .Select(sector => new UdbScriptSectorWrapper(sector))
+            .ToArray();
+    }
+
+    public UdbScriptLinedefWrapper[] getSelectedLinedefs(bool selected = true)
+    {
+        ThrowIfDisposed("getSelectedLinedefs");
+        return map.GetSelectedLinedefs(selected)
+            .Where(linedef => !linedef.IsDisposed)
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef))
+            .ToArray();
+    }
+
+    public UdbScriptSidedefWrapper[] getSidedefsFromSelectedLinedefs(bool selected = true)
+    {
+        ThrowIfDisposed("getSidedefsFromSelectedLinedefs");
+        return map.GetSidedefsFromSelectedLinedefs(selected)
+            .Where(sidedef => !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef))
+            .ToArray();
+    }
+
+    public void clearAllSelected()
+    {
+        ThrowIfDisposed("clearAllSelected");
+        map.ClearAllSelected();
+    }
+
+    public void clearSelectedVertices()
+    {
+        ThrowIfDisposed("clearSelectedVertices");
+        map.ClearSelectedVertices();
+    }
+
+    public void clearSelectedThings()
+    {
+        ThrowIfDisposed("clearSelectedThings");
+        map.ClearSelectedThings();
+    }
+
+    public void clearSelectedSectors()
+    {
+        ThrowIfDisposed("clearSelectedSectors");
+        map.ClearSelectedSectors();
+    }
+
+    public void clearSelectedLinedefs()
+    {
+        ThrowIfDisposed("clearSelectedLinedefs");
+        map.ClearSelectedLinedefs();
+    }
+
+    public void clearSelectedSidedefs()
+    {
+        ThrowIfDisposed("clearSelectedSidedefs");
+        map.ClearSelectedSidedefs();
+    }
+
     private void ThrowIfDisposed(string member)
     {
         if (map.IsDisposed)
