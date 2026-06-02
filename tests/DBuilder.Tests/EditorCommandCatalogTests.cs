@@ -922,6 +922,12 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.copy-texture", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.look-through-thing", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Y"));
         Assert.Equal("map3d.align-things-to-wall", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true, shift: true));
+        Assert.Equal("map3d.scale-up", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad9"));
+        Assert.Equal("map3d.scale-down", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad7"));
+        Assert.Equal("map3d.scale-up-x", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad6"));
+        Assert.Equal("map3d.scale-down-x", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad4"));
+        Assert.Equal("map3d.scale-up-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad8"));
+        Assert.Equal("map3d.scale-down-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "NumPad5"));
         Assert.Equal("map3d.visual-auto-align", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
         Assert.Equal("map3d.align-texture-y", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", shift: true));
         Assert.Equal("map3d.delete-target", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "Back"));
@@ -964,6 +970,27 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map3d.scale-up", "Increase Scale", "NumPad9")]
+    [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7")]
+    [InlineData("map3d.scale-up-x", "Increase Horizontal Scale", "NumPad6")]
+    [InlineData("map3d.scale-down-x", "Decrease Horizontal Scale", "NumPad4")]
+    [InlineData("map3d.scale-up-y", "Increase Vertical Scale", "NumPad8")]
+    [InlineData("map3d.scale-down-y", "Decrease Vertical Scale", "NumPad5")]
+    public void VisualScaleCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);

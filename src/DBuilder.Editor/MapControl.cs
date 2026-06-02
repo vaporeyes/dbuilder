@@ -1701,6 +1701,61 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             : $"fit {changed} wall texture{(changed == 1 ? "" : "s")} ({skipped} missing image{(skipped == 1 ? "" : "s")})");
     }
 
+    private void ChangeVisualScale3D(int incrementX, int incrementY)
+    {
+        if (_map == null) return;
+
+        int changed = 0;
+        int skipped = 0;
+        bool begun = false;
+        var seenThings = new HashSet<Thing>();
+        var seenWalls = new HashSet<(Sidedef Side, SidedefPart Part)>();
+
+        foreach (VisualHit hit in EditTargets3D())
+        {
+            if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
+            {
+                var size = ThingSize3D(thing);
+                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                bool adjusted = VisualScaleAdjustment.AdjustThing(
+                    thing,
+                    incrementX,
+                    incrementY,
+                    Math.Max(1, (int)Math.Round(size.radius * 2.0)),
+                    Math.Max(1, (int)Math.Round(size.height)));
+                if (adjusted) changed++;
+            }
+            else if (hit.Kind == VisualHitKind.Wall && hit.Line != null && hit.Part != SidedefPart.None)
+            {
+                Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+                if (side == null || !seenWalls.Add((side, hit.Part))) continue;
+                string textureName = side.GetTexture(hit.Part);
+                var image = _resources?.GetWallTexture(textureName);
+                if (image == null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                bool adjusted = VisualScaleAdjustment.AdjustWall(side, hit.Part, incrementX, incrementY, image.Width, image.Height);
+                if (adjusted) changed++;
+            }
+        }
+
+        if (changed == 0)
+        {
+            Target3DChanged?.Invoke(skipped == 0 ? "aim at a wall or thing to scale" : "no texture dimensions for selected wall scale");
+            return;
+        }
+
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"scaled {changed} target{(changed == 1 ? "" : "s")}");
+    }
+
     // Resets the targeted wall's texture offsets to zero, undoable.
     private void ResetTargetOffsets3D()
     {
@@ -3749,6 +3804,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.show-visual-things":
                 CycleVisualThings3D();
+                return true;
+            case "map3d.scale-up":
+                ChangeVisualScale3D(1, 1);
+                return true;
+            case "map3d.scale-down":
+                ChangeVisualScale3D(-1, -1);
+                return true;
+            case "map3d.scale-up-x":
+                ChangeVisualScale3D(1, 0);
+                return true;
+            case "map3d.scale-down-x":
+                ChangeVisualScale3D(-1, 0);
+                return true;
+            case "map3d.scale-up-y":
+                ChangeVisualScale3D(0, 1);
+                return true;
+            case "map3d.scale-down-y":
+                ChangeVisualScale3D(0, -1);
                 return true;
             case "map3d.lower-sector-1":
                 AdjustTarget3D(-1);
