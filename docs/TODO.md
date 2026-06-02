@@ -1262,6 +1262,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
   - [x] Add UDBScript runner UI lifecycle state, visibility threshold, timer, title, and log formatting model.
   - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
+  - [x] Add UDBScript API vector and universal-value conversion helpers.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -1485,6 +1486,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [x] Add UDBScript runner UI lifecycle state, visibility threshold, timer, title, and log formatting model.
 - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
+- [x] Add UDBScript API vector and universal-value conversion helpers.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI integration.
