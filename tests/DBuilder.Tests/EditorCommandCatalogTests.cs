@@ -19,6 +19,7 @@ public class EditorCommandCatalogTests
         Assert.Contains("window.properties", ids);
         Assert.Contains("window.select-similar", ids);
         Assert.Contains("window.toggle-auto-clear-sidedef-textures", ids);
+        Assert.Contains("window.make-door", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
     }
@@ -80,6 +81,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
+    public void MakeDoorCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.make-door");
+
+        Assert.NotNull(command);
+        Assert.Equal("Make Door", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
     }
 
     [Theory]
