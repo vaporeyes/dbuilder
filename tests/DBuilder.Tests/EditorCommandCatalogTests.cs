@@ -1106,6 +1106,24 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
     }
 
+    [Fact]
+    public void VisualPaintSelectCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.visual-paint-select");
+
+        Assert.NotNull(command);
+        Assert.Equal("Paint Selection", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.True(command.DisregardAccelerator);
+        Assert.True(command.DisregardAlt);
+        Assert.False(command.Repeat);
+    }
+
     [Theory]
     [InlineData("map3d.scale-up", "Increase Scale", "NumPad9")]
     [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7")]

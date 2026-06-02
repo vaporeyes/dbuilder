@@ -303,6 +303,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.toggle-full-brightness", "Toggle Full Brightness", "B", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.toggle-highlight", "Toggle Highlight", "H", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.visual-select", "Select", "Click", EditorCommandScope.Map3D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
+        new EditorCommandDescriptor("map3d.visual-paint-select", "Paint Selection", "Menu", EditorCommandScope.Map3D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map3d.select-target", "Select surfaces", "Click", EditorCommandScope.Map3D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map3d.clear-selection", "Clear Selection", "Esc", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.clear-target", "Clear selection", "Esc", EditorCommandScope.Map3D),
