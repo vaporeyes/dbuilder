@@ -228,6 +228,15 @@ public static class UdbScriptDockerModel
         return result;
     }
 
+    public static IReadOnlySet<string> LoadCollapsedDirectoryHashes(
+        UdbScriptDirectory root,
+        IReadOnlyDictionary<string, object?> settings)
+    {
+        var collapsed = new HashSet<string>(StringComparer.Ordinal);
+        AddCollapsedDirectoryHashes(root, settings, collapsed);
+        return collapsed;
+    }
+
     public static IReadOnlyList<UdbScriptSettingOperation> SaveDirectoryExpansionOperations(
         UdbScriptDirectory root,
         IReadOnlySet<string> collapsedDirectoryHashes)
@@ -325,6 +334,26 @@ public static class UdbScriptDockerModel
         foreach (UdbScriptDirectory child in directory.Directories)
             AddDirectoryExpansionOperations(child, collapsedDirectoryHashes, operations);
     }
+
+    private static void AddCollapsedDirectoryHashes(
+        UdbScriptDirectory directory,
+        IReadOnlyDictionary<string, object?> settings,
+        HashSet<string> collapsed)
+    {
+        if (settings.TryGetValue(DirectoryExpandSettingKey(directory.Hash), out object? value)
+            && IsExplicitlyCollapsed(value))
+        {
+            collapsed.Add(directory.Hash);
+        }
+
+        foreach (UdbScriptDirectory child in directory.Directories)
+            AddCollapsedDirectoryHashes(child, settings, collapsed);
+    }
+
+    private static bool IsExplicitlyCollapsed(object? value)
+        => value is bool boolValue
+            ? !boolValue
+            : string.Equals(value?.ToString(), "false", StringComparison.OrdinalIgnoreCase);
 
     private static bool MatchesFilter(UdbScriptInfo script, string filterText)
         => string.IsNullOrWhiteSpace(filterText)

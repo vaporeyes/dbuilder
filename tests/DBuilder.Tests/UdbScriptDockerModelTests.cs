@@ -176,6 +176,41 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void LoadCollapsedDirectoryHashesMatchesUdbDefaultExpandedSettings()
+    {
+        var nested = new UdbScriptDirectory(
+            "/scripts/a/nested",
+            "Nested",
+            "hash-nested",
+            Array.Empty<UdbScriptDirectory>(),
+            Array.Empty<UdbScriptInfo>());
+        var child = new UdbScriptDirectory(
+            "/scripts/a",
+            "AlphaFolder",
+            "hash-child",
+            new[] { nested },
+            Array.Empty<UdbScriptInfo>());
+        var root = new UdbScriptDirectory(
+            "/scripts",
+            "Scripts",
+            "hash-root",
+            new[] { child },
+            Array.Empty<UdbScriptInfo>());
+
+        IReadOnlySet<string> collapsed = UdbScriptDockerModel.LoadCollapsedDirectoryHashes(
+            root,
+            new Dictionary<string, object?>
+            {
+                ["directoryexpand.hash-root"] = true,
+                ["directoryexpand.hash-child"] = false,
+                ["directoryexpand.hash-nested"] = "false",
+                ["directoryexpand.missing"] = false,
+            });
+
+        Assert.Equal(new[] { "hash-child", "hash-nested" }, collapsed.OrderBy(hash => hash, StringComparer.Ordinal).ToArray());
+    }
+
+    [Fact]
     public void FindScriptNodeRecursivelyMatchesScriptFile()
     {
         UdbScriptInfo nested = Script("Nested", "Secret doors", "/scripts/a/nested.js");
