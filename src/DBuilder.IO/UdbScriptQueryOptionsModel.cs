@@ -29,6 +29,18 @@ public sealed record UdbScriptQueryOptionsQueryPlan(
     UdbScriptQueryOptionsDialogResult DialogResult,
     bool ReturnValue);
 
+public enum UdbScriptQueryOptionsMemberKind
+{
+    Property,
+    Method,
+}
+
+public sealed record UdbScriptQueryOptionsApiMember(
+    string Name,
+    UdbScriptQueryOptionsMemberKind Kind,
+    string ReturnType,
+    IReadOnlyList<string> Parameters);
+
 public sealed class UdbScriptQueryOptionsModel
 {
     public const string PromptTitle = "Query options";
@@ -38,6 +50,15 @@ public sealed class UdbScriptQueryOptionsModel
     private readonly List<UdbScriptOption> options = new();
 
     public IReadOnlyList<UdbScriptOption> Options => options;
+
+    public static IReadOnlyList<UdbScriptQueryOptionsApiMember> ApiMembers { get; } =
+    [
+        new("options", UdbScriptQueryOptionsMemberKind.Property, "ExpandoObject", Array.Empty<string>()),
+        new("addOption", UdbScriptQueryOptionsMemberKind.Method, "void", ["string", "string", "int", "object"]),
+        new("addOption", UdbScriptQueryOptionsMemberKind.Method, "void", ["string", "string", "int", "object", "object"]),
+        new("clear", UdbScriptQueryOptionsMemberKind.Method, "void", Array.Empty<string>()),
+        new("query", UdbScriptQueryOptionsMemberKind.Method, "bool", Array.Empty<string>()),
+    ];
 
     public static UdbScriptQueryOptionsPromptMetadata PromptMetadata()
         => new(

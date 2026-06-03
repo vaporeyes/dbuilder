@@ -38,6 +38,33 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void ApiMembersMatchUdbQueryOptionsSurface()
+    {
+        Assert.Equal(
+            ["options", "addOption", "addOption", "clear", "query"],
+            UdbScriptQueryOptionsModel.ApiMembers.Select(member => member.Name).ToArray());
+
+        UdbScriptQueryOptionsApiMember options = UdbScriptQueryOptionsModel.ApiMembers[0];
+        Assert.Equal(UdbScriptQueryOptionsMemberKind.Property, options.Kind);
+        Assert.Equal("ExpandoObject", options.ReturnType);
+        Assert.Empty(options.Parameters);
+
+        UdbScriptQueryOptionsApiMember addWithoutEnum = UdbScriptQueryOptionsModel.ApiMembers[1];
+        Assert.Equal(UdbScriptQueryOptionsMemberKind.Method, addWithoutEnum.Kind);
+        Assert.Equal("void", addWithoutEnum.ReturnType);
+        Assert.Equal(["string", "string", "int", "object"], addWithoutEnum.Parameters);
+
+        UdbScriptQueryOptionsApiMember addWithEnum = UdbScriptQueryOptionsModel.ApiMembers[2];
+        Assert.Equal("void", addWithEnum.ReturnType);
+        Assert.Equal(["string", "string", "int", "object", "object"], addWithEnum.Parameters);
+
+        UdbScriptQueryOptionsApiMember query = UdbScriptQueryOptionsModel.ApiMembers[4];
+        Assert.Equal(UdbScriptQueryOptionsMemberKind.Method, query.Kind);
+        Assert.Equal("bool", query.ReturnType);
+        Assert.Empty(query.Parameters);
+    }
+
+    [Fact]
     public void AddOptionAcceptsValidTypesAndReturnsQueriedValues()
     {
         var model = new UdbScriptQueryOptionsModel();
