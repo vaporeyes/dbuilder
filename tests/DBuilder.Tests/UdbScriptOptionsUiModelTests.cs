@@ -70,4 +70,55 @@ public class UdbScriptOptionsUiModelTests
         Assert.False(edited.ResetToDefault);
         Assert.Equal("WindowText", edited.ForeColor);
     }
+
+    [Fact]
+    public void EnumEditorStateMatchesUdbSelectionRules()
+    {
+        var option = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Down",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+
+        UdbScriptOptionEnumEditorState byText = UdbScriptOptionsUiModel.EnumEditorState(option);
+
+        Assert.True(byText.Visible);
+        Assert.Equal("DropDownList", byText.DropDownStyle);
+        Assert.False(byText.BrowseButtonVisible);
+        Assert.Equal("Down", byText.Text);
+        Assert.Equal(new[] { "1:Up", "2:Down" }, byText.Items.Select(item => item.Key + ":" + item.Text).ToArray());
+        Assert.Equal("2", byText.SelectedItem?.Key);
+
+        UdbScriptOptionEnumEditorState byValue = UdbScriptOptionsUiModel.EnumEditorState(option with { Value = "1" });
+
+        Assert.Equal("1", byValue.Text);
+        Assert.Equal("1", byValue.SelectedItem?.Key);
+    }
+
+    [Fact]
+    public void EnumEditorStateIsHiddenForNonEnumOptions()
+    {
+        var option = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            128,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+
+        UdbScriptOptionEnumEditorState state = UdbScriptOptionsUiModel.EnumEditorState(option);
+
+        Assert.False(state.Visible);
+        Assert.Equal("128", state.Text);
+        Assert.Null(state.SelectedItem);
+        Assert.Empty(state.Items);
+    }
 }

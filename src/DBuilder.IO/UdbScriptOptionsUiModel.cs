@@ -27,6 +27,18 @@ public sealed record UdbScriptOptionValueCellState(
     bool ResetToDefault,
     string ForeColor);
 
+public sealed record UdbScriptOptionEnumItem(
+    string Key,
+    string Text);
+
+public sealed record UdbScriptOptionEnumEditorState(
+    bool Visible,
+    string DropDownStyle,
+    string Text,
+    UdbScriptOptionEnumItem? SelectedItem,
+    bool BrowseButtonVisible,
+    IReadOnlyList<UdbScriptOptionEnumItem> Items);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -35,6 +47,7 @@ public static class UdbScriptOptionsUiModel
     public const string EditProgrammaticallyMode = "EditProgrammatically";
     public const string DefaultValueForeColor = "GrayText";
     public const string EditedValueForeColor = "WindowText";
+    public const string EnumDropDownStyle = "DropDownList";
 
     public static UdbScriptOptionsGridMetadata GridMetadata()
         => new(
@@ -64,5 +77,20 @@ public static class UdbScriptOptionsUiModel
             : EditedValueForeColor;
 
         return new UdbScriptOptionValueCellState(value, resetToDefault, foreColor);
+    }
+
+    public static UdbScriptOptionEnumEditorState EnumEditorState(UdbScriptOption option)
+    {
+        string text = option.Value.ToString() ?? "";
+        if (option.Type != (int)UniversalType.EnumOption || option.EnumValues.Count == 0)
+            return new UdbScriptOptionEnumEditorState(false, EnumDropDownStyle, text, null, false, Array.Empty<UdbScriptOptionEnumItem>());
+
+        UdbScriptOptionEnumItem[] items = option.EnumValues
+            .Select(value => new UdbScriptOptionEnumItem(value.Key, value.Label ?? value.Key))
+            .ToArray();
+        UdbScriptOptionEnumItem? selected = items.FirstOrDefault(item => string.Equals(item.Text, text, StringComparison.OrdinalIgnoreCase))
+            ?? items.FirstOrDefault(item => string.Equals(item.Key, text, StringComparison.OrdinalIgnoreCase));
+
+        return new UdbScriptOptionEnumEditorState(true, EnumDropDownStyle, text, selected, false, items);
     }
 }
