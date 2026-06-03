@@ -50,4 +50,16 @@ public static class CatalogBrowse
             .Select(g => (Category: g.Key, Entries: g.OrderBy(e => e.Number).ToList()))
             .OrderBy(t => t.Category, StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+    public static string FlatAppliedStatusText(int sectorCount, bool ceiling, string flatName)
+        => $"Set {CountLabel(sectorCount, ceiling ? "ceiling flat" : "floor flat")} to {flatName}.";
+
+    public static string LinedefActionAppliedStatusText(int lineCount, int action, string title)
+        => $"Set {CountLabel(lineCount, "linedef action")} to {action} - {title}";
+
+    public static string SectorEffectAppliedStatusText(int sectorCount, int effect, string title)
+        => $"Set {CountLabel(sectorCount, "sector effect")} to {effect} - {title}";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 }

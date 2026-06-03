@@ -83,4 +83,28 @@ sectortypes
         var groups = CatalogBrowse.Grouped(CatalogBrowse.SectorEffects(gc));
         Assert.Equal("(uncategorized)", groups.Single().Category);
     }
+
+    [Theory]
+    [InlineData(1, false, "FLOOR0_1", "Set 1 floor flat to FLOOR0_1.")]
+    [InlineData(2, false, "FLOOR0_1", "Set 2 floor flats to FLOOR0_1.")]
+    [InlineData(1, true, "CEIL1_1", "Set 1 ceiling flat to CEIL1_1.")]
+    [InlineData(2, true, "CEIL1_1", "Set 2 ceiling flats to CEIL1_1.")]
+    public void FlatAppliedStatusTextFormatsSingularAndPluralCounts(
+        int sectorCount,
+        bool ceiling,
+        string flatName,
+        string expected)
+        => Assert.Equal(expected, CatalogBrowse.FlatAppliedStatusText(sectorCount, ceiling, flatName));
+
+    [Theory]
+    [InlineData(1, "Set 1 linedef action to 1 - Door")]
+    [InlineData(2, "Set 2 linedef actions to 1 - Door")]
+    public void LinedefActionAppliedStatusTextFormatsSingularAndPluralCounts(int lineCount, string expected)
+        => Assert.Equal(expected, CatalogBrowse.LinedefActionAppliedStatusText(lineCount, 1, "Door"));
+
+    [Theory]
+    [InlineData(1, "Set 1 sector effect to 7 - Damage")]
+    [InlineData(2, "Set 2 sector effects to 7 - Damage")]
+    public void SectorEffectAppliedStatusTextFormatsSingularAndPluralCounts(int sectorCount, string expected)
+        => Assert.Equal(expected, CatalogBrowse.SectorEffectAppliedStatusText(sectorCount, 7, "Damage"));
 }

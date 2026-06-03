@@ -771,7 +771,7 @@ public partial class MainWindow : Window
             }
             MapView.MarkGeometryDirty();
             UpdateInfo();
-            SetStatus($"Set {sectors.Count} {(ceiling ? "ceiling" : "floor")} flat(s) to {name}.");
+            SetStatus(CatalogBrowse.FlatAppliedStatusText(sectors.Count, ceiling, name));
         }
         MapView.Focus();
     }
@@ -830,7 +830,7 @@ public partial class MainWindow : Window
         foreach (var line in lines) line.Action = action;
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Set {lines.Count} linedef action(s) to {action} - {title}");
+        SetStatus(CatalogBrowse.LinedefActionAppliedStatusText(lines.Count, action, title));
     }
 
     private void ApplyEffectToSelectedSectors(int effect, string title)
@@ -846,7 +846,7 @@ public partial class MainWindow : Window
         foreach (var sector in sectors) sector.Special = effect;
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Set {sectors.Count} sector effect(s) to {effect} - {title}");
+        SetStatus(CatalogBrowse.SectorEffectAppliedStatusText(sectors.Count, effect, title));
     }
 
     private async void OnSave(object? sender, RoutedEventArgs e) => await DoSave(_mapFormat);
