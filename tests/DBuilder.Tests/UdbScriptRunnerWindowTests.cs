@@ -23,6 +23,8 @@ public class UdbScriptRunnerWindowTests
         Assert.NotNull(type.GetProperty("IsProgressMarquee"));
         Assert.NotNull(type.GetProperty("ProgressValue"));
         Assert.NotNull(type.GetProperty("AutoClose"));
+        Assert.NotNull(type.GetProperty("IsRuntimeTimerEnabled"));
+        Assert.NotNull(type.GetProperty("ElapsedRuntime"));
         AssertPublicInstanceMethod(type, "Start");
         AssertPublicInstanceMethod(type, "MarkRunning");
         AssertPublicInstanceMethod(type, "InvokePaused");

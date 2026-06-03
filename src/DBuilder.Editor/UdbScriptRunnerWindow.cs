@@ -2,6 +2,7 @@
 // ABOUTME: Applies UDBScript runner model state while execution wiring remains owned by callers.
 
 using System;
+using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Threading;
@@ -15,6 +16,8 @@ public sealed class UdbScriptRunnerWindow : Window
     private readonly TextBlock _status = new();
     private readonly Button _action = new();
     private readonly TextBox _log = new();
+    private readonly Stopwatch _stopwatch = new();
+    private readonly DispatcherTimer _timer = new();
     private double _runningSeconds;
     private bool _autoClose;
     private bool _running;
@@ -28,6 +31,8 @@ public sealed class UdbScriptRunnerWindow : Window
     public bool IsProgressMarquee => _progress.IsIndeterminate;
     public double ProgressValue => _progress.Value;
     public bool AutoClose => _autoClose;
+    public bool IsRuntimeTimerEnabled => _timer.IsEnabled;
+    public TimeSpan ElapsedRuntime => _stopwatch.Elapsed;
 
     public UdbScriptRunnerWindow()
     {
@@ -52,6 +57,9 @@ public sealed class UdbScriptRunnerWindow : Window
         _log.IsReadOnly = true;
         _log.AcceptsReturn = true;
         _log.TextWrapping = Avalonia.Media.TextWrapping.NoWrap;
+
+        _timer.Interval = TimeSpan.FromMilliseconds(UdbScriptRunnerModel.RunnerTimerIntervalMilliseconds);
+        _timer.Tick += (_, _) => ApplyTimerTick(_stopwatch.Elapsed);
 
         var top = new Grid
         {
@@ -87,6 +95,13 @@ public sealed class UdbScriptRunnerWindow : Window
             _log.Clear();
 
         ApplyState(plan.InitialState);
+        if (plan.StartStopwatch)
+        {
+            _stopwatch.Reset();
+            _stopwatch.Start();
+        }
+        if (plan.StartTimer)
+            _timer.Start();
     }
 
     public void MarkRunning()
@@ -122,6 +137,7 @@ public sealed class UdbScriptRunnerWindow : Window
     public void Finish(TimeSpan runtime, bool autoClose)
     {
         _running = false;
+        _stopwatch.Stop();
         ApplyState(UdbScriptRunnerModel.FinishedUiState(runtime, autoClose));
         _progress.Value = 0;
         if (autoClose)
@@ -192,6 +208,24 @@ public sealed class UdbScriptRunnerWindow : Window
             CloseRequested?.Invoke();
             Close();
         }
+    }
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        UdbScriptRunnerLifecycleEventPlan plan = UdbScriptRunnerModel.LifecycleEventPlan();
+        if (plan.MakeInvisibleOnLoad)
+            Opacity = 0.0;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+
+        UdbScriptRunnerLifecycleEventPlan plan = UdbScriptRunnerModel.LifecycleEventPlan();
+        if (plan.StopTimerOnClosed)
+            _timer.Stop();
     }
 
     private UdbScriptRunnerUiState CurrentState()
