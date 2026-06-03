@@ -606,6 +606,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port SNDSEQ parser.
   - [x] Parse sequence groups and UDB sorted sound sequence names.
 - [x] Port TERRAIN parser.
+  - [x] Keep first duplicate TERRAIN declaration like UDB.
 - [x] Port LOCKDEFS parser.
   - [x] Require positive numeric lock ids and byte-range map colors.
   - [x] Stop LOCKDEFS parsing on invalid lock ids and map colors like UDB.

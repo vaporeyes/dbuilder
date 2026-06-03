@@ -88,4 +88,17 @@ endif";
         Assert.False(heretic.Terrains.ContainsKey("HEXWATR"));
         Assert.Equal(4, all.Terrains.Count);
     }
+
+    [Fact]
+    public void KeepsFirstDuplicateTerrainDefinitionLikeUdb()
+    {
+        const string text = @"
+terrain WATER { splash First footclip 8 }
+terrain WATER { splash Second footclip 16 }";
+
+        var terrain = TerrainParser.Parse(text).Terrains["WATER"];
+
+        Assert.Equal("First", terrain.Splash);
+        Assert.Equal(8, terrain.FootClip);
+    }
 }

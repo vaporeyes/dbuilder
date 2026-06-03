@@ -92,7 +92,7 @@ public static class TerrainParser
             }
             if (i < t.Count) i++;
         }
-        if (terrain.FlatName.Length > 0) data.Terrains[terrain.FlatName] = terrain;
+        if (terrain.FlatName.Length > 0 && !data.Terrains.ContainsKey(terrain.FlatName)) data.Terrains[terrain.FlatName] = terrain;
     }
 
     private static void ParseSplash(TerrainData data, List<string> t, ref int i)
