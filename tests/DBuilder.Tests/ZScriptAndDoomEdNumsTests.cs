@@ -397,6 +397,34 @@ class ValidSizeDefault : Actor
     }
 
     [Fact]
+    public void RejectsZScriptDefaultPropertiesWithoutSemicolons()
+    {
+        const string text = @"
+class MissingPropertySemicolon : Actor
+{
+    Default
+    {
+        RenderStyle Translucent
+        Alpha 0.5;
+    }
+}
+class ValidDefaultProperty : Actor
+{
+    Default
+    {
+        RenderStyle Add;
+        Alpha 0.25;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("ValidDefaultProperty", actor.ClassName);
+        Assert.Equal("Add", actor.Properties["RenderStyle"].Single());
+        Assert.Equal("0.25", actor.Properties["Alpha"].Single());
+    }
+
+    [Fact]
     public void KeepsZScriptDefaultExpressionsAsSingleValues()
     {
         const string text = @"

@@ -1237,7 +1237,15 @@ public static class DecorateParser
             }
             else if (!inStates && LooksLikeProperty(tk.Text, t, i))
             {
-                var values = ReadPropertyValues(tk.Text, t, ref i);
+                if (zscriptBody && !HasSemicolonTerminator(t, i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
+
+                var values = zscriptBody
+                    ? ReadSemicolonPropertyValues(tk.Text, t, ref i, isGameProperty: false, stopAtNewline: false)
+                    : ReadPropertyValues(tk.Text, t, ref i);
                 if (tk.Text.Equals("scale", StringComparison.OrdinalIgnoreCase))
                 {
                     actor.Properties["xscale"] = values;
@@ -1643,7 +1651,7 @@ public static class DecorateParser
         bool isGameProperty = key.Equals("game", StringComparison.OrdinalIgnoreCase);
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         if (HasSemicolonTerminator(t, i))
-            return ReadSemicolonPropertyValues(key, t, ref i, isGameProperty);
+            return ReadSemicolonPropertyValues(key, t, ref i, isGameProperty, stopAtNewline: true);
 
         int maxValues = HasSemicolonTerminator(t, i) ? int.MaxValue
             : HasLineTerminator(t, i) ? int.MaxValue
@@ -2021,16 +2029,29 @@ public static class DecorateParser
             : declaredType;
     }
 
-    private static List<string> ReadSemicolonPropertyValues(string key, List<Tok> t, ref int i, bool isGameProperty)
+    private static List<string> ReadSemicolonPropertyValues(
+        string key,
+        List<Tok> t,
+        ref int i,
+        bool isGameProperty,
+        bool stopAtNewline)
     {
         var values = new List<string>();
         var parts = new List<string>();
         bool scale = key.Equals("scale", StringComparison.OrdinalIgnoreCase);
 
+        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+
         while (i < t.Count)
         {
             var tk = t[i];
-            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}" or "\n") break;
+            if (tk.Kind == Kind.Sym && tk.Text is "{" or "}") break;
+            if (tk.Kind == Kind.Sym && tk.Text == "\n")
+            {
+                if (stopAtNewline) break;
+                i++;
+                continue;
+            }
             if (tk.Kind == Kind.Sym && tk.Text is "," or ";")
             {
                 AddExpressionValue(values, parts, isGameProperty);
