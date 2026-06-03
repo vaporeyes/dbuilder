@@ -149,6 +149,18 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ToolsMenuTooltipsRefreshFromEffectiveShortcutBindings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetShortcutToolTip(UdbScriptDockerMenuItem, \"Scripts\", \"window.udbscripts\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SoundPropagationMenuItem, \"Sound Propagation\", \"window.sound-propagation-mode\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportIdStudioMenuItem, \"Export idStudio\", \"window.export-idstudio\");", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void InfoPanelCheckedStateRefreshesFromPanelVisibility()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

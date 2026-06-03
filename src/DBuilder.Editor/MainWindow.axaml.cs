@@ -329,15 +329,43 @@ public partial class MainWindow : Window
         SetShortcutToolTip(CleanUpGeometryMenuItem, "Clean Up Geometry", "window.clean-up-geometry");
         SetShortcutToolTip(ReloadResourcesMenuItem, "Reload Resources", "window.reload-resources");
         SetShortcutToolTip(TestMapMenuItem, "Test Map", "window.test-map");
+        SetShortcutToolTip(UdbScriptDockerMenuItem, "Scripts", "window.udbscripts");
+        SetShortcutToolTip(SoundPropagationMenuItem, "Sound Propagation", "window.sound-propagation-mode");
+        SetShortcutToolTip(SoundEnvironmentsMenuItem, "Sound Environments", "window.sound-environment-mode");
+        SetShortcutToolTip(SoundPropagationColorsMenuItem, "Sound Propagation Colors", "window.sound-propagation-colors");
+        SetShortcutToolTip(BlockmapExplorerMenuItem, "Blockmap Explorer", "window.blockmap-explorer");
         SetShortcutToolTip(BuildBridgeMenuItem, "Build Bridge", "window.build-bridge");
         SetShortcutToolTip(MakeDoorMenuItem, "Make Door", "window.make-door");
         SetShortcutToolTip(BuildStairsMenuItem, "Build Stairs", "window.build-stairs");
+        SetShortcutToolTip(GradientFloorHeightsMenuItem, "Gradient Floor Heights", "window.gradient-floor-heights");
+        SetShortcutToolTip(GradientCeilingHeightsMenuItem, "Gradient Ceiling Heights", "window.gradient-ceiling-heights");
+        SetShortcutToolTip(GradientBrightnessMenuItem, "Gradient Brightness", "window.gradient-sector-brightness");
+        SetShortcutToolTip(GradientFloorLightMenuItem, "Gradient Floor Light", "window.gradient-floor-light");
+        SetShortcutToolTip(GradientCeilingLightMenuItem, "Gradient Ceiling Light", "window.gradient-ceiling-light");
+        SetShortcutToolTip(GradientLightColorMenuItem, "Gradient Light Color", "window.gradient-light-color");
+        SetShortcutToolTip(GradientFadeColorMenuItem, "Gradient Fade Color", "window.gradient-fade-color");
+        SetShortcutToolTip(GradientLightAndFadeColorMenuItem, "Gradient Light and Fade Colors", "window.gradient-light-and-fade-colors");
+        SetShortcutToolTip(GradientLinedefBrightnessMenuItem, "Gradient Linedef Brightness", "window.gradient-linedef-brightness");
+        SetShortcutToolTip(GradientInterpolationLinearMenuItem, "Gradient Interpolation Linear", "window.gradient-interpolation-linear");
+        SetShortcutToolTip(GradientInterpolationEaseInOutSineMenuItem, "Gradient Interpolation Ease In/Out Sine", "window.gradient-interpolation-ease-in-out-sine");
+        SetShortcutToolTip(GradientInterpolationEaseInSineMenuItem, "Gradient Interpolation Ease In Sine", "window.gradient-interpolation-ease-in-sine");
+        SetShortcutToolTip(GradientInterpolationEaseOutSineMenuItem, "Gradient Interpolation Ease Out Sine", "window.gradient-interpolation-ease-out-sine");
         SetShortcutToolTip(ApplySlopeArchMenuItem, "Apply Slope Arch", "window.apply-slope-arch");
         SetShortcutToolTip(ApplySlopesMenuItem, "Apply Slopes", "window.apply-slopes");
+        SetShortcutToolTip(UsdfConversationsMenuItem, "Dialog Editor", "window.usdf-dialog-editor");
+        SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, "Toggle Selected Line Secret", "window.toggle-automap-secret-line");
+        SetShortcutToolTip(ToggleAutomapHiddenLineMenuItem, "Toggle Selected Line Hidden", "window.toggle-automap-hidden-line");
+        SetShortcutToolTip(ToggleAutomapTexturedHiddenSectorMenuItem, "Toggle Selected Sector Textured Hidden", "window.toggle-automap-textured-hidden-sector");
         SetShortcutToolTip(SectorColorMenuItem, "Sector Color", "window.sector-color");
         SetShortcutToolTip(DynamicLightColorMenuItem, "Dynamic Light Color", "window.dynamic-light-color");
         SetShortcutToolTip(TagRangeMenuItem, "Tag Range", "window.tag-range");
+        SetShortcutToolTip(ImageExampleMenuItem, "Image Example", "map2d.mode-image-example");
         SetShortcutToolTip(ImportObjTerrainMenuItem, "Import OBJ Terrain", "window.import-obj-terrain");
+        SetShortcutToolTip(ExportObjectMenuItem, "Export Object OBJ", "window.export-object");
+        SetShortcutToolTip(ExportImageMenuItem, "Export Image PNG", "window.export-image");
+        SetShortcutToolTip(ExportWavefrontMenuItem, "Export Wavefront OBJ", "window.export-wavefront");
+        SetShortcutToolTip(ExportIdStudioMenuItem, "Export idStudio", "window.export-idstudio");
+        SetShortcutToolTip(RejectViewerMenuItem, "Reject Explorer", "window.reject-explorer");
     }
 
     private void ApplyToolbarShortcutTooltips()
