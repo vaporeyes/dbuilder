@@ -165,6 +165,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action id for USDF Conversations.
   - [x] Add stable UDB action ids for blockmap, nodes, and 3D floor view toggles.
   - [x] Add stable UDB action ids for fixed thing scale and always-show-vertices view toggles.
+  - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture
 

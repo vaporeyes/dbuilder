@@ -38,6 +38,12 @@ public class ThingSelectionFilterTests
         Assert.False(untouched.Selected);
     }
 
+    [Theory]
+    [InlineData(1, "Filtered selected things: 1 thing remains selected.")]
+    [InlineData(2, "Filtered selected things: 2 things remain selected.")]
+    public void FilterStatusTextFormatsSingularAndPluralCounts(int selectedThingCount, string expected)
+        => Assert.Equal(expected, ThingSelectionFilter.FilterStatusText(selectedThingCount));
+
     private static Thing AddThing(MapSet map, int type, bool selected)
     {
         Thing thing = map.AddThing(new Vector2D(type, type), type);

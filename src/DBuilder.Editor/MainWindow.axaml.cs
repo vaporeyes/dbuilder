@@ -1942,7 +1942,7 @@ public partial class MainWindow : Window
             MapView.MarkGeometryDirty();
             MarkMapDirty();
             UpdateInfo();
-            SetStatus("Filtered selected things: " + kept + " thing(s) remain selected.");
+            SetStatus(ThingSelectionFilter.FilterStatusText(kept));
         }
 
         MapView.Focus();
