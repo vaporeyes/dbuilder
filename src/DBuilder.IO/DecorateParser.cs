@@ -234,7 +234,9 @@ public static class DecorateParser
                 else
                 {
                     var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
-                    if (a != null && !ContainsActorClass(actors, a.ClassName)) actors.Add(a);
+                    if (a == null) continue;
+                    if (ContainsActorClass(actors, a.ClassName)) break;
+                    actors.Add(a);
                 }
             }
             else if (keyword.Equals("actor", StringComparison.OrdinalIgnoreCase)

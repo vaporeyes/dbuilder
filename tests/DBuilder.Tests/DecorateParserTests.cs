@@ -360,7 +360,7 @@ ACTOR GoodHeader 6008
     }
 
     [Fact]
-    public void KeepsFirstDecorateActorWhenClassIsDuplicated()
+    public void DuplicateDecorateActorStopsParsingLikeUdb()
     {
         const string text = @"
 ACTOR DuplicateThing 6005
@@ -370,13 +370,19 @@ ACTOR DuplicateThing 6005
 ACTOR DuplicateThing 6006
 {
     Radius 64
+}
+ACTOR AfterDuplicateThing 6007
+{
+    Radius 8
 }";
 
-        var actor = DecorateParser.Parse(text).Single();
+        var actors = DecorateParser.Parse(text);
+        var actor = actors.Single();
 
         Assert.Equal("DuplicateThing", actor.ClassName);
         Assert.Equal(6005, actor.DoomEdNum);
         Assert.Equal(16, actor.Radius);
+        Assert.DoesNotContain(actors, actor => actor.ClassName == "AfterDuplicateThing");
     }
 
     [Fact]

@@ -512,7 +512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve selected state-frame `bright` metadata for thing catalog entries.
   - [x] Skip unknown top-level DECORATE blocks without discovering nested actors.
   - [x] Reject DECORATE actors with unexpected header tokens.
-  - [x] Keep the first DECORATE actor definition when a class is duplicated.
+  - [x] Stop DECORATE parsing on duplicate actor classes like UDB.
   - [x] Reject DECORATE actors with empty class, parent, or replacement names.
   - [x] Stop DECORATE parsing on invalid top-level `DamageType` declarations.
   - [x] Stop DECORATE parsing on invalid or duplicate includes.
