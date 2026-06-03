@@ -150,7 +150,7 @@
                 <MenuItem Header="_Create From Selection..." x:Name="SavePrefabMenuItem" Click="OnSavePrefab" />
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_Edit Mode">
+                <MenuItem Header="_Edit Mode" x:Name="EditModeMenuItem">
                     <MenuItem Header="_Vertices" x:Name="VerticesModeMenuItem" ToggleType="CheckBox" Click="OnModeVertices" />
                     <MenuItem Header="_Linedefs" x:Name="LinedefsModeMenuItem" ToggleType="CheckBox" Click="OnModeLinedefs" />
                     <MenuItem Header="_Sectors" x:Name="SectorsModeMenuItem" ToggleType="CheckBox" Click="OnModeSectors" />
