@@ -198,12 +198,36 @@ public class UdbScriptDiscoveryTests
         try
         {
             Assert.Throws<ArgumentException>(() => UdbScriptDiscovery.ParseOptions("broken = @;", file));
-            Assert.Throws<ArgumentException>(() => UdbScriptDiscovery.ParseOptions("""
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SkipsInvalidScriptOptionTypesLikeUdb()
+    {
+        string file = Path.Combine(TempDir(), "skipinvalid.js");
+        try
+        {
+            IReadOnlyList<UdbScriptOption> parsed = UdbScriptDiscovery.ParseOptions("""
                 unsupported
                 {
                     type = 12;
                 }
-                """, file));
+                supported
+                {
+                    default = "ok";
+                    type = 2;
+                }
+                """, file);
+
+            UdbScriptOption option = Assert.Single(parsed);
+
+            Assert.Equal("supported", option.Name);
+            Assert.Equal((int)UniversalType.String, option.Type);
+            Assert.Equal("ok", option.DefaultValue);
         }
         finally
         {

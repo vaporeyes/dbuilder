@@ -173,7 +173,7 @@ public static class UdbScriptDiscovery
             IReadOnlyList<UdbScriptEnumValue> enumValues = ReadEnumValues(cfg.ReadSetting($"{optionName}.enumvalues", (IDictionary?)null));
 
             if (!IsValidOptionType(type))
-                throw new ArgumentException("Error in script configuration of file " + scriptFile + ": option " + optionName + " has invalid type " + type);
+                continue;
 
             object effectiveDefault = EffectiveDefault(defaultValue, enumValues);
             options.Add(new UdbScriptOption(
