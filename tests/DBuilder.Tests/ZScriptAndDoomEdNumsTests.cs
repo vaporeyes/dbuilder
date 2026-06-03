@@ -1578,6 +1578,19 @@ class RegionZScriptActor : Actor
     }
 
     [Fact]
+    public void UppercaseZScriptRegionDirectivesStopParsingLikeUdb()
+    {
+        const string zscript = @"
+class BeforeRegion : Actor { Default { Radius 8; } }
+#Region Monsters
+class AfterRegion : Actor { Default { Radius 16; } }";
+
+        var actor = Assert.Single(ZScriptParser.Parse(zscript));
+
+        Assert.Equal("BeforeRegion", actor.ClassName);
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"

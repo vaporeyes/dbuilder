@@ -565,6 +565,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse spaced ZScript class header modifier arguments like UDB.
   - [x] Reject top-level comma-separated ZScript const declarations like UDB.
   - [x] Reject unmatched closing parentheses in top-level ZScript const declarations like UDB.
+  - [x] Treat uppercase ZScript `#Region` directives as unknown top-level directives like UDB.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
   - [x] Stop MAPINFO numbered actor parsing on malformed entries like UDB.
   - [x] Stop MAPINFO parsing on malformed `gameinfo` blocks like UDB.

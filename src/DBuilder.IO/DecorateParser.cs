@@ -153,7 +153,7 @@ public static class DecorateParser
                 }
                 continue;
             }
-            if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#region", StringComparison.OrdinalIgnoreCase))
+            if (toks[i].Kind == Kind.Word && IsRegionToken(toks[i].Text, headerNum))
             {
                 i++;
                 string title = ReadLineValue(toks, ref i);
@@ -168,7 +168,7 @@ public static class DecorateParser
                 }
                 continue;
             }
-            else if (toks[i].Kind == Kind.Word && toks[i].Text.Equals("#endregion", StringComparison.OrdinalIgnoreCase))
+            else if (toks[i].Kind == Kind.Word && IsEndRegionToken(toks[i].Text, headerNum))
             {
                 i++;
                 if (regionPartCounts.Count > 0)
@@ -315,6 +315,12 @@ public static class DecorateParser
                 return true;
         return false;
     }
+
+    private static bool IsRegionToken(string token, bool decorateHeader)
+        => token.Equals("#region", decorateHeader ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+
+    private static bool IsEndRegionToken(string token, bool decorateHeader)
+        => token.Equals("#endregion", decorateHeader ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
     private static string? CurrentRegionCategory(List<string> regions)
         => regions.Count == 0 ? null : string.Join(".", regions);
