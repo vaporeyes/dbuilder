@@ -1911,6 +1911,33 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperUsesNumericFlagsThroughNestedClassicLinedefPaths()
+    {
+        var (map, first, _, shared) = CreateTwoSharedSectors();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Hexen);
+
+        UdbScriptSidedefWrapper lineSide = Assert.IsType<UdbScriptSidedefWrapper>(Assert.Single(wrapper.getLinedefs()).front);
+        lineSide.line.flags["32"] = true;
+
+        Assert.Equal(32, shared.Flags);
+
+        shared.Flags = 0;
+        UdbScriptSidedefWrapper mapSide = Assert.Single(wrapper.getSidedefs(), side => ReferenceEquals(shared.Front, side.Sidedef));
+        mapSide.line.flags["64"] = true;
+
+        Assert.Equal(64, shared.Flags);
+        Assert.False(shared.IsFlagSet("64"));
+
+        shared.Flags = 0;
+        UdbScriptSectorWrapper sector = Assert.Single(wrapper.getSectors(), sector => ReferenceEquals(first, sector.Sector));
+        UdbScriptSidedefWrapper sectorSide = Assert.Single(sector.getSidedefs());
+        sectorSide.line.flags["128"] = true;
+
+        Assert.Equal(128, shared.Flags);
+        Assert.False(shared.IsFlagSet("128"));
+    }
+
+    [Fact]
     public void MapWrapperRejectsNamedClassicFlags()
     {
         var map = new MapSet();
