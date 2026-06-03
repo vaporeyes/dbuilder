@@ -6026,6 +6026,7 @@ public partial class MainWindow : Window
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
             Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,
             ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
+            DrawMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
