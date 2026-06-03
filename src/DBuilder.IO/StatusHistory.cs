@@ -37,4 +37,6 @@ public sealed class StatusHistory
         _entries.Insert(0, new StatusHistoryEntry(message.Trim(), _clock()));
         if (_entries.Count > Capacity) _entries.RemoveRange(Capacity, _entries.Count - Capacity);
     }
+
+    public void Clear() => _entries.Clear();
 }

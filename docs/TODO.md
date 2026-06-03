@@ -53,6 +53,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose recent error log and crash report files from the View menu.
 - [ ] Port toast, status, and notification behavior.
   - [x] Keep a bounded status history and expose it from the View menu.
+  - [x] Add status history clearing from the history window.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.
   - [x] Persist UDB-style configurable recent-file count with the same 8-25 preference range.

@@ -1,6 +1,7 @@
 // ABOUTME: Non-modal status history window that lists recent editor notifications.
 // ABOUTME: Lets users inspect prior status messages after they have left the status bar.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Controls;
@@ -12,30 +13,58 @@ namespace DBuilder.Editor;
 
 public sealed class StatusHistoryWindow : Window
 {
-    public StatusHistoryWindow(IReadOnlyList<StatusHistoryEntry> entries)
+    private readonly IReadOnlyList<StatusHistoryEntry> _entries;
+    private readonly Action? _onClear;
+    private readonly TextBlock _header = new();
+    private readonly StackPanel _rows = new() { Margin = new Avalonia.Thickness(10, 0, 10, 10), Spacing = 3 };
+
+    public StatusHistoryWindow(IReadOnlyList<StatusHistoryEntry> entries, Action? onClear = null)
     {
+        _entries = entries;
+        _onClear = onClear;
         Title = "Status History";
         Width = 640;
         Height = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         var root = new DockPanel();
-        var header = new TextBlock
+        _header.Margin = new Avalonia.Thickness(10, 8);
+        _header.TextWrapping = TextWrapping.Wrap;
+        DockPanel.SetDock(_header, Dock.Top);
+        root.Children.Add(_header);
+
+        if (_onClear != null)
         {
-            Text = entries.Count == 0 ? "No status messages yet." : $"{entries.Count} recent status message(s).",
-            Foreground = entries.Count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue,
-            Margin = new Avalonia.Thickness(10, 8),
-            TextWrapping = TextWrapping.Wrap,
-        };
-        DockPanel.SetDock(header, Dock.Top);
-        root.Children.Add(header);
+            var clear = new Button
+            {
+                Content = "Clear",
+                MinWidth = 80,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Avalonia.Thickness(10),
+            };
+            clear.Click += (_, _) =>
+            {
+                _onClear();
+                RefreshRows();
+            };
+            DockPanel.SetDock(clear, Dock.Bottom);
+            root.Children.Add(clear);
+        }
 
-        var rows = new StackPanel { Margin = new Avalonia.Thickness(10, 0, 10, 10), Spacing = 3 };
-        rows.Children.Add(HeaderRow());
-        foreach (var entry in entries) rows.Children.Add(DataRow(entry));
+        RefreshRows();
 
-        root.Children.Add(new ScrollViewer { Content = rows });
+        root.Children.Add(new ScrollViewer { Content = _rows });
         Content = root;
+    }
+
+    private void RefreshRows()
+    {
+        _header.Text = _entries.Count == 0 ? "No status messages yet." : $"{_entries.Count} recent status message(s).";
+        _header.Foreground = _entries.Count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue;
+
+        _rows.Children.Clear();
+        _rows.Children.Add(HeaderRow());
+        foreach (var entry in _entries) _rows.Children.Add(DataRow(entry));
     }
 
     private static Grid HeaderRow()

@@ -81,4 +81,16 @@ public class StatusHistoryTests
         Assert.Equal(2, history.Capacity);
         Assert.Equal(new[] { "three", "two" }, history.Entries.Select(e => e.Message));
     }
+
+    [Fact]
+    public void ClearRemovesAllEntries()
+    {
+        var history = new StatusHistory();
+        history.Add("one");
+        history.Add("two");
+
+        history.Clear();
+
+        Assert.Empty(history.Entries);
+    }
 }

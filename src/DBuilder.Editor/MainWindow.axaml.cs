@@ -3088,7 +3088,13 @@ public partial class MainWindow : Window
         };
 
     private void OnStatusHistory(object? sender, RoutedEventArgs e)
-        => new StatusHistoryWindow(_statusHistory.Entries).Show(this);
+        => new StatusHistoryWindow(_statusHistory.Entries, ClearStatusHistory).Show(this);
+
+    private void ClearStatusHistory()
+    {
+        _statusHistory.Clear();
+        StatusText.Text = "Status history cleared.";
+    }
 
     private void OnErrorLog(object? sender, RoutedEventArgs e)
         => new ErrorLogWindow().Show(this);
