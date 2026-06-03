@@ -637,26 +637,35 @@ public partial class MainWindow : Window
 
         _config ??= GameConfiguration.FromText("");
 
-        // Collect editor numbers from every MAPINFO/ZMAPINFO DoomEdNums block (ZScript needs these).
+        // Collect editor and spawn numbers from every MAPINFO/ZMAPINFO block (ZScript needs DoomEdNums).
         var doomEdNums = new Dictionary<int, string>();
+        var spawnNums = new Dictionary<int, string>();
         foreach (var text in _resources.GetTextLumps("MAPINFO"))
-            foreach (var (n, c) in MapInfo.Parse(text).DoomEdNums) doomEdNums[n] = c;
+        {
+            var mapInfo = MapInfo.Parse(text);
+            foreach (var (n, c) in mapInfo.DoomEdNums) doomEdNums[n] = c;
+            foreach (var (n, c) in mapInfo.SpawnNums) spawnNums[n] = c;
+        }
         foreach (var text in _resources.GetTextLumps("ZMAPINFO"))
-            foreach (var (n, c) in MapInfo.Parse(text).DoomEdNums) doomEdNums[n] = c;
+        {
+            var mapInfo = MapInfo.Parse(text);
+            foreach (var (n, c) in mapInfo.DoomEdNums) doomEdNums[n] = c;
+            foreach (var (n, c) in mapInfo.SpawnNums) spawnNums[n] = c;
+        }
 
         int count = 0;
         foreach (var text in decorate)
         {
             var decorateData = DecorateParser.ParseDocument(text, _resources.GetTextResource);
             var actors = decorateData.Actors;
-            _config.MergeActors(actors, doomEdNums);
+            _config.MergeActors(actors, doomEdNums, spawnNums);
             _config.MergeDamageTypes(decorateData.DamageTypes);
             foreach (var a in actors) if (a.DoomEdNum >= 0) count++;
         }
         foreach (var text in zscript)
         {
             var actors = ZScriptParser.Parse(text, _resources.GetTextResource);
-            _config.MergeActors(actors, doomEdNums);
+            _config.MergeActors(actors, doomEdNums, spawnNums);
             foreach (var a in actors)
                 if (doomEdNums.Values.Contains(a.ClassName, StringComparer.OrdinalIgnoreCase)) count++;
         }

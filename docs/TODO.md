@@ -755,6 +755,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
   - [x] Cancel replacement actor recategorization when a later replacement omits `$Category`.
   - [x] Ignore non-positive DECORATE editor numbers during actor merging.
+  - [x] Apply MAPINFO `SpawnNums` overrides to the `spawnthing` enum.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

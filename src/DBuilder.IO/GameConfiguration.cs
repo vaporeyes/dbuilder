@@ -725,6 +725,13 @@ public sealed class GameConfiguration
         => MergeActors(actors, doomEdNums, null);
 
     public void MergeActors(IEnumerable<ActorInfo> actors, IReadOnlyDictionary<int, string>? doomEdNums, CvarInfo? cvars)
+        => MergeActors(actors, doomEdNums, spawnNums: null, cvars);
+
+    public void MergeActors(
+        IEnumerable<ActorInfo> actors,
+        IReadOnlyDictionary<int, string>? doomEdNums,
+        IReadOnlyDictionary<int, string>? spawnNums,
+        CvarInfo? cvars = null)
     {
         var allActors = new List<ActorInfo>(actors);
         var allActorsByClass = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
@@ -778,30 +785,79 @@ public sealed class GameConfiguration
             things[num] = BuildThingInfo(a, num, existing, inherited, cvars);
         }
 
-        if (doomEdNums == null) return;
-        foreach (var (num, cls) in doomEdNums)
+        if (doomEdNums != null)
         {
-            if (cls.Equals("none", StringComparison.OrdinalIgnoreCase))
+            foreach (var (num, cls) in doomEdNums)
             {
-                things.Remove(num);
-                continue;
-            }
-            if (things.TryGetValue(num, out var existing) && string.Equals(existing.ClassName, cls, StringComparison.OrdinalIgnoreCase))
-                continue;
+                if (cls.Equals("none", StringComparison.OrdinalIgnoreCase))
+                {
+                    things.Remove(num);
+                    continue;
+                }
+                if (things.TryGetValue(num, out var existing) && string.Equals(existing.ClassName, cls, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-            if (allActorsByClass.TryGetValue(cls, out var actor))
-            {
-                var inherited = actor.ParentName != null ? FindThingInfoByClass(actor.ParentName) : null;
-                things[num] = BuildThingInfo(actor, num, existing: null, inherited, cvars);
-                continue;
-            }
+                if (allActorsByClass.TryGetValue(cls, out var actor))
+                {
+                    var inherited = actor.ParentName != null ? FindThingInfoByClass(actor.ParentName) : null;
+                    things[num] = BuildThingInfo(actor, num, existing: null, inherited, cvars);
+                    continue;
+                }
 
-            int sourceNum = FindThingByClass(cls);
-            if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
-            {
-                things[num] = CopyThingInfo(source, num);
+                int sourceNum = FindThingByClass(cls);
+                if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
+                {
+                    things[num] = CopyThingInfo(source, num);
+                }
             }
         }
+
+        MergeSpawnNums(allActors, spawnNums);
+    }
+
+    private void MergeSpawnNums(IReadOnlyList<ActorInfo> actors, IReadOnlyDictionary<int, string>? spawnNums)
+    {
+        if (spawnNums == null || spawnNums.Count == 0) return;
+
+        var items = new Dictionary<int, string>();
+        if (GetEnum("spawnthing") is { } existing)
+        {
+            foreach (var item in existing)
+                items[item.Key] = item.Value;
+        }
+
+        foreach (var (spawnNum, className) in spawnNums)
+        {
+            if (spawnNum == 0) continue;
+            items[spawnNum] = things.TryGetValue(spawnNum, out var thing)
+                ? thing.Title
+                : ActorSpawnTitle(actors, className);
+        }
+
+        SetEnum("spawnthing", items);
+    }
+
+    private static string ActorSpawnTitle(IReadOnlyList<ActorInfo> actors, string className)
+    {
+        foreach (var actor in actors)
+            if (string.Equals(actor.ClassName, className, StringComparison.OrdinalIgnoreCase))
+                return actor.Title;
+
+        return className;
+    }
+
+    private void SetEnum(string name, Dictionary<int, string> items)
+    {
+        var list = new EnumListInfo(name);
+        var map = new Dictionary<int, string>();
+        foreach (var item in items.OrderBy(item => item.Value, StringComparer.OrdinalIgnoreCase))
+        {
+            string value = item.Key.ToString(CultureInfo.InvariantCulture);
+            list.Add(new EnumItemInfo(value, item.Value));
+            map[item.Key] = item.Value;
+        }
+        enumLists[name] = list;
+        enums[name] = map;
     }
 
     private Dictionary<string, int> ThingNumbersByClass()

@@ -1472,6 +1472,58 @@ thingtypes
     }
 
     [Fact]
+    public void AppliesSpawnNumOverridesToSpawnThingEnum()
+    {
+        const string cfg = @"
+enums
+{
+    spawnthing
+    {
+        1 = ""Configured Spawn"";
+    }
+}
+thingtypes
+{
+    monsters
+    {
+        4
+        {
+            title = ""Configured Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        const string zscript = @"
+class SpawnedZThing : Actor
+{
+    //$Title ""Spawned Z Thing""
+}";
+        var mapInfo = MapInfo.Parse("""
+SpawnNums
+{
+    4 = DoomImp
+    255 = SpawnedZThing
+    7 = MissingSpawnClass
+}
+""");
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(ZScriptParser.Parse(zscript), doomEdNums: null, mapInfo.SpawnNums);
+
+        var spawnThing = gc.GetEnum("spawnthing");
+        Assert.NotNull(spawnThing);
+        Assert.Equal("Configured Spawn", spawnThing![1]);
+        Assert.Equal("Configured Imp", spawnThing[4]);
+        Assert.Equal("missingspawnclass", spawnThing[7]);
+        Assert.Equal("Spawned Z Thing", spawnThing[255]);
+
+        var spawnList = gc.GetEnumList("spawnthing");
+        Assert.NotNull(spawnList);
+        Assert.Contains(spawnList!.Items, item => item.Value == "255" && item.Title == "Spawned Z Thing");
+    }
+
+    [Fact]
     public void DoomEdNumNoneOverridesDecorateActorNumbers()
     {
         const string decorate = @"
