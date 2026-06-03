@@ -142,11 +142,22 @@ public sealed class UdbScriptRunnerWindow : Window
 
     public void Finish(TimeSpan runtime, bool autoClose)
     {
-        _running = false;
-        _stopwatch.Stop();
-        ApplyState(UdbScriptRunnerModel.FinishedUiState(runtime, autoClose));
-        _progress.Value = 0;
-        if (autoClose)
+        UdbScriptRunScriptWorkflowPlan plan = UdbScriptRunnerModel.RunScriptWorkflowPlan(
+            runtime,
+            autoClose,
+            hasException: false);
+
+        if (plan.ClearRunningAfterPostRun)
+            _running = false;
+        if (plan.StopStopwatchAfterRun)
+            _stopwatch.Stop();
+
+        ApplyState(plan.FinishedState);
+        if (plan.ForceContinuousProgressStyle)
+            _progress.IsIndeterminate = false;
+
+        _progress.Value = plan.ResetProgressValue;
+        if (plan.CloseWhenAutoClose)
             Close();
     }
 
