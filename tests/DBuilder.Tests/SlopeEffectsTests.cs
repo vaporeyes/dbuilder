@@ -144,4 +144,11 @@ public class SlopeEffectsTests
         map.BuildIndexes();
         Assert.Equal(2, SlopeEffects.ApplyAll(map));
     }
+
+    [Theory]
+    [InlineData(0, "No slope specials found (Plane_Align lines or 9502/9503 slope things).")]
+    [InlineData(1, "Applied 1 slope plane from specials (visible in 3D).")]
+    [InlineData(2, "Applied 2 slope planes from specials (visible in 3D).")]
+    public void ApplyStatusTextFormatsSingularAndPluralSlopePlaneCounts(int slopePlaneCount, string expected)
+        => Assert.Equal(expected, SlopeEffects.ApplyStatusText(slopePlaneCount));
 }

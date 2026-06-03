@@ -1049,6 +1049,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual slope picking mode toggles and adjacent vertex-slope selection setting.
   - [x] Honor game-configuration plane-equation support before enabling visual slope picking.
   - [x] Add UDB-style Slope Between Handles and Arch Between Slope Handles action metadata.
+  - [x] Add UDB-style singular and plural labels to Apply Slopes status text.
   - [x] Add UDB-style smart sidedef slope pivot selection for line-handle height changes.
   - [x] Scope smart visual slope pivots through selected visual levels like UDB.
   - [x] Apply visual slope height changes to selected levels plus the active handle level like UDB.

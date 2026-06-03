@@ -4425,9 +4425,7 @@ public partial class MainWindow : Window
         int n = SlopeEffects.ApplyAll(_map);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus(n == 0
-            ? "No slope specials found (Plane_Align lines or 9502/9503 slope things)."
-            : $"Applied {n} slope plane(s) from specials (visible in 3D).");
+        SetStatus(SlopeEffects.ApplyStatusText(n));
     }
 
     private async void OnSectorColor(object? sender, RoutedEventArgs e)

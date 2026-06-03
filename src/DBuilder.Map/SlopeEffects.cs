@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using DBuilder.Geometry;
 
 namespace DBuilder.Map;
@@ -19,6 +20,11 @@ public static class SlopeEffects
     /// <summary>Applies both Plane_Align line slopes and slope-thing slopes. Returns the number of planes set.</summary>
     public static int ApplyAll(MapSet map, int planeAlignAction = PlaneAlignAction)
         => ApplyPlaneAlign(map, planeAlignAction) + ApplyThingSlopes(map);
+
+    public static string ApplyStatusText(int slopePlaneCount)
+        => slopePlaneCount == 0
+            ? "No slope specials found (Plane_Align lines or 9502/9503 slope things)."
+            : $"Applied {CountLabel(slopePlaneCount, "slope plane")} from specials (visible in 3D).";
 
     /// <summary>
     /// Applies ZDoom floor (9502) / ceiling (9503) slope things: a plane anchored at the thing's position and Z
@@ -120,4 +126,7 @@ public static class SlopeEffects
         }
         return best;
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
