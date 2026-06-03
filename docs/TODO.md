@@ -128,6 +128,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.
+  - [x] Show ignored shortcut modifiers in the Help shortcut reference.
 - [ ] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.

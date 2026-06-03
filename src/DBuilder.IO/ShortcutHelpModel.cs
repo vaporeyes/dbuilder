@@ -3,7 +3,7 @@
 
 namespace DBuilder.IO;
 
-public sealed record ShortcutHelpRow(EditorCommandDescriptor Command, string GestureText);
+public sealed record ShortcutHelpRow(EditorCommandDescriptor Command, string GestureText, string ModifierText);
 
 public sealed record ShortcutHelpSection(string Title, string Description, IReadOnlyList<ShortcutHelpRow> Rows, bool DefaultExpanded);
 
@@ -36,7 +36,7 @@ public static class ShortcutHelpModel
         {
             var rows = commands
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
-                .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings)))
+                .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings), ModifierText(command)))
                 .Where(row => row.GestureText != "-")
                 .Where(row => text.Length == 0 || Matches(row, title, GroupDescription(title), text))
                 .ToArray();
@@ -92,7 +92,17 @@ public static class ShortcutHelpModel
             || Contains(row.Command.Title, token)
             || Contains(row.Command.Id, token)
             || Contains(ScopeTitle(row.Command.Scope), token)
-            || Contains(row.GestureText, token));
+            || Contains(row.GestureText, token)
+            || Contains(row.ModifierText, token));
+    }
+
+    public static string ModifierText(EditorCommandDescriptor command)
+    {
+        var modifiers = new List<string>(3);
+        if (command.DisregardAccelerator) modifiers.Add("Ctrl/Cmd");
+        if (command.DisregardAlt) modifiers.Add("Alt");
+        if (command.DisregardShift) modifiers.Add("Shift");
+        return string.Join(", ", modifiers);
     }
 
     private static string[] SearchTokens(string filter)

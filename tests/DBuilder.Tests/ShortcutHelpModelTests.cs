@@ -81,6 +81,12 @@ public sealed class ShortcutHelpModelTests
             "Ctrl/Cmd+S");
         Assert.Contains(gesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
 
+        var modifiers = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "Alt Shift");
+        Assert.Contains(modifiers.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.select");
+
         var unbound = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
@@ -123,6 +129,16 @@ public sealed class ShortcutHelpModelTests
             Assert.False(string.IsNullOrWhiteSpace(description));
             Assert.NotEqual("Shortcut commands.", description);
         });
+    }
+
+    [Fact]
+    public void ModifierTextListsIgnoredShortcutModifiers()
+    {
+        var command = EditorCommandCatalog.Find("map2d.select");
+
+        Assert.NotNull(command);
+        Assert.Equal("Ctrl/Cmd, Alt, Shift", ShortcutHelpModel.ModifierText(command));
+        Assert.Equal("", ShortcutHelpModel.ModifierText(EditorCommandCatalog.Find("window.save")!));
     }
 
     [Theory]

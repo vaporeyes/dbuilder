@@ -152,7 +152,7 @@ public sealed class ShortcutsWindow : Window
     {
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("180,*"),
+            ColumnDefinitions = new ColumnDefinitions("150,110,*"),
             Margin = new Avalonia.Thickness(0, 1),
         };
         grid.Children.Add(new TextBlock
@@ -162,6 +162,16 @@ public sealed class ShortcutsWindow : Window
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Top,
         });
+        var modifiers = new TextBlock
+        {
+            Text = row.ModifierText,
+            Foreground = MutedBrush,
+            FontSize = 12,
+            VerticalAlignment = VerticalAlignment.Top,
+        };
+        Grid.SetColumn(modifiers, 1);
+        grid.Children.Add(modifiers);
+
         var description = new TextBlock
         {
             Text = row.Command.Title,
@@ -169,7 +179,7 @@ public sealed class ShortcutsWindow : Window
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap,
         };
-        Grid.SetColumn(description, 1);
+        Grid.SetColumn(description, 2);
         grid.Children.Add(description);
 
         return new Border
