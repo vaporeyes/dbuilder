@@ -313,8 +313,6 @@ public sealed class Settings
         foreach (var key in resources.Keys.ToArray())
         {
             if (resources[key] is null) resources[key] = new List<DataLocation>();
-            foreach (var location in resources[key])
-                location.RequiredArchives ??= new List<string>();
         }
     }
 }

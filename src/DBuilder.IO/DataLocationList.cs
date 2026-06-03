@@ -58,7 +58,7 @@ public sealed class DataLocationList : List<DataLocation>
                 { "notfortesting", location.NotForTesting ? 1 : 0 },
             };
 
-            if (location.RequiredArchives is { Count: > 0 })
+            if (location.RequiredArchives != null)
                 data.Add("requiredarchives", string.Join(",", location.RequiredArchives));
 
             resources.Add("resource" + i.ToString(CultureInfo.InvariantCulture), data);
@@ -80,14 +80,19 @@ public sealed class DataLocationList : List<DataLocation>
             NotForTesting = ReadInt(data, "notfortesting") != 0,
         };
 
-        string requiredArchives = ReadString(data, "requiredarchives");
-        if (!string.IsNullOrEmpty(requiredArchives))
+        if (data.Contains("requiredarchives"))
         {
+            location.RequiredArchives.Clear();
+            string requiredArchives = ReadString(data, "requiredarchives");
             foreach (string archive in requiredArchives.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string trimmed = archive.Trim();
                 if (trimmed.Length > 0) location.RequiredArchives.Add(trimmed);
             }
+        }
+        else
+        {
+            location.RequiredArchives = null!;
         }
 
         return location;
@@ -97,7 +102,7 @@ public sealed class DataLocationList : List<DataLocation>
     {
         var clone = new DataLocation(source.Type, source.Location, source.Option1, source.Option2, source.NotForTesting);
         clone.InitialLocation = source.InitialLocation;
-        if (source.RequiredArchives != null) clone.RequiredArchives.AddRange(source.RequiredArchives);
+        clone.RequiredArchives = source.RequiredArchives == null ? null! : new List<string>(source.RequiredArchives);
         return clone;
     }
 

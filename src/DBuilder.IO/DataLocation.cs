@@ -89,8 +89,8 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
         var clone = new DataLocation(Type, Location, Option1, Option2, NotForTesting)
         {
             InitialLocation = InitialLocation,
+            RequiredArchives = RequiredArchives == null ? null! : new List<string>(RequiredArchives),
         };
-        if (RequiredArchives != null) clone.RequiredArchives.AddRange(RequiredArchives);
         return clone;
     }
 }

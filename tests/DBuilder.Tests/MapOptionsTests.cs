@@ -759,6 +759,7 @@ public class MapOptionsTests
         Assert.Equal((int)DataLocationType.Pk3, second["type"]);
         Assert.Equal(0, second["option1"]);
         Assert.Equal(1, second["option2"]);
+        Assert.Equal("", second["requiredarchives"]);
     }
 
     [Fact]
@@ -814,6 +815,35 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationListPreservesAbsentRequiredArchiveMetadata()
+    {
+        var configuration = new Configuration(sorted: true);
+        configuration.InputConfiguration("""
+            resources
+            {
+                resource0
+                {
+                    type = 2;
+                    location = "/tmp/mod.pk3";
+                }
+            }
+            """);
+
+        var locations = new DataLocationList(configuration, "resources");
+
+        var location = Assert.Single(locations);
+        Assert.Null(location.RequiredArchives);
+
+        var copy = new DataLocationList(locations);
+        Assert.Null(Assert.Single(copy).RequiredArchives);
+
+        copy.WriteToConfig(configuration, "written");
+
+        var resource = Assert.IsAssignableFrom<IDictionary>(configuration.ReadSetting("written.resource0", (IDictionary?)null));
+        Assert.False(resource.Contains("requiredarchives"));
+    }
+
+    [Fact]
     public void DataLocationRequiredArchivesTextTrimsCommaSeparatedEntries()
     {
         var location = new DataLocation(DataLocationType.Pk3, "/tmp/mod.pk3")
@@ -840,7 +870,7 @@ public class MapOptionsTests
         Assert.Equal("", location.RequiredArchivesText);
 
         var clone = location.Clone();
-        Assert.Empty(clone.RequiredArchives);
+        Assert.Null(clone.RequiredArchives);
 
         var locations = new DataLocationList { location };
         var configuration = new Configuration(sorted: true);

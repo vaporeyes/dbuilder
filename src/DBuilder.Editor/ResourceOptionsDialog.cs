@@ -25,8 +25,8 @@ public sealed class ResourceOptionsDialog : PropertyDialog
         ResultLocation = new DataLocation(location.Type, location.Location, location.Option1, location.Option2, location.NotForTesting)
         {
             InitialLocation = location.InitialLocation,
+            RequiredArchives = location.RequiredArchives == null ? null! : new List<string>(location.RequiredArchives),
         };
-        if (location.RequiredArchives != null) ResultLocation.RequiredArchives.AddRange(location.RequiredArchives);
 
         _location = AddField("Location", location.Location);
         _location.IsReadOnly = true;
