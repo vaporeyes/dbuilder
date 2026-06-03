@@ -110,6 +110,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.insert-prefab-file", "Insert Prefab File", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.insert-previous-prefab", "Insert Previous Prefab", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.align-things-to-wall", "Align Things to Wall", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.find-replace", "Find and Replace", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-group-1", "Select Group 1", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-group-2", "Select Group 2", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-group-3", "Select Group 3", "Menu", EditorCommandScope.Window),
