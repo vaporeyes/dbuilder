@@ -22,6 +22,12 @@ public static class MapNameRules
         return builder.Length == 0 ? NormalizeMarker(fallback, "MAP01") : builder.ToString();
     }
 
+    public static bool IsValidMarker(string? value, GameConfiguration? config = null)
+    {
+        string marker = NormalizeMarker(value);
+        return config?.ValidateMapName(marker) != false;
+    }
+
     private static bool IsMarkerChar(char ch)
         => ch is >= 'A' and <= 'Z'
            || ch is >= '0' and <= '9'

@@ -420,6 +420,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Remove duplicate target map blocks before writing replacements.
   - [x] Create missing required config map lumps during save.
   - [x] Add collision-safe map marker renaming.
+  - [x] Reject map marker names that overlap configured map lumps.
   - [x] Preserve configured script and blind-copy map lumps during save-back.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 

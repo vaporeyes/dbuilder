@@ -2085,6 +2085,21 @@ public sealed class GameConfiguration
     public bool IsMapLump(string name)
         => mapLumpNames.TryGetValue(name, out var info) && !info.IsMarker;
 
+    /// <summary>Rejects map marker names that overlap configured map lump names, matching UDB ConfigurationInfo.ValidateMapName.</summary>
+    public bool ValidateMapName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return false;
+
+        string normalized = name.ToUpperInvariant();
+        foreach (string lumpName in mapLumpNames.Keys)
+        {
+            if (lumpName.ToUpperInvariant().Contains(normalized, StringComparison.Ordinal))
+                return false;
+        }
+
+        return true;
+    }
+
     /// <summary>True when any configured map lump uses a static script configuration or scriptbuild compiler flow.</summary>
     public bool HasScriptLumps()
         => mapLumpNames.Values.Any(info => info.ScriptBuild || info.Script != null);

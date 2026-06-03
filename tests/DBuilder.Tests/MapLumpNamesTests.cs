@@ -109,6 +109,20 @@ maplumpnames
         Assert.False(gc.IsMapLump("GL_VERT")); // not configured
     }
 
+    [Theory]
+    [InlineData("MAP01", true)]
+    [InlineData("THINGS", false)]
+    [InlineData("things", false)]
+    [InlineData("THING", false)]
+    [InlineData("NODE", false)]
+    [InlineData("", false)]
+    public void ValidateMapNameRejectsConfiguredMapLumpOverlaps(string mapName, bool expected)
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+
+        Assert.Equal(expected, gc.ValidateMapName(mapName));
+    }
+
     [Fact]
     public void HasScriptLumpsDetectsStaticAndBuildScriptLumps()
     {

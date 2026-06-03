@@ -25,4 +25,18 @@ public class MapNameRulesTests
     {
         Assert.Equal("MAP01", MapNameRules.NormalizeMarker(input));
     }
+
+    [Fact]
+    public void IsValidMarkerRejectsConfiguredMapLumpNamesAfterNormalization()
+    {
+        var config = GameConfiguration.FromText("""
+            maplumpnames
+            {
+                THINGS { required = true; }
+            }
+            """);
+
+        Assert.False(MapNameRules.IsValidMarker("things", config));
+        Assert.True(MapNameRules.IsValidMarker("map01", config));
+    }
 }
