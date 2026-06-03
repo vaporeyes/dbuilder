@@ -1,6 +1,8 @@
 // ABOUTME: Models UDBScript preferences metadata and external editor persistence behavior.
 // ABOUTME: Keeps the preferences tab setting key, labels, and accept rules aligned with upstream UDBScript.
 
+using System.Diagnostics;
+
 namespace DBuilder.IO;
 
 public sealed record UdbScriptPreferencesMetadata(
@@ -58,4 +60,11 @@ public static class UdbScriptPreferencesModel
             "\"" + scriptFile + "\"",
             null);
     }
+
+    public static ProcessStartInfo CreateExternalEditorStartInfo(UdbScriptExternalEditorLaunchPlan plan)
+        => new(plan.FileName)
+        {
+            Arguments = plan.Arguments,
+            UseShellExecute = false,
+        };
 }

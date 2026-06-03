@@ -76,4 +76,18 @@ public class UdbScriptPreferencesModelTests
         Assert.Equal("\"/scripts/my script.js\"", launch.Arguments);
         Assert.Null(launch.Message);
     }
+
+    [Fact]
+    public void ExternalEditorStartInfoUsesLaunchPlan()
+    {
+        UdbScriptExternalEditorLaunchPlan plan = UdbScriptPreferencesModel.EditScriptLaunchPlan(
+            "/tools/editor.exe",
+            "/scripts/my script.js");
+
+        System.Diagnostics.ProcessStartInfo startInfo = UdbScriptPreferencesModel.CreateExternalEditorStartInfo(plan);
+
+        Assert.Equal("/tools/editor.exe", startInfo.FileName);
+        Assert.Equal("\"/scripts/my script.js\"", startInfo.Arguments);
+        Assert.False(startInfo.UseShellExecute);
+    }
 }

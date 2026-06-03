@@ -2399,10 +2399,36 @@ public partial class MainWindow : Window
         _udbScriptDocker = new UdbScriptDockerWindow(scripts);
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => SetStatus($"UDBScript run requested: {script.Name}");
-        _udbScriptDocker.EditRequested += script => SetStatus($"UDBScript edit requested: {script.Name}");
+        _udbScriptDocker.EditRequested += OpenUdbScriptExternalEditor;
         _udbScriptDocker.OptionsRequested += EditUdbScriptOptions;
         _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
         _udbScriptDocker.Show(this);
+    }
+
+    private void OpenUdbScriptExternalEditor(UdbScriptInfo script)
+    {
+        string editorPath = UdbScriptPreferencesModel.ResolveExternalEditorPath(
+            _settings.UdbScriptExternalEditor ?? "",
+            Environment.GetFolderPath(Environment.SpecialFolder.System),
+            System.IO.File.Exists);
+        UdbScriptExternalEditorLaunchPlan plan = UdbScriptPreferencesModel.EditScriptLaunchPlan(
+            editorPath,
+            script.ScriptFile);
+        if (!plan.ShouldLaunch)
+        {
+            SetStatus(plan.Message ?? "");
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(UdbScriptPreferencesModel.CreateExternalEditorStartInfo(plan));
+            SetStatus($"UDBScript edit requested: {script.Name}");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "UDBScript editor launch failed");
+        }
     }
 
     private async void EditUdbScriptOptions(UdbScriptInfo script)
