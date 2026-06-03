@@ -206,6 +206,47 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerTimerTickPlanMatchesUdbVisibilityAndTitleBranches()
+    {
+        UdbScriptRunnerTimerTickPlan threshold = UdbScriptRunnerModel.TimerTickPlan(
+            TimeSpan.FromMilliseconds(1000),
+            runningSeconds: 1,
+            opacity: 0.0);
+
+        Assert.False(threshold.MakeVisible);
+        Assert.False(threshold.UpdateRunningSeconds);
+        Assert.Equal(1, threshold.RunningSeconds);
+        Assert.Equal("", threshold.Title);
+
+        UdbScriptRunnerTimerTickPlan visible = UdbScriptRunnerModel.TimerTickPlan(
+            TimeSpan.FromMilliseconds(1001),
+            runningSeconds: 1,
+            opacity: 0.0);
+
+        Assert.True(visible.MakeVisible);
+        Assert.False(visible.UpdateRunningSeconds);
+        Assert.Equal(1, visible.RunningSeconds);
+        Assert.Equal("", visible.Title);
+
+        UdbScriptRunnerTimerTickPlan title = UdbScriptRunnerModel.TimerTickPlan(
+            new TimeSpan(0, 1, 2, 3, 999),
+            runningSeconds: 62,
+            opacity: 1.0);
+
+        Assert.False(title.MakeVisible);
+        Assert.True(title.UpdateRunningSeconds);
+        Assert.Equal(3723, title.RunningSeconds);
+        Assert.Equal("Running script (01:02:03)", title.Title);
+
+        UdbScriptRunnerTimerTickPlan alreadyVisible = UdbScriptRunnerModel.TimerTickPlan(
+            TimeSpan.FromMilliseconds(1001),
+            runningSeconds: 0,
+            opacity: 1.0);
+
+        Assert.False(alreadyVisible.MakeVisible);
+    }
+
+    [Fact]
     public void RunnerProgressAndLogReportsMatchUdbFormVisibility()
     {
         UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();

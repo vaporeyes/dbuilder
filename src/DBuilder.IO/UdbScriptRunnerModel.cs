@@ -193,6 +193,12 @@ public sealed record UdbScriptRunnerActionButtonPlan(
     bool MakeInvisible,
     bool CloseWindow);
 
+public sealed record UdbScriptRunnerTimerTickPlan(
+    bool MakeVisible,
+    bool UpdateRunningSeconds,
+    double RunningSeconds,
+    string Title);
+
 public sealed record UdbScriptRunScriptWorkflowPlan(
     bool CreateProgressCallbacks,
     bool SetRunningBeforePreRun,
@@ -488,6 +494,21 @@ public static class UdbScriptRunnerModel
 
     public static string RunningWindowTitle(TimeSpan elapsed)
         => RunningScriptTitle + " (" + string.Format("{0:D2}:{1:D2}:{2:D2}", elapsed.Hours, elapsed.Minutes, elapsed.Seconds) + ")";
+
+    public static UdbScriptRunnerTimerTickPlan TimerTickPlan(
+        TimeSpan elapsed,
+        double runningSeconds,
+        double opacity)
+    {
+        double elapsedSeconds = Math.Floor(elapsed.TotalSeconds);
+        bool updateRunningSeconds = elapsedSeconds > runningSeconds;
+
+        return new(
+            MakeVisible: opacity == 0.0 && ShouldMakeRunnerVisible(elapsed),
+            UpdateRunningSeconds: updateRunningSeconds,
+            RunningSeconds: updateRunningSeconds ? elapsedSeconds : runningSeconds,
+            Title: updateRunningSeconds ? RunningWindowTitle(elapsed) : "");
+    }
 
     public static string AppendLog(string existingLog, string text)
         => string.IsNullOrEmpty(existingLog) ? text : existingLog + Environment.NewLine + text;
