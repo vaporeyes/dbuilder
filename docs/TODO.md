@@ -253,6 +253,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add UDB-style custom UDMF field name validation for editable field text.
   - [x] Preserve raw custom-field string values through quoted text editing.
+  - [x] Preserve large integer custom fields through editable field text.
 - [x] Port argument handling and typed field access.
 - [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.

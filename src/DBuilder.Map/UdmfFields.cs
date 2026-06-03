@@ -1,5 +1,5 @@
 // ABOUTME: Formats and parses an element's custom UDMF fields as editable "key = value" text (for the property dialogs).
-// ABOUTME: Round-trips bool/int/double/string with UDMF-style type inference; covers comment, lightcolor, gravity, etc.
+// ABOUTME: Round-trips bool/int/long/double/string with UDMF-style type inference; covers comment, lightcolor, gravity, etc.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ public static class UdmfFields
 
     /// <summary>
     /// Parses "key = value" lines into a typed dictionary. Values are inferred: true/false -&gt; bool,
-    /// integers -&gt; int, decimals -&gt; double, everything else (optionally quoted) -&gt; string. Blank lines ignored.
+    /// integers -&gt; int or long, decimals -&gt; double, everything else (optionally quoted) -&gt; string. Blank lines ignored.
     /// </summary>
     public static Dictionary<string, object> Parse(string? text)
     {
@@ -65,6 +65,7 @@ public static class UdmfFields
         if (string.Equals(v, "true", System.StringComparison.OrdinalIgnoreCase)) return true;
         if (string.Equals(v, "false", System.StringComparison.OrdinalIgnoreCase)) return false;
         if (int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i)) return i;
+        if (long.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out long l)) return l;
         if (double.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out double d)) return d;
         return v;
     }

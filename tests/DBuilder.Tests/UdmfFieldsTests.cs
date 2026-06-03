@@ -19,6 +19,16 @@ public class UdmfFieldsTests
     }
 
     [Fact]
+    public void ParsesLargeWholeNumbersAsLong()
+    {
+        var f = UdmfFields.Parse("large = 4294967295\nsmall = 2147483647\nnegative = -2147483649");
+
+        Assert.Equal(4294967295L, Assert.IsType<long>(f["large"]));
+        Assert.Equal(2147483647, Assert.IsType<int>(f["small"]));
+        Assert.Equal(-2147483649L, Assert.IsType<long>(f["negative"]));
+    }
+
+    [Fact]
     public void QuotedValueStaysString()
     {
         var f = UdmfFields.Parse("label = \"123\"");
@@ -66,12 +76,14 @@ public class UdmfFieldsTests
         {
             ["comment"] = "a note",
             ["lightcolor"] = 255,
+            ["large"] = 4294967295L,
             ["scale"] = 1.25,
             ["flag"] = false,
         };
         var round = UdmfFields.Parse(UdmfFields.Format(src));
         Assert.Equal("a note", round["comment"]);
         Assert.Equal(255, round["lightcolor"]);
+        Assert.Equal(4294967295L, round["large"]);
         Assert.Equal(1.25, (double)round["scale"], 6);
         Assert.False((bool)round["flag"]);
     }
