@@ -91,7 +91,9 @@ public sealed class UdbScriptQueryOptionsModel
                 "Error in script " + scriptFile + ": option " + name + " has invalid type " + type);
         }
 
-        IReadOnlyList<UdbScriptEnumValue> values = ReadEnumValues(enumValues);
+        if (!TryReadEnumValues(enumValues, out IReadOnlyList<UdbScriptEnumValue> values))
+            return new UdbScriptQueryOptionAddResult(false);
+
         object effectiveDefault = UdbScriptDiscovery.EffectiveDefault(defaultValue, values);
 
         options.Add(new UdbScriptOption(
@@ -122,18 +124,28 @@ public sealed class UdbScriptQueryOptionsModel
     public void Clear()
         => options.Clear();
 
-    private static IReadOnlyList<UdbScriptEnumValue> ReadEnumValues(object? values)
+    private static bool TryReadEnumValues(object? values, out IReadOnlyList<UdbScriptEnumValue> enumValues)
     {
         if (values is null)
-            return Array.Empty<UdbScriptEnumValue>();
+        {
+            enumValues = Array.Empty<UdbScriptEnumValue>();
+            return true;
+        }
 
         if (values is IDictionary dictionary)
-            return ReadDictionary(dictionary);
+        {
+            enumValues = ReadDictionary(dictionary);
+            return true;
+        }
 
         if (values is IEnumerable<KeyValuePair<string, object?>> typedDictionary)
-            return ReadDictionary(typedDictionary);
+        {
+            enumValues = ReadDictionary(typedDictionary);
+            return true;
+        }
 
-        return Array.Empty<UdbScriptEnumValue>();
+        enumValues = Array.Empty<UdbScriptEnumValue>();
+        return false;
     }
 
     private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IDictionary values)

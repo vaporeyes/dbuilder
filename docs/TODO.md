@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3410 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3411 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1267,6 +1267,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runtime constraint abort and restart branch planning.
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
   - [x] Add UDBScript QueryOptions API member surface metadata.
+  - [x] Add UDBScript QueryOptions enum-value container gating.
   - [x] Add UDBScript QueryOptions handler conversion for returned values.
   - [x] Add UDBScript QueryOptions prompt UI metadata.
   - [x] Add UDBScript QueryOptions paused query result plan.
@@ -1578,6 +1579,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runtime constraint abort and restart branch planning.
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [x] Add UDBScript QueryOptions API member surface metadata.
+- [x] Add UDBScript QueryOptions enum-value container gating.
 - [x] Add UDBScript QueryOptions handler conversion for returned values.
 - [x] Add UDBScript QueryOptions prompt UI metadata.
 - [x] Add UDBScript QueryOptions paused query result plan.

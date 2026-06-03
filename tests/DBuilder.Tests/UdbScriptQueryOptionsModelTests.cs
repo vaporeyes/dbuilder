@@ -152,6 +152,24 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void AddOptionIgnoresUnsupportedEnumValueContainers()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        UdbScriptQueryOptionAddResult added = model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            1,
+            new[] { "Up", "Down" });
+
+        Assert.False(added.Added);
+        Assert.Equal("", added.ErrorDescription);
+        Assert.Empty(model.Options);
+    }
+
+    [Fact]
     public void ClearRemovesOptionsAndDuplicateNamesReturnLastValue()
     {
         var model = new UdbScriptQueryOptionsModel();
