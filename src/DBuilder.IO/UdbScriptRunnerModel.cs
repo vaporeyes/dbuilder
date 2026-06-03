@@ -125,6 +125,13 @@ public sealed record UdbScriptRunSourcePlan(
     IReadOnlyList<UdbScriptSourceFile> Libraries,
     UdbScriptSourceFile Script);
 
+public sealed record UdbScriptRunExecutionPlan(
+    UdbScriptSourceFile Script,
+    bool ReadScriptFile,
+    bool ResetStopwatch,
+    bool StartStopwatchBeforeExecute,
+    bool StopStopwatchAfterExecute);
+
 public sealed record UdbScriptPreRunPlan(
     bool EndOptionEdit,
     bool FocusEditor,
@@ -459,6 +466,14 @@ public static class UdbScriptRunnerModel
             libraries,
             new UdbScriptSourceFile(scriptFile, EngineSourceName(appPath, scriptFile)));
     }
+
+    public static UdbScriptRunExecutionPlan RunExecutionPlan(string appPath, string scriptFile)
+        => new(
+            new UdbScriptSourceFile(scriptFile, EngineSourceName(appPath, scriptFile)),
+            ReadScriptFile: true,
+            ResetStopwatch: true,
+            StartStopwatchBeforeExecute: true,
+            StopStopwatchAfterExecute: true);
 
     public static UdbScriptRunnerExceptionOutcome ClassifyException(
         UdbScriptRunnerExceptionKind kind,

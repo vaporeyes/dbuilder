@@ -410,6 +410,22 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunExecutionPlanMatchesUdbFileAndStopwatchSequence()
+    {
+        string app = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_runner");
+        string script = Path.Combine(app, "UDBScript", "Scripts", "demo.js");
+
+        UdbScriptRunExecutionPlan plan = UdbScriptRunnerModel.RunExecutionPlan(app, script);
+
+        Assert.Equal(script, plan.Script.Path);
+        Assert.Equal("/UDBScript/Scripts/demo.js", plan.Script.EngineSourceName);
+        Assert.True(plan.ReadScriptFile);
+        Assert.True(plan.ResetStopwatch);
+        Assert.True(plan.StartStopwatchBeforeExecute);
+        Assert.True(plan.StopStopwatchAfterExecute);
+    }
+
+    [Fact]
     public void LegacyGlobalModeUsesScriptVersionsBeforeFour()
     {
         Assert.True(UdbScriptRunnerModel.UsesLegacyGlobals(1));
