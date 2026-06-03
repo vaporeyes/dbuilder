@@ -32,6 +32,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.align-ceiling-to-back", "OnAlignCeilingToBack")]
     [InlineData("window.align-things-to-wall", "OnAlignThingsToWall")]
     [InlineData("window.find-replace", "OnFindReplace")]
+    [InlineData("window.status-history", "OnStatusHistory")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

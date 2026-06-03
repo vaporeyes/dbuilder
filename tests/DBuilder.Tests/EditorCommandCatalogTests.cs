@@ -288,6 +288,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void StatusHistoryCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.status-history");
+
+        Assert.NotNull(command);
+        Assert.Equal("Status History", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.toggle-info-panel");

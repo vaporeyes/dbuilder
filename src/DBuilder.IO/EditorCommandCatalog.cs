@@ -56,6 +56,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.view-thing-types", "View Thing Types", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.status-history", "Status History", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.show-errors", "Show Errors and Warnings", "F11", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-info-panel", "Toggle Info Panel", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.cut", "Cut selection", "Ctrl/Cmd+X", EditorCommandScope.Window),

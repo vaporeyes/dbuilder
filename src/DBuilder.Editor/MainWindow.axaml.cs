@@ -1178,6 +1178,7 @@ public partial class MainWindow : Window
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
+            case "window.status-history": OnStatusHistory(this, new RoutedEventArgs()); return true;
             case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
             case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
