@@ -532,17 +532,36 @@ public static class DecorateParser
         SkipNewlines(t, ref i);
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "=") return false;
         i++;
+        return TrySkipZScriptConstExpression(t, ref i);
+    }
+
+    private static bool TrySkipZScriptConstExpression(List<Tok> t, ref int i)
+    {
+        int parenDepth = 0;
         while (i < t.Count)
         {
-            if (t[i].Kind == Kind.Sym && t[i].Text == ";")
+            if (t[i].Kind == Kind.Sym && t[i].Text == "," && parenDepth == 0) return false;
+            if (t[i].Kind == Kind.Sym && t[i].Text == ";" && parenDepth == 0)
             {
                 i++;
                 return true;
             }
+
+            if (t[i].Kind != Kind.Str)
+                UpdateParenDepth(t[i].Text, ref parenDepth);
             i++;
         }
 
         return false;
+    }
+
+    private static void UpdateParenDepth(string text, ref int parenDepth)
+    {
+        foreach (char c in text)
+        {
+            if (c == '(') parenDepth++;
+            else if (c == ')' && parenDepth > 0) parenDepth--;
+        }
     }
 
     private static bool TrySkipZScriptVersionDeclaration(List<Tok> t, ref int i)

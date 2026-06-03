@@ -227,12 +227,21 @@ class AfterMissingEquals : Actor { Default { Radius 32; } }";
         const string missingSemicolon = @"
 const MissingSemicolon = 8
 class AfterMissingSemicolon : Actor { Default { Radius 64; } }";
+        const string topLevelComma = @"
+const FirstValue = 8, SecondValue = 16;
+class AfterTopLevelComma : Actor { Default { Radius 128; } }";
+        const string nestedComma = @"
+const PackedValue = MakeValue(8, 16);
+class AfterNestedComma : Actor { Default { Radius 24; } }";
 
         var actor = Assert.Single(ZScriptParser.Parse(valid));
+        var nested = Assert.Single(ZScriptParser.Parse(nestedComma));
 
         Assert.Equal("ConstAfterValid", actor.ClassName);
+        Assert.Equal("AfterNestedComma", nested.ClassName);
         Assert.Empty(ZScriptParser.Parse(missingEquals));
         Assert.Empty(ZScriptParser.Parse(missingSemicolon));
+        Assert.Empty(ZScriptParser.Parse(topLevelComma));
     }
 
     [Fact]
