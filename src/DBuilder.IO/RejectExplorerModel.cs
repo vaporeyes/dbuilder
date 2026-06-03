@@ -148,7 +148,10 @@ public static class RejectExplorerModel
     }
 
     public static string FormatValidation(RejectExplorerValidation validation)
-        => $"REJECT: {validation.Status} ({validation.ActualBytes} byte(s), expected {validation.ExpectedBytes})";
+        => $"REJECT: {validation.Status} ({CountLabel(validation.ActualBytes, "byte")}, expected {validation.ExpectedBytes})";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     public static string FormatCounts(IReadOnlyList<RejectExplorerRow> rows)
     {

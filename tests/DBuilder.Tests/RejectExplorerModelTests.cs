@@ -157,7 +157,7 @@ public sealed class RejectExplorerModelTests
 
         IReadOnlyList<RejectExplorerRow> rows = RejectExplorerModel.BuildRows(reject, 4, 0);
 
-        Assert.Equal("REJECT: Valid (2 byte(s), expected 2)", RejectExplorerModel.FormatValidation(validation));
+        Assert.Equal("REJECT: Valid (2 bytes, expected 2)", RejectExplorerModel.FormatValidation(validation));
         Assert.Equal(
             "Relations: 1 bidirectional, 1 visible from highlighted, 1 visible to highlighted, 0 no line of sight or default.",
             RejectExplorerModel.FormatCounts(rows));
@@ -173,6 +173,14 @@ public sealed class RejectExplorerModelTests
         Assert.Equal(
             "Sector 2: from highlighted  from highlighted: yes  to highlighted: no",
             RejectExplorerModel.FormatRow(rows[2]));
+    }
+
+    [Fact]
+    public void FormatValidationUsesSingularByteLabel()
+    {
+        var validation = RejectExplorerModel.Validate(new byte[1], sectorCount: 3);
+
+        Assert.Equal("REJECT: TooSmall (1 byte, expected 2)", RejectExplorerModel.FormatValidation(validation));
     }
 
     [Fact]
