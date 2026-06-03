@@ -131,6 +131,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
   - [x] Add stable UDB action ids for file actions and Map Options.
   - [x] Add stable UDB action ids for Preferences, Game Configurations, and Snap Selection to Grid.
+  - [x] Add stable UDB action ids for Help shortcuts and About.
   - [x] Add stable UDB action ids for tag, thing, coordinate, and error windows.
   - [x] Add stable UDB action ids for fixed thing scale and always-show-vertices view toggles.
 

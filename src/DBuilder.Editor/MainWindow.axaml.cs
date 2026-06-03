@@ -1169,6 +1169,8 @@ public partial class MainWindow : Window
             case "window.snap-selection-to-grid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
             case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
+            case "window.shortcuts": OnShortcuts(this, new RoutedEventArgs()); return true;
+            case "window.about": OnAbout(this, new RoutedEventArgs()); return true;
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
             case "window.tag-explorer": OnTagExplorer(this, new RoutedEventArgs()); return true;
             case "window.udbscripts": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;

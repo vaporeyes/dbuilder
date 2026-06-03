@@ -254,6 +254,8 @@ public class EditorCommandCatalogTests
     [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
     [InlineData("window.game-configurations", "Game Configurations", "Menu")]
     [InlineData("window.preferences", "Preferences", "Menu")]
+    [InlineData("window.shortcuts", "Shortcuts", "Menu")]
+    [InlineData("window.about", "About", "Menu")]
     [InlineData("window.view-used-tags", "View Used Tags", "Menu")]
     [InlineData("window.view-thing-types", "View Thing Types", "Menu")]
     [InlineData("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]

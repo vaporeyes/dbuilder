@@ -48,6 +48,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.game-configurations", "Game Configurations", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.preferences", "Preferences", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.shortcuts", "Shortcuts", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.about", "About", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.view-used-tags", "View Used Tags", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.tag-explorer", "Tag Explorer", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.comments-panel", "Comments", "Menu", EditorCommandScope.Window),
