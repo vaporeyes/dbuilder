@@ -1881,6 +1881,49 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperUsesNumericFlagsForClassicLinedefsAndThings()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var thing = map.AddThing(new Vector2D(16, 16), 3001);
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Hexen);
+
+        UdbScriptFlagsWrapper lineFlags = Assert.Single(wrapper.getLinedefs()).flags;
+        UdbScriptFlagsWrapper thingFlags = Assert.Single(wrapper.getThings()).flags;
+
+        lineFlags["64"] = true;
+        thingFlags["8"] = true;
+
+        Assert.Equal(64, line.Flags);
+        Assert.Equal(8, thing.Flags);
+        Assert.False(line.IsFlagSet("64"));
+        Assert.False(thing.IsFlagSet("8"));
+        Assert.True(lineFlags["64"]);
+        Assert.True(thingFlags.TryGetValue("8", out bool ambush));
+        Assert.True(ambush);
+        Assert.Contains(new KeyValuePair<string, bool>("64", true), lineFlags);
+
+        lineFlags["64"] = false;
+        thingFlags.Clear();
+
+        Assert.Equal(0, line.Flags);
+        Assert.Equal(0, thing.Flags);
+    }
+
+    [Fact]
+    public void MapWrapperRejectsNamedClassicFlags()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Doom);
+        UdbScriptFlagsWrapper flags = Assert.Single(wrapper.getLinedefs()).flags;
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => flags["blocking"] = true);
+
+        Assert.Equal("Flag name 'blocking' is not valid.", exception.Message);
+    }
+
+    [Fact]
     public void MapWrapperExposesMousePosition()
     {
         var wrapper = new UdbScriptMapWrapper(new MapSet(), mousePosition: new Vector2D(12, -34));

@@ -4,6 +4,7 @@
 using System.Collections;
 using System.Dynamic;
 using System.Drawing;
+using System.Globalization;
 using System.Numerics;
 using DBuilder.Geometry;
 using DBuilder.Map;
@@ -1132,31 +1133,51 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 
 public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
 {
-    private readonly HashSet<string> flags;
+    private readonly HashSet<string>? flags;
+    private readonly Func<int>? getNumericFlags;
+    private readonly Action<int>? setNumericFlags;
 
     public UdbScriptFlagsWrapper(HashSet<string> flags)
     {
         this.flags = flags;
     }
 
+    public UdbScriptFlagsWrapper(Func<int> getNumericFlags, Action<int> setNumericFlags)
+    {
+        this.getNumericFlags = getNumericFlags;
+        this.setNumericFlags = setNumericFlags;
+    }
+
     public bool this[string key]
     {
-        get => flags.Contains(key);
+        get
+        {
+            if (flags != null) return flags.Contains(key);
+            return TryParseFlagBit(key, out int bit) && (getNumericFlags!() & bit) != 0;
+        }
         set
         {
-            if (value) flags.Add(key);
-            else flags.Remove(key);
+            if (flags != null)
+            {
+                if (value) flags.Add(key);
+                else flags.Remove(key);
+                return;
+            }
+
+            int bit = ParseFlagBit(key);
+            int numericFlags = getNumericFlags!();
+            setNumericFlags!(value ? numericFlags | bit : numericFlags & ~bit);
         }
     }
 
     public ICollection<string> Keys
-        => flags.ToArray();
+        => flags?.ToArray() ?? ActiveNumericFlagKeys();
 
     public ICollection<bool> Values
-        => flags.Select(_ => true).ToArray();
+        => Keys.Select(_ => true).ToArray();
 
     public int Count
-        => flags.Count;
+        => Keys.Count;
 
     public bool IsReadOnly
         => false;
@@ -1165,14 +1186,18 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
         => this[key] = value;
 
     public bool ContainsKey(string key)
-        => flags.Contains(key);
+        => this[key];
 
     public bool Remove(string key)
-        => flags.Remove(key);
+    {
+        bool contained = ContainsKey(key);
+        if (contained) this[key] = false;
+        return contained;
+    }
 
     public bool TryGetValue(string key, out bool value)
     {
-        value = flags.Contains(key);
+        value = ContainsKey(key);
         return value;
     }
 
@@ -1180,28 +1205,52 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
         => Add(item.Key, item.Value);
 
     public void Clear()
-        => flags.Clear();
+    {
+        if (flags != null) flags.Clear();
+        else setNumericFlags!(0);
+    }
 
     public bool Contains(KeyValuePair<string, bool> item)
-        => item.Value && flags.Contains(item.Key);
+        => item.Value && ContainsKey(item.Key);
 
     public void CopyTo(KeyValuePair<string, bool>[] array, int arrayIndex)
     {
-        foreach (string flag in flags)
+        foreach (string flag in Keys)
             array[arrayIndex++] = new KeyValuePair<string, bool>(flag, true);
     }
 
     public bool Remove(KeyValuePair<string, bool> item)
-        => item.Value && flags.Remove(item.Key);
+        => item.Value && Remove(item.Key);
 
     public IEnumerator<KeyValuePair<string, bool>> GetEnumerator()
     {
-        foreach (string flag in flags)
+        foreach (string flag in Keys)
             yield return new KeyValuePair<string, bool>(flag, true);
     }
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
+
+    private string[] ActiveNumericFlagKeys()
+    {
+        int numericFlags = getNumericFlags!();
+        var keys = new List<string>();
+        for (int shift = 0; shift < 31; shift++)
+        {
+            int bit = 1 << shift;
+            if ((numericFlags & bit) != 0) keys.Add(bit.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return keys.ToArray();
+    }
+
+    private static int ParseFlagBit(string key)
+        => TryParseFlagBit(key, out int bit)
+            ? bit
+            : throw new InvalidOperationException("Flag name '" + key + "' is not valid.");
+
+    private static bool TryParseFlagBit(string key, out int bit)
+        => int.TryParse(key, NumberStyles.None, CultureInfo.InvariantCulture, out bit) && bit > 0;
 }
 
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
@@ -1408,15 +1457,22 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
     private readonly GridSetup grid;
     private readonly object? highlightedObject;
     private readonly Linedef linedef;
+    private readonly MapFormat mapFormat;
     private readonly MapSet? owner;
     private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
 
-    public UdbScriptLinedefWrapper(Linedef linedef, MapSet? owner = null, GridSetup? grid = null, object? highlightedObject = null)
+    public UdbScriptLinedefWrapper(
+        Linedef linedef,
+        MapSet? owner = null,
+        GridSetup? grid = null,
+        object? highlightedObject = null,
+        MapFormat mapFormat = MapFormat.Udmf)
     {
         this.linedef = linedef;
         this.owner = owner;
         this.grid = grid ?? new GridSetup();
         this.highlightedObject = highlightedObject;
+        this.mapFormat = mapFormat;
         elementArgs = new UdbScriptMapElementArgumentsWrapper(linedef);
     }
 
@@ -1533,7 +1589,9 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("flags");
-            return new UdbScriptFlagsWrapper(linedef.UdmfFlags);
+            return mapFormat == MapFormat.Udmf
+                ? new UdbScriptFlagsWrapper(linedef.UdmfFlags)
+                : new UdbScriptFlagsWrapper(() => linedef.Flags, value => linedef.Flags = value);
         }
     }
 
@@ -1732,7 +1790,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
             newLine = SplitStandalone(linedef, vertex);
         }
 
-        return new UdbScriptLinedefWrapper(newLine, owner, grid, highlightedObject);
+        return new UdbScriptLinedefWrapper(newLine, owner, grid, highlightedObject, mapFormat);
     }
 
     public int[] getTags()
@@ -2504,16 +2562,23 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 {
     private readonly GridSetup grid;
     private readonly object? highlightedObject;
+    private readonly MapFormat mapFormat;
     private readonly Thing thing;
     private readonly MapSet? owner;
     private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
 
-    public UdbScriptThingWrapper(Thing thing, MapSet? owner = null, GridSetup? grid = null, object? highlightedObject = null)
+    public UdbScriptThingWrapper(
+        Thing thing,
+        MapSet? owner = null,
+        GridSetup? grid = null,
+        object? highlightedObject = null,
+        MapFormat mapFormat = MapFormat.Udmf)
     {
         this.thing = thing;
         this.owner = owner;
         this.grid = grid ?? new GridSetup();
         this.highlightedObject = highlightedObject;
+        this.mapFormat = mapFormat;
         elementArgs = new UdbScriptMapElementArgumentsWrapper(thing);
     }
 
@@ -2650,7 +2715,9 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         get
         {
             ThrowIfDisposed("flags");
-            return new UdbScriptFlagsWrapper(thing.UdmfFlags);
+            return mapFormat == MapFormat.Udmf
+                ? new UdbScriptFlagsWrapper(thing.UdmfFlags)
+                : new UdbScriptFlagsWrapper(() => thing.Flags, value => thing.Flags = value);
         }
     }
 
@@ -3089,7 +3156,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getThings");
         return map.Things
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3116,7 +3183,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getLinedefs");
         return map.Linedefs
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3149,7 +3216,7 @@ public sealed class UdbScriptMapWrapper
             ? map.NearestLinedef(point)
             : map.NearestLinedefRange(point, maxrange);
 
-        return nearest == null ? null : new UdbScriptLinedefWrapper(nearest, map, grid, highlightedObject);
+        return nearest == null ? null : new UdbScriptLinedefWrapper(nearest, map, grid, highlightedObject, mapFormat);
     }
 
     public UdbScriptThingWrapper? nearestThing(object pos, double maxrange = double.NaN)
@@ -3158,7 +3225,7 @@ public sealed class UdbScriptMapWrapper
         Vector2D point = ToVector2D(pos);
         Thing? nearest = map.NearestThingSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
 
-        return nearest == null ? null : new UdbScriptThingWrapper(nearest, map, grid, highlightedObject);
+        return nearest == null ? null : new UdbScriptThingWrapper(nearest, map, grid, highlightedObject, mapFormat);
     }
 
     public UdbScriptVertexWrapper? nearestVertex(object pos, double maxrange = double.NaN)
@@ -3303,7 +3370,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedThings");
         return map.GetMarkedThings(mark)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3312,7 +3379,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedLinedefs");
         return map.GetMarkedLinedefs(mark)
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3390,7 +3457,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedThings");
         return map.GetSelectedThings(selected)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3398,7 +3465,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("getHighlightedThing");
         return highlightedObject is Thing thing && !thing.IsDisposed
-            ? new UdbScriptThingWrapper(thing, map, grid, highlightedObject)
+            ? new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat)
             : null;
     }
 
@@ -3449,7 +3516,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedLinedefs");
         return map.GetSelectedLinedefs(selected)
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat))
             .ToArray();
     }
 
@@ -3465,7 +3532,7 @@ public sealed class UdbScriptMapWrapper
             _ => null,
         };
 
-        return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject);
+        return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat);
     }
 
     public UdbScriptLinedefWrapper[] getSelectedOrHighlightedLinedefs()
@@ -3563,7 +3630,7 @@ public sealed class UdbScriptMapWrapper
         Thing thing = map.AddThing(new Vector2D(point.x, point.y), type);
         thing.Height = point.z;
         thing.DetermineSector(map);
-        return new UdbScriptThingWrapper(thing, map, grid, highlightedObject);
+        return new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat);
     }
 
     public void joinSectors(UdbScriptSectorWrapper[] sectors)
