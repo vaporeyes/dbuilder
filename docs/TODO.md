@@ -1885,6 +1885,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
   - [x] Wire Sound Propagation color configuration into the editor overlay.
   - [x] Add UDB-style Sound Environment mode command metadata, sector overlay colors, and non-modal environment list window.
+  - [x] Add testable Sound Environment row and warning filter model.
 - [ ] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.

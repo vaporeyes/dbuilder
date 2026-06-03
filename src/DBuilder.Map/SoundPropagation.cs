@@ -157,6 +157,15 @@ public sealed record SoundEnvironmentInfo(
     int Id,
     string Name);
 
+public sealed record SoundEnvironmentRow(
+    string Text,
+    int Depth,
+    bool Warning,
+    uint Color,
+    SoundEnvironmentInfo? Environment,
+    Thing? Thing,
+    Linedef? Linedef);
+
 public sealed record SoundEnvironmentModeModel(
     IReadOnlyList<SoundEnvironmentInfo> Environments,
     IReadOnlySet<Sector> UnassignedSectors,
@@ -174,6 +183,74 @@ public sealed record SoundEnvironmentModeModel(
     public const string DockerId = "soundenvironments";
     public const string DockerTitle = "Sound Environments";
     public const string ShowWarningsOnlyText = "Show nodes with warnings only";
+
+    public IReadOnlyList<SoundEnvironmentRow> Rows(bool udmf = false, bool warningsOnly = false)
+    {
+        var rows = new List<SoundEnvironmentRow>();
+        foreach (SoundEnvironmentInfo environment in Environments.OrderBy(e => e.Id))
+        {
+            bool activeThingWarning = ActiveThingCount(environment, udmf) > 1;
+            List<Linedef> warningLines = environment.BoundaryLinedefs.Where(line => LineHasWarning(environment, line)).ToList();
+            int rowWarnings = (activeThingWarning ? environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, udmf)) : 0)
+                + warningLines.Count;
+            if (warningsOnly && rowWarnings == 0) continue;
+
+            rows.Add(new SoundEnvironmentRow(
+                Text: $"{environment.Name}  Sectors: {environment.Sectors.Count}, things: {environment.Things.Count}, boundary lines: {environment.BoundaryLinedefs.Count}",
+                Depth: 0,
+                Warning: rowWarnings > 0,
+                Color: environment.Color,
+                Environment: environment,
+                Thing: null,
+                Linedef: null));
+
+            foreach (Thing thing in environment.Things)
+            {
+                bool warning = activeThingWarning && !SoundPropagation.ThingDormant(thing, udmf);
+                if (warningsOnly && !warning) continue;
+                string dormant = SoundPropagation.ThingDormant(thing, udmf) ? " (dormant)" : "";
+                rows.Add(new SoundEnvironmentRow(
+                    Text: $"Thing type {thing.Type}{dormant}",
+                    Depth: 1,
+                    Warning: warning,
+                    Color: environment.Color,
+                    Environment: environment,
+                    Thing: thing,
+                    Linedef: null));
+            }
+
+            foreach (Linedef line in environment.BoundaryLinedefs)
+            {
+                bool warning = LineHasWarning(environment, line);
+                if (warningsOnly && !warning) continue;
+                rows.Add(new SoundEnvironmentRow(
+                    Text: "Boundary linedef",
+                    Depth: 1,
+                    Warning: warning,
+                    Color: environment.Color,
+                    Environment: environment,
+                    Thing: null,
+                    Linedef: line));
+            }
+        }
+
+        return rows;
+    }
+
+    public int WarningCount(bool udmf = false)
+    {
+        int warnings = 0;
+        foreach (SoundEnvironmentInfo environment in Environments)
+        {
+            bool activeThingWarning = ActiveThingCount(environment, udmf) > 1;
+            if (activeThingWarning)
+                warnings += environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, udmf));
+
+            warnings += environment.BoundaryLinedefs.Count(line => LineHasWarning(environment, line));
+        }
+
+        return warnings;
+    }
 
     public uint[] SectorOverlayColors(
         IReadOnlyList<Sector> sectors,
@@ -201,6 +278,15 @@ public sealed record SoundEnvironmentModeModel(
         }
 
         return result;
+    }
+
+    private static int ActiveThingCount(SoundEnvironmentInfo environment, bool udmf)
+        => environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, udmf));
+
+    private static bool LineHasWarning(SoundEnvironmentInfo environment, Linedef line)
+    {
+        if (line.Front?.Sector == null || line.Back?.Sector == null) return true;
+        return environment.Sectors.Contains(line.Front.Sector) && environment.Sectors.Contains(line.Back.Sector);
     }
 }
 

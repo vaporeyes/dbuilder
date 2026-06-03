@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -24,7 +23,6 @@ public sealed class SoundEnvironmentWindow : Window
     private readonly ListBox _list = new();
     private SoundEnvironmentModeModel _model;
     private readonly bool _udmf;
-    private int _warningCount;
 
     public event Action<SoundEnvironmentSelection>? SelectionActivated;
 
@@ -76,15 +74,16 @@ public sealed class SoundEnvironmentWindow : Window
 
     private void ActivateSelectedRow()
     {
-        if (_list.SelectedItem is ListBoxItem { Tag: SoundEnvironmentSelection selection })
-            SelectionActivated?.Invoke(selection);
+        if (_list.SelectedItem is ListBoxItem { Tag: SoundEnvironmentRow row })
+            SelectionActivated?.Invoke(new SoundEnvironmentSelection(row.Environment, row.Thing, row.Linedef));
     }
 
     private void RefreshRows()
     {
-        List<SoundEnvironmentRow> rows = BuildRows().ToList();
-        _warningsOnly.Content = $"{SoundEnvironmentModeModel.ShowWarningsOnlyText} ({_warningCount})";
-        _warningsOnly.IsEnabled = _warningCount > 0 || _warningsOnly.IsChecked == true;
+        int warningCount = _model.WarningCount(_udmf);
+        IReadOnlyList<SoundEnvironmentRow> rows = _model.Rows(_udmf, _warningsOnly.IsChecked == true);
+        _warningsOnly.Content = $"{SoundEnvironmentModeModel.ShowWarningsOnlyText} ({warningCount})";
+        _warningsOnly.IsEnabled = warningCount > 0 || _warningsOnly.IsChecked == true;
         _header.Text = rows.Count == 0
             ? "No sound environments to display."
             : $"{_model.Environments.Count} sound environment(s), {_model.UnassignedSectors.Count} unassigned sector(s), {_model.BoundaryLinedefs.Count} boundary linedef(s).";
@@ -95,58 +94,11 @@ public sealed class SoundEnvironmentWindow : Window
             items.Add(new ListBoxItem
             {
                 Content = RowContent(row),
-                Tag = row.Selection,
+                Tag = row,
             });
         }
 
         _list.ItemsSource = items;
-    }
-
-    private IEnumerable<SoundEnvironmentRow> BuildRows()
-    {
-        _warningCount = 0;
-        bool warningsOnly = _warningsOnly.IsChecked == true;
-        foreach (SoundEnvironmentInfo environment in _model.Environments.OrderBy(e => e.Id))
-        {
-            bool activeThingWarning = ActiveThingCount(environment) > 1;
-            List<Linedef> warningLines = environment.BoundaryLinedefs.Where(line => LineHasWarning(environment, line)).ToList();
-            int rowWarnings = (activeThingWarning ? environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, _udmf)) : 0)
-                + warningLines.Count;
-            _warningCount += rowWarnings;
-            if (warningsOnly && rowWarnings == 0) continue;
-
-            yield return new SoundEnvironmentRow(
-                Text: $"{environment.Name}  Sectors: {environment.Sectors.Count}, things: {environment.Things.Count}, boundary lines: {environment.BoundaryLinedefs.Count}",
-                Depth: 0,
-                Warning: rowWarnings > 0,
-                Color: environment.Color,
-                Selection: new SoundEnvironmentSelection(environment, null, null));
-
-            foreach (Thing thing in environment.Things)
-            {
-                bool warning = activeThingWarning && !SoundPropagation.ThingDormant(thing, _udmf);
-                if (warningsOnly && !warning) continue;
-                string dormant = SoundPropagation.ThingDormant(thing, _udmf) ? " (dormant)" : "";
-                yield return new SoundEnvironmentRow(
-                    Text: $"Thing type {thing.Type}{dormant}",
-                    Depth: 1,
-                    Warning: warning,
-                    Color: environment.Color,
-                    Selection: new SoundEnvironmentSelection(environment, thing, null));
-            }
-
-            foreach (Linedef line in environment.BoundaryLinedefs)
-            {
-                bool warning = LineHasWarning(environment, line);
-                if (warningsOnly && !warning) continue;
-                yield return new SoundEnvironmentRow(
-                    Text: "Boundary linedef",
-                    Depth: 1,
-                    Warning: warning,
-                    Color: environment.Color,
-                    Selection: new SoundEnvironmentSelection(environment, null, line));
-            }
-        }
     }
 
     private Control RowContent(SoundEnvironmentRow row)
@@ -174,15 +126,6 @@ public sealed class SoundEnvironmentWindow : Window
         return panel;
     }
 
-    private int ActiveThingCount(SoundEnvironmentInfo environment)
-        => environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, _udmf));
-
-    private static bool LineHasWarning(SoundEnvironmentInfo environment, Linedef line)
-    {
-        if (line.Front?.Sector == null || line.Back?.Sector == null) return true;
-        return environment.Sectors.Contains(line.Front.Sector) && environment.Sectors.Contains(line.Back.Sector);
-    }
-
     private static Color ToColor(uint argb)
         => Color.FromArgb(
             (byte)((argb >> 24) & 0xFF),
@@ -190,10 +133,3 @@ public sealed class SoundEnvironmentWindow : Window
             (byte)((argb >> 8) & 0xFF),
             (byte)(argb & 0xFF));
 }
-
-internal sealed record SoundEnvironmentRow(
-    string Text,
-    int Depth,
-    bool Warning,
-    uint Color,
-    SoundEnvironmentSelection Selection);

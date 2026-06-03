@@ -563,4 +563,57 @@ public class SoundPropagationTests
         Assert.Equal(0xFF010203u, highlighted[0]);
         Assert.Equal(0xFF040506u, highlighted[1]);
     }
+
+    [Fact]
+    public void SoundEnvironmentRowsFlagMultipleActiveThings()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Thing first = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        Thing second = map.AddThing(new Vector2D(16, 0), SoundPropagation.SoundEnvironmentThingType);
+        first.Sector = sector;
+        second.Sector = sector;
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map);
+
+        Assert.Equal(2, model.WarningCount());
+        IReadOnlyList<SoundEnvironmentRow> rows = model.Rows();
+        Assert.Equal(3, rows.Count);
+        Assert.True(rows[0].Warning);
+        Assert.True(rows[1].Warning);
+        Assert.True(rows[2].Warning);
+
+        IReadOnlyList<SoundEnvironmentRow> warnings = model.Rows(warningsOnly: true);
+        Assert.Equal(rows, warnings);
+    }
+
+    [Fact]
+    public void SoundEnvironmentRowsFilterBoundaryWarnings()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Linedef line = map.AddLinedef(
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(64, 0)));
+        var environment = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            new[] { line },
+            0xFF010203u,
+            1,
+            "Test Environment");
+        var model = new SoundEnvironmentModeModel(
+            new[] { environment },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(new[] { line }, ReferenceEqualityComparer.Instance));
+
+        Assert.Equal(1, model.WarningCount());
+        IReadOnlyList<SoundEnvironmentRow> rows = model.Rows(warningsOnly: true);
+
+        Assert.Equal(2, rows.Count);
+        Assert.True(rows[0].Warning);
+        Assert.Equal(environment, rows[0].Environment);
+        Assert.True(rows[1].Warning);
+        Assert.Equal(line, rows[1].Linedef);
+    }
 }
