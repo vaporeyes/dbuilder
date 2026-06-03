@@ -398,6 +398,31 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void MessageDialogPlansMatchUdbShowMessageBranches()
+    {
+        UdbScriptMessageDialogPlan ok = UdbScriptRunnerModel.MessageDialogPlan(null, yesNo: false);
+        UdbScriptMessageDialogPlan yesNo = UdbScriptRunnerModel.MessageDialogPlan("continue", yesNo: true);
+        UdbScriptMessageDialogResultPlan okResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Ok);
+        UdbScriptMessageDialogResultPlan yesResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Yes);
+        UdbScriptMessageDialogResultPlan noResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.No);
+        UdbScriptMessageDialogResultPlan abortResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Abort);
+
+        Assert.Equal("OK", ok.PrimaryButtonText);
+        Assert.Null(ok.SecondaryButtonText);
+        Assert.Equal("", ok.Message);
+        Assert.True(ok.StopStopwatchBeforeDialog);
+        Assert.True(ok.StartStopwatchAfterDialog);
+        Assert.Equal("Yes", yesNo.PrimaryButtonText);
+        Assert.Equal("No", yesNo.SecondaryButtonText);
+        Assert.Equal("continue", yesNo.Message);
+        Assert.False(okResult.ThrowUserAbortException);
+        Assert.True(okResult.ReturnValue);
+        Assert.True(yesResult.ReturnValue);
+        Assert.False(noResult.ReturnValue);
+        Assert.True(abortResult.ThrowUserAbortException);
+    }
+
+    [Fact]
     public void HostWrapperExitAndDieThrowTypedExceptions()
     {
         UdbScriptHostWrapper host = new();

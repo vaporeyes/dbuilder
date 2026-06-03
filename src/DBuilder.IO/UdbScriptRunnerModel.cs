@@ -119,6 +119,17 @@ public sealed record UdbScriptRuntimeConstraintPrompt(
     string Title,
     string Message);
 
+public sealed record UdbScriptMessageDialogPlan(
+    string PrimaryButtonText,
+    string? SecondaryButtonText,
+    string Message,
+    bool StopStopwatchBeforeDialog,
+    bool StartStopwatchAfterDialog);
+
+public sealed record UdbScriptMessageDialogResultPlan(
+    bool ThrowUserAbortException,
+    bool ReturnValue);
+
 public sealed record UdbScriptRuntimeConstraintCheckResult(
     UdbScriptRuntimeConstraintPrompt Prompt,
     UdbScriptRuntimeConstraintDialogResult DialogResult,
@@ -325,6 +336,9 @@ public static class UdbScriptRunnerModel
     public const string RuntimeConstraintPromptTitle = "Script";
     public const string RuntimeConstraintPromptMessage = "The script has been running for some time, want to stop it?";
     public const string UserAbortStatusText = "Script aborted";
+    public const string MessageDialogOkButtonText = "OK";
+    public const string MessageDialogYesButtonText = "Yes";
+    public const string MessageDialogNoButtonText = "No";
     public const string ScriptFinishedTitle = "Script finished";
     public const string CloseButtonText = "Close";
     public const string ErrorDialogTitle = "Script Error";
@@ -621,6 +635,19 @@ public static class UdbScriptRunnerModel
             dialogResult == UdbScriptRuntimeConstraintDialogResult.Yes,
             dialogResult == UdbScriptRuntimeConstraintDialogResult.No);
     }
+
+    public static UdbScriptMessageDialogPlan MessageDialogPlan(object? message, bool yesNo)
+        => new(
+            yesNo ? MessageDialogYesButtonText : MessageDialogOkButtonText,
+            yesNo ? MessageDialogNoButtonText : null,
+            message?.ToString() ?? "",
+            StopStopwatchBeforeDialog: true,
+            StartStopwatchAfterDialog: true);
+
+    public static UdbScriptMessageDialogResultPlan MessageDialogResultPlan(UdbScriptMessageResult result)
+        => new(
+            result == UdbScriptMessageResult.Abort,
+            result is UdbScriptMessageResult.Ok or UdbScriptMessageResult.Yes);
 
     public static UdbScriptRunSourcePlan BuildSourcePlan(string appPath, string scriptFile)
     {
