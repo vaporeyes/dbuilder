@@ -156,6 +156,13 @@ public sealed record ImageExportSettings(
     public static string ChangeExtensionForFormat(string filePath, int selectedIndex)
         => Path.ChangeExtension(filePath, ExtensionForFormatIndex(selectedIndex));
 
+    public string ExportStatusText(int imageFileCount)
+    {
+        string brightmaps = Brightmap ? " including brightmaps" : string.Empty;
+        string tiles = Tiles ? " as 64x64 tiles" : string.Empty;
+        return $"Exported {CountLabel(imageFileCount, "image file")}{brightmaps}{tiles}.";
+    }
+
     public static string DefaultFileName(string mapFileTitle, string levelName, string randomStem)
         => string.Join(
             "_",
@@ -171,6 +178,9 @@ public sealed record ImageExportSettings(
         string directory = Path.GetDirectoryName(mapFilePath) ?? "";
         return Path.Combine(directory, fileName + ".png");
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public readonly record struct ImageExportLayout(Vector2D Size, Vector2D Offset);

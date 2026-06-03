@@ -71,6 +71,25 @@ public sealed class ImageExportModelTests
         Assert.Equal(Path.Combine("tmp", "map.png"), ImageExportSettings.ChangeExtensionForFormat(Path.Combine("tmp", "map.jpg"), 0));
     }
 
+    [Theory]
+    [InlineData(1, false, false, "Exported 1 image file.")]
+    [InlineData(2, false, false, "Exported 2 image files.")]
+    [InlineData(4, true, false, "Exported 4 image files including brightmaps.")]
+    [InlineData(6, true, true, "Exported 6 image files including brightmaps as 64x64 tiles.")]
+    public void ExportStatusTextFormatsSingularAndPluralCounts(
+        int imageFileCount,
+        bool brightmap,
+        bool tiles,
+        string expected)
+    {
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            Brightmap: brightmap,
+            Tiles: tiles));
+
+        Assert.Equal(expected, settings.ExportStatusText(imageFileCount));
+    }
+
     [Fact]
     public void DefaultOutputPathUsesMapDirectoryAndGeneratedPngName()
     {

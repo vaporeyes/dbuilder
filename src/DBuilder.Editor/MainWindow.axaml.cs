@@ -5054,9 +5054,7 @@ public partial class MainWindow : Window
                 settings,
                 ImageExportFlat);
             ImageExportRenderer.WriteImageFiles(files);
-            string brightmaps = settings.Brightmap ? " including brightmaps" : "";
-            string tiles = settings.Tiles ? " as 64x64 tiles" : "";
-            SetStatus($"Exported {files.Count} image file(s){brightmaps}{tiles}.");
+            SetStatus(settings.ExportStatusText(files.Count));
         }
         catch (OutOfMemoryException)
         {
