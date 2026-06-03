@@ -205,6 +205,25 @@ public sealed class UdbScriptRunnerWindow : Window
                 shouldStop ? UdbScriptRuntimeConstraintDialogResult.Yes : UdbScriptRuntimeConstraintDialogResult.No);
         });
 
+    public Task ShowScriptErrorAsync(UdbScriptRunnerExceptionHandlingPlan plan)
+        => InvokePausedAsync(async () =>
+        {
+            if (plan.DialogKind == UdbScriptRunnerExceptionDialogKind.ParserMessageBox)
+            {
+                var dialog = new UdbScriptParserErrorDialogWindow(plan.DialogTitle, plan.DialogMessage);
+                await dialog.ShowDialog(this);
+                return true;
+            }
+
+            if (plan.ErrorDialog is not null)
+            {
+                var dialog = new UdbScriptErrorDialogWindow(plan.ErrorDialog);
+                await dialog.ShowDialog(this);
+            }
+
+            return true;
+        });
+
     public void Finish(TimeSpan runtime, bool autoClose)
     {
         UdbScriptRunScriptWorkflowPlan plan = UdbScriptRunnerModel.RunScriptWorkflowPlan(

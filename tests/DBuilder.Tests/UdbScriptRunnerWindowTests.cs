@@ -36,6 +36,7 @@ public class UdbScriptRunnerWindowTests
         AssertPublicInstanceMethod(type, "ShowScriptMessageAsync");
         AssertPublicInstanceMethod(type, "ConfirmFeatureVersionAsync");
         AssertPublicInstanceMethod(type, "CheckRuntimeConstraintAsync");
+        AssertPublicInstanceMethod(type, "ShowScriptErrorAsync");
         AssertPublicInstanceMethod(type, "Finish");
         AssertPublicInstanceMethod(type, "ApplyProgress");
         AssertPublicInstanceMethod(type, "ApplyStatus");
@@ -83,6 +84,21 @@ public class UdbScriptRunnerWindowTests
         Assert.Equal("DBuilder.Editor.UdbScriptConfirmationDialog", type.FullName);
         Assert.NotNull(type.GetConstructor([typeof(string), typeof(string), typeof(string), typeof(string)]));
         Assert.True(typeof(Avalonia.Controls.Window).IsAssignableFrom(type));
+    }
+
+    [Fact]
+    public void ScriptErrorDialogsExposeExpectedExceptionSurfaces()
+    {
+        Type errorType = typeof(UdbScriptErrorDialogWindow);
+        Type parserType = typeof(UdbScriptParserErrorDialogWindow);
+
+        Assert.Equal("DBuilder.Editor.UdbScriptErrorDialogWindow", errorType.FullName);
+        Assert.NotNull(errorType.GetConstructor([typeof(DBuilder.IO.UdbScriptErrorDialog)]));
+        Assert.True(typeof(Avalonia.Controls.Window).IsAssignableFrom(errorType));
+
+        Assert.Equal("DBuilder.Editor.UdbScriptParserErrorDialogWindow", parserType.FullName);
+        Assert.NotNull(parserType.GetConstructor([typeof(string), typeof(string)]));
+        Assert.True(typeof(Avalonia.Controls.Window).IsAssignableFrom(parserType));
     }
 
     private static void AssertPublicInstanceMethod(Type type, string name)
