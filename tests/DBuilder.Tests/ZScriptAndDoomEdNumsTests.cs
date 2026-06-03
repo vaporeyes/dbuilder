@@ -1189,6 +1189,24 @@ class InvalidStateSpriteNameZThing : Actor
     }
 
     [Fact]
+    public void RejectsZScriptStateFrameTokensWithInvalidFrameLetters()
+    {
+        const string zscript = @"
+class InvalidStateFrameLettersZThing : Actor
+{
+    States
+    {
+    Spawn:
+        BADF 1 -1;
+    See:
+        GOOD A -1;
+    }
+}";
+
+        Assert.Empty(ZScriptParser.Parse(zscript));
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

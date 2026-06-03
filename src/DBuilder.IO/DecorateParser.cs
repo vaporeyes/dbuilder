@@ -1242,6 +1242,11 @@ public static class DecorateParser
                     SkipRemainingActorBody(t, ref i, depth);
                     return false;
                 }
+                if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateFrameLetters(tk.Text, t, i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
                 {
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
@@ -1340,6 +1345,11 @@ public static class DecorateParser
                 }
             }
             else if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateSpriteName(tk.Text, t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
+            }
+            else if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateFrameLetters(tk.Text, t, i))
             {
                 SkipRemainingActorBody(t, ref i, depth);
                 return false;
@@ -1483,6 +1493,16 @@ public static class DecorateParser
         && LooksLikeStateFrameLetters(t[frameIndex].Text)
         && frameIndex + 1 < t.Count
         && t[frameIndex + 1].Kind == Kind.Word;
+
+    private static bool IsMalformedZScriptStateFrameLetters(string spriteName, List<Tok> t, int frameIndex)
+        => spriteName.Length == 4
+        && !spriteName.Equals("goto", StringComparison.OrdinalIgnoreCase)
+        && ZScriptStateFrameSpecial(spriteName) == null
+        && frameIndex < t.Count
+        && t[frameIndex].Kind is Kind.Word or Kind.Str
+        && !LooksLikeStateFrameLetters(t[frameIndex].Text)
+        && frameIndex + 1 < t.Count
+        && (t[frameIndex + 1].Kind == Kind.Word || t[frameIndex + 1].Text == ";");
 
     private static StateSpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
     {
