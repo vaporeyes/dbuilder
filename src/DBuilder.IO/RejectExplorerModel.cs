@@ -53,6 +53,12 @@ public sealed record RejectExplorerColorField(
     string Label,
     int DefaultColor);
 
+public sealed record RejectExplorerRow(
+    int SectorIndex,
+    RejectExplorerRelation Relation,
+    bool FromHighlighted,
+    bool ToHighlighted);
+
 public static class RejectExplorerModel
 {
     public const string DefaultColorKey = "colors.default";
@@ -127,6 +133,35 @@ public static class RejectExplorerModel
         return new RejectExplorerValidation(RejectExplorerValidationStatus.Valid, expected, rejectData.Length);
     }
 
+    public static IReadOnlyList<RejectExplorerRow> BuildRows(RejectTable reject, int sectorCount, int? highlightedSector)
+    {
+        var rows = new List<RejectExplorerRow>(sectorCount < 0 ? 0 : sectorCount);
+        for (int i = 0; i < sectorCount; i++)
+        {
+            RejectExplorerRelation relation = RelationToHighlight(reject, i, highlightedSector);
+            bool fromHighlighted = highlightedSector is int h && SectorHasLineOfSight(reject, h, i);
+            bool toHighlighted = highlightedSector is int h2 && SectorHasLineOfSight(reject, i, h2);
+            rows.Add(new RejectExplorerRow(i, relation, fromHighlighted, toHighlighted));
+        }
+
+        return rows;
+    }
+
+    public static string FormatValidation(RejectExplorerValidation validation)
+        => $"REJECT: {validation.Status} ({validation.ActualBytes} byte(s), expected {validation.ExpectedBytes})";
+
+    public static string FormatCounts(IReadOnlyList<RejectExplorerRow> rows)
+    {
+        int bidirectional = rows.Count(row => row.Relation == RejectExplorerRelation.Bidirectional);
+        int from = rows.Count(row => row.Relation == RejectExplorerRelation.UnidirectionalFrom);
+        int to = rows.Count(row => row.Relation == RejectExplorerRelation.UnidirectionalTo);
+        int blocked = rows.Count(row => row.Relation == RejectExplorerRelation.Default);
+        return $"Relations: {bidirectional} bidirectional, {from} visible from highlighted, {to} visible to highlighted, {blocked} no line of sight or default.";
+    }
+
+    public static string FormatRow(RejectExplorerRow row)
+        => $"Sector {row.SectorIndex}: {Label(row.Relation)}  from highlighted: {YesNo(row.FromHighlighted)}  to highlighted: {YesNo(row.ToHighlighted)}";
+
     public static bool SectorHasLineOfSight(RejectTable reject, int fromSector, int toSector)
         => !reject.IsRejected(fromSector, toSector);
 
@@ -184,4 +219,16 @@ public static class RejectExplorerModel
             _ => fallback,
         };
     }
+
+    private static string Label(RejectExplorerRelation relation)
+        => relation switch
+        {
+            RejectExplorerRelation.Highlight => "highlighted",
+            RejectExplorerRelation.Bidirectional => "bidirectional",
+            RejectExplorerRelation.UnidirectionalFrom => "from highlighted",
+            RejectExplorerRelation.UnidirectionalTo => "to highlighted",
+            _ => "no line of sight",
+        };
+
+    private static string YesNo(bool value) => value ? "yes" : "no";
 }

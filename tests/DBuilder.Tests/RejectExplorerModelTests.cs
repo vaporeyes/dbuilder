@@ -140,6 +140,32 @@ public sealed class RejectExplorerModelTests
     }
 
     [Fact]
+    public void BuildRowsAndFormattingDescribeHighlightedRelations()
+    {
+        var validation = RejectExplorerModel.Validate(new byte[2], sectorCount: 3);
+        var reject = RejectTable.Parse(BuildReject(4, (0, 3), (2, 0)), 4);
+
+        IReadOnlyList<RejectExplorerRow> rows = RejectExplorerModel.BuildRows(reject, 4, 0);
+
+        Assert.Equal("REJECT: Valid (2 byte(s), expected 2)", RejectExplorerModel.FormatValidation(validation));
+        Assert.Equal(
+            "Relations: 1 bidirectional, 1 visible from highlighted, 1 visible to highlighted, 0 no line of sight or default.",
+            RejectExplorerModel.FormatCounts(rows));
+        Assert.Equal(
+            new[]
+            {
+                RejectExplorerRelation.Highlight,
+                RejectExplorerRelation.Bidirectional,
+                RejectExplorerRelation.UnidirectionalFrom,
+                RejectExplorerRelation.UnidirectionalTo,
+            },
+            rows.Select(row => row.Relation));
+        Assert.Equal(
+            "Sector 2: from highlighted  from highlighted: yes  to highlighted: no",
+            RejectExplorerModel.FormatRow(rows[2]));
+    }
+
+    [Fact]
     public void SectorOverlayColorsFollowHighlightedRelations()
     {
         var reject = RejectTable.Parse(BuildReject(4, (0, 3), (2, 0)), 4);
