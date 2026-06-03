@@ -40,4 +40,17 @@ IWad
 
         Assert.Equal("lights.pk3", iwad.Fields["loadlights"]);
     }
+
+    [Fact]
+    public void MissingIwadBodyStopsParsingLikeUdb()
+    {
+        const string text = @"
+IWad { Name = ""Before""; }
+IWad
+IWad { Name = ""After""; }";
+
+        var iwad = Assert.Single(IwadInfoParser.Parse(text).Iwads);
+
+        Assert.Equal("Before", iwad.Name);
+    }
 }

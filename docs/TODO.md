@@ -618,6 +618,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require UDB-style VOXELDEF numeric setting assignments.
   - [x] Stop VOXELDEF parsing on malformed numeric settings like UDB.
 - [x] Port IWADINFO parser.
+  - [x] Stop IWADINFO parsing on missing IWAD blocks like UDB.
 - [x] Port CVARINFO parser.
   - [x] Allow UDB-style flag-only CVARINFO prefixes before types.
   - [x] Validate typed CVARINFO default values and duplicate names.

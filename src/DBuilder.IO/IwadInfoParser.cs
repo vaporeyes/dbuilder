@@ -37,18 +37,17 @@ public static class IwadInfoParser
             }
 
             var iwad = new IwadDefinition();
-            if (i < t.Count && t[i] == "{")
+            if (i >= t.Count || t[i] != "{") return info;
+            i++;
+            while (i < t.Count && t[i] != "}")
             {
-                i++;
-                while (i < t.Count && t[i] != "}")
-                {
-                    string key = t[i++].ToLowerInvariant();
-                    if (i < t.Count && t[i] == "=") i++;
-                    if (i < t.Count && t[i] != ";" && t[i] != "}") iwad.Fields[key] = t[i++];
-                    if (i < t.Count && t[i] == ";") i++;
-                }
-                if (i < t.Count) i++;
+                string key = t[i++].ToLowerInvariant();
+                if (i < t.Count && t[i] == "=") i++;
+                if (i < t.Count && t[i] != ";" && t[i] != "}") iwad.Fields[key] = t[i++];
+                if (i < t.Count && t[i] == ";") i++;
             }
+            if (i >= t.Count) return info;
+            i++;
             info.Iwads.Add(iwad);
         }
         return info;
