@@ -26,6 +26,7 @@ public class UdbScriptRunnerWindowTests
         Assert.NotNull(type.GetProperty("AutoClose"));
         Assert.NotNull(type.GetProperty("IsRuntimeTimerEnabled"));
         Assert.NotNull(type.GetProperty("ElapsedRuntime"));
+        Assert.NotNull(type.GetProperty("CancellationToken"));
         AssertPublicInstanceMethod(type, "Start");
         AssertPublicInstanceMethod(type, "MarkRunning");
         AssertPublicInstanceMethod(type, "InvokePaused");

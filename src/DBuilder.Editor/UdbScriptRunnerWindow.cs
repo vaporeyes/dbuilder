@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Threading;
@@ -18,6 +19,7 @@ public sealed class UdbScriptRunnerWindow : Window
     private readonly TextBox _log = new();
     private readonly Stopwatch _stopwatch = new();
     private readonly DispatcherTimer _timer = new();
+    private CancellationTokenSource? _cancellationTokenSource;
     private double _runningSeconds;
     private bool _autoClose;
     private bool _running;
@@ -34,6 +36,7 @@ public sealed class UdbScriptRunnerWindow : Window
     public bool AutoClose => _autoClose;
     public bool IsRuntimeTimerEnabled => _timer.IsEnabled;
     public TimeSpan ElapsedRuntime => _stopwatch.Elapsed;
+    public CancellationToken CancellationToken => _cancellationTokenSource?.Token ?? CancellationToken.None;
 
     public UdbScriptRunnerWindow()
     {
@@ -91,6 +94,8 @@ public sealed class UdbScriptRunnerWindow : Window
         UdbScriptRunnerStartPlan plan = UdbScriptRunnerModel.StartPlan();
         _runningSeconds = 0;
         _running = false;
+        if (plan.CreateCancellationTokenSource)
+            _cancellationTokenSource = new CancellationTokenSource();
         _progress.Value = plan.ResetProgressValue ? 0 : _progress.Value;
         if (plan.ClearLog)
             _log.Clear();
@@ -220,7 +225,10 @@ public sealed class UdbScriptRunnerWindow : Window
         if (plan.DisableActionButton)
             _action.IsEnabled = false;
         if (plan.CancelToken)
+        {
+            _cancellationTokenSource?.Cancel();
             CancelRequested?.Invoke();
+        }
         if (plan.MakeInvisible)
             Opacity = 0.0;
         if (plan.CloseWindow)
