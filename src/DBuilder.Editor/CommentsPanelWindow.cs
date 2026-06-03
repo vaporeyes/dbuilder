@@ -176,9 +176,7 @@ public sealed class CommentsPanelWindow : Window
 
     public void SetGroups(IReadOnlyList<CommentGroup> groups)
     {
-        _header.Text = groups.Count == 0
-            ? "No comments found."
-            : $"{groups.Count} comment group(s). Click a row to select and reveal it.";
+        _header.Text = CommentsPanelModel.HeaderText(groups.Count);
 
         var rows = new List<ListBoxItem>();
         foreach (CommentGroup group in groups)

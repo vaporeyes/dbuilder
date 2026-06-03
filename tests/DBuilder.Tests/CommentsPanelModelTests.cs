@@ -162,6 +162,13 @@ public sealed class CommentsPanelModelTests
     public void CanSetSelectionCommentMatchesUdbModeRules(CommentsPanelMode mode, int count, bool expected)
         => Assert.Equal(expected, CommentsPanelModel.CanSetSelectionComment(mode, count));
 
+    [Theory]
+    [InlineData(0, "No comments found.")]
+    [InlineData(1, "1 comment group. Click a row to select and reveal it.")]
+    [InlineData(2, "2 comment groups. Click a row to select and reveal it.")]
+    public void HeaderTextFormatsSingularAndPluralGroupCounts(int groupCount, string expected)
+        => Assert.Equal(expected, CommentsPanelModel.HeaderText(groupCount));
+
     [Fact]
     public void CreateSelectionTargetUsesFirstCommentedElementKind()
     {

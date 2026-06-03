@@ -142,6 +142,11 @@ public static class CommentsPanelModel
         => mode is CommentsPanelMode.Vertices or CommentsPanelMode.Linedefs or CommentsPanelMode.Sectors or CommentsPanelMode.Things
             && selectedCount > 0;
 
+    public static string HeaderText(int groupCount)
+        => groupCount == 0
+            ? "No comments found."
+            : $"{groupCount} {Label(groupCount, "comment group")}. Click a row to select and reveal it.";
+
     public static void SetComment(IEnumerable<IFielded> elements, string comment)
     {
         foreach (var element in elements)
@@ -492,4 +497,7 @@ public static class CommentsPanelModel
             _ => fallback,
         };
     }
+
+    private static string Label(int count, string singular)
+        => count == 1 ? singular : singular + "s";
 }

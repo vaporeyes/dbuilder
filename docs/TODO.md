@@ -1887,6 +1887,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire Comments docker filter-mode and click-select options into the editor panel.
   - [x] Render UDB-style comment icons in the editor for linedefs, sectors, and things.
   - [x] Wire Comments panel live mode, group, and current selection refresh from editor changes.
+  - [x] Add UDB-style singular and plural labels to Comments panel summaries.
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
