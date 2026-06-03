@@ -20,6 +20,8 @@ public class UdbScriptRunnerWindowTests
         Assert.NotNull(type.GetEvent("PauseRequested"));
         Assert.NotNull(type.GetEvent("ResumeRequested"));
         Assert.NotNull(type.GetProperty("IsRunnerRunning"));
+        Assert.NotNull(type.GetProperty("IsProgressMarquee"));
+        Assert.NotNull(type.GetProperty("ProgressValue"));
         AssertPublicInstanceMethod(type, "Start");
         AssertPublicInstanceMethod(type, "MarkRunning");
         AssertPublicInstanceMethod(type, "InvokePaused");

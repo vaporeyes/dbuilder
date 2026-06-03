@@ -24,6 +24,8 @@ public sealed class UdbScriptRunnerWindow : Window
     public event Action? ResumeRequested;
 
     public bool IsRunnerRunning => _running;
+    public bool IsProgressMarquee => _progress.IsIndeterminate;
+    public double ProgressValue => _progress.Value;
 
     public UdbScriptRunnerWindow()
     {
@@ -159,6 +161,7 @@ public sealed class UdbScriptRunnerWindow : Window
         _status.Text = state.StatusText;
         _action.Content = state.ActionButtonText;
         _action.IsEnabled = state.ActionButtonEnabled;
+        _progress.IsIndeterminate = state.ProgressIsMarquee;
         Opacity = state.Opacity;
     }
 
@@ -184,7 +187,7 @@ public sealed class UdbScriptRunnerWindow : Window
             _status.Text ?? "",
             _action.Content?.ToString() ?? "",
             _action.IsEnabled,
-            false,
+            _progress.IsIndeterminate,
             Opacity,
             AutoClose: false);
 
