@@ -423,6 +423,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add config-aware discovery with required and forbidden map lump checks.
   - [x] Avoid non-map marker-name collisions when reading map sub-lumps.
   - [x] Filter config-aware discovery by configured map name format.
+  - [x] Sort Open Map picker entries like UDB.
 - [ ] Port save behavior for replacing, inserting, and renaming maps.
   - [x] Avoid replacing non-map lumps that share the target map name.
   - [x] Remove duplicate target map blocks before writing replacements.

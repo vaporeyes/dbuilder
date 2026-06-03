@@ -25,7 +25,7 @@ public sealed class MapPickerDialog : Window
 
     public MapPickerDialog(List<MapEntry> maps, string? current, Func<MapEntry, OpenMapSelectionOptions>? optionsForMap = null)
     {
-        _maps = maps;
+        _maps = MapPickerModel.SortForPicker(maps);
         _optionsForMap = optionsForMap;
         Title = "Open Map";
         Width = 320;
@@ -35,9 +35,9 @@ public sealed class MapPickerDialog : Window
 
         _list = new ListBox
         {
-            ItemsSource = maps.Select(m => $"{m.Name}   [{m.Format}]").ToList(),
+            ItemsSource = _maps.Select(m => $"{m.Name}   [{m.Format}]").ToList(),
         };
-        int cur = current != null ? maps.FindIndex(m => m.Name == current) : 0;
+        int cur = current != null ? _maps.FindIndex(m => m.Name == current) : 0;
         _list.SelectedIndex = cur < 0 ? 0 : cur;
         _list.SelectionChanged += (_, _) => UpdateSelectedMapOptions();
         _list.DoubleTapped += (_, _) => Accept();
