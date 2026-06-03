@@ -228,6 +228,15 @@ public static class UdbScriptDockerModel
         return result;
     }
 
+    public static IReadOnlyList<UdbScriptSettingOperation> SaveDirectoryExpansionOperations(
+        UdbScriptDirectory root,
+        IReadOnlySet<string> collapsedDirectoryHashes)
+    {
+        var operations = new List<UdbScriptSettingOperation>();
+        AddDirectoryExpansionOperations(root, collapsedDirectoryHashes, operations);
+        return operations;
+    }
+
     public static IReadOnlyList<UdbScriptSettingOperation> SaveSlotAssignmentOperations(
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments)
     {
@@ -298,6 +307,25 @@ public static class UdbScriptDockerModel
         return nodes;
     }
 
+    private static void AddDirectoryExpansionOperations(
+        UdbScriptDirectory directory,
+        IReadOnlySet<string> collapsedDirectoryHashes,
+        List<UdbScriptSettingOperation> operations)
+    {
+        string key = DirectoryExpandSettingKey(directory.Hash);
+        if (collapsedDirectoryHashes.Contains(directory.Hash))
+        {
+            operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Write, key, false));
+        }
+        else
+        {
+            operations.Add(new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Delete, key));
+        }
+
+        foreach (UdbScriptDirectory child in directory.Directories)
+            AddDirectoryExpansionOperations(child, collapsedDirectoryHashes, operations);
+    }
+
     private static bool MatchesFilter(UdbScriptInfo script, string filterText)
         => string.IsNullOrWhiteSpace(filterText)
             || script.Name.ToLowerInvariant().Contains(filterText)
@@ -311,6 +339,9 @@ public static class UdbScriptDockerModel
 
     private static string SlotSettingKey(int slot)
         => ScriptSlotSettingPrefix + slot;
+
+    private static string DirectoryExpandSettingKey(string hash)
+        => "directoryexpand." + hash;
 
     private static string HotkeyText(int slot, IReadOnlyDictionary<int, string> hotkeys)
         => slot != 0 && hotkeys.TryGetValue(slot, out string? hotkey) && !string.IsNullOrWhiteSpace(hotkey)

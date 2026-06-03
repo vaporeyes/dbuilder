@@ -138,6 +138,44 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void SaveDirectoryExpansionOperationsMatchUdbRecursiveSettings()
+    {
+        var collapsedChild = new UdbScriptDirectory(
+            "/scripts/a/collapsed",
+            "Collapsed",
+            "hash-collapsed",
+            Array.Empty<UdbScriptDirectory>(),
+            Array.Empty<UdbScriptInfo>());
+        var expandedChild = new UdbScriptDirectory(
+            "/scripts/a/expanded",
+            "Expanded",
+            "hash-expanded",
+            Array.Empty<UdbScriptDirectory>(),
+            Array.Empty<UdbScriptInfo>());
+        var root = new UdbScriptDirectory(
+            "/scripts",
+            "Scripts",
+            "hash-root",
+            new[] { collapsedChild, expandedChild },
+            Array.Empty<UdbScriptInfo>());
+
+        IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveDirectoryExpansionOperations(
+            root,
+            new HashSet<string> { collapsedChild.Hash });
+
+        Assert.Equal(3, operations.Count);
+        Assert.Equal(UdbScriptSettingOperationKind.Delete, operations[0].Kind);
+        Assert.Equal("directoryexpand.hash-root", operations[0].Key);
+        Assert.Null(operations[0].Value);
+        Assert.Equal(UdbScriptSettingOperationKind.Write, operations[1].Kind);
+        Assert.Equal("directoryexpand.hash-collapsed", operations[1].Key);
+        Assert.Equal(false, operations[1].Value);
+        Assert.Equal(UdbScriptSettingOperationKind.Delete, operations[2].Kind);
+        Assert.Equal("directoryexpand.hash-expanded", operations[2].Key);
+        Assert.Null(operations[2].Value);
+    }
+
+    [Fact]
     public void FindScriptNodeRecursivelyMatchesScriptFile()
     {
         UdbScriptInfo nested = Script("Nested", "Secret doors", "/scripts/a/nested.js");
