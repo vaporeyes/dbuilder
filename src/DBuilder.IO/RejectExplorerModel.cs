@@ -150,6 +150,9 @@ public static class RejectExplorerModel
     public static string FormatValidation(RejectExplorerValidation validation)
         => $"REJECT: {validation.Status} ({CountLabel(validation.ActualBytes, "byte")}, expected {validation.ExpectedBytes})";
 
+    public static string RejectedSectorsStatusText(int rejectedSectorCount, int sourceSector)
+        => $"{CountLabel(rejectedSectorCount, "sector")} {(rejectedSectorCount == 1 ? "is" : "are")} rejected (cannot see) from sector {sourceSector}.";
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 

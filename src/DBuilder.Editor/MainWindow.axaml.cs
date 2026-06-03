@@ -4381,7 +4381,7 @@ public partial class MainWindow : Window
         {
             ApplyRejectOverlay(reject, selectedTarget);
             int count = SelectRejectedSectors(reject, selectedTarget);
-            SetStatus($"{count} sector(s) are rejected (cannot see) from sector {selectedTarget}.");
+            SetStatus(RejectExplorerModel.RejectedSectorsStatusText(count, selectedTarget));
         }
         else if (!validation.CanUse)
         {

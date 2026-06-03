@@ -183,6 +183,15 @@ public sealed class RejectExplorerModelTests
         Assert.Equal("REJECT: TooSmall (1 byte, expected 2)", RejectExplorerModel.FormatValidation(validation));
     }
 
+    [Theory]
+    [InlineData(1, 3, "1 sector is rejected (cannot see) from sector 3.")]
+    [InlineData(2, 3, "2 sectors are rejected (cannot see) from sector 3.")]
+    public void RejectedSectorsStatusTextFormatsSingularAndPluralSectorCounts(
+        int rejectedSectorCount,
+        int sourceSector,
+        string expected)
+        => Assert.Equal(expected, RejectExplorerModel.RejectedSectorsStatusText(rejectedSectorCount, sourceSector));
+
     [Fact]
     public void SectorOverlayColorsFollowHighlightedRelations()
     {
