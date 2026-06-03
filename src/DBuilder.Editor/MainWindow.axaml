@@ -169,16 +169,16 @@
                 <MenuItem Header="View _Comments..." x:Name="CommentsPanelMenuItem" Click="OnCommentsPanel" />
                 <MenuItem Header="Show Comment _Icons" x:Name="ToggleCommentsMenuItem" ToggleType="CheckBox" IsChecked="True" Click="OnToggleComments" />
                 <MenuItem Header="View _Nodes..." x:Name="NodesViewerMenuItem" Click="OnNodesViewer" />
-                <MenuItem Header="View _Status History..." Click="OnStatusHistory" />
-                <MenuItem Header="View _Error Log..." Click="OnErrorLog" />
+                <MenuItem Header="View _Status History..." x:Name="StatusHistoryMenuItem" Click="OnStatusHistory" />
+                <MenuItem Header="View _Error Log..." x:Name="ErrorLogMenuItem" Click="OnErrorLog" />
                 <MenuItem Header="_Browsers">
-                    <MenuItem Header="_Textures..." Click="OnBrowseWallTextures" />
-                    <MenuItem Header="_Flats..." Click="OnBrowseFlats" />
+                    <MenuItem Header="_Textures..." x:Name="BrowseWallTexturesMenuItem" Click="OnBrowseWallTextures" />
+                    <MenuItem Header="_Flats..." x:Name="BrowseFlatsMenuItem" Click="OnBrowseFlats" />
                     <MenuItem Header="Set Selected _Floor Flats..." x:Name="BrowseFloorFlatsMenuItem" Click="OnBrowseFloorFlats" />
                     <MenuItem Header="Set Selected _Ceiling Flats..." x:Name="BrowseCeilingFlatsMenuItem" Click="OnBrowseCeilingFlats" />
-                    <MenuItem Header="_Things..." Click="OnBrowseThingsCatalog" />
-                    <MenuItem Header="_Linedef Actions..." Click="OnBrowseActionsCatalog" />
-                    <MenuItem Header="_Sector Effects..." Click="OnBrowseEffectsCatalog" />
+                    <MenuItem Header="_Things..." x:Name="BrowseThingsMenuItem" Click="OnBrowseThingsCatalog" />
+                    <MenuItem Header="_Linedef Actions..." x:Name="BrowseLinedefActionsMenuItem" Click="OnBrowseActionsCatalog" />
+                    <MenuItem Header="_Sector Effects..." x:Name="BrowseSectorEffectsMenuItem" Click="OnBrowseEffectsCatalog" />
                 </MenuItem>
                 <MenuItem Header="Toggle _3D Mode" x:Name="Toggle3DModeMenuItem" ToggleType="CheckBox" Click="OnToggle3DMode" />
                 <MenuItem Header="Move 3D Camera to _Cursor" x:Name="MoveCameraToCursorMenuItem" Click="OnMoveCameraToCursor" />
@@ -210,16 +210,16 @@
                 <MenuItem Header="Thing _Filter..." x:Name="ThingFilterMenuItem" Click="OnThingFilter" />
                 <MenuItem Header="Filter Selected _Things..." x:Name="FilterSelectedThingsMenuItem" Click="OnFilterSelectedThings" />
                 <MenuItem Header="_Grid">
-                    <MenuItem Header="_Grid Setup..." Click="OnGridSetup" />
-                    <MenuItem Header="_Smart Grid Transform" Click="OnSmartGridTransform" />
-                    <MenuItem Header="_Align Grid To Selected Linedef" Click="OnAlignGridToLinedef" />
-                    <MenuItem Header="Set Grid _Origin To Selected Vertex" Click="OnSetGridOriginToVertex" />
-                    <MenuItem Header="_Reset Grid Transform" Click="OnResetGridTransform" />
+                    <MenuItem Header="_Grid Setup..." x:Name="GridSetupMenuItem" Click="OnGridSetup" />
+                    <MenuItem Header="_Smart Grid Transform" x:Name="SmartGridTransformMenuItem" Click="OnSmartGridTransform" />
+                    <MenuItem Header="_Align Grid To Selected Linedef" x:Name="AlignGridToLinedefMenuItem" Click="OnAlignGridToLinedef" />
+                    <MenuItem Header="Set Grid _Origin To Selected Vertex" x:Name="SetGridOriginToVertexMenuItem" Click="OnSetGridOriginToVertex" />
+                    <MenuItem Header="_Reset Grid Transform" x:Name="ResetGridTransformMenuItem" Click="OnResetGridTransform" />
                 </MenuItem>
                 <MenuItem Header="_Snap to Grid" x:Name="ToggleSnapToGridMenuItem" ToggleType="CheckBox" Click="OnToggleSnapToGrid" />
                 <MenuItem Header="_Dynamic Grid Size" x:Name="ToggleDynamicGridSizeMenuItem" ToggleType="CheckBox" Click="OnToggleDynamicGridSize" />
-                <MenuItem Header="Grid Size _Down" Click="OnGridSizeDown" />
-                <MenuItem Header="Grid Size _Up" Click="OnGridSizeUp" />
+                <MenuItem Header="Grid Size _Down" x:Name="GridSizeDownMenuItem" Click="OnGridSizeDown" />
+                <MenuItem Header="Grid Size _Up" x:Name="GridSizeUpMenuItem" Click="OnGridSizeUp" />
                 <MenuItem Header="Show _Blockmap" x:Name="ToggleBlockmapMenuItem" ToggleType="CheckBox" Click="OnToggleBlockmap" />
                 <MenuItem Header="Show _Nodes" x:Name="ToggleNodesMenuItem" ToggleType="CheckBox" Click="OnToggleNodes" />
             </MenuItem>

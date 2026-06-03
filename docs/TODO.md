@@ -139,6 +139,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut bindings in File menu item tooltips.
   - [x] Show effective shortcut bindings in Edit and Prefabs menu item tooltips.
   - [x] Show effective shortcut bindings in View menu item tooltips.
+  - [x] Show effective shortcut bindings in remaining View menu item tooltips.
   - [x] Show effective shortcut bindings in Tools menu item tooltips.
   - [x] Show effective shortcut bindings in Help menu item tooltips.
 - [ ] Port repeatable actions and action state updates.
