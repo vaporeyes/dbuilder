@@ -158,6 +158,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate the Draw parent menu by loaded map state.
   - [x] Gate the Sector Heights parent menu by loaded map state.
   - [x] Gate the Align Textures parent menu by either texture or flat alignment availability.
+  - [x] Gate the Selection Groups parent menu by loaded map state.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.
