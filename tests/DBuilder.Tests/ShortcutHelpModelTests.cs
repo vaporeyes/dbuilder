@@ -127,8 +127,9 @@ public sealed class ShortcutHelpModelTests
 
     [Theory]
     [InlineData("", 120, 12, 0, "120 shortcuts in 12 groups")]
-    [InlineData("texture", 120, 12, 1, "1 shortcut matched")]
-    [InlineData("texture", 120, 12, 2, "2 shortcuts matched")]
+    [InlineData("", 1, 1, 0, "1 shortcut in 1 group")]
+    [InlineData("texture", 120, 1, 1, "1 shortcut in 1 group matched")]
+    [InlineData("texture", 120, 2, 3, "3 shortcuts in 2 groups matched")]
     public void MatchSummaryDescribesAllAndFilteredStates(string filter, int commandCount, int sectionCount, int matchCount, string expected)
         => Assert.Equal(expected, ShortcutHelpModel.MatchSummary(filter, commandCount, sectionCount, matchCount));
 }

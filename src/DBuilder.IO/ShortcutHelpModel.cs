@@ -52,9 +52,12 @@ public static class ShortcutHelpModel
     {
         string text = filter?.Trim() ?? "";
         return text.Length > 0
-            ? $"{matchCount} shortcut{Plural(matchCount)} matched"
-            : $"{commandCount} shortcuts in {sectionCount} groups";
+            ? $"{CountLabel(matchCount, "shortcut")} in {CountLabel(sectionCount, "group")} matched"
+            : $"{CountLabel(commandCount, "shortcut")} in {CountLabel(sectionCount, "group")}";
     }
+
+    private static string CountLabel(int count, string noun)
+        => $"{count} {noun}{Plural(count)}";
 
     public static int EffectiveShortcutCount(IReadOnlyList<EditorCommandDescriptor> commands, IReadOnlyList<EditorShortcutBinding> bindings)
         => BuildSections(commands, bindings, filter: "").Sum(section => section.Rows.Count);
