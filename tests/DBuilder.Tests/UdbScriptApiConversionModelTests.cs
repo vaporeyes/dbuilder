@@ -1982,6 +1982,28 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void BlockMapWrapperCachesBlockEntryAndContentWrappers()
+    {
+        var (map, line, _, _, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+
+        UdbScriptBlockEntryWrapper firstBlock = wrapper.getBlockAt(new object[] { 32.0, 32.0 });
+        UdbScriptBlockEntryWrapper secondBlock = wrapper.getBlockAt(new UdbScriptVector2DWrapper(32, 32));
+        UdbScriptLinedefWrapper[] firstLines = firstBlock.getLinedefs();
+        UdbScriptLinedefWrapper[] secondLines = firstBlock.getLinedefs();
+        UdbScriptBlockMapQueryResult result = wrapper.getLineBlocks(new object[] { 0.0, 0.0 }, new object[] { 64.0, 0.0 });
+        UdbScriptBlockEntryWrapper firstQueryBlock = result.First();
+        UdbScriptBlockEntryWrapper secondQueryBlock = result.First();
+
+        Assert.Same(firstBlock, secondBlock);
+        Assert.Same(firstLines, secondLines);
+        Assert.Same(firstLines[0], secondLines[0]);
+        Assert.Same(line, firstLines[0].Linedef);
+        Assert.Same(firstQueryBlock, secondQueryBlock);
+        Assert.Same(result.getLinedefs(), result.getLinedefs());
+    }
+
+    [Fact]
     public void BlockMapWrapperHonorsElementTypeSelection()
     {
         var (map, _, _, thing, _) = CreateBlockMapFixture(64);

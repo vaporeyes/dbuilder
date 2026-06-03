@@ -2807,31 +2807,36 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 
 public abstract class UdbScriptBlockMapContentBase
 {
+    private UdbScriptLinedefWrapper[]? wrappedLines;
+    private UdbScriptThingWrapper[]? wrappedThings;
+    private UdbScriptSectorWrapper[]? wrappedSectors;
+    private UdbScriptVertexWrapper[]? wrappedVertices;
+
     public abstract UdbScriptLinedefWrapper[] getLinedefs();
     public abstract UdbScriptThingWrapper[] getThings();
     public abstract UdbScriptSectorWrapper[] getSectors();
     public abstract UdbScriptVertexWrapper[] getVertices();
 
-    protected static UdbScriptLinedefWrapper[] WrapLinedefs(IEnumerable<Linedef> lines)
-        => lines
+    protected UdbScriptLinedefWrapper[] GetWrappedLinedefs(IEnumerable<Linedef> lines)
+        => wrappedLines ??= lines
             .Where(line => !line.IsDisposed)
             .Select(line => new UdbScriptLinedefWrapper(line))
             .ToArray();
 
-    protected static UdbScriptThingWrapper[] WrapThings(IEnumerable<Thing> things)
-        => things
+    protected UdbScriptThingWrapper[] GetWrappedThings(IEnumerable<Thing> things)
+        => wrappedThings ??= things
             .Where(thing => !thing.IsDisposed)
             .Select(thing => new UdbScriptThingWrapper(thing))
             .ToArray();
 
-    protected static UdbScriptSectorWrapper[] WrapSectors(IEnumerable<Sector> sectors)
-        => sectors
+    protected UdbScriptSectorWrapper[] GetWrappedSectors(IEnumerable<Sector> sectors)
+        => wrappedSectors ??= sectors
             .Where(sector => !sector.IsDisposed)
             .Select(sector => new UdbScriptSectorWrapper(sector))
             .ToArray();
 
-    protected static UdbScriptVertexWrapper[] WrapVertices(IEnumerable<Vertex> vertices)
-        => vertices
+    protected UdbScriptVertexWrapper[] GetWrappedVertices(IEnumerable<Vertex> vertices)
+        => wrappedVertices ??= vertices
             .Where(vertex => !vertex.IsDisposed)
             .Select(vertex => new UdbScriptVertexWrapper(vertex))
             .ToArray();
@@ -2849,21 +2854,22 @@ public sealed class UdbScriptBlockEntryWrapper : UdbScriptBlockMapContentBase
     public BlockMapCell Entry => entry;
 
     public override UdbScriptLinedefWrapper[] getLinedefs()
-        => WrapLinedefs(entry.Lines);
+        => GetWrappedLinedefs(entry.Lines);
 
     public override UdbScriptThingWrapper[] getThings()
-        => WrapThings(entry.Things);
+        => GetWrappedThings(entry.Things);
 
     public override UdbScriptSectorWrapper[] getSectors()
-        => WrapSectors(entry.Sectors);
+        => GetWrappedSectors(entry.Sectors);
 
     public override UdbScriptVertexWrapper[] getVertices()
-        => WrapVertices(entry.Vertices);
+        => GetWrappedVertices(entry.Vertices);
 }
 
 public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase, IEnumerable<UdbScriptBlockEntryWrapper>
 {
     private readonly IReadOnlyList<BlockMapCell> entries;
+    private UdbScriptBlockEntryWrapper[]? wrappedEntries;
 
     public UdbScriptBlockMapQueryResult(IEnumerable<BlockMapCell> entries)
     {
@@ -2871,21 +2877,21 @@ public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase,
     }
 
     public override UdbScriptLinedefWrapper[] getLinedefs()
-        => WrapLinedefs(entries.SelectMany(entry => entry.Lines).Distinct());
+        => GetWrappedLinedefs(entries.SelectMany(entry => entry.Lines).Distinct());
 
     public override UdbScriptThingWrapper[] getThings()
-        => WrapThings(entries.SelectMany(entry => entry.Things).Distinct());
+        => GetWrappedThings(entries.SelectMany(entry => entry.Things).Distinct());
 
     public override UdbScriptSectorWrapper[] getSectors()
-        => WrapSectors(entries.SelectMany(entry => entry.Sectors).Distinct());
+        => GetWrappedSectors(entries.SelectMany(entry => entry.Sectors).Distinct());
 
     public override UdbScriptVertexWrapper[] getVertices()
-        => WrapVertices(entries.SelectMany(entry => entry.Vertices).Distinct());
+        => GetWrappedVertices(entries.SelectMany(entry => entry.Vertices).Distinct());
 
     public IEnumerator<UdbScriptBlockEntryWrapper> GetEnumerator()
     {
-        foreach (BlockMapCell entry in entries)
-            yield return new UdbScriptBlockEntryWrapper(entry);
+        wrappedEntries ??= entries.Select(entry => new UdbScriptBlockEntryWrapper(entry)).ToArray();
+        return ((IEnumerable<UdbScriptBlockEntryWrapper>)wrappedEntries).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -2895,6 +2901,7 @@ public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase,
 public sealed class UdbScriptBlockMapWrapper
 {
     private readonly BlockMap blockMap;
+    private readonly Dictionary<BlockMapCell, UdbScriptBlockEntryWrapper> blockEntries = new();
 
     public UdbScriptBlockMapWrapper(MapSet map, double blockSize = 128.0)
         : this(map, lines: true, things: true, sectors: true, vertices: true, blockSize)
@@ -2928,7 +2935,14 @@ public sealed class UdbScriptBlockMapWrapper
     public UdbScriptBlockEntryWrapper getBlockAt(object pos)
     {
         Vector2D point = ToVector2D(pos);
-        return new UdbScriptBlockEntryWrapper(blockMap.GetBlockAt(point) ?? EmptyCell());
+        BlockMapCell entry = blockMap.GetBlockAt(point) ?? EmptyCell();
+        if (!blockEntries.TryGetValue(entry, out UdbScriptBlockEntryWrapper? wrapper))
+        {
+            wrapper = new UdbScriptBlockEntryWrapper(entry);
+            blockEntries[entry] = wrapper;
+        }
+
+        return wrapper;
     }
 
     public UdbScriptBlockMapQueryResult getLineBlocks(object v1, object v2)
