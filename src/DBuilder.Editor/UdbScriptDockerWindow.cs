@@ -11,8 +11,8 @@ namespace DBuilder.Editor;
 public sealed class UdbScriptDockerWindow : Window
 {
     private readonly UdbScriptDirectory _rootDirectory;
-    private readonly IReadOnlyDictionary<int, UdbScriptInfo?> _slotAssignments;
     private readonly IReadOnlyDictionary<int, string> _hotkeys;
+    private IReadOnlyDictionary<int, UdbScriptInfo?> _slotAssignments;
     private readonly TextBox _filter = new();
     private readonly TreeView _tree = new();
     private readonly TextBox _description = new();
@@ -26,6 +26,8 @@ public sealed class UdbScriptDockerWindow : Window
     public event Action<UdbScriptInfo>? EditRequested;
     public event Action<UdbScriptInfo>? OptionsRequested;
     public event Action<UdbScriptInfo>? ResetOptionsRequested;
+    public event Action<UdbScriptInfo, int>? SlotAssignmentRequested;
+    public event Action<UdbScriptInfo>? SlotClearedRequested;
 
     public IReadOnlyList<UdbScriptDockerNode> Nodes { get; private set; } = Array.Empty<UdbScriptDockerNode>();
     public UdbScriptDockerSelection CurrentSelection { get; private set; } = UdbScriptDockerModel.Selection(null);
@@ -77,6 +79,15 @@ public sealed class UdbScriptDockerWindow : Window
             return;
 
         ApplySelection(new UdbScriptDockerSelection(script, script.Description, script.Options));
+    }
+
+    public void ApplySlotAssignments(IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments)
+    {
+        UdbScriptInfo? selected = CurrentSelection.CurrentScript;
+        _slotAssignments = slotAssignments;
+        RebuildTree();
+        if (selected is not null)
+            ApplySelection(new UdbScriptDockerSelection(selected, selected.Description, selected.Options));
     }
 
     private Control BuildContent()
@@ -143,7 +154,7 @@ public sealed class UdbScriptDockerWindow : Window
         ApplySelection(UdbScriptDockerModel.Selection(null));
     }
 
-    private static TreeViewItem TreeItem(UdbScriptDockerNode node)
+    private TreeViewItem TreeItem(UdbScriptDockerNode node)
     {
         var item = new TreeViewItem
         {
@@ -152,6 +163,43 @@ public sealed class UdbScriptDockerWindow : Window
             Tag = node,
         };
         item.ItemsSource = node.Children.Select(TreeItem).ToArray();
+        if (node.Script is not null)
+            item.ContextMenu = BuildScriptContextMenu(node.Script);
+        return item;
+    }
+
+    private ContextMenu BuildScriptContextMenu(UdbScriptInfo script)
+    {
+        var items = new List<object>();
+        foreach (UdbScriptDockerMenuItem model in UdbScriptDockerModel.FileContextMenuItems())
+        {
+            if (model.Kind == UdbScriptDockerMenuItemKind.Command && model.Text == UdbScriptDockerModel.EditMenuText)
+            {
+                var edit = new MenuItem { Header = model.Text };
+                edit.Click += (_, _) => EditRequested?.Invoke(script);
+                items.Add(edit);
+            }
+            else if (model.Kind == UdbScriptDockerMenuItemKind.Submenu)
+            {
+                var slotMenu = new MenuItem { Header = model.Text };
+                slotMenu.ItemsSource = model.Children.Select(child => SlotMenuItem(script, child)).ToArray();
+                items.Add(slotMenu);
+            }
+        }
+
+        return new ContextMenu { ItemsSource = items };
+    }
+
+    private object SlotMenuItem(UdbScriptInfo script, UdbScriptDockerMenuItem model)
+    {
+        if (model.Kind == UdbScriptDockerMenuItemKind.Separator)
+            return new Separator();
+
+        var item = new MenuItem { Header = model.Text };
+        if (model.Kind == UdbScriptDockerMenuItemKind.Command && model.Text == UdbScriptDockerModel.ClearSlotMenuText)
+            item.Click += (_, _) => SlotClearedRequested?.Invoke(script);
+        else if (model.Kind == UdbScriptDockerMenuItemKind.Slot)
+            item.Click += (_, _) => SlotAssignmentRequested?.Invoke(script, model.Slot);
         return item;
     }
 

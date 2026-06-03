@@ -23,9 +23,12 @@ public class UdbScriptDockerWindowTests
         Assert.NotNull(type.GetEvent("EditRequested"));
         Assert.NotNull(type.GetEvent("OptionsRequested"));
         Assert.NotNull(type.GetEvent("ResetOptionsRequested"));
+        Assert.NotNull(type.GetEvent("SlotAssignmentRequested"));
+        Assert.NotNull(type.GetEvent("SlotClearedRequested"));
         Assert.NotNull(type.GetProperty("Nodes"));
         Assert.NotNull(type.GetProperty("CurrentSelection"));
         Assert.NotNull(type.GetMethod("ApplyCurrentScript", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetMethod("ApplySlotAssignments", BindingFlags.Instance | BindingFlags.Public));
         Assert.True(typeof(Avalonia.Controls.Window).IsAssignableFrom(type));
     }
 }

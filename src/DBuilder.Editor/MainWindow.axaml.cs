@@ -71,6 +71,7 @@ public partial class MainWindow : Window
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
     private UdbScriptDockerWindow? _udbScriptDocker;
+    private IReadOnlyDictionary<int, UdbScriptInfo?> _udbScriptSlotAssignments = new Dictionary<int, UdbScriptInfo?>();
     private BlockmapExplorerWindow? _blockmapExplorer;
     private SoundEnvironmentWindow? _soundEnvironments;
     private SoundEnvironmentModeModel? _soundEnvironmentModel;
@@ -1215,8 +1216,39 @@ public partial class MainWindow : Window
                 SetStatus("Draw mode off.");
                 return true;
             default:
-                return RunSelectionGroupCommand(commandId);
+                return RunUdbScriptCommand(commandId) || RunSelectionGroupCommand(commandId);
         }
+    }
+
+    private bool RunUdbScriptCommand(string commandId)
+    {
+        if (commandId == "window.udbscriptexecute")
+        {
+            RunUdbScriptPlan(UdbScriptActions.ExecuteCurrentPlan(_udbScriptDocker?.CurrentSelection.CurrentScript));
+            return true;
+        }
+
+        const string slotPrefix = "window.udbscriptexecuteslot";
+        if (!commandId.StartsWith(slotPrefix, StringComparison.Ordinal))
+            return false;
+
+        RunUdbScriptPlan(UdbScriptActions.ExecuteSlotPlan(commandId, _udbScriptSlotAssignments));
+        return true;
+    }
+
+    private void RunUdbScriptPlan(UdbScriptExecutionPlan plan)
+    {
+        if (plan.Script is { } script)
+        {
+            SetStatus(plan.Slot == 0
+                ? $"UDBScript run requested: {script.Name}"
+                : $"UDBScript slot {plan.Slot} run requested: {script.Name}");
+            return;
+        }
+
+        SetStatus(plan.Slot == 0
+            ? "No UDBScript selected."
+            : $"No UDBScript assigned to slot {plan.Slot}.");
     }
 
     private bool RunSelectionGroupCommand(string commandId)
@@ -2396,13 +2428,38 @@ public partial class MainWindow : Window
         }
 
         UdbScriptDirectory scripts = UdbScriptDiscovery.DiscoverFromAppPath(AppContext.BaseDirectory);
-        _udbScriptDocker = new UdbScriptDockerWindow(scripts);
+        _udbScriptDocker = new UdbScriptDockerWindow(scripts, _udbScriptSlotAssignments);
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
-        _udbScriptDocker.RunRequested += script => SetStatus($"UDBScript run requested: {script.Name}");
+        _udbScriptDocker.RunRequested += script => RunUdbScriptPlan(UdbScriptActions.ExecuteCurrentPlan(script));
         _udbScriptDocker.EditRequested += OpenUdbScriptExternalEditor;
         _udbScriptDocker.OptionsRequested += EditUdbScriptOptions;
         _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
+        _udbScriptDocker.SlotAssignmentRequested += AssignUdbScriptSlot;
+        _udbScriptDocker.SlotClearedRequested += ClearUdbScriptSlot;
         _udbScriptDocker.Show(this);
+    }
+
+    private void AssignUdbScriptSlot(UdbScriptInfo script, int slot)
+    {
+        _udbScriptSlotAssignments = UdbScriptDockerModel.AssignSlot(_udbScriptSlotAssignments, slot, script);
+        _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
+        IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
+        SetStatus($"UDBScript assigned to slot {slot}: {script.Name} ({operations.Count} setting change(s))");
+    }
+
+    private void ClearUdbScriptSlot(UdbScriptInfo script)
+    {
+        int slot = UdbScriptDockerModel.SlotForScript(script, _udbScriptSlotAssignments);
+        if (slot == 0)
+        {
+            SetStatus($"UDBScript is not assigned to a slot: {script.Name}");
+            return;
+        }
+
+        _udbScriptSlotAssignments = UdbScriptDockerModel.AssignSlot(_udbScriptSlotAssignments, slot, null);
+        _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
+        IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
+        SetStatus($"UDBScript cleared from slot {slot}: {script.Name} ({operations.Count} setting change(s))");
     }
 
     private void OpenUdbScriptExternalEditor(UdbScriptInfo script)
