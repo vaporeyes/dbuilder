@@ -799,6 +799,31 @@ public class WavefrontExportModelTests
         Assert.Empty(disabledPlan.Warnings);
     }
 
+    [Theory]
+    [InlineData(1, 1, 0, 0, "Exported Wavefront OBJ: 1 texture material, 1 flat material.")]
+    [InlineData(2, 3, 1, 1, "Exported Wavefront OBJ: 2 texture materials, 3 flat materials. 1 image file. 1 image warning.")]
+    [InlineData(0, 0, 2, 2, "Exported Wavefront OBJ: 0 texture materials, 0 flat materials. 2 image files. 2 image warnings.")]
+    public void ExportStatusTextFormatsSingularAndPluralCounts(
+        int textureCount,
+        int flatCount,
+        int imageFileCount,
+        int warningCount,
+        string expected)
+    {
+        WavefrontExportSettings settings = WavefrontExportSettings.FromOptions(new WavefrontExportOptions
+        {
+            FilePath = "/tmp/export/demo.obj"
+        });
+        settings.Textures = Enumerable.Range(0, textureCount).Select(index => $"TEXTURE{index}").ToArray();
+        settings.Flats = Enumerable.Range(0, flatCount).Select(index => $"FLAT{index}").ToArray();
+        var files = Enumerable.Range(0, imageFileCount)
+            .Select(index => new WavefrontExportImageFile($"image{index}.png", [], $"IMAGE{index}", IsFlat: false))
+            .ToArray();
+        var warnings = Enumerable.Range(0, warningCount).Select(index => $"warning{index}").ToArray();
+
+        Assert.Equal(expected, settings.ExportStatusText("Wavefront OBJ", new WavefrontImagePlan(files, warnings)));
+    }
+
     [Fact]
     public void WriteImageFilesCreatesDirectoriesAndWritesBytes()
     {

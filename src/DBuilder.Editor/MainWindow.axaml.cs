@@ -5133,9 +5133,7 @@ public partial class MainWindow : Window
                 name => WavefrontImage(name, flats: false),
                 name => WavefrontImage(name, flats: true));
             WavefrontExportPlanner.WriteImageFiles(imagePlan.Files);
-            string images = imagePlan.Files.Count == 0 ? "" : $" {imagePlan.Files.Count} image file(s).";
-            string warnings = imagePlan.Warnings.Count == 0 ? "" : $" {imagePlan.Warnings.Count} image warning(s).";
-            SetStatus($"Exported object OBJ: {wavefront.Textures?.Count ?? 0} texture material(s), {wavefront.Flats?.Count ?? 0} flat material(s).{images}{warnings}");
+            SetStatus(wavefront.ExportStatusText("object OBJ", imagePlan));
         }
         catch (Exception ex)
         {
@@ -5208,9 +5206,7 @@ public partial class MainWindow : Window
                 name => WavefrontImage(name, flats: false),
                 name => WavefrontImage(name, flats: true));
             WavefrontExportPlanner.WriteImageFiles(imagePlan.Files);
-            string images = imagePlan.Files.Count == 0 ? "" : $" {imagePlan.Files.Count} image file(s).";
-            string warnings = imagePlan.Warnings.Count == 0 ? "" : $" {imagePlan.Warnings.Count} image warning(s).";
-            SetStatus($"Exported Wavefront OBJ: {settings.Textures?.Count ?? 0} texture material(s), {settings.Flats?.Count ?? 0} flat material(s).{images}{warnings}");
+            SetStatus(settings.ExportStatusText("Wavefront OBJ", imagePlan));
         }
         catch (Exception ex)
         {

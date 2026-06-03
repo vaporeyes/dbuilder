@@ -224,6 +224,13 @@ public sealed class WavefrontExportSettings
 
     public static WavefrontExportSettings FromOptions(WavefrontExportOptions options) => new(options);
 
+    public string ExportStatusText(string label, WavefrontImagePlan imagePlan)
+    {
+        string images = imagePlan.Files.Count == 0 ? string.Empty : $" {CountLabel(imagePlan.Files.Count, "image file")}.";
+        string warnings = imagePlan.Warnings.Count == 0 ? string.Empty : $" {CountLabel(imagePlan.Warnings.Count, "image warning")}.";
+        return $"Exported {label}: {CountLabel(Textures?.Count ?? 0, "texture material")}, {CountLabel(Flats?.Count ?? 0, "flat material")}.{images}{warnings}";
+    }
+
     public static string NormalizeMaterialName(string? texture)
         => string.IsNullOrEmpty(texture) || texture == "-" ? DefaultMaterial : texture;
 
@@ -232,6 +239,9 @@ public sealed class WavefrontExportSettings
         texture = NormalizeMaterialName(texture);
         if (!geometry.ContainsKey(texture)) geometry.Add(texture, new List<T>());
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public enum WavefrontSurfaceType
