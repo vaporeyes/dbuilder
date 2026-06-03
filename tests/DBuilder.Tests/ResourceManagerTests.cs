@@ -16,6 +16,20 @@ public class ResourceManagerTests
     public void ReloadStatusTextFormatsSingularAndPluralResourceIssueCounts(int resourceIssueCount, string expected)
         => Assert.Equal(expected, ResourceManager.ReloadStatusText(resourceIssueCount));
 
+    [Theory]
+    [InlineData(0, "Loaded MAP01 [Doom]: 1 verts, 2 lines, 3 sectors, 4 things")]
+    [InlineData(1, "Loaded MAP01 [Doom]: 1 verts, 2 lines, 3 sectors, 4 things (1 map resource missing or unreadable)")]
+    [InlineData(2, "Loaded MAP01 [Doom]: 1 verts, 2 lines, 3 sectors, 4 things (2 map resources missing or unreadable)")]
+    public void MapLoadedStatusTextFormatsSingularAndPluralResourceIssueCounts(int resourceIssueCount, string expected)
+        => Assert.Equal(expected, ResourceManager.MapLoadedStatusText(
+            "MAP01",
+            "Doom",
+            vertexCount: 1,
+            linedefCount: 2,
+            sectorCount: 3,
+            thingCount: 4,
+            resourceIssueCount));
+
     // A grayscale palette: index i -> (i, i, i), so a flat filled with index v decodes to RGBA (v, v, v, 255).
     private static byte[] GrayscalePlaypal()
     {

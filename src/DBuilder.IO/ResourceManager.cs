@@ -189,6 +189,19 @@ public sealed class ResourceManager : IDisposable
         return $"Resources reloaded{issues}.";
     }
 
+    public static string MapLoadedStatusText(
+        string mapName,
+        string mapFormat,
+        int vertexCount,
+        int linedefCount,
+        int sectorCount,
+        int thingCount,
+        int resourceIssueCount)
+    {
+        string resources = resourceIssueCount == 0 ? string.Empty : $" ({CountLabel(resourceIssueCount, "map resource")} missing or unreadable)";
+        return $"Loaded {mapName} [{mapFormat}]: {vertexCount} verts, {linedefCount} lines, {sectorCount} sectors, {thingCount} things{resources}";
+    }
+
     public GameConfiguration? Configuration
     {
         get => configuration;

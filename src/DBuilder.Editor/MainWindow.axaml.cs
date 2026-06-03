@@ -3767,8 +3767,14 @@ public partial class MainWindow : Window
             ClearMapDirty();
             RememberRecentMap(_wadPath, entry.Name);
             UpdateInfo();
-            string resources = resourceIssues == 0 ? "" : $" ({resourceIssues} map resource(s) missing or unreadable)";
-            SetStatus($"Loaded {entry.Name} [{entry.Format}]: {map.Vertices.Count} verts, {map.Linedefs.Count} lines, {map.Sectors.Count} sectors, {map.Things.Count} things{resources}");
+            SetStatus(ResourceManager.MapLoadedStatusText(
+                entry.Name,
+                entry.Format.ToString(),
+                map.Vertices.Count,
+                map.Linedefs.Count,
+                map.Sectors.Count,
+                map.Things.Count,
+                resourceIssues));
         }
         catch (Exception ex) { LogAndSetStatus(ex, "Load failed"); }
     }
