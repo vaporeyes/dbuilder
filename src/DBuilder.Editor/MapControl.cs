@@ -5146,6 +5146,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.align-linedefs":
                 AlignLinedefs();
                 return true;
+            case "map2d.split-linedefs":
+                SplitLinedefs();
+                return true;
             case "map2d.join-sectors":
                 JoinOrMergeSelectedSectors(merge: false);
                 return true;

@@ -592,13 +592,15 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
-    [Fact]
-    public void AlignLinedefsCommandMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("map2d.align-linedefs", "Align Linedefs")]
+    [InlineData("map2d.split-linedefs", "Split Linedefs")]
+    public void LinedefEditCommandsMatchUdbActionSurface(string commandId, string title)
     {
-        var command = EditorCommandCatalog.Find("map2d.align-linedefs");
+        var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
-        Assert.Equal("Align Linedefs", command.Title);
+        Assert.Equal(title, command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
