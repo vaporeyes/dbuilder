@@ -237,9 +237,9 @@ public static class ClipboardStreamWriter
 
     private static void WriteString(BinaryWriter w, string s)
     {
-        var bytes = Encoding.UTF8.GetBytes(s ?? string.Empty);
-        w.Write(bytes.Length);
-        w.Write(bytes);
+        s ??= string.Empty;
+        w.Write(s.Length);
+        w.Write(s.ToCharArray());
     }
 
     private static Dictionary<T, int> BuildIndex<T>(IReadOnlyList<T> list) where T : class
@@ -568,7 +568,7 @@ public static class ClipboardStreamReader
     {
         int len = r.ReadInt32();
         if (len <= 0) return string.Empty;
-        return Encoding.UTF8.GetString(r.ReadBytes(len));
+        return new string(r.ReadChars(len));
     }
 }
 

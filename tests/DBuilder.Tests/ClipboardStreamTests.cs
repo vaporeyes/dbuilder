@@ -252,7 +252,7 @@ public class ClipboardStreamTests
         sector.Fields["lightcolor"] = 16711680;       // int
         sector.Fields["xscalefloor"] = 2.5;           // double
         sector.Fields["hidden"] = true;               // bool
-        sector.Fields["comment"] = "lava";            // string
+        sector.Fields["comment"] = "lava café";       // string
         src.Sectors.Add(sector);
         var v = new Vertex(new Vector2D(0, 0));
         v.Fields["zfloor"] = -8.0;
@@ -268,8 +268,33 @@ public class ClipboardStreamTests
         Assert.Equal(16711680, (int)rs.Fields["lightcolor"]);
         Assert.Equal(2.5, (double)rs.Fields["xscalefloor"]);
         Assert.True((bool)rs.Fields["hidden"]);
-        Assert.Equal("lava", (string)rs.Fields["comment"]);
+        Assert.Equal("lava café", (string)rs.Fields["comment"]);
         Assert.Equal(-8.0, (double)dst.Vertices[0].Fields["zfloor"]);
+    }
+
+    [Fact]
+    public void WritesStringsWithUdbCharCountLengths()
+    {
+        var src = new MapSet();
+        var sector = new Sector { Index = 0, FloorTexture = "FLOORÉ", CeilTexture = "-" };
+        sector.Fields["comment"] = "café";
+        src.Sectors.Add(sector);
+
+        var ms = new MemoryStream();
+        ClipboardStreamWriter.Write(src, ms);
+        ms.Position = 0;
+
+        using var r = new BinaryReader(ms, System.Text.Encoding.UTF8, leaveOpen: true);
+        r.ReadInt32(); r.ReadInt32(); r.ReadInt32(); r.ReadInt32(); // header
+        Assert.Equal(0, r.ReadInt32()); // vertices
+        Assert.Equal(1, r.ReadInt32()); // sectors
+        r.ReadInt32(); r.ReadInt32(); r.ReadInt32(); r.ReadInt32(); // sector ints
+        Assert.Equal(0, r.ReadInt32()); // tags
+
+        Assert.Equal(6, r.ReadInt32());
+        Assert.Equal("FLOORÉ", new string(r.ReadChars(6)));
+        Assert.Equal(1, "É".Length);
+        Assert.Equal(2, System.Text.Encoding.UTF8.GetByteCount("É"));
     }
 
     [Fact]
@@ -552,9 +577,8 @@ public class ClipboardStreamTests
 
     private static void WriteString(BinaryWriter w, string value)
     {
-        byte[] bytes = System.Text.Encoding.UTF8.GetBytes(value);
-        w.Write(bytes.Length);
-        w.Write(bytes);
+        w.Write(value.Length);
+        w.Write(value.ToCharArray());
     }
 
     private static void WriteTags(BinaryWriter w, params int[] tags)
