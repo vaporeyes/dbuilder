@@ -1184,7 +1184,10 @@ public static class DecorateParser
             // DECORATE puts Radius/Height in the actor body (depth 1); ZScript puts them in Default {} (depth 2).
             if (depth == 1 && (lw == "states" || lw.StartsWith("states(", StringComparison.Ordinal)))
             {
-                if (!zscriptBody && !TryConsumeDecorateStateCasts(tk.Text, t, ref i))
+                bool validStateHeader = zscriptBody
+                    ? TryConsumeZScriptStateCasts(tk.Text, t, ref i)
+                    : TryConsumeDecorateStateCasts(tk.Text, t, ref i);
+                if (!validStateHeader)
                 {
                     SkipRemainingActorBody(t, ref i, depth);
                     return false;
@@ -1320,6 +1323,35 @@ public static class DecorateParser
         }
         return true;
     }
+
+    private static bool TryConsumeZScriptStateCasts(string statesToken, List<Tok> t, ref int i)
+    {
+        int open = statesToken.IndexOf('(', StringComparison.Ordinal);
+        if (open >= 0)
+            return statesToken.IndexOf(')', open + 1) >= 0 || TryConsumeUntilClosingParen(t, ref i);
+
+        int j = i;
+        SkipNewlines(t, ref j);
+        if (j >= t.Count || t[j].Kind == Kind.Sym || !ContainsOpenParen(t[j].Text)) return true;
+
+        i = j;
+        return TryConsumeUntilClosingParen(t, ref i);
+    }
+
+    private static bool TryConsumeUntilClosingParen(List<Tok> t, ref int i)
+    {
+        while (i < t.Count)
+        {
+            var tk = t[i++];
+            if (tk.Kind == Kind.Sym && tk.Text == "{") return false;
+            if (tk.Text.IndexOf(')') >= 0) return true;
+        }
+
+        return false;
+    }
+
+    private static bool ContainsOpenParen(string text)
+        => text.IndexOf('(') >= 0;
 
     private static bool ContainsClosingParen(List<string> parts)
     {

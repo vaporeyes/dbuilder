@@ -80,6 +80,24 @@ class SingleQuotedSpriteActor : Actor
     }
 
     [Fact]
+    public void ParsesSpacedZScriptStatesCastHeaders()
+    {
+        const string text = @"
+class SpacedStatesCastActor : Actor
+{
+    States ( Actor )
+    {
+    Spawn:
+        CAST A -1;
+        stop;
+    }
+}";
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("CASTA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesSpacedZScriptEditorLineComments()
     {
         const string text = @"
