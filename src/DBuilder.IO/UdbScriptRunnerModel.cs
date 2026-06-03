@@ -50,6 +50,13 @@ public enum UdbScriptRuntimeConstraintDialogResult
     No,
 }
 
+public enum UdbScriptVersionGateDialogResult
+{
+    None,
+    Yes,
+    No,
+}
+
 public sealed record UdbScriptRunnerExceptionOutcome(
     UdbScriptRunnerExceptionKind Kind,
     bool WithdrawUndo,
@@ -77,6 +84,12 @@ public sealed record UdbScriptVersionGate(
     bool RequiresPrompt,
     string Title,
     string Message);
+
+public sealed record UdbScriptVersionGateDecision(
+    UdbScriptVersionGate Gate,
+    UdbScriptVersionGateDialogResult DialogResult,
+    bool ShouldContinue,
+    bool SetIgnoreVersion);
 
 public sealed record UdbScriptLegacyBinding(string Name, string Target);
 
@@ -429,6 +442,22 @@ public static class UdbScriptRunnerModel
             "Required feature version: " + scriptVersion + "\n" +
             "UDBScript feature version: " + CurrentFeatureVersion + "\n\n" +
             "Execute anyway?");
+    }
+
+    public static UdbScriptVersionGateDecision VersionGateDecision(
+        uint scriptVersion,
+        bool ignoreVersion,
+        UdbScriptVersionGateDialogResult dialogResult)
+    {
+        UdbScriptVersionGate gate = VersionGate(scriptVersion, ignoreVersion);
+        if (!gate.RequiresPrompt)
+            return new(gate, UdbScriptVersionGateDialogResult.None, true, false);
+
+        return new(
+            gate,
+            dialogResult,
+            dialogResult == UdbScriptVersionGateDialogResult.Yes,
+            dialogResult == UdbScriptVersionGateDialogResult.Yes);
     }
 
     public static UdbScriptRuntimeConstraintPrompt RuntimeConstraintPrompt(TimeSpan elapsed)

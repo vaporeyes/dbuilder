@@ -23,6 +23,40 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void VersionGateDecisionMatchesUdbPreRunContinueAndIgnoreVersionBranches()
+    {
+        UdbScriptVersionGateDecision current = UdbScriptRunnerModel.VersionGateDecision(
+            5,
+            ignoreVersion: false,
+            UdbScriptVersionGateDialogResult.No);
+
+        Assert.False(current.Gate.RequiresPrompt);
+        Assert.Equal(UdbScriptVersionGateDialogResult.None, current.DialogResult);
+        Assert.True(current.ShouldContinue);
+        Assert.False(current.SetIgnoreVersion);
+
+        UdbScriptVersionGateDecision accepted = UdbScriptRunnerModel.VersionGateDecision(
+            6,
+            ignoreVersion: false,
+            UdbScriptVersionGateDialogResult.Yes);
+
+        Assert.True(accepted.Gate.RequiresPrompt);
+        Assert.Equal(UdbScriptVersionGateDialogResult.Yes, accepted.DialogResult);
+        Assert.True(accepted.ShouldContinue);
+        Assert.True(accepted.SetIgnoreVersion);
+
+        UdbScriptVersionGateDecision declined = UdbScriptRunnerModel.VersionGateDecision(
+            6,
+            ignoreVersion: false,
+            UdbScriptVersionGateDialogResult.No);
+
+        Assert.True(declined.Gate.RequiresPrompt);
+        Assert.Equal(UdbScriptVersionGateDialogResult.No, declined.DialogResult);
+        Assert.False(declined.ShouldContinue);
+        Assert.False(declined.SetIgnoreVersion);
+    }
+
+    [Fact]
     public void RuntimeAndLifecycleTextMatchesUdb()
     {
         TimeSpan runtime = new(0, 1, 2, 3, 45);
