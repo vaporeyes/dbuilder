@@ -5940,12 +5940,23 @@ public partial class MainWindow : Window
 
     private void UpdateCommandCheckedState()
     {
+        bool verticesMode = MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode;
+        bool linedefsMode = MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode;
+        bool sectorsMode = MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode;
+        bool thingsMode = MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode;
+        bool drawSector = MapView.DrawMode && !MapView.DrawLinesOnly && !MapView.DrawCurve;
+        bool drawLines = MapView.DrawMode && MapView.DrawLinesOnly && !MapView.DrawCurve;
+        bool drawCurve = MapView.DrawMode && MapView.DrawCurve;
+        bool drawRectangle = MapView.CurrentShape == MapControl.ShapeKind.Rectangle;
+        bool drawEllipse = MapView.CurrentShape == MapControl.ShapeKind.Ellipse;
+        bool drawGrid = MapView.CurrentShape == MapControl.ShapeKind.Grid;
+
         SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
         SetChecked(InfoPanelMenuItem, InfoPanel.IsVisible);
-        SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
-        SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
-        SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
-        SetChecked(ThingsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Things && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
+        SetChecked(VerticesModeMenuItem, verticesMode);
+        SetChecked(LinedefsModeMenuItem, linedefsMode);
+        SetChecked(SectorsModeMenuItem, sectorsMode);
+        SetChecked(ThingsModeMenuItem, thingsMode);
         SetChecked(Toggle3DModeMenuItem, MapView.In3DMode);
         SetChecked(AutomapModeMenuItem, MapView.AutomapMode);
         SetChecked(WadAuthorModeMenuItem, MapView.WadAuthorMode);
@@ -5971,16 +5982,28 @@ public partial class MainWindow : Window
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
         SetChecked(ToggleNodesMenuItem, MapView.ShowNodes);
         SetChecked(ImageExampleMenuItem, MapView.ImageExampleMode);
-        SetChecked(DrawSectorMenuItem, MapView.DrawMode && !MapView.DrawLinesOnly && !MapView.DrawCurve);
-        SetChecked(DrawLinesMenuItem, MapView.DrawMode && MapView.DrawLinesOnly && !MapView.DrawCurve);
-        SetChecked(DrawCurveMenuItem, MapView.DrawMode && MapView.DrawCurve);
-        SetChecked(DrawRectangleMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Rectangle);
-        SetChecked(DrawEllipseMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Ellipse);
-        SetChecked(DrawGridMenuItem, MapView.CurrentShape == MapControl.ShapeKind.Grid);
+        SetChecked(DrawSectorMenuItem, drawSector);
+        SetChecked(DrawLinesMenuItem, drawLines);
+        SetChecked(DrawCurveMenuItem, drawCurve);
+        SetChecked(DrawRectangleMenuItem, drawRectangle);
+        SetChecked(DrawEllipseMenuItem, drawEllipse);
+        SetChecked(DrawGridMenuItem, drawGrid);
         SetChecked(GradientInterpolationLinearMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.LINEAR);
         SetChecked(GradientInterpolationEaseInOutSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_IN_OUT_SINE);
         SetChecked(GradientInterpolationEaseInSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_IN_SINE);
         SetChecked(GradientInterpolationEaseOutSineMenuItem, _gradientInterpolationMode == InterpolationTools.Mode.EASE_OUT_SINE);
+        SetActiveClass(Toggle3DModeButton, MapView.In3DMode);
+        SetActiveClass(WadAuthorModeButton, MapView.WadAuthorMode);
+        SetActiveClass(VerticesModeButton, verticesMode);
+        SetActiveClass(LinedefsModeButton, linedefsMode);
+        SetActiveClass(SectorsModeButton, sectorsMode);
+        SetActiveClass(ThingsModeButton, thingsMode);
+        SetActiveClass(DrawSectorButton, drawSector);
+        SetActiveClass(DrawLinesButton, drawLines);
+        SetActiveClass(DrawCurveButton, drawCurve);
+        SetActiveClass(DrawRectangleButton, drawRectangle);
+        SetActiveClass(DrawEllipseButton, drawEllipse);
+        SetActiveClass(DrawGridButton, drawGrid);
         UpdateAutomapOptionControls();
     }
 
@@ -5990,6 +6013,8 @@ public partial class MainWindow : Window
     }
 
     private static void SetChecked(MenuItem item, bool isChecked) => item.IsChecked = isChecked;
+
+    private static void SetActiveClass(Control control, bool active) => control.Classes.Set("active", active);
 
     private void OnToggleAutoClearSidedefTextures(object? sender, RoutedEventArgs e)
     {

@@ -146,6 +146,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ToolbarModeAndDrawButtonsRefreshActiveState()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("Button.toolbarButton.active", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetActiveClass(VerticesModeButton, verticesMode);", code, StringComparison.Ordinal);
+        Assert.Contains("SetActiveClass(Toggle3DModeButton, MapView.In3DMode);", code, StringComparison.Ordinal);
+        Assert.Contains("SetActiveClass(DrawSectorButton, drawSector);", code, StringComparison.Ordinal);
+        Assert.Contains("control.Classes.Set(\"active\", active)", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void UsdfMenuLabelMatchesDialogEditorToolSurface()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
