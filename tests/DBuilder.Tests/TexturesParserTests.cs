@@ -422,39 +422,38 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void RequiresQuotesForLongPatchNames()
+    public void UnquotedLongPatchNamesStopParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch LONGPATCH, 0, 0
     Patch ""LONGPATCH"", 1, 2
     Patch SHORT, 3, 4
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        Assert.Equal(2, def.Patches.Count);
-        Assert.Equal("LONGPATCH", def.Patches[0].Name);
-        Assert.Equal("SHORT", def.Patches[1].Name);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void SkipsPatchesWithEmptyNames()
+    public void EmptyPatchNamesStopParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch """", 0, 0
     Patch OK, 1, 2
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
-        Assert.Equal(1, patch.X);
-        Assert.Equal(2, patch.Y);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]

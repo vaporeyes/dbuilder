@@ -578,6 +578,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop TEXTURES parsing on invalid recognized definition names like UDB.
   - [x] Stop TEXTURES parsing on unquoted long definition names like UDB.
   - [x] Stop TEXTURES parsing on malformed definition body properties like UDB.
+  - [x] Stop TEXTURES parsing on invalid patch names like UDB.
   - [x] Stop TEXTURES parsing on malformed patch offsets like UDB.
   - [x] Stop TEXTURES parsing on malformed patch modifiers like UDB.
 - [x] Port MODELDEF parser.

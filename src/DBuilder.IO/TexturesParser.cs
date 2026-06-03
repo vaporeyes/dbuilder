@@ -251,8 +251,8 @@ public static class TexturesParser
         if (i >= t.Count) return false;
         Tok nameToken = t[i++];
         string name = nameToken.Text;
-        if (string.IsNullOrEmpty(name)) return true;
-        if (IsInvalidLongTextureName(nameToken)) return true;
+        if (string.IsNullOrEmpty(name)) return false;
+        if (IsInvalidLongTextureName(nameToken)) return false;
         if (!ReadComma(t, ref i) || !ReadInt(t, ref i, out int x) || !ReadComma(t, ref i) || !ReadInt(t, ref i, out int y)) return false;
         var patch = new TexturesPatch
         {
