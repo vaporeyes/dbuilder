@@ -123,6 +123,12 @@ public static class MapSearch
         _ => true,
     };
 
+    public static string FormatFindResult(int matchCount)
+        => matchCount == 0 ? "No matches." : $"Found {matchCount} match(es).";
+
+    public static string FormatReplaceResult(int replacementCount)
+        => replacementCount == 0 ? "Nothing replaced." : $"Replaced {replacementCount} element(s).";
+
     /// <summary>
     /// Selects every element matching <paramref name="value"/> in <paramref name="cat"/> (clearing prior selection)
     /// and returns the match count plus a focus point (the first match's location).

@@ -82,6 +82,20 @@ public class MapSearchTests
         Assert.Equal(2, map.Things.Count(thing => thing.Type == 3001));
     }
 
+    [Theory]
+    [InlineData(0, "No matches.")]
+    [InlineData(1, "Found 1 match(es).")]
+    [InlineData(3, "Found 3 match(es).")]
+    public void FormatFindResultMatchesEditorStatusText(int count, string expected)
+        => Assert.Equal(expected, MapSearch.FormatFindResult(count));
+
+    [Theory]
+    [InlineData(0, "Nothing replaced.")]
+    [InlineData(1, "Replaced 1 element(s).")]
+    [InlineData(3, "Replaced 3 element(s).")]
+    public void FormatReplaceResultMatchesEditorStatusText(int count, string expected)
+        => Assert.Equal(expected, MapSearch.FormatReplaceResult(count));
+
     [Fact]
     public void FindTagSpansLinesSectorsThings()
     {

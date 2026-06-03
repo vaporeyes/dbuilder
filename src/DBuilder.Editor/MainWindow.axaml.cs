@@ -4216,7 +4216,7 @@ public partial class MainWindow : Window
                     ? ConfiguredTagSearch.Find(_map, win.FindText, _config, win.WithinSelection)
                     : ConfiguredMapSearch.Find(_map, win.Category, win.FindText, _config, win.WithinSelection);
             MapView.RevealSelection(ModeFor(win.Category), r.Focus);
-            win.SetResult(r.Count == 0 ? "No matches." : $"Found {r.Count} match(es).");
+            win.SetResult(MapSearch.FormatFindResult(r.Count));
             UpdateInfo();
         };
         win.ReplaceRequested += () =>
@@ -4229,7 +4229,7 @@ public partial class MainWindow : Window
                     ? ConfiguredTagSearch.Replace(_map, win.FindText, win.ReplaceText, _config, win.WithinSelection)
                     : ConfiguredMapSearch.Replace(_map, win.Category, win.FindText, win.ReplaceText, _config, win.WithinSelection);
             if (n > 0) { MapView.MarkGeometryDirty(); MapView.RevealSelection(ModeFor(win.Category), null); }
-            win.SetResult(n == 0 ? "Nothing replaced." : $"Replaced {n} element(s).");
+            win.SetResult(MapSearch.FormatReplaceResult(n));
             UpdateInfo();
         };
         win.NextFreeTagRequested += () =>
