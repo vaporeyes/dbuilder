@@ -68,6 +68,13 @@ public class UdbScriptRunnerModelTests
         Assert.Equal("Run script Demo", UdbScriptRunnerModel.UndoDescription("Demo"));
     }
 
+    [Theory]
+    [InlineData(0, "Loaded script source: 0 characters")]
+    [InlineData(1, "Loaded script source: 1 character")]
+    [InlineData(2, "Loaded script source: 2 characters")]
+    public void LoadedScriptSourceStatusTextFormatsSingularAndPluralCharacterCounts(int characterCount, string expected)
+        => Assert.Equal(expected, UdbScriptRunnerModel.LoadedScriptSourceStatusText(characterCount));
+
     [Fact]
     public void PreAndPostRunPlansMatchUdbExecutionSideEffects()
     {

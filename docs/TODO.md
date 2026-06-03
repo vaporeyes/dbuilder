@@ -1337,6 +1337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
   - [x] Add UDBScript run file execution and stopwatch sequence plan.
   - [x] Add UDBScript runner source file loading model and editor wiring.
+  - [x] Add UDBScript runner singular and plural labels to loaded-source status text.
   - [x] Add UDBScript runtime constraint abort and restart branch planning.
   - [x] Add UDBScript runtime constraint confirmation dialog and runner prompt hook.
   - [x] Wire UDBScript runner preparation through the runtime constraint prompt.

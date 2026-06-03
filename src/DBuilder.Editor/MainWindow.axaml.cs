@@ -1397,7 +1397,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            runner.ApplyLog($"Loaded script source: {loadedSources.Script?.Text.Length ?? 0} character(s)");
+            runner.ApplyLog(UdbScriptRunnerModel.LoadedScriptSourceStatusText(loadedSources.Script?.Text.Length ?? 0));
             UdbScriptRunnerBindingPlan bindingPlan = UdbScriptRunnerModel.BindingPlan(script);
             runner.ApplyLog($"Script options: {bindingPlan.ScriptOptions.Count}");
             runner.ApplyLog(bindingPlan.EngineSetup.UsesLegacyGlobals

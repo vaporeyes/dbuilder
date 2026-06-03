@@ -401,6 +401,9 @@ public static class UdbScriptRunnerModel
     public const string ParserErrorDialogPrefix = "There is an error while parsing the script:\n\n";
     public const string LibraryParserErrorPrefix = "There was an error while loading the library ";
 
+    public static string LoadedScriptSourceStatusText(int characterCount)
+        => $"Loaded script source: {CountLabel(characterCount, "character")}";
+
     public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
     [
         new("GameConfiguration", UdbScriptHostMemberKind.Object, "GameConfigurationWrapper"),
@@ -909,6 +912,9 @@ public static class UdbScriptRunnerModel
             _ => new(kind, true, UdbScriptRunnerExceptionDialogKind.None, "", "", UdbScriptRunnerStatusKind.None, "", null),
         };
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private static string EngineSourceName(string appPath, string path)
     {
