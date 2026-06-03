@@ -29,7 +29,7 @@ public static class InfoSummaryPanelModel
         string editMode,
         string modeHints,
         string toggle3DHint)
-        => $"Map: {map.Vertices.Count.ToString(CultureInfo.InvariantCulture)} vertices, {map.Linedefs.Count.ToString(CultureInfo.InvariantCulture)} linedefs, {map.Sectors.Count.ToString(CultureInfo.InvariantCulture)} sectors, {map.Things.Count.ToString(CultureInfo.InvariantCulture)} things." +
+        => $"Map: {CountLabel(map.Vertices.Count, "vertex", "vertices")}, {CountLabel(map.Linedefs.Count, "linedef")}, {CountLabel(map.Sectors.Count, "sector")}, {CountLabel(map.Things.Count, "thing")}." +
            $"   Config: {configName}.   Mode: {editMode}.   {modeHints}.   {toggle3DHint}.   See Help > Shortcuts for all controls.";
 
     public static string SelectionSummaryText(
@@ -37,11 +37,14 @@ public static class InfoSummaryPanelModel
         string? nextUndoDescription = null,
         string? nextRedoDescription = null)
     {
-        string text = $"Selected: {counts.Vertices.ToString(CultureInfo.InvariantCulture)} vertices, {counts.Linedefs.ToString(CultureInfo.InvariantCulture)} linedefs, {counts.Sidedefs.ToString(CultureInfo.InvariantCulture)} sidedefs, {counts.Sectors.ToString(CultureInfo.InvariantCulture)} sectors, {counts.Things.ToString(CultureInfo.InvariantCulture)} things.";
+        string text = $"Selected: {CountLabel(counts.Vertices, "vertex", "vertices")}, {CountLabel(counts.Linedefs, "linedef")}, {CountLabel(counts.Sidedefs, "sidedef")}, {CountLabel(counts.Sectors, "sector")}, {CountLabel(counts.Things, "thing")}.";
         if (nextUndoDescription is null && nextRedoDescription is null) return text;
 
         string undo = string.IsNullOrWhiteSpace(nextUndoDescription) ? "-" : nextUndoDescription;
         string redo = string.IsNullOrWhiteSpace(nextRedoDescription) ? "-" : nextRedoDescription;
         return text + $"   Undo: {undo}  Redo: {redo}";
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 }

@@ -32,7 +32,7 @@ public class InfoSummaryPanelModelTests
             "Tab Enter 3D mode");
 
         Assert.Equal(
-            "Map: 2 vertices, 1 linedefs, 1 sectors, 1 things.   Config: Doom_Doom2Doom.   Mode: Linedefs.   1 / NumPad1 Vertices mode; 2 / NumPad2 Linedefs mode.   Tab Enter 3D mode.   See Help > Shortcuts for all controls.",
+            "Map: 2 vertices, 1 linedef, 1 sector, 1 thing.   Config: Doom_Doom2Doom.   Mode: Linedefs.   1 / NumPad1 Vertices mode; 2 / NumPad2 Linedefs mode.   Tab Enter 3D mode.   See Help > Shortcuts for all controls.",
             text);
     }
 
@@ -67,7 +67,7 @@ public class InfoSummaryPanelModelTests
 
         string text = InfoSummaryPanelModel.SelectionSummaryText(counts);
 
-        Assert.Equal("Selected: 1 vertices, 2 linedefs, 3 sidedefs, 4 sectors, 5 things.", text);
+        Assert.Equal("Selected: 1 vertex, 2 linedefs, 3 sidedefs, 4 sectors, 5 things.", text);
     }
 
     [Fact]
@@ -77,6 +77,6 @@ public class InfoSummaryPanelModelTests
 
         string text = InfoSummaryPanelModel.SelectionSummaryText(counts, "Draw sector", "");
 
-        Assert.Equal("Selected: 0 vertices, 2 linedefs, 0 sidedefs, 1 sectors, 0 things.   Undo: Draw sector  Redo: -", text);
+        Assert.Equal("Selected: 0 vertices, 2 linedefs, 0 sidedefs, 1 sector, 0 things.   Undo: Draw sector  Redo: -", text);
     }
 }

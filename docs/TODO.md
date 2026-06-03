@@ -877,6 +877,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add tested single-linedef info panel model.
   - [x] Add tested map overview and multi-selection summary info-panel model.
   - [x] Add a UDB-style view command to collapse and expand the info panel.
+  - [x] Add UDB-style singular and plural count labels to info-panel summaries.
 - [x] Port thing browser.
 - [x] Port texture browser.
 - [x] Port flat browser.
