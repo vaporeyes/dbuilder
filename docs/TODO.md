@@ -322,6 +322,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
 - [ ] Port curve tools and interpolation behavior fully.
+  - [x] Handle zero-step direct Bezier curve generation safely.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
 - [ ] Port projected frustum behavior fully.
   - [x] Add UDB-style projected frustum box intersection helper.

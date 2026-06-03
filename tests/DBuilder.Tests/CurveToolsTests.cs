@@ -1,4 +1,5 @@
 // ABOUTME: CurveTools port verification tests.
+// ABOUTME: Covers Bezier generation and curve-through-points behavior.
 
 using DBuilder.Geometry;
 
@@ -39,11 +40,33 @@ public class CurveToolsTests
     }
 
     [Fact]
+    public void GetQuadraticCurveWithZeroStepsReturnsStartPoint()
+    {
+        var p1 = new Vector2D(0, 0);
+
+        var pts = CurveTools.GetQuadraticCurve(p1, new Vector2D(5, 10), new Vector2D(10, 0), 0);
+
+        Assert.NotNull(pts);
+        Assert.Equal(new[] { p1 }, pts!);
+    }
+
+    [Fact]
     public void GetCubicCurveProducesRequestedStepCount()
     {
         var pts = CurveTools.GetCubicCurve(new Vector2D(0, 0), new Vector2D(10, 0), new Vector2D(3, 5), new Vector2D(7, 5), 20);
         Assert.NotNull(pts);
         Assert.Equal(21, pts!.Length);
+    }
+
+    [Fact]
+    public void GetCubicCurveWithZeroStepsReturnsStartPoint()
+    {
+        var p1 = new Vector2D(0, 0);
+
+        var pts = CurveTools.GetCubicCurve(p1, new Vector2D(10, 0), new Vector2D(3, 5), new Vector2D(7, 5), 0);
+
+        Assert.NotNull(pts);
+        Assert.Equal(new[] { p1 }, pts!);
     }
 
     [Fact]

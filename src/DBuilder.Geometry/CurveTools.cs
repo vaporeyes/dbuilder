@@ -193,6 +193,7 @@ public static class CurveTools
     public static Vector2D[]? GetQuadraticCurve(Vector2D p1, Vector2D p2, Vector2D p3, int steps)
     {
         if (steps < 0) return null;
+        if (steps == 0) return new[] { p1 };
 
         int totalSteps = steps + 1;
         Vector2D[] points = new Vector2D[totalSteps];
@@ -217,6 +218,7 @@ public static class CurveTools
     public static Vector2D[]? GetCubicCurve(Vector2D p1, Vector2D p2, Vector2D cp1, Vector2D cp2, int steps)
     {
         if (steps < 0) return null;
+        if (steps == 0) return new[] { p1 };
 
         int totalSteps = steps + 1;
         Vector2D[] points = new Vector2D[totalSteps];
