@@ -1256,6 +1256,7 @@ public static class DecorateParser
                 if (!ParseDecorateUserVariable(actor, t, ref i))
                 {
                     SkipRemainingActorBody(t, ref i, depth);
+                    stopParsing = !zscriptBody;
                     return false;
                 }
             }

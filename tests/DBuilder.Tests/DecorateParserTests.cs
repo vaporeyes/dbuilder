@@ -566,7 +566,7 @@ ACTOR UserVarActor 7006
     }
 
     [Fact]
-    public void RejectsInvalidDecorateUserVariableDeclarationsLikeUdb()
+    public void InvalidDecorateUserVariableDeclarationStopsParsingLikeUdb()
     {
         const string text = @"
 ACTOR BadUserVarName 7007
@@ -586,11 +586,7 @@ ACTOR GoodUserVarAfterBad 7009
     Radius 16
 }";
 
-        var actor = Assert.Single(DecorateParser.Parse(text));
-
-        Assert.Equal("GoodUserVarAfterBad", actor.ClassName);
-        Assert.True(actor.UserVariables.ContainsKey("user_score"));
-        Assert.Equal(16, actor.Radius);
+        Assert.Empty(DecorateParser.Parse(text));
     }
 
     [Fact]
