@@ -417,6 +417,22 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
+    [InlineData("window.export-idstudio", "Export idStudio")]
+    public void ImportExportToolCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {

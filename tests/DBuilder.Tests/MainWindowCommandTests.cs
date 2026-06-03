@@ -65,6 +65,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.toggle-automap-textured-hidden-sector", "OnToggleAutomapTexturedHiddenSector")]
     [InlineData("window.sector-color", "OnSectorColor")]
     [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
+    [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
+    [InlineData("window.export-idstudio", "OnExportIdStudio")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
