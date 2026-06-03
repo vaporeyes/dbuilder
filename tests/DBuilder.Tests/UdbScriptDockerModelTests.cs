@@ -340,6 +340,52 @@ public class UdbScriptDockerModelTests
         Assert.Equal("", UdbScriptDockerModel.Selection(null).Description);
     }
 
+    [Fact]
+    public void ApplySelectionMatchesUdbScriptFolderAndEmptyTransitions()
+    {
+        var option = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            128,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+        UdbScriptInfo alpha = Script("Alpha", "A description", "/scripts/alpha.js", option);
+        var scriptNode = new UdbScriptDockerNode(
+            UdbScriptDockerNodeKind.Script,
+            "Alpha",
+            UdbScriptDockerModel.ScriptImageKey,
+            alpha.ScriptFile,
+            false,
+            alpha,
+            Array.Empty<UdbScriptDockerNode>());
+        var folderNode = new UdbScriptDockerNode(
+            UdbScriptDockerNodeKind.Folder,
+            "Folder",
+            UdbScriptDockerModel.FolderImageKey,
+            "/scripts/folder",
+            true,
+            null,
+            Array.Empty<UdbScriptDockerNode>());
+
+        UdbScriptDockerSelection scriptSelection = UdbScriptDockerModel.ApplySelection(
+            UdbScriptDockerModel.Selection(null),
+            scriptNode);
+        UdbScriptDockerSelection folderSelection = UdbScriptDockerModel.ApplySelection(scriptSelection, folderNode);
+        UdbScriptDockerSelection emptySelection = UdbScriptDockerModel.ApplySelection(folderSelection, null);
+
+        Assert.Equal(alpha, scriptSelection.CurrentScript);
+        Assert.Equal("A description", scriptSelection.Description);
+        Assert.Equal(new[] { option }, scriptSelection.Options);
+        Assert.Equal(alpha, folderSelection.CurrentScript);
+        Assert.Equal("A description", folderSelection.Description);
+        Assert.Empty(folderSelection.Options);
+        Assert.Null(emptySelection.CurrentScript);
+        Assert.Equal("", emptySelection.Description);
+        Assert.Empty(emptySelection.Options);
+    }
+
     private static UdbScriptInfo Script(string name, string description, string file, params UdbScriptOption[] options)
         => new(name, description, 1, file, UdbScriptDiscovery.HashPath(file), null, options);
 }

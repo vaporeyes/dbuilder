@@ -102,6 +102,19 @@ public static class UdbScriptDockerModel
         return new UdbScriptDockerSelection(script, script.Description, script.Options);
     }
 
+    public static UdbScriptDockerSelection ApplySelection(
+        UdbScriptDockerSelection current,
+        UdbScriptDockerNode? node)
+    {
+        if (node is null)
+            return new UdbScriptDockerSelection(null, "", Array.Empty<UdbScriptOption>());
+
+        if (node.Script is UdbScriptInfo script)
+            return new UdbScriptDockerSelection(script, script.Description, script.Options);
+
+        return new UdbScriptDockerSelection(current.CurrentScript, current.Description, Array.Empty<UdbScriptOption>());
+    }
+
     public static IReadOnlyList<UdbScriptDockerMenuItem> FileContextMenuItems(
         int slotCount = UdbScriptActions.ScriptSlotCount)
     {
