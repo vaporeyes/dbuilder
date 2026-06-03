@@ -1271,6 +1271,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
   - [x] Add UDB-style format-aware linedef sound-blocking toggle model.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.
+  - [x] Add UDB-style singular and plural labels to sound leak path status text.
   - [x] Wire Sound Propagation color configuration into the editor overlay.
   - [x] Add UDB-style Sound Environment mode command metadata and non-modal environment list window.
   - [x] Add testable Sound Propagation reachability status summary model.

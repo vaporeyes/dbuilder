@@ -245,6 +245,18 @@ public class SoundPropagationTests
         Assert.Equal(new Vector2D(96, 32), path.Points[3]);
     }
 
+    [Theory]
+    [InlineData(1, 1, "Sound leak path: 1 line, 1 sound-blocking line.")]
+    [InlineData(2, 0, "Sound leak path: 2 lines, 0 sound-blocking lines.")]
+    public void LeakPathStatusTextFormatsSingularAndPluralLineCounts(int linedefCount, int blockingLinedefCount, string expected)
+    {
+        var linedefs = Enumerable.Range(0, linedefCount).Select(_ => new Linedef(new Vertex(), new Vertex())).ToArray();
+        var blockingLinedefs = linedefs.Take(blockingLinedefCount).ToArray();
+        var path = new SoundLeakPath(Array.Empty<Vector2D>(), linedefs, blockingLinedefs);
+
+        Assert.Equal(expected, path.StatusText);
+    }
+
     [Fact]
     public void LeakPathRejectsSecondBlockingLine()
     {

@@ -4811,7 +4811,7 @@ public partial class MainWindow : Window
         UpdateInfo();
         SetStatus(path == null
             ? "No sound leak path found between the two selected sectors."
-            : $"Sound leak path: {path.Linedefs.Count} line(s), {path.BlockingLinedefs.Count} sound-blocking line(s).");
+            : path.StatusText);
     }
 
     private void OnSoundEnvironments(object? sender, RoutedEventArgs e)

@@ -16,7 +16,13 @@ public sealed record SoundPropagationDomain(
 public sealed record SoundLeakPath(
     IReadOnlyList<Vector2D> Points,
     IReadOnlyList<Linedef> Linedefs,
-    IReadOnlyList<Linedef> BlockingLinedefs);
+    IReadOnlyList<Linedef> BlockingLinedefs)
+{
+    public string StatusText => $"Sound leak path: {CountLabel(Linedefs.Count, "line")}, {CountLabel(BlockingLinedefs.Count, "sound-blocking line")}.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
+}
 
 public sealed record SoundPropagationReachSummary(
     int TotalSectors,
