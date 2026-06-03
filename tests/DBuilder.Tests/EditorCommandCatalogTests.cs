@@ -466,6 +466,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void UsdfConversationsCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.usdf-conversations");
+
+        Assert.NotNull(command);
+        Assert.Equal("USDF Conversations", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.toggle-info-panel");
