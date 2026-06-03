@@ -29,6 +29,23 @@ public sealed record UdbScriptQueryOptionsQueryPlan(
     UdbScriptQueryOptionsDialogResult DialogResult,
     bool ReturnValue);
 
+public sealed record UdbScriptQueryOptionsDialogControl(
+    string Name,
+    int X,
+    int Y,
+    int Width,
+    int Height,
+    int TabIndex);
+
+public sealed record UdbScriptQueryOptionsDialogLayout(
+    int ClientWidth,
+    int ClientHeight,
+    string AcceptButtonName,
+    string CancelButtonName,
+    bool MaximizeBox,
+    bool MinimizeBox,
+    IReadOnlyList<UdbScriptQueryOptionsDialogControl> Controls);
+
 public enum UdbScriptQueryOptionsMemberKind
 {
     Property,
@@ -46,6 +63,9 @@ public sealed class UdbScriptQueryOptionsModel
     public const string PromptTitle = "Query options";
     public const string OkButtonText = "OK";
     public const string CancelButtonText = "Cancel";
+    public const string OkButtonName = "btnOK";
+    public const string CancelButtonName = "btnCancel";
+    public const string ParametersViewName = "parametersview";
 
     private readonly List<UdbScriptOption> options = new();
 
@@ -68,6 +88,21 @@ public sealed class UdbScriptQueryOptionsModel
             IsFixedDialog: true,
             AcceptsOk: true,
             Cancels: true);
+
+    public static UdbScriptQueryOptionsDialogLayout DialogLayout()
+        => new(
+            ClientWidth: 432,
+            ClientHeight: 321,
+            AcceptButtonName: OkButtonName,
+            CancelButtonName: CancelButtonName,
+            MaximizeBox: false,
+            MinimizeBox: false,
+            Controls:
+            [
+                new(OkButtonName, 265, 286, 75, 23, TabIndex: 1),
+                new(CancelButtonName, 346, 286, 75, 23, TabIndex: 2),
+                new(ParametersViewName, 12, 12, 408, 268, TabIndex: 3),
+            ]);
 
     public static UdbScriptQueryOptionsQueryPlan QueryPlan(UdbScriptQueryOptionsDialogResult dialogResult)
         => new(

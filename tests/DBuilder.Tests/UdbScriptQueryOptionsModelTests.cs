@@ -22,6 +22,24 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void DialogLayoutMatchesUdbQueryOptionsFormDesigner()
+    {
+        UdbScriptQueryOptionsDialogLayout layout = UdbScriptQueryOptionsModel.DialogLayout();
+
+        Assert.Equal(432, layout.ClientWidth);
+        Assert.Equal(321, layout.ClientHeight);
+        Assert.Equal("btnOK", layout.AcceptButtonName);
+        Assert.Equal("btnCancel", layout.CancelButtonName);
+        Assert.False(layout.MaximizeBox);
+        Assert.False(layout.MinimizeBox);
+
+        Assert.Equal(["btnOK", "btnCancel", "parametersview"], layout.Controls.Select(control => control.Name).ToArray());
+        Assert.Equal(new UdbScriptQueryOptionsDialogControl("btnOK", 265, 286, 75, 23, 1), layout.Controls[0]);
+        Assert.Equal(new UdbScriptQueryOptionsDialogControl("btnCancel", 346, 286, 75, 23, 2), layout.Controls[1]);
+        Assert.Equal(new UdbScriptQueryOptionsDialogControl("parametersview", 12, 12, 408, 268, 3), layout.Controls[2]);
+    }
+
+    [Fact]
     public void QueryPlanMatchesUdbPausedDialogReturnContract()
     {
         UdbScriptQueryOptionsQueryPlan ok = UdbScriptQueryOptionsModel.QueryPlan(UdbScriptQueryOptionsDialogResult.Ok);
