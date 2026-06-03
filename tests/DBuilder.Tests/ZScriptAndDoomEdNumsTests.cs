@@ -171,6 +171,25 @@ class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8
     }
 
     [Fact]
+    public void ParsesSpacedZScriptHeaderModifierArguments()
+    {
+        const string text = @"
+class SpacedModifiers : Actor version (""4.8"") deprecated (""4.8"", ""Other"") unsafe (Actor) sealed (AllowedChild, OtherChild)
+{
+    Default { Radius 8; }
+}
+class AllowedChild : SpacedModifiers
+{
+    Default { Radius 16; }
+}";
+
+        var actors = ZScriptParser.Parse(text);
+
+        Assert.Contains(actors, actor => actor.ClassName == "SpacedModifiers" && actor.Radius == 8);
+        Assert.Contains(actors, actor => actor.ClassName == "AllowedChild" && actor.Radius == 16);
+    }
+
+    [Fact]
     public void RejectsZScriptClassesThatViolateFinalOrSealedInheritance()
     {
         const string text = @"

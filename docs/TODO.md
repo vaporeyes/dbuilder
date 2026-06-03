@@ -543,6 +543,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse spaced ZScript `States(...)` cast headers.
   - [x] Require semicolon-terminated ZScript default properties like UDB.
   - [x] Reject ZScript default flag signs without names like UDB.
+  - [x] Parse spaced ZScript class header modifier arguments like UDB.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
