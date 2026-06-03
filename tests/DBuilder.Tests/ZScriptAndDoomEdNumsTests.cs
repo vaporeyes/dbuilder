@@ -1207,6 +1207,19 @@ class InvalidStateFrameLettersZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameActionWithoutRequiredSemicolon()
+    {
+        const string zscript = @"
+class MissingStateActionSemicolonZThing : Actor
+{
+    States { Spawn: ACTS A -1 A_FadeOut Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingStateActionSemicolonZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

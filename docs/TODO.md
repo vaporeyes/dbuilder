@@ -739,6 +739,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Validate ZScript `int.min` and `int.max` state-frame duration members.
   - [x] Reject ZScript state-frame sprite names with invalid lengths.
   - [x] Reject ZScript state-frame tokens with invalid frame letters.
+  - [x] Require ZScript state-frame action functions to end with semicolons.
   - [x] Inherit extended ZScript parent `Spawn` states from child classes.
   - [x] Reject ZScript extensions declared before their target class.
 - [ ] Port category and DoomEdNum merging behavior fully.

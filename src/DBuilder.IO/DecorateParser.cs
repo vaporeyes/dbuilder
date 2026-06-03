@@ -1520,8 +1520,9 @@ public static class DecorateParser
     private static bool HasValidZScriptStateFrameTail(List<Tok> t, int start)
     {
         if (!HasValidZScriptStateFrameDuration(t, start)) return false;
+        int tailStart = ZScriptStateFrameDurationEnd(t, start);
         var specials = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        for (int i = start; i < t.Count; i++)
+        for (int i = tailStart; i < t.Count; i++)
         {
             if (t[i].Kind == Kind.Sym && t[i].Text == ";") return true;
             if (t[i].Kind == Kind.Sym && t[i].Text is "{" or "}") return false;
@@ -1531,6 +1532,7 @@ public static class DecorateParser
             if (special != null && !specials.Add(special)) return false;
             if (special is "light" or "offset" && !ZScriptStateFrameSpecialHasArguments(t, i)) return false;
             if (special == "light" && !ZScriptStateFrameLightHasSingleNameArgument(t, i)) return false;
+            if (special == null) return ZScriptStateFrameActionHasSemicolon(t, i);
         }
 
         return false;
@@ -1550,12 +1552,47 @@ public static class DecorateParser
         return IsZScriptStateFrameDurationLimit(t[durationIndex + 2].Text);
     }
 
+    private static int ZScriptStateFrameDurationEnd(List<Tok> t, int durationIndex)
+    {
+        string lower = t[durationIndex].Text.ToLowerInvariant();
+        if (IsZScriptStateFrameDurationType(lower)
+            && durationIndex + 2 < t.Count
+            && t[durationIndex + 1].Text == ".")
+            return durationIndex + 3;
+        if (!IsZScriptStateFrameDurationType(lower)
+            && durationIndex + 1 < t.Count
+            && t[durationIndex + 1].Text.StartsWith("(", StringComparison.Ordinal))
+            return ZScriptStateFrameArgumentListEnd(t, durationIndex + 1);
+        return durationIndex + 1;
+    }
+
     private static bool IsZScriptStateFrameDurationType(string value)
         => value is "double" or "int" or "uint";
 
     private static bool IsZScriptStateFrameDurationLimit(string value)
         => value.Equals("min", StringComparison.OrdinalIgnoreCase)
         || value.Equals("max", StringComparison.OrdinalIgnoreCase);
+
+    private static bool ZScriptStateFrameActionHasSemicolon(List<Tok> t, int actionIndex)
+    {
+        int end = actionIndex + 1;
+        if (actionIndex + 1 < t.Count && t[actionIndex + 1].Text.StartsWith("(", StringComparison.Ordinal))
+            end = ZScriptStateFrameArgumentListEnd(t, actionIndex + 1);
+        else if (t[actionIndex].Text.Contains('(', StringComparison.Ordinal))
+            end = t[actionIndex].Text.Contains(')', StringComparison.Ordinal) ? actionIndex + 1 : ZScriptStateFrameArgumentListEnd(t, actionIndex + 1);
+        return end < t.Count && t[end].Kind == Kind.Sym && t[end].Text == ";";
+    }
+
+    private static int ZScriptStateFrameArgumentListEnd(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is ";" or "{" or "}") return i;
+            if (t[i].Text.Contains(')', StringComparison.Ordinal)) return i + 1;
+        }
+
+        return t.Count;
+    }
 
     private static bool ZScriptStateFrameSpecialHasArguments(List<Tok> t, int index)
         => t[index].Text.Contains('(', StringComparison.Ordinal)
