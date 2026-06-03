@@ -86,6 +86,11 @@ public sealed class MapIssueListModel
             : $"{count} {Label(count, "issue")}: {errors} {Label(errors, "error")}, {warnings} {Label(warnings, "warning")}. Click an issue to locate it.";
     }
 
+    public static string AnalysisStatusText(int issueCount)
+        => issueCount == 0
+            ? "Map analysis: no issues found."
+            : $"Map analysis: {issueCount} {Label(issueCount, "issue")} found.";
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)

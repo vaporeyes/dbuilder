@@ -4309,7 +4309,7 @@ public partial class MainWindow : Window
             UpdateInfo();
         };
         win.Show(this);
-        SetStatus(issues.Count == 0 ? "Map analysis: no issues found." : $"Map analysis: {issues.Count} issue(s) found.");
+        SetStatus(MapIssueListModel.AnalysisStatusText(issues.Count));
     }
 
     private void OnCleanUpGeometry(object? sender, RoutedEventArgs e)

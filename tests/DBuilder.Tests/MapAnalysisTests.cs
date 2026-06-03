@@ -569,6 +569,13 @@ public class MapAnalysisTests
             MapIssueListModel.HeaderText(new[] { error, warning, secondWarning }));
     }
 
+    [Theory]
+    [InlineData(0, "Map analysis: no issues found.")]
+    [InlineData(1, "Map analysis: 1 issue found.")]
+    [InlineData(2, "Map analysis: 2 issues found.")]
+    public void MapIssueListModelFormatsAnalysisStatusText(int issueCount, string expected)
+        => Assert.Equal(expected, MapIssueListModel.AnalysisStatusText(issueCount));
+
     [Fact]
     public void DetectsEmptySector()
     {
