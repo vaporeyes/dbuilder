@@ -2242,11 +2242,54 @@ public static class DecorateParser
         value = 0;
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
         if (i < t.Count && t[i].Kind == Kind.Word &&
-            int.TryParse(t[i].Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
+            TryParseZScriptInteger(t[i].Text, out value)) { i++; return true; }
         // Some properties use floats; accept and truncate.
         if (i < t.Count && t[i].Kind == Kind.Word &&
             double.TryParse(t[i].Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double d)) { value = (int)d; i++; return true; }
         return false;
+    }
+
+    private static bool TryParseZScriptInteger(string text, out int value)
+    {
+        value = 0;
+
+        int sign = 1;
+        string digits = text;
+        if (digits.StartsWith("+", StringComparison.Ordinal))
+        {
+            digits = digits[1..];
+        }
+        else if (digits.StartsWith("-", StringComparison.Ordinal))
+        {
+            sign = -1;
+            digits = digits[1..];
+        }
+
+        int numberBase;
+        if (digits.StartsWith("0x", StringComparison.OrdinalIgnoreCase) && digits.Length > 2)
+        {
+            digits = digits[2..];
+            numberBase = 16;
+        }
+        else if (digits.Length > 1 && digits[0] == '0')
+        {
+            numberBase = 8;
+        }
+        else
+        {
+            return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        }
+
+        try
+        {
+            value = checked(Convert.ToInt32(digits, numberBase) * sign);
+            return true;
+        }
+        catch (Exception) when (digits.Length > 0)
+        {
+            value = 0;
+            return false;
+        }
     }
 
     private static bool TryReadActorIntProperty(List<Tok> t, ref int i, bool requireSemicolon, out int value)

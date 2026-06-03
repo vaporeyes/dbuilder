@@ -448,6 +448,25 @@ class ValidSizeDefault : Actor
     }
 
     [Fact]
+    public void ParsesZScriptHexAndOctalSizeDefaultsLikeUdb()
+    {
+        const string text = @"
+class PrefixedSizeDefault : Actor
+{
+    Default
+    {
+        Radius 0x10;
+        Height 010;
+    }
+}";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal(16, actor.Radius);
+        Assert.Equal(8, actor.Height);
+    }
+
+    [Fact]
     public void RejectsZScriptDefaultPropertiesWithoutSemicolons()
     {
         const string text = @"
