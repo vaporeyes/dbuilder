@@ -313,9 +313,13 @@ ACTOR RegionArrowOverrideThing 5011
     }
 
     [Fact]
-    public void SkipsDecorateActorsWithUnexpectedHeaderTokens()
+    public void UnexpectedDecorateActorHeaderTokenStopsParsingLikeUdb()
     {
         const string text = @"
+ACTOR BeforeBadHeader 6002
+{
+    Radius 8
+}
 ACTOR BadHeader bogus 6003
 {
     Radius 64
@@ -327,8 +331,9 @@ ACTOR GoodHeader 6004
 
         var actor = DecorateParser.Parse(text).Single();
 
-        Assert.Equal("GoodHeader", actor.ClassName);
-        Assert.Equal(6004, actor.DoomEdNum);
+        Assert.Equal("BeforeBadHeader", actor.ClassName);
+        Assert.Equal(6002, actor.DoomEdNum);
+        Assert.Equal(8, actor.Radius);
     }
 
     [Fact]

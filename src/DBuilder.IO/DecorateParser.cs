@@ -1050,6 +1050,7 @@ public static class DecorateParser
             else if (headerNum)
             {
                 SkipDeclaration(t, ref i);
+                stopParsing = true;
                 return null;
             }
             else return SkipInvalidActorDeclaration(t, ref i);
