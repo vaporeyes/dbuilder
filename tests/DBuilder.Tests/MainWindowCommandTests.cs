@@ -81,6 +81,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.build-bridge", "OnBuildBridge")]
     [InlineData("window.build-stairs", "OnBuildStairs")]
     [InlineData("window.usdf-conversations", "OnUsdfConversations")]
+    [InlineData("window.usdf-dialog-editor", "OnUsdfConversations")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
