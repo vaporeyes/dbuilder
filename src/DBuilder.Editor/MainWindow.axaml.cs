@@ -4588,7 +4588,7 @@ public partial class MainWindow : Window
         IReadOnlyList<int> initialTags = TagRangeModel.SelectedInitialTags(_map, dlg.ResultTarget);
         if (initialTags.Count == 0)
         {
-            SetStatus($"No selected {dlg.ResultTarget.ToString().ToLowerInvariant()} to tag.");
+            SetStatus(TagRangeModel.EmptySelectionStatus(dlg.ResultTarget));
             return;
         }
 
@@ -4596,7 +4596,7 @@ public partial class MainWindow : Window
         TagRangeResult result = TagRangeModel.CreateRange(initialTags, usedTags, dlg.ResultOptions);
         if (result.OutOfTags)
         {
-            SetStatus($"Tag range ran out of tags after {result.Tags.Count} assignment(s).");
+            SetStatus(TagRangeModel.OutOfTagsStatus(result.Tags.Count));
             return;
         }
 
@@ -4604,9 +4604,7 @@ public partial class MainWindow : Window
         int applied = TagRangeModel.ApplyRange(_map, dlg.ResultTarget, result.Tags);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus(result.TagsUsed
-            ? $"Tag range assigned {applied} tag(s); one or more tags were already in use."
-            : $"Tag range assigned {applied} tag(s).");
+        SetStatus(TagRangeModel.AppliedStatus(applied, result.TagsUsed));
     }
 
     private TagRangeTargetKind DefaultTagRangeTarget()

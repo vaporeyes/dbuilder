@@ -261,6 +261,17 @@ public static class TagRangeModel
         return "Set " + selectionCount + " " + name + " tags";
     }
 
+    public static string EmptySelectionStatus(TagRangeTargetKind target)
+        => $"No selected {target.ToString().ToLowerInvariant()} to tag.";
+
+    public static string OutOfTagsStatus(int assignmentCount)
+        => $"Tag range ran out of tags after {assignmentCount} assignment(s).";
+
+    public static string AppliedStatus(int appliedCount, bool tagsUsed)
+        => tagsUsed
+            ? $"Tag range assigned {appliedCount} tag(s); one or more tags were already in use."
+            : $"Tag range assigned {appliedCount} tag(s).";
+
     private static bool OutsideRange(int tag, TagRangeOptions options)
         => tag > options.MaxTag || tag < options.MinTag;
 

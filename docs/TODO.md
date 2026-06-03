@@ -1279,6 +1279,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist UDB-style step and relative-mode defaults across editor restarts.
   - [x] Add UDB-style Tag Range form title, end-tag preview, and warning state model.
   - [x] Add UDB-style Tag Range action, toolbar, dialog label, warning, and undo text metadata.
+  - [x] Add testable Tag Range apply and warning status text model.
 - [ ] Port `UDBScript`.
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
   - [x] Add UDBScript execute-current and execute-slot dispatch planning.
