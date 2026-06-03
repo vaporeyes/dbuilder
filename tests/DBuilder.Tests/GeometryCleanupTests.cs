@@ -10,6 +10,20 @@ namespace DBuilder.Tests;
 public class GeometryCleanupTests
 {
     [Fact]
+    public void GeometryCleanupResultFormatsStatusLabels()
+    {
+        Assert.Equal(
+            "Geometry cleanup: 0 reference repairs, 0 sectors, 0 unused vertex removals, 0 sidedef texture cleanups.",
+            new GeometryCleanupResult(0, 0, 0, 0).StatusText);
+        Assert.Equal(
+            "Geometry cleanup: 1 reference repair, 1 sector, 1 unused vertex removal, 1 sidedef texture cleanup.",
+            new GeometryCleanupResult(1, 1, 1, 1).StatusText);
+        Assert.Equal(
+            "Geometry cleanup: 2 reference repairs, 3 sectors, 4 unused vertex removals, 5 sidedef texture cleanups.",
+            new GeometryCleanupResult(2, 3, 4, 5).StatusText);
+    }
+
+    [Fact]
     public void JoinVerticesRepointsLinedefs()
     {
         var map = new MapSet();

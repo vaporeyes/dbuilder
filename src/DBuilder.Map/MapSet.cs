@@ -58,6 +58,17 @@ public readonly record struct GeometryStitchResult(
         FlippedBackwardLinedefs;
 }
 
+public readonly record struct GeometryCleanupResult(int Repaired, int Sectors, int Vertices, int SidedefTextures)
+{
+    public int Total => Repaired + Sectors + Vertices + SidedefTextures;
+
+    public string StatusText
+        => $"Geometry cleanup: {CountLabel(Repaired, "reference repair")}, {CountLabel(Sectors, "sector")}, {CountLabel(Vertices, "unused vertex removal")}, {CountLabel(SidedefTextures, "sidedef texture cleanup")}.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
+}
+
 public enum MapTagKind
 {
     Linedef,

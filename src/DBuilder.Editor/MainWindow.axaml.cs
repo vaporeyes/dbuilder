@@ -4329,7 +4329,7 @@ public partial class MainWindow : Window
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Geometry cleanup: {result.Repaired} reference repair(s), {result.Sectors} sector(s), {result.Vertices} unused vertex removal(s), {result.SidedefTextures} sidedef texture cleanup(s).");
+        SetStatus(result.StatusText);
     }
 
     private static GeometryCleanupResult CleanUpGeometry(MapSet map, bool autoClearSidedefTextures)
@@ -4339,11 +4339,6 @@ public partial class MainWindow : Window
         int vertices = map.RemoveUnusedVertices();
         int sidedefTextures = map.RemoveUnneededSidedefTextures(autoClearSidedefTextures);
         return new GeometryCleanupResult(repaired, sectors, vertices, sidedefTextures);
-    }
-
-    private readonly record struct GeometryCleanupResult(int Repaired, int Sectors, int Vertices, int SidedefTextures)
-    {
-        public int Total => Repaired + Sectors + Vertices + SidedefTextures;
     }
 
     // Reads the map's REJECT lump and opens a visibility relation summary for the selected sector.

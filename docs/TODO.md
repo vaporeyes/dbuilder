@@ -833,6 +833,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port geometry cleanup tools.
   - [x] Add menu command for reference, unused sector, and unused vertex cleanup.
   - [x] Apply UDB-style unused sidedef texture cleanup from the Clean Up Geometry command.
+  - [x] Add UDB-style singular and plural labels to geometry cleanup status text.
 - [ ] Port map analysis and map check integration.
   - [x] Detect UDB-style interior crossing linedefs with same-sector-on-all-sides exemption.
   - [x] Detect UDB-style missing activation flags for UDMF linedef actions.
