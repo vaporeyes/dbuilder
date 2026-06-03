@@ -1198,6 +1198,12 @@ ACTOR QuotedSpriteThing 8006
         Assert.Equal("QTSPA0", actor.EditorSprite);
     }
 
+    [Theory]
+    [InlineData(1, "Loaded 1 actor from DECORATE/ZScript resources.")]
+    [InlineData(2, "Loaded 2 actors from DECORATE/ZScript resources.")]
+    public void ActorResourcesStatusTextFormatsSingularAndPluralCounts(int actorCount, string expected)
+        => Assert.Equal(expected, GameConfiguration.ActorResourcesStatusText(actorCount));
+
     [Fact]
     public void MergeActorsPopulatesGameConfiguration()
     {

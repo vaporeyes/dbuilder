@@ -436,7 +436,7 @@ public partial class MainWindow : Window
         }
 
         MapView.GameConfig = _config; // refresh thing labels/sprites
-        if (count > 0) SetStatus($"Loaded {count} actor(s) from DECORATE/ZScript resources.");
+        if (count > 0) SetStatus(GameConfiguration.ActorResourcesStatusText(count));
     }
 
     private void ApplyResourceConfig()

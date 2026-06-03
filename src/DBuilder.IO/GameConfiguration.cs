@@ -707,6 +707,9 @@ public sealed class GameConfiguration
     /// </summary>
     public void MergeActors(IEnumerable<ActorInfo> actors) => MergeActors(actors, null);
 
+    public static string ActorResourcesStatusText(int actorCount)
+        => $"Loaded {CountLabel(actorCount, "actor")} from DECORATE/ZScript resources.";
+
     public void MergeDamageTypes(IEnumerable<string> names)
     {
         foreach (string name in names)
@@ -2394,6 +2397,9 @@ public sealed class GameConfiguration
 
     private static bool IsSupportedFlagsRenameMapSet(string value)
         => value is "doommapsetio" or "hexenmapsetio" or "universalmapsetio";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private static IReadOnlySet<string> ParseTargetClasses(string value)
     {

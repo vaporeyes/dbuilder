@@ -583,6 +583,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Limit actor argument target classes to ThingTag arguments.
   - [x] Fall back unknown actor argument type codes to integer.
   - [x] Append actor argument render ranges to tooltips.
+  - [x] Add UDB-style singular and plural labels to actor resource merge status text.
   - [x] Ignore actor argument render hints without a valid render style.
   - [x] Parse inline actor argument enum metadata.
   - [x] Preserve configured locked sprites when merging DECORATE actors.
