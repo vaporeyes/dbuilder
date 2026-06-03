@@ -108,8 +108,11 @@ public static class UsdfDialogueParser
     {
         int pages = document.Conversations.Sum(conversation => conversation.Pages.Count);
         int choices = document.Conversations.Sum(conversation => conversation.Pages.Sum(page => page.Choices.Count));
-        return $"{document.Includes.Count} include(s), {document.Conversations.Count} conversation(s), {pages} page(s), {choices} choice(s).";
+        return $"{CountLabel(document.Includes.Count, "include")}, {CountLabel(document.Conversations.Count, "conversation")}, {CountLabel(pages, "page")}, {CountLabel(choices, "choice", "choices")}.";
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     public static IReadOnlyList<UsdfConversationRow> ViewerRows(UsdfParseResult result)
     {

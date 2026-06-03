@@ -375,7 +375,7 @@ public class UsdfDialogueParserTests
         UsdfParseResult result = UsdfDialogueParser.Parse(text);
 
         Assert.Equal("DIALOGUE: OK", UsdfDialogueParser.ViewerStatus(result));
-        Assert.Equal("1 include(s), 1 conversation(s), 1 page(s), 1 choice(s).", UsdfDialogueParser.ViewerSummary(result.Document));
+        Assert.Equal("1 include, 1 conversation, 1 page, 1 choice.", UsdfDialogueParser.ViewerSummary(result.Document));
 
         IReadOnlyList<UsdfConversationRow> rows = UsdfDialogueParser.ViewerRows(result);
         Assert.Equal(
@@ -394,6 +394,30 @@ public class UsdfDialogueParserTests
         Assert.Contains("dialog \"Hello\"", rows[2].Text);
         Assert.Equal("if item: BlueCard x1, page 2", rows[3].Text);
         Assert.Contains("costs Coin x3", rows[4].Text);
+    }
+
+    [Fact]
+    public void ViewerSummaryFormatsPluralCounts()
+    {
+        var document = new UsdfDocument(
+            new[] { "a", "b" },
+            new[]
+            {
+                new UsdfConversation(0, null, null, new[]
+                {
+                    new UsdfPage(0, null, null, null, null, null, null, Array.Empty<UsdfInventoryCondition>(), new[]
+                    {
+                        new UsdfChoice(0, null, Array.Empty<UsdfInventoryCondition>(), null, null, null, null, null, null, Array.Empty<int>(), null, false),
+                        new UsdfChoice(1, null, Array.Empty<UsdfInventoryCondition>(), null, null, null, null, null, null, Array.Empty<int>(), null, false),
+                    }),
+                }),
+                new UsdfConversation(1, null, null, new[]
+                {
+                    new UsdfPage(0, null, null, null, null, null, null, Array.Empty<UsdfInventoryCondition>(), Array.Empty<UsdfChoice>()),
+                }),
+            });
+
+        Assert.Equal("2 includes, 2 conversations, 2 pages, 2 choices.", UsdfDialogueParser.ViewerSummary(document));
     }
 
     [Fact]
