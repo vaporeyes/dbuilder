@@ -77,6 +77,8 @@ public class UdmfFieldsTests
             ["comment"] = "a note",
             ["lightcolor"] = 255,
             ["large"] = 4294967295L,
+            ["whole_float"] = 1.0,
+            ["precise"] = 0.123456789012345,
             ["scale"] = 1.25,
             ["flag"] = false,
         };
@@ -84,8 +86,25 @@ public class UdmfFieldsTests
         Assert.Equal("a note", round["comment"]);
         Assert.Equal(255, round["lightcolor"]);
         Assert.Equal(4294967295L, round["large"]);
+        Assert.Equal(1.0, Assert.IsType<double>(round["whole_float"]));
+        Assert.Equal(0.123456789012345, Assert.IsType<double>(round["precise"]));
         Assert.Equal(1.25, (double)round["scale"], 6);
         Assert.False((bool)round["flag"]);
+    }
+
+    [Fact]
+    public void FormatKeepsDoublePrecisionAndType()
+    {
+        var src = new Dictionary<string, object>
+        {
+            ["whole"] = 1.0,
+            ["precise"] = 0.123456789012345,
+        };
+
+        string text = UdmfFields.Format(src);
+
+        Assert.Equal("1.0", ExtractValue(text, "whole"));
+        Assert.Equal("0.123456789012345", ExtractValue(text, "precise"));
     }
 
     [Fact]

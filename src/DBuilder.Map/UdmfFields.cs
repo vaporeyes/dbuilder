@@ -102,11 +102,19 @@ public static class UdmfFields
         bool b => b ? "true" : "false",
         int i => i.ToString(CultureInfo.InvariantCulture),
         long l => l.ToString(CultureInfo.InvariantCulture),
-        double db => db.ToString("0.######", CultureInfo.InvariantCulture),
-        float f => ((double)f).ToString("0.######", CultureInfo.InvariantCulture),
+        double db => FormatDouble(db),
+        float f => FormatDouble(f),
         string s => QuoteString(s),
         _ => QuoteString(Convert.ToString(value, CultureInfo.InvariantCulture) ?? ""),
     };
+
+    private static string FormatDouble(double value)
+    {
+        string formatted = value.ToString("R", CultureInfo.InvariantCulture);
+        if (formatted.IndexOf('.') < 0 && formatted.IndexOf('e') < 0 && formatted.IndexOf('E') < 0)
+            formatted += ".0";
+        return formatted;
+    }
 
     private static string QuoteString(string value)
     {
