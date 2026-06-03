@@ -628,6 +628,68 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void BindingPlanUsesScriptVersionOptionsAndRuntimeHelpers()
+    {
+        var length = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            "256",
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+        var direction = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Up",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+        UdbScriptInfo script = new(
+            "Demo",
+            "Description",
+            3,
+            "/scripts/demo.js",
+            "hash",
+            null,
+            new[] { length, direction });
+
+        UdbScriptRunnerBindingPlan plan = UdbScriptRunnerModel.BindingPlan(script);
+
+        Assert.Equal(3u, plan.ScriptVersion);
+        Assert.True(plan.EngineSetup.UsesLegacyGlobals);
+        Assert.Contains("ScriptOptions", plan.EngineSetup.EngineBindings);
+        Assert.True(plan.CreateQueryOptions);
+        Assert.True(plan.CreateHostWrapper);
+        Assert.Equal(256, plan.ScriptOptions["length"]);
+        Assert.Equal(1, plan.ScriptOptions["direction"]);
+    }
+
+    [Fact]
+    public void BindingPlanUsesUdbObjectForModernScripts()
+    {
+        UdbScriptInfo script = new(
+            "Demo",
+            "Description",
+            4,
+            "/scripts/demo.js",
+            "hash",
+            null,
+            Array.Empty<UdbScriptOption>());
+
+        UdbScriptRunnerBindingPlan plan = UdbScriptRunnerModel.BindingPlan(script);
+
+        Assert.False(plan.EngineSetup.UsesLegacyGlobals);
+        Assert.Equal(["UDB"], plan.EngineSetup.EngineBindings);
+        Assert.Empty(plan.ScriptOptions);
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);

@@ -1306,6 +1306,11 @@ public partial class MainWindow : Window
         }
 
         runner.ApplyLog($"Loaded script source: {loadedSources.Script?.Text.Length ?? 0} character(s)");
+        UdbScriptRunnerBindingPlan bindingPlan = UdbScriptRunnerModel.BindingPlan(script);
+        runner.ApplyLog($"Script options: {bindingPlan.ScriptOptions.Count}");
+        runner.ApplyLog(bindingPlan.EngineSetup.UsesLegacyGlobals
+            ? "Engine binding mode: legacy globals"
+            : "Engine binding mode: UDB object");
         runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
         runner.Finish(runner.ElapsedRuntime, autoClose: false);
         SetStatus($"UDBScript runner prepared: {script.Name}");

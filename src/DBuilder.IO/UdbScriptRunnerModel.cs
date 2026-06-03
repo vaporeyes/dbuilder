@@ -114,6 +114,13 @@ public sealed record UdbScriptEngineSetupPlan(
     bool UsesLegacyGlobals,
     IReadOnlyList<string> EngineBindings);
 
+public sealed record UdbScriptRunnerBindingPlan(
+    uint ScriptVersion,
+    UdbScriptEngineSetupPlan EngineSetup,
+    IReadOnlyDictionary<string, object> ScriptOptions,
+    bool CreateQueryOptions,
+    bool CreateHostWrapper);
+
 public sealed record UdbScriptRuntimeConstraintPrompt(
     bool ShouldPrompt,
     string Title,
@@ -462,6 +469,14 @@ public static class UdbScriptRunnerModel
             UsesLegacyGlobals(scriptVersion),
             bindings);
     }
+
+    public static UdbScriptRunnerBindingPlan BindingPlan(UdbScriptInfo script, bool debugBuild = false)
+        => new(
+            script.Version,
+            EngineSetupPlan(script.Version, debugBuild),
+            UdbScriptOptionsUiModel.GetScriptOptions(script.Options),
+            CreateQueryOptions: true,
+            CreateHostWrapper: true);
 
     public static string UndoDescription(string scriptName)
         => "Run script " + scriptName;
