@@ -283,6 +283,44 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void ProgressUpdatePlanMatchesUdbProgressBarBranches()
+    {
+        UdbScriptProgressUpdatePlan normal = UdbScriptRunnerModel.ProgressUpdatePlan(
+            currentValue: 0,
+            requestedValue: 42);
+
+        Assert.True(normal.SetContinuousProgressStyle);
+        Assert.True(normal.UpdateValue);
+        Assert.Equal(42, normal.AppliedValue);
+        Assert.Equal([43, 42], normal.ValueWrites);
+        Assert.True(normal.MakeVisible);
+
+        UdbScriptProgressUpdatePlan maximum = UdbScriptRunnerModel.ProgressUpdatePlan(
+            currentValue: 10,
+            requestedValue: 150);
+
+        Assert.Equal(100, maximum.AppliedValue);
+        Assert.Equal([100, 99, 100], maximum.ValueWrites);
+
+        UdbScriptProgressUpdatePlan minimum = UdbScriptRunnerModel.ProgressUpdatePlan(
+            currentValue: 10,
+            requestedValue: -5);
+
+        Assert.Equal(0, minimum.AppliedValue);
+        Assert.Equal([1, 0], minimum.ValueWrites);
+
+        UdbScriptProgressUpdatePlan unchanged = UdbScriptRunnerModel.ProgressUpdatePlan(
+            currentValue: 42,
+            requestedValue: 42,
+            styleIsContinuous: true);
+
+        Assert.False(unchanged.SetContinuousProgressStyle);
+        Assert.False(unchanged.UpdateValue);
+        Assert.Empty(unchanged.ValueWrites);
+        Assert.True(unchanged.MakeVisible);
+    }
+
+    [Fact]
     public void InvokePausedPlanMatchesUdbTimerPauseHook()
     {
         UdbScriptInvokePausedPlan direct = UdbScriptRunnerModel.InvokePausedPlan(invokeRequired: false);

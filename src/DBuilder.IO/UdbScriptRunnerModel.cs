@@ -236,6 +236,13 @@ public sealed record UdbScriptRunnerTimerTickPlan(
     double RunningSeconds,
     string Title);
 
+public sealed record UdbScriptProgressUpdatePlan(
+    bool SetContinuousProgressStyle,
+    bool UpdateValue,
+    int AppliedValue,
+    IReadOnlyList<int> ValueWrites,
+    bool MakeVisible);
+
 public sealed record UdbScriptInvokePausedPlan(
     bool MarshalToUiThread,
     bool StopStopwatchBeforeInvoke,
@@ -584,6 +591,30 @@ public static class UdbScriptRunnerModel
             UpdateRunningSeconds: updateRunningSeconds,
             RunningSeconds: updateRunningSeconds ? elapsedSeconds : runningSeconds,
             Title: updateRunningSeconds ? RunningWindowTitle(elapsed) : "");
+    }
+
+    public static UdbScriptProgressUpdatePlan ProgressUpdatePlan(
+        int currentValue,
+        int requestedValue,
+        int minimum = 0,
+        int maximum = 100,
+        bool styleIsContinuous = false)
+    {
+        bool updateValue = currentValue != requestedValue;
+        int appliedValue = Math.Clamp(requestedValue, minimum, maximum);
+
+        IReadOnlyList<int> valueWrites = updateValue
+            ? appliedValue == maximum
+                ? [appliedValue, appliedValue - 1, appliedValue]
+                : [appliedValue + 1, appliedValue]
+            : [];
+
+        return new(
+            SetContinuousProgressStyle: !styleIsContinuous,
+            UpdateValue: updateValue,
+            AppliedValue: appliedValue,
+            valueWrites,
+            MakeVisible: true);
     }
 
     public static UdbScriptInvokePausedPlan InvokePausedPlan(bool invokeRequired)
