@@ -56,6 +56,14 @@ internal sealed class WadResourceReader : IResourceReader
     private static readonly Regex Sprite6 = new(@"^\S{4}[A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex Sprite8 = new(@"^\S{4}[A-Za-z\[\]\\][0-8][A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex VoxelName = new(@"^\S{4}(([A-Za-z][0-9])?|[A-Za-z]?)$", RegexOptions.Compiled);
+    private static readonly (string Start, string End)[] FlatRanges =
+    {
+        ("F_START", "F_END"),
+        ("FF_START", "FF_END"),
+        ("F1_START", "F1_END"),
+        ("F2_START", "F2_END"),
+        ("F3_START", "F3_END"),
+    };
     private static readonly (string Start, string End)[] SpriteRanges =
     {
         ("S_START", "S_END"),
@@ -91,11 +99,8 @@ internal sealed class WadResourceReader : IResourceReader
     public ImageData? GetFlat(string name, DoomPalette? palette)
     {
         if (palette == null) return null;
-        var rangeLump = FindInRanges(name, ConfiguredFlatRanges());
-        if (rangeLump != null) return DecodeFlat(rangeLump, palette);
-
-        byte[]? rgba = DoomFlatReader.DecodeRgba8(wad, name, palette);
-        return rgba != null ? new ImageData(DoomFlatReader.Width, DoomFlatReader.Height, rgba) : null;
+        var lump = FindFlatLump(name);
+        return lump != null ? DecodeFlat(lump, palette) : null;
     }
 
     public ImageData? GetWallTexture(string name, DoomPalette? palette)
@@ -180,6 +185,27 @@ internal sealed class WadResourceReader : IResourceReader
         if (configuredSprite != null) return configuredSprite;
 
         foreach (var (startName, endName) in SpriteRanges)
+        {
+            int start = wad.FindLumpIndex(startName);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(endName, start + 1);
+                if (end < 0) break;
+                var lump = wad.FindLump(name, start, end);
+                if (lump != null) return lump;
+                start = wad.FindLumpIndex(startName, end + 1);
+            }
+        }
+
+        return null;
+    }
+
+    private Lump? FindFlatLump(string name)
+    {
+        var configuredFlat = FindInRanges(name, ConfiguredFlatRanges());
+        if (configuredFlat != null) return configuredFlat;
+
+        foreach (var (startName, endName) in FlatRanges)
         {
             int start = wad.FindLumpIndex(startName);
             while (start >= 0)
@@ -387,12 +413,28 @@ internal sealed class WadResourceReader : IResourceReader
         foreach (var l in wad.Lumps)
         {
             string n = l.Name;
-            if (n is "F_START" or "FF_START" or "F1_START" or "F2_START" or "F3_START") { inFlats = true; continue; }
-            if (n is "F_END" or "FF_END" or "F1_END" or "F2_END" or "F3_END") { inFlats = false; continue; }
+            if (IsRangeStart(n, FlatRanges)) { inFlats = true; continue; }
+            if (IsRangeEnd(n, FlatRanges)) { inFlats = false; continue; }
             if (inFlats && l.Length > 0) result.Add(n);
         }
         result.AddRange(NamesInRanges(ConfiguredFlatRanges()));
         return result;
+    }
+
+    private static bool IsRangeStart(string name, IReadOnlyList<(string Start, string End)> ranges)
+    {
+        foreach (var range in ranges)
+            if (string.Equals(name, range.Start, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    private static bool IsRangeEnd(string name, IReadOnlyList<(string Start, string End)> ranges)
+    {
+        foreach (var range in ranges)
+            if (string.Equals(name, range.End, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
     }
 
     public IEnumerable<string> SpriteNames()

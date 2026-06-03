@@ -76,6 +76,23 @@ internal static class TestArtifacts
     public static string BuildPwadFile(params (string name, byte[] bytes)[] lumps)
         => BuildWadFile(isIwad: false, lumps);
 
+    public static WAD BuildWad(params (string name, byte[] bytes)[] lumps)
+    {
+        var stream = new MemoryStream();
+        using (var wad = new WAD(stream))
+        {
+            int position = 0;
+            foreach (var (name, bytes) in lumps)
+            {
+                var lump = wad.Insert(name, position++, bytes.Length)!;
+                lump.Stream.Write(bytes, 0, bytes.Length);
+            }
+            wad.WriteHeaders();
+        }
+        stream.Position = 0;
+        return new WAD(stream, openreadonly: true);
+    }
+
     public static string BuildWadFile(bool isIwad, params (string name, byte[] bytes)[] lumps)
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".wad");

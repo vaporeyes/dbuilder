@@ -151,7 +151,9 @@ public class HiresResourceTests
             """);
         string wad = TestArtifacts.BuildPwadFile(
             ("PLAYPAL", TestArtifacts.GrayscalePlaypal()),
+            ("F_START", []),
             ("ROCK", TestArtifacts.SolidFlat(9)),
+            ("F_END", []),
             ("HI_START", []),
             ("ROCK", DoomPatch(70)),
             ("HI_END", []));

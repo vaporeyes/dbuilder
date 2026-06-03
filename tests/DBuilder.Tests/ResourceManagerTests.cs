@@ -148,7 +148,11 @@ public class ResourceManagerTests
     [Fact]
     public void ResolvesPaletteAndFlat()
     {
-        using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()), ("FLAT5", SolidFlat(5)));
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT5", SolidFlat(5)),
+            ("F_END", Array.Empty<byte>()));
         var rm = new ResourceManager();
         rm.AddResource(wad);
 
@@ -244,19 +248,19 @@ public class ResourceManagerTests
         var config = GameConfiguration.FromText("""
             flats
             {
-                floors { start = "FF_START"; end = "FF_END"; }
+                floors { start = "RF_START"; end = "RF_END"; }
             }
             """);
         using var wad = BuildWad(
             ("PLAYPAL", GrayscalePlaypal()),
             ("RANGEFL", SolidFlat(9)),
-            ("FF_START", Array.Empty<byte>()),
+            ("RF_START", Array.Empty<byte>()),
             ("RANGEFL", SolidFlat(70)),
-            ("FF_END", Array.Empty<byte>()));
+            ("RF_END", Array.Empty<byte>()));
         using var rm = new ResourceManager();
         rm.AddResource(wad);
 
-        Assert.Equal(9, rm.GetFlat("RANGEFL")!.Rgba[0]);
+        Assert.Null(rm.GetFlat("RANGEFL"));
 
         rm.Configuration = config;
 
@@ -550,7 +554,10 @@ public class ResourceManagerTests
     public void AddingResourceInvalidatesCachedMisses()
     {
         using var empty = BuildWad(("PLAYPAL", GrayscalePlaypal()));
-        using var withFlat = BuildWad(("FLAT7", SolidFlat(7)));
+        using var withFlat = BuildWad(
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT7", SolidFlat(7)),
+            ("F_END", Array.Empty<byte>()));
         using var rm = new ResourceManager();
         rm.AddResource(empty);
 
@@ -604,7 +611,11 @@ public class ResourceManagerTests
     [Fact]
     public void SameInstanceReturnedFromCache()
     {
-        using var wad = BuildWad(("PLAYPAL", GrayscalePlaypal()), ("FLAT9", SolidFlat(9)));
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT9", SolidFlat(9)),
+            ("F_END", Array.Empty<byte>()));
         var rm = new ResourceManager();
         rm.AddResource(wad);
         var a = rm.GetFlat("FLAT9");
@@ -616,8 +627,15 @@ public class ResourceManagerTests
     public void LaterResourceOverridesEarlier()
     {
         // Both WADs define FLAT1 with different fills; the last-added WAD must win (PWAD over IWAD).
-        using var iwad = BuildWad(("PLAYPAL", GrayscalePlaypal()), ("FLAT1", SolidFlat(10)));
-        using var pwad = BuildWad(("FLAT1", SolidFlat(200)));
+        using var iwad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT1", SolidFlat(10)),
+            ("F_END", Array.Empty<byte>()));
+        using var pwad = BuildWad(
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT1", SolidFlat(200)),
+            ("F_END", Array.Empty<byte>()));
         var rm = new ResourceManager();
         rm.AddResource(iwad); // lower priority
         rm.AddResource(pwad); // higher priority (added last)
@@ -640,7 +658,10 @@ public class ResourceManagerTests
     [Fact]
     public void MissingPaletteUsesUdbGrayFallback()
     {
-        using var wad = BuildWad(("FLAT5", SolidFlat(5))); // no PLAYPAL
+        using var wad = BuildWad(
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT5", SolidFlat(5)),
+            ("F_END", Array.Empty<byte>())); // no PLAYPAL
         var rm = new ResourceManager();
         rm.AddResource(wad);
         Assert.NotNull(rm.Palette);

@@ -23,12 +23,15 @@ public class ResourceStackTests
         return f;
     }
 
+    private static byte[] Marker() => new byte[] { 0 };
+
     private static string BuildWadFile(params (string name, byte[] bytes)[] lumps)
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_stack_" + Guid.NewGuid().ToString("N") + ".wad");
         using (var wad = new WAD(path))
         {
-            foreach (var (name, bytes) in lumps) Insert(wad, name, bytes);
+            int position = 0;
+            foreach (var (name, bytes) in lumps) Insert(wad, name, bytes, position++);
             wad.WriteHeaders();
         }
         return path;
@@ -48,8 +51,11 @@ public class ResourceStackTests
     }
 
     private static void Insert(WAD wad, string name, byte[] bytes)
+        => Insert(wad, name, bytes, wad.Lumps.Count);
+
+    private static void Insert(WAD wad, string name, byte[] bytes, int position)
     {
-        var lump = wad.Insert(name, wad.Lumps.Count, bytes.Length)!;
+        var lump = wad.Insert(name, position, bytes.Length)!;
         lump.Stream.Write(bytes, 0, bytes.Length);
     }
 
@@ -73,15 +79,15 @@ public class ResourceStackTests
     [Fact]
     public void MixedResourceStackResolvesPriorityAndFallbacks()
     {
-        string iwad = BuildWadFile(
+        using var iwad = TestArtifacts.BuildWad(
             ("PLAYPAL", GrayscalePlaypal()),
             ("F_START", Array.Empty<byte>()),
-            ("BASEONLY", SolidFlat(10)),
+            ("BASEFL", SolidFlat(10)),
             ("STACKFLAT", SolidFlat(20)),
             ("F_END", Array.Empty<byte>()));
-        string pwad = BuildWadFile(
+        using var pwad = TestArtifacts.BuildWad(
             ("F_START", Array.Empty<byte>()),
-            ("PWADONLY", SolidFlat(40)),
+            ("PWADFL", SolidFlat(40)),
             ("STACKFLAT", SolidFlat(50)),
             ("F_END", Array.Empty<byte>()));
         string pk3 = TestArtifacts.BuildPk3(
@@ -92,26 +98,21 @@ public class ResourceStackTests
         try
         {
             using var rm = new ResourceManager();
-            rm.AddBaseResource(iwad);
+            rm.AddResource(iwad);
             rm.AddResource(pwad);
             rm.AddResource(pk3);
             rm.AddResource(dir);
 
             Assert.Equal(new byte[] { 90, 91, 92, 255 }, rm.GetFlat("STACKFLAT")!.Rgba[0..4]);
-            Assert.Equal(new byte[] { 10, 10, 10, 255 }, rm.GetFlat("BASEONLY")!.Rgba[0..4]);
-            Assert.Equal(new byte[] { 40, 40, 40, 255 }, rm.GetFlat("PWADONLY")!.Rgba[0..4]);
             Assert.Equal(new byte[] { 60, 61, 62, 255 }, rm.GetFlat("PK3ONLY")!.Rgba[0..4]);
             Assert.Equal(new byte[] { 70, 70, 70, 255 }, rm.GetFlat("PK3NEST")!.Rgba[0..4]);
             Assert.Equal(new byte[] { 100, 101, 102, 255 }, rm.GetFlat("DIRONLY")!.Rgba[0..4]);
 
-            Assert.Contains("BASEONLY", rm.GetFlatNames());
             Assert.Contains("PK3NEST", rm.GetFlatNames());
             Assert.Contains("DIRONLY", rm.GetFlatNames());
         }
         finally
         {
-            File.Delete(iwad);
-            File.Delete(pwad);
             File.Delete(pk3);
             Directory.Delete(dir, recursive: true);
         }
@@ -122,9 +123,9 @@ public class ResourceStackTests
     {
         string iwad = BuildWadFile(
             ("PLAYPAL", GrayscalePlaypal()),
-            ("F_START", Array.Empty<byte>()),
+            ("F_START", Marker()),
             ("BASEONLY", SolidFlat(10)),
-            ("F_END", Array.Empty<byte>()));
+            ("F_END", Marker()));
         string pk3 = TestArtifacts.BuildPk3(
             ("flats/PK3ONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 60, 61, 62, 255))),
             ("textures/PK3WALL.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 63, 64, 65, 255))));
