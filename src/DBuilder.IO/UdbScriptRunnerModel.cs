@@ -176,6 +176,26 @@ public sealed record UdbScriptRunnerUiState(
     double Opacity,
     bool AutoClose);
 
+public sealed record UdbScriptRunnerFormControl(
+    string Name,
+    int X,
+    int Y,
+    int Width,
+    int Height,
+    bool AnchorRight,
+    bool AnchorBottom);
+
+public sealed record UdbScriptRunnerFormMetadata(
+    int ClientWidth,
+    int ClientHeight,
+    int MinimumWidth,
+    int MinimumHeight,
+    bool ControlBox,
+    bool ShowIcon,
+    bool StartsMinimized,
+    string InitialTitle,
+    IReadOnlyList<UdbScriptRunnerFormControl> Controls);
+
 public sealed record UdbScriptRunnerStartPlan(
     bool CreateCancellationTokenSource,
     bool ResetRunningSeconds,
@@ -418,6 +438,23 @@ public static class UdbScriptRunnerModel
             true,
             0.0,
             true);
+
+    public static UdbScriptRunnerFormMetadata FormMetadata()
+        => new(
+            ClientWidth: 524,
+            ClientHeight: 184,
+            MinimumWidth: 540,
+            MinimumHeight: 200,
+            ControlBox: false,
+            ShowIcon: false,
+            StartsMinimized: true,
+            InitialTitle: RunningScriptTitle,
+            [
+                new("progressbar", 12, 25, 419, 23, AnchorRight: true, AnchorBottom: false),
+                new("lbStatus", 12, 9, 84, 13, AnchorRight: false, AnchorBottom: false),
+                new("btnAction", 437, 25, 75, 23, AnchorRight: true, AnchorBottom: false),
+                new("tbLog", 12, 54, 500, 118, AnchorRight: true, AnchorBottom: true),
+            ]);
 
     public static UdbScriptRunnerStartPlan StartPlan()
         => new(

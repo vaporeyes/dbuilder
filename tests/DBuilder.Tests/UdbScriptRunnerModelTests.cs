@@ -122,6 +122,42 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerFormMetadataMatchesUdbDesignerSurface()
+    {
+        UdbScriptRunnerFormMetadata form = UdbScriptRunnerModel.FormMetadata();
+
+        Assert.Equal(524, form.ClientWidth);
+        Assert.Equal(184, form.ClientHeight);
+        Assert.Equal(540, form.MinimumWidth);
+        Assert.Equal(200, form.MinimumHeight);
+        Assert.False(form.ControlBox);
+        Assert.False(form.ShowIcon);
+        Assert.True(form.StartsMinimized);
+        Assert.Equal("Running script", form.InitialTitle);
+        Assert.Equal(
+            ["progressbar", "lbStatus", "btnAction", "tbLog"],
+            form.Controls.Select(control => control.Name).ToArray());
+
+        UdbScriptRunnerFormControl progress = Assert.Single(form.Controls, control => control.Name == "progressbar");
+
+        Assert.Equal(12, progress.X);
+        Assert.Equal(25, progress.Y);
+        Assert.Equal(419, progress.Width);
+        Assert.Equal(23, progress.Height);
+        Assert.True(progress.AnchorRight);
+        Assert.False(progress.AnchorBottom);
+
+        UdbScriptRunnerFormControl log = Assert.Single(form.Controls, control => control.Name == "tbLog");
+
+        Assert.Equal(12, log.X);
+        Assert.Equal(54, log.Y);
+        Assert.Equal(500, log.Width);
+        Assert.Equal(118, log.Height);
+        Assert.True(log.AnchorRight);
+        Assert.True(log.AnchorBottom);
+    }
+
+    [Fact]
     public void RunnerStartAndActionButtonPlansMatchUdbFormBranches()
     {
         UdbScriptRunnerStartPlan start = UdbScriptRunnerModel.StartPlan();
