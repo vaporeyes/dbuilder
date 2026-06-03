@@ -194,6 +194,22 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void CellClickPlanAppliesEnumsAndBeginsValueEdits()
+    {
+        UdbScriptOptionCellClickPlan valueColumn = UdbScriptOptionsUiModel.CellClickPlan(columnIndex: 1);
+
+        Assert.True(valueColumn.ApplyEnumEditor);
+        Assert.True(valueColumn.HideEnumEditor);
+        Assert.True(valueColumn.BeginValueEdit);
+
+        UdbScriptOptionCellClickPlan descriptionColumn = UdbScriptOptionsUiModel.CellClickPlan(columnIndex: 0);
+
+        Assert.True(descriptionColumn.ApplyEnumEditor);
+        Assert.True(descriptionColumn.HideEnumEditor);
+        Assert.False(descriptionColumn.BeginValueEdit);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(

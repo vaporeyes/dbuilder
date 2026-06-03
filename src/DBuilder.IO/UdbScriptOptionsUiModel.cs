@@ -62,6 +62,11 @@ public sealed record UdbScriptOptionMouseUpPlan(
     bool FocusEnumEditor,
     bool SelectAllEnumEditorText);
 
+public sealed record UdbScriptOptionCellClickPlan(
+    bool ApplyEnumEditor,
+    bool HideEnumEditor,
+    bool BeginValueEdit);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -138,6 +143,12 @@ public static class UdbScriptOptionsUiModel
         => new(
             FocusEnumEditor: enumEditorVisible,
             SelectAllEnumEditorText: enumEditorVisible);
+
+    public static UdbScriptOptionCellClickPlan CellClickPlan(int columnIndex)
+        => new(
+            ApplyEnumEditor: true,
+            HideEnumEditor: true,
+            BeginValueEdit: columnIndex == 1);
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
         UdbScriptOption option,
