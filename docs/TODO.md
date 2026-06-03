@@ -407,6 +407,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
   - [x] Encode clipboard custom fields with UDB-style declared and primitive type metadata.
   - [x] Encode clipboard strings with UDB-style character-count lengths.
+  - [x] Omit DBuilder selection group masks from clipboard streams like UDB.
 - [ ] Port lump ordering rules.
   - [x] Order saved map blocks by configured `maplumpnames` when a game configuration is supplied.
 - [ ] Port map lump metadata and node-build lump handling.

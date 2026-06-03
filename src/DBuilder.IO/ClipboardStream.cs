@@ -7,23 +7,23 @@
  * thing pitch/roll/scale, custom UDMF fields).  This port keeps the same overall block
  * order so the format can be extended in place when the Map model grows in Tier 2.
  *
- * Wire layout (all little-endian, length-prefixed strings as int32 + UTF-8 bytes):
+ * Wire layout (all little-endian, UDB-style length-prefixed strings as int32 char count + UTF-8 chars):
  *
  *   header:    int32 numVerts, int32 numSectors, int32 numLinedefs, int32 numThings
- *   vertices:  int32 count; per vertex: double x, double y, zceiling, zfloor; int32 groups; customFields
+ *   vertices:  int32 count; per vertex: double x, double y, zceiling, zfloor; customFields
  *   sectors:   int32 count; per sector: int32 special, hfloor, hceil, bright; tags;
  *                                       str floortex, str ceiltex;
  *                                       double floorSlopeOffset, fSlope.x/y/z,
- *                                              ceilSlopeOffset, cSlope.x/y/z; int32 groups;
+ *                                              ceilSlopeOffset, cSlope.x/y/z;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   sidedefs:  int32 count; per sidedef: int32 offx, offy, sectorId; str hi, mid, lo;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   linedefs:  int32 count; per linedef: int32 v1, v2, sidefront, sideback, action,
- *                                       args[5], flags; tags; int32 groups;
+ *                                       args[5], flags; tags;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   things:    int32 count; per thing: int32 tag; double x, y, height;
  *                                      int32 angle, pitch, roll; double scalex, scaley;
- *                                      int32 type, action, args[5], flags; int32 groups;
+ *                                      int32 type, action, args[5], flags;
  *                                      int32 udmfFlagCount; (str, bool) pairs; customFields
  *
  *   tags:         int32 count; int32 tag per entry
@@ -50,6 +50,9 @@ public static class ClipboardStreamWriter
         Write(map.Vertices, map.Linedefs, map.Sidedefs, map.Sectors, map.Things, stream);
     }
 
+    internal static void WriteSnapshot(MapSet map, Stream stream)
+        => Write(map.Vertices, map.Linedefs, map.Sidedefs, map.Sectors, map.Things, stream, includeGroups: true);
+
     /// <summary>
     /// Writes the given element subsets to <paramref name="stream"/>.  Callers are responsible for closing the subset
     /// under references (a linedef referencing a vertex not in <paramref name="vertices"/> will encode v1/v2 as 0).
@@ -61,6 +64,16 @@ public static class ClipboardStreamWriter
         IReadOnlyList<Sector> sectors,
         IReadOnlyList<Thing> things,
         Stream stream)
+        => Write(vertices, linedefs, sidedefs, sectors, things, stream, includeGroups: false);
+
+    private static void Write(
+        IReadOnlyList<Vertex> vertices,
+        IReadOnlyList<Linedef> linedefs,
+        IReadOnlyList<Sidedef> sidedefs,
+        IReadOnlyList<Sector> sectors,
+        IReadOnlyList<Thing> things,
+        Stream stream,
+        bool includeGroups)
     {
         var vertexIds  = BuildIndex(vertices);
         var sidedefIds = BuildIndex(sidedefs);
@@ -74,15 +87,15 @@ public static class ClipboardStreamWriter
         w.Write(linedefs.Count);
         w.Write(things.Count);
 
-        WriteVertices(vertices, w);
-        WriteSectors(sectors, w);
+        WriteVertices(vertices, w, includeGroups);
+        WriteSectors(sectors, w, includeGroups);
         WriteSidedefs(sidedefs, w, sectorIds);
-        WriteLinedefs(linedefs, w, sidedefIds, vertexIds);
-        WriteThings(things, w);
+        WriteLinedefs(linedefs, w, sidedefIds, vertexIds, includeGroups);
+        WriteThings(things, w, includeGroups);
         w.Flush();
     }
 
-    private static void WriteVertices(IReadOnlyList<Vertex> verts, BinaryWriter w)
+    private static void WriteVertices(IReadOnlyList<Vertex> verts, BinaryWriter w, bool includeGroups)
     {
         w.Write(verts.Count);
         foreach (var v in verts)
@@ -91,12 +104,12 @@ public static class ClipboardStreamWriter
             w.Write(v.Position.y);
             w.Write(v.ZCeiling);
             w.Write(v.ZFloor);
-            w.Write(v.Groups);
+            if (includeGroups) w.Write(v.Groups);
             WriteCustomFields(w, v.Fields, v.IgnoredErrorChecks);
         }
     }
 
-    private static void WriteSectors(IReadOnlyList<Sector> sectors, BinaryWriter w)
+    private static void WriteSectors(IReadOnlyList<Sector> sectors, BinaryWriter w, bool includeGroups)
     {
         w.Write(sectors.Count);
         foreach (var s in sectors)
@@ -112,7 +125,7 @@ public static class ClipboardStreamWriter
             w.Write(s.FloorSlope.x); w.Write(s.FloorSlope.y); w.Write(s.FloorSlope.z);
             w.Write(s.CeilSlopeOffset);
             w.Write(s.CeilSlope.x); w.Write(s.CeilSlope.y); w.Write(s.CeilSlope.z);
-            w.Write(s.Groups);
+            if (includeGroups) w.Write(s.Groups);
             WriteUdmfFlagSet(w, s.UdmfFlags);
             WriteCustomFields(w, s.Fields, s.IgnoredErrorChecks);
         }
@@ -136,7 +149,8 @@ public static class ClipboardStreamWriter
     }
 
     private static void WriteLinedefs(IReadOnlyList<Linedef> lines, BinaryWriter w,
-                                      Dictionary<Sidedef, int> sidedefIds, Dictionary<Vertex, int> vertexIds)
+                                      Dictionary<Sidedef, int> sidedefIds, Dictionary<Vertex, int> vertexIds,
+                                      bool includeGroups)
     {
         w.Write(lines.Count);
         foreach (var l in lines)
@@ -149,13 +163,13 @@ public static class ClipboardStreamWriter
             for (int i = 0; i < l.Args.Length; i++) w.Write(l.Args[i]);
             w.Write(l.Flags);
             WriteTags(w, l.Tags);
-            w.Write(l.Groups);
+            if (includeGroups) w.Write(l.Groups);
             WriteUdmfFlagSet(w, l.UdmfFlags);
             WriteCustomFields(w, l.Fields, l.IgnoredErrorChecks);
         }
     }
 
-    private static void WriteThings(IReadOnlyList<Thing> things, BinaryWriter w)
+    private static void WriteThings(IReadOnlyList<Thing> things, BinaryWriter w, bool includeGroups)
     {
         w.Write(things.Count);
         foreach (var t in things)
@@ -173,7 +187,7 @@ public static class ClipboardStreamWriter
             w.Write(t.Action);
             for (int i = 0; i < t.Args.Length; i++) w.Write(t.Args[i]);
             w.Write(t.Flags);
-            w.Write(t.Groups);
+            if (includeGroups) w.Write(t.Groups);
             WriteUdmfFlagSet(w, t.UdmfFlags);
             WriteCustomFields(w, t.Fields, t.IgnoredErrorChecks);
         }
@@ -261,6 +275,12 @@ public static class ClipboardStreamReader
     /// can position / select them.
     /// </summary>
     public static PasteResult Read(MapSet map, Stream stream)
+        => Read(map, stream, includeGroups: false);
+
+    internal static PasteResult ReadSnapshot(MapSet map, Stream stream)
+        => Read(map, stream, includeGroups: true);
+
+    private static PasteResult Read(MapSet map, Stream stream, bool includeGroups)
     {
         var r = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
 
@@ -273,12 +293,12 @@ public static class ClipboardStreamReader
         int firstLinedef = map.Linedefs.Count;
         int firstThing   = map.Things.Count;
 
-        var newVerts   = ReadVertices(map, r);
-        var newSectors = ReadSectors(map, r);
+        var newVerts   = ReadVertices(map, r, includeGroups);
+        var newSectors = ReadSectors(map, r, includeGroups);
         var newSidedefs = ReadSidedefs(map, r, newSectors);
-        ReadLinedefs(map, r, newVerts, newSidedefs);
+        ReadLinedefs(map, r, newVerts, newSidedefs, includeGroups);
         RemoveUnattachedSidedefs(map, firstSidedef);
-        ReadThings(map, r);
+        ReadThings(map, r, includeGroups);
 
         map.BuildIndexes();
 
@@ -290,7 +310,7 @@ public static class ClipboardStreamReader
                                map.Things.Count   - firstThing);
     }
 
-    private static List<Vertex> ReadVertices(MapSet map, BinaryReader r)
+    private static List<Vertex> ReadVertices(MapSet map, BinaryReader r, bool includeGroups)
     {
         int count = r.ReadInt32();
         var list = new List<Vertex>(count);
@@ -303,7 +323,7 @@ public static class ClipboardStreamReader
                 ZCeiling = r.ReadDouble(),
                 ZFloor = r.ReadDouble(),
             };
-            v.Groups = r.ReadInt32();
+            if (includeGroups) v.Groups = r.ReadInt32();
             ReadCustomFields(r, v.Fields, v.IgnoredErrorChecks);
             map.Vertices.Add(v);
             list.Add(v);
@@ -311,7 +331,7 @@ public static class ClipboardStreamReader
         return list;
     }
 
-    private static List<Sector> ReadSectors(MapSet map, BinaryReader r)
+    private static List<Sector> ReadSectors(MapSet map, BinaryReader r, bool includeGroups)
     {
         int count = r.ReadInt32();
         var list = new List<Sector>(count);
@@ -343,7 +363,7 @@ public static class ClipboardStreamReader
                 CeilSlopeOffset = coffset,
                 CeilSlope = cslope,
             };
-            s.Groups = r.ReadInt32();
+            if (includeGroups) s.Groups = r.ReadInt32();
             s.Tags.AddRange(tags);
             ReadUdmfFlagSet(r, s.UdmfFlags);
             ReadCustomFields(r, s.Fields, s.IgnoredErrorChecks);
@@ -383,7 +403,7 @@ public static class ClipboardStreamReader
         return list;
     }
 
-    private static void ReadLinedefs(MapSet map, BinaryReader r, List<Vertex> newVerts, List<Sidedef> newSidedefs)
+    private static void ReadLinedefs(MapSet map, BinaryReader r, List<Vertex> newVerts, List<Sidedef> newSidedefs, bool includeGroups)
     {
         int count = r.ReadInt32();
         for (int i = 0; i < count; i++)
@@ -396,7 +416,7 @@ public static class ClipboardStreamReader
             int a0 = r.ReadInt32(), a1 = r.ReadInt32(), a2 = r.ReadInt32(), a3 = r.ReadInt32(), a4 = r.ReadInt32();
             int flags = r.ReadInt32();
             var tags = ReadTags(r);
-            int groups = r.ReadInt32();
+            int groups = includeGroups ? r.ReadInt32() : 0;
 
             var udmfFlags = new HashSet<string>(System.StringComparer.Ordinal);
             ReadUdmfFlagSet(r, udmfFlags);
@@ -465,7 +485,7 @@ public static class ClipboardStreamReader
         }
     }
 
-    private static void ReadThings(MapSet map, BinaryReader r)
+    private static void ReadThings(MapSet map, BinaryReader r, bool includeGroups)
     {
         int count = r.ReadInt32();
         for (int i = 0; i < count; i++)
@@ -483,7 +503,7 @@ public static class ClipboardStreamReader
             int action = r.ReadInt32();
             int a0 = r.ReadInt32(), a1 = r.ReadInt32(), a2 = r.ReadInt32(), a3 = r.ReadInt32(), a4 = r.ReadInt32();
             int flags = r.ReadInt32();
-            int groups = r.ReadInt32();
+            int groups = includeGroups ? r.ReadInt32() : 0;
 
             var t = new Thing
             {

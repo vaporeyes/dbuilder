@@ -313,7 +313,6 @@ public class ClipboardStreamTests
             w.Write(0.0);
             w.Write(double.NaN);
             w.Write(double.NaN);
-            w.Write(0); // groups
             w.Write(4); // custom fields
             WriteUdbCustomField(w, "userint", UniversalType.Integer, 7);
             WriteUdbCustomField(w, "userfloat", UniversalType.Float, 2.5);
@@ -421,7 +420,7 @@ public class ClipboardStreamTests
     }
 
     [Fact]
-    public void SelectionGroupsRoundTrip()
+    public void SelectionGroupsAreNotWrittenToMatchUdbClipboardLayout()
     {
         var src = BuildSampleMap();
         src.Vertices[0].Groups = MapSet.GroupMask(1);
@@ -435,10 +434,10 @@ public class ClipboardStreamTests
         var dst = new MapSet();
         ClipboardStreamReader.Read(dst, ms);
 
-        Assert.Equal(MapSet.GroupMask(1), dst.Vertices[0].Groups);
-        Assert.Equal(MapSet.GroupMask(2), dst.Sectors[0].Groups);
-        Assert.Equal(MapSet.GroupMask(3), dst.Linedefs[0].Groups);
-        Assert.Equal(MapSet.GroupMask(4), dst.Things[0].Groups);
+        Assert.Equal(0, dst.Vertices[0].Groups);
+        Assert.Equal(0, dst.Sectors[0].Groups);
+        Assert.Equal(0, dst.Linedefs[0].Groups);
+        Assert.Equal(0, dst.Things[0].Groups);
     }
 
     [Fact]
@@ -532,7 +531,6 @@ public class ClipboardStreamTests
         WriteString(w, "-");
         WriteString(w, "-");
         for (int i = 0; i < 8; i++) w.Write(double.NaN);
-        w.Write(0); // groups
         w.Write(0); // sector udmf flags
         WriteCustomFields(w);
 
@@ -555,7 +553,6 @@ public class ClipboardStreamTests
         for (int i = 0; i < 5; i++) w.Write(0); // args
         w.Write(0); // flags
         WriteTags(w);
-        w.Write(0); // groups
         w.Write(0); // udmf flags
         WriteCustomFields(w);
 
@@ -571,7 +568,6 @@ public class ClipboardStreamTests
         w.Write(y);
         w.Write(double.NaN);
         w.Write(double.NaN);
-        w.Write(0); // groups
         WriteCustomFields(w);
     }
 

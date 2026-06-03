@@ -170,7 +170,7 @@ public sealed class UndoManager
     private Snapshot Capture(string description)
     {
         using var ms = new MemoryStream();
-        ClipboardStreamWriter.Write(map, ms);
+        ClipboardStreamWriter.WriteSnapshot(map, ms);
         return new Snapshot(description, ms.ToArray())
         {
             Namespace = map.Namespace,
@@ -192,7 +192,7 @@ public sealed class UndoManager
         foreach (var kv in snap.Fields) map.Fields[kv.Key] = kv.Value;
         foreach (var entry in snap.UnknownUdmfData) map.UnknownUdmfData.Add(entry.Clone());
         using var ms = new MemoryStream(snap.Data);
-        ClipboardStreamReader.Read(map, ms); // appends into the now-empty map and rebuilds indexes
+        ClipboardStreamReader.ReadSnapshot(map, ms); // appends into the now-empty map and rebuilds indexes
     }
 
     private static Dictionary<string, object> CopyFields(Dictionary<string, object> fields)
