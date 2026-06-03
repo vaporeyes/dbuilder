@@ -13,6 +13,7 @@ public sealed class UdbScriptDockerWindow : Window
     private readonly UdbScriptDirectory _rootDirectory;
     private readonly IReadOnlyDictionary<int, string> _hotkeys;
     private IReadOnlyDictionary<int, UdbScriptInfo?> _slotAssignments;
+    private IReadOnlySet<string> _collapsedDirectoryHashes;
     private readonly TextBox _filter = new();
     private readonly TreeView _tree = new();
     private readonly TextBox _description = new();
@@ -28,6 +29,7 @@ public sealed class UdbScriptDockerWindow : Window
     public event Action<UdbScriptInfo>? ResetOptionsRequested;
     public event Action<UdbScriptInfo, int>? SlotAssignmentRequested;
     public event Action<UdbScriptInfo>? SlotClearedRequested;
+    public event Action<IReadOnlySet<string>>? CollapsedDirectoryHashesChanged;
 
     public IReadOnlyList<UdbScriptDockerNode> Nodes { get; private set; } = Array.Empty<UdbScriptDockerNode>();
     public UdbScriptDockerSelection CurrentSelection { get; private set; } = UdbScriptDockerModel.Selection(null);
@@ -35,11 +37,13 @@ public sealed class UdbScriptDockerWindow : Window
     public UdbScriptDockerWindow(
         UdbScriptDirectory rootDirectory,
         IReadOnlyDictionary<int, UdbScriptInfo?>? slotAssignments = null,
-        IReadOnlyDictionary<int, string>? hotkeys = null)
+        IReadOnlyDictionary<int, string>? hotkeys = null,
+        IReadOnlySet<string>? collapsedDirectoryHashes = null)
     {
         _rootDirectory = rootDirectory;
         _slotAssignments = slotAssignments ?? new Dictionary<int, UdbScriptInfo?>();
         _hotkeys = hotkeys ?? new Dictionary<int, string>();
+        _collapsedDirectoryHashes = collapsedDirectoryHashes ?? new HashSet<string>();
 
         Title = UdbScriptDockerModel.DockerTitle;
         Width = 760;
@@ -149,7 +153,7 @@ public sealed class UdbScriptDockerWindow : Window
 
     private void RebuildTree()
     {
-        Nodes = UdbScriptDockerModel.BuildTree(_rootDirectory, _filter.Text ?? "", _slotAssignments, _hotkeys);
+        Nodes = UdbScriptDockerModel.BuildTree(_rootDirectory, _filter.Text ?? "", _slotAssignments, _hotkeys, _collapsedDirectoryHashes);
         _tree.ItemsSource = Nodes.Select(TreeItem).ToArray();
         ApplySelection(UdbScriptDockerModel.Selection(null));
     }
@@ -163,6 +167,18 @@ public sealed class UdbScriptDockerWindow : Window
             Tag = node,
         };
         item.ItemsSource = node.Children.Select(TreeItem).ToArray();
+        if (node.Kind == UdbScriptDockerNodeKind.Folder)
+            item.PropertyChanged += (_, e) =>
+            {
+                if (e.Property != TreeViewItem.IsExpandedProperty)
+                    return;
+
+                _collapsedDirectoryHashes = UdbScriptDockerModel.SetDirectoryCollapsed(
+                    _collapsedDirectoryHashes,
+                    node.Hash,
+                    collapsed: !item.IsExpanded);
+                CollapsedDirectoryHashesChanged?.Invoke(_collapsedDirectoryHashes);
+            };
         if (node.Script is not null)
             item.ContextMenu = BuildScriptContextMenu(node.Script);
         return item;

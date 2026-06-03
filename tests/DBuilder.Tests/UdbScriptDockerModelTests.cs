@@ -139,6 +139,22 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void DirectoryExpansionStateCanTrackByHash()
+    {
+        IReadOnlySet<string> collapsed = UdbScriptDockerModel.SetDirectoryCollapsed(
+            new HashSet<string>(),
+            "hash-child",
+            collapsed: true);
+        IReadOnlySet<string> expanded = UdbScriptDockerModel.SetDirectoryCollapsed(
+            collapsed,
+            "hash-child",
+            collapsed: false);
+
+        Assert.Contains("hash-child", collapsed);
+        Assert.DoesNotContain("hash-child", expanded);
+    }
+
+    [Fact]
     public void SaveDirectoryExpansionOperationsMatchUdbRecursiveSettings()
     {
         var collapsedChild = new UdbScriptDirectory(
@@ -328,6 +344,7 @@ public class UdbScriptDockerModelTests
             "Alpha",
             UdbScriptDockerModel.ScriptImageKey,
             alpha.ScriptFile,
+            alpha.PathHash,
             false,
             alpha,
             Array.Empty<UdbScriptDockerNode>());
@@ -358,6 +375,7 @@ public class UdbScriptDockerModelTests
             "Alpha",
             UdbScriptDockerModel.ScriptImageKey,
             alpha.ScriptFile,
+            alpha.PathHash,
             false,
             alpha,
             Array.Empty<UdbScriptDockerNode>());
@@ -366,6 +384,7 @@ public class UdbScriptDockerModelTests
             "Folder",
             UdbScriptDockerModel.FolderImageKey,
             "/scripts/folder",
+            "hash-folder",
             true,
             null,
             Array.Empty<UdbScriptDockerNode>());

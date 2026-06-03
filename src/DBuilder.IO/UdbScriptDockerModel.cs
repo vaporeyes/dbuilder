@@ -14,6 +14,7 @@ public sealed record UdbScriptDockerNode(
     string Text,
     string ImageKey,
     string Path,
+    string Hash,
     bool Expanded,
     UdbScriptInfo? Script,
     IReadOnlyList<UdbScriptDockerNode> Children);
@@ -181,18 +182,23 @@ public static class UdbScriptDockerModel
     public static IReadOnlySet<string> CollapseDirectory(
         IReadOnlySet<string> collapsedDirectoryHashes,
         UdbScriptDirectory directory)
-    {
-        var result = new HashSet<string>(collapsedDirectoryHashes, StringComparer.Ordinal);
-        result.Add(directory.Hash);
-        return result;
-    }
+        => SetDirectoryCollapsed(collapsedDirectoryHashes, directory.Hash, collapsed: true);
 
     public static IReadOnlySet<string> ExpandDirectory(
         IReadOnlySet<string> collapsedDirectoryHashes,
         UdbScriptDirectory directory)
+        => SetDirectoryCollapsed(collapsedDirectoryHashes, directory.Hash, collapsed: false);
+
+    public static IReadOnlySet<string> SetDirectoryCollapsed(
+        IReadOnlySet<string> collapsedDirectoryHashes,
+        string directoryHash,
+        bool collapsed)
     {
         var result = new HashSet<string>(collapsedDirectoryHashes, StringComparer.Ordinal);
-        result.Remove(directory.Hash);
+        if (collapsed)
+            result.Add(directoryHash);
+        else
+            result.Remove(directoryHash);
         return result;
     }
 
@@ -340,6 +346,7 @@ public static class UdbScriptDockerModel
                 child.Name,
                 FolderImageKey,
                 child.Path,
+                child.Hash,
                 collapsedDirectoryHashes is null || !collapsedDirectoryHashes.Contains(child.Hash),
                 null,
                 BuildDirectoryChildren(child, filterText, slotAssignments, hotkeys, collapsedDirectoryHashes)));
@@ -356,6 +363,7 @@ public static class UdbScriptDockerModel
                 ScriptNodeText(script, slot, HotkeyText(slot, hotkeys)),
                 ScriptImageKey,
                 script.ScriptFile,
+                script.PathHash,
                 false,
                 script,
                 Array.Empty<UdbScriptDockerNode>()));

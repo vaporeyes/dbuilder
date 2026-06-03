@@ -18,6 +18,7 @@ public class UdbScriptDockerWindowTests
             typeof(DBuilder.IO.UdbScriptDirectory),
             typeof(IReadOnlyDictionary<int, DBuilder.IO.UdbScriptInfo?>),
             typeof(IReadOnlyDictionary<int, string>),
+            typeof(IReadOnlySet<string>),
         ]));
         Assert.NotNull(type.GetEvent("RunRequested"));
         Assert.NotNull(type.GetEvent("EditRequested"));
@@ -25,6 +26,7 @@ public class UdbScriptDockerWindowTests
         Assert.NotNull(type.GetEvent("ResetOptionsRequested"));
         Assert.NotNull(type.GetEvent("SlotAssignmentRequested"));
         Assert.NotNull(type.GetEvent("SlotClearedRequested"));
+        Assert.NotNull(type.GetEvent("CollapsedDirectoryHashesChanged"));
         Assert.NotNull(type.GetProperty("Nodes"));
         Assert.NotNull(type.GetProperty("CurrentSelection"));
         Assert.NotNull(type.GetMethod("ApplyCurrentScript", BindingFlags.Instance | BindingFlags.Public));

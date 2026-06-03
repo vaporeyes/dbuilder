@@ -2431,7 +2431,10 @@ public partial class MainWindow : Window
         _udbScriptSlotAssignments = UdbScriptDockerModel.LoadSlotAssignments(
             AllUdbScripts(scripts),
             _settings.UdbScriptSettings);
-        _udbScriptDocker = new UdbScriptDockerWindow(scripts, _udbScriptSlotAssignments);
+        IReadOnlySet<string> collapsedDirectoryHashes = UdbScriptDockerModel.LoadCollapsedDirectoryHashes(
+            scripts,
+            _settings.UdbScriptSettings);
+        _udbScriptDocker = new UdbScriptDockerWindow(scripts, _udbScriptSlotAssignments, collapsedDirectoryHashes: collapsedDirectoryHashes);
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => RunUdbScriptPlan(UdbScriptActions.ExecuteCurrentPlan(script));
         _udbScriptDocker.EditRequested += OpenUdbScriptExternalEditor;
@@ -2439,6 +2442,8 @@ public partial class MainWindow : Window
         _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
         _udbScriptDocker.SlotAssignmentRequested += AssignUdbScriptSlot;
         _udbScriptDocker.SlotClearedRequested += ClearUdbScriptSlot;
+        _udbScriptDocker.CollapsedDirectoryHashesChanged += collapsed => SaveUdbScriptSettings(
+            UdbScriptDockerModel.SaveDirectoryExpansionOperations(scripts, collapsed));
         _udbScriptDocker.Show(this);
     }
 
@@ -2475,10 +2480,18 @@ public partial class MainWindow : Window
             .ToArray())
             _settings.UdbScriptSettings.Remove(key);
 
+        SaveUdbScriptSettings(operations);
+    }
+
+    private void SaveUdbScriptSettings(IReadOnlyList<UdbScriptSettingOperation> operations)
+    {
+        _settings.UdbScriptSettings ??= new Dictionary<string, object?>(StringComparer.Ordinal);
         foreach (UdbScriptSettingOperation operation in operations)
         {
             if (operation.Kind == UdbScriptSettingOperationKind.Write)
                 _settings.UdbScriptSettings[operation.Key] = operation.Value;
+            else if (operation.Kind == UdbScriptSettingOperationKind.Delete)
+                _settings.UdbScriptSettings.Remove(operation.Key);
         }
 
         SaveSettings();

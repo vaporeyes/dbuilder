@@ -187,6 +187,7 @@ public class SettingsTests
                 UdbScriptSettings = new Dictionary<string, object?>
                 {
                     ["scriptslots.slot3"] = "/scripts/slotted.js",
+                    ["directoryexpand.hash-child"] = false,
                 },
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
@@ -296,6 +297,7 @@ public class SettingsTests
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
             Assert.Equal("/scripts/slotted.js", loaded.UdbScriptSettings["scriptslots.slot3"]?.ToString());
+            Assert.Equal("False", loaded.UdbScriptSettings["directoryexpand.hash-child"]?.ToString());
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
