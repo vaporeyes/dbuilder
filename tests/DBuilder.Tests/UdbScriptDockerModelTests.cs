@@ -386,6 +386,38 @@ public class UdbScriptDockerModelTests
         Assert.Empty(emptySelection.Options);
     }
 
+    [Fact]
+    public void ResetSelectedScriptOptionsRestoresDefaultsAndDeletesSettings()
+    {
+        var length = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            256,
+            Array.Empty<UdbScriptEnumValue>(),
+            "scripts.hash.options.length");
+        var texture = new UdbScriptOption(
+            "texture",
+            "Texture",
+            (int)UniversalType.Texture,
+            "STARTAN3",
+            "BROWN1",
+            Array.Empty<UdbScriptEnumValue>(),
+            "scripts.hash.options.texture");
+        UdbScriptInfo script = Script("Alpha", "A description", "/scripts/alpha.js", length, texture);
+
+        UdbScriptDockerResetOptionsResult result = UdbScriptDockerModel.ResetSelectedScriptOptions(script);
+        UdbScriptDockerResetOptionsResult empty = UdbScriptDockerModel.ResetSelectedScriptOptions(null);
+
+        Assert.NotNull(result.Script);
+        Assert.Equal(new object[] { 128, "STARTAN3" }, result.Script.Options.Select(option => option.Value).ToArray());
+        Assert.Equal(new[] { "scripts.hash.options.length", "scripts.hash.options.texture" }, result.Operations.Select(operation => operation.Key).ToArray());
+        Assert.All(result.Operations, operation => Assert.Equal(UdbScriptSettingOperationKind.Delete, operation.Kind));
+        Assert.Null(empty.Script);
+        Assert.Empty(empty.Operations);
+    }
+
     private static UdbScriptInfo Script(string name, string description, string file, params UdbScriptOption[] options)
         => new(name, description, 1, file, UdbScriptDiscovery.HashPath(file), null, options);
 }
