@@ -161,6 +161,16 @@ public sealed record UdbScriptRunSourcePlan(
     IReadOnlyList<UdbScriptSourceFile> Libraries,
     UdbScriptSourceFile Script);
 
+public sealed record UdbScriptLoadedSourceFile(
+    UdbScriptSourceFile Source,
+    string Text);
+
+public sealed record UdbScriptLoadedSourcePlan(
+    bool Success,
+    string MissingPath,
+    IReadOnlyList<UdbScriptLoadedSourceFile> Libraries,
+    UdbScriptLoadedSourceFile? Script);
+
 public sealed record UdbScriptRunExecutionPlan(
     UdbScriptSourceFile Script,
     bool ReadScriptFile,
@@ -758,6 +768,30 @@ public static class UdbScriptRunnerModel
             ResetStopwatch: true,
             StartStopwatchBeforeExecute: true,
             StopStopwatchAfterExecute: true);
+
+    public static UdbScriptLoadedSourcePlan LoadSourcePlan(
+        UdbScriptRunSourcePlan plan,
+        Func<string, bool> exists,
+        Func<string, string> readAllText)
+    {
+        var libraries = new List<UdbScriptLoadedSourceFile>();
+        foreach (UdbScriptSourceFile library in plan.Libraries)
+        {
+            if (!exists(library.Path))
+                return new UdbScriptLoadedSourcePlan(false, library.Path, libraries, null);
+
+            libraries.Add(new UdbScriptLoadedSourceFile(library, readAllText(library.Path)));
+        }
+
+        if (!exists(plan.Script.Path))
+            return new UdbScriptLoadedSourcePlan(false, plan.Script.Path, libraries, null);
+
+        return new UdbScriptLoadedSourcePlan(
+            true,
+            "",
+            libraries,
+            new UdbScriptLoadedSourceFile(plan.Script, readAllText(plan.Script.Path)));
+    }
 
     public static UdbScriptRunnerExceptionOutcome ClassifyException(
         UdbScriptRunnerExceptionKind kind,

@@ -1293,14 +1293,19 @@ public partial class MainWindow : Window
         runner.ApplyLog($"Script: {sourcePlan.Script.EngineSourceName}");
         runner.ApplyLog($"Libraries: {sourcePlan.Libraries.Count}");
 
-        if (!System.IO.File.Exists(script.ScriptFile))
+        UdbScriptLoadedSourcePlan loadedSources = UdbScriptRunnerModel.LoadSourcePlan(
+            sourcePlan,
+            System.IO.File.Exists,
+            System.IO.File.ReadAllText);
+        if (!loadedSources.Success)
         {
-            runner.ApplyLog($"Script file not found: {script.ScriptFile}");
+            runner.ApplyLog($"Script source file not found: {loadedSources.MissingPath}");
             runner.Finish(runner.ElapsedRuntime, autoClose: false);
-            SetStatus($"UDBScript file not found: {script.Name}");
+            SetStatus($"UDBScript source file not found: {loadedSources.MissingPath}");
             return;
         }
 
+        runner.ApplyLog($"Loaded script source: {loadedSources.Script?.Text.Length ?? 0} character(s)");
         runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
         runner.Finish(runner.ElapsedRuntime, autoClose: false);
         SetStatus($"UDBScript runner prepared: {script.Name}");

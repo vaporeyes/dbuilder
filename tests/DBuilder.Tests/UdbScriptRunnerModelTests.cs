@@ -739,6 +739,79 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void LoadSourcePlanReadsLibrariesBeforeScript()
+    {
+        var plan = new UdbScriptRunSourcePlan(
+            "/app/UDBScript/Libraries",
+            new[]
+            {
+                new UdbScriptSourceFile("/app/UDBScript/Libraries/one.js", "/UDBScript/Libraries/one.js"),
+                new UdbScriptSourceFile("/app/UDBScript/Libraries/two.js", "/UDBScript/Libraries/two.js"),
+            },
+            new UdbScriptSourceFile("/app/UDBScript/Scripts/demo.js", "/UDBScript/Scripts/demo.js"));
+        var contents = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["/app/UDBScript/Libraries/one.js"] = "one",
+            ["/app/UDBScript/Libraries/two.js"] = "two",
+            ["/app/UDBScript/Scripts/demo.js"] = "demo",
+        };
+        var readOrder = new List<string>();
+
+        UdbScriptLoadedSourcePlan loaded = UdbScriptRunnerModel.LoadSourcePlan(
+            plan,
+            contents.ContainsKey,
+            path =>
+            {
+                readOrder.Add(path);
+                return contents[path];
+            });
+
+        Assert.True(loaded.Success);
+        Assert.Equal("", loaded.MissingPath);
+        Assert.Equal(["one", "two"], loaded.Libraries.Select(library => library.Text).ToArray());
+        Assert.NotNull(loaded.Script);
+        Assert.Equal("demo", loaded.Script.Text);
+        Assert.Equal(
+            ["/app/UDBScript/Libraries/one.js", "/app/UDBScript/Libraries/two.js", "/app/UDBScript/Scripts/demo.js"],
+            readOrder);
+    }
+
+    [Fact]
+    public void LoadSourcePlanStopsAtMissingSourceFile()
+    {
+        var plan = new UdbScriptRunSourcePlan(
+            "/app/UDBScript/Libraries",
+            new[]
+            {
+                new UdbScriptSourceFile("/app/UDBScript/Libraries/one.js", "/UDBScript/Libraries/one.js"),
+                new UdbScriptSourceFile("/app/UDBScript/Libraries/missing.js", "/UDBScript/Libraries/missing.js"),
+            },
+            new UdbScriptSourceFile("/app/UDBScript/Scripts/demo.js", "/UDBScript/Scripts/demo.js"));
+        var contents = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["/app/UDBScript/Libraries/one.js"] = "one",
+            ["/app/UDBScript/Scripts/demo.js"] = "demo",
+        };
+        int reads = 0;
+
+        UdbScriptLoadedSourcePlan loaded = UdbScriptRunnerModel.LoadSourcePlan(
+            plan,
+            contents.ContainsKey,
+            path =>
+            {
+                reads++;
+                return contents[path];
+            });
+
+        Assert.False(loaded.Success);
+        Assert.Equal("/app/UDBScript/Libraries/missing.js", loaded.MissingPath);
+        UdbScriptLoadedSourceFile library = Assert.Single(loaded.Libraries);
+        Assert.Equal("one", library.Text);
+        Assert.Null(loaded.Script);
+        Assert.Equal(1, reads);
+    }
+
+    [Fact]
     public void LegacyGlobalModeUsesScriptVersionsBeforeFour()
     {
         Assert.True(UdbScriptRunnerModel.UsesLegacyGlobals(1));
