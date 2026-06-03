@@ -2241,6 +2241,16 @@ public static class DecorateParser
     {
         value = 0;
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "=") i++;
+        if (i + 1 < t.Count
+            && t[i].Kind == Kind.Word
+            && t[i].Text is "+" or "-"
+            && t[i + 1].Kind == Kind.Word
+            && TryParseZScriptInteger(t[i + 1].Text, out value))
+        {
+            if (t[i].Text == "-") value = value == int.MinValue ? int.MinValue : -value;
+            i += 2;
+            return true;
+        }
         if (i < t.Count && t[i].Kind == Kind.Word &&
             TryParseZScriptInteger(t[i].Text, out value)) { i++; return true; }
         // Some properties use floats; accept and truncate.

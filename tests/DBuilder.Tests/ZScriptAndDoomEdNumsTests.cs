@@ -467,6 +467,25 @@ class PrefixedSizeDefault : Actor
     }
 
     [Fact]
+    public void ParsesSeparatedSignedZScriptSizeDefaultsLikeUdb()
+    {
+        const string text = @"
+class SeparatedSignedSizeDefault : Actor
+{
+    Default
+    {
+        Radius - 0x10;
+        Height + 010;
+    }
+}";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal(-16, actor.Radius);
+        Assert.Equal(8, actor.Height);
+    }
+
+    [Fact]
     public void ClampsOverflowingZScriptIntegerSizeDefaultsLikeUdb()
     {
         const string text = @"
