@@ -389,6 +389,16 @@ ACTOR DuplicateThing 6006
     }
 
     [Fact]
+    public void HeaderNativeMarkerDoesNotHidePlaceableDecorateActors()
+    {
+        var actor = DecorateParser.Parse("ACTOR NativeMarkedThing native 6009 { Radius 16 }").Single();
+
+        Assert.Equal("NativeMarkedThing", actor.ClassName);
+        Assert.Equal(6009, actor.DoomEdNum);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void ParsesQuotedHeaderClassNames()
     {
         const string text = @"

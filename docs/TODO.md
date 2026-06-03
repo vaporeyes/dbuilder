@@ -507,6 +507,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Merge top-level DECORATE `DamageType` definitions into configuration metadata.
   - [x] Apply top-level DECORATE `$` region properties as thing defaults.
   - [x] Parse DECORATE actor-header `$` properties.
+  - [x] Ignore DECORATE actor-header `native` markers like UDB.
   - [x] Preserve selected state-frame `bright` metadata for thing catalog entries.
   - [x] Skip unknown top-level DECORATE blocks without discovering nested actors.
   - [x] Reject DECORATE actors with unexpected header tokens.
