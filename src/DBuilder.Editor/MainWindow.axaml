@@ -56,24 +56,24 @@
         <!-- Menu bar -->
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Map" Click="OnNewMap" />
-                <MenuItem Header="_Open WAD..." Click="OnOpen" />
+                <MenuItem Header="_New Map" x:Name="NewMapMenuItem" Click="OnNewMap" />
+                <MenuItem Header="_Open WAD..." x:Name="OpenWadMenuItem" Click="OnOpen" />
                 <MenuItem Header="Open _Recent" x:Name="OpenRecentMenu" />
-                <MenuItem Header="_Recover Autosave..." Click="OnRecoverAutosave" />
+                <MenuItem Header="_Recover Autosave..." x:Name="RecoverAutosaveMenuItem" Click="OnRecoverAutosave" />
                 <MenuItem Header="Open _Map..." x:Name="OpenMapMenuItem" Click="OnOpenMap" />
                 <MenuItem Header="_Reload Map" x:Name="ReloadMapMenuItem" Click="OnReloadMap" />
                 <MenuItem Header="_Close Map" x:Name="CloseMapMenuItem" Click="OnCloseMap" />
-                <MenuItem Header="Add _Resource (IWAD/PK3)..." Click="OnAddResource" />
-                <MenuItem Header="Add Resource _Directory..." Click="OnAddResourceDirectory" />
+                <MenuItem Header="Add _Resource (IWAD/PK3)..." x:Name="AddResourceMenuItem" Click="OnAddResource" />
+                <MenuItem Header="Add Resource _Directory..." x:Name="AddResourceDirectoryMenuItem" Click="OnAddResourceDirectory" />
                 <MenuItem Header="_Save WAD" x:Name="SaveMenuItem" Click="OnSave" />
                 <MenuItem Header="Save WAD _As..." x:Name="SaveAsMenuItem" Click="OnSaveAs" />
                 <MenuItem Header="Save As _Format..." x:Name="SaveAsFormatMenuItem" Click="OnSaveAsFormat" />
                 <Separator />
-                <MenuItem Header="Load _Game Config..." Click="OnLoadConfig" />
+                <MenuItem Header="Load _Game Config..." x:Name="LoadGameConfigMenuItem" Click="OnLoadConfig" />
                 <MenuItem Header="Map _Options..." x:Name="MapOptionsMenuItem" Click="OnMapOptions" />
-                <MenuItem Header="_Settings..." Click="OnSettings" />
+                <MenuItem Header="_Settings..." x:Name="SettingsMenuItem" Click="OnSettings" />
                 <Separator />
-                <MenuItem Header="E_xit" Click="OnExit" />
+                <MenuItem Header="E_xit" x:Name="ExitMenuItem" Click="OnExit" />
             </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Header="_Undo" x:Name="UndoMenuItem" Click="OnUndo" />

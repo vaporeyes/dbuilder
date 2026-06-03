@@ -272,10 +272,20 @@ public partial class MainWindow : Window
 
     private void ApplyMenuShortcutTooltips()
     {
-        SetShortcutToolTip(OpenMapMenuItem, "Open Map", "window.open-map");
+        SetShortcutToolTip(NewMapMenuItem, "New Map", "window.new-map");
+        SetShortcutToolTip(OpenWadMenuItem, "Open WAD", "window.open-map");
+        SetShortcutToolTip(RecoverAutosaveMenuItem, "Recover Autosave", "window.recover-autosave");
+        SetShortcutToolTip(OpenMapMenuItem, "Open Map", "window.open-map-in-current-wad");
         SetShortcutToolTip(ReloadMapMenuItem, "Reload Map", "window.reload-map");
         SetShortcutToolTip(CloseMapMenuItem, "Close Map", "window.close-map");
+        SetShortcutToolTip(AddResourceMenuItem, "Add Resource", "window.add-resource");
+        SetShortcutToolTip(AddResourceDirectoryMenuItem, "Add Resource Directory", "window.add-resource-directory");
         SetShortcutToolTip(SaveMenuItem, "Save WAD", "window.save");
+        SetShortcutToolTip(SaveAsFormatMenuItem, "Save As Format", "window.save-as-format");
+        SetShortcutToolTip(LoadGameConfigMenuItem, "Game Configurations", "window.game-configurations");
+        SetShortcutToolTip(MapOptionsMenuItem, "Map Options", "window.map-options");
+        SetShortcutToolTip(SettingsMenuItem, "Preferences", "window.preferences");
+        SetShortcutToolTip(ExitMenuItem, "Exit", "window.exit");
         SetShortcutToolTip(UndoMenuItem, "Undo", "window.undo");
         SetShortcutToolTip(RedoMenuItem, "Redo", "window.redo");
         SetShortcutToolTip(CutMenuItem, "Cut selection", "window.cut");
@@ -424,7 +434,7 @@ public partial class MainWindow : Window
 
     private void ApplyToolbarShortcutTooltips()
     {
-        SetShortcutToolTip(OpenMapButton, "Open Map", "window.open-map");
+        SetShortcutToolTip(OpenMapButton, "Open Map", "window.open-map-in-current-wad");
         SetShortcutToolTip(ReloadMapButton, "Reload Map", "window.reload-map");
         SetShortcutToolTip(CloseMapButton, "Close Map", "window.close-map");
         SetShortcutToolTip(SaveButton, "Save WAD", "window.save");
