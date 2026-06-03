@@ -4,6 +4,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Threading;
 using DBuilder.IO;
 
 namespace DBuilder.Editor;
@@ -19,6 +20,8 @@ public sealed class UdbScriptRunnerWindow : Window
 
     public event Action? CancelRequested;
     public event Action? CloseRequested;
+    public event Action? PauseRequested;
+    public event Action? ResumeRequested;
 
     public bool IsRunnerRunning => _running;
 
@@ -85,6 +88,31 @@ public sealed class UdbScriptRunnerWindow : Window
     public void MarkRunning()
     {
         _running = true;
+    }
+
+    public object? InvokePaused(Delegate method)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return InvokePausedOnUiThread(method);
+
+        return Dispatcher.UIThread
+            .InvokeAsync(() => InvokePausedOnUiThread(method))
+            .GetAwaiter()
+            .GetResult();
+    }
+
+    public void RunAction(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        Dispatcher.UIThread
+            .InvokeAsync(action)
+            .GetAwaiter()
+            .GetResult();
     }
 
     public void Finish(TimeSpan runtime, bool autoClose)
@@ -159,4 +187,17 @@ public sealed class UdbScriptRunnerWindow : Window
             false,
             Opacity,
             AutoClose: false);
+
+    private object? InvokePausedOnUiThread(Delegate method)
+    {
+        PauseRequested?.Invoke();
+        try
+        {
+            return method.DynamicInvoke();
+        }
+        finally
+        {
+            ResumeRequested?.Invoke();
+        }
+    }
 }

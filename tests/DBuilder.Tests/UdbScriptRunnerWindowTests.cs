@@ -17,9 +17,13 @@ public class UdbScriptRunnerWindowTests
         Assert.NotNull(type.GetConstructor(Type.EmptyTypes));
         Assert.NotNull(type.GetEvent("CancelRequested"));
         Assert.NotNull(type.GetEvent("CloseRequested"));
+        Assert.NotNull(type.GetEvent("PauseRequested"));
+        Assert.NotNull(type.GetEvent("ResumeRequested"));
         Assert.NotNull(type.GetProperty("IsRunnerRunning"));
         AssertPublicInstanceMethod(type, "Start");
         AssertPublicInstanceMethod(type, "MarkRunning");
+        AssertPublicInstanceMethod(type, "InvokePaused");
+        AssertPublicInstanceMethod(type, "RunAction");
         AssertPublicInstanceMethod(type, "Finish");
         AssertPublicInstanceMethod(type, "ApplyProgress");
         AssertPublicInstanceMethod(type, "ApplyStatus");
