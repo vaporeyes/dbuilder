@@ -52,6 +52,10 @@ public sealed record UdbScriptOptionEnumApplyState(
     bool EnumEditorTagCleared,
     bool EnumEditorItemsCleared);
 
+public sealed record UdbScriptOptionEditCommitState(
+    object? CellValue,
+    object OptionValue);
+
 public sealed record UdbScriptOptionSelectionChangedPlan(
     bool HideBrowseButton,
     bool ApplyEnumEditor,
@@ -168,6 +172,16 @@ public static class UdbScriptOptionsUiModel
 
     public static UdbScriptOptionBrowseRefreshPlan BrowseRefreshPlan()
         => new(UpdateBrowseButton: true);
+
+    public static UdbScriptOptionEditCommitState CommitEditedValue(
+        UdbScriptOption option,
+        object? cellValue)
+    {
+        UniversalTypeHandler handler = HandlerFor(option);
+        handler.SetValue(cellValue);
+
+        return new UdbScriptOptionEditCommitState(cellValue, handler.GetValue());
+    }
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
         UdbScriptOption option,

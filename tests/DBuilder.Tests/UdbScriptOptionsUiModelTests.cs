@@ -229,6 +229,41 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void CommitEditedValueStoresCellValueAndHandlerValue()
+    {
+        var length = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            64,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+        var direction = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Down",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+
+        UdbScriptOptionEditCommitState integer = UdbScriptOptionsUiModel.CommitEditedValue(length, "256");
+
+        Assert.Equal("256", integer.CellValue);
+        Assert.Equal(256, integer.OptionValue);
+
+        UdbScriptOptionEditCommitState enumValue = UdbScriptOptionsUiModel.CommitEditedValue(direction, "Up");
+
+        Assert.Equal("Up", enumValue.CellValue);
+        Assert.Equal(1, enumValue.OptionValue);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(
