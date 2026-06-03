@@ -27,6 +27,15 @@ public sealed record UdbScriptDockerSelection(
     string Description,
     IReadOnlyList<UdbScriptOption> Options);
 
+public sealed record UdbScriptDockerLayoutMetadata(
+    string SplitOrientation,
+    string TreeSelectionMode,
+    bool TreeHideSelection,
+    bool TreeShowNodeToolTips,
+    bool DescriptionReadOnly,
+    string DescriptionScrollBars,
+    int ActionButtonColumns);
+
 public static class UdbScriptDockerModel
 {
     public const string DockerKey = "udbscript";
@@ -44,6 +53,20 @@ public static class UdbScriptDockerModel
     public const string OpenInExplorerMenuText = "Open in Explorer";
     public const string NotAssignedSlotText = "not assigned";
     public const string NoHotkeyText = "no hotkey";
+    public const string SplitOrientation = "Horizontal";
+    public const string TreeSelectionMode = "SingleSelect";
+    public const string DescriptionScrollBars = "Both";
+    public const int ActionButtonColumns = 2;
+
+    public static UdbScriptDockerLayoutMetadata LayoutMetadata()
+        => new(
+            SplitOrientation,
+            TreeSelectionMode,
+            TreeHideSelection: false,
+            TreeShowNodeToolTips: true,
+            DescriptionReadOnly: true,
+            DescriptionScrollBars,
+            ActionButtonColumns);
 
     public static IReadOnlyList<UdbScriptDockerNode> BuildTree(
         UdbScriptDirectory root,

@@ -26,6 +26,20 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void DockerLayoutMetadataMatchesUdbControl()
+    {
+        UdbScriptDockerLayoutMetadata metadata = UdbScriptDockerModel.LayoutMetadata();
+
+        Assert.Equal("Horizontal", metadata.SplitOrientation);
+        Assert.Equal("SingleSelect", metadata.TreeSelectionMode);
+        Assert.False(metadata.TreeHideSelection);
+        Assert.True(metadata.TreeShowNodeToolTips);
+        Assert.True(metadata.DescriptionReadOnly);
+        Assert.Equal("Both", metadata.DescriptionScrollBars);
+        Assert.Equal(2, metadata.ActionButtonColumns);
+    }
+
+    [Fact]
     public void BuildTreeSortsFoldersAndScriptsAndAppliesFilter()
     {
         UdbScriptInfo alpha = Script("Alpha", "Contains doors", "/scripts/alpha.js");
