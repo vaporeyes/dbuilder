@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\DBuilder.Rendering\DBuilder.Rendering.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.Map\DBuilder.Map.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.IO\DBuilder.IO.csproj" />
+    <ProjectReference Include="..\..\src\DBuilder.Editor\DBuilder.Editor.csproj" />
   </ItemGroup>
 
 </Project>

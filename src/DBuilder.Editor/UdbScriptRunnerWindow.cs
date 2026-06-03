@@ -1,0 +1,157 @@
+// ABOUTME: Avalonia shell for the UDBScript runner progress, status, and log surface.
+// ABOUTME: Applies UDBScript runner model state while execution wiring remains owned by callers.
+
+using System;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using DBuilder.IO;
+
+namespace DBuilder.Editor;
+
+public sealed class UdbScriptRunnerWindow : Window
+{
+    private readonly ProgressBar _progress = new();
+    private readonly TextBlock _status = new();
+    private readonly Button _action = new();
+    private readonly TextBox _log = new();
+    private double _runningSeconds;
+    private bool _running;
+
+    public event Action? CancelRequested;
+    public event Action? CloseRequested;
+
+    public bool IsRunnerRunning => _running;
+
+    public UdbScriptRunnerWindow()
+    {
+        UdbScriptRunnerFormMetadata metadata = UdbScriptRunnerModel.FormMetadata();
+
+        Title = metadata.InitialTitle;
+        Width = metadata.MinimumWidth;
+        Height = metadata.MinimumHeight;
+        MinWidth = metadata.MinimumWidth;
+        MinHeight = metadata.MinimumHeight;
+        CanResize = true;
+        WindowStartupLocation = WindowStartupLocation.CenterOwner;
+
+        _progress.Minimum = 0;
+        _progress.Maximum = 100;
+        _progress.Value = 0;
+        _progress.Height = 23;
+
+        _action.MinWidth = 75;
+        _action.Click += (_, _) => ApplyActionButton();
+
+        _log.IsReadOnly = true;
+        _log.AcceptsReturn = true;
+        _log.TextWrapping = Avalonia.Media.TextWrapping.NoWrap;
+
+        var top = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+            RowDefinitions = new RowDefinitions("Auto,Auto"),
+            Margin = new Avalonia.Thickness(12, 9, 12, 6),
+        };
+        Grid.SetColumnSpan(_status, 2);
+        Grid.SetRow(_progress, 1);
+        Grid.SetRow(_action, 1);
+        Grid.SetColumn(_action, 1);
+        _action.Margin = new Avalonia.Thickness(6, 0, 0, 0);
+        top.Children.Add(_status);
+        top.Children.Add(_progress);
+        top.Children.Add(_action);
+
+        var root = new DockPanel();
+        DockPanel.SetDock(top, Dock.Top);
+        root.Children.Add(top);
+        root.Children.Add(_log);
+        Content = root;
+
+        ApplyState(UdbScriptRunnerModel.InitialUiState());
+    }
+
+    public void Start()
+    {
+        UdbScriptRunnerStartPlan plan = UdbScriptRunnerModel.StartPlan();
+        _runningSeconds = 0;
+        _running = false;
+        _progress.Value = plan.ResetProgressValue ? 0 : _progress.Value;
+        if (plan.ClearLog)
+            _log.Clear();
+
+        ApplyState(plan.InitialState);
+    }
+
+    public void MarkRunning()
+    {
+        _running = true;
+    }
+
+    public void Finish(TimeSpan runtime, bool autoClose)
+    {
+        _running = false;
+        ApplyState(UdbScriptRunnerModel.FinishedUiState(runtime, autoClose));
+        _progress.Value = 0;
+        if (autoClose)
+            Close();
+    }
+
+    public void ApplyProgress(int value)
+    {
+        _progress.Value = Math.Clamp(value, 0, 100);
+        ApplyState(UdbScriptRunnerModel.ProgressReportedUiState(CurrentState()));
+    }
+
+    public void ApplyLog(string text)
+    {
+        _log.Text = UdbScriptRunnerModel.AppendLog(_log.Text ?? "", text);
+        ApplyState(UdbScriptRunnerModel.LogReportedUiState(CurrentState()));
+    }
+
+    public void ApplyTimerTick(TimeSpan elapsed)
+    {
+        UdbScriptRunnerTimerTickPlan plan = UdbScriptRunnerModel.TimerTickPlan(elapsed, _runningSeconds, Opacity);
+        if (plan.MakeVisible)
+            Opacity = 1.0;
+        if (plan.UpdateRunningSeconds)
+        {
+            _runningSeconds = plan.RunningSeconds;
+            Title = plan.Title;
+        }
+    }
+
+    public void ApplyState(UdbScriptRunnerUiState state)
+    {
+        Title = state.Title;
+        _status.Text = state.StatusText;
+        _action.Content = state.ActionButtonText;
+        _action.IsEnabled = state.ActionButtonEnabled;
+        Opacity = state.Opacity;
+    }
+
+    private void ApplyActionButton()
+    {
+        UdbScriptRunnerActionButtonPlan plan = UdbScriptRunnerModel.ActionButtonPlan(_running);
+        if (plan.DisableActionButton)
+            _action.IsEnabled = false;
+        if (plan.CancelToken)
+            CancelRequested?.Invoke();
+        if (plan.MakeInvisible)
+            Opacity = 0.0;
+        if (plan.CloseWindow)
+        {
+            CloseRequested?.Invoke();
+            Close();
+        }
+    }
+
+    private UdbScriptRunnerUiState CurrentState()
+        => new(
+            Title?.ToString() ?? "",
+            _status.Text ?? "",
+            _action.Content?.ToString() ?? "",
+            _action.IsEnabled,
+            false,
+            Opacity,
+            AutoClose: false);
+}

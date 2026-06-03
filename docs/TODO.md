@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3406 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3407 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1277,6 +1277,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runner UI lifecycle state, visibility threshold, timer, title, and log formatting model.
   - [x] Add UDBScript runner form run workflow plan.
   - [x] Add UDBScript runner form designer metadata model.
+  - [x] Add UDBScript editor runner window shell.
   - [x] Add UDBScript runner progress and log visibility/autoclose state model.
   - [x] Add UDBScript runner pre-run and post-run side-effect plan model.
   - [x] Add UDBScript error dialog metadata model.
@@ -1583,6 +1584,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner start and action-button branch plan.
 - [x] Add UDBScript runner timer tick branch plan.
 - [x] Add UDBScript runner form designer metadata model.
+- [x] Add UDBScript editor runner window shell.
 - [x] Add UDBScript runner progress and log visibility/autoclose state model.
 - [x] Add UDBScript runner pre-run and post-run side-effect plan model.
 - [x] Add UDBScript error dialog metadata model.
