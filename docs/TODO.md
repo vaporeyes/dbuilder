@@ -1915,6 +1915,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.
   - [x] Add UDB-style dialog editor action, toolbar/menu item, and window-state setting metadata.
+  - [x] Add testable USDF conversation viewer status, summary, and row model.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.

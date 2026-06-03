@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace DBuilder.IO;
 
@@ -76,10 +77,58 @@ public sealed record UsdfDialogEditorTreeMetadata(
     int ItemHeight,
     IReadOnlyList<string> ImageKeys);
 
+public enum UsdfConversationRowKind
+{
+    Include,
+    Conversation,
+    Page,
+    Condition,
+    Choice,
+}
+
+public sealed record UsdfConversationRow(
+    string Text,
+    int Depth,
+    UsdfConversationRowKind Kind);
+
 public static class UsdfDialogueParser
 {
     public static bool CanEditDialogue(GameConfiguration? config)
         => config?.MapLumpNames.ContainsKey("DIALOGUE") == true;
+
+    public static string ViewerStatus(UsdfParseResult result)
+        => result.Success ? "DIALOGUE: OK" : $"DIALOGUE parse error on line {result.ErrorLine}: {result.ErrorDescription}";
+
+    public static string ViewerSummary(UsdfDocument document)
+    {
+        int pages = document.Conversations.Sum(conversation => conversation.Pages.Count);
+        int choices = document.Conversations.Sum(conversation => conversation.Pages.Sum(page => page.Choices.Count));
+        return $"{document.Includes.Count} include(s), {document.Conversations.Count} conversation(s), {pages} page(s), {choices} choice(s).";
+    }
+
+    public static IReadOnlyList<UsdfConversationRow> ViewerRows(UsdfParseResult result)
+    {
+        if (!result.Success) return Array.Empty<UsdfConversationRow>();
+
+        var rows = new List<UsdfConversationRow>();
+        foreach (string include in result.Document.Includes)
+            rows.Add(new UsdfConversationRow($"include: {include}", 0, UsdfConversationRowKind.Include));
+
+        foreach (UsdfConversation conversation in result.Document.Conversations)
+        {
+            rows.Add(new UsdfConversationRow(FormatConversation(conversation), 0, UsdfConversationRowKind.Conversation));
+            foreach (UsdfPage page in conversation.Pages)
+            {
+                rows.Add(new UsdfConversationRow(FormatPage(page), 1, UsdfConversationRowKind.Page));
+                foreach (UsdfInventoryCondition condition in page.IfItems)
+                    rows.Add(new UsdfConversationRow("if item: " + FormatCondition(condition), 2, UsdfConversationRowKind.Condition));
+                foreach (UsdfChoice choice in page.Choices)
+                    rows.Add(new UsdfConversationRow(FormatChoice(choice), 2, UsdfConversationRowKind.Choice));
+            }
+        }
+
+        return rows;
+    }
 
     public static UsdfParseResult Parse(string text)
         => ParseInternal(text, includeResolver: null);
@@ -266,6 +315,53 @@ public static class UsdfDialogueParser
             string s when bool.TryParse(s, out bool b) => b,
             _ => null,
         };
+
+    private static string FormatConversation(UsdfConversation conversation)
+    {
+        string id = conversation.Id is int value ? $" id {value}" : "";
+        string actor = string.IsNullOrWhiteSpace(conversation.Actor) ? "" : $" actor {conversation.Actor}";
+        return $"conversation {conversation.Index}:{id}{actor}";
+    }
+
+    private static string FormatPage(UsdfPage page)
+    {
+        var parts = new List<string> { $"page {page.Index}" };
+        Add(parts, "name", page.Name);
+        Add(parts, "panel", page.Panel);
+        Add(parts, "voice", page.Voice);
+        Add(parts, "dialog", page.Dialog);
+        Add(parts, "drop", page.Drop);
+        if (page.Link is int link) parts.Add($"link {link}");
+        return string.Join(", ", parts);
+    }
+
+    private static string FormatChoice(UsdfChoice choice)
+    {
+        var parts = new List<string> { $"choice {choice.Index}" };
+        Add(parts, "text", choice.Text);
+        Add(parts, "yes", choice.YesMessage);
+        Add(parts, "no", choice.NoMessage);
+        Add(parts, "log", choice.Log);
+        Add(parts, "give", choice.GiveItem);
+        if (choice.Special is int special) parts.Add($"special {special}");
+        if (choice.Args.Any(arg => arg != 0)) parts.Add("args " + string.Join(", ", choice.Args));
+        if (choice.NextPage is int nextPage) parts.Add($"next page {nextPage}");
+        if (choice.CloseDialog) parts.Add("close dialog");
+        if (choice.Costs.Count > 0) parts.Add("costs " + string.Join("; ", choice.Costs.Select(FormatCondition)));
+        return string.Join(", ", parts);
+    }
+
+    private static string FormatCondition(UsdfInventoryCondition condition)
+    {
+        string item = string.IsNullOrWhiteSpace(condition.Item) ? "(none)" : condition.Item;
+        string page = condition.Page is int value ? $", page {value}" : "";
+        return $"{item} x{condition.Amount}{page}";
+    }
+
+    private static void Add(List<string> parts, string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value)) parts.Add($"{label} \"{value}\"");
+    }
 }
 
 public static class UsdfDialogEditorModel

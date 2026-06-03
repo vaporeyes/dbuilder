@@ -302,4 +302,63 @@ public class UsdfDialogueParserTests
         Assert.Contains("Invalid characters in key name", result.ErrorDescription);
         Assert.Empty(result.Document.Conversations);
     }
+
+    [Fact]
+    public void ViewerModelFormatsStatusSummaryAndRows()
+    {
+        const string text = """
+            include = "COMMON";
+            conversation
+            {
+                id = 7;
+                actor = "Guard";
+                page
+                {
+                    name = "Greeting";
+                    dialog = "Hello";
+                    ifitem { item = "BlueCard"; amount = 1; page = 2; }
+                    choice
+                    {
+                        text = "Open";
+                        special = 80;
+                        arg0 = 1;
+                        nextpage = 2;
+                        cost { item = "Coin"; amount = 3; }
+                    }
+                }
+            }
+            """;
+
+        UsdfParseResult result = UsdfDialogueParser.Parse(text);
+
+        Assert.Equal("DIALOGUE: OK", UsdfDialogueParser.ViewerStatus(result));
+        Assert.Equal("1 include(s), 1 conversation(s), 1 page(s), 1 choice(s).", UsdfDialogueParser.ViewerSummary(result.Document));
+
+        IReadOnlyList<UsdfConversationRow> rows = UsdfDialogueParser.ViewerRows(result);
+        Assert.Equal(
+            new[]
+            {
+                UsdfConversationRowKind.Include,
+                UsdfConversationRowKind.Conversation,
+                UsdfConversationRowKind.Page,
+                UsdfConversationRowKind.Condition,
+                UsdfConversationRowKind.Choice,
+            },
+            rows.Select(row => row.Kind));
+        Assert.Equal(new[] { 0, 0, 1, 2, 2 }, rows.Select(row => row.Depth));
+        Assert.Equal("include: COMMON", rows[0].Text);
+        Assert.Equal("conversation 0: id 7 actor Guard", rows[1].Text);
+        Assert.Contains("dialog \"Hello\"", rows[2].Text);
+        Assert.Equal("if item: BlueCard x1, page 2", rows[3].Text);
+        Assert.Contains("costs Coin x3", rows[4].Text);
+    }
+
+    [Fact]
+    public void ViewerRowsAreEmptyForParseErrors()
+    {
+        UsdfParseResult result = UsdfDialogueParser.Parse("conversation { actor-name = 1; }");
+
+        Assert.Contains("DIALOGUE parse error on line", UsdfDialogueParser.ViewerStatus(result));
+        Assert.Empty(UsdfDialogueParser.ViewerRows(result));
+    }
 }
