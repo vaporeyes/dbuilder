@@ -178,6 +178,24 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerModelFormatsClassicStructureRows()
+    {
+        var nodes = NodeRecord(0, 0, 64, 0, 0x8000, 0x8001);
+        var segs = SegRecord(0, 1, 0, 3, 1, -16);
+        var vertices = new byte[8];
+        VertexRecord(-128, 256).CopyTo(vertices, 0);
+        VertexRecord(64, -32).CopyTo(vertices, 4);
+        var structure = NodesReader.ParseClassicStructures(nodes, segs, vertices, SubsectorRecord(1, 0));
+
+        Assert.Equal("Classic nodes: OK", NodesViewerModel.StatusText(structure));
+        Assert.Equal("1 node(s), 1 seg(s), 1 subsector(s), 2 vertex record(s).", NodesViewerModel.CountsText(structure));
+        Assert.Equal("#0: (0, 0) -> (64, 0)  parent -1  right subsector 0  left subsector 1", Assert.Single(NodesViewerModel.NodeRows(structure)));
+        Assert.Equal("#0: v0 -> v1  line 3  side left  offset -16  subsector 0", Assert.Single(NodesViewerModel.SegRows(structure)));
+        Assert.Equal("#0: 1 seg(s), first seg 0", Assert.Single(NodesViewerModel.SubsectorRows(structure)));
+        Assert.Equal(new[] { "#0: (-128, 256)", "#1: (64, -32)" }, NodesViewerModel.VertexRows(structure));
+    }
+
+    [Fact]
     public void ClassicStructuresRejectUnsupportedCompressedHeaders()
     {
         byte[] nodes = Encoding.ASCII.GetBytes("ZNOD");

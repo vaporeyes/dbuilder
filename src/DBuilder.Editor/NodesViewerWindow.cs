@@ -13,6 +13,7 @@ public sealed class NodesViewerWindow : Window
     private readonly ListBox _nodes = new();
     private readonly ListBox _segs = new();
     private readonly ListBox _subsectors = new();
+    private readonly ListBox _vertices = new();
 
     public NodesViewerWindow(ClassicNodesStructure structure)
     {
@@ -23,9 +24,9 @@ public sealed class NodesViewerWindow : Window
 
         var root = new DockPanel { Margin = new Avalonia.Thickness(10) };
         var header = new StackPanel { Spacing = 4 };
-        header.Children.Add(new TextBlock { Text = FormatStatus(structure), FontWeight = Avalonia.Media.FontWeight.Bold });
+        header.Children.Add(new TextBlock { Text = NodesViewerModel.StatusText(structure), FontWeight = Avalonia.Media.FontWeight.Bold });
         if (structure.IsValid)
-            header.Children.Add(new TextBlock { Text = FormatCounts(structure) });
+            header.Children.Add(new TextBlock { Text = NodesViewerModel.CountsText(structure) });
         DockPanel.SetDock(header, Dock.Top);
         root.Children.Add(header);
 
@@ -33,6 +34,7 @@ public sealed class NodesViewerWindow : Window
         tabs.Items.Add(Tab("Nodes", _nodes));
         tabs.Items.Add(Tab("Segs", _segs));
         tabs.Items.Add(Tab("Subsectors", _subsectors));
+        tabs.Items.Add(Tab("Vertices", _vertices));
         root.Children.Add(tabs);
 
         FillRows(structure);
@@ -46,35 +48,13 @@ public sealed class NodesViewerWindow : Window
     {
         if (!structure.IsValid) return;
 
-        for (int i = 0; i < structure.Nodes.Count; i++)
-            _nodes.Items.Add(FormatNode(i, structure.Nodes[i]));
-
-        for (int i = 0; i < structure.Segs.Count; i++)
-            _segs.Items.Add(FormatSeg(i, structure.Segs[i]));
-
-        for (int i = 0; i < structure.Subsectors.Count; i++)
-            _subsectors.Items.Add(FormatSubsector(i, structure.Subsectors[i]));
+        foreach (string row in NodesViewerModel.NodeRows(structure))
+            _nodes.Items.Add(row);
+        foreach (string row in NodesViewerModel.SegRows(structure))
+            _segs.Items.Add(row);
+        foreach (string row in NodesViewerModel.SubsectorRows(structure))
+            _subsectors.Items.Add(row);
+        foreach (string row in NodesViewerModel.VertexRows(structure))
+            _vertices.Items.Add(row);
     }
-
-    private static string FormatStatus(ClassicNodesStructure structure)
-        => structure.IsValid ? "Classic nodes: OK" : $"Classic nodes: {structure.Status}";
-
-    private static string FormatCounts(ClassicNodesStructure structure)
-    {
-        string overflow = structure.SegCountExceedsSignedLimit ? " signed seg index limit exceeded" : "";
-        return $"{structure.Nodes.Count} node(s), {structure.Segs.Count} seg(s), {structure.Subsectors.Count} subsector(s), {structure.Vertices.Count} vertex record(s).{overflow}";
-    }
-
-    private static string FormatNode(int index, ClassicNode node)
-    {
-        string right = node.RightChildIsSubsector ? $"subsector {node.RightChildIndex}" : $"node {node.RightChildIndex}";
-        string left = node.LeftChildIsSubsector ? $"subsector {node.LeftChildIndex}" : $"node {node.LeftChildIndex}";
-        return $"#{index}: ({node.X}, {node.Y}) -> ({node.X + node.Dx}, {node.Y + node.Dy})  parent {node.ParentIndex}  right {right}  left {left}";
-    }
-
-    private static string FormatSeg(int index, ClassicSeg seg)
-        => $"#{index}: v{seg.StartVertex} -> v{seg.EndVertex}  line {seg.LineIndex}  side {(seg.LeftSide ? "left" : "right")}  offset {seg.Offset}  subsector {seg.SubsectorIndex}";
-
-    private static string FormatSubsector(int index, ClassicSubsector subsector)
-        => $"#{index}: {subsector.SegCount} seg(s), first seg {subsector.FirstSeg}";
 }

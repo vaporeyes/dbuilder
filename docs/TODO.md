@@ -1865,6 +1865,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style classic subsector polygon clipping model for visualization.
   - [x] Add UDB-style classic subsector hit testing by BSP traversal and polygon containment.
   - [x] Render classic NodesViewer subsector polygons in the editor nodes overlay.
+  - [x] Add Nodes Viewer row model and vertex list tab.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
