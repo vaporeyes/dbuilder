@@ -1055,7 +1055,11 @@ public static class DecorateParser
             else return SkipInvalidActorDeclaration(t, ref i);
         }
 
-        if (i >= t.Count) return headerNum ? actor : null;
+        if (i >= t.Count)
+        {
+            stopParsing = headerNum;
+            return null;
+        }
         if (t[i].Text != "{") return actor; // no body (e.g. forward declaration)
         i++; // '{'
         return ParseBody(actor, t, ref i, zscriptBody: !headerNum, out stopParsing) ? actor : null;

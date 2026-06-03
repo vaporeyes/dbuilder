@@ -386,6 +386,22 @@ ACTOR AfterDuplicateThing 6007
     }
 
     [Fact]
+    public void TruncatedDecorateActorHeaderStopsParsingLikeUdb()
+    {
+        const string text = @"
+ACTOR BeforeTruncatedHeader 6007
+{
+    Radius 8
+}
+ACTOR TruncatedHeader 6008";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("BeforeTruncatedHeader", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void SeparatedNegativeEditorNumberLeavesDoomEdNumNegative()
     {
         var actor = DecorateParser.Parse("ACTOR AbstractBase - 1 { Radius 16 }")[0];
