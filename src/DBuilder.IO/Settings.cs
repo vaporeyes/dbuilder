@@ -27,6 +27,7 @@ public sealed class Settings
     public string? TestPort { get; set; }
     public string? TestPortArgs { get; set; }
     public string? TestIwad { get; set; }
+    public string? UdbScriptExternalEditor { get; set; }
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;

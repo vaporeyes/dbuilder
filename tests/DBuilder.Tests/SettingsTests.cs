@@ -183,6 +183,7 @@ public class SettingsTests
                 LastUsedMapFolder = "/maps",
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
+                UdbScriptExternalEditor = "/tools/editor.exe",
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
                 AlphaBasedTextureHighlighting = false,
@@ -289,6 +290,7 @@ public class SettingsTests
             Assert.Equal("/maps", loaded.LastUsedMapFolder);
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
+            Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);

@@ -1256,6 +1256,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
   - [x] Add UDBScript execute-current and execute-slot dispatch planning.
   - [x] Add UDBScript preferences metadata and external editor persistence model.
+  - [x] Add UDBScript external editor field to the editor Settings dialog.
   - [x] Add UDBScript external editor fallback resolution model.
   - [x] Add UDBScript external editor launch plan model.
   - [x] Add UDBScript script directory discovery and leading metadata parsing.
@@ -1609,6 +1610,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
 - [x] Add UDBScript execute-current and execute-slot dispatch planning.
 - [x] Add UDBScript preferences metadata and external editor persistence model.
+- [x] Add UDBScript external editor field to the editor Settings dialog.
 - [x] Add UDBScript external editor fallback resolution model.
 - [x] Add UDBScript external editor launch plan model.
 - [x] Add UDBScript script directory discovery and leading metadata parsing.

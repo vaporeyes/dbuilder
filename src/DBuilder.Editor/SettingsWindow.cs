@@ -2,17 +2,18 @@
 // ABOUTME: Reads current values from Settings on open; the host writes the results back and saves on OK.
 
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using DBuilder.IO;
 
 namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _pasteTagMode;
     private readonly CheckBox _autoClearSidedefTextures, _pasteRemoveActions;
 
-    public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs;
+    public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
     public int DefaultViewMode;
@@ -29,6 +30,11 @@ public sealed class SettingsWindow : PropertyDialog
         _testArgs  = AddField("Test port args", s.TestPortArgs ?? "");
         _nodePath  = AddField("Node builder", s.NodeBuilderPath ?? "");
         _nodeArgs  = AddField("Node builder args", s.NodeBuilderArgs ?? "");
+        _udbScriptExternalEditor = AddFieldWithButton(
+            UdbScriptPreferencesModel.Metadata().ExternalEditorLabel,
+            s.UdbScriptExternalEditor ?? "",
+            "...",
+            BrowseExternalEditor);
         _maxRecentFiles = AddField("Max recent files", s.MaxRecentFiles?.ToString() ?? "");
         _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
@@ -46,6 +52,7 @@ public sealed class SettingsWindow : PropertyDialog
         TestPortArgs = NullIfBlank(_testArgs.Text);
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
+        UdbScriptExternalEditor = UdbScriptPreferencesModel.AcceptExternalEditorPath(_udbScriptExternalEditor.Text ?? "")?.Value?.ToString();
         MaxRecentFiles = int.TryParse(_maxRecentFiles.Text, out int maxRecent) && maxRecent > 0 ? maxRecent : null;
         StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
@@ -59,6 +66,26 @@ public sealed class SettingsWindow : PropertyDialog
     }
 
     private static string? NullIfBlank(string? t) => string.IsNullOrWhiteSpace(t) ? null : t.Trim();
+
+    private async Task BrowseExternalEditor(TextBox box)
+    {
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = UdbScriptPreferencesModel.Metadata().ExternalEditorLabel,
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("Executables") { Patterns = new[] { "*.exe", "*.cmd", "*.bat" } },
+                FilePickerFileTypes.All,
+            },
+        });
+
+        if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
+        box.Text = path;
+    }
 
     private static IEnumerable<CatalogItem> DefaultViewModeItems()
     {
