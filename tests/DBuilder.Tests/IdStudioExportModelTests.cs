@@ -76,6 +76,32 @@ public class IdStudioExportModelTests
     }
 
     [Theory]
+    [InlineData(1, 1, 0, "Exported idStudio map map01: 1 geometry file, 1 texture file.")]
+    [InlineData(2, 3, 1, "Exported idStudio map map01: 2 geometry files, 3 texture files. 1 missing image.")]
+    [InlineData(0, 0, 2, "Exported idStudio map map01: 0 geometry files, 0 texture files. 2 missing images.")]
+    public void ExportPlanStatusTextFormatsSingularAndPluralCounts(
+        int geometryFileCount,
+        int textureFileCount,
+        int missingImageCount,
+        string expected)
+    {
+        var geometryFiles = Enumerable.Range(0, geometryFileCount)
+            .Select(index => new IdStudioExportFile($"map{index}.refmap", string.Empty))
+            .ToArray();
+        var textureFiles = Enumerable.Range(0, textureFileCount)
+            .Select(index => new IdStudioTextureExportFile($"tex{index}.tga", [], $"tex{index}", IsFlat: false))
+            .ToArray();
+        var missingImages = Enumerable.Range(0, missingImageCount)
+            .Select(index => $"missing{index}")
+            .ToArray();
+        var plan = new IdStudioExportPlan(
+            geometryFiles,
+            new IdStudioTextureExportPlan(textureFiles, Array.Empty<IdStudioExportFile>(), missingImages));
+
+        Assert.Equal(expected, plan.StatusText("map01"));
+    }
+
+    [Theory]
     [InlineData("map01", true)]
     [InlineData("e1m1_ref", true)]
     [InlineData("", false)]

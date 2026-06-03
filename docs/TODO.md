@@ -1692,6 +1692,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style idStudio combined geometry and texture export planner.
   - [x] Add editor command integration for idStudio geometry and texture export.
   - [x] Use UDB-style idStudio dialog defaults and texture-count labels in the editor.
+  - [x] Add UDB-style singular and plural labels to idStudio export status text.
 - [ ] Port visual vertex slope behavior.
   - [x] Add UDB-style smart pivot selection, adjacent-handle selection, and command metadata for visual vertex slope handles.
   - [x] Match UDB adjacent visual vertex slope selection status text.

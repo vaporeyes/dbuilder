@@ -89,7 +89,21 @@ public sealed record IdStudioTextureExportPlan(
     IReadOnlyList<string> MissingImages);
 public sealed record IdStudioExportPlan(
     IReadOnlyList<IdStudioExportFile> GeometryFiles,
-    IdStudioTextureExportPlan TexturePlan);
+    IdStudioTextureExportPlan TexturePlan)
+{
+    public string StatusText(string mapName)
+    {
+        int textureFileCount = TexturePlan.ArtFiles.Count + TexturePlan.MaterialFiles.Count;
+        string missing = TexturePlan.MissingImages.Count == 0
+            ? string.Empty
+            : $" {CountLabel(TexturePlan.MissingImages.Count, "missing image")}.";
+
+        return $"Exported idStudio map {mapName}: {CountLabel(GeometryFiles.Count, "geometry file")}, {CountLabel(textureFileCount, "texture file")}.{missing}";
+    }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
+}
 public sealed record IdStudioMapTextureSet(IReadOnlySet<string> Textures, IReadOnlySet<string> Flats);
 public readonly record struct IdStudioTextureDimensions(int Width, int Height);
 public sealed record IdStudioBrushGroup(string Group, int SectorNumber, IReadOnlyList<string> Brushes);

@@ -5005,11 +5005,7 @@ public partial class MainWindow : Window
         try
         {
             IdStudioExportPlanner.WriteFiles(plan);
-            int textureFiles = plan.TexturePlan.ArtFiles.Count + plan.TexturePlan.MaterialFiles.Count;
-            string missing = plan.TexturePlan.MissingImages.Count == 0
-                ? ""
-                : $" {plan.TexturePlan.MissingImages.Count} missing image(s).";
-            SetStatus($"Exported idStudio map {settings.MapName}: {plan.GeometryFiles.Count} geometry file(s), {textureFiles} texture file(s).{missing}");
+            SetStatus(plan.StatusText(settings.MapName));
         }
         catch (Exception ex)
         {
