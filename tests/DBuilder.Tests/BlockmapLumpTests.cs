@@ -2,6 +2,7 @@
 // ABOUTME: Covers shared lists, malformed lump diagnostics, and explorer query helpers.
 
 using System;
+using System.Collections.Generic;
 using DBuilder.Geometry;
 using DBuilder.IO;
 
@@ -138,6 +139,38 @@ public class BlockmapLumpTests
 
         Assert.Equal(new[] { (0, 0) }, blockmap.GetQuestionableBlocks());
         Assert.Equal(1, blockmap.GetQuestionableOffsetCount());
+    }
+
+    [Fact]
+    public void ExplorerModelFormatsSummariesRowsAndCounts()
+    {
+        byte[] data = BuildBlockmap(
+            originX: -128,
+            originY: 64,
+            columns: 2,
+            rows: 2,
+            offsetsInShorts: new ushort[] { 8, 12, 8, 14 },
+            lists: new[]
+            {
+                List(0, 1, 1, ushort.MaxValue),
+                List(5, ushort.MaxValue),
+                List(7, 8, ushort.MaxValue)
+            });
+
+        BlockmapLumpData blockmap = BlockmapLump.Parse(data);
+        IReadOnlyList<BlockmapExplorerRow> rows = BlockmapExplorerModel.BuildRows(blockmap);
+
+        Assert.Equal("BLOCKMAP: Ok (34 bytes)", BlockmapExplorerModel.FormatStatus(blockmap));
+        Assert.Equal(
+            "Origin (-128, 64), 2 columns x 2 rows, 4 total blocks, 3 unique block lists, offset list ends at byte 16, 0 questionable offsets, 4 linedefs not in blocks.",
+            BlockmapExplorerModel.FormatInfo(blockmap, linedefCount: 9));
+        Assert.Equal("Showing 1 of 1 block row. Double-click a row to center that block.", BlockmapExplorerModel.FormatHeader(1, 1));
+        Assert.Equal("Showing 4 of 4 block rows. Double-click a row to center that block.", BlockmapExplorerModel.FormatHeader(4, rows.Count));
+        Assert.Equal("No block rows to display.", BlockmapExplorerModel.FormatHeader(0, 0));
+        Assert.Equal("1 more diagnostic.", BlockmapExplorerModel.FormatHiddenDiagnostics(1));
+        Assert.Equal("2 more diagnostics.", BlockmapExplorerModel.FormatHiddenDiagnostics(2));
+        Assert.Equal("(0, 0) offset 16: 2 lines, shared by 2 blocks", BlockmapExplorerModel.FormatRow(rows[0]));
+        Assert.Equal("(1, 0) offset 24: 1 line, shared by 1 block", BlockmapExplorerModel.FormatRow(rows[1]));
     }
 
     private static byte[] BuildBlockmap(int originX, int originY, short columns, short rows, ushort[] offsetsInShorts, byte[][] lists)
