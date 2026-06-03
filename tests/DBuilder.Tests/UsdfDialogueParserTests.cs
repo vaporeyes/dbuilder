@@ -428,4 +428,25 @@ public class UsdfDialogueParserTests
         Assert.Contains("DIALOGUE parse error on line", UsdfDialogueParser.ViewerStatus(result));
         Assert.Empty(UsdfDialogueParser.ViewerRows(result));
     }
+
+    [Theory]
+    [InlineData(1, "USDF: 1 conversation.")]
+    [InlineData(2, "USDF: 2 conversations.")]
+    public void EditorStatusFormatsSingularAndPluralConversationCounts(int conversationCount, string expected)
+    {
+        var conversations = Enumerable.Range(0, conversationCount)
+            .Select(index => new UsdfConversation(index, null, null, Array.Empty<UsdfPage>()))
+            .ToArray();
+        var result = new UsdfParseResult(new UsdfDocument(Array.Empty<string>(), conversations), 0, "");
+
+        Assert.Equal(expected, UsdfDialogueParser.EditorStatus(result));
+    }
+
+    [Fact]
+    public void EditorStatusFormatsParseErrors()
+    {
+        var result = new UsdfParseResult(new UsdfDocument(Array.Empty<string>(), Array.Empty<UsdfConversation>()), 7, "bad token");
+
+        Assert.Equal("USDF parse error on line 7.", UsdfDialogueParser.EditorStatus(result));
+    }
 }

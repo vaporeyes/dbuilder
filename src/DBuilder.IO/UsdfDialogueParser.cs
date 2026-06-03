@@ -104,6 +104,11 @@ public static class UsdfDialogueParser
     public static string ViewerStatus(UsdfParseResult result)
         => result.Success ? "DIALOGUE: OK" : $"DIALOGUE parse error on line {result.ErrorLine}: {result.ErrorDescription}";
 
+    public static string EditorStatus(UsdfParseResult result)
+        => result.Success
+            ? $"USDF: {CountLabel(result.Document.Conversations.Count, "conversation")}."
+            : $"USDF parse error on line {result.ErrorLine}.";
+
     public static string ViewerSummary(UsdfDocument document)
     {
         int pages = document.Conversations.Sum(conversation => conversation.Pages.Count);

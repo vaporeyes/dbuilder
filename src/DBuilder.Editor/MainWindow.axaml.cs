@@ -3396,9 +3396,7 @@ public partial class MainWindow : Window
         _usdfConversations = new UsdfConversationWindow(result);
         _usdfConversations.Closed += (_, _) => _usdfConversations = null;
         _usdfConversations.Show(this);
-        SetStatus(result.Success
-            ? $"USDF: {result.Document.Conversations.Count} conversation(s)."
-            : $"USDF parse error on line {result.ErrorLine}.");
+        SetStatus(UsdfDialogueParser.EditorStatus(result));
     }
 
     private string? ResolveCurrentDialogueInclude(string lumpName)
