@@ -274,6 +274,9 @@ public static class ColorPickerModel
     public static string SectorColorPickerTitle(int selectedSectorCount)
         => $"Editing {selectedSectorCount} sector{(selectedSectorCount > 1 ? "s" : "")}";
 
+    public static string SectorColorAppliedStatusText(SectorColorField field, int sectorCount, ColorRgb color)
+        => $"Set {SectorColorFieldName(field)} on {CountLabel(sectorCount, "sector")} to {Format(color, ColorPickerInfoMode.Hex)}.";
+
     public static bool CanEditSectorColors(bool isUdmf)
         => isUdmf;
 
@@ -707,6 +710,12 @@ public static class ColorPickerModel
 
     private static string SliderLabel(IReadOnlyList<string> argTitles, int index)
         => (index >= 0 && index < argTitles.Count ? argTitles[index] : "") + ":";
+
+    private static string SectorColorFieldName(SectorColorField field)
+        => field == SectorColorField.LightColor ? LightColorField : FadeColorField;
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private static int[] CopyArguments(IReadOnlyList<int> args, int minimumLength)
     {

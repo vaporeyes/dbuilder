@@ -4455,7 +4455,7 @@ public partial class MainWindow : Window
         ColorPickerModel.ApplySectorColorEdit(sectors, dlg.ResultField, dlg.ResultColor, dlg.ResultRemoveDefaults);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Set {dlg.ResultField.ToString().ToLowerInvariant()} on {sectors.Count} sector(s) to {ColorPickerModel.Format(dlg.ResultColor, ColorPickerInfoMode.Hex)}.");
+        SetStatus(ColorPickerModel.SectorColorAppliedStatusText(dlg.ResultField, sectors.Count, dlg.ResultColor));
         MapView.Focus();
     }
 

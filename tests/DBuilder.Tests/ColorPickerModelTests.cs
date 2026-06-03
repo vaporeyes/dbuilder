@@ -235,6 +235,12 @@ public sealed class ColorPickerModelTests
     }
 
     [Theory]
+    [InlineData(SectorColorField.LightColor, 1, "Set lightcolor on 1 sector to 2040FF.")]
+    [InlineData(SectorColorField.FadeColor, 2, "Set fadecolor on 2 sectors to 2040FF.")]
+    public void SectorColorAppliedStatusTextFormatsSingularAndPluralCounts(SectorColorField field, int sectorCount, string expected)
+        => Assert.Equal(expected, ColorPickerModel.SectorColorAppliedStatusText(field, sectorCount, new ColorRgb(0x20, 0x40, 0xff)));
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(false, false)]
     public void SectorColorEditingRequiresUdmfLikeUdb(bool isUdmf, bool expected)
