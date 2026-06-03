@@ -167,4 +167,37 @@ public class UdbScriptOptionsUiModelTests
         Assert.False(none.IsBrowseable);
         Assert.False(none.IsEnumerable);
     }
+
+    [Fact]
+    public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
+    {
+        var option = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Down",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+
+        UdbScriptOptionEnumApplyState hidden = UdbScriptOptionsUiModel.ApplyEnumEditor(option, "Up", hide: true);
+
+        Assert.Equal("Up", hidden.CellValue);
+        Assert.Equal(1, hidden.OptionValue);
+        Assert.False(hidden.EnumEditorVisible);
+        Assert.True(hidden.EnumEditorTagCleared);
+        Assert.True(hidden.EnumEditorItemsCleared);
+
+        UdbScriptOptionEnumApplyState visible = UdbScriptOptionsUiModel.ApplyEnumEditor(option, "Down", hide: false);
+
+        Assert.Equal("Down", visible.CellValue);
+        Assert.Equal(2, visible.OptionValue);
+        Assert.True(visible.EnumEditorVisible);
+        Assert.False(visible.EnumEditorTagCleared);
+        Assert.False(visible.EnumEditorItemsCleared);
+    }
 }

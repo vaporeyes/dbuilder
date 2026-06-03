@@ -45,6 +45,13 @@ public sealed record UdbScriptOptionBrowseButtonState(
     bool IsBrowseable,
     bool IsEnumerable);
 
+public sealed record UdbScriptOptionEnumApplyState(
+    string CellValue,
+    object OptionValue,
+    bool EnumEditorVisible,
+    bool EnumEditorTagCleared,
+    bool EnumEditorItemsCleared);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -108,5 +115,30 @@ public static class UdbScriptOptionsUiModel
         UniversalTypeHandler handler = new UniversalTypeRegistry().CreateHandler(selectedOption.Type, selectedOption.DefaultValue);
         bool visible = handler.IsBrowseable && !handler.IsEnumerable;
         return new UdbScriptOptionBrowseButtonState(visible, EnumEditorVisible: false, handler.IsBrowseable, handler.IsEnumerable);
+    }
+
+    public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
+        UdbScriptOption option,
+        string editorText,
+        bool hide)
+    {
+        UniversalTypeHandler handler = new UniversalTypeRegistry().CreateHandler(option.Type, option.DefaultValue, enumList: EnumList(option));
+        handler.SetValue(editorText);
+
+        return new UdbScriptOptionEnumApplyState(
+            editorText,
+            handler.GetValue(),
+            EnumEditorVisible: !hide,
+            EnumEditorTagCleared: hide,
+            EnumEditorItemsCleared: hide);
+    }
+
+    private static EnumListInfo EnumList(UdbScriptOption option)
+    {
+        var list = new EnumListInfo(option.Name);
+        foreach (UdbScriptEnumValue value in option.EnumValues)
+            list.Add(new EnumItemInfo(value.Key, value.Label ?? value.Key));
+
+        return list;
     }
 }
