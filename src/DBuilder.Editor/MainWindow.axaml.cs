@@ -893,6 +893,11 @@ public partial class MainWindow : Window
                 SetStatus("Save blocked: the source WAD changed on disk. Reload the map or use Save WAD As.");
                 return;
             }
+            if (savingActiveSource && FileSaveStamp.IsReadOnly(_wadPath))
+            {
+                SetStatus("Save blocked: the source WAD is read-only. Use Save WAD As or clear the read-only flag.");
+                return;
+            }
 
             // When exporting to a different format, translate the flag representation the target writer reads.
             // The fill is additive, so the in-memory map remains valid in its original format afterwards.
