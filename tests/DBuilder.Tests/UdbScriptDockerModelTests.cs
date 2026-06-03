@@ -40,6 +40,33 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void DockerContextMenuMetadataMatchesUdbControl()
+    {
+        IReadOnlyList<UdbScriptDockerMenuItem> fileMenu = UdbScriptDockerModel.FileContextMenuItems(slotCount: 3);
+
+        Assert.Equal(2, fileMenu.Count);
+        Assert.Equal(UdbScriptDockerMenuItemKind.Command, fileMenu[0].Kind);
+        Assert.Equal("Edit", fileMenu[0].Text);
+        Assert.Equal(UdbScriptDockerMenuItemKind.Submenu, fileMenu[1].Kind);
+        Assert.Equal("Set slot", fileMenu[1].Text);
+
+        IReadOnlyList<UdbScriptDockerMenuItem> slotItems = fileMenu[1].Children;
+        Assert.Equal(5, slotItems.Count);
+        Assert.Equal(UdbScriptDockerMenuItemKind.Command, slotItems[0].Kind);
+        Assert.Equal("Clear slot", slotItems[0].Text);
+        Assert.Equal(UdbScriptDockerMenuItemKind.Separator, slotItems[1].Kind);
+        Assert.Equal("", slotItems[1].Text);
+        Assert.Equal(new[] { "Slot 1", "Slot 2", "Slot 3" }, slotItems.Skip(2).Select(item => item.Text).ToArray());
+        Assert.Equal(new[] { 1, 2, 3 }, slotItems.Skip(2).Select(item => item.Slot).ToArray());
+        Assert.All(slotItems.Skip(2), item => Assert.Equal(UdbScriptDockerMenuItemKind.Slot, item.Kind));
+        Assert.Equal(UdbScriptActions.ScriptSlotCount + 2, UdbScriptDockerModel.FileContextMenuItems()[1].Children.Count);
+
+        UdbScriptDockerMenuItem folderItem = Assert.Single(UdbScriptDockerModel.FolderContextMenuItems());
+        Assert.Equal(UdbScriptDockerMenuItemKind.Command, folderItem.Kind);
+        Assert.Equal("Open in Explorer", folderItem.Text);
+    }
+
+    [Fact]
     public void BuildTreeSortsFoldersAndScriptsAndAppliesFilter()
     {
         UdbScriptInfo alpha = Script("Alpha", "Contains doors", "/scripts/alpha.js");

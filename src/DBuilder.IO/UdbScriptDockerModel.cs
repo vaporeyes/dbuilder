@@ -22,6 +22,20 @@ public sealed record UdbScriptSlotMenuItem(
     int Slot,
     string Text);
 
+public enum UdbScriptDockerMenuItemKind
+{
+    Command,
+    Submenu,
+    Separator,
+    Slot,
+}
+
+public sealed record UdbScriptDockerMenuItem(
+    UdbScriptDockerMenuItemKind Kind,
+    string Text,
+    int Slot,
+    IReadOnlyList<UdbScriptDockerMenuItem> Children);
+
 public sealed record UdbScriptDockerSelection(
     UdbScriptInfo? CurrentScript,
     string Description,
@@ -86,6 +100,34 @@ public static class UdbScriptDockerModel
 
         return new UdbScriptDockerSelection(script, script.Description, script.Options);
     }
+
+    public static IReadOnlyList<UdbScriptDockerMenuItem> FileContextMenuItems(
+        int slotCount = UdbScriptActions.ScriptSlotCount)
+    {
+        var slotItems = new List<UdbScriptDockerMenuItem>
+        {
+            MenuCommand(ClearSlotMenuText),
+            new(UdbScriptDockerMenuItemKind.Separator, "", 0, Array.Empty<UdbScriptDockerMenuItem>()),
+        };
+
+        for (int slot = 1; slot <= slotCount; slot++)
+        {
+            slotItems.Add(new(
+                UdbScriptDockerMenuItemKind.Slot,
+                "Slot " + slot,
+                slot,
+                Array.Empty<UdbScriptDockerMenuItem>()));
+        }
+
+        return new[]
+        {
+            MenuCommand(EditMenuText),
+            new UdbScriptDockerMenuItem(UdbScriptDockerMenuItemKind.Submenu, SetSlotMenuText, 0, slotItems),
+        };
+    }
+
+    public static IReadOnlyList<UdbScriptDockerMenuItem> FolderContextMenuItems()
+        => new[] { MenuCommand(OpenInExplorerMenuText) };
 
     public static IReadOnlyList<UdbScriptSlotMenuItem> SlotMenuItems(
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments,
@@ -193,4 +235,7 @@ public static class UdbScriptDockerModel
         => slot != 0 && hotkeys.TryGetValue(slot, out string? hotkey) && !string.IsNullOrWhiteSpace(hotkey)
             ? hotkey
             : NoHotkeyText;
+
+    private static UdbScriptDockerMenuItem MenuCommand(string text)
+        => new(UdbScriptDockerMenuItemKind.Command, text, 0, Array.Empty<UdbScriptDockerMenuItem>());
 }
