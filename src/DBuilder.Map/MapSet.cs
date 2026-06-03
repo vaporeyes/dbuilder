@@ -11,6 +11,20 @@ public readonly record struct SelectionGroupInfo(int Index, int SectorCount, int
 {
     public bool Empty => SectorCount == 0 && LinedefCount == 0 && VertexCount == 0 && ThingCount == 0;
 
+    public int TotalCount => SectorCount + LinedefCount + VertexCount + ThingCount;
+
+    public string AddedStatusText(int selectedCount)
+        => $"Added {CountLabel(selectedCount, "selected element")} to group {Index}.";
+
+    public string SelectedStatusText()
+        => $"Selected {CountLabel(TotalCount, "element")} from group {Index}.";
+
+    public string ClearedStatusText()
+        => $"Cleared {CountLabel(TotalCount, "element")} from group {Index}.";
+
+    public static string ClearedStatusText(int groupIndex, int elementCount)
+        => $"Cleared {CountLabel(elementCount, "element")} from group {groupIndex + 1}.";
+
     public override string ToString()
     {
         if (Empty) return $"{Index}: Empty";
@@ -23,6 +37,9 @@ public readonly record struct SelectionGroupInfo(int Index, int SectorCount, int
 
         return $"{Index}: {string.Join(", ", parts)}";
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public readonly record struct GeometryStitchResult(

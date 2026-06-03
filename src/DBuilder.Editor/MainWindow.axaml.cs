@@ -2186,7 +2186,7 @@ public partial class MainWindow : Window
         _mapOptions?.WriteSelectionGroups(_map);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Added {selected} selected element(s) to group {groupIndex + 1}.");
+        SetStatus(_map.GetGroupInfo(groupIndex).AddedStatusText(selected));
     }
 
     private void SelectGroup(int groupIndex)
@@ -2201,7 +2201,7 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         MapView.Focus();
-        SetStatus($"Selected {CountSelection()} element(s) from group {groupIndex + 1}.");
+        SetStatus(_map.GetGroupInfo(groupIndex).SelectedStatusText());
     }
 
     private void ClearGroup(int groupIndex)
@@ -2216,7 +2216,7 @@ public partial class MainWindow : Window
         _mapOptions?.WriteSelectionGroups(_map);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Cleared {grouped} element(s) from group {groupIndex + 1}.");
+        SetStatus(SelectionGroupInfo.ClearedStatusText(groupIndex, grouped));
     }
 
     private int CountSelection()

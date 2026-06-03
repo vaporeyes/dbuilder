@@ -120,6 +120,22 @@ public class SelectionGroupTests
     }
 
     [Fact]
+    public void GroupInfoFormatsSelectionGroupStatusText()
+    {
+        var empty = new SelectionGroupInfo(3, 0, 0, 0, 0);
+        var single = new SelectionGroupInfo(3, 0, 0, 1, 0);
+        var plural = new SelectionGroupInfo(3, 1, 1, 1, 1);
+
+        Assert.Equal("Added 1 selected element to group 3.", single.AddedStatusText(1));
+        Assert.Equal("Added 2 selected elements to group 3.", plural.AddedStatusText(2));
+        Assert.Equal("Selected 0 elements from group 3.", empty.SelectedStatusText());
+        Assert.Equal("Selected 1 element from group 3.", single.SelectedStatusText());
+        Assert.Equal("Selected 4 elements from group 3.", plural.SelectedStatusText());
+        Assert.Equal("Cleared 1 element from group 3.", SelectionGroupInfo.ClearedStatusText(2, 1));
+        Assert.Equal("Cleared 4 elements from group 3.", plural.ClearedStatusText());
+    }
+
+    [Fact]
     public void GroupIndexMustFitSignedBitmask()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => MapSet.GroupMask(-1));
