@@ -341,6 +341,33 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.gradient-floor-heights", "Gradient Floor Heights")]
+    [InlineData("window.gradient-ceiling-heights", "Gradient Ceiling Heights")]
+    [InlineData("window.gradient-sector-brightness", "Gradient Brightness")]
+    [InlineData("window.gradient-floor-light", "Gradient Floor Light")]
+    [InlineData("window.gradient-ceiling-light", "Gradient Ceiling Light")]
+    [InlineData("window.gradient-light-color", "Gradient Light Color")]
+    [InlineData("window.gradient-fade-color", "Gradient Fade Color")]
+    [InlineData("window.gradient-light-and-fade-colors", "Gradient Light and Fade Colors")]
+    [InlineData("window.gradient-linedef-brightness", "Gradient Linedef Brightness")]
+    [InlineData("window.gradient-interpolation-linear", "Gradient Interpolation Linear")]
+    [InlineData("window.gradient-interpolation-ease-in-out-sine", "Gradient Interpolation Ease In/Out Sine")]
+    [InlineData("window.gradient-interpolation-ease-in-sine", "Gradient Interpolation Ease In Sine")]
+    [InlineData("window.gradient-interpolation-ease-out-sine", "Gradient Interpolation Ease Out Sine")]
+    public void GradientMenuCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {

@@ -45,6 +45,19 @@ public sealed class MainWindowCommandTests
     [InlineData("window.model-render-active-filter", "OnModelRenderActiveFilter")]
     [InlineData("window.model-render-all", "OnModelRenderAll")]
     [InlineData("window.next-model-render-mode", "OnNextModelRenderMode")]
+    [InlineData("window.gradient-floor-heights", "OnGradientFloorHeights")]
+    [InlineData("window.gradient-ceiling-heights", "OnGradientCeilingHeights")]
+    [InlineData("window.gradient-sector-brightness", "OnGradientBrightness")]
+    [InlineData("window.gradient-floor-light", "OnGradientFloorLight")]
+    [InlineData("window.gradient-ceiling-light", "OnGradientCeilingLight")]
+    [InlineData("window.gradient-light-color", "OnGradientLightColor")]
+    [InlineData("window.gradient-fade-color", "OnGradientFadeColor")]
+    [InlineData("window.gradient-light-and-fade-colors", "OnGradientLightAndFadeColor")]
+    [InlineData("window.gradient-linedef-brightness", "OnGradientLinedefBrightness")]
+    [InlineData("window.gradient-interpolation-linear", "OnGradientInterpolationLinear")]
+    [InlineData("window.gradient-interpolation-ease-in-out-sine", "OnGradientInterpolationEaseInOutSine")]
+    [InlineData("window.gradient-interpolation-ease-in-sine", "OnGradientInterpolationEaseInSine")]
+    [InlineData("window.gradient-interpolation-ease-out-sine", "OnGradientInterpolationEaseOutSine")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
