@@ -125,6 +125,22 @@ public static class UdbScriptDockerModel
         return new UdbScriptDockerSelection(current.CurrentScript, current.Description, Array.Empty<UdbScriptOption>());
     }
 
+    public static UdbScriptDirectory ReplaceScript(
+        UdbScriptDirectory root,
+        UdbScriptInfo script)
+    {
+        UdbScriptDirectory[] directories = root.Directories
+            .Select(directory => ReplaceScript(directory, script))
+            .ToArray();
+        UdbScriptInfo[] scripts = root.Scripts
+            .Select(existing => string.Equals(existing.ScriptFile, script.ScriptFile, StringComparison.Ordinal)
+                ? script
+                : existing)
+            .ToArray();
+
+        return root with { Directories = directories, Scripts = scripts };
+    }
+
     public static UdbScriptDockerResetOptionsResult ResetSelectedScriptOptions(UdbScriptInfo? script)
     {
         if (script is null)

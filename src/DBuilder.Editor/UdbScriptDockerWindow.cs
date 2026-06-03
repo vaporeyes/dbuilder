@@ -10,7 +10,7 @@ namespace DBuilder.Editor;
 
 public sealed class UdbScriptDockerWindow : Window
 {
-    private readonly UdbScriptDirectory _rootDirectory;
+    private UdbScriptDirectory _rootDirectory;
     private readonly IReadOnlyDictionary<int, string> _hotkeys;
     private IReadOnlyDictionary<int, UdbScriptInfo?> _slotAssignments;
     private IReadOnlySet<string> _collapsedDirectoryHashes;
@@ -82,6 +82,7 @@ public sealed class UdbScriptDockerWindow : Window
         if (CurrentSelection.CurrentScript is null)
             return;
 
+        _rootDirectory = UdbScriptDockerModel.ReplaceScript(_rootDirectory, script);
         ApplySelection(new UdbScriptDockerSelection(script, script.Description, script.Options));
     }
 

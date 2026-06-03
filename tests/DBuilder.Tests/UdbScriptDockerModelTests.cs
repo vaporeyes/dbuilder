@@ -254,6 +254,37 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void ReplaceScriptUpdatesMatchingScriptInDirectoryTree()
+    {
+        var originalOption = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            128,
+            Array.Empty<UdbScriptEnumValue>(),
+            "scripts.hash.options.length");
+        UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/a/alpha.js", originalOption);
+        UdbScriptInfo beta = Script("Beta", "B", "/scripts/beta.js");
+        var root = new UdbScriptDirectory(
+            "/scripts",
+            "Scripts",
+            "root",
+            new[]
+            {
+                new UdbScriptDirectory("/scripts/a", "AlphaFolder", "a", Array.Empty<UdbScriptDirectory>(), new[] { alpha }),
+            },
+            new[] { beta });
+        UdbScriptInfo edited = alpha with { Options = new[] { originalOption with { Value = 256 } } };
+
+        UdbScriptDirectory replaced = UdbScriptDockerModel.ReplaceScript(root, edited);
+
+        UdbScriptInfo replacedAlpha = Assert.Single(Assert.Single(replaced.Directories).Scripts);
+        Assert.Equal(256, replacedAlpha.Options[0].Value);
+        Assert.Equal(beta, Assert.Single(replaced.Scripts));
+    }
+
+    [Fact]
     public void SlotMenuItemsShowAssignedScriptsAndHotkeys()
     {
         UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");
