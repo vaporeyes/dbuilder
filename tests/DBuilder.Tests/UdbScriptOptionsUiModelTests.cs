@@ -210,6 +210,17 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void EndEditPlanAppliesEnumsEndsEditAndFocusesGrid()
+    {
+        UdbScriptOptionEndEditPlan plan = UdbScriptOptionsUiModel.EndEditPlan();
+
+        Assert.True(plan.ApplyEnumEditor);
+        Assert.True(plan.HideEnumEditor);
+        Assert.True(plan.EndGridEdit);
+        Assert.True(plan.FocusGrid);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(
