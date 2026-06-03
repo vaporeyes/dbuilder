@@ -44,6 +44,49 @@ public class UsdfDialogueParserTests
     }
 
     [Fact]
+    public void DialogEditorTreeBuildsRootConversationAndPageNodes()
+    {
+        const string text = """
+        conversation
+        {
+            id = 7;
+            actor = "Guard";
+            page
+            {
+                name = "Greeting";
+                dialog = "Hello";
+            }
+        }
+        conversation
+        {
+            actor = "Vendor";
+        }
+        """;
+
+        UsdfParseResult result = UsdfDialogueParser.Parse(text);
+
+        IReadOnlyList<UsdfDialogEditorTreeNode> nodes = UsdfDialogEditorModel.BuildTree(result);
+
+        Assert.Equal(
+            new[]
+            {
+                new UsdfDialogEditorTreeNode("Dialog Editor", 0, "Dialog2.png"),
+                new UsdfDialogEditorTreeNode("Conversation 0, id 7, actor Guard", 1, "book_open.png"),
+                new UsdfDialogEditorTreeNode("Page 0, Greeting", 2, "page_user.png"),
+                new UsdfDialogEditorTreeNode("Conversation 1, actor Vendor", 1, "book_closed.png"),
+            },
+            nodes);
+    }
+
+    [Fact]
+    public void DialogEditorTreeIsEmptyForParseErrors()
+    {
+        UsdfParseResult result = UsdfDialogueParser.Parse("conversation { actor-name = 1; }");
+
+        Assert.Empty(UsdfDialogEditorModel.BuildTree(result));
+    }
+
+    [Fact]
     public void DialogEditorWindowStateReadsUdbPluginSettings()
     {
         var fallback = new UsdfDialogEditorWindowState(1, 2, 300, 200, UsdfDialogEditorModel.NormalWindowState);

@@ -77,6 +77,11 @@ public sealed record UsdfDialogEditorTreeMetadata(
     int ItemHeight,
     IReadOnlyList<string> ImageKeys);
 
+public sealed record UsdfDialogEditorTreeNode(
+    string Text,
+    int Depth,
+    string ImageKey);
+
 public enum UsdfConversationRowKind
 {
     Include,
@@ -404,6 +409,28 @@ public static class UsdfDialogEditorModel
         18,
         ["Dialog2.png", "book_closed.png", "book_open.png", "page_user.png"]);
 
+    public static IReadOnlyList<UsdfDialogEditorTreeNode> BuildTree(UsdfParseResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (!result.Success) return Array.Empty<UsdfDialogEditorTreeNode>();
+
+        var nodes = new List<UsdfDialogEditorTreeNode>
+        {
+            new(MainFormTitle, 0, "Dialog2.png"),
+        };
+        foreach (UsdfConversation conversation in result.Document.Conversations)
+        {
+            nodes.Add(new UsdfDialogEditorTreeNode(
+                ConversationNodeText(conversation),
+                1,
+                conversation.Pages.Count > 0 ? "book_open.png" : "book_closed.png"));
+            foreach (UsdfPage page in conversation.Pages)
+                nodes.Add(new UsdfDialogEditorTreeNode(PageNodeText(page), 2, "page_user.png"));
+        }
+
+        return nodes;
+    }
+
     public static UsdfDialogEditorWindowState ReadWindowState(
         IReadOnlyDictionary<string, object?> settings,
         UsdfDialogEditorWindowState fallback)
@@ -441,5 +468,21 @@ public static class UsdfDialogEditorModel
             string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) => i,
             _ => fallback,
         };
+    }
+
+    private static string ConversationNodeText(UsdfConversation conversation)
+    {
+        var parts = new List<string> { "Conversation " + conversation.Index.ToString(CultureInfo.InvariantCulture) };
+        if (conversation.Id is int id) parts.Add("id " + id.ToString(CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(conversation.Actor)) parts.Add("actor " + conversation.Actor);
+        return string.Join(", ", parts);
+    }
+
+    private static string PageNodeText(UsdfPage page)
+    {
+        var parts = new List<string> { "Page " + page.Index.ToString(CultureInfo.InvariantCulture) };
+        if (!string.IsNullOrWhiteSpace(page.Name)) parts.Add(page.Name);
+        else if (!string.IsNullOrWhiteSpace(page.Dialog)) parts.Add(page.Dialog);
+        return string.Join(", ", parts);
     }
 }
