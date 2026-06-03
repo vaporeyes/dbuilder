@@ -189,6 +189,30 @@ maplumpnames
     }
 
     [Fact]
+    public void MissingRequiredSupportFilesFailBeforeRunningBuilder()
+    {
+        const string cp = "/bin/cp";
+        if (!File.Exists(cp)) return; // platform without /bin/cp; missing-file handling is covered by the planner test
+
+        string root = Path.Combine(Path.GetTempPath(), "dbuilder_nodebuilder_missing_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var result = NodeBuilder.Build(
+                SampleWadBytes(),
+                new NodebuilderConfig(cp, "\"%FI\" \"%FO\"", root, new[] { "zdbsp.cfg", "missing.dat" }));
+
+            Assert.False(result.Success);
+            Assert.Null(result.Output);
+            Assert.Equal("Node builder required file not found: zdbsp.cfg, missing.dat", result.Message);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void RunsExternalToolAndReadsOutputBack()
     {
         const string cp = "/bin/cp";

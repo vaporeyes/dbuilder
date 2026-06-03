@@ -133,7 +133,9 @@ public static class NodeBuilder
         try
         {
             File.WriteAllBytes(input, PrepareInputWad(wadBytes, mapMarker, config));
-            CopyRequiredFiles(BuildRequiredFileCopyPlan(cfg, dir));
+            IReadOnlyList<NodebuilderRequiredFileCopy> missingFiles = CopyRequiredFiles(BuildRequiredFileCopyPlan(cfg, dir));
+            if (missingFiles.Count > 0)
+                return new Result(false, null, MissingRequiredFilesMessage(missingFiles));
 
             var psi = CreateStartInfo(cfg, input, output, dir);
 
@@ -216,4 +218,7 @@ public static class NodeBuilder
 
     private static string CleanProcessOutput(string value)
         => value.Trim().Replace("\b", "", StringComparison.Ordinal);
+
+    private static string MissingRequiredFilesMessage(IReadOnlyList<NodebuilderRequiredFileCopy> missingFiles)
+        => "Node builder required file not found: " + string.Join(", ", missingFiles.Select(file => file.Name));
 }

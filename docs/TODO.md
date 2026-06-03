@@ -83,6 +83,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
   - [x] Strip stale nodebuilder lumps and verify required output lumps before accepting nodebuilder results.
+  - [x] Fail nodebuilder runs before launch when required support files are missing.
 
 ## Actions, Commands, And Input
 
