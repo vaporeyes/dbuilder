@@ -608,6 +608,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port TERRAIN parser.
 - [x] Port LOCKDEFS parser.
   - [x] Require positive numeric lock ids and byte-range map colors.
+  - [x] Stop LOCKDEFS parsing on invalid lock ids and map colors like UDB.
 - [x] Port DECALDEF parser.
   - [x] Expose UDB-style DECALDEF ID lookup.
 - [x] Port VOXELDEF parser.

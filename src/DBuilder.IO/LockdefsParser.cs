@@ -36,18 +36,20 @@ public static class LockdefsParser
         {
             string keyword = t[i++].ToLowerInvariant();
             if (keyword == "clearlocks") { defs.ClearLocks = true; defs.Locks.Clear(); }
-            else if (keyword == "lock" && i < t.Count) ParseLock(defs, t, ref i);
+            else if (keyword == "lock" && i < t.Count)
+            {
+                if (!ParseLock(defs, t, ref i)) return defs;
+            }
             else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
         return defs;
     }
 
-    private static void ParseLock(LockDefs defs, List<string> t, ref int i)
+    private static bool ParseLock(LockDefs defs, List<string> t, ref int i)
     {
         if (!ReadPositiveLockId(t, ref i, out string lockId))
         {
-            SkipLockRemainder(t, ref i);
-            return;
+            return false;
         }
 
         var lockDef = new LockDefinition { Id = lockId };
@@ -61,13 +63,18 @@ public static class LockdefsParser
                 if (prop == "$title" && i < t.Count) lockDef.Title = t[i++];
                 else if (prop == "message" && i < t.Count) lockDef.Message = t[i++];
                 else if (prop == "remotemessage" && i < t.Count) lockDef.RemoteMessage = t[i++];
-                else if (prop == "mapcolor") lockDef.MapColor = ReadMapColor(t, ref i);
+                else if (prop == "mapcolor")
+                {
+                    if (!ReadMapColor(t, ref i, out var mapColor)) return false;
+                    lockDef.MapColor = mapColor;
+                }
                 else if ((prop == "any" || prop == "all") && i < t.Count && t[i] == "{") lockDef.KeyGroups.Add(ReadKeyGroup(prop, t, ref i));
                 else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
             }
             if (i < t.Count) i++;
         }
         if (lockDef.Id.Length > 0) defs.Locks.Add(lockDef);
+        return true;
     }
 
     private static bool ReadPositiveLockId(List<string> t, ref int i, out string lockId)
@@ -80,19 +87,17 @@ public static class LockdefsParser
         return true;
     }
 
-    private static void SkipLockRemainder(List<string> t, ref int i)
+    private static bool ReadMapColor(List<string> t, ref int i, out (int R, int G, int B)? mapColor)
     {
-        while (i < t.Count && t[i] != "{") i++;
-        if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
-    }
-
-    private static (int R, int G, int B)? ReadMapColor(List<string> t, ref int i)
-    {
+        mapColor = null;
         if (ReadByteRangeInt(t, ref i, out int r)
             && ReadByteRangeInt(t, ref i, out int g)
             && ReadByteRangeInt(t, ref i, out int b))
-            return (r, g, b);
-        return null;
+        {
+            mapColor = (r, g, b);
+            return true;
+        }
+        return false;
     }
 
     private static bool ReadByteRangeInt(List<string> t, ref int i, out int value)

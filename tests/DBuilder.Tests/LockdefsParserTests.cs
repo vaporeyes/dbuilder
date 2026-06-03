@@ -65,9 +65,10 @@ lock 2 { $title ""Replacement Lock"" }";
     }
 
     [Fact]
-    public void SkipsLocksWithInvalidNumbers()
+    public void InvalidLockNumbersStopParsingLikeUdb()
     {
         const string text = @"
+lock 2 { $title ""Before"" }
 lock 0 { $title ""Zero"" }
 lock -1 { $title ""Negative"" }
 lock Named { $title ""Named"" }
@@ -75,22 +76,23 @@ lock 3 { $title ""Valid"" }";
 
         var lockDef = Assert.Single(LockdefsParser.Parse(text).Locks);
 
-        Assert.Equal("3", lockDef.Id);
-        Assert.Equal("Valid", lockDef.Title);
+        Assert.Equal("2", lockDef.Id);
+        Assert.Equal("Before", lockDef.Title);
     }
 
     [Fact]
-    public void RequiresByteRangeMapColorComponents()
+    public void InvalidMapColorComponentsStopParsingLikeUdb()
     {
         const string text = @"
+lock 4 { $title ""Before"" mapcolor 0 128 255 }
 lock 1 { $title ""Low"" mapcolor -1 0 0 }
 lock 2 { $title ""High"" mapcolor 0 256 0 }
 lock 3 { $title ""Valid"" mapcolor 255 128 0 }";
 
         var defs = LockdefsParser.Parse(text);
 
-        Assert.Null(defs.Locks.Single(l => l.Id == "1").MapColor);
-        Assert.Null(defs.Locks.Single(l => l.Id == "2").MapColor);
-        Assert.Equal((255, 128, 0), defs.Locks.Single(l => l.Id == "3").MapColor);
+        var lockDef = Assert.Single(defs.Locks);
+        Assert.Equal("4", lockDef.Id);
+        Assert.Equal((0, 128, 255), lockDef.MapColor);
     }
 }
