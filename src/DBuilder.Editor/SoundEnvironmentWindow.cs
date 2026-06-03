@@ -84,9 +84,7 @@ public sealed class SoundEnvironmentWindow : Window
         IReadOnlyList<SoundEnvironmentRow> rows = _model.Rows(_udmf, _warningsOnly.IsChecked == true);
         _warningsOnly.Content = $"{SoundEnvironmentModeModel.ShowWarningsOnlyText} ({warningCount})";
         _warningsOnly.IsEnabled = warningCount > 0 || _warningsOnly.IsChecked == true;
-        _header.Text = rows.Count == 0
-            ? "No sound environments to display."
-            : $"{_model.Environments.Count} sound environment(s), {_model.UnassignedSectors.Count} unassigned sector(s), {_model.BoundaryLinedefs.Count} boundary linedef(s).";
+        _header.Text = _model.HeaderText(rows.Count);
 
         var items = new List<ListBoxItem>();
         foreach (SoundEnvironmentRow row in rows)

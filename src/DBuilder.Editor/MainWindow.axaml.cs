@@ -4913,7 +4913,7 @@ public partial class MainWindow : Window
     }
 
     private static string SoundEnvironmentStatus(SoundEnvironmentModeModel model)
-        => $"Sound Environments: {model.Environments.Count} environment(s), {model.UnassignedSectors.Count} unassigned sector(s), {model.BoundaryLinedefs.Count} boundary linedef(s).";
+        => "Sound Environments: " + model.SummaryText();
 
     private async void OnSoundPropagationColors(object? sender, RoutedEventArgs e)
     {

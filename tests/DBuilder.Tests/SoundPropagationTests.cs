@@ -644,4 +644,33 @@ public class SoundPropagationTests
         Assert.True(rows[1].Warning);
         Assert.Equal(line, rows[1].Linedef);
     }
+
+    [Fact]
+    public void SoundEnvironmentHeaderFormatsEmptySingularAndPluralCounts()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Linedef line = map.AddLinedef(
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(64, 0)));
+        var environment = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            new[] { line },
+            0xFF010203u,
+            1,
+            "Test Environment");
+        var model = new SoundEnvironmentModeModel(
+            new[] { environment },
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(new[] { line }, ReferenceEqualityComparer.Instance));
+        var plural = new SoundEnvironmentModeModel(
+            new[] { environment, environment },
+            new HashSet<Sector>(new[] { sector, map.AddSector() }, ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(new[] { line, map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(192, 0))) }, ReferenceEqualityComparer.Instance));
+
+        Assert.Equal("No sound environments to display.", model.HeaderText(0));
+        Assert.Equal("1 sound environment, 1 unassigned sector, 1 boundary linedef.", model.HeaderText(1));
+        Assert.Equal("2 sound environments, 2 unassigned sectors, 2 boundary linedefs.", plural.SummaryText());
+    }
 }

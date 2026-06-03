@@ -195,6 +195,14 @@ public sealed record SoundEnvironmentModeModel(
     public const string DockerTitle = "Sound Environments";
     public const string ShowWarningsOnlyText = "Show nodes with warnings only";
 
+    public string HeaderText(int visibleRowCount)
+        => visibleRowCount == 0
+            ? "No sound environments to display."
+            : SummaryText();
+
+    public string SummaryText()
+        => $"{Environments.Count} {Label(Environments.Count, "sound environment")}, {UnassignedSectors.Count} {Label(UnassignedSectors.Count, "unassigned sector")}, {BoundaryLinedefs.Count} {Label(BoundaryLinedefs.Count, "boundary linedef")}.";
+
     public IReadOnlyList<SoundEnvironmentRow> Rows(bool udmf = false, bool warningsOnly = false)
     {
         var rows = new List<SoundEnvironmentRow>();
@@ -299,6 +307,9 @@ public sealed record SoundEnvironmentModeModel(
         if (line.Front?.Sector == null || line.Back?.Sector == null) return true;
         return environment.Sectors.Contains(line.Front.Sector) && environment.Sectors.Contains(line.Back.Sector);
     }
+
+    private static string Label(int count, string singular)
+        => count == 1 ? singular : singular + "s";
 }
 
 public sealed class SoundPropagationModeModel
