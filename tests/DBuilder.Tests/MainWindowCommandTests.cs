@@ -17,6 +17,12 @@ public sealed class MainWindowCommandTests
     [InlineData("window.stitch-geometry", "OnStitch")]
     [InlineData("window.join-sectors", "OnJoinSectors")]
     [InlineData("window.merge-sectors", "OnMergeSectors")]
+    [InlineData("window.flip-selection-horizontal", "OnFlipH")]
+    [InlineData("window.flip-selection-vertical", "OnFlipV")]
+    [InlineData("window.rotate-selection-cw", "OnRotateCW")]
+    [InlineData("window.rotate-selection-ccw", "OnRotateCCW")]
+    [InlineData("window.scale-selection-up", "OnScaleUp")]
+    [InlineData("window.scale-selection-down", "OnScaleDown")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

@@ -442,6 +442,26 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.flip-selection-horizontal", "Flip Horizontal")]
+    [InlineData("window.flip-selection-vertical", "Flip Vertical")]
+    [InlineData("window.rotate-selection-cw", "Rotate 90 CW")]
+    [InlineData("window.rotate-selection-ccw", "Rotate 90 CCW")]
+    [InlineData("window.scale-selection-up", "Scale Up")]
+    [InlineData("window.scale-selection-down", "Scale Down")]
+    public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("window.create-prefab", "Create Prefab")]
     [InlineData("window.insert-prefab-file", "Insert Prefab File")]
     [InlineData("window.insert-previous-prefab", "Insert Previous Prefab")]
