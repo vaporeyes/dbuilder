@@ -21,6 +21,7 @@ public sealed class ShortcutHelpModelTests
 
         Assert.Equal(shortcutCount, sections.Sum(section => section.Rows.Count));
         Assert.Equal("File and configuration", sections[0].Title);
+        Assert.Equal("Project, map, settings, and Help commands.", sections[0].Description);
         Assert.Contains(sections, section => section.Title == "Window editing");
         Assert.Contains(sections, section => section.Title == "2D view and modes");
         Assert.Contains(sections, section => section.Title == "3D navigation");
@@ -55,6 +56,12 @@ public sealed class ShortcutHelpModelTests
             "Selection groups");
         Assert.All(group.SelectMany(section => section.Rows), row => Assert.Contains("-group-", row.Command.Id, StringComparison.Ordinal));
 
+        var description = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "texture copy");
+        Assert.All(description, section => Assert.Equal("3D textures", section.Title));
+
         var gesture = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
@@ -76,6 +83,17 @@ public sealed class ShortcutHelpModelTests
         Assert.True(ShortcutHelpModel.IsDefaultExpanded("2D view and modes"));
         Assert.True(ShortcutHelpModel.IsDefaultExpanded("3D navigation"));
         Assert.False(ShortcutHelpModel.IsDefaultExpanded("3D textures"));
+    }
+
+    [Fact]
+    public void GroupDescriptionsDescribeEveryStableGroup()
+    {
+        Assert.All(ShortcutHelpModel.GroupTitles, title =>
+        {
+            string description = ShortcutHelpModel.GroupDescription(title);
+            Assert.False(string.IsNullOrWhiteSpace(description));
+            Assert.NotEqual("Shortcut commands.", description);
+        });
     }
 
     [Theory]

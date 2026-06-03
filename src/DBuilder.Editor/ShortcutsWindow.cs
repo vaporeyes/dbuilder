@@ -90,7 +90,7 @@ public sealed class ShortcutsWindow : Window
         foreach (var group in groups)
         {
             bool expanded = searching || (_expandedSections.TryGetValue(group.Title, out bool value) ? value : group.DefaultExpanded);
-            _sections.Children.Add(Section(group.Title, group.Rows, expanded, searching));
+            _sections.Children.Add(Section(group, expanded, searching));
         }
 
         if (_sections.Children.Count == 0)
@@ -99,31 +99,50 @@ public sealed class ShortcutsWindow : Window
         _matchSummary.Text = ShortcutHelpModel.MatchSummary(text, EditorCommandCatalog.All.Count, groups.Count, matchCount);
     }
 
-    private Control Section(string title, IReadOnlyList<ShortcutHelpRow> rows, bool expand, bool searching)
+    private Control Section(ShortcutHelpSection section, bool expand, bool searching)
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, Margin = new Avalonia.Thickness(0, 6, 0, 2) };
-        for (int i = 0; i < rows.Count; i++)
-            panel.Children.Add(Row(rows[i], i));
+        for (int i = 0; i < section.Rows.Count; i++)
+            panel.Children.Add(Row(section.Rows[i], i));
+
+        var count = new TextBlock
+        {
+            Text = section.Rows.Count.ToString(),
+            Foreground = Brushes.Khaki,
+            FontSize = 12,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Avalonia.Thickness(12, 0, 0, 0),
+        };
+        Grid.SetColumn(count, 1);
+        var header = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+            Children =
+            {
+                new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 2,
+                    Children =
+                    {
+                        new TextBlock { Text = section.Title, Foreground = Brushes.LightSkyBlue, FontWeight = FontWeight.Bold, FontSize = 14 },
+                        new TextBlock { Text = section.Description, Foreground = MutedBrush, FontSize = 11, TextWrapping = TextWrapping.Wrap },
+                    },
+                },
+                count,
+            },
+        };
 
         var expander = new Expander
         {
-            Header = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                Children =
-                {
-                    new TextBlock { Text = title, Foreground = Brushes.LightSkyBlue, FontWeight = FontWeight.Bold, FontSize = 14 },
-                    new TextBlock { Text = rows.Count.ToString(), Foreground = MutedBrush, FontSize = 12, VerticalAlignment = VerticalAlignment.Center },
-                },
-            },
+            Header = header,
             Content = panel,
             IsExpanded = expand,
         };
         expander.PropertyChanged += (_, e) =>
         {
             if (!searching && e.Property == Expander.IsExpandedProperty)
-                _expandedSections[title] = expander.IsExpanded;
+                _expandedSections[section.Title] = expander.IsExpanded;
         };
         return expander;
     }

@@ -5,7 +5,7 @@ namespace DBuilder.IO;
 
 public sealed record ShortcutHelpRow(EditorCommandDescriptor Command, string GestureText);
 
-public sealed record ShortcutHelpSection(string Title, IReadOnlyList<ShortcutHelpRow> Rows, bool DefaultExpanded);
+public sealed record ShortcutHelpSection(string Title, string Description, IReadOnlyList<ShortcutHelpRow> Rows, bool DefaultExpanded);
 
 public static class ShortcutHelpModel
 {
@@ -38,11 +38,11 @@ public static class ShortcutHelpModel
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
                 .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings)))
                 .Where(row => row.GestureText != "-")
-                .Where(row => text.Length == 0 || Matches(row, title, text))
+                .Where(row => text.Length == 0 || Matches(row, title, GroupDescription(title), text))
                 .ToArray();
 
             if (rows.Length > 0)
-                sections.Add(new ShortcutHelpSection(title, rows, IsDefaultExpanded(title)));
+                sections.Add(new ShortcutHelpSection(title, GroupDescription(title), rows, IsDefaultExpanded(title)));
         }
 
         return sections;
@@ -59,8 +59,27 @@ public static class ShortcutHelpModel
     public static bool IsDefaultExpanded(string title)
         => title is "File and configuration" or "Window editing" or "2D view and modes" or "3D navigation";
 
-    private static bool Matches(ShortcutHelpRow row, string groupTitle, string filter)
+    public static string GroupDescription(string title)
+        => title switch
+        {
+            "File and configuration" => "Project, map, settings, and Help commands.",
+            "Window editing" => "Selection, clipboard, properties, undo, and editing commands.",
+            "Tools and panels" => "Explorers, browsers, analysis tools, and utility panels.",
+            "Selection groups" => "Stored selection group commands.",
+            "Script commands" => "UDBScript browser and script execution shortcuts.",
+            "2D view and modes" => "2D camera, zoom, mode, and display commands.",
+            "2D drawing and geometry" => "Draw, bridge, slope, and sector construction commands.",
+            "2D editing" => "Grid, object, geometry, and selection editing commands.",
+            "3D navigation" => "3D camera movement and view controls.",
+            "3D selection and things" => "3D object selection, placement, and thing editing commands.",
+            "3D textures" => "Texture copy, paste, alignment, offsets, and pegging commands.",
+            "3D surfaces and rendering" => "Brightness, heights, slopes, fog, lighting, and render toggles.",
+            _ => "Shortcut commands.",
+        };
+
+    private static bool Matches(ShortcutHelpRow row, string groupTitle, string groupDescription, string filter)
         => Contains(groupTitle, filter)
+            || Contains(groupDescription, filter)
             || Contains(row.Command.Title, filter)
             || Contains(row.Command.Id, filter)
             || Contains(ScopeTitle(row.Command.Scope), filter)
