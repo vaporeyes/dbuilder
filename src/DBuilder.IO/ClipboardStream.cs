@@ -28,7 +28,8 @@
  *
  *   tags:         int32 count; int32 tag per entry
  *   customFields: int32 count; per field: str key, int32 declared UniversalType,
- *                 int32 primitive UniversalType, then value
+ *                 int32 primitive UniversalType, then value. The private
+ *                 !dbuilder_ignored_error_checks string field stores ignored map-check kinds.
  */
 
 using System.Collections.Generic;
@@ -41,6 +42,8 @@ namespace DBuilder.IO;
 
 public static class ClipboardStreamWriter
 {
+    private const string IgnoredErrorChecksField = "!dbuilder_ignored_error_checks";
+
     /// <summary>Writes the entire map to <paramref name="stream"/> in clipboard binary format.</summary>
     public static void Write(MapSet map, Stream stream)
     {
@@ -89,7 +92,7 @@ public static class ClipboardStreamWriter
             w.Write(v.ZCeiling);
             w.Write(v.ZFloor);
             w.Write(v.Groups);
-            WriteCustomFields(w, v.Fields);
+            WriteCustomFields(w, v.Fields, v.IgnoredErrorChecks);
         }
     }
 
@@ -111,7 +114,7 @@ public static class ClipboardStreamWriter
             w.Write(s.CeilSlope.x); w.Write(s.CeilSlope.y); w.Write(s.CeilSlope.z);
             w.Write(s.Groups);
             WriteUdmfFlagSet(w, s.UdmfFlags);
-            WriteCustomFields(w, s.Fields);
+            WriteCustomFields(w, s.Fields, s.IgnoredErrorChecks);
         }
     }
 
@@ -128,7 +131,7 @@ public static class ClipboardStreamWriter
             WriteString(w, sd.MidTexture);
             WriteString(w, sd.LowTexture);
             WriteUdmfFlagSet(w, sd.UdmfFlags);
-            WriteCustomFields(w, sd.Fields);
+            WriteCustomFields(w, sd.Fields, sd.IgnoredErrorChecks);
         }
     }
 
@@ -148,7 +151,7 @@ public static class ClipboardStreamWriter
             WriteTags(w, l.Tags);
             w.Write(l.Groups);
             WriteUdmfFlagSet(w, l.UdmfFlags);
-            WriteCustomFields(w, l.Fields);
+            WriteCustomFields(w, l.Fields, l.IgnoredErrorChecks);
         }
     }
 
@@ -172,7 +175,7 @@ public static class ClipboardStreamWriter
             w.Write(t.Flags);
             w.Write(t.Groups);
             WriteUdmfFlagSet(w, t.UdmfFlags);
-            WriteCustomFields(w, t.Fields);
+            WriteCustomFields(w, t.Fields, t.IgnoredErrorChecks);
         }
     }
 
@@ -182,25 +185,35 @@ public static class ClipboardStreamWriter
         foreach (int t in tags) w.Write(t);
     }
 
-    private static void WriteCustomFields(BinaryWriter w, Dictionary<string, object> fields)
+    private static void WriteCustomFields(
+        BinaryWriter w,
+        Dictionary<string, object> fields,
+        HashSet<MapIssueKind>? ignoredChecks = null)
     {
-        w.Write(fields.Count);
+        bool writeIgnoredChecks = ignoredChecks is { Count: > 0 } && !fields.ContainsKey(IgnoredErrorChecksField);
+        w.Write(fields.Count + (writeIgnoredChecks ? 1 : 0));
         foreach (var kv in fields)
+            WriteCustomField(w, kv.Key, kv.Value);
+
+        if (writeIgnoredChecks)
+            WriteCustomField(w, IgnoredErrorChecksField, string.Join("\n", ignoredChecks!.OrderBy(check => check.ToString())));
+    }
+
+    private static void WriteCustomField(BinaryWriter w, string key, object value)
+    {
+        WriteString(w, key);
+        var primitiveType = PrimitiveUniversalType(value);
+        w.Write((int)primitiveType);
+        w.Write((int)primitiveType);
+        switch (value)
         {
-            WriteString(w, kv.Key);
-            var primitiveType = PrimitiveUniversalType(kv.Value);
-            w.Write((int)primitiveType);
-            w.Write((int)primitiveType);
-            switch (kv.Value)
-            {
-                case bool b:   w.Write(b); break;
-                case double d: w.Write(d); break;
-                case float f:  w.Write((double)f); break;
-                case int i:    w.Write(i); break;
-                case long l:   w.Write(System.Convert.ToInt32(l)); break;
-                case string s: WriteString(w, s); break;
-                default:       w.Write(System.Convert.ToInt32(kv.Value)); break;
-            }
+            case bool b: w.Write(b); break;
+            case double d: w.Write(d); break;
+            case float f: w.Write((double)f); break;
+            case int i: w.Write(i); break;
+            case long l: w.Write(System.Convert.ToInt32(l)); break;
+            case string s: WriteString(w, s); break;
+            default: w.Write(System.Convert.ToInt32(value)); break;
         }
     }
 
@@ -239,6 +252,8 @@ public static class ClipboardStreamWriter
 
 public static class ClipboardStreamReader
 {
+    private const string IgnoredErrorChecksField = "!dbuilder_ignored_error_checks";
+
     /// <summary>
     /// Reads clipboard-format bytes from <paramref name="stream"/> and appends them to <paramref name="map"/>.
     /// New elements are appended at the end of each MapSet list; existing elements are untouched.
@@ -289,7 +304,7 @@ public static class ClipboardStreamReader
                 ZFloor = r.ReadDouble(),
             };
             v.Groups = r.ReadInt32();
-            ReadCustomFields(r, v.Fields);
+            ReadCustomFields(r, v.Fields, v.IgnoredErrorChecks);
             map.Vertices.Add(v);
             list.Add(v);
         }
@@ -331,7 +346,7 @@ public static class ClipboardStreamReader
             s.Groups = r.ReadInt32();
             s.Tags.AddRange(tags);
             ReadUdmfFlagSet(r, s.UdmfFlags);
-            ReadCustomFields(r, s.Fields);
+            ReadCustomFields(r, s.Fields, s.IgnoredErrorChecks);
             map.Sectors.Add(s);
             list.Add(s);
         }
@@ -361,7 +376,7 @@ public static class ClipboardStreamReader
                 Sector = (secId >= 0 && secId < newSectors.Count) ? newSectors[secId] : null,
             };
             ReadUdmfFlagSet(r, sd.UdmfFlags);
-            ReadCustomFields(r, sd.Fields);
+            ReadCustomFields(r, sd.Fields, sd.IgnoredErrorChecks);
             map.Sidedefs.Add(sd);
             list.Add(sd);
         }
@@ -386,7 +401,8 @@ public static class ClipboardStreamReader
             var udmfFlags = new HashSet<string>(System.StringComparer.Ordinal);
             ReadUdmfFlagSet(r, udmfFlags);
             var fields = new Dictionary<string, object>(System.StringComparer.Ordinal);
-            ReadCustomFields(r, fields);
+            var ignoredChecks = new HashSet<MapIssueKind>();
+            ReadCustomFields(r, fields, ignoredChecks);
 
             if (!TryGetValidLinedefVertices(newVerts, v1, v2, out var start, out var end))
                 continue;
@@ -423,6 +439,7 @@ public static class ClipboardStreamReader
 
             foreach (var flag in udmfFlags) l.UdmfFlags.Add(flag);
             foreach (var field in fields) l.Fields[field.Key] = field.Value;
+            foreach (var check in ignoredChecks) l.IgnoredErrorChecks.Add(check);
             map.Linedefs.Add(l);
         }
     }
@@ -485,7 +502,7 @@ public static class ClipboardStreamReader
             };
             t.Args[0] = a0; t.Args[1] = a1; t.Args[2] = a2; t.Args[3] = a3; t.Args[4] = a4;
             ReadUdmfFlagSet(r, t.UdmfFlags);
-            ReadCustomFields(r, t.Fields);
+            ReadCustomFields(r, t.Fields, t.IgnoredErrorChecks);
             map.Things.Add(t);
         }
     }
@@ -509,7 +526,10 @@ public static class ClipboardStreamReader
         return tags;
     }
 
-    private static void ReadCustomFields(BinaryReader r, Dictionary<string, object> target)
+    private static void ReadCustomFields(
+        BinaryReader r,
+        Dictionary<string, object> target,
+        HashSet<MapIssueKind>? ignoredChecks = null)
     {
         int n = r.ReadInt32();
         for (int i = 0; i < n; i++)
@@ -525,7 +545,22 @@ public static class ClipboardStreamReader
                 UniversalType.String => ReadString(r),
                 _ => throw new IOException($"Unknown clipboard field primitive type {primitiveType} for key \"{key}\""),
             };
+            if (ignoredChecks != null && key == IgnoredErrorChecksField && value is string ignoredText)
+            {
+                ReadIgnoredChecks(ignoredText, ignoredChecks);
+                continue;
+            }
+
             target[key] = value;
+        }
+    }
+
+    private static void ReadIgnoredChecks(string value, HashSet<MapIssueKind> target)
+    {
+        foreach (string raw in value.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (Enum.TryParse(raw, out MapIssueKind kind))
+                target.Add(kind);
         }
     }
 

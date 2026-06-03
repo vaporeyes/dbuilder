@@ -17,10 +17,12 @@ public class ClipboardStreamTests
         var map = new MapSet { Namespace = "Doom" };
         var sA = new Sector { Index = 0, FloorHeight = 0, CeilHeight = 128, FloorTexture = "FLOOR1", CeilTexture = "CEIL1", Brightness = 192, Tag = 7 };
         sA.UdmfFlags.Add("secret");
+        sA.IgnoredErrorChecks.Add(MapIssueKind.UnclosedSector);
         var sB = new Sector { Index = 1, FloorHeight = 8, CeilHeight = 120, FloorTexture = "FLOOR2", CeilTexture = "CEIL2", Brightness = 160, Special = 9 };
         map.Sectors.Add(sA); map.Sectors.Add(sB);
 
         var v0 = new Vertex(new Vector2D(0, 0));
+        v0.IgnoredErrorChecks.Add(MapIssueKind.UnusedVertex);
         var v1 = new Vertex(new Vector2D(100, 0));
         var v2 = new Vertex(new Vector2D(100, 100));
         var v3 = new Vertex(new Vector2D(0, 100));
@@ -31,8 +33,10 @@ public class ClipboardStreamTests
             var l = new Linedef(a, b) { Flags = 0x0001, Action = 80, Tag = 3 };
             l.Args[0] = 11; l.Args[3] = 99;
             l.UdmfFlags.Add("blocking");
+            l.IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
             var front = new Sidedef(l, true) { Sector = secFront, HighTexture = "HI", MidTexture = "MID", LowTexture = "LO", OffsetX = 4, OffsetY = 8 };
             front.UdmfFlags.Add("lightabsolute");
+            front.IgnoredErrorChecks.Add(MapIssueKind.MissingTexture);
             l.Front = front;
             map.Sidedefs.Add(front);
             if (secBack != null)
@@ -53,6 +57,7 @@ public class ClipboardStreamTests
         t.Args[1] = 50;
         t.UdmfFlags.Add("skill3");
         t.UdmfFlags.Add("ambush");
+        t.IgnoredErrorChecks.Add(MapIssueKind.ThingOutsideMap);
         map.Things.Add(t);
 
         map.BuildIndexes();
@@ -92,6 +97,7 @@ public class ClipboardStreamTests
 
         for (int i = 0; i < src.Vertices.Count; i++)
             Assert.Equal(src.Vertices[i].Position, dst.Vertices[i].Position);
+        Assert.Contains(MapIssueKind.UnusedVertex, dst.Vertices[0].IgnoredErrorChecks);
 
         // Sectors
         for (int i = 0; i < src.Sectors.Count; i++)
@@ -106,6 +112,7 @@ public class ClipboardStreamTests
             Assert.Equal(so.Special,      sd.Special);
             Assert.Equal(so.Tag,          sd.Tag);
             Assert.Equal(so.UdmfFlags.OrderBy(s => s), sd.UdmfFlags.OrderBy(s => s));
+            Assert.Equal(so.IgnoredErrorChecks.OrderBy(kind => kind), sd.IgnoredErrorChecks.OrderBy(kind => kind));
         }
 
         // Sidedefs back-link to their cloned sectors
@@ -117,6 +124,7 @@ public class ClipboardStreamTests
             Assert.Equal(src.Sidedefs[i].MidTexture,  dst.Sidedefs[i].MidTexture);
             Assert.Equal(src.Sidedefs[i].LowTexture,  dst.Sidedefs[i].LowTexture);
             Assert.Equal(src.Sidedefs[i].UdmfFlags.OrderBy(s => s), dst.Sidedefs[i].UdmfFlags.OrderBy(s => s));
+            Assert.Equal(src.Sidedefs[i].IgnoredErrorChecks.OrderBy(kind => kind), dst.Sidedefs[i].IgnoredErrorChecks.OrderBy(kind => kind));
         }
 
         // Linedefs - args, flags, vertex refs, sidedef refs
@@ -129,6 +137,7 @@ public class ClipboardStreamTests
             Assert.Equal(lo.Tag,    ld.Tag);
             for (int a = 0; a < 5; a++) Assert.Equal(lo.Args[a], ld.Args[a]);
             Assert.Equal(lo.UdmfFlags.OrderBy(s => s), ld.UdmfFlags.OrderBy(s => s));
+            Assert.Equal(lo.IgnoredErrorChecks.OrderBy(kind => kind), ld.IgnoredErrorChecks.OrderBy(kind => kind));
 
             Assert.Same(dst.Vertices[src.Vertices.IndexOf(lo.Start)], ld.Start);
             Assert.Same(dst.Vertices[src.Vertices.IndexOf(lo.End)],   ld.End);
@@ -151,6 +160,7 @@ public class ClipboardStreamTests
         Assert.Equal(to.Flags,    td.Flags);
         for (int a = 0; a < 5; a++) Assert.Equal(to.Args[a], td.Args[a]);
         Assert.Equal(to.UdmfFlags.OrderBy(s => s), td.UdmfFlags.OrderBy(s => s));
+        Assert.Equal(to.IgnoredErrorChecks.OrderBy(kind => kind), td.IgnoredErrorChecks.OrderBy(kind => kind));
     }
 
     [Fact]

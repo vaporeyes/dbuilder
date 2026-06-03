@@ -92,6 +92,11 @@ public class UndoManagerTests
         map.Linedefs[0].Groups = MapSet.GroupMask(2);
         map.Sectors[0].Groups = MapSet.GroupMask(3);
         map.Things[0].Groups = MapSet.GroupMask(4);
+        map.Vertices[0].IgnoredErrorChecks.Add(MapIssueKind.UnusedVertex);
+        map.Linedefs[0].IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
+        map.Sidedefs[0].IgnoredErrorChecks.Add(MapIssueKind.MissingTexture);
+        map.Sectors[0].IgnoredErrorChecks.Add(MapIssueKind.UnclosedSector);
+        map.Things[0].IgnoredErrorChecks.Add(MapIssueKind.ThingOutsideMap);
         var undo = new UndoManager(map);
 
         undo.CreateUndo("edit");
@@ -104,6 +109,11 @@ public class UndoManagerTests
         map.Linedefs[0].Groups = 0;
         map.Sectors[0].Groups = 0;
         map.Things[0].Groups = 0;
+        map.Vertices[0].IgnoredErrorChecks.Clear();
+        map.Linedefs[0].IgnoredErrorChecks.Clear();
+        map.Sidedefs[0].IgnoredErrorChecks.Clear();
+        map.Sectors[0].IgnoredErrorChecks.Clear();
+        map.Things[0].IgnoredErrorChecks.Clear();
         undo.Undo();
 
         Assert.Equal("Doom", map.Namespace);
@@ -116,6 +126,11 @@ public class UndoManagerTests
         Assert.Equal(MapSet.GroupMask(2), map.Linedefs[0].Groups);
         Assert.Equal(MapSet.GroupMask(3), map.Sectors[0].Groups);
         Assert.Equal(MapSet.GroupMask(4), map.Things[0].Groups);
+        Assert.Contains(MapIssueKind.UnusedVertex, map.Vertices[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.VertexOverlappingLinedef, map.Linedefs[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.MissingTexture, map.Sidedefs[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.UnclosedSector, map.Sectors[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.ThingOutsideMap, map.Things[0].IgnoredErrorChecks);
     }
 
     [Fact]
