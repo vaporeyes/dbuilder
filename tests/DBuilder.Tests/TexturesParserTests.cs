@@ -170,6 +170,19 @@ Texture After, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void StopsAtGzdbSkipEditorCommentLikeUdb()
+    {
+        const string text = @"
+Texture Before, 2, 2 { Patch P, 0, 0 }
+//$gzdb_skip
+Texture After, 2, 2 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("Before", def.Name);
+    }
+
+    [Fact]
     public void SkipsDefinitionsWithoutBody()
     {
         var defs = TexturesParser.Parse("Graphic G, 10, 12");

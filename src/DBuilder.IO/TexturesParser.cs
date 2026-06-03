@@ -445,7 +445,22 @@ public static class TexturesParser
                 p++;
                 continue;
             }
-            if (c == '/' && p + 1 < n && s[p + 1] == '/') { p += 2; while (p < n && s[p] != '\n') p++; continue; }
+            if (c == '/' && p + 1 < n && s[p + 1] == '/')
+            {
+                if (p + 2 < n && s[p + 2] == '$')
+                {
+                    int tokenStart = p + 2;
+                    p = tokenStart;
+                    while (p < n && s[p] != '\n') p++;
+                    toks.Add(new Tok(s.Substring(tokenStart, p - tokenStart), false, line));
+                }
+                else
+                {
+                    p += 2;
+                    while (p < n && s[p] != '\n') p++;
+                }
+                continue;
+            }
             if (c == '/' && p + 1 < n && s[p + 1] == '*')
             {
                 p += 2;
