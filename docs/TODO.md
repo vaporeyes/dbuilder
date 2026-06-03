@@ -852,6 +852,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Detect UDB-style invalid polyobject line, anchor, and start-spot references.
   - [x] Detect UDB-style unknown ACS script references by number and UDMF name.
   - [x] Detect misaligned connected primary wall texture runs.
+  - [x] Add UDB-style singular and plural labels to Map Check result summaries.
 
 ## 2D Editor UI
 

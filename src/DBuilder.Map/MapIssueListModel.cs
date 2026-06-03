@@ -71,6 +71,21 @@ public sealed class MapIssueListModel
         return string.Join(Environment.NewLine, lines) + Environment.NewLine;
     }
 
+    public static string HeaderText(IEnumerable<MapIssue> issues)
+    {
+        int errors = 0, warnings = 0;
+        foreach (var issue in issues)
+        {
+            if (issue.Severity == MapIssueSeverity.Error) errors++;
+            else warnings++;
+        }
+
+        int count = errors + warnings;
+        return count == 0
+            ? "No issues found."
+            : $"{count} {Label(count, "issue")}: {errors} {Label(errors, "error")}, {warnings} {Label(warnings, "warning")}. Click an issue to locate it.";
+    }
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)
@@ -91,4 +106,7 @@ public sealed class MapIssueListModel
         var elements = issue.SuppressionTargets;
         return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
     }
+
+    private static string Label(int count, string singular)
+        => count == 1 ? singular : singular + "s";
 }

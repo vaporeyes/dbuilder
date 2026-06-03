@@ -33,7 +33,7 @@ public sealed class MapCheckWindow : Window
 
         _header.Margin = new Avalonia.Thickness(10, 8);
         _header.TextWrapping = TextWrapping.Wrap;
-        UpdateHeader(_model.VisibleIssues.Count, _model.VisibleIssues);
+        UpdateHeader(_model.VisibleIssues);
 
         var ignoreSelected = new Button
         {
@@ -193,21 +193,12 @@ public sealed class MapCheckWindow : Window
 
         _list.ItemsSource = null;
         _list.ItemsSource = _rows;
-        UpdateHeader(_model.VisibleIssues.Count, _model.VisibleIssues);
+        UpdateHeader(_model.VisibleIssues);
     }
 
-    private void UpdateHeader(int count, IEnumerable<MapIssue> issues)
+    private void UpdateHeader(IReadOnlyList<MapIssue> issues)
     {
-        int errors = 0, warnings = 0;
-        foreach (var issue in issues)
-        {
-            if (issue.Severity == MapIssueSeverity.Error) errors++;
-            else warnings++;
-        }
-
-        _header.Text = count == 0
-            ? "No issues found."
-            : $"{count} issue(s): {errors} error(s), {warnings} warning(s). Click an issue to locate it.";
-        _header.Foreground = count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue;
+        _header.Text = MapIssueListModel.HeaderText(issues);
+        _header.Foreground = issues.Count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue;
     }
 }
