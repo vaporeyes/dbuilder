@@ -603,6 +603,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse multiline `$random` groups.
   - [x] Reject mixed old and new SNDINFO assignment formats per file.
   - [x] Reject self-referencing SNDINFO `$random` groups.
+  - [x] Stop SNDINFO parsing on mixed assignment formats and invalid `$random` groups like UDB.
 - [x] Port SNDSEQ parser.
   - [x] Parse sequence groups and UDB sorted sound sequence names.
 - [x] Port TERRAIN parser.

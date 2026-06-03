@@ -27,22 +27,26 @@ misc/death ""sounds/death.ogg""";
     }
 
     [Fact]
-    public void SkipsSoundAssignmentsThatMixOldAndNewFormats()
+    public void MixedSoundAssignmentFormatsStopParsingLikeUdb()
     {
         const string oldThenNew = @"
 world/old DSOLD
-world/new = DSNEW";
+world/new = DSNEW
+world/later DSLATE";
         const string newThenOld = @"
 world/new = DSNEW
-world/old DSOLD";
+world/old DSOLD
+world/later = DSLATE";
 
         var oldFirst = SndInfoParser.Parse(oldThenNew);
         var newFirst = SndInfoParser.Parse(newThenOld);
 
         Assert.Equal("DSOLD", oldFirst.Sounds["world/old"]);
         Assert.False(oldFirst.Sounds.ContainsKey("world/new"));
+        Assert.False(oldFirst.Sounds.ContainsKey("world/later"));
         Assert.Equal("DSNEW", newFirst.Sounds["world/new"]);
         Assert.False(newFirst.Sounds.ContainsKey("world/old"));
+        Assert.False(newFirst.Sounds.ContainsKey("world/later"));
     }
 
     [Fact]
@@ -70,16 +74,20 @@ $volume world/drip 0.5";
     }
 
     [Fact]
-    public void SkipsRandomGroupsThatReferenceThemselves()
+    public void InvalidRandomGroupsStopParsingLikeUdb()
     {
         const string text = @"
+world/before DSBEFORE
 $random misc/random { sound/a misc/random }
+world/after DSAFTER
 $random misc/valid { sound/a sound/b }";
 
         var info = SndInfoParser.Parse(text);
 
+        Assert.Equal("DSBEFORE", info.Sounds["world/before"]);
         Assert.False(info.RandomGroups.ContainsKey("misc/random"));
-        Assert.Equal(new[] { "sound/a", "sound/b" }, info.RandomGroups["misc/valid"]);
+        Assert.False(info.Sounds.ContainsKey("world/after"));
+        Assert.False(info.RandomGroups.ContainsKey("misc/valid"));
     }
 
     [Fact]

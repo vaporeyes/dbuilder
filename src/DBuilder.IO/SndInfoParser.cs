@@ -53,19 +53,19 @@ public static class SndInfoParser
             if (first.Equals("$random", StringComparison.OrdinalIgnoreCase))
             {
                 CollectRandomTokens(lines, ref lineIndex, t);
-                ParseRandom(result, t);
+                if (!ParseRandom(result, t)) return result;
                 continue;
             }
 
             if (first.StartsWith("$", StringComparison.Ordinal)) continue;
             if (t.Count >= 3 && t[1] == "=")
             {
-                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.New)) continue;
+                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.New)) return result;
                 result.Sounds[first] = t[2];
             }
             else if (t.Count >= 2)
             {
-                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.Old)) continue;
+                if (!TrySetAssignmentFormat(ref format, AssignmentFormat.Old)) return result;
                 result.Sounds[first] = t[1];
             }
         }
@@ -102,9 +102,9 @@ public static class SndInfoParser
         return false;
     }
 
-    private static void ParseRandom(SndInfo result, List<string> tokens)
+    private static bool ParseRandom(SndInfo result, List<string> tokens)
     {
-        if (tokens.Count < 4) return;
+        if (tokens.Count < 4) return false;
         string name = tokens[1];
         var sounds = new List<string>();
         for (int i = 2; i < tokens.Count; i++)
@@ -112,10 +112,9 @@ public static class SndInfoParser
             if (tokens[i] is "{" or "}") continue;
             sounds.Add(tokens[i]);
         }
-        if (name.Length > 0
-            && sounds.Count > 0
-            && !sounds.Contains(name, StringComparer.OrdinalIgnoreCase))
-            result.RandomGroups[name] = sounds;
+        if (name.Length == 0 || sounds.Count == 0 || sounds.Contains(name, StringComparer.OrdinalIgnoreCase)) return false;
+        result.RandomGroups[name] = sounds;
+        return true;
     }
 
     private static string StripLineComment(string line)
