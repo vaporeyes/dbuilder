@@ -39,7 +39,7 @@ public static class UdmfFields
             int eq = line.IndexOf('=');
             if (eq <= 0) continue;
             string key = ValidateName(line[..eq]);
-            string val = line[(eq + 1)..].Trim();
+            string val = StripAssignmentTerminator(line[(eq + 1)..].Trim());
             if (key.Length == 0) continue;
             result[key] = InferValue(val);
         }
@@ -57,6 +57,12 @@ public static class UdmfFields
         }
 
         return validName.ToString();
+    }
+
+    private static string StripAssignmentTerminator(string value)
+    {
+        if (value.Length < 1 || value[^1] != ';') return value;
+        return value[..^1].TrimEnd();
     }
 
     private static object InferValue(string v)

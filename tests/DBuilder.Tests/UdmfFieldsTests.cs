@@ -36,6 +36,16 @@ public class UdmfFieldsTests
     }
 
     [Fact]
+    public void ParsesUdmfStyleAssignmentTerminators()
+    {
+        var f = UdmfFields.Parse("lightcolor = 16711680;\nlabel = \"value;\";\ncomment = hello;");
+
+        Assert.Equal(16711680, Assert.IsType<int>(f["lightcolor"]));
+        Assert.Equal("value;", Assert.IsType<string>(f["label"]));
+        Assert.Equal("hello", Assert.IsType<string>(f["comment"]));
+    }
+
+    [Fact]
     public void QuotedValueUnescapesUdmfStringCharacters()
     {
         var f = UdmfFields.Parse("label = \"line 1\\n\\\"quoted\\\"\\\\path\"");

@@ -257,6 +257,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Support safe typed access for large integer custom fields.
   - [x] Support conservative long conversions for typed custom fields.
   - [x] Preserve custom-field floating point precision through editable field text.
+  - [x] Accept UDMF-style semicolon-terminated custom field text.
 - [x] Port argument handling and typed field access.
 - [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.
