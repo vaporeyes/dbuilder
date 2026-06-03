@@ -351,6 +351,34 @@ class MultiValueDefault : Actor
     }
 
     [Fact]
+    public void RejectsZScriptSizeDefaultsWithoutSemicolons()
+    {
+        const string text = @"
+class MissingSizeSemicolon : Actor
+{
+    Default
+    {
+        Radius 64
+        Height 128;
+    }
+}
+class ValidSizeDefault : Actor
+{
+    Default
+    {
+        Radius 16;
+        Height 32;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("ValidSizeDefault", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+        Assert.Equal(32, actor.Height);
+    }
+
+    [Fact]
     public void KeepsZScriptDefaultExpressionsAsSingleValues()
     {
         const string text = @"

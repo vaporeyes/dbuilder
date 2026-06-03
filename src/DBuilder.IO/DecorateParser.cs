@@ -1225,8 +1225,13 @@ public static class DecorateParser
             else if (!inStates && tk.Text.Equals("monster", StringComparison.OrdinalIgnoreCase)) ApplyMonsterFlags(actor);
             else if (!inStates && tk.Text.Equals("projectile", StringComparison.OrdinalIgnoreCase)) ApplyProjectileFlags(actor);
             else if (!inStates && tk.Text.Equals("clearflags", StringComparison.OrdinalIgnoreCase)) actor.Flags.Clear();
-            else if (!inStates && lw == "radius" && PeekInt(t, ref i, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
-            else if (!inStates && lw == "height" && PeekInt(t, ref i, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
+            else if (!inStates && lw == "radius" && TryReadActorIntProperty(t, ref i, zscriptBody, out int r)) { actor.Radius = r; actor.Properties["radius"] = new List<string> { r.ToString(CultureInfo.InvariantCulture) }; }
+            else if (!inStates && lw == "height" && TryReadActorIntProperty(t, ref i, zscriptBody, out int h)) { actor.Height = h; actor.Properties["height"] = new List<string> { h.ToString(CultureInfo.InvariantCulture) }; }
+            else if (zscriptBody && !inStates && lw is "radius" or "height")
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
+            }
             else if (!inStates && LooksLikeProperty(tk.Text, t, i))
             {
                 var values = ReadPropertyValues(tk.Text, t, ref i);
@@ -2105,6 +2110,17 @@ public static class DecorateParser
         if (i < t.Count && t[i].Kind == Kind.Word &&
             double.TryParse(t[i].Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double d)) { value = (int)d; i++; return true; }
         return false;
+    }
+
+    private static bool TryReadActorIntProperty(List<Tok> t, ref int i, bool requireSemicolon, out int value)
+    {
+        if (!PeekInt(t, ref i, out value)) return false;
+        if (!requireSemicolon) return true;
+
+        SkipNewlines(t, ref i);
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != ";") return false;
+        i++;
+        return true;
     }
 
     // "$Title \"Imp\"" -> key "$title", value "Imp" (quotes stripped).

@@ -539,6 +539,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Validate top-level ZScript `enum` declarations.
   - [x] Validate top-level ZScript `struct` declarations.
   - [x] Reject ZScript class declarations without a body or semicolon.
+  - [x] Require semicolon-terminated ZScript size defaults like UDB.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
