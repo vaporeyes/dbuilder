@@ -173,13 +173,16 @@ public static class MapSearch
     };
 
     public static string FormatFindResult(int matchCount)
-        => matchCount == 0 ? "No matches." : $"Found {matchCount} match(es).";
+        => matchCount == 0 ? "No matches." : $"Found {CountLabel(matchCount, "match", "matches")}.";
 
     public static string FormatReplaceResult(int replacementCount)
-        => replacementCount == 0 ? "Nothing replaced." : $"Replaced {replacementCount} element(s).";
+        => replacementCount == 0 ? "Nothing replaced." : $"Replaced {CountLabel(replacementCount, "element")}.";
 
     public static string FormatNextFreeTagResult(int tag)
         => $"Next free tag: {tag.ToString(CultureInfo.InvariantCulture)}.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     /// <summary>
     /// Selects every element matching <paramref name="value"/> in <paramref name="cat"/> (clearing prior selection)

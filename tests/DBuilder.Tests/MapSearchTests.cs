@@ -97,15 +97,15 @@ public class MapSearchTests
 
     [Theory]
     [InlineData(0, "No matches.")]
-    [InlineData(1, "Found 1 match(es).")]
-    [InlineData(3, "Found 3 match(es).")]
+    [InlineData(1, "Found 1 match.")]
+    [InlineData(3, "Found 3 matches.")]
     public void FormatFindResultMatchesEditorStatusText(int count, string expected)
         => Assert.Equal(expected, MapSearch.FormatFindResult(count));
 
     [Theory]
     [InlineData(0, "Nothing replaced.")]
-    [InlineData(1, "Replaced 1 element(s).")]
-    [InlineData(3, "Replaced 3 element(s).")]
+    [InlineData(1, "Replaced 1 element.")]
+    [InlineData(3, "Replaced 3 elements.")]
     public void FormatReplaceResultMatchesEditorStatusText(int count, string expected)
         => Assert.Equal(expected, MapSearch.FormatReplaceResult(count));
 
