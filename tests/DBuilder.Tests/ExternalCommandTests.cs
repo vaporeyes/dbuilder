@@ -82,6 +82,23 @@ public class ExternalCommandTests
         ExternalCommandResult result = ExternalCommand.Run(settings, "Test command");
 
         Assert.True(result.Success, result.Message);
-        Assert.Equal("Test command: ran 1 command(s).", result.Message);
+        Assert.Equal("Test command: ran 1 command.", result.Message);
+    }
+
+    [Fact]
+    public void RunFormatsPluralCommandCount()
+    {
+        const string shell = "/bin/sh";
+        if (!File.Exists(shell)) return;
+
+        var settings = new ExternalCommandSettings
+        {
+            Commands = $"{shell} -c \"printf one\"\n{shell} -c \"printf two\"",
+        };
+
+        ExternalCommandResult result = ExternalCommand.Run(settings, "Test command");
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal("Test command: ran 2 commands.", result.Message);
     }
 }

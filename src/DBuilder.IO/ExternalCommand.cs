@@ -77,8 +77,11 @@ public static class ExternalCommand
             }
         }
 
-        return ExternalCommandResult.Ok($"{label}: ran {invocations.Count} command(s).");
+        return ExternalCommandResult.Ok($"{label}: ran {CountLabel(invocations.Count, "command")}.");
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private static IEnumerable<string> CommandLines(string commands)
     {
