@@ -55,6 +55,17 @@ public class UdbScriptRunnerWindowTests
     }
 
     [Fact]
+    public void ScriptOptionsDialogExposesExpectedEditorSurface()
+    {
+        Type type = typeof(UdbScriptOptionsDialog);
+
+        Assert.Equal("DBuilder.Editor.UdbScriptOptionsDialog", type.FullName);
+        Assert.NotNull(type.GetConstructor([typeof(IReadOnlyList<DBuilder.IO.UdbScriptOption>)]));
+        Assert.NotNull(type.GetProperty("Options"));
+        Assert.True(typeof(PropertyDialog).IsAssignableFrom(type));
+    }
+
+    [Fact]
     public void MessageDialogExposesExpectedRuntimePromptSurface()
     {
         Type type = typeof(UdbScriptMessageDialog);

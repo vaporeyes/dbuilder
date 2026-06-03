@@ -1283,6 +1283,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript QueryOptions paused query result plan.
   - [x] Add UDBScript QueryOptions editor dialog and runner prompt hook.
   - [x] Add UDBScript script options grid UI metadata.
+  - [x] Add UDBScript script options editor dialog surface.
   - [x] Add UDBScript script option value-cell reset and style model.
   - [x] Add UDBScript script option enum editor state model.
   - [x] Add UDBScript script option cell-begin-edit branch model.
@@ -1634,6 +1635,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript QueryOptions paused query result plan.
 - [x] Add UDBScript QueryOptions editor dialog and runner prompt hook.
 - [x] Add UDBScript script options grid UI metadata.
+- [x] Add UDBScript script options editor dialog surface.
 - [x] Add UDBScript script option value-cell reset and style model.
 - [x] Add UDBScript script option enum editor state model.
 - [x] Add UDBScript script option cell-begin-edit branch model.
