@@ -72,6 +72,16 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void WritesUdbStyleCrlfLineEndings()
+    {
+        var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
+        var written = UdmfMapWriter.Write(map);
+
+        Assert.Contains("\r\nvertex // 0\r\n", written);
+        Assert.DoesNotContain('\n', written.Replace("\r\n", "", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void WritesFieldsInUdbOrder()
     {
         var map = new MapSet { Namespace = "ZDoom" };

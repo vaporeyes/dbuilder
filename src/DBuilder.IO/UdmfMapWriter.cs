@@ -56,7 +56,7 @@ public static class UdmfMapWriter
             WriteThing(sb, map.Things[i], i);
         }
 
-        return sb.ToString();
+        return NormalizeLineEndings(sb.ToString());
     }
 
     /// <summary>Writes <paramref name="map"/> as a TEXTMAP lump block (marker + TEXTMAP + ENDMAP) into <paramref name="wad"/>.</summary>
@@ -303,6 +303,9 @@ public static class UdmfMapWriter
             formatted += ".0";
         return formatted;
     }
+
+    private static string NormalizeLineEndings(string text)
+        => text.ReplaceLineEndings("\r\n");
 
     private static void WriteAssignment(StringBuilder sb, string key, string value, bool indent = false)
     {
