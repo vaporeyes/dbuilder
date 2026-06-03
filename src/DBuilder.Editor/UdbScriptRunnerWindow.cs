@@ -16,6 +16,7 @@ public sealed class UdbScriptRunnerWindow : Window
     private readonly Button _action = new();
     private readonly TextBox _log = new();
     private double _runningSeconds;
+    private bool _autoClose;
     private bool _running;
 
     public event Action? CancelRequested;
@@ -26,6 +27,7 @@ public sealed class UdbScriptRunnerWindow : Window
     public bool IsRunnerRunning => _running;
     public bool IsProgressMarquee => _progress.IsIndeterminate;
     public double ProgressValue => _progress.Value;
+    public bool AutoClose => _autoClose;
 
     public UdbScriptRunnerWindow()
     {
@@ -162,6 +164,7 @@ public sealed class UdbScriptRunnerWindow : Window
         _action.Content = state.ActionButtonText;
         _action.IsEnabled = state.ActionButtonEnabled;
         _progress.IsIndeterminate = state.ProgressIsMarquee;
+        _autoClose = state.AutoClose;
         Opacity = state.Opacity;
     }
 
@@ -189,7 +192,7 @@ public sealed class UdbScriptRunnerWindow : Window
             _action.IsEnabled,
             _progress.IsIndeterminate,
             Opacity,
-            AutoClose: false);
+            _autoClose);
 
     private object? InvokePausedOnUiThread(Delegate method)
     {
