@@ -1224,6 +1224,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
   - [x] Add editor Nodes Viewer window for parsed classic nodes, segs, and subsectors.
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
+  - [x] Add counted Nodes Viewer tab row model for classic nodes, segs, subsectors, and vertices.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.

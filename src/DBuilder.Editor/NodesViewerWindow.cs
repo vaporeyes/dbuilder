@@ -31,30 +31,26 @@ public sealed class NodesViewerWindow : Window
         root.Children.Add(header);
 
         var tabs = new TabControl();
-        tabs.Items.Add(Tab("Nodes", _nodes));
-        tabs.Items.Add(Tab("Segs", _segs));
-        tabs.Items.Add(Tab("Subsectors", _subsectors));
-        tabs.Items.Add(Tab("Vertices", _vertices));
+        FillRows(structure, tabs);
         root.Children.Add(tabs);
 
-        FillRows(structure);
         Content = root;
     }
 
     private static TabItem Tab(string header, ListBox list)
         => new() { Header = header, Content = new ScrollViewer { Content = list } };
 
-    private void FillRows(ClassicNodesStructure structure)
+    private void FillRows(ClassicNodesStructure structure, TabControl tabs)
     {
         if (!structure.IsValid) return;
 
-        foreach (string row in NodesViewerModel.NodeRows(structure))
-            _nodes.Items.Add(row);
-        foreach (string row in NodesViewerModel.SegRows(structure))
-            _segs.Items.Add(row);
-        foreach (string row in NodesViewerModel.SubsectorRows(structure))
-            _subsectors.Items.Add(row);
-        foreach (string row in NodesViewerModel.VertexRows(structure))
-            _vertices.Items.Add(row);
+        ListBox[] lists = [_nodes, _segs, _subsectors, _vertices];
+        IReadOnlyList<NodesViewerTabRows> tabRows = NodesViewerModel.TabRows(structure);
+        for (int i = 0; i < tabRows.Count && i < lists.Length; i++)
+        {
+            foreach (string row in tabRows[i].Rows)
+                lists[i].Items.Add(row);
+            tabs.Items.Add(Tab(tabRows[i].Header, lists[i]));
+        }
     }
 }

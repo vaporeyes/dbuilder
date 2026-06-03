@@ -3,6 +3,11 @@
 
 namespace DBuilder.IO;
 
+public sealed record NodesViewerTabRows(string Title, IReadOnlyList<string> Rows)
+{
+    public string Header => $"{Title} ({Rows.Count})";
+}
+
 public static class NodesViewerModel
 {
     public static string StatusText(ClassicNodesStructure structure)
@@ -44,6 +49,19 @@ public static class NodesViewerModel
         for (int i = 0; i < structure.Vertices.Count; i++)
             rows.Add(FormatVertex(i, structure.Vertices[i]));
         return rows;
+    }
+
+    public static IReadOnlyList<NodesViewerTabRows> TabRows(ClassicNodesStructure structure)
+    {
+        if (!structure.IsValid) return Array.Empty<NodesViewerTabRows>();
+
+        return new[]
+        {
+            new NodesViewerTabRows("Nodes", NodeRows(structure)),
+            new NodesViewerTabRows("Segs", SegRows(structure)),
+            new NodesViewerTabRows("Subsectors", SubsectorRows(structure)),
+            new NodesViewerTabRows("Vertices", VertexRows(structure)),
+        };
     }
 
     private static string FormatNode(int index, ClassicNode node)

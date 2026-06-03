@@ -196,6 +196,23 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerModelBuildsCountedTabRows()
+    {
+        var nodes = NodeRecord(0, 0, 64, 0, 0x8000, 0x8001);
+        var segs = SegRecord(0, 1, 0, 3, 1, -16);
+        var vertices = new byte[8];
+        VertexRecord(-128, 256).CopyTo(vertices, 0);
+        VertexRecord(64, -32).CopyTo(vertices, 4);
+        var structure = NodesReader.ParseClassicStructures(nodes, segs, vertices, SubsectorRecord(1, 0));
+
+        IReadOnlyList<NodesViewerTabRows> tabs = NodesViewerModel.TabRows(structure);
+
+        Assert.Equal(new[] { "Nodes (1)", "Segs (1)", "Subsectors (1)", "Vertices (2)" }, tabs.Select(tab => tab.Header));
+        Assert.Equal("#0: (0, 0) -> (64, 0)  parent -1  right subsector 0  left subsector 1", Assert.Single(tabs[0].Rows));
+        Assert.Empty(NodesViewerModel.TabRows(ClassicNodesStructure.Failure(ClassicNodesStatus.MissingOrTooShortNodes)));
+    }
+
+    [Fact]
     public void ClassicStructuresRejectUnsupportedCompressedHeaders()
     {
         byte[] nodes = Encoding.ASCII.GetBytes("ZNOD");
