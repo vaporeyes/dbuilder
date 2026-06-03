@@ -283,6 +283,24 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void InvokePausedPlanMatchesUdbTimerPauseHook()
+    {
+        UdbScriptInvokePausedPlan direct = UdbScriptRunnerModel.InvokePausedPlan(invokeRequired: false);
+        UdbScriptInvokePausedPlan marshaled = UdbScriptRunnerModel.InvokePausedPlan(invokeRequired: true);
+
+        Assert.False(direct.MarshalToUiThread);
+        Assert.True(direct.StopStopwatchBeforeInvoke);
+        Assert.True(direct.InvokeDelegate);
+        Assert.True(direct.StartStopwatchAfterInvoke);
+        Assert.True(direct.ReturnDelegateResult);
+        Assert.True(marshaled.MarshalToUiThread);
+        Assert.True(marshaled.StopStopwatchBeforeInvoke);
+        Assert.True(marshaled.InvokeDelegate);
+        Assert.True(marshaled.StartStopwatchAfterInvoke);
+        Assert.True(marshaled.ReturnDelegateResult);
+    }
+
+    [Fact]
     public void RunnerProgressAndLogReportsMatchUdbFormVisibility()
     {
         UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();

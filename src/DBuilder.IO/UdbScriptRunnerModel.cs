@@ -236,6 +236,13 @@ public sealed record UdbScriptRunnerTimerTickPlan(
     double RunningSeconds,
     string Title);
 
+public sealed record UdbScriptInvokePausedPlan(
+    bool MarshalToUiThread,
+    bool StopStopwatchBeforeInvoke,
+    bool InvokeDelegate,
+    bool StartStopwatchAfterInvoke,
+    bool ReturnDelegateResult);
+
 public sealed record UdbScriptRunScriptWorkflowPlan(
     bool CreateProgressCallbacks,
     bool SetRunningBeforePreRun,
@@ -574,6 +581,14 @@ public static class UdbScriptRunnerModel
             RunningSeconds: updateRunningSeconds ? elapsedSeconds : runningSeconds,
             Title: updateRunningSeconds ? RunningWindowTitle(elapsed) : "");
     }
+
+    public static UdbScriptInvokePausedPlan InvokePausedPlan(bool invokeRequired)
+        => new(
+            MarshalToUiThread: invokeRequired,
+            StopStopwatchBeforeInvoke: true,
+            InvokeDelegate: true,
+            StartStopwatchAfterInvoke: true,
+            ReturnDelegateResult: true);
 
     public static string AppendLog(string existingLog, string text)
         => string.IsNullOrEmpty(existingLog) ? text : existingLog + Environment.NewLine + text;
