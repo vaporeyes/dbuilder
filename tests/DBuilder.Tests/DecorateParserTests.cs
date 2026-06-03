@@ -951,6 +951,33 @@ ACTOR ValidAfterInvalidCast 8003
     }
 
     [Fact]
+    public void BareDecorateStateLabelColonStopsParsingLikeUdb()
+    {
+        const string text = @"
+ACTOR BeforeBareStateLabel 8004
+{
+    Radius 8
+}
+ACTOR BareStateLabelColon 8005
+{
+    States
+    {
+    :
+        BARE A -1 stop
+    }
+}
+ACTOR AfterBareStateLabel 8006
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("BeforeBareStateLabel", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void PrefersSpawnStateSpriteOverEarlierNonDisplayState()
     {
         const string text = @"

@@ -519,6 +519,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop DECORATE parsing on invalid top-level `DamageType` declarations.
   - [x] Stop DECORATE parsing on invalid or duplicate includes.
   - [x] Stop DECORATE parsing on invalid `States(...)` cast types like UDB.
+  - [x] Stop DECORATE parsing on state labels without names like UDB.
   - [x] Stop DECORATE parsing on invalid user variable declarations like UDB.
   - [x] Reject DECORATE user variables that shadow parent fields without `skip_super`.
 - [ ] Complete ZScript tokenizer behavior.

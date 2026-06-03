@@ -1197,6 +1197,12 @@ public static class DecorateParser
             }
             if (tk.Kind != Kind.Word)
             {
+                if (inStates && tk.Kind == Kind.Sym && tk.Text == ":")
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    stopParsing = !zscriptBody;
+                    return false;
+                }
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 {
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
