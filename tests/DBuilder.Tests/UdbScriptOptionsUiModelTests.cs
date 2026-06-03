@@ -121,4 +121,50 @@ public class UdbScriptOptionsUiModelTests
         Assert.Null(state.SelectedItem);
         Assert.Empty(state.Items);
     }
+
+    [Fact]
+    public void BrowseButtonStateShowsOnlyForBrowseableNonEnumerableOptions()
+    {
+        var texture = new UdbScriptOption(
+            "wall",
+            "Wall texture",
+            (int)UniversalType.Texture,
+            "STARTAN3",
+            "STARTAN3",
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.wall");
+        var boolean = new UdbScriptOption(
+            "enabled",
+            "Enabled",
+            (int)UniversalType.Boolean,
+            true,
+            true,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.enabled");
+
+        UdbScriptOptionBrowseButtonState textureState = UdbScriptOptionsUiModel.BrowseButtonState(texture);
+
+        Assert.True(textureState.Visible);
+        Assert.False(textureState.EnumEditorVisible);
+        Assert.True(textureState.IsBrowseable);
+        Assert.False(textureState.IsEnumerable);
+
+        UdbScriptOptionBrowseButtonState booleanState = UdbScriptOptionsUiModel.BrowseButtonState(boolean);
+
+        Assert.False(booleanState.Visible);
+        Assert.False(booleanState.IsBrowseable);
+        Assert.True(booleanState.IsEnumerable);
+
+        UdbScriptOptionBrowseButtonState stringState = UdbScriptOptionsUiModel.BrowseButtonState(texture with { Type = (int)UniversalType.String });
+
+        Assert.True(stringState.Visible);
+        Assert.True(stringState.IsBrowseable);
+        Assert.False(stringState.IsEnumerable);
+
+        UdbScriptOptionBrowseButtonState none = UdbScriptOptionsUiModel.BrowseButtonState(null);
+
+        Assert.False(none.Visible);
+        Assert.False(none.IsBrowseable);
+        Assert.False(none.IsEnumerable);
+    }
 }

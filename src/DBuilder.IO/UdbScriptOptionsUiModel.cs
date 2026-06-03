@@ -39,6 +39,12 @@ public sealed record UdbScriptOptionEnumEditorState(
     bool BrowseButtonVisible,
     IReadOnlyList<UdbScriptOptionEnumItem> Items);
 
+public sealed record UdbScriptOptionBrowseButtonState(
+    bool Visible,
+    bool EnumEditorVisible,
+    bool IsBrowseable,
+    bool IsEnumerable);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -92,5 +98,15 @@ public static class UdbScriptOptionsUiModel
             ?? items.FirstOrDefault(item => string.Equals(item.Key, text, StringComparison.OrdinalIgnoreCase));
 
         return new UdbScriptOptionEnumEditorState(true, EnumDropDownStyle, text, selected, false, items);
+    }
+
+    public static UdbScriptOptionBrowseButtonState BrowseButtonState(UdbScriptOption? selectedOption)
+    {
+        if (selectedOption is null)
+            return new UdbScriptOptionBrowseButtonState(false, false, false, false);
+
+        UniversalTypeHandler handler = new UniversalTypeRegistry().CreateHandler(selectedOption.Type, selectedOption.DefaultValue);
+        bool visible = handler.IsBrowseable && !handler.IsEnumerable;
+        return new UdbScriptOptionBrowseButtonState(visible, EnumEditorVisible: false, handler.IsBrowseable, handler.IsEnumerable);
     }
 }
