@@ -131,6 +131,28 @@ class SpacedCommentActor : Actor
     }
 
     [Fact]
+    public void InvalidZScriptClassHeaderNamesRejectDocumentLikeUdb()
+    {
+        const string missingName = @"
+class { Default { Radius 64; } }
+class AfterMissingName : Actor { Default { Radius 8; } }";
+        const string quotedClassName = @"
+class ""QuotedClassName"" : Actor { Default { Radius 64; } }
+class AfterQuotedClassName : Actor { Default { Radius 8; } }";
+        const string quotedParentName = @"
+class QuotedParentName : ""Actor"" { Default { Radius 64; } }
+class AfterQuotedParentName : Actor { Default { Radius 8; } }";
+        const string quotedReplacementName = @"
+class QuotedReplacementName replaces ""OldThing"" { Default { Radius 64; } }
+class AfterQuotedReplacementName : Actor { Default { Radius 8; } }";
+
+        Assert.Empty(ZScriptParser.Parse(missingName));
+        Assert.Empty(ZScriptParser.Parse(quotedClassName));
+        Assert.Empty(ZScriptParser.Parse(quotedParentName));
+        Assert.Empty(ZScriptParser.Parse(quotedReplacementName));
+    }
+
+    [Fact]
     public void InvalidZScriptClassHeaderOrderingRejectsDocumentLikeUdb()
     {
         const string text = @"

@@ -935,16 +935,16 @@ public static class DecorateParser
     {
         stopParsing = false;
         i++; // keyword
-        if (i >= t.Count || !IsNameToken(t[i]))
+        if (i >= t.Count || !IsHeaderNameToken(t[i], headerNum))
         {
-            stopParsing = headerNum;
+            stopParsing = true;
             return null;
         }
         string className = t[i++].Text;
         if (className.Length == 0)
         {
             SkipDeclaration(t, ref i);
-            stopParsing = headerNum;
+            stopParsing = true;
             return null;
         }
         var actor = new ActorInfo
@@ -977,11 +977,11 @@ public static class DecorateParser
             {
                 if (!headerNum && (hasParent || hasReplacement || hasNative)) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 i++;
-                if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.ParentName = t[i++].Text;
+                if (i < t.Count && IsHeaderNameToken(t[i], headerNum) && t[i].Text.Length > 0) actor.ParentName = t[i++].Text;
                 else
                 {
                     SkipDeclaration(t, ref i);
-                    stopParsing = headerNum;
+                    stopParsing = true;
                     return null;
                 }
                 hasParent = true;
@@ -990,11 +990,11 @@ public static class DecorateParser
             {
                 if (!headerNum && (hasReplacement || hasNative)) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 i++;
-                if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.Replaces = t[i++].Text;
+                if (i < t.Count && IsHeaderNameToken(t[i], headerNum) && t[i].Text.Length > 0) actor.Replaces = t[i++].Text;
                 else
                 {
                     SkipDeclaration(t, ref i);
-                    stopParsing = headerNum;
+                    stopParsing = true;
                     return null;
                 }
                 hasReplacement = true;
@@ -1180,6 +1180,9 @@ public static class DecorateParser
     }
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
+
+    private static bool IsHeaderNameToken(Tok token, bool headerNum)
+        => headerNum ? IsNameToken(token) : token.Kind == Kind.Word;
 
     private static bool ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody, out bool stopParsing)
     {
