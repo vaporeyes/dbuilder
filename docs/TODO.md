@@ -432,6 +432,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
 - [ ] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.
+  - [x] Use shared PK3-family archive classification for data location type inference.
   - [x] Honor PK3 root texture and root flat resource options.
   - [x] Honor WAD strict patch resource option for classic texture composition.
 - [ ] Port resource priority and override behavior completely.

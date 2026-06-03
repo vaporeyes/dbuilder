@@ -35,15 +35,7 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
     {
         if (Directory.Exists(path)) return DataLocationType.Directory;
 
-        string ext = Path.GetExtension(path);
-        return ext.Equals(".pk3", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pk7", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".zip", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".pke", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".ipk3", StringComparison.OrdinalIgnoreCase)
-            || ext.Equals(".ipk7", StringComparison.OrdinalIgnoreCase)
-            ? DataLocationType.Pk3
-            : DataLocationType.Wad;
+        return ArchivePath.IsPk3FamilyPath(path) ? DataLocationType.Pk3 : DataLocationType.Wad;
     }
 
     public override string ToString() => Location;

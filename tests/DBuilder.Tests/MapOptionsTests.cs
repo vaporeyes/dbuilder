@@ -44,6 +44,7 @@ public class MapOptionsTests
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pk3"));
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pk7"));
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.zip"));
+        Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pkz"));
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.pke"));
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.ipk3"));
         Assert.Equal(DataLocationType.Pk3, DataLocation.InferType("/tmp/resource.ipk7"));
