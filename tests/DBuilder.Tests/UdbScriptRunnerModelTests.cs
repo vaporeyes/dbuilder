@@ -301,6 +301,18 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunActionPlanMatchesUdbRunnerFormActionHook()
+    {
+        UdbScriptRunActionPlan direct = UdbScriptRunnerModel.RunActionPlan(invokeRequired: false);
+        UdbScriptRunActionPlan marshaled = UdbScriptRunnerModel.RunActionPlan(invokeRequired: true);
+
+        Assert.False(direct.MarshalToUiThread);
+        Assert.True(direct.InvokeAction);
+        Assert.True(marshaled.MarshalToUiThread);
+        Assert.True(marshaled.InvokeAction);
+    }
+
+    [Fact]
     public void RunnerProgressAndLogReportsMatchUdbFormVisibility()
     {
         UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();

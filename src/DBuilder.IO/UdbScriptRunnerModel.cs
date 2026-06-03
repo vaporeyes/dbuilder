@@ -243,6 +243,10 @@ public sealed record UdbScriptInvokePausedPlan(
     bool StartStopwatchAfterInvoke,
     bool ReturnDelegateResult);
 
+public sealed record UdbScriptRunActionPlan(
+    bool MarshalToUiThread,
+    bool InvokeAction);
+
 public sealed record UdbScriptRunScriptWorkflowPlan(
     bool CreateProgressCallbacks,
     bool SetRunningBeforePreRun,
@@ -589,6 +593,11 @@ public static class UdbScriptRunnerModel
             InvokeDelegate: true,
             StartStopwatchAfterInvoke: true,
             ReturnDelegateResult: true);
+
+    public static UdbScriptRunActionPlan RunActionPlan(bool invokeRequired)
+        => new(
+            MarshalToUiThread: invokeRequired,
+            InvokeAction: true);
 
     public static string AppendLog(string existingLog, string text)
         => string.IsNullOrEmpty(existingLog) ? text : existingLog + Environment.NewLine + text;
