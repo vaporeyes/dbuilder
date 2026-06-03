@@ -268,7 +268,8 @@ public static class TexturesParser
             bool invalid = false;
             while (i < t.Count && t[i] != "}")
             {
-                switch (t[i++].Text.ToLowerInvariant())
+                Tok modifier = t[i++];
+                switch (modifier.Text.ToLowerInvariant())
                 {
                     case "flipx": patch.FlipX = true; break;
                     case "flipy": patch.FlipY = true; break;
@@ -288,7 +289,7 @@ public static class TexturesParser
                         }
                         break;
                     case "blend":
-                        if (!ParseBlend(patch, t, ref i, knownColors)) invalid = true;
+                        if (!ParseBlend(patch, t, ref i, knownColors, modifier.Line)) invalid = true;
                         break;
                     default: break; // translation and other patch modifiers are skipped token by token
                 }
@@ -303,20 +304,23 @@ public static class TexturesParser
     private static bool IsInvalidLongTextureName(Tok token)
         => token.Text.Length > ClassicImageNameLength && !token.Quoted;
 
-    private static bool ParseBlend(TexturesPatch patch, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseBlend(TexturesPatch patch, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, int modifierLine)
     {
         if (i >= t.Count) return false;
 
         byte red;
         byte green;
         byte blue;
-        string token = t[i++];
+        Tok colorToken = t[i++];
+        if (colorToken.Line != modifierLine) return false;
+        int line = colorToken.Line;
+        string token = colorToken.Text;
         if (byte.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out red))
         {
-            if (!ReadComma(t, ref i)) return false;
-            if (!ReadByte(t, ref i, out green)) return false;
-            if (!ReadComma(t, ref i)) return false;
-            if (!ReadByte(t, ref i, out blue)) return false;
+            if (!ReadComma(t, ref i, line)) return false;
+            if (!ReadByte(t, ref i, line, out green)) return false;
+            if (!ReadComma(t, ref i, line)) return false;
+            if (!ReadByte(t, ref i, line, out blue)) return false;
         }
         else if (!ZDoomColorParser.TryParse(token, knownColors, out red, out green, out blue))
         {
@@ -324,10 +328,10 @@ public static class TexturesParser
         }
 
         double blendAlpha = -1.0;
-        if (i < t.Count && t[i] == ",")
+        if (i < t.Count && t[i].Line == line && t[i] == ",")
         {
             i++;
-            if (!ReadDouble(t, ref i, out blendAlpha)) return false;
+            if (!ReadDouble(t, ref i, line, out blendAlpha)) return false;
         }
 
         if (blendAlpha > 0.0)
@@ -381,6 +385,13 @@ public static class TexturesParser
         return true;
     }
 
+    private static bool ReadComma(List<Tok> t, ref int i, int line)
+    {
+        if (i >= t.Count || t[i].Line != line || t[i] != ",") return false;
+        i++;
+        return true;
+    }
+
     private static bool ReadInt(List<Tok> t, ref int i, out int v)
     {
         v = 0;
@@ -396,10 +407,25 @@ public static class TexturesParser
         return false;
     }
 
+    private static bool ReadDouble(List<Tok> t, ref int i, int line, out double v)
+    {
+        v = 0;
+        if (i < t.Count && t[i].Line == line && double.TryParse(t[i], NumberStyles.Float, CultureInfo.InvariantCulture, out v)) { i++; return true; }
+        return false;
+    }
+
     private static bool ReadByte(List<Tok> t, ref int i, out byte value)
     {
         value = 0;
         if (i >= t.Count) return false;
+        if (byte.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
+        return false;
+    }
+
+    private static bool ReadByte(List<Tok> t, ref int i, int line, out byte value)
+    {
+        value = 0;
+        if (i >= t.Count || t[i].Line != line) return false;
         if (byte.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
         return false;
     }
@@ -409,32 +435,58 @@ public static class TexturesParser
     {
         var toks = new List<Tok>();
         int n = s.Length;
+        int line = 1;
         for (int p = 0; p < n;)
         {
             char c = s[p];
-            if (char.IsWhiteSpace(c)) { p++; continue; }
+            if (char.IsWhiteSpace(c))
+            {
+                if (c == '\n') line++;
+                p++;
+                continue;
+            }
             if (c == '/' && p + 1 < n && s[p + 1] == '/') { p += 2; while (p < n && s[p] != '\n') p++; continue; }
-            if (c == '/' && p + 1 < n && s[p + 1] == '*') { p += 2; while (p + 1 < n && !(s[p] == '*' && s[p + 1] == '/')) p++; p += 2; continue; }
+            if (c == '/' && p + 1 < n && s[p + 1] == '*')
+            {
+                p += 2;
+                while (p + 1 < n && !(s[p] == '*' && s[p + 1] == '/'))
+                {
+                    if (s[p] == '\n') line++;
+                    p++;
+                }
+                p += 2;
+                continue;
+            }
 
             if (c == '"')
             {
                 var sb = new StringBuilder();
+                int tokenLine = line;
                 p++;
-                while (p < n && s[p] != '"') { if (s[p] == '\\' && p + 1 < n) { sb.Append(s[p + 1]); p += 2; } else sb.Append(s[p++]); }
+                while (p < n && s[p] != '"')
+                {
+                    if (s[p] == '\n') line++;
+                    if (s[p] == '\\' && p + 1 < n)
+                    {
+                        sb.Append(s[p + 1]);
+                        p += 2;
+                    }
+                    else sb.Append(s[p++]);
+                }
                 p++;
-                toks.Add(new Tok(sb.ToString(), true));
+                toks.Add(new Tok(sb.ToString(), true, tokenLine));
                 continue;
             }
-            if (c == '{' || c == '}' || c == ',') { toks.Add(new Tok(c.ToString(), false)); p++; continue; }
+            if (c == '{' || c == '}' || c == ',') { toks.Add(new Tok(c.ToString(), false, line)); p++; continue; }
 
             int b = p;
             while (p < n && !char.IsWhiteSpace(s[p]) && s[p] != '{' && s[p] != '}' && s[p] != ',' && s[p] != '"') p++;
-            toks.Add(new Tok(s.Substring(b, p - b), false));
+            toks.Add(new Tok(s.Substring(b, p - b), false, line));
         }
         return toks;
     }
 
-    private readonly record struct Tok(string Text, bool Quoted)
+    private readonly record struct Tok(string Text, bool Quoted, int Line)
     {
         public static implicit operator string(Tok token) => token.Text;
     }

@@ -384,6 +384,65 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void MultilinePatchBlendColorStopsParsingLikeUdb()
+    {
+        const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
+{
+    Patch BAD, 0, 0
+    {
+        Blend
+        ""#112233""
+    }
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal("BEFORE", def.Name);
+    }
+
+    [Fact]
+    public void MultilinePatchBlendRgbStopsParsingLikeUdb()
+    {
+        const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
+{
+    Patch BAD, 0, 0
+    {
+        Blend 255,
+        128, 0
+    }
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
+
+        var def = TexturesParser.Parse(text).Single();
+
+        Assert.Equal("BEFORE", def.Name);
+    }
+
+    [Fact]
+    public void PatchBlendAlphaOnNextLineIsIgnoredLikeUdb()
+    {
+        const string text = @"
+Texture BLEND, 8, 8
+{
+    Patch P, 0, 0
+    {
+        Blend 255, 128, 0
+        , 0.5
+    }
+}";
+
+        var patch = TexturesParser.Parse(text).Single().Patches.Single();
+
+        Assert.Equal(TexturesPatchBlendStyle.Blend, patch.BlendStyle);
+        Assert.Equal(255, patch.BlendAlpha);
+    }
+
+    [Fact]
     public void NonNumericPatchAlphaStopsParsingLikeUdb()
     {
         const string text = @"
