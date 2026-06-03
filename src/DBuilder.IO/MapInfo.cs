@@ -97,20 +97,21 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("$gzdb_skip", StringComparison.OrdinalIgnoreCase)) break;
             if (!t.IsString && t.Text.Equals("map", StringComparison.OrdinalIgnoreCase))
             {
-                mi.maps.Add(ParseMap(toks, ref i, defaults, knownColors));
+                if (!ParseMap(toks, ref i, defaults, knownColors, out var entry)) return;
+                mi.maps.Add(entry);
                 continue;
             }
             if (!t.IsString && t.Text.Equals("defaultmap", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
                 defaults = new MapInfoEntry();
-                ParseDefaultMap(toks, ref i, defaults, knownColors);
+                if (!ParseDefaultMap(toks, ref i, defaults, knownColors)) return;
                 continue;
             }
             if (!t.IsString && t.Text.Equals("adddefaultmap", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseDefaultMap(toks, ref i, defaults, knownColors);
+                if (!ParseDefaultMap(toks, ref i, defaults, knownColors)) return;
                 continue;
             }
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
@@ -225,7 +226,7 @@ public sealed class MapInfo
         return clusterDef && i + 1 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "{";
     }
 
-    private static MapInfoEntry ParseMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors, out MapInfoEntry entry)
     {
         i++; // consume 'map'
         string lump = i < toks.Count ? toks[i++].Text : "";
@@ -243,13 +244,16 @@ public sealed class MapInfo
             else title = toks[i++].Text;
         }
 
-        var entry = CloneDefaults(defaults, lump, title, lookup);
+        entry = CloneDefaults(defaults, lump, title, lookup);
 
         if (i < toks.Count && !toks[i].IsString && toks[i].Text == "{")
         {
             i++; // consume '{'
             while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
+            {
+                if (IsUnexpectedMapBlockToken(toks[i])) return false;
                 ReadProperty(toks, ref i, entry, stopAtBrace: true, knownColors);
+            }
             if (i < toks.Count) i++; // consume '}'
         }
         else
@@ -260,7 +264,7 @@ public sealed class MapInfo
         }
 
         NormalizeEntry(entry);
-        return entry;
+        return true;
     }
 
     private static void NormalizeEntry(MapInfoEntry entry)
@@ -269,13 +273,16 @@ public sealed class MapInfo
             entry.DoubleSky = false;
     }
 
-    private static void ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseDefaultMap(List<Tok> toks, ref int i, MapInfoEntry defaults, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
         if (i < toks.Count && !toks[i].IsString && toks[i].Text == "{")
         {
             i++;
             while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
+            {
+                if (IsUnexpectedMapBlockToken(toks[i])) return false;
                 ReadProperty(toks, ref i, defaults, stopAtBrace: true, knownColors);
+            }
             if (i < toks.Count) i++;
         }
         else
@@ -283,6 +290,15 @@ public sealed class MapInfo
             while (i < toks.Count && !OldFormatTerminates(toks, i))
                 ReadProperty(toks, ref i, defaults, stopAtBrace: false, knownColors);
         }
+        return true;
+    }
+
+    private static bool IsUnexpectedMapBlockToken(Tok tok)
+    {
+        return !tok.IsString
+            && (tok.Text.Equals("map", StringComparison.OrdinalIgnoreCase)
+                || tok.Text.Equals("defaultmap", StringComparison.OrdinalIgnoreCase)
+                || tok.Text.Equals("adddefaultmap", StringComparison.OrdinalIgnoreCase));
     }
 
     private static MapInfoEntry CloneDefaults(MapInfoEntry defaults, string lump, string title, bool lookup)

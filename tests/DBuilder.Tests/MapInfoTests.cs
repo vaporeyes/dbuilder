@@ -283,6 +283,42 @@ map MAP02 ""After"" { next = MAP03 }";
     }
 
     [Fact]
+    public void UnexpectedMapDirectiveInBracedMapStopsParsingLikeUdb()
+    {
+        const string text = @"
+map MAP00 ""Before"" { next = MAP01 }
+map MAP01 ""Broken""
+{
+    next = MAP02
+    map MAP02 ""Nested"" { next = MAP03 }
+}
+map MAP03 ""After"" { next = MAP04 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.NotNull(mi.GetMap("MAP00"));
+        Assert.Null(mi.GetMap("MAP01"));
+        Assert.Null(mi.GetMap("MAP02"));
+        Assert.Null(mi.GetMap("MAP03"));
+    }
+
+    [Fact]
+    public void UnexpectedMapDirectiveInBracedDefaultMapStopsParsingLikeUdb()
+    {
+        const string text = @"
+defaultmap
+{
+    sky1 = SKY1
+    adddefaultmap { par = 30 }
+}
+map MAP01 ""After"" { next = MAP02 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.Empty(mi.Maps);
+    }
+
+    [Fact]
     public void AppliesDefaultMapAndAddDefaultMap()
     {
         const string text = @"
