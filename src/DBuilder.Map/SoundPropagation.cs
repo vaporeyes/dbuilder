@@ -18,6 +18,14 @@ public sealed record SoundLeakPath(
     IReadOnlyList<Linedef> Linedefs,
     IReadOnlyList<Linedef> BlockingLinedefs);
 
+public sealed record SoundPropagationReachSummary(
+    int TotalSectors,
+    int DirectSectors,
+    int ViaBlockingLineSectors)
+{
+    public string StatusText => $"Sound reaches {TotalSectors} sector(s): {DirectSectors} direct, {ViaBlockingLineSectors} via a sound-blocking line.";
+}
+
 public sealed record SoundPropagationActionDescriptor(
     string Id,
     string Title,
@@ -423,6 +431,21 @@ public static class SoundPropagation
     public const string DefaultClassicDormantFlag = "14";
     public const int SoundEnvironmentThingType = 9048;
     public const string UnknownSoundEnvironmentName = "Unknown sound environment";
+
+    public static SoundPropagationReachSummary SummarizeReachability(IReadOnlyDictionary<Sector, int> reach)
+    {
+        ArgumentNullException.ThrowIfNull(reach);
+
+        int direct = 0;
+        int viaBlock = 0;
+        foreach (int level in reach.Values)
+        {
+            if (level == 1) direct++;
+            else viaBlock++;
+        }
+
+        return new SoundPropagationReachSummary(reach.Count, direct, viaBlock);
+    }
 
     public static SoundEnvironmentModeModel BuildSoundEnvironmentModel(
         MapSet map,

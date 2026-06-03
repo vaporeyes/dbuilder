@@ -438,6 +438,20 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void ReachabilitySummaryFormatsDirectAndSoundBlockingCounts()
+    {
+        var (map, s) = Chain(4, new[] { false, true, false });
+        Dictionary<Sector, int> reach = SoundPropagation.Reachable(map, s[0]);
+
+        SoundPropagationReachSummary summary = SoundPropagation.SummarizeReachability(reach);
+
+        Assert.Equal(4, summary.TotalSectors);
+        Assert.Equal(2, summary.DirectSectors);
+        Assert.Equal(2, summary.ViaBlockingLineSectors);
+        Assert.Equal("Sound reaches 4 sector(s): 2 direct, 2 via a sound-blocking line.", summary.StatusText);
+    }
+
+    [Fact]
     public void SoundEnvironmentBoundaryUsesClassicLineIdentificationArgument()
     {
         var (map, _) = Chain(2, new[] { false });

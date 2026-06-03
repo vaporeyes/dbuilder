@@ -4783,11 +4783,10 @@ public partial class MainWindow : Window
         MapView.SetSectorOverlayColors(model.SectorOverlayColors(_map.Sectors, sel[0], _settings.SoundPropagationColors), 128);
         MapView.SetSoundLeakPath(null);
         _map.ClearAllSelected();
-        int direct = 0, viaBlock = 0;
-        foreach (var (s, level) in reach) { s.Selected = true; if (level == 1) direct++; else viaBlock++; }
+        foreach (Sector sector in reach.Keys) sector.Selected = true;
         MapView.RevealSelection(MapControl.EditMode.Sectors, null);
         UpdateInfo();
-        SetStatus($"Sound reaches {reach.Count} sector(s): {direct} direct, {viaBlock} via a sound-blocking line.");
+        SetStatus(SoundPropagation.SummarizeReachability(reach).StatusText);
     }
 
     private void ShowSoundLeakPath(Sector source, Sector destination)
