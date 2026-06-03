@@ -1480,6 +1480,7 @@ public static class DecorateParser
 
     private static bool HasValidZScriptStateFrameTail(List<Tok> t, int start)
     {
+        if (!HasValidZScriptStateFrameDuration(t, start)) return false;
         var specials = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (int i = start; i < t.Count; i++)
         {
@@ -1495,6 +1496,27 @@ public static class DecorateParser
 
         return false;
     }
+
+    private static bool HasValidZScriptStateFrameDuration(List<Tok> t, int durationIndex)
+    {
+        if (durationIndex >= t.Count || t[durationIndex].Kind != Kind.Word) return false;
+        string lower = t[durationIndex].Text.ToLowerInvariant();
+        int dotIndex = lower.IndexOf('.', StringComparison.Ordinal);
+        if (dotIndex >= 0)
+            return IsZScriptStateFrameDurationType(lower[..dotIndex])
+                ? IsZScriptStateFrameDurationLimit(lower[(dotIndex + 1)..])
+                : true;
+        if (!IsZScriptStateFrameDurationType(lower)) return true;
+        if (durationIndex + 2 >= t.Count || t[durationIndex + 1].Text != ".") return false;
+        return IsZScriptStateFrameDurationLimit(t[durationIndex + 2].Text);
+    }
+
+    private static bool IsZScriptStateFrameDurationType(string value)
+        => value is "double" or "int" or "uint";
+
+    private static bool IsZScriptStateFrameDurationLimit(string value)
+        => value.Equals("min", StringComparison.OrdinalIgnoreCase)
+        || value.Equals("max", StringComparison.OrdinalIgnoreCase);
 
     private static bool ZScriptStateFrameSpecialHasArguments(List<Tok> t, int index)
         => t[index].Text.Contains('(', StringComparison.Ordinal)

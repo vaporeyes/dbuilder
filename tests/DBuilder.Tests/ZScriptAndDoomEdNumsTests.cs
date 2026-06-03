@@ -1158,6 +1158,19 @@ class InvalidStateLightArgumentZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameWithInvalidDurationLimit()
+    {
+        const string zscript = @"
+class InvalidStateDurationLimitZThing : Actor
+{
+    States { Spawn: DLIM A int.foo; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "InvalidStateDurationLimitZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

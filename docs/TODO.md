@@ -736,6 +736,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject duplicate ZScript state-frame specials before using preview frames.
   - [x] Require ZScript `Light` and `Offset` state-frame specials to use arguments.
   - [x] Require ZScript `Light` state-frame specials to use one name argument.
+  - [x] Validate ZScript `int.min` and `int.max` state-frame duration members.
   - [x] Inherit extended ZScript parent `Spawn` states from child classes.
   - [x] Reject ZScript extensions declared before their target class.
 - [ ] Port category and DoomEdNum merging behavior fully.
