@@ -88,6 +88,7 @@ public static class ColorPickerModel
     public const string FadeColorField = "fadecolor";
     public const string DynamicLightPackedColorField = "arg0str";
     public const string NoDynamicLightsWarning = "No lights found in selection!";
+    public const string NoSelectedSectorsWarning = "Select one or more sectors to set color.";
     public const string SectorColorsRequireUdmfWarning = "Sector colors can only be set if map is in UDMF format!";
 
     private static readonly HashSet<int> LightsUsingAngleValue =

@@ -224,6 +224,7 @@ public sealed class ColorPickerModelTests
     public void DynamicLightPickerMetadataMatchesUdbSelectionMessages()
     {
         Assert.Equal("No lights found in selection!", ColorPickerModel.NoDynamicLightsWarning);
+        Assert.Equal("Select one or more sectors to set color.", ColorPickerModel.NoSelectedSectorsWarning);
         Assert.Equal("Sector colors can only be set if map is in UDMF format!", ColorPickerModel.SectorColorsRequireUdmfWarning);
         Assert.Equal("Editing 1 sector", ColorPickerModel.SectorColorPickerTitle(1));
         Assert.Equal("Editing 2 sectors", ColorPickerModel.SectorColorPickerTitle(2));

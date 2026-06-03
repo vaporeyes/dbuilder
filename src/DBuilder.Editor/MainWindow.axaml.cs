@@ -4447,7 +4447,7 @@ public partial class MainWindow : Window
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count == 0)
         {
-            SetStatus("Select one or more sectors to set color.");
+            SetStatus(ColorPickerModel.NoSelectedSectorsWarning);
             return;
         }
 
