@@ -77,4 +77,30 @@ public class ResourceArchiveWarningModelTests
 
         Assert.Empty(warnings);
     }
+
+    [Fact]
+    public void BuildWarningsReportsEmptyMapResourceListWhenRequested()
+    {
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(
+            null,
+            new DataLocationList(),
+            includeEmptyMapWarning: true);
+
+        var warning = Assert.Single(warnings);
+        Assert.Equal(
+            "Warning: you are about to edit a map without any resources.\n"
+            + "Textures, flats and sprites may not be shown correctly or may not show up at all.",
+            warning);
+    }
+
+    [Fact]
+    public void BuildWarningsSkipsEmptyResourceListWarningForConfigurationResources()
+    {
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(
+            null,
+            new DataLocationList(),
+            includeEmptyMapWarning: false);
+
+        Assert.Empty(warnings);
+    }
 }
