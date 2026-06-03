@@ -176,6 +176,35 @@ public sealed class UdbScriptRunnerWindow : Window
             return result ?? UdbScriptMessageResult.Abort;
         });
 
+    public Task<UdbScriptVersionGateDecision> ConfirmFeatureVersionAsync(uint scriptVersion, bool ignoreVersion)
+        => InvokePausedAsync(async () =>
+        {
+            UdbScriptVersionGate gate = UdbScriptRunnerModel.VersionGate(scriptVersion, ignoreVersion);
+            if (!gate.RequiresPrompt)
+                return UdbScriptRunnerModel.VersionGateDecision(scriptVersion, ignoreVersion, UdbScriptVersionGateDialogResult.None);
+
+            var dialog = new UdbScriptConfirmationDialog(gate.Title, gate.Message);
+            bool accepted = await dialog.ShowDialog<bool>(this);
+            return UdbScriptRunnerModel.VersionGateDecision(
+                scriptVersion,
+                ignoreVersion,
+                accepted ? UdbScriptVersionGateDialogResult.Yes : UdbScriptVersionGateDialogResult.No);
+        });
+
+    public Task<UdbScriptRuntimeConstraintCheckResult> CheckRuntimeConstraintAsync(TimeSpan elapsed)
+        => InvokePausedAsync(async () =>
+        {
+            UdbScriptRuntimeConstraintPrompt prompt = UdbScriptRunnerModel.RuntimeConstraintPrompt(elapsed);
+            if (!prompt.ShouldPrompt)
+                return UdbScriptRunnerModel.RuntimeConstraintCheck(elapsed, UdbScriptRuntimeConstraintDialogResult.None);
+
+            var dialog = new UdbScriptConfirmationDialog(prompt.Title, prompt.Message);
+            bool shouldStop = await dialog.ShowDialog<bool>(this);
+            return UdbScriptRunnerModel.RuntimeConstraintCheck(
+                elapsed,
+                shouldStop ? UdbScriptRuntimeConstraintDialogResult.Yes : UdbScriptRuntimeConstraintDialogResult.No);
+        });
+
     public void Finish(TimeSpan runtime, bool autoClose)
     {
         UdbScriptRunScriptWorkflowPlan plan = UdbScriptRunnerModel.RunScriptWorkflowPlan(

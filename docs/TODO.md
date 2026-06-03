@@ -1267,10 +1267,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
   - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
   - [x] Add UDBScript feature-version gate continue and ignore-version branch plan.
+  - [x] Add UDBScript feature-version confirmation dialog and runner prompt hook.
   - [x] Add UDBScript script engine setup option and binding plan.
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
   - [x] Add UDBScript run file execution and stopwatch sequence plan.
   - [x] Add UDBScript runtime constraint abort and restart branch planning.
+  - [x] Add UDBScript runtime constraint confirmation dialog and runner prompt hook.
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
   - [x] Add UDBScript QueryOptions API member surface metadata.
   - [x] Add UDBScript QueryOptions enum-value container gating.
@@ -1616,10 +1618,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
 - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
 - [x] Add UDBScript feature-version gate continue and ignore-version branch plan.
+- [x] Add UDBScript feature-version confirmation dialog and runner prompt hook.
 - [x] Add UDBScript script engine setup option and binding plan.
 - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
 - [x] Add UDBScript run file execution and stopwatch sequence plan.
 - [x] Add UDBScript runtime constraint abort and restart branch planning.
+- [x] Add UDBScript runtime constraint confirmation dialog and runner prompt hook.
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [x] Add UDBScript QueryOptions API member surface metadata.
 - [x] Add UDBScript QueryOptions enum-value container gating.
