@@ -535,6 +535,7 @@ Texture META, 8, 8
     {
         Blend ""#112233""
     }
+    Patch ""patches\Red"", 1, 2
     Patch SHORT, 2, 2
     {
         Blend ""#28f""
@@ -561,8 +562,9 @@ Texture META, 8, 8
         Assert.Equal(0x22, def.Patches[2].BlendGreen);
         Assert.Equal(0x33, def.Patches[2].BlendBlue);
         Assert.Equal(255, def.Patches[2].BlendAlpha);
-        Assert.Equal(0x22, def.Patches[3].BlendRed);
-        Assert.Equal(0x88, def.Patches[3].BlendGreen);
-        Assert.Equal(0xff, def.Patches[3].BlendBlue);
+        Assert.Equal(@"PATCHES\RED", def.Patches[3].Name);
+        Assert.Equal(0x22, def.Patches[4].BlendRed);
+        Assert.Equal(0x88, def.Patches[4].BlendGreen);
+        Assert.Equal(0xff, def.Patches[4].BlendBlue);
     }
 }

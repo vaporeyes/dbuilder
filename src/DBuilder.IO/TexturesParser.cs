@@ -466,12 +466,7 @@ public static class TexturesParser
                 while (p < n && s[p] != '"')
                 {
                     if (s[p] == '\n') line++;
-                    if (s[p] == '\\' && p + 1 < n)
-                    {
-                        sb.Append(s[p + 1]);
-                        p += 2;
-                    }
-                    else sb.Append(s[p++]);
+                    sb.Append(s[p++]);
                 }
                 p++;
                 toks.Add(new Tok(sb.ToString(), true, tokenLine));
