@@ -201,6 +201,8 @@ public sealed class UdbScriptRunnerWindow : Window
         UdbScriptRunnerTimerTickPlan plan = UdbScriptRunnerModel.TimerTickPlan(elapsed, _runningSeconds, Opacity);
         if (plan.MakeVisible)
             Opacity = 1.0;
+        if (plan.EnableActionButton)
+            _action.IsEnabled = true;
         if (plan.UpdateRunningSeconds)
         {
             _runningSeconds = plan.RunningSeconds;

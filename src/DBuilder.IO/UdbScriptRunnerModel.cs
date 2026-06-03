@@ -236,6 +236,7 @@ public sealed record UdbScriptRunnerLifecycleEventPlan(
 
 public sealed record UdbScriptRunnerTimerTickPlan(
     bool MakeVisible,
+    bool EnableActionButton,
     bool UpdateRunningSeconds,
     double RunningSeconds,
     string Title);
@@ -597,6 +598,7 @@ public static class UdbScriptRunnerModel
 
         return new(
             MakeVisible: opacity == 0.0 && ShouldMakeRunnerVisible(elapsed),
+            EnableActionButton: opacity == 0.0 && ShouldMakeRunnerVisible(elapsed),
             UpdateRunningSeconds: updateRunningSeconds,
             RunningSeconds: updateRunningSeconds ? elapsedSeconds : runningSeconds,
             Title: updateRunningSeconds ? RunningWindowTitle(elapsed) : "");

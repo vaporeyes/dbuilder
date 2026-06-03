@@ -259,6 +259,7 @@ public class UdbScriptRunnerModelTests
             opacity: 0.0);
 
         Assert.False(threshold.MakeVisible);
+        Assert.False(threshold.EnableActionButton);
         Assert.False(threshold.UpdateRunningSeconds);
         Assert.Equal(1, threshold.RunningSeconds);
         Assert.Equal("", threshold.Title);
@@ -269,6 +270,7 @@ public class UdbScriptRunnerModelTests
             opacity: 0.0);
 
         Assert.True(visible.MakeVisible);
+        Assert.True(visible.EnableActionButton);
         Assert.False(visible.UpdateRunningSeconds);
         Assert.Equal(1, visible.RunningSeconds);
         Assert.Equal("", visible.Title);
@@ -279,6 +281,7 @@ public class UdbScriptRunnerModelTests
             opacity: 1.0);
 
         Assert.False(title.MakeVisible);
+        Assert.False(title.EnableActionButton);
         Assert.True(title.UpdateRunningSeconds);
         Assert.Equal(3723, title.RunningSeconds);
         Assert.Equal("Running script (01:02:03)", title.Title);
@@ -289,6 +292,7 @@ public class UdbScriptRunnerModelTests
             opacity: 1.0);
 
         Assert.False(alreadyVisible.MakeVisible);
+        Assert.False(alreadyVisible.EnableActionButton);
     }
 
     [Fact]
