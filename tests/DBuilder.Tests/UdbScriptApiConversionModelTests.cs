@@ -466,6 +466,31 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementWrappersExposeUdbMapIndexes()
+    {
+        var map = new MapSet();
+        Vertex firstVertex = map.AddVertex(new Vector2D(0, 0));
+        Vertex secondVertex = map.AddVertex(new Vector2D(16, 0));
+        Vertex thirdVertex = map.AddVertex(new Vector2D(32, 0));
+        Linedef firstLine = map.AddLinedef(firstVertex, secondVertex);
+        Linedef secondLine = map.AddLinedef(secondVertex, thirdVertex);
+        Sector sector = map.AddSector();
+        map.AddSidedef(firstLine, isFront: true, sector);
+        Sidedef secondSide = map.AddSidedef(secondLine, isFront: true, sector);
+        map.AddThing(new Vector2D(8, 8), 1);
+        Thing secondThing = map.AddThing(new Vector2D(24, 8), 2);
+
+        Assert.Equal(1, new UdbScriptVertexWrapper(secondVertex, map).index);
+        Assert.Equal(1, new UdbScriptLinedefWrapper(secondLine, map).index);
+        Assert.Equal(1, new UdbScriptSidedefWrapper(secondSide, map).index);
+        Assert.Equal(1, new UdbScriptThingWrapper(secondThing, map).index);
+        Assert.Equal(-1, new UdbScriptVertexWrapper(new Vertex()).index);
+        Assert.Equal(-1, new UdbScriptLinedefWrapper(new Linedef(firstVertex, secondVertex)).index);
+        Assert.Equal(-1, new UdbScriptSidedefWrapper(new Sidedef()).index);
+        Assert.Equal(-1, new UdbScriptThingWrapper(new Thing()).index);
+    }
+
+    [Fact]
     public void VertexWrapperRejectsDisposedVertexAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });

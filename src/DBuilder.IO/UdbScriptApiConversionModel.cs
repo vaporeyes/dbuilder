@@ -924,6 +924,15 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
     public Vertex Vertex
         => vertex;
 
+    public int index
+    {
+        get
+        {
+            ThrowIfDisposed("index");
+            return owner?.IndexOfVertex(vertex) ?? -1;
+        }
+    }
+
     public UdbScriptFieldsWrapper fields
     {
         get
@@ -1104,6 +1113,15 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
 
     public Linedef Linedef
         => linedef;
+
+    public int index
+    {
+        get
+        {
+            ThrowIfDisposed("index");
+            return owner?.IndexOfLinedef(linedef) ?? -1;
+        }
+    }
 
     public UdbScriptFieldsWrapper fields
     {
@@ -1514,6 +1532,15 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
 
     public Sidedef Sidedef
         => sidedef;
+
+    public int index
+    {
+        get
+        {
+            ThrowIfDisposed("index");
+            return owner?.IndexOfSidedef(sidedef) ?? -1;
+        }
+    }
 
     public UdbScriptFieldsWrapper fields
     {
@@ -2100,6 +2127,15 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 
     public Thing Thing
         => thing;
+
+    public int index
+    {
+        get
+        {
+            ThrowIfDisposed("index");
+            return owner?.IndexOfThing(thing) ?? -1;
+        }
+    }
 
     public UdbScriptFieldsWrapper fields
     {
