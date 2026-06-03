@@ -273,6 +273,48 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void EngineSetupPlanMatchesUdbJintOptionsAndBindings()
+    {
+        UdbScriptEngineSetupPlan legacy = UdbScriptRunnerModel.EngineSetupPlan(3, debugBuild: true);
+
+        Assert.True(legacy.UsesCancellationToken);
+        Assert.True(legacy.AllowsOperatorOverloading);
+        Assert.True(legacy.FiltersGetTypeMember);
+        Assert.True(legacy.CatchesScriptRuntimeException);
+        Assert.True(legacy.CatchesVectorConversionException);
+        Assert.True(legacy.UsesLegacyGlobals);
+        Assert.Equal(
+            [
+                "showMessage",
+                "showMessageYesNo",
+                "exit",
+                "die",
+                "QueryOptions",
+                "ScriptOptions",
+                "Map",
+                "GameConfiguration",
+                "Angle2D",
+                "Vector3D",
+                "Vector2D",
+                "Line2D",
+                "UniValue",
+                "Data",
+                "Linedef",
+                "Sector",
+                "Sidedef",
+                "Thing",
+                "Vertex",
+                "log",
+            ],
+            legacy.EngineBindings);
+
+        UdbScriptEngineSetupPlan modern = UdbScriptRunnerModel.EngineSetupPlan(4);
+
+        Assert.False(modern.UsesLegacyGlobals);
+        Assert.Equal(["UDB"], modern.EngineBindings);
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);

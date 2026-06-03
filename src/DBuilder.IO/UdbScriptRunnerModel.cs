@@ -86,6 +86,15 @@ public sealed record UdbScriptHostMember(
     string Target,
     uint MinVersion = 1);
 
+public sealed record UdbScriptEngineSetupPlan(
+    bool UsesCancellationToken,
+    bool AllowsOperatorOverloading,
+    bool FiltersGetTypeMember,
+    bool CatchesScriptRuntimeException,
+    bool CatchesVectorConversionException,
+    bool UsesLegacyGlobals,
+    IReadOnlyList<string> EngineBindings);
+
 public sealed record UdbScriptRuntimeConstraintPrompt(
     bool ShouldPrompt,
     string Title,
@@ -293,6 +302,25 @@ public static class UdbScriptRunnerModel
 
     public static bool CanAccessMember(string memberName, uint scriptVersion, uint minVersion = 1)
         => memberName != nameof(GetType) && minVersion <= scriptVersion;
+
+    public static UdbScriptEngineSetupPlan EngineSetupPlan(uint scriptVersion, bool debugBuild = false)
+    {
+        string[] bindings = UsesLegacyGlobals(scriptVersion)
+            ? LegacyBindings.Select(binding => binding.Name).ToArray()
+            : ["UDB"];
+
+        if (debugBuild)
+            bindings = bindings.Append("log").ToArray();
+
+        return new(
+            UsesCancellationToken: true,
+            AllowsOperatorOverloading: true,
+            FiltersGetTypeMember: true,
+            CatchesScriptRuntimeException: true,
+            CatchesVectorConversionException: true,
+            UsesLegacyGlobals(scriptVersion),
+            bindings);
+    }
 
     public static string UndoDescription(string scriptName)
         => "Run script " + scriptName;

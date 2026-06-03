@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3399 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3400 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1260,6 +1260,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript option config parsing with valid type checks, enum defaults, and setting keys.
   - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
   - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
+  - [x] Add UDBScript script engine setup option and binding plan.
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
   - [x] Add UDBScript runtime constraint abort and restart branch planning.
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
@@ -1559,6 +1560,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript option config parsing with valid type checks, enum defaults, and setting keys.
 - [x] Add UDBScript option saved-value loading and UDB-style save/delete operation planning.
 - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
+- [x] Add UDBScript script engine setup option and binding plan.
 - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
 - [x] Add UDBScript runtime constraint abort and restart branch planning.
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
