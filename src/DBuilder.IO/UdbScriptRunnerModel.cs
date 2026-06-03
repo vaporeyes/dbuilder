@@ -79,6 +79,22 @@ public sealed record UdbScriptRunSourcePlan(
     IReadOnlyList<UdbScriptSourceFile> Libraries,
     UdbScriptSourceFile Script);
 
+public sealed record UdbScriptPreRunPlan(
+    bool EndOptionEdit,
+    bool FocusEditor,
+    bool NotifyModeBegin,
+    string UndoDescription,
+    bool ClearAllMarksValue,
+    bool MapIsSafeToAccess,
+    int DisableProcessingCalls);
+
+public sealed record UdbScriptPostRunPlan(
+    bool MapIsSafeToAccess,
+    bool UpdateMap,
+    bool UpdateThingsFilter,
+    bool NotifyModeEnd,
+    int EnableProcessingCalls);
+
 public sealed record UdbScriptRunnerUiState(
     string Title,
     string StatusText,
@@ -240,6 +256,24 @@ public static class UdbScriptRunnerModel
 
     public static string UndoDescription(string scriptName)
         => "Run script " + scriptName;
+
+    public static UdbScriptPreRunPlan PreRunPlan(string scriptName, int processingCount)
+        => new(
+            true,
+            true,
+            true,
+            UndoDescription(scriptName),
+            false,
+            false,
+            Math.Max(0, processingCount));
+
+    public static UdbScriptPostRunPlan PostRunPlan(int previousProcessingCount)
+        => new(
+            true,
+            true,
+            true,
+            true,
+            Math.Max(0, previousProcessingCount));
 
     public static string FinishedStatus(TimeSpan runtime)
         => "Script finished. Runtime: " + FormatRuntime(runtime);

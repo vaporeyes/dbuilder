@@ -35,6 +35,30 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void PreAndPostRunPlansMatchUdbExecutionSideEffects()
+    {
+        UdbScriptPreRunPlan preRun = UdbScriptRunnerModel.PreRunPlan("Demo", processingCount: 3);
+
+        Assert.True(preRun.EndOptionEdit);
+        Assert.True(preRun.FocusEditor);
+        Assert.True(preRun.NotifyModeBegin);
+        Assert.Equal("Run script Demo", preRun.UndoDescription);
+        Assert.False(preRun.ClearAllMarksValue);
+        Assert.False(preRun.MapIsSafeToAccess);
+        Assert.Equal(3, preRun.DisableProcessingCalls);
+        Assert.Equal(0, UdbScriptRunnerModel.PreRunPlan("Demo", processingCount: -1).DisableProcessingCalls);
+
+        UdbScriptPostRunPlan postRun = UdbScriptRunnerModel.PostRunPlan(previousProcessingCount: 3);
+
+        Assert.True(postRun.MapIsSafeToAccess);
+        Assert.True(postRun.UpdateMap);
+        Assert.True(postRun.UpdateThingsFilter);
+        Assert.True(postRun.NotifyModeEnd);
+        Assert.Equal(3, postRun.EnableProcessingCalls);
+        Assert.Equal(0, UdbScriptRunnerModel.PostRunPlan(previousProcessingCount: -1).EnableProcessingCalls);
+    }
+
+    [Fact]
     public void RunnerUiStateMatchesUdbFormLifecycle()
     {
         UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();
