@@ -172,10 +172,11 @@ public static class TexturesParser
         if (IsInvalidLongTextureName(nameToken)) return null;
         if (type != TexturesType.Sprite && name.Length > maxTextureNameLength) return null;
         if (type == TexturesType.Sprite && name.Length is not (6 or 8)) return null;
-        if (!ReadComma(t, ref i)) return null;
-        if (!ReadInt(t, ref i, out int width)) return null;
-        if (!ReadComma(t, ref i)) return null;
-        if (!ReadInt(t, ref i, out int height)) return null;
+        if (!ReadComma(t, ref i) || !ReadInt(t, ref i, out int width) || !ReadComma(t, ref i) || !ReadInt(t, ref i, out int height))
+        {
+            stopParsing = true;
+            return null;
+        }
 
         var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
         if (i >= t.Count || t[i] != "{")

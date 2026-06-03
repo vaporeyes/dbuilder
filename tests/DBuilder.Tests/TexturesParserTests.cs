@@ -191,15 +191,16 @@ Texture AFTER, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsDefinitionsWithNonIntegralSize()
+    public void NonIntegralTextureDefinitionSizeStopsParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BAD, 8.5, 8 { Patch P, 0, 0 }
 Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = Assert.Single(TexturesParser.Parse(text));
 
-        Assert.Equal("OK", def.Name);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
@@ -252,16 +253,17 @@ Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Offset 3, 4 Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void RequiresCommasInDefinitionSize()
+    public void MissingTextureDefinitionSizeCommasStopParsingLikeUdb()
     {
         const string text = @"
-Texture MISSINGFIRST 8, 8 { Patch P, 0, 0 }
-Texture MISSINGSECOND, 8 8 { Patch P, 0, 0 }
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BADONE 8, 8 { Patch P, 0, 0 }
+Texture BADTWO, 8 8 { Patch P, 0, 0 }
 Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = Assert.Single(TexturesParser.Parse(text));
 
-        Assert.Equal("OK", def.Name);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
