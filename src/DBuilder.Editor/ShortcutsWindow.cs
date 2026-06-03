@@ -16,6 +16,13 @@ public sealed class ShortcutsWindow : Window
 
     private readonly IReadOnlyList<EditorShortcutBinding> _bindings;
     private readonly StackPanel _sections = new() { Spacing = 8 };
+    private readonly TextBlock _matchSummary = new() { Foreground = MutedBrush, VerticalAlignment = VerticalAlignment.Center };
+    private readonly Dictionary<string, bool> _expandedSections = GroupTitles.ToDictionary(title => title, IsDefaultExpanded);
+    private readonly TextBox _search = new()
+    {
+        Watermark = "Search shortcuts",
+        MinHeight = 32,
+    };
 
     public ShortcutsWindow(IReadOnlyList<EditorShortcutBinding>? bindings = null)
     {
@@ -32,22 +39,41 @@ public sealed class ShortcutsWindow : Window
             RowSpacing = 10,
         };
 
-        var search = new TextBox
+        var toolbar = new Grid
         {
-            Watermark = "Search shortcuts",
-            MinHeight = 32,
+            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
+            ColumnSpacing = 8,
         };
-        search.TextChanged += (_, _) => RebuildSections(search.Text);
-        root.Children.Add(search);
+        _search.TextChanged += (_, _) => RebuildSections(_search.Text);
+        toolbar.Children.Add(_search);
+
+        var expandAll = new Button { Content = "Expand All", MinWidth = 92 };
+        expandAll.Click += (_, _) => SetAllSectionsExpanded(true);
+        Grid.SetColumn(expandAll, 1);
+        toolbar.Children.Add(expandAll);
+
+        var collapseAll = new Button { Content = "Collapse All", MinWidth = 92 };
+        collapseAll.Click += (_, _) => SetAllSectionsExpanded(false);
+        Grid.SetColumn(collapseAll, 2);
+        toolbar.Children.Add(collapseAll);
+        root.Children.Add(toolbar);
 
         var scroll = new ScrollViewer { Content = _sections };
         Grid.SetRow(scroll, 1);
         root.Children.Add(scroll);
 
+        var footer = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+        };
+        footer.Children.Add(_matchSummary);
+
         var close = new Button { Content = "Close", MinWidth = 80, IsCancel = true, IsDefault = true, HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => Close();
-        Grid.SetRow(close, 2);
-        root.Children.Add(close);
+        Grid.SetColumn(close, 1);
+        footer.Children.Add(close);
+        Grid.SetRow(footer, 2);
+        root.Children.Add(footer);
 
         Content = root;
         RebuildSections("");
@@ -56,29 +82,38 @@ public sealed class ShortcutsWindow : Window
     private void RebuildSections(string? filter)
     {
         string text = filter?.Trim() ?? "";
+        bool searching = text.Length > 0;
+        int matchCount = 0;
+        var groups = Groups();
         _sections.Children.Clear();
 
-        foreach (var group in Groups())
+        foreach (var group in groups)
         {
             var rows = group.Commands
                 .Where(command => string.IsNullOrWhiteSpace(text) || Matches(command, group.Title, text))
                 .ToArray();
 
             if (rows.Length == 0) continue;
-            _sections.Children.Add(Section(group.Title, rows, expand: text.Length > 0 || IsDefaultExpanded(group.Title)));
+            matchCount += rows.Length;
+            bool expanded = searching || (_expandedSections.TryGetValue(group.Title, out bool value) ? value : IsDefaultExpanded(group.Title));
+            _sections.Children.Add(Section(group.Title, rows, expanded, searching));
         }
 
         if (_sections.Children.Count == 0)
             _sections.Children.Add(new TextBlock { Text = "No shortcuts found.", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
+
+        _matchSummary.Text = searching
+            ? $"{matchCount} shortcut{Plural(matchCount)} matched"
+            : $"{EditorCommandCatalog.All.Count} shortcuts in {groups.Count} groups";
     }
 
-    private Control Section(string title, IReadOnlyList<EditorCommandDescriptor> rows, bool expand)
+    private Control Section(string title, IReadOnlyList<EditorCommandDescriptor> rows, bool expand, bool searching)
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, Margin = new Avalonia.Thickness(0, 6, 0, 2) };
         for (int i = 0; i < rows.Count; i++)
             panel.Children.Add(Row(rows[i], i));
 
-        return new Expander
+        var expander = new Expander
         {
             Header = new StackPanel
             {
@@ -93,6 +128,12 @@ public sealed class ShortcutsWindow : Window
             Content = panel,
             IsExpanded = expand,
         };
+        expander.PropertyChanged += (_, e) =>
+        {
+            if (!searching && e.Property == Expander.IsExpandedProperty)
+                _expandedSections[title] = expander.IsExpanded;
+        };
+        return expander;
     }
 
     private Control Row(EditorCommandDescriptor command, int index)
@@ -198,6 +239,16 @@ public sealed class ShortcutsWindow : Window
 
     private static bool ContainsAny(string value, params string[] parts)
         => parts.Any(part => value.Contains(part, StringComparison.OrdinalIgnoreCase));
+
+    private void SetAllSectionsExpanded(bool expanded)
+    {
+        foreach (string title in GroupTitles)
+            _expandedSections[title] = expanded;
+        RebuildSections(_search.Text);
+    }
+
+    private static string Plural(int count)
+        => count == 1 ? "" : "s";
 
     private static bool IsDefaultExpanded(string title)
         => title is "File and configuration" or "Window editing" or "2D view and modes" or "3D navigation";
