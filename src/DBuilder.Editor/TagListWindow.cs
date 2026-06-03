@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Media;
-using DBuilder.Map;
+using DBuilder.IO;
 
 namespace DBuilder.Editor;
 
@@ -25,13 +25,13 @@ public sealed class TagListWindow : Window
 
         var header = new TextBlock
         {
-            Text = tags.Count == 0 ? "No tags in use." : $"{tags.Count} tag(s). Click to select its elements.",
+            Text = TagWindowModel.TagListHeaderText(tags.Count),
             Foreground = Brushes.LightSkyBlue, Margin = new Avalonia.Thickness(10, 8), TextWrapping = TextWrapping.Wrap,
         };
 
         var rows = new List<ListBoxItem>();
         foreach (var (tag, count) in tags)
-            rows.Add(new ListBoxItem { Content = FormatRow(tag, count, labels), Tag = tag });
+            rows.Add(new ListBoxItem { Content = TagWindowModel.TagListRowText(tag, count, labels), Tag = tag });
         _list.ItemsSource = rows;
         _list.SelectionChanged += (_, _) => { if (_list.SelectedItem is ListBoxItem { Tag: int t }) TagActivated?.Invoke(t); };
 
@@ -42,11 +42,4 @@ public sealed class TagListWindow : Window
         Content = root;
     }
 
-    private static string FormatRow(int tag, int count, IReadOnlyDictionary<int, string>? labels)
-    {
-        string label = labels != null && labels.TryGetValue(tag, out string? value) && !string.IsNullOrWhiteSpace(value)
-            ? $" - {value}"
-            : "";
-        return $"Tag {tag}{label}  ({count} element{(count == 1 ? "" : "s")})";
-    }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Editor;
@@ -28,7 +29,7 @@ public sealed class TagStatisticsWindow : Window
         var root = new DockPanel();
         var header = new TextBlock
         {
-            Text = tags.Count == 0 ? "No tags in use." : $"{tags.Count} tag(s) in use.",
+            Text = TagWindowModel.TagStatisticsHeaderText(tags.Count),
             Foreground = tags.Count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue,
             Margin = new Avalonia.Thickness(10, 8),
             TextWrapping = TextWrapping.Wrap,

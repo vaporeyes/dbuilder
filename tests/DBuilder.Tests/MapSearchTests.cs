@@ -3,6 +3,7 @@
 
 using System.Linq;
 using DBuilder.Geometry;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -790,6 +791,21 @@ public class MapSearchTests
         Assert.Single(tags);
         Assert.Equal(5, tags[0].Tag);
         Assert.Equal(1, tags[0].Count);
+    }
+
+    [Fact]
+    public void TagWindowModelFormatsHeadersAndRows()
+    {
+        Assert.Equal("No tags in use.", TagWindowModel.TagListHeaderText(0));
+        Assert.Equal("1 tag. Click to select its elements.", TagWindowModel.TagListHeaderText(1));
+        Assert.Equal("2 tags. Click to select its elements.", TagWindowModel.TagListHeaderText(2));
+        Assert.Equal("No tags in use.", TagWindowModel.TagStatisticsHeaderText(0));
+        Assert.Equal("1 tag in use.", TagWindowModel.TagStatisticsHeaderText(1));
+        Assert.Equal("2 tags in use.", TagWindowModel.TagStatisticsHeaderText(2));
+
+        var labels = new Dictionary<int, string> { [7] = "Exit" };
+        Assert.Equal("Tag 7 - Exit  (1 element)", TagWindowModel.TagListRowText(7, 1, labels));
+        Assert.Equal("Tag 8  (2 elements)", TagWindowModel.TagListRowText(8, 2, labels));
     }
 
     [Fact]

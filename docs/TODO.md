@@ -936,6 +936,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
   - [x] Display and edit UDB-compatible tag labels from map options.
+  - [x] Add testable Tags and Used Tags window header and row formatting.
 - [x] Port thing statistics dialog.
 - [ ] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.
