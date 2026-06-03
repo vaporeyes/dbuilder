@@ -284,8 +284,8 @@
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_Shortcuts..." Click="OnShortcuts" />
-                <MenuItem Header="_About" Click="OnAbout" />
+                <MenuItem Header="_Shortcuts..." x:Name="ShortcutsMenuItem" Click="OnShortcuts" />
+                <MenuItem Header="_About" x:Name="AboutMenuItem" Click="OnAbout" />
             </MenuItem>
         </Menu>
 

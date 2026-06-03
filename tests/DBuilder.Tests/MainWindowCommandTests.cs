@@ -187,6 +187,18 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void HelpMenuTooltipsRefreshFromEffectiveShortcutBindings()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"ShortcutsMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"AboutMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ShortcutsMenuItem, \"Shortcuts\", \"window.shortcuts\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(AboutMenuItem, \"About\", \"window.about\");", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void InfoPanelCheckedStateRefreshesFromPanelVisibility()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

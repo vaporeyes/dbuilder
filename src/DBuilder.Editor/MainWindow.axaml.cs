@@ -430,6 +430,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ExportWavefrontMenuItem, "Export Wavefront OBJ", "window.export-wavefront");
         SetShortcutToolTip(ExportIdStudioMenuItem, "Export idStudio", "window.export-idstudio");
         SetShortcutToolTip(RejectViewerMenuItem, "Reject Explorer", "window.reject-explorer");
+        SetShortcutToolTip(ShortcutsMenuItem, "Shortcuts", "window.shortcuts");
+        SetShortcutToolTip(AboutMenuItem, "About", "window.about");
     }
 
     private void ApplyToolbarShortcutTooltips()
