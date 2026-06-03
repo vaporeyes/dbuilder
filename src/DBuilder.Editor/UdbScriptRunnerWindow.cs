@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -128,6 +129,14 @@ public sealed class UdbScriptRunnerWindow : Window
             .GetResult();
     }
 
+    public async Task<T> InvokePausedAsync<T>(Func<Task<T>> method)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return await InvokePausedOnUiThreadAsync(method);
+
+        return await Dispatcher.UIThread.InvokeAsync(() => InvokePausedOnUiThreadAsync(method));
+    }
+
     public void RunAction(Action action)
     {
         bool hasUiThreadAccess = Dispatcher.UIThread.CheckAccess();
@@ -147,6 +156,16 @@ public sealed class UdbScriptRunnerWindow : Window
             .GetAwaiter()
             .GetResult();
     }
+
+    public Task<bool> QueryOptionsAsync(UdbScriptQueryOptionsModel model)
+        => InvokePausedAsync(async () =>
+        {
+            var dialog = new UdbScriptQueryOptionsDialog(model);
+            bool accepted = await dialog.ShowDialog<bool>(this);
+            return UdbScriptQueryOptionsModel.QueryPlan(accepted
+                ? UdbScriptQueryOptionsDialogResult.Ok
+                : UdbScriptQueryOptionsDialogResult.Cancel).ReturnValue;
+        });
 
     public void Finish(TimeSpan runtime, bool autoClose)
     {
@@ -279,6 +298,27 @@ public sealed class UdbScriptRunnerWindow : Window
                 _stopwatch.Stop();
 
             return method.DynamicInvoke();
+        }
+        finally
+        {
+            if (plan.StartStopwatchAfterInvoke)
+                _stopwatch.Start();
+
+            ResumeRequested?.Invoke();
+        }
+    }
+
+    private async Task<T> InvokePausedOnUiThreadAsync<T>(Func<Task<T>> method)
+    {
+        UdbScriptInvokePausedPlan plan = UdbScriptRunnerModel.InvokePausedPlan(invokeRequired: false);
+
+        PauseRequested?.Invoke();
+        try
+        {
+            if (plan.StopStopwatchBeforeInvoke)
+                _stopwatch.Stop();
+
+            return await method();
         }
         finally
         {

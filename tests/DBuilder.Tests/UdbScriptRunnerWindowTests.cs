@@ -30,13 +30,25 @@ public class UdbScriptRunnerWindowTests
         AssertPublicInstanceMethod(type, "Start");
         AssertPublicInstanceMethod(type, "MarkRunning");
         AssertPublicInstanceMethod(type, "InvokePaused");
+        AssertPublicInstanceMethod(type, "InvokePausedAsync");
         AssertPublicInstanceMethod(type, "RunAction");
+        AssertPublicInstanceMethod(type, "QueryOptionsAsync");
         AssertPublicInstanceMethod(type, "Finish");
         AssertPublicInstanceMethod(type, "ApplyProgress");
         AssertPublicInstanceMethod(type, "ApplyStatus");
         AssertPublicInstanceMethod(type, "ApplyLog");
         AssertPublicInstanceMethod(type, "ApplyTimerTick");
         AssertPublicInstanceMethod(type, "ApplyState");
+    }
+
+    [Fact]
+    public void QueryOptionsDialogExposesExpectedRuntimePromptSurface()
+    {
+        Type type = typeof(UdbScriptQueryOptionsDialog);
+
+        Assert.Equal("DBuilder.Editor.UdbScriptQueryOptionsDialog", type.FullName);
+        Assert.NotNull(type.GetConstructor([typeof(DBuilder.IO.UdbScriptQueryOptionsModel)]));
+        Assert.True(typeof(PropertyDialog).IsAssignableFrom(type));
     }
 
     private static void AssertPublicInstanceMethod(Type type, string name)
