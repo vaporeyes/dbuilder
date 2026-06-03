@@ -136,6 +136,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reflect active mode and draw state in toolbar buttons.
   - [x] Show effective shortcut bindings in toolbar tooltips.
   - [x] Show effective shortcut bindings in menu item tooltips.
+  - [x] Show effective shortcut bindings in Edit and Prefabs menu item tooltips.
   - [x] Show effective shortcut bindings in View menu item tooltips.
   - [x] Show effective shortcut bindings in Tools menu item tooltips.
 - [ ] Port repeatable actions and action state updates.
