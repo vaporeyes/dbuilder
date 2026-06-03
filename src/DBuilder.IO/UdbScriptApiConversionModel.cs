@@ -1124,6 +1124,9 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         return line == null ? null : new UdbScriptLinedefWrapper(line, owner, grid);
     }
 
+    public void snapToAccuracy()
+        => snapToAccuracy(3);
+
     public void snapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         ThrowIfDisposed("snapToAccuracy");
@@ -2528,6 +2531,9 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         return thing.DistanceTo(new Vector2D(point.x, point.y));
     }
 
+    public void snapToAccuracy()
+        => snapToAccuracy(3);
+
     public void snapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         ThrowIfDisposed("snapToAccuracy");
@@ -3335,6 +3341,12 @@ public sealed class UdbScriptMapWrapper
         map.BuildIndexes();
         return result.TotalChanges > 0;
     }
+
+    public void snapAllToAccuracy()
+        => snapAllToAccuracy(3);
+
+    public void snapAllToAccuracy(bool usePrecisePosition)
+        => snapAllToAccuracy(3, usePrecisePosition);
 
     public void snapAllToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {

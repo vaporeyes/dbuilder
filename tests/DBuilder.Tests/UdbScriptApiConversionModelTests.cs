@@ -414,6 +414,11 @@ localsidedeftextureoffsets = true;
         var vertex = new Vertex(new Vector2D(1.2345, 6.789));
         var wrapper = new UdbScriptVertexWrapper(vertex);
 
+        wrapper.snapToAccuracy();
+
+        Assert.Equal(new Vector2D(1.234, 6.789), vertex.Position);
+
+        wrapper.position = new object[] { 1.2345, 6.789 };
         wrapper.snapToAccuracy(2);
 
         Assert.Equal(new Vector2D(1.23, 6.79), vertex.Position);
@@ -1137,6 +1142,12 @@ localsidedeftextureoffsets = true;
         };
         var wrapper = new UdbScriptThingWrapper(thing);
 
+        wrapper.snapToAccuracy();
+
+        Assert.Equal(new Vector2D(1.234, 6.789), thing.Position);
+        Assert.Equal(3.456, thing.Height);
+
+        wrapper.position = new UdbScriptVector3DWrapper(1.2345, 6.789, 3.456);
         wrapper.snapToAccuracy(2);
 
         Assert.Equal(new Vector2D(1.23, 6.79), thing.Position);
@@ -1528,6 +1539,15 @@ localsidedeftextureoffsets = true;
         thing.Height = 5.4321;
         var wrapper = new UdbScriptMapWrapper(map);
 
+        wrapper.snapAllToAccuracy();
+
+        Assert.Equal(new Vector2D(1.234, 6.789), vertex.Position);
+        Assert.Equal(new Vector2D(3.456, 9.876), thing.Position);
+        Assert.Equal(5.432, thing.Height);
+
+        vertex.Move(1.2345, 6.789);
+        thing.Move(new Vector2D(3.456, 9.876));
+        thing.Height = 5.4321;
         wrapper.snapAllToAccuracy(2);
 
         Assert.Equal(new Vector2D(1.23, 6.79), vertex.Position);
@@ -1538,6 +1558,15 @@ localsidedeftextureoffsets = true;
         thing.Move(new Vector2D(3.4, 9.6));
         thing.Height = 5.6;
         wrapper.snapAllToAccuracy(2, usePrecisePosition: false);
+
+        Assert.Equal(new Vector2D(2, 6), vertex.Position);
+        Assert.Equal(new Vector2D(3, 10), thing.Position);
+        Assert.Equal(6, thing.Height);
+
+        vertex.Move(1.6, 6.4);
+        thing.Move(new Vector2D(3.4, 9.6));
+        thing.Height = 5.6;
+        wrapper.snapAllToAccuracy(false);
 
         Assert.Equal(new Vector2D(2, 6), vertex.Position);
         Assert.Equal(new Vector2D(3, 10), thing.Position);

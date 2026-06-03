@@ -1291,6 +1291,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Vertex wrapper core property access.
   - [x] Add UDBScript Vertex wrapper distance, connected-linedef, and nearest-linedef access.
   - [x] Add UDBScript Vertex and Thing wrapper snap-to-accuracy access.
+  - [x] Add UDBScript UDB-style snap-to-accuracy overloads.
   - [x] Add UDBScript Vertex and Thing wrapper grid snapping access.
   - [x] Add UDBScript Linedef wrapper core property and geometry access.
   - [x] Add UDBScript Linedef wrapper multi-tag helpers.
@@ -1575,6 +1576,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Vertex wrapper core property access.
 - [x] Add UDBScript Vertex wrapper distance, connected-linedef, and nearest-linedef access.
 - [x] Add UDBScript Vertex and Thing wrapper snap-to-accuracy access.
+- [x] Add UDBScript UDB-style snap-to-accuracy overloads.
 - [x] Add UDBScript Vertex and Thing wrapper grid snapping access.
 - [x] Add UDBScript Linedef wrapper core property and geometry access.
 - [x] Add UDBScript Linedef wrapper multi-tag helpers.
