@@ -30,6 +30,9 @@ public sealed record DrawGridPlan(IReadOnlyList<IReadOnlyList<Vector2D>> Shapes,
 
 public static class DrawGridPlanner
 {
+    public static string CreatedStatus(DrawGridPlan plan, int sectorCount, int lineCount)
+        => $"drew grid {plan.HorizontalSlices} x {plan.VerticalSlices}: {sectorCount} {Label(sectorCount, "sector")}, {lineCount} {Label(lineCount, "line")}";
+
     public static DrawGridPlan Create(Vector2D first, Vector2D second, DrawGridPlanOptions? options = null)
     {
         options ??= new DrawGridPlanOptions();
@@ -187,6 +190,9 @@ public static class DrawGridPlanner
             flip = startFlip;
         }
     }
+
+    private static string Label(int count, string singular)
+        => count == 1 ? singular : singular + "s";
 
     private readonly record struct GridBlock(double Left, double Top, double Right, double Bottom);
 }

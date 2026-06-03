@@ -115,4 +115,16 @@ public class DrawGridPlannerTests
         Assert.Equal(2, plan.VerticalSlices);
         Assert.Equal(4, plan.Shapes.Count);
     }
+
+    [Fact]
+    public void CreatedStatusFormatsSingularAndPluralCounts()
+    {
+        DrawGridPlan plan = DrawGridPlanner.Create(
+            new Vector2D(0, 0),
+            new Vector2D(96, 48),
+            new DrawGridPlanOptions { HorizontalSlices = 3, VerticalSlices = 2 });
+
+        Assert.Equal("drew grid 3 x 2: 1 sector, 1 line", DrawGridPlanner.CreatedStatus(plan, 1, 1));
+        Assert.Equal("drew grid 3 x 2: 2 sectors, 4 lines", DrawGridPlanner.CreatedStatus(plan, 2, 4));
+    }
 }
