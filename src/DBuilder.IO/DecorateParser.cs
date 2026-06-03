@@ -1661,10 +1661,9 @@ public static class DecorateParser
             SkipUntilSemicolon(t, ref i);
             return false;
         }
-        if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[")
+        if (TryConsumeBracketedExpression(t, ref i))
         {
             isArray = true;
-            SkipBracketedExpression(t, ref i);
         }
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != ";")
         {
@@ -1718,10 +1717,9 @@ public static class DecorateParser
                 i++;
                 bool isArray = TrySplitInlineArraySuffix(name, out string scalarName);
                 name = scalarName;
-                if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[")
+                if (TryConsumeBracketedExpression(t, ref i))
                 {
                     isArray = true;
-                    SkipBracketedExpression(t, ref i);
                 }
                 variables.Add((name, isArray));
                 expectName = false;
@@ -1747,16 +1745,25 @@ public static class DecorateParser
         return true;
     }
 
-    private static void SkipBracketedExpression(List<Tok> t, ref int i)
+    private static bool TryConsumeBracketedExpression(List<Tok> t, ref int i)
     {
+        if (i >= t.Count || !ContainsOpenBracket(t[i].Text)) return false;
+
         int depth = 0;
         while (i < t.Count)
         {
             var tk = t[i++];
-            if (tk.Kind == Kind.Sym && tk.Text == "[") depth++;
-            else if (tk.Kind == Kind.Sym && tk.Text == "]" && --depth <= 0) return;
+            foreach (char c in tk.Text)
+            {
+                if (c == '[') depth++;
+                else if (c == ']' && --depth <= 0) return true;
+            }
         }
+        return true;
     }
+
+    private static bool ContainsOpenBracket(string text)
+        => text.IndexOf('[') >= 0;
 
     private static bool TryUserVariableType(string typeName, out UniversalType type)
     {
@@ -1825,8 +1832,7 @@ public static class DecorateParser
             return false;
         }
 
-        typeArray = i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "[";
-        if (typeArray) SkipBracketedExpression(t, ref i);
+        typeArray = TryConsumeBracketedExpression(t, ref i);
         return true;
     }
 

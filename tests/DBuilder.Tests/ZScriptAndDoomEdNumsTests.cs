@@ -384,6 +384,7 @@ class MemberActor : Actor
     //$UserDefaultValue 1.5
     float user_speed;
     int user_values[4];
+    int user_spaced_values [4];
     //$UserDefaultValue true
     bool user_flag;
     //$UserDefaultValue ""active""
@@ -400,6 +401,7 @@ class MemberActor : Actor
     action int user_action;
     virtual int user_virtual;
     float[] user_type_values;
+    float [] user_spaced_type_values;
     void Helper()
     {
         int local_value;
@@ -436,7 +438,9 @@ class MemberActor : Actor
         Assert.False(actor.UserVariables.ContainsKey("user_virtual"));
         Assert.False(actor.UserVariables.ContainsKey("user_values"));
         Assert.False(actor.UserVariables.ContainsKey("user_values[4]"));
+        Assert.False(actor.UserVariables.ContainsKey("user_spaced_values"));
         Assert.False(actor.UserVariables.ContainsKey("user_type_values"));
+        Assert.False(actor.UserVariables.ContainsKey("user_spaced_type_values"));
         Assert.Equal(7, actor.UserVariables["user_value"].DefaultValue);
         Assert.Equal(1.5, actor.UserVariables["user_speed"].DefaultValue);
         Assert.Equal(true, actor.UserVariables["user_flag"].DefaultValue);

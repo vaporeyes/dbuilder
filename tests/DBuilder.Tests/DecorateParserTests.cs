@@ -526,6 +526,7 @@ ACTOR UserVarActor 7006
     var int user_score;
     var float user_speed;
     var float user_values[4];
+    var float user_spaced_values [4];
     Radius 16
 }";
         var actor = DecorateParser.Parse(text).Single();
@@ -534,9 +535,11 @@ ACTOR UserVarActor 7006
         Assert.False(actor.Properties.ContainsKey("user_score"));
         Assert.False(actor.Properties.ContainsKey("user_speed"));
         Assert.False(actor.Properties.ContainsKey("user_values"));
+        Assert.False(actor.Properties.ContainsKey("user_spaced_values"));
         Assert.True(actor.UserVariables.ContainsKey("user_score"));
         Assert.True(actor.UserVariables.ContainsKey("user_speed"));
         Assert.False(actor.UserVariables.ContainsKey("user_values"));
+        Assert.False(actor.UserVariables.ContainsKey("user_spaced_values"));
         Assert.Equal(16, actor.Radius);
 
         var gc = new GameConfiguration();
@@ -545,6 +548,7 @@ ACTOR UserVarActor 7006
         Assert.True(thing.HasAdditionalUniversalField("user_score"));
         Assert.True(thing.HasAdditionalUniversalField("user_speed"));
         Assert.False(thing.HasAdditionalUniversalField("user_values"));
+        Assert.False(thing.HasAdditionalUniversalField("user_spaced_values"));
         Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_score"].Type);
         Assert.Equal((int)UniversalType.Float, gc.UniversalFields["thing"]["user_speed"].Type);
 
@@ -552,6 +556,7 @@ ACTOR UserVarActor 7006
         Assert.Contains(fields, field => field.Field.Name == "user_score");
         Assert.Contains(fields, field => field.Field.Name == "user_speed");
         Assert.DoesNotContain(fields, field => field.Field.Name == "user_values");
+        Assert.DoesNotContain(fields, field => field.Field.Name == "user_spaced_values");
     }
 
     [Fact]

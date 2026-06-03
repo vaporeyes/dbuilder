@@ -652,6 +652,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB mixin behavior by not copying `user_` field defaults from mixins.
   - [x] Preserve explicit zero ZScript size defaults when applying mixins.
   - [x] Apply explicit zero ZScript extension size defaults.
+  - [x] Skip spaced actor user array declarations like UDB.
   - [x] Reject duplicate ZScript class definitions.
   - [x] Reject duplicate ZScript mixin definitions.
   - [x] Reject self-inheriting ZScript mixin definitions.
