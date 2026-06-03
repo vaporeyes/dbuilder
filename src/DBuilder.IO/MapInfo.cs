@@ -128,7 +128,7 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("gameinfo", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseGameInfo(toks, ref i, mi);
+                if (!ParseGameInfo(toks, ref i, mi)) return;
                 continue;
             }
             if (!t.IsString && t.Text.Equals("include", StringComparison.OrdinalIgnoreCase))
@@ -173,9 +173,9 @@ public sealed class MapInfo
             && !include.Equals(".", StringComparison.Ordinal);
     }
 
-    private static void ParseGameInfo(List<Tok> toks, ref int i, MapInfo mi)
+    private static bool ParseGameInfo(List<Tok> toks, ref int i, MapInfo mi)
     {
-        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
+        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return false;
         i++;
         while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
         {
@@ -194,6 +194,7 @@ public sealed class MapInfo
                 mi.SkyFlatName = values[0].ToUpperInvariant();
         }
         if (i < toks.Count) i++;
+        return true;
     }
 
     // Top-level directives. "cluster"/"clusterdef" are intentionally excluded because old-format maps use

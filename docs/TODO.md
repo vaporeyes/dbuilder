@@ -549,6 +549,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject unmatched closing parentheses in top-level ZScript const declarations like UDB.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
   - [x] Stop MAPINFO numbered actor parsing on malformed entries like UDB.
+  - [x] Stop MAPINFO parsing on malformed `gameinfo` blocks like UDB.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
   - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.

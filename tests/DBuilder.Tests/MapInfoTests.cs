@@ -268,6 +268,21 @@ DoomEdNums { 9001 = LocalActor }";
     }
 
     [Fact]
+    public void MalformedGameInfoStopsParsingLikeUdb()
+    {
+        const string text = @"
+map MAP01 ""Before"" { next = MAP02 }
+gameinfo SkyFlatName = F_SKY1
+map MAP02 ""After"" { next = MAP03 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.NotNull(mi.GetMap("MAP01"));
+        Assert.Null(mi.SkyFlatName);
+        Assert.Null(mi.GetMap("MAP02"));
+    }
+
+    [Fact]
     public void AppliesDefaultMapAndAddDefaultMap()
     {
         const string text = @"
