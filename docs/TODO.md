@@ -361,6 +361,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid and zero-length Doom-format linedefs during load.
   - [x] Materialize Doom-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Doom-format binary map element loads to UDB format limits.
+  - [x] Cap oversized Doom-format thing loads to UDB binary format limits.
   - [x] Preserve unsigned Doom-format binary ids and references above signed-short range.
   - [x] Preserve unsigned Doom-format thing flags above signed-short range.
 - [ ] Complete Doom-format map writer parity.
@@ -370,6 +371,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid and zero-length Hexen-format linedefs during load.
   - [x] Materialize Hexen-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Hexen-format binary map element loads to UDB format limits.
+  - [x] Cap oversized Hexen-format thing loads to UDB binary format limits.
 - [ ] Complete Hexen-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Hexen-format map writes.
 - [ ] Complete UDMF map loader parity.

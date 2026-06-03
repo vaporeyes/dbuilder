@@ -198,7 +198,7 @@ public static class HexenMapLoader
     {
         byte[] bytes = lump.Stream.ReadAllBytes();
         using var r = new BinaryReader(new MemoryStream(bytes));
-        int n = bytes.Length / 20;
+        int n = System.Math.Min(bytes.Length / 20, DoomMapLoaderInternals.BinaryFormatElementLimit);
         for (int i = 0; i < n; i++)
         {
             ushort tid = r.ReadUInt16();

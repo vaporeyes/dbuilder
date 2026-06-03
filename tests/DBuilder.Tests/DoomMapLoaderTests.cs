@@ -126,6 +126,37 @@ public class DoomMapLoaderTests
         return wadBytes;
     }
 
+    private static MemoryStream BuildDoomMapWithThingCount(int thingCount)
+    {
+        var things = new MemoryStream(thingCount * 10);
+        using (var w = new BinaryWriter(things, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            for (int i = 0; i < thingCount; i++)
+            {
+                w.Write((short)i);
+                w.Write((short)0);
+                w.Write((short)0);
+                w.Write((short)3001);
+                w.Write((ushort)0);
+            }
+        }
+
+        var wadBytes = new MemoryStream();
+        using (var wad = new WAD(wadBytes))
+        {
+            wad.Insert("MAP01", 0, 0);
+            WriteLump(wad, "THINGS", things.ToArray(), 1);
+            WriteLump(wad, "LINEDEFS", System.Array.Empty<byte>(), 2);
+            WriteLump(wad, "SIDEDEFS", System.Array.Empty<byte>(), 3);
+            WriteLump(wad, "VERTEXES", System.Array.Empty<byte>(), 4);
+            WriteLump(wad, "SECTORS", System.Array.Empty<byte>(), 5);
+            wad.WriteHeaders();
+        }
+
+        wadBytes.Position = 0;
+        return wadBytes;
+    }
+
     private static MemoryStream BuildDoomMapWithUnsignedIds()
     {
         const int highVertexIndex = 40000;
@@ -377,6 +408,17 @@ public class DoomMapLoaderTests
         var map = DoomMapLoader.Load(wad, "MAP01")!;
 
         Assert.Equal(ushort.MaxValue, map.Vertices.Count);
+    }
+
+    [Fact]
+    public void ThingEntriesPastBinaryFormatLimitAreIgnored()
+    {
+        var wadBytes = BuildDoomMapWithThingCount(ushort.MaxValue + 1);
+        using var wad = new WAD(wadBytes, openreadonly: true);
+
+        var map = DoomMapLoader.Load(wad, "MAP01")!;
+
+        Assert.Equal(ushort.MaxValue, map.Things.Count);
     }
 
     [Fact]
