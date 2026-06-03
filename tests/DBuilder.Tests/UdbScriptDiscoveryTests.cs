@@ -369,6 +369,15 @@ public class UdbScriptDiscoveryTests
             fullPathIsDirectory: false));
     }
 
+    [Fact]
+    public void LoadRetryPolicyMatchesUdbScriptPlugin()
+    {
+        UdbScriptLoadRetryPolicy policy = UdbScriptDiscovery.LoadRetryPolicy();
+
+        Assert.Equal(5, policy.MaxAttempts);
+        Assert.Equal(100, policy.DelayMilliseconds);
+    }
+
     private static string TempDir()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_" + Guid.NewGuid().ToString("N"));

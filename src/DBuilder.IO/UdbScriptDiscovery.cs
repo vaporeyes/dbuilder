@@ -46,6 +46,10 @@ public sealed record UdbScriptDirectory(
     IReadOnlyList<UdbScriptDirectory> Directories,
     IReadOnlyList<UdbScriptInfo> Scripts);
 
+public sealed record UdbScriptLoadRetryPolicy(
+    int MaxAttempts,
+    int DelayMilliseconds);
+
 public static class UdbScriptDiscovery
 {
     public const string ScriptFolder = "UDBScript";
@@ -53,6 +57,8 @@ public static class UdbScriptDiscovery
     public const uint DefaultVersion = 1;
     public const string DefaultDescription = "No description.";
     public const string DefaultOptionDescription = "no description";
+    public const int ScriptLoadRetryAttempts = 5;
+    public const int ScriptLoadRetryDelayMilliseconds = 100;
 
     public static IReadOnlyList<UniversalType> ValidOptionTypes { get; } = new[]
     {
@@ -185,6 +191,11 @@ public static class UdbScriptDiscovery
         => changeType == WatcherChangeTypes.Deleted
             || (fullPathIsDirectory && changeType != WatcherChangeTypes.Changed)
             || string.Equals(Path.GetExtension(fullPath), ".js", StringComparison.OrdinalIgnoreCase);
+
+    public static UdbScriptLoadRetryPolicy LoadRetryPolicy()
+        => new(
+            MaxAttempts: ScriptLoadRetryAttempts,
+            DelayMilliseconds: ScriptLoadRetryDelayMilliseconds);
 
     public static UdbScriptInfo ApplySavedOptionValues(
         UdbScriptInfo script,
