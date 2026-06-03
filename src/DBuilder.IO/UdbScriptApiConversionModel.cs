@@ -14,11 +14,49 @@ public sealed record UdbScriptHighlightedSidedefPart(Sidedef Sidedef, SidedefPar
 
 public sealed record UdbScriptHighlightedSectorSurface(Sector Sector, bool FloorHighlighted, bool CeilingHighlighted);
 
-public sealed record UdbScriptVector2DWrapper(double X, double Y)
+public sealed class UdbScriptVector2DWrapper : IEquatable<UdbScriptVector2DWrapper>
 {
-    public double x => X;
+    private readonly Action<Vector2D>? changed;
+    private double xValue;
+    private double yValue;
 
-    public double y => Y;
+    public UdbScriptVector2DWrapper(double X, double Y)
+        : this(X, Y, null)
+    {
+    }
+
+    public UdbScriptVector2DWrapper(double X, double Y, Action<Vector2D>? changed)
+    {
+        xValue = X;
+        yValue = Y;
+        this.changed = changed;
+    }
+
+    public double X
+        => xValue;
+
+    public double Y
+        => yValue;
+
+    public double x
+    {
+        get => xValue;
+        set
+        {
+            xValue = value;
+            NotifyChanged();
+        }
+    }
+
+    public double y
+    {
+        get => yValue;
+        set
+        {
+            yValue = value;
+            NotifyChanged();
+        }
+    }
 
     public UdbScriptVector2DWrapper(object value)
         : this(ToVector2D(value).x, ToVector2D(value).y)
@@ -231,6 +269,18 @@ public sealed record UdbScriptVector2DWrapper(double X, double Y)
     public override string ToString()
         => AsVector2D().ToString();
 
+    public bool Equals(UdbScriptVector2DWrapper? other)
+        => other is not null && X == other.X && Y == other.Y;
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptVector2DWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => HashCode.Combine(X, Y);
+
+    private void NotifyChanged()
+        => changed?.Invoke(new Vector2D(X, Y));
+
     private static bool TryVector2D(object value, out Vector2D vector)
     {
         try
@@ -249,13 +299,64 @@ public sealed record UdbScriptVector2DWrapper(double X, double Y)
         => UdbScriptApiConversionModel.GetVector3DFromObject(value);
 }
 
-public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z)
+public sealed class UdbScriptVector3DWrapper : IEquatable<UdbScriptVector3DWrapper>
 {
-    public double x => X;
+    private readonly Action<Vector3D>? changed;
+    private double xValue;
+    private double yValue;
+    private double zValue;
 
-    public double y => Y;
+    public UdbScriptVector3DWrapper(double X, double Y, double Z)
+        : this(X, Y, Z, null)
+    {
+    }
 
-    public double z => Z;
+    public UdbScriptVector3DWrapper(double X, double Y, double Z, Action<Vector3D>? changed)
+    {
+        xValue = X;
+        yValue = Y;
+        zValue = Z;
+        this.changed = changed;
+    }
+
+    public double X
+        => xValue;
+
+    public double Y
+        => yValue;
+
+    public double Z
+        => zValue;
+
+    public double x
+    {
+        get => xValue;
+        set
+        {
+            xValue = value;
+            NotifyChanged();
+        }
+    }
+
+    public double y
+    {
+        get => yValue;
+        set
+        {
+            yValue = value;
+            NotifyChanged();
+        }
+    }
+
+    public double z
+    {
+        get => zValue;
+        set
+        {
+            zValue = value;
+            NotifyChanged();
+        }
+    }
 
     public UdbScriptVector3DWrapper(object value)
         : this(ToVector3D(value).x, ToVector3D(value).y, ToVector3D(value).z)
@@ -447,6 +548,18 @@ public sealed record UdbScriptVector3DWrapper(double X, double Y, double Z)
 
     public override string ToString()
         => AsVector3D().ToString();
+
+    public bool Equals(UdbScriptVector3DWrapper? other)
+        => other is not null && X == other.X && Y == other.Y && Z == other.Z;
+
+    public override bool Equals(object? obj)
+        => obj is UdbScriptVector3DWrapper other && Equals(other);
+
+    public override int GetHashCode()
+        => HashCode.Combine(X, Y, Z);
+
+    private void NotifyChanged()
+        => changed?.Invoke(new Vector3D(X, Y, Z));
 
     private static bool TryVector3D(object value, out Vector3D vector)
     {
@@ -1027,7 +1140,7 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         get
         {
             ThrowIfDisposed("position");
-            return new UdbScriptVector2DWrapper(vertex.Position.x, vertex.Position.y);
+            return new UdbScriptVector2DWrapper(vertex.Position.x, vertex.Position.y, vertex.Move);
         }
         set
         {
@@ -2439,7 +2552,7 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         get
         {
             ThrowIfDisposed("position");
-            return new UdbScriptVector3DWrapper(thing.Position.x, thing.Position.y, thing.Height);
+            return new UdbScriptVector3DWrapper(thing.Position.x, thing.Position.y, thing.Height, thing.Move);
         }
         set
         {

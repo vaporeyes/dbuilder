@@ -68,6 +68,12 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(new UdbScriptVector2DWrapper(5, 6), fromThreeD);
         Assert.Equal(3, fromArray.x);
         Assert.Equal(4, fromArray.y);
+
+        fromArray.x = 8;
+        fromArray.y = 9;
+        Assert.Equal(new UdbScriptVector2DWrapper(8, 9), fromArray);
+        Assert.Equal(8, fromArray.X);
+        Assert.Equal(9, fromArray.Y);
     }
 
     [Fact]
@@ -120,6 +126,14 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(3, fromArray.x);
         Assert.Equal(4, fromArray.y);
         Assert.Equal(5, fromArray.z);
+
+        fromArray.x = 8;
+        fromArray.y = 9;
+        fromArray.z = 10;
+        Assert.Equal(new UdbScriptVector3DWrapper(8, 9, 10), fromArray);
+        Assert.Equal(8, fromArray.X);
+        Assert.Equal(9, fromArray.Y);
+        Assert.Equal(10, fromArray.Z);
     }
 
     [Fact]
@@ -343,6 +357,27 @@ localsidedeftextureoffsets = true;
         Assert.True(vertex.Marked);
         Assert.Equal(8.0, vertex.ZFloor);
         Assert.Equal(24.0, vertex.ZCeiling);
+    }
+
+    [Fact]
+    public void PositionVectorCoordinateMutationUpdatesParentElements()
+    {
+        var vertex = new Vertex(new Vector2D(1, 2));
+        var vertexPosition = (UdbScriptVector2DWrapper)new UdbScriptVertexWrapper(vertex).position;
+
+        vertexPosition.x = 5;
+        vertexPosition.y = 6;
+
+        var thing = new Thing(new Vector2D(1, 2), 3001) { Height = 3 };
+        var thingPosition = (UdbScriptVector3DWrapper)new UdbScriptThingWrapper(thing).position;
+
+        thingPosition.x = 7;
+        thingPosition.y = 8;
+        thingPosition.z = 9;
+
+        Assert.Equal(new Vector2D(5, 6), vertex.Position);
+        Assert.Equal(new Vector2D(7, 8), thing.Position);
+        Assert.Equal(9, thing.Height);
     }
 
     [Fact]
