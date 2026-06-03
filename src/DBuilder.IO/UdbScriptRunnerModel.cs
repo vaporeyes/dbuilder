@@ -63,6 +63,16 @@ public sealed record UdbScriptRunnerExceptionHandlingPlan(
     string DialogMessage,
     UdbScriptErrorDialog? ErrorDialog);
 
+public sealed record UdbScriptLibraryImportExceptionPlan(
+    UdbScriptRunnerExceptionKind Kind,
+    bool ImportSucceeded,
+    UdbScriptRunnerExceptionDialogKind DialogKind,
+    string DialogTitle,
+    string DialogMessage,
+    UdbScriptRunnerStatusKind StatusKind,
+    string StatusText,
+    UdbScriptErrorDialog? ErrorDialog);
+
 public sealed record UdbScriptVersionGate(
     bool RequiresPrompt,
     string Title,
@@ -232,6 +242,7 @@ public static class UdbScriptRunnerModel
     public const string ErrorDialogInternalStackTraceTabText = "Internal stack trace";
     public const string ParserErrorDialogTitle = "Script error";
     public const string ParserErrorDialogPrefix = "There is an error while parsing the script:\n\n";
+    public const string LibraryParserErrorPrefix = "There was an error while loading the library ";
 
     public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
     [
@@ -469,6 +480,47 @@ public static class UdbScriptRunnerModel
                 "",
                 ErrorDialog(message, "", internalStackTrace)),
             _ => new(outcome, UdbScriptRunnerExceptionDialogKind.None, "", "", null),
+        };
+    }
+
+    public static UdbScriptLibraryImportExceptionPlan LibraryImportExceptionPlan(
+        UdbScriptRunnerExceptionKind kind,
+        string libraryPath,
+        string message = "",
+        bool javascriptThrowIsString = false,
+        string javascriptStackTrace = "",
+        string internalStackTrace = "")
+    {
+        return kind switch
+        {
+            UdbScriptRunnerExceptionKind.ParserError => new(
+                kind,
+                false,
+                UdbScriptRunnerExceptionDialogKind.ParserMessageBox,
+                ParserErrorDialogTitle,
+                LibraryParserErrorPrefix + libraryPath + ":\n\n" + message,
+                UdbScriptRunnerStatusKind.None,
+                "",
+                null),
+            UdbScriptRunnerExceptionKind.JavaScriptError when !javascriptThrowIsString => new(
+                kind,
+                false,
+                UdbScriptRunnerExceptionDialogKind.ErrorDialog,
+                "",
+                "",
+                UdbScriptRunnerStatusKind.None,
+                "",
+                ErrorDialog(message, javascriptStackTrace, internalStackTrace)),
+            UdbScriptRunnerExceptionKind.JavaScriptError => new(
+                kind,
+                false,
+                UdbScriptRunnerExceptionDialogKind.None,
+                "",
+                "",
+                UdbScriptRunnerStatusKind.Warning,
+                message,
+                null),
+            _ => new(kind, true, UdbScriptRunnerExceptionDialogKind.None, "", "", UdbScriptRunnerStatusKind.None, "", null),
         };
     }
 

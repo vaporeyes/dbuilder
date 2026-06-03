@@ -451,4 +451,53 @@ public class UdbScriptRunnerModelTests
         Assert.Equal("unexpected\r\n", unknown.ErrorDialog.StackTraceText);
         Assert.Equal("clr stack", unknown.ErrorDialog.InternalStackTraceText);
     }
+
+    [Fact]
+    public void LibraryImportExceptionPlanMatchesUdbImportErrorBranches()
+    {
+        UdbScriptLibraryImportExceptionPlan parser = UdbScriptRunnerModel.LibraryImportExceptionPlan(
+            UdbScriptRunnerExceptionKind.ParserError,
+            "/app/UDBScript/Libraries/bad.js",
+            "bad token");
+
+        Assert.False(parser.ImportSucceeded);
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.ParserMessageBox, parser.DialogKind);
+        Assert.Equal("Script error", parser.DialogTitle);
+        Assert.Equal(
+            "There was an error while loading the library /app/UDBScript/Libraries/bad.js:\n\nbad token",
+            parser.DialogMessage);
+        Assert.Equal(UdbScriptRunnerStatusKind.None, parser.StatusKind);
+
+        UdbScriptLibraryImportExceptionPlan javascriptObject = UdbScriptRunnerModel.LibraryImportExceptionPlan(
+            UdbScriptRunnerExceptionKind.JavaScriptError,
+            "/app/UDBScript/Libraries/object.js",
+            "object throw",
+            javascriptThrowIsString: false,
+            javascriptStackTrace: "script stack",
+            internalStackTrace: "internal stack");
+
+        Assert.False(javascriptObject.ImportSucceeded);
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.ErrorDialog, javascriptObject.DialogKind);
+        Assert.NotNull(javascriptObject.ErrorDialog);
+        Assert.Equal("object throw\r\nscript stack", javascriptObject.ErrorDialog.StackTraceText);
+        Assert.Equal("internal stack", javascriptObject.ErrorDialog.InternalStackTraceText);
+
+        UdbScriptLibraryImportExceptionPlan javascriptString = UdbScriptRunnerModel.LibraryImportExceptionPlan(
+            UdbScriptRunnerExceptionKind.JavaScriptError,
+            "/app/UDBScript/Libraries/string.js",
+            "string throw",
+            javascriptThrowIsString: true);
+
+        Assert.False(javascriptString.ImportSucceeded);
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.None, javascriptString.DialogKind);
+        Assert.Equal(UdbScriptRunnerStatusKind.Warning, javascriptString.StatusKind);
+        Assert.Equal("string throw", javascriptString.StatusText);
+
+        UdbScriptLibraryImportExceptionPlan other = UdbScriptRunnerModel.LibraryImportExceptionPlan(
+            UdbScriptRunnerExceptionKind.Exit,
+            "/app/UDBScript/Libraries/exit.js");
+
+        Assert.True(other.ImportSucceeded);
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.None, other.DialogKind);
+    }
 }
