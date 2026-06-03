@@ -2428,6 +2428,9 @@ public partial class MainWindow : Window
         }
 
         UdbScriptDirectory scripts = UdbScriptDiscovery.DiscoverFromAppPath(AppContext.BaseDirectory);
+        _udbScriptSlotAssignments = UdbScriptDockerModel.LoadSlotAssignments(
+            AllUdbScripts(scripts),
+            _settings.UdbScriptSettings);
         _udbScriptDocker = new UdbScriptDockerWindow(scripts, _udbScriptSlotAssignments);
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => RunUdbScriptPlan(UdbScriptActions.ExecuteCurrentPlan(script));
@@ -2444,6 +2447,7 @@ public partial class MainWindow : Window
         _udbScriptSlotAssignments = UdbScriptDockerModel.AssignSlot(_udbScriptSlotAssignments, slot, script);
         _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
         IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
+        SaveUdbScriptSlotSettings(operations);
         SetStatus($"UDBScript assigned to slot {slot}: {script.Name} ({operations.Count} setting change(s))");
     }
 
@@ -2459,7 +2463,39 @@ public partial class MainWindow : Window
         _udbScriptSlotAssignments = UdbScriptDockerModel.AssignSlot(_udbScriptSlotAssignments, slot, null);
         _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
         IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
+        SaveUdbScriptSlotSettings(operations);
         SetStatus($"UDBScript cleared from slot {slot}: {script.Name} ({operations.Count} setting change(s))");
+    }
+
+    private void SaveUdbScriptSlotSettings(IReadOnlyList<UdbScriptSettingOperation> operations)
+    {
+        _settings.UdbScriptSettings ??= new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (string key in _settings.UdbScriptSettings.Keys
+            .Where(key => key.StartsWith(UdbScriptDockerModel.ScriptSlotSettingPrefix, StringComparison.Ordinal))
+            .ToArray())
+            _settings.UdbScriptSettings.Remove(key);
+
+        foreach (UdbScriptSettingOperation operation in operations)
+        {
+            if (operation.Kind == UdbScriptSettingOperationKind.Write)
+                _settings.UdbScriptSettings[operation.Key] = operation.Value;
+        }
+
+        SaveSettings();
+    }
+
+    private static IReadOnlyList<UdbScriptInfo> AllUdbScripts(UdbScriptDirectory directory)
+    {
+        var scripts = new List<UdbScriptInfo>();
+        AddUdbScripts(directory, scripts);
+        return scripts;
+    }
+
+    private static void AddUdbScripts(UdbScriptDirectory directory, List<UdbScriptInfo> scripts)
+    {
+        scripts.AddRange(directory.Scripts);
+        foreach (UdbScriptDirectory child in directory.Directories)
+            AddUdbScripts(child, scripts);
     }
 
     private void OpenUdbScriptExternalEditor(UdbScriptInfo script)

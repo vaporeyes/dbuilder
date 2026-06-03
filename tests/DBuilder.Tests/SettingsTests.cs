@@ -184,6 +184,10 @@ public class SettingsTests
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 UdbScriptExternalEditor = "/tools/editor.exe",
+                UdbScriptSettings = new Dictionary<string, object?>
+                {
+                    ["scriptslots.slot3"] = "/scripts/slotted.js",
+                },
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
                 AlphaBasedTextureHighlighting = false,
@@ -291,6 +295,7 @@ public class SettingsTests
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
+            Assert.Equal("/scripts/slotted.js", loaded.UdbScriptSettings["scriptslots.slot3"]?.ToString());
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
