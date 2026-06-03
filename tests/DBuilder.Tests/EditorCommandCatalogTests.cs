@@ -322,6 +322,25 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.model-render-none", "No Model Rendering")]
+    [InlineData("window.model-render-selection", "Model Rendering Selection Only")]
+    [InlineData("window.model-render-active-filter", "Model Rendering Active Things Filter Only")]
+    [InlineData("window.model-render-all", "Model Rendering All")]
+    [InlineData("window.next-model-render-mode", "Next Model Rendering Mode")]
+    public void ModelRenderMenuCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {

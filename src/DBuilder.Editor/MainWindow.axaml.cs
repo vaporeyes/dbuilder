@@ -1187,6 +1187,11 @@ public partial class MainWindow : Window
             case "window.browse-things": OnBrowseThingsCatalog(this, new RoutedEventArgs()); return true;
             case "window.browse-linedef-actions": OnBrowseActionsCatalog(this, new RoutedEventArgs()); return true;
             case "window.browse-sector-effects": OnBrowseEffectsCatalog(this, new RoutedEventArgs()); return true;
+            case "window.model-render-none": OnModelRenderNone(this, new RoutedEventArgs()); return true;
+            case "window.model-render-selection": OnModelRenderSelection(this, new RoutedEventArgs()); return true;
+            case "window.model-render-active-filter": OnModelRenderActiveFilter(this, new RoutedEventArgs()); return true;
+            case "window.model-render-all": OnModelRenderAll(this, new RoutedEventArgs()); return true;
+            case "window.next-model-render-mode": OnNextModelRenderMode(this, new RoutedEventArgs()); return true;
             case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;

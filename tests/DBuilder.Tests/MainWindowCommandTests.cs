@@ -40,6 +40,11 @@ public sealed class MainWindowCommandTests
     [InlineData("window.browse-things", "OnBrowseThingsCatalog")]
     [InlineData("window.browse-linedef-actions", "OnBrowseActionsCatalog")]
     [InlineData("window.browse-sector-effects", "OnBrowseEffectsCatalog")]
+    [InlineData("window.model-render-none", "OnModelRenderNone")]
+    [InlineData("window.model-render-selection", "OnModelRenderSelection")]
+    [InlineData("window.model-render-active-filter", "OnModelRenderActiveFilter")]
+    [InlineData("window.model-render-all", "OnModelRenderAll")]
+    [InlineData("window.next-model-render-mode", "OnNextModelRenderMode")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
