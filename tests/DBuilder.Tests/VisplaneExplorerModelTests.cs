@@ -351,6 +351,41 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void ProgressCountsIssuedRemainingAndQueuedAnalysisPoints()
+    {
+        var scan = new VisplaneTileScan();
+        VisplaneTile first = scan.AddTile(new VisplaneTilePosition(0, 0));
+        scan.AddTile(new VisplaneTilePosition(64, 0));
+
+        IReadOnlyList<VisplaneTilePoint> queued = scan.QueuePoints(
+            new VisplaneMapRectangle(-64, -64, 192, 128),
+            currentQueuedPoints: 1,
+            targetQueuedPoints: 5);
+        VisplaneExplorerProgress progress = scan.Progress(queuedPointCount: queued.Count + 1);
+
+        Assert.Equal(2, progress.TileCount);
+        Assert.Equal(4, progress.IssuedPointCount);
+        Assert.Equal(VisplaneTile.TileSize * VisplaneTile.TileSize * 2 - 4, progress.RemainingPointCount);
+        Assert.Equal(5, progress.QueuedPointCount);
+        Assert.Equal(2, first.IssuedPointCount);
+        Assert.Equal(VisplaneTile.TileSize * VisplaneTile.TileSize - 2, first.RemainingPointCount);
+    }
+
+    [Fact]
+    public void ProgressStatusFormatsQueuedAnalysisState()
+    {
+        var progress = new VisplaneExplorerProgress(
+            TileCount: 3,
+            IssuedPointCount: 128,
+            RemainingPointCount: 12160,
+            QueuedPointCount: 1024);
+
+        Assert.Equal(
+            "Visplane Explorer analyzing: 128 issued, 12160 remaining, 1024 queued across 3 tile(s).",
+            progress.FormatStatus());
+    }
+
+    [Fact]
     public void HoverInfoFormatsUdbStylePointValueAndStaticLimit()
     {
         var scan = new VisplaneTileScan();

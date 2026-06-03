@@ -96,6 +96,24 @@ public sealed record VisplaneExplorerViewHeightMenuItem(
     string Tag,
     bool Checked);
 
+public readonly record struct VisplaneExplorerProgress(
+    int TileCount,
+    int IssuedPointCount,
+    int RemainingPointCount,
+    int QueuedPointCount)
+{
+    public string FormatStatus()
+        => "Visplane Explorer analyzing: "
+            + IssuedPointCount.ToString(CultureInfo.InvariantCulture)
+            + " issued, "
+            + RemainingPointCount.ToString(CultureInfo.InvariantCulture)
+            + " remaining, "
+            + QueuedPointCount.ToString(CultureInfo.InvariantCulture)
+            + " queued across "
+            + TileCount.ToString(CultureInfo.InvariantCulture)
+            + " tile(s).";
+}
+
 public static class VisplaneExplorerViewHeight
 {
     public const int DefaultCustomHeight = 0;
@@ -467,6 +485,19 @@ public sealed class VisplaneTileScan
         return points;
     }
 
+    public VisplaneExplorerProgress Progress(int queuedPointCount)
+    {
+        int issued = 0;
+        int remaining = 0;
+        foreach (VisplaneTile tile in tiles.Values)
+        {
+            issued += tile.IssuedPointCount;
+            remaining += tile.RemainingPointCount;
+        }
+
+        return new VisplaneExplorerProgress(tiles.Count, issued, remaining, queuedPointCount);
+    }
+
     public VisplaneHoverInfo? GetHoverInfo(double mapX, double mapY, VisplaneExplorerStat stat, int staticLimit)
     {
         VisplaneTilePosition position = TileForPoint(mapX, mapY);
@@ -556,6 +587,10 @@ public sealed class VisplaneTile
     public VisplaneTilePosition Position { get; }
 
     public bool IsComplete => nextIndex == TileSize * TileSize;
+
+    public int IssuedPointCount => nextIndex;
+
+    public int RemainingPointCount => TileSize * TileSize - nextIndex;
 
     public void StorePointData(VisplanePointData data)
     {
