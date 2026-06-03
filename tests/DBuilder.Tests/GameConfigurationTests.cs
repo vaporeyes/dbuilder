@@ -1070,6 +1070,52 @@ TROOCPOS
     }
 
     [Fact]
+    public void MergeDehackedAppliesThingBitsToBlockingAndHanging()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        31002
+        {
+            title = ""Base Thing"";
+            class = ""BaseThing"";
+            blocking = 2;
+            hangs = true;
+        }
+        31003
+        {
+            title = ""Air Thing"";
+            class = ""AirThing"";
+        }
+    }
+}";
+        const string text = @"
+Thing 4 (Non Solid Thing)
+ID # = 31002
+Bits = ambush
+
+Thing 5 (Hanging Solid Thing)
+ID # = 31003
+Bits = solid+spawnceiling
+";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeDehacked(DehackedParser.Parse(text));
+
+        var nonSolid = gc.GetThing(31002);
+        Assert.NotNull(nonSolid);
+        Assert.Equal(0, nonSolid!.Blocking);
+        Assert.False(nonSolid.Hangs);
+
+        var hangingSolid = gc.GetThing(31003);
+        Assert.NotNull(hangingSolid);
+        Assert.Equal(1, hangingSolid!.Blocking);
+        Assert.True(hangingSolid.Hangs);
+    }
+
+    [Fact]
     public void ParsesCompilerDefaultsStaticLimitsAndRequiredArchives()
     {
         const string cfg = """

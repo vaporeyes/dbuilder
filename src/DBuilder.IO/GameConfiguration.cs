@@ -1384,6 +1384,7 @@ public sealed class GameConfiguration
             int width = TryReadDehackedInt(thing.Properties, "Width", out int rawWidth) ? FixedToInt(rawWidth) : existing?.Width ?? 16;
             int height = TryReadDehackedInt(thing.Properties, "Height", out int rawHeight) ? FixedToInt(rawHeight) : existing?.Height ?? 16;
             string category = ReadDehackedProperty(thing.Properties, "$Category") ?? existing?.Category ?? "User-defined";
+            bool hasBits = TryReadDehackedBits(thing.Properties, out var bits);
 
             things[doomEdNum] = new ThingTypeInfo
             {
@@ -1401,8 +1402,8 @@ public sealed class GameConfiguration
                 RenderStyle = existing?.RenderStyle ?? "normal",
                 Bright = existing?.Bright ?? false,
                 Arrow = existing?.Arrow ?? false,
-                Hangs = existing?.Hangs ?? false,
-                Blocking = existing?.Blocking ?? 0,
+                Hangs = hasBits ? bits.Contains("spawnceiling") : existing?.Hangs ?? false,
+                Blocking = hasBits ? bits.Contains("solid") ? 1 : 0 : existing?.Blocking ?? 0,
                 ErrorCheck = existing?.ErrorCheck ?? 0,
                 FixedSize = existing?.FixedSize ?? false,
                 FixedRotation = existing?.FixedRotation ?? false,
@@ -1505,6 +1506,15 @@ public sealed class GameConfiguration
 
     private static string? ReadDehackedProperty(Dictionary<string, string> properties, string key)
         => properties.TryGetValue(key, out string? value) && value.Length > 0 ? value : null;
+
+    private static bool TryReadDehackedBits(Dictionary<string, string> properties, out HashSet<string> bits)
+    {
+        bits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!properties.TryGetValue("Bits", out string? value) || value.Length == 0) return false;
+        foreach (string bit in value.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            bits.Add(bit);
+        return true;
+    }
 
     private static int FixedToInt(int value) => value >> 16;
 

@@ -767,6 +767,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port Dehacked parser behavior.
 - [x] Integrate Dehacked data into thing definitions and editor display.
   - [x] Use UDB's `User-defined` fallback category for new uncategorized DeHackEd things.
+  - [x] Apply DeHackEd `Bits` mnemonics to thing blocking and hanging flags.
 - [x] Add Dehacked parser and integration tests.
 
 ## Game Configuration
