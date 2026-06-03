@@ -4955,7 +4955,7 @@ public partial class MainWindow : Window
         MakeDoorResult result = MakeDoorTool.Apply(_map, sectors, options);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Made {result.SectorsChanged} door sector(s), updated {result.DoorLinesChanged} door line(s) and {result.OneSidedLinesChanged} track line(s).");
+        SetStatus(result.StatusText);
         MapView.Focus();
     }
 

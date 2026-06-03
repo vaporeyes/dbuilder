@@ -126,6 +126,16 @@ public class MakeDoorToolTests
         Assert.Equal("", MakeDoorTool.DefaultFloorTexture(Array.Empty<Sector>()));
     }
 
+    [Theory]
+    [InlineData(1, 1, 1, "Made 1 door sector, updated 1 door line and 1 track line.")]
+    [InlineData(2, 3, 4, "Made 2 door sectors, updated 4 door lines and 3 track lines.")]
+    public void ResultStatusTextFormatsSingularAndPluralCounts(
+        int sectorsChanged,
+        int oneSidedLinesChanged,
+        int doorLinesChanged,
+        string expected)
+        => Assert.Equal(expected, new MakeDoorResult(sectorsChanged, oneSidedLinesChanged, doorLinesChanged).StatusText);
+
     private static (MapSet Map, Sector Sector, Sidedef TrackSide, Sidedef DoorSide, Sidedef OutsideSide) DoorMap()
     {
         var map = new MapSet();

@@ -1,6 +1,8 @@
 // ABOUTME: Applies UDB BuilderModes Make Door data edits to selected sectors.
 // ABOUTME: Keeps the map-level door texture, action, tag, flag, and line-facing behavior testable.
 
+using System.Globalization;
+
 namespace DBuilder.Map;
 
 public sealed class MakeDoorOptions
@@ -20,7 +22,14 @@ public sealed class MakeDoorOptions
     public string LowerUnpeggedFlag { get; init; } = "lowerunpegged";
 }
 
-public readonly record struct MakeDoorResult(int SectorsChanged, int OneSidedLinesChanged, int DoorLinesChanged);
+public readonly record struct MakeDoorResult(int SectorsChanged, int OneSidedLinesChanged, int DoorLinesChanged)
+{
+    public string StatusText
+        => $"Made {CountLabel(SectorsChanged, "door sector")}, updated {CountLabel(DoorLinesChanged, "door line")} and {CountLabel(OneSidedLinesChanged, "track line")}.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
+}
 
 public static class MakeDoorTool
 {
