@@ -2912,6 +2912,17 @@ public sealed class UdbScriptBlockMapWrapper
         blockMap = CreateBlockMap(map, lines, things, sectors, vertices, blockSize);
     }
 
+    public UdbScriptBlockMapWrapper(MapSet map, IDictionary<string, object> options, double blockSize = 128.0)
+        : this(
+            map,
+            lines: IsOptionSet(options, "lines"),
+            things: IsOptionSet(options, "things"),
+            sectors: IsOptionSet(options, "sectors"),
+            vertices: IsOptionSet(options, "vertices"),
+            blockSize)
+    {
+    }
+
     public BlockMap BlockMap => blockMap;
 
     public UdbScriptBlockEntryWrapper getBlockAt(object pos)
@@ -2968,6 +2979,12 @@ public sealed class UdbScriptBlockMapWrapper
             Array.Empty<Thing>(),
             Array.Empty<Sector>(),
             Array.Empty<Vertex>());
+
+    private static bool IsOptionSet(IDictionary<string, object>? options, string name)
+        => options != null
+            && options.TryGetValue(name, out object? value)
+            && value is bool enabled
+            && enabled;
 
     private static Vector2D ToVector2D(object value)
     {

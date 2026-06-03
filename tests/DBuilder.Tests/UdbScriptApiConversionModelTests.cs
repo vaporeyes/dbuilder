@@ -2001,6 +2001,28 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void BlockMapWrapperHonorsOptionsObjectSelection()
+    {
+        var (map, _, sector, _, vertex) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(
+            map,
+            new Dictionary<string, object>
+            {
+                ["lines"] = false,
+                ["things"] = false,
+                ["sectors"] = true,
+                ["vertices"] = true,
+            });
+
+        UdbScriptBlockEntryWrapper block = wrapper.getBlockAt(new UdbScriptVector2DWrapper(32, 32));
+
+        Assert.Empty(block.getLinedefs());
+        Assert.Empty(block.getThings());
+        Assert.Same(sector, Assert.Single(block.getSectors()).Sector);
+        Assert.Contains(block.getVertices(), item => ReferenceEquals(vertex, item.Vertex));
+    }
+
+    [Fact]
     public void BlockMapQueryResultReturnsUniqueElementsAndEnumeratesBlocks()
     {
         var map = new MapSet();
