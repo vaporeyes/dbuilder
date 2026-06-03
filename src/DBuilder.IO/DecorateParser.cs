@@ -2277,7 +2277,18 @@ public static class DecorateParser
         }
         else
         {
-            return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+            if (!IsDecimalInteger(digits)) return false;
+            try
+            {
+                long parsed = Convert.ToInt64(digits, CultureInfo.InvariantCulture) * sign;
+                value = parsed > int.MaxValue ? int.MaxValue : parsed < int.MinValue ? int.MinValue : (int)parsed;
+                return true;
+            }
+            catch (OverflowException)
+            {
+                value = sign < 0 ? int.MinValue : int.MaxValue;
+                return true;
+            }
         }
 
         try
@@ -2285,11 +2296,25 @@ public static class DecorateParser
             value = checked(Convert.ToInt32(digits, numberBase) * sign);
             return true;
         }
+        catch (OverflowException)
+        {
+            value = sign < 0 ? int.MinValue : int.MaxValue;
+            return true;
+        }
         catch (Exception) when (digits.Length > 0)
         {
             value = 0;
             return false;
         }
+    }
+
+    private static bool IsDecimalInteger(string text)
+    {
+        if (text.Length == 0) return false;
+        foreach (char c in text)
+            if (c is < '0' or > '9')
+                return false;
+        return true;
     }
 
     private static bool TryReadActorIntProperty(List<Tok> t, ref int i, bool requireSemicolon, out int value)

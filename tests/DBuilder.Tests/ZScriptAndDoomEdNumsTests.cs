@@ -467,6 +467,25 @@ class PrefixedSizeDefault : Actor
     }
 
     [Fact]
+    public void ClampsOverflowingZScriptIntegerSizeDefaultsLikeUdb()
+    {
+        const string text = @"
+class OverflowSizeDefault : Actor
+{
+    Default
+    {
+        Radius 999999999999999999999999;
+        Height -999999999999999999999999;
+    }
+}";
+
+        var actor = Assert.Single(ZScriptParser.Parse(text));
+
+        Assert.Equal(int.MaxValue, actor.Radius);
+        Assert.Equal(int.MinValue, actor.Height);
+    }
+
+    [Fact]
     public void RejectsZScriptDefaultPropertiesWithoutSemicolons()
     {
         const string text = @"
