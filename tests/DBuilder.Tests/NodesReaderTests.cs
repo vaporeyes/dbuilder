@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using DBuilder.Geometry;
 using DBuilder.IO;
@@ -188,11 +189,30 @@ public class NodesReaderTests
         var structure = NodesReader.ParseClassicStructures(nodes, segs, vertices, SubsectorRecord(1, 0));
 
         Assert.Equal("Classic nodes: OK", NodesViewerModel.StatusText(structure));
-        Assert.Equal("1 node(s), 1 seg(s), 1 subsector(s), 2 vertex record(s).", NodesViewerModel.CountsText(structure));
+        Assert.Equal("1 node, 1 seg, 1 subsector, 2 vertex records.", NodesViewerModel.CountsText(structure));
         Assert.Equal("#0: (0, 0) -> (64, 0)  parent -1  right subsector 0  left subsector 1", Assert.Single(NodesViewerModel.NodeRows(structure)));
         Assert.Equal("#0: v0 -> v1  line 3  side left  offset -16  subsector 0", Assert.Single(NodesViewerModel.SegRows(structure)));
-        Assert.Equal("#0: 1 seg(s), first seg 0", Assert.Single(NodesViewerModel.SubsectorRows(structure)));
+        Assert.Equal("#0: 1 seg, first seg 0", Assert.Single(NodesViewerModel.SubsectorRows(structure)));
         Assert.Equal(new[] { "#0: (-128, 256)", "#1: (64, -32)" }, NodesViewerModel.VertexRows(structure));
+    }
+
+    [Fact]
+    public void NodesViewerModelFormatsPluralCounts()
+    {
+        var nodes = NodeRecord(0, 0, 64, 0, 0x8000, 0x8001)
+            .Concat(NodeRecord(0, 0, 0, 64, 0x8000, 0x8001))
+            .ToArray();
+        var segs = SegRecord(0, 1, 0, 3, 1, -16)
+            .Concat(SegRecord(1, 0, 0, 4, 0, 0))
+            .ToArray();
+        var vertices = new byte[8];
+        VertexRecord(-128, 256).CopyTo(vertices, 0);
+        VertexRecord(64, -32).CopyTo(vertices, 4);
+        var subsectors = SubsectorRecord(2, 0).Concat(SubsectorRecord(0, 2)).ToArray();
+        var structure = NodesReader.ParseClassicStructures(nodes, segs, vertices, subsectors);
+
+        Assert.Equal("2 nodes, 2 segs, 2 subsectors, 2 vertex records.", NodesViewerModel.CountsText(structure));
+        Assert.Equal("#0: 2 segs, first seg 0", NodesViewerModel.SubsectorRows(structure)[0]);
     }
 
     [Fact]

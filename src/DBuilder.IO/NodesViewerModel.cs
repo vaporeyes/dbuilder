@@ -1,6 +1,8 @@
 // ABOUTME: Formats parsed classic node structures for the editor Nodes Viewer rows.
 // ABOUTME: Keeps Nodes Viewer text presentation testable outside the Avalonia window.
 
+using System.Globalization;
+
 namespace DBuilder.IO;
 
 public sealed record NodesViewerTabRows(string Title, IReadOnlyList<string> Rows)
@@ -16,7 +18,7 @@ public static class NodesViewerModel
     public static string CountsText(ClassicNodesStructure structure)
     {
         string overflow = structure.SegCountExceedsSignedLimit ? " signed seg index limit exceeded" : "";
-        return $"{structure.Nodes.Count} node(s), {structure.Segs.Count} seg(s), {structure.Subsectors.Count} subsector(s), {structure.Vertices.Count} vertex record(s).{overflow}";
+        return $"{CountLabel(structure.Nodes.Count, "node")}, {CountLabel(structure.Segs.Count, "seg")}, {CountLabel(structure.Subsectors.Count, "subsector")}, {CountLabel(structure.Vertices.Count, "vertex record")}.{overflow}";
     }
 
     public static IReadOnlyList<string> NodeRows(ClassicNodesStructure structure)
@@ -75,8 +77,11 @@ public static class NodesViewerModel
         => $"#{index}: v{seg.StartVertex} -> v{seg.EndVertex}  line {seg.LineIndex}  side {(seg.LeftSide ? "left" : "right")}  offset {seg.Offset}  subsector {seg.SubsectorIndex}";
 
     private static string FormatSubsector(int index, ClassicSubsector subsector)
-        => $"#{index}: {subsector.SegCount} seg(s), first seg {subsector.FirstSeg}";
+        => $"#{index}: {CountLabel(subsector.SegCount, "seg")}, first seg {subsector.FirstSeg}";
 
     private static string FormatVertex(int index, ClassicNodeVertex vertex)
         => $"#{index}: ({vertex.X}, {vertex.Y})";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
