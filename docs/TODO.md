@@ -450,6 +450,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port resource list warnings.
   - [x] Warn when configured required archives are missing or duplicated.
   - [x] Model UDB's map-resource warning for editing without resources.
+  - [x] Use shared UDB-style test-exclusion defaults when adding map resources.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
   - [x] Add UDB-style default gray PLAYPAL fallback palette model.
