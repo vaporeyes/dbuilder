@@ -22,6 +22,22 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void QueryPlanMatchesUdbPausedDialogReturnContract()
+    {
+        UdbScriptQueryOptionsQueryPlan ok = UdbScriptQueryOptionsModel.QueryPlan(UdbScriptQueryOptionsDialogResult.Ok);
+        UdbScriptQueryOptionsQueryPlan cancel = UdbScriptQueryOptionsModel.QueryPlan(UdbScriptQueryOptionsDialogResult.Cancel);
+
+        Assert.True(ok.InvokesRunnerPaused);
+        Assert.Equal("Query options", ok.Prompt.Title);
+        Assert.Equal(UdbScriptQueryOptionsDialogResult.Ok, ok.DialogResult);
+        Assert.True(ok.ReturnValue);
+
+        Assert.True(cancel.InvokesRunnerPaused);
+        Assert.Equal(UdbScriptQueryOptionsDialogResult.Cancel, cancel.DialogResult);
+        Assert.False(cancel.ReturnValue);
+    }
+
+    [Fact]
     public void AddOptionAcceptsValidTypesAndReturnsQueriedValues()
     {
         var model = new UdbScriptQueryOptionsModel();

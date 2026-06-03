@@ -9,6 +9,12 @@ public sealed record UdbScriptQueryOptionAddResult(
     bool Added,
     string ErrorDescription = "");
 
+public enum UdbScriptQueryOptionsDialogResult
+{
+    Ok,
+    Cancel,
+}
+
 public sealed record UdbScriptQueryOptionsPromptMetadata(
     string Title,
     string OkButtonText,
@@ -16,6 +22,12 @@ public sealed record UdbScriptQueryOptionsPromptMetadata(
     bool IsFixedDialog,
     bool AcceptsOk,
     bool Cancels);
+
+public sealed record UdbScriptQueryOptionsQueryPlan(
+    bool InvokesRunnerPaused,
+    UdbScriptQueryOptionsPromptMetadata Prompt,
+    UdbScriptQueryOptionsDialogResult DialogResult,
+    bool ReturnValue);
 
 public sealed class UdbScriptQueryOptionsModel
 {
@@ -35,6 +47,13 @@ public sealed class UdbScriptQueryOptionsModel
             IsFixedDialog: true,
             AcceptsOk: true,
             Cancels: true);
+
+    public static UdbScriptQueryOptionsQueryPlan QueryPlan(UdbScriptQueryOptionsDialogResult dialogResult)
+        => new(
+            InvokesRunnerPaused: true,
+            PromptMetadata(),
+            dialogResult,
+            dialogResult == UdbScriptQueryOptionsDialogResult.Ok);
 
     public UdbScriptQueryOptionAddResult AddOption(
         string scriptFile,

@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3396 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3397 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1263,6 +1263,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
   - [x] Add UDBScript QueryOptions prompt UI metadata.
+  - [x] Add UDBScript QueryOptions paused query result plan.
   - [x] Add UDBScript script options grid UI metadata.
   - [x] Add UDBScript script option value-cell reset and style model.
   - [x] Add UDBScript script option enum editor state model.
@@ -1559,6 +1560,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [x] Add UDBScript QueryOptions prompt UI metadata.
+- [x] Add UDBScript QueryOptions paused query result plan.
 - [x] Add UDBScript script options grid UI metadata.
 - [x] Add UDBScript script option value-cell reset and style model.
 - [x] Add UDBScript script option enum editor state model.
@@ -1637,7 +1639,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script runner UI integration.
 - [ ] Port full script runtime constraint integration.
 - [ ] Port script exception handling.
-- [ ] Port QueryOptions runner UI integration.
+- [ ] Port full QueryOptions runner UI integration.
 - [ ] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.
 - [ ] Add API compatibility tests for common UDBScript scripts.
 
