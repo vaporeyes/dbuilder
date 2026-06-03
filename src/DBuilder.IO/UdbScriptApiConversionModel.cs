@@ -1005,6 +1005,8 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
     private void SetValue(string key, object? value)
     {
         ValidateFieldName(key);
+        if (IsActiveFlagField(key))
+            throw new InvalidOperationException("You are trying to modify a flag through the UDMF fields. Please use the 'flags' property instead.");
 
         if (value == null)
         {
@@ -1054,6 +1056,16 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 
     private bool IsManagedThingScaleField(string key)
         => managedThing != null && (key == "scalex" || key == "scaley");
+
+    private bool IsActiveFlagField(string key)
+        => element switch
+        {
+            Linedef linedef => linedef.UdmfFlags.Contains(key),
+            Sidedef sidedef => sidedef.UdmfFlags.Contains(key),
+            Sector sector => sector.UdmfFlags.Contains(key),
+            Thing thing => thing.UdmfFlags.Contains(key),
+            _ => false,
+        };
 
     private void SetManagedThingField(string key, object? value)
     {

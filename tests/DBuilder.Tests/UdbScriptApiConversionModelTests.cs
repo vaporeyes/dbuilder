@@ -2114,6 +2114,34 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFieldsRejectActiveFlagNames()
+    {
+        var line = new Linedef();
+        var side = new Sidedef(line, isFront: true);
+        var sector = new Sector();
+        var thing = new Thing();
+        line.SetFlag("blocksound", true);
+        side.SetFlag("lightfog", true);
+        sector.SetFlag("noattack", true);
+        thing.SetFlag("ambush", true);
+
+        InvalidOperationException lineException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptLinedefWrapper(line).fields["blocksound"] = false);
+        InvalidOperationException sideException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptSidedefWrapper(side).fields["lightfog"] = false);
+        InvalidOperationException sectorException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptSectorWrapper(sector).fields["noattack"] = false);
+        InvalidOperationException thingException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptThingWrapper(thing).fields["ambush"] = false);
+
+        const string expected = "You are trying to modify a flag through the UDMF fields. Please use the 'flags' property instead.";
+        Assert.Equal(expected, lineException.Message);
+        Assert.Equal(expected, sideException.Message);
+        Assert.Equal(expected, sectorException.Message);
+        Assert.Equal(expected, thingException.Message);
+    }
+
+    [Fact]
     public void MapElementWrappersRejectDisposedFieldsAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
