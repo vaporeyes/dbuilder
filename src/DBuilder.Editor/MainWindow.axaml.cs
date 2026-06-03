@@ -3325,16 +3325,11 @@ public partial class MainWindow : Window
         if (!preflight.Success) { SetStatus($"Visplane Explorer unavailable: {preflight.Message}."); return; }
 
         VisplaneTileScan scan = VisplaneTileScan.CreateForMap(_map);
-        var settings = _settings.VisplaneExplorerSettings;
         IReadOnlyList<VisplaneTilePoint> queued = scan.QueuePoints(
             CurrentVisplaneViewRectangle(),
             currentQueuedPoints: 0,
             targetQueuedPoints: 1024);
-        SetStatus(VisplaneExplorerInterfaceModel.ReadyStatus(
-            scan.Tiles.Count,
-            queued.Count,
-            VisplaneExplorerStat.Visplanes,
-            settings));
+        SetStatus(scan.Progress(queued.Count).FormatStatus());
         MapView.Focus();
     }
 

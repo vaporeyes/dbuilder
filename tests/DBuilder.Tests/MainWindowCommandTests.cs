@@ -93,4 +93,13 @@ public sealed class MainWindowCommandTests
         Assert.Contains($"case \"{commandId}\"", body, StringComparison.Ordinal);
         Assert.Contains($"{handlerName}(this, new RoutedEventArgs())", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void VisplaneExplorerModeReportsQueuedProgressStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("scan.QueuePoints(", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(scan.Progress(queued.Count).FormatStatus())", body, StringComparison.Ordinal);
+    }
 }
