@@ -187,6 +187,8 @@ public class Pk3ResourceTests
                 rm.AddResource(new DataLocation(DataLocationType.Pk3, path, option1: true, option2: true));
                 Assert.Equal(new byte[] { 10, 11, 12, 255 }, rm.GetFlat("ROOTFLAT")!.Rgba[0..4]);
                 Assert.Equal(new byte[] { 20, 21, 22, 255 }, rm.GetWallTexture("ROOTWALL")!.Rgba[0..4]);
+                Assert.Contains("ROOTFLAT", rm.GetFlatNames());
+                Assert.Contains("ROOTWALL", rm.GetTextureNames());
             }
         }
         finally { File.Delete(path); }

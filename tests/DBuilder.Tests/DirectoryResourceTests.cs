@@ -128,6 +128,8 @@ public class DirectoryResourceTests
                 rootOptions.AddResource(new DataLocation(DataLocationType.Directory, dir, option1: true, option2: true));
                 Assert.Equal(new byte[] { 12, 34, 56, 255 }, rootOptions.GetWallTexture("ROOTWALL")!.Rgba[0..4]);
                 Assert.Equal(new byte[] { 65, 43, 21, 255 }, rootOptions.GetFlat("ROOTFLAT")!.Rgba[0..4]);
+                Assert.Contains("ROOTWALL", rootOptions.GetTextureNames());
+                Assert.Contains("ROOTFLAT", rootOptions.GetFlatNames());
             }
         }
         finally { Directory.Delete(dir, recursive: true); }

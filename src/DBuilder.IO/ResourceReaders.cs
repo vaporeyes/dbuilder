@@ -664,6 +664,9 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual IEnumerable<string> TextureNames()
     {
+        if (rootTextures)
+            foreach (var name in RootImageNames())
+                yield return name;
         foreach (var name in NamesInFolder("textures/")) yield return name;
         foreach (var name in ClassicTextureDefs().Keys) yield return name;
         foreach (var reader in nestedReaders)
@@ -681,6 +684,9 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual IEnumerable<string> FlatNames()
     {
+        if (rootFlats)
+            foreach (var name in RootImageNames())
+                yield return name;
         foreach (var name in NamesInFolder("flats/")) yield return name;
         foreach (var reader in nestedReaders)
             foreach (var name in reader.FlatNames())
@@ -871,6 +877,21 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (var key in entries.Keys)
             if (key.StartsWith(prefix, StringComparison.Ordinal)) yield return key.Substring(prefix.Length);
     }
+
+    private IEnumerable<string> RootImageNames()
+    {
+        foreach (string path in files.Keys)
+        {
+            if (path.Contains('/')) continue;
+            string extension = Path.GetExtension(path);
+            if (!IsImageResourceExtension(extension)) continue;
+            yield return Path.GetFileNameWithoutExtension(path).ToUpperInvariant();
+        }
+    }
+
+    private static bool IsImageResourceExtension(string extension)
+        => extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
+           || extension.Equals(".lmp", StringComparison.OrdinalIgnoreCase);
 
     public abstract void Dispose();
 }
