@@ -172,13 +172,25 @@ public sealed class ShortcutsWindow : Window
         Grid.SetColumn(modifiers, 1);
         grid.Children.Add(modifiers);
 
-        var description = new TextBlock
+        var description = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Spacing = 1,
+        };
+        description.Children.Add(new TextBlock
         {
             Text = row.Command.Title,
             Foreground = TextBrush,
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap,
-        };
+        });
+        description.Children.Add(new TextBlock
+        {
+            Text = row.Command.Id,
+            Foreground = MutedBrush,
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+        });
         Grid.SetColumn(description, 2);
         grid.Children.Add(description);
 

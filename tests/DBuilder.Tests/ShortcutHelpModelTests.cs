@@ -111,6 +111,15 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
+    public void ShortcutRowsShowStableActionIds()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ShortcutsWindow.cs"));
+
+        Assert.Contains("Text = row.Command.Id", body, StringComparison.Ordinal);
+        Assert.Contains("Foreground = MutedBrush", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DefaultExpansionKeepsCommonSectionsOpen()
     {
         Assert.True(ShortcutHelpModel.IsDefaultExpanded("File and configuration"));
