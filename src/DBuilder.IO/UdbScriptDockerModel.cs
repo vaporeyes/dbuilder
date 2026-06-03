@@ -45,6 +45,10 @@ public sealed record UdbScriptDockerResetOptionsResult(
     UdbScriptInfo? Script,
     IReadOnlyList<UdbScriptSettingOperation> Operations);
 
+public sealed record UdbScriptDockerApplyOptionsResult(
+    UdbScriptInfo? Script,
+    IReadOnlyList<UdbScriptSettingOperation> Operations);
+
 public sealed record UdbScriptDockerLayoutMetadata(
     string SplitOrientation,
     string TreeSelectionMode,
@@ -132,6 +136,17 @@ public static class UdbScriptDockerModel
             .ToArray();
 
         return new UdbScriptDockerResetOptionsResult(script with { Options = resetOptions }, operations);
+    }
+
+    public static UdbScriptDockerApplyOptionsResult ApplyEditedScriptOptions(
+        UdbScriptInfo? script,
+        IReadOnlyList<UdbScriptOption> options)
+    {
+        if (script is null)
+            return new UdbScriptDockerApplyOptionsResult(null, Array.Empty<UdbScriptSettingOperation>());
+
+        UdbScriptInfo edited = script with { Options = options.ToArray() };
+        return new UdbScriptDockerApplyOptionsResult(edited, UdbScriptDiscovery.SaveOptionValueOperations(edited));
     }
 
     public static IReadOnlyList<UdbScriptDockerMenuItem> FileContextMenuItems(

@@ -66,6 +66,14 @@ public sealed class UdbScriptDockerWindow : Window
         ApplySelection(UdbScriptDockerModel.Selection(null));
     }
 
+    public void ApplyCurrentScript(UdbScriptInfo script)
+    {
+        if (CurrentSelection.CurrentScript is null)
+            return;
+
+        ApplySelection(new UdbScriptDockerSelection(script, script.Description, script.Options));
+    }
+
     private Control BuildContent()
     {
         var left = new Grid

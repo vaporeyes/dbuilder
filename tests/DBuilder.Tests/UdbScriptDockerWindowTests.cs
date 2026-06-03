@@ -2,6 +2,7 @@
 // ABOUTME: Keeps script browser events and selection state discoverable without starting a UI platform.
 
 using DBuilder.Editor;
+using System.Reflection;
 
 namespace DBuilder.Tests;
 
@@ -23,6 +24,7 @@ public class UdbScriptDockerWindowTests
         Assert.NotNull(type.GetEvent("ResetOptionsRequested"));
         Assert.NotNull(type.GetProperty("Nodes"));
         Assert.NotNull(type.GetProperty("CurrentSelection"));
+        Assert.NotNull(type.GetMethod("ApplyCurrentScript", BindingFlags.Instance | BindingFlags.Public));
         Assert.True(typeof(Avalonia.Controls.Window).IsAssignableFrom(type));
     }
 }

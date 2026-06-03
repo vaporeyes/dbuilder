@@ -418,6 +418,50 @@ public class UdbScriptDockerModelTests
         Assert.Empty(empty.Operations);
     }
 
+    [Fact]
+    public void ApplyEditedScriptOptionsReturnsUpdatedScriptAndSaveOperations()
+    {
+        var length = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            128,
+            Array.Empty<UdbScriptEnumValue>(),
+            "scripts.hash.options.length");
+        var texture = new UdbScriptOption(
+            "texture",
+            "Texture",
+            (int)UniversalType.Texture,
+            "STARTAN3",
+            "STARTAN3",
+            Array.Empty<UdbScriptEnumValue>(),
+            "scripts.hash.options.texture");
+        UdbScriptInfo script = Script("Alpha", "A description", "/scripts/alpha.js", length, texture);
+
+        UdbScriptDockerApplyOptionsResult changed = UdbScriptDockerModel.ApplyEditedScriptOptions(
+            script,
+            new[] { length with { Value = 256 }, texture });
+        UdbScriptDockerApplyOptionsResult defaults = UdbScriptDockerModel.ApplyEditedScriptOptions(script, new[] { length, texture });
+        UdbScriptDockerApplyOptionsResult empty = UdbScriptDockerModel.ApplyEditedScriptOptions(null, new[] { length });
+
+        Assert.NotNull(changed.Script);
+        Assert.Equal(new object[] { 256, "STARTAN3" }, changed.Script.Options.Select(option => option.Value).ToArray());
+        Assert.Equal(new[] { UdbScriptSettingOperationKind.Write, UdbScriptSettingOperationKind.Delete }, changed.Operations.Select(operation => operation.Kind).ToArray());
+        Assert.Equal(256, changed.Operations[0].Value);
+
+        Assert.Equal(new[]
+        {
+            "scripts.hash.options.length",
+            "scripts.hash.options.texture",
+            "scripts." + script.PathHash + ".options",
+            "scripts." + script.PathHash,
+        }, defaults.Operations.Select(operation => operation.Key).ToArray());
+        Assert.All(defaults.Operations, operation => Assert.Equal(UdbScriptSettingOperationKind.Delete, operation.Kind));
+        Assert.Null(empty.Script);
+        Assert.Empty(empty.Operations);
+    }
+
     private static UdbScriptInfo Script(string name, string description, string file, params UdbScriptOption[] options)
         => new(name, description, 1, file, UdbScriptDiscovery.HashPath(file), null, options);
 }

@@ -2400,8 +2400,17 @@ public partial class MainWindow : Window
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => SetStatus($"UDBScript run requested: {script.Name}");
         _udbScriptDocker.EditRequested += script => SetStatus($"UDBScript edit requested: {script.Name}");
-        _udbScriptDocker.ResetOptionsRequested += script => SetStatus($"UDBScript reset options requested: {script.Name}");
+        _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
         _udbScriptDocker.Show(this);
+    }
+
+    private void ResetUdbScriptOptions(UdbScriptInfo script)
+    {
+        UdbScriptDockerResetOptionsResult result = UdbScriptDockerModel.ResetSelectedScriptOptions(script);
+        if (result.Script is null) return;
+
+        _udbScriptDocker?.ApplyCurrentScript(result.Script);
+        SetStatus($"UDBScript reset options requested: {script.Name} ({result.Operations.Count} setting change(s))");
     }
 
     private void RefreshTagExplorer()
