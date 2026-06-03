@@ -1257,6 +1257,8 @@ public partial class MainWindow : Window
             case "window.dynamic-light-color": OnDynamicLightColor(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
+            case "window.check-map": OnCheckMap(this, new RoutedEventArgs()); return true;
+            case "window.clean-up-geometry": OnCleanUpGeometry(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
             case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;

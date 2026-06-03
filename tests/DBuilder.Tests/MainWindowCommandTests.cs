@@ -67,6 +67,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
     [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
     [InlineData("window.export-idstudio", "OnExportIdStudio")]
+    [InlineData("window.check-map", "OnCheckMap")]
+    [InlineData("window.clean-up-geometry", "OnCleanUpGeometry")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
