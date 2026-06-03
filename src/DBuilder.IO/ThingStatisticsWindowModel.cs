@@ -8,6 +8,9 @@ public static class ThingStatisticsWindowModel
     public static string HeaderText(int thingCount, int rowCount)
         => $"{CountLabel(thingCount, "thing")}, {CountLabel(rowCount, "type row")}.";
 
+    public static string TypeActivatedStatusText(int type, int thingCount)
+        => $"Thing type {type}: {CountLabel(thingCount, "thing")}.";
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }

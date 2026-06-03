@@ -23,6 +23,9 @@ public static class TagWindowModel
         return $"Tag {tag}{label}  ({CountLabel(count, "element")})";
     }
 
+    public static string TagActivatedStatusText(int tag, int elementCount)
+        => $"Tag {tag}: {CountLabel(elementCount, "element")}.";
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }

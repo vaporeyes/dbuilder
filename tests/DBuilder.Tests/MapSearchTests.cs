@@ -806,6 +806,8 @@ public class MapSearchTests
         var labels = new Dictionary<int, string> { [7] = "Exit" };
         Assert.Equal("Tag 7 - Exit  (1 element)", TagWindowModel.TagListRowText(7, 1, labels));
         Assert.Equal("Tag 8  (2 elements)", TagWindowModel.TagListRowText(8, 2, labels));
+        Assert.Equal("Tag 7: 1 element.", TagWindowModel.TagActivatedStatusText(7, 1));
+        Assert.Equal("Tag 8: 2 elements.", TagWindowModel.TagActivatedStatusText(8, 2));
     }
 
     [Fact]
@@ -864,6 +866,8 @@ public class MapSearchTests
         Assert.Equal("0 things, 0 type rows.", ThingStatisticsWindowModel.HeaderText(0, 0));
         Assert.Equal("1 thing, 1 type row.", ThingStatisticsWindowModel.HeaderText(1, 1));
         Assert.Equal("2 things, 3 type rows.", ThingStatisticsWindowModel.HeaderText(2, 3));
+        Assert.Equal("Thing type 3001: 1 thing.", ThingStatisticsWindowModel.TypeActivatedStatusText(3001, 1));
+        Assert.Equal("Thing type 3001: 2 things.", ThingStatisticsWindowModel.TypeActivatedStatusText(3001, 2));
     }
 
     [Fact]

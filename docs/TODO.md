@@ -938,8 +938,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port tag statistics dialog.
   - [x] Display and edit UDB-compatible tag labels from map options.
   - [x] Add testable Tags and Used Tags window header and row formatting.
+  - [x] Add UDB-style singular and plural labels to tag activation status text.
 - [x] Port thing statistics dialog.
   - [x] Add testable Thing Types window header formatting with singular and plural labels.
+  - [x] Add UDB-style singular and plural labels to thing type activation status text.
 - [ ] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.
   - [x] Persist grid setup through UDB-compatible map options.
@@ -1939,6 +1941,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
   - [x] Wire editor Tag Explorer persisted options and live refresh from map and tag-label changes.
   - [x] Add testable Tag Explorer flattened tree row model for window navigation.
+  - [x] Add UDB-style singular and plural labels to Tag Explorer activation status text.
 - [ ] Port tag range tools.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.

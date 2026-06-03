@@ -2578,7 +2578,7 @@ public partial class MainWindow : Window
             var r = ConfiguredTagSearch.Find(_map, tag.ToString(), _config);
             MapView.RevealSelection(mode ?? MapControl.EditMode.Linedefs, r.Focus);
             UpdateInfo();
-            SetStatus($"Tag {tag}: {r.Count} element(s).");
+            SetStatus(TagWindowModel.TagActivatedStatusText(tag, r.Count));
         };
         win.Show(this);
     }
@@ -2895,7 +2895,7 @@ public partial class MainWindow : Window
             var r = MapSearch.Find(_map, FindCategory.ThingType, type.ToString());
             MapView.RevealSelection(MapControl.EditMode.Things, r.Focus);
             UpdateInfo();
-            SetStatus($"Thing type {type}: {r.Count} thing(s).");
+            SetStatus(ThingStatisticsWindowModel.TypeActivatedStatusText(type, r.Count));
         };
         win.Show(this);
     }
@@ -4265,7 +4265,7 @@ public partial class MainWindow : Window
             var r = ConfiguredTagSearch.Find(_map, tag.ToString(), _config);
             MapView.RevealSelection(MapControl.EditMode.Linedefs, r.Focus);
             UpdateInfo();
-            SetStatus($"Tag {tag}: {r.Count} element(s).");
+            SetStatus(TagWindowModel.TagActivatedStatusText(tag, r.Count));
         };
         win.Show(this);
     }
