@@ -322,7 +322,7 @@ public class MapSet : IDisposable
     /// <summary>Creates a deep copy of the marked geometry, using a virtual sector for unmarked adjacent sectors.</summary>
     public MapSet CloneMarked()
     {
-        var clone = new MapSet();
+        var clone = new MapSet { Namespace = Namespace };
         var vertexMap = new Dictionary<Vertex, Vertex>(ReferenceEqualityComparer.Instance);
         var sectorMap = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
         Sector? virtualSector = null;

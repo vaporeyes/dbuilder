@@ -157,6 +157,7 @@ public class MapSetCloneTests
 
         var clone = map.CloneMarked();
 
+        Assert.Equal(map.Namespace, clone.Namespace);
         Assert.Equal(2, clone.Vertices.Count);
         Assert.Single(clone.Linedefs);
         Assert.Equal(2, clone.Sidedefs.Count);
