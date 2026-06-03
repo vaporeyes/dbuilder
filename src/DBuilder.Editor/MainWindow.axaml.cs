@@ -1205,6 +1205,10 @@ public partial class MainWindow : Window
             case "window.rotate-selection-ccw": OnRotateCCW(this, new RoutedEventArgs()); return true;
             case "window.scale-selection-up": OnScaleUp(this, new RoutedEventArgs()); return true;
             case "window.scale-selection-down": OnScaleDown(this, new RoutedEventArgs()); return true;
+            case "window.align-floor-to-front": OnAlignFloorToFront(this, new RoutedEventArgs()); return true;
+            case "window.align-floor-to-back": OnAlignFloorToBack(this, new RoutedEventArgs()); return true;
+            case "window.align-ceiling-to-front": OnAlignCeilingToFront(this, new RoutedEventArgs()); return true;
+            case "window.align-ceiling-to-back": OnAlignCeilingToBack(this, new RoutedEventArgs()); return true;
             case "window.make-door": OnMakeDoor(this, new RoutedEventArgs()); return true;
             case "window.tag-range": OnTagRange(this, new RoutedEventArgs()); return true;
             case "window.blockmap-explorer": OnBlockmapExplorer(this, new RoutedEventArgs()); return true;

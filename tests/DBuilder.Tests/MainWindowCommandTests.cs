@@ -23,6 +23,10 @@ public sealed class MainWindowCommandTests
     [InlineData("window.rotate-selection-ccw", "OnRotateCCW")]
     [InlineData("window.scale-selection-up", "OnScaleUp")]
     [InlineData("window.scale-selection-down", "OnScaleDown")]
+    [InlineData("window.align-floor-to-front", "OnAlignFloorToFront")]
+    [InlineData("window.align-floor-to-back", "OnAlignFloorToBack")]
+    [InlineData("window.align-ceiling-to-front", "OnAlignCeilingToFront")]
+    [InlineData("window.align-ceiling-to-back", "OnAlignCeilingToBack")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

@@ -462,6 +462,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.align-floor-to-front", "Align Floor to Front Side")]
+    [InlineData("window.align-floor-to-back", "Align Floor to Back Side")]
+    [InlineData("window.align-ceiling-to-front", "Align Ceiling to Front Side")]
+    [InlineData("window.align-ceiling-to-back", "Align Ceiling to Back Side")]
+    public void WindowFlatAlignmentCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("window.create-prefab", "Create Prefab")]
     [InlineData("window.insert-prefab-file", "Insert Prefab File")]
     [InlineData("window.insert-previous-prefab", "Insert Previous Prefab")]
