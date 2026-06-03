@@ -930,11 +930,16 @@ public static class DecorateParser
     {
         stopParsing = false;
         i++; // keyword
-        if (i >= t.Count || !IsNameToken(t[i])) return null;
+        if (i >= t.Count || !IsNameToken(t[i]))
+        {
+            stopParsing = headerNum;
+            return null;
+        }
         string className = t[i++].Text;
         if (className.Length == 0)
         {
             SkipDeclaration(t, ref i);
+            stopParsing = headerNum;
             return null;
         }
         var actor = new ActorInfo
@@ -971,6 +976,7 @@ public static class DecorateParser
                 else
                 {
                     SkipDeclaration(t, ref i);
+                    stopParsing = headerNum;
                     return null;
                 }
                 hasParent = true;
@@ -983,6 +989,7 @@ public static class DecorateParser
                 else
                 {
                     SkipDeclaration(t, ref i);
+                    stopParsing = headerNum;
                     return null;
                 }
                 hasReplacement = true;

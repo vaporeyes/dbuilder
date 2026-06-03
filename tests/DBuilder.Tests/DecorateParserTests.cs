@@ -337,9 +337,13 @@ ACTOR GoodHeader 6004
     }
 
     [Fact]
-    public void SkipsDecorateActorsWithEmptyHeaderNames()
+    public void EmptyDecorateActorHeaderNamesStopParsingLikeUdb()
     {
         const string text = @"
+ACTOR BeforeEmptyHeaderName 6004
+{
+    Radius 8
+}
 ACTOR """" 6005
 {
     Radius 64
@@ -359,9 +363,9 @@ ACTOR GoodHeader 6008
 
         var actor = DecorateParser.Parse(text).Single();
 
-        Assert.Equal("GoodHeader", actor.ClassName);
-        Assert.Equal(6008, actor.DoomEdNum);
-        Assert.Equal(16, actor.Radius);
+        Assert.Equal("BeforeEmptyHeaderName", actor.ClassName);
+        Assert.Equal(6004, actor.DoomEdNum);
+        Assert.Equal(8, actor.Radius);
     }
 
     [Fact]
