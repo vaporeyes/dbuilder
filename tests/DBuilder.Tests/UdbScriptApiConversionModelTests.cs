@@ -1657,6 +1657,35 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperThreadsHighlightedSurfaceStateToNestedWrappers()
+    {
+        var (map, first, _, shared) = CreateTwoSharedSectors();
+        Sidedef side = shared.Front!;
+        var sidePart = new UdbScriptHighlightedSidedefPart(side, SidedefPart.Middle);
+        var sectorSurface = new UdbScriptHighlightedSectorSurface(first, FloorHighlighted: true, CeilingHighlighted: false);
+
+        UdbScriptSidedefWrapper sideWrapper = Assert.Single(
+            new UdbScriptMapWrapper(map, highlightedObject: sidePart).getSidedefs(),
+            wrapper => ReferenceEquals(side, wrapper.Sidedef));
+        UdbScriptSectorWrapper sectorWrapper = Assert.Single(
+            new UdbScriptMapWrapper(map, highlightedObject: sectorSurface).getSectors(),
+            wrapper => ReferenceEquals(first, wrapper.Sector));
+
+        Assert.False(sideWrapper.upperHighlighted);
+        Assert.True(sideWrapper.middleHighlighted);
+        Assert.False(sideWrapper.lowerHighlighted);
+        Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: sidePart).getHighlightedLinedef()!.Linedef);
+        Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).upperHighlighted);
+        Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).middleHighlighted);
+        Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).lowerHighlighted);
+        Assert.True(sectorWrapper.floorHighlighted);
+        Assert.False(sectorWrapper.ceilingHighlighted);
+        Assert.Same(first, new UdbScriptMapWrapper(map, highlightedObject: sectorSurface).getHighlightedSector()!.Sector);
+        Assert.True(new UdbScriptSectorWrapper(first, highlightedObject: first).floorHighlighted);
+        Assert.True(new UdbScriptSectorWrapper(first, highlightedObject: first).ceilingHighlighted);
+    }
+
+    [Fact]
     public void MapWrapperSelectedOrHighlightedUsesSelectedElementsFirst()
     {
         var map = new MapSet();
