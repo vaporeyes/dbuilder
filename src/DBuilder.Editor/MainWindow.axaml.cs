@@ -5963,6 +5963,8 @@ public partial class MainWindow : Window
     {
         bool hasMap = _map is not null;
         bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
+        bool hasResources = _resources is not null;
+        bool canBrowseCatalogs = hasMap && _config is not null;
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));
         bool hasSelection = hasMap && CountSelection() > 0;
@@ -6006,6 +6008,7 @@ public partial class MainWindow : Window
         bool canUndo = _undo?.CanUndo == true;
         bool canRedo = _undo?.CanRedo == true;
         bool canEditUsdf = hasMap && UsdfDialogueParser.CanEditDialogue(_config);
+        bool canFilterThingCategories = hasMap && _config is { Things.Count: > 0 };
         bool canInsertPreviousPrefab = hasMap
             && !string.IsNullOrWhiteSpace(_lastPrefabPath)
             && System.IO.File.Exists(_lastPrefabPath);
@@ -6021,7 +6024,8 @@ public partial class MainWindow : Window
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
-            Toggle3DFloorsMenuItem, ThingFilterMenuItem, ToggleDynamicGridSizeMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
+            Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,
+            ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, SoundPropagationMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
@@ -6034,7 +6038,10 @@ public partial class MainWindow : Window
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
+        SetEnabled(canFilterThingCategories, ThingFilterMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
+        SetEnabled(hasResources, BrowseWallTexturesMenuItem, BrowseFlatsMenuItem);
+        SetEnabled(canBrowseCatalogs, BrowseThingsMenuItem, BrowseLinedefActionsMenuItem, BrowseSectorEffectsMenuItem);
         SetEnabled(hasSelection,
             CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
@@ -6053,7 +6060,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedUdmfLinedef,
             AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
-        SetEnabled(hasSelectedSector, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
+        SetEnabled(hasSelectedSector && hasResources, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasGradientSectors,
             SectorGradientsMenuItem, GradientFloorHeightsMenuItem, GradientCeilingHeightsMenuItem, GradientBrightnessMenuItem,
             GradientFloorLightMenuItem, GradientCeilingLightMenuItem, GradientLightColorMenuItem, GradientFadeColorMenuItem,
