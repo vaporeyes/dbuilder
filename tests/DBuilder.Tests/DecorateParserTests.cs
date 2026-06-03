@@ -1524,6 +1524,48 @@ ACTOR HereticOnlyOverrideThing
     }
 
     [Fact]
+    public void MergeActorsPrefersActorMetadataForDoomEdNumsOverrides()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        31021
+        {
+            title = ""Configured Thing"";
+            sprite = ""CONF A0"";
+            class = ""ConfiguredActor"";
+        }
+    }
+}";
+        const string decorate = @"
+#region Decorate Overrides
+ACTOR ConfiguredActor 31021
+{
+    //$Title ""Decorate Thing""
+    States { Spawn: DOVR A -1 stop }
+}
+#endregion";
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate), new Dictionary<int, string>
+        {
+            [32021] = "ConfiguredActor"
+        });
+
+        var original = gc.GetThing(31021);
+        Assert.NotNull(original);
+        Assert.Equal("monsters", original!.Category);
+
+        var mapped = gc.GetThing(32021);
+        Assert.NotNull(mapped);
+        Assert.Equal("ConfiguredActor", mapped!.ClassName);
+        Assert.Equal("Decorate Thing", mapped.Title);
+        Assert.Equal("Decorate Overrides", mapped.Category);
+        Assert.Equal("DOVRA0", mapped.Sprite);
+    }
+
+    [Fact]
     public void MergeActorsParsesSeparatedNegativeNumericProperties()
     {
         const string text = @"

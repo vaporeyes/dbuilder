@@ -773,17 +773,17 @@ public sealed class GameConfiguration
             if (things.TryGetValue(num, out var existing) && string.Equals(existing.ClassName, cls, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            int sourceNum = FindThingByClass(cls);
-            if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
-            {
-                things[num] = CopyThingInfo(source, num);
-                continue;
-            }
-
             if (allActorsByClass.TryGetValue(cls, out var actor))
             {
                 var inherited = actor.ParentName != null ? FindThingInfoByClass(actor.ParentName) : null;
                 things[num] = BuildThingInfo(actor, num, existing: null, inherited, cvars);
+                continue;
+            }
+
+            int sourceNum = FindThingByClass(cls);
+            if (sourceNum >= 0 && things.TryGetValue(sourceNum, out var source))
+            {
+                things[num] = CopyThingInfo(source, num);
             }
         }
     }

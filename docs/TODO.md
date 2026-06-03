@@ -751,6 +751,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Filter DECORATE actors by game metadata and configured supported games.
   - [x] Apply MAPINFO `DoomEdNums` `none` removals after actor merging.
   - [x] Apply MAPINFO `DoomEdNums` overrides from archived unsupported actors like UDB.
+  - [x] Prefer actor metadata over existing thing copies for MAPINFO `DoomEdNums` overrides.
   - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
 - [ ] Add parser fixtures from real-world mod patterns.
 
