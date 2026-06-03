@@ -5941,6 +5941,7 @@ public partial class MainWindow : Window
     private void UpdateCommandCheckedState()
     {
         SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
+        SetChecked(InfoPanelMenuItem, InfoPanel.IsVisible);
         SetChecked(VerticesModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Vertices && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
         SetChecked(LinedefsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Linedefs && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);
         SetChecked(SectorsModeMenuItem, MapView.CurrentEditMode == MapControl.EditMode.Sectors && !MapView.In3DMode && !MapView.AutomapMode && !MapView.WadAuthorMode);

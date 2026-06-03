@@ -137,6 +137,15 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void InfoPanelCheckedStateRefreshesFromPanelVisibility()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetChecked(InfoPanelMenuItem, InfoPanel.IsVisible);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"window.toggle-info-panel\"", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void UsdfMenuLabelMatchesDialogEditorToolSurface()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));

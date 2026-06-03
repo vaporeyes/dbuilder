@@ -137,6 +137,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut bindings in menu item tooltips.
 - [ ] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
+  - [x] Reflect Info Panel visibility in its menu checkmark.
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
   - [x] Show repeatable command state in the Help shortcut reference.
 - [ ] Port command availability rules for selection, mode, and map state.
