@@ -617,6 +617,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port CVARINFO parser.
   - [x] Allow UDB-style flag-only CVARINFO prefixes before types.
   - [x] Validate typed CVARINFO default values and duplicate names.
+  - [x] Stop CVARINFO parsing on invalid declarations like UDB.
 - [x] Port REVERBS parser.
   - [x] Use UDB-style ordinal names and sorted environment order.
   - [x] Stop REVERBS parsing on empty names and malformed ids like UDB.

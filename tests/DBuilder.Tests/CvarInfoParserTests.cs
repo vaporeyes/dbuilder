@@ -74,9 +74,10 @@ local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
     }
 
     [Fact]
-    public void SkipsDeclarationsWithInvalidTypedDefaults()
+    public void InvalidTypedDefaultsStopParsingLikeUdb()
     {
         const string text = @"
+user int good_before = 1;
 user int bad_int = nope;
 user float bad_float = nope;
 user bool bad_bool = maybe;
@@ -88,26 +89,41 @@ user color good_color = ""#2040ff"";";
 
         var info = CvarInfoParser.Parse(text);
 
+        Assert.Contains(info.Variables, c => c.Name == "good_before");
         Assert.DoesNotContain(info.Variables, c => c.Name == "bad_int");
         Assert.DoesNotContain(info.Variables, c => c.Name == "bad_float");
         Assert.DoesNotContain(info.Variables, c => c.Name == "bad_bool");
         Assert.DoesNotContain(info.Variables, c => c.Name == "bad_color");
-        Assert.Contains(info.Variables, c => c.Name == "good_int");
-        Assert.Contains(info.Variables, c => c.Name == "good_float");
-        Assert.Contains(info.Variables, c => c.Name == "good_bool");
-        Assert.Contains(info.Variables, c => c.Name == "good_color");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "good_int");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "good_float");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "good_bool");
+        Assert.DoesNotContain(info.Variables, c => c.Name == "good_color");
     }
 
     [Fact]
-    public void KeepsFirstCvarDefinitionWhenDuplicated()
+    public void DuplicateCvarDefinitionsStopParsingLikeUdb()
     {
         const string text = @"
 user int duplicate_cvar = 1;
-user int duplicate_cvar = 2;";
+user int duplicate_cvar = 2;
+user int later_cvar = 3;";
 
         var variable = Assert.Single(CvarInfoParser.Parse(text).Variables);
 
         Assert.Equal("duplicate_cvar", variable.Name);
         Assert.Equal("1", variable.DefaultValue);
+    }
+
+    [Fact]
+    public void UnknownPrefixesStopParsingLikeUdb()
+    {
+        const string text = @"
+user int before = 1;
+ignored int nope = 0;
+user int after = 2;";
+
+        var info = CvarInfoParser.Parse(text);
+
+        Assert.Equal(new[] { "before" }, info.Variables.Select(c => c.Name).ToArray());
     }
 }

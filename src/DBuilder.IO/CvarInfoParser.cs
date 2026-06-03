@@ -62,12 +62,12 @@ public static class CvarInfoParser
                 }
             }
 
-            if (invalidDeclaration) continue;
+            if (invalidDeclaration) return info;
 
             if (i >= t.Count || !Types.Contains(t[i]))
             {
                 SkipDeclaration(t, ref i);
-                continue;
+                return info;
             }
 
             string type = t[i++];
@@ -96,8 +96,8 @@ public static class CvarInfoParser
             }
             while (i < t.Count && t[i] != ";") i++;
             if (i < t.Count) i++;
-            if (!IsValidDefaultValue(variable.Type, variable.DefaultValue)) continue;
-            if (!names.Add(variable.Name)) continue;
+            if (!IsValidDefaultValue(variable.Type, variable.DefaultValue)) return info;
+            if (!names.Add(variable.Name)) return info;
             info.Variables.Add(variable);
         }
         return info;
