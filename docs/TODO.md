@@ -1370,6 +1370,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript classic map-format propagation through nested sidedef and sector wrappers.
   - [x] Add UDBScript top-level host progress, logging, message, exit, and die behavior model.
   - [x] Add UDBScript top-level host message dialog metadata model.
+  - [x] Add UDBScript top-level host MessageForm UI metadata model.
   - [x] Add UDBScript top-level host API property surface metadata.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
@@ -1704,6 +1705,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript classic map-format propagation through nested sidedef and sector wrappers.
 - [x] Add UDBScript top-level host progress, logging, message, exit, and die behavior model.
 - [x] Add UDBScript top-level host message dialog metadata model.
+- [x] Add UDBScript top-level host MessageForm UI metadata model.
 - [x] Add UDBScript top-level host API property surface metadata.
 - [ ] Port script discovery and execution.
 - [ ] Port script options.

@@ -120,9 +120,15 @@ public sealed record UdbScriptRuntimeConstraintPrompt(
     string Message);
 
 public sealed record UdbScriptMessageDialogPlan(
+    string Title,
     string PrimaryButtonText,
     string? SecondaryButtonText,
+    string AbortButtonText,
+    string AbortConfirmationTitle,
+    string AbortConfirmationMessage,
     string Message,
+    bool MessageReadOnly,
+    string MessageScrollBars,
     bool StopStopwatchBeforeDialog,
     bool StartStopwatchAfterDialog);
 
@@ -336,9 +342,14 @@ public static class UdbScriptRunnerModel
     public const string RuntimeConstraintPromptTitle = "Script";
     public const string RuntimeConstraintPromptMessage = "The script has been running for some time, want to stop it?";
     public const string UserAbortStatusText = "Script aborted";
+    public const string MessageDialogTitle = "Script Message";
     public const string MessageDialogOkButtonText = "OK";
     public const string MessageDialogYesButtonText = "Yes";
     public const string MessageDialogNoButtonText = "No";
+    public const string MessageDialogAbortButtonText = "Abort script";
+    public const string MessageDialogAbortConfirmationTitle = "Abort script";
+    public const string MessageDialogAbortConfirmationMessage = "Are you sure you want to abort the script?";
+    public const string MessageDialogScrollBars = "Both";
     public const string ScriptFinishedTitle = "Script finished";
     public const string CloseButtonText = "Close";
     public const string ErrorDialogTitle = "Script Error";
@@ -638,9 +649,15 @@ public static class UdbScriptRunnerModel
 
     public static UdbScriptMessageDialogPlan MessageDialogPlan(object? message, bool yesNo)
         => new(
+            MessageDialogTitle,
             yesNo ? MessageDialogYesButtonText : MessageDialogOkButtonText,
             yesNo ? MessageDialogNoButtonText : null,
-            message?.ToString() ?? "",
+            MessageDialogAbortButtonText,
+            MessageDialogAbortConfirmationTitle,
+            MessageDialogAbortConfirmationMessage,
+            NormalizeMessageDialogText(message),
+            MessageReadOnly: true,
+            MessageDialogScrollBars,
             StopStopwatchBeforeDialog: true,
             StartStopwatchAfterDialog: true);
 
@@ -648,6 +665,9 @@ public static class UdbScriptRunnerModel
         => new(
             result == UdbScriptMessageResult.Abort,
             result is UdbScriptMessageResult.Ok or UdbScriptMessageResult.Yes);
+
+    private static string NormalizeMessageDialogText(object? message)
+        => (message?.ToString() ?? "").Replace("\n", Environment.NewLine);
 
     public static UdbScriptRunSourcePlan BuildSourcePlan(string appPath, string scriptFile)
     {

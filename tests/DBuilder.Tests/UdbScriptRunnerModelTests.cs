@@ -401,20 +401,26 @@ public class UdbScriptRunnerModelTests
     public void MessageDialogPlansMatchUdbShowMessageBranches()
     {
         UdbScriptMessageDialogPlan ok = UdbScriptRunnerModel.MessageDialogPlan(null, yesNo: false);
-        UdbScriptMessageDialogPlan yesNo = UdbScriptRunnerModel.MessageDialogPlan("continue", yesNo: true);
+        UdbScriptMessageDialogPlan yesNo = UdbScriptRunnerModel.MessageDialogPlan("continue\nnow", yesNo: true);
         UdbScriptMessageDialogResultPlan okResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Ok);
         UdbScriptMessageDialogResultPlan yesResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Yes);
         UdbScriptMessageDialogResultPlan noResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.No);
         UdbScriptMessageDialogResultPlan abortResult = UdbScriptRunnerModel.MessageDialogResultPlan(UdbScriptMessageResult.Abort);
 
+        Assert.Equal("Script Message", ok.Title);
         Assert.Equal("OK", ok.PrimaryButtonText);
         Assert.Null(ok.SecondaryButtonText);
+        Assert.Equal("Abort script", ok.AbortButtonText);
+        Assert.Equal("Abort script", ok.AbortConfirmationTitle);
+        Assert.Equal("Are you sure you want to abort the script?", ok.AbortConfirmationMessage);
         Assert.Equal("", ok.Message);
+        Assert.True(ok.MessageReadOnly);
+        Assert.Equal("Both", ok.MessageScrollBars);
         Assert.True(ok.StopStopwatchBeforeDialog);
         Assert.True(ok.StartStopwatchAfterDialog);
         Assert.Equal("Yes", yesNo.PrimaryButtonText);
         Assert.Equal("No", yesNo.SecondaryButtonText);
-        Assert.Equal("continue", yesNo.Message);
+        Assert.Equal("continue" + Environment.NewLine + "now", yesNo.Message);
         Assert.False(okResult.ThrowUserAbortException);
         Assert.True(okResult.ReturnValue);
         Assert.True(yesResult.ReturnValue);
