@@ -59,7 +59,7 @@ public sealed class StatusHistoryWindow : Window
 
     private void RefreshRows()
     {
-        _header.Text = _entries.Count == 0 ? "No status messages yet." : $"{_entries.Count} recent status message(s).";
+        _header.Text = StatusHistory.HeaderTextFor(_entries);
         _header.Foreground = _entries.Count == 0 ? Brushes.LightGreen : Brushes.LightSkyBlue;
 
         _rows.Children.Clear();

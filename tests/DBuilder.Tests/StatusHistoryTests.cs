@@ -45,12 +45,17 @@ public class StatusHistoryTests
         var timestamp = new DateTimeOffset(2026, 5, 29, 12, 0, 0, TimeSpan.Zero);
         var history = new StatusHistory(clock: () => timestamp);
 
+        Assert.Equal("No status messages yet.", history.HeaderText);
+
         history.Add("first");
+        Assert.Equal("1 recent status message.", history.HeaderText);
+
         history.Add("second");
 
         Assert.Equal("second", history.Entries[0].Message);
         Assert.Equal("first", history.Entries[1].Message);
         Assert.Equal(timestamp, history.Entries[0].Timestamp);
+        Assert.Equal("2 recent status messages.", history.HeaderText);
     }
 
     [Fact]

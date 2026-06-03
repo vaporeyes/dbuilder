@@ -17,6 +17,13 @@ public sealed class StatusHistory
 
     public IReadOnlyList<StatusHistoryEntry> Entries => _entries;
 
+    public string HeaderText => HeaderTextFor(Entries);
+
+    public static string HeaderTextFor(IReadOnlyList<StatusHistoryEntry> entries)
+        => entries.Count == 0
+            ? "No status messages yet."
+            : $"{CountLabel(entries.Count, "recent status message")}.";
+
     public StatusHistory(int capacity = 100, Func<DateTimeOffset>? clock = null)
     {
         if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity));
@@ -39,4 +46,7 @@ public sealed class StatusHistory
     }
 
     public void Clear() => _entries.Clear();
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
