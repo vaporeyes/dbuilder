@@ -1269,6 +1269,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
   - [x] Add UDBScript feature-version gate continue and ignore-version branch plan.
   - [x] Add UDBScript feature-version confirmation dialog and runner prompt hook.
+  - [x] Wire UDBScript runner startup through the feature-version prompt.
   - [x] Add UDBScript script engine setup option and binding plan.
   - [x] Add UDBScript runner binding input plan and editor logging.
   - [x] Add UDBScript runtime constraint prompt metadata and source import planning.
@@ -1638,6 +1639,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner lifecycle metadata, version gate, runtime formatting, and exception outcomes.
 - [x] Add UDBScript feature-version gate continue and ignore-version branch plan.
 - [x] Add UDBScript feature-version confirmation dialog and runner prompt hook.
+- [x] Wire UDBScript runner startup through the feature-version prompt.
 - [x] Add UDBScript script engine setup option and binding plan.
 - [x] Add UDBScript runner binding input plan and editor logging.
 - [x] Add UDBScript runtime constraint prompt metadata and source import planning.

@@ -1285,9 +1285,22 @@ public partial class MainWindow : Window
         return runner;
     }
 
-    private void RunUdbScriptInRunner(UdbScriptRunnerWindow runner, UdbScriptInfo script)
+    private async void RunUdbScriptInRunner(UdbScriptRunnerWindow runner, UdbScriptInfo script)
     {
         runner.MarkRunning();
+        UdbScriptVersionGateDecision versionDecision = await runner.ConfirmFeatureVersionAsync(
+            script.Version,
+            ignoreVersion: false);
+        if (!versionDecision.ShouldContinue)
+        {
+            runner.ApplyLog($"Script feature version rejected: {script.Version}");
+            runner.Finish(runner.ElapsedRuntime, autoClose: false);
+            SetStatus($"UDBScript feature version rejected: {script.Name}");
+            return;
+        }
+        if (versionDecision.SetIgnoreVersion)
+            runner.ApplyLog($"Script feature version accepted: {script.Version}");
+
         UdbScriptRunSourcePlan sourcePlan = UdbScriptRunnerModel.BuildSourcePlan(AppContext.BaseDirectory, script.ScriptFile);
         runner.ApplyStatus($"Preparing script: {script.Name}");
         runner.ApplyLog($"Script: {sourcePlan.Script.EngineSourceName}");
