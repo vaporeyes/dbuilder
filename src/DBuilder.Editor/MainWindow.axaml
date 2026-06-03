@@ -192,7 +192,7 @@
                     <Separator />
                     <MenuItem Header="_Next Model Rendering Mode" x:Name="NextModelRenderModeMenuItem" Click="OnNextModelRenderMode" />
                 </MenuItem>
-                <MenuItem Header="_View Mode">
+                <MenuItem Header="_View Mode" x:Name="ViewModeMenuItem">
                     <MenuItem Header="_Wireframe" x:Name="ViewModeWireframeMenuItem" ToggleType="CheckBox" Click="OnViewModeWireframe" />
                     <MenuItem Header="_Brightness Levels" x:Name="ViewModeBrightnessMenuItem" ToggleType="CheckBox" Click="OnViewModeBrightness" />
                     <MenuItem Header="_Floor Textures" x:Name="ViewModeFloorsMenuItem" ToggleType="CheckBox" Click="OnViewModeFloors" />
