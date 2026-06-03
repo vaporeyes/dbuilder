@@ -239,6 +239,16 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void MemberFilterMatchesUdbVersionGate()
+    {
+        Assert.True(UdbScriptRunnerModel.CanAccessMember("index", scriptVersion: 4));
+        Assert.False(UdbScriptRunnerModel.CanAccessMember("GetType", scriptVersion: 5));
+        Assert.False(UdbScriptRunnerModel.CanAccessMember("blockMap", scriptVersion: 4, minVersion: 5));
+        Assert.True(UdbScriptRunnerModel.CanAccessMember("blockMap", scriptVersion: 5, minVersion: 5));
+        Assert.True(UdbScriptRunnerModel.CanAccessMember("blockMap", scriptVersion: 6, minVersion: 5));
+    }
+
+    [Fact]
     public void RuntimeConstraintPromptMatchesUdbThresholdAndText()
     {
         Assert.Equal(5000, UdbScriptRunnerModel.RuntimeConstraintCheckMilliseconds);

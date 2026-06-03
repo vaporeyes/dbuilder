@@ -235,6 +235,9 @@ public static class UdbScriptRunnerModel
     public static bool UsesLegacyGlobals(uint scriptVersion)
         => scriptVersion < 4;
 
+    public static bool CanAccessMember(string memberName, uint scriptVersion, uint minVersion = 1)
+        => memberName != nameof(GetType) && minVersion <= scriptVersion;
+
     public static string UndoDescription(string scriptName)
         => "Run script " + scriptName;
 
