@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace DBuilder.IO;
@@ -180,6 +181,12 @@ public sealed class ResourceManager : IDisposable
     public ResourceManager(GameConfiguration? configuration = null)
     {
         this.configuration = configuration;
+    }
+
+    public static string ReloadStatusText(int resourceIssueCount)
+    {
+        string issues = resourceIssueCount == 0 ? "" : $" ({CountLabel(resourceIssueCount, "resource")} missing or unreadable)";
+        return $"Resources reloaded{issues}.";
     }
 
     public GameConfiguration? Configuration
@@ -1286,6 +1293,9 @@ public sealed class ResourceManager : IDisposable
 
         return false;
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     public void Dispose()
     {

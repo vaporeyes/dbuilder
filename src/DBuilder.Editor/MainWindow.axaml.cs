@@ -743,8 +743,7 @@ public partial class MainWindow : Window
 
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        string issues = resourceIssues == 0 ? "" : $" ({resourceIssues} resource(s) missing or unreadable)";
-        SetStatus($"Resources reloaded{issues}.");
+        SetStatus(ResourceManager.ReloadStatusText(resourceIssues));
     }
 
     private async Task ApplyFlatToSelectedSectors(bool ceiling)

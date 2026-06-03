@@ -9,6 +9,13 @@ namespace DBuilder.Tests;
 
 public class ResourceManagerTests
 {
+    [Theory]
+    [InlineData(0, "Resources reloaded.")]
+    [InlineData(1, "Resources reloaded (1 resource missing or unreadable).")]
+    [InlineData(2, "Resources reloaded (2 resources missing or unreadable).")]
+    public void ReloadStatusTextFormatsSingularAndPluralResourceIssueCounts(int resourceIssueCount, string expected)
+        => Assert.Equal(expected, ResourceManager.ReloadStatusText(resourceIssueCount));
+
     // A grayscale palette: index i -> (i, i, i), so a flat filled with index v decodes to RGBA (v, v, v, 255).
     private static byte[] GrayscalePlaypal()
     {

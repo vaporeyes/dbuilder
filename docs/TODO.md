@@ -402,6 +402,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let later GLDEFS resources override actor light associations.
   - [x] Let nested WAD flat and texture resources take priority over folder resources within a PK3 like UDB.
   - [x] Let nested WAD sprite and voxel resources take priority over folder resources within a PK3 like UDB.
+  - [x] Add UDB-style singular and plural labels to resource reload status text.
 - [ ] Port lazy and threaded resource loading.
 - [ ] Port palette and colormap behavior fully.
   - [x] Add UDB-style default gray PLAYPAL fallback palette model.
