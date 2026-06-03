@@ -32,6 +32,11 @@ public sealed record UndoRedoPanelState(
     int UndoCount,
     int RedoCount)
 {
+    public string HeaderText
+        => Items.Count == 0
+            ? "No map loaded."
+            : $"{CountLabel(UndoCount, "undo level")}, {CountLabel(RedoCount, "redo level")}. Select a row to jump.";
+
     public UndoRedoPanelOperation OperationForSelection(int selectedIndex)
     {
         if (selectedIndex < 0 || selectedIndex >= Items.Count) return UndoRedoPanelOperation.None;
@@ -43,6 +48,9 @@ public sealed record UndoRedoPanelState(
             ? new UndoRedoPanelOperation(UndoRedoPanelOperationKind.Undo, delta)
             : new UndoRedoPanelOperation(UndoRedoPanelOperationKind.Redo, -delta);
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public static class UndoRedoPanelModel

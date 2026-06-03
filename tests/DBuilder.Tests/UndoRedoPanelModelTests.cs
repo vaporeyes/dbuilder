@@ -19,6 +19,7 @@ public sealed class UndoRedoPanelModelTests
         Assert.Equal("Map loaded", item.Description);
         Assert.Equal(UndoRedoPanelItemKind.Current, item.Kind);
         Assert.Equal(0, state.CurrentSelection);
+        Assert.Equal("0 undo levels, 0 redo levels. Select a row to jump.", state.HeaderText);
         Assert.Equal(UndoRedoPanelOperation.None, state.OperationForSelection(0));
     }
 
@@ -39,6 +40,21 @@ public sealed class UndoRedoPanelModelTests
             item => AssertItem(item, "move 4", UndoRedoPanelItemKind.Redo),
             item => AssertItem(item, "move 5", UndoRedoPanelItemKind.Redo));
         Assert.Equal(3, state.CurrentSelection);
+        Assert.Equal("3 undo levels, 2 redo levels. Select a row to jump.", state.HeaderText);
+    }
+
+    [Fact]
+    public void HeaderTextFormatsEmptyAndSingularLevelCounts()
+    {
+        var empty = new UndoRedoPanelState(Array.Empty<UndoRedoPanelItem>(), -1, 0, 0);
+        Assert.Equal("No map loaded.", empty.HeaderText);
+
+        UndoRedoPanelState state = UndoRedoPanelModel.Build(
+            "Map loaded",
+            new[] { "move 1" },
+            new[] { "move 2" });
+
+        Assert.Equal("1 undo level, 1 redo level. Select a row to jump.", state.HeaderText);
     }
 
     [Fact]

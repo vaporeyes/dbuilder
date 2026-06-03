@@ -52,9 +52,7 @@ public sealed class UndoRedoPanelWindow : Window
     public void SetState(UndoRedoPanelState state)
     {
         CurrentState = state;
-        _header.Text = state.Items.Count == 0
-            ? "No map loaded."
-            : $"{state.UndoCount} undo level(s), {state.RedoCount} redo level(s). Select a row to jump.";
+        _header.Text = state.HeaderText;
 
         var rows = new List<ListBoxItem>();
         foreach (UndoRedoPanelItem item in state.Items)
