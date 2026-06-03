@@ -170,6 +170,20 @@ public sealed record UdbScriptRunnerUiState(
     double Opacity,
     bool AutoClose);
 
+public sealed record UdbScriptRunScriptWorkflowPlan(
+    bool CreateProgressCallbacks,
+    bool SetRunningBeforePreRun,
+    bool InvokePreRun,
+    bool RunOnBackgroundTask,
+    bool StopStopwatchAfterRun,
+    bool HandleExceptions,
+    bool InvokePostRun,
+    bool ClearRunningAfterPostRun,
+    UdbScriptRunnerUiState FinishedState,
+    int ResetProgressValue,
+    bool ForceContinuousProgressStyle,
+    bool CloseWhenAutoClose);
+
 public sealed class UdbScriptUserAbortException : Exception
 {
     public UdbScriptUserAbortException()
@@ -385,6 +399,24 @@ public static class UdbScriptRunnerModel
             false,
             autoClose ? 0.0 : 1.0,
             autoClose);
+
+    public static UdbScriptRunScriptWorkflowPlan RunScriptWorkflowPlan(
+        TimeSpan runtime,
+        bool autoClose,
+        bool hasException)
+        => new(
+            CreateProgressCallbacks: true,
+            SetRunningBeforePreRun: true,
+            InvokePreRun: true,
+            RunOnBackgroundTask: true,
+            StopStopwatchAfterRun: true,
+            HandleExceptions: hasException,
+            InvokePostRun: true,
+            ClearRunningAfterPostRun: true,
+            FinishedUiState(runtime, autoClose),
+            ResetProgressValue: 0,
+            ForceContinuousProgressStyle: true,
+            CloseWhenAutoClose: autoClose);
 
     public static UdbScriptRunnerUiState ProgressReportedUiState(UdbScriptRunnerUiState state)
         => state with

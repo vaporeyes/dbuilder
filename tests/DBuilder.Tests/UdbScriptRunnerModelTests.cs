@@ -122,6 +122,43 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunScriptWorkflowPlanMatchesUdbFormOrchestration()
+    {
+        TimeSpan runtime = new(0, 0, 0, 2, 30);
+
+        UdbScriptRunScriptWorkflowPlan success = UdbScriptRunnerModel.RunScriptWorkflowPlan(
+            runtime,
+            autoClose: true,
+            hasException: false);
+
+        Assert.True(success.CreateProgressCallbacks);
+        Assert.True(success.SetRunningBeforePreRun);
+        Assert.True(success.InvokePreRun);
+        Assert.True(success.RunOnBackgroundTask);
+        Assert.True(success.StopStopwatchAfterRun);
+        Assert.False(success.HandleExceptions);
+        Assert.True(success.InvokePostRun);
+        Assert.True(success.ClearRunningAfterPostRun);
+        Assert.Equal("Script finished", success.FinishedState.Title);
+        Assert.Equal("Script finished. Runtime: 00:00:02.30", success.FinishedState.StatusText);
+        Assert.Equal("Close", success.FinishedState.ActionButtonText);
+        Assert.Equal(0, success.ResetProgressValue);
+        Assert.True(success.ForceContinuousProgressStyle);
+        Assert.True(success.CloseWhenAutoClose);
+
+        UdbScriptRunScriptWorkflowPlan failure = UdbScriptRunnerModel.RunScriptWorkflowPlan(
+            runtime,
+            autoClose: false,
+            hasException: true);
+
+        Assert.True(failure.HandleExceptions);
+        Assert.True(failure.StopStopwatchAfterRun);
+        Assert.True(failure.InvokePostRun);
+        Assert.False(failure.CloseWhenAutoClose);
+        Assert.Equal(1.0, failure.FinishedState.Opacity);
+    }
+
+    [Fact]
     public void RunnerTimerAndLogFormattingMatchUdb()
     {
         Assert.False(UdbScriptRunnerModel.ShouldMakeRunnerVisible(TimeSpan.FromMilliseconds(1000)));
