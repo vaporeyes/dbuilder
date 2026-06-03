@@ -241,6 +241,12 @@ public sealed class ColorPickerModelTests
         => Assert.Equal(expected, ColorPickerModel.SectorColorAppliedStatusText(field, sectorCount, new ColorRgb(0x20, 0x40, 0xff)));
 
     [Theory]
+    [InlineData(1, "Set 1 dynamic light to 2040FF.")]
+    [InlineData(2, "Set 2 dynamic lights to 2040FF.")]
+    public void DynamicLightColorAppliedStatusTextFormatsSingularAndPluralCounts(int lightCount, string expected)
+        => Assert.Equal(expected, ColorPickerModel.DynamicLightColorAppliedStatusText(lightCount, new ColorRgb(0x20, 0x40, 0xff)));
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(false, false)]
     public void SectorColorEditingRequiresUdmfLikeUdb(bool isUdmf, bool expected)

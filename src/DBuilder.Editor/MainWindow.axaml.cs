@@ -4503,7 +4503,7 @@ public partial class MainWindow : Window
         ColorPickerModel.ApplyDynamicLightMutations(targets, mutations);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Set {targets.Count} dynamic light(s) to {ColorPickerModel.Format(dlg.ResultColor, ColorPickerInfoMode.Hex)}.");
+        SetStatus(ColorPickerModel.DynamicLightColorAppliedStatusText(targets.Count, dlg.ResultColor));
         MapView.Focus();
     }
 

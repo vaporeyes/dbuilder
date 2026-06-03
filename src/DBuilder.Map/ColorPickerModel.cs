@@ -274,6 +274,9 @@ public static class ColorPickerModel
     public static string SectorColorPickerTitle(int selectedSectorCount)
         => $"Editing {selectedSectorCount} sector{(selectedSectorCount > 1 ? "s" : "")}";
 
+    public static string DynamicLightColorAppliedStatusText(int lightCount, ColorRgb color)
+        => $"Set {CountLabel(lightCount, "dynamic light")} to {Format(color, ColorPickerInfoMode.Hex)}.";
+
     public static string SectorColorAppliedStatusText(SectorColorField field, int sectorCount, ColorRgb color)
         => $"Set {SectorColorFieldName(field)} on {CountLabel(sectorCount, "sector")} to {Format(color, ColorPickerInfoMode.Hex)}.";
 
