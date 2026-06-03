@@ -37,6 +37,7 @@ public static class ShortcutHelpModel
             var rows = commands
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
                 .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings)))
+                .Where(row => row.GestureText != "-")
                 .Where(row => text.Length == 0 || Matches(row, title, text))
                 .ToArray();
 

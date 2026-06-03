@@ -14,13 +14,18 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
             filter: "");
+        int shortcutCount = EditorCommandCatalog.DefaultShortcuts
+            .Select(binding => binding.CommandId)
+            .Distinct(StringComparer.Ordinal)
+            .Count();
 
-        Assert.Equal(EditorCommandCatalog.All.Count, sections.Sum(section => section.Rows.Count));
+        Assert.Equal(shortcutCount, sections.Sum(section => section.Rows.Count));
         Assert.Equal("File and configuration", sections[0].Title);
         Assert.Contains(sections, section => section.Title == "Window editing");
         Assert.Contains(sections, section => section.Title == "2D view and modes");
         Assert.Contains(sections, section => section.Title == "3D navigation");
         Assert.All(sections, section => Assert.Contains(section.Title, ShortcutHelpModel.GroupTitles));
+        Assert.DoesNotContain(sections.SelectMany(section => section.Rows), row => row.GestureText == "-");
     }
 
     [Fact]
@@ -55,6 +60,12 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             "Ctrl/Cmd+S");
         Assert.Contains(gesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+
+        var unbound = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "window.new-map");
+        Assert.Empty(unbound);
     }
 
     [Fact]

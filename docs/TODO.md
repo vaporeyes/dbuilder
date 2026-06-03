@@ -105,6 +105,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist shortcut overrides and merge them with default command bindings.
   - [x] Show effective shortcut bindings in the shortcuts reference window.
   - [x] Edit shortcut overrides from the settings dialog using stable command ids.
+  - [x] Filter Help shortcut sections to commands with effective shortcut bindings.
 - [ ] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.
