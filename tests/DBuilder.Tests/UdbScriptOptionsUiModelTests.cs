@@ -246,6 +246,15 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void EnumValidatingPlanAppliesWithoutHidingEditor()
+    {
+        UdbScriptOptionEnumValidatingPlan plan = UdbScriptOptionsUiModel.EnumValidatingPlan();
+
+        Assert.True(plan.ApplyEnumEditor);
+        Assert.False(plan.HideEnumEditor);
+    }
+
+    [Fact]
     public void CellClickPlanAppliesEnumsAndBeginsValueEdits()
     {
         UdbScriptOptionCellClickPlan valueColumn = UdbScriptOptionsUiModel.CellClickPlan(columnIndex: 1);

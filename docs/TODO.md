@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3423 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3424 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1280,6 +1280,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript script option browse-button state model.
   - [x] Add UDBScript script option selection-change branch model.
   - [x] Add UDBScript script option enum-editor mouse-up branch model.
+  - [x] Add UDBScript script option enum validating branch model.
   - [x] Add UDBScript script option cell-click branch model.
   - [x] Add UDBScript script option end-edit branch model.
   - [x] Add UDBScript script option browse refresh branch model.
@@ -1602,6 +1603,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript script option browse-button state model.
 - [x] Add UDBScript script option selection-change branch model.
 - [x] Add UDBScript script option enum-editor mouse-up branch model.
+- [x] Add UDBScript script option enum validating branch model.
 - [x] Add UDBScript script option cell-click branch model.
 - [x] Add UDBScript script option end-edit branch model.
 - [x] Add UDBScript script option browse refresh branch model.

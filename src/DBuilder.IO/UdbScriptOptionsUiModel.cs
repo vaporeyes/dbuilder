@@ -82,6 +82,10 @@ public sealed record UdbScriptOptionMouseUpPlan(
     bool FocusEnumEditor,
     bool SelectAllEnumEditorText);
 
+public sealed record UdbScriptOptionEnumValidatingPlan(
+    bool ApplyEnumEditor,
+    bool HideEnumEditor);
+
 public sealed record UdbScriptOptionCellClickPlan(
     bool ApplyEnumEditor,
     bool HideEnumEditor,
@@ -187,6 +191,11 @@ public static class UdbScriptOptionsUiModel
         => new(
             FocusEnumEditor: enumEditorVisible,
             SelectAllEnumEditorText: enumEditorVisible);
+
+    public static UdbScriptOptionEnumValidatingPlan EnumValidatingPlan()
+        => new(
+            ApplyEnumEditor: true,
+            HideEnumEditor: false);
 
     public static UdbScriptOptionCellClickPlan CellClickPlan(int columnIndex)
         => new(
