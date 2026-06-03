@@ -23,6 +23,7 @@ public static class ExternalCommandLaunch
         var startInfo = new ProcessStartInfo(invocation.FileName)
         {
             UseShellExecute = false,
+            RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
         if (!string.IsNullOrWhiteSpace(invocation.WorkingDirectory))
@@ -60,11 +61,14 @@ public static class ExternalCommand
             {
                 using var process = Process.Start(startInfo);
                 if (process is null) return ExternalCommandResult.Fail($"{label}: failed to start {invocation.FileName}.");
-                string stderr = process.StandardError.ReadToEnd();
+                var stdout = process.StandardOutput.ReadToEndAsync();
+                var stderr = process.StandardError.ReadToEndAsync();
                 process.WaitForExit();
+                stdout.GetAwaiter().GetResult();
+                string errorText = stderr.GetAwaiter().GetResult();
                 if (settings.ExitCodeIsError && process.ExitCode != 0)
                     return ExternalCommandResult.Fail($"{label}: {invocation.FileName} exited with code {process.ExitCode}.");
-                if (settings.StdErrIsError && !string.IsNullOrWhiteSpace(stderr))
+                if (settings.StdErrIsError && !string.IsNullOrWhiteSpace(errorText))
                     return ExternalCommandResult.Fail($"{label}: {invocation.FileName} wrote to stderr.");
             }
             catch (Exception ex)

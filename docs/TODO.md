@@ -47,6 +47,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prune old autosave snapshots after successful autosave writes.
 - [ ] Port launcher and external command execution behavior.
   - [x] Build testable external command launch plans from parsed command settings.
+  - [x] Drain external command stdout and stderr during pre/post command execution.
 - [x] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
