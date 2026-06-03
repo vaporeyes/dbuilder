@@ -21,6 +21,12 @@ public enum UdbScriptRunnerStatusKind
     Warning,
 }
 
+public enum UdbScriptRunnerActionMode
+{
+    CancelRunningScript,
+    CloseRunner,
+}
+
 public enum UdbScriptMessageResult
 {
     Ok,
@@ -169,6 +175,23 @@ public sealed record UdbScriptRunnerUiState(
     bool ProgressIsMarquee,
     double Opacity,
     bool AutoClose);
+
+public sealed record UdbScriptRunnerStartPlan(
+    bool CreateCancellationTokenSource,
+    bool ResetRunningSeconds,
+    bool ResetProgressValue,
+    bool ClearLog,
+    bool StartTimer,
+    bool StartStopwatch,
+    bool InvokeRunScript,
+    UdbScriptRunnerUiState InitialState);
+
+public sealed record UdbScriptRunnerActionButtonPlan(
+    UdbScriptRunnerActionMode Mode,
+    bool DisableActionButton,
+    bool CancelToken,
+    bool MakeInvisible,
+    bool CloseWindow);
 
 public sealed record UdbScriptRunScriptWorkflowPlan(
     bool CreateProgressCallbacks,
@@ -389,6 +412,32 @@ public static class UdbScriptRunnerModel
             true,
             0.0,
             true);
+
+    public static UdbScriptRunnerStartPlan StartPlan()
+        => new(
+            CreateCancellationTokenSource: true,
+            ResetRunningSeconds: true,
+            ResetProgressValue: true,
+            ClearLog: true,
+            StartTimer: true,
+            StartStopwatch: true,
+            InvokeRunScript: true,
+            InitialUiState());
+
+    public static UdbScriptRunnerActionButtonPlan ActionButtonPlan(bool running)
+        => running
+            ? new(
+                UdbScriptRunnerActionMode.CancelRunningScript,
+                DisableActionButton: true,
+                CancelToken: true,
+                MakeInvisible: false,
+                CloseWindow: false)
+            : new(
+                UdbScriptRunnerActionMode.CloseRunner,
+                DisableActionButton: false,
+                CancelToken: false,
+                MakeInvisible: true,
+                CloseWindow: true);
 
     public static UdbScriptRunnerUiState FinishedUiState(TimeSpan runtime, bool autoClose)
         => new(

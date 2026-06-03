@@ -122,6 +122,43 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerStartAndActionButtonPlansMatchUdbFormBranches()
+    {
+        UdbScriptRunnerStartPlan start = UdbScriptRunnerModel.StartPlan();
+
+        Assert.True(start.CreateCancellationTokenSource);
+        Assert.True(start.ResetRunningSeconds);
+        Assert.True(start.ResetProgressValue);
+        Assert.True(start.ClearLog);
+        Assert.True(start.StartTimer);
+        Assert.True(start.StartStopwatch);
+        Assert.True(start.InvokeRunScript);
+        Assert.Equal("Running script", start.InitialState.Title);
+        Assert.Equal("Running script...", start.InitialState.StatusText);
+        Assert.Equal("Cancel", start.InitialState.ActionButtonText);
+        Assert.False(start.InitialState.ActionButtonEnabled);
+        Assert.True(start.InitialState.ProgressIsMarquee);
+        Assert.Equal(0.0, start.InitialState.Opacity);
+        Assert.True(start.InitialState.AutoClose);
+
+        UdbScriptRunnerActionButtonPlan running = UdbScriptRunnerModel.ActionButtonPlan(running: true);
+
+        Assert.Equal(UdbScriptRunnerActionMode.CancelRunningScript, running.Mode);
+        Assert.True(running.DisableActionButton);
+        Assert.True(running.CancelToken);
+        Assert.False(running.MakeInvisible);
+        Assert.False(running.CloseWindow);
+
+        UdbScriptRunnerActionButtonPlan finished = UdbScriptRunnerModel.ActionButtonPlan(running: false);
+
+        Assert.Equal(UdbScriptRunnerActionMode.CloseRunner, finished.Mode);
+        Assert.False(finished.DisableActionButton);
+        Assert.False(finished.CancelToken);
+        Assert.True(finished.MakeInvisible);
+        Assert.True(finished.CloseWindow);
+    }
+
+    [Fact]
     public void RunScriptWorkflowPlanMatchesUdbFormOrchestration()
     {
         TimeSpan runtime = new(0, 0, 0, 2, 30);
