@@ -98,10 +98,11 @@ public static class ShortcutHelpModel
 
     public static string ModifierText(EditorCommandDescriptor command)
     {
-        var modifiers = new List<string>(3);
+        var modifiers = new List<string>(4);
         if (command.DisregardAccelerator) modifiers.Add("Ctrl/Cmd");
         if (command.DisregardAlt) modifiers.Add("Alt");
         if (command.DisregardShift) modifiers.Add("Shift");
+        if (command.Repeat) modifiers.Add("Repeatable");
         return string.Join(", ", modifiers);
     }
 

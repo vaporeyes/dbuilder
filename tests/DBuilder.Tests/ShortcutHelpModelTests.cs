@@ -141,13 +141,26 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
-    public void ModifierTextListsIgnoredShortcutModifiers()
+    public void ModifierTextListsIgnoredShortcutModifiersAndRepeatableState()
     {
         var command = EditorCommandCatalog.Find("map2d.select");
 
         Assert.NotNull(command);
         Assert.Equal("Ctrl/Cmd, Alt, Shift", ShortcutHelpModel.ModifierText(command));
+        Assert.Equal("Repeatable", ShortcutHelpModel.ModifierText(EditorCommandCatalog.Find("map2d.zoom-in")!));
         Assert.Equal("", ShortcutHelpModel.ModifierText(EditorCommandCatalog.Find("window.save")!));
+    }
+
+    [Fact]
+    public void BuildSectionsFiltersByRepeatableState()
+    {
+        var sections = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "repeatable");
+
+        Assert.Contains(sections.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.zoom-in");
+        Assert.All(sections.SelectMany(section => section.Rows), row => Assert.True(row.Command.Repeat));
     }
 
     [Theory]

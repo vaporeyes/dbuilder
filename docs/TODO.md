@@ -138,6 +138,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
+  - [x] Show repeatable command state in the Help shortcut reference.
 - [ ] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
   - [x] Expose an explicit Properties command for single linedef, sector, and thing selections.
