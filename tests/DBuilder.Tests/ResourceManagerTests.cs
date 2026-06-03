@@ -307,7 +307,7 @@ public class ResourceManagerTests
         using var rm = new ResourceManager();
         rm.AddResource(wad);
 
-        Assert.Equal(1, rm.GetSprite("POSSA0")!.Rgba[0]);
+        Assert.Null(rm.GetSprite("POSSA0"));
 
         rm.Configuration = config;
 

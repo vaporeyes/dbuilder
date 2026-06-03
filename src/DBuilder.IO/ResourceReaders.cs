@@ -56,6 +56,11 @@ internal sealed class WadResourceReader : IResourceReader
     private static readonly Regex Sprite6 = new(@"^\S{4}[A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex Sprite8 = new(@"^\S{4}[A-Za-z\[\]\\][0-8][A-Za-z\[\]\\][0-8]$", RegexOptions.Compiled);
     private static readonly Regex VoxelName = new(@"^\S{4}(([A-Za-z][0-9])?|[A-Za-z]?)$", RegexOptions.Compiled);
+    private static readonly (string Start, string End)[] SpriteRanges =
+    {
+        ("S_START", "S_END"),
+        ("SS_START", "SS_END"),
+    };
     private static readonly (string Start, string End)[] PatchRanges =
     {
         ("P_START", "P_END"),
@@ -113,11 +118,8 @@ internal sealed class WadResourceReader : IResourceReader
     public ImageData? GetSprite(string name, DoomPalette? palette)
     {
         if (palette == null) return null;
-        var rangeLump = FindInRanges(name, ConfiguredSpriteRanges());
-        if (rangeLump != null) return DecodePicture(rangeLump, palette);
-
-        var pic = DoomPictureReader.Decode(wad, name, palette);
-        return pic != null ? new ImageData(pic.Width, pic.Height, pic.Rgba8, pic.OffsetX, pic.OffsetY) : null;
+        var lump = FindSpriteLump(name);
+        return lump != null ? DecodePicture(lump, palette) : null;
     }
 
     public ImageData? GetFlatBase(string name, DoomPalette? palette) => GetFlat(name, palette);
@@ -170,6 +172,27 @@ internal sealed class WadResourceReader : IResourceReader
         if (outsideFlatRanges != null) return outsideFlatRanges;
 
         return FindInsideRanges(name, flatRangeIndices);
+    }
+
+    private Lump? FindSpriteLump(string name)
+    {
+        var configuredSprite = FindInRanges(name, ConfiguredSpriteRanges());
+        if (configuredSprite != null) return configuredSprite;
+
+        foreach (var (startName, endName) in SpriteRanges)
+        {
+            int start = wad.FindLumpIndex(startName);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(endName, start + 1);
+                if (end < 0) break;
+                var lump = wad.FindLump(name, start, end);
+                if (lump != null) return lump;
+                start = wad.FindLumpIndex(startName, end + 1);
+            }
+        }
+
+        return null;
     }
 
     private List<(int Start, int End)> ResolveRanges(IReadOnlyList<ResourceRangeInfo> ranges)

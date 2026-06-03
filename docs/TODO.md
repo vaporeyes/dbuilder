@@ -479,6 +479,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor config-driven texture and flat namespace mixing for lookups and browsers.
   - [x] Resolve and prioritize simple WAD flats from configured flat ranges.
   - [x] Resolve and prioritize WAD sprites from configured sprite ranges.
+  - [x] Restrict WAD sprite lookup to sprite marker and configured sprite ranges like UDB.
   - [x] Resolve and prioritize WAD voxel models from configured voxel ranges.
   - [x] Resolve WAD high-resolution replacements from configured hires ranges.
   - [x] Let nested WAD sprites and voxels override folder entries like UDB.
