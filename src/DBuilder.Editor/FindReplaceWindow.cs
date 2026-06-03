@@ -17,7 +17,7 @@ public sealed class FindReplaceWindow : Window
     private readonly CheckBox _withinSelection;
     private readonly TextBlock _result;
 
-    public FindCategory Category => _category.SelectedItem is CategoryItem ci ? ci.Value : FindCategory.ThingType;
+    public FindCategory Category => _category.SelectedItem is FindCategoryDescriptor descriptor ? descriptor.Category : FindCategory.ThingType;
     public string FindText => _find.Text ?? "";
     public string ReplaceText => _replace.Text ?? "";
     public bool WithinSelection => _withinSelection.IsChecked == true;
@@ -25,8 +25,6 @@ public sealed class FindReplaceWindow : Window
     public event Action? FindRequested;
     public event Action? ReplaceRequested;
     public event Action? NextFreeTagRequested;
-
-    private sealed record CategoryItem(FindCategory Value, string Label) { public override string ToString() => Label; }
 
     public FindReplaceWindow(bool mixTexturesFlats = false)
     {
@@ -39,49 +37,7 @@ public sealed class FindReplaceWindow : Window
         _category = new ComboBox
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            ItemsSource = new[]
-            {
-                new CategoryItem(FindCategory.ThingType, "Thing type"),
-                new CategoryItem(FindCategory.ThingIndex, "Thing index"),
-                new CategoryItem(FindCategory.ThingAngle, "Thing angle"),
-                new CategoryItem(FindCategory.ThingActionArguments, "Thing action and arguments"),
-                new CategoryItem(FindCategory.ThingFlags, "Thing flags"),
-                new CategoryItem(FindCategory.ThingSectorReference, "Thing sector reference"),
-                new CategoryItem(FindCategory.ThingThingReference, "Thing thing reference"),
-                new CategoryItem(FindCategory.LinedefAction, "Linedef action"),
-                new CategoryItem(FindCategory.LinedefActionArguments, "Linedef action and arguments"),
-                new CategoryItem(FindCategory.LinedefIndex, "Linedef index"),
-                new CategoryItem(FindCategory.LinedefFlags, "Linedef flags"),
-                new CategoryItem(FindCategory.LinedefSectorReference, "Linedef sector reference"),
-                new CategoryItem(FindCategory.LinedefThingReference, "Linedef thing reference"),
-                new CategoryItem(FindCategory.SidedefIndex, "Sidedef index"),
-                new CategoryItem(FindCategory.SidedefFlags, "Sidedef flags"),
-                new CategoryItem(FindCategory.SectorEffect, "Sector effect"),
-                new CategoryItem(FindCategory.SectorIndex, "Sector index"),
-                new CategoryItem(FindCategory.SectorFloorHeight, "Sector floor height"),
-                new CategoryItem(FindCategory.SectorCeilingHeight, "Sector ceiling height"),
-                new CategoryItem(FindCategory.SectorBrightness, "Sector brightness"),
-                new CategoryItem(FindCategory.SectorFlags, "Sector flags"),
-                new CategoryItem(FindCategory.Tag, "Tag"),
-                new CategoryItem(FindCategory.LinedefTag, "Linedef tag"),
-                new CategoryItem(FindCategory.SectorTag, "Sector tag"),
-                new CategoryItem(FindCategory.ThingTag, "Thing tag"),
-                new CategoryItem(FindCategory.TextureOrFlat, "Any texture or flat"),
-                new CategoryItem(FindCategory.Texture, "Texture (sidedef)"),
-                new CategoryItem(FindCategory.SidedefUpperTexture, "Texture (upper)"),
-                new CategoryItem(FindCategory.SidedefMiddleTexture, "Texture (middle)"),
-                new CategoryItem(FindCategory.SidedefLowerTexture, "Texture (lower)"),
-                new CategoryItem(FindCategory.Flat, "Flat (sector)"),
-                new CategoryItem(FindCategory.SectorFloorFlat, "Flat (floor)"),
-                new CategoryItem(FindCategory.SectorCeilingFlat, "Flat (ceiling)"),
-                new CategoryItem(FindCategory.VertexIndex, "Vertex index"),
-                new CategoryItem(FindCategory.AnyUdmfField, "UDMF field (any)"),
-                new CategoryItem(FindCategory.VertexUdmfField, "UDMF field (vertex)"),
-                new CategoryItem(FindCategory.LinedefUdmfField, "UDMF field (linedef)"),
-                new CategoryItem(FindCategory.SidedefUdmfField, "UDMF field (sidedef)"),
-                new CategoryItem(FindCategory.SectorUdmfField, "UDMF field (sector)"),
-                new CategoryItem(FindCategory.ThingUdmfField, "UDMF field (thing)"),
-            },
+            ItemsSource = MapSearch.CategoryDescriptors,
         };
         _category.SelectedIndex = 0;
         _find = new TextBox();
@@ -115,7 +71,8 @@ public sealed class FindReplaceWindow : Window
     }
 
     private bool CanReplaceSelected(bool mixTexturesFlats)
-        => _category.SelectedItem is CategoryItem ci && MapSearch.CanReplace(ci.Value, mixTexturesFlats);
+        => _category.SelectedItem is FindCategoryDescriptor descriptor
+            && MapSearch.CanReplace(descriptor.Category, mixTexturesFlats);
 
     /// <summary>Pre-fills the Find box (used by "next free tag").</summary>
     public void SetFindText(string text) => _find.Text = text;

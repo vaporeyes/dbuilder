@@ -1476,6 +1476,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style replace availability rules for index, UDMF, and mixed texture/flat categories.
   - [x] Add testable find and replace result message formatting and editor wiring.
   - [x] Add testable next-free-tag result message formatting and editor wiring.
+  - [x] Add testable Find and Replace category dropdown descriptors and editor wiring.
 - [ ] Port all find and replace object types.
   - [x] Add UDB-style index, sector scalar, sidedef texture slot, sector flat slot, and thing angle categories.
   - [x] Add UDB-style wildcard UDMF field find categories for any, vertex, linedef, sidedef, sector, and thing fields.

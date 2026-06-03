@@ -82,6 +82,19 @@ public class MapSearchTests
         Assert.Equal(2, map.Things.Count(thing => thing.Type == 3001));
     }
 
+    [Fact]
+    public void CategoryDescriptorsExposeFindReplaceDialogOrderAndLabels()
+    {
+        IReadOnlyList<FindCategoryDescriptor> descriptors = MapSearch.CategoryDescriptors;
+
+        Assert.Equal(Enum.GetValues<FindCategory>().Length, descriptors.Count);
+        Assert.Equal(Enum.GetValues<FindCategory>().OrderBy(category => category), descriptors.Select(descriptor => descriptor.Category).OrderBy(category => category));
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingType, "Thing type"), descriptors[0]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.TextureOrFlat, "Any texture or flat"), descriptors[25]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingUdmfField, "UDMF field (thing)"), descriptors[^1]);
+        Assert.Equal("Texture (middle)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SidedefMiddleTexture).ToString());
+    }
+
     [Theory]
     [InlineData(0, "No matches.")]
     [InlineData(1, "Found 1 match(es).")]

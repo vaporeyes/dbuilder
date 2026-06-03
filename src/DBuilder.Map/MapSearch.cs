@@ -54,6 +54,11 @@ public enum FindCategory
     ThingUdmfField,
 }
 
+public sealed record FindCategoryDescriptor(FindCategory Category, string Label)
+{
+    public override string ToString() => Label;
+}
+
 /// <summary>Outcome of a find: how many matched and a representative location to center on.</summary>
 public readonly record struct SearchResult(int Count, Vector2D? Focus);
 
@@ -74,6 +79,50 @@ public readonly record struct ThingTypeStatistic(int Type, int Count);
 
 public static class MapSearch
 {
+    public static IReadOnlyList<FindCategoryDescriptor> CategoryDescriptors { get; } =
+    [
+        new(FindCategory.ThingType, "Thing type"),
+        new(FindCategory.ThingIndex, "Thing index"),
+        new(FindCategory.ThingAngle, "Thing angle"),
+        new(FindCategory.ThingActionArguments, "Thing action and arguments"),
+        new(FindCategory.ThingFlags, "Thing flags"),
+        new(FindCategory.ThingSectorReference, "Thing sector reference"),
+        new(FindCategory.ThingThingReference, "Thing thing reference"),
+        new(FindCategory.LinedefAction, "Linedef action"),
+        new(FindCategory.LinedefActionArguments, "Linedef action and arguments"),
+        new(FindCategory.LinedefIndex, "Linedef index"),
+        new(FindCategory.LinedefFlags, "Linedef flags"),
+        new(FindCategory.LinedefSectorReference, "Linedef sector reference"),
+        new(FindCategory.LinedefThingReference, "Linedef thing reference"),
+        new(FindCategory.SidedefIndex, "Sidedef index"),
+        new(FindCategory.SidedefFlags, "Sidedef flags"),
+        new(FindCategory.SectorEffect, "Sector effect"),
+        new(FindCategory.SectorIndex, "Sector index"),
+        new(FindCategory.SectorFloorHeight, "Sector floor height"),
+        new(FindCategory.SectorCeilingHeight, "Sector ceiling height"),
+        new(FindCategory.SectorBrightness, "Sector brightness"),
+        new(FindCategory.SectorFlags, "Sector flags"),
+        new(FindCategory.Tag, "Tag"),
+        new(FindCategory.LinedefTag, "Linedef tag"),
+        new(FindCategory.SectorTag, "Sector tag"),
+        new(FindCategory.ThingTag, "Thing tag"),
+        new(FindCategory.TextureOrFlat, "Any texture or flat"),
+        new(FindCategory.Texture, "Texture (sidedef)"),
+        new(FindCategory.SidedefUpperTexture, "Texture (upper)"),
+        new(FindCategory.SidedefMiddleTexture, "Texture (middle)"),
+        new(FindCategory.SidedefLowerTexture, "Texture (lower)"),
+        new(FindCategory.Flat, "Flat (sector)"),
+        new(FindCategory.SectorFloorFlat, "Flat (floor)"),
+        new(FindCategory.SectorCeilingFlat, "Flat (ceiling)"),
+        new(FindCategory.VertexIndex, "Vertex index"),
+        new(FindCategory.AnyUdmfField, "UDMF field (any)"),
+        new(FindCategory.VertexUdmfField, "UDMF field (vertex)"),
+        new(FindCategory.LinedefUdmfField, "UDMF field (linedef)"),
+        new(FindCategory.SidedefUdmfField, "UDMF field (sidedef)"),
+        new(FindCategory.SectorUdmfField, "UDMF field (sector)"),
+        new(FindCategory.ThingUdmfField, "UDMF field (thing)"),
+    ];
+
     private readonly record struct SearchLists(
         IReadOnlyList<Vertex> Vertices,
         IReadOnlyList<Linedef> Linedefs,
