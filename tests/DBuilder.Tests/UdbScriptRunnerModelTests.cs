@@ -94,6 +94,31 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void ErrorDialogMetadataMatchesUdbForm()
+    {
+        UdbScriptErrorDialog dialog = UdbScriptRunnerModel.ErrorDialog("failed", "script stack", "internal stack");
+
+        Assert.Equal("Script Error", dialog.Title);
+        Assert.Equal("There was an error while executing the script:", dialog.MessageLabel);
+        Assert.Equal("OK", dialog.OkButtonText);
+        Assert.Equal("JavaScript stack trace", dialog.JavaScriptStackTraceTabText);
+        Assert.Equal("Internal stack trace", dialog.InternalStackTraceTabText);
+        Assert.Equal(0, dialog.SelectedTabIndex);
+        Assert.Equal("failed\r\nscript stack", dialog.StackTraceText);
+        Assert.Equal("internal stack", dialog.InternalStackTraceText);
+    }
+
+    [Fact]
+    public void ErrorDialogSelectsInternalStackTabWhenScriptStackIsBlank()
+    {
+        UdbScriptErrorDialog dialog = UdbScriptRunnerModel.ErrorDialog("failed", "   ", "internal stack");
+
+        Assert.Equal(1, dialog.SelectedTabIndex);
+        Assert.Equal("failed\r\n   ", dialog.StackTraceText);
+        Assert.Equal("internal stack", dialog.InternalStackTraceText);
+    }
+
+    [Fact]
     public void HostWrapperReportsProgressAndLogsNonNullText()
     {
         List<int> progressValues = [];

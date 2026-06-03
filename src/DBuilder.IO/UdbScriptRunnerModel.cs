@@ -60,6 +60,16 @@ public sealed record UdbScriptRuntimeConstraintPrompt(
     string Title,
     string Message);
 
+public sealed record UdbScriptErrorDialog(
+    string Title,
+    string MessageLabel,
+    string OkButtonText,
+    string JavaScriptStackTraceTabText,
+    string InternalStackTraceTabText,
+    int SelectedTabIndex,
+    string StackTraceText,
+    string InternalStackTraceText);
+
 public sealed record UdbScriptSourceFile(
     string Path,
     string EngineSourceName);
@@ -172,6 +182,11 @@ public static class UdbScriptRunnerModel
     public const string UserAbortStatusText = "Script aborted";
     public const string ScriptFinishedTitle = "Script finished";
     public const string CloseButtonText = "Close";
+    public const string ErrorDialogTitle = "Script Error";
+    public const string ErrorDialogMessageLabel = "There was an error while executing the script:";
+    public const string ErrorDialogOkButtonText = "OK";
+    public const string ErrorDialogJavaScriptStackTraceTabText = "JavaScript stack trace";
+    public const string ErrorDialogInternalStackTraceTabText = "Internal stack trace";
 
     public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
     [
@@ -270,6 +285,17 @@ public static class UdbScriptRunnerModel
 
     public static string AppendLog(string existingLog, string text)
         => string.IsNullOrEmpty(existingLog) ? text : existingLog + Environment.NewLine + text;
+
+    public static UdbScriptErrorDialog ErrorDialog(string message, string stackTrace, string internalStackTrace)
+        => new(
+            ErrorDialogTitle,
+            ErrorDialogMessageLabel,
+            ErrorDialogOkButtonText,
+            ErrorDialogJavaScriptStackTraceTabText,
+            ErrorDialogInternalStackTraceTabText,
+            string.IsNullOrWhiteSpace(stackTrace) ? 1 : 0,
+            message + "\r\n" + stackTrace,
+            internalStackTrace);
 
     public static string FormatRuntime(TimeSpan runtime)
         => string.Format(
