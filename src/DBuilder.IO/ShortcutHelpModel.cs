@@ -56,6 +56,9 @@ public static class ShortcutHelpModel
             : $"{commandCount} shortcuts in {sectionCount} groups";
     }
 
+    public static int EffectiveShortcutCount(IReadOnlyList<EditorCommandDescriptor> commands, IReadOnlyList<EditorShortcutBinding> bindings)
+        => BuildSections(commands, bindings, filter: "").Sum(section => section.Rows.Count);
+
     public static bool IsDefaultExpanded(string title)
         => title is "File and configuration" or "Window editing" or "2D view and modes" or "3D navigation";
 

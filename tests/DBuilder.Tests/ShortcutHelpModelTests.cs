@@ -30,6 +30,19 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
+    public void EffectiveShortcutCountMatchesVisibleUnfilteredRows()
+    {
+        var sections = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            filter: "");
+
+        Assert.Equal(
+            sections.Sum(section => section.Rows.Count),
+            ShortcutHelpModel.EffectiveShortcutCount(EditorCommandCatalog.All, EditorCommandCatalog.DefaultShortcuts));
+    }
+
+    [Fact]
     public void BuildSectionsFiltersByCommandTitleIdScopeGroupAndGesture()
     {
         var title = ShortcutHelpModel.BuildSections(

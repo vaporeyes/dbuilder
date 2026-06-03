@@ -96,7 +96,8 @@ public sealed class ShortcutsWindow : Window
         if (_sections.Children.Count == 0)
             _sections.Children.Add(new TextBlock { Text = "No shortcuts found.", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
 
-        _matchSummary.Text = ShortcutHelpModel.MatchSummary(text, EditorCommandCatalog.All.Count, groups.Count, matchCount);
+        int shortcutCount = ShortcutHelpModel.EffectiveShortcutCount(EditorCommandCatalog.All, _bindings);
+        _matchSummary.Text = ShortcutHelpModel.MatchSummary(text, shortcutCount, groups.Count, matchCount);
     }
 
     private Control Section(ShortcutHelpSection section, bool expand, bool searching)
