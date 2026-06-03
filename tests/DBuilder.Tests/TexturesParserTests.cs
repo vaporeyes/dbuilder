@@ -274,18 +274,18 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void RequiresQuotesForLongTextureNames()
+    public void UnquotedLongTextureDefinitionNamesStopParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture LONGTEXTURE, 8, 8 { Patch P, 0, 0 }
 Texture ""LONGTEXTURE"", 8, 8 { Patch P, 0, 0 }
 Texture SHORT, 8, 8 { Patch P, 0, 0 }";
 
         var defs = TexturesParser.Parse(text);
 
-        Assert.Equal(2, defs.Count);
-        Assert.Equal("LONGTEXTURE", defs[0].Name);
-        Assert.Equal("SHORT", defs[1].Name);
+        var def = Assert.Single(defs);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]

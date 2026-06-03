@@ -173,7 +173,11 @@ public static class TexturesParser
             stopParsing = true;
             return null;
         }
-        if (IsInvalidLongTextureName(nameToken)) return null;
+        if (IsInvalidLongTextureName(nameToken))
+        {
+            stopParsing = true;
+            return null;
+        }
         if (type != TexturesType.Sprite && name.Length > maxTextureNameLength)
         {
             stopParsing = true;
