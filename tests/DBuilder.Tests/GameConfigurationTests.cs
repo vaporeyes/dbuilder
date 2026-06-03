@@ -1025,6 +1025,27 @@ Sprite subnumber = 0
     }
 
     [Fact]
+    public void MergeDehackedAddsUncategorizedThingsAsUserDefined()
+    {
+        const string text = @"
+Thing 3 (Loose Dehacked Thing)
+ID # = 31001
+Width = 1048576
+Height = 2097152
+";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeDehacked(DehackedParser.Parse(text));
+
+        var thing = gc.GetThing(31001);
+        Assert.NotNull(thing);
+        Assert.Equal("Loose Dehacked Thing", thing!.Title);
+        Assert.Equal("User-defined", thing.Category);
+        Assert.Equal(16, thing.Width);
+        Assert.Equal(32, thing.Height);
+    }
+
+    [Fact]
     public void MergeDehackedUpdatesExistingThingAndAppliesSpriteReplacement()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

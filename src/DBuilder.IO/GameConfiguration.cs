@@ -1383,7 +1383,7 @@ public sealed class GameConfiguration
             sprite = ApplySpriteReplacement(sprite, spriteReplacements);
             int width = TryReadDehackedInt(thing.Properties, "Width", out int rawWidth) ? FixedToInt(rawWidth) : existing?.Width ?? 16;
             int height = TryReadDehackedInt(thing.Properties, "Height", out int rawHeight) ? FixedToInt(rawHeight) : existing?.Height ?? 16;
-            string category = ReadDehackedProperty(thing.Properties, "$Category") ?? existing?.Category ?? "Dehacked";
+            string category = ReadDehackedProperty(thing.Properties, "$Category") ?? existing?.Category ?? "User-defined";
 
             things[doomEdNum] = new ThingTypeInfo
             {
