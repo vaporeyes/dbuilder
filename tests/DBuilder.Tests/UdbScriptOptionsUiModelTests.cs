@@ -169,6 +169,17 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void SelectionChangedPlanMatchesUdbScriptOptionsControlBranch()
+    {
+        UdbScriptOptionSelectionChangedPlan plan = UdbScriptOptionsUiModel.SelectionChangedPlan();
+
+        Assert.True(plan.HideBrowseButton);
+        Assert.True(plan.ApplyEnumEditor);
+        Assert.True(plan.HideEnumEditor);
+        Assert.True(plan.UpdateBrowseButton);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(

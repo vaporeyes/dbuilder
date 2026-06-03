@@ -52,6 +52,12 @@ public sealed record UdbScriptOptionEnumApplyState(
     bool EnumEditorTagCleared,
     bool EnumEditorItemsCleared);
 
+public sealed record UdbScriptOptionSelectionChangedPlan(
+    bool HideBrowseButton,
+    bool ApplyEnumEditor,
+    bool HideEnumEditor,
+    bool UpdateBrowseButton);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -116,6 +122,13 @@ public static class UdbScriptOptionsUiModel
         bool visible = handler.IsBrowseable && !handler.IsEnumerable;
         return new UdbScriptOptionBrowseButtonState(visible, EnumEditorVisible: false, handler.IsBrowseable, handler.IsEnumerable);
     }
+
+    public static UdbScriptOptionSelectionChangedPlan SelectionChangedPlan()
+        => new(
+            HideBrowseButton: true,
+            ApplyEnumEditor: true,
+            HideEnumEditor: true,
+            UpdateBrowseButton: true);
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
         UdbScriptOption option,
