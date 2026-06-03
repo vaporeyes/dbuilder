@@ -5986,6 +5986,7 @@ public partial class MainWindow : Window
         bool hasTransformableSelection = _map is not null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
         bool hasSelectedLinedefWithFront = _map?.Linedefs.Any(line => line.Selected && line.Front is not null) == true;
         bool supportsCustomFields = SupportsCustomFields();
+        bool canAlignTextures = hasSelectedLinedefWithFront || hasSelectedUdmfLinedef;
         bool hasEditableProperties = _map is not null && EditorPropertySelection.CanEdit(
             _map.SelectedVerticesCount,
             _map.SelectedLinedefsCount,
@@ -6056,11 +6057,12 @@ public partial class MainWindow : Window
             TransformSelectionMenuItem,
             FlipHorizontalMenuItem, FlipVerticalMenuItem, RotateCwMenuItem, RotateCcwMenuItem,
             ScaleUpMenuItem, ScaleDownMenuItem);
-        SetEnabled(hasSelectedLinedefWithFront, AlignTexturesMenuItem, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
+        SetEnabled(canAlignTextures, AlignTexturesMenuItem);
+        SetEnabled(hasSelectedLinedefWithFront, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
         SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
         SetEnabled(hasSelectedUdmfLinedef,
-            AlignTexturesMenuItem, AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
+            AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector && hasResources, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasGradientSectors,
