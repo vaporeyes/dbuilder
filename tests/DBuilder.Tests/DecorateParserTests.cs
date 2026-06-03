@@ -1740,6 +1740,46 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsLetsLaterReplacementWithoutCategoryCancelRecategorization()
+    {
+        const string cfg = @"
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR BossImp replaces DoomImp
+{
+    //$Category ""bosses""
+    States { Spawn: BIMP A -1 stop }
+}
+
+ACTOR PlainImp replaces DoomImp
+{
+    //$Title ""Plain Imp""
+    States { Spawn: PIMP A -1 stop }
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(3001);
+        Assert.NotNull(info);
+        Assert.Equal("PlainImp", info!.ClassName);
+        Assert.Equal("Plain Imp", info.Title);
+        Assert.Equal("monsters", info.Category);
+        Assert.Equal("PIMPA0", info.Sprite);
+    }
+
+    [Fact]
     public void MergeActorsPreservesExistingSpriteWhenThingLocksSprite()
     {
         const string cfg = @"

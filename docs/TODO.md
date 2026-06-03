@@ -753,6 +753,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply MAPINFO `DoomEdNums` overrides from archived unsupported actors like UDB.
   - [x] Prefer actor metadata over existing thing copies for MAPINFO `DoomEdNums` overrides.
   - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
+  - [x] Cancel replacement actor recategorization when a later replacement omits `$Category`.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

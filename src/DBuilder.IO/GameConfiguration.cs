@@ -728,6 +728,8 @@ public sealed class GameConfiguration
     {
         var allActors = new List<ActorInfo>(actors);
         var allActorsByClass = new Dictionary<string, ActorInfo>(StringComparer.OrdinalIgnoreCase);
+        var replacementTargetsByClass = ThingNumbersByClass();
+        var replacementBaseCategories = new Dictionary<int, string>();
         foreach (var actor in allActors)
             if (!allActorsByClass.ContainsKey(actor.ClassName))
                 allActorsByClass[actor.ClassName] = actor;
@@ -749,9 +751,23 @@ public sealed class GameConfiguration
 
             if (!string.IsNullOrWhiteSpace(a.Replaces))
             {
-                int replacedNum = FindThingByClass(a.Replaces);
+                int replacedNum = replacementTargetsByClass.TryGetValue(a.Replaces, out int targetNum) ? targetNum : -1;
                 if (replacedNum >= 0 && things.TryGetValue(replacedNum, out var replaced))
-                    things[replacedNum] = BuildThingInfo(a, replacedNum, replaced, inherited: null, cvars, allowExistingCategoryOverride: true);
+                {
+                    if (!replacementBaseCategories.ContainsKey(replacedNum))
+                        replacementBaseCategories[replacedNum] = replaced.Category;
+                    string? replacementCategory = TryExplicitActorCategory(a, out _)
+                        ? null
+                        : replacementBaseCategories[replacedNum];
+                    things[replacedNum] = BuildThingInfo(
+                        a,
+                        replacedNum,
+                        replaced,
+                        inherited: null,
+                        cvars: cvars,
+                        allowExistingCategoryOverride: true,
+                        replacementCategory: replacementCategory);
+                }
             }
 
             int num = a.DoomEdNum;
@@ -788,6 +804,15 @@ public sealed class GameConfiguration
         }
     }
 
+    private Dictionary<string, int> ThingNumbersByClass()
+    {
+        var byClass = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var thing in things)
+            if (!string.IsNullOrEmpty(thing.Value.ClassName))
+                byClass[thing.Value.ClassName] = thing.Key;
+        return byClass;
+    }
+
     private bool ActorSupportedByDecorateGames(ActorInfo actor)
     {
         if (!actor.Properties.TryGetValue("game", out var games) || games.Count == 0) return true;
@@ -819,7 +844,8 @@ public sealed class GameConfiguration
         ThingTypeInfo? existing,
         ThingTypeInfo? inherited,
         CvarInfo? cvars,
-        bool allowExistingCategoryOverride = false)
+        bool allowExistingCategoryOverride = false,
+        string? replacementCategory = null)
     {
         string title = ActorTitle(actor);
         bool solid = ActorFlag(actor, "solid");
@@ -844,7 +870,7 @@ public sealed class GameConfiguration
             Index = index,
             ClassName = actor.ClassName,
             Title = title != actor.ClassName ? title : existing?.Title ?? title,
-            Category = ActorCategory(actor, existing, inherited, allowExistingCategoryOverride),
+            Category = ActorCategory(actor, existing, inherited, allowExistingCategoryOverride, replacementCategory),
             Sprite = fallback?.LockSprite == true
                 ? UnknownThingSpriteIfEmpty(fallback.Sprite)
                 : UnknownThingSpriteIfEmpty(actor.EditorSprite ?? ActorRegionProperty(actor, "$sprite") ?? fallback?.Sprite),
@@ -975,14 +1001,19 @@ public sealed class GameConfiguration
         return actor.ClassName;
     }
 
-    private static string ActorCategory(ActorInfo actor, ThingTypeInfo? existing, ThingTypeInfo? inherited, bool allowExistingCategoryOverride)
+    private static string ActorCategory(
+        ActorInfo actor,
+        ThingTypeInfo? existing,
+        ThingTypeInfo? inherited,
+        bool allowExistingCategoryOverride,
+        string? replacementCategory)
     {
         if (existing != null)
         {
             if (allowExistingCategoryOverride && TryExplicitActorCategory(actor, out string category))
                 return category;
 
-            return existing.Category;
+            return replacementCategory ?? existing.Category;
         }
 
         return actor.Category ?? inherited?.Category ?? "Decorate";
