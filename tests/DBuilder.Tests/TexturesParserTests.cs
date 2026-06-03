@@ -346,99 +346,79 @@ Texture OK, 8, 8
     }
 
     [Fact]
-    public void SkipsPatchesWithInvalidNumericPatchBlendColors()
+    public void InvalidPatchBlendColorsStopParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch BAD, 0, 0
     {
         Blend 255 128 0
     }
-    Patch OK, 1, 1
-    {
-        Blend 255, 128, 0
-    }
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
-        Assert.Equal(TexturesPatchBlendStyle.Blend, patch.BlendStyle);
-        Assert.Equal(255, patch.BlendRed);
-        Assert.Equal(128, patch.BlendGreen);
-        Assert.Equal(0, patch.BlendBlue);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void SkipsPatchesWithNonNumericPatchBlendAlpha()
+    public void NonNumericPatchBlendAlphaStopsParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch BAD, 0, 0
     {
         Blend 255, 128, 0, bogus
     }
-    Patch OK, 1, 1
-    {
-        Blend 255, 128, 0, 0.5
-    }
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
-        Assert.Equal(TexturesPatchBlendStyle.Tint, patch.BlendStyle);
-        Assert.Equal(127, patch.BlendAlpha);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void SkipsPatchesWithNonNumericAlpha()
+    public void NonNumericPatchAlphaStopsParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch BAD, 0, 0
     {
         Alpha bogus
     }
-    Patch OK, 1, 1
-    {
-        Alpha 0.5
-    }
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
-        Assert.Equal(0.5, patch.Alpha, 6);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void SkipsPatchesWithNonIntegralRotation()
+    public void NonIntegralPatchRotationStopsParsingLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BAD, 8, 8
 {
     Patch BAD, 0, 0
     {
         Rotate bogus
     }
-    Patch OK, 1, 1
-    {
-        Rotate 90
-    }
-}";
+}
+Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
-        Assert.Equal(90, patch.Rotation);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]

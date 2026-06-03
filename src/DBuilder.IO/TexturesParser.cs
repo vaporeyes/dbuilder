@@ -278,7 +278,7 @@ public static class TexturesParser
                 }
             }
             if (i < t.Count) i++; // }
-            if (invalid) return true;
+            if (invalid) return false;
         }
         def.Patches.Add(patch);
         return true;
