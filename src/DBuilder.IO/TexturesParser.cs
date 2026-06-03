@@ -109,7 +109,8 @@ public static class TexturesParser
             }
 
             i++; // type
-            var def = ParseDefinition(type.Value, optional: false, t, ref i, knownColors, maxTextureNameLength);
+            var def = ParseDefinition(type.Value, optional: false, t, ref i, knownColors, maxTextureNameLength, out bool stopParsing);
+            if (stopParsing) return defs;
             if (def != null) defs.Add(def);
         }
         return defs;
@@ -154,8 +155,9 @@ public static class TexturesParser
         }
     }
 
-    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, int maxTextureNameLength)
+    private static TexturesDef? ParseDefinition(TexturesType type, bool optional, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors, int maxTextureNameLength, out bool stopParsing)
     {
+        stopParsing = false;
         if (i >= t.Count) return null;
         Tok nameToken = t[i++];
         string name = nameToken.Text;
@@ -176,7 +178,11 @@ public static class TexturesParser
         if (!ReadInt(t, ref i, out int height)) return null;
 
         var def = new TexturesDef { Type = type, Name = name, Width = width, Height = height, Optional = optional };
-        if (i >= t.Count || t[i] != "{") return null;
+        if (i >= t.Count || t[i] != "{")
+        {
+            stopParsing = true;
+            return null;
+        }
         bool invalid = false;
 
         if (i < t.Count && t[i] == "{")

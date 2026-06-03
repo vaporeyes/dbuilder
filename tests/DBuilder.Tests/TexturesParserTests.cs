@@ -178,6 +178,19 @@ Texture After, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void MissingTextureDefinitionBodyStopsParsingLikeUdb()
+    {
+        const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
+Texture BROKEN, 10, 12
+Texture AFTER, 2, 2 { Patch P, 0, 0 }";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("BEFORE", def.Name);
+    }
+
+    [Fact]
     public void SkipsDefinitionsWithNonIntegralSize()
     {
         const string text = @"
