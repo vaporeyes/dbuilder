@@ -1041,6 +1041,7 @@ Height = 2097152
         Assert.NotNull(thing);
         Assert.Equal("Loose Dehacked Thing", thing!.Title);
         Assert.Equal("User-defined", thing.Category);
+        Assert.Equal("internal:unknownthing", thing.Sprite);
         Assert.Equal(16, thing.Width);
         Assert.Equal(32, thing.Height);
     }

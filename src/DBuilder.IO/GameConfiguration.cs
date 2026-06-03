@@ -1379,7 +1379,7 @@ public sealed class GameConfiguration
         {
             if (!TryReadDehackedInt(thing.Properties, "ID #", out int doomEdNum) || doomEdNum < 0) continue;
             things.TryGetValue(doomEdNum, out var existing);
-            string sprite = ResolveDehackedSprite(thing, patch) ?? existing?.Sprite ?? "";
+            string sprite = UnknownThingSpriteIfEmpty(ResolveDehackedSprite(thing, patch) ?? existing?.Sprite);
             sprite = ApplySpriteReplacement(sprite, spriteReplacements);
             int width = TryReadDehackedInt(thing.Properties, "Width", out int rawWidth) ? FixedToInt(rawWidth) : existing?.Width ?? 16;
             int height = TryReadDehackedInt(thing.Properties, "Height", out int rawHeight) ? FixedToInt(rawHeight) : existing?.Height ?? 16;

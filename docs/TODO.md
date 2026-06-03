@@ -769,6 +769,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use UDB's `User-defined` fallback category for new uncategorized DeHackEd things.
   - [x] Apply DeHackEd `Bits` mnemonics to thing blocking and hanging flags.
   - [x] Apply DeHackEd editor angled and color metadata to thing display fields.
+  - [x] Use UDB's unknown thing sprite fallback for DeHackEd things without preview sprites.
 - [x] Add Dehacked parser and integration tests.
 
 ## Game Configuration
