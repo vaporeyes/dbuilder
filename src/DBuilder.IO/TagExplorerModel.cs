@@ -81,6 +81,14 @@ public sealed record TagExplorerTreeNode(
     public bool IsEntry => Entry != null;
 }
 
+public sealed record TagExplorerTreeRow(
+    string Title,
+    int Depth,
+    TagExplorerEntry? Entry)
+{
+    public bool IsEntry => Entry != null;
+}
+
 public static class TagExplorerModel
 {
     public const int NoPolyobjectNumber = int.MinValue;
@@ -184,6 +192,15 @@ public static class TagExplorerModel
         return string.Join(Environment.NewLine + Environment.NewLine, blocks);
     }
 
+    public static IReadOnlyList<TagExplorerTreeRow> FlattenTree(IReadOnlyList<TagExplorerTreeNode> roots)
+    {
+        var rows = new List<TagExplorerTreeRow>();
+        foreach (TagExplorerTreeNode root in roots)
+            AddRows(rows, root, depth: 0);
+
+        return rows;
+    }
+
     public static TagExplorerSpecialFilters ParseSpecialFilters(string searchText)
     {
         var tags = new HashSet<int>();
@@ -241,6 +258,13 @@ public static class TagExplorerModel
         };
 
         roots.Add(new TagExplorerTreeNode(title, null, children));
+    }
+
+    private static void AddRows(List<TagExplorerTreeRow> rows, TagExplorerTreeNode node, int depth)
+    {
+        rows.Add(new TagExplorerTreeRow(node.Title, depth, node.Entry));
+        foreach (TagExplorerTreeNode child in node.Children)
+            AddRows(rows, child, depth + 1);
     }
 
     private static IReadOnlyList<TagExplorerTreeNode> GroupThingsByCategory(

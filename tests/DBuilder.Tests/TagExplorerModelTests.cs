@@ -361,4 +361,26 @@ public sealed class TagExplorerModelTests
             "    Action 9: Tagged lift, Index 0",
             text);
     }
+
+    [Fact]
+    public void FlattenTreePreservesTreeDepthAndEntryTargets()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.Tag = 7;
+        sector.Special = 9;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByTag);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, null, options);
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, options);
+
+        IReadOnlyList<TagExplorerTreeRow> rows = TagExplorerModel.FlattenTree(tree);
+
+        Assert.Equal(new[] { "Sectors:", "Tag 7", "Action 9: Sector, Index 0" }, rows.Select(row => row.Title));
+        Assert.Equal(new[] { 0, 1, 2 }, rows.Select(row => row.Depth));
+        Assert.False(rows[0].IsEntry);
+        Assert.False(rows[1].IsEntry);
+        Assert.True(rows[2].IsEntry);
+        Assert.Same(entries[0], rows[2].Entry);
+    }
 }

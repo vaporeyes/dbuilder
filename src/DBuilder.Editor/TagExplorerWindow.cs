@@ -123,24 +123,19 @@ public sealed class TagExplorerWindow : Window
             : $"{entries.Count} entr{(entries.Count == 1 ? "y" : "ies")}. Click a row to select and reveal it.";
 
         var rows = new List<ListBoxItem>();
-        foreach (TagExplorerTreeNode node in tree)
-            AddRows(rows, node, depth: 0);
+        foreach (TagExplorerTreeRow row in TagExplorerModel.FlattenTree(tree))
+            rows.Add(Row(row));
 
         _list.ItemsSource = rows;
     }
 
-    private static void AddRows(List<ListBoxItem> rows, TagExplorerTreeNode node, int depth)
-    {
-        rows.Add(new ListBoxItem
+    private static ListBoxItem Row(TagExplorerTreeRow row)
+        => new()
         {
-            Content = new TextBlock { Text = new string(' ', depth * 2) + node.Title, TextWrapping = TextWrapping.Wrap },
-            Tag = node.Entry,
-            IsEnabled = node.Entry != null,
-        });
-
-        foreach (TagExplorerTreeNode child in node.Children)
-            AddRows(rows, child, depth + 1);
-    }
+            Content = new TextBlock { Text = new string(' ', row.Depth * 2) + row.Title, TextWrapping = TextWrapping.Wrap },
+            Tag = row.Entry,
+            IsEnabled = row.IsEntry,
+        };
 
     private static Control Labeled(string label, Control control, int column, int row)
     {

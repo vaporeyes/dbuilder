@@ -1902,6 +1902,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style generalized sector effect expansion in action grouping.
   - [x] Add editor Tag Explorer window with display mode, sort mode, special-token search, comments-only filtering, and row navigation.
   - [x] Wire editor Tag Explorer persisted options and live refresh from map and tag-label changes.
+  - [x] Add testable Tag Explorer flattened tree row model for window navigation.
 - [ ] Port tag range tools.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
