@@ -73,6 +73,9 @@ public sealed record UdbScriptOptionEndEditPlan(
     bool EndGridEdit,
     bool FocusGrid);
 
+public sealed record UdbScriptOptionBrowseRefreshPlan(
+    bool UpdateBrowseButton);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -162,6 +165,9 @@ public static class UdbScriptOptionsUiModel
             HideEnumEditor: true,
             EndGridEdit: true,
             FocusGrid: true);
+
+    public static UdbScriptOptionBrowseRefreshPlan BrowseRefreshPlan()
+        => new(UpdateBrowseButton: true);
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
         UdbScriptOption option,

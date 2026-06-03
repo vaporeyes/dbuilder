@@ -221,6 +221,14 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void BrowseRefreshPlanUpdatesButtonAfterAddingOptionsOrResize()
+    {
+        UdbScriptOptionBrowseRefreshPlan plan = UdbScriptOptionsUiModel.BrowseRefreshPlan();
+
+        Assert.True(plan.UpdateBrowseButton);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(
