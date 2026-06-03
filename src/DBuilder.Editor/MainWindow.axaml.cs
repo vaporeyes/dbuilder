@@ -1189,6 +1189,9 @@ public partial class MainWindow : Window
             case "window.paste-properties": OnPasteProperties(this, new RoutedEventArgs()); return true;
             case "window.paste-properties-options": OnPastePropertiesWithOptions(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.select-all": OnSelectAll(this, new RoutedEventArgs()); return true;
+            case "window.invert-selection": OnInvertSelection(this, new RoutedEventArgs()); return true;
+            case "window.select-none": OnSelectNone(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;

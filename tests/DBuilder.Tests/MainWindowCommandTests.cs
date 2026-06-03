@@ -11,7 +11,10 @@ public sealed class MainWindowCommandTests
     [Theory]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
-    public void HelpCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
+    [InlineData("window.select-all", "OnSelectAll")]
+    [InlineData("window.invert-selection", "OnInvertSelection")]
+    [InlineData("window.select-none", "OnSelectNone")]
+    public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
         MethodInfo? dispatcher = type.GetMethod("RunWindowCommand", BindingFlags.Instance | BindingFlags.NonPublic);
