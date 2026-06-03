@@ -479,6 +479,23 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.toggle-3d-floors", "Show 3D Floors")]
+    [InlineData("window.toggle-blockmap", "Show Blockmap")]
+    [InlineData("window.toggle-nodes", "Show Nodes")]
+    public void ViewOverlayToggleCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {
