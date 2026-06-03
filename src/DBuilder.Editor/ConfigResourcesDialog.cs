@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using DBuilder.IO;
 
@@ -14,6 +15,7 @@ public sealed class ConfigResourcesDialog : Window
     private readonly GameConfiguration? _config;
     private readonly ObservableCollection<DataLocation> _resources;
     private readonly ListBox _list;
+    private readonly TextBlock _warnings;
 
     public DataLocationList ResultResources { get; private set; }
 
@@ -30,6 +32,13 @@ public sealed class ConfigResourcesDialog : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         _list = new ListBox { ItemsSource = _resources };
+        _warnings = new TextBlock
+        {
+            Foreground = Brushes.DarkOrange,
+            TextWrapping = TextWrapping.Wrap,
+            IsVisible = false,
+            Margin = new Avalonia.Thickness(0, 8, 0, 8),
+        };
 
         var addFile = new Button { Content = "Add File...", MinWidth = 86 };
         addFile.Click += async (_, _) => await AddFile();
@@ -65,15 +74,19 @@ public sealed class ConfigResourcesDialog : Window
 
         var root = new Grid
         {
-            RowDefinitions = new RowDefinitions("Auto,*,Auto"),
+            RowDefinitions = new RowDefinitions("Auto,*,Auto,Auto"),
             Margin = new Avalonia.Thickness(12),
         };
         root.Children.Add(tools);
         Grid.SetRow(_list, 1);
         root.Children.Add(_list);
-        Grid.SetRow(buttons, 2);
+        Grid.SetRow(_warnings, 2);
+        root.Children.Add(_warnings);
+        Grid.SetRow(buttons, 3);
         root.Children.Add(buttons);
         Content = root;
+
+        RefreshWarnings();
     }
 
     private async System.Threading.Tasks.Task AddFile()
@@ -111,7 +124,10 @@ public sealed class ConfigResourcesDialog : Window
         ApplyRequiredArchiveDefaults(resource);
         var options = new ResourceOptionsDialog(resource);
         if (await options.ShowDialog<bool>(this))
+        {
             _resources.Add(options.ResultLocation);
+            RefreshWarnings();
+        }
     }
 
     private async System.Threading.Tasks.Task EditSelected()
@@ -122,13 +138,19 @@ public sealed class ConfigResourcesDialog : Window
 
         var options = new ResourceOptionsDialog(location);
         if (await options.ShowDialog<bool>(this))
+        {
             _resources[index] = options.ResultLocation;
+            RefreshWarnings();
+        }
     }
 
     private void RemoveSelected()
     {
         if (_list.SelectedItem is DataLocation location)
+        {
             _resources.Remove(location);
+            RefreshWarnings();
+        }
     }
 
     private void ApplyRequiredArchiveDefaults(DataLocation resource)
@@ -138,5 +160,12 @@ public sealed class ConfigResourcesDialog : Window
     {
         ResultResources = new DataLocationList(_resources);
         Close(true);
+    }
+
+    private void RefreshWarnings()
+    {
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(_config, _resources);
+        _warnings.Text = string.Join("\n\n", warnings);
+        _warnings.IsVisible = warnings.Count > 0;
     }
 }
