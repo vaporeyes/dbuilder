@@ -91,4 +91,49 @@ public class SpriteRotationFallbackTests
         }
         finally { File.Delete(pk3); }
     }
+
+    [Fact]
+    public void InvalidFrameCharacterDoesNotAppendRotationVariants()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSS-0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 15, 25, 35, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Null(rm.GetSprite("POSS-"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void InvalidFrameCharacterDoesNotSearchPairedSpriteVariants()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSA1-1.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 25, 35, 45, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Null(rm.GetSprite("POSS-1"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
+    public void NonClassicLengthDoesNotAppendRotationVariants()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("sprites/POSSAA1.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 35, 45, 55, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Null(rm.GetSprite("POSSAA0"));
+        }
+        finally { File.Delete(pk3); }
+    }
 }

@@ -1221,8 +1221,8 @@ public sealed class ResourceManager : IDisposable
     // (or vice versa), and a 5-char name (no rotation) needs a digit appended.
     private static IEnumerable<string> RotationVariants(string name)
     {
-        if (name.Length == 5) { yield return name + "0"; yield return name + "1"; yield break; }
-        if (name.Length >= 6 && IsClassicSpriteRotation(name[^1]))
+        if (name.Length == 5 && IsClassicSpriteFrame(name[4])) { yield return name + "0"; yield return name + "1"; yield break; }
+        if (name.Length is 6 or 8 && IsClassicSpriteFrame(name[^2]) && IsClassicSpriteRotation(name[^1]))
         {
             string baseName = name.Substring(0, name.Length - 1);
             char last = name[^1];
@@ -1234,6 +1234,7 @@ public sealed class ResourceManager : IDisposable
     private IEnumerable<string> PairedSpriteVariants(string name)
     {
         if (name.Length is not (5 or 6)) yield break;
+        if (!IsClassicSpriteFrame(name[4])) yield break;
         if (name.Length == 6 && !IsClassicSpriteRotation(name[5])) yield break;
 
         string prefix = name.Substring(0, 4);
@@ -1280,9 +1281,16 @@ public sealed class ResourceManager : IDisposable
     }
 
     private static bool IsClassicSpriteRequest(string name)
-        => name.Length == 5
-            || (name.Length == 6 && IsClassicSpriteRotation(name[5]))
-            || (name.Length == 8 && IsClassicSpriteRotation(name[5]) && IsClassicSpriteRotation(name[7]));
+        => (name.Length == 5 && IsClassicSpriteFrame(name[4]))
+            || (name.Length == 6 && IsClassicSpriteFrame(name[4]) && IsClassicSpriteRotation(name[5]))
+            || (name.Length == 8
+                && IsClassicSpriteFrame(name[4]) && IsClassicSpriteRotation(name[5])
+                && IsClassicSpriteFrame(name[6]) && IsClassicSpriteRotation(name[7]));
+
+    private static bool IsClassicSpriteFrame(char value)
+        => value is >= 'A' and <= 'Z'
+            || value is >= 'a' and <= 'z'
+            || value is '[' or ']' or '\\';
 
     private static bool IsClassicSpriteRotation(char value) => value is >= '0' and <= '8';
 
