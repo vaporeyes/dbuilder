@@ -732,6 +732,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prefer inherited relevant state sprites before unrelated child states.
   - [x] Only apply ZScript mixin and extension preview sprites from `Spawn` states.
   - [x] Require UDB-style semicolons after ZScript state `goto` targets.
+  - [x] Require UDB-style semicolons before using ZScript state frames for previews.
   - [x] Inherit extended ZScript parent `Spawn` states from child classes.
   - [x] Reject ZScript extensions declared before their target class.
 - [ ] Port category and DoomEdNum merging behavior fully.

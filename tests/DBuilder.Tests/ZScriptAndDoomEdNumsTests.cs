@@ -1106,6 +1106,19 @@ class MissingGotoSemicolonZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameWithoutRequiredSemicolon()
+    {
+        const string zscript = @"
+class MissingFrameSemicolonZThing : Actor
+{
+    States { Spawn: MISS A -1 stop }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingFrameSemicolonZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

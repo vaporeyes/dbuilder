@@ -1237,7 +1237,7 @@ public static class DecorateParser
                     stopParsing = !zscriptBody;
                     return false;
                 }
-                if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
+                if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
                 {
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
                     firstSprite ??= sprite;
@@ -1334,7 +1334,7 @@ public static class DecorateParser
                     actor.Properties[tk.Text] = values;
                 }
             }
-            else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
+            else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
             {
                 var sprite = BuildSpriteCandidate(tk.Text, t, i);
                 firstSprite ??= sprite;
@@ -1473,6 +1473,21 @@ public static class DecorateParser
             IsEmptySprite(sprite) || IsZeroDurationFrame(t, frameIndex + 1),
             FindStateFrameLightName(t, frameIndex + 2),
             HasStateFrameBright(t, frameIndex + 2));
+    }
+
+    private static bool CanUseStateFrame(bool zscriptBody, List<Tok> t, int frameIndex)
+        => !zscriptBody || HasZScriptStateFrameSemicolon(t, frameIndex + 1);
+
+    private static bool HasZScriptStateFrameSemicolon(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text == ";") return true;
+            if (t[i].Kind == Kind.Sym && t[i].Text is "{" or "}") return false;
+            if (IsStateLabel(t, i + 1)) return false;
+        }
+
+        return false;
     }
 
     private static StateSpriteCandidate? ChooseSprite(Dictionary<string, StateSpriteCandidate> stateSprites, StateSpriteCandidate? firstNonEmptySprite, StateSpriteCandidate? firstSprite)
