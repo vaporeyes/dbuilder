@@ -1303,6 +1303,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Sector wrapper label-position and triangle access.
   - [x] Add UDBScript Thing wrapper core property, position, and sector access.
   - [x] Add UDBScript Thing wrapper call-time sector determination.
+  - [x] Add UDBScript Thing wrapper index-based string formatting.
   - [x] Add UDBScript Thing wrapper deletion access.
   - [x] Add UDBScript Vertex, Linedef, and Sector wrapper deletion and join access.
   - [x] Add UDBScript Map wrapper core element enumeration access.
@@ -1589,6 +1590,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Sector wrapper label-position and triangle access.
 - [x] Add UDBScript Thing wrapper core property, position, and sector access.
 - [x] Add UDBScript Thing wrapper call-time sector determination.
+- [x] Add UDBScript Thing wrapper index-based string formatting.
 - [x] Add UDBScript Thing wrapper deletion access.
 - [x] Add UDBScript Vertex, Linedef, and Sector wrapper deletion and join access.
 - [x] Add UDBScript Map wrapper core element enumeration access.

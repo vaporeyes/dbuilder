@@ -2576,7 +2576,7 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         => thing.GetHashCode();
 
     public override string ToString()
-        => "Thing " + thing.Type;
+        => "Thing " + index;
 
     private void ThrowIfDisposed(string member)
     {

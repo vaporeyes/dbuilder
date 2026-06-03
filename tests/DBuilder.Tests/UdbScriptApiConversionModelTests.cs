@@ -489,10 +489,12 @@ localsidedeftextureoffsets = true;
         Assert.Equal(1, new UdbScriptLinedefWrapper(secondLine, map).index);
         Assert.Equal(1, new UdbScriptSidedefWrapper(secondSide, map).index);
         Assert.Equal(1, new UdbScriptThingWrapper(secondThing, map).index);
+        Assert.Equal("Thing 1", new UdbScriptThingWrapper(secondThing, map).ToString());
         Assert.Equal(-1, new UdbScriptVertexWrapper(new Vertex()).index);
         Assert.Equal(-1, new UdbScriptLinedefWrapper(new Linedef(firstVertex, secondVertex)).index);
         Assert.Equal(-1, new UdbScriptSidedefWrapper(new Sidedef()).index);
         Assert.Equal(-1, new UdbScriptThingWrapper(new Thing()).index);
+        Assert.Equal("Thing -1", new UdbScriptThingWrapper(new Thing()).ToString());
     }
 
     [Fact]
