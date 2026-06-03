@@ -24,6 +24,7 @@ public sealed class UdbScriptRunnerWindow : Window
 
     public event Action? CancelRequested;
     public event Action? CloseRequested;
+    public event Action? RunScriptRequested;
     public event Action? PauseRequested;
     public event Action? ResumeRequested;
 
@@ -102,6 +103,8 @@ public sealed class UdbScriptRunnerWindow : Window
         }
         if (plan.StartTimer)
             _timer.Start();
+        if (plan.InvokeRunScript)
+            RunScriptRequested?.Invoke();
     }
 
     public void MarkRunning()

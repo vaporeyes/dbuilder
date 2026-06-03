@@ -1295,6 +1295,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runner UI lifecycle state, visibility threshold, timer, title, and log formatting model.
   - [x] Add UDBScript runner form run workflow plan.
   - [x] Add UDBScript editor runner finish workflow plan wiring.
+  - [x] Add UDBScript editor runner start run-request wiring.
   - [x] Add UDBScript runner load and closed lifecycle event plan.
   - [x] Add UDBScript editor runner timer startup wiring.
   - [x] Add UDBScript runner InvokePaused timer-pause plan.
@@ -1638,6 +1639,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner form run workflow plan.
 - [x] Add UDBScript editor runner finish workflow plan wiring.
 - [x] Add UDBScript runner start and action-button branch plan.
+- [x] Add UDBScript editor runner start run-request wiring.
 - [x] Add UDBScript runner load and closed lifecycle event plan.
 - [x] Add UDBScript editor runner timer startup wiring.
 - [x] Add UDBScript runner timer tick branch plan.
