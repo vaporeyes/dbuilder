@@ -260,7 +260,9 @@ public static class TexturesParser
                             patch.RenderStyle = ParseRenderStyle(patch.Style);
                         }
                         break;
-                    case "blend": ParseBlend(patch, t, ref i, knownColors); break;
+                    case "blend":
+                        if (!ParseBlend(patch, t, ref i, knownColors)) invalid = true;
+                        break;
                     default: break; // translation and other patch modifiers are skipped token by token
                 }
             }
@@ -273,9 +275,9 @@ public static class TexturesParser
     private static bool IsInvalidLongTextureName(Tok token)
         => token.Text.Length > ClassicImageNameLength && !token.Quoted;
 
-    private static void ParseBlend(TexturesPatch patch, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParseBlend(TexturesPatch patch, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
-        if (i >= t.Count) return;
+        if (i >= t.Count) return false;
 
         byte red;
         byte green;
@@ -283,21 +285,21 @@ public static class TexturesParser
         string token = t[i++];
         if (byte.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out red))
         {
-            if (!ReadComma(t, ref i)) return;
-            if (!ReadByte(t, ref i, out green)) return;
-            if (!ReadComma(t, ref i)) return;
-            if (!ReadByte(t, ref i, out blue)) return;
+            if (!ReadComma(t, ref i)) return false;
+            if (!ReadByte(t, ref i, out green)) return false;
+            if (!ReadComma(t, ref i)) return false;
+            if (!ReadByte(t, ref i, out blue)) return false;
         }
         else if (!ZDoomColorParser.TryParse(token, knownColors, out red, out green, out blue))
         {
-            return;
+            return false;
         }
 
         double blendAlpha = -1.0;
         if (i < t.Count && t[i] == ",")
         {
             i++;
-            if (!ReadDouble(t, ref i, out blendAlpha)) return;
+            if (!ReadDouble(t, ref i, out blendAlpha)) return false;
         }
 
         if (blendAlpha > 0.0)
@@ -312,12 +314,13 @@ public static class TexturesParser
         }
         else
         {
-            return;
+            return true;
         }
 
         patch.BlendRed = red;
         patch.BlendGreen = green;
         patch.BlendBlue = blue;
+        return true;
     }
 
     private static int NormalizeRotation(int rotation)

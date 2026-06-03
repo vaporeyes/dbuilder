@@ -334,7 +334,7 @@ Texture PATCHES, 8, 8
     }
 
     [Fact]
-    public void RequiresCommasInNumericPatchBlendColors()
+    public void SkipsPatchesWithInvalidNumericPatchBlendColors()
     {
         const string text = @"
 Texture PATCHES, 8, 8
@@ -351,15 +351,16 @@ Texture PATCHES, 8, 8
 
         var def = TexturesParser.Parse(text).Single();
 
-        Assert.Equal(TexturesPatchBlendStyle.None, def.Patches[0].BlendStyle);
-        Assert.Equal(TexturesPatchBlendStyle.Blend, def.Patches[1].BlendStyle);
-        Assert.Equal(255, def.Patches[1].BlendRed);
-        Assert.Equal(128, def.Patches[1].BlendGreen);
-        Assert.Equal(0, def.Patches[1].BlendBlue);
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(TexturesPatchBlendStyle.Blend, patch.BlendStyle);
+        Assert.Equal(255, patch.BlendRed);
+        Assert.Equal(128, patch.BlendGreen);
+        Assert.Equal(0, patch.BlendBlue);
     }
 
     [Fact]
-    public void RequiresNumericPatchBlendAlpha()
+    public void SkipsPatchesWithNonNumericPatchBlendAlpha()
     {
         const string text = @"
 Texture PATCHES, 8, 8
@@ -376,9 +377,10 @@ Texture PATCHES, 8, 8
 
         var def = TexturesParser.Parse(text).Single();
 
-        Assert.Equal(TexturesPatchBlendStyle.None, def.Patches[0].BlendStyle);
-        Assert.Equal(TexturesPatchBlendStyle.Tint, def.Patches[1].BlendStyle);
-        Assert.Equal(127, def.Patches[1].BlendAlpha);
+        var patch = Assert.Single(def.Patches);
+        Assert.Equal("OK", patch.Name);
+        Assert.Equal(TexturesPatchBlendStyle.Tint, patch.BlendStyle);
+        Assert.Equal(127, patch.BlendAlpha);
     }
 
     [Fact]

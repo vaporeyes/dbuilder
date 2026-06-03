@@ -552,6 +552,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require UDB-style comma separators in TEXTURES definitions and patches.
   - [x] Ignore plural TEXTURES `Offsets` metadata like UDB.
   - [x] Require UDB-style comma separators in numeric TEXTURES patch blends.
+  - [x] Skip malformed TEXTURES patch blend blocks like UDB.
   - [x] Ignore top-level TEXTURES `optional` prefixes like UDB.
   - [x] Require numeric TEXTURES scale values.
   - [x] Require UDB-style TEXTURES offset values.
