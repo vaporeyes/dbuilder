@@ -97,6 +97,10 @@ public class MapSearchTests
         => Assert.Equal(expected, MapSearch.FormatReplaceResult(count));
 
     [Fact]
+    public void FormatNextFreeTagResultMatchesEditorStatusText()
+        => Assert.Equal("Next free tag: 4.", MapSearch.FormatNextFreeTagResult(4));
+
+    [Fact]
     public void FindTagSpansLinesSectorsThings()
     {
         var map = Build();

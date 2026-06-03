@@ -4237,7 +4237,7 @@ public partial class MainWindow : Window
             if (_map is null) return;
             int tag = ConfiguredTagSearch.NextFreeTag(_map, _config);
             win.SetFindText(tag.ToString());
-            win.SetResult($"Next free tag: {tag}.");
+            win.SetResult(MapSearch.FormatNextFreeTagResult(tag));
         };
         win.Show(this);
     }

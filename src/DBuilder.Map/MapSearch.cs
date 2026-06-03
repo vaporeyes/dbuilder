@@ -129,6 +129,9 @@ public static class MapSearch
     public static string FormatReplaceResult(int replacementCount)
         => replacementCount == 0 ? "Nothing replaced." : $"Replaced {replacementCount} element(s).";
 
+    public static string FormatNextFreeTagResult(int tag)
+        => $"Next free tag: {tag.ToString(CultureInfo.InvariantCulture)}.";
+
     /// <summary>
     /// Selects every element matching <paramref name="value"/> in <paramref name="cat"/> (clearing prior selection)
     /// and returns the match count plus a focus point (the first match's location).
