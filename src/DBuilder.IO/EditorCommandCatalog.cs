@@ -582,6 +582,12 @@ public static class EditorCommandCatalog
     public static string CommandHints(IReadOnlyList<EditorShortcutBinding> bindings, params string[] commandIds)
         => string.Join("; ", commandIds.Select(commandId => CommandHint(commandId, bindings)));
 
+    public static string CommandToolTip(string label, string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        string gesture = GestureText(commandId, bindings);
+        return gesture == "-" ? label : $"{label} ({gesture})";
+    }
+
     public static string GestureText(EditorShortcutBinding binding)
     {
         if (string.IsNullOrWhiteSpace(binding.Key)) return "";

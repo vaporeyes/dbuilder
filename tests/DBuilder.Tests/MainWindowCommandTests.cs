@@ -115,6 +115,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ToolbarTooltipsRefreshFromEffectiveShortcutBindings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("ApplyToolbarShortcutTooltips();", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
+        Assert.Contains("EditorCommandCatalog.CommandToolTip(label, commandId, _shortcutBindings)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void UsdfMenuLabelMatchesDialogEditorToolSurface()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));

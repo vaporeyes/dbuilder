@@ -266,7 +266,48 @@ public partial class MainWindow : Window
     {
         _shortcutBindings = EditorCommandCatalog.EffectiveShortcuts(_settings.ShortcutOverrides);
         MapView.ShortcutBindings = _shortcutBindings;
+        ApplyToolbarShortcutTooltips();
     }
+
+    private void ApplyToolbarShortcutTooltips()
+    {
+        SetShortcutToolTip(OpenMapButton, "Open Map", "window.open-map");
+        SetShortcutToolTip(ReloadMapButton, "Reload Map", "window.reload-map");
+        SetShortcutToolTip(CloseMapButton, "Close Map", "window.close-map");
+        SetShortcutToolTip(SaveButton, "Save WAD", "window.save");
+        SetShortcutToolTip(DeleteButton, "Delete Selection", "window.delete");
+        SetShortcutToolTip(FitButton, "Fit to Map", "map2d.fit");
+        SetShortcutToolTip(Toggle3DModeButton, "Toggle 3D Mode", "map2d.toggle-3d");
+        SetShortcutToolTip(WadAuthorModeButton, "WadAuthor Mode", "map2d.mode-wadauthor");
+        SetShortcutToolTip(VerticesModeButton, "Vertices Mode", "map2d.mode-vertices");
+        SetShortcutToolTip(LinedefsModeButton, "Linedefs Mode", "map2d.mode-linedefs");
+        SetShortcutToolTip(SectorsModeButton, "Sectors Mode", "map2d.mode-sectors");
+        SetShortcutToolTip(ThingsModeButton, "Things Mode", "map2d.mode-things");
+        SetShortcutToolTip(InsertAtCursorButton, "Insert at Cursor", "map2d.insert");
+        SetShortcutToolTip(MakeSectorAtCursorButton, "Make Sector at Cursor", "map2d.make-sector");
+        SetShortcutToolTip(DrawSectorButton, "Draw Sector", "map2d.draw-sector");
+        SetShortcutToolTip(DrawLinesButton, "Draw Lines Only", "map2d.draw-lines");
+        SetShortcutToolTip(DrawCurveButton, "Draw Curve", "map2d.draw-curve");
+        SetShortcutToolTip(DrawRectangleButton, "Draw Rectangle", "map2d.draw-rectangle");
+        SetShortcutToolTip(DrawEllipseButton, "Draw Ellipse", "map2d.draw-ellipse");
+        SetShortcutToolTip(DrawGridButton, "Draw Grid", "map2d.draw-grid");
+        SetShortcutToolTip(CheckMapButton, "Check Map", "window.check-map");
+        SetShortcutToolTip(CleanUpGeometryButton, "Clean Up Geometry", "window.clean-up-geometry");
+        SetShortcutToolTip(ReloadResourcesButton, "Reload Resources", "window.reload-resources");
+        SetShortcutToolTip(TestMapButton, "Test Map", "window.test-map");
+        SetShortcutToolTip(BuildBridgeButton, "Build Bridge", "window.build-bridge");
+        SetShortcutToolTip(MakeDoorButton, "Make Door", "window.make-door");
+        SetShortcutToolTip(BuildStairsButton, "Build Stairs", "window.build-stairs");
+        SetShortcutToolTip(ApplySlopeArchButton, "Apply Slope Arch", "window.apply-slope-arch");
+        SetShortcutToolTip(ApplySlopesButton, "Apply Slopes", "window.apply-slopes");
+        SetShortcutToolTip(SectorColorButton, "Sector Color", "window.sector-color");
+        SetShortcutToolTip(DynamicLightColorButton, "Dynamic Light Color", "window.dynamic-light-color");
+        SetShortcutToolTip(TagRangeButton, "Tag Range", "window.tag-range");
+        SetShortcutToolTip(ImportObjTerrainButton, "Import OBJ Terrain", "window.import-obj-terrain");
+    }
+
+    private void SetShortcutToolTip(Control control, string label, string commandId)
+        => ToolTip.SetTip(control, EditorCommandCatalog.CommandToolTip(label, commandId, _shortcutBindings));
 
     private void ApplyWindowPlacement()
     {

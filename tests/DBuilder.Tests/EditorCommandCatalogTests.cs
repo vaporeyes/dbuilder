@@ -2468,6 +2468,18 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void CommandToolTipAppendsEffectiveGestureWhenBound()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+        });
+
+        Assert.Equal("Save WAD (F5)", EditorCommandCatalog.CommandToolTip("Save WAD", "window.save", bindings));
+        Assert.Equal("Open Map", EditorCommandCatalog.CommandToolTip("Open Map", "window.open-map", bindings));
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsCommandGestures()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[; window.cancel-draw=Esc");
