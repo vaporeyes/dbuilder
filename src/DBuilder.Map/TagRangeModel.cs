@@ -33,6 +33,22 @@ public sealed record TagRangePreviewState(
     bool DoubleTagWarningVisible,
     bool SkipUsedTagsVisible);
 
+public sealed record TagRangeSelectionContext(
+    IReadOnlyList<int> SectorTags,
+    IReadOnlyList<int> LinedefTags,
+    IReadOnlyList<int> ThingTags,
+    IReadOnlySet<int> UsedTags)
+{
+    public IReadOnlyList<int> InitialTags(TagRangeTargetKind target)
+        => target switch
+        {
+            TagRangeTargetKind.Sectors => SectorTags,
+            TagRangeTargetKind.Linedefs => LinedefTags,
+            TagRangeTargetKind.Things => ThingTags,
+            _ => Array.Empty<int>(),
+        };
+}
+
 public sealed record TagRangeFormatCapabilities(
     bool HasLinedefTag,
     bool HasThingTag);
@@ -161,6 +177,13 @@ public static class TagRangeModel
             showUsedTagWarning,
             showUsedTagWarning);
     }
+
+    public static TagRangeSelectionContext CreateSelectionContext(MapSet map)
+        => new(
+            SelectedInitialTags(map, TagRangeTargetKind.Sectors),
+            SelectedInitialTags(map, TagRangeTargetKind.Linedefs),
+            SelectedInitialTags(map, TagRangeTargetKind.Things),
+            CollectUsedTags(map));
 
     public static IReadOnlyList<int> SelectedInitialTags(MapSet map, TagRangeTargetKind target)
         => target switch

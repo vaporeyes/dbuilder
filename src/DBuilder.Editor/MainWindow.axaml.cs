@@ -4580,7 +4580,11 @@ public partial class MainWindow : Window
         }
 
         int startTag = ConfiguredTagSearch.NextFreeTag(_map, _config);
-        var dlg = new TagRangeDialog(target, startTag, _settings.NormalizedTagRangeSettings);
+        var dlg = new TagRangeDialog(
+            target,
+            startTag,
+            _settings.NormalizedTagRangeSettings,
+            TagRangeModel.CreateSelectionContext(_map));
         if (!await dlg.ShowDialog<bool>(this)) return;
         _settings.TagRangeSettings = TagRangeModel.StoredOptionsFrom(dlg.ResultOptions);
         SaveSettings();

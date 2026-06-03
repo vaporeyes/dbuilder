@@ -233,6 +233,31 @@ public sealed class TagRangeModelTests
     }
 
     [Fact]
+    public void CreateSelectionContextCapturesSelectedTagsAndUsedTags()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.Tag = 2;
+        sector.Selected = true;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tag = 4;
+        line.Selected = true;
+        var thing = map.AddThing(new Vector2D(16, 16), 1);
+        thing.Tag = 6;
+        thing.Selected = true;
+        var skippedThing = map.AddThing(new Vector2D(32, 32), 1);
+        skippedThing.Tag = 8;
+
+        TagRangeSelectionContext context = TagRangeModel.CreateSelectionContext(map);
+
+        Assert.Equal(new[] { 2 }, context.SectorTags);
+        Assert.Equal(new[] { 4 }, context.LinedefTags);
+        Assert.Equal(new[] { 6 }, context.ThingTags);
+        Assert.Equal(new[] { 2, 4, 6, 8 }, context.UsedTags.Order());
+        Assert.Equal(context.LinedefTags, context.InitialTags(TagRangeTargetKind.Linedefs));
+    }
+
+    [Fact]
     public void CollectUsedTagsIncludesMultiTags()
     {
         var map = new MapSet();

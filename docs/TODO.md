@@ -1910,6 +1910,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style in-session step and relative-mode defaults.
   - [x] Add UDB-style form title, end-tag preview, OK enabled, duplicate warning, and skip-used visibility state.
   - [x] Add UDB-style toolbar availability and no-selection action warning behavior.
+  - [x] Wire Tag Range end-tag preview and duplicate/out-of-range warnings into the editor dialog.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.

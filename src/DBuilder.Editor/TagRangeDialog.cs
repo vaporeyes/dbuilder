@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Media;
 using DBuilder.Map;
 
 namespace DBuilder.Editor;
@@ -15,14 +16,22 @@ public sealed class TagRangeDialog : PropertyDialog
     private readonly TextBox _maxTag;
     private readonly CheckBox _relative;
     private readonly CheckBox _skipUsedTags;
+    private readonly TextBlock _endTag = new();
+    private readonly TextBlock _warning = new();
+    private readonly TagRangeSelectionContext? _selectionContext;
 
     public TagRangeTargetKind ResultTarget { get; private set; }
     public TagRangeOptions ResultOptions { get; private set; }
 
-    public TagRangeDialog(TagRangeTargetKind target, int startTag, TagRangeStoredOptions storedOptions)
+    public TagRangeDialog(
+        TagRangeTargetKind target,
+        int startTag,
+        TagRangeStoredOptions storedOptions,
+        TagRangeSelectionContext? selectionContext = null)
         : base(TagRangeModel.ToolWindowTitle)
     {
         storedOptions = TagRangeModel.NormalizeStoredOptions(storedOptions);
+        _selectionContext = selectionContext;
         ResultTarget = target;
         ResultOptions = new TagRangeOptions(startTag, storedOptions.Step, storedOptions.Relative, SkipUsedTags: false);
 
@@ -40,19 +49,75 @@ public sealed class TagRangeDialog : PropertyDialog
         _maxTag = AddField("Max tag", int.MaxValue.ToString(CultureInfo.InvariantCulture));
         _relative = AddCheckBox(TagRangeModel.RelativeModeText, storedOptions.Relative);
         _skipUsedTags = AddCheckBox(TagRangeModel.SkipUsedTagsText, false);
+        AddPreviewRows();
+        WirePreviewRefresh();
+        RefreshPreview();
     }
 
     protected override void OnConfirm()
     {
         ResultTarget = (TagRangeTargetKind)ComboNumber(_target, (int)ResultTarget);
+        ResultOptions = CurrentOptions();
+    }
+
+    private void AddPreviewRows()
+    {
+        _endTag.Foreground = Brushes.LightSkyBlue;
+        _warning.Foreground = Brushes.OrangeRed;
+        _warning.TextWrapping = TextWrapping.Wrap;
+        AddCustomRow(_endTag);
+        AddCustomRow(_warning);
+    }
+
+    private void WirePreviewRefresh()
+    {
+        _target.SelectionChanged += (_, _) => RefreshPreview();
+        _startTag.TextChanged += (_, _) => RefreshPreview();
+        _step.TextChanged += (_, _) => RefreshPreview();
+        _maxTag.TextChanged += (_, _) => RefreshPreview();
+        _relative.IsCheckedChanged += (_, _) => RefreshPreview();
+        _skipUsedTags.IsCheckedChanged += (_, _) => RefreshPreview();
+    }
+
+    private void RefreshPreview()
+    {
+        if (_selectionContext == null)
+        {
+            _endTag.Text = "";
+            _warning.Text = "";
+            return;
+        }
+
+        TagRangeTargetKind target = (TagRangeTargetKind)ComboNumber(_target, (int)ResultTarget);
+        TagRangeOptions options = CurrentOptions();
+        IReadOnlyList<int> initialTags = _selectionContext.InitialTags(target);
+        TagRangePreviewState preview = TagRangeModel.CreatePreviewState(
+            target,
+            initialTags.Count,
+            initialTags,
+            _selectionContext.UsedTags,
+            options);
+
+        _endTag.Text = preview.EndTag.HasValue
+            ? $"{TagRangeModel.EndTagLabel} {preview.EndTag.Value.ToString(CultureInfo.InvariantCulture)}"
+            : $"{TagRangeModel.EndTagLabel} -";
+
+        _warning.Text = preview.OutOfTagsWarningVisible
+            ? TagRangeModel.OutOfTagsWarningText
+            : preview.DoubleTagWarningVisible
+                ? TagRangeModel.DuplicateWarningText
+                : "";
+    }
+
+    private TagRangeOptions CurrentOptions()
+    {
         int step = ParseInt(_step, ResultOptions.Step);
         if (step == 0) step = 1;
-        int maxTag = ParseInt(_maxTag, ResultOptions.MaxTag);
-        ResultOptions = new TagRangeOptions(
+        return new TagRangeOptions(
             StartTag: ParseInt(_startTag, ResultOptions.StartTag),
             Step: step,
             Relative: _relative.IsChecked == true,
             SkipUsedTags: _skipUsedTags.IsChecked == true,
-            MaxTag: maxTag);
+            MaxTag: ParseInt(_maxTag, ResultOptions.MaxTag));
     }
 }
