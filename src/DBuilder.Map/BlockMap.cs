@@ -247,19 +247,7 @@ public sealed class BlockMap
     {
         double half = blockSize * 0.5;
         var center = GetCellCenter(col, row);
-        foreach (var line in frustum.Lines)
-        {
-            double dx = line.v2.x - line.v1.x;
-            double dy = line.v2.y - line.v1.y;
-            double a = -dy;
-            double b = dx;
-            double d = -(line.v1.x * a + line.v1.y * b);
-            double e = half * Math.Abs(a) + half * Math.Abs(b);
-            double s = center.x * a + center.y * b + d;
-            if (s + e < 0.0) return false;
-        }
-
-        return true;
+        return frustum.IntersectBox(center, half, half);
     }
 
     private IEnumerable<(int Col, int Row)> LineCellCoordinates(Vector2D start, Vector2D end)

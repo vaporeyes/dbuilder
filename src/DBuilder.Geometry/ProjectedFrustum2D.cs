@@ -105,4 +105,22 @@ public class ProjectedFrustum2D
 
         return true;
     }
+
+    public bool IntersectBox(Vector2D boxcenter, double halfwidth, double halfheight)
+    {
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Line2D line = lines[i];
+            double dx = line.v2.x - line.v1.x;
+            double dy = line.v2.y - line.v1.y;
+            double a = -dy;
+            double b = dx;
+            double d = -(line.v1.x * a + line.v1.y * b);
+            double e = halfwidth * Math.Abs(a) + halfheight * Math.Abs(b);
+            double s = boxcenter.x * a + boxcenter.y * b + d;
+            if (s + e < 0.0) return false;
+        }
+
+        return true;
+    }
 }

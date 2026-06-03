@@ -30,4 +30,20 @@ public class ProjectedFrustum2DTests
         var f = new ProjectedFrustum2D(new Vector2D(0, 0), xyangle: 0, zangle: 0, near: 10, far: 100, fov: (float)(System.Math.PI / 4));
         Assert.False(f.IntersectCircle(new Vector2D(0, 10000), 1));
     }
+
+    [Fact]
+    public void BoxInsideFrustumIntersects()
+    {
+        var f = new ProjectedFrustum2D(new Vector2D(0, 0), xyangle: 0, zangle: 0, near: 10, far: 100, fov: (float)(System.Math.PI / 2));
+
+        Assert.True(f.IntersectBox(new Vector2D(0, -50), halfwidth: 8, halfheight: 8));
+    }
+
+    [Fact]
+    public void BoxBehindCameraDoesNotIntersect()
+    {
+        var f = new ProjectedFrustum2D(new Vector2D(0, 0), xyangle: 0, zangle: 0, near: 10, far: 100, fov: (float)(System.Math.PI / 4));
+
+        Assert.False(f.IntersectBox(new Vector2D(0, 1000), halfwidth: 8, halfheight: 8));
+    }
 }

@@ -324,6 +324,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port curve tools and interpolation behavior fully.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
 - [ ] Port projected frustum behavior fully.
+  - [x] Add UDB-style projected frustum box intersection helper.
 - [ ] Port label placement behavior fully.
   - [x] Add UDB-style triangulation-based sector label position helper.
 - [ ] Port sector geometry validation.
