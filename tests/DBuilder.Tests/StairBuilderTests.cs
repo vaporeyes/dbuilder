@@ -646,6 +646,34 @@ public class StairBuilderTests
         Assert.All(plan, sector => Assert.Equal(8, sector.Vertices.Count));
     }
 
+    [Theory]
+    [InlineData((int)StairBuilderTab.Straight, 4, 5)]
+    [InlineData((int)StairBuilderTab.Curved, 2, 8)]
+    [InlineData((int)StairBuilderTab.Spline, 2, 8)]
+    [InlineData(99, 4, 5)]
+    public void PreviewLinePlanDispatchesLoadedPrefabTab(int stairType, int expectedSectors, int expectedVertices)
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+        var prefab = new StairBuilderPrefab
+        {
+            StairType = stairType,
+            NumberOfSectors = 2,
+            SectorDepth = 16,
+            InnerVertexMultiplier = 2,
+            OuterVertexMultiplier = 3,
+            NumberOfControlPoints = 2
+        };
+
+        IReadOnlyList<StairBuilderSectorPlan> plan = StairBuilder.PlanPreviewSectorsFromLines(
+            new[] { first, second },
+            prefab);
+
+        Assert.Equal(expectedSectors, plan.Count);
+        Assert.All(plan, sector => Assert.Equal(expectedVertices, sector.Vertices.Count));
+    }
+
     [Fact]
     public void PrefabSettingsDictionaryUsesUdbKeys()
     {

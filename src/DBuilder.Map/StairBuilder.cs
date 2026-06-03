@@ -72,6 +72,21 @@ public static class StairBuilder
         return sectors;
     }
 
+    public static IReadOnlyList<StairBuilderSectorPlan> PlanPreviewSectorsFromLines(
+        IReadOnlyList<Linedef> selectedLinedefs,
+        StairBuilderPrefab prefab)
+    {
+        ArgumentNullException.ThrowIfNull(selectedLinedefs);
+        ArgumentNullException.ThrowIfNull(prefab);
+
+        return PrefabTab(prefab) switch
+        {
+            StairBuilderTab.Curved => PlanCurvedSectorsFromLines(selectedLinedefs, prefab.ToCurvedOptions()),
+            StairBuilderTab.Spline => PlanSplineSectorsFromLines(selectedLinedefs, prefab.ToSplineOptions()),
+            _ => PlanStraightSectorsFromLines(selectedLinedefs, prefab.ToStraightOptions()),
+        };
+    }
+
     private static IReadOnlyList<StairBuilderSectorPlan> PlanConnectedStraightSectorsFromLines(
         IReadOnlyList<Linedef> selectedLinedefs,
         StairBuilderStraightOptions options)
@@ -259,6 +274,11 @@ public static class StairBuilder
 
         return false;
     }
+
+    private static StairBuilderTab PrefabTab(StairBuilderPrefab prefab)
+        => Enum.IsDefined(typeof(StairBuilderTab), prefab.StairType)
+            ? (StairBuilderTab)prefab.StairType
+            : StairBuilderTab.Straight;
 
     private static bool ChainIsClosed(ConnectedLineChain chain)
     {
