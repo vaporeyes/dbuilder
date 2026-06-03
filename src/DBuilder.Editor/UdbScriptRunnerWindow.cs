@@ -167,6 +167,15 @@ public sealed class UdbScriptRunnerWindow : Window
                 : UdbScriptQueryOptionsDialogResult.Cancel).ReturnValue;
         });
 
+    public Task<UdbScriptMessageResult> ShowScriptMessageAsync(object? message, bool yesNo)
+        => InvokePausedAsync(async () =>
+        {
+            UdbScriptMessageDialogPlan plan = UdbScriptRunnerModel.MessageDialogPlan(message, yesNo);
+            var dialog = new UdbScriptMessageDialog(plan);
+            UdbScriptMessageResult? result = await dialog.ShowDialog<UdbScriptMessageResult?>(this);
+            return result ?? UdbScriptMessageResult.Abort;
+        });
+
     public void Finish(TimeSpan runtime, bool autoClose)
     {
         UdbScriptRunScriptWorkflowPlan plan = UdbScriptRunnerModel.RunScriptWorkflowPlan(
