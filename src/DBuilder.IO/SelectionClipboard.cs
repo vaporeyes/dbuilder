@@ -10,6 +10,12 @@ namespace DBuilder.IO;
 
 public static class SelectionClipboard
 {
+    public static string CutStatusText(int elementCount)
+        => $"Cut {elementCount} {ElementLabel(elementCount)}.";
+
+    public static string DeleteStatusText(int elementCount)
+        => $"Deleted {elementCount} {ElementLabel(elementCount)}.";
+
     /// <summary>
     /// Serializes the current selection (and the geometry it depends on) to a clipboard buffer, or null when
     /// nothing is selected. Selected linedefs pull in their vertices/sidedefs/sectors; selected sectors pull in
@@ -78,6 +84,9 @@ public static class SelectionClipboard
         vertices.Add(sd.Line.Start);
         vertices.Add(sd.Line.End);
     }
+
+    private static string ElementLabel(int count)
+        => count == 1 ? "element" : "elements";
 
     /// <summary>
     /// Pastes a clipboard buffer into <paramref name="map"/>, translating the new geometry by <paramref name="offset"/>,

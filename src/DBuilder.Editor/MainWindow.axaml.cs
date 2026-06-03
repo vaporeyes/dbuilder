@@ -1524,7 +1524,7 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         MapView.Focus();
-        SetStatus($"Cut {removed} element(s).");
+        SetStatus(SelectionClipboard.CutStatusText(removed));
     }
 
     private void OnCopy(object? sender, RoutedEventArgs e) => RunClipboardEdit(MapView.CopySelection());
@@ -1618,7 +1618,7 @@ public partial class MainWindow : Window
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Deleted {removed} element(s).");
+        SetStatus(SelectionClipboard.DeleteStatusText(removed));
     }
 
     // Opens a property dialog for the single selected element (triggered by a double-click).

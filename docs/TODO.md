@@ -780,6 +780,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands to add, select, and clear selection groups.
   - [x] Add UDB-style stable selection-group action ids and clear-group shortcuts.
   - [x] Add UDB-style singular and plural labels to selection group status text.
+  - [x] Add UDB-style singular and plural labels to cut and delete selection status text.
   - [x] Add menu commands to scale the current selection.
   - [x] Add UDB-style Join Sectors and Merge Sectors command actions.
   - [x] Add UDB-style Select Single-sided and Select Double-sided linedef actions.

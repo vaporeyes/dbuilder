@@ -220,6 +220,15 @@ public class SelectionClipboardTests
         Assert.False(beforePaste);
     }
 
+    [Theory]
+    [InlineData(1, "Cut 1 element.", "Deleted 1 element.")]
+    [InlineData(2, "Cut 2 elements.", "Deleted 2 elements.")]
+    public void StatusTextFormatsSingularAndPluralElementCounts(int elementCount, string cut, string deleted)
+    {
+        Assert.Equal(cut, SelectionClipboard.CutStatusText(elementCount));
+        Assert.Equal(deleted, SelectionClipboard.DeleteStatusText(elementCount));
+    }
+
     [Fact]
     public void PasteOptionsRemovePastedTagsAndActions()
     {
