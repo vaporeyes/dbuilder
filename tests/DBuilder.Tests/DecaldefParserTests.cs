@@ -94,4 +94,34 @@ decal Replaced 10 { pic REPL }";
         Assert.True(defs.Decals.ContainsKey("Replaced"));
         Assert.False(defs.Groups.ContainsKey("Replaced"));
     }
+
+    [Fact]
+    public void MissingDecalBodyStopsParsingLikeUdb()
+    {
+        const string text = @"
+decal Before { pic GOOD }
+decal Bare 7
+decal After { pic LATE }";
+
+        var defs = DecaldefParser.Parse(text);
+
+        Assert.True(defs.Decals.ContainsKey("Before"));
+        Assert.False(defs.Decals.ContainsKey("Bare"));
+        Assert.False(defs.Decals.ContainsKey("After"));
+    }
+
+    [Fact]
+    public void InvalidDecalGroupWeightStopsParsingLikeUdb()
+    {
+        const string text = @"
+decal Before { pic GOOD }
+decalgroup BadGroup { Before bogus }
+decal After { pic LATE }";
+
+        var defs = DecaldefParser.Parse(text);
+
+        Assert.True(defs.Decals.ContainsKey("Before"));
+        Assert.False(defs.Groups.ContainsKey("BadGroup"));
+        Assert.False(defs.Decals.ContainsKey("After"));
+    }
 }

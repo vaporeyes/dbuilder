@@ -612,6 +612,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop LOCKDEFS parsing on invalid lock ids and map colors like UDB.
 - [x] Port DECALDEF parser.
   - [x] Expose UDB-style DECALDEF ID lookup.
+  - [x] Stop DECALDEF parsing on missing bodies and invalid group weights like UDB.
 - [x] Port VOXELDEF parser.
   - [x] Require UDB-style VOXELDEF numeric setting assignments.
   - [x] Stop VOXELDEF parsing on malformed numeric settings like UDB.

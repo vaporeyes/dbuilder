@@ -81,57 +81,68 @@ public static class DecaldefParser
         for (int i = 0; i < t.Count;)
         {
             string keyword = t[i++].ToLowerInvariant();
-            if (keyword == "decal" && i < t.Count) ParseDecal(defs, t, ref i);
-            else if (keyword == "decalgroup" && i < t.Count) ParseDecalGroup(defs, t, ref i);
+            if (keyword == "decal" && i < t.Count)
+            {
+                if (!ParseDecal(defs, t, ref i)) return defs;
+            }
+            else if (keyword == "decalgroup" && i < t.Count)
+            {
+                if (!ParseDecalGroup(defs, t, ref i)) return defs;
+            }
             else if (keyword == "generator" && i < t.Count) ParseGenerator(defs, t, ref i);
             else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
         return defs;
     }
 
-    private static void ParseDecal(DecalDefs defs, List<string> t, ref int i)
+    private static bool ParseDecal(DecalDefs defs, List<string> t, ref int i)
     {
         var decal = new DecalDefinition { Name = t[i++] };
         if (ReadInt(t, ref i, out int id)) decal.Id = id;
-        if (i < t.Count && t[i] == "{")
+        if (i >= t.Count || t[i] != "{") return false;
+        i++;
+        while (i < t.Count && t[i] != "}")
         {
-            i++;
-            while (i < t.Count && t[i] != "}")
+            string prop = t[i++].ToLowerInvariant();
+            if (prop == "pic")
             {
-                string prop = t[i++].ToLowerInvariant();
-                if (prop == "pic" && i < t.Count) decal.Pic = t[i++];
-                else if (prop == "scale" && ReadFloat(t, ref i, out float sx))
-                {
-                    decal.ScaleX = sx;
-                    decal.ScaleY = ReadFloat(t, ref i, out float sy) ? sy : sx;
-                }
-                else if ((prop == "x-scale" || prop == "xscale") && ReadFloat(t, ref i, out float xscale)) decal.ScaleX = xscale;
-                else if ((prop == "y-scale" || prop == "yscale") && ReadFloat(t, ref i, out float yscale)) decal.ScaleY = yscale;
-                else if (prop == "translucent" && ReadFloat(t, ref i, out float alpha)) decal.Alpha = alpha;
-                else if (prop == "add") decal.Additive = true;
-                else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
+                if (i >= t.Count || t[i] == "}") return false;
+                decal.Pic = t[i++];
             }
-            if (i < t.Count) i++;
+            else if (prop == "scale" && ReadFloat(t, ref i, out float sx))
+            {
+                decal.ScaleX = sx;
+                decal.ScaleY = ReadFloat(t, ref i, out float sy) ? sy : sx;
+            }
+            else if ((prop == "x-scale" || prop == "xscale") && ReadFloat(t, ref i, out float xscale)) decal.ScaleX = xscale;
+            else if ((prop == "y-scale" || prop == "yscale") && ReadFloat(t, ref i, out float yscale)) decal.ScaleY = yscale;
+            else if (prop == "translucent" && ReadFloat(t, ref i, out float alpha)) decal.Alpha = alpha;
+            else if (prop == "add") decal.Additive = true;
+            else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
+        if (i >= t.Count) return false;
+        i++;
         if (decal.Name.Length > 0) defs.SetDecal(decal);
+        return true;
     }
 
-    private static void ParseDecalGroup(DecalDefs defs, List<string> t, ref int i)
+    private static bool ParseDecalGroup(DecalDefs defs, List<string> t, ref int i)
     {
         var group = new DecalGroupDefinition { Name = t[i++] };
         if (ReadInt(t, ref i, out int id)) group.Id = id;
-        if (i < t.Count && t[i] == "{")
+        if (i >= t.Count || t[i] != "{") return false;
+        i++;
+        while (i < t.Count && t[i] != "}")
         {
-            i++;
-            while (i < t.Count && t[i] != "}")
-            {
-                string decalName = t[i++];
-                if (decalName is "{" or "}") continue;
-                if (ReadInt(t, ref i, out int weight)) group.Entries.Add(new DecalGroupEntry(decalName, weight));
-            }
-            if (i < t.Count) i++;
+            string decalName = t[i++];
+            if (decalName is "{" or "}") continue;
+            if (!ReadInt(t, ref i, out int weight)) return false;
+            group.Entries.Add(new DecalGroupEntry(decalName, weight));
         }
+        if (i >= t.Count) return false;
+        i++;
         if (group.Name.Length > 0) defs.SetGroup(group);
+        return true;
     }
 
     private static void ParseGenerator(DecalDefs defs, List<string> t, ref int i)
