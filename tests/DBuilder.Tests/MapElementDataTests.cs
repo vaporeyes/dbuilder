@@ -31,11 +31,17 @@ public class MapElementDataTests
         vertex.SetField("whole_double", 8.0);
         vertex.SetField("fractional_double", 8.5);
         vertex.SetField("integer", 4);
+        vertex.SetField("whole_long", 12L);
+        vertex.SetField("large_long", 4294967295L);
 
         Assert.True(vertex.TryGetField<int>("whole_double", out var whole));
         Assert.Equal(8, whole);
         Assert.False(vertex.TryGetField<int>("fractional_double", out _));
         Assert.Equal(4.0, vertex.GetField<double>("integer"));
+        Assert.True(vertex.TryGetField<int>("whole_long", out var wholeLong));
+        Assert.Equal(12, wholeLong);
+        Assert.False(vertex.TryGetField<int>("large_long", out _));
+        Assert.Equal(4294967295.0, vertex.GetField<double>("large_long"));
     }
 
     [Fact]

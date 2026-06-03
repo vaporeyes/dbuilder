@@ -254,6 +254,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style custom UDMF field name validation for editable field text.
   - [x] Preserve raw custom-field string values through quoted text editing.
   - [x] Preserve large integer custom fields through editable field text.
+  - [x] Support safe typed access for large integer custom fields.
 - [x] Port argument handling and typed field access.
 - [x] Port tag behavior and tag collections.
 - [x] Port sidedef part semantics.

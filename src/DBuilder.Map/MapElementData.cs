@@ -117,9 +117,21 @@ public static class MapElementData
             return true;
         }
 
+        if (target == typeof(int) && raw is long l && l >= int.MinValue && l <= int.MaxValue)
+        {
+            value = (T)(object)(int)l;
+            return true;
+        }
+
         if (target == typeof(double) && raw is int i)
         {
             value = (T)(object)(double)i;
+            return true;
+        }
+
+        if (target == typeof(double) && raw is long whole)
+        {
+            value = (T)(object)(double)whole;
             return true;
         }
 
