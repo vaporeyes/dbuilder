@@ -425,6 +425,34 @@ class ValidDefaultProperty : Actor
     }
 
     [Fact]
+    public void RejectsZScriptDefaultFlagSignsWithoutNames()
+    {
+        const string text = @"
+class MissingFlagName : Actor
+{
+    Default
+    {
+        +;
+        Radius 64;
+    }
+}
+class ValidSeparatedFlag : Actor
+{
+    Default
+    {
+        + SOLID;
+        Radius 16;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("ValidSeparatedFlag", actor.ClassName);
+        Assert.True(actor.Flags["SOLID"]);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void KeepsZScriptDefaultExpressionsAsSingleValues()
     {
         const string text = @"
