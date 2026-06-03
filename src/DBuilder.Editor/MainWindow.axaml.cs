@@ -1193,6 +1193,9 @@ public partial class MainWindow : Window
             case "window.invert-selection": OnInvertSelection(this, new RoutedEventArgs()); return true;
             case "window.select-none": OnSelectNone(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
+            case "window.flags": OnFlags(this, new RoutedEventArgs()); return true;
+            case "window.custom-fields": OnCustomFields(this, new RoutedEventArgs()); return true;
+            case "window.tags": OnTagList(this, new RoutedEventArgs()); return true;
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;
             case "window.change-map-element-index": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
