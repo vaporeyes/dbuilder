@@ -67,6 +67,29 @@ public class ResourcePriorityTests
     }
 
     [Fact]
+    public void LaterSpritePrefixOverridesEarlierRotationSet()
+    {
+        string lower = TestArtifacts.BuildPk3(
+            ("sprites/POSSA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))));
+        string higher = TestArtifacts.BuildPk3(
+            ("sprites/POSSA1.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 41, 42, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(lower);
+            rm.AddResource(higher);
+
+            Assert.Equal(new byte[] { 40, 41, 42, 255 }, rm.GetSprite("POSSA0")!.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(lower);
+            File.Delete(higher);
+        }
+    }
+
+    [Fact]
     public void NestedWadSpriteOverridesFolderSpriteInsidePk3()
     {
         byte[] nested = BuildNestedWadBytes(

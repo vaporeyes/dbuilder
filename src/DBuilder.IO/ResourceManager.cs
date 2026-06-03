@@ -1151,7 +1151,8 @@ public sealed class ResourceManager : IDisposable
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (spriteCache.TryGetValue(name, out var cached)) return cached;
 
-        ImageData? result = ResolveCoreWithHiRes(name, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
+        ImageData? result = IsClassicSpriteRequest(name) ? ResolveClassicSprite(name) : null;
+        result ??= ResolveCoreWithHiRes(name, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), includeCameraTextures: false);
         if (result == null)
             foreach (var variant in RotationVariants(name))
             {
@@ -1168,6 +1169,44 @@ public sealed class ResourceManager : IDisposable
 
         spriteCache[name] = result;
         return result;
+    }
+
+    private ImageData? ResolveClassicSprite(string name)
+    {
+        var candidates = new List<string> { name };
+        candidates.AddRange(RotationVariants(name));
+        candidates.AddRange(PairedSpriteVariants(name));
+        candidates = candidates.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        string prefix = name.Substring(0, 4);
+        var pal = Palette;
+        for (int i = readers.Count - 1; i >= 0; i--)
+        {
+            if (!HasClassicSpritePrefix(i, prefix)) continue;
+
+            foreach (string candidate in candidates)
+            {
+                var img = ResolveSpriteCandidateAtReader(candidate, i, pal);
+                if (img != null) return img;
+            }
+
+            return null;
+        }
+
+        return null;
+    }
+
+    private ImageData? ResolveSpriteCandidateAtReader(string name, int readerIndex, DoomPalette? pal)
+    {
+        EnsureDefs();
+        if (spriteDefs.TryGetValue(name, out var def) && def.ResourceIndex == readerIndex)
+            return ComposeTextures(def);
+
+        bool hasBase = HasResolvableBase(name, spriteDefs, static (r, n, p) => r.GetSpriteBase(n, p), pal);
+        var hiRes = hasBase ? readers[readerIndex].GetHiRes(name, pal) : null;
+        if (hiRes != null) return hiRes;
+
+        return readers[readerIndex].GetSpriteBase(name, pal);
     }
 
     /// <summary>Disposes all loaded resources and clears cached lookups and derived resource metadata.</summary>
@@ -1227,6 +1266,23 @@ public sealed class ResourceManager : IDisposable
                 pairedSpriteNames.Add(name);
         return pairedSpriteNames;
     }
+
+    private bool HasClassicSpritePrefix(int readerIndex, string prefix)
+    {
+        EnsureDefs();
+        foreach (string name in readers[readerIndex].SpriteNames())
+            if (name.Length >= 4 && name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        foreach (var def in spriteDefs)
+            if (def.Value.ResourceIndex == readerIndex && def.Key.Length >= 4 && def.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    private static bool IsClassicSpriteRequest(string name)
+        => name.Length == 5
+            || (name.Length == 6 && char.IsDigit(name[5]))
+            || (name.Length == 8 && char.IsDigit(name[5]) && char.IsDigit(name[7]));
 
     private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
         Func<IResourceReader, string, DoomPalette?, ImageData?> lookup, bool includeCameraTextures)

@@ -478,6 +478,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let nested WAD sprites and voxels override folder entries like UDB.
   - [x] Let nested PK3 WAD textures override PK3 `hires/` folder entries like UDB.
   - [x] Let nested directory WAD high-resolution replacements override folder `hires/` entries like UDB.
+  - [x] Let newer sprite prefixes replace older sprite rotations like UDB.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
 - [ ] Port TEXTURES lump composite definitions fully.
   - [x] Resolve composite patches through mixed wall/flat base namespaces.
