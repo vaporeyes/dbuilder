@@ -1476,18 +1476,32 @@ public static class DecorateParser
     }
 
     private static bool CanUseStateFrame(bool zscriptBody, List<Tok> t, int frameIndex)
-        => !zscriptBody || HasZScriptStateFrameSemicolon(t, frameIndex + 1);
+        => !zscriptBody || HasValidZScriptStateFrameTail(t, frameIndex + 1);
 
-    private static bool HasZScriptStateFrameSemicolon(List<Tok> t, int start)
+    private static bool HasValidZScriptStateFrameTail(List<Tok> t, int start)
     {
+        var specials = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (int i = start; i < t.Count; i++)
         {
             if (t[i].Kind == Kind.Sym && t[i].Text == ";") return true;
             if (t[i].Kind == Kind.Sym && t[i].Text is "{" or "}") return false;
             if (IsStateLabel(t, i + 1)) return false;
+            if (t[i].Kind != Kind.Word) continue;
+            string? special = ZScriptStateFrameSpecial(t[i].Text);
+            if (special != null && !specials.Add(special)) return false;
         }
 
         return false;
+    }
+
+    private static string? ZScriptStateFrameSpecial(string token)
+    {
+        string lower = token.ToLowerInvariant();
+        if (lower.StartsWith("light(", StringComparison.Ordinal)) return "light";
+        if (lower.StartsWith("offset(", StringComparison.Ordinal)) return "offset";
+        return lower is "bright" or "light" or "offset" or "fast" or "slow" or "nodelay" or "canraise"
+            ? lower
+            : null;
     }
 
     private static StateSpriteCandidate? ChooseSprite(Dictionary<string, StateSpriteCandidate> stateSprites, StateSpriteCandidate? firstNonEmptySprite, StateSpriteCandidate? firstSprite)

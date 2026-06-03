@@ -1119,6 +1119,19 @@ class MissingFrameSemicolonZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameWithDuplicateSpecials()
+    {
+        const string zscript = @"
+class DuplicateStateSpecialZThing : Actor
+{
+    States { Spawn: DUPL A -1 Bright Bright; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "DuplicateStateSpecialZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"
