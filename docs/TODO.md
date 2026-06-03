@@ -112,6 +112,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Edit shortcut overrides from the settings dialog using stable command ids.
   - [x] Filter Help shortcut sections to commands with effective shortcut bindings.
   - [x] Report Help shortcut totals from effective shortcut bindings.
+  - [x] Match multi-word Help shortcut searches across command metadata.
 - [ ] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.

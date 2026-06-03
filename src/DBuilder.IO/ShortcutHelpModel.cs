@@ -81,12 +81,20 @@ public static class ShortcutHelpModel
         };
 
     private static bool Matches(ShortcutHelpRow row, string groupTitle, string groupDescription, string filter)
-        => Contains(groupTitle, filter)
-            || Contains(groupDescription, filter)
-            || Contains(row.Command.Title, filter)
-            || Contains(row.Command.Id, filter)
-            || Contains(ScopeTitle(row.Command.Scope), filter)
-            || Contains(row.GestureText, filter);
+    {
+        string[] tokens = SearchTokens(filter);
+        return tokens.All(token =>
+            Contains(groupTitle, token)
+            || Contains(groupDescription, token)
+            || Contains(row.Command.Title, token)
+            || Contains(row.Command.Id, token)
+            || Contains(ScopeTitle(row.Command.Scope), token)
+            || Contains(row.GestureText, token));
+    }
+
+    private static string[] SearchTokens(string filter)
+        => filter
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static bool Contains(string value, string filter)
         => value.Contains(filter, StringComparison.OrdinalIgnoreCase);

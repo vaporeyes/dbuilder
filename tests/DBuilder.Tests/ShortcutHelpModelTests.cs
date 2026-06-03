@@ -89,6 +89,22 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
+    public void BuildSectionsMatchesMultiWordFiltersAcrossRowMetadata()
+    {
+        var titleAndGroup = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "3D texture copy");
+        Assert.Contains(titleAndGroup.SelectMany(section => section.Rows), row => row.Command.Id == "map3d.texture-copy");
+
+        var titleAndGesture = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "save ctrl");
+        Assert.Contains(titleAndGesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+    }
+
+    [Fact]
     public void DefaultExpansionKeepsCommonSectionsOpen()
     {
         Assert.True(ShortcutHelpModel.IsDefaultExpanded("File and configuration"));
