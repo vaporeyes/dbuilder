@@ -435,6 +435,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Use shared PK3-family archive classification for data location type inference.
   - [x] Honor PK3 root texture and root flat resource options.
   - [x] Honor WAD strict patch resource option for classic texture composition.
+  - [x] Handle absent required-archive metadata on data locations like UDB.
 - [ ] Port resource priority and override behavior completely.
   - [x] Let later GLDEFS resources override actor light associations.
   - [x] Let nested WAD flat and texture resources take priority over folder resources within a PK3 like UDB.

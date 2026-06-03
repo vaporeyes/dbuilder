@@ -830,6 +830,32 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void DataLocationHandlesAbsentRequiredArchiveMetadata()
+    {
+        var location = new DataLocation(DataLocationType.Pk3, "/tmp/mod.pk3")
+        {
+            RequiredArchives = null!,
+        };
+
+        Assert.Equal("", location.RequiredArchivesText);
+
+        var clone = location.Clone();
+        Assert.Empty(clone.RequiredArchives);
+
+        var locations = new DataLocationList { location };
+        var configuration = new Configuration(sorted: true);
+
+        locations.WriteToConfig(configuration, "resources");
+
+        var resource = Assert.IsAssignableFrom<IDictionary>(configuration.ReadSetting("resources.resource0", (IDictionary?)null));
+        Assert.False(resource.Contains("requiredarchives"));
+
+        location.RequiredArchivesText = "doom.wad";
+
+        Assert.Equal(new[] { "doom.wad" }, location.RequiredArchives);
+    }
+
+    [Fact]
     public void ResourceOptionsDialogModelNormalizesUdbResourceFlags()
     {
         var wad = ResourceOptionsDialogModel.BuildLocation(

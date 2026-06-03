@@ -19,6 +19,7 @@ public static class ConfigResourceDefaultsModel
         IEnumerable<string> requiredArchives,
         bool notForTesting)
     {
+        resource.RequiredArchives ??= new List<string>();
         resource.RequiredArchives.Clear();
         resource.RequiredArchives.AddRange(requiredArchives);
         if (notForTesting) resource.NotForTesting = true;

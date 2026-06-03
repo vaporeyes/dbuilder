@@ -58,7 +58,7 @@ public sealed class DataLocationList : List<DataLocation>
                 { "notfortesting", location.NotForTesting ? 1 : 0 },
             };
 
-            if (location.RequiredArchives.Count > 0)
+            if (location.RequiredArchives is { Count: > 0 })
                 data.Add("requiredarchives", string.Join(",", location.RequiredArchives));
 
             resources.Add("resource" + i.ToString(CultureInfo.InvariantCulture), data);
@@ -97,7 +97,7 @@ public sealed class DataLocationList : List<DataLocation>
     {
         var clone = new DataLocation(source.Type, source.Location, source.Option1, source.Option2, source.NotForTesting);
         clone.InitialLocation = source.InitialLocation;
-        clone.RequiredArchives.AddRange(source.RequiredArchives);
+        if (source.RequiredArchives != null) clone.RequiredArchives.AddRange(source.RequiredArchives);
         return clone;
     }
 

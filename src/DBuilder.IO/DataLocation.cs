@@ -42,9 +42,10 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
 
     public string RequiredArchivesText
     {
-        get => string.Join(", ", RequiredArchives);
+        get => RequiredArchives == null ? "" : string.Join(", ", RequiredArchives);
         set
         {
+            RequiredArchives ??= new List<string>();
             RequiredArchives.Clear();
             if (string.IsNullOrWhiteSpace(value)) return;
 
@@ -89,7 +90,7 @@ public sealed class DataLocation : IEquatable<DataLocation>, IComparable<DataLoc
         {
             InitialLocation = InitialLocation,
         };
-        clone.RequiredArchives.AddRange(RequiredArchives);
+        if (RequiredArchives != null) clone.RequiredArchives.AddRange(RequiredArchives);
         return clone;
     }
 }
