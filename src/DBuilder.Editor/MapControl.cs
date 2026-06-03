@@ -2339,8 +2339,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"applied texture {tex} to {targets.Count} surface(s)");
+        Target3DChanged?.Invoke(TextureApplied3DStatusText(tex, targets.Count));
     }
+
+    public static string TextureApplied3DStatusText(string textureName, int surfaceCount)
+        => $"applied texture {textureName} to {CountLabel(surfaceCount, "surface")}";
 
     private static void ApplyTextureToHit(VisualHit h, string tex)
     {
@@ -2923,9 +2926,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_target3D is not { } h) return;
         int idx = _sel3D.FindIndex(s => SameSurface3D(s, h));
         if (idx >= 0) _sel3D.RemoveAt(idx); else _sel3D.Add(h);
-        Target3DChanged?.Invoke($"{_sel3D.Count} surface(s) selected");
+        Target3DChanged?.Invoke(SurfaceSelection3DStatusText(_sel3D.Count));
         RequestNextFrameRendering();
     }
+
+    public static string SurfaceSelection3DStatusText(int surfaceCount)
+        => $"{CountLabel(surfaceCount, "surface")} selected";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private void ClearSelection3D()
     {

@@ -1074,6 +1074,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual Select, Edit, and Clear Selection action aliases.
   - [x] Add UDB-style visual Paint Selection action metadata.
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
+  - [x] Add UDB-style singular and plural labels to 3D visual surface selection status text.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
 - [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
   - [x] Add UDB-style visual Select Texture action metadata and dispatch alias.
@@ -1082,6 +1083,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual wall texture offset copy and paste action metadata and dispatch.
   - [x] Add UDB-style visual selected wall texture fitting action metadata and dispatch.
   - [x] Add UDB-style visual texture auto-align action metadata and dispatch.
+  - [x] Add UDB-style singular and plural labels to 3D visual texture apply status text.
   - [x] Add UDB-style visual texture and thing scale action metadata and dispatch.
   - [x] Add UDB-style visual texture and thing reset action metadata and dispatch.
   - [x] Add UDB-style visual texture copy and paste action aliases.

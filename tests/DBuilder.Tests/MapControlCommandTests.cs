@@ -9,6 +9,18 @@ namespace DBuilder.Tests;
 public sealed class MapControlCommandTests
 {
     [Theory]
+    [InlineData("STARTAN3", 1, "applied texture STARTAN3 to 1 surface")]
+    [InlineData("BRICK1", 2, "applied texture BRICK1 to 2 surfaces")]
+    public void TextureApplied3DStatusTextFormatsSingularAndPluralSurfaceCounts(string textureName, int surfaceCount, string expected)
+        => Assert.Equal(expected, MapControl.TextureApplied3DStatusText(textureName, surfaceCount));
+
+    [Theory]
+    [InlineData(1, "1 surface selected")]
+    [InlineData(2, "2 surfaces selected")]
+    public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
+        => Assert.Equal(expected, MapControl.SurfaceSelection3DStatusText(surfaceCount));
+
+    [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
