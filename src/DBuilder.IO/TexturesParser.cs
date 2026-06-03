@@ -445,6 +445,11 @@ public static class TexturesParser
                 p++;
                 continue;
             }
+            if (c == '#' && IsRegionDirectiveLine(s, p))
+            {
+                while (p < n && s[p] != '\n') p++;
+                continue;
+            }
             if (c == '/' && p + 1 < n && s[p + 1] == '/')
             {
                 if (p + 2 < n && s[p + 2] == '$')
@@ -494,6 +499,23 @@ public static class TexturesParser
             toks.Add(new Tok(s.Substring(b, p - b), false, line));
         }
         return toks;
+    }
+
+    private static bool IsRegionDirectiveLine(string text, int position)
+    {
+        int p = position + 1;
+        while (p < text.Length && (text[p] == ' ' || text[p] == '\t')) p++;
+
+        return StartsDirective(text, p, "region") || StartsDirective(text, p, "endregion");
+    }
+
+    private static bool StartsDirective(string text, int position, string directive)
+    {
+        if (position + directive.Length > text.Length) return false;
+        if (!text.AsSpan(position, directive.Length).Equals(directive, StringComparison.OrdinalIgnoreCase)) return false;
+
+        int end = position + directive.Length;
+        return end == text.Length || char.IsWhiteSpace(text[end]);
     }
 
     private readonly record struct Tok(string Text, bool Quoted, int Line)

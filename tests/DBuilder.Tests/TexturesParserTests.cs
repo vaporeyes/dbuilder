@@ -183,6 +183,19 @@ Texture After, 2, 2 { Patch P, 0, 0 }";
     }
 
     [Fact]
+    public void SkipsRegionDirectivesLikeUdb()
+    {
+        const string text = @"
+#region Test Textures
+Texture OK, 2, 2 { Patch P, 0, 0 }
+#endregion";
+
+        var def = Assert.Single(TexturesParser.Parse(text));
+
+        Assert.Equal("OK", def.Name);
+    }
+
+    [Fact]
     public void SkipsDefinitionsWithoutBody()
     {
         var defs = TexturesParser.Parse("Graphic G, 10, 12");
