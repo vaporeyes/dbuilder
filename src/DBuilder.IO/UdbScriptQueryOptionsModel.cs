@@ -86,13 +86,7 @@ public sealed class UdbScriptQueryOptionsModel
     }
 
     public IReadOnlyDictionary<string, object> GetScriptOptions()
-    {
-        var values = new Dictionary<string, object>(StringComparer.Ordinal);
-        foreach (UdbScriptOption option in options)
-            values[option.Name] = option.Value;
-
-        return values;
-    }
+        => UdbScriptOptionsUiModel.GetScriptOptions(options);
 
     public bool SetValue(string name, object value)
     {

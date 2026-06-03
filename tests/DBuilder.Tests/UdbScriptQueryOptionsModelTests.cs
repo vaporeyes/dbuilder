@@ -140,4 +140,30 @@ public class UdbScriptQueryOptionsModelTests
         Assert.Empty(model.Options);
         Assert.Empty(model.GetScriptOptions());
     }
+
+    [Fact]
+    public void GetScriptOptionsUsesOptionUiHandlerConversions()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+        model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            2,
+            new Dictionary<string, object?>
+            {
+                ["1"] = "Up",
+                ["2"] = "Down",
+            });
+        model.AddOption("demo.js", "length", "Length", (int)UniversalType.Integer, 128);
+
+        model.SetValue("direction", "Up");
+        model.SetValue("length", "256");
+
+        IReadOnlyDictionary<string, object> values = model.GetScriptOptions();
+
+        Assert.Equal(1, values["direction"]);
+        Assert.Equal(256, values["length"]);
+    }
 }
