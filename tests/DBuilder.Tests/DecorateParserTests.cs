@@ -492,6 +492,22 @@ ACTOR SeparatedFlags 7004
     }
 
     [Fact]
+    public void BareDecorateFlagSignStopsParsingLikeUdb()
+    {
+        const string text = @"
+ACTOR BareFlagSign 7005
+{
+    +
+}
+ACTOR AfterBareFlagSign 7006
+{
+    Radius 16
+}";
+
+        Assert.Empty(DecorateParser.Parse(text));
+    }
+
+    [Fact]
     public void ParsesGamePropertyValuesUntilLineEnd()
     {
         const string text = @"

@@ -1241,9 +1241,10 @@ public static class DecorateParser
             }
             else if (!inStates && TryParseFlag(tk.Text, actor)) { }
             else if (!inStates && TryParseSeparatedFlag(tk.Text, t, ref i, actor)) { }
-            else if (zscriptBody && !inStates && tk.Text is "+" or "-")
+            else if (!inStates && tk.Text is "+" or "-")
             {
                 SkipRemainingActorBody(t, ref i, depth);
+                stopParsing = !zscriptBody;
                 return false;
             }
             else if (!inStates && (tk.Text.Equals("$angled", StringComparison.OrdinalIgnoreCase)
