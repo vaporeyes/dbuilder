@@ -140,6 +140,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for file actions and Map Options.
   - [x] Add stable UDB action ids for Preferences, Game Configurations, and Snap Selection to Grid.
   - [x] Add stable UDB action ids for Help shortcuts and About.
+  - [x] Add stable UDB action ids for remaining File menu actions.
   - [x] Add stable UDB action ids for tag, thing, coordinate, and error windows.
   - [x] Add stable UDB action id for Status History.
   - [x] Add stable UDB action ids for View browser commands.

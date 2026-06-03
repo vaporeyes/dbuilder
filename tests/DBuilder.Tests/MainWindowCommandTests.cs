@@ -9,6 +9,12 @@ namespace DBuilder.Tests;
 public sealed class MainWindowCommandTests
 {
     [Theory]
+    [InlineData("window.recover-autosave", "OnRecoverAutosave")]
+    [InlineData("window.reload-map", "OnReloadMap")]
+    [InlineData("window.add-resource", "OnAddResource")]
+    [InlineData("window.add-resource-directory", "OnAddResourceDirectory")]
+    [InlineData("window.save-as-format", "OnSaveAsFormat")]
+    [InlineData("window.exit", "OnExit")]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
     [InlineData("window.select-all", "OnSelectAll")]
