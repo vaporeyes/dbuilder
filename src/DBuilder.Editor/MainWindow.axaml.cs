@@ -2941,9 +2941,7 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         RefreshUndoRedoPanel();
-        SetStatus(operation.Kind == UndoRedoPanelOperationKind.Undo
-            ? $"Undo {performed} level(s)."
-            : $"Redo {performed} level(s).");
+        SetStatus(operation.StatusText(performed));
     }
 
     private void OnCommentsPanel(object? sender, RoutedEventArgs e)

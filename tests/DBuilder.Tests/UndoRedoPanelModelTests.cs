@@ -85,6 +85,21 @@ public sealed class UndoRedoPanelModelTests
         Assert.Equal(3, operation.Levels);
     }
 
+    [Theory]
+    [InlineData(UndoRedoPanelOperationKind.Undo, 1, "Undo 1 level.")]
+    [InlineData(UndoRedoPanelOperationKind.Undo, 2, "Undo 2 levels.")]
+    [InlineData(UndoRedoPanelOperationKind.Redo, 1, "Redo 1 level.")]
+    [InlineData(UndoRedoPanelOperationKind.Redo, 2, "Redo 2 levels.")]
+    public void OperationStatusTextFormatsSingularAndPluralLevels(
+        UndoRedoPanelOperationKind kind,
+        int performedLevels,
+        string expected)
+    {
+        var operation = new UndoRedoPanelOperation(kind, performedLevels);
+
+        Assert.Equal(expected, operation.StatusText(performedLevels));
+    }
+
     [Fact]
     public void LongHistoryUsesUdbElisionWindowAroundCurrentLevel()
     {

@@ -24,6 +24,17 @@ public sealed record UndoRedoPanelItem(string Description, UndoRedoPanelItemKind
 public sealed record UndoRedoPanelOperation(UndoRedoPanelOperationKind Kind, int Levels)
 {
     public static UndoRedoPanelOperation None { get; } = new(UndoRedoPanelOperationKind.None, 0);
+
+    public string StatusText(int performedLevels)
+        => Kind switch
+        {
+            UndoRedoPanelOperationKind.Undo => $"Undo {CountLabel(performedLevels, "level")}.",
+            UndoRedoPanelOperationKind.Redo => $"Redo {CountLabel(performedLevels, "level")}.",
+            _ => string.Empty,
+        };
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public sealed record UndoRedoPanelState(

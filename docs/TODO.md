@@ -1609,6 +1609,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port undo/redo panel behavior.
   - [x] Add UDB-style undo/redo panel timeline model, current row selection, elision, and multi-level operation planning.
   - [x] Add non-modal editor undo/redo panel with multi-level undo and redo row selection.
+  - [x] Add UDB-style singular and plural labels to undo/redo panel status text.
   - [x] Add testable Undo/Redo panel header formatting with singular and plural labels.
 - [ ] Port select similar element behavior.
   - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
