@@ -240,13 +240,21 @@ public sealed class UdbScriptRunnerWindow : Window
 
     private object? InvokePausedOnUiThread(Delegate method)
     {
+        UdbScriptInvokePausedPlan plan = UdbScriptRunnerModel.InvokePausedPlan(invokeRequired: false);
+
         PauseRequested?.Invoke();
         try
         {
+            if (plan.StopStopwatchBeforeInvoke)
+                _stopwatch.Stop();
+
             return method.DynamicInvoke();
         }
         finally
         {
+            if (plan.StartStopwatchAfterInvoke)
+                _stopwatch.Start();
+
             ResumeRequested?.Invoke();
         }
     }
