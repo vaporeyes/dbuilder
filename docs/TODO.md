@@ -1639,6 +1639,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port slope arch tools.
   - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
   - [x] Add editor menu and toolbar floor slope-arch command for selected sectors.
+  - [x] Add UDB-style singular and plural labels to slope arch status text.
 - [ ] Port make-door tools.
   - [x] Add UDB-style Make Door action metadata and window command dispatch.
   - [x] Add UDB-style map-level Make Door sector mutation helper.

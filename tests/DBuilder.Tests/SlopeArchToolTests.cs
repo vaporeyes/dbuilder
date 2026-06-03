@@ -8,6 +8,13 @@ namespace DBuilder.Tests;
 
 public class SlopeArchToolTests
 {
+    [Theory]
+    [InlineData(0, "No sectors slope-arched.")]
+    [InlineData(1, "Applied floor slope arch to 1 sector.")]
+    [InlineData(2, "Applied floor slope arch to 2 sectors.")]
+    public void ApplyStatusTextFormatsSingularAndPluralSectorCounts(int sectorCount, string expected)
+        => Assert.Equal(expected, SlopeArchTool.ApplyStatusText(sectorCount));
+
     [Fact]
     public void ApplyCreatesFloorArchPlanesAcrossSectorProjection()
     {

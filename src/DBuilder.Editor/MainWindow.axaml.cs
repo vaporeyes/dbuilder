@@ -4702,9 +4702,7 @@ public partial class MainWindow : Window
         int n = SlopeArchTool.Apply(sectors, new Vector2D(minX, centerY), new Vector2D(maxX, centerY), options);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus(n == 0
-            ? "No sectors slope-arched."
-            : $"Applied floor slope arch to {n} sector(s).");
+        SetStatus(SlopeArchTool.ApplyStatusText(n));
     }
 
     private static bool TrySelectedSectorBounds(IReadOnlyList<Sector> sectors, out double minX, out double minY, out double maxX, out double maxY)

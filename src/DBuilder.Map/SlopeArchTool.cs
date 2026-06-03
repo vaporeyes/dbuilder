@@ -17,6 +17,11 @@ public sealed class SlopeArchOptions
 
 public static class SlopeArchTool
 {
+    public static string ApplyStatusText(int sectorCount)
+        => sectorCount == 0
+            ? "No sectors slope-arched."
+            : $"Applied floor slope arch to {CountLabel(sectorCount, "sector")}.";
+
     public static int Apply(IEnumerable<Sector> sectors, Vector2D handle1, Vector2D handle2, SlopeArchOptions options)
     {
         ArgumentNullException.ThrowIfNull(sectors);
@@ -127,4 +132,7 @@ public static class SlopeArchTool
             sector.FloorSlopeOffset = plane.Offset;
         }
     }
+
+    private static string CountLabel(int count, string noun)
+        => count == 1 ? $"1 {noun}" : $"{count} {noun}s";
 }
