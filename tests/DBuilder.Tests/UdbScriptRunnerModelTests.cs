@@ -195,6 +195,15 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerLifecycleEventPlanMatchesUdbLoadAndCloseBranches()
+    {
+        UdbScriptRunnerLifecycleEventPlan plan = UdbScriptRunnerModel.LifecycleEventPlan();
+
+        Assert.True(plan.MakeInvisibleOnLoad);
+        Assert.True(plan.StopTimerOnClosed);
+    }
+
+    [Fact]
     public void RunScriptWorkflowPlanMatchesUdbFormOrchestration()
     {
         TimeSpan runtime = new(0, 0, 0, 2, 30);

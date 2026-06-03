@@ -230,6 +230,10 @@ public sealed record UdbScriptRunnerActionButtonPlan(
     bool MakeInvisible,
     bool CloseWindow);
 
+public sealed record UdbScriptRunnerLifecycleEventPlan(
+    bool MakeInvisibleOnLoad,
+    bool StopTimerOnClosed);
+
 public sealed record UdbScriptRunnerTimerTickPlan(
     bool MakeVisible,
     bool UpdateRunningSeconds,
@@ -524,6 +528,11 @@ public static class UdbScriptRunnerModel
                 CancelToken: false,
                 MakeInvisible: true,
                 CloseWindow: true);
+
+    public static UdbScriptRunnerLifecycleEventPlan LifecycleEventPlan()
+        => new(
+            MakeInvisibleOnLoad: true,
+            StopTimerOnClosed: true);
 
     public static UdbScriptRunnerUiState FinishedUiState(TimeSpan runtime, bool autoClose)
         => new(
