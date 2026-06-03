@@ -755,6 +755,39 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void UdbScriptExecutionPlansMatchUdbActionDispatch()
+    {
+        var current = new UdbScriptInfo("Current", "Description", 1, "/scripts/current.js", "hash-current", null, Array.Empty<UdbScriptOption>());
+        var slotted = new UdbScriptInfo("Slotted", "Description", 1, "/scripts/slotted.js", "hash-slotted", null, Array.Empty<UdbScriptOption>());
+
+        UdbScriptExecutionPlan currentPlan = UdbScriptActions.ExecuteCurrentPlan(current);
+
+        Assert.True(currentPlan.ShouldRun);
+        Assert.Equal(current, currentPlan.Script);
+        Assert.Equal(0, currentPlan.Slot);
+        Assert.False(UdbScriptActions.ExecuteCurrentPlan(null).ShouldRun);
+
+        Assert.Equal(12, UdbScriptActions.SlotFromActionName("udbscript_udbscriptexecuteslot12"));
+        Assert.Equal(0, UdbScriptActions.SlotFromActionName("udbscript_udbscriptexecuteslot"));
+
+        UdbScriptExecutionPlan slotPlan = UdbScriptActions.ExecuteSlotPlan(
+            "udbscript_udbscriptexecuteslot12",
+            new Dictionary<int, UdbScriptInfo?> { [12] = slotted });
+
+        Assert.True(slotPlan.ShouldRun);
+        Assert.Equal(slotted, slotPlan.Script);
+        Assert.Equal(12, slotPlan.Slot);
+
+        UdbScriptExecutionPlan emptySlot = UdbScriptActions.ExecuteSlotPlan(
+            "udbscript_udbscriptexecuteslot12",
+            new Dictionary<int, UdbScriptInfo?>());
+
+        Assert.False(emptySlot.ShouldRun);
+        Assert.Null(emptySlot.Script);
+        Assert.Equal(12, emptySlot.Slot);
+    }
+
+    [Fact]
     public void WavefrontExportCommandIsWindowMenuAction()
     {
         var command = EditorCommandCatalog.Find("window.export-wavefront");

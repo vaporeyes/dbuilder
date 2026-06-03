@@ -12,6 +12,11 @@ public sealed record UdbScriptActionDescriptor(
     bool AllowMouse,
     bool AllowScroll);
 
+public sealed record UdbScriptExecutionPlan(
+    bool ShouldRun,
+    UdbScriptInfo? Script,
+    int Slot);
+
 public static class UdbScriptActions
 {
     public const string CategoryId = "udbscript";
@@ -53,4 +58,36 @@ public static class UdbScriptActions
             AllowMouse: action.AllowMouse,
             AllowScroll: action.AllowScroll))
         .ToArray();
+
+    public static UdbScriptExecutionPlan ExecuteCurrentPlan(UdbScriptInfo? currentScript)
+        => currentScript is null
+            ? new UdbScriptExecutionPlan(false, null, 0)
+            : new UdbScriptExecutionPlan(true, currentScript, 0);
+
+    public static UdbScriptExecutionPlan ExecuteSlotPlan(
+        string actionName,
+        IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments)
+    {
+        int slot = SlotFromActionName(actionName);
+        if (slot == 0)
+            return new UdbScriptExecutionPlan(false, null, 0);
+
+        if (!slotAssignments.TryGetValue(slot, out UdbScriptInfo? script) || script is null)
+            return new UdbScriptExecutionPlan(false, null, slot);
+
+        return new UdbScriptExecutionPlan(true, script, slot);
+    }
+
+    public static int SlotFromActionName(string actionName)
+    {
+        int index = actionName.Length - 1;
+        while (index >= 0 && char.IsDigit(actionName[index]))
+            index--;
+
+        if (index == actionName.Length - 1)
+            return 0;
+
+        string slotText = actionName[(index + 1)..];
+        return int.TryParse(slotText, out int slot) ? slot : 0;
+    }
 }
