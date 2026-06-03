@@ -2087,7 +2087,11 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
             ThrowIfDisposed("selected");
             sector.Selected = value;
             foreach (Sidedef side in sector.Sidedefs)
-                side.Line.Selected = value;
+            {
+                bool frontSelected = side.Line.Front?.Sector?.Selected ?? false;
+                bool backSelected = side.Line.Back?.Sector?.Selected ?? false;
+                side.Line.Selected = frontSelected || backSelected;
+            }
         }
     }
 

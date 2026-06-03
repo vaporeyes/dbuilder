@@ -960,6 +960,22 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void SectorWrapperSelectionKeepsSharedLineSelectedWhenAdjacentSectorSelected()
+    {
+        var (_, first, second, shared) = CreateTwoSharedSectors();
+        var firstWrapper = new UdbScriptSectorWrapper(first);
+        var secondWrapper = new UdbScriptSectorWrapper(second);
+
+        firstWrapper.selected = true;
+        secondWrapper.selected = true;
+        firstWrapper.selected = false;
+
+        Assert.False(first.Selected);
+        Assert.True(second.Selected);
+        Assert.True(shared.Selected);
+    }
+
+    [Fact]
     public void SectorWrapperCopiesPropertiesAndClearsFlags()
     {
         Sector source = CreateSquareSector();
