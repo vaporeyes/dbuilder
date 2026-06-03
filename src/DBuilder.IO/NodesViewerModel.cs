@@ -21,6 +21,17 @@ public static class NodesViewerModel
         return $"{CountLabel(structure.Nodes.Count, "node")}, {CountLabel(structure.Segs.Count, "seg")}, {CountLabel(structure.Subsectors.Count, "subsector")}, {CountLabel(structure.Vertices.Count, "vertex record")}.{overflow}";
     }
 
+    public static string ViewerStatusText(ClassicNodesStructure structure)
+        => structure.IsValid
+            ? $"Nodes Viewer: {CountLabel(structure.Nodes.Count, "node")}, {CountLabel(structure.Segs.Count, "seg")}, {CountLabel(structure.Subsectors.Count, "subsector")}."
+            : $"Nodes Viewer: {structure.Status}.";
+
+    public static string OverlayStatusText(int splitCount, int subsectorPolygonCount)
+        => $"Nodes overlay on: {CountLabel(splitCount, "BSP split")}, {CountLabel(subsectorPolygonCount, "subsector polygon")}.";
+
+    public static string PartitionOverlayStatusText(int partitionLineCount)
+        => $"Nodes overlay on: {CountLabel(partitionLineCount, "BSP partition line")}.";
+
     public static IReadOnlyList<string> NodeRows(ClassicNodesStructure structure)
     {
         var rows = new List<string>(structure.Nodes.Count);

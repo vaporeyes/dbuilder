@@ -3295,7 +3295,7 @@ public partial class MainWindow : Window
             MapView.SetNodeLines(lines);
             MapView.SetNodePolygons(overlayPolygons);
             MapView.ShowNodes = true;
-            SetStatus($"Nodes overlay on: {lines.Count} BSP split(s), {overlayPolygons.Count} subsector polygon(s).");
+            SetStatus(NodesViewerModel.OverlayStatusText(lines.Count, overlayPolygons.Count));
             return;
         }
 
@@ -3310,7 +3310,7 @@ public partial class MainWindow : Window
         MapView.SetNodeLines(fallbackLines);
         MapView.SetNodePolygons(Array.Empty<IReadOnlyList<Vector2D>>());
         MapView.ShowNodes = true;
-        SetStatus($"Nodes overlay on: {parts.Count} BSP partition line(s).");
+        SetStatus(NodesViewerModel.PartitionOverlayStatusText(parts.Count));
     }
 
     private void OnNodesViewer(object? sender, RoutedEventArgs e)
@@ -3321,9 +3321,7 @@ public partial class MainWindow : Window
         ClassicNodesStructure structure = ReadClassicNodesStructure();
         var win = new NodesViewerWindow(structure);
         win.Show(this);
-        SetStatus(structure.IsValid
-            ? $"Nodes Viewer: {structure.Nodes.Count} node(s), {structure.Segs.Count} seg(s), {structure.Subsectors.Count} subsector(s)."
-            : $"Nodes Viewer: {structure.Status}.");
+        SetStatus(NodesViewerModel.ViewerStatusText(structure));
     }
 
     private void OnVisplaneExplorerMode(object? sender, RoutedEventArgs e)

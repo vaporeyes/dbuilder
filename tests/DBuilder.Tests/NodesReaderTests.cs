@@ -190,6 +190,7 @@ public class NodesReaderTests
 
         Assert.Equal("Classic nodes: OK", NodesViewerModel.StatusText(structure));
         Assert.Equal("1 node, 1 seg, 1 subsector, 2 vertex records.", NodesViewerModel.CountsText(structure));
+        Assert.Equal("Nodes Viewer: 1 node, 1 seg, 1 subsector.", NodesViewerModel.ViewerStatusText(structure));
         Assert.Equal("#0: (0, 0) -> (64, 0)  parent -1  right subsector 0  left subsector 1", Assert.Single(NodesViewerModel.NodeRows(structure)));
         Assert.Equal("#0: v0 -> v1  line 3  side left  offset -16  subsector 0", Assert.Single(NodesViewerModel.SegRows(structure)));
         Assert.Equal("#0: 1 seg, first seg 0", Assert.Single(NodesViewerModel.SubsectorRows(structure)));
@@ -212,8 +213,21 @@ public class NodesReaderTests
         var structure = NodesReader.ParseClassicStructures(nodes, segs, vertices, subsectors);
 
         Assert.Equal("2 nodes, 2 segs, 2 subsectors, 2 vertex records.", NodesViewerModel.CountsText(structure));
+        Assert.Equal("Nodes Viewer: 2 nodes, 2 segs, 2 subsectors.", NodesViewerModel.ViewerStatusText(structure));
         Assert.Equal("#0: 2 segs, first seg 0", NodesViewerModel.SubsectorRows(structure)[0]);
     }
+
+    [Theory]
+    [InlineData(1, 1, "Nodes overlay on: 1 BSP split, 1 subsector polygon.")]
+    [InlineData(2, 3, "Nodes overlay on: 2 BSP splits, 3 subsector polygons.")]
+    public void NodesViewerModelFormatsOverlayStatusText(int splitCount, int polygonCount, string expected)
+        => Assert.Equal(expected, NodesViewerModel.OverlayStatusText(splitCount, polygonCount));
+
+    [Theory]
+    [InlineData(1, "Nodes overlay on: 1 BSP partition line.")]
+    [InlineData(2, "Nodes overlay on: 2 BSP partition lines.")]
+    public void NodesViewerModelFormatsPartitionOverlayStatusText(int partitionLineCount, string expected)
+        => Assert.Equal(expected, NodesViewerModel.PartitionOverlayStatusText(partitionLineCount));
 
     [Fact]
     public void NodesViewerModelBuildsCountedTabRows()
