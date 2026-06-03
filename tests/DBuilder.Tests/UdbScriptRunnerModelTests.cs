@@ -286,6 +286,37 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RuntimeConstraintCheckMatchesUdbAbortAndRestartBranches()
+    {
+        UdbScriptRuntimeConstraintCheckResult withinThreshold = UdbScriptRunnerModel.RuntimeConstraintCheck(
+            TimeSpan.FromMilliseconds(5000),
+            UdbScriptRuntimeConstraintDialogResult.Yes);
+
+        Assert.False(withinThreshold.Prompt.ShouldPrompt);
+        Assert.Equal(UdbScriptRuntimeConstraintDialogResult.None, withinThreshold.DialogResult);
+        Assert.False(withinThreshold.ThrowUserAbortException);
+        Assert.False(withinThreshold.RestartStopwatch);
+
+        UdbScriptRuntimeConstraintCheckResult yes = UdbScriptRunnerModel.RuntimeConstraintCheck(
+            TimeSpan.FromMilliseconds(5001),
+            UdbScriptRuntimeConstraintDialogResult.Yes);
+
+        Assert.True(yes.Prompt.ShouldPrompt);
+        Assert.Equal(UdbScriptRuntimeConstraintDialogResult.Yes, yes.DialogResult);
+        Assert.True(yes.ThrowUserAbortException);
+        Assert.False(yes.RestartStopwatch);
+
+        UdbScriptRuntimeConstraintCheckResult no = UdbScriptRunnerModel.RuntimeConstraintCheck(
+            TimeSpan.FromMilliseconds(5001),
+            UdbScriptRuntimeConstraintDialogResult.No);
+
+        Assert.True(no.Prompt.ShouldPrompt);
+        Assert.Equal(UdbScriptRuntimeConstraintDialogResult.No, no.DialogResult);
+        Assert.False(no.ThrowUserAbortException);
+        Assert.True(no.RestartStopwatch);
+    }
+
+    [Fact]
     public void SourcePlanImportsRecursiveLibrariesAndUsesAppRelativeSourceNames()
     {
         string app = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_runner_" + Guid.NewGuid().ToString("N"));

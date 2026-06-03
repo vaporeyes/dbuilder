@@ -43,6 +43,13 @@ public enum UdbScriptRunnerExceptionDialogKind
     ErrorDialog,
 }
 
+public enum UdbScriptRuntimeConstraintDialogResult
+{
+    None,
+    Yes,
+    No,
+}
+
 public sealed record UdbScriptRunnerExceptionOutcome(
     UdbScriptRunnerExceptionKind Kind,
     bool WithdrawUndo,
@@ -73,6 +80,12 @@ public sealed record UdbScriptRuntimeConstraintPrompt(
     bool ShouldPrompt,
     string Title,
     string Message);
+
+public sealed record UdbScriptRuntimeConstraintCheckResult(
+    UdbScriptRuntimeConstraintPrompt Prompt,
+    UdbScriptRuntimeConstraintDialogResult DialogResult,
+    bool ThrowUserAbortException,
+    bool RestartStopwatch);
 
 public sealed record UdbScriptErrorDialog(
     string Title,
@@ -376,6 +389,21 @@ public static class UdbScriptRunnerModel
         => elapsed.TotalMilliseconds > RuntimeConstraintCheckMilliseconds
             ? new UdbScriptRuntimeConstraintPrompt(true, RuntimeConstraintPromptTitle, RuntimeConstraintPromptMessage)
             : new UdbScriptRuntimeConstraintPrompt(false, "", "");
+
+    public static UdbScriptRuntimeConstraintCheckResult RuntimeConstraintCheck(
+        TimeSpan elapsed,
+        UdbScriptRuntimeConstraintDialogResult dialogResult)
+    {
+        UdbScriptRuntimeConstraintPrompt prompt = RuntimeConstraintPrompt(elapsed);
+        if (!prompt.ShouldPrompt)
+            return new(prompt, UdbScriptRuntimeConstraintDialogResult.None, false, false);
+
+        return new(
+            prompt,
+            dialogResult,
+            dialogResult == UdbScriptRuntimeConstraintDialogResult.Yes,
+            dialogResult == UdbScriptRuntimeConstraintDialogResult.No);
+    }
 
     public static UdbScriptRunSourcePlan BuildSourcePlan(string appPath, string scriptFile)
     {
