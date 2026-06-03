@@ -1146,7 +1146,13 @@ public partial class MainWindow : Window
                     WadMaps.CopyAllLumps(src, dst);
                     if (!string.IsNullOrEmpty(_sourceMapMarker)
                         && !string.Equals(_sourceMapMarker, marker, StringComparison.OrdinalIgnoreCase))
-                        WadMaps.RenameMap(dst, _sourceMapMarker, marker);
+                    {
+                        if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))
+                        {
+                            SetStatus($"Save blocked: target map {marker} already exists.");
+                            return;
+                        }
+                    }
                 }
                 WadMaps.SaveMap(dst, marker, _map, targetFormat, _config);
                 bytes = msOut.ToArray();

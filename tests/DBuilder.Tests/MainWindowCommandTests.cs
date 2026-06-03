@@ -255,6 +255,15 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void SaveBackBlocksMapRenameTargetConflicts()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))", body, StringComparison.Ordinal);
+        Assert.Contains("Save blocked: target map {marker} already exists.", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

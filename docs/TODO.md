@@ -432,6 +432,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add collision-safe map marker renaming.
   - [x] Reject map marker names that overlap configured map lumps.
   - [x] Preserve configured script and blind-copy map lumps during save-back.
+  - [x] Block save-back when a map rename target already exists.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 
 ## Resource And Data Management
