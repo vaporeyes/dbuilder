@@ -1329,6 +1329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript error dialog metadata model.
   - [x] Add UDBScript script error dialog editor surface and runner prompt hook.
   - [x] Add UDBScript exception handling dialog and status branch plan.
+  - [x] Wire UDBScript editor runner exception handling.
   - [x] Add UDBScript library import exception branch plan.
   - [x] Add UDBScript script-version member access filter model.
   - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
@@ -1701,6 +1702,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner pre-run and post-run side-effect plan model.
 - [x] Add UDBScript error dialog metadata model.
 - [x] Add UDBScript exception handling dialog and status branch plan.
+- [x] Wire UDBScript editor runner exception handling.
 - [x] Add UDBScript library import exception branch plan.
 - [x] Add UDBScript script-version member access filter model.
 - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.

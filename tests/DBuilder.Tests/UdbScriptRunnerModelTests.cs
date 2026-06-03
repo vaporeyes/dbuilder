@@ -959,6 +959,26 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void ExceptionKindMapsTypedRunnerExceptions()
+    {
+        Assert.Equal(
+            UdbScriptRunnerExceptionKind.UserAbort,
+            UdbScriptRunnerModel.ExceptionKind(new UdbScriptUserAbortException()));
+        Assert.Equal(
+            UdbScriptRunnerExceptionKind.Exit,
+            UdbScriptRunnerModel.ExceptionKind(new UdbScriptExitException("done")));
+        Assert.Equal(
+            UdbScriptRunnerExceptionKind.Die,
+            UdbScriptRunnerModel.ExceptionKind(new UdbScriptDieException("failed")));
+        Assert.Equal(
+            UdbScriptRunnerExceptionKind.ExecutionCanceled,
+            UdbScriptRunnerModel.ExceptionKind(new OperationCanceledException()));
+        Assert.Equal(
+            UdbScriptRunnerExceptionKind.Unknown,
+            UdbScriptRunnerModel.ExceptionKind(new InvalidOperationException("failed")));
+    }
+
+    [Fact]
     public void LibraryImportExceptionPlanMatchesUdbImportErrorBranches()
     {
         UdbScriptLibraryImportExceptionPlan parser = UdbScriptRunnerModel.LibraryImportExceptionPlan(

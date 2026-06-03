@@ -859,6 +859,16 @@ public static class UdbScriptRunnerModel
         };
     }
 
+    public static UdbScriptRunnerExceptionKind ExceptionKind(Exception exception)
+        => exception switch
+        {
+            UdbScriptUserAbortException => UdbScriptRunnerExceptionKind.UserAbort,
+            UdbScriptExitException => UdbScriptRunnerExceptionKind.Exit,
+            UdbScriptDieException => UdbScriptRunnerExceptionKind.Die,
+            OperationCanceledException => UdbScriptRunnerExceptionKind.ExecutionCanceled,
+            _ => UdbScriptRunnerExceptionKind.Unknown,
+        };
+
     public static UdbScriptLibraryImportExceptionPlan LibraryImportExceptionPlan(
         UdbScriptRunnerExceptionKind kind,
         string libraryPath,

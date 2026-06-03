@@ -18,5 +18,6 @@ public class MainWindowUdbScriptTests
         Assert.NotNull(type.GetMethod("RunUdbScriptPlan", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("OpenUdbScriptRunnerWindow", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("RunUdbScriptInRunner", BindingFlags.Instance | BindingFlags.NonPublic));
+        Assert.NotNull(type.GetMethod("HandleUdbScriptRunnerExceptionAsync", BindingFlags.Instance | BindingFlags.NonPublic));
     }
 }

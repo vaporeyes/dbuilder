@@ -1287,57 +1287,81 @@ public partial class MainWindow : Window
 
     private async void RunUdbScriptInRunner(UdbScriptRunnerWindow runner, UdbScriptInfo script)
     {
-        runner.MarkRunning();
-        UdbScriptVersionGateDecision versionDecision = await runner.ConfirmFeatureVersionAsync(
-            script.Version,
-            ignoreVersion: false);
-        if (!versionDecision.ShouldContinue)
+        try
         {
-            runner.ApplyLog($"Script feature version rejected: {script.Version}");
+            runner.MarkRunning();
+            UdbScriptVersionGateDecision versionDecision = await runner.ConfirmFeatureVersionAsync(
+                script.Version,
+                ignoreVersion: false);
+            if (!versionDecision.ShouldContinue)
+            {
+                runner.ApplyLog($"Script feature version rejected: {script.Version}");
+                runner.Finish(runner.ElapsedRuntime, autoClose: false);
+                SetStatus($"UDBScript feature version rejected: {script.Name}");
+                return;
+            }
+            if (versionDecision.SetIgnoreVersion)
+                runner.ApplyLog($"Script feature version accepted: {script.Version}");
+
+            UdbScriptRunSourcePlan sourcePlan = UdbScriptRunnerModel.BuildSourcePlan(AppContext.BaseDirectory, script.ScriptFile);
+            runner.ApplyStatus($"Preparing script: {script.Name}");
+            runner.ApplyLog($"Script: {sourcePlan.Script.EngineSourceName}");
+            runner.ApplyLog($"Libraries: {sourcePlan.Libraries.Count}");
+
+            UdbScriptLoadedSourcePlan loadedSources = UdbScriptRunnerModel.LoadSourcePlan(
+                sourcePlan,
+                System.IO.File.Exists,
+                System.IO.File.ReadAllText);
+            if (!loadedSources.Success)
+            {
+                runner.ApplyLog($"Script source file not found: {loadedSources.MissingPath}");
+                runner.Finish(runner.ElapsedRuntime, autoClose: false);
+                SetStatus($"UDBScript source file not found: {loadedSources.MissingPath}");
+                return;
+            }
+
+            runner.ApplyLog($"Loaded script source: {loadedSources.Script?.Text.Length ?? 0} character(s)");
+            UdbScriptRunnerBindingPlan bindingPlan = UdbScriptRunnerModel.BindingPlan(script);
+            runner.ApplyLog($"Script options: {bindingPlan.ScriptOptions.Count}");
+            runner.ApplyLog(bindingPlan.EngineSetup.UsesLegacyGlobals
+                ? "Engine binding mode: legacy globals"
+                : "Engine binding mode: UDB object");
+            UdbScriptRuntimeConstraintCheckResult runtimeConstraint = await runner.CheckRuntimeConstraintAsync(runner.ElapsedRuntime);
+            if (runtimeConstraint.ThrowUserAbortException)
+            {
+                runner.ApplyLog("Script aborted by runtime constraint prompt.");
+                runner.Finish(runner.ElapsedRuntime, autoClose: false);
+                SetStatus($"UDBScript runtime constraint aborted: {script.Name}");
+                return;
+            }
+            if (runtimeConstraint.RestartStopwatch)
+                runner.ApplyLog("Script runtime constraint prompt continued.");
+
+            runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
             runner.Finish(runner.ElapsedRuntime, autoClose: false);
-            SetStatus($"UDBScript feature version rejected: {script.Name}");
-            return;
+            SetStatus($"UDBScript runner prepared: {script.Name}");
         }
-        if (versionDecision.SetIgnoreVersion)
-            runner.ApplyLog($"Script feature version accepted: {script.Version}");
-
-        UdbScriptRunSourcePlan sourcePlan = UdbScriptRunnerModel.BuildSourcePlan(AppContext.BaseDirectory, script.ScriptFile);
-        runner.ApplyStatus($"Preparing script: {script.Name}");
-        runner.ApplyLog($"Script: {sourcePlan.Script.EngineSourceName}");
-        runner.ApplyLog($"Libraries: {sourcePlan.Libraries.Count}");
-
-        UdbScriptLoadedSourcePlan loadedSources = UdbScriptRunnerModel.LoadSourcePlan(
-            sourcePlan,
-            System.IO.File.Exists,
-            System.IO.File.ReadAllText);
-        if (!loadedSources.Success)
+        catch (Exception ex)
         {
-            runner.ApplyLog($"Script source file not found: {loadedSources.MissingPath}");
-            runner.Finish(runner.ElapsedRuntime, autoClose: false);
-            SetStatus($"UDBScript source file not found: {loadedSources.MissingPath}");
-            return;
+            await HandleUdbScriptRunnerExceptionAsync(runner, script, ex);
         }
+    }
 
-        runner.ApplyLog($"Loaded script source: {loadedSources.Script?.Text.Length ?? 0} character(s)");
-        UdbScriptRunnerBindingPlan bindingPlan = UdbScriptRunnerModel.BindingPlan(script);
-        runner.ApplyLog($"Script options: {bindingPlan.ScriptOptions.Count}");
-        runner.ApplyLog(bindingPlan.EngineSetup.UsesLegacyGlobals
-            ? "Engine binding mode: legacy globals"
-            : "Engine binding mode: UDB object");
-        UdbScriptRuntimeConstraintCheckResult runtimeConstraint = await runner.CheckRuntimeConstraintAsync(runner.ElapsedRuntime);
-        if (runtimeConstraint.ThrowUserAbortException)
-        {
-            runner.ApplyLog("Script aborted by runtime constraint prompt.");
-            runner.Finish(runner.ElapsedRuntime, autoClose: false);
-            SetStatus($"UDBScript runtime constraint aborted: {script.Name}");
-            return;
-        }
-        if (runtimeConstraint.RestartStopwatch)
-            runner.ApplyLog("Script runtime constraint prompt continued.");
-
-        runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
+    private async Task HandleUdbScriptRunnerExceptionAsync(UdbScriptRunnerWindow runner, UdbScriptInfo script, Exception exception)
+    {
+        UdbScriptRunnerExceptionKind kind = UdbScriptRunnerModel.ExceptionKind(exception);
+        UdbScriptRunnerExceptionHandlingPlan plan = UdbScriptRunnerModel.ExceptionHandlingPlan(
+            kind,
+            exception.Message,
+            javascriptThrowIsString: false,
+            internalStackTrace: exception.ToString());
+        await runner.ShowScriptErrorAsync(plan);
+        runner.ApplyLog($"Script exception: {kind}");
         runner.Finish(runner.ElapsedRuntime, autoClose: false);
-        SetStatus($"UDBScript runner prepared: {script.Name}");
+        if (!string.IsNullOrWhiteSpace(plan.Outcome.StatusText))
+            SetStatus(plan.Outcome.StatusText);
+        else
+            SetStatus($"UDBScript execution failed: {script.Name}");
     }
 
     private bool RunSelectionGroupCommand(string commandId)
