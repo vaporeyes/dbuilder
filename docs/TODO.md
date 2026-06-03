@@ -1277,6 +1277,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runner source file loading model and editor wiring.
   - [x] Add UDBScript runtime constraint abort and restart branch planning.
   - [x] Add UDBScript runtime constraint confirmation dialog and runner prompt hook.
+  - [x] Wire UDBScript runner preparation through the runtime constraint prompt.
   - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
   - [x] Add UDBScript QueryOptions API member surface metadata.
   - [x] Add UDBScript QueryOptions enum-value container gating.
@@ -1647,6 +1648,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner source file loading model and editor wiring.
 - [x] Add UDBScript runtime constraint abort and restart branch planning.
 - [x] Add UDBScript runtime constraint confirmation dialog and runner prompt hook.
+- [x] Wire UDBScript runner preparation through the runtime constraint prompt.
 - [x] Add UDBScript QueryOptions add, clear, enum default, and value collection model.
 - [x] Add UDBScript QueryOptions API member surface metadata.
 - [x] Add UDBScript QueryOptions enum-value container gating.

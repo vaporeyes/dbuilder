@@ -1324,6 +1324,17 @@ public partial class MainWindow : Window
         runner.ApplyLog(bindingPlan.EngineSetup.UsesLegacyGlobals
             ? "Engine binding mode: legacy globals"
             : "Engine binding mode: UDB object");
+        UdbScriptRuntimeConstraintCheckResult runtimeConstraint = await runner.CheckRuntimeConstraintAsync(runner.ElapsedRuntime);
+        if (runtimeConstraint.ThrowUserAbortException)
+        {
+            runner.ApplyLog("Script aborted by runtime constraint prompt.");
+            runner.Finish(runner.ElapsedRuntime, autoClose: false);
+            SetStatus($"UDBScript runtime constraint aborted: {script.Name}");
+            return;
+        }
+        if (runtimeConstraint.RestartStopwatch)
+            runner.ApplyLog("Script runtime constraint prompt continued.");
+
         runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
         runner.Finish(runner.ElapsedRuntime, autoClose: false);
         SetStatus($"UDBScript runner prepared: {script.Name}");
