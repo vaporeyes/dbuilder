@@ -10,6 +10,12 @@ public sealed record UdbScriptPreferencesMetadata(
     string ExecutableFileFilter,
     string MissingEditorMessage);
 
+public sealed record UdbScriptExternalEditorLaunchPlan(
+    bool ShouldLaunch,
+    string FileName,
+    string Arguments,
+    string? Message);
+
 public static class UdbScriptPreferencesModel
 {
     public const string TabText = "UDBScript";
@@ -37,5 +43,19 @@ public static class UdbScriptPreferencesModel
 
         string defaultEditor = Path.Combine(systemDirectory, DefaultExternalEditorName);
         return fileExists(defaultEditor) ? defaultEditor : "";
+    }
+
+    public static UdbScriptExternalEditorLaunchPlan EditScriptLaunchPlan(
+        string editorPath,
+        string scriptFile)
+    {
+        if (string.IsNullOrWhiteSpace(editorPath))
+            return new UdbScriptExternalEditorLaunchPlan(false, "", "", MissingEditorMessage);
+
+        return new UdbScriptExternalEditorLaunchPlan(
+            true,
+            editorPath,
+            "\"" + scriptFile + "\"",
+            null);
     }
 }
