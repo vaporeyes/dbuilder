@@ -222,7 +222,7 @@ public static class UdmfMapWriter
                 case int i:    WriteAssignment(sb, kv.Key, i, indent); break;
                 case long l:   WriteAssignment(sb, kv.Key, l, indent); break;
                 case double d: WriteAssignment(sb, kv.Key, d, indent); break;
-                case float f:  WriteAssignment(sb, kv.Key, (double)f, indent); break;
+                case float f:  WriteAssignment(sb, kv.Key, f, indent); break;
                 case string s: WriteAssignment(sb, kv.Key, s, indent); break;
             }
         }
@@ -279,7 +279,7 @@ public static class UdmfMapWriter
                 sb.Append(FormatDouble(d));
                 break;
             case float f:
-                sb.Append(FormatDouble(f));
+                sb.Append(FormatFloat(f));
                 break;
             case string s:
                 sb.Append('"').Append(EscapeString(s)).Append('"');
@@ -298,6 +298,9 @@ public static class UdmfMapWriter
 
     private static string FormatDouble(double value)
         => value.ToString("0.0##############", CultureInfo.InvariantCulture);
+
+    private static string FormatFloat(float value)
+        => value.ToString("0.000", CultureInfo.InvariantCulture);
 
     private static string NormalizeLineEndings(string text)
         => text.ReplaceLineEndings("\r\n");
@@ -327,6 +330,14 @@ public static class UdmfMapWriter
     {
         if (indent) sb.Append('\t');
         string formatted = FormatDouble(value);
+        sb.Append(key).Append(" = ").Append(formatted).Append(';');
+        sb.AppendLine();
+    }
+
+    private static void WriteAssignment(StringBuilder sb, string key, float value, bool indent = false)
+    {
+        if (indent) sb.Append('\t');
+        string formatted = FormatFloat(value);
         sb.Append(key).Append(" = ").Append(formatted).Append(';');
         sb.AppendLine();
     }

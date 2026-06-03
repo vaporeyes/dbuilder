@@ -391,6 +391,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Emit UDMF custom and map fields larger than signed 32-bit integers without truncation.
   - [x] Emit UDMF text maps with UDB-style CRLF line endings.
   - [x] Format UDMF double values like UDB's universal parser.
+  - [x] Format UDMF float values like UDB's universal parser.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.

@@ -248,6 +248,22 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void FloatValuesUseUdbUniversalParserFormat()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Fields["map_float"] = 1.25f;
+        map.Vertices.Add(new Vertex(new Vector2D(0, 0)));
+        map.Vertices[0].Fields["vertex_float"] = 0.125f;
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("unknown_float", 2.5f));
+
+        var text = UdmfMapWriter.Write(map);
+
+        Assert.Contains("map_float = 1.250;", text);
+        Assert.Contains("vertex_float = 0.125;", text);
+        Assert.Contains("unknown_float = 2.500;", text);
+    }
+
+    [Fact]
     public void TwoSidedLineRoundTripsBothSidedefs()
     {
         const string udmf = """
