@@ -14,6 +14,9 @@ public sealed class MainWindowCommandTests
     [InlineData("window.select-all", "OnSelectAll")]
     [InlineData("window.invert-selection", "OnInvertSelection")]
     [InlineData("window.select-none", "OnSelectNone")]
+    [InlineData("window.stitch-geometry", "OnStitch")]
+    [InlineData("window.join-sectors", "OnJoinSectors")]
+    [InlineData("window.merge-sectors", "OnMergeSectors")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

@@ -1196,6 +1196,9 @@ public partial class MainWindow : Window
             case "window.select-similar": OnSelectSimilar(this, new RoutedEventArgs()); return true;
             case "window.filter-selected-things": OnFilterSelectedThings(this, new RoutedEventArgs()); return true;
             case "window.change-map-element-index": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
+            case "window.stitch-geometry": OnStitch(this, new RoutedEventArgs()); return true;
+            case "window.join-sectors": OnJoinSectors(this, new RoutedEventArgs()); return true;
+            case "window.merge-sectors": OnMergeSectors(this, new RoutedEventArgs()); return true;
             case "window.make-door": OnMakeDoor(this, new RoutedEventArgs()); return true;
             case "window.tag-range": OnTagRange(this, new RoutedEventArgs()); return true;
             case "window.blockmap-explorer": OnBlockmapExplorer(this, new RoutedEventArgs()); return true;
