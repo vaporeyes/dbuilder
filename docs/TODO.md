@@ -1313,6 +1313,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript editor runner RunAction plan wiring.
   - [x] Add UDBScript runner form designer metadata model.
   - [x] Add UDBScript editor runner window shell.
+  - [x] Add UDBScript editor command runner-window launch wiring.
   - [x] Add UDBScript runner status callback state model and window API.
   - [x] Add UDBScript runner callback invocation window API.
   - [x] Add UDBScript runner window progress style state.
@@ -1681,6 +1682,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript editor runner RunAction plan wiring.
 - [x] Add UDBScript runner form designer metadata model.
 - [x] Add UDBScript editor runner window shell.
+- [x] Add UDBScript editor command runner-window launch wiring.
 - [x] Add UDBScript runner status callback state model and window API.
 - [x] Add UDBScript runner callback invocation window API.
 - [x] Add UDBScript runner window progress style state.

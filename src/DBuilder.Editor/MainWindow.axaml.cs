@@ -71,6 +71,8 @@ public partial class MainWindow : Window
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
     private UdbScriptDockerWindow? _udbScriptDocker;
+    private UdbScriptRunnerWindow? _udbScriptRunner;
+    private UdbScriptInfo? _pendingUdbScript;
     private IReadOnlyDictionary<int, UdbScriptInfo?> _udbScriptSlotAssignments = new Dictionary<int, UdbScriptInfo?>();
     private BlockmapExplorerWindow? _blockmapExplorer;
     private SoundEnvironmentWindow? _soundEnvironments;
@@ -1238,17 +1240,70 @@ public partial class MainWindow : Window
 
     private void RunUdbScriptPlan(UdbScriptExecutionPlan plan)
     {
-        if (plan.Script is { } script)
+        if (!plan.ShouldRun || plan.Script is not { } script)
         {
             SetStatus(plan.Slot == 0
-                ? $"UDBScript run requested: {script.Name}"
-                : $"UDBScript slot {plan.Slot} run requested: {script.Name}");
+                ? "No UDBScript selected."
+                : $"No UDBScript assigned to slot {plan.Slot}.");
             return;
         }
 
+        UdbScriptRunnerWindow runner = OpenUdbScriptRunnerWindow();
+        _pendingUdbScript = script;
         SetStatus(plan.Slot == 0
-            ? "No UDBScript selected."
-            : $"No UDBScript assigned to slot {plan.Slot}.");
+            ? $"UDBScript runner started: {script.Name}"
+            : $"UDBScript slot {plan.Slot} runner started: {script.Name}");
+        runner.Start();
+    }
+
+    private UdbScriptRunnerWindow OpenUdbScriptRunnerWindow()
+    {
+        if (_udbScriptRunner is { } existing)
+        {
+            existing.Activate();
+            return existing;
+        }
+
+        var runner = new UdbScriptRunnerWindow();
+        _udbScriptRunner = runner;
+        runner.RunScriptRequested += () =>
+        {
+            if (_pendingUdbScript is { } script)
+                RunUdbScriptInRunner(runner, script);
+        };
+        runner.Closed += (_, _) =>
+        {
+            _udbScriptRunner = null;
+            _pendingUdbScript = null;
+        };
+        runner.CloseRequested += () =>
+        {
+            _udbScriptRunner = null;
+            _pendingUdbScript = null;
+        };
+        runner.Show(this);
+        return runner;
+    }
+
+    private void RunUdbScriptInRunner(UdbScriptRunnerWindow runner, UdbScriptInfo script)
+    {
+        runner.MarkRunning();
+        UdbScriptRunSourcePlan sourcePlan = UdbScriptRunnerModel.BuildSourcePlan(AppContext.BaseDirectory, script.ScriptFile);
+        runner.ApplyStatus($"Preparing script: {script.Name}");
+        runner.ApplyLog($"Script: {sourcePlan.Script.EngineSourceName}");
+        runner.ApplyLog($"Libraries: {sourcePlan.Libraries.Count}");
+
+        if (!System.IO.File.Exists(script.ScriptFile))
+        {
+            runner.ApplyLog($"Script file not found: {script.ScriptFile}");
+            runner.Finish(runner.ElapsedRuntime, autoClose: false);
+            SetStatus($"UDBScript file not found: {script.Name}");
+            return;
+        }
+
+        runner.ApplyLog("UDBScript JavaScript execution is not wired yet.");
+        runner.Finish(runner.ElapsedRuntime, autoClose: false);
+        SetStatus($"UDBScript runner prepared: {script.Name}");
     }
 
     private bool RunSelectionGroupCommand(string commandId)
