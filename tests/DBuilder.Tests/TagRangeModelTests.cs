@@ -71,10 +71,12 @@ public sealed class TagRangeModelTests
     public void StatusTextMatchesEditorApplyOutOfTagsAndEmptySelectionMessages()
     {
         Assert.Equal("No selected linedefs to tag.", TagRangeModel.EmptySelectionStatus(TagRangeTargetKind.Linedefs));
-        Assert.Equal("Tag range ran out of tags after 2 assignment(s).", TagRangeModel.OutOfTagsStatus(2));
-        Assert.Equal("Tag range assigned 3 tag(s).", TagRangeModel.AppliedStatus(3, tagsUsed: false));
+        Assert.Equal("Tag range ran out of tags after 1 assignment.", TagRangeModel.OutOfTagsStatus(1));
+        Assert.Equal("Tag range ran out of tags after 2 assignments.", TagRangeModel.OutOfTagsStatus(2));
+        Assert.Equal("Tag range assigned 1 tag.", TagRangeModel.AppliedStatus(1, tagsUsed: false));
+        Assert.Equal("Tag range assigned 3 tags.", TagRangeModel.AppliedStatus(3, tagsUsed: false));
         Assert.Equal(
-            "Tag range assigned 3 tag(s); one or more tags were already in use.",
+            "Tag range assigned 3 tags; one or more tags were already in use.",
             TagRangeModel.AppliedStatus(3, tagsUsed: true));
     }
 

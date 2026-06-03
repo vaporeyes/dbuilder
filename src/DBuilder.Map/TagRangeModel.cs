@@ -265,12 +265,15 @@ public static class TagRangeModel
         => $"No selected {target.ToString().ToLowerInvariant()} to tag.";
 
     public static string OutOfTagsStatus(int assignmentCount)
-        => $"Tag range ran out of tags after {assignmentCount} assignment(s).";
+        => $"Tag range ran out of tags after {CountLabel(assignmentCount, "assignment")}.";
 
     public static string AppliedStatus(int appliedCount, bool tagsUsed)
         => tagsUsed
-            ? $"Tag range assigned {appliedCount} tag(s); one or more tags were already in use."
-            : $"Tag range assigned {appliedCount} tag(s).";
+            ? $"Tag range assigned {CountLabel(appliedCount, "tag")}; one or more tags were already in use."
+            : $"Tag range assigned {CountLabel(appliedCount, "tag")}.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private static bool OutsideRange(int tag, TagRangeOptions options)
         => tag > options.MaxTag || tag < options.MinTag;
