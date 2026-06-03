@@ -1924,6 +1924,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style mode/action metadata and toolbar settings state for open doors, heatmap, and view height.
   - [x] Add UDB-style stat dropdown item metadata for Visplanes, Drawsegs, Solidsegs, and Openings.
   - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
+  - [x] Add testable Visplane Explorer ready-status formatting for queued analysis state.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.

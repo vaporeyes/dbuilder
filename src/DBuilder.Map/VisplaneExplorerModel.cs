@@ -236,6 +236,29 @@ public static class VisplaneExplorerInterfaceModel
     public static string FormatViewHeightButtonText(int viewHeight)
         => "View Height (" + viewHeight.ToString(CultureInfo.InvariantCulture) + ")";
 
+    public static string ReadyStatus(
+        int tileCount,
+        int queuedPointCount,
+        VisplaneExplorerStat stat,
+        VisplaneExplorerInterfaceSettings settings)
+    {
+        string statText = "";
+        foreach (VisplaneExplorerStatMenuItem item in StatMenuItems(stat))
+        {
+            if (item.Stat == stat)
+            {
+                statText = item.Text;
+                break;
+            }
+        }
+
+        return $"Visplane Explorer ready: {tileCount.ToString(CultureInfo.InvariantCulture)} tile(s), " +
+            $"{queuedPointCount.ToString(CultureInfo.InvariantCulture)} queued point(s), {statText}, " +
+            $"{OpenDoorsText}: {(settings.OpenDoors ? "on" : "off")}, " +
+            $"{HeatColorsText}: {(settings.ShowHeatmap ? "on" : "off")}, " +
+            $"{FormatViewHeightButtonText(settings.ViewHeight)}.";
+    }
+
     public static VisplaneExplorerViewHeightMenuItem ViewHeightMenuItem(
         int height,
         string label,

@@ -81,6 +81,26 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void ReadyStatusFormatsQueuedAnalysisState()
+    {
+        var settings = new VisplaneExplorerInterfaceSettings(
+            OpenDoors: true,
+            ShowHeatmap: false,
+            ViewHeight: 56,
+            ViewHeightCustom: 0);
+
+        string status = VisplaneExplorerInterfaceModel.ReadyStatus(
+            tileCount: 12,
+            queuedPointCount: 1024,
+            VisplaneExplorerStat.Drawsegs,
+            settings);
+
+        Assert.Equal(
+            "Visplane Explorer ready: 12 tile(s), 1024 queued point(s), Drawsegs, Open Doors: on, Heat Colors: off, View Height (56).",
+            status);
+    }
+
+    [Fact]
     public void ViewHeightMenuItemMatchesUdbDesignerFormatting()
     {
         var defaultItem = VisplaneExplorerInterfaceModel.ViewHeightMenuItem(

@@ -3330,12 +3330,11 @@ public partial class MainWindow : Window
             CurrentVisplaneViewRectangle(),
             currentQueuedPoints: 0,
             targetQueuedPoints: 1024);
-        string stat = VisplaneExplorerInterfaceModel.StatMenuItems(VisplaneExplorerStat.Visplanes)[0].Text;
-        SetStatus(
-            $"Visplane Explorer ready: {scan.Tiles.Count} tile(s), {queued.Count} queued point(s), {stat}, " +
-            $"{VisplaneExplorerInterfaceModel.OpenDoorsText}: {(settings.OpenDoors ? "on" : "off")}, " +
-            $"{VisplaneExplorerInterfaceModel.HeatColorsText}: {(settings.ShowHeatmap ? "on" : "off")}, " +
-            $"{VisplaneExplorerInterfaceModel.FormatViewHeightButtonText(settings.ViewHeight)}.");
+        SetStatus(VisplaneExplorerInterfaceModel.ReadyStatus(
+            scan.Tiles.Count,
+            queued.Count,
+            VisplaneExplorerStat.Visplanes,
+            settings));
         MapView.Focus();
     }
 
