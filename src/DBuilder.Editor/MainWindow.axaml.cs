@@ -2977,7 +2977,7 @@ public partial class MainWindow : Window
     {
         if (_map is null || _commentsPanel is null) return;
         _commentsPanel.SetCurrentMode(CommentModeFor(MapView.CurrentEditMode));
-        _commentsPanel.SetGroups(CommentsPanelModel.BuildGroups(_map, _commentsPanel.FilterMode));
+        _commentsPanel.SetGroups(CommentsPanelModel.BuildGroups(_map, _commentsPanel.FilterMode, _commentsPanel.SearchText));
         _commentsPanel.SetSelectionComment(CurrentSelectionComment());
     }
 

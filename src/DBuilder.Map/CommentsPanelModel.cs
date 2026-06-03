@@ -101,8 +101,12 @@ public static class CommentsPanelModel
         CommentsPanelMode selectedMode)
         => settings.FilterMode ? currentMode : selectedMode;
 
-    public static IReadOnlyList<CommentGroup> BuildGroups(MapSet map, CommentsPanelMode filterMode = CommentsPanelMode.All)
+    public static IReadOnlyList<CommentGroup> BuildGroups(
+        MapSet map,
+        CommentsPanelMode filterMode = CommentsPanelMode.All,
+        string? searchText = null)
     {
+        string search = searchText?.Trim() ?? "";
         var groups = new List<CommentGroup>();
 
         if (filterMode is CommentsPanelMode.All or CommentsPanelMode.Vertices)
@@ -123,10 +127,16 @@ public static class CommentsPanelModel
             AddGroups(groups, CommentsPanelMode.Things, map.Things, CommentedElementKind.Thing);
 
         return groups
+            .Where(group => MatchesSearch(group, search))
             .OrderBy(g => g.Comment, StringComparer.Ordinal)
             .ThenBy(g => g.Group)
             .ToList();
     }
+
+    private static bool MatchesSearch(CommentGroup group, string search)
+        => search.Length == 0
+        || group.Comment.Contains(search, StringComparison.OrdinalIgnoreCase)
+        || group.Group.ToString().Contains(search, StringComparison.OrdinalIgnoreCase);
 
     public static bool CanSetSelectionComment(CommentsPanelMode mode, int selectedCount)
         => mode is CommentsPanelMode.Vertices or CommentsPanelMode.Linedefs or CommentsPanelMode.Sectors or CommentsPanelMode.Things

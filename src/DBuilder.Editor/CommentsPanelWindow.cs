@@ -15,6 +15,7 @@ public sealed class CommentsPanelWindow : Window
     private readonly ComboBox _filter = new();
     private readonly CheckBox _filterCurrentMode = new();
     private readonly CheckBox _clickSelects = new();
+    private readonly TextBox _search = new();
     private readonly TextBox _comment = new();
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
@@ -32,6 +33,8 @@ public sealed class CommentsPanelWindow : Window
 
     public CommentsPanelMode FilterMode =>
         CommentsPanelModel.EffectiveFilterMode(Settings, _currentMode, _selectedFilterMode);
+
+    public string SearchText => _search.Text ?? "";
 
     public CommentsPanelWindow(
         IReadOnlyList<CommentGroup> groups,
@@ -71,6 +74,8 @@ public sealed class CommentsPanelWindow : Window
         _clickSelects.IsCheckedChanged += (_, _) => OptionsChanged?.Invoke(Settings);
         UpdateFilterState();
 
+        _search.Watermark = "Search comments";
+        _search.TextChanged += (_, _) => FilterChanged?.Invoke(FilterMode);
         _comment.Watermark = "Comment for current selection";
         var setButton = new Button { Content = "Set Selection" };
         setButton.Click += (_, _) => SetSelectedCommentRequested?.Invoke(_comment.Text ?? "");
@@ -102,6 +107,8 @@ public sealed class CommentsPanelWindow : Window
                 _clickSelects,
             },
         };
+        var searchRow = new DockPanel { Margin = new Avalonia.Thickness(8, 0, 8, 8), LastChildFill = true };
+        searchRow.Children.Add(_search);
 
         _header.Margin = new Avalonia.Thickness(8, 0, 8, 6);
         _header.Foreground = Brushes.LightSkyBlue;
@@ -144,11 +151,13 @@ public sealed class CommentsPanelWindow : Window
         var root = new DockPanel();
         DockPanel.SetDock(filterRow, Dock.Top);
         DockPanel.SetDock(optionsRow, Dock.Top);
+        DockPanel.SetDock(searchRow, Dock.Top);
         DockPanel.SetDock(entryRow, Dock.Top);
         DockPanel.SetDock(_header, Dock.Top);
         DockPanel.SetDock(buttonRow, Dock.Bottom);
         root.Children.Add(filterRow);
         root.Children.Add(optionsRow);
+        root.Children.Add(searchRow);
         root.Children.Add(entryRow);
         root.Children.Add(_header);
         root.Children.Add(buttonRow);

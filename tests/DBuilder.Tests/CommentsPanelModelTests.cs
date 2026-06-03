@@ -118,6 +118,23 @@ public sealed class CommentsPanelModelTests
     }
 
     [Fact]
+    public void BuildGroupsFiltersByCommentTextAndGroupName()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(0, 0)).Fields["comment"] = "spawn marker";
+        map.AddSector().Fields["comment"] = "secret room";
+        map.AddThing(new Vector2D(8, 8), 1).Fields["comment"] = "patrol point";
+
+        var byComment = CommentsPanelModel.BuildGroups(map, searchText: "secret");
+        var byGroup = CommentsPanelModel.BuildGroups(map, searchText: "things");
+
+        Assert.Single(byComment);
+        Assert.Equal("secret room", byComment[0].Comment);
+        Assert.Single(byGroup);
+        Assert.Equal(CommentsPanelMode.Things, byGroup[0].Group);
+    }
+
+    [Fact]
     public void SetAndRemoveCommentUpdatesElementFields()
     {
         var map = new MapSet();
