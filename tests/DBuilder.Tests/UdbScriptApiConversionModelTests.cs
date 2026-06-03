@@ -199,6 +199,8 @@ public class UdbScriptApiConversionModelTests
         Assert.Equal(25, UdbScriptLine2DWrapper.getDistanceToLineSq(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
         Assert.Equal(5, UdbScriptLine2DWrapper.getDistanceToLine(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
         Assert.Equal(0.5, UdbScriptLine2DWrapper.getNearestOnLine(horizontal.v1, horizontal.v2, new object[] { 5.0, 5.0 }));
+        Assert.Equal(new UdbScriptVector2DWrapper(10, 0), UdbScriptLine2DWrapper.getNearestPointOnLine(horizontal.v1, horizontal.v2, new object[] { 15.0, 5.0 }));
+        Assert.Equal(new UdbScriptVector2DWrapper(15, 0), UdbScriptLine2DWrapper.getNearestPointOnLine(horizontal.v1, horizontal.v2, new object[] { 15.0, 5.0 }, bounded: false));
         Assert.Equal(new UdbScriptVector2DWrapper(2.5, 0), UdbScriptLine2DWrapper.getCoordinatesAt(horizontal.v1, horizontal.v2, 0.25));
     }
 
@@ -215,6 +217,7 @@ public class UdbScriptApiConversionModelTests
         Assert.True(line.isIntersecting(crossing));
         Assert.Equal(new UdbScriptVector2DWrapper(1.5, 2), line.getIntersectionPoint(crossing));
         Assert.True(line.getSideOfLine(new object[] { 0.0, 1.0 }) > 0);
+        Assert.Equal(new UdbScriptVector2DWrapper(1.56, 2.08), line.getNearestPointOnLine(new object[] { 3.0, 1.0 }));
         Assert.Equal("(0, 0) - (3, 4)", line.ToString());
     }
 

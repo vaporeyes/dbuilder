@@ -1504,6 +1504,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Vector2D and Vector3D wrapper vector-like equality operators.
   - [x] Add UDBScript Vector2D and Vector3D mutable coordinate and parent-position access.
   - [x] Add UDBScript Line2D wrapper geometry helpers.
+  - [x] Add UDBScript Line2D nearest-point wrapper helper.
   - [x] Add UDBScript Angle2D wrapper conversion and angle helpers.
   - [x] Add UDBScript Plane wrapper geometry helpers.
   - [x] Add UDBScript GameConfiguration wrapper metadata access.
@@ -1894,6 +1895,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Vector2D and Vector3D wrapper vector-like equality operators.
 - [x] Add UDBScript Vector2D and Vector3D mutable coordinate and parent-position access.
 - [x] Add UDBScript Line2D wrapper geometry helpers.
+- [x] Add UDBScript Line2D nearest-point wrapper helper.
 - [x] Add UDBScript Angle2D wrapper conversion and angle helpers.
 - [x] Add UDBScript Plane wrapper geometry helpers.
 - [x] Add UDBScript GameConfiguration wrapper metadata access.

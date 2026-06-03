@@ -653,6 +653,12 @@ public sealed record UdbScriptLine2DWrapper(UdbScriptVector2DWrapper V1, UdbScri
     public static double getNearestOnLine(object v1, object v2, object p)
         => Line2D.GetNearestOnLine(ToVector2D(v1), ToVector2D(v2), ToVector2D(p));
 
+    public static UdbScriptVector2DWrapper getNearestPointOnLine(object v1, object v2, object p, bool bounded = true)
+    {
+        Vector2D point = Line2D.GetNearestPointOnLine(ToVector2D(v1), ToVector2D(v2), ToVector2D(p), bounded);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
     public static UdbScriptVector2DWrapper getCoordinatesAt(object v1, object v2, double u)
     {
         Vector2D point = Line2D.GetCoordinatesAt(ToVector2D(v1), ToVector2D(v2), u);
@@ -714,6 +720,12 @@ public sealed record UdbScriptLine2DWrapper(UdbScriptVector2DWrapper V1, UdbScri
 
     public double getSideOfLine(object p)
         => AsLine2D().GetSideOfLine(ToVector2D(p));
+
+    public UdbScriptVector2DWrapper getNearestPointOnLine(object p, bool bounded = true)
+    {
+        Vector2D point = AsLine2D().GetNearestPointOnLine(ToVector2D(p), bounded);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
 
     public override string ToString()
         => AsLine2D().ToString();
