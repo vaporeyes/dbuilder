@@ -910,6 +910,80 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
     }
 }
 
+public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
+{
+    private readonly HashSet<string> flags;
+
+    public UdbScriptFlagsWrapper(HashSet<string> flags)
+    {
+        this.flags = flags;
+    }
+
+    public bool this[string key]
+    {
+        get => flags.Contains(key);
+        set
+        {
+            if (value) flags.Add(key);
+            else flags.Remove(key);
+        }
+    }
+
+    public ICollection<string> Keys
+        => flags.ToArray();
+
+    public ICollection<bool> Values
+        => flags.Select(_ => true).ToArray();
+
+    public int Count
+        => flags.Count;
+
+    public bool IsReadOnly
+        => false;
+
+    public void Add(string key, bool value)
+        => this[key] = value;
+
+    public bool ContainsKey(string key)
+        => flags.Contains(key);
+
+    public bool Remove(string key)
+        => flags.Remove(key);
+
+    public bool TryGetValue(string key, out bool value)
+    {
+        value = flags.Contains(key);
+        return value;
+    }
+
+    public void Add(KeyValuePair<string, bool> item)
+        => Add(item.Key, item.Value);
+
+    public void Clear()
+        => flags.Clear();
+
+    public bool Contains(KeyValuePair<string, bool> item)
+        => item.Value && flags.Contains(item.Key);
+
+    public void CopyTo(KeyValuePair<string, bool>[] array, int arrayIndex)
+    {
+        foreach (string flag in flags)
+            array[arrayIndex++] = new KeyValuePair<string, bool>(flag, true);
+    }
+
+    public bool Remove(KeyValuePair<string, bool> item)
+        => item.Value && flags.Remove(item.Key);
+
+    public IEnumerator<KeyValuePair<string, bool>> GetEnumerator()
+    {
+        foreach (string flag in flags)
+            yield return new KeyValuePair<string, bool>(flag, true);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+}
+
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 {
     private readonly Vertex vertex;
@@ -1229,12 +1303,12 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         }
     }
 
-    public IReadOnlyDictionary<string, bool> flags
+    public UdbScriptFlagsWrapper flags
     {
         get
         {
             ThrowIfDisposed("flags");
-            return linedef.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+            return new UdbScriptFlagsWrapper(linedef.UdmfFlags);
         }
     }
 
@@ -1645,12 +1719,12 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         }
     }
 
-    public IReadOnlyDictionary<string, bool> flags
+    public UdbScriptFlagsWrapper flags
     {
         get
         {
             ThrowIfDisposed("flags");
-            return sidedef.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+            return new UdbScriptFlagsWrapper(sidedef.UdmfFlags);
         }
     }
 
@@ -1886,12 +1960,12 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         }
     }
 
-    public IReadOnlyDictionary<string, bool> flags
+    public UdbScriptFlagsWrapper flags
     {
         get
         {
             ThrowIfDisposed("flags");
-            return sector.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+            return new UdbScriptFlagsWrapper(sector.UdmfFlags);
         }
     }
 
@@ -2269,12 +2343,12 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         }
     }
 
-    public IReadOnlyDictionary<string, bool> flags
+    public UdbScriptFlagsWrapper flags
     {
         get
         {
             ThrowIfDisposed("flags");
-            return thing.UdmfFlags.ToDictionary(flag => flag, _ => true, StringComparer.OrdinalIgnoreCase);
+            return new UdbScriptFlagsWrapper(thing.UdmfFlags);
         }
     }
 

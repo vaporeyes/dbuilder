@@ -491,6 +491,36 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFlagWrappersMutateNamedFlags()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(16, 0)));
+        var side = new Sidedef(line, isFront: true);
+        var sector = new Sector();
+        var thing = new Thing(new Vector2D(0, 0), 3001);
+
+        UdbScriptFlagsWrapper lineFlags = new UdbScriptLinedefWrapper(line).flags;
+        UdbScriptFlagsWrapper sideFlags = new UdbScriptSidedefWrapper(side).flags;
+        UdbScriptFlagsWrapper sectorFlags = new UdbScriptSectorWrapper(sector).flags;
+        UdbScriptFlagsWrapper thingFlags = new UdbScriptThingWrapper(thing).flags;
+
+        lineFlags["blocking"] = true;
+        sideFlags["lightfog"] = true;
+        sectorFlags["secret"] = true;
+        thingFlags["ambush"] = true;
+        lineFlags["blocking"] = false;
+        sideFlags.Remove("lightfog");
+        sectorFlags.Clear();
+
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.False(side.IsFlagSet("lightfog"));
+        Assert.False(sector.IsFlagSet("secret"));
+        Assert.True(thing.IsFlagSet("ambush"));
+        Assert.True(thingFlags.TryGetValue("ambush", out bool ambush));
+        Assert.True(ambush);
+        Assert.Contains(new KeyValuePair<string, bool>("ambush", true), thingFlags);
+    }
+
+    [Fact]
     public void VertexWrapperRejectsDisposedVertexAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
