@@ -33,11 +33,16 @@ public class MapElementDataTests
         vertex.SetField("integer", 4);
         vertex.SetField("whole_long", 12L);
         vertex.SetField("large_long", 4294967295L);
+        vertex.SetField("unsafe_double", 9007199254740994.0);
 
         Assert.True(vertex.TryGetField<int>("whole_double", out var whole));
         Assert.Equal(8, whole);
         Assert.False(vertex.TryGetField<int>("fractional_double", out _));
         Assert.Equal(4.0, vertex.GetField<double>("integer"));
+        Assert.Equal(4L, vertex.GetField<long>("integer"));
+        Assert.Equal(8L, vertex.GetField<long>("whole_double"));
+        Assert.False(vertex.TryGetField<long>("fractional_double", out _));
+        Assert.False(vertex.TryGetField<long>("unsafe_double", out _));
         Assert.True(vertex.TryGetField<int>("whole_long", out var wholeLong));
         Assert.Equal(12, wholeLong);
         Assert.False(vertex.TryGetField<int>("large_long", out _));

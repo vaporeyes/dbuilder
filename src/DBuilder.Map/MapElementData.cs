@@ -7,6 +7,9 @@ namespace DBuilder.Map;
 
 public static class MapElementData
 {
+    private const double MaxExactIntegerInDouble = 9007199254740992.0;
+    private const double MinExactIntegerInDouble = -9007199254740992.0;
+
     public static bool TryGetField<T>(this IFielded element, string key, out T value)
     {
         if (element.Fields.TryGetValue(key, out var raw) && TryConvert(raw, out value)) return true;
@@ -120,6 +123,22 @@ public static class MapElementData
         if (target == typeof(int) && raw is long l && l >= int.MinValue && l <= int.MaxValue)
         {
             value = (T)(object)(int)l;
+            return true;
+        }
+
+        if (target == typeof(long) && raw is int intValue)
+        {
+            value = (T)(object)(long)intValue;
+            return true;
+        }
+
+        if (target == typeof(long)
+            && raw is double doubleValue
+            && doubleValue >= MinExactIntegerInDouble
+            && doubleValue <= MaxExactIntegerInDouble
+            && Math.Truncate(doubleValue) == doubleValue)
+        {
+            value = (T)(object)(long)doubleValue;
             return true;
         }
 
