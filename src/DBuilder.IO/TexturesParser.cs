@@ -220,7 +220,12 @@ public static class TexturesParser
             }
             if (i < t.Count) i++; // }
         }
-        return invalid ? null : def;
+        if (invalid)
+        {
+            stopParsing = true;
+            return null;
+        }
+        return def;
     }
 
     private static double NormalizeScale(double value) => value == 0.0 ? 0.0 : 1.0 / value;

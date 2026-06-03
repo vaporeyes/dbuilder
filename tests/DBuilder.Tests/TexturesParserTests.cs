@@ -204,24 +204,24 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsDefinitionsWithNonNumericScale()
+    public void NonNumericTextureDefinitionScaleStopsParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BADX, 8, 8 { XScale bogus Patch P, 0, 0 }
 Texture BADY, 8, 8 { YScale bogus Patch P, 0, 0 }
 Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        Assert.Equal("OK", def.Name);
-        Assert.Equal(0.5, def.ScaleX, 6);
-        Assert.Equal(2.0, def.ScaleY, 6);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void SkipsDefinitionsWithInvalidOffset()
+    public void InvalidTextureDefinitionOffsetStopsParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BADX, 8, 8 { Offset bogus, 2 Patch P, 0, 0 }
 Texture BADY, 8, 8 { Offset 1, bogus Patch P, 0, 0 }
 Texture MISSINGCOMMA, 8, 8 { Offset 1 2 Patch P, 0, 0 }
@@ -229,15 +229,14 @@ Texture OK, 8, 8 { Offset 3, 4 Patch P, 0, 0 }";
 
         var def = TexturesParser.Parse(text).Single();
 
-        Assert.Equal("OK", def.Name);
-        Assert.Equal(3, def.OffsetX);
-        Assert.Equal(4, def.OffsetY);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void RejectsLeadingCommasBeforeDefinitionScaleAndOffsetValues()
+    public void LeadingCommasBeforeDefinitionScaleAndOffsetValuesStopParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BADX, 8, 8 { XScale, 2.0 Patch P, 0, 0 }
 Texture BADY, 8, 8 { YScale, 0.5 Patch P, 0, 0 }
 Texture BADOFFSET, 8, 8 { Offset, 1, 2 Patch P, 0, 0 }
@@ -245,11 +244,7 @@ Texture OK, 8, 8 { XScale 2.0 YScale 0.5 Offset 3, 4 Patch P, 0, 0 }";
 
         var def = Assert.Single(TexturesParser.Parse(text));
 
-        Assert.Equal("OK", def.Name);
-        Assert.Equal(0.5, def.ScaleX, 6);
-        Assert.Equal(2.0, def.ScaleY, 6);
-        Assert.Equal(3, def.OffsetX);
-        Assert.Equal(4, def.OffsetY);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
@@ -311,9 +306,10 @@ Texture SHORT, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void NonIntegralPatchOffsetsSkipTextureDefinitionLikeUdb()
+    public void NonIntegralPatchOffsetsStopParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BAD, 8, 8
 {
     Patch BADX, 0.5, 0
@@ -326,17 +322,14 @@ Texture OK, 8, 8
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", def.Name);
-        Assert.Equal("P", patch.Name);
-        Assert.Equal(2, patch.X);
-        Assert.Equal(3, patch.Y);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
-    public void MissingPatchOffsetCommasSkipTextureDefinitionLikeUdb()
+    public void MissingPatchOffsetCommasStopParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture BAD, 8, 8
 {
     Patch BADX 0, 0
@@ -349,11 +342,7 @@ Texture OK, 8, 8
 
         var def = TexturesParser.Parse(text).Single();
 
-        var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", def.Name);
-        Assert.Equal("P", patch.Name);
-        Assert.Equal(2, patch.X);
-        Assert.Equal(3, patch.Y);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]

@@ -575,7 +575,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Enforce configured TEXTURES name length limits like UDB.
   - [x] Stop TEXTURES parsing on missing definition bodies like UDB.
   - [x] Stop TEXTURES parsing on malformed definition sizes like UDB.
-  - [x] Skip TEXTURES definitions with malformed patch offsets like UDB.
+  - [x] Stop TEXTURES parsing on malformed definition body properties like UDB.
+  - [x] Stop TEXTURES parsing on malformed patch offsets like UDB.
 - [x] Port MODELDEF parser.
   - [x] Reject unsupported MODELDEF model file extensions like UDB.
   - [x] Reject negative MODELDEF model, skin, surface skin, and frame model indexes like UDB.
