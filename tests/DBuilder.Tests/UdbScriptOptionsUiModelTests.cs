@@ -39,4 +39,35 @@ public class UdbScriptOptionsUiModelTests
         Assert.False(value.ReadOnly);
         Assert.False(value.Sortable);
     }
+
+    [Fact]
+    public void ValueCellStateResetsEmptyValuesAndStylesDefaults()
+    {
+        var option = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            64,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+
+        UdbScriptOptionValueCellState empty = UdbScriptOptionsUiModel.ValueCellState(option, " ");
+
+        Assert.Equal(128, empty.Value);
+        Assert.True(empty.ResetToDefault);
+        Assert.Equal("GrayText", empty.ForeColor);
+
+        UdbScriptOptionValueCellState defaultValue = UdbScriptOptionsUiModel.ValueCellState(option, "128");
+
+        Assert.Equal("128", defaultValue.Value);
+        Assert.False(defaultValue.ResetToDefault);
+        Assert.Equal("GrayText", defaultValue.ForeColor);
+
+        UdbScriptOptionValueCellState edited = UdbScriptOptionsUiModel.ValueCellState(option, 256);
+
+        Assert.Equal(256, edited.Value);
+        Assert.False(edited.ResetToDefault);
+        Assert.Equal("WindowText", edited.ForeColor);
+    }
 }
