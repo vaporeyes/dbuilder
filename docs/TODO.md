@@ -544,6 +544,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Validate top-level ZScript `const` declarations.
   - [x] Validate top-level ZScript `enum` declarations.
   - [x] Validate top-level ZScript `struct` declarations.
+  - [x] Reject truncated top-level ZScript enum and struct bodies like UDB.
   - [x] Reject ZScript class declarations without a body or semicolon.
   - [x] Require semicolon-terminated ZScript size defaults like UDB.
   - [x] Parse spaced ZScript `States(...)` cast headers.

@@ -440,7 +440,7 @@ public static class DecorateParser
         }
 
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
-        SkipBlock(t, ref i);
+        if (!SkipBlock(t, ref i)) return false;
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";") i++;
         return true;
     }
@@ -526,7 +526,7 @@ public static class DecorateParser
         }
 
         if (t[i].Text != "{") return false;
-        SkipBlock(t, ref i);
+        if (!SkipBlock(t, ref i)) return false;
         if (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";") i++;
         return true;
     }
@@ -614,7 +614,7 @@ public static class DecorateParser
         string name = t[i++].Text;
         SkipNewlines(t, ref i);
         if (name.Length == 0 || i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
-        SkipBlock(t, ref i);
+        if (!SkipBlock(t, ref i)) return false;
         damageTypes?.Add(name);
         return true;
     }
@@ -624,9 +624,9 @@ public static class DecorateParser
         while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
     }
 
-    private static void SkipBlock(List<Tok> t, ref int i)
+    private static bool SkipBlock(List<Tok> t, ref int i)
     {
-        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return;
+        if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
         int depth = 0;
         while (i < t.Count)
         {
@@ -637,11 +637,12 @@ public static class DecorateParser
                 if (depth == 0)
                 {
                     i++;
-                    return;
+                    return true;
                 }
             }
             i++;
         }
+        return false;
     }
 
     private static void ApplyMixins(List<ActorInfo> actors, Dictionary<string, ActorInfo> mixins)

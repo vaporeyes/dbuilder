@@ -280,6 +280,11 @@ class AfterMissingType : Actor { Default { Radius 64; } }";
         const string missingBody = @"
 enum BrokenEnum
 class AfterMissingBody : Actor { Default { Radius 128; } }";
+        const string truncatedBody = @"
+enum BrokenEnum
+{
+    Idle
+class AfterTruncatedBody : Actor { Default { Radius 96; } }";
 
         var actor = Assert.Single(ZScriptParser.Parse(valid));
 
@@ -287,6 +292,7 @@ class AfterMissingBody : Actor { Default { Radius 128; } }";
         Assert.Empty(ZScriptParser.Parse(missingName));
         Assert.Empty(ZScriptParser.Parse(missingIntegerType));
         Assert.Empty(ZScriptParser.Parse(missingBody));
+        Assert.Empty(ZScriptParser.Parse(truncatedBody));
     }
 
     [Fact]
@@ -681,6 +687,11 @@ class AfterMissingBody : Actor { Default { Radius 64; } }";
         const string invalidModifier = @"
 struct BrokenStruct abstract { int Value; }
 class AfterInvalidModifier : Actor { Default { Radius 128; } }";
+        const string truncatedBody = @"
+struct BrokenStruct
+{
+    int Value;
+class AfterTruncatedBody : Actor { Default { Radius 96; } }";
 
         var actor = Assert.Single(ZScriptParser.Parse(valid));
 
@@ -688,6 +699,7 @@ class AfterInvalidModifier : Actor { Default { Radius 128; } }";
         Assert.Empty(ZScriptParser.Parse(missingName));
         Assert.Empty(ZScriptParser.Parse(missingBody));
         Assert.Empty(ZScriptParser.Parse(invalidModifier));
+        Assert.Empty(ZScriptParser.Parse(truncatedBody));
     }
 
     [Fact]
