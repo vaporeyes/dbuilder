@@ -67,6 +67,7 @@ public static class UdbScriptDockerModel
     public const string FilterLabel = "Filter:";
     public const string DescriptionLabel = "Script description";
     public const string OptionsLabel = "Script options";
+    public const string OptionsButtonText = "Options";
     public const string ResetButtonText = "Reset";
     public const string RunButtonText = "Run";
     public const string EditMenuText = "Edit";

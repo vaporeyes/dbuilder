@@ -2400,8 +2400,27 @@ public partial class MainWindow : Window
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => SetStatus($"UDBScript run requested: {script.Name}");
         _udbScriptDocker.EditRequested += script => SetStatus($"UDBScript edit requested: {script.Name}");
+        _udbScriptDocker.OptionsRequested += EditUdbScriptOptions;
         _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
         _udbScriptDocker.Show(this);
+    }
+
+    private async void EditUdbScriptOptions(UdbScriptInfo script)
+    {
+        if (script.Options.Count == 0)
+        {
+            SetStatus($"UDBScript has no options: {script.Name}");
+            return;
+        }
+
+        var dialog = new UdbScriptOptionsDialog(script.Options);
+        if (!await dialog.ShowDialog<bool>(this)) return;
+
+        UdbScriptDockerApplyOptionsResult result = UdbScriptDockerModel.ApplyEditedScriptOptions(script, dialog.Options);
+        if (result.Script is null) return;
+
+        _udbScriptDocker?.ApplyCurrentScript(result.Script);
+        SetStatus($"UDBScript options edited: {script.Name} ({result.Operations.Count} setting change(s))");
     }
 
     private void ResetUdbScriptOptions(UdbScriptInfo script)

@@ -17,6 +17,7 @@ public class UdbScriptDockerModelTests
         Assert.Equal("Filter:", UdbScriptDockerModel.FilterLabel);
         Assert.Equal("Script description", UdbScriptDockerModel.DescriptionLabel);
         Assert.Equal("Script options", UdbScriptDockerModel.OptionsLabel);
+        Assert.Equal("Options", UdbScriptDockerModel.OptionsButtonText);
         Assert.Equal("Reset", UdbScriptDockerModel.ResetButtonText);
         Assert.Equal("Run", UdbScriptDockerModel.RunButtonText);
         Assert.Equal("Edit", UdbScriptDockerModel.EditMenuText);

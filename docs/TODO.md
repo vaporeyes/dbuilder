@@ -1338,6 +1338,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript docker selection transition model.
   - [x] Add UDBScript docker option reset model.
   - [x] Add UDBScript docker option reset editor apply wiring.
+  - [x] Add UDBScript docker option editor apply wiring.
   - [x] Add UDBScript docker slot assignment settings load and save model.
   - [x] Add UDBScript API vector and universal-value conversion helpers.
   - [x] Add UDBScript Vector2D and Vector3D wrapper arithmetic and geometry helpers.
@@ -1696,6 +1697,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript docker selection transition model.
 - [x] Add UDBScript docker option reset model.
 - [x] Add UDBScript docker option reset editor apply wiring.
+- [x] Add UDBScript docker option editor apply wiring.
 - [x] Add UDBScript docker slot assignment settings load and save model.
 - [x] Add UDBScript API vector and universal-value conversion helpers.
 - [x] Add UDBScript Vector2D and Vector3D wrapper arithmetic and geometry helpers.

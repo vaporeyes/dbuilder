@@ -21,6 +21,7 @@ public class UdbScriptDockerWindowTests
         ]));
         Assert.NotNull(type.GetEvent("RunRequested"));
         Assert.NotNull(type.GetEvent("EditRequested"));
+        Assert.NotNull(type.GetEvent("OptionsRequested"));
         Assert.NotNull(type.GetEvent("ResetOptionsRequested"));
         Assert.NotNull(type.GetProperty("Nodes"));
         Assert.NotNull(type.GetProperty("CurrentSelection"));

@@ -18,11 +18,13 @@ public sealed class UdbScriptDockerWindow : Window
     private readonly TextBox _description = new();
     private readonly ListBox _options = new();
     private readonly Button _run = new();
+    private readonly Button _optionsButton = new();
     private readonly Button _reset = new();
     private readonly Button _edit = new();
 
     public event Action<UdbScriptInfo>? RunRequested;
     public event Action<UdbScriptInfo>? EditRequested;
+    public event Action<UdbScriptInfo>? OptionsRequested;
     public event Action<UdbScriptInfo>? ResetOptionsRequested;
 
     public IReadOnlyList<UdbScriptDockerNode> Nodes { get; private set; } = Array.Empty<UdbScriptDockerNode>();
@@ -57,6 +59,9 @@ public sealed class UdbScriptDockerWindow : Window
         _edit.Content = UdbScriptDockerModel.EditMenuText;
         _edit.MinWidth = 82;
         _edit.Click += (_, _) => InvokeForCurrent(EditRequested);
+        _optionsButton.Content = UdbScriptDockerModel.OptionsButtonText;
+        _optionsButton.MinWidth = 82;
+        _optionsButton.Click += (_, _) => InvokeForCurrent(OptionsRequested);
         _reset.Content = UdbScriptDockerModel.ResetButtonText;
         _reset.MinWidth = 82;
         _reset.Click += (_, _) => InvokeForCurrent(ResetOptionsRequested);
@@ -93,6 +98,7 @@ public sealed class UdbScriptDockerWindow : Window
             Spacing = 8,
         };
         buttons.Children.Add(_edit);
+        buttons.Children.Add(_optionsButton);
         buttons.Children.Add(_reset);
         buttons.Children.Add(_run);
 
@@ -168,6 +174,7 @@ public sealed class UdbScriptDockerWindow : Window
         bool hasScript = selection.CurrentScript is not null;
         _run.IsEnabled = hasScript;
         _edit.IsEnabled = hasScript;
+        _optionsButton.IsEnabled = hasScript && selection.Options.Count > 0;
         _reset.IsEnabled = hasScript && selection.Options.Count > 0;
     }
 
