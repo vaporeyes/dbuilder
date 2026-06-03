@@ -706,6 +706,7 @@ public static class EditorCommandCatalog
         if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
         if (key.Equals("Prior", StringComparison.OrdinalIgnoreCase)) return "PageUp";
         if (key.Equals("Next", StringComparison.OrdinalIgnoreCase)) return "PageDown";
+        if (key.Equals("Capital", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
         if (key.Equals("CapsLock", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
         if (key.Equals("NumPad+", StringComparison.OrdinalIgnoreCase)) return "Add";
         if (key.Equals("NumPad-", StringComparison.OrdinalIgnoreCase)) return "Subtract";
@@ -722,13 +723,19 @@ public static class EditorCommandCatalog
         {
             "[" => "OemOpenBrackets",
             "]" => "OemCloseBrackets",
+            "Oemtilde" => "OemTilde",
             "~" => "OemTilde",
+            "Oem1" => "OemSemicolon",
             ";" => "OemSemicolon",
+            "Oem7" => "OemQuotes",
             "'" => "OemQuotes",
+            "Oemcomma" => "OemComma",
             "," => "OemComma",
             "." => "OemPeriod",
             "?" => "OemQuestion",
+            "Oem5" => "OemBackslash",
             "\\" => "OemBackslash",
+            "Oemplus" => "OemPlus",
             "+" => "OemPlus",
             "-" => "OemMinus",
             "1" => "D1",

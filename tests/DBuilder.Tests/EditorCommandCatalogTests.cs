@@ -2474,13 +2474,27 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsUdbStylePunctuationAndNumpadKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "map2d.fit=~; map2d.zoom-in=NumPad+; map2d.zoom-out=NumPad-; map3d.brightness-up=]; map3d.brightness-down=+");
+            "map2d.fit=~; map2d.zoom-in=NumPad+; map2d.zoom-out=NumPad-; map3d.brightness-up=]; map3d.brightness-down=+; window.status-history=Oem1");
 
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-in" && b.Key == "Add");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "Subtract");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemCloseBrackets");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
+        Assert.Contains(overrides, b => b.CommandId == "window.status-history" && b.Key == "OemSemicolon");
+    }
+
+    [Fact]
+    public void ParseOverrideTextReadsWinFormsOemKeyNames()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.fit=Oemtilde; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemComma");
+        Assert.Contains(overrides, b => b.CommandId == "window.tags" && b.Key == "OemQuotes");
+        Assert.Contains(overrides, b => b.CommandId == "window.status-history" && b.Key == "OemBackslash");
     }
 
     [Fact]
@@ -2505,6 +2519,7 @@ public class EditorCommandCatalogTests
             new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Backspace"),
             new EditorShortcutBinding("map3d.raise-sector-to-nearest", EditorCommandScope.Map3D, "Prior"),
             new EditorShortcutBinding("map3d.lower-sector-to-nearest", EditorCommandScope.Map3D, "Next"),
+            new EditorShortcutBinding("window.toggle-info-panel", EditorCommandScope.Window, "Capital"),
         });
 
         Assert.Equal("window.cancel-draw", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Escape"));
@@ -2512,6 +2527,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Back"));
         Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageUp"));
         Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageDown"));
+        Assert.Equal("window.toggle-info-panel", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "CapsLock"));
     }
 
     [Fact]
