@@ -231,6 +231,23 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void DoubleValuesUseUdbUniversalParserFormat()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.Vertices.Add(new Vertex(new Vector2D(0.000000123456789, 1.234567890123456)));
+        map.Things.Add(new Thing { Position = new Vector2D(1000000000000000d, -0.000000123456789), Type = 1 });
+
+        var text = UdmfMapWriter.Write(map);
+
+        Assert.Contains("x = 0.000000123456789;", text);
+        Assert.Contains("y = 1.23456789012346;", text);
+        Assert.Contains("x = 1000000000000000.0;", text);
+        Assert.Contains("y = -0.000000123456789;", text);
+        Assert.DoesNotContain("E", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("e-", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TwoSidedLineRoundTripsBothSidedefs()
     {
         const string udmf = """

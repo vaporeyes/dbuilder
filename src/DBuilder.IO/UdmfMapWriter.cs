@@ -297,12 +297,7 @@ public static class UdmfMapWriter
     }
 
     private static string FormatDouble(double value)
-    {
-        string formatted = value.ToString("R", CultureInfo.InvariantCulture);
-        if (formatted.IndexOf('.') < 0 && formatted.IndexOf('e') < 0 && formatted.IndexOf('E') < 0)
-            formatted += ".0";
-        return formatted;
-    }
+        => value.ToString("0.0##############", CultureInfo.InvariantCulture);
 
     private static string NormalizeLineEndings(string text)
         => text.ReplaceLineEndings("\r\n");
