@@ -17,7 +17,7 @@ public sealed class ShortcutsWindow : Window
     private readonly IReadOnlyList<EditorShortcutBinding> _bindings;
     private readonly StackPanel _sections = new() { Spacing = 8 };
     private readonly TextBlock _matchSummary = new() { Foreground = MutedBrush, VerticalAlignment = VerticalAlignment.Center };
-    private readonly Dictionary<string, bool> _expandedSections = GroupTitles.ToDictionary(title => title, IsDefaultExpanded);
+    private readonly Dictionary<string, bool> _expandedSections = ShortcutHelpModel.GroupTitles.ToDictionary(title => title, ShortcutHelpModel.IsDefaultExpanded);
     private readonly TextBox _search = new()
     {
         Watermark = "Search shortcuts",
@@ -83,31 +83,23 @@ public sealed class ShortcutsWindow : Window
     {
         string text = filter?.Trim() ?? "";
         bool searching = text.Length > 0;
-        int matchCount = 0;
-        var groups = Groups();
+        var groups = ShortcutHelpModel.BuildSections(EditorCommandCatalog.All, _bindings, text);
+        int matchCount = groups.Sum(group => group.Rows.Count);
         _sections.Children.Clear();
 
         foreach (var group in groups)
         {
-            var rows = group.Commands
-                .Where(command => string.IsNullOrWhiteSpace(text) || Matches(command, group.Title, text))
-                .ToArray();
-
-            if (rows.Length == 0) continue;
-            matchCount += rows.Length;
-            bool expanded = searching || (_expandedSections.TryGetValue(group.Title, out bool value) ? value : IsDefaultExpanded(group.Title));
-            _sections.Children.Add(Section(group.Title, rows, expanded, searching));
+            bool expanded = searching || (_expandedSections.TryGetValue(group.Title, out bool value) ? value : group.DefaultExpanded);
+            _sections.Children.Add(Section(group.Title, group.Rows, expanded, searching));
         }
 
         if (_sections.Children.Count == 0)
             _sections.Children.Add(new TextBlock { Text = "No shortcuts found.", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
 
-        _matchSummary.Text = searching
-            ? $"{matchCount} shortcut{Plural(matchCount)} matched"
-            : $"{EditorCommandCatalog.All.Count} shortcuts in {groups.Count} groups";
+        _matchSummary.Text = ShortcutHelpModel.MatchSummary(text, EditorCommandCatalog.All.Count, groups.Count, matchCount);
     }
 
-    private Control Section(string title, IReadOnlyList<EditorCommandDescriptor> rows, bool expand, bool searching)
+    private Control Section(string title, IReadOnlyList<ShortcutHelpRow> rows, bool expand, bool searching)
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, Margin = new Avalonia.Thickness(0, 6, 0, 2) };
         for (int i = 0; i < rows.Count; i++)
@@ -136,7 +128,7 @@ public sealed class ShortcutsWindow : Window
         return expander;
     }
 
-    private Control Row(EditorCommandDescriptor command, int index)
+    private Control Row(ShortcutHelpRow row, int index)
     {
         var grid = new Grid
         {
@@ -145,14 +137,14 @@ public sealed class ShortcutsWindow : Window
         };
         grid.Children.Add(new TextBlock
         {
-            Text = EditorCommandCatalog.GestureText(command.Id, _bindings),
+            Text = row.GestureText,
             Foreground = Brushes.Khaki,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Top,
         });
         var description = new TextBlock
         {
-            Text = command.Title,
+            Text = row.Command.Title,
             Foreground = TextBrush,
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap,
@@ -169,114 +161,10 @@ public sealed class ShortcutsWindow : Window
         };
     }
 
-    private bool Matches(EditorCommandDescriptor command, string groupTitle, string filter)
-        => Contains(groupTitle, filter)
-            || Contains(command.Title, filter)
-            || Contains(command.Id, filter)
-            || Contains(ScopeTitle(command.Scope), filter)
-            || Contains(EditorCommandCatalog.GestureText(command.Id, _bindings), filter);
-
-    private static bool Contains(string value, string filter)
-        => value.Contains(filter, StringComparison.OrdinalIgnoreCase);
-
-    private static IReadOnlyList<ShortcutGroup> Groups()
-    {
-        var groups = new List<ShortcutGroup>();
-        foreach (string title in GroupTitles)
-        {
-            var commands = EditorCommandCatalog.All
-                .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
-                .ToArray();
-            if (commands.Length > 0) groups.Add(new ShortcutGroup(title, commands));
-        }
-
-        return groups;
-    }
-
-    private static string GroupTitle(EditorCommandDescriptor command)
-    {
-        string id = command.Id;
-        if (command.Title.Contains("Script", StringComparison.OrdinalIgnoreCase) || id.Contains("udbscript", StringComparison.OrdinalIgnoreCase))
-            return "Script commands";
-
-        return command.Scope switch
-        {
-            EditorCommandScope.Window => WindowGroup(id),
-            EditorCommandScope.Map2D => Map2DGroup(id),
-            EditorCommandScope.Map3D => Map3DGroup(id),
-            _ => ScopeTitle(command.Scope),
-        };
-    }
-
-    private static string WindowGroup(string id)
-    {
-        if (id.Contains("-group-", StringComparison.Ordinal)) return "Selection groups";
-        if (ContainsAny(id, "tag", "explorer", "viewer", "sound", "panel", "setup", "prefab", "export", "comments"))
-            return "Tools and panels";
-        if (ContainsAny(id, "cut", "copy", "paste", "duplicate", "delete", "properties", "select", "align", "make-door", "tag-range", "undo", "redo"))
-            return "Window editing";
-        return "File and configuration";
-    }
-
-    private static string Map2DGroup(string id)
-    {
-        if (ContainsAny(id, "mode", "view-mode", "toggle", "zoom", "fit", "pan")) return "2D view and modes";
-        if (ContainsAny(id, "draw", "3dfloor", "slope", "bridge")) return "2D drawing and geometry";
-        if (ContainsAny(id, "grid", "align", "sector", "linedef", "thing", "insert", "flip", "select", "make-sector"))
-            return "2D editing";
-        return "2D editing";
-    }
-
-    private static string Map3DGroup(string id)
-    {
-        if (ContainsAny(id, "move", "camera", "orbit", "look", "walk", "gravity")) return "3D navigation";
-        if (ContainsAny(id, "texture", "offset", "unpegged", "align", "auto-align", "fit-textures")) return "3D textures";
-        if (ContainsAny(id, "brightness", "slope", "render", "fog", "sky", "light", "scale", "height", "sector")) return "3D surfaces and rendering";
-        if (ContainsAny(id, "thing", "select", "copy", "cut", "paste", "delete", "insert", "rotate", "pitch", "roll", "edit", "clear"))
-            return "3D selection and things";
-        return "3D selection and things";
-    }
-
-    private static bool ContainsAny(string value, params string[] parts)
-        => parts.Any(part => value.Contains(part, StringComparison.OrdinalIgnoreCase));
-
     private void SetAllSectionsExpanded(bool expanded)
     {
-        foreach (string title in GroupTitles)
+        foreach (string title in ShortcutHelpModel.GroupTitles)
             _expandedSections[title] = expanded;
         RebuildSections(_search.Text);
     }
-
-    private static string Plural(int count)
-        => count == 1 ? "" : "s";
-
-    private static bool IsDefaultExpanded(string title)
-        => title is "File and configuration" or "Window editing" or "2D view and modes" or "3D navigation";
-
-    private static string ScopeTitle(EditorCommandScope scope)
-        => scope switch
-        {
-            EditorCommandScope.Window => "Window commands",
-            EditorCommandScope.Map2D => "2D editing",
-            EditorCommandScope.Map3D => "3D mode",
-            _ => scope.ToString(),
-        };
-
-    private static readonly string[] GroupTitles =
-    {
-        "File and configuration",
-        "Window editing",
-        "Tools and panels",
-        "Selection groups",
-        "Script commands",
-        "2D view and modes",
-        "2D drawing and geometry",
-        "2D editing",
-        "3D navigation",
-        "3D selection and things",
-        "3D textures",
-        "3D surfaces and rendering",
-    };
-
-    private sealed record ShortcutGroup(string Title, IReadOnlyList<EditorCommandDescriptor> Commands);
 }
