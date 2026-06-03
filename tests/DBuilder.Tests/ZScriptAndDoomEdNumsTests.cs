@@ -1498,6 +1498,11 @@ thingtypes
 class SpawnedZThing : Actor
 {
     //$Title ""Spawned Z Thing""
+}
+class SpawnIdZThing : Actor
+{
+    //$Title ""SpawnID Z Thing""
+    Default { SpawnID 255; }
 }";
         var mapInfo = MapInfo.Parse("""
 SpawnNums
@@ -1521,6 +1526,7 @@ SpawnNums
         var spawnList = gc.GetEnumList("spawnthing");
         Assert.NotNull(spawnList);
         Assert.Contains(spawnList!.Items, item => item.Value == "255" && item.Title == "Spawned Z Thing");
+        Assert.DoesNotContain(spawnList.Items, item => item.Value == "255" && item.Title == "SpawnID Z Thing");
     }
 
     [Fact]

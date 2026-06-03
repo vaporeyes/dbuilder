@@ -812,13 +812,11 @@ public sealed class GameConfiguration
             }
         }
 
-        MergeSpawnNums(allActors, spawnNums);
+        MergeSpawnThingEnum(allActors, spawnNums);
     }
 
-    private void MergeSpawnNums(IReadOnlyList<ActorInfo> actors, IReadOnlyDictionary<int, string>? spawnNums)
+    private void MergeSpawnThingEnum(IReadOnlyList<ActorInfo> actors, IReadOnlyDictionary<int, string>? spawnNums)
     {
-        if (spawnNums == null || spawnNums.Count == 0) return;
-
         var items = new Dictionary<int, string>();
         if (GetEnum("spawnthing") is { } existing)
         {
@@ -826,14 +824,28 @@ public sealed class GameConfiguration
                 items[item.Key] = item.Value;
         }
 
-        foreach (var (spawnNum, className) in spawnNums)
+        bool changed = false;
+        foreach (var actor in actors)
         {
-            if (spawnNum == 0) continue;
-            items[spawnNum] = things.TryGetValue(spawnNum, out var thing)
-                ? thing.Title
-                : ActorSpawnTitle(actors, className);
+            int spawnId = ActorPropertyInt(actor, "spawnid");
+            if (spawnId == 0) continue;
+            items[spawnId] = actor.Title;
+            changed = true;
         }
 
+        if (spawnNums != null)
+        {
+            foreach (var (spawnNum, className) in spawnNums)
+            {
+                if (spawnNum == 0) continue;
+                items[spawnNum] = things.TryGetValue(spawnNum, out var thing)
+                    ? thing.Title
+                    : ActorSpawnTitle(actors, className);
+                changed = true;
+            }
+        }
+
+        if (!changed) return;
         SetEnum("spawnthing", items);
     }
 

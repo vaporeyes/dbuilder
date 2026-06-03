@@ -320,6 +320,38 @@ ACTOR ZeroThing 0
     }
 
     [Fact]
+    public void MergeActorsAddsActorSpawnIdsToSpawnThingEnum()
+    {
+        const string text = @"
+ACTOR SpawnableThing 31022
+{
+    //$Title ""Spawnable Thing""
+    SpawnID 17
+    States { Spawn: SPWN A -1 stop }
+}
+ACTOR ZeroSpawnThing 31023
+{
+    SpawnID 0
+    States { Spawn: ZSPN A -1 stop }
+}";
+        var gc = GameConfiguration.FromText(@"
+enums
+{
+    spawnthing
+    {
+        1 = ""Configured Spawn"";
+    }
+}");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        var spawnThing = gc.GetEnum("spawnthing");
+        Assert.NotNull(spawnThing);
+        Assert.Equal("Configured Spawn", spawnThing![1]);
+        Assert.Equal("Spawnable Thing", spawnThing[17]);
+        Assert.False(spawnThing.ContainsKey(0));
+    }
+
+    [Fact]
     public void UnparentedDecorateActorsDefaultToActorParent()
     {
         var actor = DecorateParser.Parse("ACTOR StandaloneThing 6002 { Radius 16 }").Single();
