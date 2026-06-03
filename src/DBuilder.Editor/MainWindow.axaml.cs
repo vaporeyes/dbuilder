@@ -6026,7 +6026,7 @@ public partial class MainWindow : Window
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
-            Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,
+            Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,
             ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             DrawMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
