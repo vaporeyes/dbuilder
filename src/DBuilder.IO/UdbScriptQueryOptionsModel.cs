@@ -9,6 +9,11 @@ public sealed record UdbScriptQueryOptionAddResult(
     bool Added,
     string ErrorDescription = "");
 
+public sealed record UdbScriptQueryOptionRow(
+    string DescriptionCellValue,
+    object? ValueCellValue,
+    bool StoresOptionTag);
+
 public enum UdbScriptQueryOptionsDialogResult
 {
     Ok,
@@ -110,6 +115,9 @@ public sealed class UdbScriptQueryOptionsModel
             PromptMetadata(),
             dialogResult,
             dialogResult == UdbScriptQueryOptionsDialogResult.Ok);
+
+    public static UdbScriptQueryOptionRow OptionRow(UdbScriptOption option)
+        => new(option.Description, option.Value, StoresOptionTag: true);
 
     public UdbScriptQueryOptionAddResult AddOption(
         string scriptFile,

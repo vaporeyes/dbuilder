@@ -149,6 +149,29 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void OptionRowMatchesUdbQueryOptionsFormAddOptionCells()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+        model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            2,
+            new Dictionary<string, object?>
+            {
+                ["1"] = "Up",
+                ["2"] = "Down",
+            });
+
+        UdbScriptQueryOptionRow row = UdbScriptQueryOptionsModel.OptionRow(Assert.Single(model.Options));
+
+        Assert.Equal("Direction", row.DescriptionCellValue);
+        Assert.Equal("Down", row.ValueCellValue);
+        Assert.True(row.StoresOptionTag);
+    }
+
+    [Fact]
     public void AddOptionMapsExpandoEnumDefaults()
     {
         dynamic values = new ExpandoObject();
