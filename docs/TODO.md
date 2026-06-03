@@ -1342,6 +1342,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist UDBScript script option edits and resets from the editor.
   - [x] Keep UDBScript docker option edits in the backing tree.
   - [x] Add UDBScript docker external editor launch wiring.
+  - [x] Add UDBScript docker folder Open in Explorer wiring.
   - [x] Add UDBScript docker slot assignment context-menu editor wiring.
   - [x] Add UDBScript execute-current and execute-slot editor command dispatch.
   - [x] Persist UDBScript docker slot assignments from the editor.
@@ -1708,6 +1709,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Persist UDBScript script option edits and resets from the editor.
 - [x] Keep UDBScript docker option edits in the backing tree.
 - [x] Add UDBScript docker external editor launch wiring.
+- [x] Add UDBScript docker folder Open in Explorer wiring.
 - [x] Add UDBScript docker slot assignment context-menu editor wiring.
 - [x] Add UDBScript execute-current and execute-slot editor command dispatch.
 - [x] Persist UDBScript docker slot assignments from the editor.

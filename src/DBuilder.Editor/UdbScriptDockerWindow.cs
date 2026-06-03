@@ -29,6 +29,7 @@ public sealed class UdbScriptDockerWindow : Window
     public event Action<UdbScriptInfo>? ResetOptionsRequested;
     public event Action<UdbScriptInfo, int>? SlotAssignmentRequested;
     public event Action<UdbScriptInfo>? SlotClearedRequested;
+    public event Action<string>? OpenFolderRequested;
     public event Action<IReadOnlySet<string>>? CollapsedDirectoryHashesChanged;
 
     public IReadOnlyList<UdbScriptDockerNode> Nodes { get; private set; } = Array.Empty<UdbScriptDockerNode>();
@@ -169,6 +170,8 @@ public sealed class UdbScriptDockerWindow : Window
         };
         item.ItemsSource = node.Children.Select(TreeItem).ToArray();
         if (node.Kind == UdbScriptDockerNodeKind.Folder)
+        {
+            item.ContextMenu = BuildFolderContextMenu(node.Path);
             item.PropertyChanged += (_, e) =>
             {
                 if (e.Property != TreeViewItem.IsExpandedProperty)
@@ -180,6 +183,7 @@ public sealed class UdbScriptDockerWindow : Window
                     collapsed: !item.IsExpanded);
                 CollapsedDirectoryHashesChanged?.Invoke(_collapsedDirectoryHashes);
             };
+        }
         if (node.Script is not null)
             item.ContextMenu = BuildScriptContextMenu(node.Script);
         return item;
@@ -202,6 +206,25 @@ public sealed class UdbScriptDockerWindow : Window
                 slotMenu.ItemsSource = model.Children.Select(child => SlotMenuItem(script, child)).ToArray();
                 items.Add(slotMenu);
             }
+        }
+
+        return new ContextMenu { ItemsSource = items };
+    }
+
+    private ContextMenu BuildFolderContextMenu(string path)
+    {
+        var items = new List<object>();
+        foreach (UdbScriptDockerMenuItem model in UdbScriptDockerModel.FolderContextMenuItems())
+        {
+            if (model.Kind != UdbScriptDockerMenuItemKind.Command
+                || model.Text != UdbScriptDockerModel.OpenInExplorerMenuText)
+            {
+                continue;
+            }
+
+            var open = new MenuItem { Header = model.Text };
+            open.Click += (_, _) => OpenFolderRequested?.Invoke(path);
+            items.Add(open);
         }
 
         return new ContextMenu { ItemsSource = items };

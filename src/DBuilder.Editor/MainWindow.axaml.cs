@@ -2444,6 +2444,7 @@ public partial class MainWindow : Window
         _udbScriptDocker.ResetOptionsRequested += ResetUdbScriptOptions;
         _udbScriptDocker.SlotAssignmentRequested += AssignUdbScriptSlot;
         _udbScriptDocker.SlotClearedRequested += ClearUdbScriptSlot;
+        _udbScriptDocker.OpenFolderRequested += OpenUdbScriptFolderInExplorer;
         _udbScriptDocker.CollapsedDirectoryHashesChanged += collapsed => SaveUdbScriptSettings(
             UdbScriptDockerModel.SaveDirectoryExpansionOperations(scripts, collapsed));
         _udbScriptDocker.Show(this);
@@ -2497,6 +2498,28 @@ public partial class MainWindow : Window
         }
 
         SaveSettings();
+    }
+
+    private void OpenUdbScriptFolderInExplorer(string folderPath)
+    {
+        if (!System.IO.Directory.Exists(folderPath))
+        {
+            SetStatus($"UDBScript folder not found: {folderPath}");
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(folderPath)
+            {
+                UseShellExecute = true,
+            });
+            SetStatus($"UDBScript folder open requested: {folderPath}");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "UDBScript folder launch failed");
+        }
     }
 
     private static IReadOnlyList<UdbScriptInfo> AllUdbScripts(UdbScriptDirectory directory)

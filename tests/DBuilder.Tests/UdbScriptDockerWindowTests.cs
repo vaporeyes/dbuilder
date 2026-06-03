@@ -26,6 +26,7 @@ public class UdbScriptDockerWindowTests
         Assert.NotNull(type.GetEvent("ResetOptionsRequested"));
         Assert.NotNull(type.GetEvent("SlotAssignmentRequested"));
         Assert.NotNull(type.GetEvent("SlotClearedRequested"));
+        Assert.NotNull(type.GetEvent("OpenFolderRequested"));
         Assert.NotNull(type.GetEvent("CollapsedDirectoryHashesChanged"));
         Assert.NotNull(type.GetProperty("Nodes"));
         Assert.NotNull(type.GetProperty("CurrentSelection"));
