@@ -2501,11 +2501,17 @@ public class EditorCommandCatalogTests
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
         {
             new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Esc"),
+            new EditorShortcutBinding("window.properties", EditorCommandScope.Window, "Return"),
             new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Backspace"),
+            new EditorShortcutBinding("map3d.raise-sector-to-nearest", EditorCommandScope.Map3D, "Prior"),
+            new EditorShortcutBinding("map3d.lower-sector-to-nearest", EditorCommandScope.Map3D, "Next"),
         });
 
         Assert.Equal("window.cancel-draw", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Escape"));
+        Assert.Equal("window.properties", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Enter"));
         Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "Back"));
+        Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageUp"));
+        Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageDown"));
     }
 
     [Fact]

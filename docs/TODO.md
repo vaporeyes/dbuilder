@@ -122,6 +122,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port special key handling.
   - [x] Normalize configurable shortcut aliases for escape, delete and backspace keys.
   - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.
+  - [x] Normalize configurable shortcut aliases for Return, Prior and Next keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.

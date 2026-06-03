@@ -701,8 +701,11 @@ public static class EditorCommandCatalog
     private static string ParseDisplayKey(string key)
     {
         if (key.Equals("Esc", StringComparison.OrdinalIgnoreCase)) return "Escape";
+        if (key.Equals("Return", StringComparison.OrdinalIgnoreCase)) return "Enter";
         if (key.Equals("Del", StringComparison.OrdinalIgnoreCase)) return "Delete";
         if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
+        if (key.Equals("Prior", StringComparison.OrdinalIgnoreCase)) return "PageUp";
+        if (key.Equals("Next", StringComparison.OrdinalIgnoreCase)) return "PageDown";
         if (key.Equals("CapsLock", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
         if (key.Equals("NumPad+", StringComparison.OrdinalIgnoreCase)) return "Add";
         if (key.Equals("NumPad-", StringComparison.OrdinalIgnoreCase)) return "Subtract";
