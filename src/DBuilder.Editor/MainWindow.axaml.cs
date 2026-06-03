@@ -5975,6 +5975,7 @@ public partial class MainWindow : Window
         bool canPasteProperties = hasMap && MapView.HasCopiedPropertiesForCurrentMode;
         bool hasSelectedLinedef = _map?.SelectedLinedefsCount > 0;
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
+        bool hasSelectedAutomapTarget = hasSelectedLinedef || hasSelectedSector;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
         bool hasSelectedInternalDynamicLight = _map is not null && ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings());
         bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
@@ -6065,6 +6066,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
+        SetEnabled(hasSelectedAutomapTarget, AutomapMenuItem);
         SetEnabled(hasSelectedLinedef, ToggleAutomapSecretLineMenuItem, ToggleAutomapHiddenLineMenuItem);
         SetEnabled(hasSelectedSector && hasResources, BrowseFloorFlatsMenuItem, BrowseCeilingFlatsMenuItem);
         SetEnabled(hasGradientSectors,

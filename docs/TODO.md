@@ -164,6 +164,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate the Model Rendering parent menu by loaded map state.
   - [x] Gate the Edit Mode parent menu by loaded map state.
   - [x] Gate the Browsers parent menu by child browser availability.
+  - [x] Gate the Automap parent menu by child automap flag availability.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.

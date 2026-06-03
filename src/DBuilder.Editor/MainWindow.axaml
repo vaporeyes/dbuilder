@@ -267,7 +267,7 @@
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="USDF _Dialog Editor..." x:Name="UsdfConversationsMenuItem" Click="OnUsdfConversations" />
-                <MenuItem Header="_Automap">
+                <MenuItem Header="_Automap" x:Name="AutomapMenuItem">
                     <MenuItem Header="Toggle Selected Line _Secret" x:Name="ToggleAutomapSecretLineMenuItem" Click="OnToggleAutomapSecretLine" />
                     <MenuItem Header="Toggle Selected Line _Hidden" x:Name="ToggleAutomapHiddenLineMenuItem" Click="OnToggleAutomapHiddenLine" />
                     <MenuItem Header="Toggle Selected Sector _Textured Hidden" x:Name="ToggleAutomapTexturedHiddenSectorMenuItem" Click="OnToggleAutomapTexturedHiddenSector" />
