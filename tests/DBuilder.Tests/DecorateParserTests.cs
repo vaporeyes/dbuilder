@@ -893,7 +893,7 @@ ACTOR CastStateThing 8001
     }
 
     [Fact]
-    public void RejectsStateBlocksWithUnknownCastTypesLikeUdb()
+    public void InvalidStateBlockCastStopsDecorateParsingLikeUdb()
     {
         const string text = @"
 ACTOR InvalidCastStateThing 8002
@@ -912,10 +912,8 @@ ACTOR ValidAfterInvalidCast 8003
         GOOD A -1 stop
     }
 }";
-        var actor = Assert.Single(DecorateParser.Parse(text));
 
-        Assert.Equal("ValidAfterInvalidCast", actor.ClassName);
-        Assert.Equal("GOODA0", actor.EditorSprite);
+        Assert.Empty(DecorateParser.Parse(text));
     }
 
     [Fact]

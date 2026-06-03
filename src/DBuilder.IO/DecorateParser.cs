@@ -199,7 +199,7 @@ public static class DecorateParser
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
                     var classKind = GetZScriptClassKind(toks, i);
-                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
+                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties), out _);
                     if (parsed == null) continue;
                     if (classKind == ZScriptClassKind.Extension)
                     {
@@ -233,7 +233,8 @@ public static class DecorateParser
                 }
                 else
                 {
-                    var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties));
+                    var a = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties), out bool stopParsing);
+                    if (stopParsing) break;
                     if (a == null) continue;
                     if (ContainsActorClass(actors, a.ClassName)) break;
                     actors.Add(a);
@@ -924,8 +925,10 @@ public static class DecorateParser
         ref int i,
         bool headerNum,
         string? regionCategory,
-        Dictionary<string, List<string>>? regionProperties)
+        Dictionary<string, List<string>>? regionProperties,
+        out bool stopParsing)
     {
+        stopParsing = false;
         i++; // keyword
         if (i >= t.Count || !IsNameToken(t[i])) return null;
         string className = t[i++].Text;
@@ -1055,7 +1058,7 @@ public static class DecorateParser
         if (i >= t.Count) return headerNum ? actor : null;
         if (t[i].Text != "{") return actor; // no body (e.g. forward declaration)
         i++; // '{'
-        return ParseBody(actor, t, ref i, zscriptBody: !headerNum) ? actor : null;
+        return ParseBody(actor, t, ref i, zscriptBody: !headerNum, out stopParsing) ? actor : null;
     }
 
     private static ActorInfo? SkipInvalidActorDeclaration(List<Tok> t, ref int i)
@@ -1154,8 +1157,9 @@ public static class DecorateParser
 
     private static bool IsNameToken(Tok token) => token.Kind is Kind.Word or Kind.Str;
 
-    private static bool ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody)
+    private static bool ParseBody(ActorInfo actor, List<Tok> t, ref int i, bool zscriptBody, out bool stopParsing)
     {
+        stopParsing = false;
         int depth = 1;
         bool pendingStates = false, inStates = false;
         int statesDepth = 0;
@@ -1216,6 +1220,7 @@ public static class DecorateParser
                 if (!validStateHeader)
                 {
                     SkipRemainingActorBody(t, ref i, depth);
+                    stopParsing = !zscriptBody;
                     return false;
                 }
                 pendingUserVariableMetadata.Clear();
