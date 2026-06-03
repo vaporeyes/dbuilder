@@ -301,6 +301,27 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.browse-wall-textures", "Browse Textures")]
+    [InlineData("window.browse-flats", "Browse Flats")]
+    [InlineData("window.browse-floor-flats", "Set Selected Floor Flats")]
+    [InlineData("window.browse-ceiling-flats", "Set Selected Ceiling Flats")]
+    [InlineData("window.browse-things", "Browse Things")]
+    [InlineData("window.browse-linedef-actions", "Browse Linedef Actions")]
+    [InlineData("window.browse-sector-effects", "Browse Sector Effects")]
+    public void BrowserCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
     [Fact]
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {

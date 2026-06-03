@@ -33,6 +33,13 @@ public sealed class MainWindowCommandTests
     [InlineData("window.align-things-to-wall", "OnAlignThingsToWall")]
     [InlineData("window.find-replace", "OnFindReplace")]
     [InlineData("window.status-history", "OnStatusHistory")]
+    [InlineData("window.browse-wall-textures", "OnBrowseWallTextures")]
+    [InlineData("window.browse-flats", "OnBrowseFlats")]
+    [InlineData("window.browse-floor-flats", "OnBrowseFloorFlats")]
+    [InlineData("window.browse-ceiling-flats", "OnBrowseCeilingFlats")]
+    [InlineData("window.browse-things", "OnBrowseThingsCatalog")]
+    [InlineData("window.browse-linedef-actions", "OnBrowseActionsCatalog")]
+    [InlineData("window.browse-sector-effects", "OnBrowseEffectsCatalog")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

@@ -1180,6 +1180,13 @@ public partial class MainWindow : Window
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.status-history": OnStatusHistory(this, new RoutedEventArgs()); return true;
             case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
+            case "window.browse-wall-textures": OnBrowseWallTextures(this, new RoutedEventArgs()); return true;
+            case "window.browse-flats": OnBrowseFlats(this, new RoutedEventArgs()); return true;
+            case "window.browse-floor-flats": OnBrowseFloorFlats(this, new RoutedEventArgs()); return true;
+            case "window.browse-ceiling-flats": OnBrowseCeilingFlats(this, new RoutedEventArgs()); return true;
+            case "window.browse-things": OnBrowseThingsCatalog(this, new RoutedEventArgs()); return true;
+            case "window.browse-linedef-actions": OnBrowseActionsCatalog(this, new RoutedEventArgs()); return true;
+            case "window.browse-sector-effects": OnBrowseEffectsCatalog(this, new RoutedEventArgs()); return true;
             case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
