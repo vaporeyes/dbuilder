@@ -1227,7 +1227,9 @@ public partial class MainWindow : Window
             case "window.align-ceiling-to-back": OnAlignCeilingToBack(this, new RoutedEventArgs()); return true;
             case "window.align-things-to-wall": OnAlignThingsToWall(this, new RoutedEventArgs()); return true;
             case "window.find-replace": OnFindReplace(this, new RoutedEventArgs()); return true;
+            case "window.build-bridge": OnBuildBridge(this, new RoutedEventArgs()); return true;
             case "window.make-door": OnMakeDoor(this, new RoutedEventArgs()); return true;
+            case "window.build-stairs": OnBuildStairs(this, new RoutedEventArgs()); return true;
             case "window.tag-range": OnTagRange(this, new RoutedEventArgs()); return true;
             case "window.blockmap-explorer": OnBlockmapExplorer(this, new RoutedEventArgs()); return true;
             case "window.reject-explorer": OnRejectViewer(this, new RoutedEventArgs()); return true;

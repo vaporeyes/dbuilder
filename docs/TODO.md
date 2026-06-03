@@ -150,6 +150,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for sector and dynamic-light color dialogs.
   - [x] Add stable UDB action ids for OBJ terrain import and idStudio export.
   - [x] Add stable UDB action ids for map check and geometry cleanup.
+  - [x] Add stable UDB action ids for bridge and stairs construction tools.
   - [x] Add stable UDB action ids for fixed thing scale and always-show-vertices view toggles.
 
 ## Plugin Architecture
