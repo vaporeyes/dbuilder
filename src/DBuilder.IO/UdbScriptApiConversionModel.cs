@@ -913,23 +913,32 @@ public sealed class UdbScriptDataWrapper
 public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 {
     private readonly IFielded element;
+    private readonly Thing? managedThing;
 
-    public UdbScriptFieldsWrapper(IFielded element)
+    public UdbScriptFieldsWrapper(IFielded element, Thing? managedThing = null)
     {
         this.element = element;
+        this.managedThing = managedThing;
     }
 
     public object? this[string key]
     {
-        get => element.Fields.TryGetValue(key, out object? value) ? value : null;
+        get
+        {
+            if (element.Fields.TryGetValue(key, out object? value)) return value;
+            return GetManagedThingField(key);
+        }
         set => SetValue(key, value);
     }
 
-    public ICollection<string> Keys => element.Fields.Keys;
+    public ICollection<string> Keys
+        => EnumerateFields().Select(item => item.Key).ToArray();
 
-    public ICollection<object?> Values => element.Fields.Values.Cast<object?>().ToArray();
+    public ICollection<object?> Values
+        => EnumerateFields().Select(item => item.Value).ToArray();
 
-    public int Count => element.Fields.Count;
+    public int Count
+        => Keys.Count;
 
     public bool IsReadOnly => false;
 
@@ -937,10 +946,18 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
         => SetValue(key, value);
 
     public bool ContainsKey(string key)
-        => element.Fields.ContainsKey(key);
+        => element.Fields.ContainsKey(key) || GetManagedThingField(key) != null;
 
     public bool Remove(string key)
-        => element.Fields.Remove(key);
+    {
+        if (IsManagedThingScaleField(key) && ContainsKey(key))
+        {
+            SetManagedThingField(key, null);
+            return true;
+        }
+
+        return element.Fields.Remove(key);
+    }
 
     public bool TryGetValue(string key, out object? value)
     {
@@ -949,6 +966,10 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
             value = fieldValue;
             return true;
         }
+
+        value = GetManagedThingField(key);
+        if (value != null)
+            return true;
 
         value = null;
         return false;
@@ -974,8 +995,8 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 
     public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
     {
-        foreach (var item in element.Fields)
-            yield return new KeyValuePair<string, object?>(item.Key, item.Value);
+        foreach (var item in EnumerateFields())
+            yield return item;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -987,11 +1008,81 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 
         if (value == null)
         {
-            element.Fields.Remove(key);
+            if (IsManagedThingScaleField(key))
+                SetManagedThingField(key, null);
+            else
+                element.Fields.Remove(key);
+            return;
+        }
+
+        if (IsManagedThingScaleField(key))
+        {
+            SetManagedThingField(key, value);
             return;
         }
 
         element.Fields[key] = ConvertValue(key, value);
+    }
+
+    private IEnumerable<KeyValuePair<string, object?>> EnumerateFields()
+    {
+        foreach (var item in element.Fields)
+            yield return new KeyValuePair<string, object?>(item.Key, item.Value);
+
+        if (managedThing == null)
+            yield break;
+
+        if (!element.Fields.ContainsKey("scalex") && managedThing.ScaleX != 1.0)
+            yield return new KeyValuePair<string, object?>("scalex", managedThing.ScaleX);
+
+        if (!element.Fields.ContainsKey("scaley") && managedThing.ScaleY != 1.0)
+            yield return new KeyValuePair<string, object?>("scaley", managedThing.ScaleY);
+    }
+
+    private object? GetManagedThingField(string key)
+    {
+        if (managedThing == null)
+            return null;
+
+        return key switch
+        {
+            "scalex" when managedThing.ScaleX != 1.0 => managedThing.ScaleX,
+            "scaley" when managedThing.ScaleY != 1.0 => managedThing.ScaleY,
+            _ => null,
+        };
+    }
+
+    private bool IsManagedThingScaleField(string key)
+        => managedThing != null && (key == "scalex" || key == "scaley");
+
+    private void SetManagedThingField(string key, object? value)
+    {
+        if (managedThing == null)
+            return;
+
+        if (value == null)
+        {
+            element.Fields.Remove(key);
+            if (key == "scalex")
+                managedThing.SetScale(1.0, managedThing.ScaleY);
+            else
+                managedThing.SetScale(managedThing.ScaleX, 1.0);
+            return;
+        }
+
+        object converted = ConvertValue(key, value);
+        double scale = converted switch
+        {
+            int number => number,
+            double number => number,
+            _ => throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + "."),
+        };
+
+        element.Fields[key] = scale;
+        if (key == "scalex")
+            managedThing.SetScale(scale, managedThing.ScaleY);
+        else
+            managedThing.SetScale(managedThing.ScaleX, scale);
     }
 
     private static void ValidateFieldName(string key)
@@ -2431,7 +2522,7 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         get
         {
             ThrowIfDisposed("fields");
-            return new UdbScriptFieldsWrapper(thing);
+            return new UdbScriptFieldsWrapper(thing, thing);
         }
     }
 

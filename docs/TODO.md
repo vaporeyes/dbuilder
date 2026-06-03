@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3388 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3389 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1304,6 +1304,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Sector wrapper selected-linedef synchronization.
   - [x] Add UDBScript Sector wrapper label-position and triangle access.
   - [x] Add UDBScript Thing wrapper core property, position, and sector access.
+  - [x] Add UDBScript Thing wrapper managed scale field access.
   - [x] Add UDBScript Thing wrapper call-time sector determination.
   - [x] Add UDBScript Thing wrapper index-based string formatting.
   - [x] Add UDBScript Thing wrapper deletion access.
@@ -1593,6 +1594,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Sector wrapper selected-linedef synchronization.
 - [x] Add UDBScript Sector wrapper label-position and triangle access.
 - [x] Add UDBScript Thing wrapper core property, position, and sector access.
+- [x] Add UDBScript Thing wrapper managed scale field access.
 - [x] Add UDBScript Thing wrapper call-time sector determination.
 - [x] Add UDBScript Thing wrapper index-based string formatting.
 - [x] Add UDBScript Thing wrapper deletion access.

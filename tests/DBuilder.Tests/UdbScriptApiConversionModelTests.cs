@@ -1173,6 +1173,28 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void ThingWrapperFieldsExposeAndApplyManagedScaleFields()
+    {
+        var thing = new Thing(new Vector2D(1, 2), 3001);
+        thing.SetScale(1.5, 0.75);
+        var fields = new UdbScriptThingWrapper(thing).fields;
+
+        Assert.True(fields.ContainsKey("scalex"));
+        Assert.True(fields.ContainsKey("scaley"));
+        Assert.Equal(1.5, fields["scalex"]);
+        Assert.Equal(0.75, fields["scaley"]);
+
+        fields["scalex"] = 2.0;
+        fields["scaley"] = null;
+
+        Assert.Equal(2.0, thing.ScaleX);
+        Assert.Equal(1.0, thing.ScaleY);
+        Assert.Equal(2.0, thing.Fields["scalex"]);
+        Assert.False(thing.Fields.ContainsKey("scaley"));
+        Assert.False(fields.ContainsKey("scaley"));
+    }
+
+    [Fact]
     public void ThingWrapperGetSectorDeterminesContainingSector()
     {
         var map = new MapSet();
