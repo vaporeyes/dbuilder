@@ -165,6 +165,18 @@ public static class RejectExplorerModel
     public static bool SectorHasLineOfSight(RejectTable reject, int fromSector, int toSector)
         => !reject.IsRejected(fromSector, toSector);
 
+    public static IReadOnlyList<int> RejectedSectorIndexes(RejectTable reject, int sectorCount, int sourceSector)
+    {
+        var sectors = new List<int>();
+        for (int i = 0; i < sectorCount; i++)
+        {
+            if (i == sourceSector) continue;
+            if (reject.IsRejected(sourceSector, i)) sectors.Add(i);
+        }
+
+        return sectors;
+    }
+
     public static RejectExplorerRelation RelationToHighlight(RejectTable reject, int sectorIndex, int? highlightedSector)
     {
         if (highlightedSector == null) return RejectExplorerRelation.Default;

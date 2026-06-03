@@ -4404,15 +4404,12 @@ public partial class MainWindow : Window
     {
         if (_map is null) return 0;
         _map.ClearAllSelected();
-        int count = 0;
-        for (int i = 0; i < _map.Sectors.Count; i++)
-        {
-            if (i == target) continue;
-            if (reject.IsRejected(target, i)) { _map.Sectors[i].Selected = true; count++; }
-        }
+        IReadOnlyList<int> sectors = RejectExplorerModel.RejectedSectorIndexes(reject, _map.Sectors.Count, target);
+        foreach (int sectorIndex in sectors)
+            _map.Sectors[sectorIndex].Selected = true;
         MapView.RevealSelection(MapControl.EditMode.Sectors, null);
         UpdateInfo();
-        return count;
+        return sectors.Count;
     }
 
     private void SelectOneSector(int sectorIndex)

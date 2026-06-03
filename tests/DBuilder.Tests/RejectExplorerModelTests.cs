@@ -140,6 +140,16 @@ public sealed class RejectExplorerModelTests
     }
 
     [Fact]
+    public void RejectedSectorIndexesExcludeSourceAndFollowRejectBits()
+    {
+        var reject = RejectTable.Parse(BuildReject(5, (0, 1), (0, 3), (2, 0), (4, 4)), 5);
+
+        Assert.Equal(new[] { 1, 3 }, RejectExplorerModel.RejectedSectorIndexes(reject, 5, 0));
+        Assert.Equal(new[] { 0 }, RejectExplorerModel.RejectedSectorIndexes(reject, 5, 2));
+        Assert.Empty(RejectExplorerModel.RejectedSectorIndexes(reject, 5, 4));
+    }
+
+    [Fact]
     public void BuildRowsAndFormattingDescribeHighlightedRelations()
     {
         var validation = RejectExplorerModel.Validate(new byte[2], sectorCount: 3);
