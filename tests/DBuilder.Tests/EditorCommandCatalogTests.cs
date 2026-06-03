@@ -1192,6 +1192,21 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void AutomapModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.mode-automap");
+
+        Assert.NotNull(command);
+        Assert.Equal("Automap Mode", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal("automapmode", AutomapModeModel.ModeDescriptor.SwitchAction);
+    }
+
+    [Fact]
     public void ImageExampleModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-image-example");

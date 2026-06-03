@@ -9,6 +9,7 @@ namespace DBuilder.Tests;
 public sealed class MapControlCommandTests
 {
     [Theory]
+    [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
     public void MapCommandsAreRoutedThroughMapCommandDispatch(string commandId, string handlerName)

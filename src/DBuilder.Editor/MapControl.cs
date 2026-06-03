@@ -5125,6 +5125,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.mode-image-example":
                 ToggleImageExampleMode();
                 return true;
+            case "map2d.mode-automap":
+                ToggleAutomapMode();
+                return true;
             case "map2d.mode-wadauthor":
                 ToggleWadAuthorMode();
                 return true;

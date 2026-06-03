@@ -1834,6 +1834,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
   - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.
   - [x] Add selected linedef and sector automap flag toggle commands.
+  - [x] Add stable UDB action id and map dispatch for Automap Mode.
   - [x] Add UDB-style mode metadata, persisted setting defaults, presentation layers, valid-linedef collection, and highlight target planning.
   - [x] Add UDB-style automap render planning for valid-line draw order, highlight colors, and textured-background fallback.
   - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
