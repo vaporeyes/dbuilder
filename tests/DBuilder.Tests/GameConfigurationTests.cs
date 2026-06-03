@@ -1116,6 +1116,56 @@ Bits = solid+spawnceiling
     }
 
     [Fact]
+    public void MergeDehackedAppliesEditorAngledAndColor()
+    {
+        const string cfg = @"
+thingtypes
+{
+    misc
+    {
+        31004
+        {
+            title = ""Old Angled Thing"";
+            class = ""OldAngledThing"";
+            arrow = false;
+            color = 4;
+        }
+        31005
+        {
+            title = ""Old Plain Thing"";
+            class = ""OldPlainThing"";
+            arrow = true;
+            color = 6;
+        }
+    }
+}";
+        const string text = @"
+Thing 6 (Angled Thing)
+ID # = 31004
+#$Editor Angled = true
+#$Editor Color ID = 12
+
+Thing 7 (Plain Thing)
+ID # = 31005
+#$Editor Angled = false
+#$Editor Color ID = blue
+";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeDehacked(DehackedParser.Parse(text));
+
+        var angled = gc.GetThing(31004);
+        Assert.NotNull(angled);
+        Assert.True(angled!.Arrow);
+        Assert.Equal(12, angled.Color);
+
+        var plain = gc.GetThing(31005);
+        Assert.NotNull(plain);
+        Assert.False(plain!.Arrow);
+        Assert.Equal(18, plain.Color);
+    }
+
+    [Fact]
     public void ParsesCompilerDefaultsStaticLimitsAndRequiredArchives()
     {
         const string cfg = """

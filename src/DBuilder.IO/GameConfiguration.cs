@@ -1397,11 +1397,11 @@ public sealed class GameConfiguration
                 RenderRadius = existing?.RenderRadius ?? 10.0,
                 DistanceCheckSq = existing?.DistanceCheckSq ?? double.MaxValue,
                 Height = height > 0 ? height : existing?.Height ?? 16,
-                Color = existing?.Color ?? 0,
+                Color = DehackedColor(thing.Properties, existing?.Color ?? 0),
                 Alpha = existing?.Alpha ?? 1.0,
                 RenderStyle = existing?.RenderStyle ?? "normal",
                 Bright = existing?.Bright ?? false,
-                Arrow = existing?.Arrow ?? false,
+                Arrow = DehackedArrow(thing.Properties, existing?.Arrow ?? false),
                 Hangs = hasBits ? bits.Contains("spawnceiling") : existing?.Hangs ?? false,
                 Blocking = hasBits ? bits.Contains("solid") ? 1 : 0 : existing?.Blocking ?? 0,
                 ErrorCheck = existing?.ErrorCheck ?? 0,
@@ -1506,6 +1506,18 @@ public sealed class GameConfiguration
 
     private static string? ReadDehackedProperty(Dictionary<string, string> properties, string key)
         => properties.TryGetValue(key, out string? value) && value.Length > 0 ? value : null;
+
+    private static int DehackedColor(Dictionary<string, string> properties, int fallback)
+    {
+        if (!properties.TryGetValue("$Editor Color ID", out string? value)) return fallback;
+        if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int color)) return 18;
+        return color is >= 0 and <= 19 ? color : fallback;
+    }
+
+    private static bool DehackedArrow(Dictionary<string, string> properties, bool fallback)
+        => properties.TryGetValue("$Editor Angled", out string? value)
+            ? value.Equals("true", StringComparison.OrdinalIgnoreCase)
+            : fallback;
 
     private static bool TryReadDehackedBits(Dictionary<string, string> properties, out HashSet<string> bits)
     {
