@@ -180,6 +180,20 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void MouseUpPlanFocusesVisibleEnumEditor()
+    {
+        UdbScriptOptionMouseUpPlan visible = UdbScriptOptionsUiModel.MouseUpPlan(enumEditorVisible: true);
+
+        Assert.True(visible.FocusEnumEditor);
+        Assert.True(visible.SelectAllEnumEditorText);
+
+        UdbScriptOptionMouseUpPlan hidden = UdbScriptOptionsUiModel.MouseUpPlan(enumEditorVisible: false);
+
+        Assert.False(hidden.FocusEnumEditor);
+        Assert.False(hidden.SelectAllEnumEditorText);
+    }
+
+    [Fact]
     public void ApplyEnumEditorUpdatesValueAndHonorsHideFlag()
     {
         var option = new UdbScriptOption(

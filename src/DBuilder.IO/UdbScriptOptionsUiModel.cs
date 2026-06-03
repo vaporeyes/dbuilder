@@ -58,6 +58,10 @@ public sealed record UdbScriptOptionSelectionChangedPlan(
     bool HideEnumEditor,
     bool UpdateBrowseButton);
 
+public sealed record UdbScriptOptionMouseUpPlan(
+    bool FocusEnumEditor,
+    bool SelectAllEnumEditorText);
+
 public static class UdbScriptOptionsUiModel
 {
     public const string DescriptionColumnName = "Description";
@@ -129,6 +133,11 @@ public static class UdbScriptOptionsUiModel
             ApplyEnumEditor: true,
             HideEnumEditor: true,
             UpdateBrowseButton: true);
+
+    public static UdbScriptOptionMouseUpPlan MouseUpPlan(bool enumEditorVisible)
+        => new(
+            FocusEnumEditor: enumEditorVisible,
+            SelectAllEnumEditorText: enumEditorVisible);
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
         UdbScriptOption option,
