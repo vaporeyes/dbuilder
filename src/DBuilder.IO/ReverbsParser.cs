@@ -30,11 +30,9 @@ public static class ReverbsParser
             }
 
             string name = t[i++];
+            if (name.Length == 0) return result;
             if (!ReadInt(t, ref i, out int arg0) || !ReadInt(t, ref i, out int arg1))
-            {
-                while (i < t.Count && t[i] != "}") i++;
-                continue;
-            }
+                return result;
             if (usedIds.Add((arg0, arg1))) result.Environments[name] = new ReverbDefinition(name, arg0, arg1);
             if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }

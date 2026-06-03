@@ -53,4 +53,30 @@ Cave 2 0";
         Assert.Equal(new ReverbDefinition("cave", 4, 0), reverbs.Environments["cave"]);
         Assert.Equal(new ReverbDefinition("Cave", 2, 0), reverbs.Environments["Cave"]);
     }
+
+    [Fact]
+    public void MalformedEnvironmentIdsStopParsingLikeUdb()
+    {
+        const string text = @"
+Cave 2 0
+Bad bogus 1
+Hall 3 0";
+
+        var reverbs = ReverbsParser.Parse(text);
+
+        Assert.Equal(new[] { "Cave" }, reverbs.Environments.Keys.ToArray());
+    }
+
+    [Fact]
+    public void EmptyEnvironmentNamesStopParsingLikeUdb()
+    {
+        const string text = @"
+Cave 2 0
+"""" 3 0
+Hall 4 0";
+
+        var reverbs = ReverbsParser.Parse(text);
+
+        Assert.Equal(new[] { "Cave" }, reverbs.Environments.Keys.ToArray());
+    }
 }
