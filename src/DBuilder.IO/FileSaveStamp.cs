@@ -29,4 +29,7 @@ public readonly record struct FileSaveStamp(DateTime LastWriteTimeUtc, long Leng
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
         return File.GetAttributes(path).HasFlag(FileAttributes.ReadOnly);
     }
+
+    public static bool CanWriteExistingPath(string? path)
+        => !IsReadOnly(path);
 }

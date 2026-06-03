@@ -102,6 +102,30 @@ public class FileSaveStampTests
         Assert.False(FileSaveStamp.IsReadOnly(TempPath()));
     }
 
+    [Fact]
+    public void CanWriteExistingPathBlocksReadOnlyFiles()
+    {
+        Assert.True(FileSaveStamp.CanWriteExistingPath(null));
+        Assert.True(FileSaveStamp.CanWriteExistingPath(TempPath()));
+
+        string path = TempPath();
+        try
+        {
+            File.WriteAllText(path, "abc");
+            Assert.True(FileSaveStamp.CanWriteExistingPath(path));
+
+            File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.ReadOnly);
+
+            Assert.False(FileSaveStamp.CanWriteExistingPath(path));
+        }
+        finally
+        {
+            if (File.Exists(path))
+                File.SetAttributes(path, File.GetAttributes(path) & ~FileAttributes.ReadOnly);
+            DeleteIfExists(path);
+        }
+    }
+
     private static string TempPath() => Path.Combine(Path.GetTempPath(), $"dbuilder_stamp_{System.Guid.NewGuid():N}.tmp");
 
     private static void DeleteIfExists(string path)

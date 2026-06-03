@@ -102,4 +102,13 @@ public sealed class MainWindowCommandTests
         Assert.Contains("scan.QueuePoints(", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(scan.Progress(queued.Count).FormatStatus())", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SaveCommandAvailabilityReflectsWritableSourceArchive()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(canSave, SaveMenuItem, SaveButton);", body, StringComparison.Ordinal);
+    }
 }
