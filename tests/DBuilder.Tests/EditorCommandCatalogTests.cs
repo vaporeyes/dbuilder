@@ -719,6 +719,15 @@ public class EditorCommandCatalogTests
         Assert.Equal(30, UdbScriptActions.ScriptSlotCount);
         Assert.Equal(31, UdbScriptActions.All.Count);
 
+        var scripts = UdbScriptActions.Scripts;
+        Assert.Equal("udbscripts", scripts.Id);
+        Assert.Equal("Scripts", scripts.Title);
+        Assert.Equal("Opens the script browser", scripts.Description);
+        Assert.Equal("udbscript", scripts.Category);
+        Assert.True(scripts.AllowKeys);
+        Assert.True(scripts.AllowMouse);
+        Assert.True(scripts.AllowScroll);
+
         var execute = UdbScriptActions.Execute;
         Assert.Equal("udbscriptexecute", execute.Id);
         Assert.Equal("Execute Script", execute.Title);
@@ -738,6 +747,7 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.udbscripts", "Scripts")]
     [InlineData("window.udbscriptexecute", "Execute Script")]
     [InlineData("window.udbscriptexecuteslot1", "Execute Script Slot 1")]
     [InlineData("window.udbscriptexecuteslot30", "Execute Script Slot 30")]

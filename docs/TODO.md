@@ -1329,6 +1329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
   - [x] Add UDBScript docker layout metadata.
   - [x] Add UDBScript editor docker window shell.
+  - [x] Add UDBScript editor docker command and menu integration.
   - [x] Add UDBScript docker context-menu metadata.
   - [x] Add UDBScript docker folder expansion state model.
   - [x] Add UDBScript docker folder expansion persistence model.
@@ -1685,6 +1686,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
 - [x] Add UDBScript docker layout metadata.
 - [x] Add UDBScript editor docker window shell.
+- [x] Add UDBScript editor docker command and menu integration.
 - [x] Add UDBScript docker context-menu metadata.
 - [x] Add UDBScript docker folder expansion state model.
 - [x] Add UDBScript docker folder expansion persistence model.

@@ -232,6 +232,7 @@
                 <MenuItem Header="_Clean Up Geometry" x:Name="CleanUpGeometryMenuItem" Click="OnCleanUpGeometry" />
                 <MenuItem Header="_Reload Resources" x:Name="ReloadResourcesMenuItem" Click="OnReloadResources" />
                 <MenuItem Header="_Test Map" x:Name="TestMapMenuItem" Click="OnTestMap" />
+                <MenuItem Header="_Scripts..." x:Name="UdbScriptDockerMenuItem" Click="OnUdbScriptDocker" />
                 <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />
                 <MenuItem Header="Sound _Environments..." x:Name="SoundEnvironmentsMenuItem" Click="OnSoundEnvironments" />
                 <MenuItem Header="Sound Propagation _Colors..." x:Name="SoundPropagationColorsMenuItem" Click="OnSoundPropagationColors" />

@@ -23,6 +23,15 @@ public static class UdbScriptActions
     public const string CategoryTitle = "Scripting";
     public const int ScriptSlotCount = 30;
 
+    public static UdbScriptActionDescriptor Scripts { get; } = new(
+        "udbscripts",
+        "Scripts",
+        CategoryId,
+        "Opens the script browser",
+        AllowKeys: true,
+        AllowMouse: true,
+        AllowScroll: true);
+
     public static UdbScriptActionDescriptor Execute { get; } = new(
         "udbscriptexecute",
         "Execute Script",
@@ -48,7 +57,8 @@ public static class UdbScriptActions
         .Concat(Slots)
         .ToArray();
 
-    public static IReadOnlyList<EditorCommandDescriptor> CommandDescriptors { get; } = All
+    public static IReadOnlyList<EditorCommandDescriptor> CommandDescriptors { get; } = new[] { Scripts }
+        .Concat(All)
         .Select(action => new EditorCommandDescriptor(
             $"window.{action.Id}",
             action.Title,

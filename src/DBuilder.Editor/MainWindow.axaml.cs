@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     private UndoRedoPanelWindow? _undoRedoPanel;
     private TagExplorerWindow? _tagExplorer;
     private UsdfConversationWindow? _usdfConversations;
+    private UdbScriptDockerWindow? _udbScriptDocker;
     private BlockmapExplorerWindow? _blockmapExplorer;
     private SoundEnvironmentWindow? _soundEnvironments;
     private SoundEnvironmentModeModel? _soundEnvironmentModel;
@@ -1167,6 +1168,7 @@ public partial class MainWindow : Window
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
             case "window.tag-explorer": OnTagExplorer(this, new RoutedEventArgs()); return true;
+            case "window.udbscripts": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;
             case "window.comments-panel": OnCommentsPanel(this, new RoutedEventArgs()); return true;
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
@@ -2383,6 +2385,23 @@ public partial class MainWindow : Window
         win.EntryActivated += SelectTagExplorerEntry;
         win.ExportRequested += ExportTagExplorer;
         win.Show(this);
+    }
+
+    private void OnUdbScriptDocker(object? sender, RoutedEventArgs e)
+    {
+        if (_udbScriptDocker != null)
+        {
+            _udbScriptDocker.Activate();
+            return;
+        }
+
+        UdbScriptDirectory scripts = UdbScriptDiscovery.DiscoverFromAppPath(AppContext.BaseDirectory);
+        _udbScriptDocker = new UdbScriptDockerWindow(scripts);
+        _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
+        _udbScriptDocker.RunRequested += script => SetStatus($"UDBScript run requested: {script.Name}");
+        _udbScriptDocker.EditRequested += script => SetStatus($"UDBScript edit requested: {script.Name}");
+        _udbScriptDocker.ResetOptionsRequested += script => SetStatus($"UDBScript reset options requested: {script.Name}");
+        _udbScriptDocker.Show(this);
     }
 
     private void RefreshTagExplorer()
