@@ -1145,6 +1145,19 @@ class MissingStateSpecialArgumentsZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameWithInvalidLightArgument()
+    {
+        const string zscript = @"
+class InvalidStateLightArgumentZThing : Actor
+{
+    States { Spawn: LNUM A -1 Light(1); Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "InvalidStateLightArgumentZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

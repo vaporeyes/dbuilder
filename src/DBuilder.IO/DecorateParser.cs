@@ -1490,6 +1490,7 @@ public static class DecorateParser
             string? special = ZScriptStateFrameSpecial(t[i].Text);
             if (special != null && !specials.Add(special)) return false;
             if (special is "light" or "offset" && !ZScriptStateFrameSpecialHasArguments(t, i)) return false;
+            if (special == "light" && !ZScriptStateFrameLightHasSingleNameArgument(t, i)) return false;
         }
 
         return false;
@@ -1498,6 +1499,40 @@ public static class DecorateParser
     private static bool ZScriptStateFrameSpecialHasArguments(List<Tok> t, int index)
         => t[index].Text.Contains('(', StringComparison.Ordinal)
         || (index + 1 < t.Count && t[index + 1].Text.StartsWith("(", StringComparison.Ordinal));
+
+    private static bool ZScriptStateFrameLightHasSingleNameArgument(List<Tok> t, int index)
+    {
+        bool sawOpen = false;
+        bool sawArgument = false;
+        for (int i = index; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is ";" or "{" or "}") return false;
+            string text = t[i].Text;
+            if (!sawOpen)
+            {
+                int open = text.IndexOf('(', StringComparison.Ordinal);
+                if (open < 0) continue;
+                sawOpen = true;
+                text = text[(open + 1)..];
+            }
+
+            if (text.Length == 0) continue;
+            int close = text.IndexOf(')', StringComparison.Ordinal);
+            string value = close >= 0 ? text[..close] : text;
+            if (value.Length > 0)
+            {
+                if (sawArgument || t[i].Kind == Kind.Sym || !IsZScriptLightArgument(value)) return false;
+                sawArgument = true;
+            }
+            if (close >= 0) return sawArgument;
+        }
+
+        return false;
+    }
+
+    private static bool IsZScriptLightArgument(string value)
+        => !double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _)
+        && value.IndexOfAny(new[] { ',', '(', ')' }) < 0;
 
     private static string? ZScriptStateFrameSpecial(string token)
     {
