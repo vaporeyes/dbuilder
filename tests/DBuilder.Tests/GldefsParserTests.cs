@@ -65,6 +65,16 @@ pointlight GOOD { color 0.1 0.2 0.3 size 16 }";
     }
 
     [Fact]
+    public void UnterminatedLightAtEndDoesNotRegisterLikeUdb()
+    {
+        const string text = "pointlight OPEN { color 1 0 0 size 16";
+
+        var g = GldefsParser.Parse(text);
+
+        Assert.Empty(g.Lights);
+    }
+
+    [Fact]
     public void MapsLightOffsetToUdbCoordinateAxes()
     {
         const string text = "pointlight OFFSET { color 1.0 1.0 1.0 size 16 offset 1 2 3 }";

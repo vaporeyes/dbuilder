@@ -256,7 +256,8 @@ public static class GldefsParser
                 // UDB ignores unknown GLDEFS light properties and keeps scanning the light block.
             }
         }
-        if (i < t.Count) i++; // }
+        if (i >= t.Count) return true;
+        i++; // }
         if (ShouldKeepLight(light)) g.Lights[light.Name] = light;
         return true;
     }
