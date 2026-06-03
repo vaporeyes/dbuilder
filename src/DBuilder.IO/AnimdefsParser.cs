@@ -56,7 +56,10 @@ public static class AnimdefsParser
             string kw = t[i].ToLowerInvariant();
             if (kw == "flat" || kw == "texture") ParseAnimation(result, kw == "flat" ? AnimKind.Flat : AnimKind.Texture, t, ref i);
             else if (kw == "switch") ParseSwitch(result, t, ref i);
-            else if (kw == "cameratexture") ParseCameraTexture(result, t, ref i);
+            else if (kw == "cameratexture")
+            {
+                if (!ParseCameraTexture(result, t, ref i)) return result;
+            }
             else if (t[i] == "{") SkipBlock(t, ref i); // unknown directive's block (warp/cameratexture/...)
             else i++;
         }
@@ -124,13 +127,14 @@ public static class AnimdefsParser
         if (on != null) result.Switches.Add(new SwitchDef(off, on));
     }
 
-    private static void ParseCameraTexture(Animdefs result, List<string> t, ref int i)
+    private static bool ParseCameraTexture(Animdefs result, List<string> t, ref int i)
     {
         i++; // cameratexture
-        if (i >= t.Count) return;
-        string name = t[i++];
-        int width = ReadInt(t, ref i);
-        int height = ReadInt(t, ref i);
+        if (i >= t.Count) return false;
+        string name = t[i++].ToUpperInvariant();
+        if (name.Length == 0) return false;
+        if (!TryReadPositiveInt(t, ref i, out int width)) return false;
+        if (!TryReadPositiveInt(t, ref i, out int height)) return false;
         float scaleX = 1.0f;
         float scaleY = 1.0f;
         bool fitTexture = false;
@@ -138,14 +142,11 @@ public static class AnimdefsParser
         if (i < t.Count && t[i].Equals("fit", StringComparison.OrdinalIgnoreCase))
         {
             i++;
-            int fitWidth = ReadInt(t, ref i);
-            int fitHeight = ReadInt(t, ref i);
-            if (width > 0 && height > 0 && fitWidth > 0 && fitHeight > 0)
-            {
-                fitTexture = true;
-                scaleX = (float)fitWidth / width;
-                scaleY = (float)fitHeight / height;
-            }
+            if (!TryReadPositiveInt(t, ref i, out int fitWidth)) return false;
+            if (!TryReadPositiveInt(t, ref i, out int fitHeight)) return false;
+            fitTexture = true;
+            scaleX = (float)fitWidth / width;
+            scaleY = (float)fitHeight / height;
             if (i < t.Count && t[i].Equals("worldpanning", StringComparison.OrdinalIgnoreCase)) { worldPanning = true; i++; }
         }
         else if (i < t.Count && t[i].Equals("worldpanning", StringComparison.OrdinalIgnoreCase))
@@ -153,8 +154,10 @@ public static class AnimdefsParser
             worldPanning = true;
             i++;
         }
-        if (width > 0 && height > 0) result.CameraTextures.Add(new CameraTextureDef(name, width, height, scaleX, scaleY, worldPanning, fitTexture));
+        if (result.CameraTextures.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) return false;
+        result.CameraTextures.Add(new CameraTextureDef(name, width, height, scaleX, scaleY, worldPanning, fitTexture));
         if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
+        return true;
     }
 
     private static bool IsGameQualifier(string s) =>
@@ -166,6 +169,14 @@ public static class AnimdefsParser
     {
         if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)) { i++; return v; }
         return 0;
+    }
+
+    private static bool TryReadPositiveInt(List<string> t, ref int i, out int value)
+    {
+        value = 0;
+        if (i >= t.Count || !int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) return false;
+        i++;
+        return value > 0;
     }
 
     private static void SkipBlock(List<string> t, ref int i)

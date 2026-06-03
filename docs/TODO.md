@@ -499,6 +499,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## ZDoom And GZDoom Data
 
 - [x] Complete ANIMDEFS parser behavior.
+  - [x] Validate ANIMDEFS camera texture dimensions and duplicate names like UDB.
 - [ ] Complete DECORATE parser behavior.
   - [x] Parse separated DECORATE flag sign tokens.
   - [x] Honor `skip_super` for DECORATE custom argument inheritance.

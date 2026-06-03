@@ -80,7 +80,7 @@ switch SW1COMP on pic SW2COMP tics 0";
     public void ParsesMultipleCameraTextures()
     {
         const string text = @"
-cameratexture CAM1 128 64 { fitwidth 128 }
+cameratexture cam1 128 64 { fitwidth 128 }
 cameratexture CAM2 320 200";
 
         var a = AnimdefsParser.Parse(text);
@@ -105,5 +105,31 @@ cameratexture CAM2 320 200 worldpanning";
         Assert.True(a.CameraTextures[0].WorldPanning);
         Assert.False(a.CameraTextures[1].FitTexture);
         Assert.True(a.CameraTextures[1].WorldPanning);
+    }
+
+    [Fact]
+    public void InvalidCameraTextureDimensionsStopParsingLikeUdb()
+    {
+        const string text = @"
+cameratexture CAM1 64 64
+cameratexture BAD 0 64
+cameratexture CAM2 128 128";
+
+        var a = AnimdefsParser.Parse(text);
+
+        Assert.Equal(new[] { "CAM1" }, a.CameraTextures.Select(c => c.Name).ToArray());
+    }
+
+    [Fact]
+    public void DuplicateCameraTextureNamesStopParsingLikeUdb()
+    {
+        const string text = @"
+cameratexture CAM1 64 64
+cameratexture cam1 128 128
+cameratexture CAM2 256 256";
+
+        var a = AnimdefsParser.Parse(text);
+
+        Assert.Equal(new[] { "CAM1" }, a.CameraTextures.Select(c => c.Name).ToArray());
     }
 }
