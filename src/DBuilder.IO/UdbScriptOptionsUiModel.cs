@@ -39,6 +39,15 @@ public sealed record UdbScriptOptionEnumEditorState(
     bool BrowseButtonVisible,
     IReadOnlyList<UdbScriptOptionEnumItem> Items);
 
+public sealed record UdbScriptOptionCellBeginEditPlan(
+    bool ReloadTypeHandler,
+    bool ClearEnumSelection,
+    bool ClearEnumItems,
+    bool TagGridRow,
+    bool PositionEnumEditor,
+    bool ShowEnumEditor,
+    UdbScriptOptionEnumEditorState EnumEditor);
+
 public sealed record UdbScriptOptionBrowseButtonState(
     bool Visible,
     bool EnumEditorVisible,
@@ -140,6 +149,21 @@ public static class UdbScriptOptionsUiModel
             ?? items.FirstOrDefault(item => string.Equals(item.Key, text, StringComparison.OrdinalIgnoreCase));
 
         return new UdbScriptOptionEnumEditorState(true, EnumDropDownStyle, text, selected, false, items);
+    }
+
+    public static UdbScriptOptionCellBeginEditPlan CellBeginEditPlan(UdbScriptOption option)
+    {
+        UdbScriptOptionEnumEditorState editor = EnumEditorState(option);
+        bool enumerable = editor.Visible;
+
+        return new UdbScriptOptionCellBeginEditPlan(
+            ReloadTypeHandler: enumerable,
+            ClearEnumSelection: enumerable,
+            ClearEnumItems: enumerable,
+            TagGridRow: enumerable,
+            PositionEnumEditor: enumerable,
+            ShowEnumEditor: enumerable,
+            editor);
     }
 
     public static UdbScriptOptionBrowseButtonState BrowseButtonState(UdbScriptOption? selectedOption)

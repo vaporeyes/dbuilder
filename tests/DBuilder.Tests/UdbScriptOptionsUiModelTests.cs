@@ -123,6 +123,58 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void CellBeginEditPlanShowsEnumEditorForEnumerableOptions()
+    {
+        var option = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Down",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+
+        UdbScriptOptionCellBeginEditPlan plan = UdbScriptOptionsUiModel.CellBeginEditPlan(option);
+
+        Assert.True(plan.ReloadTypeHandler);
+        Assert.True(plan.ClearEnumSelection);
+        Assert.True(plan.ClearEnumItems);
+        Assert.True(plan.TagGridRow);
+        Assert.True(plan.PositionEnumEditor);
+        Assert.True(plan.ShowEnumEditor);
+        Assert.True(plan.EnumEditor.Visible);
+        Assert.Equal("DropDownList", plan.EnumEditor.DropDownStyle);
+        Assert.Equal("2", plan.EnumEditor.SelectedItem?.Key);
+    }
+
+    [Fact]
+    public void CellBeginEditPlanDoesNothingForNonEnumerableOptions()
+    {
+        var option = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            128,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+
+        UdbScriptOptionCellBeginEditPlan plan = UdbScriptOptionsUiModel.CellBeginEditPlan(option);
+
+        Assert.False(plan.ReloadTypeHandler);
+        Assert.False(plan.ClearEnumSelection);
+        Assert.False(plan.ClearEnumItems);
+        Assert.False(plan.TagGridRow);
+        Assert.False(plan.PositionEnumEditor);
+        Assert.False(plan.ShowEnumEditor);
+        Assert.False(plan.EnumEditor.Visible);
+    }
+
+    [Fact]
     public void BrowseButtonStateShowsOnlyForBrowseableNonEnumerableOptions()
     {
         var texture = new UdbScriptOption(
