@@ -97,6 +97,25 @@ public class Line2DTests
     }
 
     [Fact]
+    public void NearestPointOnLineClampsWhenBounded()
+    {
+        var v1 = new Vector2D(0, 0);
+        var v2 = new Vector2D(10, 0);
+
+        Assert.Equal(new Vector2D(5, 0), Line2D.GetNearestPointOnLine(v1, v2, new Vector2D(5, 3), bounded: true));
+        Assert.Equal(new Vector2D(10, 0), Line2D.GetNearestPointOnLine(v1, v2, new Vector2D(15, 3), bounded: true));
+        Assert.Equal(new Vector2D(15, 0), Line2D.GetNearestPointOnLine(v1, v2, new Vector2D(15, 3), bounded: false));
+    }
+
+    [Fact]
+    public void NearestPointOnDegenerateLineReturnsStart()
+    {
+        var line = new Line2D(3, 4, 3, 4);
+
+        Assert.Equal(new Vector2D(3, 4), line.GetNearestPointOnLine(new Vector2D(100, 200), bounded: true));
+    }
+
+    [Fact]
     public void TransformRoundTrip()
     {
         // Forward: (x+off)*scale. Inverse: x*invScale + invOff. To round-trip we need invOff = -off and invScale = 1/scale.

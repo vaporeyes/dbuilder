@@ -138,6 +138,21 @@ public struct Line2D
         return ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / GetLengthSq(v2.x - v1.x, v2.y - v1.y);
     }
 
+    public static Vector2D GetNearestPointOnLine(Vector2D v1, Vector2D v2, Vector2D p, bool bounded)
+    {
+        double lengthSq = GetLengthSq(v2.x - v1.x, v2.y - v1.y);
+        if (lengthSq == 0.0) return v1;
+
+        double u = ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / lengthSq;
+        if (bounded)
+        {
+            if (u < 0.0) u = 0.0;
+            else if (u > 1.0) u = 1.0;
+        }
+
+        return GetCoordinatesAt(v1, v2, u);
+    }
+
     public static Vector2D GetCoordinatesAt(Vector2D v1, Vector2D v2, double u)
     {
         return new Vector2D(v1.x + u * (v2.x - v1.x), v1.y + u * (v2.y - v1.y));
@@ -235,6 +250,8 @@ public struct Line2D
     public double GetDistanceToLineSq(Vector2D p, bool bounded) => Line2D.GetDistanceToLineSq(v1, v2, p, bounded);
 
     public double GetNearestOnLine(Vector2D p) => Line2D.GetNearestOnLine(v1, v2, p);
+
+    public Vector2D GetNearestPointOnLine(Vector2D p, bool bounded) => Line2D.GetNearestPointOnLine(v1, v2, p, bounded);
 
     public Vector2D GetCoordinatesAt(double u) => Line2D.GetCoordinatesAt(v1, v2, u);
 
