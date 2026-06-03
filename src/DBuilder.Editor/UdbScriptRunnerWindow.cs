@@ -122,7 +122,13 @@ public sealed class UdbScriptRunnerWindow : Window
 
     public void RunAction(Action action)
     {
-        if (Dispatcher.UIThread.CheckAccess())
+        bool hasUiThreadAccess = Dispatcher.UIThread.CheckAccess();
+        UdbScriptRunActionPlan plan = UdbScriptRunnerModel.RunActionPlan(invokeRequired: !hasUiThreadAccess);
+
+        if (!plan.InvokeAction)
+            return;
+
+        if (!plan.MarshalToUiThread)
         {
             action();
             return;
