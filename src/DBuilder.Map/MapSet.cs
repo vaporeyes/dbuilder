@@ -215,6 +215,7 @@ public class MapSet : IDisposable
                 ZFloor = vertex.ZFloor,
             };
             CopyFields(vertex, copy);
+            CopyIgnoredChecks(vertex, copy);
             clone.Vertices.Add(copy);
             vertexMap[vertex] = copy;
         }
@@ -241,6 +242,7 @@ public class MapSet : IDisposable
             copy.Tags.AddRange(sector.Tags);
             foreach (var flag in sector.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(sector, copy);
+            CopyIgnoredChecks(sector, copy);
             clone.Sectors.Add(copy);
             sectorMap[sector] = copy;
         }
@@ -260,6 +262,7 @@ public class MapSet : IDisposable
             CopyArgs(line, copy);
             foreach (var flag in line.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(line, copy);
+            CopyIgnoredChecks(line, copy);
             clone.Linedefs.Add(copy);
             linedefMap[line] = copy;
         }
@@ -279,6 +282,7 @@ public class MapSet : IDisposable
             };
             foreach (var flag in side.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(side, copy);
+            CopyIgnoredChecks(side, copy);
             clone.Sidedefs.Add(copy);
             sidedefMap[side] = copy;
         }
@@ -312,6 +316,7 @@ public class MapSet : IDisposable
             CopyArgs(thing, copy);
             foreach (var flag in thing.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(thing, copy);
+            CopyIgnoredChecks(thing, copy);
             clone.Things.Add(copy);
         }
 
@@ -1235,6 +1240,11 @@ public class MapSet : IDisposable
     private static void CopyArgs(IHasArguments src, IHasArguments dst)
     {
         for (int i = 0; i < dst.Args.Length; i++) dst.Args[i] = src.Args[i];
+    }
+
+    private static void CopyIgnoredChecks(IMapElement src, IMapElement dst)
+    {
+        foreach (var check in src.IgnoredErrorChecks) dst.IgnoredErrorChecks.Add(check);
     }
 
     private static void DisposeElement(IMapElement element) => element.IsDisposed = true;

@@ -74,6 +74,11 @@ public class MapSetCloneTests
         Assert.Contains("lightabsolute", clone.Sidedefs[0].UdmfFlags);
         Assert.Equal(200, clone.Things[0].GetField<int>("health"));
         Assert.Equal(33, clone.Things[0].GetArg(1));
+        Assert.Contains(MapIssueKind.UnusedVertex, clone.Vertices[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.VertexOverlappingLinedef, clone.Linedefs[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.MissingTexture, clone.Sidedefs[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.UnclosedSector, clone.Sectors[0].IgnoredErrorChecks);
+        Assert.Contains(MapIssueKind.ThingOutsideMap, clone.Things[0].IgnoredErrorChecks);
     }
 
     [Fact]
@@ -222,6 +227,7 @@ public class MapSetCloneTests
         frontSector.Tags.Add(12);
         frontSector.UdmfFlags.Add("secret");
         frontSector.SetField("lightcolor", 16711680);
+        frontSector.IgnoredErrorChecks.Add(MapIssueKind.UnclosedSector);
         var backSector = map.AddSector();
         backSector.Marked = true;
 
@@ -229,6 +235,7 @@ public class MapSetCloneTests
         v0.Selected = true;
         v0.Groups = MapSet.GroupMask(1);
         v0.ZFloor = -8.0;
+        v0.IgnoredErrorChecks.Add(MapIssueKind.UnusedVertex);
         var v1 = map.AddVertex(new Vector2D(128, 0));
         var line = map.AddLinedef(v0, v1);
         line.Marked = true;
@@ -238,12 +245,14 @@ public class MapSetCloneTests
         line.Activate = 2;
         line.SetArg(2, 9);
         line.UdmfFlags.Add("blocking");
+        line.IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
 
         var front = map.AddSidedef(line, true, frontSector);
         front.Selected = true;
         front.MidTexture = "MID";
         front.OffsetX = 16;
         front.UdmfFlags.Add("lightabsolute");
+        front.IgnoredErrorChecks.Add(MapIssueKind.MissingTexture);
         var back = map.AddSidedef(line, false, backSector);
         back.LowTexture = "LOW";
 
@@ -253,6 +262,7 @@ public class MapSetCloneTests
         thing.Sector = frontSector;
         thing.SetArg(1, 33);
         thing.SetField("health", 200);
+        thing.IgnoredErrorChecks.Add(MapIssueKind.ThingOutsideMap);
         map.BuildIndexes();
         return map;
     }
