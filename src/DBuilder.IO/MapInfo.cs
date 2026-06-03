@@ -116,13 +116,13 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("doomednums", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseNumberedActors(toks, ref i, mi.doomEdNums, skipZero: true);
+                if (!ParseNumberedActors(toks, ref i, mi.doomEdNums, skipZero: true, allowExtraArgs: true)) return;
                 continue;
             }
             if (!t.IsString && t.Text.Equals("spawnnums", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseNumberedActors(toks, ref i, mi.spawnNums, skipZero: false);
+                if (!ParseNumberedActors(toks, ref i, mi.spawnNums, skipZero: false, allowExtraArgs: false)) return;
                 continue;
             }
             if (!t.IsString && t.Text.Equals("gameinfo", StringComparison.OrdinalIgnoreCase))
@@ -433,21 +433,22 @@ public sealed class MapInfo
     }
 
     // Parses a "DoomEdNums" or "SpawnNums" block: <num> = <ClassName> [, args...].
-    private static void ParseNumberedActors(List<Tok> toks, ref int i, Dictionary<int, string> map, bool skipZero)
+    private static bool ParseNumberedActors(List<Tok> toks, ref int i, Dictionary<int, string> map, bool skipZero, bool allowExtraArgs)
     {
-        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return;
+        if (i >= toks.Count || toks[i].IsString || toks[i].Text != "{") return false;
         i++; // {
         while (i < toks.Count && !(!toks[i].IsString && toks[i].Text == "}"))
         {
-            if (!toks[i].IsString && int.TryParse(toks[i].Text, out int num)
-                && i + 2 < toks.Count && !toks[i + 1].IsString && toks[i + 1].Text == "=")
-            {
-                if (!skipZero || num != 0) map[num] = toks[i + 2].Text.ToLowerInvariant(); // ClassName (extra args after a comma are ignored)
-                i += 3;
-            }
-            else i++;
+            if (toks[i].IsString || !int.TryParse(toks[i].Text, out int num)) return false;
+            if (i + 2 >= toks.Count || toks[i + 1].IsString || toks[i + 1].Text != "=") return false;
+            if (!skipZero || num != 0) map[num] = toks[i + 2].Text.ToLowerInvariant();
+            i += 3;
+            if (!allowExtraArgs) continue;
+            for (int args = 0; args < 6 && i + 1 < toks.Count && !toks[i].IsString && toks[i].Text == ","; args++)
+                i += 2;
         }
         if (i < toks.Count) i++; // }
+        return true;
     }
 
     // ---- tokenizer ----

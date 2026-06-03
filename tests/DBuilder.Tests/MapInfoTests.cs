@@ -186,6 +186,44 @@ SpawnNums
     }
 
     [Fact]
+    public void MalformedDoomEdNumsStopParsingLikeUdb()
+    {
+        const string text = @"
+DoomEdNums
+{
+    3004 = Zombieman
+    Bogus = BadActor
+    32000 = CustomActor
+}
+map MAP01 ""Entryway"" { next = MAP02 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.Equal("zombieman", mi.DoomEdNums[3004]);
+        Assert.False(mi.DoomEdNums.ContainsKey(32000));
+        Assert.Empty(mi.Maps);
+    }
+
+    [Fact]
+    public void MalformedSpawnNumsStopParsingLikeUdb()
+    {
+        const string text = @"
+SpawnNums
+{
+    4 = DoomImp
+    5 MissingEquals
+    6 = BaronOfHell
+}
+map MAP01 ""Entryway"" { next = MAP02 }";
+
+        var mi = MapInfo.Parse(text);
+
+        Assert.Equal("doomimp", mi.SpawnNums[4]);
+        Assert.False(mi.SpawnNums.ContainsKey(6));
+        Assert.Empty(mi.Maps);
+    }
+
+    [Fact]
     public void ParsesIncludesOnce()
     {
         const string text = @"
