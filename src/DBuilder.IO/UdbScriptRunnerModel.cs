@@ -526,6 +526,9 @@ public static class UdbScriptRunnerModel
             AutoClose = false,
         };
 
+    public static UdbScriptRunnerUiState StatusReportedUiState(UdbScriptRunnerUiState state, string status)
+        => state with { StatusText = status };
+
     public static bool ShouldMakeRunnerVisible(TimeSpan elapsed)
         => elapsed.TotalMilliseconds > RunnerVisibilityThresholdMilliseconds;
 

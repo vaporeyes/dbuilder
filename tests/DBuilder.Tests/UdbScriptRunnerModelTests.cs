@@ -303,6 +303,22 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunnerStatusReportOnlyUpdatesStatusText()
+    {
+        UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();
+
+        UdbScriptRunnerUiState status = UdbScriptRunnerModel.StatusReportedUiState(initial, "Halfway done");
+
+        Assert.Equal(initial.Title, status.Title);
+        Assert.Equal("Halfway done", status.StatusText);
+        Assert.Equal(initial.ActionButtonText, status.ActionButtonText);
+        Assert.Equal(initial.ActionButtonEnabled, status.ActionButtonEnabled);
+        Assert.Equal(initial.ProgressIsMarquee, status.ProgressIsMarquee);
+        Assert.Equal(initial.Opacity, status.Opacity);
+        Assert.Equal(initial.AutoClose, status.AutoClose);
+    }
+
+    [Fact]
     public void ErrorDialogMetadataMatchesUdbForm()
     {
         UdbScriptErrorDialog dialog = UdbScriptRunnerModel.ErrorDialog("failed", "script stack", "internal stack");

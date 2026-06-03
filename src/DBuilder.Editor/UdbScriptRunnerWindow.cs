@@ -102,6 +102,11 @@ public sealed class UdbScriptRunnerWindow : Window
         ApplyState(UdbScriptRunnerModel.ProgressReportedUiState(CurrentState()));
     }
 
+    public void ApplyStatus(string status)
+    {
+        ApplyState(UdbScriptRunnerModel.StatusReportedUiState(CurrentState(), status));
+    }
+
     public void ApplyLog(string text)
     {
         _log.Text = UdbScriptRunnerModel.AppendLog(_log.Text ?? "", text);

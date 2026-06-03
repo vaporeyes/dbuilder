@@ -22,6 +22,7 @@ public class UdbScriptRunnerWindowTests
         AssertPublicInstanceMethod(type, "MarkRunning");
         AssertPublicInstanceMethod(type, "Finish");
         AssertPublicInstanceMethod(type, "ApplyProgress");
+        AssertPublicInstanceMethod(type, "ApplyStatus");
         AssertPublicInstanceMethod(type, "ApplyLog");
         AssertPublicInstanceMethod(type, "ApplyTimerTick");
         AssertPublicInstanceMethod(type, "ApplyState");
