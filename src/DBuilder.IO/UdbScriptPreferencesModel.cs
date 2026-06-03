@@ -15,6 +15,7 @@ public static class UdbScriptPreferencesModel
     public const string TabText = "UDBScript";
     public const string ExternalEditorLabel = "External script editor:";
     public const string ExternalEditorSettingKey = "externaleditor";
+    public const string DefaultExternalEditorName = "notepad.exe";
     public const string ExecutableFileFilter = "Executables (*.exe, *.cmd, *.bat)|*.exe;*.cmd;*.bat|All files (*.*)|*.*";
     public const string MissingEditorMessage = "No external editor set. Please set the external editor in the UDBScript tab in the preferences.";
 
@@ -25,4 +26,16 @@ public static class UdbScriptPreferencesModel
         => string.IsNullOrWhiteSpace(path)
             ? null
             : new UdbScriptSettingOperation(UdbScriptSettingOperationKind.Write, ExternalEditorSettingKey, path);
+
+    public static string ResolveExternalEditorPath(
+        string configuredPath,
+        string systemDirectory,
+        Func<string, bool> fileExists)
+    {
+        if (!string.IsNullOrWhiteSpace(configuredPath))
+            return configuredPath;
+
+        string defaultEditor = Path.Combine(systemDirectory, DefaultExternalEditorName);
+        return fileExists(defaultEditor) ? defaultEditor : "";
+    }
 }

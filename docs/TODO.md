@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3430 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3431 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1256,6 +1256,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
   - [x] Add UDBScript execute-current and execute-slot dispatch planning.
   - [x] Add UDBScript preferences metadata and external editor persistence model.
+  - [x] Add UDBScript external editor fallback resolution model.
   - [x] Add UDBScript script directory discovery and leading metadata parsing.
   - [x] Add UDBScript script watcher reload filter model.
   - [x] Add UDBScript script load retry policy model.
@@ -1585,6 +1586,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
 - [x] Add UDBScript execute-current and execute-slot dispatch planning.
 - [x] Add UDBScript preferences metadata and external editor persistence model.
+- [x] Add UDBScript external editor fallback resolution model.
 - [x] Add UDBScript script directory discovery and leading metadata parsing.
 - [x] Add UDBScript script watcher reload filter model.
 - [x] Add UDBScript script load retry policy model.
