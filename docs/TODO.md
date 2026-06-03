@@ -1339,6 +1339,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript docker option reset model.
   - [x] Add UDBScript docker option reset editor apply wiring.
   - [x] Add UDBScript docker option editor apply wiring.
+  - [x] Persist UDBScript script option edits and resets from the editor.
   - [x] Add UDBScript docker external editor launch wiring.
   - [x] Add UDBScript docker slot assignment context-menu editor wiring.
   - [x] Add UDBScript execute-current and execute-slot editor command dispatch.
@@ -1703,6 +1704,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript docker option reset model.
 - [x] Add UDBScript docker option reset editor apply wiring.
 - [x] Add UDBScript docker option editor apply wiring.
+- [x] Persist UDBScript script option edits and resets from the editor.
 - [x] Add UDBScript docker external editor launch wiring.
 - [x] Add UDBScript docker slot assignment context-menu editor wiring.
 - [x] Add UDBScript execute-current and execute-slot editor command dispatch.

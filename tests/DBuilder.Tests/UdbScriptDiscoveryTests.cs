@@ -261,6 +261,45 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void AppliesSavedOptionValuesToDirectoryTree()
+    {
+        string dir = TempDir();
+        try
+        {
+            string rootFile = Path.Combine(dir, "root.js");
+            string childDir = Path.Combine(dir, "nested");
+            Directory.CreateDirectory(childDir);
+            string childFile = Path.Combine(childDir, "child.js");
+            UdbScriptInfo rootScript = UdbScriptDiscovery.ParseScript(WriteScriptWithOptions(rootFile));
+            UdbScriptInfo childScript = UdbScriptDiscovery.ParseScript(WriteScriptWithOptions(childFile));
+            UdbScriptOption rootLength = rootScript.Options.Single(option => option.Name == "length");
+            UdbScriptOption childLength = childScript.Options.Single(option => option.Name == "length");
+            var directory = new UdbScriptDirectory(
+                dir,
+                "Scripts",
+                "hash-root",
+                new[]
+                {
+                    new UdbScriptDirectory(childDir, "nested", "hash-child", Array.Empty<UdbScriptDirectory>(), new[] { childScript }),
+                },
+                new[] { rootScript });
+
+            UdbScriptDirectory result = UdbScriptDiscovery.ApplySavedOptionValues(directory, new Dictionary<string, object?>
+            {
+                [rootLength.SettingKey] = "256",
+                [childLength.SettingKey] = "512",
+            });
+
+            Assert.Equal("256", Assert.Single(result.Scripts).Options.Single(option => option.Name == "length").Value);
+            Assert.Equal("512", Assert.Single(Assert.Single(result.Directories).Scripts).Options.Single(option => option.Name == "length").Value);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void PlansUdbOptionValuePersistenceOperations()
     {
         string file = Path.Combine(TempDir(), "saveops.js");

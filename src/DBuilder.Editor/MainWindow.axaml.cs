@@ -2427,7 +2427,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        UdbScriptDirectory scripts = UdbScriptDiscovery.DiscoverFromAppPath(AppContext.BaseDirectory);
+        UdbScriptDirectory scripts = UdbScriptDiscovery.ApplySavedOptionValues(
+            UdbScriptDiscovery.DiscoverFromAppPath(AppContext.BaseDirectory),
+            _settings.UdbScriptSettings);
         _udbScriptSlotAssignments = UdbScriptDockerModel.LoadSlotAssignments(
             AllUdbScripts(scripts),
             _settings.UdbScriptSettings);
@@ -2552,6 +2554,7 @@ public partial class MainWindow : Window
         if (result.Script is null) return;
 
         _udbScriptDocker?.ApplyCurrentScript(result.Script);
+        SaveUdbScriptSettings(result.Operations);
         SetStatus($"UDBScript options edited: {script.Name} ({result.Operations.Count} setting change(s))");
     }
 
@@ -2561,6 +2564,7 @@ public partial class MainWindow : Window
         if (result.Script is null) return;
 
         _udbScriptDocker?.ApplyCurrentScript(result.Script);
+        SaveUdbScriptSettings(result.Operations);
         SetStatus($"UDBScript reset options requested: {script.Name} ({result.Operations.Count} setting change(s))");
     }
 

@@ -245,6 +245,20 @@ public static class UdbScriptDiscovery
         return script with { Options = options };
     }
 
+    public static UdbScriptDirectory ApplySavedOptionValues(
+        UdbScriptDirectory directory,
+        IReadOnlyDictionary<string, object?> settings)
+    {
+        UdbScriptDirectory[] directories = directory.Directories
+            .Select(child => ApplySavedOptionValues(child, settings))
+            .ToArray();
+        UdbScriptInfo[] scripts = directory.Scripts
+            .Select(script => ApplySavedOptionValues(script, settings))
+            .ToArray();
+
+        return directory with { Directories = directories, Scripts = scripts };
+    }
+
     public static IReadOnlyList<UdbScriptSettingOperation> SaveOptionValueOperations(UdbScriptInfo script)
     {
         var operations = new List<UdbScriptSettingOperation>();
