@@ -547,21 +547,26 @@ public static class DecorateParser
                 return true;
             }
 
-            if (t[i].Kind != Kind.Str)
-                UpdateParenDepth(t[i].Text, ref parenDepth);
+            if (t[i].Kind != Kind.Str && !TryUpdateParenDepth(t[i].Text, ref parenDepth))
+                return false;
             i++;
         }
 
         return false;
     }
 
-    private static void UpdateParenDepth(string text, ref int parenDepth)
+    private static bool TryUpdateParenDepth(string text, ref int parenDepth)
     {
         foreach (char c in text)
         {
             if (c == '(') parenDepth++;
-            else if (c == ')' && parenDepth > 0) parenDepth--;
+            else if (c == ')')
+            {
+                if (parenDepth == 0) return false;
+                parenDepth--;
+            }
         }
+        return true;
     }
 
     private static bool TrySkipZScriptVersionDeclaration(List<Tok> t, ref int i)
