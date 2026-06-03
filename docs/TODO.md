@@ -1451,6 +1451,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
   - [x] Add UDB-style Dialog Editor form title, tree metadata, and image-key metadata.
   - [x] Route the stable USDF Dialog Editor action id to the editor window.
+  - [x] Label the USDF Tools menu entry as Dialog Editor.
   - [x] Resolve USDF include lumps from the current map WAD or embedded PK3 map archive.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.

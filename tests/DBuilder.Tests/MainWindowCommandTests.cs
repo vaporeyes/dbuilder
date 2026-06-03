@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using DBuilder.Editor;
+using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
@@ -111,5 +112,14 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canSave, SaveMenuItem, SaveButton);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UsdfMenuLabelMatchesDialogEditorToolSurface()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Equal("Dialog Editor...", UsdfDialogEditorModel.MenuItem.Text);
+        Assert.Contains("Header=\"USDF _Dialog Editor...\"", body, StringComparison.Ordinal);
     }
 }
