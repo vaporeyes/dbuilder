@@ -938,6 +938,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Display and edit UDB-compatible tag labels from map options.
   - [x] Add testable Tags and Used Tags window header and row formatting.
 - [x] Port thing statistics dialog.
+  - [x] Add testable Thing Types window header formatting with singular and plural labels.
 - [ ] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.
   - [x] Persist grid setup through UDB-compatible map options.

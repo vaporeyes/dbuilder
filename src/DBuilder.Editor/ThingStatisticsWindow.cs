@@ -34,7 +34,7 @@ public sealed class ThingStatisticsWindow : Window
         var top = new StackPanel { Margin = new Avalonia.Thickness(10, 8), Spacing = 5 };
         top.Children.Add(new TextBlock
         {
-            Text = $"{usedTypes.Sum(t => t.Count)} thing(s), {_allRows.Count} type row(s).",
+            Text = ThingStatisticsWindowModel.HeaderText(usedTypes.Sum(t => t.Count), _allRows.Count),
             Foreground = Brushes.LightSkyBlue,
         });
         _hideUnused.IsCheckedChanged += (_, _) => RebuildRows();

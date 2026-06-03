@@ -859,6 +859,14 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ThingStatisticsWindowModelFormatsHeaderCounts()
+    {
+        Assert.Equal("0 things, 0 type rows.", ThingStatisticsWindowModel.HeaderText(0, 0));
+        Assert.Equal("1 thing, 1 type row.", ThingStatisticsWindowModel.HeaderText(1, 1));
+        Assert.Equal("2 things, 3 type rows.", ThingStatisticsWindowModel.HeaderText(2, 3));
+    }
+
+    [Fact]
     public void NextFreeTagSkipsUsed()
     {
         var map = Build();
