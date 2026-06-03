@@ -1530,6 +1530,29 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void VertexAndThingWrappersSnapToCurrentGrid()
+    {
+        var map = new MapSet();
+        Vertex start = map.AddVertex(new Vector2D(13, 27));
+        Vertex end = map.AddVertex(new Vector2D(51, 9));
+        map.AddLinedef(start, end);
+        Thing thing = map.AddThing(new Vector2D(24, 36), 3001);
+        thing.Height = 7.5;
+        var grid = new GridSetup();
+        grid.SetGridSize(16);
+        var wrapper = new UdbScriptMapWrapper(map, grid);
+
+        wrapper.getVertices()[0].snapToGrid();
+        wrapper.getThings()[0].snapToGrid();
+        wrapper.getLinedefs()[0].end.snapToGrid();
+
+        Assert.Equal(new Vector2D(16, 32), start.Position);
+        Assert.Equal(new Vector2D(48, 16), end.Position);
+        Assert.Equal(new Vector2D(32, 32), thing.Position);
+        Assert.Equal(7.5, thing.Height);
+    }
+
+    [Fact]
     public void MapWrapperDrawLinesCreatesOpenPath()
     {
         var map = new MapSet();

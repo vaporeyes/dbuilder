@@ -913,12 +913,14 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 {
     private readonly Vertex vertex;
+    private readonly GridSetup grid;
     private readonly MapSet? owner;
 
-    public UdbScriptVertexWrapper(Vertex vertex, MapSet? owner = null)
+    public UdbScriptVertexWrapper(Vertex vertex, MapSet? owner = null, GridSetup? grid = null)
     {
         this.vertex = vertex;
         this.owner = owner;
+        this.grid = grid ?? new GridSetup();
     }
 
     public Vertex Vertex
@@ -1018,7 +1020,7 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         ThrowIfDisposed("getLinedefs");
         return vertex.Linedefs
             .Where(line => !line.IsDisposed)
-            .Select(line => new UdbScriptLinedefWrapper(line, owner))
+            .Select(line => new UdbScriptLinedefWrapper(line, owner, grid))
             .ToArray();
     }
 
@@ -1041,13 +1043,19 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         ThrowIfDisposed("nearestLinedef");
         Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
         Linedef? line = vertex.NearestLinedef(new Vector2D(point.x, point.y));
-        return line == null ? null : new UdbScriptLinedefWrapper(line, owner);
+        return line == null ? null : new UdbScriptLinedefWrapper(line, owner, grid);
     }
 
     public void snapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         ThrowIfDisposed("snapToAccuracy");
         vertex.SnapToAccuracy(vertexDecimals, usePrecisePosition);
+    }
+
+    public void snapToGrid()
+    {
+        ThrowIfDisposed("snapToGrid");
+        vertex.Move(grid.SnappedToGrid(vertex.Position));
     }
 
     public void copyPropertiesTo(UdbScriptVertexWrapper wrapper)
@@ -1100,14 +1108,16 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 
 public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper>
 {
+    private readonly GridSetup grid;
     private readonly Linedef linedef;
     private readonly MapSet? owner;
     private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
 
-    public UdbScriptLinedefWrapper(Linedef linedef, MapSet? owner = null)
+    public UdbScriptLinedefWrapper(Linedef linedef, MapSet? owner = null, GridSetup? grid = null)
     {
         this.linedef = linedef;
         this.owner = owner;
+        this.grid = grid ?? new GridSetup();
         elementArgs = new UdbScriptMapElementArgumentsWrapper(linedef);
     }
 
@@ -1137,7 +1147,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("start");
-            return new UdbScriptVertexWrapper(linedef.Start, owner);
+            return new UdbScriptVertexWrapper(linedef.Start, owner, grid);
         }
     }
 
@@ -1146,7 +1156,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("end");
-            return new UdbScriptVertexWrapper(linedef.End, owner);
+            return new UdbScriptVertexWrapper(linedef.End, owner, grid);
         }
     }
 
@@ -1164,7 +1174,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("front");
-            return linedef.Front == null ? null : new UdbScriptSidedefWrapper(linedef.Front, owner);
+            return linedef.Front == null ? null : new UdbScriptSidedefWrapper(linedef.Front, owner, grid);
         }
     }
 
@@ -1173,7 +1183,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("back");
-            return linedef.Back == null ? null : new UdbScriptSidedefWrapper(linedef.Back, owner);
+            return linedef.Back == null ? null : new UdbScriptSidedefWrapper(linedef.Back, owner, grid);
         }
     }
 
@@ -1423,7 +1433,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
             newLine = SplitStandalone(linedef, vertex);
         }
 
-        return new UdbScriptLinedefWrapper(newLine, owner);
+        return new UdbScriptLinedefWrapper(newLine, owner, grid);
     }
 
     public int[] getTags()
@@ -1521,13 +1531,15 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
 
 public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper>
 {
+    private readonly GridSetup grid;
     private readonly Sidedef sidedef;
     private readonly MapSet? owner;
 
-    public UdbScriptSidedefWrapper(Sidedef sidedef, MapSet? owner = null)
+    public UdbScriptSidedefWrapper(Sidedef sidedef, MapSet? owner = null, GridSetup? grid = null)
     {
         this.sidedef = sidedef;
         this.owner = owner;
+        this.grid = grid ?? new GridSetup();
     }
 
     public Sidedef Sidedef
@@ -1565,7 +1577,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         get
         {
             ThrowIfDisposed("line");
-            return new UdbScriptLinedefWrapper(sidedef.Line, owner);
+            return new UdbScriptLinedefWrapper(sidedef.Line, owner, grid);
         }
     }
 
@@ -1574,7 +1586,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         get
         {
             ThrowIfDisposed("sector");
-            return sidedef.Sector == null ? null : new UdbScriptSectorWrapper(sidedef.Sector, owner);
+            return sidedef.Sector == null ? null : new UdbScriptSectorWrapper(sidedef.Sector, owner, grid);
         }
     }
 
@@ -1583,7 +1595,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         get
         {
             ThrowIfDisposed("other");
-            return sidedef.Other == null ? null : new UdbScriptSidedefWrapper(sidedef.Other, owner);
+            return sidedef.Other == null ? null : new UdbScriptSidedefWrapper(sidedef.Other, owner, grid);
         }
     }
 
@@ -1738,13 +1750,15 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
 
 public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
 {
+    private readonly GridSetup grid;
     private readonly Sector sector;
     private readonly MapSet? owner;
 
-    public UdbScriptSectorWrapper(Sector sector, MapSet? owner = null)
+    public UdbScriptSectorWrapper(Sector sector, MapSet? owner = null, GridSetup? grid = null)
     {
         this.sector = sector;
         this.owner = owner;
+        this.grid = grid ?? new GridSetup();
     }
 
     public Sector Sector
@@ -1956,7 +1970,7 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         ThrowIfDisposed("getSidedefs");
         return sector.Sidedefs
             .Where(sidedef => !sidedef.IsDisposed)
-            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, owner))
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, owner, grid))
             .ToArray();
     }
 
@@ -2114,14 +2128,16 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
 
 public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 {
+    private readonly GridSetup grid;
     private readonly Thing thing;
     private readonly MapSet? owner;
     private readonly UdbScriptMapElementArgumentsWrapper elementArgs;
 
-    public UdbScriptThingWrapper(Thing thing, MapSet? owner = null)
+    public UdbScriptThingWrapper(Thing thing, MapSet? owner = null, GridSetup? grid = null)
     {
         this.thing = thing;
         this.owner = owner;
+        this.grid = grid ?? new GridSetup();
         elementArgs = new UdbScriptMapElementArgumentsWrapper(thing);
     }
 
@@ -2365,6 +2381,12 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         thing.SnapToAccuracy(vertexDecimals, usePrecisePosition);
     }
 
+    public void snapToGrid()
+    {
+        ThrowIfDisposed("snapToGrid");
+        thing.Move(grid.SnappedToGrid(thing.Position));
+    }
+
     public void delete()
     {
         if (thing.IsDisposed)
@@ -2379,7 +2401,7 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
     public UdbScriptSectorWrapper? getSector()
     {
         ThrowIfDisposed("getSector");
-        return thing.Sector == null ? null : new UdbScriptSectorWrapper(thing.Sector, owner);
+        return thing.Sector == null ? null : new UdbScriptSectorWrapper(thing.Sector, owner, grid);
     }
 
     public bool Equals(UdbScriptThingWrapper? other)
@@ -2654,7 +2676,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getThings");
         return map.Things
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid))
             .ToArray();
     }
 
@@ -2663,7 +2685,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSectors");
         return map.Sectors
             .Where(sector => !sector.IsDisposed)
-            .Select(sector => new UdbScriptSectorWrapper(sector, map))
+            .Select(sector => new UdbScriptSectorWrapper(sector, map, grid))
             .ToArray();
     }
 
@@ -2672,7 +2694,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSidedefs");
         return map.Sidedefs
             .Where(sidedef => !sidedef.IsDisposed)
-            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map))
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map, grid))
             .ToArray();
     }
 
@@ -2681,7 +2703,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getLinedefs");
         return map.Linedefs
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid))
             .ToArray();
     }
 
@@ -2690,7 +2712,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getVertices");
         return map.Vertices
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
             .ToArray();
     }
 
@@ -2714,7 +2736,7 @@ public sealed class UdbScriptMapWrapper
             ? map.NearestLinedef(point)
             : map.NearestLinedefRange(point, maxrange);
 
-        return nearest == null ? null : new UdbScriptLinedefWrapper(nearest, map);
+        return nearest == null ? null : new UdbScriptLinedefWrapper(nearest, map, grid);
     }
 
     public UdbScriptThingWrapper? nearestThing(object pos, double maxrange = double.NaN)
@@ -2723,7 +2745,7 @@ public sealed class UdbScriptMapWrapper
         Vector2D point = ToVector2D(pos);
         Thing? nearest = map.NearestThingSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
 
-        return nearest == null ? null : new UdbScriptThingWrapper(nearest, map);
+        return nearest == null ? null : new UdbScriptThingWrapper(nearest, map, grid);
     }
 
     public UdbScriptVertexWrapper? nearestVertex(object pos, double maxrange = double.NaN)
@@ -2732,7 +2754,7 @@ public sealed class UdbScriptMapWrapper
         Vector2D point = ToVector2D(pos);
         Vertex? nearest = map.NearestVertexSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
 
-        return nearest == null ? null : new UdbScriptVertexWrapper(nearest, map);
+        return nearest == null ? null : new UdbScriptVertexWrapper(nearest, map, grid);
     }
 
     public UdbScriptSidedefWrapper? nearestSidedef(object pos)
@@ -2740,7 +2762,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("nearestSidedef");
         Sidedef? nearest = map.NearestSidedef(ToVector2D(pos));
 
-        return nearest == null ? null : new UdbScriptSidedefWrapper(nearest, map);
+        return nearest == null ? null : new UdbScriptSidedefWrapper(nearest, map, grid);
     }
 
     public bool drawLines(object data)
@@ -2859,7 +2881,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedVertices");
         return map.GetMarkedVertices(mark)
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
             .ToArray();
     }
 
@@ -2868,7 +2890,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedThings");
         return map.GetMarkedThings(mark)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid))
             .ToArray();
     }
 
@@ -2877,7 +2899,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedLinedefs");
         return map.GetMarkedLinedefs(mark)
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid))
             .ToArray();
     }
 
@@ -2886,7 +2908,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedSidedefs");
         return map.GetMarkedSidedefs(mark)
             .Where(sidedef => !sidedef.IsDisposed)
-            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map))
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map, grid))
             .ToArray();
     }
 
@@ -2895,7 +2917,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedSectors");
         return map.GetMarkedSectors(mark)
             .Where(sector => !sector.IsDisposed)
-            .Select(sector => new UdbScriptSectorWrapper(sector, map))
+            .Select(sector => new UdbScriptSectorWrapper(sector, map, grid))
             .ToArray();
     }
 
@@ -2928,7 +2950,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedVertices");
         return map.GetSelectedVertices(selected)
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
             .ToArray();
     }
 
@@ -2936,7 +2958,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("getHighlightedVertex");
         return highlightedObject is Vertex vertex && !vertex.IsDisposed
-            ? new UdbScriptVertexWrapper(vertex, map)
+            ? new UdbScriptVertexWrapper(vertex, map, grid)
             : null;
     }
 
@@ -2955,7 +2977,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedThings");
         return map.GetSelectedThings(selected)
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing, map))
+            .Select(thing => new UdbScriptThingWrapper(thing, map, grid))
             .ToArray();
     }
 
@@ -2963,7 +2985,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("getHighlightedThing");
         return highlightedObject is Thing thing && !thing.IsDisposed
-            ? new UdbScriptThingWrapper(thing, map)
+            ? new UdbScriptThingWrapper(thing, map, grid)
             : null;
     }
 
@@ -2982,7 +3004,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedSectors");
         return map.GetSelectedSectors(selected)
             .Where(sector => !sector.IsDisposed)
-            .Select(sector => new UdbScriptSectorWrapper(sector, map))
+            .Select(sector => new UdbScriptSectorWrapper(sector, map, grid))
             .ToArray();
     }
 
@@ -2990,7 +3012,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("getHighlightedSector");
         return highlightedObject is Sector sector && !sector.IsDisposed
-            ? new UdbScriptSectorWrapper(sector, map)
+            ? new UdbScriptSectorWrapper(sector, map, grid)
             : null;
     }
 
@@ -3009,7 +3031,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedLinedefs");
         return map.GetSelectedLinedefs(selected)
             .Where(linedef => !linedef.IsDisposed)
-            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map))
+            .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid))
             .ToArray();
     }
 
@@ -3023,7 +3045,7 @@ public sealed class UdbScriptMapWrapper
             _ => null,
         };
 
-        return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map);
+        return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map, grid);
     }
 
     public UdbScriptLinedefWrapper[] getSelectedOrHighlightedLinedefs()
@@ -3041,7 +3063,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSidedefsFromSelectedLinedefs");
         return map.GetSidedefsFromSelectedLinedefs(selected)
             .Where(sidedef => !sidedef.IsDisposed)
-            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map))
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map, grid))
             .ToArray();
     }
 
@@ -3062,7 +3084,7 @@ public sealed class UdbScriptMapWrapper
 
         return new[] { highlighted.Front, highlighted.Back }
             .Where(sidedef => sidedef != null && !sidedef.IsDisposed)
-            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef!, map))
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef!, map, grid))
             .ToArray();
     }
 
@@ -3106,7 +3128,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("createVertex");
         Vector2D point = ToVector2D(pos);
-        return new UdbScriptVertexWrapper(map.AddVertex(point), map);
+        return new UdbScriptVertexWrapper(map.AddVertex(point), map, grid);
     }
 
     public UdbScriptThingWrapper createThing(object pos, int type = 0)
@@ -3119,7 +3141,7 @@ public sealed class UdbScriptMapWrapper
         Thing thing = map.AddThing(new Vector2D(point.x, point.y), type);
         thing.Height = point.z;
         thing.DetermineSector(map);
-        return new UdbScriptThingWrapper(thing, map);
+        return new UdbScriptThingWrapper(thing, map, grid);
     }
 
     public void joinSectors(UdbScriptSectorWrapper[] sectors)
