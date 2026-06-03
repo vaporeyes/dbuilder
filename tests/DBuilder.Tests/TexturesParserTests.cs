@@ -104,19 +104,18 @@ Texture OK, 4, 4 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsSpriteDefinitionsWithInvalidNameLength()
+    public void InvalidSpriteDefinitionNameLengthStopsParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Sprite BAD, 16, 16 { Patch P1, 0, 0 }
 Sprite SPRTA0, 16, 16 { Patch P2, 0, 0 }
 Sprite SPRTA0B0, 16, 16 { Patch P3, 0, 0 }";
 
         var defs = TexturesParser.Parse(text);
 
-        Assert.Equal(2, defs.Count);
-        Assert.DoesNotContain(defs, d => d.Name == "BAD");
-        Assert.Contains(defs, d => d.Name == "SPRTA0");
-        Assert.Contains(defs, d => d.Name == "SPRTA0B0");
+        var def = Assert.Single(defs);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
@@ -262,15 +261,16 @@ Texture OK, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsDefinitionsWithEmptyNames()
+    public void EmptyTextureDefinitionNamesStopParsingLikeUdb()
     {
         const string text = @"
+Texture BEFORE, 2, 2 { Patch P, 0, 0 }
 Texture """", 8, 8 { Patch P, 0, 0 }
 Texture OK, 8, 8 { Patch P, 0, 0 }";
 
         var def = Assert.Single(TexturesParser.Parse(text));
 
-        Assert.Equal("OK", def.Name);
+        Assert.Equal("BEFORE", def.Name);
     }
 
     [Fact]
@@ -292,17 +292,17 @@ Texture SHORT, 8, 8 { Patch P, 0, 0 }";
     public void AppliesConfiguredMaxTextureNameLengthLikeUdb()
     {
         const string text = @"
+Sprite SPRTA0, 8, 8 { Patch P, 0, 0 }
 Texture ""LONGTEXTURE"", 8, 8 { Patch P, 0, 0 }
 WallTexture ""LONGWALLX"", 8, 8 { Patch P, 0, 0 }
 Flat ""LONGFLATX"", 8, 8 { Patch P, 0, 0 }
-Sprite SPRTA0, 8, 8 { Patch P, 0, 0 }
 Texture SHORT, 8, 8 { Patch P, 0, 0 }";
 
         var defs = TexturesParser.Parse(text, maxTextureNameLength: 8);
 
-        Assert.Equal(2, defs.Count);
-        Assert.Contains(defs, d => d.Type == TexturesType.Sprite && d.Name == "SPRTA0");
-        Assert.Contains(defs, d => d.Type == TexturesType.Texture && d.Name == "SHORT");
+        var def = Assert.Single(defs);
+        Assert.Equal(TexturesType.Sprite, def.Type);
+        Assert.Equal("SPRTA0", def.Name);
     }
 
     [Fact]
