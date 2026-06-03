@@ -2408,6 +2408,14 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void GestureTextFormatsAllTopRowDigitKeys()
+    {
+        Assert.Equal("0", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.clear-group-10", EditorCommandScope.Window, "D0")));
+        Assert.Equal("5", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.clear-group-5", EditorCommandScope.Window, "D5")));
+        Assert.Equal("9", EditorCommandCatalog.GestureText(new EditorShortcutBinding("window.clear-group-9", EditorCommandScope.Window, "D9")));
+    }
+
+    [Fact]
     public void GestureTextFormatsUdbStyleMouseButtonKeys()
     {
         Assert.Equal("LButton", EditorCommandCatalog.GestureText(new EditorShortcutBinding("map2d.select", EditorCommandScope.Map2D, EditorPointerInput.LeftButton)));
@@ -2498,6 +2506,17 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsAllTopRowDigitKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "window.clear-group-10=0; window.clear-group-5=5; window.clear-group-9=9");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-10" && b.Key == "D0");
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-5" && b.Key == "D5");
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-9" && b.Key == "D9");
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsUdbStyleMouseButtonKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
@@ -2528,6 +2547,19 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageUp"));
         Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageDown"));
         Assert.Equal("window.toggle-info-panel", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "CapsLock"));
+    }
+
+    [Fact]
+    public void TopRowDigitAliasesResolveToAvaloniaKeyNames()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.clear-group-10", EditorCommandScope.Window, "0", Accelerator: true, Shift: true),
+            new EditorShortcutBinding("window.clear-group-5", EditorCommandScope.Window, "5", Accelerator: true, Shift: true),
+        });
+
+        Assert.Equal("window.clear-group-10", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "D0", accelerator: true, shift: true));
+        Assert.Equal("window.clear-group-5", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "D5", accelerator: true, shift: true));
     }
 
     [Fact]
