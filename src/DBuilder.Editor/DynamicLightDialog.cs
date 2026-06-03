@@ -56,9 +56,15 @@ public sealed class DynamicLightDialog : PropertyDialog
             ClampByte(ParseInt(_green, _state.Color.Green)),
             ClampByte(ParseInt(_blue, _state.Color.Blue)));
         ResultColor = ColorPickerModel.ResolveTypedColorInput(_state.Color, rgbColor, _hex.Text, _float.Text);
-        ResultPrimaryRadius = ParseInt(_primaryRadius, _state.PrimaryRadius);
-        ResultSecondaryRadius = _secondaryRadius == null ? _state.SecondaryRadius : ParseInt(_secondaryRadius, _state.SecondaryRadius);
-        ResultInterval = _interval == null ? _state.Interval : ParseInt(_interval, _state.Interval);
+        ResultPrimaryRadius = ColorPickerModel.ClampDynamicLightSliderValue(
+            _state.PrimaryLimits,
+            ParseInt(_primaryRadius, _state.PrimaryRadius));
+        ResultSecondaryRadius = _secondaryRadius == null
+            ? _state.SecondaryRadius
+            : ColorPickerModel.ClampDynamicLightSliderValue(_state.SecondaryLimits, ParseInt(_secondaryRadius, _state.SecondaryRadius));
+        ResultInterval = _interval == null
+            ? _state.Interval
+            : ColorPickerModel.ClampDynamicLightSliderValue(_state.IntervalLimits, ParseInt(_interval, _state.Interval));
         ResultRelativeMode = _relativeMode.IsChecked == true;
     }
 

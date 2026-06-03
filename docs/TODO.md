@@ -1946,6 +1946,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate selected-sector color editing to UDMF maps with UDB's warning.
   - [x] Add editor command and dialog for selected UDB internal dynamic light things.
   - [x] Gate dynamic light color command availability to selected UDB internal dynamic light things.
+  - [x] Clamp accepted dynamic light radius and interval values to UDB numeric limits.
 
 ## Validation And Test Strategy
 

@@ -325,6 +325,9 @@ public static class ColorPickerModel
             ? new DynamicLightSliderLimits(-180, 180, -16384, 16384)
             : new DynamicLightSliderLimits(0, 359, 0, 16384);
 
+    public static int ClampDynamicLightSliderValue(DynamicLightSliderLimits limits, int value)
+        => Math.Clamp(value, limits.NumericMinimum, limits.NumericMaximum);
+
     public static DynamicLightSliderPresentation DynamicLightSliderPresentationFor(
         DynamicLightDefinition definition,
         IReadOnlyList<string> argTitles)

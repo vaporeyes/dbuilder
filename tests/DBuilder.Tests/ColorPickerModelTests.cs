@@ -338,6 +338,19 @@ public sealed class ColorPickerModelTests
     }
 
     [Fact]
+    public void DynamicLightSliderValueClampsToUdbNumericLimits()
+    {
+        DynamicLightSliderLimits absolute = ColorPickerModel.DynamicLightRadiusLimits(relativeMode: false);
+        DynamicLightSliderLimits relative = ColorPickerModel.DynamicLightIntervalLimits(relativeMode: true);
+
+        Assert.Equal(0, ColorPickerModel.ClampDynamicLightSliderValue(absolute, -1));
+        Assert.Equal(8192, ColorPickerModel.ClampDynamicLightSliderValue(absolute, 8192));
+        Assert.Equal(16384, ColorPickerModel.ClampDynamicLightSliderValue(absolute, 20000));
+        Assert.Equal(-16384, ColorPickerModel.ClampDynamicLightSliderValue(relative, -20000));
+        Assert.Equal(16384, ColorPickerModel.ClampDynamicLightSliderValue(relative, 20000));
+    }
+
+    [Fact]
     public void DynamicLightSliderPresentationUsesUdbArgTitles()
     {
         var definition = new DynamicLightDefinition(9801, LightVavoom: false, DynamicLightColorMode.Standard);
