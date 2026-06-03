@@ -130,7 +130,17 @@ public sealed class UdbScriptRunnerWindow : Window
 
     public void ApplyProgress(int value)
     {
-        _progress.Value = Math.Clamp(value, 0, 100);
+        UdbScriptProgressUpdatePlan plan = UdbScriptRunnerModel.ProgressUpdatePlan(
+            (int)_progress.Value,
+            value,
+            (int)_progress.Minimum,
+            (int)_progress.Maximum,
+            styleIsContinuous: !_progress.IsIndeterminate);
+
+        _progress.IsIndeterminate = !plan.SetContinuousProgressStyle && _progress.IsIndeterminate;
+        foreach (int valueWrite in plan.ValueWrites)
+            _progress.Value = valueWrite;
+
         ApplyState(UdbScriptRunnerModel.ProgressReportedUiState(CurrentState()));
     }
 

@@ -1304,6 +1304,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript runner window progress style state.
   - [x] Add UDBScript runner window autoclose state tracking.
   - [x] Add UDBScript runner progress update branch plan.
+  - [x] Add UDBScript editor runner progress update plan wiring.
   - [x] Add UDBScript runner progress and log visibility/autoclose state model.
   - [x] Add UDBScript runner pre-run and post-run side-effect plan model.
   - [x] Add UDBScript error dialog metadata model.
@@ -1643,6 +1644,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript runner window progress style state.
 - [x] Add UDBScript runner window autoclose state tracking.
 - [x] Add UDBScript runner progress update branch plan.
+- [x] Add UDBScript editor runner progress update plan wiring.
 - [x] Add UDBScript runner progress and log visibility/autoclose state model.
 - [x] Add UDBScript runner pre-run and post-run side-effect plan model.
 - [x] Add UDBScript error dialog metadata model.
