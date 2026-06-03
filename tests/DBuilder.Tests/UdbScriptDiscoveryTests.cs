@@ -343,6 +343,32 @@ public class UdbScriptDiscoveryTests
         Assert.Empty(root.Scripts);
     }
 
+    [Fact]
+    public void WatcherReloadFilterMatchesUdbScriptPlugin()
+    {
+        Assert.True(UdbScriptDiscovery.ShouldReloadAfterWatcherEvent(
+            WatcherChangeTypes.Deleted,
+            "/scripts/notes.txt",
+            fullPathIsDirectory: false));
+        Assert.True(UdbScriptDiscovery.ShouldReloadAfterWatcherEvent(
+            WatcherChangeTypes.Created,
+            "/scripts/NewFolder",
+            fullPathIsDirectory: true));
+        Assert.True(UdbScriptDiscovery.ShouldReloadAfterWatcherEvent(
+            WatcherChangeTypes.Changed,
+            "/scripts/run.JS",
+            fullPathIsDirectory: false));
+
+        Assert.False(UdbScriptDiscovery.ShouldReloadAfterWatcherEvent(
+            WatcherChangeTypes.Changed,
+            "/scripts/Examples",
+            fullPathIsDirectory: true));
+        Assert.False(UdbScriptDiscovery.ShouldReloadAfterWatcherEvent(
+            WatcherChangeTypes.Changed,
+            "/scripts/readme.txt",
+            fullPathIsDirectory: false));
+    }
+
     private static string TempDir()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_" + Guid.NewGuid().ToString("N"));

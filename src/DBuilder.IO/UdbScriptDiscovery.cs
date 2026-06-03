@@ -178,6 +178,14 @@ public static class UdbScriptDiscovery
     public static bool IsValidOptionType(int type)
         => ValidOptionTypes.Any(valid => (int)valid == type);
 
+    public static bool ShouldReloadAfterWatcherEvent(
+        WatcherChangeTypes changeType,
+        string fullPath,
+        bool fullPathIsDirectory)
+        => changeType == WatcherChangeTypes.Deleted
+            || (fullPathIsDirectory && changeType != WatcherChangeTypes.Changed)
+            || string.Equals(Path.GetExtension(fullPath), ".js", StringComparison.OrdinalIgnoreCase);
+
     public static UdbScriptInfo ApplySavedOptionValues(
         UdbScriptInfo script,
         IReadOnlyDictionary<string, object?> settings)
