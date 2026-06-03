@@ -23,7 +23,10 @@ public sealed record SoundPropagationReachSummary(
     int DirectSectors,
     int ViaBlockingLineSectors)
 {
-    public string StatusText => $"Sound reaches {TotalSectors} sector(s): {DirectSectors} direct, {ViaBlockingLineSectors} via a sound-blocking line.";
+    public string StatusText => $"Sound reaches {CountLabel(TotalSectors, "sector")}: {DirectSectors} direct, {ViaBlockingLineSectors} via a sound-blocking line.";
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 }
 
 public sealed record SoundPropagationActionDescriptor(

@@ -448,7 +448,21 @@ public class SoundPropagationTests
         Assert.Equal(4, summary.TotalSectors);
         Assert.Equal(2, summary.DirectSectors);
         Assert.Equal(2, summary.ViaBlockingLineSectors);
-        Assert.Equal("Sound reaches 4 sector(s): 2 direct, 2 via a sound-blocking line.", summary.StatusText);
+        Assert.Equal("Sound reaches 4 sectors: 2 direct, 2 via a sound-blocking line.", summary.StatusText);
+    }
+
+    [Fact]
+    public void ReachabilitySummaryFormatsSingularSectorCount()
+    {
+        var (map, s) = Chain(1, Array.Empty<bool>());
+        Dictionary<Sector, int> reach = SoundPropagation.Reachable(map, s[0]);
+
+        SoundPropagationReachSummary summary = SoundPropagation.SummarizeReachability(reach);
+
+        Assert.Equal(1, summary.TotalSectors);
+        Assert.Equal(1, summary.DirectSectors);
+        Assert.Equal(0, summary.ViaBlockingLineSectors);
+        Assert.Equal("Sound reaches 1 sector: 1 direct, 0 via a sound-blocking line.", summary.StatusText);
     }
 
     [Fact]
