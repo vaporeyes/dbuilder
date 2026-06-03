@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Include tag-typed action arguments in next-free-tag allocation.
   - [x] Add UDB-style element index change helpers.
   - [x] Add UDB-style selection group helpers on groupable elements.
+  - [x] Add UDB-style marked-sidedef selection helpers.
 - [x] Port element disposal and orphan cleanup behavior.
 - [ ] Port element copy, paste, clone, and serialization behavior.
   - [x] Add UDB-style map element property copy helpers.

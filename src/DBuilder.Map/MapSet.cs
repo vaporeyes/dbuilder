@@ -1387,12 +1387,14 @@ public class MapSet : IDisposable
     {
         SelectMarkedVertices(mark, select);
         SelectMarkedLinedefs(mark, select);
+        SelectMarkedSidedefs(mark, select);
         SelectMarkedSectors(mark, select);
         SelectMarkedThings(mark, select);
     }
 
     public void SelectMarkedVertices(bool mark, bool select) => SelectMarked(Vertices, mark, select);
     public void SelectMarkedLinedefs(bool mark, bool select) => SelectMarked(Linedefs, mark, select);
+    public void SelectMarkedSidedefs(bool mark, bool select) => SelectMarked(Sidedefs, mark, select);
     public void SelectMarkedSectors(bool mark, bool select) => SelectMarked(Sectors, mark, select);
     public void SelectMarkedThings(bool mark, bool select) => SelectMarked(Things, mark, select);
 
@@ -1532,6 +1534,7 @@ public class MapSet : IDisposable
 
     public void MarkSelectedVertices(bool selected, bool mark) => MarkSelected(Vertices, selected, mark);
     public void MarkSelectedLinedefs(bool selected, bool mark) => MarkSelected(Linedefs, selected, mark);
+    public void MarkSelectedSidedefs(bool selected, bool mark) => MarkSelected(Sidedefs, selected, mark);
     public void MarkSelectedSectors(bool selected, bool mark) => MarkSelected(Sectors, selected, mark);
     public void MarkSelectedThings(bool selected, bool mark) => MarkSelected(Things, selected, mark);
 
