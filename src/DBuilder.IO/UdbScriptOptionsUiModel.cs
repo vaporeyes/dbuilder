@@ -45,6 +45,13 @@ public sealed record UdbScriptOptionBrowseButtonState(
     bool IsBrowseable,
     bool IsEnumerable);
 
+public sealed record UdbScriptOptionBrowseClickState(
+    bool HasSelection,
+    bool BrowseOption,
+    string? CellValue,
+    bool UpdateBrowseImage,
+    bool FocusGrid);
+
 public sealed record UdbScriptOptionEnumApplyState(
     string CellValue,
     object OptionValue,
@@ -172,6 +179,22 @@ public static class UdbScriptOptionsUiModel
 
     public static UdbScriptOptionBrowseRefreshPlan BrowseRefreshPlan()
         => new(UpdateBrowseButton: true);
+
+    public static UdbScriptOptionBrowseClickState BrowseClickState(UdbScriptOption? selectedOption)
+    {
+        if (selectedOption is null)
+            return new UdbScriptOptionBrowseClickState(false, false, null, false, false);
+
+        UniversalTypeHandler handler = HandlerFor(selectedOption);
+        handler.SetValue(selectedOption.Value);
+
+        return new UdbScriptOptionBrowseClickState(
+            HasSelection: true,
+            BrowseOption: true,
+            handler.GetStringValue(),
+            UpdateBrowseImage: handler.HasDynamicImage,
+            FocusGrid: true);
+    }
 
     public static UdbScriptOptionEditCommitState CommitEditedValue(
         UdbScriptOption option,

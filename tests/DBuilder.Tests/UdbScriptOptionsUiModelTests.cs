@@ -229,6 +229,53 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
+    public void BrowseClickStateWritesStringValueAndFocusesGridWhenSelected()
+    {
+        var texture = new UdbScriptOption(
+            "wall",
+            "Wall texture",
+            (int)UniversalType.Texture,
+            "STARTAN3",
+            "BRICK1",
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.wall");
+        var angle = new UdbScriptOption(
+            "angle",
+            "Angle",
+            (int)UniversalType.AngleDegrees,
+            0,
+            90,
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.angle");
+
+        UdbScriptOptionBrowseClickState textureState = UdbScriptOptionsUiModel.BrowseClickState(texture);
+
+        Assert.True(textureState.HasSelection);
+        Assert.True(textureState.BrowseOption);
+        Assert.Equal("BRICK1", textureState.CellValue);
+        Assert.False(textureState.UpdateBrowseImage);
+        Assert.True(textureState.FocusGrid);
+
+        UdbScriptOptionBrowseClickState angleState = UdbScriptOptionsUiModel.BrowseClickState(angle);
+
+        Assert.Equal("90", angleState.CellValue);
+        Assert.True(angleState.UpdateBrowseImage);
+        Assert.True(angleState.FocusGrid);
+    }
+
+    [Fact]
+    public void BrowseClickStateDoesNothingWithoutSelection()
+    {
+        UdbScriptOptionBrowseClickState state = UdbScriptOptionsUiModel.BrowseClickState(null);
+
+        Assert.False(state.HasSelection);
+        Assert.False(state.BrowseOption);
+        Assert.Null(state.CellValue);
+        Assert.False(state.UpdateBrowseImage);
+        Assert.False(state.FocusGrid);
+    }
+
+    [Fact]
     public void CommitEditedValueStoresCellValueAndHandlerValue()
     {
         var length = new UdbScriptOption(
