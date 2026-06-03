@@ -147,6 +147,23 @@ public static class UdbScriptDockerModel
         return result;
     }
 
+    public static UdbScriptDockerNode? FindScriptNode(
+        IReadOnlyList<UdbScriptDockerNode> nodes,
+        string scriptFile)
+    {
+        foreach (UdbScriptDockerNode node in nodes)
+        {
+            if (node.Script is not null && node.Script.ScriptFile == scriptFile)
+                return node;
+
+            UdbScriptDockerNode? child = FindScriptNode(node.Children, scriptFile);
+            if (child is not null)
+                return child;
+        }
+
+        return null;
+    }
+
     public static IReadOnlyList<UdbScriptSlotMenuItem> SlotMenuItems(
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments,
         IReadOnlyDictionary<int, string> hotkeys,

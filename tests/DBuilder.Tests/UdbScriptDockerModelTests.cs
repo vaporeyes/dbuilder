@@ -137,6 +137,32 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void FindScriptNodeRecursivelyMatchesScriptFile()
+    {
+        UdbScriptInfo nested = Script("Nested", "Secret doors", "/scripts/a/nested.js");
+        var root = new UdbScriptDirectory(
+            "/scripts",
+            "Scripts",
+            "root",
+            new[]
+            {
+                new UdbScriptDirectory("/scripts/a", "AlphaFolder", "a", Array.Empty<UdbScriptDirectory>(), new[] { nested }),
+            },
+            Array.Empty<UdbScriptInfo>());
+        IReadOnlyList<UdbScriptDockerNode> nodes = UdbScriptDockerModel.BuildTree(
+            root,
+            "",
+            new Dictionary<int, UdbScriptInfo?>(),
+            new Dictionary<int, string>());
+
+        UdbScriptDockerNode? found = UdbScriptDockerModel.FindScriptNode(nodes, nested.ScriptFile);
+
+        Assert.NotNull(found);
+        Assert.Equal(nested, found.Script);
+        Assert.Null(UdbScriptDockerModel.FindScriptNode(nodes, "/scripts/missing.js"));
+    }
+
+    [Fact]
     public void SlotMenuItemsShowAssignedScriptsAndHotkeys()
     {
         UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");
