@@ -4534,7 +4534,7 @@ public partial class MainWindow : Window
         foreach (var sector in sectors) AutomapModeModel.ToggleTexturedAutomapHiddenFlag(sector);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Toggled textured automap hidden on {sectors.Count} sector(s).");
+        SetStatus(AutomapModeModel.ToggleTexturedHiddenSectorStatusText(sectors.Count));
         MapView.Focus();
     }
 
@@ -4553,7 +4553,7 @@ public partial class MainWindow : Window
         foreach (var line in lines) toggle(line, isUdmf);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Toggled {label} on {lines.Count} linedef(s).");
+        SetStatus(AutomapModeModel.ToggleLineFlagStatusText(label, lines.Count));
         MapView.Focus();
     }
 

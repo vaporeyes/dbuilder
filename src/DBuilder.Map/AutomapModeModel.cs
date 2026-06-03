@@ -333,6 +333,12 @@ public static class AutomapModeModel
     public static void ToggleTexturedAutomapHiddenFlag(Sector sector)
         => sector.SetFlag(TexturedAutomapHiddenSectorFlag, !sector.IsFlagSet(TexturedAutomapHiddenSectorFlag));
 
+    public static string ToggleLineFlagStatusText(string label, int linedefCount)
+        => $"Toggled {label} on {CountLabel(linedefCount, "linedef")}.";
+
+    public static string ToggleTexturedHiddenSectorStatusText(int sectorCount)
+        => $"Toggled textured automap hidden on {CountLabel(sectorCount, "sector")}.";
+
     private static bool IsAdjacentToSecretSector(Linedef line, AutomapModeOptions options)
         => line.Front?.Sector != null && IsSectorSecret(line.Front.Sector, options.IsDoom, options.SectorEffectData)
         || line.Back?.Sector != null && IsSectorSecret(line.Back.Sector, options.IsDoom, options.SectorEffectData);
@@ -404,4 +410,7 @@ public static class AutomapModeModel
             string text when int.TryParse(text, out int i) => i,
             _ => null,
         };
+
+    private static string CountLabel(int count, string noun)
+        => count == 1 ? $"1 {noun}" : $"{count} {noun}s";
 }

@@ -397,6 +397,18 @@ public class AutomapModeModelTests
         Assert.True(AutomapModeModel.IsSectorVisible(sector));
     }
 
+    [Theory]
+    [InlineData("automap hidden", 1, "Toggled automap hidden on 1 linedef.")]
+    [InlineData("automap secret", 2, "Toggled automap secret on 2 linedefs.")]
+    public void ToggleLineFlagStatusTextFormatsSingularAndPluralCounts(string label, int linedefCount, string expected)
+        => Assert.Equal(expected, AutomapModeModel.ToggleLineFlagStatusText(label, linedefCount));
+
+    [Theory]
+    [InlineData(1, "Toggled textured automap hidden on 1 sector.")]
+    [InlineData(2, "Toggled textured automap hidden on 2 sectors.")]
+    public void ToggleTexturedHiddenSectorStatusTextFormatsSingularAndPluralCounts(int sectorCount, string expected)
+        => Assert.Equal(expected, AutomapModeModel.ToggleTexturedHiddenSectorStatusText(sectorCount));
+
     [Fact]
     public void ClassicFlagsDriveAutomapVisibilityAndClassification()
     {
