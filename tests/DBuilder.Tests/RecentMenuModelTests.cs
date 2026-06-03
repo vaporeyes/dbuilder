@@ -16,6 +16,7 @@ public sealed class RecentMenuModelTests
 
         var entry = Assert.Single(entries);
         Assert.True(entry.IsEmpty);
+        Assert.Equal("No recently opened files", entry.Header);
         Assert.Equal(RecentMenuModel.EmptyHeader, entry.Header);
     }
 

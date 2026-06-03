@@ -26,7 +26,7 @@ public sealed record RecentMenuEntry(
 
 public static class RecentMenuModel
 {
-    public const string EmptyHeader = "(none)";
+    public const string EmptyHeader = "No recently opened files";
     public const int MaxDisplayCharacters = 80;
 
     public static IReadOnlyList<RecentMenuEntry> Build(Settings settings, Func<string, bool> fileExists)

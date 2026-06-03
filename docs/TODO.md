@@ -63,6 +63,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Hide missing recent files from the Open Recent menu like UDB.
   - [x] Build UDB-style numbered recent menu entries with map-aware archive labels.
   - [x] Trim long recent-file menu labels like UDB.
+  - [x] Show UDB-style empty recent-files menu text.
 - [ ] Port file lock checks and save conflict handling.
   - [x] Block in-place WAD saves when the source archive changed on disk after load.
   - [x] Block in-place WAD saves when the source archive is read-only.
