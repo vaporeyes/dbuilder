@@ -63,6 +63,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.toggle-automap-secret-line", "OnToggleAutomapSecretLine")]
     [InlineData("window.toggle-automap-hidden-line", "OnToggleAutomapHiddenLine")]
     [InlineData("window.toggle-automap-textured-hidden-sector", "OnToggleAutomapTexturedHiddenSector")]
+    [InlineData("window.sector-color", "OnSectorColor")]
+    [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
     public void MenuCommandsAreRoutedThroughWindowCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);

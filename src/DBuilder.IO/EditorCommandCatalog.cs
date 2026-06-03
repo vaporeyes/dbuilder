@@ -129,6 +129,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.toggle-automap-secret-line", "Toggle Selected Line Secret", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.toggle-automap-hidden-line", "Toggle Selected Line Hidden", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.toggle-automap-textured-hidden-sector", "Toggle Selected Sector Textured Hidden", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.sector-color", "Sector Color", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.dynamic-light-color", "Dynamic Light Color", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),

@@ -1253,6 +1253,8 @@ public partial class MainWindow : Window
             case "window.toggle-automap-secret-line": OnToggleAutomapSecretLine(this, new RoutedEventArgs()); return true;
             case "window.toggle-automap-hidden-line": OnToggleAutomapHiddenLine(this, new RoutedEventArgs()); return true;
             case "window.toggle-automap-textured-hidden-sector": OnToggleAutomapTexturedHiddenSector(this, new RoutedEventArgs()); return true;
+            case "window.sector-color": OnSectorColor(this, new RoutedEventArgs()); return true;
+            case "window.dynamic-light-color": OnDynamicLightColor(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
