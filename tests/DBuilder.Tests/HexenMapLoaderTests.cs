@@ -251,14 +251,14 @@ public class HexenMapLoaderTests
     }
 
     [Fact]
-    public void ThingEntriesPastBinaryFormatLimitAreIgnored()
+    public void ThingEntriesPastVertexFormatLimitAreLoaded()
     {
         var wadBytes = BuildHexenMapWithThingCount(ushort.MaxValue + 1);
         using var wad = new WAD(wadBytes, openreadonly: true);
 
         var map = HexenMapLoader.Load(wad, "MAP01")!;
 
-        Assert.Equal(ushort.MaxValue, map.Things.Count);
+        Assert.Equal(ushort.MaxValue + 1, map.Things.Count);
     }
 
     [Fact]

@@ -411,14 +411,14 @@ public class DoomMapLoaderTests
     }
 
     [Fact]
-    public void ThingEntriesPastBinaryFormatLimitAreIgnored()
+    public void ThingEntriesPastVertexFormatLimitAreLoaded()
     {
         var wadBytes = BuildDoomMapWithThingCount(ushort.MaxValue + 1);
         using var wad = new WAD(wadBytes, openreadonly: true);
 
         var map = DoomMapLoader.Load(wad, "MAP01")!;
 
-        Assert.Equal(ushort.MaxValue, map.Things.Count);
+        Assert.Equal(ushort.MaxValue + 1, map.Things.Count);
     }
 
     [Fact]
