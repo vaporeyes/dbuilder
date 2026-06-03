@@ -1374,6 +1374,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.align-textures-x", "Align textures X", "A")]
+    [InlineData("map2d.align-textures-y", "Align textures Y", "Shift+A")]
+    [InlineData("map2d.fit-selected-textures", "Fit Selected Textures", "Menu")]
+    public void Map2DTextureCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("map2d.lower-floor-8", "Lower Floor by 8 mp")]
     [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp")]
     [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp")]

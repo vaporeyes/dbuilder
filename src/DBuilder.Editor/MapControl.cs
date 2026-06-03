@@ -5179,6 +5179,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.align-textures-y":
                 AutoAlignSelectedTextures(vertical: true);
                 return true;
+            case "map2d.fit-selected-textures":
+                FitSelectedTextures();
+                return true;
             case "map2d.apply-lightfog-flag":
                 ApplyLightFogFlag();
                 return true;

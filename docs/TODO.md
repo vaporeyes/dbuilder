@@ -131,6 +131,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.
   - [x] Add stable UDB action ids for transform selection actions.
   - [x] Add stable UDB action id and dispatch for Split Linedefs.
+  - [x] Add stable UDB action id and dispatch for Fit Selected Textures.
   - [x] Add stable UDB action ids for Test Map and Things Filters setup.
   - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
   - [x] Add stable UDB action ids for file actions and Map Options.
