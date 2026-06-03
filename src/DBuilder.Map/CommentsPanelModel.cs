@@ -147,6 +147,12 @@ public static class CommentsPanelModel
             ? "No comments found."
             : $"{groupCount} {Label(groupCount, "comment group")}. Click a row to select and reveal it.";
 
+    public static string RemoveStatusText(int elementCount)
+        => $"Removed comment from {elementCount} {Label(elementCount, "element")}.";
+
+    public static string SetStatusText(int elementCount)
+        => $"Set comment on {elementCount} {Label(elementCount, "element")}.";
+
     public static void SetComment(IEnumerable<IFielded> elements, string comment)
     {
         foreach (var element in elements)

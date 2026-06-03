@@ -3020,7 +3020,7 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         RefreshCommentsPanel();
-        SetStatus($"Removed comment from {group.Elements.Count} element(s).");
+        SetStatus(CommentsPanelModel.RemoveStatusText(group.Elements.Count));
     }
 
     private void SetCommentOnCurrentSelection(string comment)
@@ -3038,7 +3038,7 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         RefreshCommentsPanel();
-        SetStatus($"Set comment on {elements.Count} element(s).");
+        SetStatus(CommentsPanelModel.SetStatusText(elements.Count));
     }
 
     private IReadOnlyList<IFielded> CurrentCommentSelection()

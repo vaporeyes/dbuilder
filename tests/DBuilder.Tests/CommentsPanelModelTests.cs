@@ -169,6 +169,15 @@ public sealed class CommentsPanelModelTests
     public void HeaderTextFormatsSingularAndPluralGroupCounts(int groupCount, string expected)
         => Assert.Equal(expected, CommentsPanelModel.HeaderText(groupCount));
 
+    [Theory]
+    [InlineData(1, "Removed comment from 1 element.", "Set comment on 1 element.")]
+    [InlineData(2, "Removed comment from 2 elements.", "Set comment on 2 elements.")]
+    public void StatusTextFormatsSingularAndPluralElementCounts(int elementCount, string removed, string set)
+    {
+        Assert.Equal(removed, CommentsPanelModel.RemoveStatusText(elementCount));
+        Assert.Equal(set, CommentsPanelModel.SetStatusText(elementCount));
+    }
+
     [Fact]
     public void CreateSelectionTargetUsesFirstCommentedElementKind()
     {
