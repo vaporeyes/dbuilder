@@ -58,6 +58,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.gradient-interpolation-ease-in-out-sine", "OnGradientInterpolationEaseInOutSine")]
     [InlineData("window.gradient-interpolation-ease-in-sine", "OnGradientInterpolationEaseInSine")]
     [InlineData("window.gradient-interpolation-ease-out-sine", "OnGradientInterpolationEaseOutSine")]
+    [InlineData("window.apply-slope-arch", "OnApplySlopeArch")]
+    [InlineData("window.apply-slopes", "OnApplySlopes")]
     [InlineData("window.toggle-automap-secret-line", "OnToggleAutomapSecretLine")]
     [InlineData("window.toggle-automap-hidden-line", "OnToggleAutomapHiddenLine")]
     [InlineData("window.toggle-automap-textured-hidden-sector", "OnToggleAutomapTexturedHiddenSector")]

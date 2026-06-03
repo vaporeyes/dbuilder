@@ -111,6 +111,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.sound-propagation-mode", "Sound propagation mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.sound-environment-mode", "Sound environment mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.sound-propagation-colors", "Configure colors", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.apply-slope-arch", "Apply Slope Arch", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.apply-slopes", "Apply Slopes", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.gradient-floor-heights", "Gradient Floor Heights", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.gradient-ceiling-heights", "Gradient Ceiling Heights", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.gradient-sector-brightness", "Gradient Brightness", "Menu", EditorCommandScope.Window, AllowScroll: true),

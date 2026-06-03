@@ -1235,6 +1235,8 @@ public partial class MainWindow : Window
             case "window.sound-propagation-mode": OnSoundPropagation(this, new RoutedEventArgs()); return true;
             case "window.sound-environment-mode": OnSoundEnvironments(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-colors": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
+            case "window.apply-slope-arch": OnApplySlopeArch(this, new RoutedEventArgs()); return true;
+            case "window.apply-slopes": OnApplySlopes(this, new RoutedEventArgs()); return true;
             case "window.gradient-floor-heights": OnGradientFloorHeights(this, new RoutedEventArgs()); return true;
             case "window.gradient-ceiling-heights": OnGradientCeilingHeights(this, new RoutedEventArgs()); return true;
             case "window.gradient-sector-brightness": OnGradientBrightness(this, new RoutedEventArgs()); return true;

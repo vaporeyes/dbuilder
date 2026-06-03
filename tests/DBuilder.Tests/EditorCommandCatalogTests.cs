@@ -369,6 +369,22 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.apply-slope-arch", "Apply Slope Arch")]
+    [InlineData("window.apply-slopes", "Apply Slopes")]
+    public void SlopeUtilityCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("window.toggle-automap-secret-line", "Toggle Selected Line Secret")]
     [InlineData("window.toggle-automap-hidden-line", "Toggle Selected Line Hidden")]
     [InlineData("window.toggle-automap-textured-hidden-sector", "Toggle Selected Sector Textured Hidden")]
