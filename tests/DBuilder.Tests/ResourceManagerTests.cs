@@ -316,6 +316,21 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void SpriteRotationFallbackRejectsInvalidRotationDigitsLikeUdb()
+    {
+        using var wad = BuildWad(
+            ("PLAYPAL", GrayscalePlaypal()),
+            ("S_START", Array.Empty<byte>()),
+            ("POSSA0", DoomPatch(70)),
+            ("S_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Equal(70, rm.GetSprite("POSSA0")!.Rgba[0]);
+        Assert.Null(rm.GetSprite("POSSA9"));
+    }
+
+    [Fact]
     public void WadConfiguredPatchRangesPrioritizeClassicTexturePatches()
     {
         var config = GameConfiguration.FromText("""

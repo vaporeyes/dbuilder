@@ -493,6 +493,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply TEXTURES patch flip transforms before rotation like UDB.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
   - [x] Skip placeholder actor state sprites when choosing editor sprites.
+  - [x] Reject invalid classic sprite rotation digits during fallback.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.
 - [x] Port dynamic bitmap images.

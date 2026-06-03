@@ -1222,7 +1222,7 @@ public sealed class ResourceManager : IDisposable
     private static IEnumerable<string> RotationVariants(string name)
     {
         if (name.Length == 5) { yield return name + "0"; yield return name + "1"; yield break; }
-        if (name.Length >= 6 && char.IsDigit(name[^1]))
+        if (name.Length >= 6 && IsClassicSpriteRotation(name[^1]))
         {
             string baseName = name.Substring(0, name.Length - 1);
             char last = name[^1];
@@ -1234,7 +1234,7 @@ public sealed class ResourceManager : IDisposable
     private IEnumerable<string> PairedSpriteVariants(string name)
     {
         if (name.Length is not (5 or 6)) yield break;
-        if (name.Length == 6 && !char.IsDigit(name[5])) yield break;
+        if (name.Length == 6 && !IsClassicSpriteRotation(name[5])) yield break;
 
         string prefix = name.Substring(0, 4);
         char frame = char.ToUpperInvariant(name[4]);
@@ -1281,8 +1281,10 @@ public sealed class ResourceManager : IDisposable
 
     private static bool IsClassicSpriteRequest(string name)
         => name.Length == 5
-            || (name.Length == 6 && char.IsDigit(name[5]))
-            || (name.Length == 8 && char.IsDigit(name[5]) && char.IsDigit(name[7]));
+            || (name.Length == 6 && IsClassicSpriteRotation(name[5]))
+            || (name.Length == 8 && IsClassicSpriteRotation(name[5]) && IsClassicSpriteRotation(name[7]));
+
+    private static bool IsClassicSpriteRotation(char value) => value is >= '0' and <= '8';
 
     private ImageData? Resolve(string name, Dictionary<string, ImageData?> cache, Dictionary<string, TexturesDef> defs,
         Func<IResourceReader, string, DoomPalette?, ImageData?> lookup, bool includeCameraTextures)
