@@ -2560,6 +2560,9 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
     public UdbScriptSectorWrapper? getSector()
     {
         ThrowIfDisposed("getSector");
+        if (owner != null)
+            thing.DetermineSector(owner);
+
         return thing.Sector == null ? null : new UdbScriptSectorWrapper(thing.Sector, owner, grid, highlightedObject);
     }
 

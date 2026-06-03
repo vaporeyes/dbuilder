@@ -1120,6 +1120,25 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void ThingWrapperGetSectorDeterminesContainingSector()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        Vertex start = map.AddVertex(new Vector2D(0, 0));
+        Vertex end = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(start, end);
+        map.AddSidedef(line, isFront: true, sector);
+        Thing thing = map.AddThing(new Vector2D(32, -8), 3001);
+        map.BuildIndexes();
+        var wrapper = new UdbScriptThingWrapper(thing, map);
+
+        UdbScriptSectorWrapper? detected = wrapper.getSector();
+
+        Assert.Same(sector, detected?.Sector);
+        Assert.Same(sector, thing.Sector);
+    }
+
+    [Fact]
     public void ThingWrapperExposesAngleAndDistanceHelpers()
     {
         var thing = new Thing(new Vector2D(3, 4), 1);
