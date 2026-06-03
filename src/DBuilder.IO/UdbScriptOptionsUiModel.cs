@@ -122,7 +122,7 @@ public static class UdbScriptOptionsUiModel
         string editorText,
         bool hide)
     {
-        UniversalTypeHandler handler = new UniversalTypeRegistry().CreateHandler(option.Type, option.DefaultValue, enumList: EnumList(option));
+        UniversalTypeHandler handler = HandlerFor(option);
         handler.SetValue(editorText);
 
         return new UdbScriptOptionEnumApplyState(
@@ -132,6 +132,22 @@ public static class UdbScriptOptionsUiModel
             EnumEditorTagCleared: hide,
             EnumEditorItemsCleared: hide);
     }
+
+    public static IReadOnlyDictionary<string, object> GetScriptOptions(IReadOnlyList<UdbScriptOption> options)
+    {
+        var values = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (UdbScriptOption option in options)
+        {
+            UniversalTypeHandler handler = HandlerFor(option);
+            handler.SetValue(option.Value);
+            values[option.Name] = handler.GetValue();
+        }
+
+        return values;
+    }
+
+    private static UniversalTypeHandler HandlerFor(UdbScriptOption option)
+        => new UniversalTypeRegistry().CreateHandler(option.Type, option.DefaultValue, enumList: EnumList(option));
 
     private static EnumListInfo EnumList(UdbScriptOption option)
     {

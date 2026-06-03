@@ -200,4 +200,37 @@ public class UdbScriptOptionsUiModelTests
         Assert.False(visible.EnumEditorTagCleared);
         Assert.False(visible.EnumEditorItemsCleared);
     }
+
+    [Fact]
+    public void GetScriptOptionsReturnsHandlerValuesAndLastDuplicateWins()
+    {
+        var direction = new UdbScriptOption(
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            "Down",
+            "Up",
+            new[]
+            {
+                new UdbScriptEnumValue("1", "Up"),
+                new UdbScriptEnumValue("2", "Down"),
+            },
+            "settings.direction");
+        var firstLength = new UdbScriptOption(
+            "length",
+            "Length",
+            (int)UniversalType.Integer,
+            128,
+            "64",
+            Array.Empty<UdbScriptEnumValue>(),
+            "settings.length");
+        var secondLength = firstLength with { Value = "256" };
+
+        IReadOnlyDictionary<string, object> values = UdbScriptOptionsUiModel.GetScriptOptions(
+            new[] { direction, firstLength, secondLength });
+
+        Assert.Equal(2, values.Count);
+        Assert.Equal(1, values["direction"]);
+        Assert.Equal(256, values["length"]);
+    }
 }
