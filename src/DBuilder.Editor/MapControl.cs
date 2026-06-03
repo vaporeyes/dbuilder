@@ -5705,14 +5705,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _wadAuthorHighlight = next;
         _wadAuthorDirty = true;
-        Picked?.Invoke(next.Kind switch
-        {
-            WadAuthorHighlightKind.Vertex when next.Target is Vertex vertex => $"WadAuthor vertex {_map.Vertices.IndexOf(vertex)}",
-            WadAuthorHighlightKind.Linedef when next.Target is Linedef line => $"WadAuthor linedef {_map.Linedefs.IndexOf(line)}",
-            WadAuthorHighlightKind.Sector when next.Target is Sector sector => $"WadAuthor sector {_map.Sectors.IndexOf(sector)}",
-            WadAuthorHighlightKind.Thing when next.Target is Thing thing => $"WadAuthor thing {_map.Things.IndexOf(thing)}",
-            _ => "WadAuthor"
-        });
+        Picked?.Invoke(WadAuthorModeModel.FormatHighlightStatus(_map, next));
         RequestNextFrameRendering();
     }
 

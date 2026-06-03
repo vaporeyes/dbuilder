@@ -146,6 +146,20 @@ public static class WadAuthorModeModel
         if (map.Linedefs.Contains(line)) line.Selected = true;
     }
 
+    public static string FormatHighlightStatus(MapSet map, WadAuthorHighlight highlight)
+    {
+        if (map == null) throw new ArgumentNullException(nameof(map));
+
+        return highlight.Kind switch
+        {
+            WadAuthorHighlightKind.Vertex when highlight.Target is Vertex vertex => $"WadAuthor vertex {map.Vertices.IndexOf(vertex)}",
+            WadAuthorHighlightKind.Linedef when highlight.Target is Linedef line => $"WadAuthor linedef {map.Linedefs.IndexOf(line)}",
+            WadAuthorHighlightKind.Sector when highlight.Target is Sector sector => $"WadAuthor sector {map.Sectors.IndexOf(sector)}",
+            WadAuthorHighlightKind.Thing when highlight.Target is Thing thing => $"WadAuthor thing {map.Things.IndexOf(thing)}",
+            _ => "WadAuthor",
+        };
+    }
+
     public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));

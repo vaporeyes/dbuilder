@@ -193,6 +193,28 @@ public class WadAuthorModeModelTests
         Assert.Equal("Curved linedef.", result.Status);
     }
 
+    [Fact]
+    public void HighlightStatusFormatsHoveredElementIndexes()
+    {
+        var (map, sector, lines) = SquareSectorMap();
+        Vertex vertex = map.Vertices[0];
+        Thing thing = map.AddThing(new Vector2D(16, 16), 3001);
+
+        Assert.Equal(
+            "WadAuthor vertex 0",
+            WadAuthorModeModel.FormatHighlightStatus(map, new WadAuthorHighlight(WadAuthorHighlightKind.Vertex, vertex)));
+        Assert.Equal(
+            "WadAuthor linedef 0",
+            WadAuthorModeModel.FormatHighlightStatus(map, new WadAuthorHighlight(WadAuthorHighlightKind.Linedef, lines[0])));
+        Assert.Equal(
+            "WadAuthor sector 0",
+            WadAuthorModeModel.FormatHighlightStatus(map, new WadAuthorHighlight(WadAuthorHighlightKind.Sector, sector)));
+        Assert.Equal(
+            "WadAuthor thing 0",
+            WadAuthorModeModel.FormatHighlightStatus(map, new WadAuthorHighlight(WadAuthorHighlightKind.Thing, thing)));
+        Assert.Equal("WadAuthor", WadAuthorModeModel.FormatHighlightStatus(map, WadAuthorHighlight.None));
+    }
+
     private static MapSet EmptyLineMap()
     {
         var map = new MapSet();
