@@ -2647,7 +2647,7 @@ public partial class MainWindow : Window
         _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
         IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
         SaveUdbScriptSlotSettings(operations);
-        SetStatus($"UDBScript assigned to slot {slot}: {script.Name} ({operations.Count} setting change(s))");
+        SetStatus(UdbScriptDockerModel.AssignedSlotStatusText(script, slot, operations.Count));
     }
 
     private void ClearUdbScriptSlot(UdbScriptInfo script)
@@ -2663,7 +2663,7 @@ public partial class MainWindow : Window
         _udbScriptDocker?.ApplySlotAssignments(_udbScriptSlotAssignments);
         IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(_udbScriptSlotAssignments);
         SaveUdbScriptSlotSettings(operations);
-        SetStatus($"UDBScript cleared from slot {slot}: {script.Name} ({operations.Count} setting change(s))");
+        SetStatus(UdbScriptDockerModel.ClearedSlotStatusText(script, slot, operations.Count));
     }
 
     private void SaveUdbScriptSlotSettings(IReadOnlyList<UdbScriptSettingOperation> operations)
@@ -2769,7 +2769,7 @@ public partial class MainWindow : Window
 
         _udbScriptDocker?.ApplyCurrentScript(result.Script);
         SaveUdbScriptSettings(result.Operations);
-        SetStatus($"UDBScript options edited: {script.Name} ({result.Operations.Count} setting change(s))");
+        SetStatus(UdbScriptDockerModel.OptionsEditedStatusText(script, result.Operations.Count));
     }
 
     private void ResetUdbScriptOptions(UdbScriptInfo script)
@@ -2779,7 +2779,7 @@ public partial class MainWindow : Window
 
         _udbScriptDocker?.ApplyCurrentScript(result.Script);
         SaveUdbScriptSettings(result.Operations);
-        SetStatus($"UDBScript reset options requested: {script.Name} ({result.Operations.Count} setting change(s))");
+        SetStatus(UdbScriptDockerModel.OptionsResetStatusText(script, result.Operations.Count));
     }
 
     private void RefreshTagExplorer()

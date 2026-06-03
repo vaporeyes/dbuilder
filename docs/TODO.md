@@ -1402,6 +1402,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript docker slot assignment context-menu editor wiring.
   - [x] Add UDBScript execute-current and execute-slot editor command dispatch.
   - [x] Persist UDBScript docker slot assignments from the editor.
+  - [x] Add UDBScript docker singular and plural labels to setting-change status text.
   - [x] Persist UDBScript docker folder expansion from the editor.
   - [x] Add UDBScript docker slot assignment settings load and save model.
   - [x] Add UDBScript API vector and universal-value conversion helpers.

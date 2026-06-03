@@ -513,6 +513,27 @@ public class UdbScriptDockerModelTests
         Assert.Empty(empty.Operations);
     }
 
+    [Theory]
+    [InlineData(1, "1 setting change")]
+    [InlineData(2, "2 setting changes")]
+    public void StatusTextFormatsSingularAndPluralSettingChangeCounts(int settingChangeCount, string countText)
+    {
+        UdbScriptInfo script = Script("Alpha", "A", "/scripts/alpha.js");
+
+        Assert.Equal(
+            $"UDBScript assigned to slot 3: Alpha ({countText})",
+            UdbScriptDockerModel.AssignedSlotStatusText(script, 3, settingChangeCount));
+        Assert.Equal(
+            $"UDBScript cleared from slot 3: Alpha ({countText})",
+            UdbScriptDockerModel.ClearedSlotStatusText(script, 3, settingChangeCount));
+        Assert.Equal(
+            $"UDBScript options edited: Alpha ({countText})",
+            UdbScriptDockerModel.OptionsEditedStatusText(script, settingChangeCount));
+        Assert.Equal(
+            $"UDBScript reset options requested: Alpha ({countText})",
+            UdbScriptDockerModel.OptionsResetStatusText(script, settingChangeCount));
+    }
+
     private static UdbScriptInfo Script(string name, string description, string file, params UdbScriptOption[] options)
         => new(name, description, 1, file, UdbScriptDiscovery.HashPath(file), null, options);
 }

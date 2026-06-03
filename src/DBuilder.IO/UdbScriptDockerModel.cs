@@ -167,6 +167,18 @@ public static class UdbScriptDockerModel
         return new UdbScriptDockerApplyOptionsResult(edited, UdbScriptDiscovery.SaveOptionValueOperations(edited));
     }
 
+    public static string AssignedSlotStatusText(UdbScriptInfo script, int slot, int settingChangeCount)
+        => $"UDBScript assigned to slot {slot}: {script.Name} ({SettingChangeText(settingChangeCount)})";
+
+    public static string ClearedSlotStatusText(UdbScriptInfo script, int slot, int settingChangeCount)
+        => $"UDBScript cleared from slot {slot}: {script.Name} ({SettingChangeText(settingChangeCount)})";
+
+    public static string OptionsEditedStatusText(UdbScriptInfo script, int settingChangeCount)
+        => $"UDBScript options edited: {script.Name} ({SettingChangeText(settingChangeCount)})";
+
+    public static string OptionsResetStatusText(UdbScriptInfo script, int settingChangeCount)
+        => $"UDBScript reset options requested: {script.Name} ({SettingChangeText(settingChangeCount)})";
+
     public static IReadOnlyList<UdbScriptDockerMenuItem> FileContextMenuItems(
         int slotCount = UdbScriptActions.ScriptSlotCount)
     {
@@ -448,6 +460,9 @@ public static class UdbScriptDockerModel
         => slot != 0 && hotkeys.TryGetValue(slot, out string? hotkey) && !string.IsNullOrWhiteSpace(hotkey)
             ? hotkey
             : NoHotkeyText;
+
+    private static string SettingChangeText(int count)
+        => count == 1 ? "1 setting change" : $"{count} setting changes";
 
     private static UdbScriptDockerMenuItem MenuCommand(string text)
         => new(UdbScriptDockerMenuItemKind.Command, text, 0, Array.Empty<UdbScriptDockerMenuItem>());
