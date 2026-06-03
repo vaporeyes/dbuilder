@@ -212,7 +212,9 @@ public static class TexturesParser
                         }
                         else invalid = true;
                         break;
-                    case "patch": ParsePatch(def, t, ref i, knownColors); break;
+                    case "patch":
+                        if (!ParsePatch(def, t, ref i, knownColors)) invalid = true;
+                        break;
                     default: break; // unknown single-token flag/value; skip
                 }
             }
@@ -223,17 +225,14 @@ public static class TexturesParser
 
     private static double NormalizeScale(double value) => value == 0.0 ? 0.0 : 1.0 / value;
 
-    private static void ParsePatch(TexturesDef def, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
+    private static bool ParsePatch(TexturesDef def, List<Tok> t, ref int i, IReadOnlyDictionary<string, X11Color>? knownColors)
     {
-        if (i >= t.Count) return;
+        if (i >= t.Count) return false;
         Tok nameToken = t[i++];
         string name = nameToken.Text;
-        if (string.IsNullOrEmpty(name)) return;
-        if (IsInvalidLongTextureName(nameToken)) return;
-        if (!ReadComma(t, ref i)) return;
-        if (!ReadInt(t, ref i, out int x)) return;
-        if (!ReadComma(t, ref i)) return;
-        if (!ReadInt(t, ref i, out int y)) return;
+        if (string.IsNullOrEmpty(name)) return true;
+        if (IsInvalidLongTextureName(nameToken)) return true;
+        if (!ReadComma(t, ref i) || !ReadInt(t, ref i, out int x) || !ReadComma(t, ref i) || !ReadInt(t, ref i, out int y)) return false;
         var patch = new TexturesPatch
         {
             Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).ToUpperInvariant(),
@@ -274,9 +273,10 @@ public static class TexturesParser
                 }
             }
             if (i < t.Count) i++; // }
-            if (invalid) return;
+            if (invalid) return true;
         }
         def.Patches.Add(patch);
+        return true;
     }
 
     private static bool IsInvalidLongTextureName(Tok token)

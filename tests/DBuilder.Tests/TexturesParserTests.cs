@@ -311,39 +311,47 @@ Texture SHORT, 8, 8 { Patch P, 0, 0 }";
     }
 
     [Fact]
-    public void SkipsPatchesWithNonIntegralOffsets()
+    public void NonIntegralPatchOffsetsSkipTextureDefinitionLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BAD, 8, 8
 {
     Patch BADX, 0.5, 0
     Patch BADY, 1, 2.5
-    Patch OK, 2, 3
+}
+Texture OK, 8, 8
+{
+    Patch P, 2, 3
 }";
 
         var def = TexturesParser.Parse(text).Single();
 
         var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
+        Assert.Equal("OK", def.Name);
+        Assert.Equal("P", patch.Name);
         Assert.Equal(2, patch.X);
         Assert.Equal(3, patch.Y);
     }
 
     [Fact]
-    public void RequiresCommasInPatchOffsets()
+    public void MissingPatchOffsetCommasSkipTextureDefinitionLikeUdb()
     {
         const string text = @"
-Texture PATCHES, 8, 8
+Texture BAD, 8, 8
 {
     Patch BADX 0, 0
     Patch BADY, 1 2
-    Patch OK, 2, 3
+}
+Texture OK, 8, 8
+{
+    Patch P, 2, 3
 }";
 
         var def = TexturesParser.Parse(text).Single();
 
         var patch = Assert.Single(def.Patches);
-        Assert.Equal("OK", patch.Name);
+        Assert.Equal("OK", def.Name);
+        Assert.Equal("P", patch.Name);
         Assert.Equal(2, patch.X);
         Assert.Equal(3, patch.Y);
     }
