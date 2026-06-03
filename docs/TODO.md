@@ -533,8 +533,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse ZScript includes after the containing file.
   - [x] Apply ZScript `#region` categories and region editor defaults.
   - [x] Keep the first ZScript actor class when a class is duplicated.
-  - [x] Reject invalid ZScript class parent and replacement header ordering.
-  - [x] Reject unexpected and duplicated ZScript class header modifiers.
+  - [x] Reject invalid ZScript class parent and replacement header ordering like UDB.
+  - [x] Reject unexpected and duplicated ZScript class header modifiers like UDB.
   - [x] Validate ZScript class header modifier arguments.
   - [x] Stop ZScript parsing on unknown top-level preprocessor directives.
   - [x] Accept top-level ZScript version declarations and reject unknown top-level identifiers.

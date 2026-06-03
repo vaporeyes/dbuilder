@@ -199,7 +199,12 @@ public static class DecorateParser
                 if (keyword.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
                     var classKind = GetZScriptClassKind(toks, i);
-                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties), out _);
+                    var parsed = ParseActor(toks, ref i, headerNum, CurrentRegionCategory(regions), CurrentRegionProperties(regionProperties), out bool stopParsing);
+                    if (stopParsing)
+                    {
+                        actors.Clear();
+                        break;
+                    }
                     if (parsed == null) continue;
                     if (classKind == ZScriptClassKind.Extension)
                     {
@@ -970,7 +975,7 @@ public static class DecorateParser
             }
             else if (tk.Kind == Kind.Sym && tk.Text == ":")
             {
-                if (!headerNum && (hasParent || hasReplacement || hasNative)) return SkipInvalidActorDeclaration(t, ref i);
+                if (!headerNum && (hasParent || hasReplacement || hasNative)) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 i++;
                 if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.ParentName = t[i++].Text;
                 else
@@ -983,7 +988,7 @@ public static class DecorateParser
             }
             else if (tk.Kind == Kind.Word && tk.Text.Equals("replaces", StringComparison.OrdinalIgnoreCase))
             {
-                if (!headerNum && (hasReplacement || hasNative)) return SkipInvalidActorDeclaration(t, ref i);
+                if (!headerNum && (hasReplacement || hasNative)) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 i++;
                 if (i < t.Count && IsNameToken(t[i]) && t[i].Text.Length > 0) actor.Replaces = t[i++].Text;
                 else
@@ -1014,7 +1019,7 @@ public static class DecorateParser
             }
             else if (!headerNum && tk.Kind == Kind.Word && tk.Text.Equals("native", StringComparison.OrdinalIgnoreCase))
             {
-                if (hasNative) return SkipInvalidActorDeclaration(t, ref i);
+                if (hasNative) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 hasNative = true;
                 i++;
             }
@@ -1024,30 +1029,30 @@ public static class DecorateParser
             }
             else if (!headerNum && tk.Kind == Kind.Word && tk.Text.Equals("final", StringComparison.OrdinalIgnoreCase))
             {
-                if (hasFinal) return SkipInvalidActorDeclaration(t, ref i);
+                if (hasFinal) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 hasFinal = true;
                 actor.IsFinal = true;
                 i++;
             }
             else if (!headerNum && tk.Kind == Kind.Word && IsZScriptHeaderScopeModifier(tk.Text))
             {
-                if (hasScope) return SkipInvalidActorDeclaration(t, ref i);
+                if (hasScope) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 hasScope = true;
                 i++;
             }
             else if (!headerNum && tk.Kind == Kind.Word && IsZScriptHeaderModifier(tk.Text, "version"))
             {
-                if (hasVersion) return SkipInvalidActorDeclaration(t, ref i);
+                if (hasVersion) return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 hasVersion = true;
                 if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
                     || !ValidateZScriptHeaderModifierArguments("version", arguments))
-                    return SkipInvalidActorDeclaration(t, ref i);
+                    return StopInvalidActorDeclaration(t, ref i, out stopParsing);
             }
             else if (!headerNum && tk.Kind == Kind.Word && TryGetZScriptHeaderParameterizedModifier(tk.Text, out string modifier))
             {
                 if (!TryReadZScriptHeaderModifierArguments(t, ref i, out var arguments)
                     || !ValidateZScriptHeaderModifierArguments(modifier, arguments))
-                    return SkipInvalidActorDeclaration(t, ref i);
+                    return StopInvalidActorDeclaration(t, ref i, out stopParsing);
                 if (modifier.Equals("sealed", StringComparison.OrdinalIgnoreCase))
                 {
                     actor.PermittedInheritedClassNames.Clear();
@@ -1060,7 +1065,7 @@ public static class DecorateParser
                 stopParsing = true;
                 return null;
             }
-            else return SkipInvalidActorDeclaration(t, ref i);
+            else return StopInvalidActorDeclaration(t, ref i, out stopParsing);
         }
 
         if (i >= t.Count)
@@ -1076,6 +1081,13 @@ public static class DecorateParser
     private static ActorInfo? SkipInvalidActorDeclaration(List<Tok> t, ref int i)
     {
         SkipDeclaration(t, ref i);
+        return null;
+    }
+
+    private static ActorInfo? StopInvalidActorDeclaration(List<Tok> t, ref int i, out bool stopParsing)
+    {
+        SkipDeclaration(t, ref i);
+        stopParsing = true;
         return null;
     }
 

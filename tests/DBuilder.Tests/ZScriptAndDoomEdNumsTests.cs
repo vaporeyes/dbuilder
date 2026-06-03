@@ -131,7 +131,7 @@ class SpacedCommentActor : Actor
     }
 
     [Fact]
-    public void SkipsZScriptClassesWithInvalidHeaderOrdering()
+    public void InvalidZScriptClassHeaderOrderingRejectsDocumentLikeUdb()
     {
         const string text = @"
 class DuplicateParent : Actor : Inventory { Default { Radius 64; } }
@@ -140,16 +140,11 @@ class ParentAfterReplacement replaces OldThing : Actor { Default { Radius 24; } 
 class ParentAfterNative native : Actor { Default { Radius 20; } }
 class ValidHeader : Actor replaces OldThing native { Default { Radius 8; } }";
 
-        var actor = Assert.Single(ZScriptParser.Parse(text));
-
-        Assert.Equal("ValidHeader", actor.ClassName);
-        Assert.Equal("Actor", actor.ParentName);
-        Assert.Equal("OldThing", actor.Replaces);
-        Assert.Equal(8, actor.Radius);
+        Assert.Empty(ZScriptParser.Parse(text));
     }
 
     [Fact]
-    public void SkipsZScriptClassesWithInvalidHeaderModifiers()
+    public void InvalidZScriptClassHeaderModifiersRejectDocumentLikeUdb()
     {
         const string text = @"
 class UnknownModifier : Actor unexpected { Default { Radius 64; } }
@@ -163,11 +158,7 @@ class DeprecatedMissingComma : Actor deprecated(""4.8"" ""Other"") { Default { R
 class SealedString : Actor sealed(""Child"") { Default { Radius 9; } }
 class ValidModifiers : Actor abstract final ui version(""4.8"") deprecated(""4.8"", ""Other"") unsafe(Actor) sealed(ValidChild, OtherChild) { Default { Radius 8; } }";
 
-        var actor = Assert.Single(ZScriptParser.Parse(text));
-
-        Assert.Equal("ValidModifiers", actor.ClassName);
-        Assert.Equal("Actor", actor.ParentName);
-        Assert.Equal(8, actor.Radius);
+        Assert.Empty(ZScriptParser.Parse(text));
     }
 
     [Fact]
