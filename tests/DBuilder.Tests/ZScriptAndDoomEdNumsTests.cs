@@ -1171,6 +1171,24 @@ class InvalidStateDurationLimitZThing : Actor
     }
 
     [Fact]
+    public void RejectsZScriptStateFrameSpriteNamesWithWrongLength()
+    {
+        const string zscript = @"
+class InvalidStateSpriteNameZThing : Actor
+{
+    States
+    {
+    Spawn:
+        LONGS A -1;
+    See:
+        GOOD A -1;
+    }
+}";
+
+        Assert.Empty(ZScriptParser.Parse(zscript));
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

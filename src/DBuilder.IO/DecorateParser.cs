@@ -1237,6 +1237,11 @@ public static class DecorateParser
                     stopParsing = !zscriptBody;
                     return false;
                 }
+                if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateSpriteName(tk.Text, t, i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
                 {
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
@@ -1333,6 +1338,11 @@ public static class DecorateParser
                 {
                     actor.Properties[tk.Text] = values;
                 }
+            }
+            else if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateSpriteName(tk.Text, t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
             {
@@ -1464,6 +1474,15 @@ public static class DecorateParser
         && t[colonIndex].Kind == Kind.Sym
         && t[colonIndex].Text == ":"
         && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
+
+    private static bool IsMalformedZScriptStateSpriteName(string spriteName, List<Tok> t, int frameIndex)
+        => spriteName.Length > 4
+        && ZScriptStateFrameSpecial(spriteName) == null
+        && frameIndex < t.Count
+        && t[frameIndex].Kind is Kind.Word or Kind.Str
+        && LooksLikeStateFrameLetters(t[frameIndex].Text)
+        && frameIndex + 1 < t.Count
+        && t[frameIndex + 1].Kind == Kind.Word;
 
     private static StateSpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
     {
@@ -2322,7 +2341,11 @@ public static class DecorateParser
     {
         if (word.Length != 4 || word.Equals("goto", StringComparison.OrdinalIgnoreCase)) return false;
         if (next >= t.Count || t[next].Kind is not (Kind.Word or Kind.Str)) return false;
-        string frames = t[next].Text;
+        return LooksLikeStateFrameLetters(t[next].Text);
+    }
+
+    private static bool LooksLikeStateFrameLetters(string frames)
+    {
         foreach (char c in frames)
             if (!(char.IsLetter(c) || c is '#' or '-' or '_' or '[' or ']' or '\\' or '^')) return false;
         return frames.Length > 0;
