@@ -378,6 +378,73 @@ public class UdbScriptDiscoveryTests
         Assert.Equal(100, policy.DelayMilliseconds);
     }
 
+    [Fact]
+    public void LoadScriptWithRetryMatchesUdbIoRetryAndFailureSkip()
+    {
+        string file = Path.Combine(TempDir(), "retry.js");
+        try
+        {
+            int retryAttempts = 0;
+            UdbScriptLoadResult retried = UdbScriptDiscovery.LoadScriptWithRetry(
+                file,
+                path =>
+                {
+                    retryAttempts++;
+                    if (retryAttempts < 3)
+                        throw new IOException("locked");
+
+                    return new UdbScriptInfo(
+                        "Retried",
+                        UdbScriptDiscovery.DefaultDescription,
+                        UdbScriptDiscovery.DefaultVersion,
+                        path,
+                        UdbScriptDiscovery.HashPath(path),
+                        null,
+                        Array.Empty<UdbScriptOption>());
+                },
+                new UdbScriptLoadRetryPolicy(5, 0));
+
+            Assert.True(retried.Succeeded);
+            Assert.Equal(3, retried.Attempts);
+            Assert.Equal("Retried", retried.Script?.Name);
+            Assert.Equal(3, retryAttempts);
+
+            int exhaustedAttempts = 0;
+            UdbScriptLoadResult exhausted = UdbScriptDiscovery.LoadScriptWithRetry(
+                file,
+                _ =>
+                {
+                    exhaustedAttempts++;
+                    throw new IOException("still locked");
+                },
+                new UdbScriptLoadRetryPolicy(2, 0));
+
+            Assert.False(exhausted.Succeeded);
+            Assert.Equal(2, exhausted.Attempts);
+            Assert.Equal(2, exhaustedAttempts);
+            Assert.Contains("still locked", exhausted.ErrorMessage, StringComparison.Ordinal);
+
+            int parseAttempts = 0;
+            UdbScriptLoadResult parseFailure = UdbScriptDiscovery.LoadScriptWithRetry(
+                file,
+                _ =>
+                {
+                    parseAttempts++;
+                    throw new ArgumentException("bad metadata");
+                },
+                new UdbScriptLoadRetryPolicy(5, 0));
+
+            Assert.False(parseFailure.Succeeded);
+            Assert.Equal(1, parseFailure.Attempts);
+            Assert.Equal(1, parseAttempts);
+            Assert.Contains("bad metadata", parseFailure.ErrorMessage, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
     private static string TempDir()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_udbscript_" + Guid.NewGuid().ToString("N"));

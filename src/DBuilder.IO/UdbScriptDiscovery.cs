@@ -50,6 +50,12 @@ public sealed record UdbScriptLoadRetryPolicy(
     int MaxAttempts,
     int DelayMilliseconds);
 
+public sealed record UdbScriptLoadResult(
+    UdbScriptInfo? Script,
+    int Attempts,
+    bool Succeeded,
+    string ErrorMessage);
+
 public static class UdbScriptDiscovery
 {
     public const string ScriptFolder = "UDBScript";
@@ -101,7 +107,9 @@ public static class UdbScriptDiscovery
             .ToArray();
 
         var scripts = Directory.EnumerateFiles(scriptsPath, "*.js")
-            .Select(ParseScript)
+            .Select(LoadScriptWithRetry)
+            .Where(result => result.Succeeded && result.Script is not null)
+            .Select(result => result.Script!)
             .ToArray();
 
         return new UdbScriptDirectory(scriptsPath, name, HashPath(scriptsPath), directories, scripts);
@@ -196,6 +204,35 @@ public static class UdbScriptDiscovery
         => new(
             MaxAttempts: ScriptLoadRetryAttempts,
             DelayMilliseconds: ScriptLoadRetryDelayMilliseconds);
+
+    public static UdbScriptLoadResult LoadScriptWithRetry(string scriptFile)
+        => LoadScriptWithRetry(scriptFile, ParseScript, LoadRetryPolicy());
+
+    public static UdbScriptLoadResult LoadScriptWithRetry(
+        string scriptFile,
+        Func<string, UdbScriptInfo> parser,
+        UdbScriptLoadRetryPolicy policy)
+    {
+        int maxAttempts = Math.Max(1, policy.MaxAttempts);
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                return new UdbScriptLoadResult(parser(scriptFile), attempt, true, "");
+            }
+            catch (IOException) when (attempt < maxAttempts)
+            {
+                if (policy.DelayMilliseconds > 0)
+                    Thread.Sleep(policy.DelayMilliseconds);
+            }
+            catch (Exception ex)
+            {
+                return new UdbScriptLoadResult(null, attempt, false, "Failed to process " + scriptFile + ": " + ex.Message);
+            }
+        }
+
+        return new UdbScriptLoadResult(null, maxAttempts, false, "Failed to process " + scriptFile);
+    }
 
     public static UdbScriptInfo ApplySavedOptionValues(
         UdbScriptInfo script,
