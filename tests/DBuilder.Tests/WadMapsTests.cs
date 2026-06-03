@@ -160,6 +160,25 @@ maplumpnames
     }
 
     [Fact]
+    public void FindDeduplicatesMapNamesLikeUdbChooser()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "MAP02", new byte[0], 2);
+        WriteLump(wad, "TEXTMAP", Encoding.ASCII.GetBytes("namespace = \"ZDoom\";"), 3);
+        WriteLump(wad, "ENDMAP", new byte[0], 4);
+        WriteLump(wad, "map01", new byte[0], 5);
+        WriteLump(wad, "TEXTMAP", Encoding.ASCII.GetBytes("namespace = \"ZDoom\";"), 6);
+        WriteLump(wad, "ENDMAP", new byte[0], 7);
+        wad.WriteHeaders();
+
+        var maps = WadMaps.Find(wad);
+
+        Assert.Equal(new[] { "MAP01:Doom", "MAP02:Udmf" }, maps.Select(map => $"{map.Name}:{map.Format}").ToArray());
+    }
+
+    [Fact]
     public void ConfiguredFindRejectsForbiddenMapLumps()
     {
         using var wad = new WAD(new MemoryStream());

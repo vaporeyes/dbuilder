@@ -28,13 +28,14 @@ public static class WadMaps
     public static List<MapEntry> Find(WAD wad)
     {
         var result = new List<MapEntry>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < wad.Lumps.Count - 1; i++)
         {
             string name = wad.Lumps[i].Name;
             string next = wad.Lumps[i + 1].Name;
-            if (next == "TEXTMAP")
+            if (next == "TEXTMAP" && seen.Add(name))
                 result.Add(new MapEntry(name, MapFormat.Udmf));
-            else if (next == "THINGS")
+            else if (next == "THINGS" && seen.Add(name))
                 result.Add(new MapEntry(name, HexenMapLoader.IsHexenFormat(wad, name) ? MapFormat.Hexen : MapFormat.Doom));
         }
         return result;
