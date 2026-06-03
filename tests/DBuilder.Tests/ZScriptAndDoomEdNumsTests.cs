@@ -1132,6 +1132,19 @@ class DuplicateStateSpecialZThing : Actor
     }
 
     [Fact]
+    public void DoesNotUseZScriptStateFrameSpecialWithoutArguments()
+    {
+        const string zscript = @"
+class MissingStateSpecialArgumentsZThing : Actor
+{
+    States { Spawn: LARG A -1 Light ""BAD_LIGHT""; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingStateSpecialArgumentsZThing");
+
+        Assert.Null(actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

@@ -1489,10 +1489,15 @@ public static class DecorateParser
             if (t[i].Kind != Kind.Word) continue;
             string? special = ZScriptStateFrameSpecial(t[i].Text);
             if (special != null && !specials.Add(special)) return false;
+            if (special is "light" or "offset" && !ZScriptStateFrameSpecialHasArguments(t, i)) return false;
         }
 
         return false;
     }
+
+    private static bool ZScriptStateFrameSpecialHasArguments(List<Tok> t, int index)
+        => t[index].Text.Contains('(', StringComparison.Ordinal)
+        || (index + 1 < t.Count && t[index + 1].Text.StartsWith("(", StringComparison.Ordinal));
 
     private static string? ZScriptStateFrameSpecial(string token)
     {
