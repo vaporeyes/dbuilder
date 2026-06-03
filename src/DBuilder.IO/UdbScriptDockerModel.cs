@@ -129,6 +129,24 @@ public static class UdbScriptDockerModel
     public static IReadOnlyList<UdbScriptDockerMenuItem> FolderContextMenuItems()
         => new[] { MenuCommand(OpenInExplorerMenuText) };
 
+    public static IReadOnlySet<string> CollapseDirectory(
+        IReadOnlySet<string> collapsedDirectoryHashes,
+        UdbScriptDirectory directory)
+    {
+        var result = new HashSet<string>(collapsedDirectoryHashes, StringComparer.Ordinal);
+        result.Add(directory.Hash);
+        return result;
+    }
+
+    public static IReadOnlySet<string> ExpandDirectory(
+        IReadOnlySet<string> collapsedDirectoryHashes,
+        UdbScriptDirectory directory)
+    {
+        var result = new HashSet<string>(collapsedDirectoryHashes, StringComparer.Ordinal);
+        result.Remove(directory.Hash);
+        return result;
+    }
+
     public static IReadOnlyList<UdbScriptSlotMenuItem> SlotMenuItems(
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments,
         IReadOnlyDictionary<int, string> hotkeys,

@@ -100,6 +100,43 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void DirectoryExpansionStateTracksCollapseAndExpand()
+    {
+        var child = new UdbScriptDirectory(
+            "/scripts/a",
+            "AlphaFolder",
+            "hash-a",
+            Array.Empty<UdbScriptDirectory>(),
+            Array.Empty<UdbScriptInfo>());
+        var root = new UdbScriptDirectory(
+            "/scripts",
+            "Scripts",
+            "root",
+            new[] { child },
+            Array.Empty<UdbScriptInfo>());
+
+        IReadOnlySet<string> collapsed = UdbScriptDockerModel.CollapseDirectory(new HashSet<string>(), child);
+        IReadOnlyList<UdbScriptDockerNode> collapsedNodes = UdbScriptDockerModel.BuildTree(
+            root,
+            "",
+            new Dictionary<int, UdbScriptInfo?>(),
+            new Dictionary<int, string>(),
+            collapsed);
+
+        Assert.False(Assert.Single(collapsedNodes).Expanded);
+
+        IReadOnlySet<string> expanded = UdbScriptDockerModel.ExpandDirectory(collapsed, child);
+        IReadOnlyList<UdbScriptDockerNode> expandedNodes = UdbScriptDockerModel.BuildTree(
+            root,
+            "",
+            new Dictionary<int, UdbScriptInfo?>(),
+            new Dictionary<int, string>(),
+            expanded);
+
+        Assert.True(Assert.Single(expandedNodes).Expanded);
+    }
+
+    [Fact]
     public void SlotMenuItemsShowAssignedScriptsAndHotkeys()
     {
         UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");

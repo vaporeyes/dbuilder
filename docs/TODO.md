@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 3363 tests.
+- Current verified baseline: `scripts/verify.sh` passes 3364 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 
 ## Solution And Project Structure
@@ -1266,6 +1266,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
   - [x] Add UDBScript docker layout metadata.
   - [x] Add UDBScript docker context-menu metadata.
+  - [x] Add UDBScript docker folder expansion state model.
   - [x] Add UDBScript API vector and universal-value conversion helpers.
   - [x] Add UDBScript Vector2D and Vector3D wrapper arithmetic and geometry helpers.
   - [x] Add UDBScript Vector2D and Vector3D wrapper vector-like equality operators.
@@ -1532,6 +1533,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript docker labels, tree filtering, slot menu, selection, and slot assignment model.
 - [x] Add UDBScript docker layout metadata.
 - [x] Add UDBScript docker context-menu metadata.
+- [x] Add UDBScript docker folder expansion state model.
 - [x] Add UDBScript API vector and universal-value conversion helpers.
 - [x] Add UDBScript Vector2D and Vector3D wrapper arithmetic and geometry helpers.
 - [x] Add UDBScript Vector2D and Vector3D wrapper vector-like equality operators.
