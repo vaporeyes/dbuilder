@@ -772,7 +772,7 @@ public sealed class GameConfiguration
 
             int num = a.DoomEdNum;
             if (num < 0 && classToNum != null && classToNum.TryGetValue(a.ClassName, out int mapped)) num = mapped;
-            if (num < 0) continue;
+            if (num <= 0) continue;
             things.TryGetValue(num, out var existing);
             var inherited = existing == null && a.ParentName != null ? FindThingInfoByClass(a.ParentName) : null;
             things[num] = BuildThingInfo(a, num, existing, inherited, cvars);

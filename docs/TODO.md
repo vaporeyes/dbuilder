@@ -754,6 +754,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prefer actor metadata over existing thing copies for MAPINFO `DoomEdNums` overrides.
   - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
   - [x] Cancel replacement actor recategorization when a later replacement omits `$Category`.
+  - [x] Ignore non-positive DECORATE editor numbers during actor merging.
 - [ ] Add parser fixtures from real-world mod patterns.
 
 ## Dehacked

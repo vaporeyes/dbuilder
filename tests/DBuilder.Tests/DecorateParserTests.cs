@@ -305,6 +305,21 @@ ACTOR RegionArrowOverrideThing 5011
     }
 
     [Fact]
+    public void MergeActorsIgnoresZeroEditorNumber()
+    {
+        const string text = @"
+ACTOR ZeroThing 0
+{
+    //$Title ""Zero Thing""
+    States { Spawn: ZERO A -1 stop }
+}";
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        Assert.Null(gc.GetThing(0));
+    }
+
+    [Fact]
     public void UnparentedDecorateActorsDefaultToActorParent()
     {
         var actor = DecorateParser.Parse("ACTOR StandaloneThing 6002 { Radius 16 }").Single();
