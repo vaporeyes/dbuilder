@@ -96,7 +96,27 @@ public class VisplaneExplorerModelTests
             settings);
 
         Assert.Equal(
-            "Visplane Explorer ready: 12 tile(s), 1024 queued point(s), Drawsegs, Open Doors: on, Heat Colors: off, View Height (56).",
+            "Visplane Explorer ready: 12 tiles, 1024 queued points, Drawsegs, Open Doors: on, Heat Colors: off, View Height (56).",
+            status);
+    }
+
+    [Fact]
+    public void ReadyStatusFormatsSingularQueuedAnalysisState()
+    {
+        var settings = new VisplaneExplorerInterfaceSettings(
+            OpenDoors: false,
+            ShowHeatmap: true,
+            ViewHeight: 41,
+            ViewHeightCustom: 0);
+
+        string status = VisplaneExplorerInterfaceModel.ReadyStatus(
+            tileCount: 1,
+            queuedPointCount: 1,
+            VisplaneExplorerStat.Visplanes,
+            settings);
+
+        Assert.Equal(
+            "Visplane Explorer ready: 1 tile, 1 queued point, Visplanes, Open Doors: off, Heat Colors: on, View Height (41).",
             status);
     }
 
@@ -381,7 +401,21 @@ public class VisplaneExplorerModelTests
             QueuedPointCount: 1024);
 
         Assert.Equal(
-            "Visplane Explorer analyzing: 128 issued, 12160 remaining, 1024 queued across 3 tile(s).",
+            "Visplane Explorer analyzing: 128 issued, 12160 remaining, 1024 queued across 3 tiles.",
+            progress.FormatStatus());
+    }
+
+    [Fact]
+    public void ProgressStatusFormatsSingularTileCount()
+    {
+        var progress = new VisplaneExplorerProgress(
+            TileCount: 1,
+            IssuedPointCount: 1,
+            RemainingPointCount: 0,
+            QueuedPointCount: 0);
+
+        Assert.Equal(
+            "Visplane Explorer analyzing: 1 issued, 0 remaining, 0 queued across 1 tile.",
             progress.FormatStatus());
     }
 

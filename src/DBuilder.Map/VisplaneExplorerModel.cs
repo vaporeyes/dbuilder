@@ -110,8 +110,8 @@ public readonly record struct VisplaneExplorerProgress(
             + " remaining, "
             + QueuedPointCount.ToString(CultureInfo.InvariantCulture)
             + " queued across "
-            + TileCount.ToString(CultureInfo.InvariantCulture)
-            + " tile(s).";
+            + VisplaneExplorerInterfaceModel.CountLabel(TileCount, "tile")
+            + ".";
 }
 
 public static class VisplaneExplorerViewHeight
@@ -270,12 +270,15 @@ public static class VisplaneExplorerInterfaceModel
             }
         }
 
-        return $"Visplane Explorer ready: {tileCount.ToString(CultureInfo.InvariantCulture)} tile(s), " +
-            $"{queuedPointCount.ToString(CultureInfo.InvariantCulture)} queued point(s), {statText}, " +
+        return $"Visplane Explorer ready: {CountLabel(tileCount, "tile")}, " +
+            $"{CountLabel(queuedPointCount, "queued point")}, {statText}, " +
             $"{OpenDoorsText}: {(settings.OpenDoors ? "on" : "off")}, " +
             $"{HeatColorsText}: {(settings.ShowHeatmap ? "on" : "off")}, " +
             $"{FormatViewHeightButtonText(settings.ViewHeight)}.";
     }
+
+    public static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     public static VisplaneExplorerViewHeightMenuItem ViewHeightMenuItem(
         int height,
