@@ -612,6 +612,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB-style DECALDEF ID lookup.
 - [x] Port VOXELDEF parser.
   - [x] Require UDB-style VOXELDEF numeric setting assignments.
+  - [x] Stop VOXELDEF parsing on malformed numeric settings like UDB.
 - [x] Port IWADINFO parser.
 - [x] Port CVARINFO parser.
   - [x] Allow UDB-style flag-only CVARINFO prefixes before types.

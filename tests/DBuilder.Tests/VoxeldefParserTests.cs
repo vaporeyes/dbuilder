@@ -45,14 +45,14 @@ FOO = new.kvx { Scale = 2 }";
     }
 
     [Fact]
-    public void SkipsDefinitionsWithMalformedNumericSettings()
+    public void MalformedNumericSettingsStopParsingLikeUdb()
     {
         const string text = @"
+GOOD = good.kvx { AngleOffset = -45 Scale = 2 }
 BADANGLE = badangle.kvx { AngleOffset bogus Scale = 1 }
 BADANGLESYNTAX = badanglesyntax.kvx { AngleOffset 90 Scale = 1 }
 BADSCALE = badscale.kvx { Scale bogus }
-BADSCALESYNTAX = badscalesyntax.kvx { Scale 2 }
-GOOD = good.kvx { AngleOffset = -45 Scale = 2 }";
+BADSCALESYNTAX = badscalesyntax.kvx { Scale 2 }";
 
         var voxeldef = VoxeldefParser.Parse(text);
 

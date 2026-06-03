@@ -48,7 +48,8 @@ public static class VoxeldefParser
             {
                 var definition = new VoxelDefinition { ModelName = modelName };
                 bool valid = ParseSettings(definition, t, ref i);
-                if (valid && definition.ModelName.Length > 0)
+                if (!valid) return result;
+                if (definition.ModelName.Length > 0)
                 {
                     foreach (string sprite in sprites) result.Entries[sprite] = definition;
                 }
