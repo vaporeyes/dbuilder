@@ -171,7 +171,7 @@
                 <MenuItem Header="View _Nodes..." x:Name="NodesViewerMenuItem" Click="OnNodesViewer" />
                 <MenuItem Header="View _Status History..." x:Name="StatusHistoryMenuItem" Click="OnStatusHistory" />
                 <MenuItem Header="View _Error Log..." x:Name="ErrorLogMenuItem" Click="OnErrorLog" />
-                <MenuItem Header="_Browsers">
+                <MenuItem Header="_Browsers" x:Name="BrowsersMenuItem">
                     <MenuItem Header="_Textures..." x:Name="BrowseWallTexturesMenuItem" Click="OnBrowseWallTextures" />
                     <MenuItem Header="_Flats..." x:Name="BrowseFlatsMenuItem" Click="OnBrowseFlats" />
                     <MenuItem Header="Set Selected _Floor Flats..." x:Name="BrowseFloorFlatsMenuItem" Click="OnBrowseFloorFlats" />

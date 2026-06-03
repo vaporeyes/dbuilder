@@ -5965,6 +5965,7 @@ public partial class MainWindow : Window
         bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
         bool hasResources = _resources is not null;
         bool canBrowseCatalogs = hasMap && _config is not null;
+        bool canBrowseAny = hasResources || canBrowseCatalogs;
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
         bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));
         bool hasSelection = hasMap && CountSelection() > 0;
@@ -6043,6 +6044,7 @@ public partial class MainWindow : Window
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canFilterThingCategories, ThingFilterMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
+        SetEnabled(canBrowseAny, BrowsersMenuItem);
         SetEnabled(hasResources, BrowseWallTexturesMenuItem, BrowseFlatsMenuItem);
         SetEnabled(canBrowseCatalogs, BrowseThingsMenuItem, BrowseLinedefActionsMenuItem, BrowseSectorEffectsMenuItem);
         SetEnabled(hasSelection,
