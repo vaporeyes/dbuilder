@@ -294,6 +294,37 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void WadStrictPatchesRestrictsNamedColormapsToConfiguredRangesLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            colormaps
+            {
+                fog { start = "C_START"; end = "C_END"; }
+            }
+            """);
+        string wad = TestArtifacts.BuildPwadFile(
+            ("FOGMAP", ColormapBytes(1)),
+            ("C_START", Array.Empty<byte>()),
+            ("FOGMAP", ColormapBytes(7)),
+            ("C_END", Array.Empty<byte>()));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(new DataLocation(DataLocationType.Wad, wad, option1: true));
+
+            Assert.Null(rm.GetColormap("FOGMAP"));
+
+            rm.Configuration = config;
+
+            Assert.Equal(17, rm.GetColormap("FOGMAP")!.Lookup(0, 10));
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
+
+    [Fact]
     public void WadConfiguredSpriteRangesProvideAndPrioritizeSprites()
     {
         var config = GameConfiguration.FromText("""

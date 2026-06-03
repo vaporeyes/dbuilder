@@ -394,7 +394,8 @@ internal sealed class WadResourceReader : IResourceReader
     public byte[]? GetColormapBytes(string name)
     {
         var rangeLump = FindInRanges(name, ConfiguredColormapRanges());
-        return rangeLump != null ? rangeLump.Stream.ReadAllBytes() : GetLumpBytes(name);
+        if (rangeLump != null) return rangeLump.Stream.ReadAllBytes();
+        return strictPatches ? null : GetLumpBytes(name);
     }
 
     public IEnumerable<string> ColormapNames() => NamesInRanges(ConfiguredColormapRanges());

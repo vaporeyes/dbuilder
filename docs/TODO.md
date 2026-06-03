@@ -463,6 +463,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style indexed image generation with palette index in red, cleared green/blue channels, and preserved alpha.
   - [x] Let nested WAD named colormaps override PK3 `colormaps/` folder entries like UDB.
   - [x] Resolve and prioritize WAD named colormaps from configured colormap ranges.
+  - [x] Restrict strict WAD named colormap lookup to configured colormap ranges like UDB.
 - [ ] Port patch name behavior fully.
   - [x] Load root PK3 `PNAMES` for classic `TEXTURE1` and `TEXTURE2` definitions.
   - [x] Reuse nested-WAD `PNAMES` for folder-resource classic texture definitions.
