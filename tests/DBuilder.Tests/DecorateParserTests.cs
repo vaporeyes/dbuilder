@@ -676,6 +676,28 @@ ACTOR RealActor 7013
     }
 
     [Fact]
+    public void TruncatedDecorateActorBodyStopsParsingLikeUdb()
+    {
+        const string text = @"
+ACTOR BeforeTruncatedBody 7014
+{
+    Radius 8
+}
+ACTOR TruncatedBody 7015
+{
+    Radius
+ACTOR AfterTruncatedBody 7016
+{
+    Radius 16
+}";
+
+        var actor = DecorateParser.Parse(text).Single();
+
+        Assert.Equal("BeforeTruncatedBody", actor.ClassName);
+        Assert.Equal(8, actor.Radius);
+    }
+
+    [Fact]
     public void ParsesTopLevelDamageTypes()
     {
         const string text = @"

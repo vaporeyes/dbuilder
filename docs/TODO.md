@@ -503,6 +503,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Complete DECORATE parser behavior.
   - [x] Parse separated DECORATE flag sign tokens.
   - [x] Stop DECORATE parsing on flag signs without names like UDB.
+  - [x] Stop DECORATE parsing on truncated actor bodies like UDB.
   - [x] Honor `skip_super` for DECORATE custom argument inheritance.
   - [x] Normalize DECORATE `Game` property values.
   - [x] Skip top-level DECORATE enum, native, and const declarations.

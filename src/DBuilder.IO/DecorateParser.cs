@@ -1317,6 +1317,12 @@ public static class DecorateParser
             }
         }
 
+        if (depth > 0)
+        {
+            stopParsing = !zscriptBody;
+            return false;
+        }
+
         TrimStateFrames(actor, stateSprites);
 
         foreach (var stateSprite in stateSprites)
