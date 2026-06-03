@@ -23,6 +23,7 @@ public class UdbScriptDockerModelTests
         Assert.Equal("Set slot", UdbScriptDockerModel.SetSlotMenuText);
         Assert.Equal("Clear slot", UdbScriptDockerModel.ClearSlotMenuText);
         Assert.Equal("Open in Explorer", UdbScriptDockerModel.OpenInExplorerMenuText);
+        Assert.Equal("scriptslots.slot", UdbScriptDockerModel.ScriptSlotSettingPrefix);
     }
 
     [Fact]
@@ -196,6 +197,44 @@ public class UdbScriptDockerModelTests
         IReadOnlyDictionary<int, UdbScriptInfo?> cleared = UdbScriptDockerModel.AssignSlot(moved, 3, null);
 
         Assert.False(cleared.ContainsKey(3));
+    }
+
+    [Fact]
+    public void LoadSlotAssignmentsMatchesUdbSettingsByScriptPath()
+    {
+        UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");
+        UdbScriptInfo beta = Script("Beta", "B", "/scripts/beta.js");
+
+        IReadOnlyDictionary<int, UdbScriptInfo?> assignments = UdbScriptDockerModel.LoadSlotAssignments(
+            new[] { alpha, beta },
+            new Dictionary<string, object?>
+            {
+                ["scriptslots.slot1"] = alpha.ScriptFile,
+                ["scriptslots.slot2"] = "   ",
+                ["scriptslots.slot3"] = "/scripts/missing.js",
+                ["scriptslots.slot4"] = beta.ScriptFile,
+            },
+            slotCount: 4);
+
+        Assert.Equal(alpha, assignments[1]);
+        Assert.False(assignments.ContainsKey(2));
+        Assert.False(assignments.ContainsKey(3));
+        Assert.Equal(beta, assignments[4]);
+    }
+
+    [Fact]
+    public void SaveSlotAssignmentOperationsWriteOnlyAssignedScripts()
+    {
+        UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");
+        UdbScriptInfo blank = Script("Blank", "B", "   ");
+
+        IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(
+            new Dictionary<int, UdbScriptInfo?> { [2] = alpha, [1] = null, [3] = blank });
+
+        UdbScriptSettingOperation operation = Assert.Single(operations);
+        Assert.Equal(UdbScriptSettingOperationKind.Write, operation.Kind);
+        Assert.Equal("scriptslots.slot2", operation.Key);
+        Assert.Equal(alpha.ScriptFile, operation.Value);
     }
 
     [Fact]

@@ -67,6 +67,7 @@ public static class UdbScriptDockerModel
     public const string OpenInExplorerMenuText = "Open in Explorer";
     public const string NotAssignedSlotText = "not assigned";
     public const string NoHotkeyText = "no hotkey";
+    public const string ScriptSlotSettingPrefix = "scriptslots.slot";
     public const string SplitOrientation = "Horizontal";
     public const string TreeSelectionMode = "SingleSelect";
     public const string DescriptionScrollBars = "Both";
@@ -203,6 +204,48 @@ public static class UdbScriptDockerModel
         return result;
     }
 
+    public static IReadOnlyDictionary<int, UdbScriptInfo?> LoadSlotAssignments(
+        IEnumerable<UdbScriptInfo> scripts,
+        IReadOnlyDictionary<string, object?> settings,
+        int slotCount = UdbScriptActions.ScriptSlotCount)
+    {
+        var scriptsByPath = scripts.ToDictionary(script => script.ScriptFile, StringComparer.Ordinal);
+        var result = new Dictionary<int, UdbScriptInfo?>();
+        for (int slot = 1; slot <= slotCount; slot++)
+        {
+            string key = SlotSettingKey(slot);
+            if (!settings.TryGetValue(key, out object? value))
+                continue;
+
+            string path = value?.ToString() ?? "";
+            if (string.IsNullOrWhiteSpace(path))
+                continue;
+
+            if (scriptsByPath.TryGetValue(path, out UdbScriptInfo? script))
+                result[slot] = script;
+        }
+
+        return result;
+    }
+
+    public static IReadOnlyList<UdbScriptSettingOperation> SaveSlotAssignmentOperations(
+        IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments)
+    {
+        var operations = new List<UdbScriptSettingOperation>();
+        foreach (KeyValuePair<int, UdbScriptInfo?> pair in slotAssignments.OrderBy(pair => pair.Key))
+        {
+            if (pair.Value is null || string.IsNullOrWhiteSpace(pair.Value.ScriptFile))
+                continue;
+
+            operations.Add(new UdbScriptSettingOperation(
+                UdbScriptSettingOperationKind.Write,
+                SlotSettingKey(pair.Key),
+                pair.Value.ScriptFile));
+        }
+
+        return operations;
+    }
+
     public static int SlotForScript(
         UdbScriptInfo script,
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments)
@@ -265,6 +308,9 @@ public static class UdbScriptDockerModel
 
     private static string SlotMenuText(int slot, string name, string hotkey)
         => "Slot " + slot + ": " + name + " [" + hotkey + "]";
+
+    private static string SlotSettingKey(int slot)
+        => ScriptSlotSettingPrefix + slot;
 
     private static string HotkeyText(int slot, IReadOnlyDictionary<int, string> hotkeys)
         => slot != 0 && hotkeys.TryGetValue(slot, out string? hotkey) && !string.IsNullOrWhiteSpace(hotkey)
