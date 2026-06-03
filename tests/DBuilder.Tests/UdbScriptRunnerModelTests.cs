@@ -375,4 +375,49 @@ public class UdbScriptRunnerModelTests
         Assert.Equal(statusKind, outcome.StatusKind);
         Assert.Equal(statusText, outcome.StatusText);
     }
+
+    [Fact]
+    public void ExceptionHandlingPlanMatchesUdbDialogAndStatusBranches()
+    {
+        UdbScriptRunnerExceptionHandlingPlan parser = UdbScriptRunnerModel.ExceptionHandlingPlan(
+            UdbScriptRunnerExceptionKind.ParserError,
+            "bad token");
+
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.ParserMessageBox, parser.DialogKind);
+        Assert.Equal("Script error", parser.DialogTitle);
+        Assert.Equal("There is an error while parsing the script:\n\nbad token", parser.DialogMessage);
+        Assert.True(parser.Outcome.WithdrawUndo);
+
+        UdbScriptRunnerExceptionHandlingPlan javascriptObject = UdbScriptRunnerModel.ExceptionHandlingPlan(
+            UdbScriptRunnerExceptionKind.JavaScriptError,
+            "object throw",
+            javascriptThrowIsString: false,
+            javascriptStackTrace: "script stack",
+            internalStackTrace: "internal stack");
+
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.ErrorDialog, javascriptObject.DialogKind);
+        Assert.NotNull(javascriptObject.ErrorDialog);
+        Assert.Equal("object throw\r\nscript stack", javascriptObject.ErrorDialog.StackTraceText);
+        Assert.Equal("internal stack", javascriptObject.ErrorDialog.InternalStackTraceText);
+        Assert.Equal(UdbScriptRunnerStatusKind.None, javascriptObject.Outcome.StatusKind);
+
+        UdbScriptRunnerExceptionHandlingPlan javascriptString = UdbScriptRunnerModel.ExceptionHandlingPlan(
+            UdbScriptRunnerExceptionKind.JavaScriptError,
+            "string throw",
+            javascriptThrowIsString: true);
+
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.None, javascriptString.DialogKind);
+        Assert.Equal(UdbScriptRunnerStatusKind.Warning, javascriptString.Outcome.StatusKind);
+        Assert.Equal("string throw", javascriptString.Outcome.StatusText);
+
+        UdbScriptRunnerExceptionHandlingPlan unknown = UdbScriptRunnerModel.ExceptionHandlingPlan(
+            UdbScriptRunnerExceptionKind.Unknown,
+            "unexpected",
+            internalStackTrace: "clr stack");
+
+        Assert.Equal(UdbScriptRunnerExceptionDialogKind.ErrorDialog, unknown.DialogKind);
+        Assert.NotNull(unknown.ErrorDialog);
+        Assert.Equal("unexpected\r\n", unknown.ErrorDialog.StackTraceText);
+        Assert.Equal("clr stack", unknown.ErrorDialog.InternalStackTraceText);
+    }
 }

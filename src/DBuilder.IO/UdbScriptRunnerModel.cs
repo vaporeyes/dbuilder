@@ -36,11 +36,25 @@ public enum UdbScriptHostMemberKind
     ScriptOptions,
 }
 
+public enum UdbScriptRunnerExceptionDialogKind
+{
+    None,
+    ParserMessageBox,
+    ErrorDialog,
+}
+
 public sealed record UdbScriptRunnerExceptionOutcome(
     UdbScriptRunnerExceptionKind Kind,
     bool WithdrawUndo,
     UdbScriptRunnerStatusKind StatusKind,
     string StatusText);
+
+public sealed record UdbScriptRunnerExceptionHandlingPlan(
+    UdbScriptRunnerExceptionOutcome Outcome,
+    UdbScriptRunnerExceptionDialogKind DialogKind,
+    string DialogTitle,
+    string DialogMessage,
+    UdbScriptErrorDialog? ErrorDialog);
 
 public sealed record UdbScriptVersionGate(
     bool RequiresPrompt,
@@ -203,6 +217,8 @@ public static class UdbScriptRunnerModel
     public const string ErrorDialogOkButtonText = "OK";
     public const string ErrorDialogJavaScriptStackTraceTabText = "JavaScript stack trace";
     public const string ErrorDialogInternalStackTraceTabText = "Internal stack trace";
+    public const string ParserErrorDialogTitle = "Script error";
+    public const string ParserErrorDialogPrefix = "There is an error while parsing the script:\n\n";
 
     public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
     [
@@ -392,6 +408,39 @@ public static class UdbScriptRunnerModel
             UdbScriptRunnerExceptionKind.Die => new(kind, true, string.IsNullOrEmpty(message) ? UdbScriptRunnerStatusKind.None : UdbScriptRunnerStatusKind.Warning, message),
             UdbScriptRunnerExceptionKind.ExecutionCanceled => new(kind, true, UdbScriptRunnerStatusKind.None, ""),
             _ => new(UdbScriptRunnerExceptionKind.Unknown, true, UdbScriptRunnerStatusKind.None, ""),
+        };
+    }
+
+    public static UdbScriptRunnerExceptionHandlingPlan ExceptionHandlingPlan(
+        UdbScriptRunnerExceptionKind kind,
+        string message = "",
+        bool javascriptThrowIsString = false,
+        string javascriptStackTrace = "",
+        string internalStackTrace = "")
+    {
+        UdbScriptRunnerExceptionOutcome outcome = ClassifyException(kind, message, javascriptThrowIsString);
+
+        return kind switch
+        {
+            UdbScriptRunnerExceptionKind.ParserError => new(
+                outcome,
+                UdbScriptRunnerExceptionDialogKind.ParserMessageBox,
+                ParserErrorDialogTitle,
+                ParserErrorDialogPrefix + message,
+                null),
+            UdbScriptRunnerExceptionKind.JavaScriptError when !javascriptThrowIsString => new(
+                outcome,
+                UdbScriptRunnerExceptionDialogKind.ErrorDialog,
+                "",
+                "",
+                ErrorDialog(message, javascriptStackTrace, internalStackTrace)),
+            UdbScriptRunnerExceptionKind.Unknown => new(
+                outcome,
+                UdbScriptRunnerExceptionDialogKind.ErrorDialog,
+                "",
+                "",
+                ErrorDialog(message, "", internalStackTrace)),
+            _ => new(outcome, UdbScriptRunnerExceptionDialogKind.None, "", "", null),
         };
     }
 
