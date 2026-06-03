@@ -256,7 +256,7 @@ public static class TexturesParser
         if (!ReadComma(t, ref i) || !ReadInt(t, ref i, out int x) || !ReadComma(t, ref i) || !ReadInt(t, ref i, out int y)) return false;
         var patch = new TexturesPatch
         {
-            Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).ToUpperInvariant(),
+            Name = name.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
             X = x,
             Y = y,
             Skip = name.Equals("TNT1A0", StringComparison.OrdinalIgnoreCase),

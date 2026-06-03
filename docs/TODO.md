@@ -603,6 +603,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve backslashes in quoted TEXTURES names like UDB.
   - [x] Honor TEXTURES `//$gzdb_skip` editor comments like UDB.
   - [x] Skip TEXTURES `#region` and `#endregion` directives like UDB.
+  - [x] Preserve TEXTURES patch name casing like UDB.
 - [x] Port MODELDEF parser.
   - [x] Reject unsupported MODELDEF model file extensions like UDB.
   - [x] Reject negative MODELDEF model, skin, surface skin, and frame model indexes like UDB.
