@@ -75,7 +75,8 @@ public sealed record UdbScriptRunnerUiState(
     string ActionButtonText,
     bool ActionButtonEnabled,
     bool ProgressIsMarquee,
-    double Opacity);
+    double Opacity,
+    bool AutoClose);
 
 public sealed class UdbScriptUserAbortException : Exception
 {
@@ -232,7 +233,8 @@ public static class UdbScriptRunnerModel
             CancelButtonText,
             false,
             true,
-            0.0);
+            0.0,
+            true);
 
     public static UdbScriptRunnerUiState FinishedUiState(TimeSpan runtime, bool autoClose)
         => new(
@@ -241,7 +243,24 @@ public static class UdbScriptRunnerModel
             CloseButtonText,
             true,
             false,
-            autoClose ? 0.0 : 1.0);
+            autoClose ? 0.0 : 1.0,
+            autoClose);
+
+    public static UdbScriptRunnerUiState ProgressReportedUiState(UdbScriptRunnerUiState state)
+        => state with
+        {
+            ActionButtonEnabled = true,
+            ProgressIsMarquee = false,
+            Opacity = 1.0,
+        };
+
+    public static UdbScriptRunnerUiState LogReportedUiState(UdbScriptRunnerUiState state)
+        => state with
+        {
+            ActionButtonEnabled = true,
+            Opacity = 1.0,
+            AutoClose = false,
+        };
 
     public static bool ShouldMakeRunnerVisible(TimeSpan elapsed)
         => elapsed.TotalMilliseconds > RunnerVisibilityThresholdMilliseconds;

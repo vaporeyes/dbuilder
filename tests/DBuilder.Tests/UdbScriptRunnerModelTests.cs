@@ -47,6 +47,7 @@ public class UdbScriptRunnerModelTests
         Assert.False(initial.ActionButtonEnabled);
         Assert.True(initial.ProgressIsMarquee);
         Assert.Equal(0.0, initial.Opacity);
+        Assert.True(initial.AutoClose);
 
         TimeSpan runtime = new(0, 1, 2, 3, 4);
         UdbScriptRunnerUiState finished = UdbScriptRunnerModel.FinishedUiState(runtime, autoClose: false);
@@ -57,7 +58,9 @@ public class UdbScriptRunnerModelTests
         Assert.True(finished.ActionButtonEnabled);
         Assert.False(finished.ProgressIsMarquee);
         Assert.Equal(1.0, finished.Opacity);
+        Assert.False(finished.AutoClose);
         Assert.Equal(0.0, UdbScriptRunnerModel.FinishedUiState(runtime, autoClose: true).Opacity);
+        Assert.True(UdbScriptRunnerModel.FinishedUiState(runtime, autoClose: true).AutoClose);
     }
 
     [Fact]
@@ -68,6 +71,26 @@ public class UdbScriptRunnerModelTests
         Assert.Equal("Running script (01:02:03)", UdbScriptRunnerModel.RunningWindowTitle(new TimeSpan(0, 1, 2, 3, 999)));
         Assert.Equal("first", UdbScriptRunnerModel.AppendLog("", "first"));
         Assert.Equal("first" + Environment.NewLine + "second", UdbScriptRunnerModel.AppendLog("first", "second"));
+    }
+
+    [Fact]
+    public void RunnerProgressAndLogReportsMatchUdbFormVisibility()
+    {
+        UdbScriptRunnerUiState initial = UdbScriptRunnerModel.InitialUiState();
+
+        UdbScriptRunnerUiState progress = UdbScriptRunnerModel.ProgressReportedUiState(initial);
+
+        Assert.True(progress.ActionButtonEnabled);
+        Assert.False(progress.ProgressIsMarquee);
+        Assert.Equal(1.0, progress.Opacity);
+        Assert.True(progress.AutoClose);
+
+        UdbScriptRunnerUiState logged = UdbScriptRunnerModel.LogReportedUiState(initial);
+
+        Assert.True(logged.ActionButtonEnabled);
+        Assert.True(logged.ProgressIsMarquee);
+        Assert.Equal(1.0, logged.Opacity);
+        Assert.False(logged.AutoClose);
     }
 
     [Fact]
