@@ -116,6 +116,22 @@ public class DoomMapWriterTests
     }
 
     [Fact]
+    public void WriteVertexesRoundsCoordinatesLikeUdb()
+    {
+        var map = new MapSet();
+        map.Vertices.Add(new Vertex(new Vector2D(10.6, -10.6)));
+        map.Vertices.Add(new Vertex(new Vector2D(10.4, -10.4)));
+
+        var bytes = DoomMapWriter.WriteVertexes(map);
+
+        using var reader = new BinaryReader(new MemoryStream(bytes));
+        Assert.Equal(11, reader.ReadInt16());
+        Assert.Equal(-11, reader.ReadInt16());
+        Assert.Equal(10, reader.ReadInt16());
+        Assert.Equal(-10, reader.ReadInt16());
+    }
+
+    [Fact]
     public void WriteSectorsByteExact()
     {
         var map = LoadSynthetic();

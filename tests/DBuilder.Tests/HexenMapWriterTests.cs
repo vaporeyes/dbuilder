@@ -125,6 +125,19 @@ public class HexenMapWriterTests
         Assert.Equal(expected, HexenMapWriter.WriteThings(map));
     }
 
+    [Fact]
+    public void SharedVertexWriterRoundsCoordinatesLikeUdb()
+    {
+        var map = new MapSet();
+        map.Vertices.Add(new Vertex(new Vector2D(4.6, -4.6)));
+
+        var bytes = DoomMapWriter.WriteVertexes(map);
+
+        using var reader = new BinaryReader(new MemoryStream(bytes));
+        Assert.Equal(5, reader.ReadInt16());
+        Assert.Equal(-5, reader.ReadInt16());
+    }
+
     // ============================================================
     // Full WriteMap into a WAD + re-load round trip
     // ============================================================

@@ -58,8 +58,8 @@ public static class DoomMapWriter
         using var w = new BinaryWriter(ms);
         foreach (var v in map.Vertices)
         {
-            w.Write((short)v.Position.x);
-            w.Write((short)v.Position.y);
+            w.Write(RoundMapCoordinate(v.Position.x));
+            w.Write(RoundMapCoordinate(v.Position.y));
         }
         return ms.ToArray();
     }
@@ -150,6 +150,9 @@ public static class DoomMapWriter
         if (item != null && indexes.TryGetValue(item, out int index)) return index;
         throw new InvalidDataException("Cannot write Doom map with missing " + description + ".");
     }
+
+    private static short RoundMapCoordinate(double value)
+        => (short)(int)System.Math.Round(value);
 
     private static byte[] FixedString(string s, int length)
     {
