@@ -1320,42 +1320,57 @@ class AnonymousBlockStateZThing : Actor
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameSpecialWithoutArguments()
+    public void RejectsZScriptStateFrameSpecialWithoutArguments()
     {
         const string zscript = @"
 class MissingStateSpecialArgumentsZThing : Actor
 {
     States { Spawn: LARG A -1 Light ""BAD_LIGHT""; Stop; }
+}
+class ValidAfterMissingStateSpecialArgumentsZThing : Actor
+{
+    States { Spawn: VSSA A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingStateSpecialArgumentsZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterMissingStateSpecialArgumentsZThing", actor.ClassName);
+        Assert.Equal("VSSAA0", actor.EditorSprite);
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameWithInvalidLightArgument()
+    public void RejectsZScriptStateFrameWithInvalidLightArgument()
     {
         const string zscript = @"
 class InvalidStateLightArgumentZThing : Actor
 {
     States { Spawn: LNUM A -1 Light(1); Stop; }
+}
+class ValidAfterInvalidStateLightArgumentZThing : Actor
+{
+    States { Spawn: VILA A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "InvalidStateLightArgumentZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterInvalidStateLightArgumentZThing", actor.ClassName);
+        Assert.Equal("VILAA0", actor.EditorSprite);
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameWithInvalidDurationLimit()
+    public void RejectsZScriptStateFrameWithInvalidDurationLimit()
     {
         const string zscript = @"
 class InvalidStateDurationLimitZThing : Actor
 {
     States { Spawn: DLIM A int.foo; Stop; }
+}
+class ValidAfterInvalidStateDurationLimitZThing : Actor
+{
+    States { Spawn: VIDL A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "InvalidStateDurationLimitZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterInvalidStateDurationLimitZThing", actor.ClassName);
+        Assert.Equal("VIDLA0", actor.EditorSprite);
     }
 
     [Fact]

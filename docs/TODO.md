@@ -803,6 +803,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require ZScript `Light` and `Offset` state-frame specials to use arguments.
   - [x] Require ZScript `Light` state-frame specials to use one name argument.
   - [x] Validate ZScript `int.min` and `int.max` state-frame duration members.
+  - [x] Reject malformed ZScript state-frame duration and special tails like UDB.
   - [x] Reject ZScript state-frame sprite names whose length is not four like UDB.
   - [x] Reject ZScript state-frame tokens with invalid frame letters.
   - [x] Require ZScript state-frame action functions to end with semicolons.

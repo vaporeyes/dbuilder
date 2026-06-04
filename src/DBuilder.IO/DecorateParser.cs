@@ -1280,6 +1280,11 @@ public static class DecorateParser
                         stopParsing = true;
                         return false;
                     }
+                    if (zscriptBody && HasMalformedZScriptStateFrameDurationOrSpecial(t, i + 1))
+                    {
+                        SkipRemainingActorBody(t, ref i, depth);
+                        return false;
+                    }
                     if (zscriptBody && HasMalformedZScriptStateFrameActionArgumentList(t, i + 1))
                     {
                         SkipRemainingActorBody(t, ref i, depth);
@@ -1416,6 +1421,11 @@ public static class DecorateParser
                 {
                     SkipRemainingActorBody(t, ref i, depth);
                     stopParsing = true;
+                    return false;
+                }
+                if (zscriptBody && HasMalformedZScriptStateFrameDurationOrSpecial(t, i + 1))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
                     return false;
                 }
                 if (zscriptBody && HasMalformedZScriptStateFrameActionArgumentList(t, i + 1))
@@ -1758,6 +1768,48 @@ public static class DecorateParser
     private static bool IsZScriptStateFrameDurationLimit(string value)
         => value.Equals("min", StringComparison.OrdinalIgnoreCase)
         || value.Equals("max", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasMalformedZScriptStateFrameDurationOrSpecial(List<Tok> t, int durationIndex)
+    {
+        if (HasMalformedZScriptStateFrameDurationMember(t, durationIndex)) return true;
+        if (!HasValidZScriptStateFrameDuration(t, durationIndex)) return false;
+
+        int tailStart = ZScriptStateFrameDurationEnd(t, durationIndex);
+        var specials = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (int i = tailStart; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is ";" or "{" or "}") return false;
+            if (IsStateLabel(t, i + 1)) return false;
+            if (t[i].Kind != Kind.Word) continue;
+
+            string? special = ZScriptStateFrameSpecial(t[i].Text);
+            if (special == null) return false;
+            if (!specials.Add(special)) return true;
+            if (special is "light" or "offset" && !ZScriptStateFrameSpecialHasArguments(t, i)) return true;
+            if (special == "light" && !ZScriptStateFrameLightHasSingleNameArgument(t, i)) return true;
+            if (special is "light" or "offset")
+            {
+                int argumentStart = t[i].Text.Contains('(', StringComparison.Ordinal) ? i : i + 1;
+                i = ZScriptStateFrameArgumentListEnd(t, argumentStart) - 1;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasMalformedZScriptStateFrameDurationMember(List<Tok> t, int durationIndex)
+    {
+        if (durationIndex >= t.Count || t[durationIndex].Kind != Kind.Word) return false;
+        string lower = t[durationIndex].Text.ToLowerInvariant();
+        int dotIndex = lower.IndexOf('.', StringComparison.Ordinal);
+        if (dotIndex >= 0)
+            return IsZScriptStateFrameDurationType(lower[..dotIndex])
+                && !IsZScriptStateFrameDurationLimit(lower[(dotIndex + 1)..]);
+        if (!IsZScriptStateFrameDurationType(lower)) return false;
+        return durationIndex + 2 >= t.Count
+            || t[durationIndex + 1].Text != "."
+            || !IsZScriptStateFrameDurationLimit(t[durationIndex + 2].Text);
+    }
 
     private static bool ZScriptStateFrameActionHasSemicolon(List<Tok> t, int actionIndex)
     {
