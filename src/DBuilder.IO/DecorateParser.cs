@@ -1697,12 +1697,26 @@ public static class DecorateParser
 
     private static bool ZScriptStateFrameActionHasSemicolon(List<Tok> t, int actionIndex)
     {
-        int end = actionIndex + 1;
-        if (actionIndex + 1 < t.Count && t[actionIndex + 1].Text.StartsWith("(", StringComparison.Ordinal))
-            end = ZScriptStateFrameArgumentListEnd(t, actionIndex + 1);
+        int end = ZScriptStateFrameActionNameEnd(t, actionIndex);
+        if (end < t.Count && t[end].Text.StartsWith("(", StringComparison.Ordinal))
+            end = ZScriptStateFrameArgumentListEnd(t, end);
         else if (t[actionIndex].Text.Contains('(', StringComparison.Ordinal))
-            end = t[actionIndex].Text.Contains(')', StringComparison.Ordinal) ? actionIndex + 1 : ZScriptStateFrameArgumentListEnd(t, actionIndex + 1);
+            end = t[actionIndex].Text.Contains(')', StringComparison.Ordinal) ? end : ZScriptStateFrameArgumentListEnd(t, end);
         return end < t.Count && t[end].Kind == Kind.Sym && t[end].Text == ";";
+    }
+
+    private static int ZScriptStateFrameActionNameEnd(List<Tok> t, int actionIndex)
+    {
+        int end = actionIndex + 1;
+        while (end + 1 < t.Count
+            && t[end].Kind == Kind.Sym
+            && t[end].Text == "."
+            && t[end + 1].Kind == Kind.Word)
+        {
+            end += 2;
+        }
+
+        return end;
     }
 
     private static int ZScriptStateFrameArgumentListEnd(List<Tok> t, int start)

@@ -1212,6 +1212,19 @@ class DuplicateStateSpecialZThing : Actor
     }
 
     [Fact]
+    public void UsesZScriptStateFrameWithDottedActionFunctionLikeUdb()
+    {
+        const string zscript = @"
+class DottedActionStateZThing : Actor
+{
+    States { Spawn: DACT A -1 Some.Namespace.Action(); Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("DACTA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DoesNotUseZScriptStateFrameSpecialWithoutArguments()
     {
         const string zscript = @"
