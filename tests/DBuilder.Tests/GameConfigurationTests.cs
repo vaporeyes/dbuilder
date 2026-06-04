@@ -1458,6 +1458,45 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void IgnoresNestedThingCategoryGroupsWithoutDirectThingsLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                root
+                {
+                    title = "Root";
+
+                    group
+                    {
+                        title = "Group";
+
+                        child
+                        {
+                            title = "Child";
+                            1002 = "Ignored";
+                        }
+                    }
+
+                    direct
+                    {
+                        title = "Direct";
+                        1003 = "Parsed";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.True(gc.ThingCategories.ContainsKey("root"));
+        Assert.False(gc.ThingCategories.ContainsKey("root.group"));
+        Assert.False(gc.ThingCategories.ContainsKey("root.group.child"));
+        Assert.Null(gc.GetThing(1002));
+        Assert.Equal("Parsed", gc.GetThing(1003)!.Title);
+    }
+
+    [Fact]
     public void UnknownThingFallsBackToPlaceholderTitle()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

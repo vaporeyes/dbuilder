@@ -1764,6 +1764,7 @@ public sealed class GameConfiguration
             else
             {
                 if (e.Value is not IDictionary child) continue;
+                if (!HasDirectThingDefinitions(child)) continue;
                 ParseThingCategory(key + "." + childKey, child, info);
             }
         }
@@ -1772,6 +1773,15 @@ public sealed class GameConfiguration
     private void AddThingType(int number, ThingTypeInfo thing)
     {
         if (!things.ContainsKey(number)) things.Add(number, thing);
+    }
+
+    private static bool HasDirectThingDefinitions(IDictionary cat)
+    {
+        foreach (DictionaryEntry entry in cat)
+            if (int.TryParse(entry.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                return true;
+
+        return false;
     }
 
     private static bool IsValidThingCategory(IDictionary cat, string key, string title)
