@@ -307,6 +307,20 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void LookThroughSelection3DSuppressesSyntheticSuccessStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool LookThroughSelectedThing3D()", StringComparison.Ordinal);
+        int nextMethodIndex = body.IndexOf("private bool AlignSelectedVisualThingsToWall3D()", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(nextMethodIndex > methodIndex);
+        string methodBody = body[methodIndex..nextMethodIndex];
+        Assert.DoesNotContain("looking through thing", methodBody, StringComparison.Ordinal);
+        Assert.Contains("if (pose.StatusMessage != null) Target3DChanged?.Invoke(pose.StatusMessage);", methodBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AlignThingsToWall3DUsesUdbEmptySelectionWarning()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
