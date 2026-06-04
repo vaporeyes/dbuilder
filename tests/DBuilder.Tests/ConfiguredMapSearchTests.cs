@@ -346,6 +346,18 @@ public class ConfiguredMapSearchTests
     public void ReplaceActionArgumentsWritesArg0StringOnlyWhenReplacementActionSupportsIt()
     {
         var config = GameConfiguration.FromText("""
+            thingtypes
+            {
+                scripts
+                {
+                    title = "Scripts";
+                    3001
+                    {
+                        title = "Scripted thing";
+                        arg0 { str = true; }
+                    }
+                }
+            }
             linedeftypes
             {
                 scripts
@@ -362,9 +374,10 @@ public class ConfiguredMapSearchTests
                     }
                 }
             }
-            """);
+        """);
         var map = BuildMap();
         map.AddThing(new Vector2D(16, 16), 3001);
+        map.AddThing(new Vector2D(24, 24), 3001);
         map.Linedefs[0].Action = 80;
         map.Linedefs[0].Fields["arg0str"] = "CurrentLine";
         map.Linedefs[0].Args[1] = 5;
@@ -374,10 +387,14 @@ public class ConfiguredMapSearchTests
         map.Things[0].Action = 80;
         map.Things[0].Fields["arg0str"] = "CurrentThing";
         map.Things[0].Args[1] = 5;
+        map.Things[1].Action = 80;
+        map.Things[1].Fields["arg0str"] = "CurrentTypeBackedThing";
+        map.Things[1].Args[1] = 5;
 
         Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 CurrentLine 5", "80 NextLine 9", config));
         Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 CurrentBlockedLine 5", "82 BlockedLine 9", config));
         Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.ThingActionArguments, "80 CurrentThing 5", "82 BlockedThing 9", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.ThingActionArguments, "80 CurrentTypeBackedThing 5", "0 TypeBackedThing 9", config));
 
         Assert.Equal("NextLine", map.Linedefs[0].Fields["arg0str"]);
         Assert.Equal(9, map.Linedefs[0].Args[1]);
@@ -387,6 +404,9 @@ public class ConfiguredMapSearchTests
         Assert.Equal("CurrentThing", map.Things[0].Fields["arg0str"]);
         Assert.Equal(82, map.Things[0].Action);
         Assert.Equal(9, map.Things[0].Args[1]);
+        Assert.Equal("TypeBackedThing", map.Things[1].Fields["arg0str"]);
+        Assert.Equal(0, map.Things[1].Action);
+        Assert.Equal(9, map.Things[1].Args[1]);
     }
 
     [Fact]

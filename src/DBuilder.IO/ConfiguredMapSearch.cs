@@ -25,14 +25,14 @@ public static class ConfiguredMapSearch
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config));
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config));
     }
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config));
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config));
     }
 
     private static (int Min, int Max) ThingTypeRange(GameConfiguration? config)
@@ -128,6 +128,15 @@ public static class ConfiguredMapSearch
         => config is null
             ? null
             : action => config.GetLinedefAction(action)?.Args is { Length: > 0 } args && args[0].Str;
+
+    private static Func<int, int, bool>? ThingActionArg0StringSupported(GameConfiguration? config)
+        => config is null
+            ? null
+            : (action, thingType) =>
+            {
+                if (action > 0) return config.GetLinedefAction(action)?.Args is { Length: > 0 } args && args[0].Str;
+                return config.GetThing(thingType)?.Args is { Length: > 0 } thingArgs && thingArgs[0].Str;
+            };
 
     private static bool GeneralizedActionBitsOverlap(int actual, int expected, GameConfiguration config)
     {
