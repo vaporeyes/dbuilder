@@ -214,6 +214,11 @@ public sealed class MainWindowCommandTests
         int floorVertexHeightsIndex = body.IndexOf("dialog.ResultUseFloorVertexHeights", floorIndex, StringComparison.Ordinal);
         int ceilingIndex = body.IndexOf("BuilderEffects.ApplySectorCeilingHeight(", floorVertexHeightsIndex, StringComparison.Ordinal);
         int ceilingVertexHeightsIndex = body.IndexOf("dialog.ResultUseCeilingVertexHeights", ceilingIndex, StringComparison.Ordinal);
+        int peggingIndex = body.IndexOf("BuilderEffects.ApplySectorPegging(", ceilingVertexHeightsIndex, StringComparison.Ordinal);
+        int upperUnpeggedFlagIndex = body.IndexOf("_config?.UpperUnpeggedFlag", peggingIndex, StringComparison.Ordinal);
+        int lowerUnpeggedFlagIndex = body.IndexOf("_config?.LowerUnpeggedFlag", upperUnpeggedFlagIndex, StringComparison.Ordinal);
+        int upperUnpeggedResultIndex = body.IndexOf("dialog.ResultUpperUnpegged", lowerUnpeggedFlagIndex, StringComparison.Ordinal);
+        int lowerUnpeggedResultIndex = body.IndexOf("dialog.ResultLowerUnpegged", upperUnpeggedResultIndex, StringComparison.Ordinal);
         int helperIndex = body.IndexOf("private static int JitterSectorSafeHeightDistance(Sector sector)", StringComparison.Ordinal);
         int formulaIndex = body.IndexOf("Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2)", helperIndex, StringComparison.Ordinal);
 
@@ -223,6 +228,11 @@ public sealed class MainWindowCommandTests
         Assert.True(floorVertexHeightsIndex > floorIndex);
         Assert.True(ceilingIndex > floorVertexHeightsIndex);
         Assert.True(ceilingVertexHeightsIndex > ceilingIndex);
+        Assert.True(peggingIndex > ceilingVertexHeightsIndex);
+        Assert.True(upperUnpeggedFlagIndex > peggingIndex);
+        Assert.True(lowerUnpeggedFlagIndex > upperUnpeggedFlagIndex);
+        Assert.True(upperUnpeggedResultIndex > lowerUnpeggedFlagIndex);
+        Assert.True(lowerUnpeggedResultIndex > upperUnpeggedResultIndex);
         Assert.True(helperIndex > ceilingIndex);
         Assert.True(formulaIndex > helperIndex);
     }
@@ -372,6 +382,10 @@ public sealed class MainWindowCommandTests
         Assert.Contains("AddCheckBox(\"Use ceiling vertex heights\", ResultUseCeilingVertexHeights)", body, StringComparison.Ordinal);
         Assert.Contains("_useFloorVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
         Assert.Contains("_useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Upper Unpegged\", ResultUpperUnpegged)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Lower Unpegged\", ResultLowerUnpegged)", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUpperUnpegged = _upperUnpegged.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultLowerUnpegged = _lowerUnpegged.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseAndLower, \"Raise and lower\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Raise only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Lower only\")", body, StringComparison.Ordinal);

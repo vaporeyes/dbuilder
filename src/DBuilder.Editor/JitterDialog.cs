@@ -29,6 +29,8 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _ceilingAmount;
     private readonly ComboBox _ceilingOffsetMode;
     private readonly CheckBox _useCeilingVertexHeights;
+    private readonly CheckBox _upperUnpegged;
+    private readonly CheckBox _lowerUnpegged;
     private readonly TextBox _thingRotationAmount;
     private readonly TextBox _thingHeightAmount;
     private readonly TextBox _thingPitchAmount;
@@ -53,6 +55,8 @@ public sealed class JitterDialog : PropertyDialog
     public int ResultCeilingAmount { get; private set; } = 16;
     public JitterOffsetMode ResultCeilingOffsetMode { get; private set; } = JitterOffsetMode.RaiseAndLower;
     public bool ResultUseCeilingVertexHeights { get; private set; }
+    public bool ResultUpperUnpegged { get; private set; }
+    public bool ResultLowerUnpegged { get; private set; }
     public int ResultThingRotationAmount { get; private set; } = 45;
     public int ResultThingHeightAmount { get; private set; } = 16;
     public int ResultThingPitchAmount { get; private set; }
@@ -95,6 +99,8 @@ public sealed class JitterDialog : PropertyDialog
         _ceilingOffsetMode = AddCombo("Ceiling offset mode", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode);
         _useCeilingVertexHeights = AddCheckBox("Use ceiling vertex heights", ResultUseCeilingVertexHeights);
         _useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;
+        _upperUnpegged = AddCheckBox("Upper Unpegged", ResultUpperUnpegged);
+        _lowerUnpegged = AddCheckBox("Lower Unpegged", ResultLowerUnpegged);
         _thingRotationAmount = AddField("Thing angle amount", ResultThingRotationAmount.ToString(CultureInfo.InvariantCulture));
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
         _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
@@ -122,6 +128,8 @@ public sealed class JitterDialog : PropertyDialog
         ResultCeilingAmount = Math.Max(0, ParseInt(_ceilingAmount, ResultCeilingAmount));
         ResultCeilingOffsetMode = (JitterOffsetMode)ComboNumber(_ceilingOffsetMode, (int)ResultCeilingOffsetMode);
         ResultUseCeilingVertexHeights = _useCeilingVertexHeights.IsEnabled && _useCeilingVertexHeights.IsChecked == true;
+        ResultUpperUnpegged = _upperUnpegged.IsChecked == true;
+        ResultLowerUnpegged = _lowerUnpegged.IsChecked == true;
         ResultThingRotationAmount = Math.Max(0, ParseInt(_thingRotationAmount, ResultThingRotationAmount));
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));

@@ -5313,6 +5313,12 @@ public partial class MainWindow : Window
                 dialog.ResultCeilingAmount,
                 dialog.ResultCeilingOffsetMode,
                 dialog.ResultUseCeilingVertexHeights);
+            changed += BuilderEffects.ApplySectorPegging(
+                sectors,
+                _config?.UpperUnpeggedFlag,
+                _config?.LowerUnpeggedFlag,
+                dialog.ResultUpperUnpegged,
+                dialog.ResultLowerUnpegged);
         }
 
         if (things.Count > 0)

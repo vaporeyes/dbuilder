@@ -79,6 +79,29 @@ public class BuilderEffectsTests
     }
 
     [Fact]
+    public void SectorPeggingAppliesNamedAndNumericLineFlags()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var sector = map.AddSector();
+        map.AddSidedef(line, isFront: true, sector);
+        map.BuildIndexes();
+
+        int changed = BuilderEffects.ApplySectorPegging(
+            [sector],
+            upperUnpeggedFlag: "dontpegtop",
+            lowerUnpeggedFlag: "16",
+            upperUnpegged: true,
+            lowerUnpegged: true);
+
+        Assert.Equal(2, changed);
+        Assert.True(line.IsFlagSet("dontpegtop"));
+        Assert.Equal(16, line.Flags & 16);
+    }
+
+    [Fact]
     public void ThingTranslationRotationPitchRollAndHeightUseCachedValues()
     {
         var thing = new Thing(new Vector2D(0, 0), 3001, angle: 90)

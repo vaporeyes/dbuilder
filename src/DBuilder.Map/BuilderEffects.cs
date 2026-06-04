@@ -2,6 +2,7 @@
 // ABOUTME: Applies cached random factors to vertices, sectors, and things without UI dependencies.
 
 using DBuilder.Geometry;
+using System.Globalization;
 
 namespace DBuilder.Map;
 
@@ -116,6 +117,30 @@ public static class BuilderEffects
         }
 
         return sectors.Count;
+    }
+
+    public static int ApplySectorPegging(
+        IReadOnlyCollection<Sector> sectors,
+        string? upperUnpeggedFlag,
+        string? lowerUnpeggedFlag,
+        bool upperUnpegged,
+        bool lowerUnpegged)
+    {
+        if (!upperUnpegged && !lowerUnpegged) return 0;
+
+        var lines = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (Sector sector in sectors)
+            foreach (Sidedef side in sector.Sidedefs)
+                lines.Add(side.Line);
+
+        int changed = 0;
+        foreach (Linedef line in lines)
+        {
+            if (upperUnpegged && SetLineFlag(line, upperUnpeggedFlag, true)) changed++;
+            if (lowerUnpegged && SetLineFlag(line, lowerUnpeggedFlag, true)) changed++;
+        }
+
+        return changed;
     }
 
     public static int ApplyThingTranslation(IReadOnlyList<ThingJitter> things, int amount)
@@ -314,6 +339,24 @@ public static class BuilderEffects
             Sidedef sidedef => sidedef.UdmfFlags.Contains(flagName),
             _ => false,
         };
+    }
+
+    private static bool SetLineFlag(Linedef line, string? flag, bool value)
+    {
+        if (string.IsNullOrWhiteSpace(flag) || flag == "0") return false;
+
+        if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit))
+        {
+            if (bit == 0) return false;
+            bool wasSet = (line.Flags & bit) == bit;
+            if (value) line.Flags |= bit;
+            else line.Flags &= ~bit;
+            return wasSet != value;
+        }
+
+        bool previous = line.IsFlagSet(flag);
+        line.SetFlag(flag, value);
+        return previous != value;
     }
 
     private static int Clamp(int value, int min, int max) => Math.Min(max, Math.Max(min, value));
