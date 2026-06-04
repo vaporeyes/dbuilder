@@ -1737,6 +1737,20 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.dissolveitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
     }
 
+    [Fact]
+    public void MakeSectorModeAliasMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.makesectormode");
+
+        Assert.NotNull(command);
+        Assert.Equal("Make Sector Mode", command.Title);
+        Assert.Equal("M", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
     [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D")]

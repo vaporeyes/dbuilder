@@ -556,6 +556,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.removefirstpoint", "RemoveDrawPoint(0)")]
     [InlineData("map2d.finishdraw", "FinishDraw()")]
     [InlineData("map2d.insertitem", "InsertAtCursor()")]
+    [InlineData("map2d.makesectormode", "MakeSectorAtCursor()")]
     [InlineData("map2d.placevisualstart", "PlaceVisualStart()")]
     [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
     [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]

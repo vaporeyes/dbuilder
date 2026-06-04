@@ -311,6 +311,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.point-thing-to-cursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),
         new EditorCommandDescriptor("map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),
         new EditorCommandDescriptor("map2d.make-sector", "Make sector at cursor", "M", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.makesectormode", "Make Sector Mode", "M", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.flip", "Flip Linedefs", "F", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.fliplinedefs", "Flip Linedefs", "F", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.flip-sidedefs", "Flip Sidedefs", "Shift+F", EditorCommandScope.Map2D, AllowScroll: true),

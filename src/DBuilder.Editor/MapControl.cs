@@ -5884,6 +5884,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.removefirstpoint":
                 return RemoveDrawPoint(0);
             case "map2d.make-sector":
+            case "map2d.makesectormode":
                 MakeSectorAtCursor();
                 return true;
             case "map2d.split-line":
