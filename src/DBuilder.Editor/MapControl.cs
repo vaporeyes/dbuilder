@@ -2438,6 +2438,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return targets;
     }
 
+    private System.Collections.Generic.List<(Sector Sector, bool Ceiling)> FlatTextureOffsetTargets3D()
+    {
+        var targets = new System.Collections.Generic.List<(Sector Sector, bool Ceiling)>();
+        var seen = new System.Collections.Generic.HashSet<(Sector Sector, bool Ceiling)>();
+        foreach (VisualHit hit in EditTargets3D())
+        {
+            if (hit.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling) || hit.Sector == null) continue;
+            bool ceiling = hit.Kind == VisualHitKind.Ceiling;
+            if (seen.Add((hit.Sector, ceiling))) targets.Add((hit.Sector, ceiling));
+        }
+
+        return targets;
+    }
+
     private System.Collections.Generic.List<Linedef> WallLineTargets3D()
     {
         var targets = new System.Collections.Generic.List<Linedef>();
@@ -2461,22 +2475,66 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return targets;
     }
 
-    // Nudges the targeted or selected walls' texture offsets, undoable.
+    // Nudges the targeted or selected walls and flats' texture offsets, undoable.
     private void NudgeTargetOffset3D(int deltaX, int deltaY)
     {
-        var targets = TextureOffsetTargets3D();
-        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to offset its texture"); return; }
-        EditBegun?.Invoke("Texture offset");
-        foreach (Sidedef side in targets)
+        var wallTargets = TextureOffsetTargets3D();
+        var flatTargets = FlatTextureOffsetTargets3D();
+        if (wallTargets.Count == 0 && flatTargets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to offset its texture"); return; }
+
+        int changed = 0;
+        bool begun = false;
+        foreach (Sidedef side in wallTargets)
         {
+            if (!begun) { EditBegun?.Invoke("Texture offset"); begun = true; }
             side.OffsetX += deltaX;
             side.OffsetY += deltaY;
+            changed++;
         }
+
+        int skippedFlats = 0;
+        if (_mapFormat == MapFormat.Udmf)
+        {
+            foreach ((Sector sector, bool ceiling) in flatTargets)
+            {
+                string textureName = ceiling ? sector.CeilTexture : sector.FloorTexture;
+                var image = _resources?.GetFlat(textureName);
+                if (image == null)
+                {
+                    skippedFlats++;
+                    continue;
+                }
+
+                if (!begun) { EditBegun?.Invoke("Texture offset"); begun = true; }
+                if (VisualFlatOffset.Nudge(
+                    sector,
+                    ceiling,
+                    deltaX,
+                    deltaY,
+                    image.Width * image.ScaleX,
+                    image.Height * image.ScaleY,
+                    _yaw))
+                {
+                    changed++;
+                }
+            }
+        }
+
+        if (changed == 0)
+        {
+            Target3DChanged?.Invoke(_mapFormat == MapFormat.Udmf
+                ? "no texture dimensions for selected flat offsets"
+                : "floor/ceiling texture offsets cannot be changed in this map format");
+            return;
+        }
+
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"offset {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
+        Target3DChanged?.Invoke(skippedFlats == 0
+            ? $"offset {changed} target{(changed == 1 ? "" : "s")}"
+            : $"offset {changed} target{(changed == 1 ? "" : "s")} ({skippedFlats} missing flat image{(skippedFlats == 1 ? "" : "s")})");
     }
 
     private static bool IsLineFlagSet3D(Linedef line, string flag)
