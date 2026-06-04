@@ -252,6 +252,22 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void FunctionCallSearchClampsCaretOffsetLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Thing_Spawn = "Thing_Spawn(tid)"; }
+            """);
+        const string text = "Thing_Spawn(";
+
+        Assert.Null(ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, -1));
+        Assert.NotNull(ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length + 20));
+    }
+
+    [Fact]
     public void BuildsFunctionCallTipHighlightLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""

@@ -110,7 +110,7 @@ public static class ScriptSyntaxHighlighting
         int functionClose = scriptConfiguration.FunctionClose[0];
         int functionOpen = scriptConfiguration.FunctionOpen[0];
         int terminator = scriptConfiguration.Terminator[0];
-        int position = Math.Min(caretOffset, text.Length);
+        int position = Math.Clamp(caretOffset, 0, text.Length);
         int limit = Math.Max(0, position - MaxBacktrackLength);
         int bracketLevel = 0;
         int argumentIndex = 0;
