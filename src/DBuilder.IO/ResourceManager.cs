@@ -551,9 +551,7 @@ public sealed class ResourceManager : IDisposable
         var knownColors = BuildKnownColors();
         foreach (var reader in readers)
         {
-            var texts = new List<string>(reader.GetTextLumps("ZMAPINFO", partialTitleMatch: false));
-            if (texts.Count == 0) texts.AddRange(reader.GetTextLumps("MAPINFO", partialTitleMatch: false));
-            foreach (string text in texts)
+            foreach (string text in reader.GetMapInfoLumps())
                 mapInfo.MergeFrom(MapInfo.Parse(text, reader.GetTextResource, knownColors));
         }
     }

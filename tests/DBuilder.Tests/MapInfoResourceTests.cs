@@ -63,6 +63,57 @@ DoomEdNums { 9000 = IncludedActor }
     }
 
     [Fact]
+    public void WadMapinfoUsesLastMatchingLumpLikeUdb()
+    {
+        string wad = TestArtifacts.BuildPwadFile(
+            ("MAPINFO", Encoding.ASCII.GetBytes("map MAP01 \"Old\" { next = MAP02 }\nDoomEdNums { 9000 = OldActor }")),
+            ("MAPINFO", Encoding.ASCII.GetBytes("map MAP03 \"New\" { next = MAP04 }\nDoomEdNums { 9001 = NewActor }")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            var mapInfo = resources.GetMapInfo();
+            Assert.Null(mapInfo.GetMap("MAP01"));
+            Assert.Equal("MAP04", mapInfo.GetMap("MAP03")!.Next);
+            Assert.False(mapInfo.DoomEdNums.ContainsKey(9000));
+            Assert.Equal("newactor", mapInfo.DoomEdNums[9001]);
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
+
+    [Fact]
+    public void Pk3MapinfoIncludesNestedWadMapinfoLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(
+            ("MAPINFO", Encoding.ASCII.GetBytes("map MAP02 \"Nested\" { next = MAP03 }\nDoomEdNums { 9002 = NestedActor }")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MAPINFO.txt", Encoding.ASCII.GetBytes("map MAP01 \"Root\" { next = MAP02 }\nDoomEdNums { 9001 = RootActor }")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var mapInfo = resources.GetMapInfo();
+            Assert.Equal("MAP02", mapInfo.GetMap("MAP01")!.Next);
+            Assert.Equal("MAP03", mapInfo.GetMap("MAP02")!.Next);
+            Assert.Equal("rootactor", mapInfo.DoomEdNums[9001]);
+            Assert.Equal("nestedactor", mapInfo.DoomEdNums[9002]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+            File.Delete(nestedWad);
+        }
+    }
+
+    [Fact]
     public void ResourceManagerAggregatesMapinfoAcrossResources()
     {
         string lower = TestArtifacts.BuildPk3(("MAPINFO.txt", Encoding.ASCII.GetBytes("map MAP01 \"Entryway\" { next = MAP02 }\nDoomEdNums { 9000 = MapinfoActor }")));

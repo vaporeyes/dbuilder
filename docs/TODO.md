@@ -490,6 +490,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port UDB `DataManager` behavior.
 - [ ] Port WAD reader resource behavior.
   - [x] Resolve named WAD text-resource includes from the last matching lump like UDB.
+  - [x] Load only the last WAD `ZMAPINFO`, or last `MAPINFO` when `ZMAPINFO` is absent, like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
 - [ ] Port structured PK3 reader behavior.
@@ -498,6 +499,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor configured ignored directory names and ignored extensions when scanning PK3 resources.
   - [x] Skip files directly inside configured ignored PK3 directories like UDB.
   - [x] Skip PK3 entries with UDB-unsupported path characters.
+  - [x] Include nested WAD map-info data after root PK3 map-info files like UDB.
 - [ ] Port directory reader behavior.
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
   - [x] Skip files directly inside configured ignored folder-resource directories like UDB.

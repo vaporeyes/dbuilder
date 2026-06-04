@@ -27,6 +27,8 @@ internal interface IResourceReader : IDisposable
     string? GetTextLump(string name);
     /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
     IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch);
+    /// <summary>MAPINFO/ZMAPINFO texts selected with UDB's per-resource precedence rules.</summary>
+    IEnumerable<string> GetMapInfoLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -418,6 +420,13 @@ internal sealed class WadResourceReader : IResourceReader
             ? System.Text.Encoding.ASCII.GetString(bytes)
             : null;
 
+    public IEnumerable<string> GetMapInfoLumps()
+    {
+        int index = wad.FindLastLumpIndex("ZMAPINFO");
+        if (index < 0) index = wad.FindLastLumpIndex("MAPINFO");
+        if (index >= 0) yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
+    }
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -696,6 +705,17 @@ internal abstract class FolderResourceReader : IResourceReader
         }
 
         return null;
+    }
+
+    public virtual IEnumerable<string> GetMapInfoLumps()
+    {
+        var texts = new List<string>(LocalTextLumps("ZMAPINFO", partialTitleMatch: false));
+        if (texts.Count == 0) texts.AddRange(LocalTextLumps("MAPINFO", partialTitleMatch: false));
+        foreach (string text in texts) yield return text;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+            foreach (string text in nestedReaders[i].GetMapInfoLumps())
+                yield return text;
     }
 
     public virtual byte[]? GetLumpBytes(string name)
