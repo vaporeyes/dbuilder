@@ -237,6 +237,56 @@ public class WadAuthorModeModelTests
         Assert.Equal("WadAuthor", WadAuthorModeModel.FormatHighlightStatus(map, WadAuthorHighlight.None));
     }
 
+    [Fact]
+    public void HighlightTransitionDoesNothingWhenTargetDoesNotChange()
+    {
+        var map = EmptyLineMap();
+        WadAuthorHighlight current = new(WadAuthorHighlightKind.Linedef, map.Linedefs[0]);
+
+        WadAuthorHighlightTransitionPlan plan = WadAuthorModeModel.HighlightTransition(current, current);
+
+        Assert.False(plan.Changed);
+        Assert.Equal(WadAuthorHighlightRenderSurface.None, plan.PreviousSurface);
+        Assert.Equal(WadAuthorHighlightRenderSurface.None, plan.CurrentSurface);
+        Assert.False(plan.HideInfo);
+        Assert.Equal(WadAuthorHighlightKind.None, plan.ShowInfoKind);
+        Assert.False(plan.Present);
+    }
+
+    [Fact]
+    public void HighlightTransitionUsesThingsRendererOnlyForThings()
+    {
+        var (map, sector, _) = SquareSectorMap();
+        Thing thing = map.AddThing(new Vector2D(16, 16), 3001);
+
+        WadAuthorHighlightTransitionPlan plan = WadAuthorModeModel.HighlightTransition(
+            new WadAuthorHighlight(WadAuthorHighlightKind.Thing, thing),
+            new WadAuthorHighlight(WadAuthorHighlightKind.Sector, sector));
+
+        Assert.True(plan.Changed);
+        Assert.Equal(WadAuthorHighlightRenderSurface.Things, plan.PreviousSurface);
+        Assert.Equal(WadAuthorHighlightRenderSurface.Plotter, plan.CurrentSurface);
+        Assert.True(plan.HideInfo);
+        Assert.Equal(WadAuthorHighlightKind.Sector, plan.ShowInfoKind);
+        Assert.True(plan.Present);
+    }
+
+    [Fact]
+    public void MouseLeaveTransitionClearsHighlightAndHidesInfo()
+    {
+        var map = EmptyLineMap();
+
+        WadAuthorHighlightTransitionPlan plan = WadAuthorModeModel.MouseLeaveTransition(
+            new WadAuthorHighlight(WadAuthorHighlightKind.Linedef, map.Linedefs[0]));
+
+        Assert.True(plan.Changed);
+        Assert.Equal(WadAuthorHighlightRenderSurface.Plotter, plan.PreviousSurface);
+        Assert.Equal(WadAuthorHighlightRenderSurface.None, plan.CurrentSurface);
+        Assert.True(plan.HideInfo);
+        Assert.Equal(WadAuthorHighlightKind.None, plan.ShowInfoKind);
+        Assert.True(plan.Present);
+    }
+
     private static MapSet EmptyLineMap()
     {
         var map = new MapSet();

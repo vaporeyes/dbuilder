@@ -23,6 +23,13 @@ public enum WadAuthorLinedefPopupAction
     Curve,
 }
 
+public enum WadAuthorHighlightRenderSurface
+{
+    None,
+    Plotter,
+    Things,
+}
+
 public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, object? Target)
 {
     public static WadAuthorHighlight None => new(WadAuthorHighlightKind.None, null);
@@ -31,6 +38,14 @@ public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, ob
 public sealed record WadAuthorLinedefPopupItem(string Title, WadAuthorLinedefPopupAction? Action);
 
 public sealed record WadAuthorLinedefPopupResult(bool Changed, string Status);
+
+public sealed record WadAuthorHighlightTransitionPlan(
+    bool Changed,
+    WadAuthorHighlightRenderSurface PreviousSurface,
+    WadAuthorHighlightRenderSurface CurrentSurface,
+    bool HideInfo,
+    WadAuthorHighlightKind ShowInfoKind,
+    bool Present);
 
 public sealed record WadAuthorToolsMetadata(
     string FormTitle,
@@ -177,6 +192,31 @@ public static class WadAuthorModeModel
         };
     }
 
+    public static WadAuthorHighlightTransitionPlan HighlightTransition(
+        WadAuthorHighlight previous,
+        WadAuthorHighlight current)
+    {
+        if (IsSameHighlight(previous, current))
+            return new WadAuthorHighlightTransitionPlan(
+                Changed: false,
+                PreviousSurface: WadAuthorHighlightRenderSurface.None,
+                CurrentSurface: WadAuthorHighlightRenderSurface.None,
+                HideInfo: false,
+                ShowInfoKind: WadAuthorHighlightKind.None,
+                Present: false);
+
+        return new WadAuthorHighlightTransitionPlan(
+            Changed: true,
+            PreviousSurface: RenderSurfaceFor(previous),
+            CurrentSurface: RenderSurfaceFor(current),
+            HideInfo: true,
+            ShowInfoKind: current.Kind,
+            Present: true);
+    }
+
+    public static WadAuthorHighlightTransitionPlan MouseLeaveTransition(WadAuthorHighlight previous)
+        => HighlightTransition(previous, WadAuthorHighlight.None);
+
     public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
@@ -213,4 +253,15 @@ public static class WadAuthorModeModel
         double side = line.SideOfLine(mouseMapPosition);
         return side > 0.0 ? line.Back?.Sector : line.Front?.Sector;
     }
+
+    private static bool IsSameHighlight(WadAuthorHighlight previous, WadAuthorHighlight current)
+        => previous.Kind == current.Kind && ReferenceEquals(previous.Target, current.Target);
+
+    private static WadAuthorHighlightRenderSurface RenderSurfaceFor(WadAuthorHighlight highlight)
+        => highlight.Kind switch
+        {
+            WadAuthorHighlightKind.None => WadAuthorHighlightRenderSurface.None,
+            WadAuthorHighlightKind.Thing => WadAuthorHighlightRenderSurface.Things,
+            _ => WadAuthorHighlightRenderSurface.Plotter,
+        };
 }

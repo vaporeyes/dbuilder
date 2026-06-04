@@ -1848,6 +1848,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor WadAuthor linedef curve popup execution with UDB default curve settings.
   - [x] Route WadAuthor linedef popup edit descriptions through the testable model.
   - [x] Add UDB-style WadAuthor tool form and linedef popup metadata.
+  - [x] Add UDB-style WadAuthor highlight transition planning.
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [x] Add UDB-style Image Example mode action metadata and 2D command dispatch.
@@ -2403,6 +2404,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable WadAuthor linedef popup edit descriptions.
   - [x] Route editor WadAuthor mode toggle status through the testable model.
   - [x] Route editor WadAuthor properties popup selection and status through the testable model.
+  - [x] Add testable WadAuthor highlight transition planning.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.
