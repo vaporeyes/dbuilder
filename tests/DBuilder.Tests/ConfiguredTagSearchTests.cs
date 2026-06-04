@@ -305,6 +305,21 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void ThingThingReferenceUsesThingTagCapabilityGateLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.IO/ConfiguredTagSearch.cs"));
+
+        Assert.Contains(
+            "FindCategory.ThingThingReference => (config?.HasThingAction ?? true) && (config?.HasThingTag ?? true)",
+            body,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "FindCategory.ThingSectorReference => (config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true)",
+            body,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReferenceReplacementRejectsOutOfByteRangeValues()
     {
         var config = GameConfiguration.FromText(Cfg);

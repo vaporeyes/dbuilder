@@ -38,7 +38,7 @@ public static class ConfiguredTagSearch
         }
         else
         {
-            if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return new SearchResult(0, null);
+            if (!ThingReferenceCategoryIsSupported(category, config)) return new SearchResult(0, null);
             UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
             foreach (var thing in things)
                 if (HasMatchingActionArg(thing.Action, thing.Args, reference, config, type))
@@ -68,7 +68,7 @@ public static class ConfiguredTagSearch
         }
         else
         {
-            if (!((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))) return 0;
+            if (!ThingReferenceCategoryIsSupported(category, config)) return 0;
             UniversalType type = category == FindCategory.ThingSectorReference ? UniversalType.SectorTag : UniversalType.ThingTag;
             foreach (var thing in withinSelection ? map.GetSelectedThings() : map.Things)
                 if (ReplaceActionArgs(thing.Action, thing.Args, from, to, config, type)) changed++;
@@ -455,6 +455,14 @@ public static class ConfiguredTagSearch
         if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out reference)) return false;
         return !requireByteRange || reference is >= 0 and <= 255;
     }
+
+    private static bool ThingReferenceCategoryIsSupported(FindCategory category, GameConfiguration? config)
+        => category switch
+        {
+            FindCategory.ThingSectorReference => (config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true),
+            FindCategory.ThingThingReference => (config?.HasThingAction ?? true) && (config?.HasThingTag ?? true),
+            _ => false,
+        };
 
     private static bool CanReplaceActionArgTag(int tag)
         => tag is >= 0 and <= 255;
