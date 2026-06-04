@@ -5132,6 +5132,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.3dfloor.relocate-control-sectors":
                 RelocateThreeDFloorControlSectors();
                 return true;
+            case "map2d.3dfloor.duplicate-geometry":
+                DuplicateThreeDFloorGeometry();
+                return true;
             case "map2d.mode-vertices":
                 SetEditMode(EditMode.Vertices);
                 return true;
@@ -6373,6 +6376,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"duplicated {res.Value.LinedefCount} lines, {res.Value.SectorCount} sectors, {res.Value.ThingCount} things";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string DuplicateThreeDFloorGeometry()
+    {
+        if (_map == null) return "No map loaded.";
+        var res = ThreeDFloorSelectionClipboard.DuplicateSelectionWithThreeDFloors(
+            _map,
+            new Vec2D(_grid.GridSize, _grid.GridSize),
+            PasteOptions,
+            _gameConfig,
+            () => EditBegun?.Invoke("Duplicate 3D floor geometry"));
+        if (res is null)
+        {
+            const string empty = "nothing selected to duplicate";
+            Picked?.Invoke(empty);
+            return empty;
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = $"duplicated {res.Value.LinedefCount} lines, {res.Value.SectorCount} sectors, {res.Value.ThingCount} things with 3D floors";
         Picked?.Invoke(status);
         return status;
     }

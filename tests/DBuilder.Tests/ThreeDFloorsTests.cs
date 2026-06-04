@@ -2,12 +2,28 @@
 // ABOUTME: Covers multi-tag sectors, managed UDMF controls, and selected-sector shared floor filtering.
 
 using DBuilder.Geometry;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
 public class ThreeDFloorsTests
 {
+    private const string ThreeDFloorArgConfig = """
+        formatinterface = "UniversalMapSetIO";
+        linedeftypes
+        {
+            tags
+            {
+                160
+                {
+                    title = "Sector_Set3dFloor";
+                    arg0 { type = 13; }
+                }
+            }
+        }
+        """;
+
     [Fact]
     public void ModeDescriptorsMatchUdbEditModeAttributes()
     {
@@ -509,6 +525,42 @@ public class ThreeDFloorsTests
         Assert.False(privateControl.Selected);
         Assert.False(first.Selected);
         Assert.False(second.Selected);
+    }
+
+    [Fact]
+    public void DuplicateSelectionWithThreeDFloorsCopiesResolvedControlSectors()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0, 128, 64);
+        target.Tag = 5;
+        target.Selected = true;
+        Sector control = AddSquareSector(map, 256, 128, 64);
+        control.FloorHeight = -16;
+        control.CeilHeight = 48;
+        Linedef actionLine = control.Sidedefs[0].Line;
+        actionLine.Action = ThreeDFloors.Sector3DFloorAction;
+        actionLine.Args[0] = target.Tag;
+        actionLine.Args[3] = 192;
+        control.Sidedefs[0].MidTexture = "SIDE3D";
+        var config = GameConfiguration.FromText(ThreeDFloorArgConfig);
+
+        PasteResult? result = ThreeDFloorSelectionClipboard.DuplicateSelectionWithThreeDFloors(
+            map,
+            new Vector2D(512, 0),
+            new PasteOptions { ChangeTags = PasteTagMode.Renumber },
+            config);
+
+        Assert.NotNull(result);
+        Sector pastedTarget = map.Sectors
+            .Skip(result.Value.FirstSector)
+            .Take(result.Value.SectorCount)
+            .Single(sector => sector.Tags.Contains(1));
+        ThreeDFloor pastedFloor = Assert.Single(ThreeDFloors.Resolve(map)[pastedTarget]);
+        Assert.Equal(1, pastedFloor.TargetTag);
+        Assert.Contains(pastedFloor.Control, map.Sectors.Skip(result.Value.FirstSector).Take(result.Value.SectorCount));
+        Assert.Equal(-16, pastedFloor.Bottom);
+        Assert.Equal(48, pastedFloor.Top);
+        Assert.Equal("SIDE3D", pastedFloor.SideTexture);
     }
 
     [Fact]
