@@ -561,6 +561,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
     [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]
     [InlineData("map2d.syncedthingedit", "ToggleSynchronizedThingEditing()")]
+    [InlineData("map2d.classicpaintselect", "BeginClassicPaintSelection()")]
     [InlineData("map2d.bridgemode", "RunBridgeCommand()")]
     [InlineData("map2d.gzdbvisualmode", "Toggle3DMode()")]
     [InlineData("map2d.curvelinesmode", "CurveSelectedLinedefs()")]
@@ -593,6 +594,17 @@ public sealed class MapControlCommandTests
 
         Assert.True(commandIndex >= 0);
         Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Fact]
+    public void ClassicPaintSelectUsesHeldActionState()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("commandId is \"map3d.orbit\" or \"map2d.classicpaintselect\"", body, StringComparison.Ordinal);
+        Assert.Contains("if (commandId == \"map2d.classicpaintselect\") EndClassicPaintSelection();", body, StringComparison.Ordinal);
+        Assert.Contains("if (_classicPaintSelectPressed)", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyClassicPaintSelection(_cursorWorld, e.KeyModifiers);", body, StringComparison.Ordinal);
     }
 
     [Fact]

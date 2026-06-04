@@ -224,6 +224,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.clear-group-10", "Clear Group 10", "Ctrl/Cmd+Shift+0", EditorCommandScope.Window),
 
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
+        new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),

@@ -2214,6 +2214,24 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ClassicPaintSelectCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.classicpaintselect");
+
+        Assert.NotNull(command);
+        Assert.Equal("Paint Selection", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.True(command.DisregardAccelerator);
+        Assert.True(command.DisregardAlt);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
     public void VisualDeleteCommandMatchesUdbDeleteItemAction()
     {
         var command = EditorCommandCatalog.Find("map3d.delete-target");

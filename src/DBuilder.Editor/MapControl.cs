@@ -1515,6 +1515,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _boxAdditive;
     private Vec2D _boxStartWorld, _boxCurWorld;
     private GlVertexBuffer? _boxVb;
+    private bool _classicPaintSelectPressed;
+    private ISelectable? _classicPaintSelectHighlight;
 
     /// <summary>Raised with the world coordinates under the cursor (for the status bar).</summary>
     public event Action<Vec2D>? CursorWorldMoved;
@@ -5749,7 +5751,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         "map3d.move-down";
 
     private static bool IsHeldMapCommand(string commandId)
-        => IsFlyMovementCommand(commandId) || commandId == "map3d.orbit";
+        => IsFlyMovementCommand(commandId) || commandId is "map3d.orbit" or "map2d.classicpaintselect";
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
@@ -5796,6 +5798,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.move-up":
             case "map3d.move-down":
             case "map3d.orbit":
+                _heldMapCommands.Add(commandId);
+                return true;
+            case "map2d.classicpaintselect":
+                BeginClassicPaintSelection();
                 _heldMapCommands.Add(commandId);
                 return true;
             case "map2d.toggle-sector-fills":
@@ -6559,6 +6565,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             _heldMapCommands.Remove(commandId);
             if (commandId == "map3d.orbit") _orbit3DPoint = null;
+            if (commandId == "map2d.classicpaintselect") EndClassicPaintSelection();
             e.Handled = true;
         }
 
@@ -8443,6 +8450,44 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return false;
     }
 
+    public void BeginClassicPaintSelection()
+    {
+        _classicPaintSelectPressed = true;
+        _classicPaintSelectHighlight = null;
+        ActionStateChanged?.Invoke();
+    }
+
+    private void EndClassicPaintSelection()
+    {
+        _classicPaintSelectPressed = false;
+        _classicPaintSelectHighlight = null;
+        ActionStateChanged?.Invoke();
+    }
+
+    private void ApplyClassicPaintSelection(Vec2D world, KeyModifiers modifiers)
+    {
+        if (_map == null) return;
+        if (ClassicPaintSelectionTarget(world) is not { } target) return;
+        if (ReferenceEquals(target, _classicPaintSelectHighlight)) return;
+
+        bool add = modifiers.HasFlag(KeyModifiers.Shift);
+        bool remove = modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
+        target.Selected = add || (!remove && !target.Selected);
+        _classicPaintSelectHighlight = target;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+    }
+
+    private ISelectable? ClassicPaintSelectionTarget(Vec2D world)
+        => _map == null ? null : _editMode switch
+        {
+            EditMode.Vertices => _map.NearestVertex(world, 10 * _zoom),
+            EditMode.Linedefs => _map.NearestLinedef(world, 8 * _zoom),
+            EditMode.Sectors => _map.GetSectorAt(world),
+            EditMode.Things => NearestVisibleThing(world, 12 * _zoom),
+            _ => null,
+        };
+
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
@@ -8487,6 +8532,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         if (WadAuthorMode) UpdateWadAuthorHighlight(_cursorWorld);
+
+        if (_classicPaintSelectPressed)
+        {
+            ApplyClassicPaintSelection(_cursorWorld, e.KeyModifiers);
+            return;
+        }
 
         if (_drawMode)
         {
