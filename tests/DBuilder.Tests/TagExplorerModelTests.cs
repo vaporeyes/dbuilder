@@ -305,6 +305,8 @@ public sealed class TagExplorerModelTests
         Assert.Equal(new[] { "Sectors:", "Linedefs:" }, tree.Select(node => node.Title));
         Assert.Equal("9 - Secret", tree[0].Children[0].Title);
         Assert.Equal("80 - Door Open", tree[1].Children[0].Title);
+        Assert.Equal("Tag 2: Secret, Index 0", tree[0].Children[0].Children[0].Title);
+        Assert.Equal("Tag 1: Door Open, Index 0", tree[1].Children[0].Children[0].Title);
     }
 
     [Fact]

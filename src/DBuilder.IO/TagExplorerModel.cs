@@ -465,7 +465,7 @@ public static class TagExplorerModel
                     sector.Special,
                     NoPolyobjectNumber,
                     Comment(sector, isUdmf),
-                    "Sector",
+                    SectorDefaultName(sector.Special, config),
                     ActionTitle: SectorEffectTitle(sector.Special, config),
                     ActionGroups: SectorActionGroups(sector.Special, config)), commentSearch, commentsOnly, displayMode);
             }
@@ -505,7 +505,7 @@ public static class TagExplorerModel
                         line.Action,
                         polyobjectNumber,
                         polyobjectNumber == NoPolyobjectNumber ? Comment(line, isUdmf) : "",
-                        "Linedef",
+                        LinedefDefaultName(line.Action, config),
                         ActionTitle: LinedefActionTitle(line.Action, config)), commentSearch, commentsOnly, displayMode);
                 }
             }
@@ -520,7 +520,7 @@ public static class TagExplorerModel
                     line.Action,
                     polyobjectNumber,
                     "",
-                    "Linedef"), commentSearch, commentsOnly, displayMode);
+                    LinedefDefaultName(line.Action, config)), commentSearch, commentsOnly, displayMode);
             }
         }
     }
@@ -652,8 +652,14 @@ public static class TagExplorerModel
     private static string ThingTitle(int type, GameConfiguration? config)
         => config?.GetThing(type)?.Title ?? "Thing";
 
+    private static string LinedefDefaultName(int action, GameConfiguration? config)
+        => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "Linedef";
+
     private static string LinedefActionTitle(int action, GameConfiguration? config)
         => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "";
+
+    private static string SectorDefaultName(int effect, GameConfiguration? config)
+        => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "Sector";
 
     private static string SectorEffectTitle(int effect, GameConfiguration? config)
         => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "";
