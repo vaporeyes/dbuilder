@@ -2347,11 +2347,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke(TextureApplied3DStatusText(tex, targets.Count));
+        Target3DChanged?.Invoke(TexturePasted3DStatusText(tex, targets[^1].Kind));
     }
 
-    public static string TextureApplied3DStatusText(string textureName, int surfaceCount)
-        => $"applied texture {textureName} to {CountLabel(surfaceCount, "surface")}";
+    public static string TexturePasted3DStatusText(string textureName, VisualHitKind kind)
+        => kind switch
+        {
+            VisualHitKind.Floor => $"Pasted flat \"{textureName}\" on floor.",
+            VisualHitKind.Ceiling => $"Pasted flat \"{textureName}\" on ceiling.",
+            _ => $"Pasted texture \"{textureName}\".",
+        };
 
     public static string TextureCopied3DStatusText(string textureName, bool flat)
         => flat ? $"Copied flat \"{textureName}\"." : $"Copied texture \"{textureName}\".";

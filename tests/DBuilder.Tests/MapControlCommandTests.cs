@@ -3,16 +3,18 @@
 
 using System.Reflection;
 using DBuilder.Editor;
+using DBuilder.Map;
 
 namespace DBuilder.Tests;
 
 public sealed class MapControlCommandTests
 {
     [Theory]
-    [InlineData("STARTAN3", 1, "applied texture STARTAN3 to 1 surface")]
-    [InlineData("BRICK1", 2, "applied texture BRICK1 to 2 surfaces")]
-    public void TextureApplied3DStatusTextFormatsSingularAndPluralSurfaceCounts(string textureName, int surfaceCount, string expected)
-        => Assert.Equal(expected, MapControl.TextureApplied3DStatusText(textureName, surfaceCount));
+    [InlineData("FLOOR0_1", VisualHitKind.Floor, "Pasted flat \"FLOOR0_1\" on floor.")]
+    [InlineData("CEIL1_1", VisualHitKind.Ceiling, "Pasted flat \"CEIL1_1\" on ceiling.")]
+    [InlineData("STARTAN3", VisualHitKind.Wall, "Pasted texture \"STARTAN3\".")]
+    public void TexturePasted3DStatusTextMatchesUdbTargetKind(string textureName, VisualHitKind kind, string expected)
+        => Assert.Equal(expected, MapControl.TexturePasted3DStatusText(textureName, kind));
 
     [Theory]
     [InlineData("FLOOR0_1", true, "Copied flat \"FLOOR0_1\".")]
@@ -269,6 +271,20 @@ public sealed class MapControlCommandTests
         Assert.True(methodIndex >= 0);
         Assert.True(formatterIndex > methodIndex);
         Assert.DoesNotContain("copied texture {tex}", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ApplyTexture3DUsesUdbStatusForLastAppliedTarget()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ApplyTextureToTarget(string tex)", StringComparison.Ordinal);
+        int loopIndex = body.IndexOf("foreach (var h in targets) ApplyTextureToHit(h, tex);", methodIndex, StringComparison.Ordinal);
+        int formatterIndex = body.IndexOf("TexturePasted3DStatusText(tex, targets[^1].Kind)", loopIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(loopIndex > methodIndex);
+        Assert.True(formatterIndex > loopIndex);
+        Assert.DoesNotContain("TextureApplied3DStatusText", body, StringComparison.Ordinal);
     }
 
     [Fact]
