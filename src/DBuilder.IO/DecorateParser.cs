@@ -1214,6 +1214,13 @@ public static class DecorateParser
             var tk = t[i++];
             if (tk.Kind == Kind.Sym && tk.Text == "{")
             {
+                if (zscriptBody && inStates && currentState != null)
+                {
+                    int blockStart = i - 1;
+                    if (!SkipBlock(t, ref blockStart)) return false;
+                    i = blockStart;
+                    continue;
+                }
                 depth++;
                 if (pendingStates) { inStates = true; statesDepth = depth; pendingStates = false; }
                 continue;
@@ -1647,7 +1654,8 @@ public static class DecorateParser
         for (int i = tailStart; i < t.Count; i++)
         {
             if (t[i].Kind == Kind.Sym && t[i].Text == ";") return true;
-            if (t[i].Kind == Kind.Sym && t[i].Text is "{" or "}") return false;
+            if (t[i].Kind == Kind.Sym && t[i].Text == "{") return HasBalancedZScriptStateFrameBlock(t, i);
+            if (t[i].Kind == Kind.Sym && t[i].Text == "}") return false;
             if (IsStateLabel(t, i + 1)) return false;
             if (t[i].Kind != Kind.Word) continue;
             string? special = ZScriptStateFrameSpecial(t[i].Text);
@@ -1655,6 +1663,19 @@ public static class DecorateParser
             if (special is "light" or "offset" && !ZScriptStateFrameSpecialHasArguments(t, i)) return false;
             if (special == "light" && !ZScriptStateFrameLightHasSingleNameArgument(t, i)) return false;
             if (special == null) return ZScriptStateFrameActionHasSemicolon(t, i);
+        }
+
+        return false;
+    }
+
+    private static bool HasBalancedZScriptStateFrameBlock(List<Tok> t, int openIndex)
+    {
+        int depth = 0;
+        for (int i = openIndex; i < t.Count; i++)
+        {
+            if (t[i].Kind != Kind.Sym) continue;
+            if (t[i].Text == "{") depth++;
+            else if (t[i].Text == "}" && --depth == 0) return true;
         }
 
         return false;

@@ -1225,6 +1225,19 @@ class DottedActionStateZThing : Actor
     }
 
     [Fact]
+    public void UsesZScriptStateFrameWithAnonymousBlockLikeUdb()
+    {
+        const string zscript = @"
+class AnonymousBlockStateZThing : Actor
+{
+    States { Spawn: BLCK A -1 { A_Log(""preview""); } Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("BLCKA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DoesNotUseZScriptStateFrameSpecialWithoutArguments()
     {
         const string zscript = @"
