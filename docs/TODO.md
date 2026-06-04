@@ -806,6 +806,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject ZScript state-frame sprite names whose length is not four like UDB.
   - [x] Reject ZScript state-frame tokens with invalid frame letters.
   - [x] Require ZScript state-frame action functions to end with semicolons.
+  - [x] Reject ZScript state-frame action argument lists without closing parentheses like UDB.
   - [x] Parse dotted ZScript state-frame action function names like UDB.
   - [x] Accept anonymous ZScript state-frame blocks like UDB.
   - [x] Reject bare ZScript `Hold` state flow like UDB.

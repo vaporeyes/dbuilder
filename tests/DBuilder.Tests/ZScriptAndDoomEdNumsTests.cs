@@ -1413,6 +1413,24 @@ class ValidAfterMissingStateActionSemicolonZThing : Actor
     }
 
     [Fact]
+    public void RejectsZScriptStateFrameActionWithoutClosingParenLikeUdb()
+    {
+        const string zscript = @"
+class MissingStateActionCloseParenZThing : Actor
+{
+    States { Spawn: ACTP A -1 A_FadeOut(; Stop; }
+}
+class ValidAfterMissingStateActionCloseParenZThing : Actor
+{
+    States { Spawn: VACP A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterMissingStateActionCloseParenZThing", actor.ClassName);
+        Assert.Equal("VACPA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergesZScriptActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string zscript = @"

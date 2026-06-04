@@ -1280,6 +1280,11 @@ public static class DecorateParser
                         stopParsing = true;
                         return false;
                     }
+                    if (zscriptBody && HasMalformedZScriptStateFrameActionArgumentList(t, i + 1))
+                    {
+                        SkipRemainingActorBody(t, ref i, depth);
+                        return false;
+                    }
                     if (!CanUseStateFrame(zscriptBody, t, i)) continue;
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
                     firstSprite ??= sprite;
@@ -1411,6 +1416,11 @@ public static class DecorateParser
                 {
                     SkipRemainingActorBody(t, ref i, depth);
                     stopParsing = true;
+                    return false;
+                }
+                if (zscriptBody && HasMalformedZScriptStateFrameActionArgumentList(t, i + 1))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
                     return false;
                 }
                 if (!CanUseStateFrame(zscriptBody, t, i)) continue;
@@ -1753,10 +1763,56 @@ public static class DecorateParser
     {
         int end = ZScriptStateFrameActionNameEnd(t, actionIndex);
         if (end < t.Count && t[end].Text.StartsWith("(", StringComparison.Ordinal))
+        {
+            if (!ZScriptStateFrameArgumentListHasClosingParen(t, end)) return false;
             end = ZScriptStateFrameArgumentListEnd(t, end);
+        }
         else if (t[actionIndex].Text.Contains('(', StringComparison.Ordinal))
+        {
+            if (!t[actionIndex].Text.Contains(')', StringComparison.Ordinal)
+                && !ZScriptStateFrameArgumentListHasClosingParen(t, end))
+                return false;
             end = t[actionIndex].Text.Contains(')', StringComparison.Ordinal) ? end : ZScriptStateFrameArgumentListEnd(t, end);
+        }
         return end < t.Count && t[end].Kind == Kind.Sym && t[end].Text == ";";
+    }
+
+    private static bool HasMalformedZScriptStateFrameActionArgumentList(List<Tok> t, int durationIndex)
+    {
+        if (!HasValidZScriptStateFrameDuration(t, durationIndex)) return false;
+
+        int tailStart = ZScriptStateFrameDurationEnd(t, durationIndex);
+        for (int i = tailStart; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is ";" or "{" or "}") return false;
+            if (IsStateLabel(t, i + 1)) return false;
+            if (t[i].Kind != Kind.Word) continue;
+
+            string? special = ZScriptStateFrameSpecial(t[i].Text);
+            if (special != null)
+            {
+                if (special is "light" or "offset" && ZScriptStateFrameSpecialHasArguments(t, i))
+                {
+                    int argumentStart = t[i].Text.Contains('(', StringComparison.Ordinal) ? i : i + 1;
+                    i = ZScriptStateFrameArgumentListEnd(t, argumentStart) - 1;
+                }
+                continue;
+            }
+
+            return ZScriptStateFrameActionHasUnclosedArgumentList(t, i);
+        }
+
+        return false;
+    }
+
+    private static bool ZScriptStateFrameActionHasUnclosedArgumentList(List<Tok> t, int actionIndex)
+    {
+        int end = ZScriptStateFrameActionNameEnd(t, actionIndex);
+        if (end < t.Count && t[end].Text.StartsWith("(", StringComparison.Ordinal))
+            return !ZScriptStateFrameArgumentListHasClosingParen(t, end);
+        return t[actionIndex].Text.Contains('(', StringComparison.Ordinal)
+            && !t[actionIndex].Text.Contains(')', StringComparison.Ordinal)
+            && !ZScriptStateFrameArgumentListHasClosingParen(t, end);
     }
 
     private static int ZScriptStateFrameActionNameEnd(List<Tok> t, int actionIndex)
@@ -1782,6 +1838,17 @@ public static class DecorateParser
         }
 
         return t.Count;
+    }
+
+    private static bool ZScriptStateFrameArgumentListHasClosingParen(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is ";" or "{" or "}") return false;
+            if (t[i].Text.Contains(')', StringComparison.Ordinal)) return true;
+        }
+
+        return false;
     }
 
     private static bool ZScriptStateFrameSpecialHasArguments(List<Tok> t, int index)
