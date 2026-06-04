@@ -1366,6 +1366,47 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ArgumentEnumAndFlagsReferencesConvertScalarNamesLikeUdb()
+    {
+        const string cfg = """
+            enums
+            {
+                123
+                {
+                    1 = "One";
+                }
+                456
+                {
+                    1 = "Flag";
+                }
+            }
+            linedeftypes
+            {
+                special
+                {
+                    80
+                    {
+                        title = "Special";
+                        arg0
+                        {
+                            enum = 123;
+                            flags = 456;
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var arg = gc.GetLinedefAction(80)!.Args[0];
+        Assert.Equal("123", arg.Enum);
+        Assert.Equal("456", arg.Flags);
+        Assert.Empty(arg.InlineEnumItems);
+        Assert.Empty(arg.InlineFlagsItems);
+    }
+
+    [Fact]
     public void LinedefActionZeroIsNone()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

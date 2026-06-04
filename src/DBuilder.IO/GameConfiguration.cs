@@ -1899,8 +1899,8 @@ public sealed class GameConfiguration
                 Used = true,
                 ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
                 Type = GetInt(ad, "type", 0),
-                Enum = ad["enum"] is string enumName ? enumName : null,
-                Flags = ad["flags"] is string flagsName ? flagsName : null,
+                Enum = GetReferenceName(ad["enum"]),
+                Flags = GetReferenceName(ad["flags"]),
                 InlineEnumItems = ad["enum"] is IDictionary inlineEnum ? ParseInlineEnum(inlineEnum) : Array.Empty<EnumItemInfo>(),
                 InlineFlagsItems = ad["flags"] is IDictionary inlineFlags ? ParseInlineEnum(inlineFlags) : Array.Empty<EnumItemInfo>(),
                 Default = GetInt(ad, "default", 0),
@@ -1920,6 +1920,9 @@ public sealed class GameConfiguration
         for (int i = 0; i < 5; i++) args[i] ??= new ArgInfo();
         return args;
     }
+
+    private static string? GetReferenceName(object? value)
+        => value is null or IDictionary ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
 
     // Parses the "enums" block: UDB stores string value/title pairs; the int map is kept for existing callers.
     private void ParseEnums(IDictionary enumsDict)
