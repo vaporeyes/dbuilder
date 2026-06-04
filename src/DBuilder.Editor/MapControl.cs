@@ -5855,20 +5855,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SetShapeMode(ShapeKind.Grid);
                 return true;
             case "map2d.increase-subdivision-level":
+            case "map2d.increasesubdivlevel":
                 return AdjustDrawSubdivision(increase: true);
             case "map2d.decrease-subdivision-level":
+            case "map2d.decreasesubdivlevel":
                 return AdjustDrawSubdivision(increase: false);
             case "map2d.increase-bevel":
+            case "map2d.increasebevel":
                 return AdjustDrawBevel(increase: true);
             case "map2d.decrease-bevel":
+            case "map2d.decreasebevel":
                 return AdjustDrawBevel(increase: false);
             case "map2d.draw-point":
+            case "map2d.drawpoint":
                 if (!_drawMode) return false;
                 PlaceDrawPoint(_drawCursor);
                 return true;
             case "map2d.remove-draw-point":
+            case "map2d.removepoint":
                 return RemoveDrawPoint(_drawPoints.Count - 1);
             case "map2d.remove-first-draw-point":
+            case "map2d.removefirstpoint":
                 return RemoveDrawPoint(0);
             case "map2d.make-sector":
                 MakeSectorAtCursor();
@@ -5877,12 +5884,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SplitLinedefs();
                 return true;
             case "map2d.insert":
+            case "map2d.insertitem":
                 InsertAtCursor();
                 return true;
             case "map2d.place-things":
+            case "map2d.placethings":
                 PlaceThingsFromSelection();
                 return true;
             case "map2d.point-thing-to-cursor":
+            case "map2d.thinglookatcursor":
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map2d.bridge-mode":
@@ -5925,45 +5935,59 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 VisplaneExplorerRequested?.Invoke();
                 return true;
             case "map2d.flip":
+            case "map2d.fliplinedefs":
                 FlipLinedefs();
                 return true;
             case "map2d.flip-sidedefs":
+            case "map2d.flipsidedefs":
                 FlipSidedefs();
                 return true;
             case "map2d.select-single-sided":
+            case "map2d.selectsinglesided":
                 KeepSelectedLinedefsBySidedness(doubleSided: false);
                 return true;
             case "map2d.select-double-sided":
+            case "map2d.selectdoublesided":
                 KeepSelectedLinedefsBySidedness(doubleSided: true);
                 return true;
             case "map2d.align-linedefs":
+            case "map2d.alignlinedefs":
                 AlignLinedefs();
                 return true;
             case "map2d.split-linedefs":
+            case "map2d.splitlinedefs":
                 SplitLinedefs();
                 return true;
             case "map2d.join-sectors":
+            case "map2d.joinsectors":
                 JoinOrMergeSelectedSectors(merge: false);
                 return true;
             case "map2d.merge-sectors":
+            case "map2d.mergesectors":
                 JoinOrMergeSelectedSectors(merge: true);
                 return true;
             case "map2d.lower-floor-8":
+            case "map2d.lowerfloor8":
                 AdjustSectorHeights(SectorHeightPart.Floor, -8);
                 return true;
             case "map2d.raise-floor-8":
+            case "map2d.raisefloor8":
                 AdjustSectorHeights(SectorHeightPart.Floor, 8);
                 return true;
             case "map2d.lower-ceiling-8":
+            case "map2d.lowerceiling8":
                 AdjustSectorHeights(SectorHeightPart.Ceiling, -8);
                 return true;
             case "map2d.raise-ceiling-8":
+            case "map2d.raiseceiling8":
                 AdjustSectorHeights(SectorHeightPart.Ceiling, 8);
                 return true;
             case "map2d.raise-brightness-8":
+            case "map2d.raisebrightness8":
                 AdjustSectorBrightness(raise: true);
                 return true;
             case "map2d.lower-brightness-8":
+            case "map2d.lowerbrightness8":
                 AdjustSectorBrightness(raise: false);
                 return true;
             case "map2d.align-textures-x":
@@ -5976,6 +6000,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 FitSelectedTextures();
                 return true;
             case "map2d.apply-lightfog-flag":
+            case "map2d.applylightfogflag":
                 ApplyLightFogFlag();
                 return true;
             case "map2d.toggle-grid-snap":
@@ -5994,6 +6019,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ResetGridTransform();
                 return true;
             case "map2d.smart-grid-transform":
+            case "map2d.smartgridtransform":
                 SmartGridTransform();
                 return true;
             case "map2d.grid-down":
@@ -6003,6 +6029,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ChangeGridSize(larger: true);
                 return true;
             case "map2d.finish-draw":
+            case "map2d.finishdraw":
                 if (!_drawMode) return false;
                 FinishDraw();
                 return true;

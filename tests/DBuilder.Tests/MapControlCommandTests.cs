@@ -542,6 +542,44 @@ public sealed class MapControlCommandTests
     }
 
     [Theory]
+    [InlineData("map2d.increasesubdivlevel", "AdjustDrawSubdivision(increase: true)")]
+    [InlineData("map2d.decreasesubdivlevel", "AdjustDrawSubdivision(increase: false)")]
+    [InlineData("map2d.increasebevel", "AdjustDrawBevel(increase: true)")]
+    [InlineData("map2d.decreasebevel", "AdjustDrawBevel(increase: false)")]
+    [InlineData("map2d.drawpoint", "PlaceDrawPoint(_drawCursor)")]
+    [InlineData("map2d.removepoint", "RemoveDrawPoint(_drawPoints.Count - 1)")]
+    [InlineData("map2d.removefirstpoint", "RemoveDrawPoint(0)")]
+    [InlineData("map2d.finishdraw", "FinishDraw()")]
+    [InlineData("map2d.insertitem", "InsertAtCursor()")]
+    [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
+    [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]
+    [InlineData("map2d.fliplinedefs", "FlipLinedefs()")]
+    [InlineData("map2d.flipsidedefs", "FlipSidedefs()")]
+    [InlineData("map2d.selectsinglesided", "KeepSelectedLinedefsBySidedness(doubleSided: false)")]
+    [InlineData("map2d.selectdoublesided", "KeepSelectedLinedefsBySidedness(doubleSided: true)")]
+    [InlineData("map2d.alignlinedefs", "AlignLinedefs()")]
+    [InlineData("map2d.splitlinedefs", "SplitLinedefs()")]
+    [InlineData("map2d.joinsectors", "JoinOrMergeSelectedSectors(merge: false)")]
+    [InlineData("map2d.mergesectors", "JoinOrMergeSelectedSectors(merge: true)")]
+    [InlineData("map2d.lowerfloor8", "AdjustSectorHeights(SectorHeightPart.Floor, -8)")]
+    [InlineData("map2d.raisefloor8", "AdjustSectorHeights(SectorHeightPart.Floor, 8)")]
+    [InlineData("map2d.lowerceiling8", "AdjustSectorHeights(SectorHeightPart.Ceiling, -8)")]
+    [InlineData("map2d.raiseceiling8", "AdjustSectorHeights(SectorHeightPart.Ceiling, 8)")]
+    [InlineData("map2d.raisebrightness8", "AdjustSectorBrightness(raise: true)")]
+    [InlineData("map2d.lowerbrightness8", "AdjustSectorBrightness(raise: false)")]
+    [InlineData("map2d.applylightfogflag", "ApplyLightFogFlag()")]
+    [InlineData("map2d.smartgridtransform", "SmartGridTransform()")]
+    public void UdbClassicActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Theory]
     [InlineData("map3d.resettexture", "ResetVisualTexture3D(local: false)")]
     [InlineData("map3d.resettextureudmf", "ResetVisualTexture3D(local: true)")]
     [InlineData("map3d.visualfittextures", "FitSelectedVisualTextures3D()")]

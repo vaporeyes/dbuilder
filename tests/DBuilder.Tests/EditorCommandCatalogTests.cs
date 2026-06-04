@@ -803,6 +803,7 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]
     [InlineData("map2d.reset-grid-transform", "Reset Grid Transform")]
     [InlineData("map2d.smart-grid-transform", "Smart Grid Transform")]
+    [InlineData("map2d.smartgridtransform", "Smart Grid Transform")]
     public void GridTransformCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -820,6 +821,7 @@ public class EditorCommandCatalogTests
     public void PlaceThingsCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.place-things");
+        var udbAlias = EditorCommandCatalog.Find("map2d.placethings");
 
         Assert.NotNull(command);
         Assert.Equal("Place Things", command.Title);
@@ -828,11 +830,33 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+    }
+
+    [Theory]
+    [InlineData("map2d.insert", "map2d.insertitem", "Insert vertex or thing", "I")]
+    [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L")]
+    public void ClassicThingActionAliasesMatchUdbActionSurface(string id, string udbId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+        var udbAlias = EditorCommandCatalog.Find(udbId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
     [InlineData("map2d.join-sectors", "Join Sectors")]
+    [InlineData("map2d.joinsectors", "Join Sectors")]
     [InlineData("map2d.merge-sectors", "Merge Sectors")]
+    [InlineData("map2d.mergesectors", "Merge Sectors")]
     public void JoinMergeSectorCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -848,7 +872,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.select-single-sided", "Select Single-sided")]
+    [InlineData("map2d.selectsinglesided", "Select Single-sided")]
     [InlineData("map2d.select-double-sided", "Select Double-sided")]
+    [InlineData("map2d.selectdoublesided", "Select Double-sided")]
     public void SelectSidednessCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -864,7 +890,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.align-linedefs", "Align Linedefs")]
+    [InlineData("map2d.alignlinedefs", "Align Linedefs")]
     [InlineData("map2d.split-linedefs", "Split Linedefs")]
+    [InlineData("map2d.splitlinedefs", "Split Linedefs")]
     public void LinedefEditCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -882,6 +910,7 @@ public class EditorCommandCatalogTests
     public void ApplyLightFogFlagCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.apply-lightfog-flag");
+        var udbAlias = EditorCommandCatalog.Find("map2d.applylightfogflag");
 
         Assert.NotNull(command);
         Assert.Equal("Apply 'lightfog' flag", command.Title);
@@ -890,6 +919,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -1637,9 +1669,13 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.increase-subdivision-level", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp")]
+    [InlineData("map2d.increasesubdivlevel", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp")]
     [InlineData("map2d.decrease-subdivision-level", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown")]
+    [InlineData("map2d.decreasesubdivlevel", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown")]
     [InlineData("map2d.increase-bevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp")]
+    [InlineData("map2d.increasebevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp")]
     [InlineData("map2d.decrease-bevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown")]
+    [InlineData("map2d.decreasebevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown")]
     public void DrawAdjustmentCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -1656,9 +1692,13 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.draw-point", "Draw Vertex", "Menu", true, true, true)]
+    [InlineData("map2d.drawpoint", "Draw Vertex", "Menu", true, true, true)]
     [InlineData("map2d.remove-draw-point", "Remove Last Vertex", "Menu", false, false, false)]
+    [InlineData("map2d.removepoint", "Remove Last Vertex", "Menu", false, false, false)]
     [InlineData("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
+    [InlineData("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
     [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", false, false, false)]
+    [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", false, false, false)]
     public void DrawSessionCommandsMatchUdbActionSurface(
         string id,
         string title,
@@ -1684,7 +1724,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.flip", "Flip Linedefs", "F")]
+    [InlineData("map2d.fliplinedefs", "Flip Linedefs", "F")]
     [InlineData("map2d.flip-sidedefs", "Flip Sidedefs", "Shift+F")]
+    [InlineData("map2d.flipsidedefs", "Flip Sidedefs", "Shift+F")]
     public void FlipLinedefCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -1717,11 +1759,17 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.lower-floor-8", "Lower Floor by 8 mp")]
+    [InlineData("map2d.lowerfloor8", "Lower Floor by 8 mp")]
     [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp")]
+    [InlineData("map2d.raisefloor8", "Raise Floor by 8 mp")]
     [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp")]
+    [InlineData("map2d.lowerceiling8", "Lower Ceiling by 8 mp")]
     [InlineData("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp")]
+    [InlineData("map2d.raiseceiling8", "Raise Ceiling by 8 mp")]
     [InlineData("map2d.raise-brightness-8", "Increase Brightness by 8")]
+    [InlineData("map2d.raisebrightness8", "Increase Brightness by 8")]
     [InlineData("map2d.lower-brightness-8", "Decrease Brightness by 8")]
+    [InlineData("map2d.lowerbrightness8", "Decrease Brightness by 8")]
     public void SectorHeightCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
