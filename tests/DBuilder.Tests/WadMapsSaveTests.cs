@@ -207,6 +207,22 @@ maplumpnames
     }
 
     [Fact]
+    public void SaveMapPreservesExistingHexenBehaviorBytes()
+    {
+        using var wad = new WAD(new MemoryStream());
+        byte[] behavior = { 0x41, 0x43, 0x53, 0x00, 0x01, 0x02 };
+        HexenMapWriter.WriteMap(SquareMap(), wad, "MAP01", wad.Lumps.Count, behaviorBytes: behavior);
+        var loaded = WadMaps.Load(wad, WadMaps.Find(wad).Single())!;
+        loaded.AddThing(new Vector2D(8, 8), 3001);
+        loaded.BuildIndexes();
+
+        WadMaps.SaveMap(wad, "MAP01", loaded, MapFormat.Hexen);
+
+        Assert.Equal(behavior, WadMaps.ReadMapLump(wad, "MAP01", "BEHAVIOR")!);
+        Assert.Single(WadMaps.Load(wad, WadMaps.Find(wad).Single())!.Things);
+    }
+
+    [Fact]
     public void SaveMapOrdersConfiguredLumpsAndPreservesNeighborLumps()
     {
         using var wad = new WAD(new MemoryStream());
