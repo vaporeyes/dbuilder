@@ -5,6 +5,8 @@ namespace DBuilder.Map;
 
 public sealed class MapIssueListModel
 {
+    public const string NoErrorsResultText = "No errors were found.";
+
     private readonly List<MapIssue> allIssues;
     private readonly List<MapIssue> visibleIssues;
     private readonly HashSet<MapIssueKind> hiddenKinds = new();

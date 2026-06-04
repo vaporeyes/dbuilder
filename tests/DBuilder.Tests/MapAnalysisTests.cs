@@ -711,6 +711,7 @@ public class MapAnalysisTests
         var warning = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
         var secondWarning = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
 
+        Assert.Equal("No errors were found.", MapIssueListModel.NoErrorsResultText);
         Assert.Equal("No issues found.", MapIssueListModel.HeaderText(Array.Empty<MapIssue>()));
         Assert.Equal("1 issue: 1 error, 0 warnings. Click an issue to locate it.", MapIssueListModel.HeaderText(new[] { error }));
         Assert.Equal(

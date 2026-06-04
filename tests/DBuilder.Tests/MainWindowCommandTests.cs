@@ -197,6 +197,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\" Fixes: \" + string.Join(\", \", issue.Fixes.Take(3).Select(fix => fix.Label)) + \".\"", code, StringComparison.Ordinal);
         Assert.Contains("UpdateWindowTitle();", code, StringComparison.Ordinal);
         Assert.Contains("MapIssueListModel.WindowTitleText(", code, StringComparison.Ordinal);
+        Assert.Contains("_model.AllIssues.Count == 0", code, StringComparison.Ordinal);
+        Assert.Contains("Text = MapIssueListModel.NoErrorsResultText", code, StringComparison.Ordinal);
+        Assert.Contains("IsEnabled = false", code, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -358,6 +358,20 @@ public sealed class MapCheckWindow : Window
     private void RefreshRows()
     {
         _rows.Clear();
+        if (_model.AllIssues.Count == 0)
+        {
+            _rows.Add(new ListBoxItem
+            {
+                Content = new TextBlock
+                {
+                    Text = MapIssueListModel.NoErrorsResultText,
+                    Foreground = Brushes.LightGreen,
+                    TextWrapping = TextWrapping.Wrap,
+                },
+                IsEnabled = false,
+            });
+        }
+
         foreach (var issue in _model.VisibleIssues)
         {
             bool err = issue.Severity == MapIssueSeverity.Error;
