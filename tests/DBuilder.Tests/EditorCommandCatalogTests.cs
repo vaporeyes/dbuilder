@@ -1177,6 +1177,7 @@ public class EditorCommandCatalogTests
     public void UsdfDialogEditorCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.usdf-dialog-editor");
+        var udbAlias = EditorCommandCatalog.Find("window.opendialogeditor");
 
         Assert.NotNull(command);
         Assert.Equal("Dialog Editor", command.Title);
@@ -1185,6 +1186,10 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.Equal("opendialogeditor", UsdfDialogEditorModel.Action.Id);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Scope, udbAlias.Scope);
+        Assert.True(udbAlias.AllowScroll);
     }
 
     [Fact]
