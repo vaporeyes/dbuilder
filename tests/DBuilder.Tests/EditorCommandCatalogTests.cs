@@ -1353,9 +1353,13 @@ public class EditorCommandCatalogTests
             ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
             ["map3d.insert-item"] = ("Insert Item", true, false),
+            ["map3d.insertitem"] = ("Insert Item", true, false),
             ["map3d.copy-selection"] = ("Copy Selection", false, false),
+            ["map3d.copyselection"] = ("Copy Selection", false, false),
             ["map3d.cut-selection"] = ("Cut Selection", false, false),
+            ["map3d.cutselection"] = ("Cut Selection", false, false),
             ["map3d.paste-selection"] = ("Paste Selection", false, false),
+            ["map3d.pasteselection"] = ("Paste Selection", false, false),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
             ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
@@ -1409,6 +1413,7 @@ public class EditorCommandCatalogTests
     {
         var command = EditorCommandCatalog.Find("map3d.apply-camera-rotation");
         var commandAlias = EditorCommandCatalog.Find("map3d.apply-camera-rotation-to-things");
+        var udbCommandAlias = EditorCommandCatalog.Find("map3d.applycamerarotationtothings");
 
         Assert.NotNull(command);
         Assert.Equal("Apply Camera Rotation To Things", command.Title);
@@ -1421,6 +1426,8 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(commandAlias);
         Assert.Equal(command.Title, commandAlias.Title);
+        Assert.NotNull(udbCommandAlias);
+        Assert.Equal(command.Title, udbCommandAlias.Title);
 
         var lookThrough = EditorCommandCatalog.Find("map3d.look-through-selection");
         var lookThroughAlias = EditorCommandCatalog.Find("map3d.look-through-thing");
@@ -1440,6 +1447,7 @@ public class EditorCommandCatalogTests
 
         var align = EditorCommandCatalog.Find("map3d.thing-align-to-wall");
         var alignAlias = EditorCommandCatalog.Find("map3d.align-things-to-wall");
+        var udbAlignAlias = EditorCommandCatalog.Find("map3d.thingaligntowall");
 
         Assert.NotNull(align);
         Assert.Equal("Align Things to Nearest Linedef", align.Title);
@@ -1453,8 +1461,12 @@ public class EditorCommandCatalogTests
         Assert.NotNull(alignAlias);
         Assert.Equal(align.Title, alignAlias.Title);
         Assert.Equal(align.DefaultGesture, alignAlias.DefaultGesture);
+        Assert.NotNull(udbAlignAlias);
+        Assert.Equal(align.Title, udbAlignAlias.Title);
+        Assert.Equal(align.DefaultGesture, udbAlignAlias.DefaultGesture);
 
         var showThings = EditorCommandCatalog.Find("map3d.show-visual-things");
+        var udbShowThings = EditorCommandCatalog.Find("map3d.showvisualthings");
 
         Assert.NotNull(showThings);
         Assert.Equal("Show Things", showThings.Title);
@@ -1463,6 +1475,9 @@ public class EditorCommandCatalogTests
         Assert.True(showThings.AllowMouse);
         Assert.True(showThings.AllowScroll);
         Assert.False(showThings.Repeat);
+        Assert.NotNull(udbShowThings);
+        Assert.Equal(showThings.Title, udbShowThings.Title);
+        Assert.Equal(showThings.DefaultGesture, udbShowThings.DefaultGesture);
     }
 
     [Fact]
@@ -2124,6 +2139,7 @@ public class EditorCommandCatalogTests
     public void VisualAlphaBasedTextureHighlightingCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-alpha-based-texture-highlighting");
+        var udbAlias = EditorCommandCatalog.Find("map3d.alphabasedtexturehighlighting");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Alpha-based Texture Highlighting", command.Title);
@@ -2133,6 +2149,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
@@ -2179,6 +2198,7 @@ public class EditorCommandCatalogTests
     public void VisualEnhancedRenderingEffectsCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-enhanced-rendering-effects");
+        var udbAlias = EditorCommandCatalog.Find("map3d.gztoggleenhancedrendering");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Enhanced Rendering Effects", command.Title);
@@ -2188,6 +2208,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]

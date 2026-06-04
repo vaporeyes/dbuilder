@@ -6041,15 +6041,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 MoveThingTargets3D(new Vec2D(_grid.GridSizeF, 0));
                 return true;
             case "map3d.insert-item":
+            case "map3d.insertitem":
                 InsertThingAtTarget3D();
                 return true;
             case "map3d.copy-selection":
+            case "map3d.copyselection":
                 CopyVisualThingSelection3D();
                 return true;
             case "map3d.cut-selection":
+            case "map3d.cutselection":
                 CutVisualThingSelection3D();
                 return true;
             case "map3d.paste-selection":
+            case "map3d.pasteselection":
                 PasteVisualThingSelection3D();
                 return true;
             case "map3d.place-thing-at-cursor":
@@ -6081,6 +6085,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.apply-camera-rotation":
             case "map3d.apply-camera-rotation-to-things":
+            case "map3d.applycamerarotationtothings":
                 ApplyCameraRotationToSelectedThings3D();
                 return true;
             case "map3d.look-through-selection":
@@ -6089,9 +6094,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.thing-align-to-wall":
             case "map3d.align-things-to-wall":
+            case "map3d.thingaligntowall":
                 AlignSelectedVisualThingsToWall3D();
                 return true;
             case "map3d.show-visual-things":
+            case "map3d.showvisualthings":
                 CycleVisualThings3D();
                 return true;
             case "map3d.scale-up":
@@ -6236,6 +6243,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ResetSlope3D();
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
+            case "map3d.alphabasedtexturehighlighting":
                 ToggleAlphaBasedTextureHighlighting();
                 return true;
             case "map3d.toggle-models-rendering":
@@ -6248,6 +6256,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Dynamic lights rendering mode: {ThingLightRenderPlanner.StatusLabel(_lightRenderMode)}");
                 return true;
             case "map3d.toggle-enhanced-rendering-effects":
+            case "map3d.gztoggleenhancedrendering":
                 ToggleEnhancedRenderingEffects();
                 Target3DChanged?.Invoke($"Enhanced rendering effects are {(_enhancedRenderingEffects ? "ENABLED" : "DISABLED")}");
                 return true;

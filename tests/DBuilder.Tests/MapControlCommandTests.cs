@@ -557,6 +557,26 @@ public sealed class MapControlCommandTests
         Assert.True(handlerIndex > commandIndex);
     }
 
+    [Theory]
+    [InlineData("map3d.insertitem", "InsertThingAtTarget3D()")]
+    [InlineData("map3d.copyselection", "CopyVisualThingSelection3D()")]
+    [InlineData("map3d.cutselection", "CutVisualThingSelection3D()")]
+    [InlineData("map3d.pasteselection", "PasteVisualThingSelection3D()")]
+    [InlineData("map3d.applycamerarotationtothings", "ApplyCameraRotationToSelectedThings3D()")]
+    [InlineData("map3d.thingaligntowall", "AlignSelectedVisualThingsToWall3D()")]
+    [InlineData("map3d.showvisualthings", "CycleVisualThings3D()")]
+    [InlineData("map3d.alphabasedtexturehighlighting", "ToggleAlphaBasedTextureHighlighting()")]
+    [InlineData("map3d.gztoggleenhancedrendering", "ToggleEnhancedRenderingEffects()")]
+    public void UdbVisualThingActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
     [Fact]
     public void RelocateThreeDFloorControlSectorsUsesInjectedAreaSettings()
     {
