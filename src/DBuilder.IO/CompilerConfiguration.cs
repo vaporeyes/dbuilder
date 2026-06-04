@@ -58,6 +58,14 @@ public static class ScriptCompilerArguments
 
 public static class ScriptCompilerProcess
 {
+    public static ProcessStartInfo CreateStartInfo(CompilerInfo compiler, string arguments, string workingDirectory)
+        => compiler.ProgramInterface switch
+        {
+            "BccCompiler" => CreateBccStartInfo(compiler, arguments, workingDirectory),
+            "ZtBccCompiler" => CreateZtBccStartInfo(compiler, arguments, workingDirectory),
+            _ => CreateAccStartInfo(compiler, arguments, workingDirectory),
+        };
+
     public static ProcessStartInfo CreateAccStartInfo(CompilerInfo compiler, string arguments, string workingDirectory)
     {
         return new ProcessStartInfo

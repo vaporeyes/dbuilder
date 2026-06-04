@@ -1324,6 +1324,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Remap temporary compiler input errors back to source files, archive entries, and WAD script lumps.
   - [x] Build UDB-style script compiler process start settings.
+  - [x] Select script compiler process settings from UDB compiler interface metadata.
   - [x] Plan ACS include copies into the compiler temp directory while preserving relative paths.
   - [x] Copy ACS include resources into the compiler temp directory without overwriting existing files.
 - [ ] Port ACC compiler integration.

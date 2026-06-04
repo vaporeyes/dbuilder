@@ -339,6 +339,33 @@ public class CompilerConfigurationTests
         Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, startInfo.WindowStyle);
     }
 
+    [Theory]
+    [InlineData("AccCompiler", true, false)]
+    [InlineData("BccCompiler", false, true)]
+    [InlineData("ZtBccCompiler", false, true)]
+    public void ScriptCompilerProcessSelectsStartInfoFromCompilerInterface(string compilerInterface, bool useShellExecute, bool redirectOutput)
+    {
+        var compiler = new CompilerInfo(
+            "compiler.cfg",
+            "compiler",
+            "/compilers",
+            "compiler",
+            compilerInterface,
+            new HashSet<string>());
+
+        var startInfo = ScriptCompilerProcess.CreateStartInfo(
+            compiler,
+            "-i scripts.acs -o behavior.o",
+            "/tmp/dbuilder_compile");
+
+        Assert.Equal(Path.Combine("/compilers", "compiler"), startInfo.FileName);
+        Assert.Equal("-i scripts.acs -o behavior.o", startInfo.Arguments);
+        Assert.Equal("/tmp/dbuilder_compile", startInfo.WorkingDirectory);
+        Assert.Equal(useShellExecute, startInfo.UseShellExecute);
+        Assert.Equal(redirectOutput, startInfo.RedirectStandardError);
+        Assert.Equal(redirectOutput, startInfo.RedirectStandardOutput);
+    }
+
     [Fact]
     public void ScriptCompileFlowBuildsDirectoryPlanLikeUdb()
     {
