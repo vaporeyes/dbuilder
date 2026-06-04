@@ -27,8 +27,8 @@ public static class UdmfMapWriter
     {
         var sb = new StringBuilder();
         if (writeNamespace != null) WriteAssignment(sb, "namespace", writeNamespace);
-        WriteCustomFields(sb, map.Fields, indent: false);
         WriteUnknownUdmfData(sb, map.UnknownUdmfData, indentLevel: 0);
+        WriteCustomFields(sb, map.Fields, indent: false);
         sb.AppendLine();
 
         var vertexIndex  = BuildIndex(map.Vertices);

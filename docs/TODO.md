@@ -428,6 +428,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Emit UDMF sector core fields even when they match defaults.
   - [x] Emit UDMF thing angle even when it is zero.
   - [x] Emit UDMF custom and map fields larger than signed 32-bit integers without truncation.
+  - [x] Emit unknown top-level UDMF collections before map fields like UDB.
   - [x] Emit UDMF text maps with UDB-style CRLF line endings.
   - [x] Format UDMF double values like UDB's universal parser.
   - [x] Format UDMF float values like UDB's universal parser.

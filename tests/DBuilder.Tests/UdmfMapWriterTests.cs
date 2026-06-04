@@ -707,6 +707,27 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void WritesUnknownTopLevelCollectionsBeforeMapFieldsLikeUdb()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("editorstate", new List<UnknownUdmfEntry>
+        {
+            new("label", "kept"),
+        }));
+        map.Fields["author"] = "tester";
+        map.Vertices.Add(new Vertex(new Vector2D(0, 0)));
+
+        var text = UdmfMapWriter.Write(map);
+
+        AssertInOrder(
+            NormalizeLineEndings(text),
+            "namespace = \"Doom\";",
+            "editorstate",
+            "author = \"tester\";",
+            "vertex // 0");
+    }
+
+    [Fact]
     public void UdmfArgsLoadIntoTypedArray()
     {
         const string udmf = """
