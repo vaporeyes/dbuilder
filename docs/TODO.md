@@ -926,6 +926,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve the first configured thing type when duplicate thing numbers are defined like UDB.
   - [x] Preserve the first configured linedef action when duplicate action numbers are defined like UDB.
   - [x] Parse scalar sector effect titles with UDB-style value conversion.
+  - [x] Parse flat numeric-key display dictionaries with UDB-style scalar value conversion.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

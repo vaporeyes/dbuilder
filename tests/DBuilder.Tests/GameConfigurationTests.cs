@@ -1099,6 +1099,31 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesScalarFlatIntStringValuesLikeUdb()
+    {
+        const string cfg = """
+            linedefflags
+            {
+                1 = 100;
+            }
+            thingflags
+            {
+                2 = 200;
+            }
+            skills
+            {
+                3 = 300;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("100", gc.LinedefFlags[1]);
+        Assert.Equal("200", gc.ThingFlags[2]);
+        Assert.Equal("300", gc.Skills[3]);
+    }
+
+    [Fact]
     public void DescribeLinedefFlagsListsSetBitsInOrder()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

@@ -2447,14 +2447,15 @@ public sealed class GameConfiguration
     private static int ParseActivationIndex(string key)
         => int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index) ? index : 0;
 
-    // Parses a flat "<int> = "<string>";" map (flags, etc.) into the destination dictionary.
+    // Parses a flat "<int> = <display value>;" map (flags, etc.) into the destination dictionary.
     private void ParseFlatIntStrings(IDictionary src, Dictionary<int, string> dest)
     {
         foreach (DictionaryEntry e in src)
         {
             string key = e.Key.ToString() ?? "";
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
-            if (e.Value is string s) dest[number] = s;
+            string? value = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+            if (value != null) dest[number] = value;
         }
     }
 
