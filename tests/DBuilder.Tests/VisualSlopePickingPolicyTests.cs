@@ -42,6 +42,39 @@ public class VisualSlopePickingPolicyTests
     }
 
     [Fact]
+    public void AdjacentVertexSelectionUsesGameConfigurationWarningForNonUdmfMapsLikeUdb()
+    {
+        var configuration = GameConfiguration.FromText("planeequationsupport = true;");
+
+        bool canUse = VisualSlopePickingPolicy.CanToggleAdjacentVertexSelection(MapFormat.Doom, configuration, out string warning);
+
+        Assert.False(canUse);
+        Assert.Equal(VisualSlopePickingPolicy.PlaneEquationRequiredMessage, warning);
+    }
+
+    [Fact]
+    public void AdjacentVertexSelectionUsesSameWarningWhenPlaneEquationsAreUnavailable()
+    {
+        var configuration = GameConfiguration.FromText("planeequationsupport = false;");
+
+        bool canUse = VisualSlopePickingPolicy.CanToggleAdjacentVertexSelection(MapFormat.Udmf, configuration, out string warning);
+
+        Assert.False(canUse);
+        Assert.Equal(VisualSlopePickingPolicy.PlaneEquationRequiredMessage, warning);
+    }
+
+    [Fact]
+    public void AdjacentVertexSelectionAllowsUdmfPlaneEquationConfigs()
+    {
+        var configuration = GameConfiguration.FromText("planeequationsupport = true;");
+
+        bool canUse = VisualSlopePickingPolicy.CanToggleAdjacentVertexSelection(MapFormat.Udmf, configuration, out string warning);
+
+        Assert.True(canUse);
+        Assert.Equal("", warning);
+    }
+
+    [Fact]
     public void AdjacentVertexSlopeSelectionStatusMatchesUdbText()
     {
         Assert.Equal(

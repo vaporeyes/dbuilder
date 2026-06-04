@@ -522,7 +522,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ToggleVisualVertexSlopeAdjacentSelection()
     {
-        if (!CanUseVisualSlopePicking()) return _selectAdjacentVisualVertexSlopeHandles;
+        if (!CanToggleAdjacentVisualVertexSlopeSelection()) return _selectAdjacentVisualVertexSlopeHandles;
 
         SetSelectAdjacentVisualVertexSlopeHandles(!_selectAdjacentVisualVertexSlopeHandles);
         Target3DChanged?.Invoke(VisualSlopePickingPolicy.AdjacentVertexSlopeSelectionStatus(_selectAdjacentVisualVertexSlopeHandles));
@@ -532,6 +532,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool CanUseVisualSlopePicking()
     {
         if (VisualSlopePickingPolicy.CanUse(_mapFormat, _gameConfig, out string warning)) return true;
+        Target3DChanged?.Invoke(warning);
+        return false;
+    }
+
+    private bool CanToggleAdjacentVisualVertexSlopeSelection()
+    {
+        if (VisualSlopePickingPolicy.CanToggleAdjacentVertexSelection(_mapFormat, _gameConfig, out string warning)) return true;
         Target3DChanged?.Invoke(warning);
         return false;
     }

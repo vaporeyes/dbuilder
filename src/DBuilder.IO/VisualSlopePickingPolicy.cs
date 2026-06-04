@@ -30,6 +30,18 @@ public static class VisualSlopePickingPolicy
         return true;
     }
 
+    public static bool CanToggleAdjacentVertexSelection(MapFormat mapFormat, GameConfiguration? configuration, out string warning)
+    {
+        if (mapFormat != MapFormat.Udmf || configuration?.PlaneEquationSupport != true)
+        {
+            warning = PlaneEquationRequiredMessage;
+            return false;
+        }
+
+        warning = "";
+        return true;
+    }
+
     public static string AdjacentVertexSlopeSelectionStatus(bool enabled)
         => enabled
             ? AdjacentVertexSlopeSelectionEnabledMessage

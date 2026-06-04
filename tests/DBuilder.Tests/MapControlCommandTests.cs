@@ -241,4 +241,19 @@ public sealed class MapControlCommandTests
         Assert.True(dispatchIndex >= 0);
         Assert.True(handlerIndex > dispatchIndex);
     }
+
+    [Fact]
+    public void AdjacentVertexSlopeSelectionUsesDedicatedUdbGuard()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public bool ToggleVisualVertexSlopeAdjacentSelection()", StringComparison.Ordinal);
+        int guardIndex = body.IndexOf("if (!CanToggleAdjacentVisualVertexSlopeSelection())", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private bool CanToggleAdjacentVisualVertexSlopeSelection()", StringComparison.Ordinal);
+        int policyIndex = body.IndexOf("VisualSlopePickingPolicy.CanToggleAdjacentVertexSelection", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(guardIndex > methodIndex);
+        Assert.True(helperIndex > methodIndex);
+        Assert.True(policyIndex > helperIndex);
+    }
 }
