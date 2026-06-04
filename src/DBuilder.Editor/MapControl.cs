@@ -2653,7 +2653,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             Target3DChanged?.Invoke(_mapFormat == MapFormat.Udmf
                 ? "no texture dimensions for selected flat offsets"
-                : "floor/ceiling texture offsets cannot be changed in this map format");
+                : VisualFlatTextureOffsetUnsupportedMapFormatMessage());
             return;
         }
 
@@ -2677,6 +2677,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string VisualTextureOffset3DEditName()
         => "Change texture offsets";
+
+    public static string VisualFlatTextureOffsetUnsupportedMapFormatMessage()
+        => "Floor/ceiling texture offsets cannot be changed in this map format!";
 
     private static bool IsLineFlagSet3D(Linedef line, string flag)
     {

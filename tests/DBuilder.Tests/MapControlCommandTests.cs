@@ -108,6 +108,12 @@ public sealed class MapControlCommandTests
     public void VisualTextureOffset3DEditNameMatchesUdb()
         => Assert.Equal("Change texture offsets", MapControl.VisualTextureOffset3DEditName());
 
+    [Fact]
+    public void VisualFlatTextureOffsetUnsupportedMapFormatMessageMatchesUdb()
+        => Assert.Equal(
+            "Floor/ceiling texture offsets cannot be changed in this map format!",
+            MapControl.VisualFlatTextureOffsetUnsupportedMapFormatMessage());
+
     [Theory]
     [InlineData(VisualHitKind.Floor, "FLOOR0_1", "Flood-filled floors with FLOOR0_1.")]
     [InlineData(VisualHitKind.Ceiling, "CEIL1_1", "Flood-filled ceilings with CEIL1_1.")]
@@ -869,6 +875,7 @@ public sealed class MapControlCommandTests
         int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualTextureOffset3DEditName());", statusVariableIndex, StringComparison.Ordinal);
         int wallStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(VisualHitKind.Wall", statusVariableIndex, StringComparison.Ordinal);
         int flatStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(", wallStatusIndex + 1, StringComparison.Ordinal);
+        int unsupportedFlatOffsetIndex = body.IndexOf("VisualFlatTextureOffsetUnsupportedMapFormatMessage()", flatStatusIndex, StringComparison.Ordinal);
         int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(offsetStatus);", flatStatusIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
@@ -876,9 +883,11 @@ public sealed class MapControlCommandTests
         Assert.True(editNameIndex > statusVariableIndex);
         Assert.True(wallStatusIndex > editNameIndex);
         Assert.True(flatStatusIndex > wallStatusIndex);
+        Assert.True(unsupportedFlatOffsetIndex > flatStatusIndex);
         Assert.True(finalStatusIndex > flatStatusIndex);
         Assert.DoesNotContain("offset {changed} target", body, StringComparison.Ordinal);
         Assert.DoesNotContain("EditBegun?.Invoke(\"Texture offset\")", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"floor/ceiling texture offsets cannot be changed in this map format\"", body, StringComparison.Ordinal);
     }
 
     [Fact]
