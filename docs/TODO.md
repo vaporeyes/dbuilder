@@ -2163,6 +2163,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable Visplane Explorer ready-status formatting for queued analysis state.
   - [x] Add testable Visplane Explorer analysis progress counts and status formatting.
   - [x] Wire Visplane Explorer mode command to report queued analysis progress status.
+  - [x] Wire Visplane Explorer mode command to report persisted toolbar settings in ready status.
 - [ ] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.

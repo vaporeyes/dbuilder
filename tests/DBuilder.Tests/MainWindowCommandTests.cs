@@ -97,12 +97,13 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
-    public void VisplaneExplorerModeReportsQueuedProgressStatus()
+    public void VisplaneExplorerModeReportsQueuedReadyStatusWithPersistedSettings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.Contains("scan.QueuePoints(", body, StringComparison.Ordinal);
-        Assert.Contains("SetStatus(scan.Progress(queued.Count).FormatStatus())", body, StringComparison.Ordinal);
+        Assert.Contains("VisplaneExplorerInterfaceModel.ReadyStatus(", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.VisplaneExplorerSettings", body, StringComparison.Ordinal);
     }
 
     [Fact]

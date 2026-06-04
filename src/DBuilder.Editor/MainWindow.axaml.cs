@@ -3579,7 +3579,11 @@ public partial class MainWindow : Window
             CurrentVisplaneViewRectangle(),
             currentQueuedPoints: 0,
             targetQueuedPoints: 1024);
-        SetStatus(scan.Progress(queued.Count).FormatStatus());
+        SetStatus(VisplaneExplorerInterfaceModel.ReadyStatus(
+            scan.Tiles.Count,
+            queued.Count,
+            VisplaneExplorerStat.Visplanes,
+            _settings.VisplaneExplorerSettings));
         MapView.Focus();
     }
 
