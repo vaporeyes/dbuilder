@@ -70,6 +70,26 @@ sectortypes
     }
 
     [Fact]
+    public void MissingGeneralizedCategoryTitleDefaultsToEmptyLikeUdb()
+    {
+        const string cfg = """
+            gen_linedeftypes
+            {
+                floors
+                {
+                    offset = 24576;
+                    length = 8192;
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var category = Assert.Single(gc.GeneralizedLinedefs);
+        Assert.Equal("", category.Title);
+    }
+
+    [Fact]
     public void ComputesOptionMaskFromBitValues()
     {
         var gc = GameConfiguration.FromText(Cfg);

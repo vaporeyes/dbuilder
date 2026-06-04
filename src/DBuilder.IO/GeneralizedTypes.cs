@@ -117,7 +117,7 @@ public sealed class GeneralizedCategory
         foreach (DictionaryEntry catEntry in block)
         {
             if (catEntry.Value is not IDictionary cat) continue;
-            string title = cat["title"] as string ?? catEntry.Key.ToString() ?? "";
+            string title = ReadString(cat["title"], "");
             int offset = ReadInt(cat["offset"]);
             int length = ReadInt(cat["length"]);
             var options = new List<GeneralizedOption>();
@@ -143,4 +143,7 @@ public sealed class GeneralizedCategory
         string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int p) => p,
         _ => 0,
     };
+
+    private static string ReadString(object? value, string fallback)
+        => value == null ? fallback : Convert.ToString(value, CultureInfo.InvariantCulture) ?? fallback;
 }
