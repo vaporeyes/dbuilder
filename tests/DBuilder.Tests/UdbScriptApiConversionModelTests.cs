@@ -2536,6 +2536,65 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFlagsRejectUnknownConfiguredFlagNamesLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            linedefflags
+            {
+                1 = "blocking";
+            }
+            linedefactivations
+            {
+                playercross = "Player Crosses";
+            }
+            sidedefflags
+            {
+                lightfog = "Light fog";
+            }
+            sectorflags
+            {
+                noattack = "No attack";
+            }
+            thingflags
+            {
+                ambush = "Ambush";
+            }
+            """);
+        var line = new Linedef();
+        var side = new Sidedef(line, isFront: true);
+        var sector = new Sector();
+        var thing = new Thing();
+
+        UdbScriptFlagsWrapper lineFlags = new UdbScriptLinedefWrapper(line, config: config).flags;
+        UdbScriptFlagsWrapper sideFlags = new UdbScriptSidedefWrapper(side, config: config).flags;
+        UdbScriptFlagsWrapper sectorFlags = new UdbScriptSectorWrapper(sector, config: config).flags;
+        UdbScriptFlagsWrapper thingFlags = new UdbScriptThingWrapper(thing, config: config).flags;
+
+        lineFlags["blocking"] = true;
+        lineFlags["playercross"] = true;
+        sideFlags["lightfog"] = true;
+        sectorFlags["noattack"] = true;
+        thingFlags["ambush"] = true;
+
+        Assert.True(line.IsFlagSet("blocking"));
+        Assert.True(line.IsFlagSet("playercross"));
+        Assert.True(side.IsFlagSet("lightfog"));
+        Assert.True(sector.IsFlagSet("noattack"));
+        Assert.True(thing.IsFlagSet("ambush"));
+
+        InvalidOperationException lineException = Assert.Throws<InvalidOperationException>(() => lineFlags["unknown"] = true);
+        InvalidOperationException sideException = Assert.Throws<InvalidOperationException>(() => sideFlags["unknown"] = true);
+        InvalidOperationException sectorException = Assert.Throws<InvalidOperationException>(() => sectorFlags["unknown"] = true);
+        InvalidOperationException thingException = Assert.Throws<InvalidOperationException>(() => thingFlags["unknown"] = true);
+
+        const string expected = "Flag name 'unknown' is not valid.";
+        Assert.Equal(expected, lineException.Message);
+        Assert.Equal(expected, sideException.Message);
+        Assert.Equal(expected, sectorException.Message);
+        Assert.Equal(expected, thingException.Message);
+    }
+
+    [Fact]
     public void MapElementWrappersRejectDisposedFieldsAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });

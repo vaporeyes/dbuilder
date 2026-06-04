@@ -1180,11 +1180,13 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
 {
     private readonly HashSet<string>? flags;
     private readonly Func<int>? getNumericFlags;
+    private readonly HashSet<string>? knownFlagNames;
     private readonly Action<int>? setNumericFlags;
 
-    public UdbScriptFlagsWrapper(HashSet<string> flags)
+    public UdbScriptFlagsWrapper(HashSet<string> flags, IEnumerable<string>? knownFlagNames = null)
     {
         this.flags = flags;
+        this.knownFlagNames = knownFlagNames?.ToHashSet(StringComparer.Ordinal);
     }
 
     public UdbScriptFlagsWrapper(Func<int> getNumericFlags, Action<int> setNumericFlags)
@@ -1204,6 +1206,7 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
         {
             if (flags != null)
             {
+                ValidateKnownFlagName(key);
                 if (value) flags.Add(key);
                 else flags.Remove(key);
                 return;
@@ -1287,6 +1290,12 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
         }
 
         return keys.ToArray();
+    }
+
+    private void ValidateKnownFlagName(string key)
+    {
+        if (knownFlagNames != null && !knownFlagNames.Contains(key))
+            throw new InvalidOperationException("Flag name '" + key + "' is not valid.");
     }
 
     private static int ParseFlagBit(string key)
@@ -1638,7 +1647,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         {
             ThrowIfDisposed("flags");
             return mapFormat == MapFormat.Udmf
-                ? new UdbScriptFlagsWrapper(linedef.UdmfFlags)
+                ? new UdbScriptFlagsWrapper(linedef.UdmfFlags, LinedefKnownFlagNames(config))
                 : new UdbScriptFlagsWrapper(() => linedef.Flags, value => linedef.Flags = value);
         }
     }
@@ -1901,6 +1910,14 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
             throw new InvalidOperationException("Linedef is disposed, the " + member + " member can not be accessed.");
     }
 
+    private static IEnumerable<string>? LinedefKnownFlagNames(GameConfiguration? config)
+    {
+        if (config == null)
+            return null;
+
+        return config.LinedefFlags.Values.Concat(config.LinedefActivations.Select(activation => activation.Key));
+    }
+
     private Vertex CreateSplitVertex(object pos)
     {
         Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
@@ -2069,7 +2086,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         get
         {
             ThrowIfDisposed("flags");
-            return new UdbScriptFlagsWrapper(sidedef.UdmfFlags);
+            return new UdbScriptFlagsWrapper(sidedef.UdmfFlags, config?.SidedefFlags.Keys);
         }
     }
 
@@ -2379,7 +2396,7 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         get
         {
             ThrowIfDisposed("flags");
-            return new UdbScriptFlagsWrapper(sector.UdmfFlags);
+            return new UdbScriptFlagsWrapper(sector.UdmfFlags, config?.SectorFlags.Keys);
         }
     }
 
@@ -2789,7 +2806,7 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
         {
             ThrowIfDisposed("flags");
             return mapFormat == MapFormat.Udmf
-                ? new UdbScriptFlagsWrapper(thing.UdmfFlags)
+                ? new UdbScriptFlagsWrapper(thing.UdmfFlags, config?.ThingFlagKeys)
                 : new UdbScriptFlagsWrapper(() => thing.Flags, value => thing.Flags = value);
         }
     }
