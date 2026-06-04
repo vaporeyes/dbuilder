@@ -195,6 +195,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionSnapsThingAnglesWhenGameConfigUsesDoomAngles()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int rotationIndex = body.IndexOf("BuilderEffects.ApplyThingRotation(", methodIndex, StringComparison.Ordinal);
+        int configIndex = body.IndexOf("_config?.DoomThingRotationAngles == true", rotationIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(rotationIndex > methodIndex);
+        Assert.True(configIndex > rotationIndex);
+    }
+
+    [Fact]
     public void JitterDialogExposesUdbSectorOffsetModes()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));

@@ -5329,7 +5329,10 @@ public partial class MainWindow : Window
                 ScaleYFactor: 0,
                 SafeDistance: dialog.ResultPositionAmount)).ToList();
             changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
-            changed += BuilderEffects.ApplyThingRotation(thingJitter, dialog.ResultThingRotationAmount);
+            changed += BuilderEffects.ApplyThingRotation(
+                thingJitter,
+                dialog.ResultThingRotationAmount,
+                _config?.DoomThingRotationAngles == true);
             foreach (Thing thing in things)
                 thing.DetermineSector(_map);
         }
