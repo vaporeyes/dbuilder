@@ -1038,7 +1038,9 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
             return;
         }
 
-        element.Fields[key] = ConvertValue(key, value);
+        element.Fields[key] = element.Fields.TryGetValue(key, out object? oldValue)
+            ? ConvertExistingValue(key, value, oldValue)
+            : ConvertValue(key, value);
     }
 
     private IEnumerable<KeyValuePair<string, object?>> EnumerateFields()
@@ -1156,6 +1158,21 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
                 ?? throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + ".");
 
         throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + ".");
+    }
+
+    private static object ConvertExistingValue(string key, object value, object oldValue)
+    {
+        object proposed = ConvertValue(key, value);
+        return proposed switch
+        {
+            double number when oldValue is int => Convert.ToInt32(number),
+            double number when oldValue is double => number,
+            int number when oldValue is int => number,
+            int number when oldValue is double => Convert.ToDouble(number),
+            string text when oldValue is string => text,
+            bool flag when oldValue is bool => flag,
+            _ => throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + "."),
+        };
     }
 }
 

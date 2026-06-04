@@ -2419,6 +2419,33 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFieldsPreserveExistingNumericFieldTypesLikeUdb()
+    {
+        var thing = new Thing();
+        thing.Fields["user_int"] = 2;
+        thing.Fields["user_double"] = 2.5;
+        thing.Fields["user_string"] = "old";
+        thing.Fields["user_bool"] = false;
+        var fields = new UdbScriptThingWrapper(thing).fields;
+
+        fields["user_int"] = 2.6;
+        fields["user_double"] = 3;
+        fields["user_string"] = "new";
+        fields["user_bool"] = true;
+
+        Assert.Equal(3, thing.Fields["user_int"]);
+        Assert.IsType<int>(thing.Fields["user_int"]);
+        Assert.Equal(3.0, thing.Fields["user_double"]);
+        Assert.IsType<double>(thing.Fields["user_double"]);
+        Assert.Equal("new", thing.Fields["user_string"]);
+        Assert.Equal(true, thing.Fields["user_bool"]);
+
+        InvalidOperationException badType = Assert.Throws<InvalidOperationException>(() => fields["user_int"] = "bad");
+
+        Assert.StartsWith("UDMF field 'user_int' is of incompatible type", badType.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MapElementFieldsRejectInvalidNamesAndValues()
     {
         var fields = new UdbScriptThingWrapper(new Thing()).fields;
