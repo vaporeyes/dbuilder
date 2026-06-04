@@ -54,6 +54,12 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualScale3DStatusText(kind, scaleX, scaleY, width, height));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, 5.0, "Floor rotation changed to 5")]
+    [InlineData(VisualHitKind.Ceiling, 355.0, "Ceiling rotation changed to 355")]
+    public void VisualRotation3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, double angle, string expected)
+        => Assert.Equal(expected, MapControl.VisualRotation3DStatusText(kind, angle));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -145,6 +151,20 @@ public sealed class MapControlCommandTests
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);", body, StringComparison.Ordinal);
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);", body, StringComparison.Ordinal);
         Assert.Contains("VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RotateVisualTargets3DUsesUdbFlatRotationStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool RotateVisualTargets3D(int thingAngleIncrement, int textureAngleIncrement)", StringComparison.Ordinal);
+        int rotationIndex = body.IndexOf("VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf)", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualRotation3DStatusFromTargets(targets));", rotationIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(rotationIndex > methodIndex);
+        Assert.True(statusIndex > rotationIndex);
+        Assert.DoesNotContain("rotated {thingCount + flatCount} target", body, StringComparison.Ordinal);
     }
 
     [Fact]

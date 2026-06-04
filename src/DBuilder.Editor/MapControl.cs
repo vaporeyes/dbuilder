@@ -3606,8 +3606,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"rotated {thingCount + flatCount} target{(thingCount + flatCount == 1 ? "" : "s")}");
+        Target3DChanged?.Invoke(VisualRotation3DStatusFromTargets(targets));
         return true;
+    }
+
+    public static string VisualRotation3DStatusText(VisualHitKind kind, double angle)
+        => (kind == VisualHitKind.Ceiling ? "Ceiling" : "Floor") + " rotation changed to " + angle.ToString(CultureInfo.InvariantCulture);
+
+    private static string VisualRotation3DStatusFromTargets(IEnumerable<VisualHit> targets)
+    {
+        string status = string.Empty;
+        var seen = new HashSet<(Sector Sector, bool Ceiling)>();
+        foreach (VisualHit hit in targets)
+        {
+            if (hit.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling) || hit.Sector == null) continue;
+
+            bool ceiling = hit.Kind == VisualHitKind.Ceiling;
+            if (!seen.Add((hit.Sector, ceiling))) continue;
+
+            double angle = hit.Sector.GetFloatField(ceiling ? "rotationceiling" : "rotationfloor", 0.0);
+            status = VisualRotation3DStatusText(hit.Kind, angle);
+        }
+
+        return status;
     }
 
     private bool ChangeThingPitchTargets3D(int increment)
