@@ -1978,6 +1978,50 @@ ACTOR ConfiguredLightThing 31017
     }
 
     [Fact]
+    public void ParsesSpacedDecorateStateLightName()
+    {
+        const string decorate = @"
+ACTOR SpacedLightThing 31018
+{
+    States { Spawn: LITE A -1 Light ( ""SPACED_LIGHT"" ) stop }
+}";
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31018);
+        Assert.NotNull(info);
+        Assert.Equal("SPACED_LIGHT", info!.LightName);
+    }
+
+    [Theory]
+    [InlineData("Light stop")]
+    [InlineData("Light() stop")]
+    [InlineData("Light(\"BROKEN_LIGHT\" stop")]
+    public void MalformedDecorateStateLightStopsParsingLikeUdb(string lightTail)
+    {
+        string decorate = $$"""
+            ACTOR BeforeBadStateLight 31018
+            {
+                Radius 8
+            }
+            ACTOR BadStateLightThing 31019
+            {
+                States { Spawn: BADL A -1 {{lightTail}} }
+            }
+            ACTOR AfterBadStateLight 31020
+            {
+                Radius 16
+            }
+            """;
+
+        var actors = DecorateParser.Parse(decorate);
+
+        var actor = Assert.Single(actors);
+        Assert.Equal("BeforeBadStateLight", actor.ClassName);
+    }
+
+    [Fact]
     public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string text = @"

@@ -1247,8 +1247,15 @@ public static class DecorateParser
                     SkipRemainingActorBody(t, ref i, depth);
                     return false;
                 }
-                if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
+                if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 {
+                    if (!zscriptBody && HasMalformedDecorateStateFrameLight(t, i + 2))
+                    {
+                        SkipRemainingActorBody(t, ref i, depth);
+                        stopParsing = true;
+                        return false;
+                    }
+                    if (!CanUseStateFrame(zscriptBody, t, i)) continue;
                     var sprite = BuildSpriteCandidate(tk.Text, t, i);
                     firstSprite ??= sprite;
                     if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
@@ -1354,8 +1361,15 @@ public static class DecorateParser
                 SkipRemainingActorBody(t, ref i, depth);
                 return false;
             }
-            else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i) && CanUseStateFrame(zscriptBody, t, i))
+            else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
             {
+                if (!zscriptBody && HasMalformedDecorateStateFrameLight(t, i + 2))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    stopParsing = true;
+                    return false;
+                }
+                if (!CanUseStateFrame(zscriptBody, t, i)) continue;
                 var sprite = BuildSpriteCandidate(tk.Text, t, i);
                 firstSprite ??= sprite;
                 if (!sprite.IsEmpty) firstNonEmptySprite ??= sprite;
@@ -1516,6 +1530,55 @@ public static class DecorateParser
 
     private static bool CanUseStateFrame(bool zscriptBody, List<Tok> t, int frameIndex)
         => !zscriptBody || HasValidZScriptStateFrameTail(t, frameIndex + 1);
+
+    private static bool HasMalformedDecorateStateFrameLight(List<Tok> t, int start)
+    {
+        for (int i = start; i < t.Count; i++)
+        {
+            if (t[i].Kind == Kind.Sym && t[i].Text is "\n" or "{" or "}") return false;
+            if (t[i].Kind != Kind.Word) continue;
+            string token = t[i].Text;
+            if (token.Equals("light", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!TryConsumeDecorateLightArgument(t, i + 1, out int next)) return true;
+                i = next - 1;
+            }
+            else if (token.StartsWith("light(", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!TryConsumeDecorateLightArgument(t, i, out int next)) return true;
+                i = next - 1;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryConsumeDecorateLightArgument(List<Tok> t, int index, out int next)
+    {
+        next = index;
+        if (index >= t.Count) return false;
+        string token = t[index].Text;
+        int open = token.IndexOf('(', StringComparison.Ordinal);
+        if (open < 0) return false;
+        string value = token[(open + 1)..];
+        if (value.Length > 0)
+        {
+            int close = value.IndexOf(')', StringComparison.Ordinal);
+            if (close >= 0)
+            {
+                next = index + 1;
+                return close > 0;
+            }
+            next = index + 1;
+            return index + 1 < t.Count && t[index + 1].Text == ")";
+        }
+
+        if (index + 1 >= t.Count || t[index + 1].Kind is not (Kind.Word or Kind.Str) || t[index + 1].Text.Length == 0)
+            return false;
+        if (index + 2 >= t.Count || t[index + 2].Text != ")") return false;
+        next = index + 3;
+        return true;
+    }
 
     private static bool HasValidZScriptStateFrameTail(List<Tok> t, int start)
     {
@@ -1772,7 +1835,11 @@ public static class DecorateParser
             if (i + 1 < t.Count)
             {
                 string next = t[i + 1].Text;
-                if (next.StartsWith("(", StringComparison.Ordinal)) return ReadInlineLightName(next);
+                if (next.StartsWith("(", StringComparison.Ordinal))
+                {
+                    string? inlineLight = ReadInlineLightName(next);
+                    if (inlineLight != null) return inlineLight;
+                }
             }
 
             if (i + 2 < t.Count && t[i + 1].Text == "(" && t[i + 2].Kind is Kind.Word or Kind.Str)
