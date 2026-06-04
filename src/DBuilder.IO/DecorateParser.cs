@@ -1458,6 +1458,11 @@ public static class DecorateParser
                 SkipRemainingActorBody(t, ref i, depth);
                 return false;
             }
+            else if (zscriptBody && inStates && currentState == null && IsZScriptStateControlKeyword(lw) && IsStateLabel(t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
+            }
             else if (inStates && tk.Kind == Kind.Word && TryReadStateLabel(t, tk.Text, ref i, out var stateLabel))
             {
                 currentState = stateLabel;
@@ -1577,6 +1582,9 @@ public static class DecorateParser
 
     private static bool IsZScriptStateControlFlow(string value)
         => value is "loop" or "wait" or "fail" or "stop";
+
+    private static bool IsZScriptStateControlKeyword(string value)
+        => value is "goto" or "loop" or "wait" or "fail" or "stop";
 
     private static bool TryReadStateLabel(List<Tok> t, string first, ref int i, out string stateLabel)
     {

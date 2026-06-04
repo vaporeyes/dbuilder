@@ -1186,6 +1186,24 @@ class SpacedStateLabelZThing : Actor
     }
 
     [Fact]
+    public void RejectsZScriptInitialStateLabelsNamedLikeControlKeywordsLikeUdb()
+    {
+        const string zscript = @"
+class ControlKeywordStateLabelZThing : Actor
+{
+    States { Stop: CKEY A -1; Stop; }
+}
+class ValidAfterControlKeywordStateLabelZThing : Actor
+{
+    States { Spawn: VCKL A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterControlKeywordStateLabelZThing", actor.ClassName);
+        Assert.Equal("VCKLA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void RejectsZScriptStateFrameWithoutRequiredSemicolon()
     {
         const string zscript = @"
