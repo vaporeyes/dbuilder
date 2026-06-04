@@ -100,6 +100,40 @@ public class VisualNearestHeightTests
     }
 
     [Fact]
+    public void RaiseWithinSelectionRejectsFloorAboveLowestCeiling()
+    {
+        Sector blocked = Sector(0, 8);
+        Sector high = Sector(16, 32);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(blocked), FloorHit(high)],
+            raise: true,
+            withinSelection: true);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal(VisualNearestHeight.LowestCeilingBelowHighestFloorMessage, result.Message);
+        Assert.Equal(0, blocked.FloorHeight);
+        Assert.Equal(16, high.FloorHeight);
+    }
+
+    [Fact]
+    public void LowerWithinSelectionRejectsCeilingBelowHighestFloor()
+    {
+        Sector low = Sector(0, 8);
+        Sector blocked = Sector(16, 32);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [CeilingHit(low), CeilingHit(blocked)],
+            raise: false,
+            withinSelection: true);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal(VisualNearestHeight.LowestCeilingBelowHighestFloorMessage, result.Message);
+        Assert.Equal(8, low.CeilHeight);
+        Assert.Equal(32, blocked.CeilHeight);
+    }
+
+    [Fact]
     public void RaisesAndLowersThingWithinContainingSector()
     {
         Sector sector = Sector(8, 72);

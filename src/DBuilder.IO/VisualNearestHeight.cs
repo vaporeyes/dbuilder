@@ -10,6 +10,7 @@ public sealed record VisualNearestHeightResult(int ChangedSurfaces, string Messa
 public static class VisualNearestHeight
 {
     public const string NoSuitableObjectsMessage = "No suitable objects found!";
+    public const string LowestCeilingBelowHighestFloorMessage = "Can't do: lowest ceiling is lower than highest floor!";
 
     public static VisualNearestHeightResult Apply(IEnumerable<VisualHit> hits, bool raise, bool withinSelection)
     {
@@ -42,6 +43,12 @@ public static class VisualNearestHeight
 
             if (!string.IsNullOrEmpty(required))
                 return new VisualNearestHeightResult(0, $"Can't do: at least 2 selected {required} are required!");
+
+            if (raise && floors.Count > 0 && floors.Keys.Min(sector => sector.CeilHeight) < floors.Keys.Max(sector => sector.FloorHeight))
+                return new VisualNearestHeightResult(0, LowestCeilingBelowHighestFloorMessage);
+
+            if (!raise && ceilings.Count > 0 && ceilings.Keys.Min(sector => sector.CeilHeight) < ceilings.Keys.Max(sector => sector.FloorHeight))
+                return new VisualNearestHeightResult(0, LowestCeilingBelowHighestFloorMessage);
         }
 
         int changed = 0;
