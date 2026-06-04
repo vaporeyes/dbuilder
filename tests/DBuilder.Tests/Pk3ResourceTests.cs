@@ -78,6 +78,15 @@ public class Pk3ResourceTests
         return f;
     }
 
+    private static byte[] ColormapBytes(byte offset)
+    {
+        var bytes = new byte[DoomColormap.LevelSize * DoomColormap.StandardLevelCount];
+        for (int level = 0; level < DoomColormap.StandardLevelCount; level++)
+            for (int index = 0; index < DoomColormap.LevelSize; index++)
+                bytes[level * DoomColormap.LevelSize + index] = (byte)((index + offset) & 0xFF);
+        return bytes;
+    }
+
     private static byte[] BuildNestedResourceWad()
     {
         using var ms = new MemoryStream();
@@ -213,6 +222,25 @@ public class Pk3ResourceTests
             rm.AddResource(path);
 
             Assert.Equal(0xff0a141eu, rm.Palette!.Colors[0]);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void Pk3NamespaceLookupsSearchSubfoldersLikeUdb()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("textures/detail/SUBWALL.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
+            ("flats/detail/SUBFLAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))),
+            ("colormaps/detail/SUBMAP.lmp", ColormapBytes(9)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.Equal(new byte[] { 10, 11, 12, 255 }, rm.GetWallTexture("SUBWALL")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 20, 21, 22, 255 }, rm.GetFlat("SUBFLAT")!.Rgba[0..4]);
+            Assert.Equal(19, rm.GetColormap("SUBMAP")!.Lookup(0, 10));
         }
         finally { File.Delete(path); }
     }

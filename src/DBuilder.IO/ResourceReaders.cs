@@ -935,11 +935,36 @@ internal abstract class FolderResourceReader : IResourceReader
         {
             if (TryFindPath(name, out var bytes)) return bytes;
             if (allowPathTitleFallback && TryFindPathTitle(name, out bytes)) return bytes;
+            return null;
         }
 
         string key = name.ToUpperInvariant();
         foreach (var f in folders)
+        {
+            if (f.Length > 0 && FindFirstTitleInFolderTree(name, f) is { } treeBytes) return treeBytes;
             if (entries.TryGetValue(f.ToLowerInvariant() + "/" + key, out var read)) return read();
+        }
+        return null;
+    }
+
+    private byte[]? FindFirstTitleInFolderTree(string name, string folder)
+    {
+        string title = Path.GetFileNameWithoutExtension(name);
+        string prefix = folder.Replace('\\', '/').Trim('/').ToLowerInvariant();
+        var paths = new List<string>(files.Keys);
+        paths.Sort(StringComparer.OrdinalIgnoreCase);
+        foreach (string path in paths)
+        {
+            string normalized = path.Replace('\\', '/').TrimStart('/');
+            string directory = Path.GetDirectoryName(normalized)?.Replace('\\', '/') ?? "";
+            if (!directory.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                && !directory.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (Path.GetFileNameWithoutExtension(normalized).Equals(title, StringComparison.OrdinalIgnoreCase))
+                return files[path]();
+        }
+
         return null;
     }
 
