@@ -310,6 +310,14 @@ public sealed class MapControlCommandTests
     public void VisualThingSelectionStatusTextMatchesUdbCopyPasteText(string verb, int count, string expected)
         => Assert.Equal(expected, MapControl.VisualThingSelectionStatusText(verb, count));
 
+    [Theory]
+    [InlineData("Cut", 1, "Cut 1 thing.")]
+    [InlineData("Cut", 2, "Cut 2 things.")]
+    [InlineData("Paste", 1, "Paste 1 thing.")]
+    [InlineData("Paste", 3, "Paste 3 things.")]
+    public void VisualThingSelectionEditNameMatchesUdbCopyPasteUndoText(string verb, int count, string expected)
+        => Assert.Equal(expected, MapControl.VisualThingSelectionEditName(verb, count));
+
     [Fact]
     public void VisualThingInsertedStatusTextMatchesUdb()
         => Assert.Equal("Inserted a new thing.", MapControl.VisualThingInsertedStatusText());
@@ -541,17 +549,23 @@ public sealed class MapControlCommandTests
         int copyIndex = body.IndexOf("private bool CopyVisualThingSelection3D()", StringComparison.Ordinal);
         int copyStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Copied\", things.Count)", copyIndex, StringComparison.Ordinal);
         int cutIndex = body.IndexOf("private bool CutVisualThingSelection3D()", StringComparison.Ordinal);
+        int cutEditIndex = body.IndexOf("EditBegun?.Invoke(VisualThingSelectionEditName(\"Cut\", things.Count));", cutIndex, StringComparison.Ordinal);
         int cutStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Cut\", things.Count)", cutIndex, StringComparison.Ordinal);
         int pasteIndex = body.IndexOf("private bool PasteVisualThingSelection3D()", StringComparison.Ordinal);
         int cannotPasteIndex = body.IndexOf("Cannot paste here!", pasteIndex, StringComparison.Ordinal);
+        int pasteEditIndex = body.IndexOf("EditBegun?.Invoke(VisualThingSelectionEditName(\"Paste\", ClipboardThingCount(_visualThingClipboard)));", cannotPasteIndex, StringComparison.Ordinal);
+        int pasteCallIndex = body.IndexOf("PasteResult result = SelectionClipboard.Paste", pasteEditIndex, StringComparison.Ordinal);
         int pasteStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Pasted\", pasted.Count)", pasteIndex, StringComparison.Ordinal);
 
         Assert.True(copyIndex >= 0);
         Assert.True(copyStatusIndex > copyIndex);
         Assert.True(cutIndex >= 0);
+        Assert.True(cutEditIndex > cutIndex);
         Assert.True(cutStatusIndex > cutIndex);
         Assert.True(pasteIndex >= 0);
         Assert.True(cannotPasteIndex > pasteIndex);
+        Assert.True(pasteEditIndex > cannotPasteIndex);
+        Assert.True(pasteCallIndex > pasteEditIndex);
         Assert.True(pasteStatusIndex > cannotPasteIndex);
     }
 

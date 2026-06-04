@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using Avalonia;
@@ -3418,6 +3419,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public static string VisualThingSelectionStatusText(string verb, int count)
         => $"{verb} {CountLabel(count, "thing")}.";
 
+    public static string VisualThingSelectionEditName(string verb, int count)
+        => VisualThingSelectionStatusText(verb, count);
+
     public static string VisualThingInsertedStatusText()
         => "Inserted a new thing.";
 
@@ -3714,7 +3718,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!CopyVisualThingSelection3D()) return false;
 
         var selected = new HashSet<Thing>(things, ReferenceEqualityComparer.Instance);
-        EditBegun?.Invoke(things.Count == 1 ? "Cut 1 thing" : $"Cut {things.Count} things");
+        EditBegun?.Invoke(VisualThingSelectionEditName("Cut", things.Count));
         _map.Things.RemoveAll(thing => selected.Contains(thing));
         _sel3D.RemoveAll(hit => hit.Thing != null && selected.Contains(hit.Thing));
         _map.BuildIndexes();
@@ -3739,7 +3743,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return false;
         }
 
-        EditBegun?.Invoke("Paste things");
+        EditBegun?.Invoke(VisualThingSelectionEditName("Paste", ClipboardThingCount(_visualThingClipboard)));
         PasteResult result = SelectionClipboard.Paste(_map, _visualThingClipboard, new Vec2D(0, 0), PasteOptions, _gameConfig);
         var pasted = new List<Thing>();
         for (int i = result.FirstThing; i < result.FirstThing + result.ThingCount; i++)
@@ -3763,6 +3767,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         Target3DChanged?.Invoke(VisualThingSelectionStatusText("Pasted", pasted.Count));
         return true;
+    }
+
+    private static int ClipboardThingCount(byte[] data)
+    {
+        using var stream = new MemoryStream(data);
+        using var reader = new BinaryReader(stream);
+        reader.ReadInt32();
+        reader.ReadInt32();
+        reader.ReadInt32();
+        return reader.ReadInt32();
     }
 
     private T WithTemporaryThingSelection<T>(IReadOnlyList<Thing> things, Func<T> action)
