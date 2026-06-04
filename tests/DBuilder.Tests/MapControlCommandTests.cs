@@ -1374,6 +1374,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void VisualActionSelectionsUseOnlySelectedVisualHits()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int thingsIndex = body.IndexOf("public IReadOnlyList<Thing> SelectedVisualThingsForActions()", StringComparison.Ordinal);
+        int surfacesIndex = body.IndexOf("public IReadOnlyList<VisualHit> SelectedVisualSurfacesForActions()", StringComparison.Ordinal);
+        int targetFallbackIndex = body.IndexOf("_target3D?.Thing", thingsIndex, surfacesIndex - thingsIndex, StringComparison.Ordinal);
+        int surfaceFilterIndex = body.IndexOf("hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall", surfacesIndex, StringComparison.Ordinal);
+
+        Assert.True(thingsIndex >= 0);
+        Assert.True(surfacesIndex > thingsIndex);
+        Assert.Equal(-1, targetFallbackIndex);
+        Assert.True(surfaceFilterIndex > surfacesIndex);
+    }
+
+    [Fact]
     public void LookThroughSelection3DUsesUdbSelectionWarning()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

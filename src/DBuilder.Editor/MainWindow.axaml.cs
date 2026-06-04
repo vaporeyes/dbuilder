@@ -5213,7 +5213,41 @@ public partial class MainWindow : Window
         var things = new List<Thing>();
         string title;
 
-        if (MapView.CurrentEditMode == MapControl.EditMode.Things && _map.SelectedThingsCount > 0)
+        if (MapView.In3DMode)
+        {
+            var visualThings = MapView.SelectedVisualThingsForActions();
+            if (visualThings.Count > 0)
+            {
+                things.AddRange(visualThings);
+                title = $"Randomize {things.Count} thing{(things.Count == 1 ? "" : "s")}";
+            }
+            else
+            {
+                var visualSurfaces = MapView.SelectedVisualSurfacesForActions();
+                if (visualSurfaces.Count == 0)
+                {
+                    SetStatus("Select some things, sectors or surfaces first!");
+                    return;
+                }
+
+                var flatSurfaces = visualSurfaces.Where(hit => hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling).ToList();
+                if (flatSurfaces.Count > 0)
+                {
+                    foreach (VisualHit hit in flatSurfaces)
+                        if (hit.Sector is { } sector)
+                            AddJitterSector(sector, sectors, vertices);
+                    title = $"Randomize {sectors.Count} sector{(sectors.Count == 1 ? "" : "s")}";
+                }
+                else
+                {
+                    foreach (VisualHit hit in visualSurfaces)
+                        if (hit.Line is { } line)
+                            AddJitterLineVertices(line, vertices);
+                    title = $"Randomize {visualSurfaces.Count} linedef{(visualSurfaces.Count == 1 ? "" : "s")}";
+                }
+            }
+        }
+        else if (MapView.CurrentEditMode == MapControl.EditMode.Things && _map.SelectedThingsCount > 0)
         {
             things.AddRange(_map.GetSelectedThings());
             title = $"Randomize {things.Count} thing{(things.Count == 1 ? "" : "s")}";

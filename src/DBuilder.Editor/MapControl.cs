@@ -3585,6 +3585,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private System.Collections.Generic.List<VisualHit> EditTargets3D()
         => _sel3D.Count > 0 ? _sel3D : (_target3D != null ? new() { _target3D } : new());
 
+    public IReadOnlyList<Thing> SelectedVisualThingsForActions()
+    {
+        var result = new System.Collections.Generic.List<Thing>();
+        var seen = new HashSet<Thing>();
+        foreach (VisualHit hit in _sel3D)
+            if (hit.Thing is { } selected && seen.Add(selected))
+                result.Add(selected);
+
+        return result;
+    }
+
+    public IReadOnlyList<VisualHit> SelectedVisualSurfacesForActions()
+        => _sel3D
+            .Where(hit => hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)
+            .ToList();
+
     // Selects the targeted element and opens its property dialog (reuses the 2D edit flow).
     private void OpenTargetDialog3D()
     {

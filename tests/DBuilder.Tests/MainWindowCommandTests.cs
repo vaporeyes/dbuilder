@@ -165,6 +165,23 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionUsesVisualSelectionPriorityIn3DMode()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int visualModeIndex = body.IndexOf("if (MapView.In3DMode)", methodIndex, StringComparison.Ordinal);
+        int visualThingsIndex = body.IndexOf("MapView.SelectedVisualThingsForActions()", visualModeIndex, StringComparison.Ordinal);
+        int visualSurfacesIndex = body.IndexOf("MapView.SelectedVisualSurfacesForActions()", visualThingsIndex, StringComparison.Ordinal);
+        int regularThingsModeIndex = body.IndexOf("MapView.CurrentEditMode == MapControl.EditMode.Things", visualSurfacesIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(visualModeIndex > methodIndex);
+        Assert.True(visualThingsIndex > visualModeIndex);
+        Assert.True(visualSurfacesIndex > visualThingsIndex);
+        Assert.True(regularThingsModeIndex > visualSurfacesIndex);
+    }
+
+    [Fact]
     public void RejectExplorerColorConfigurationUsesSharedDialogHandler()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
