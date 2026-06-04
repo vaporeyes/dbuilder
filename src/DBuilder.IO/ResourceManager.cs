@@ -1122,6 +1122,23 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>SNDINFO sound mappings from every resource, oldest first.</summary>
+    public SndInfo GetSndInfo(TerrainBaseGame? baseGame = null)
+    {
+        var result = new SndInfo();
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetSndInfoLumps())
+            {
+                var info = SndInfoParser.Parse(text, baseGame);
+                foreach (var sound in info.Sounds) result.Sounds[sound.Key] = sound.Value;
+                foreach (var alias in info.Aliases) result.Aliases[alias.Key] = alias.Value;
+                foreach (var group in info.RandomGroups) result.RandomGroups[group.Key] = group.Value;
+            }
+        }
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

@@ -76,6 +76,9 @@ public class ResourceManagerTests
         return Encoding.ASCII.GetBytes($"{clear}lock {id.ToString(System.Globalization.CultureInfo.InvariantCulture)} {{ $title \"{title}\" }}");
     }
 
+    private static byte[] SndInfoBytes(string logicalName, string lumpName)
+        => Encoding.ASCII.GetBytes($"{logicalName} {lumpName}");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -296,6 +299,51 @@ public class ResourceManagerTests
             Assert.Equal("Extra", locks[1].Title);
             Assert.Equal("Nested", locks[2].Title);
             Assert.Equal("Directory", locks[3].Title);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesSndInfoFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("SNDINFO", SndInfoBytes("world/door", "DSDOOR")),
+            ("SNDINFO", SndInfoBytes("world/lift", "DSLIFT")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var sounds = rm.GetSndInfo().Sounds;
+        Assert.Equal("DSDOOR", sounds["world/door"]);
+        Assert.Equal("DSLIFT", sounds["world/lift"]);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootSndInfoTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("SNDINFO", SndInfoBytes("world/door", "DSNEST")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("SNDINFO.txt", SndInfoBytes("world/door", "DSROOT")),
+            ("SNDINFO.extra", SndInfoBytes("world/extra", "DSEXTRA")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_sndinfo_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "SNDINFO.txt"), SndInfoBytes("world/door", "DSDIR"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var sounds = rm.GetSndInfo().Sounds;
+            Assert.Equal("DSDIR", sounds["world/door"]);
+            Assert.Equal("DSEXTRA", sounds["world/extra"]);
         }
         finally
         {
