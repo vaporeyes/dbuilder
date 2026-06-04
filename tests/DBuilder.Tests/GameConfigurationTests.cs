@@ -528,6 +528,38 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ThingFlagsCompareInvalidCompareMethodsDefaultToAndLikeUdb()
+    {
+        const string cfg = """
+            thingflagscompare
+            {
+                skills
+                {
+                    skill1
+                    {
+                        comparemethod = "Equal";
+                    }
+                    skill2
+                    {
+                        comparemethod = "xor";
+                    }
+                    skill3
+                    {
+                        comparemethod = "equal";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var skills = gc.ThingFlagsCompare["skills"];
+        Assert.Equal("and", skills.Flags["skill1"].CompareMethod);
+        Assert.Equal("and", skills.Flags["skill2"].CompareMethod);
+        Assert.Equal("equal", skills.Flags["skill3"].CompareMethod);
+    }
+
+    [Fact]
     public void ParsesUniversalFieldMetadata()
     {
         const string cfg = """

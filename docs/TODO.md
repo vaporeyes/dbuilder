@@ -930,6 +930,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve comma whitespace in default sky texture map names like UDB.
   - [x] Keep bare map lump entries with default flags like UDB.
   - [x] Drop missing thing flag comparison references like UDB.
+  - [x] Default invalid thing flag comparison methods to and like UDB.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

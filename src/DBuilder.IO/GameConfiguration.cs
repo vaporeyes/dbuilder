@@ -2051,7 +2051,7 @@ public sealed class GameConfiguration
                 IDictionary? flagBlock = child.Value as IDictionary;
                 flags[flag] = new ThingFlagCompareInfo(
                     flag,
-                    flagBlock != null ? GetString(flagBlock, "comparemethod", "and") : "and",
+                    flagBlock != null ? NormalizeThingFlagCompareMethod(GetString(flagBlock, "comparemethod", "and")) : "and",
                     flagBlock != null && GetBool(flagBlock, "invert", false),
                     flagBlock != null ? ParseCommaSet(GetString(flagBlock, "requiredgroups", "")) : new HashSet<string>(),
                     flagBlock != null ? ParseCommaSet(GetString(flagBlock, "ignoredgroups", "")) : new HashSet<string>(),
@@ -2067,6 +2067,9 @@ public sealed class GameConfiguration
 
         NormalizeThingFlagsCompareReferences();
     }
+
+    private static string NormalizeThingFlagCompareMethod(string method)
+        => method is "and" or "equal" ? method : "and";
 
     private void NormalizeThingFlagsCompareReferences()
     {
