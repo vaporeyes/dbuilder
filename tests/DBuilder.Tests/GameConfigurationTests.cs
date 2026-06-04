@@ -742,6 +742,31 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ThingCategoriesClampTinyRadiusLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                misc
+                {
+                    title = "Misc";
+                    width = 1;
+                    31007 = "Tiny Category Thing";
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var category = gc.ThingCategories["misc"];
+        Assert.Equal(8, category.Width);
+
+        var thing = gc.GetThing(31007);
+        Assert.NotNull(thing);
+        Assert.Equal(8, thing!.Width);
+    }
+
+    [Fact]
     public void ParsesThingCategoriesAndNestedCategoryDefaults()
     {
         const string cfg = """

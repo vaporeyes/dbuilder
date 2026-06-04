@@ -1673,7 +1673,7 @@ public sealed class GameConfiguration
             title,
             parent?.Key,
             GetInt(cat, "color", parent?.Color ?? 0),
-            GetInt(cat, "width", parent?.Width ?? 10),
+            SafeThingCategoryWidth(GetInt(cat, "width", parent?.Width ?? 10)),
             GetInt(cat, "height", parent?.Height ?? 20),
             Math.Clamp(GetDouble(cat, "alpha", parent?.Alpha ?? 1.0), 0.0, 1.0),
             GetString(cat, "renderstyle", parent?.RenderStyle ?? "normal").ToLowerInvariant(),
@@ -1791,6 +1791,9 @@ public sealed class GameConfiguration
 
         return false;
     }
+
+    private static int SafeThingCategoryWidth(int width)
+        => width < 4 ? 8 : width;
 
     private void ParseLinedefTypes(IDictionary linedeftypes)
     {
