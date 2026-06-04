@@ -128,6 +128,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for WinForms OEM and Capital key names.
   - [x] Normalize configurable shortcut aliases for all top-row digit keys.
   - [x] Normalize configurable shortcut aliases for the UDB Control modifier name.
+  - [x] Normalize configurable shortcut aliases for numbered WinForms OEM punctuation keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.

@@ -2510,13 +2510,17 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsWinFormsOemKeyNames()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "map2d.fit=Oemtilde; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5");
+            "map2d.fit=Oem3; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5; map2d.grid-down=Oem4; map2d.grid-up=Oem6; map3d.select-texture=Oem2; map2d.zoom-out=OemMinus");
 
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemComma");
         Assert.Contains(overrides, b => b.CommandId == "window.tags" && b.Key == "OemQuotes");
         Assert.Contains(overrides, b => b.CommandId == "window.status-history" && b.Key == "OemBackslash");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.grid-down" && b.Key == "OemOpenBrackets");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.grid-up" && b.Key == "OemCloseBrackets");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.select-texture" && b.Key == "OemQuestion");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "OemMinus");
     }
 
     [Fact]
