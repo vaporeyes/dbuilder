@@ -3221,6 +3221,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         var done = new System.Collections.Generic.HashSet<Sector>();
+        var doneCeilings = new System.Collections.Generic.HashSet<Sector>();
         var doneSides = new System.Collections.Generic.HashSet<(Sidedef Side, SidedefPart Part)>();
         IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];
         bool begun = false;
@@ -3232,6 +3233,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 : null;
             if (wallSide != null && !doneSides.Add((wallSide, h.Part))) continue;
             if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
+            {
+                if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
+                continue;
+            }
+
+            if (h.Kind == VisualHitKind.Ceiling &&
+                h.Sector != null &&
+                doneCeilings.Add(h.Sector) &&
+                AdjustVisualCeilingBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
             {
                 if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
                 continue;
@@ -3260,6 +3270,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             VisualHitKind.Wall => "Changed wall brightness to " + brightness + ".",
             _ => "Changed sector brightness to " + brightness + ".",
         };
+
+    public static bool AdjustVisualCeilingBrightness3D(
+        VisualHit hit,
+        bool raise,
+        IReadOnlyList<int> brightnessLevels,
+        MapFormat mapFormat,
+        GameConfiguration? config,
+        out string status)
+    {
+        status = string.Empty;
+        if (hit.Kind != VisualHitKind.Ceiling || hit.Sector == null) return false;
+        if (mapFormat != MapFormat.Udmf || config?.DistinctFloorAndCeilingBrightness != true) return false;
+
+        bool absolute = hit.Sector.GetField("lightceilingabsolute", false);
+        int current = hit.Sector.GetIntegerField("lightceiling");
+        int next = raise
+            ? SectorBrightnessAdjustment.NextHigher(brightnessLevels, current, absolute)
+            : SectorBrightnessAdjustment.NextLower(brightnessLevels, current, absolute);
+        if (next == current) return false;
+
+        hit.Sector.SetIntegerField("lightceiling", next, absolute ? int.MinValue : 0);
+        status = VisualBrightness3DStatusText(VisualHitKind.Ceiling, next);
+        return true;
+    }
 
     public static bool AdjustVisualWallBrightness3D(
         VisualHit hit,

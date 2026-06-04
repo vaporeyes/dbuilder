@@ -109,6 +109,49 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(kind, brightness));
 
     [Fact]
+    public void AdjustVisualCeilingBrightness3DUsesUdbRelativeCeilingLightField()
+    {
+        var sector = new Sector { Brightness = 160 };
+        VisualHit hit = CeilingHit(sector);
+        GameConfiguration config = GameConfiguration.FromText("distinctfloorandceilingbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualCeilingBrightness3D(hit, raise: true, [0, 8, 16, 32, 64], MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(8, sector.GetIntegerField("lightceiling"));
+        Assert.Equal("Changed ceiling brightness to 8.", status);
+    }
+
+    [Fact]
+    public void AdjustVisualCeilingBrightness3DUsesUdbAbsoluteCeilingLightField()
+    {
+        var sector = new Sector { Brightness = 160 };
+        sector.SetField("lightceilingabsolute", true);
+        sector.SetIntegerField("lightceiling", 32);
+        VisualHit hit = CeilingHit(sector);
+        GameConfiguration config = GameConfiguration.FromText("distinctfloorandceilingbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualCeilingBrightness3D(hit, raise: false, [0, 8, 16, 32, 64], MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(16, sector.GetIntegerField("lightceiling"));
+        Assert.Equal("Changed ceiling brightness to 16.", status);
+    }
+
+    [Fact]
+    public void AdjustVisualCeilingBrightness3DRequiresUdmfDistinctSurfaceBrightness()
+    {
+        var sector = new Sector { Brightness = 160 };
+        VisualHit hit = CeilingHit(sector);
+
+        bool changed = MapControl.AdjustVisualCeilingBrightness3D(hit, raise: true, [0, 8, 16, 32, 64], MapFormat.Doom, GameConfiguration.FromText(""), out string status);
+
+        Assert.False(changed);
+        Assert.Equal(0, sector.GetIntegerField("lightceiling"));
+        Assert.Equal("", status);
+    }
+
+    [Fact]
     public void AdjustVisualWallBrightness3DUsesUdbRelativeWallLightField()
     {
         Sidedef side = WallSide(new Sector { Brightness = 160 });
@@ -681,6 +724,7 @@ public sealed class MapControlCommandTests
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(bool raise)", StringComparison.Ordinal);
         int levelsIndex = body.IndexOf("IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];", methodIndex, StringComparison.Ordinal);
         int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
+        int ceilingIndex = body.IndexOf("AdjustVisualCeilingBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", wallIndex, StringComparison.Ordinal);
         int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;", methodIndex, StringComparison.Ordinal);
         int sectorWriteIndex = body.IndexOf("SectorBrightnessAdjustment.NextHigher(brightnessLevels, s.Brightness)", methodIndex, StringComparison.Ordinal);
         int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
@@ -689,7 +733,8 @@ public sealed class MapControlCommandTests
         Assert.True(methodIndex >= 0);
         Assert.True(levelsIndex > methodIndex);
         Assert.True(wallIndex > levelsIndex);
-        Assert.True(filterIndex > wallIndex);
+        Assert.True(ceilingIndex > wallIndex);
+        Assert.True(filterIndex > ceilingIndex);
         Assert.True(sectorWriteIndex > filterIndex);
         Assert.True(statusAssignmentIndex > sectorWriteIndex);
         Assert.True(statusIndex > statusAssignmentIndex);
@@ -919,6 +964,9 @@ public sealed class MapControlCommandTests
 
     private static VisualHit WallHit(Sidedef side, SidedefPart part)
         => new(VisualHitKind.Wall, 1, new DBuilder.Geometry.Vector3D(0, 0, 0), side.Sector, side.Line, side.IsFront, 0, 128, part);
+
+    private static VisualHit CeilingHit(Sector sector)
+        => new(VisualHitKind.Ceiling, 1, new DBuilder.Geometry.Vector3D(0, 0, sector.CeilHeight), sector, null, true, 0, 0);
 
     private static Sidedef WallSide(Sector sector)
     {
