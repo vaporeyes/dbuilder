@@ -11,13 +11,14 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
     public bool UseHighlight;
     public bool AlphaBasedTextureHighlighting;
+    public bool DrawFog;
     public bool DrawSky;
     public bool ShowEventLines;
     public bool ShowVisualVertices;
@@ -47,6 +48,7 @@ public sealed class SettingsWindow : PropertyDialog
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
+        _drawFog = AddCheckBox("Draw fog", s.DrawFog);
         _drawSky = AddCheckBox("Draw sky", s.DrawSky);
         _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
         _showVisualVertices = AddCheckBox("Show visual vertices", s.ShowVisualVertices);
@@ -70,6 +72,7 @@ public sealed class SettingsWindow : PropertyDialog
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
         AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;
+        DrawFog = _drawFog.IsChecked == true;
         DrawSky = _drawSky.IsChecked == true;
         ShowEventLines = _showEventLines.IsChecked == true;
         ShowVisualVertices = _showVisualVertices.IsChecked == true;

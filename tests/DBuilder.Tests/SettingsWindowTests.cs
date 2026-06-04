@@ -89,6 +89,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawFogPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawFog", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw fog\", s.DrawFog)", body, StringComparison.Ordinal);
+        Assert.Contains("DrawFog = _drawFog.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawFog = dlg.DrawFog;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetDrawFog(_settings.DrawFog);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);
