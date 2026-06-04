@@ -789,8 +789,9 @@ public static class MapSearch
 
     private static bool TexturePatternMatches(string name, string pattern)
     {
-        if (pattern.IndexOf('*') == -1 && pattern.IndexOf('?') == -1) return Eq(name, pattern);
-        var regex = new Regex("^" + Regex.Escape(pattern).Replace("\\?", ".").Replace("\\*", ".*") + "$",
+        string normalizedPattern = pattern.Trim();
+        if (normalizedPattern.IndexOf('*') == -1 && normalizedPattern.IndexOf('?') == -1) return Eq(name, normalizedPattern);
+        var regex = new Regex("^" + Regex.Escape(normalizedPattern).Replace("\\?", ".").Replace("\\*", ".*") + "$",
             RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         return regex.IsMatch(name);
     }

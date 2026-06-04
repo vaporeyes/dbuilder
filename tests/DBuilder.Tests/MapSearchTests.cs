@@ -510,6 +510,21 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void TextureAndFlatFindPatternsAreTrimmedLikeUdb()
+    {
+        var map = Build();
+
+        Assert.Equal(4, MapSearch.Find(map, FindCategory.Texture, " STARTAN3 ").Count);
+        Assert.Equal(4, MapSearch.Replace(map, FindCategory.SidedefMiddleTexture, " START?N3 ", "BROWN1"));
+        Assert.All(map.Sidedefs, sidedef => Assert.Equal("BROWN1", sidedef.MidTexture));
+
+        Assert.Equal(2, MapSearch.Find(map, FindCategory.Flat, " FLOOR4_8 ").Count);
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.Flat, " FLOOR4_8 ", "FLAT5_5"));
+        Assert.Equal("FLAT5_5", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLAT5_5", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
     public void FindAndReplaceTextureCountsMatchingSidedefSlotsLikeUdb()
     {
         var map = Build();
