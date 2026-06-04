@@ -40,6 +40,19 @@ Cave 4 5";
     }
 
     [Fact]
+    public void UsesUdbCombinedIntegerKeyForDuplicateIds()
+    {
+        const string text = @"
+First 1 1000
+Second 2 0";
+
+        var reverbs = ReverbsParser.Parse(text);
+
+        Assert.Single(reverbs.Environments);
+        Assert.Equal(new ReverbDefinition("First", 1, 1000), reverbs.Environments["First"]);
+    }
+
+    [Fact]
     public void UsesUdbOrdinalNamesAndSortedOrder()
     {
         const string text = @"

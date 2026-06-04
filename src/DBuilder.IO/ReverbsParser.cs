@@ -19,7 +19,7 @@ public static class ReverbsParser
     public static Reverbs Parse(string text)
     {
         var result = new Reverbs();
-        var usedIds = new HashSet<(int Arg0, int Arg1)>();
+        var usedIds = new HashSet<int>();
         var t = ZDoomTokenScanner.Tokenize(text);
         for (int i = 0; i < t.Count;)
         {
@@ -33,7 +33,7 @@ public static class ReverbsParser
             if (name.Length == 0) return result;
             if (!ReadInt(t, ref i, out int arg0) || !ReadInt(t, ref i, out int arg1))
                 return result;
-            if (usedIds.Add((arg0, arg1))) result.Environments[name] = new ReverbDefinition(name, arg0, arg1);
+            if (usedIds.Add(GetUdbCombinedId(arg0, arg1))) result.Environments[name] = new ReverbDefinition(name, arg0, arg1);
             if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         }
         SortEnvironments(result.Environments);
@@ -53,6 +53,14 @@ public static class ReverbsParser
         value = 0;
         if (i < t.Count && int.TryParse(t[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) { i++; return true; }
         return false;
+    }
+
+    private static int GetUdbCombinedId(int arg0, int arg1)
+    {
+        unchecked
+        {
+            return arg0 * 1000000 + arg1 * 1000;
+        }
     }
 
     private static void SkipBlock(List<string> t, ref int i)
