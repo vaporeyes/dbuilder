@@ -29,6 +29,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualThingVisibilityStatusText(state));
 
     [Theory]
+    [InlineData("Copied", 1, "Copied 1 thing.")]
+    [InlineData("Copied", 2, "Copied 2 things.")]
+    [InlineData("Cut", 1, "Cut 1 thing.")]
+    [InlineData("Pasted", 3, "Pasted 3 things.")]
+    public void VisualThingSelectionStatusTextMatchesUdbCopyPasteText(string verb, int count, string expected)
+        => Assert.Equal(expected, MapControl.VisualThingSelectionStatusText(verb, count));
+
+    [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
@@ -144,6 +152,27 @@ public sealed class MapControlCommandTests
         Assert.True(methodIndex >= 0);
         Assert.True(stateIndex > methodIndex);
         Assert.True(statusIndex > stateIndex);
+    }
+
+    [Fact]
+    public void VisualThingClipboardCommandsUseUdbStatusesAndWarnings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int copyIndex = body.IndexOf("private bool CopyVisualThingSelection3D()", StringComparison.Ordinal);
+        int copyStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Copied\", things.Count)", copyIndex, StringComparison.Ordinal);
+        int cutIndex = body.IndexOf("private bool CutVisualThingSelection3D()", StringComparison.Ordinal);
+        int cutStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Cut\", things.Count)", cutIndex, StringComparison.Ordinal);
+        int pasteIndex = body.IndexOf("private bool PasteVisualThingSelection3D()", StringComparison.Ordinal);
+        int cannotPasteIndex = body.IndexOf("Cannot paste here!", pasteIndex, StringComparison.Ordinal);
+        int pasteStatusIndex = body.IndexOf("VisualThingSelectionStatusText(\"Pasted\", pasted.Count)", pasteIndex, StringComparison.Ordinal);
+
+        Assert.True(copyIndex >= 0);
+        Assert.True(copyStatusIndex > copyIndex);
+        Assert.True(cutIndex >= 0);
+        Assert.True(cutStatusIndex > cutIndex);
+        Assert.True(pasteIndex >= 0);
+        Assert.True(cannotPasteIndex > pasteIndex);
+        Assert.True(pasteStatusIndex > cannotPasteIndex);
     }
 
     [Fact]

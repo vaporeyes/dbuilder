@@ -3163,6 +3163,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return $"Thing visibility is now {label}.";
     }
 
+    public static string VisualThingSelectionStatusText(string verb, int count)
+        => $"{verb} {CountLabel(count, "thing")}.";
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
@@ -3379,7 +3382,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         _visualThingClipboard = data;
         _clipboard = data;
-        Target3DChanged?.Invoke(things.Count == 1 ? "copied 1 thing" : $"copied {things.Count} things");
+        Target3DChanged?.Invoke(VisualThingSelectionStatusText("Copied", things.Count));
         return true;
     }
 
@@ -3402,13 +3405,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
-        Target3DChanged?.Invoke(things.Count == 1 ? "cut 1 thing" : $"cut {things.Count} things");
+        Target3DChanged?.Invoke(VisualThingSelectionStatusText("Cut", things.Count));
         return true;
     }
 
     private bool PasteVisualThingSelection3D()
     {
-        if (_map == null || _target3D is not { } target) return false;
+        if (_map == null) return false;
+        if (_target3D is not { } target)
+        {
+            Target3DChanged?.Invoke("Cannot paste here!");
+            return false;
+        }
+
         if (_visualThingClipboard == null)
         {
             Target3DChanged?.Invoke("visual clipboard empty");
@@ -3437,7 +3446,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
-        Target3DChanged?.Invoke(pasted.Count == 1 ? "pasted 1 thing" : $"pasted {pasted.Count} things");
+        Target3DChanged?.Invoke(VisualThingSelectionStatusText("Pasted", pasted.Count));
         return true;
     }
 
