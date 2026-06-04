@@ -103,6 +103,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesClassicRenderingPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("ClassicRendering", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Classic rendering\", s.ClassicRendering)", body, StringComparison.Ordinal);
+        Assert.Contains("ClassicRendering = _classicRendering.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.ClassicRendering = dlg.ClassicRendering;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetClassicRendering(_settings.ClassicRendering);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);
