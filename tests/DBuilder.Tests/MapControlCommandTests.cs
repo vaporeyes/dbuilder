@@ -30,6 +30,16 @@ public sealed class MapControlCommandTests
     }
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, false, "Texture offsets reset.")]
+    [InlineData(VisualHitKind.Ceiling, true, "Texture offsets, scale, rotation and brightness reset.")]
+    [InlineData(VisualHitKind.Wall, false, "Texture offsets reset.")]
+    [InlineData(VisualHitKind.Wall, true, "Local texture offsets, scale and brightness reset.")]
+    [InlineData(VisualHitKind.Thing, false, "Thing scale reset.")]
+    [InlineData(VisualHitKind.Thing, true, "Thing scale, pitch and roll reset.")]
+    public void VisualTextureReset3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, bool local, string expected)
+        => Assert.Equal(expected, MapControl.VisualTextureReset3DStatusText(kind, local));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -309,6 +319,23 @@ public sealed class MapControlCommandTests
         Assert.True(pasteStatusIndex > pasteIndex);
         Assert.DoesNotContain("copied offsets {_texOffsetClipboard3D.Value.X}", body, StringComparison.Ordinal);
         Assert.DoesNotContain("pasted offsets to {targetCount}", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ResetVisualTexture3DUsesUdbStatusForLastResetTarget()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ResetVisualTexture3D(bool local)", StringComparison.Ordinal);
+        int initialIndex = body.IndexOf("string resetStatus = VisualTextureReset3DStatusText(VisualHitKind.Wall, local);", methodIndex, StringComparison.Ordinal);
+        int assignmentIndex = body.IndexOf("resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);", initialIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(resetStatus);", assignmentIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(initialIndex > methodIndex);
+        Assert.True(assignmentIndex > initialIndex);
+        Assert.True(statusIndex > assignmentIndex);
+        Assert.DoesNotContain("local texture fields reset", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("texture offsets reset", body, StringComparison.Ordinal);
     }
 
     [Fact]
