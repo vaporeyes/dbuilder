@@ -808,6 +808,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Require ZScript state-frame action functions to end with semicolons.
   - [x] Parse dotted ZScript state-frame action function names like UDB.
   - [x] Accept anonymous ZScript state-frame blocks like UDB.
+  - [x] Reject bare ZScript `Hold` state flow like UDB.
   - [x] Inherit extended ZScript parent `Spawn` states from child classes.
   - [x] Reject ZScript extensions declared before their target class.
   - [x] Stop DECORATE parsing on malformed state-frame `Light` specials like UDB.

@@ -640,6 +640,12 @@ public static class DecorateParser
         return i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "{";
     }
 
+    private static bool NextTokenIsSemicolon(List<Tok> t, int i)
+    {
+        SkipNewlines(t, ref i);
+        return i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == ";";
+    }
+
     private static bool SkipBlock(List<Tok> t, ref int i)
     {
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
@@ -1421,6 +1427,11 @@ public static class DecorateParser
                 if (TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target)
                     && (!zscriptBody || TryConsumeZScriptStateGotoSemicolon(t, ref i)))
                     actor.StateGotos[currentState] = target;
+            }
+            else if (zscriptBody && inStates && currentState != null && lw == "hold" && NextTokenIsSemicolon(t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
             }
             else if (inStates && tk.Kind == Kind.Word && TryReadStateLabel(t, tk.Text, ref i, out var stateLabel))
             {

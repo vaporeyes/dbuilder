@@ -1212,6 +1212,24 @@ class DuplicateStateSpecialZThing : Actor
     }
 
     [Fact]
+    public void RejectsZScriptBareHoldStateFlowLikeUdb()
+    {
+        const string zscript = @"
+class BareHoldStateZThing : Actor
+{
+    States { Spawn: Hold; }
+}
+class HoldSpriteStateZThing : Actor
+{
+    States { Spawn: HOLD A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("HoldSpriteStateZThing", actor.ClassName);
+        Assert.Equal("HOLDA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void UsesZScriptStateFrameWithDottedActionFunctionLikeUdb()
     {
         const string zscript = @"
