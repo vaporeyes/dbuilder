@@ -6021,6 +6021,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ZoomBy(1.25);
                 return true;
             case "map3d.toggle-gravity":
+            case "map3d.togglegravity":
             case "map3d.walk-mode":
                 _walkMode = !_walkMode;
                 RequestNextFrameRendering();
@@ -6103,93 +6104,121 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 CycleVisualThings3D();
                 return true;
             case "map3d.scale-up":
+            case "map3d.scaleup":
                 ChangeVisualScale3D(1, 1);
                 return true;
             case "map3d.scale-down":
+            case "map3d.scaledown":
                 ChangeVisualScale3D(-1, -1);
                 return true;
             case "map3d.scale-up-x":
+            case "map3d.scaleupx":
                 ChangeVisualScale3D(1, 0);
                 return true;
             case "map3d.scale-down-x":
+            case "map3d.scaledownx":
                 ChangeVisualScale3D(-1, 0);
                 return true;
             case "map3d.scale-up-y":
+            case "map3d.scaleupy":
                 ChangeVisualScale3D(0, 1);
                 return true;
             case "map3d.scale-down-y":
+            case "map3d.scaledowny":
                 ChangeVisualScale3D(0, -1);
                 return true;
             case "map3d.lower-sector-1":
+            case "map3d.lowersector1":
                 AdjustTarget3D(-1);
                 return true;
             case "map3d.raise-sector-1":
+            case "map3d.raisesector1":
                 AdjustTarget3D(1);
                 return true;
             case "map3d.lower-sector-8":
+            case "map3d.lowersector8":
                 AdjustTarget3D(-8);
                 return true;
             case "map3d.raise-sector-8":
+            case "map3d.raisesector8":
                 AdjustTarget3D(8);
                 return true;
             case "map3d.lower-sector-128":
+            case "map3d.lowersector128":
                 AdjustTarget3D(-128);
                 return true;
             case "map3d.raise-sector-128":
+            case "map3d.raisesector128":
                 AdjustTarget3D(128);
                 return true;
             case "map3d.lower-map-element-by-grid-size":
+            case "map3d.lowermapelementbygridsize":
                 AdjustTarget3D(-_grid.GridSize);
                 return true;
             case "map3d.raise-map-element-by-grid-size":
+            case "map3d.raisemapelementbygridsize":
                 AdjustTarget3D(_grid.GridSize);
                 return true;
             case "map3d.lower-sector-to-nearest":
+            case "map3d.lowersectortonearest":
                 AdjustTargetToNearest3D(raise: false, withinSelection: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map3d.raise-sector-to-nearest":
+            case "map3d.raisesectortonearest":
                 AdjustTargetToNearest3D(raise: true, withinSelection: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map3d.brightness-down":
             case "map3d.lower-brightness-8":
+            case "map3d.lowerbrightness8":
                 AdjustTargetBrightness3D(raise: false);
                 return true;
             case "map3d.brightness-up":
             case "map3d.raise-brightness-8":
+            case "map3d.raisebrightness8":
                 AdjustTargetBrightness3D(raise: true);
                 return true;
             case "map3d.match-brightness":
+            case "map3d.matchbrightness":
                 MatchBrightness3D();
                 return true;
             case "map3d.texture-copy":
+            case "map3d.texturecopy":
             case "map3d.copy-texture":
                 CopyTexture3D();
                 return true;
             case "map3d.texture-paste":
+            case "map3d.texturepaste":
             case "map3d.apply-texture":
                 ApplyTexture3D();
                 return true;
             case "map3d.flood-fill-texture":
+            case "map3d.floodfilltextures":
                 FloodFillTexture3D();
                 return true;
             case "map3d.align-texture-x":
             case "map3d.visual-auto-align-x":
+            case "map3d.visualautoalignx":
                 AutoAlignTarget3D(alignX: true, alignY: false);
                 return true;
             case "map3d.align-texture-y":
             case "map3d.visual-auto-align-y":
+            case "map3d.visualautoaligny":
                 AutoAlignTarget3D(alignX: false, alignY: true);
                 return true;
             case "map3d.visual-auto-align":
+            case "map3d.visualautoalign":
                 AutoAlignTarget3D(alignX: true, alignY: true);
                 return true;
             case "map3d.visual-auto-align-to-selection-x":
+            case "map3d.visualautoaligntoselectionx":
                 AutoAlignSelectedVisualTextures3D(alignX: true, alignY: false);
                 return true;
             case "map3d.visual-auto-align-to-selection-y":
+            case "map3d.visualautoaligntoselectiony":
                 AutoAlignSelectedVisualTextures3D(alignX: false, alignY: true);
                 return true;
             case "map3d.visual-auto-align-to-selection":
+            case "map3d.visualautoaligntoselection":
                 AutoAlignSelectedVisualTextures3D(alignX: true, alignY: true);
                 return true;
             case "map3d.visual-edit":
@@ -6211,20 +6240,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ResetVisualTexture3D(local: true);
                 return true;
             case "map3d.texture-copy-offsets":
+            case "map3d.texturecopyoffsets":
             case "map3d.copy-offsets":
                 CopyTextureOffsets3D();
                 return true;
             case "map3d.texture-paste-offsets":
+            case "map3d.texturepasteoffsets":
             case "map3d.paste-offsets":
                 PasteTextureOffsets3D();
                 return true;
             case "map3d.copy-properties":
+            case "map3d.copyproperties":
                 CopyVisualPropertiesTarget();
                 return true;
             case "map3d.paste-properties":
+            case "map3d.pasteproperties":
                 PasteVisualPropertiesTargets();
                 return true;
             case "map3d.paste-properties-options":
+            case "map3d.pastepropertieswithoptions":
                 PastePropertiesOptionsRequested?.Invoke();
                 return true;
             case "map3d.fit-textures":
@@ -6302,6 +6336,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 DeleteVisualTargets3D();
                 return true;
             case "map3d.select-texture":
+            case "map3d.textureselect":
             case "map3d.browse-texture":
                 if (_target3D is null) return false;
                 BrowseTexturesRequested?.Invoke(_target3D.Kind != VisualHitKind.Wall);
@@ -6319,39 +6354,51 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 NudgeTargetOffset3D(0, 8);
                 return true;
             case "map3d.move-texture-left-1":
+            case "map3d.movetextureleft":
                 NudgeTargetOffset3D(-1, 0);
                 return true;
             case "map3d.move-texture-right-1":
+            case "map3d.movetextureright":
                 NudgeTargetOffset3D(1, 0);
                 return true;
             case "map3d.move-texture-up-1":
+            case "map3d.movetextureup":
                 NudgeTargetOffset3D(0, -1);
                 return true;
             case "map3d.move-texture-down-1":
+            case "map3d.movetexturedown":
                 NudgeTargetOffset3D(0, 1);
                 return true;
             case "map3d.move-texture-left-8":
+            case "map3d.movetextureleft8":
                 NudgeTargetOffset3D(-8, 0);
                 return true;
             case "map3d.move-texture-right-8":
+            case "map3d.movetextureright8":
                 NudgeTargetOffset3D(8, 0);
                 return true;
             case "map3d.move-texture-up-8":
+            case "map3d.movetextureup8":
                 NudgeTargetOffset3D(0, -8);
                 return true;
             case "map3d.move-texture-down-8":
+            case "map3d.movetexturedown8":
                 NudgeTargetOffset3D(0, 8);
                 return true;
             case "map3d.move-texture-left-grid":
+            case "map3d.movetextureleftgs":
                 NudgeTargetOffset3D(-_grid.GridSize, 0);
                 return true;
             case "map3d.move-texture-right-grid":
+            case "map3d.movetexturerightgs":
                 NudgeTargetOffset3D(_grid.GridSize, 0);
                 return true;
             case "map3d.move-texture-up-grid":
+            case "map3d.movetextureupgs":
                 NudgeTargetOffset3D(0, -_grid.GridSize);
                 return true;
             case "map3d.move-texture-down-grid":
+            case "map3d.movetexturedowngs":
                 NudgeTargetOffset3D(0, _grid.GridSize);
                 return true;
             default:

@@ -597,6 +597,86 @@ public sealed class MapControlCommandTests
         Assert.True(handlerIndex > commandIndex);
     }
 
+    [Theory]
+    [InlineData("map3d.scaleup", "ChangeVisualScale3D(1, 1)")]
+    [InlineData("map3d.scaledown", "ChangeVisualScale3D(-1, -1)")]
+    [InlineData("map3d.scaleupx", "ChangeVisualScale3D(1, 0)")]
+    [InlineData("map3d.scaledownx", "ChangeVisualScale3D(-1, 0)")]
+    [InlineData("map3d.scaleupy", "ChangeVisualScale3D(0, 1)")]
+    [InlineData("map3d.scaledowny", "ChangeVisualScale3D(0, -1)")]
+    [InlineData("map3d.lowersector1", "AdjustTarget3D(-1)")]
+    [InlineData("map3d.raisesector1", "AdjustTarget3D(1)")]
+    [InlineData("map3d.lowersector8", "AdjustTarget3D(-8)")]
+    [InlineData("map3d.raisesector8", "AdjustTarget3D(8)")]
+    [InlineData("map3d.lowersector128", "AdjustTarget3D(-128)")]
+    [InlineData("map3d.raisesector128", "AdjustTarget3D(128)")]
+    [InlineData("map3d.lowermapelementbygridsize", "AdjustTarget3D(-_grid.GridSize)")]
+    [InlineData("map3d.raisemapelementbygridsize", "AdjustTarget3D(_grid.GridSize)")]
+    [InlineData("map3d.lowersectortonearest", "AdjustTargetToNearest3D(raise: false")]
+    [InlineData("map3d.raisesectortonearest", "AdjustTargetToNearest3D(raise: true")]
+    [InlineData("map3d.lowerbrightness8", "AdjustTargetBrightness3D(raise: false)")]
+    [InlineData("map3d.raisebrightness8", "AdjustTargetBrightness3D(raise: true)")]
+    [InlineData("map3d.matchbrightness", "MatchBrightness3D()")]
+    public void UdbVisualAdjustmentActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Theory]
+    [InlineData("map3d.togglegravity", "_walkMode = !_walkMode;")]
+    [InlineData("map3d.texturecopy", "CopyTexture3D()")]
+    [InlineData("map3d.texturepaste", "ApplyTexture3D()")]
+    [InlineData("map3d.floodfilltextures", "FloodFillTexture3D()")]
+    [InlineData("map3d.textureselect", "BrowseTexturesRequested?.Invoke")]
+    [InlineData("map3d.visualautoalign", "AutoAlignTarget3D(alignX: true, alignY: true)")]
+    [InlineData("map3d.visualautoalignx", "AutoAlignTarget3D(alignX: true, alignY: false)")]
+    [InlineData("map3d.visualautoaligny", "AutoAlignTarget3D(alignX: false, alignY: true)")]
+    [InlineData("map3d.visualautoaligntoselection", "AutoAlignSelectedVisualTextures3D(alignX: true, alignY: true)")]
+    [InlineData("map3d.visualautoaligntoselectionx", "AutoAlignSelectedVisualTextures3D(alignX: true, alignY: false)")]
+    [InlineData("map3d.visualautoaligntoselectiony", "AutoAlignSelectedVisualTextures3D(alignX: false, alignY: true)")]
+    [InlineData("map3d.texturecopyoffsets", "CopyTextureOffsets3D()")]
+    [InlineData("map3d.texturepasteoffsets", "PasteTextureOffsets3D()")]
+    [InlineData("map3d.copyproperties", "CopyVisualPropertiesTarget()")]
+    [InlineData("map3d.pasteproperties", "PasteVisualPropertiesTargets()")]
+    [InlineData("map3d.pastepropertieswithoptions", "PastePropertiesOptionsRequested?.Invoke()")]
+    public void UdbVisualTextureActionAliasesAreDispatchedToExistingHandlers(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Theory]
+    [InlineData("map3d.movetextureleft", "NudgeTargetOffset3D(-1, 0)")]
+    [InlineData("map3d.movetextureright", "NudgeTargetOffset3D(1, 0)")]
+    [InlineData("map3d.movetextureup", "NudgeTargetOffset3D(0, -1)")]
+    [InlineData("map3d.movetexturedown", "NudgeTargetOffset3D(0, 1)")]
+    [InlineData("map3d.movetextureleft8", "NudgeTargetOffset3D(-8, 0)")]
+    [InlineData("map3d.movetextureright8", "NudgeTargetOffset3D(8, 0)")]
+    [InlineData("map3d.movetextureup8", "NudgeTargetOffset3D(0, -8)")]
+    [InlineData("map3d.movetexturedown8", "NudgeTargetOffset3D(0, 8)")]
+    [InlineData("map3d.movetextureleftgs", "NudgeTargetOffset3D(-_grid.GridSize, 0)")]
+    [InlineData("map3d.movetexturerightgs", "NudgeTargetOffset3D(_grid.GridSize, 0)")]
+    [InlineData("map3d.movetextureupgs", "NudgeTargetOffset3D(0, -_grid.GridSize)")]
+    [InlineData("map3d.movetexturedowngs", "NudgeTargetOffset3D(0, _grid.GridSize)")]
+    public void UdbVisualTextureMovementActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
     [Fact]
     public void RelocateThreeDFloorControlSectorsUsesInjectedAreaSettings()
     {

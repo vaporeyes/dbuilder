@@ -1794,15 +1794,25 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.lower-sector-1", "Lower Floor/Ceiling/Thing by 1 mp")]
+    [InlineData("map3d.lowersector1", "Lower Floor/Ceiling/Thing by 1 mp")]
     [InlineData("map3d.raise-sector-1", "Raise Floor/Ceiling/Thing by 1 mp")]
+    [InlineData("map3d.raisesector1", "Raise Floor/Ceiling/Thing by 1 mp")]
     [InlineData("map3d.lower-sector-8", "Lower Floor/Ceiling/Thing by 8 mp")]
+    [InlineData("map3d.lowersector8", "Lower Floor/Ceiling/Thing by 8 mp")]
     [InlineData("map3d.raise-sector-8", "Raise Floor/Ceiling/Thing by 8 mp")]
+    [InlineData("map3d.raisesector8", "Raise Floor/Ceiling/Thing by 8 mp")]
     [InlineData("map3d.lower-sector-128", "Lower Floor/Ceiling/Thing by 128 mp")]
+    [InlineData("map3d.lowersector128", "Lower Floor/Ceiling/Thing by 128 mp")]
     [InlineData("map3d.raise-sector-128", "Raise Floor/Ceiling/Thing by 128 mp")]
+    [InlineData("map3d.raisesector128", "Raise Floor/Ceiling/Thing by 128 mp")]
     [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size")]
+    [InlineData("map3d.lowermapelementbygridsize", "Lower Floor/Ceiling/Thing by grid size")]
     [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size")]
+    [InlineData("map3d.raisemapelementbygridsize", "Raise Floor/Ceiling/Thing by grid size")]
     [InlineData("map3d.lower-sector-to-nearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing")]
+    [InlineData("map3d.lowersectortonearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing")]
     [InlineData("map3d.raise-sector-to-nearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing")]
+    [InlineData("map3d.raisesectortonearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing")]
     public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -1812,14 +1822,16 @@ public class EditorCommandCatalogTests
         Assert.Equal(id switch
         {
             "map3d.lower-sector-to-nearest" => "PageDown",
+            "map3d.lowersectortonearest" => "PageDown",
             "map3d.raise-sector-to-nearest" => "PageUp",
+            "map3d.raisesectortonearest" => "PageUp",
             _ => "Menu",
         }, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        if (id.EndsWith("-to-nearest", StringComparison.Ordinal))
+        if (id.EndsWith("-to-nearest", StringComparison.Ordinal) || id.EndsWith("tonearest", StringComparison.Ordinal))
             Assert.False(command.Repeat);
         else
             Assert.True(command.Repeat);
@@ -1827,7 +1839,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8")]
+    [InlineData("map3d.raisebrightness8", "Increase Brightness by 8")]
     [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8")]
+    [InlineData("map3d.lowerbrightness8", "Decrease Brightness by 8")]
     public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -1846,6 +1860,7 @@ public class EditorCommandCatalogTests
     public void VisualMatchBrightnessCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.match-brightness");
+        var udbAlias = EditorCommandCatalog.Find("map3d.matchbrightness");
 
         Assert.NotNull(command);
         Assert.Equal("Match Brightness", command.Title);
@@ -1855,6 +1870,9 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
@@ -1862,6 +1880,7 @@ public class EditorCommandCatalogTests
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-gravity");
         var legacyAlias = EditorCommandCatalog.Find("map3d.walk-mode");
+        var udbAlias = EditorCommandCatalog.Find("map3d.togglegravity");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Gravity", command.Title);
@@ -1874,6 +1893,9 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -1979,11 +2001,17 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.scale-up", "Increase Scale", "NumPad9")]
+    [InlineData("map3d.scaleup", "Increase Scale", "NumPad9")]
     [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7")]
+    [InlineData("map3d.scaledown", "Decrease Scale", "NumPad7")]
     [InlineData("map3d.scale-up-x", "Increase Horizontal Scale", "NumPad6")]
+    [InlineData("map3d.scaleupx", "Increase Horizontal Scale", "NumPad6")]
     [InlineData("map3d.scale-down-x", "Decrease Horizontal Scale", "NumPad4")]
+    [InlineData("map3d.scaledownx", "Decrease Horizontal Scale", "NumPad4")]
     [InlineData("map3d.scale-up-y", "Increase Vertical Scale", "NumPad8")]
+    [InlineData("map3d.scaleupy", "Increase Vertical Scale", "NumPad8")]
     [InlineData("map3d.scale-down-y", "Decrease Vertical Scale", "NumPad5")]
+    [InlineData("map3d.scaledowny", "Decrease Vertical Scale", "NumPad5")]
     public void VisualScaleCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -2000,17 +2028,29 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.move-texture-left-1", "Move Texture Left by 1")]
+    [InlineData("map3d.movetextureleft", "Move Texture Left by 1")]
     [InlineData("map3d.move-texture-right-1", "Move Texture Right by 1")]
+    [InlineData("map3d.movetextureright", "Move Texture Right by 1")]
     [InlineData("map3d.move-texture-up-1", "Move Texture Up by 1")]
+    [InlineData("map3d.movetextureup", "Move Texture Up by 1")]
     [InlineData("map3d.move-texture-down-1", "Move Texture Down by 1")]
+    [InlineData("map3d.movetexturedown", "Move Texture Down by 1")]
     [InlineData("map3d.move-texture-left-8", "Move Texture Left by 8")]
+    [InlineData("map3d.movetextureleft8", "Move Texture Left by 8")]
     [InlineData("map3d.move-texture-right-8", "Move Texture Right by 8")]
+    [InlineData("map3d.movetextureright8", "Move Texture Right by 8")]
     [InlineData("map3d.move-texture-up-8", "Move Texture Up by 8")]
+    [InlineData("map3d.movetextureup8", "Move Texture Up by 8")]
     [InlineData("map3d.move-texture-down-8", "Move Texture Down by 8")]
+    [InlineData("map3d.movetexturedown8", "Move Texture Down by 8")]
     [InlineData("map3d.move-texture-left-grid", "Move Texture Left by Grid Size")]
+    [InlineData("map3d.movetextureleftgs", "Move Texture Left by Grid Size")]
     [InlineData("map3d.move-texture-right-grid", "Move Texture Right by Grid Size")]
+    [InlineData("map3d.movetexturerightgs", "Move Texture Right by Grid Size")]
     [InlineData("map3d.move-texture-up-grid", "Move Texture Up by Grid Size")]
+    [InlineData("map3d.movetextureupgs", "Move Texture Up by Grid Size")]
     [InlineData("map3d.move-texture-down-grid", "Move Texture Down by Grid Size")]
+    [InlineData("map3d.movetexturedowngs", "Move Texture Down by Grid Size")]
     public void VisualTextureOffsetStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -2045,12 +2085,13 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.texture-copy-offsets", "map3d.copy-offsets", "Copy Offsets")]
-    [InlineData("map3d.texture-paste-offsets", "map3d.paste-offsets", "Paste Offsets")]
-    public void VisualTextureOffsetClipboardAliasesMatchUdbActionSurface(string id, string legacyId, string title)
+    [InlineData("map3d.texture-copy-offsets", "map3d.copy-offsets", "map3d.texturecopyoffsets", "Copy Offsets")]
+    [InlineData("map3d.texture-paste-offsets", "map3d.paste-offsets", "map3d.texturepasteoffsets", "Paste Offsets")]
+    public void VisualTextureOffsetClipboardAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
+        var udbAlias = EditorCommandCatalog.Find(udbId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
@@ -2064,12 +2105,16 @@ public class EditorCommandCatalogTests
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
         Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
     public void VisualTextureSelectCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.select-texture");
+        var udbAlias = EditorCommandCatalog.Find("map3d.textureselect");
         var legacyAlias = EditorCommandCatalog.Find("map3d.browse-texture");
 
         Assert.NotNull(command);
@@ -2084,15 +2129,19 @@ public class EditorCommandCatalogTests
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
         Assert.Equal(command.AllowScroll, legacyAlias.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
-    [InlineData("map3d.texture-copy", "map3d.copy-texture", "Copy Texture", "C")]
-    [InlineData("map3d.texture-paste", "map3d.apply-texture", "Paste Texture", "V")]
-    public void VisualTextureClipboardCommandsMatchUdbActionSurface(string id, string legacyId, string title, string gesture)
+    [InlineData("map3d.texture-copy", "map3d.copy-texture", "map3d.texturecopy", "Copy Texture", "C")]
+    [InlineData("map3d.texture-paste", "map3d.apply-texture", "map3d.texturepaste", "Paste Texture", "V")]
+    public void VisualTextureClipboardCommandsMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
+        var udbAlias = EditorCommandCatalog.Find(udbId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
@@ -2106,12 +2155,16 @@ public class EditorCommandCatalogTests
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
         Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
     public void VisualTextureFloodFillCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.flood-fill-texture");
+        var udbAlias = EditorCommandCatalog.Find("map3d.floodfilltextures");
 
         Assert.NotNull(command);
         Assert.Equal("Paste Texture Flood-Fill", command.Title);
@@ -2121,6 +2174,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -2312,8 +2368,11 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.copy-properties", "Copy Properties", "Menu")]
+    [InlineData("map3d.copyproperties", "Copy Properties", "Menu")]
     [InlineData("map3d.paste-properties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
+    [InlineData("map3d.pasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
     [InlineData("map3d.paste-properties-options", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
+    [InlineData("map3d.pastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
     public void VisualPastePropertiesCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -2352,11 +2411,17 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.align-texture-x", "Align texture X", "A")]
     [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A")]
     [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl+A")]
+    [InlineData("map3d.visualautoalign", "Auto-align Textures X and Y", "Ctrl+A")]
     [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu")]
+    [InlineData("map3d.visualautoalignx", "Auto-align Textures X", "Menu")]
     [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu")]
+    [InlineData("map3d.visualautoaligny", "Auto-align Textures Y", "Menu")]
     [InlineData("map3d.visual-auto-align-to-selection", "Auto-align Textures to Selection (X and Y)", "Menu")]
+    [InlineData("map3d.visualautoaligntoselection", "Auto-align Textures to Selection (X and Y)", "Menu")]
     [InlineData("map3d.visual-auto-align-to-selection-x", "Auto-align Textures to Selection (X)", "Menu")]
+    [InlineData("map3d.visualautoaligntoselectionx", "Auto-align Textures to Selection (X)", "Menu")]
     [InlineData("map3d.visual-auto-align-to-selection-y", "Auto-align Textures to Selection (Y)", "Menu")]
+    [InlineData("map3d.visualautoaligntoselectiony", "Auto-align Textures to Selection (Y)", "Menu")]
     public void VisualAutoAlignCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
