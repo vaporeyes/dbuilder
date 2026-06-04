@@ -2715,9 +2715,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (targets.Count == 0) targets.Add(targetSide.Line);
 
         bool next = !IsLineFlagSet3D(targetSide.Line, flag);
-        EditBegun?.Invoke(next
-            ? (upper ? "Set upper unpegged" : "Set lower unpegged")
-            : (upper ? "Remove upper unpegged" : "Remove lower unpegged"));
+        EditBegun?.Invoke(VisualUnpegged3DEditName(upper, next));
         foreach (Linedef line in targets) SetLineFlag3D(line, flag, next);
         _geo3DDirty = true;
         MarkGeometryDirty();
@@ -2728,6 +2726,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string VisualUnpegged3DStatusText(bool upper, bool set)
         => (set ? "Set " : "Removed ") + (upper ? "upper" : "lower") + "-unpegged setting.";
+
+    public static string VisualUnpegged3DEditName(bool upper, bool set)
+        => (set ? "Set " : "Remove ") + (upper ? "upper" : "lower") + "-unpegged setting";
 
     private void CopyTextureOffsets3D()
     {

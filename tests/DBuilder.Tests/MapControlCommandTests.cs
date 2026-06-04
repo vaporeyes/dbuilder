@@ -131,6 +131,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualUnpegged3DStatusText(upper, set));
 
     [Theory]
+    [InlineData(true, true, "Set upper-unpegged setting")]
+    [InlineData(true, false, "Remove upper-unpegged setting")]
+    [InlineData(false, true, "Set lower-unpegged setting")]
+    [InlineData(false, false, "Remove lower-unpegged setting")]
+    public void VisualUnpegged3DEditNameMatchesUdb(bool upper, bool set, string expected)
+        => Assert.Equal(expected, MapControl.VisualUnpegged3DEditName(upper, set));
+
+    [Theory]
     [InlineData(VisualHitKind.Floor, "Deleted a texture.")]
     [InlineData(VisualHitKind.Ceiling, "Deleted a texture.")]
     [InlineData(VisualHitKind.Wall, "Deleted a texture.")]
@@ -1172,11 +1180,17 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void ToggleUnpegged3D(bool upper)", StringComparison.Ordinal);
-        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualUnpegged3DStatusText(upper, next));", methodIndex, StringComparison.Ordinal);
+        int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualUnpegged3DEditName(upper, next));", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualUnpegged3DStatusText(upper, next));", editNameIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(statusIndex > methodIndex);
+        Assert.True(editNameIndex > methodIndex);
+        Assert.True(statusIndex > editNameIndex);
         Assert.DoesNotContain("set\" : \"removed", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"Set upper unpegged\"", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"Remove upper unpegged\"", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"Set lower unpegged\"", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"Remove lower unpegged\"", body, StringComparison.Ordinal);
     }
 
     [Fact]
