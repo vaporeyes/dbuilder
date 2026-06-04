@@ -1565,6 +1565,7 @@ public partial class MainWindow : Window
             case "window.soundpropagationcolorconfiguration": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
             case "window.setleakfinderstart": OnSetLeakFinderStart(this, new RoutedEventArgs()); return true;
             case "window.setleakfinderend": OnSetLeakFinderEnd(this, new RoutedEventArgs()); return true;
+            case "window.applydirectionalshading": OnApplyDirectionalShading(this, new RoutedEventArgs()); return true;
             case "window.apply-slope-arch": OnApplySlopeArch(this, new RoutedEventArgs()); return true;
             case "window.apply-slopes": OnApplySlopes(this, new RoutedEventArgs()); return true;
             case "window.gradient-floor-heights": OnGradientFloorHeights(this, new RoutedEventArgs()); return true;
@@ -5196,6 +5197,76 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus(StairBuilder.ApplyStatusText(n, dlg.ResultFloorStart, dlg.ResultFloorStep));
+    }
+
+    private async void OnApplyDirectionalShading(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        if (_mapFormat != MapFormat.Udmf)
+        {
+            SetStatus("This action is available only in UDMF map format!");
+            return;
+        }
+
+        var sectors = new HashSet<Sector>();
+        var sides = new HashSet<Sidedef>();
+        if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs && _map.SelectedLinedefsCount > 0)
+        {
+            var lines = _map.GetSelectedLinedefs();
+            foreach (Sector sector in _map.GetSectorsFromLinedefs(lines))
+                AddDirectionalShadingSector(sector, sectors, sides);
+            foreach (Linedef line in lines)
+                AddDirectionalShadingLineSides(line, sides);
+        }
+        else if (_map.SelectedSectorsCount > 0)
+        {
+            foreach (Sector sector in _map.GetSelectedSectors())
+                AddDirectionalShadingSector(sector, sectors, sides);
+        }
+        else
+        {
+            SetStatus("Select some sectors or linedefs first!");
+            return;
+        }
+
+        if (sectors.Count == 0 && sides.Count == 0)
+        {
+            SetStatus("Select some sectors or linedefs first!");
+            return;
+        }
+
+        var dialog = new DirectionalShadingDialog();
+        if (!await dialog.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
+        CreateUndo("Apply directional shading");
+        int changed = BuilderEffects.ApplyDirectionalShading(
+            sectors.Select(BuilderEffects.CaptureDirectionalShadingSector).ToList(),
+            sides.Select(BuilderEffects.CaptureDirectionalShadingSide).ToList(),
+            dialog.ResultOptions);
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Applied directional shading to {changed} map element{(changed == 1 ? "" : "s")}.");
+        MapView.Focus();
+    }
+
+    private static void AddDirectionalShadingSector(Sector sector, HashSet<Sector> sectors, HashSet<Sidedef> sides)
+    {
+        sectors.Add(sector);
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            sides.Add(side);
+            if (side.Other is not null) sides.Add(side.Other);
+        }
+    }
+
+    private static void AddDirectionalShadingLineSides(Linedef line, HashSet<Sidedef> sides)
+    {
+        if (line.Front is not null) sides.Add(line.Front);
+        if (line.Back is not null) sides.Add(line.Back);
     }
 
     // Traces Doom-style sound propagation from the selected sector, or a leak path between two sectors.

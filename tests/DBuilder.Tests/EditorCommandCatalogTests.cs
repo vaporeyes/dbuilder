@@ -224,6 +224,22 @@ public class EditorCommandCatalogTests
         => Assert.Equal(commandId, EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, key, shift: true));
 
     [Fact]
+    public void DirectionalShadingCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.applydirectionalshading");
+
+        Assert.NotNull(command);
+        Assert.Equal("Apply Directional Shading", command.Title);
+        Assert.Equal("Ctrl/Cmd+L", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal("window.applydirectionalshading", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "L", accelerator: true));
+    }
+
+    [Fact]
     public void SoundEnvironmentModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.sound-environment-mode");
