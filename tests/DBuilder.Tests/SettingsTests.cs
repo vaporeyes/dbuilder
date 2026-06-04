@@ -325,6 +325,7 @@ public class SettingsTests
                 VisplaneExplorerSettings = new VisplaneExplorerInterfaceSettings(
                     OpenDoors: true,
                     ShowHeatmap: true,
+                    SelectedStat: VisplaneExplorerStat.Openings,
                     ViewHeight: 56,
                     ViewHeightCustom: 72),
                 WindowX = 120,
@@ -449,6 +450,7 @@ public class SettingsTests
             Assert.Equal(24, stairPrefab.CeilingStep);
             Assert.True(loaded.VisplaneExplorerSettings.OpenDoors);
             Assert.True(loaded.VisplaneExplorerSettings.ShowHeatmap);
+            Assert.Equal(VisplaneExplorerStat.Openings, loaded.VisplaneExplorerSettings.SelectedStat);
             Assert.Equal(56, loaded.VisplaneExplorerSettings.ViewHeight);
             Assert.Equal(72, loaded.VisplaneExplorerSettings.ViewHeightCustom);
             Assert.Equal(120, loaded.WindowX);

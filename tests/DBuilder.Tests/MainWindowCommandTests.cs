@@ -103,6 +103,7 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("scan.QueuePoints(", body, StringComparison.Ordinal);
         Assert.Contains("VisplaneExplorerInterfaceModel.ReadyStatus(", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.VisplaneExplorerSettings.SelectedStat", body, StringComparison.Ordinal);
         Assert.Contains("_settings.VisplaneExplorerSettings", body, StringComparison.Ordinal);
     }
 

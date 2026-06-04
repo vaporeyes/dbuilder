@@ -40,6 +40,7 @@ public class VisplaneExplorerModelTests
 
         Assert.False(settings.OpenDoors);
         Assert.False(settings.ShowHeatmap);
+        Assert.Equal(VisplaneExplorerStat.Visplanes, settings.SelectedStat);
         Assert.Equal(41, settings.ViewHeight);
         Assert.Equal(0, settings.ViewHeightCustom);
     }
@@ -50,6 +51,7 @@ public class VisplaneExplorerModelTests
         var settings = new VisplaneExplorerInterfaceSettings(
             OpenDoors: true,
             ShowHeatmap: true,
+            SelectedStat: VisplaneExplorerStat.Openings,
             ViewHeight: 56,
             ViewHeightCustom: 72);
 
@@ -57,6 +59,7 @@ public class VisplaneExplorerModelTests
 
         Assert.Equal(true, written[VisplaneExplorerInterfaceModel.OpenDoorsSettingsKey]);
         Assert.Equal(true, written[VisplaneExplorerInterfaceModel.ShowHeatmapSettingsKey]);
+        Assert.Equal((int)VisplaneExplorerStat.Openings, written[VisplaneExplorerInterfaceModel.SelectedStatSettingsKey]);
         Assert.Equal(56, written[VisplaneExplorerInterfaceModel.ViewHeightSettingsKey]);
         Assert.Equal(72, written[VisplaneExplorerInterfaceModel.ViewHeightCustomSettingsKey]);
     }
@@ -93,6 +96,7 @@ public class VisplaneExplorerModelTests
         var settings = new VisplaneExplorerInterfaceSettings(
             OpenDoors: true,
             ShowHeatmap: false,
+            SelectedStat: VisplaneExplorerStat.Drawsegs,
             ViewHeight: 56,
             ViewHeightCustom: 0);
 
@@ -113,6 +117,7 @@ public class VisplaneExplorerModelTests
         var settings = new VisplaneExplorerInterfaceSettings(
             OpenDoors: false,
             ShowHeatmap: true,
+            SelectedStat: VisplaneExplorerStat.Visplanes,
             ViewHeight: 41,
             ViewHeightCustom: 0);
 
@@ -153,6 +158,7 @@ public class VisplaneExplorerModelTests
             {
                 [VisplaneExplorerInterfaceModel.OpenDoorsSettingsKey] = true,
                 [VisplaneExplorerInterfaceModel.ShowHeatmapSettingsKey] = "true",
+                [VisplaneExplorerInterfaceModel.SelectedStatSettingsKey] = "3",
                 [VisplaneExplorerInterfaceModel.ViewHeightSettingsKey] = "64",
                 [VisplaneExplorerInterfaceModel.ViewHeightCustomSettingsKey] = 72,
             },
@@ -160,8 +166,22 @@ public class VisplaneExplorerModelTests
 
         Assert.True(settings.OpenDoors);
         Assert.True(settings.ShowHeatmap);
+        Assert.Equal(VisplaneExplorerStat.Openings, settings.SelectedStat);
         Assert.Equal(64, settings.ViewHeight);
         Assert.Equal(72, settings.ViewHeightCustom);
+    }
+
+    [Fact]
+    public void InterfaceSettingsInvalidStoredStatFallsBackToVisplanes()
+    {
+        VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(
+            new Dictionary<string, object?>
+            {
+                [VisplaneExplorerInterfaceModel.SelectedStatSettingsKey] = (int)VisplaneExplorerStat.Heatmap,
+            },
+            viewHeightDefault: 41);
+
+        Assert.Equal(VisplaneExplorerStat.Visplanes, settings.SelectedStat);
     }
 
     [Fact]

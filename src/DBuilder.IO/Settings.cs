@@ -67,7 +67,7 @@ public sealed class Settings
     public RejectExplorerColorSettings RejectExplorerColors { get; set; } = RejectExplorerModel.DefaultColors;
     public SoundPropagationColorSettings SoundPropagationColors { get; set; } = SoundPropagationColorSettings.Default;
     public List<StairBuilderPrefab> StairBuilderPrefabs { get; set; } = new();
-    public VisplaneExplorerInterfaceSettings VisplaneExplorerSettings { get; set; } = new(false, false, 41, 0);
+    public VisplaneExplorerInterfaceSettings VisplaneExplorerSettings { get; set; } = new(false, false, VisplaneExplorerStat.Visplanes, 41, 0);
     public double? WindowX { get; set; }
     public double? WindowY { get; set; }
     public double? WindowWidth { get; set; }
@@ -323,7 +323,7 @@ public sealed class Settings
             settings.RejectExplorerColors ??= RejectExplorerModel.DefaultColors;
             settings.SoundPropagationColors ??= SoundPropagationColorSettings.Default;
             settings.StairBuilderPrefabs ??= new();
-            settings.VisplaneExplorerSettings ??= new(false, false, 41, 0);
+            settings.VisplaneExplorerSettings ??= new(false, false, VisplaneExplorerStat.Visplanes, 41, 0);
             return settings;
         }
         catch { return new Settings(); }

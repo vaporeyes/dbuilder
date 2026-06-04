@@ -1652,6 +1652,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style custom view-height input normalization.
   - [x] Add UDB-style VisplaneExplorer toolbar text, tooltip, and view-height preset item metadata.
   - [x] Add UDB-style singular and plural labels to Visplane Explorer status messages.
+  - [x] Persist selected Visplane Explorer statistic in plugin settings.
   - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
   - [x] Add editor overlay rendering support for completed Visplane Explorer point data.
 - [ ] Port `WadAuthorMode`.
@@ -2182,6 +2183,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style custom view-height input normalization.
   - [x] Add UDB-style mode/action metadata and toolbar settings state for open doors, heatmap, and view height.
   - [x] Add UDB-style stat dropdown item metadata for Visplanes, Drawsegs, Solidsegs, and Openings.
+  - [x] Persist selected Visplane Explorer statistic and report it in mode status.
   - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
   - [x] Add testable Visplane Explorer ready-status formatting for queued analysis state.
   - [x] Add testable Visplane Explorer analysis progress counts and status formatting.

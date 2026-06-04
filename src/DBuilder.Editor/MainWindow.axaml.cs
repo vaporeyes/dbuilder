@@ -3598,7 +3598,7 @@ public partial class MainWindow : Window
         SetStatus(VisplaneExplorerInterfaceModel.ReadyStatus(
             scan.Tiles.Count,
             queued.Count,
-            VisplaneExplorerStat.Visplanes,
+            _settings.VisplaneExplorerSettings.SelectedStat,
             _settings.VisplaneExplorerSettings));
         MapView.Focus();
     }

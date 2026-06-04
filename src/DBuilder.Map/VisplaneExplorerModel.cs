@@ -72,6 +72,7 @@ public sealed record VisplaneExplorerModeDescriptor(
 public sealed record VisplaneExplorerInterfaceSettings(
     bool OpenDoors,
     bool ShowHeatmap,
+    VisplaneExplorerStat SelectedStat,
     int ViewHeight,
     int ViewHeightCustom);
 
@@ -164,6 +165,7 @@ public static class VisplaneExplorerInterfaceModel
     public const int MinimumRevision = 2411;
     public const string OpenDoorsSettingsKey = "opendoors";
     public const string ShowHeatmapSettingsKey = "showheatmap";
+    public const string SelectedStatSettingsKey = "selectedstat";
     public const string ViewHeightSettingsKey = "viewheight";
     public const string ViewHeightCustomSettingsKey = "viewheightcustom";
     public const string StatisticsToolTip = "Statistics to view";
@@ -204,6 +206,7 @@ public static class VisplaneExplorerInterfaceModel
         return new VisplaneExplorerInterfaceSettings(
             ReadBool(settings, OpenDoorsSettingsKey, false),
             ReadBool(settings, ShowHeatmapSettingsKey, false),
+            ReadStat(settings, SelectedStatSettingsKey, VisplaneExplorerStat.Visplanes),
             ReadInt(settings, ViewHeightSettingsKey, viewHeightDefault),
             ReadInt(settings, ViewHeightCustomSettingsKey, 0));
     }
@@ -213,6 +216,7 @@ public static class VisplaneExplorerInterfaceModel
         {
             [OpenDoorsSettingsKey] = settings.OpenDoors,
             [ShowHeatmapSettingsKey] = settings.ShowHeatmap,
+            [SelectedStatSettingsKey] = (int)settings.SelectedStat,
             [ViewHeightSettingsKey] = settings.ViewHeight,
             [ViewHeightCustomSettingsKey] = settings.ViewHeightCustom,
         };
@@ -322,6 +326,17 @@ public static class VisplaneExplorerInterfaceModel
             string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) => i,
             _ => fallback,
         };
+    }
+
+    private static VisplaneExplorerStat ReadStat(
+        IReadOnlyDictionary<string, object?> settings,
+        string key,
+        VisplaneExplorerStat fallback)
+    {
+        int value = ReadInt(settings, key, (int)fallback);
+        return Enum.IsDefined(typeof(VisplaneExplorerStat), value) && value < (int)VisplaneExplorerStat.Heatmap
+            ? (VisplaneExplorerStat)value
+            : fallback;
     }
 }
 
