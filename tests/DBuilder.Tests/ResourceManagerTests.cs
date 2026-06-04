@@ -85,6 +85,9 @@ public class ResourceManagerTests
     private static byte[] SndSeqBytes(string name, string sound)
         => Encoding.ASCII.GetBytes($":{name}\nplay {sound}\nend");
 
+    private static byte[] ReverbsBytes(string name, int arg0, int arg1)
+        => Encoding.ASCII.GetBytes($"\"{name}\" {arg0.ToString(System.Globalization.CultureInfo.InvariantCulture)} {arg1.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -447,6 +450,53 @@ public class ResourceManagerTests
             Assert.Equal("world/root", sequences[0].Commands[0].Sound);
             Assert.Equal("Extra", sequences[1].Name);
             Assert.Equal("world/extra", sequences[1].Commands[0].Sound);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesReverbsFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("REVERBS", ReverbsBytes("Small Room", 1, 0)),
+            ("REVERBS", ReverbsBytes("Cave", 2, 3)));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var reverbs = rm.GetReverbs().Environments;
+        Assert.Equal(new[] { "Cave", "Small Room" }, reverbs.Keys.ToArray());
+        Assert.Equal(new ReverbDefinition("Small Room", 1, 0), reverbs["Small Room"]);
+        Assert.Equal(new ReverbDefinition("Cave", 2, 3), reverbs["Cave"]);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootReverbsTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("REVERBS", ReverbsBytes("Cave", 3, 0)));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("REVERBS.txt", ReverbsBytes("Cave", 1, 0)),
+            ("REVERBS.extra", ReverbsBytes("Hall", 2, 0)),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_reverbs_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "REVERBS.txt"), ReverbsBytes("Duplicate", 2, 0));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var reverbs = rm.GetReverbs().Environments;
+            Assert.Equal(new[] { "Cave", "Hall" }, reverbs.Keys.ToArray());
+            Assert.Equal(new ReverbDefinition("Cave", 3, 0), reverbs["Cave"]);
+            Assert.Equal(new ReverbDefinition("Hall", 2, 0), reverbs["Hall"]);
         }
         finally
         {

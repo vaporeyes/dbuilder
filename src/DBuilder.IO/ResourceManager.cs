@@ -1185,6 +1185,44 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>REVERBS sound environments from every resource, oldest first.</summary>
+    public Reverbs GetReverbs()
+    {
+        var result = new Reverbs();
+        var usedIds = new HashSet<int>();
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetReverbsLumps())
+            {
+                var parsed = ReverbsParser.Parse(text);
+                foreach (var environment in parsed.Environments.Values)
+                {
+                    int id = ReverbCombinedId(environment.Arg0, environment.Arg1);
+                    if (usedIds.Add(id) || result.Environments.ContainsKey(environment.Name))
+                        result.Environments[environment.Name] = environment;
+                }
+            }
+        }
+        SortReverbs(result.Environments);
+        return result;
+    }
+
+    private static int ReverbCombinedId(int arg0, int arg1)
+    {
+        unchecked
+        {
+            return arg0 * 1000000 + arg1 * 1000;
+        }
+    }
+
+    private static void SortReverbs(Dictionary<string, ReverbDefinition> environments)
+    {
+        var sorted = new List<ReverbDefinition>(environments.Values);
+        sorted.Sort((left, right) => string.CompareOrdinal(left.Name, right.Name));
+        environments.Clear();
+        foreach (var environment in sorted) environments[environment.Name] = environment;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {
