@@ -1530,6 +1530,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB-style OBJ terrain import up-axis, scale, and vertex-height settings.
   - [x] Enable UDB-style OBJ terrain vertex-height thing fallback for non-UDMF maps.
   - [x] Remember UDB-style BuilderEffects jitter and directional shading dialog settings.
+  - [x] Expose UDB-style Randomize triangular sector floor and ceiling vertex-height jitter.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

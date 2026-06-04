@@ -14,7 +14,16 @@ public enum JitterOffsetMode
 
 public readonly record struct VertexJitter(Vertex Vertex, Vector2D InitialPosition, double AngleRadians, int SafeDistance = int.MaxValue);
 
-public readonly record struct SectorHeightJitter(Sector Sector, int InitialFloorHeight, int InitialCeilingHeight, double FloorFactor, double CeilingFactor, int SafeDistance = int.MaxValue);
+public readonly record struct SectorVertexHeightJitter(Vertex Vertex, double InitialFloorHeight, double InitialCeilingHeight, double FloorFactor, double CeilingFactor);
+
+public readonly record struct SectorHeightJitter(
+    Sector Sector,
+    int InitialFloorHeight,
+    int InitialCeilingHeight,
+    double FloorFactor,
+    double CeilingFactor,
+    int SafeDistance = int.MaxValue,
+    IReadOnlyList<SectorVertexHeightJitter>? VertexHeights = null);
 
 public readonly record struct ThingJitter(
     Thing Thing,
@@ -63,23 +72,47 @@ public static class BuilderEffects
         return vertices.Count;
     }
 
-    public static int ApplySectorFloorHeight(IReadOnlyList<SectorHeightJitter> sectors, int amount, JitterOffsetMode mode = JitterOffsetMode.RaiseAndLower)
+    public static int ApplySectorFloorHeight(
+        IReadOnlyList<SectorHeightJitter> sectors,
+        int amount,
+        JitterOffsetMode mode = JitterOffsetMode.RaiseAndLower,
+        bool useVertexHeights = false)
     {
         foreach (SectorHeightJitter jitter in sectors)
         {
             int current = Math.Min(amount, jitter.SafeDistance);
-            jitter.Sector.FloorHeight = jitter.InitialFloorHeight + (int)Math.Floor(current * ModifyByOffsetMode(jitter.FloorFactor, mode));
+            if (useVertexHeights && jitter.VertexHeights is { Count: > 0 } vertexHeights)
+            {
+                foreach (SectorVertexHeightJitter vertexHeight in vertexHeights)
+                    vertexHeight.Vertex.ZFloor = vertexHeight.InitialFloorHeight + Math.Floor(current * ModifyByOffsetMode(vertexHeight.FloorFactor, mode));
+            }
+            else
+            {
+                jitter.Sector.FloorHeight = jitter.InitialFloorHeight + (int)Math.Floor(current * ModifyByOffsetMode(jitter.FloorFactor, mode));
+            }
         }
 
         return sectors.Count;
     }
 
-    public static int ApplySectorCeilingHeight(IReadOnlyList<SectorHeightJitter> sectors, int amount, JitterOffsetMode mode = JitterOffsetMode.RaiseAndLower)
+    public static int ApplySectorCeilingHeight(
+        IReadOnlyList<SectorHeightJitter> sectors,
+        int amount,
+        JitterOffsetMode mode = JitterOffsetMode.RaiseAndLower,
+        bool useVertexHeights = false)
     {
         foreach (SectorHeightJitter jitter in sectors)
         {
             int current = Math.Min(amount, jitter.SafeDistance);
-            jitter.Sector.CeilHeight = jitter.InitialCeilingHeight - (int)Math.Floor(current * ModifyByOffsetMode(jitter.CeilingFactor, mode));
+            if (useVertexHeights && jitter.VertexHeights is { Count: > 0 } vertexHeights)
+            {
+                foreach (SectorVertexHeightJitter vertexHeight in vertexHeights)
+                    vertexHeight.Vertex.ZCeiling = vertexHeight.InitialCeilingHeight - Math.Floor(current * ModifyByOffsetMode(vertexHeight.CeilingFactor, mode));
+            }
+            else
+            {
+                jitter.Sector.CeilHeight = jitter.InitialCeilingHeight - (int)Math.Floor(current * ModifyByOffsetMode(jitter.CeilingFactor, mode));
+            }
         }
 
         return sectors.Count;

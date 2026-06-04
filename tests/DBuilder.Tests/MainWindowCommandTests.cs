@@ -209,16 +209,20 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
-        int safeDistanceIndex = body.IndexOf("SafeDistance: JitterSectorSafeHeightDistance(sector)", methodIndex, StringComparison.Ordinal);
-        int floorIndex = body.IndexOf("BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode)", safeDistanceIndex, StringComparison.Ordinal);
-        int ceilingIndex = body.IndexOf("BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode)", floorIndex, StringComparison.Ordinal);
+        int buildIndex = body.IndexOf("BuildSectorHeightJitter(sector, _mapFormat == MapFormat.Udmf)", methodIndex, StringComparison.Ordinal);
+        int floorIndex = body.IndexOf("BuilderEffects.ApplySectorFloorHeight(", buildIndex, StringComparison.Ordinal);
+        int floorVertexHeightsIndex = body.IndexOf("dialog.ResultUseFloorVertexHeights", floorIndex, StringComparison.Ordinal);
+        int ceilingIndex = body.IndexOf("BuilderEffects.ApplySectorCeilingHeight(", floorVertexHeightsIndex, StringComparison.Ordinal);
+        int ceilingVertexHeightsIndex = body.IndexOf("dialog.ResultUseCeilingVertexHeights", ceilingIndex, StringComparison.Ordinal);
         int helperIndex = body.IndexOf("private static int JitterSectorSafeHeightDistance(Sector sector)", StringComparison.Ordinal);
         int formulaIndex = body.IndexOf("Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2)", helperIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(safeDistanceIndex > methodIndex);
-        Assert.True(floorIndex > methodIndex);
-        Assert.True(ceilingIndex > floorIndex);
+        Assert.True(buildIndex > methodIndex);
+        Assert.True(floorIndex > buildIndex);
+        Assert.True(floorVertexHeightsIndex > floorIndex);
+        Assert.True(ceilingIndex > floorVertexHeightsIndex);
+        Assert.True(ceilingVertexHeightsIndex > ceilingIndex);
         Assert.True(helperIndex > ceilingIndex);
         Assert.True(formulaIndex > helperIndex);
     }
@@ -364,6 +368,10 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("AddCombo(\"Floor offset mode\", FloorOffsetModeItems(), (int)ResultFloorOffsetMode)", body, StringComparison.Ordinal);
         Assert.Contains("AddCombo(\"Ceiling offset mode\", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use floor vertex heights\", ResultUseFloorVertexHeights)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use ceiling vertex heights\", ResultUseCeilingVertexHeights)", body, StringComparison.Ordinal);
+        Assert.Contains("_useFloorVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
+        Assert.Contains("_useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseAndLower, \"Raise and lower\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Raise only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Lower only\")", body, StringComparison.Ordinal);
@@ -439,14 +447,20 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("private static JitterOffsetMode s_floorOffsetMode = JitterOffsetMode.RaiseAndLower;", body, StringComparison.Ordinal);
         Assert.Contains("private static JitterOffsetMode s_ceilingOffsetMode = JitterOffsetMode.RaiseAndLower;", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool s_useFloorVertexHeights;", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool s_useCeilingVertexHeights;", body, StringComparison.Ordinal);
         Assert.Contains("private static bool s_relativeThingPitch;", body, StringComparison.Ordinal);
         Assert.Contains("private static bool s_allowNegativeThingScaleY;", body, StringComparison.Ordinal);
         Assert.Contains("ResultFloorOffsetMode = s_floorOffsetMode;", body, StringComparison.Ordinal);
         Assert.Contains("ResultCeilingOffsetMode = s_ceilingOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUseFloorVertexHeights = vertexHeightsSupported && s_useFloorVertexHeights;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUseCeilingVertexHeights = vertexHeightsSupported && s_useCeilingVertexHeights;", body, StringComparison.Ordinal);
         Assert.Contains("ResultRelativeThingPitch = s_relativeThingPitch;", body, StringComparison.Ordinal);
         Assert.Contains("ResultAllowNegativeThingScaleY = s_allowNegativeThingScaleY;", body, StringComparison.Ordinal);
         Assert.Contains("s_floorOffsetMode = ResultFloorOffsetMode;", body, StringComparison.Ordinal);
         Assert.Contains("s_ceilingOffsetMode = ResultCeilingOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("s_useFloorVertexHeights = ResultUseFloorVertexHeights;", body, StringComparison.Ordinal);
+        Assert.Contains("s_useCeilingVertexHeights = ResultUseCeilingVertexHeights;", body, StringComparison.Ordinal);
         Assert.Contains("s_relativeThingPitch = ResultRelativeThingPitch;", body, StringComparison.Ordinal);
         Assert.Contains("s_allowNegativeThingScaleY = ResultAllowNegativeThingScaleY;", body, StringComparison.Ordinal);
     }

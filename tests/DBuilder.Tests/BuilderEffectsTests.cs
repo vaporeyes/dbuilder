@@ -52,6 +52,33 @@ public class BuilderEffectsTests
     }
 
     [Fact]
+    public void SectorHeightJitterCanUseTriangularVertexHeights()
+    {
+        var sector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+        var floorVertex = new Vertex(new Vector2D(0, 0)) { ZFloor = 4 };
+        var ceilingVertex = new Vertex(new Vector2D(64, 0)) { ZCeiling = 120 };
+        var jitter = new SectorHeightJitter(
+            sector,
+            0,
+            128,
+            FloorFactor: 0.25,
+            CeilingFactor: 0.5,
+            VertexHeights:
+            [
+                new SectorVertexHeightJitter(floorVertex, 4, 128, FloorFactor: 0.5, CeilingFactor: 0),
+                new SectorVertexHeightJitter(ceilingVertex, 0, 120, FloorFactor: 0, CeilingFactor: 0.25),
+            ]);
+
+        BuilderEffects.ApplySectorFloorHeight(new[] { jitter }, amount: 10, useVertexHeights: true);
+        BuilderEffects.ApplySectorCeilingHeight(new[] { jitter }, amount: 12, useVertexHeights: true);
+
+        Assert.Equal(0, sector.FloorHeight);
+        Assert.Equal(128, sector.CeilHeight);
+        Assert.Equal(9, floorVertex.ZFloor);
+        Assert.Equal(117, ceilingVertex.ZCeiling);
+    }
+
+    [Fact]
     public void ThingTranslationRotationPitchRollAndHeightUseCachedValues()
     {
         var thing = new Thing(new Vector2D(0, 0), 3001, angle: 90)

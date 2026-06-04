@@ -11,6 +11,8 @@ public sealed class JitterDialog : PropertyDialog
 {
     private static JitterOffsetMode s_floorOffsetMode = JitterOffsetMode.RaiseAndLower;
     private static JitterOffsetMode s_ceilingOffsetMode = JitterOffsetMode.RaiseAndLower;
+    private static bool s_useFloorVertexHeights;
+    private static bool s_useCeilingVertexHeights;
     private static bool s_relativeThingPitch;
     private static bool s_relativeThingRoll;
     private static bool s_allowNegativeThingPitch;
@@ -23,8 +25,10 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _positionAmount;
     private readonly TextBox _floorAmount;
     private readonly ComboBox _floorOffsetMode;
+    private readonly CheckBox _useFloorVertexHeights;
     private readonly TextBox _ceilingAmount;
     private readonly ComboBox _ceilingOffsetMode;
+    private readonly CheckBox _useCeilingVertexHeights;
     private readonly TextBox _thingRotationAmount;
     private readonly TextBox _thingHeightAmount;
     private readonly TextBox _thingPitchAmount;
@@ -45,8 +49,10 @@ public sealed class JitterDialog : PropertyDialog
     public int ResultPositionAmount { get; private set; } = 16;
     public int ResultFloorAmount { get; private set; } = 16;
     public JitterOffsetMode ResultFloorOffsetMode { get; private set; } = JitterOffsetMode.RaiseAndLower;
+    public bool ResultUseFloorVertexHeights { get; private set; }
     public int ResultCeilingAmount { get; private set; } = 16;
     public JitterOffsetMode ResultCeilingOffsetMode { get; private set; } = JitterOffsetMode.RaiseAndLower;
+    public bool ResultUseCeilingVertexHeights { get; private set; }
     public int ResultThingRotationAmount { get; private set; } = 45;
     public int ResultThingHeightAmount { get; private set; } = 16;
     public int ResultThingPitchAmount { get; private set; }
@@ -64,11 +70,13 @@ public sealed class JitterDialog : PropertyDialog
     public bool ResultAllowNegativeThingScaleX { get; private set; }
     public bool ResultAllowNegativeThingScaleY { get; private set; }
 
-    public JitterDialog(string title)
+    public JitterDialog(string title, bool vertexHeightsSupported = false)
         : base(title)
     {
         ResultFloorOffsetMode = s_floorOffsetMode;
         ResultCeilingOffsetMode = s_ceilingOffsetMode;
+        ResultUseFloorVertexHeights = vertexHeightsSupported && s_useFloorVertexHeights;
+        ResultUseCeilingVertexHeights = vertexHeightsSupported && s_useCeilingVertexHeights;
         ResultRelativeThingPitch = s_relativeThingPitch;
         ResultRelativeThingRoll = s_relativeThingRoll;
         ResultAllowNegativeThingPitch = s_allowNegativeThingPitch;
@@ -81,8 +89,12 @@ public sealed class JitterDialog : PropertyDialog
         _positionAmount = AddField("Position amount", ResultPositionAmount.ToString(CultureInfo.InvariantCulture));
         _floorAmount = AddField("Floor amount", ResultFloorAmount.ToString(CultureInfo.InvariantCulture));
         _floorOffsetMode = AddCombo("Floor offset mode", FloorOffsetModeItems(), (int)ResultFloorOffsetMode);
+        _useFloorVertexHeights = AddCheckBox("Use floor vertex heights", ResultUseFloorVertexHeights);
+        _useFloorVertexHeights.IsEnabled = vertexHeightsSupported;
         _ceilingAmount = AddField("Ceiling amount", ResultCeilingAmount.ToString(CultureInfo.InvariantCulture));
         _ceilingOffsetMode = AddCombo("Ceiling offset mode", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode);
+        _useCeilingVertexHeights = AddCheckBox("Use ceiling vertex heights", ResultUseCeilingVertexHeights);
+        _useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;
         _thingRotationAmount = AddField("Thing angle amount", ResultThingRotationAmount.ToString(CultureInfo.InvariantCulture));
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
         _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
@@ -106,8 +118,10 @@ public sealed class JitterDialog : PropertyDialog
         ResultPositionAmount = Math.Max(0, ParseInt(_positionAmount, ResultPositionAmount));
         ResultFloorAmount = Math.Max(0, ParseInt(_floorAmount, ResultFloorAmount));
         ResultFloorOffsetMode = (JitterOffsetMode)ComboNumber(_floorOffsetMode, (int)ResultFloorOffsetMode);
+        ResultUseFloorVertexHeights = _useFloorVertexHeights.IsEnabled && _useFloorVertexHeights.IsChecked == true;
         ResultCeilingAmount = Math.Max(0, ParseInt(_ceilingAmount, ResultCeilingAmount));
         ResultCeilingOffsetMode = (JitterOffsetMode)ComboNumber(_ceilingOffsetMode, (int)ResultCeilingOffsetMode);
+        ResultUseCeilingVertexHeights = _useCeilingVertexHeights.IsEnabled && _useCeilingVertexHeights.IsChecked == true;
         ResultThingRotationAmount = Math.Max(0, ParseInt(_thingRotationAmount, ResultThingRotationAmount));
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
@@ -127,6 +141,8 @@ public sealed class JitterDialog : PropertyDialog
 
         s_floorOffsetMode = ResultFloorOffsetMode;
         s_ceilingOffsetMode = ResultCeilingOffsetMode;
+        s_useFloorVertexHeights = ResultUseFloorVertexHeights;
+        s_useCeilingVertexHeights = ResultUseCeilingVertexHeights;
         s_relativeThingPitch = ResultRelativeThingPitch;
         s_relativeThingRoll = ResultRelativeThingRoll;
         s_allowNegativeThingPitch = ResultAllowNegativeThingPitch;

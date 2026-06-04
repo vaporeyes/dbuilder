@@ -5284,7 +5284,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dialog = new JitterDialog(title);
+        var dialog = new JitterDialog(title, _mapFormat == MapFormat.Udmf);
         if (!await dialog.ShowDialog<bool>(this))
         {
             MapView.Focus();
@@ -5302,15 +5302,17 @@ public partial class MainWindow : Window
 
         if (sectors.Count > 0)
         {
-            var sectorJitter = sectors.Select(sector => new SectorHeightJitter(
-                sector,
-                sector.FloorHeight,
-                sector.CeilHeight,
-                RandomFactor(),
-                RandomFactor(),
-                SafeDistance: JitterSectorSafeHeightDistance(sector))).ToList();
-            changed += BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode);
-            changed += BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode);
+            var sectorJitter = sectors.Select(sector => BuildSectorHeightJitter(sector, _mapFormat == MapFormat.Udmf)).ToList();
+            changed += BuilderEffects.ApplySectorFloorHeight(
+                sectorJitter,
+                dialog.ResultFloorAmount,
+                dialog.ResultFloorOffsetMode,
+                dialog.ResultUseFloorVertexHeights);
+            changed += BuilderEffects.ApplySectorCeilingHeight(
+                sectorJitter,
+                dialog.ResultCeilingAmount,
+                dialog.ResultCeilingOffsetMode,
+                dialog.ResultUseCeilingVertexHeights);
         }
 
         if (things.Count > 0)
@@ -5378,6 +5380,86 @@ public partial class MainWindow : Window
 
     private static int JitterSectorSafeHeightDistance(Sector sector)
         => Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2);
+
+    private static SectorHeightJitter BuildSectorHeightJitter(Sector sector, bool supportsVertexHeights)
+        => new(
+            sector,
+            sector.FloorHeight,
+            sector.CeilHeight,
+            RandomFactor(),
+            RandomFactor(),
+            SafeDistance: JitterSectorSafeHeightDistance(sector),
+            VertexHeights: supportsVertexHeights && sector.Sidedefs.Count == 3
+                ? BuildSectorVertexHeightJitter(sector)
+                : null);
+
+    private static List<SectorVertexHeightJitter> BuildSectorVertexHeightJitter(Sector sector)
+    {
+        var result = new List<SectorVertexHeightJitter>();
+        foreach (Vertex vertex in SectorVertices(sector))
+        {
+            double initialFloor = double.IsNaN(vertex.ZFloor) ? HighestTriangularFloor(vertex, sector.FloorHeight) : vertex.ZFloor;
+            double initialCeiling = double.IsNaN(vertex.ZCeiling) ? LowestTriangularCeiling(vertex, sector.CeilHeight) : vertex.ZCeiling;
+            result.Add(new SectorVertexHeightJitter(
+                vertex,
+                initialFloor,
+                initialCeiling,
+                RandomFactor(),
+                RandomFactor()));
+        }
+
+        return result;
+    }
+
+    private static List<Vertex> SectorVertices(Sector sector)
+    {
+        var result = new List<Vertex>();
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (!result.Contains(side.Line.Start)) result.Add(side.Line.Start);
+            if (!result.Contains(side.Line.End)) result.Add(side.Line.End);
+        }
+
+        return result;
+    }
+
+    private static double HighestTriangularFloor(Vertex vertex, double fallback)
+    {
+        List<Sector> sectors = AdjacentSectors(vertex);
+        if (sectors.Count == 0) return fallback;
+
+        double target = sectors[0].FloorHeight;
+        for (int i = 1; i < sectors.Count; i++)
+            if (target < sectors[i].FloorHeight && sectors[i].Sidedefs.Count == 3)
+                target = sectors[i].FloorHeight;
+
+        return target;
+    }
+
+    private static double LowestTriangularCeiling(Vertex vertex, double fallback)
+    {
+        List<Sector> sectors = AdjacentSectors(vertex);
+        if (sectors.Count == 0) return fallback;
+
+        double target = sectors[0].CeilHeight;
+        for (int i = 1; i < sectors.Count; i++)
+            if (target > sectors[i].CeilHeight && sectors[i].Sidedefs.Count == 3)
+                target = sectors[i].CeilHeight;
+
+        return target;
+    }
+
+    private static List<Sector> AdjacentSectors(Vertex vertex)
+    {
+        var result = new List<Sector>();
+        foreach (Linedef line in vertex.Linedefs)
+        {
+            if (line.Front?.Sector is { } front && !result.Contains(front)) result.Add(front);
+            if (line.Back?.Sector is { } back && !result.Contains(back)) result.Add(back);
+        }
+
+        return result;
+    }
 
     private static List<VertexJitter> BuildVertexJitter(IReadOnlyCollection<Vertex> vertices, MapSet map)
     {
