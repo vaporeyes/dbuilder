@@ -188,6 +188,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("UpdateActionButtons();", code, StringComparison.Ordinal);
         Assert.Contains("_showAll.IsEnabled = hasHidden;", code, StringComparison.Ordinal);
         Assert.Contains("_copySelected.IsEnabled = hasSelection;", code, StringComparison.Ordinal);
+        Assert.Contains("e.Key == Key.A && HasCopyModifier(e.KeyModifiers)", code, StringComparison.Ordinal);
+        Assert.Contains("SelectAllVisibleResults();", code, StringComparison.Ordinal);
+        Assert.Contains("_model.AllVisibleIssues().ToHashSet();", code, StringComparison.Ordinal);
     }
 
     [Fact]

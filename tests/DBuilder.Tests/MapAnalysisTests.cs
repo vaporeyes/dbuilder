@@ -680,6 +680,19 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelReturnsAllVisibleIssues()
+    {
+        var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var missingTexture = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");
+        var model = new MapIssueListModel(new[] { unused, shortLine, missingTexture });
+
+        model.HideSelectedKinds(new[] { missingTexture });
+
+        Assert.Equal(new[] { unused, shortLine }, model.AllVisibleIssues());
+    }
+
+    [Fact]
     public void MapIssueListModelFormatsDescriptionsForClipboard()
     {
         var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");

@@ -103,6 +103,11 @@ public sealed class MapCheckWindow : Window
                 await CopySelectedToClipboard();
                 e.Handled = true;
             }
+            else if (e.Key == Key.A && HasCopyModifier(e.KeyModifiers))
+            {
+                SelectAllVisibleResults();
+                e.Handled = true;
+            }
         };
 
         var root = new DockPanel();
@@ -169,6 +174,19 @@ public sealed class MapCheckWindow : Window
     {
         _model.ShowOnlySelectedKinds(SelectedIssues());
         RefreshRows();
+    }
+
+    private void SelectAllVisibleResults()
+    {
+        var visible = _model.AllVisibleIssues().ToHashSet();
+        if (visible.Count == 0) return;
+
+        _list.SelectedItems?.Clear();
+        foreach (var row in _rows)
+        {
+            if (row.Tag is MapIssue issue && visible.Contains(issue))
+                _list.SelectedItems?.Add(row);
+        }
     }
 
     private async System.Threading.Tasks.Task CopySelectedToClipboard()

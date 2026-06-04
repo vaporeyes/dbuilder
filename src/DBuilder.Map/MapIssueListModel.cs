@@ -72,6 +72,8 @@ public sealed class MapIssueListModel
         return visibleIssues.Where(issue => selectedKinds.Contains(issue.Kind)).ToArray();
     }
 
+    public IReadOnlyList<MapIssue> AllVisibleIssues() => visibleIssues.ToArray();
+
     public static string FormatIssueDescriptions(IEnumerable<MapIssue> issues)
     {
         var lines = issues.Select(issue => issue.Message).ToArray();
