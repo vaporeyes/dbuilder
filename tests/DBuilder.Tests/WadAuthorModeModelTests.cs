@@ -60,6 +60,48 @@ public class WadAuthorModeModelTests
     }
 
     [Fact]
+    public void LifecyclePlanMatchesUdbConstructorAndDisposeGuard()
+    {
+        WadAuthorModeLifecyclePlan construct = WadAuthorModeModel.LifecyclePlan(WadAuthorLifecycleAction.Construct);
+        WadAuthorModeLifecyclePlan dispose = WadAuthorModeModel.LifecyclePlan(WadAuthorLifecycleAction.Dispose);
+        WadAuthorModeLifecyclePlan skippedDispose = WadAuthorModeModel.LifecyclePlan(
+            WadAuthorLifecycleAction.Dispose,
+            alreadyDisposed: true);
+
+        Assert.True(construct.CreateTools);
+        Assert.True(construct.SuppressFinalize);
+        Assert.False(construct.DisposeTools);
+        Assert.False(construct.DisposeBase);
+
+        Assert.False(dispose.CreateTools);
+        Assert.True(dispose.DisposeTools);
+        Assert.True(dispose.DisposeBase);
+
+        Assert.False(skippedDispose.DisposeTools);
+        Assert.False(skippedDispose.DisposeBase);
+    }
+
+    [Fact]
+    public void LifecyclePlanMatchesUdbModeSwitchBranches()
+    {
+        WadAuthorModeLifecyclePlan cancel = WadAuthorModeModel.LifecyclePlan(WadAuthorLifecycleAction.Cancel);
+        WadAuthorModeLifecyclePlan engage = WadAuthorModeModel.LifecyclePlan(WadAuthorLifecycleAction.Engage);
+        WadAuthorModeLifecyclePlan disengage = WadAuthorModeModel.LifecyclePlan(WadAuthorLifecycleAction.Disengage);
+
+        Assert.True(cancel.ReenterWadAuthorMode);
+        Assert.False(cancel.SetThingsPresentation);
+        Assert.False(cancel.ClearSelection);
+
+        Assert.True(engage.SetThingsPresentation);
+        Assert.True(engage.ConvertSectorsToLinedefs);
+        Assert.False(engage.HideInfo);
+
+        Assert.True(disengage.ClearSelection);
+        Assert.True(disengage.HideInfo);
+        Assert.False(disengage.ConvertSectorsToLinedefs);
+    }
+
+    [Fact]
     public void ModeToggleStatusFormatsEnabledAndRestoredMode()
     {
         Assert.Equal(

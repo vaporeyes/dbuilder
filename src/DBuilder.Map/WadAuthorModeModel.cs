@@ -30,6 +30,15 @@ public enum WadAuthorHighlightRenderSurface
     Things,
 }
 
+public enum WadAuthorLifecycleAction
+{
+    Construct,
+    Dispose,
+    Cancel,
+    Engage,
+    Disengage,
+}
+
 public readonly record struct WadAuthorHighlight(WadAuthorHighlightKind Kind, object? Target)
 {
     public static WadAuthorHighlight None => new(WadAuthorHighlightKind.None, null);
@@ -46,6 +55,18 @@ public sealed record WadAuthorHighlightTransitionPlan(
     bool HideInfo,
     WadAuthorHighlightKind ShowInfoKind,
     bool Present);
+
+public sealed record WadAuthorModeLifecyclePlan(
+    WadAuthorLifecycleAction Action,
+    bool CreateTools,
+    bool SuppressFinalize,
+    bool DisposeTools,
+    bool DisposeBase,
+    bool ReenterWadAuthorMode,
+    bool SetThingsPresentation,
+    bool ConvertSectorsToLinedefs,
+    bool ClearSelection,
+    bool HideInfo);
 
 public sealed record WadAuthorToolsMetadata(
     string FormTitle,
@@ -103,6 +124,67 @@ public static class WadAuthorModeModel
         new("Flip", WadAuthorLinedefPopupAction.Flip),
         new("Curve...", WadAuthorLinedefPopupAction.Curve),
     ];
+
+    public static WadAuthorModeLifecyclePlan LifecyclePlan(WadAuthorLifecycleAction action, bool alreadyDisposed = false)
+        => action switch
+        {
+            WadAuthorLifecycleAction.Construct => new WadAuthorModeLifecyclePlan(
+                action,
+                CreateTools: true,
+                SuppressFinalize: true,
+                DisposeTools: false,
+                DisposeBase: false,
+                ReenterWadAuthorMode: false,
+                SetThingsPresentation: false,
+                ConvertSectorsToLinedefs: false,
+                ClearSelection: false,
+                HideInfo: false),
+            WadAuthorLifecycleAction.Dispose => new WadAuthorModeLifecyclePlan(
+                action,
+                CreateTools: false,
+                SuppressFinalize: false,
+                DisposeTools: !alreadyDisposed,
+                DisposeBase: !alreadyDisposed,
+                ReenterWadAuthorMode: false,
+                SetThingsPresentation: false,
+                ConvertSectorsToLinedefs: false,
+                ClearSelection: false,
+                HideInfo: false),
+            WadAuthorLifecycleAction.Cancel => new WadAuthorModeLifecyclePlan(
+                action,
+                CreateTools: false,
+                SuppressFinalize: false,
+                DisposeTools: false,
+                DisposeBase: false,
+                ReenterWadAuthorMode: true,
+                SetThingsPresentation: false,
+                ConvertSectorsToLinedefs: false,
+                ClearSelection: false,
+                HideInfo: false),
+            WadAuthorLifecycleAction.Engage => new WadAuthorModeLifecyclePlan(
+                action,
+                CreateTools: false,
+                SuppressFinalize: false,
+                DisposeTools: false,
+                DisposeBase: false,
+                ReenterWadAuthorMode: false,
+                SetThingsPresentation: true,
+                ConvertSectorsToLinedefs: true,
+                ClearSelection: false,
+                HideInfo: false),
+            WadAuthorLifecycleAction.Disengage => new WadAuthorModeLifecyclePlan(
+                action,
+                CreateTools: false,
+                SuppressFinalize: false,
+                DisposeTools: false,
+                DisposeBase: false,
+                ReenterWadAuthorMode: false,
+                SetThingsPresentation: false,
+                ConvertSectorsToLinedefs: false,
+                ClearSelection: true,
+                HideInfo: true),
+            _ => throw new ArgumentOutOfRangeException(nameof(action), action, null),
+        };
 
     public static void EnterMode(MapSet map)
     {
