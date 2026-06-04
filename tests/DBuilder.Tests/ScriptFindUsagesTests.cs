@@ -2,6 +2,7 @@
 // ABOUTME: Verifies whole-word and case-sensitive script search options.
 
 using DBuilder.IO;
+using System.Globalization;
 
 namespace DBuilder.Tests;
 
@@ -81,6 +82,28 @@ public class ScriptFindUsagesTests
         var plusUsage = Assert.Single(plus);
         Assert.Equal(2, plusUsage.LineIndex);
         Assert.Equal("A+B", plusUsage.Line);
+    }
+
+    [Fact]
+    public void CaseInsensitiveMatchingIsCultureInvariantLikeUdb()
+    {
+        CultureInfo previousCulture = CultureInfo.CurrentCulture;
+        CultureInfo previousUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
+
+            var usages = ScriptFindUsages.Find("Identifier", "identifier");
+
+            var usage = Assert.Single(usages);
+            Assert.Equal("Identifier", usage.Line);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
     }
 
     [Fact]
