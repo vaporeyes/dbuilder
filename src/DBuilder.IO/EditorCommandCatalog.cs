@@ -633,16 +633,11 @@ public static class EditorCommandCatalog
         foreach (string rawPart in SplitGestureParts(gesture))
         {
             string part = rawPart.Trim();
-            if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)
-                || part.Equals("Control", StringComparison.OrdinalIgnoreCase)
-                || part.Equals("Cmd", StringComparison.OrdinalIgnoreCase)
-                || part.Equals("Command", StringComparison.OrdinalIgnoreCase)
-                || part.Equals("Ctrl/Cmd", StringComparison.OrdinalIgnoreCase))
+            if (IsAcceleratorAlias(part))
                 accelerator = true;
-            else if (part.Equals("Shift", StringComparison.OrdinalIgnoreCase))
+            else if (IsShiftAlias(part))
                 shift = true;
-            else if (part.Equals("Alt", StringComparison.OrdinalIgnoreCase)
-                || part.Equals("Option", StringComparison.OrdinalIgnoreCase))
+            else if (IsAltAlias(part))
                 alt = true;
             else
                 key = ParseDisplayKey(part);
@@ -652,6 +647,29 @@ public static class EditorCommandCatalog
         binding = new EditorShortcutBinding(commandId, scope, key, accelerator, shift, alt);
         return true;
     }
+
+    private static bool IsAcceleratorAlias(string part)
+        => part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Control", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("ControlKey", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("LControlKey", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("RControlKey", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Cmd", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Command", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Ctrl/Cmd", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsShiftAlias(string part)
+        => part.Equals("Shift", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("ShiftKey", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("LShiftKey", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("RShiftKey", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsAltAlias(string part)
+        => part.Equals("Alt", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Option", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("Menu", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("LMenu", StringComparison.OrdinalIgnoreCase)
+           || part.Equals("RMenu", StringComparison.OrdinalIgnoreCase);
 
     private static IEnumerable<string> SplitGestureParts(string gesture)
     {

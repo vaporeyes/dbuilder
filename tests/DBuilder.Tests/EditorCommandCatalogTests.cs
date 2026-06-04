@@ -2566,6 +2566,18 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsWinFormsModifierKeyAliases()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "window.save=ControlKey+S; map2d.draw-lines=ShiftKey+D; map2d.draw-ellipse=Menu+D; map2d.draw-curve=LControlKey+RMenu+D");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "S" && b.Accelerator);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.draw-lines" && b.Key == "D" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.draw-ellipse" && b.Key == "D" && b.Alt);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.draw-curve" && b.Key == "D" && b.Accelerator && b.Alt);
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsShiftedTopRowDigitKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
