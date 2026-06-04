@@ -348,6 +348,12 @@ public static class UdbScriptDiscovery
     {
         template = "";
         SkipWhitespaceAndComments(text, ref index);
+        while (index < text.Length && text[index] == ';')
+        {
+            index++;
+            SkipWhitespaceAndComments(text, ref index);
+        }
+
         if (index >= text.Length || text[index] != '`') return false;
 
         int start = ++index;

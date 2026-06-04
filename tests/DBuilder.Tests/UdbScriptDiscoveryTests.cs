@@ -137,6 +137,31 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void AllowsExtraSemicolonSeparatorsBetweenLeadingMetadataLikeUdb()
+    {
+        string dir = TempDir();
+        try
+        {
+            string file = Path.Combine(dir, "semicolons.js");
+            File.WriteAllText(file, """
+                ;
+                `#name Semicolon Script`;;
+                `#description Extra semicolon separators`;
+                function run() {}
+                """);
+
+            var info = UdbScriptDiscovery.ParseScript(file);
+
+            Assert.Equal("Semicolon Script", info.Name);
+            Assert.Equal("Extra semicolon separators", info.Description);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void RejectsInvalidVersionMetadata()
     {
         string dir = TempDir();
