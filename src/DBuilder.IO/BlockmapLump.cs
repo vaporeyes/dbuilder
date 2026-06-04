@@ -110,7 +110,7 @@ public sealed class BlockmapLumpData
 
     public (int Column, int Row) GetColumnAndRowByPosition(Vector2D position)
     {
-        if (position.x < OriginX || position.y < OriginY || position.x > OriginX + Columns * BlockmapLump.BlockSize || position.y > OriginY + Rows * BlockmapLump.BlockSize)
+        if (position.x < OriginX || position.y < OriginY || position.x >= OriginX + Columns * BlockmapLump.BlockSize || position.y >= OriginY + Rows * BlockmapLump.BlockSize)
             return (-1, -1);
 
         int column = (int)(position.x - OriginX) / BlockmapLump.BlockSize;

@@ -2070,6 +2070,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add non-modal Blockmap Explorer summary and block-list window.
   - [x] Wire Blockmap Explorer selections and overlay options into the editor blockmap renderer.
   - [x] Add testable Blockmap Explorer summary, header, diagnostic, and row formatting.
+  - [x] Add blockmap explorer boundary hit testing for map positions.
 - [ ] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.

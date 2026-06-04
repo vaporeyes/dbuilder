@@ -65,6 +65,8 @@ public class BlockmapLumpTests
         Assert.Equal((0, 0), blockmap.GetColumnAndRowByPosition(new Vector2D(100, 200)));
         Assert.Equal((1, 0), blockmap.GetColumnAndRowByPosition(new Vector2D(229, 250)));
         Assert.Equal((-1, -1), blockmap.GetColumnAndRowByPosition(new Vector2D(99, 250)));
+        Assert.Equal((-1, -1), blockmap.GetColumnAndRowByPosition(new Vector2D(356, 250)));
+        Assert.Equal((-1, -1), blockmap.GetColumnAndRowByPosition(new Vector2D(120, 328)));
     }
 
     [Fact]
