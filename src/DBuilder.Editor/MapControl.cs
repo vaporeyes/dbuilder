@@ -2912,17 +2912,68 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.StatusMessage);
     }
 
-    // Deletes the targeted thing, undoable.
-    private void DeleteTargetThing3D()
+    // Deletes selected or targeted visual things, or clears selected or targeted surface textures.
+    private void DeleteVisualTargets3D()
     {
-        if (_map == null || _target3D?.Thing is not { } t) { Target3DChanged?.Invoke("aim at a thing to delete it"); return; }
-        EditBegun?.Invoke("Delete thing");
-        _map.RemoveThing(t);
-        _map.BuildIndexes();
+        if (_map == null) return;
+
+        var targets = EditTargets3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a surface or thing to delete"); return; }
+
+        int textures = 0;
+        int things = 0;
+        bool begun = false;
+        var seenSectors = new HashSet<(Sector Sector, VisualHitKind Kind)>();
+        var seenParts = new HashSet<(Sidedef Side, SidedefPart Part)>();
+        var seenThings = new HashSet<Thing>();
+
+        foreach (VisualHit hit in targets)
+        {
+            if (hit.Kind == VisualHitKind.Floor && hit.Sector is { } floor && seenSectors.Add((floor, hit.Kind)))
+            {
+                if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
+                floor.SetFloorTexture("-");
+                textures++;
+            }
+            else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector is { } ceiling && seenSectors.Add((ceiling, hit.Kind)))
+            {
+                if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
+                ceiling.SetCeilTexture("-");
+                textures++;
+            }
+            else if (hit.Kind == VisualHitKind.Wall && hit.Line != null)
+            {
+                Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+                if (side == null || hit.Part == SidedefPart.None || !seenParts.Add((side, hit.Part))) continue;
+                if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
+                side.SetTexture(hit.Part, "-");
+                textures++;
+            }
+            else if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
+            {
+                if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
+                _map.RemoveThing(thing);
+                things++;
+            }
+        }
+
+        if (!begun)
+        {
+            Target3DChanged?.Invoke("aim at a surface or thing to delete");
+            return;
+        }
+
+        if (things > 0) _map.BuildIndexes();
+        _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke("deleted thing");
+        ClearSelection3D();
+        Target3DChanged?.Invoke(things == 0
+            ? $"deleted {CountLabel(textures, "texture")}"
+            : textures == 0
+                ? $"deleted {CountLabel(things, "thing")}"
+                : $"deleted {CountLabel(textures, "texture")} and {CountLabel(things, "thing")}");
     }
 
     // Auto-aligns textures along the targeted wall's run, undoable.
@@ -5709,7 +5760,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ToggleVisualVertexSlopeAdjacentSelection();
                 return true;
             case "map3d.delete-target":
-                DeleteTargetThing3D();
+                DeleteVisualTargets3D();
                 return true;
             case "map3d.select-texture":
             case "map3d.browse-texture":

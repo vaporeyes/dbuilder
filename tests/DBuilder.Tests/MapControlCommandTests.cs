@@ -218,4 +218,27 @@ public sealed class MapControlCommandTests
         Assert.True(helperIndex > applyIndex);
         Assert.True(filterIndex > helperIndex);
     }
+
+    [Fact]
+    public void VisualDeleteClearsSurfaceTexturesAndDeletesThingsLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void DeleteVisualTargets3D()", StringComparison.Ordinal);
+        int targetsIndex = body.IndexOf("var targets = EditTargets3D();", methodIndex, StringComparison.Ordinal);
+        int floorIndex = body.IndexOf("floor.SetFloorTexture(\"-\");", methodIndex, StringComparison.Ordinal);
+        int ceilingIndex = body.IndexOf("ceiling.SetCeilTexture(\"-\");", methodIndex, StringComparison.Ordinal);
+        int wallIndex = body.IndexOf("side.SetTexture(hit.Part, \"-\");", methodIndex, StringComparison.Ordinal);
+        int thingIndex = body.IndexOf("_map.RemoveThing(thing);", methodIndex, StringComparison.Ordinal);
+        int dispatchIndex = body.IndexOf("case \"map3d.delete-target\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf("DeleteVisualTargets3D();", dispatchIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(targetsIndex > methodIndex);
+        Assert.True(floorIndex > targetsIndex);
+        Assert.True(ceilingIndex > targetsIndex);
+        Assert.True(wallIndex > targetsIndex);
+        Assert.True(thingIndex > targetsIndex);
+        Assert.True(dispatchIndex >= 0);
+        Assert.True(handlerIndex > dispatchIndex);
+    }
 }
