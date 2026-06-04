@@ -915,6 +915,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore cross-format unknown thing flag fields when evaluating things filters.
   - [x] Adjust things filter criteria by UDB map-format interface capabilities.
   - [x] Clamp things filter display modes to UDB's supported range.
+  - [x] Select the active configured thing filter by stable key in the filter window.
 - [ ] Port custom things filters.
   - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
   - [x] Add custom things filter list add, delete, sort, and active-name preservation behavior.

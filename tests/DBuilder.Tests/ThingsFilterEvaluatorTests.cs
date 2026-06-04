@@ -430,4 +430,14 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal(["filter0", "filter1"], config.ThingsFilters.Select(filter => filter.Key).ToArray());
         Assert.DoesNotContain(config.ThingsFilters, filter => filter.Name == "Stale");
     }
+
+    [Fact]
+    public void ThingFilterWindowSelectsActiveFilterByStableKey()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ThingFilterWindow.cs"));
+
+        Assert.Contains("choices.FindIndex(c => IsActiveFilter(c.Filter, activeFilter))", body, StringComparison.Ordinal);
+        Assert.Contains("string.Equals(choice.Key, active.Key, StringComparison.Ordinal)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReferenceEquals(c.Filter, activeFilter)", body, StringComparison.Ordinal);
+    }
 }

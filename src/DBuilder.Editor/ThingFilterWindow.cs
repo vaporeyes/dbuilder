@@ -35,7 +35,7 @@ public sealed class ThingFilterWindow : Window
             var combo = new ComboBox
             {
                 ItemsSource = choices,
-                SelectedIndex = Math.Max(0, choices.FindIndex(c => ReferenceEquals(c.Filter, activeFilter))),
+                SelectedIndex = Math.Max(0, choices.FindIndex(c => IsActiveFilter(c.Filter, activeFilter))),
                 Margin = new Avalonia.Thickness(0, 0, 0, 10),
             };
             combo.SelectionChanged += (_, _) =>
@@ -57,6 +57,9 @@ public sealed class ThingFilterWindow : Window
 
         Content = new ScrollViewer { Content = stack };
     }
+
+    private static bool IsActiveFilter(ThingsFilterInfo? choice, ThingsFilterInfo? active)
+        => choice != null && active != null && string.Equals(choice.Key, active.Key, StringComparison.Ordinal);
 
     private sealed class FilterChoice
     {
