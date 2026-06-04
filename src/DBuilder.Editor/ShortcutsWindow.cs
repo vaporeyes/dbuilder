@@ -12,7 +12,11 @@ public sealed class ShortcutsWindow : Window
 {
     private static readonly SolidColorBrush TextBrush = new(Color.FromRgb(0xd0, 0xd8, 0xe0));
     private static readonly SolidColorBrush MutedBrush = new(Color.FromRgb(0x9a, 0xa8, 0xb6));
+    private static readonly SolidColorBrush PanelBrush = new(Color.FromRgb(0x16, 0x1b, 0x21));
     private static readonly SolidColorBrush RowBrush = new(Color.FromRgb(0x20, 0x26, 0x2d));
+    private const string ShortcutColumnHeader = "Shortcut";
+    private const string OptionColumnHeader = "Options";
+    private const string CommandColumnHeader = "Command";
 
     private readonly IReadOnlyList<EditorShortcutBinding> _bindings;
     private readonly StackPanel _sections = new() { Spacing = 8 };
@@ -23,6 +27,7 @@ public sealed class ShortcutsWindow : Window
         Watermark = "Search shortcuts",
         MinHeight = 32,
     };
+    private readonly Button _clearSearch = new() { Content = "Clear", MinWidth = 64, IsVisible = false };
 
     public ShortcutsWindow(IReadOnlyList<EditorShortcutBinding>? bindings = null)
     {
@@ -39,24 +44,28 @@ public sealed class ShortcutsWindow : Window
             RowSpacing = 10,
         };
 
-        var toolbar = new Grid
+        var toolbar = new Border
         {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
-            ColumnSpacing = 8,
+            Background = PanelBrush,
+            CornerRadius = new Avalonia.CornerRadius(4),
+            Padding = new Avalonia.Thickness(8),
+            Child = FilterBar(),
         };
-        _search.TextChanged += (_, _) => RebuildSections(_search.Text);
-        toolbar.Children.Add(_search);
+        root.Children.Add(toolbar);
 
         var expandAll = new Button { Content = "Expand All", MinWidth = 92 };
         expandAll.Click += (_, _) => SetAllSectionsExpanded(true);
-        Grid.SetColumn(expandAll, 1);
-        toolbar.Children.Add(expandAll);
 
         var collapseAll = new Button { Content = "Collapse All", MinWidth = 92 };
         collapseAll.Click += (_, _) => SetAllSectionsExpanded(false);
-        Grid.SetColumn(collapseAll, 2);
-        toolbar.Children.Add(collapseAll);
-        root.Children.Add(toolbar);
+
+        var sectionTools = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Children = { expandAll, collapseAll },
+        };
 
         var scroll = new ScrollViewer { Content = _sections };
         Grid.SetRow(scroll, 1);
@@ -64,19 +73,54 @@ public sealed class ShortcutsWindow : Window
 
         var footer = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
+            ColumnSpacing = 8,
         };
         footer.Children.Add(_matchSummary);
+        Grid.SetColumn(sectionTools, 1);
+        footer.Children.Add(sectionTools);
 
         var close = new Button { Content = "Close", MinWidth = 80, IsCancel = true, IsDefault = true, HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => Close();
-        Grid.SetColumn(close, 1);
+        Grid.SetColumn(close, 2);
         footer.Children.Add(close);
         Grid.SetRow(footer, 2);
         root.Children.Add(footer);
 
         Content = root;
         RebuildSections("");
+    }
+
+    private Control FilterBar()
+    {
+        _search.TextChanged += (_, _) =>
+        {
+            _clearSearch.IsVisible = !string.IsNullOrWhiteSpace(_search.Text);
+            RebuildSections(_search.Text);
+        };
+        _clearSearch.Click += (_, _) =>
+        {
+            _search.Text = "";
+            _search.Focus();
+        };
+
+        var grid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"),
+            ColumnSpacing = 8,
+        };
+        grid.Children.Add(new TextBlock
+        {
+            Text = "Filter",
+            Foreground = TextBrush,
+            FontWeight = FontWeight.Bold,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        Grid.SetColumn(_search, 1);
+        grid.Children.Add(_search);
+        Grid.SetColumn(_clearSearch, 2);
+        grid.Children.Add(_clearSearch);
+        return grid;
     }
 
     private void RebuildSections(string? filter)
@@ -103,12 +147,16 @@ public sealed class ShortcutsWindow : Window
     private Control Section(ShortcutHelpSection section, bool expand, bool searching)
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, Margin = new Avalonia.Thickness(0, 6, 0, 2) };
+        panel.Children.Add(ColumnHeader());
         for (int i = 0; i < section.Rows.Count; i++)
             panel.Children.Add(Row(section.Rows[i], i));
 
+        int totalCount = ShortcutHelpModel.BuildSections(EditorCommandCatalog.All, _bindings, filter: "")
+            .FirstOrDefault(group => group.Title == section.Title)
+            ?.Rows.Count ?? section.Rows.Count;
         var count = new TextBlock
         {
-            Text = section.Rows.Count.ToString(),
+            Text = searching && totalCount != section.Rows.Count ? $"{section.Rows.Count} of {totalCount}" : section.Rows.Count.ToString(),
             Foreground = Brushes.Khaki,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,
@@ -146,6 +194,38 @@ public sealed class ShortcutsWindow : Window
                 _expandedSections[section.Title] = expander.IsExpanded;
         };
         return expander;
+    }
+
+    private static Control ColumnHeader()
+    {
+        var grid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("150,110,*"),
+            Margin = new Avalonia.Thickness(0, 0, 0, 2),
+        };
+        grid.Children.Add(HeaderText(ShortcutColumnHeader, 0));
+        grid.Children.Add(HeaderText(OptionColumnHeader, 1));
+        grid.Children.Add(HeaderText(CommandColumnHeader, 2));
+        return new Border
+        {
+            Background = PanelBrush,
+            CornerRadius = new Avalonia.CornerRadius(2),
+            Padding = new Avalonia.Thickness(6, 4),
+            Child = grid,
+        };
+    }
+
+    private static TextBlock HeaderText(string text, int column)
+    {
+        var block = new TextBlock
+        {
+            Text = text,
+            Foreground = MutedBrush,
+            FontSize = 11,
+            FontWeight = FontWeight.Bold,
+        };
+        Grid.SetColumn(block, column);
+        return block;
     }
 
     private Control Row(ShortcutHelpRow row, int index)

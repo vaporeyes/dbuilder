@@ -120,6 +120,18 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
+    public void ShortcutWindowKeepsFilterBarAndColumnHeaders()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ShortcutsWindow.cs"));
+
+        Assert.Contains("private Control FilterBar()", body, StringComparison.Ordinal);
+        Assert.Contains("Content = \"Clear\"", body, StringComparison.Ordinal);
+        Assert.Contains("ShortcutColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DefaultExpansionKeepsCommonSectionsOpen()
     {
         Assert.True(ShortcutHelpModel.IsDefaultExpanded("File and configuration"));
