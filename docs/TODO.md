@@ -1357,6 +1357,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Respect script configuration case sensitivity for keyword, property, constant, and calltip lookups.
   - [x] Respect script configuration extra word characters when finding calltip function names.
   - [x] Clamp script calltip caret offsets before scanning function calls.
+  - [x] Ignore configured array and code block delimiters when counting calltip arguments.
 - [ ] Port find-usages behavior.
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
   - [x] Treat script find-usages search text as literal text instead of regex syntax.

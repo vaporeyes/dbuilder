@@ -199,6 +199,30 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void FunctionCallSearchIgnoresConfiguredNestedDelimitersLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            codeblockopen = "{";
+            codeblockclose = "}";
+            arrayopen = "[";
+            arrayclose = "]";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Thing_Spawn = "Thing_Spawn(tid, type, flags)"; }
+            """);
+        const string text = "Thing_Spawn([1, 2], {3, 4}, ";
+
+        var position = ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length);
+
+        Assert.NotNull(position);
+        Assert.Equal("Thing_Spawn", position.FunctionName);
+        Assert.Equal(2, position.ArgumentIndex);
+        Assert.Equal(0, position.FunctionStartOffset);
+    }
+
+    [Fact]
     public void StopsFunctionCallSearchAtTerminatorLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""

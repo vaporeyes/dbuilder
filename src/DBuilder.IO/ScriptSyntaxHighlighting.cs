@@ -106,10 +106,15 @@ public static class ScriptSyntaxHighlighting
             return null;
         }
 
-        int argumentDelimiter = scriptConfiguration.ArgumentDelimiter[0];
-        int functionClose = scriptConfiguration.FunctionClose[0];
-        int functionOpen = scriptConfiguration.FunctionOpen[0];
-        int terminator = scriptConfiguration.Terminator[0];
+        char argumentDelimiter = scriptConfiguration.ArgumentDelimiter[0];
+        char functionOpen = scriptConfiguration.FunctionOpen[0];
+        char terminator = scriptConfiguration.Terminator[0];
+        var openingDelimiters = new HashSet<char> { functionOpen };
+        var closingDelimiters = new HashSet<char> { scriptConfiguration.FunctionClose[0] };
+        AddDelimiter(openingDelimiters, scriptConfiguration.ArrayOpen);
+        AddDelimiter(openingDelimiters, scriptConfiguration.CodeBlockOpen);
+        AddDelimiter(closingDelimiters, scriptConfiguration.ArrayClose);
+        AddDelimiter(closingDelimiters, scriptConfiguration.CodeBlockClose);
         int position = Math.Clamp(caretOffset, 0, text.Length);
         int limit = Math.Max(0, position - MaxBacktrackLength);
         int bracketLevel = 0;
@@ -118,16 +123,18 @@ public static class ScriptSyntaxHighlighting
         while (position > limit)
         {
             position--;
-            int current = text[position];
-            if (current == functionClose)
+            char current = text[position];
+            if (closingDelimiters.Contains(current))
             {
                 bracketLevel++;
             }
-            else if (current == functionOpen)
+            else if (openingDelimiters.Contains(current))
             {
                 bracketLevel--;
                 if (bracketLevel < 0)
                 {
+                    if (current != functionOpen) break;
+
                     int wordPosition = SkipWhitespaceBackward(text, position - 1, limit);
                     if (wordPosition < limit) break;
 
@@ -164,6 +171,11 @@ public static class ScriptSyntaxHighlighting
         }
 
         return null;
+    }
+
+    private static void AddDelimiter(HashSet<char> delimiters, string value)
+    {
+        if (value.Length > 0) delimiters.Add(value[0]);
     }
 
     public static ScriptFunctionCallTip? BuildFunctionCallTip(
