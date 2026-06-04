@@ -2184,11 +2184,16 @@ public sealed class GameConfiguration
                 string name = fieldEntry.Key.ToString() ?? "";
                 if (name.Length == 0 || fieldEntry.Value is not IDictionary fieldBlock) continue;
                 string normalizedName = name.ToLowerInvariant();
+                int type = NormalizeUniversalFieldType(
+                    GetInt(fieldBlock, "type", (int)UniversalType.Integer),
+                    fieldBlock["enum"]);
+                object? defaultValue = fieldBlock["default"];
+                if (type == (int)UniversalType.String && defaultValue == null) defaultValue = "";
                 fields[normalizedName] = new UniversalFieldInfo(
                     element,
                     normalizedName,
-                    GetInt(fieldBlock, "type", 0),
-                    fieldBlock["default"],
+                    type,
+                    defaultValue,
                     GetBool(fieldBlock, "thingtypespecific", false),
                     GetBool(fieldBlock, "managed", true),
                     fieldBlock["enum"] is string enumName ? enumName : null,
@@ -2198,6 +2203,13 @@ public sealed class GameConfiguration
 
             universalFields[element] = fields;
         }
+    }
+
+    private static int NormalizeUniversalFieldType(int type, object? enumSetting)
+    {
+        if (type == (int)UniversalType.EnumOption && enumSetting == null)
+            return (int)UniversalType.Integer;
+        return new UniversalTypeRegistry().IsKnown(type) ? type : (int)UniversalType.String;
     }
 
     private static IReadOnlyList<EnumItemInfo> ParseInlineEnum(IDictionary block)

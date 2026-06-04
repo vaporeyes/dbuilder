@@ -761,6 +761,38 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void UniversalFieldsNormalizeTypesLikeUdb()
+    {
+        const string cfg = """
+            universalfields
+            {
+                thing
+                {
+                    missingtype
+                    {
+                    }
+                    enumwithoutvalues
+                    {
+                        type = 11;
+                    }
+                    unknowntype
+                    {
+                        type = 999;
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["missingtype"].Type);
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["enumwithoutvalues"].Type);
+        var unknown = gc.UniversalFields["thing"]["unknowntype"];
+        Assert.Equal((int)UniversalType.String, unknown.Type);
+        Assert.Equal("", unknown.DefaultValue);
+    }
+
+    [Fact]
     public void ParsesThingsFilterMetadata()
     {
         const string cfg = """
