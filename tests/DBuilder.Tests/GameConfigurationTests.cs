@@ -1483,6 +1483,29 @@ ID # = 31005
     }
 
     [Fact]
+    public void RequiredArchiveStringFieldsConvertScalarValuesLikeUdb()
+    {
+        const string cfg = """
+            requiredarchives
+            {
+                numeric
+                {
+                    filename = 123;
+                    actors { lump = 456; class = 789; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var archive = Assert.Single(gc.RequiredArchives);
+        Assert.Equal("123", archive.Filename);
+        var entry = Assert.Single(archive.Entries);
+        Assert.Equal("456", entry.Lump);
+        Assert.Equal("789", entry.ClassName);
+    }
+
+    [Fact]
     public void StaticLimitsInterpolateVisplanesMatchesUdbScaling()
     {
         const string cfg = """

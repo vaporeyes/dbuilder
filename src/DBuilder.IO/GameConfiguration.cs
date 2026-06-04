@@ -2428,11 +2428,14 @@ public sealed class GameConfiguration
             {
                 string entryName = child.Key.ToString() ?? "";
                 if (child.Value is not IDictionary entry) continue;
-                entries.Add(new RequiredArchiveEntry(entryName, entry["lump"] as string, entry["class"] as string));
+                entries.Add(new RequiredArchiveEntry(
+                    entryName,
+                    Convert.ToString(entry["lump"], CultureInfo.InvariantCulture),
+                    Convert.ToString(entry["class"], CultureInfo.InvariantCulture)));
             }
             requiredArchives.Add(new RequiredArchiveInfo(
                 name,
-                GetString(archive, "filename", "gzdoom.pk3"),
+                Convert.ToString(archive["filename"], CultureInfo.InvariantCulture) ?? "gzdoom.pk3",
                 GetBool(archive, "need_exclude", true),
                 entries));
         }
