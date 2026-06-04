@@ -495,6 +495,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Load only the last WAD `X11R6RGB` lump for singular text-resource color tables like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
+  - [x] Resolve singular root PK3 lump-style files from the first matching title like UDB.
 - [ ] Port structured PK3 reader behavior.
   - [x] Discover and load maps from nested PK3 archives.
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.

@@ -610,7 +610,7 @@ internal abstract class FolderResourceReader : IResourceReader
             if (palette != null) return palette;
         }
 
-        var b = Find("PLAYPAL", "");
+        var b = FindFirstRootTitle("PLAYPAL");
         return b != null ? DoomPalette.FromBytes(b) : null;
     }
 
@@ -780,7 +780,8 @@ internal abstract class FolderResourceReader : IResourceReader
             if (bytes != null) return bytes;
         }
 
-        return Find(name, "");
+        if (IsPathQualified(name) && TryFindPath(name, out var pathBytes)) return pathBytes;
+        return FindFirstRootTitle(name) ?? Find(name, "");
     }
 
     public virtual DoomPatchNames? GetPatchNames()
@@ -789,7 +790,7 @@ internal abstract class FolderResourceReader : IResourceReader
             if (nestedReaders[i].GetPatchNames() is { } pnames)
                 return pnames;
 
-        var bytes = Find("PNAMES", "");
+        var bytes = FindFirstRootTitle("PNAMES");
         return bytes != null ? DoomPatchNames.FromBytes(bytes) : null;
     }
 
@@ -912,6 +913,22 @@ internal abstract class FolderResourceReader : IResourceReader
     private byte[]? FindExact(string name)
         => files.TryGetValue(name.Replace('\\', '/').TrimStart('/'), out var read) ? read() : null;
 
+    private byte[]? FindFirstRootTitle(string name)
+    {
+        string title = Path.GetFileNameWithoutExtension(name).ToLowerInvariant();
+        var paths = new List<string>(files.Keys);
+        paths.Sort(StringComparer.OrdinalIgnoreCase);
+        foreach (string path in paths)
+        {
+            string normalized = path.Replace('\\', '/').TrimStart('/');
+            if (normalized.Contains('/')) continue;
+            if (Path.GetFileNameWithoutExtension(normalized).Equals(title, StringComparison.OrdinalIgnoreCase))
+                return files[path]();
+        }
+
+        return null;
+    }
+
     private byte[]? Find(string name, string[] folders, bool allowPathTitleFallback)
     {
         if (IsPathQualified(name))
@@ -982,7 +999,7 @@ internal abstract class FolderResourceReader : IResourceReader
         classicTextureDefs = new Dictionary<string, DoomTextureDef>(StringComparer.OrdinalIgnoreCase);
         foreach (string lumpName in new[] { "TEXTURE1", "TEXTURE2" })
         {
-            var bytes = Find(lumpName, "");
+            var bytes = FindFirstRootTitle(lumpName);
             if (bytes == null) continue;
             foreach (var def in DoomTextureListReader.Parse(bytes))
                 classicTextureDefs[def.Name] = def;

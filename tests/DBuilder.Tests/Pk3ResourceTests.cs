@@ -64,6 +64,13 @@ public class Pk3ResourceTests
         return p;
     }
 
+    private static byte[] SolidPlaypal(byte red, byte green, byte blue)
+    {
+        var p = new byte[768];
+        for (int i = 0; i < 256; i++) { p[i * 3] = red; p[i * 3 + 1] = green; p[i * 3 + 2] = blue; }
+        return p;
+    }
+
     private static byte[] SolidFlat(byte index)
     {
         var f = new byte[DoomFlatReader.RawSize];
@@ -190,6 +197,22 @@ public class Pk3ResourceTests
                 Assert.Contains("ROOTFLAT", rm.GetFlatNames());
                 Assert.Contains("ROOTWALL", rm.GetTextureNames());
             }
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void Pk3SingularRootLumpsUseFirstMatchingTitleLikeUdb()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("PLAYPAL.a", SolidPlaypal(10, 20, 30)),
+            ("PLAYPAL.b", SolidPlaypal(40, 50, 60)));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.Equal(0xff0a141eu, rm.Palette!.Colors[0]);
         }
         finally { File.Delete(path); }
     }
