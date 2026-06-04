@@ -3166,6 +3166,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public static string VisualThingSelectionStatusText(string verb, int count)
         => $"{verb} {CountLabel(count, "thing")}.";
 
+    public static string VisualThingInsertedStatusText()
+        => "Inserted a new thing.";
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
@@ -3354,12 +3357,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private bool InsertThingAtTarget3D()
     {
-        if (_target3D is not { } target) return false;
+        if (_target3D is not { } target)
+        {
+            Target3DChanged?.Invoke("Cannot insert thing here!");
+            return false;
+        }
 
-        var status = InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);
+        InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);
         _blockmapCache = null;
         _geo3DDirty = true;
-        Target3DChanged?.Invoke(status);
+        Target3DChanged?.Invoke(VisualThingInsertedStatusText());
         RequestNextFrameRendering();
         return true;
     }

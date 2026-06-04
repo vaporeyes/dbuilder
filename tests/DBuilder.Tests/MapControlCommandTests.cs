@@ -36,6 +36,10 @@ public sealed class MapControlCommandTests
     public void VisualThingSelectionStatusTextMatchesUdbCopyPasteText(string verb, int count, string expected)
         => Assert.Equal(expected, MapControl.VisualThingSelectionStatusText(verb, count));
 
+    [Fact]
+    public void VisualThingInsertedStatusTextMatchesUdb()
+        => Assert.Equal("Inserted a new thing.", MapControl.VisualThingInsertedStatusText());
+
     [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
@@ -173,6 +177,23 @@ public sealed class MapControlCommandTests
         Assert.True(pasteIndex >= 0);
         Assert.True(cannotPasteIndex > pasteIndex);
         Assert.True(pasteStatusIndex > cannotPasteIndex);
+    }
+
+    [Fact]
+    public void InsertThingAtTarget3DUsesUdbStatusesAndWarnings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool InsertThingAtTarget3D()", StringComparison.Ordinal);
+        int missingTargetIndex = body.IndexOf("if (_target3D is not { } target)", methodIndex, StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Cannot insert thing here!", missingTargetIndex, StringComparison.Ordinal);
+        int insertIndex = body.IndexOf("InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);", warningIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingInsertedStatusText());", insertIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(missingTargetIndex > methodIndex);
+        Assert.True(warningIndex > missingTargetIndex);
+        Assert.True(insertIndex > warningIndex);
+        Assert.True(statusIndex > insertIndex);
     }
 
     [Fact]
