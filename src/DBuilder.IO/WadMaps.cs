@@ -51,7 +51,7 @@ public static class WadMaps
 
         var result = new List<MapEntry>();
         int required = CountRequiredMapLumps(config.MapLumpNames);
-        var seen = new HashSet<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         for (int i = 0; i < wad.Lumps.Count - 1; i++)
         {

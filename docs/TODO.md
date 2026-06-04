@@ -470,6 +470,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Filter config-aware discovery by configured map name format.
   - [x] Sort Open Map picker entries like UDB.
   - [x] De-duplicate discovered map names like UDB.
+  - [x] De-duplicate config-aware discovered map names like UDB.
 - [ ] Port save behavior for replacing, inserting, and renaming maps.
   - [x] Avoid replacing non-map lumps that share the target map name.
   - [x] Remove duplicate target map blocks before writing replacements.

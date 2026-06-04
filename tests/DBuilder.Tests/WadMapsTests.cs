@@ -179,6 +179,25 @@ maplumpnames
     }
 
     [Fact]
+    public void ConfiguredFindDeduplicatesMapNamesLikeUdbChooser()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[0], 1);
+        WriteLump(wad, "LINEDEFS", new byte[0], 2);
+        WriteLump(wad, "map01", new byte[0], 3);
+        WriteLump(wad, "THINGS", new byte[0], 4);
+        WriteLump(wad, "LINEDEFS", new byte[0], 5);
+        wad.WriteHeaders();
+
+        var maps = WadMaps.Find(wad, GameConfiguration.FromText(MapLumpConfig));
+
+        var entry = Assert.Single(maps);
+        Assert.Equal("MAP01", entry.Name);
+        Assert.Equal(MapFormat.Doom, entry.Format);
+    }
+
+    [Fact]
     public void ConfiguredFindRejectsForbiddenMapLumps()
     {
         using var wad = new WAD(new MemoryStream());
