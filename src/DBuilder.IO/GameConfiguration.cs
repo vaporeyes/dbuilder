@@ -1811,7 +1811,7 @@ public sealed class GameConfiguration
         {
             string catName = catEntry.Key.ToString() ?? "";
             if (catEntry.Value is not IDictionary cat) continue;
-            string catTitle = GetString(cat, "title", catName);
+            string catTitle = GetString(cat, "title", "");
             var category = new LinedefActionCategoryInfo(catName, catTitle);
             linedefActionCategories[catName] = category;
 

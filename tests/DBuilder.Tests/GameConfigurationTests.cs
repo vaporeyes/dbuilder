@@ -1529,6 +1529,29 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void LinedefActionCategoryMissingTitleDefaultsEmptyLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                doors
+                {
+                    1 { title = "Door Open"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var category = gc.LinedefActionCategories["doors"];
+        Assert.Equal("", category.Title);
+
+        var action = gc.GetLinedefAction(1)!;
+        Assert.Equal("", action.Category);
+        Assert.Equal("doors", action.CategoryKey);
+    }
+
+    [Fact]
     public void ParsesLinedefActionCategoriesAndMetadata()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
