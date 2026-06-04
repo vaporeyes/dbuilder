@@ -192,6 +192,59 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void LoadsDirectoryKeepsResolvableNodebuildersSortedByName()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_compilers_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "a-nodebuilders.cfg"), """
+                nodebuilders
+                {
+                    zdbsp_zeta
+                    {
+                        compiler = "zdbsp";
+                        parameters = "-z %FI";
+                    }
+
+                    missing_builder
+                    {
+                        compiler = "missing";
+                        parameters = "%FI";
+                    }
+
+                    zdbsp_alpha
+                    {
+                        compiler = "zdbsp";
+                        parameters = "-a %FI";
+                    }
+                }
+                """);
+            File.WriteAllText(Path.Combine(dir, "b-compiler.cfg"), """
+                compilers
+                {
+                    zdbsp
+                    {
+                        interface = "NodesCompiler";
+                        program = "zdbsp";
+                    }
+                }
+                """);
+
+            var parsed = CompilerConfiguration.FromDirectory(dir);
+
+            Assert.Equal(new[] { "zdbsp_alpha", "zdbsp_zeta" }, parsed.Nodebuilders.Keys.ToArray());
+            Assert.DoesNotContain("missing_builder", parsed.Nodebuilders.Keys);
+            Assert.NotNull(parsed.ResolveNodebuilderConfig("zdbsp_alpha"));
+            Assert.Null(parsed.ResolveNodebuilderConfig("missing_builder"));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ResolveNodebuilderUsesExecutableOverride()
     {
         const string cfg = """

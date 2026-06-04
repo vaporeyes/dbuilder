@@ -587,6 +587,8 @@ public sealed class CompilerConfiguration
                      .OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
             result.MergeFrom(FromFile(file));
 
+        result.KeepResolvableNodebuilders();
+        result.SortNodebuildersByName();
         return result;
     }
 
@@ -620,6 +622,25 @@ public sealed class CompilerConfiguration
             compilers.TryAdd(compiler.Key, compiler.Value);
         foreach (var nodebuilder in other.nodebuilders)
             nodebuilders[nodebuilder.Key] = nodebuilder.Value;
+    }
+
+    private void KeepResolvableNodebuilders()
+    {
+        foreach (string name in nodebuilders
+                     .Where(nodebuilder => !compilers.ContainsKey(nodebuilder.Value.CompilerName))
+                     .Select(nodebuilder => nodebuilder.Key)
+                     .ToArray())
+            nodebuilders.Remove(name);
+    }
+
+    private void SortNodebuildersByName()
+    {
+        var sorted = nodebuilders
+            .OrderBy(nodebuilder => nodebuilder.Key, StringComparer.Ordinal)
+            .ToArray();
+        nodebuilders.Clear();
+        foreach (var nodebuilder in sorted)
+            nodebuilders.Add(nodebuilder.Key, nodebuilder.Value);
     }
 
     public NodebuilderConfig? ResolveNodebuilderConfig(string nodebuilderName, string? executableOverride = null)

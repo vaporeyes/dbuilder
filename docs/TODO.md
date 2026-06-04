@@ -112,6 +112,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
   - [x] Strip stale nodebuilder lumps and verify required output lumps before accepting nodebuilder results.
   - [x] Fail nodebuilder runs before launch when required support files are missing.
+  - [x] Keep only resolvable directory-loaded nodebuilders and sort them by name like UDB.
 
 ## Actions, Commands, And Input
 
