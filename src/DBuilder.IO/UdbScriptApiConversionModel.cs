@@ -2902,10 +2902,16 @@ public sealed class UdbScriptThingWrapper : IEquatable<UdbScriptThingWrapper>
 
 public abstract class UdbScriptBlockMapContentBase
 {
+    private readonly MapSet? owner;
     private UdbScriptLinedefWrapper[]? wrappedLines;
     private UdbScriptThingWrapper[]? wrappedThings;
     private UdbScriptSectorWrapper[]? wrappedSectors;
     private UdbScriptVertexWrapper[]? wrappedVertices;
+
+    protected UdbScriptBlockMapContentBase(MapSet? owner = null)
+    {
+        this.owner = owner;
+    }
 
     public abstract UdbScriptLinedefWrapper[] getLinedefs();
     public abstract UdbScriptThingWrapper[] getThings();
@@ -2915,25 +2921,25 @@ public abstract class UdbScriptBlockMapContentBase
     protected UdbScriptLinedefWrapper[] GetWrappedLinedefs(IEnumerable<Linedef> lines)
         => wrappedLines ??= lines
             .Where(line => !line.IsDisposed)
-            .Select(line => new UdbScriptLinedefWrapper(line))
+            .Select(line => new UdbScriptLinedefWrapper(line, owner))
             .ToArray();
 
     protected UdbScriptThingWrapper[] GetWrappedThings(IEnumerable<Thing> things)
         => wrappedThings ??= things
             .Where(thing => !thing.IsDisposed)
-            .Select(thing => new UdbScriptThingWrapper(thing))
+            .Select(thing => new UdbScriptThingWrapper(thing, owner))
             .ToArray();
 
     protected UdbScriptSectorWrapper[] GetWrappedSectors(IEnumerable<Sector> sectors)
         => wrappedSectors ??= sectors
             .Where(sector => !sector.IsDisposed)
-            .Select(sector => new UdbScriptSectorWrapper(sector))
+            .Select(sector => new UdbScriptSectorWrapper(sector, owner))
             .ToArray();
 
     protected UdbScriptVertexWrapper[] GetWrappedVertices(IEnumerable<Vertex> vertices)
         => wrappedVertices ??= vertices
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, owner))
             .ToArray();
 }
 
@@ -2941,7 +2947,8 @@ public sealed class UdbScriptBlockEntryWrapper : UdbScriptBlockMapContentBase
 {
     private readonly BlockMapCell entry;
 
-    public UdbScriptBlockEntryWrapper(BlockMapCell entry)
+    public UdbScriptBlockEntryWrapper(BlockMapCell entry, MapSet? owner = null)
+        : base(owner)
     {
         this.entry = entry;
     }
@@ -2964,11 +2971,14 @@ public sealed class UdbScriptBlockEntryWrapper : UdbScriptBlockMapContentBase
 public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase, IEnumerable<UdbScriptBlockEntryWrapper>
 {
     private readonly IReadOnlyList<BlockMapCell> entries;
+    private readonly MapSet? owner;
     private UdbScriptBlockEntryWrapper[]? wrappedEntries;
 
-    public UdbScriptBlockMapQueryResult(IEnumerable<BlockMapCell> entries)
+    public UdbScriptBlockMapQueryResult(IEnumerable<BlockMapCell> entries, MapSet? owner = null)
+        : base(owner)
     {
         this.entries = entries.ToArray();
+        this.owner = owner;
     }
 
     public override UdbScriptLinedefWrapper[] getLinedefs()
@@ -2985,7 +2995,7 @@ public sealed class UdbScriptBlockMapQueryResult : UdbScriptBlockMapContentBase,
 
     public IEnumerator<UdbScriptBlockEntryWrapper> GetEnumerator()
     {
-        wrappedEntries ??= entries.Select(entry => new UdbScriptBlockEntryWrapper(entry)).ToArray();
+        wrappedEntries ??= entries.Select(entry => new UdbScriptBlockEntryWrapper(entry, owner)).ToArray();
         return ((IEnumerable<UdbScriptBlockEntryWrapper>)wrappedEntries).GetEnumerator();
     }
 
@@ -2997,6 +3007,7 @@ public sealed class UdbScriptBlockMapWrapper
 {
     private readonly BlockMap blockMap;
     private readonly Dictionary<BlockMapCell, UdbScriptBlockEntryWrapper> blockEntries = new();
+    private readonly MapSet map;
 
     public UdbScriptBlockMapWrapper(MapSet map, double blockSize = 128.0)
         : this(map, lines: true, things: true, sectors: true, vertices: true, blockSize)
@@ -3011,6 +3022,7 @@ public sealed class UdbScriptBlockMapWrapper
         bool vertices,
         double blockSize = 128.0)
     {
+        this.map = map;
         blockMap = CreateBlockMap(map, lines, things, sectors, vertices, blockSize);
     }
 
@@ -3033,7 +3045,7 @@ public sealed class UdbScriptBlockMapWrapper
         BlockMapCell entry = blockMap.GetBlockAt(point) ?? EmptyCell();
         if (!blockEntries.TryGetValue(entry, out UdbScriptBlockEntryWrapper? wrapper))
         {
-            wrapper = new UdbScriptBlockEntryWrapper(entry);
+            wrapper = new UdbScriptBlockEntryWrapper(entry, map);
             blockEntries[entry] = wrapper;
         }
 
@@ -3041,10 +3053,10 @@ public sealed class UdbScriptBlockMapWrapper
     }
 
     public UdbScriptBlockMapQueryResult getLineBlocks(object v1, object v2)
-        => new(blockMap.GetLineBlocks(ToVector2D(v1), ToVector2D(v2)));
+        => new(blockMap.GetLineBlocks(ToVector2D(v1), ToVector2D(v2)), map);
 
     public UdbScriptBlockMapQueryResult getRectangleBlocks(int x, int y, int width, int height)
-        => new(blockMap.GetBlocks(new RectangleF(x, y, width, height)));
+        => new(blockMap.GetBlocks(new RectangleF(x, y, width, height)), map);
 
     private static BlockMap CreateBlockMap(
         MapSet map,

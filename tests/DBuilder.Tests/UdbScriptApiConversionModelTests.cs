@@ -2200,6 +2200,27 @@ localsidedeftextureoffsets = true;
         Assert.Same(sector, Assert.Single(block.getSectors()).Sector);
         Assert.Same(thing, Assert.Single(block.getThings()).Thing);
         Assert.Contains(block.getVertices(), item => ReferenceEquals(vertex, item.Vertex));
+        Assert.Equal(map.IndexOfLinedef(line), block.getLinedefs().First(item => ReferenceEquals(line, item.Linedef)).index);
+        Assert.Equal(map.IndexOfSector(sector), Assert.Single(block.getSectors()).index);
+        Assert.Equal(map.IndexOfThing(thing), Assert.Single(block.getThings()).index);
+        Assert.Equal(map.IndexOfVertex(vertex), block.getVertices().First(item => ReferenceEquals(vertex, item.Vertex)).index);
+    }
+
+    [Fact]
+    public void BlockMapContentWrappersUseOwningMapForMutations()
+    {
+        var (map, line, _, thing, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+        UdbScriptBlockEntryWrapper block = wrapper.getBlockAt(new object[] { 32.0, 32.0 });
+
+        block.getThings().Single().delete();
+        UdbScriptLinedefWrapper lineWrapper = block.getLinedefs().First(item => ReferenceEquals(line, item.Linedef));
+        lineWrapper.delete();
+
+        Assert.DoesNotContain(thing, map.Things);
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.True(thing.IsDisposed);
+        Assert.True(line.IsDisposed);
     }
 
     [Fact]
