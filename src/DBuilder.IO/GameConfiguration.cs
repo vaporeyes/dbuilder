@@ -2064,6 +2064,40 @@ public sealed class GameConfiguration
                 GetBool(group, "optional", false),
                 flags);
         }
+
+        NormalizeThingFlagsCompareReferences();
+    }
+
+    private void NormalizeThingFlagsCompareReferences()
+    {
+        var knownFlags = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var group in thingFlagsCompare.Values)
+            foreach (string flag in group.Flags.Keys)
+                knownFlags.Add(flag);
+
+        foreach (var group in thingFlagsCompare.Values.ToArray())
+        {
+            var flags = new Dictionary<string, ThingFlagCompareInfo>(StringComparer.Ordinal);
+            foreach (var flag in group.Flags.Values)
+            {
+                var requiredGroups = new HashSet<string>(
+                    flag.RequiredGroups.Where(thingFlagsCompare.ContainsKey),
+                    StringComparer.Ordinal);
+                var ignoredGroups = new HashSet<string>(
+                    flag.IgnoredGroups.Where(thingFlagsCompare.ContainsKey),
+                    StringComparer.Ordinal);
+                string requiredFlag = knownFlags.Contains(flag.RequiredFlag) ? flag.RequiredFlag : "";
+
+                flags[flag.Flag] = flag with
+                {
+                    RequiredGroups = requiredGroups,
+                    IgnoredGroups = ignoredGroups,
+                    RequiredFlag = requiredFlag,
+                };
+            }
+
+            thingFlagsCompare[group.Name] = group with { Flags = flags };
+        }
     }
 
     private void ParseUniversalFields(IDictionary block)

@@ -461,12 +461,20 @@ public class GameConfigurationTests
                     optional = true;
                     fighter;
                 }
+                gamemodes
+                {
+                    single;
+                }
+                coop
+                {
+                    cooperative;
+                }
             }
             """;
 
         var gc = GameConfiguration.FromText(cfg);
 
-        Assert.Equal(2, gc.ThingFlagsCompare.Count);
+        Assert.Equal(4, gc.ThingFlagsCompare.Count);
         var skills = gc.ThingFlagsCompare["skills"];
         Assert.False(skills.IsOptional);
         Assert.Equal(2, skills.Flags.Count);
@@ -483,6 +491,40 @@ public class GameConfigurationTests
         var classes = gc.ThingFlagsCompare["classes"];
         Assert.True(classes.IsOptional);
         Assert.Contains("fighter", classes.Flags.Keys);
+    }
+
+    [Fact]
+    public void ThingFlagsCompareDropsMissingReferencesLikeUdb()
+    {
+        const string cfg = """
+            thingflagscompare
+            {
+                skills
+                {
+                    skill1
+                    {
+                        requiredgroups = "classes,missing";
+                        ignoredgroups = "gamemodes,missing";
+                        requiredflag = "missingflag";
+                    }
+                }
+                classes
+                {
+                    fighter;
+                }
+                gamemodes
+                {
+                    single;
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var skill1 = gc.ThingFlagsCompare["skills"].Flags["skill1"];
+        Assert.Equal(new[] { "classes" }, skill1.RequiredGroups);
+        Assert.Equal(new[] { "gamemodes" }, skill1.IgnoredGroups);
+        Assert.Equal("", skill1.RequiredFlag);
     }
 
     [Fact]
