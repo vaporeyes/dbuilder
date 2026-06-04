@@ -16,6 +16,8 @@ public sealed class JitterDialog : PropertyDialog
     private readonly ComboBox _ceilingOffsetMode;
     private readonly TextBox _thingRotationAmount;
     private readonly TextBox _thingHeightAmount;
+    private readonly TextBox _thingPitchAmount;
+    private readonly TextBox _thingRollAmount;
 
     public int ResultPositionAmount { get; private set; } = 16;
     public int ResultFloorAmount { get; private set; } = 16;
@@ -24,6 +26,8 @@ public sealed class JitterDialog : PropertyDialog
     public JitterOffsetMode ResultCeilingOffsetMode { get; private set; } = JitterOffsetMode.RaiseAndLower;
     public int ResultThingRotationAmount { get; private set; } = 45;
     public int ResultThingHeightAmount { get; private set; } = 16;
+    public int ResultThingPitchAmount { get; private set; }
+    public int ResultThingRollAmount { get; private set; }
 
     public JitterDialog(string title)
         : base(title)
@@ -35,6 +39,8 @@ public sealed class JitterDialog : PropertyDialog
         _ceilingOffsetMode = AddCombo("Ceiling offset mode", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode);
         _thingRotationAmount = AddField("Thing angle amount", ResultThingRotationAmount.ToString(CultureInfo.InvariantCulture));
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
+        _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
+        _thingRollAmount = AddField("Thing roll amount", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture));
     }
 
     protected override void OnConfirm()
@@ -46,6 +52,8 @@ public sealed class JitterDialog : PropertyDialog
         ResultCeilingOffsetMode = (JitterOffsetMode)ComboNumber(_ceilingOffsetMode, (int)ResultCeilingOffsetMode);
         ResultThingRotationAmount = Math.Max(0, ParseInt(_thingRotationAmount, ResultThingRotationAmount));
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
+        ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
+        ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));
     }
 
     private static IEnumerable<CatalogItem> FloorOffsetModeItems()

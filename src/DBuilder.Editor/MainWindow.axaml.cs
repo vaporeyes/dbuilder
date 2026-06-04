@@ -5322,8 +5322,8 @@ public partial class MainWindow : Window
                 thing.ScaleY,
                 OffsetAngle: RandomAngle(),
                 RotationFactor: RandomFactor(),
-                PitchFactor: 0,
-                RollFactor: 0,
+                PitchFactor: RandomPositiveFactor(),
+                RollFactor: RandomPositiveFactor(),
                 HeightFactor: RandomFactor(),
                 ScaleXFactor: 0,
                 ScaleYFactor: 0,
@@ -5336,6 +5336,11 @@ public partial class MainWindow : Window
                 _config?.DoomThingRotationAngles == true);
             if (_config?.HasThingHeight == true)
                 changed += BuilderEffects.ApplyThingHeight(thingJitter, dialog.ResultThingHeightAmount);
+            if (_mapFormat == MapFormat.Udmf)
+            {
+                changed += BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, relative: false);
+                changed += BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, relative: false);
+            }
             foreach (Thing thing in things)
                 thing.DetermineSector(_map);
         }
@@ -5374,6 +5379,9 @@ public partial class MainWindow : Window
 
     private static double RandomFactor()
         => Random.Shared.NextDouble() * 2.0 - 1.0;
+
+    private static double RandomPositiveFactor()
+        => Random.Shared.NextDouble();
 
     private async void OnApplyDirectionalShading(object? sender, RoutedEventArgs e)
     {

@@ -229,6 +229,27 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionAppliesThingPitchAndRollOnlyInUdmf()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int pitchFactorIndex = body.IndexOf("PitchFactor: RandomPositiveFactor()", methodIndex, StringComparison.Ordinal);
+        int rollFactorIndex = body.IndexOf("RollFactor: RandomPositiveFactor()", pitchFactorIndex, StringComparison.Ordinal);
+        int guardIndex = body.IndexOf("if (_mapFormat == MapFormat.Udmf)", rollFactorIndex, StringComparison.Ordinal);
+        int pitchIndex = body.IndexOf("BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, relative: false)", guardIndex, StringComparison.Ordinal);
+        int rollIndex = body.IndexOf("BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, relative: false)", pitchIndex, StringComparison.Ordinal);
+        int factorMethodIndex = body.IndexOf("private static double RandomPositiveFactor()", rollIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(pitchFactorIndex > methodIndex);
+        Assert.True(rollFactorIndex > pitchFactorIndex);
+        Assert.True(guardIndex > rollFactorIndex);
+        Assert.True(pitchIndex > guardIndex);
+        Assert.True(rollIndex > pitchIndex);
+        Assert.True(factorMethodIndex > rollIndex);
+    }
+
+    [Fact]
     public void JitterDialogExposesUdbSectorOffsetModes()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
@@ -250,6 +271,19 @@ public sealed class MainWindowCommandTests
         Assert.Contains("public int ResultThingHeightAmount { get; private set; } = 16;", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing height amount\", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JitterDialogExposesUdbThingPitchAndRollAmounts()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
+
+        Assert.Contains("public int ResultThingPitchAmount { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public int ResultThingRollAmount { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing pitch amount\", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing roll amount\", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));", body, StringComparison.Ordinal);
+        Assert.Contains("ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));", body, StringComparison.Ordinal);
     }
 
     [Fact]
