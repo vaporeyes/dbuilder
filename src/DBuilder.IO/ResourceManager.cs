@@ -491,11 +491,10 @@ public sealed class ResourceManager : IDisposable
     {
         if (voxelDefsBuilt) return;
         voxelDefsBuilt = true;
-        foreach (var text in GetTextLumps("VOXELDEF"))
-        {
-            foreach (var entry in VoxeldefParser.Parse(text).Entries)
-                voxelDefs[entry.Key] = entry.Value;
-        }
+        foreach (var reader in readers)
+            foreach (string text in reader.GetVoxeldefLumps())
+                foreach (var entry in VoxeldefParser.Parse(text).Entries)
+                    voxelDefs[entry.Key] = entry.Value;
     }
 
     private void EnsureModelDefs()

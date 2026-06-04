@@ -9,6 +9,9 @@ namespace DBuilder.Tests;
 
 public class VoxelResourceTests
 {
+    private static byte[] VoxeldefBytes(string sprite, string model)
+        => Encoding.ASCII.GetBytes($"{sprite} = {model} {{ scale = 1.0 }}");
+
     [Fact]
     public void DiscoversVoxelModelsFromWadAndPk3Resources()
     {
@@ -35,6 +38,56 @@ public class VoxelResourceTests
         {
             File.Delete(wad);
             File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void ResolvesVoxeldefFromWadLumps()
+    {
+        string wad = TestArtifacts.BuildPwadFile(
+            ("VOXELDEF", VoxeldefBytes("BAR1", "models/barrel.kvx")),
+            ("VOXELDEF", VoxeldefBytes("CYBR", "models/cyber.kvx")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            Assert.Equal("MODELS/BARREL.KVX", resources.GetVoxelModelForSprite("BAR1A0"));
+            Assert.Equal("MODELS/CYBER.KVX", resources.GetVoxelModelForSprite("CYBRA0"));
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootVoxeldefTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("VOXELDEF", VoxeldefBytes("BAR1", "models/nested.kvx")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("VOXELDEF.txt", VoxeldefBytes("BAR1", "models/root.kvx")),
+            ("VOXELDEF.extra", VoxeldefBytes("POSS", "models/extra.kvx")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_voxeldef_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "VOXELDEF.txt"), VoxeldefBytes("BAR1", "models/directory.kvx"));
+
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            resources.AddResource(dir);
+
+            Assert.Equal("MODELS/DIRECTORY.KVX", resources.GetVoxelModelForSprite("BAR1A0"));
+            Assert.Equal("MODELS/EXTRA.KVX", resources.GetVoxelModelForSprite("POSSA0"));
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         }
     }
 

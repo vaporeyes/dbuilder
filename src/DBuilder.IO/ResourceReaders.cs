@@ -45,6 +45,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetSndInfoLumps();
     /// <summary>TERRAIN texts selected with UDB's per-resource rules.</summary>
     IEnumerable<string> GetTerrainLumps();
+    /// <summary>VOXELDEF texts selected with UDB's per-resource rules.</summary>
+    IEnumerable<string> GetVoxeldefLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -486,6 +488,8 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> GetTerrainLumps() => GetTextLumps("TERRAIN", partialTitleMatch: false);
 
+    public IEnumerable<string> GetVoxeldefLumps() => GetTextLumps("VOXELDEF", partialTitleMatch: false);
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -856,6 +860,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         foreach (var reader in nestedReaders)
             foreach (string text in reader.GetTerrainLumps())
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetVoxeldefLumps()
+    {
+        foreach (string text in LocalTextLumps("VOXELDEF", partialTitleMatch: false))
+            yield return text;
+
+        foreach (var reader in nestedReaders)
+            foreach (string text in reader.GetVoxeldefLumps())
                 yield return text;
     }
 
