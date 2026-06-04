@@ -1524,6 +1524,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB-style Randomize negative thing scale jitter options.
   - [x] Expose UDB-style Randomize relative and negative thing pitch and roll options.
   - [x] Clamp UDB-style Randomize thing translation by nearest-thing safe distance.
+  - [x] Clamp UDB-style Randomize vertex translation by nearest non-incident linedef safe distance.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

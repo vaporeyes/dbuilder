@@ -195,6 +195,29 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionUsesUdbVertexSafeDistanceClamp()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int safeDistanceIndex = body.IndexOf("SafeDistance: JitterVertexSafeDistance(vertex, _map)", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private static int JitterVertexSafeDistance(Vertex vertex, MapSet map)", StringComparison.Ordinal);
+        int lineScanIndex = body.IndexOf("foreach (Linedef line in map.Linedefs)", helperIndex, StringComparison.Ordinal);
+        int incidentIndex = body.IndexOf("if (vertex.Linedefs.Contains(line)) continue;", lineScanIndex, StringComparison.Ordinal);
+        int safeDistanceToIndex = body.IndexOf("line.SafeDistanceToSq(vertex.Position, bounded: true)", incidentIndex, StringComparison.Ordinal);
+        int nearestIndex = body.IndexOf("closestLine.NearestOnLine(vertex.Position)", safeDistanceToIndex, StringComparison.Ordinal);
+        int clampIndex = body.IndexOf("return distance > 0 ? distance / 2 : 0;", nearestIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(safeDistanceIndex > methodIndex);
+        Assert.True(helperIndex > safeDistanceIndex);
+        Assert.True(lineScanIndex > helperIndex);
+        Assert.True(incidentIndex > lineScanIndex);
+        Assert.True(safeDistanceToIndex > incidentIndex);
+        Assert.True(nearestIndex > safeDistanceToIndex);
+        Assert.True(clampIndex > nearestIndex);
+    }
+
+    [Fact]
     public void JitterActionSnapsThingAnglesWhenGameConfigUsesDoomAngles()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

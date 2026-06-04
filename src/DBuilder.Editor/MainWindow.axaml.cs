@@ -5292,7 +5292,7 @@ public partial class MainWindow : Window
                     vertex,
                     vertex.Position,
                     RandomAngle(),
-                    SafeDistance: dialog.ResultPositionAmount)).ToList(),
+                    SafeDistance: JitterVertexSafeDistance(vertex, _map))).ToList(),
                 dialog.ResultPositionAmount);
         }
 
@@ -5370,6 +5370,28 @@ public partial class MainWindow : Window
     {
         vertices.Add(line.Start);
         vertices.Add(line.End);
+    }
+
+    private static int JitterVertexSafeDistance(Vertex vertex, MapSet map)
+    {
+        Linedef? closestLine = null;
+        double closestDistanceSq = double.MaxValue;
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (vertex.Linedefs.Contains(line)) continue;
+
+            double distanceSq = line.SafeDistanceToSq(vertex.Position, bounded: true);
+            if (distanceSq < closestDistanceSq)
+            {
+                closestLine = line;
+                closestDistanceSq = distanceSq;
+            }
+        }
+
+        if (closestLine is null) return 0;
+
+        int distance = (int)Math.Floor(Vector2D.Distance(vertex.Position, closestLine.NearestOnLine(vertex.Position)));
+        return distance > 0 ? distance / 2 : 0;
     }
 
     private int JitterThingSectorHeight(Thing thing)
