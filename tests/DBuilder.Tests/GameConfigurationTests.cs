@@ -1304,6 +1304,28 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ExpandedLinedefActionDefinitionsUseUdbFallbackTitle()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                specials
+                {
+                    title = "Specials";
+                    80 { prefix = "WR"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var action = gc.GetLinedefAction(80);
+        Assert.NotNull(action);
+        Assert.Equal("Unnamed", action!.Title);
+        Assert.Equal("WR Unnamed", action.DisplayTitle);
+    }
+
+    [Fact]
     public void DuplicateLinedefActionNumbersKeepFirstDefinitionLikeUdb()
     {
         const string cfg = """

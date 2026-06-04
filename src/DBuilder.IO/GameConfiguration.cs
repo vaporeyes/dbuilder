@@ -1818,7 +1818,7 @@ public sealed class GameConfiguration
                 string key = e.Key.ToString() ?? "";
                 if (e.Value is not IDictionary action) continue;
                 if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
-                string name = GetString(action, "title", key);
+                string name = GetString(action, "title", "Unnamed");
                 string prefix = GetString(action, "prefix", "");
 
                 var info = new LinedefActionInfo
