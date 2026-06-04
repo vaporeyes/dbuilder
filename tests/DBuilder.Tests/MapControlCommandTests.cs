@@ -92,6 +92,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualDelete3DStatusText(kind));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, "Delete texture")]
+    [InlineData(VisualHitKind.Ceiling, "Delete texture")]
+    [InlineData(VisualHitKind.Wall, "Delete texture")]
+    [InlineData(VisualHitKind.Thing, "Delete thing")]
+    public void VisualDelete3DEditNameMatchesUdbTargetKind(VisualHitKind kind, string expected)
+        => Assert.Equal(expected, MapControl.VisualDelete3DEditName(kind));
+
+    [Theory]
     [InlineData(true, false, false, "Auto-aligned textures (X).")]
     [InlineData(false, true, false, "Auto-aligned textures (Y).")]
     [InlineData(true, true, false, "Auto-aligned textures (X and Y).")]
@@ -1001,6 +1009,7 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void DeleteVisualTargets3D()", StringComparison.Ordinal);
         int targetsIndex = body.IndexOf("var targets = EditTargets3D();", methodIndex, StringComparison.Ordinal);
+        int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualDelete3DEditName(hit.Kind));", targetsIndex, StringComparison.Ordinal);
         int floorIndex = body.IndexOf("floor.SetFloorTexture(\"-\");", methodIndex, StringComparison.Ordinal);
         int ceilingIndex = body.IndexOf("ceiling.SetCeilTexture(\"-\");", methodIndex, StringComparison.Ordinal);
         int wallIndex = body.IndexOf("side.SetTexture(hit.Part, \"-\");", methodIndex, StringComparison.Ordinal);
@@ -1011,6 +1020,7 @@ public sealed class MapControlCommandTests
 
         Assert.True(methodIndex >= 0);
         Assert.True(targetsIndex > methodIndex);
+        Assert.True(editNameIndex > targetsIndex);
         Assert.True(floorIndex > targetsIndex);
         Assert.True(ceilingIndex > targetsIndex);
         Assert.True(wallIndex > targetsIndex);
