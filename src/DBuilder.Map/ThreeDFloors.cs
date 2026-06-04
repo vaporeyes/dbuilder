@@ -566,6 +566,25 @@ public static class ThreeDFloors
         return floors.Count;
     }
 
+    public static int RelocateManagedControlSectors(MapSet map, ThreeDFloorControlSectorAreaSettings settings)
+    {
+        List<Sector> controls = map.Sectors
+            .Where(IsManagedControlSectorField)
+            .ToList();
+        if (controls.Count == 0) return 0;
+
+        IReadOnlyList<Vector2D> origins = settings.GetRelocatePositions(
+            map,
+            controls.Count,
+            new HashSet<Sector>(controls, ReferenceEqualityComparer.Instance));
+
+        for (int i = 0; i < controls.Count; i++)
+            MoveSectorTopLeftTo(controls[i], origins[i]);
+
+        map.BuildIndexes();
+        return controls.Count;
+    }
+
     private static bool IsSharedByAllSelectedSectors(ThreeDFloor floor, IReadOnlyList<Sector> sectors, Dictionary<Sector, List<ThreeDFloor>> floorsBySector)
     {
         foreach (Sector sector in sectors)
@@ -575,6 +594,31 @@ public static class ThreeDFloors
         }
 
         return true;
+    }
+
+    private static void MoveSectorTopLeftTo(Sector sector, Vector2D origin)
+    {
+        HashSet<Vertex> vertices = SectorVertices(sector);
+        if (vertices.Count == 0) return;
+
+        double left = vertices.Min(vertex => vertex.Position.x);
+        double top = vertices.Max(vertex => vertex.Position.y);
+        Vector2D delta = origin - new Vector2D(left, top);
+
+        foreach (Vertex vertex in vertices)
+            vertex.Position += delta;
+    }
+
+    private static HashSet<Vertex> SectorVertices(Sector sector)
+    {
+        var vertices = new HashSet<Vertex>(ReferenceEqualityComparer.Instance);
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            vertices.Add(side.Line.Start);
+            vertices.Add(side.Line.End);
+        }
+
+        return vertices;
     }
 
     private static IReadOnlyList<Vector2D> RemoveClosingPoint(IReadOnlyList<Vector2D> loop)
@@ -616,6 +660,11 @@ public static class ThreeDFloors
     private static bool IsManagedControlSector(Sector control, bool udmf)
     {
         if (!udmf) return true;
+        return IsManagedControlSectorField(control);
+    }
+
+    private static bool IsManagedControlSectorField(Sector control)
+    {
         return control.Fields.TryGetValue(ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField, out object? value)
             && value is bool managed
             && managed;

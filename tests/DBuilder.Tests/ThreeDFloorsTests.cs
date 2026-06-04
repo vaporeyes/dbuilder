@@ -220,6 +220,46 @@ public class ThreeDFloorsTests
     }
 
     [Fact]
+    public void RelocateManagedControlSectorsMovesOnlyManagedControlsIntoArea()
+    {
+        var map = new MapSet();
+        Sector managed = AddSquareSector(map, 256, 256, 56);
+        managed.Fields[ThreeDFloorControlSectorAreaSettings.ManagedControlSectorField] = true;
+        Sector unmanaged = AddSquareSector(map, 512, 512, 56);
+        var settings = new ThreeDFloorControlSectorAreaSettings();
+
+        int count = ThreeDFloors.RelocateManagedControlSectors(map, settings);
+
+        Assert.Equal(1, count);
+        Assert.Equal(
+            new[]
+            {
+                new Vector2D(-508, 508),
+                new Vector2D(-452, 508),
+                new Vector2D(-508, 452),
+                new Vector2D(-452, 452),
+            },
+            managed.Sidedefs.SelectMany(side => new[] { side.Line.Start, side.Line.End })
+                .Distinct()
+                .Select(vertex => vertex.Position)
+                .OrderByDescending(position => position.y)
+                .ThenBy(position => position.x)
+                .ToArray());
+        Assert.Contains(unmanaged.Sidedefs, side => side.Line.Start.Position == new Vector2D(512, 512));
+    }
+
+    [Fact]
+    public void RelocateManagedControlSectorsReturnsZeroWhenNoManagedControlsExist()
+    {
+        var map = new MapSet();
+        AddSquareSector(map, 256, 256, 56);
+
+        int count = ThreeDFloors.RelocateManagedControlSectors(map, new ThreeDFloorControlSectorAreaSettings());
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
     public void ControlSectorAreaSettingsThrowsWhenNoPlacementFits()
     {
         var map = new MapSet();

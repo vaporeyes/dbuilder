@@ -2046,6 +2046,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style control-sector area placement planning for new and relocated controls.
   - [x] Add UDB-style control-sector geometry materialization and action-line binding.
   - [x] Add editor command dispatch for selecting resolved 3D floor control sectors.
+  - [x] Add editor command dispatch for relocating managed 3D floor control sectors.
 - [ ] Port 3D floor slope editing.
   - [x] Add UDB-style deprecated slope and draw-slope mode/action metadata.
   - [x] Add UDB-style slope vertex group persistence, data-sector fields, and floor/ceiling plane application.

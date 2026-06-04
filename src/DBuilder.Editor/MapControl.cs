@@ -5122,6 +5122,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.3dfloor.select-control-sector":
                 SelectThreeDFloorControlSectors();
                 return true;
+            case "map2d.3dfloor.relocate-control-sectors":
+                RelocateThreeDFloorControlSectors();
+                return true;
             case "map2d.mode-vertices":
                 SetEditMode(EditMode.Vertices);
                 return true;
@@ -6954,6 +6957,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = count == 0
             ? "No 3D floor control sectors found."
             : "Selected " + count + " 3D floor control sector" + (count == 1 ? "." : "s.");
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string RelocateThreeDFloorControlSectors()
+    {
+        if (_map == null) return "No map loaded.";
+
+        EditBegun?.Invoke("Relocate 3D floor control sectors");
+        int count = ThreeDFloors.RelocateManagedControlSectors(_map, new ThreeDFloorControlSectorAreaSettings());
+        if (count > 0)
+        {
+            MarkGeometryDirty();
+            Changed?.Invoke();
+        }
+
+        string status = count == 0
+            ? "No managed 3D floor control sectors found."
+            : "Relocated " + count + " 3D floor control sector" + (count == 1 ? "." : "s.");
         Picked?.Invoke(status);
         return status;
     }
