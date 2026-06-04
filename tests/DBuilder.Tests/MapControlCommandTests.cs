@@ -138,6 +138,10 @@ public sealed class MapControlCommandTests
     public void VisualUnpegged3DEditNameMatchesUdb(bool upper, bool set, string expected)
         => Assert.Equal(expected, MapControl.VisualUnpegged3DEditName(upper, set));
 
+    [Fact]
+    public void VisualSlopeToggleEmptySelectionMessageMatchesUdb()
+        => Assert.Equal("Toggle Slope action requires selected surfaces!", MapControl.VisualSlopeToggleEmptySelectionMessage());
+
     [Theory]
     [InlineData(VisualHitKind.Floor, "Deleted a texture.")]
     [InlineData(VisualHitKind.Ceiling, "Deleted a texture.")]
@@ -1199,13 +1203,16 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int toggleIndex = body.IndexOf("private void ToggleSlope3D()", StringComparison.Ordinal);
         int toggleTargetsIndex = body.IndexOf("foreach (VisualHit hit in EditTargets3D())", toggleIndex, StringComparison.Ordinal);
+        int toggleWarningIndex = body.IndexOf("Target3DChanged?.Invoke(VisualSlopeToggleEmptySelectionMessage());", toggleTargetsIndex, StringComparison.Ordinal);
         int resetIndex = body.IndexOf("private void ResetSlope3D()", StringComparison.Ordinal);
         int resetTargetsIndex = body.IndexOf("foreach (VisualHit hit in EditTargets3D())", resetIndex, StringComparison.Ordinal);
 
         Assert.True(toggleIndex >= 0);
         Assert.True(toggleTargetsIndex > toggleIndex);
+        Assert.True(toggleWarningIndex > toggleTargetsIndex);
         Assert.True(resetIndex >= 0);
         Assert.True(resetTargetsIndex > resetIndex);
+        Assert.DoesNotContain("\"Toggled Slope for 0 surfaces.\"", body, StringComparison.Ordinal);
     }
 
     [Fact]

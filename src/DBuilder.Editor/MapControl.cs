@@ -3066,7 +3066,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         if (targets.Count == 0)
         {
-            Target3DChanged?.Invoke("Toggled Slope for 0 surfaces.");
+            Target3DChanged?.Invoke(VisualSlopeToggleEmptySelectionMessage());
             return;
         }
 
@@ -3083,6 +3083,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         Target3DChanged?.Invoke(result.StatusMessage);
     }
+
+    public static string VisualSlopeToggleEmptySelectionMessage()
+        => "Toggle Slope action requires selected surfaces!";
 
     private void ResetSlope3D()
     {
