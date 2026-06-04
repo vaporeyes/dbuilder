@@ -244,6 +244,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.thingsmode", "Things Mode", "T", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.mode-image-example", "Image Example", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.mode-automap", "Automap Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.editselectionmode", "Edit Selection Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.mode-wadauthor", "WadAuthor Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.mode-visplane-explorer", "Visplane Explorer Mode", "Menu", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.mode-stair-sector-builder", "Stair Sector Builder Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),

@@ -517,6 +517,7 @@ public sealed class MapControlCommandTests
 
     [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
+    [InlineData("map2d.editselectionmode", "BeginEditSelectionMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
     [InlineData("map2d.3dfloor.select-control-sector", "SelectThreeDFloorControlSectors")]
@@ -607,6 +608,17 @@ public sealed class MapControlCommandTests
         Assert.Contains("if (commandId == \"map2d.classicpaintselect\") EndClassicPaintSelection();", body, StringComparison.Ordinal);
         Assert.Contains("if (_classicPaintSelectPressed)", body, StringComparison.Ordinal);
         Assert.Contains("ApplyClassicPaintSelection(_cursorWorld, e.KeyModifiers);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EditSelectionModeExposesStateAndMovesSelectionOnDrag()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool EditSelectionModeActive => _editSelectionMode;", body, StringComparison.Ordinal);
+        Assert.Contains("public void BeginEditSelectionMode() => SetEditSelectionMode(true);", body, StringComparison.Ordinal);
+        Assert.Contains("_moveCandidate = _selectionDoneOnPress || (_editSelectionMode && HasTransformableSelection());", body, StringComparison.Ordinal);
+        Assert.Contains("private bool HasTransformableSelection()", body, StringComparison.Ordinal);
     }
 
     [Fact]

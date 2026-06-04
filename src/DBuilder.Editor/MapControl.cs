@@ -801,6 +801,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public enum EditMode { Vertices, Linedefs, Sectors, Things }
     private EditMode _editMode = EditMode.Linedefs;
     public EditMode CurrentEditMode => _editMode;
+    private bool _editSelectionMode;
+    public bool EditSelectionModeActive => _editSelectionMode;
     /// <summary>Raised when the active selection mode changes (for the status bar).</summary>
     public event Action? ModeChanged;
 
@@ -820,6 +822,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             ActionStateChanged?.Invoke();
         }
         SetImageExampleMode(false);
+        SetEditSelectionMode(false);
         if (_editMode == m) return;
         _editMode = m;
         ModeChanged?.Invoke();
@@ -828,6 +831,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     public void SetCurrentEditMode(EditMode mode) => SetEditMode(mode);
+
+    public void BeginEditSelectionMode() => SetEditSelectionMode(true);
+
+    private void SetEditSelectionMode(bool enabled)
+    {
+        if (_editSelectionMode == enabled) return;
+        _editSelectionMode = enabled;
+        if (enabled)
+        {
+            SetImageExampleMode(false);
+            if (AutomapMode)
+            {
+                AutomapMode = false;
+                ClearAutomapState();
+            }
+            if (WadAuthorMode) LeaveWadAuthorMode();
+        }
+        ModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
+        Picked?.Invoke(enabled ? "mode: Edit Selection" : $"mode: {_editMode}");
+        RequestNextFrameRendering();
+    }
 
     public bool HasCopiedPropertiesForCurrentMode => CurrentPropertyKind() switch
     {
@@ -5854,6 +5879,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.previous-view-mode":
                 PreviousViewMode2D();
                 return true;
+            case "map2d.editselectionmode":
+                BeginEditSelectionMode();
+                return true;
             case "map2d.draw-sector":
                 ToggleDrawMode(linesOnly: false);
                 return true;
@@ -6853,7 +6881,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _boxAdditive = shift;
             // Select a vertex/thing immediately on press so a single press-drag moves it.
             _selectionDoneOnPress = SelectPointElementAt(ToWorld(pt.Position), shift);
-            _moveCandidate = _selectionDoneOnPress;
+            _moveCandidate = _selectionDoneOnPress || (_editSelectionMode && HasTransformableSelection());
         }
     }
 
@@ -8451,6 +8479,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // Linedef/Sector modes select on release; a press on empty space (point modes) selects nothing.
         return false;
     }
+
+    private bool HasTransformableSelection()
+        => _map != null && (_map.SelectedGeometryVertices().Count > 0 || _map.SelectedThingsCount > 0);
 
     public void BeginClassicPaintSelection()
     {

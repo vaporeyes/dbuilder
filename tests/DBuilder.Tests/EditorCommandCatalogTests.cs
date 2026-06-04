@@ -1359,6 +1359,21 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void EditSelectionModeCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.editselectionmode");
+
+        Assert.NotNull(command);
+        Assert.Equal("Edit Selection Mode", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Fact]
     public void ImageExampleModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.mode-image-example");
