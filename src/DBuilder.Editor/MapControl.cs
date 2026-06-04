@@ -2170,13 +2170,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void CycleVisualThings3D()
     {
         int state = CycleVisualThings();
-        string text = state switch
-        {
-            0 => "off",
-            1 => "sprite only",
-            _ => "on",
-        };
-        Target3DChanged?.Invoke($"thing visibility is now {text}");
+        Target3DChanged?.Invoke(VisualThingVisibilityStatusText(state));
     }
 
     private IReadOnlyList<Thing> VisibleThings3D()
@@ -3157,6 +3151,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string SurfaceSelection3DStatusText(int surfaceCount)
         => $"{CountLabel(surfaceCount, "surface")} selected";
+
+    public static string VisualThingVisibilityStatusText(int state)
+    {
+        string label = state switch
+        {
+            0 => "OFF",
+            1 => "SPRITE ONLY",
+            _ => "ON",
+        };
+        return $"Thing visibility is now {label}.";
+    }
 
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";

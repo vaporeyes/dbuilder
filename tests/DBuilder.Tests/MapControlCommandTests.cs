@@ -21,6 +21,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.SurfaceSelection3DStatusText(surfaceCount));
 
     [Theory]
+    [InlineData(0, "Thing visibility is now OFF.")]
+    [InlineData(1, "Thing visibility is now SPRITE ONLY.")]
+    [InlineData(2, "Thing visibility is now ON.")]
+    [InlineData(3, "Thing visibility is now ON.")]
+    public void VisualThingVisibilityStatusTextMatchesUdbStates(int state, string expected)
+        => Assert.Equal(expected, MapControl.VisualThingVisibilityStatusText(state));
+
+    [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
@@ -123,6 +131,19 @@ public sealed class MapControlCommandTests
         Assert.True(missingTargetIndex > methodIndex);
         Assert.True(warningIndex > missingTargetIndex);
         Assert.True(emptySelectionIndex > warningIndex);
+    }
+
+    [Fact]
+    public void ShowVisualThings3DUsesUdbStatusText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void CycleVisualThings3D()", StringComparison.Ordinal);
+        int stateIndex = body.IndexOf("int state = CycleVisualThings();", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingVisibilityStatusText(state));", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(stateIndex > methodIndex);
+        Assert.True(statusIndex > stateIndex);
     }
 
     [Fact]
