@@ -3235,7 +3235,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke(raise ? "Raise to nearest" : "Lower to nearest");
-        VisualNearestHeightResult result = VisualNearestHeight.Apply(targets, raise, withinSelection);
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            targets,
+            raise,
+            withinSelection,
+            _gameConfig?.HasThingHeight == true);
         if (result.ChangedSurfaces == 0)
         {
             Target3DChanged?.Invoke(result.Message);

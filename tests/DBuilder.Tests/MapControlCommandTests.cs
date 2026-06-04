@@ -267,6 +267,19 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void AdjustTarget3DPassesThingHeightSupportToNearestModel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void AdjustTargetToNearest3D(bool raise, bool withinSelection)", StringComparison.Ordinal);
+        int callIndex = body.IndexOf("VisualNearestHeight.Apply(", methodIndex, StringComparison.Ordinal);
+        int capabilityIndex = body.IndexOf("_gameConfig?.HasThingHeight == true", callIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(callIndex > methodIndex);
+        Assert.True(capabilityIndex > callIndex);
+    }
+
+    [Fact]
     public void VisualAutoAlign3DTriesUdmfFlatTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

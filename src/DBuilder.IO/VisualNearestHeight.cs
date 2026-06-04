@@ -12,7 +12,7 @@ public static class VisualNearestHeight
     public const string NoSuitableObjectsMessage = "No suitable objects found!";
     public const string LowestCeilingBelowHighestFloorMessage = "Can't do: lowest ceiling is lower than highest floor!";
 
-    public static VisualNearestHeightResult Apply(IEnumerable<VisualHit> hits, bool raise, bool withinSelection)
+    public static VisualNearestHeightResult Apply(IEnumerable<VisualHit> hits, bool raise, bool withinSelection, bool hasThingHeight = true)
     {
         var floors = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
         var ceilings = new Dictionary<Sector, Sector>(ReferenceEqualityComparer.Instance);
@@ -28,7 +28,7 @@ public static class VisualNearestHeight
                 things.Add(thing);
         }
 
-        if (floors.Count + ceilings.Count == 0 && things.Count == 0)
+        if (floors.Count + ceilings.Count == 0 && (things.Count == 0 || !hasThingHeight))
             return new VisualNearestHeightResult(0, NoSuitableObjectsMessage);
 
         if (withinSelection)
@@ -65,7 +65,7 @@ public static class VisualNearestHeight
         changed += raise
             ? RaiseCeilings(ceilings.Keys, withinSelection)
             : LowerCeilings(ceilings.Keys, withinSelection);
-        changed += AlignThings(things, raise);
+        if (hasThingHeight) changed += AlignThings(things, raise);
 
         string verb = raise ? "raised" : "lowered";
         return new VisualNearestHeightResult(changed, $"{verb} {changed} object{(changed == 1 ? "" : "s")} to nearest height");

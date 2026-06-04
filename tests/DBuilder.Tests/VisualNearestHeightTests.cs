@@ -216,6 +216,42 @@ public class VisualNearestHeightTests
         Assert.Equal(0, thing.Height);
     }
 
+    [Fact]
+    public void ThingOnlyTargetRequiresThingHeightSupportLikeUdb()
+    {
+        Sector sector = Sector(8, 72);
+        var thing = new Thing(new Vector2D(0, 0), 1) { Sector = sector, Height = 12 };
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [ThingHit(thing)],
+            raise: true,
+            withinSelection: false,
+            hasThingHeight: false);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal(VisualNearestHeight.NoSuitableObjectsMessage, result.Message);
+        Assert.Equal(12, thing.Height);
+    }
+
+    [Fact]
+    public void SurfaceTargetsIgnoreThingsWithoutThingHeightSupportLikeUdb()
+    {
+        Sector sector = Sector(0, 128);
+        Sector neighbor = Sector(24, 96);
+        LinkAdjacent(sector, neighbor);
+        var thing = new Thing(new Vector2D(0, 0), 1) { Sector = sector, Height = 12 };
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(sector), ThingHit(thing)],
+            raise: true,
+            withinSelection: false,
+            hasThingHeight: false);
+
+        Assert.Equal(1, result.ChangedSurfaces);
+        Assert.Equal(24, sector.FloorHeight);
+        Assert.Equal(12, thing.Height);
+    }
+
     private static Sector Sector(int floor, int ceiling)
         => new() { FloorHeight = floor, CeilHeight = ceiling };
 
