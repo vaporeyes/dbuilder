@@ -457,6 +457,31 @@ public class MapSearchTests
         Assert.All(map.Sidedefs, sd => Assert.Equal("BROWN1", sd.MidTexture));
     }
 
+    [Fact]
+    public void FindAndReplaceTextureCountsMatchingSidedefSlotsLikeUdb()
+    {
+        var map = Build();
+        map.Sectors[0].FloorHeight = 0;
+        map.Sectors[0].CeilHeight = 128;
+        map.Sectors[1].FloorHeight = 24;
+        map.Sectors[1].CeilHeight = 96;
+        var back = map.AddSidedef(map.Linedefs[0], false, map.Sectors[1]);
+        map.BuildIndexes();
+        map.Sidedefs[0].HighTexture = "SUPPORT3";
+        map.Sidedefs[0].MidTexture = "OTHER";
+        map.Sidedefs[0].LowTexture = "SUPPORT3";
+        back.HighTexture = "OTHER";
+        back.LowTexture = "OTHER";
+
+        SearchResult result = MapSearch.Find(map, FindCategory.Texture, "SUPPORT3");
+
+        Assert.Equal(2, result.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.Texture, "SUPPORT3", "STONE2"));
+        Assert.Equal("STONE2", map.Sidedefs[0].HighTexture);
+        Assert.Equal("STONE2", map.Sidedefs[0].LowTexture);
+    }
+
     [Theory]
     [InlineData(FindCategory.Texture, "STARTAN3", "")]
     [InlineData(FindCategory.Texture, "STARTAN3", "LONGTEX01")]
@@ -494,6 +519,24 @@ public class MapSearchTests
         int n = MapSearch.Replace(map, FindCategory.Flat, "FLOOR4_8", "FLAT5_5");
         Assert.Equal(2, n);
         Assert.Equal("FLAT5_5", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLAT5_5", map.Sectors[1].CeilTexture);
+    }
+
+    [Fact]
+    public void FindAndReplaceFlatCountsMatchingSectorSlotsLikeUdb()
+    {
+        var map = Build();
+        map.Sectors[0].FloorTexture = "FLOOR4_8";
+        map.Sectors[0].CeilTexture = "FLOOR4_8";
+
+        SearchResult result = MapSearch.Find(map, FindCategory.Flat, "FLOOR4_8");
+
+        Assert.Equal(3, result.Count);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Sectors[1].Selected);
+        Assert.Equal(3, MapSearch.Replace(map, FindCategory.Flat, "FLOOR4_8", "FLAT5_5"));
+        Assert.Equal("FLAT5_5", map.Sectors[0].FloorTexture);
+        Assert.Equal("FLAT5_5", map.Sectors[0].CeilTexture);
         Assert.Equal("FLAT5_5", map.Sectors[1].CeilTexture);
     }
 

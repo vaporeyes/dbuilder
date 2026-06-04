@@ -382,10 +382,10 @@ public static class MapSearch
                 {
                     if (sd.Line == null) continue;
                     bool selected = false;
-                    if (TextureSlotMatches(sd.HighTexture, value, sd.HighRequired())) selected = true;
-                    if (TextureSlotMatches(sd.MidTexture, value, sd.MiddleRequired())) selected = true;
-                    if (TextureSlotMatches(sd.LowTexture, value, sd.LowRequired())) selected = true;
-                    if (selected) { sd.Line.Selected = true; count++; focus ??= Mid(sd.Line); }
+                    if (TextureSlotMatches(sd.HighTexture, value, sd.HighRequired())) { selected = true; count++; }
+                    if (TextureSlotMatches(sd.MidTexture, value, sd.MiddleRequired())) { selected = true; count++; }
+                    if (TextureSlotMatches(sd.LowTexture, value, sd.LowRequired())) { selected = true; count++; }
+                    if (selected) { sd.Line.Selected = true; focus ??= Mid(sd.Line); }
                 }
                 break;
             case FindCategory.TextureOrFlat:
@@ -417,9 +417,9 @@ public static class MapSearch
                 foreach (var s in lists.Sectors)
                 {
                     bool selected = false;
-                    if (TexturePatternMatches(s.FloorTexture, value)) selected = true;
-                    if (TexturePatternMatches(s.CeilTexture, value)) selected = true;
-                    if (selected) { s.Selected = true; count++; }
+                    if (TexturePatternMatches(s.FloorTexture, value)) { selected = true; count++; }
+                    if (TexturePatternMatches(s.CeilTexture, value)) { selected = true; count++; }
+                    if (selected) s.Selected = true;
                 }
                 break;
             case FindCategory.SectorFloorFlat:
@@ -537,11 +537,9 @@ public static class MapSearch
                 case FindCategory.Texture:
                     foreach (var sd in lists.Sidedefs)
                     {
-                        bool hit = false;
-                        if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; hit = true; }
-                        if (TextureSlotMatches(sd.MidTexture, find, sd.MiddleRequired())) { sd.MidTexture = replace; hit = true; }
-                        if (TextureSlotMatches(sd.LowTexture, find, sd.LowRequired())) { sd.LowTexture = replace; hit = true; }
-                        if (hit) changed++;
+                        if (TextureSlotMatches(sd.HighTexture, find, sd.HighRequired())) { sd.HighTexture = replace; changed++; }
+                        if (TextureSlotMatches(sd.MidTexture, find, sd.MiddleRequired())) { sd.MidTexture = replace; changed++; }
+                        if (TextureSlotMatches(sd.LowTexture, find, sd.LowRequired())) { sd.LowTexture = replace; changed++; }
                     }
                     break;
                 case FindCategory.TextureOrFlat:
@@ -569,10 +567,8 @@ public static class MapSearch
                 case FindCategory.Flat:
                     foreach (var s in lists.Sectors)
                     {
-                        bool hit = false;
-                        if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; hit = true; }
-                        if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; hit = true; }
-                        if (hit) changed++;
+                        if (TexturePatternMatches(s.FloorTexture, find)) { s.FloorTexture = replace; changed++; }
+                        if (TexturePatternMatches(s.CeilTexture, find)) { s.CeilTexture = replace; changed++; }
                     }
                     break;
                 case FindCategory.SectorFloorFlat:
