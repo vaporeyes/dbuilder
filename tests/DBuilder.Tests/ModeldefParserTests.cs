@@ -330,7 +330,7 @@ model Good
     }
 
     [Fact]
-    public void ParsesIncludesOnce()
+    public void DuplicateIncludesStopParsingLikeUdb()
     {
         const string text = @"
 #include ""models/defs.txt""
@@ -341,7 +341,7 @@ model Local { Model 0 ""local.md3"" }";
             ? "model Included { Model 0 \"included.md3\" }"
             : null);
 
-        Assert.Equal(new[] { "Included", "Local" }, defs.Select(d => d.ActorName).ToArray());
+        Assert.Equal(new[] { "Included" }, defs.Select(d => d.ActorName).ToArray());
     }
 
     [Theory]
@@ -349,9 +349,23 @@ model Local { Model 0 ""local.md3"" }";
     [InlineData("./models/defs.txt")]
     [InlineData("models\\defs.txt")]
     [InlineData("/models/defs.txt")]
-    public void RejectsInvalidIncludePaths(string includePath)
+    public void InvalidIncludesStopParsingLikeUdb(string includePath)
     {
-        string text = includePath.Contains('\\') ? "#include " + includePath : "#include \"" + includePath + "\"";
+        string text = includePath.Contains('\\')
+            ? "#include " + includePath + "\nmodel Local { Model 0 \"local.md3\" }"
+            : "#include \"" + includePath + "\"\nmodel Local { Model 0 \"local.md3\" }";
+
+        var defs = ModeldefParser.Parse(text, _ => "model Bad { Model 0 \"bad.md3\" }");
+
+        Assert.Empty(defs);
+    }
+
+    [Fact]
+    public void EmptyIncludePathStopsParsingLikeUdb()
+    {
+        const string text = @"
+#include """"
+model Local { Model 0 ""local.md3"" }";
 
         var defs = ModeldefParser.Parse(text, _ => "model Bad { Model 0 \"bad.md3\" }");
 

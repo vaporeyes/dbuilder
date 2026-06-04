@@ -55,7 +55,7 @@ public static class ModeldefParser
         return result;
     }
 
-    private static void ParseInto(List<Modeldef> result, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static bool ParseInto(List<Modeldef> result, string text, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
     {
         var t = Tokenize(text);
         int i = 0;
@@ -63,7 +63,7 @@ public static class ModeldefParser
         {
             if (t[i].Equals("#include", StringComparison.OrdinalIgnoreCase))
             {
-                ParseInclude(result, t, ref i, includeResolver, parsedIncludes);
+                if (!ParseInclude(result, t, ref i, includeResolver, parsedIncludes)) return false;
                 continue;
             }
             if (!t[i].Equals("model", StringComparison.OrdinalIgnoreCase)) { i++; continue; }
@@ -75,17 +75,20 @@ public static class ModeldefParser
             bool valid = ParseBlock(def, t, ref i);
             if (valid && def.Models.Count > 0) result.Add(def);
         }
+        return true;
     }
 
-    private static void ParseInclude(List<Modeldef> result, List<string> t, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
+    private static bool ParseInclude(List<Modeldef> result, List<string> t, ref int i, Func<string, string?>? includeResolver, HashSet<string> parsedIncludes)
     {
         i++; // #include
-        if (includeResolver == null || i >= t.Count) return;
+        if (i >= t.Count) return false;
         string include = t[i++];
-        if (!IsValidIncludePath(include)) return;
-        if (!parsedIncludes.Add(include)) return;
+        if (!IsValidIncludePath(include)) return false;
+        if (!parsedIncludes.Add(include)) return false;
+        if (includeResolver == null) return true;
         string? text = includeResolver(include);
-        if (text != null) ParseInto(result, text, includeResolver, parsedIncludes);
+        if (text != null && !ParseInto(result, text, includeResolver, parsedIncludes)) return false;
+        return true;
     }
 
     private static bool IsValidIncludePath(string include)

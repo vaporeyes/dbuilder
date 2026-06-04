@@ -627,6 +627,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject empty MODELDEF `Path` values and normalize backslashes like UDB.
   - [x] Recover UDB-style after unknown MODELDEF directives before orientation flags.
   - [x] Parse UDB-style MODELDEF transform, actor pitch/roll, rotation-center, and named frame metadata.
+  - [x] Stop MODELDEF parsing on invalid or duplicate includes like UDB.
 - [x] Port GLDEFS parser fully.
   - [x] Route `glow` wall groups into texture glow metadata.
   - [x] Require integral GLDEFS light radius fields.
