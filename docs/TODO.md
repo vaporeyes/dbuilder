@@ -78,6 +78,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist the UDB auto-clear sidedef textures preference.
   - [x] Expose dynamic grid size in the Settings dialog.
   - [x] Expose merge geometry mode in the Settings dialog.
+  - [x] Expose draw-line continuous and auto-close preferences in the Settings dialog.
   - [x] Clamp Settings dialog numeric preference input to supported UDB ranges.
   - [x] Show normalized numeric preference defaults in the Settings dialog.
   - [x] Expose alpha-based texture highlighting in the Settings dialog.

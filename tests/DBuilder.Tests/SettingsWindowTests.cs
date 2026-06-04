@@ -61,6 +61,21 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawLineModePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawLineSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw lines continuously\", s.NormalizedDrawLineSettings.ContinuousDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Auto-close drawn lines\", s.NormalizedDrawLineSettings.AutoCloseDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("ShowGuidelines: _drawLineShowGuidelines", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawLineSettings = dlg.DrawLineSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DrawLineSettings = _settings.NormalizedDrawLineSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesShowVisualVerticesPreference()
     {
         Type type = typeof(SettingsWindow);

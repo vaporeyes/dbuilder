@@ -12,7 +12,8 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly bool _drawLineShowGuidelines;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
@@ -32,6 +33,7 @@ public sealed class SettingsWindow : PropertyDialog
     public int LightRenderMode;
     public MergeGeometryMode MergeGeometryMode;
     public int? StatusHistoryLimit;
+    public DrawLineModeSettings DrawLineSettings = new();
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
 
@@ -52,8 +54,11 @@ public sealed class SettingsWindow : PropertyDialog
         _maxRecentFiles = AddField("Max recent files", Settings.MaxRecentFilesText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
+        _drawLineShowGuidelines = s.NormalizedDrawLineSettings.ShowGuidelines;
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
+        _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
+        _drawLineAutoCloseDrawing = AddCheckBox("Auto-close drawn lines", s.NormalizedDrawLineSettings.AutoCloseDrawing);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
         _enhancedRenderingEffects = AddCheckBox("Enhanced rendering effects", s.EnhancedRenderingEffects);
@@ -97,6 +102,10 @@ public sealed class SettingsWindow : PropertyDialog
         ModelRenderMode = ComboNumber(_modelRenderMode, (int)ThingModelRenderMode.All);
         LightRenderMode = ComboNumber(_lightRenderMode, (int)ThingLightRenderMode.All);
         MergeGeometryMode = (MergeGeometryMode)ComboNumber(_mergeGeometryMode, (int)MergeGeometryMode.Replace);
+        DrawLineSettings = new DrawLineModeSettings(
+            ContinuousDrawing: _drawLineContinuousDrawing.IsChecked == true,
+            AutoCloseDrawing: _drawLineAutoCloseDrawing.IsChecked == true,
+            ShowGuidelines: _drawLineShowGuidelines);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {
