@@ -886,6 +886,21 @@ public class EditorCommandCatalogTests
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
+    [Fact]
+    public void PlaceVisualStartCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.placevisualstart");
+
+        Assert.NotNull(command);
+        Assert.Equal("Place Visual Mode Camera", command.Title);
+        Assert.Equal("Ctrl/Cmd+W", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal("map2d.placevisualstart", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "W", accelerator: true));
+    }
+
     [Theory]
     [InlineData("map2d.insert", "map2d.insertitem", "Insert vertex or thing", "I")]
     [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L")]

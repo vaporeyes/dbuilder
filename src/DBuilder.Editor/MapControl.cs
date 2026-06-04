@@ -5890,6 +5890,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.insertitem":
                 InsertAtCursor();
                 return true;
+            case "map2d.placevisualstart":
+                PlaceVisualStart();
+                return true;
             case "map2d.place-things":
             case "map2d.placethings":
                 PlaceThingsFromSelection();
@@ -7867,6 +7870,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string PlaceVisualStart()
+    {
+        if (_map == null) return "No map loaded.";
+        if (_gameConfig == null) return "No game configuration loaded.";
+        if (_gameConfig.Start3DModeThingType == 0) return "No Visual Mode camera start thing is configured.";
+
+        var pos = SnapToGrid(_cursorWorld);
+        EditBegun?.Invoke("Place Visual Mode camera");
+        _map.ClearAllSelected();
+        Thing thing = _map.PlaceUniqueThing(_gameConfig.Start3DModeThingType, pos);
+        thing.DetermineSector(_map);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = $"Placed Visual Mode camera start thing at ({pos.x:0}, {pos.y:0}).";
         Picked?.Invoke(status);
         return status;
     }

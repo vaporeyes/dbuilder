@@ -172,6 +172,30 @@ public class MapSet : IDisposable
         return t;
     }
 
+    public Thing PlaceUniqueThing(int type, Vector2D position)
+    {
+        Thing? kept = null;
+        foreach (Thing thing in Things.ToList())
+        {
+            if (thing.Type != type) continue;
+            if (kept == null)
+            {
+                kept = thing;
+                continue;
+            }
+
+            RemoveThing(thing);
+        }
+
+        if (kept == null)
+            kept = AddThing(position, type);
+        else
+            kept.Move(position);
+
+        kept.Selected = true;
+        return kept;
+    }
+
     public void Dispose()
     {
         if (IsDisposed) return;

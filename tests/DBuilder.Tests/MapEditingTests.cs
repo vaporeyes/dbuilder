@@ -252,6 +252,39 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void PlaceUniqueThingMovesExistingAndRemovesDuplicates()
+    {
+        var map = new MapSet();
+        Thing first = map.AddThing(new Vector2D(0, 0), 32000);
+        Thing duplicate = map.AddThing(new Vector2D(16, 16), 32000);
+        Thing other = map.AddThing(new Vector2D(32, 32), 1);
+
+        Thing placed = map.PlaceUniqueThing(32000, new Vector2D(64, 80));
+
+        Assert.Same(first, placed);
+        Assert.Equal(new Vector2D(64, 80), placed.Position);
+        Assert.True(placed.Selected);
+        Assert.DoesNotContain(duplicate, map.Things);
+        Assert.True(duplicate.IsDisposed);
+        Assert.Contains(other, map.Things);
+        Assert.Equal(2, map.Things.Count);
+    }
+
+    [Fact]
+    public void PlaceUniqueThingCreatesWhenMissing()
+    {
+        var map = new MapSet();
+
+        Thing placed = map.PlaceUniqueThing(32000, new Vector2D(64, 80));
+
+        Assert.Single(map.Things);
+        Assert.Same(placed, map.Things[0]);
+        Assert.Equal(32000, placed.Type);
+        Assert.Equal(new Vector2D(64, 80), placed.Position);
+        Assert.True(placed.Selected);
+    }
+
+    [Fact]
     public void DisposeMarksAllElementsAndClearsCollections()
     {
         var map = BuildTwoRooms();
