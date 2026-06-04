@@ -381,6 +381,35 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void ModeDescriptorsMatchUdbEditModeMetadata()
+    {
+        SoundPropagationModeDescriptor propagation = SoundPropagationColorSettings.ModeDescriptor;
+        SoundPropagationModeDescriptor environment = SoundEnvironmentModeModel.ModeDescriptor;
+
+        Assert.Equal("Sound Propagation Mode", propagation.DisplayName);
+        Assert.Equal("soundpropagationmode", propagation.SwitchAction);
+        Assert.Equal("SoundPropagationIcon.png", propagation.ButtonImage);
+        Assert.Equal(int.MinValue + 501, propagation.ButtonOrder);
+        Assert.Equal("000_editing", propagation.ButtonGroup);
+        Assert.Empty(propagation.SupportedMapFormats);
+        Assert.True(propagation.UseByDefault);
+        Assert.False(propagation.SafeStartMode);
+        Assert.False(propagation.Volatile);
+        Assert.Equal("gzdb/features/classic_modes/mode_soundpropagation.html", propagation.HelpPath);
+
+        Assert.Equal("Sound Environment Mode", environment.DisplayName);
+        Assert.Equal("soundenvironmentmode", environment.SwitchAction);
+        Assert.Equal("ZDoomSoundEnvironment.png", environment.ButtonImage);
+        Assert.Equal(int.MinValue + 502, environment.ButtonOrder);
+        Assert.Equal("000_editing", environment.ButtonGroup);
+        Assert.Equal([SoundPropagationColorSettings.UniversalMapSetIo], environment.SupportedMapFormats);
+        Assert.True(environment.UseByDefault);
+        Assert.False(environment.SafeStartMode);
+        Assert.False(environment.Volatile);
+        Assert.Equal("gzdb/features/classic_modes/mode_soundenvironment.html", environment.HelpPath);
+    }
+
+    [Fact]
     public void ColorSettingsReadAndWriteUdbPluginKeys()
     {
         var settings = new Dictionary<string, object?>

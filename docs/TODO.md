@@ -1593,6 +1593,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
+  - [x] Add UDB-style Sound Propagation and Sound Environment edit-mode metadata.
   - [x] Add UDB-style Sound Propagation mode action metadata and window command dispatch.
   - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
   - [x] Add UDB-style format-aware linedef sound-blocking toggle model.
@@ -2299,6 +2300,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
+  - [x] Add UDB-style Sound Propagation and Sound Environment edit-mode metadata.
   - [x] Add UDB-style Sound Propagation mode action metadata and window command dispatch.
   - [x] Add UDB-style linedef blocksound toggle behavior for classic and UDMF maps.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.

@@ -44,6 +44,18 @@ public sealed record SoundPropagationActionDescriptor(
     bool AllowMouse,
     bool AllowScroll);
 
+public sealed record SoundPropagationModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    IReadOnlyList<string> SupportedMapFormats,
+    bool UseByDefault,
+    bool SafeStartMode,
+    bool Volatile,
+    string HelpPath);
+
 public sealed record SoundPropagationColorField(
     string Key,
     string Label,
@@ -64,6 +76,19 @@ public sealed record SoundPropagationColorSettings(
     public const string BlockSoundColorKey = "blocksoundcolor";
     public const string ColorConfigurationTitle = "Color Configuration";
     public const string ResetColorsText = "Reset colors";
+    public const string UniversalMapSetIo = "UniversalMapSetIO";
+
+    public static SoundPropagationModeDescriptor ModeDescriptor { get; } = new(
+        "Sound Propagation Mode",
+        "soundpropagationmode",
+        "SoundPropagationIcon.png",
+        int.MinValue + 501,
+        "000_editing",
+        [],
+        UseByDefault: true,
+        SafeStartMode: false,
+        Volatile: false,
+        "gzdb/features/classic_modes/mode_soundpropagation.html");
 
     public static SoundPropagationColorSettings Default { get; } = new(
         0xFF00C000,
@@ -188,6 +213,18 @@ public sealed record SoundEnvironmentModeModel(
     IReadOnlySet<Sector> UnassignedSectors,
     IReadOnlySet<Linedef> BoundaryLinedefs)
 {
+    public static SoundPropagationModeDescriptor ModeDescriptor { get; } = new(
+        "Sound Environment Mode",
+        "soundenvironmentmode",
+        "ZDoomSoundEnvironment.png",
+        int.MinValue + 502,
+        "000_editing",
+        [SoundPropagationColorSettings.UniversalMapSetIo],
+        UseByDefault: true,
+        SafeStartMode: false,
+        Volatile: false,
+        "gzdb/features/classic_modes/mode_soundenvironment.html");
+
     public static SoundPropagationActionDescriptor ModeAction { get; } = new(
         "soundenvironmentmode",
         "Sound environment mode",
