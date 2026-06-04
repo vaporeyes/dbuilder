@@ -44,6 +44,25 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void DelayedRefreshTriggersMatchUdbBuilderPlugLifecycle()
+    {
+        Assert.Equal("UpdateTreeSoon", TagExplorerModel.DelayedRefreshMethod);
+        Assert.Equal("builder_deleteitem", TagExplorerModel.DeleteItemActionName);
+        Assert.Equal(
+            new[]
+            {
+                ("OnPasteEnd", "UpdateTreeSoon", (string?)null),
+                ("OnUndoEnd", "UpdateTreeSoon", (string?)null),
+                ("OnRedoEnd", "UpdateTreeSoon", (string?)null),
+                ("OnEditAccept", "UpdateTreeSoon", (string?)null),
+                ("OnActionEnd", "UpdateTreeSoon", "builder_deleteitem"),
+            },
+            TagExplorerModel.DelayedRefreshTriggers.Select(trigger => (trigger.EventName, trigger.RefreshMethod, trigger.ActionName)));
+        Assert.True(TagExplorerModel.ShouldRefreshAfterAction("builder_deleteitem"));
+        Assert.False(TagExplorerModel.ShouldRefreshAfterAction("builder_splitlinedefs"));
+    }
+
+    [Fact]
     public void ReadSettingsUsesUdbPluginKeysAndClampsIndices()
     {
         var settings = new Dictionary<string, object?>

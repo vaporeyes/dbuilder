@@ -89,6 +89,8 @@ public sealed record TagExplorerTreeRow(
     public bool IsEntry => Entry != null;
 }
 
+public sealed record TagExplorerRefreshTrigger(string EventName, string RefreshMethod, string? ActionName = null);
+
 public static class TagExplorerModel
 {
     public const int NoPolyobjectNumber = int.MinValue;
@@ -114,6 +116,8 @@ public static class TagExplorerModel
     public static readonly string NonUdmfSearchTooltip = SearchHint;
     public const string UdmfNodeTooltip = "Double-click item to edit item's comment\r\nRight-click item to open item's Properties";
     public const string NonUdmfNodeTooltip = "Right-click item to open item's Properties";
+    public const string DelayedRefreshMethod = "UpdateTreeSoon";
+    public const string DeleteItemActionName = "builder_deleteitem";
 
     public static readonly IReadOnlyList<TagExplorerModeOption<TagExplorerDisplayMode>> DisplayModeOptions =
     [
@@ -129,6 +133,18 @@ public static class TagExplorerModel
         new(TagExplorerSortMode.ByTag, "By Tag"),
         new(TagExplorerSortMode.ByAction, "By Action Special"),
     ];
+
+    public static readonly IReadOnlyList<TagExplorerRefreshTrigger> DelayedRefreshTriggers =
+    [
+        new("OnPasteEnd", DelayedRefreshMethod),
+        new("OnUndoEnd", DelayedRefreshMethod),
+        new("OnRedoEnd", DelayedRefreshMethod),
+        new("OnEditAccept", DelayedRefreshMethod),
+        new("OnActionEnd", DelayedRefreshMethod, DeleteItemActionName),
+    ];
+
+    public static bool ShouldRefreshAfterAction(string actionName)
+        => string.Equals(actionName, DeleteItemActionName, StringComparison.Ordinal);
 
     public static IReadOnlyList<TagExplorerEntry> BuildEntries(
         MapSet map,
