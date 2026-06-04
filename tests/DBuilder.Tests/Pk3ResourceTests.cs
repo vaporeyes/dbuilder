@@ -246,6 +246,21 @@ public class Pk3ResourceTests
     }
 
     [Fact]
+    public void Pk3NamespaceLookupsMatchLongTitlesByClassicPrefixLikeUdb()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("textures/LONGNAMEEXTRA.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 30, 31, 32, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.Equal(new byte[] { 30, 31, 32, 255 }, rm.GetWallTexture("LONGNAME")!.Rgba[0..4]);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void Pk3ResourceHonorsConfiguredIgnoredPaths()
     {
         string path = TestArtifacts.BuildPk3(

@@ -548,6 +548,7 @@ internal sealed class WadResourceReader : IResourceReader
 // "<folder>/<BASENAME>" (folder lowercased, basename uppercased), each mapping to a byte-provider.
 internal abstract class FolderResourceReader : IResourceReader
 {
+    private const int ClassicImageNameLength = 8;
     protected readonly Dictionary<string, Func<byte[]>> entries = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Func<byte[]>> files = new(StringComparer.OrdinalIgnoreCase);
     protected readonly List<IResourceReader> nestedReaders = new();
@@ -929,6 +930,11 @@ internal abstract class FolderResourceReader : IResourceReader
         return null;
     }
 
+    private static bool MatchesFolderTitle(string fileTitle, string lookupTitle)
+        => fileTitle.Length > ClassicImageNameLength
+            ? fileTitle.StartsWith(lookupTitle, StringComparison.OrdinalIgnoreCase)
+            : fileTitle.Equals(lookupTitle, StringComparison.OrdinalIgnoreCase);
+
     private byte[]? Find(string name, string[] folders, bool allowPathTitleFallback)
     {
         if (IsPathQualified(name))
@@ -961,7 +967,7 @@ internal abstract class FolderResourceReader : IResourceReader
                 && !directory.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (Path.GetFileNameWithoutExtension(normalized).Equals(title, StringComparison.OrdinalIgnoreCase))
+            if (MatchesFolderTitle(Path.GetFileNameWithoutExtension(normalized), title))
                 return files[path]();
         }
 
