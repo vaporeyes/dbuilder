@@ -169,6 +169,26 @@ public sealed class MapControlCommandTests
         => Assert.Equal("Inserted a new thing.", MapControl.VisualThingInsertedStatusText());
 
     [Theory]
+    [InlineData("Vertex", "Pasted vertex properties.")]
+    [InlineData("Linedef", "Pasted linedef properties.")]
+    [InlineData("Sidedef", "Pasted sidedef properties.")]
+    [InlineData("Sector", "Pasted sector properties.")]
+    [InlineData("Thing", "Pasted thing properties.")]
+    public void VisualPropertiesPasted3DStatusTextMatchesUdbTargetKind(string kindName, string expected)
+    {
+        var kind = Enum.Parse<PastePropertiesElementKind>(kindName);
+
+        Assert.Equal(expected, MapControl.VisualPropertiesPasted3DStatusText([kind]));
+    }
+
+    [Fact]
+    public void VisualPropertiesPasted3DStatusTextMatchesUdbWallTarget()
+        => Assert.Equal(
+            "Pasted linedef and sidedef properties.",
+            MapControl.VisualPropertiesPasted3DStatusText(
+                [PastePropertiesElementKind.Linedef, PastePropertiesElementKind.Sidedef]));
+
+    [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
@@ -550,6 +570,20 @@ public sealed class MapControlCommandTests
         Assert.True(placeStatusIndex > placeIndex);
         Assert.DoesNotContain("moved {things.Count}", body, StringComparison.Ordinal);
         Assert.DoesNotContain("placed {things.Count}", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PasteVisualPropertiesTargetsUsesUdbVisualStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string PasteVisualPropertiesTargets(ISet<string>? enabledKeys = null)", StringComparison.Ordinal);
+        int appliedKindsIndex = body.IndexOf("var appliedKinds = new List<PastePropertiesElementKind>();", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("VisualPropertiesPasted3DStatusText(appliedKinds)", appliedKindsIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(appliedKindsIndex > methodIndex);
+        Assert.True(statusIndex > appliedKindsIndex);
+        Assert.DoesNotContain("Pasted properties to {TargetText(kind, count)}", body, StringComparison.Ordinal);
     }
 
     [Fact]

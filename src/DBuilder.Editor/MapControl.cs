@@ -1043,6 +1043,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         var statuses = new List<string>();
+        var appliedKinds = new List<PastePropertiesElementKind>();
         bool applied = false;
         bool hasWallTargets = targets.Any(hit => hit.Kind == VisualHitKind.Wall);
         EditBegun?.Invoke("Paste visual properties");
@@ -1059,6 +1060,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         enabledKeys);
                     statuses.Add(lines.StatusMessage);
                     applied |= lines.Applied;
+                    if (lines.Applied) appliedKinds.Add(PastePropertiesElementKind.Linedef);
 
                     PastePropertiesApplyResult sides = _pastePropertiesClipboard.ApplySelected(
                         _map,
@@ -1067,6 +1069,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         enabledKeys);
                     statuses.Add(sides.StatusMessage);
                     applied |= sides.Applied;
+                    if (sides.Applied) appliedKinds.Add(PastePropertiesElementKind.Sidedef);
                 }
 
                 foreach (PastePropertiesElementKind kind in targetKinds.Where(kind => kind != PastePropertiesElementKind.Linedef))
@@ -1080,6 +1083,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         enabledKeys);
                     statuses.Add(result.StatusMessage);
                     applied |= result.Applied;
+                    if (result.Applied) appliedKinds.Add(kind);
                 }
 
                 return true;
@@ -1093,9 +1097,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             RequestNextFrameRendering();
         }
 
-        string status = string.Join(" ", statuses.Where(text => !string.IsNullOrWhiteSpace(text)).Distinct(StringComparer.Ordinal));
+        string status = applied
+            ? VisualPropertiesPasted3DStatusText(appliedKinds)
+            : string.Join(" ", statuses.Where(text => !string.IsNullOrWhiteSpace(text)).Distinct(StringComparer.Ordinal));
         Target3DChanged?.Invoke(status);
         return status;
+    }
+
+    public static string VisualPropertiesPasted3DStatusText(IEnumerable<PastePropertiesElementKind> appliedKinds)
+    {
+        var kinds = appliedKinds.Distinct().ToArray();
+        if (kinds.Length == 0) return string.Empty;
+        if (kinds.Contains(PastePropertiesElementKind.Linedef) && kinds.Contains(PastePropertiesElementKind.Sidedef))
+            return "Pasted linedef and sidedef properties.";
+
+        PastePropertiesElementKind kind = kinds.LastOrDefault();
+        return kind switch
+        {
+            PastePropertiesElementKind.Vertex => "Pasted vertex properties.",
+            PastePropertiesElementKind.Linedef => "Pasted linedef properties.",
+            PastePropertiesElementKind.Sidedef => "Pasted sidedef properties.",
+            PastePropertiesElementKind.Sector => "Pasted sector properties.",
+            PastePropertiesElementKind.Thing => "Pasted thing properties.",
+            _ => string.Empty,
+        };
     }
 
     private static PastePropertiesElementKind VisualPropertyKind(VisualHit hit) => hit.Kind switch
