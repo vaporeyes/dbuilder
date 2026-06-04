@@ -84,6 +84,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.sector-color", "OnSectorColor")]
     [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
     [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
+    [InlineData("window.importobjasterrain", "OnImportObjTerrain")]
     [InlineData("window.export-object", "OnExportObject")]
     [InlineData("window.export-image", "OnExportImage")]
     [InlineData("window.exporttoimage", "OnExportImage")]

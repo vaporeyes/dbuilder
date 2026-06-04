@@ -430,6 +430,7 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
+    [InlineData("window.importobjasterrain", "Import OBJ Terrain")]
     [InlineData("window.export-object", "Export Object OBJ")]
     [InlineData("window.export-image", "Export Image PNG")]
     [InlineData("window.exporttoimage", "Export Image PNG")]

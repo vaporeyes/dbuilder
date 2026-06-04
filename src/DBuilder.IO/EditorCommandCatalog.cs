@@ -188,6 +188,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.usdf-dialog-editor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.opendialogeditor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.import-obj-terrain", "Import OBJ Terrain", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.importobjasterrain", "Import OBJ Terrain", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-object", "Export Object OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-image", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.exporttoimage", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),

@@ -1597,6 +1597,7 @@ public partial class MainWindow : Window
             case "window.usdf-dialog-editor": OnUsdfConversations(this, new RoutedEventArgs()); return true;
             case "window.opendialogeditor": OnUsdfConversations(this, new RoutedEventArgs()); return true;
             case "window.import-obj-terrain": OnImportObjTerrain(this, new RoutedEventArgs()); return true;
+            case "window.importobjasterrain": OnImportObjTerrain(this, new RoutedEventArgs()); return true;
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.exporttoimage": OnExportImage(this, new RoutedEventArgs()); return true;
