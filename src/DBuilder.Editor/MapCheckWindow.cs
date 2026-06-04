@@ -101,6 +101,7 @@ public sealed class MapCheckWindow : Window
             UpdateActionButtons();
             UpdateFixButtons();
             UpdateSelectionInfo();
+            UpdateWindowTitle();
         };
         _list.KeyUp += async (_, e) =>
         {
@@ -124,6 +125,7 @@ public sealed class MapCheckWindow : Window
         UpdateFixButtons();
         UpdateActionButtons();
         UpdateSelectionInfo();
+        UpdateWindowTitle();
     }
 
     private static Button ActionButton(string content, bool leading = false) => new()
@@ -254,6 +256,14 @@ public sealed class MapCheckWindow : Window
             : "Select a result to view details. Hold Ctrl to select several results. Hold Shift to select a range.";
     }
 
+    private void UpdateWindowTitle()
+    {
+        Title = MapIssueListModel.WindowTitleText(
+            _model.AllIssues.Count,
+            _model.VisibleIssues.Count,
+            SelectedIssues().Length);
+    }
+
     private void ApplySelectedFix(int index)
     {
         var issue = SelectedIssue;
@@ -368,6 +378,7 @@ public sealed class MapCheckWindow : Window
         UpdateHeader(_model.VisibleIssues);
         UpdateActionButtons();
         UpdateSelectionInfo();
+        UpdateWindowTitle();
     }
 
     private void UpdateHeader(IReadOnlyList<MapIssue> issues)

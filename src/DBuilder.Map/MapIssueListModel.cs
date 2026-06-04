@@ -102,6 +102,13 @@ public sealed class MapIssueListModel
             ? "Map analysis: no issues found."
             : $"Map analysis: {issueCount} {Label(issueCount, "issue")} found.";
 
+    public static string WindowTitleText(int totalCount, int visibleCount, int selectedCount)
+    {
+        int hiddenCount = Math.Max(0, totalCount - visibleCount);
+        string hidden = hiddenCount > 0 ? $", {hiddenCount} hidden" : "";
+        return $"Map Analysis [{totalCount} {Label(totalCount, "result")}{hidden}, {selectedCount} selected]";
+    }
+
     public void ShowAll()
     {
         foreach (var issue in allIssues)

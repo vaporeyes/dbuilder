@@ -725,6 +725,13 @@ public class MapAnalysisTests
     public void MapIssueListModelFormatsAnalysisStatusText(int issueCount, string expected)
         => Assert.Equal(expected, MapIssueListModel.AnalysisStatusText(issueCount));
 
+    [Theory]
+    [InlineData(0, 0, 0, "Map Analysis [0 results, 0 selected]")]
+    [InlineData(1, 1, 1, "Map Analysis [1 result, 1 selected]")]
+    [InlineData(5, 3, 2, "Map Analysis [5 results, 2 hidden, 2 selected]")]
+    public void MapIssueListModelFormatsWindowTitleText(int totalCount, int visibleCount, int selectedCount, string expected)
+        => Assert.Equal(expected, MapIssueListModel.WindowTitleText(totalCount, visibleCount, selectedCount));
+
     [Fact]
     public void DetectsEmptySector()
     {

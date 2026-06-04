@@ -1699,6 +1699,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add map-check window action availability for selection and hidden result state.
   - [x] Add map-check window Ctrl+A support for selecting visible results.
   - [x] Add map-check window selected-result information panel.
+  - [x] Add map-check window title counts for total, hidden, and selected results.
 - [ ] Port all map error checks.
   - [x] Add UDB-style action-driven lower texture checks for floor lower/raise specials.
   - [x] Add UDB-style 3D floor upper and lower texture requirements.
