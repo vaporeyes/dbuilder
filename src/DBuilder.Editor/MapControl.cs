@@ -3196,19 +3196,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         var done = new System.Collections.Generic.HashSet<Sector>();
+        string brightnessStatus = string.Empty;
         foreach (var h in EditTargets3D())
         {
             if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
             if (done.Count == 1) EditBegun?.Invoke("Change brightness");
             s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
+            brightnessStatus = VisualBrightness3DStatusText(s.Brightness);
         }
         if (done.Count == 0) return;
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
+        Target3DChanged?.Invoke(brightnessStatus);
     }
+
+    public static string VisualBrightness3DStatusText(int brightness)
+        => "Changed sector brightness to " + brightness + ".";
 
     private void MatchBrightness3D()
     {

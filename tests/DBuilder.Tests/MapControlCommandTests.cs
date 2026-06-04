@@ -100,6 +100,13 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualAutoAlign3DStatusText(alignX, alignY, selected));
 
     [Theory]
+    [InlineData(0, "Changed sector brightness to 0.")]
+    [InlineData(168, "Changed sector brightness to 168.")]
+    [InlineData(255, "Changed sector brightness to 255.")]
+    public void VisualBrightness3DStatusTextMatchesUdb(int brightness, string expected)
+        => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(brightness));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -479,10 +486,14 @@ public sealed class MapControlCommandTests
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(int delta)", StringComparison.Ordinal);
         int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;", methodIndex, StringComparison.Ordinal);
         int sectorWriteIndex = body.IndexOf("s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);", methodIndex, StringComparison.Ordinal);
+        int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(brightnessStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(filterIndex > methodIndex);
         Assert.True(sectorWriteIndex > filterIndex);
+        Assert.True(statusAssignmentIndex > sectorWriteIndex);
+        Assert.True(statusIndex > statusAssignmentIndex);
     }
 
     [Fact]
