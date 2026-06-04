@@ -1186,16 +1186,21 @@ class SpacedStateLabelZThing : Actor
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameWithoutRequiredSemicolon()
+    public void RejectsZScriptStateFrameWithoutRequiredSemicolon()
     {
         const string zscript = @"
 class MissingFrameSemicolonZThing : Actor
 {
     States { Spawn: MISS A -1 stop }
+}
+class ValidAfterMissingFrameSemicolonZThing : Actor
+{
+    States { Spawn: VAFS A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingFrameSemicolonZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterMissingFrameSemicolonZThing", actor.ClassName);
+        Assert.Equal("VAFSA0", actor.EditorSprite);
     }
 
     [Fact]
@@ -1227,6 +1232,24 @@ class HoldSpriteStateZThing : Actor
 
         Assert.Equal("HoldSpriteStateZThing", actor.ClassName);
         Assert.Equal("HOLDA0", actor.EditorSprite);
+    }
+
+    [Fact]
+    public void RejectsZScriptStateFlowWithoutSemicolonLikeUdb()
+    {
+        const string zscript = @"
+class MissingFlowSemicolonZThing : Actor
+{
+    States { Spawn: Loop }
+}
+class ValidAfterFlowZThing : Actor
+{
+    States { Spawn: FLOW A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterFlowZThing", actor.ClassName);
+        Assert.Equal("FLOWA0", actor.EditorSprite);
     }
 
     [Fact]

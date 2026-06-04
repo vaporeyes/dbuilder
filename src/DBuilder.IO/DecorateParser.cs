@@ -1433,6 +1433,11 @@ public static class DecorateParser
                 SkipRemainingActorBody(t, ref i, depth);
                 return false;
             }
+            else if (zscriptBody && inStates && currentState != null && IsZScriptStateControlFlow(lw) && !NextTokenIsSemicolon(t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
+            }
             else if (inStates && tk.Kind == Kind.Word && TryReadStateLabel(t, tk.Text, ref i, out var stateLabel))
             {
                 currentState = stateLabel;
@@ -1549,6 +1554,9 @@ public static class DecorateParser
             && t[colonIndex].Text == ":"
             && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
     }
+
+    private static bool IsZScriptStateControlFlow(string value)
+        => value is "loop" or "wait" or "fail" or "stop";
 
     private static bool TryReadStateLabel(List<Tok> t, string first, ref int i, out string stateLabel)
     {
