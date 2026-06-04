@@ -101,4 +101,19 @@ public sealed class MapControlCommandTests
         Assert.True(flatOffsetIndex > flatTargetsIndex);
         Assert.Contains("if (_mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void VisualTextureOffsetClipboardUsesLocalSidedefOffsetsWhenConfigured()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int copyIndex = body.IndexOf("private void CopyTextureOffsets3D()", StringComparison.Ordinal);
+        int pasteIndex = body.IndexOf("private void PasteTextureOffsets3D()", StringComparison.Ordinal);
+
+        Assert.True(copyIndex >= 0);
+        Assert.True(pasteIndex >= 0);
+        Assert.Contains("_mapFormat == MapFormat.Udmf && _gameConfig?.UseLocalSidedefTextureOffsets == true", body, StringComparison.Ordinal);
+        Assert.Contains("VisualSidedefTextureOffsets.Copy(target.Side, target.Part, localOffsets)", body, StringComparison.Ordinal);
+        Assert.Contains("localOffsets ? TextureOffsetPartTargets3D() : new System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)>()", body, StringComparison.Ordinal);
+        Assert.Contains("VisualSidedefTextureOffsets.Paste(side, part, offsets, localOffsets)", body, StringComparison.Ordinal);
+    }
 }

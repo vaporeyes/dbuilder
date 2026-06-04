@@ -2424,6 +2424,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return h.Front ? h.Line.Front : h.Line.Back;
     }
 
+    private (Sidedef Side, SidedefPart Part)? TargetSidedefPart3D()
+    {
+        var h = _target3D;
+        if (h == null || h.Kind != VisualHitKind.Wall || h.Line == null) return null;
+        Sidedef? side = h.Front ? h.Line.Front : h.Line.Back;
+        return side == null ? null : (side, h.Part);
+    }
+
     private System.Collections.Generic.List<Sidedef> TextureOffsetTargets3D()
     {
         var targets = new System.Collections.Generic.List<Sidedef>();
@@ -2433,6 +2441,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (hit.Kind != VisualHitKind.Wall || hit.Line == null) continue;
             Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
             if (side != null && seen.Add(side)) targets.Add(side);
+        }
+
+        return targets;
+    }
+
+    private System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)> TextureOffsetPartTargets3D()
+    {
+        var targets = new System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)>();
+        var seen = new System.Collections.Generic.HashSet<(Sidedef Side, SidedefPart Part)>();
+        foreach (VisualHit hit in EditTargets3D())
+        {
+            if (hit.Kind != VisualHitKind.Wall || hit.Line == null) continue;
+            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+            if (side != null && seen.Add((side, hit.Part))) targets.Add((side, hit.Part));
         }
 
         return targets;
@@ -2584,28 +2606,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void CopyTextureOffsets3D()
     {
-        if (TargetSidedef3D() is not { } side) { Target3DChanged?.Invoke("aim at a wall to copy offsets"); return; }
-        _texOffsetClipboard3D = (side.OffsetX, side.OffsetY);
-        Target3DChanged?.Invoke($"copied offsets {side.OffsetX}, {side.OffsetY}");
+        if (TargetSidedefPart3D() is not { } target) { Target3DChanged?.Invoke("aim at a wall to copy offsets"); return; }
+        bool localOffsets = _mapFormat == MapFormat.Udmf && _gameConfig?.UseLocalSidedefTextureOffsets == true;
+        _texOffsetClipboard3D = VisualSidedefTextureOffsets.Copy(target.Side, target.Part, localOffsets);
+        Target3DChanged?.Invoke($"copied offsets {_texOffsetClipboard3D.Value.X}, {_texOffsetClipboard3D.Value.Y}");
     }
 
     private void PasteTextureOffsets3D()
     {
         if (_texOffsetClipboard3D is not { } offsets) { Target3DChanged?.Invoke("no copied offsets"); return; }
-        var targets = TextureOffsetTargets3D();
-        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to paste offsets"); return; }
+        bool localOffsets = _mapFormat == MapFormat.Udmf && _gameConfig?.UseLocalSidedefTextureOffsets == true;
+        var partTargets = localOffsets ? TextureOffsetPartTargets3D() : new System.Collections.Generic.List<(Sidedef Side, SidedefPart Part)>();
+        var sideTargets = localOffsets ? new System.Collections.Generic.List<Sidedef>() : TextureOffsetTargets3D();
+        int targetCount = localOffsets ? partTargets.Count : sideTargets.Count;
+        if (targetCount == 0) { Target3DChanged?.Invoke("aim at a wall to paste offsets"); return; }
 
         EditBegun?.Invoke("Paste offsets");
-        foreach (Sidedef side in targets)
-        {
-            side.OffsetX = offsets.X;
-            side.OffsetY = offsets.Y;
-        }
+        foreach ((Sidedef side, SidedefPart part) in partTargets)
+            VisualSidedefTextureOffsets.Paste(side, part, offsets, localOffsets);
+        foreach (Sidedef side in sideTargets)
+            VisualSidedefTextureOffsets.Paste(side, SidedefPart.None, offsets, useLocalOffsets: false);
+
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"pasted offsets to {targets.Count} wall{(targets.Count == 1 ? "" : "s")}");
+        Target3DChanged?.Invoke($"pasted offsets to {targetCount} wall{(targetCount == 1 ? "" : "s")}");
     }
 
     private void FitSelectedVisualTextures3D()
