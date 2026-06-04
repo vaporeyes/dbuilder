@@ -117,6 +117,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesEnhancedRenderingEffectsPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("EnhancedRenderingEffects", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Enhanced rendering effects\", s.EnhancedRenderingEffects)", body, StringComparison.Ordinal);
+        Assert.Contains("EnhancedRenderingEffects = _enhancedRenderingEffects.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.EnhancedRenderingEffects = dlg.EnhancedRenderingEffects;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetEnhancedRenderingEffects(_settings.EnhancedRenderingEffects);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);

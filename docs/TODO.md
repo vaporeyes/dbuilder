@@ -80,6 +80,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show normalized numeric preference defaults in the Settings dialog.
   - [x] Expose alpha-based texture highlighting in the Settings dialog.
   - [x] Expose map highlight toggling in the Settings dialog.
+  - [x] Expose enhanced rendering effects in the Settings dialog.
   - [x] Expose classic rendering in the Settings dialog.
   - [x] Expose fog rendering in the Settings dialog.
   - [x] Expose sky rendering in the Settings dialog.
