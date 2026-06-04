@@ -338,9 +338,39 @@ public static class ConfiguredTagSearch
     }
 
     public static int NextFreeTag(MapSet map, GameConfiguration? config, int maxTag = int.MaxValue)
+        => NextFreeTag(map, config, Array.Empty<int>(), maxTag);
+
+    public static int NextFreeTag(MapSet map, GameConfiguration? config, IEnumerable<int> moreUsedTags, int maxTag = int.MaxValue)
+    {
+        var used = CollectUsedTagsForAllocation(map, config);
+        foreach (int tag in moreUsedTags)
+            if (tag > 0) used.Add(tag);
+
+        for (int tag = 1; tag <= maxTag; tag++)
+            if (!used.Contains(tag)) return tag;
+
+        return 0;
+    }
+
+    public static List<int> NextFreeTags(MapSet map, GameConfiguration? config, int count, int maxTag = int.MaxValue)
+    {
+        var result = new List<int>();
+        if (count <= 0) return result;
+
+        var used = CollectUsedTagsForAllocation(map, config);
+        for (int tag = 1; tag <= maxTag && result.Count < count; tag++)
+        {
+            if (used.Contains(tag)) continue;
+            result.Add(tag);
+            used.Add(tag);
+        }
+
+        return result;
+    }
+
+    private static HashSet<int> CollectUsedTagsForAllocation(MapSet map, GameConfiguration? config)
     {
         var used = new HashSet<int>();
-
         foreach (var sector in map.Sectors)
             foreach (int tag in MapElementTags.PositiveTags(sector)) used.Add(tag);
 
@@ -368,10 +398,7 @@ public static class ConfiguredTagSearch
                 foreach (int tag in PositiveActionArgTags(line.Action, line.Args, config)) used.Add(tag);
         }
 
-        for (int tag = 1; tag <= maxTag; tag++)
-            if (!used.Contains(tag)) return tag;
-
-        return 0;
+        return used;
     }
 
     private static void Add(Dictionary<int, int> counts, int tag)

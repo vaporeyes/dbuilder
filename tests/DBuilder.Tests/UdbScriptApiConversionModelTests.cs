@@ -1390,6 +1390,39 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperTagAllocationSkipsConfiguredActionArgsLikeUdbScript()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "UniversalMapSetIO";
+            linedeftypes
+            {
+                tags
+                {
+                    80
+                    {
+                        title = "Tag args";
+                        arg0 { type = 13; }
+                        arg1 { type = 14; }
+                    }
+                }
+            }
+            """);
+        var map = new MapSet();
+        map.AddThing(new Vector2D(32, 32), 3001).Tag = 1;
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Action = 80;
+        line.Args[0] = 2;
+        var thing = map.AddThing(new Vector2D(48, 48), 3002);
+        thing.Action = 80;
+        thing.Args[1] = 3;
+        var wrapper = new UdbScriptMapWrapper(map, config: config);
+
+        Assert.Equal(4, wrapper.getNewTag());
+        Assert.Equal(5, wrapper.getNewTag(new[] { 4 }));
+        Assert.Equal(new[] { 4, 5, 6 }, wrapper.getMultipleNewTags(3));
+    }
+
+    [Fact]
     public void MapWrapperExposesNearestElementHelpers()
     {
         var map = new MapSet();

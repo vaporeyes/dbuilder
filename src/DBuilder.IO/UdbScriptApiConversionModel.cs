@@ -3132,6 +3132,7 @@ public sealed class UdbScriptMapWrapper
     private readonly object? highlightedObject;
     private readonly MapSet map;
     private readonly MapFormat mapFormat;
+    private readonly GameConfiguration? config;
     private readonly Vector2D mouseMapPosition;
     private readonly VisualCameraPose visualCamera;
 
@@ -3141,7 +3142,8 @@ public sealed class UdbScriptMapWrapper
         object? highlightedObject = null,
         MapFormat mapFormat = MapFormat.Doom,
         Vector2D? mousePosition = null,
-        VisualCameraPose? visualCamera = null)
+        VisualCameraPose? visualCamera = null,
+        GameConfiguration? config = null)
     {
         this.map = map;
         this.grid = grid ?? new GridSetup();
@@ -3149,6 +3151,7 @@ public sealed class UdbScriptMapWrapper
         this.mapFormat = mapFormat;
         mouseMapPosition = mousePosition ?? new Vector2D();
         this.visualCamera = visualCamera ?? new VisualCameraPose(new Vector3D(), 0.0, 0.0);
+        this.config = config;
     }
 
     public MapSet Map
@@ -3225,12 +3228,18 @@ public sealed class UdbScriptMapWrapper
     public int getNewTag(int[]? usedtags = null)
     {
         ThrowIfDisposed("getNewTag");
+        if (config != null)
+            return usedtags == null
+                ? ConfiguredTagSearch.NextFreeTag(map, config)
+                : ConfiguredTagSearch.NextFreeTag(map, config, usedtags);
+
         return usedtags == null ? map.GetNewTag() : map.GetNewTag(usedtags);
     }
 
     public int[] getMultipleNewTags(int count)
     {
         ThrowIfDisposed("getMultipleNewTags");
+        if (config != null) return ConfiguredTagSearch.NextFreeTags(map, config, count).ToArray();
         return map.GetMultipleNewTags(count).ToArray();
     }
 
