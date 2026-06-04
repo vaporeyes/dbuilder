@@ -4537,7 +4537,7 @@ public partial class MainWindow : Window
     private void OnCheckMap(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var issues = MapAnalysis.Check(_map, BuildCheckContext());
+        var issues = MapAnalysis.Check(_map, BuildCheckContext(), _settings.EnabledMapErrorCheckers());
         var win = new MapCheckWindow(issues);
         win.IssueActivated += iss =>
         {

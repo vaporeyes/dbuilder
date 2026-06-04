@@ -151,6 +151,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void CheckMapUsesPersistedUdbCheckerSelection()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("MapAnalysis.Check(_map, BuildCheckContext(), _settings.EnabledMapErrorCheckers())", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AutomapMenuAvailabilityReflectsChildAvailability()
     {
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
