@@ -482,8 +482,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Discover and load maps from nested PK3 archives.
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.
   - [x] Honor configured ignored directory names and ignored extensions when scanning PK3 resources.
+  - [x] Skip files directly inside configured ignored PK3 directories like UDB.
 - [ ] Port directory reader behavior.
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
+  - [x] Skip files directly inside configured ignored folder-resource directories like UDB.
 - [ ] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.
   - [x] Use shared PK3-family archive classification for data location type inference.

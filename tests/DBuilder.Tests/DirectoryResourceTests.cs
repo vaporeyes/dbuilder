@@ -142,6 +142,7 @@ public class DirectoryResourceTests
         try
         {
             Directory.CreateDirectory(Path.Combine(dir, ".git", "textures"));
+            File.WriteAllText(Path.Combine(dir, ".git", "HIDDEN.txt"), "hidden");
             File.WriteAllBytes(Path.Combine(dir, ".git", "textures", "HIDDEN.png"), TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 1, 2, 3, 255)));
             File.WriteAllBytes(Path.Combine(dir, "textures", "SKIP.ignore"), TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 4, 5, 6, 255)));
             var config = GameConfiguration.FromText("""
@@ -153,6 +154,7 @@ public class DirectoryResourceTests
             rm.AddResource(dir);
 
             Assert.Null(rm.GetWallTexture("HIDDEN"));
+            Assert.Null(rm.GetTextResource(".git/HIDDEN.txt"));
             Assert.Null(rm.GetWallTexture("SKIP"));
             Assert.NotNull(rm.GetWallTexture("DWALL"));
         }

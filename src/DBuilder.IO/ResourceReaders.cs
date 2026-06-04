@@ -552,7 +552,9 @@ internal abstract class FolderResourceReader : IResourceReader
         foreach (string ignored in config.IgnoredDirectories)
         {
             string prefix = ignored.Replace('\\', '/').TrimEnd('/');
-            if (normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) return true;
+            if (normalized.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                || normalized.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase))
+                return true;
         }
 
         return false;

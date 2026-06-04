@@ -200,6 +200,7 @@ public class Pk3ResourceTests
         string path = TestArtifacts.BuildPk3(
             ("textures/KEEP.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
             (".git/textures/HIDDEN.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))),
+            (".git/HIDDEN.txt", System.Text.Encoding.ASCII.GetBytes("hidden")),
             ("textures/SKIP.ignore", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 30, 31, 32, 255))));
         try
         {
@@ -213,6 +214,7 @@ public class Pk3ResourceTests
 
             Assert.NotNull(rm.GetWallTexture("KEEP"));
             Assert.Null(rm.GetWallTexture("HIDDEN"));
+            Assert.Null(rm.GetTextResource(".git/HIDDEN.txt"));
             Assert.Null(rm.GetWallTexture("SKIP"));
         }
         finally { File.Delete(path); }
