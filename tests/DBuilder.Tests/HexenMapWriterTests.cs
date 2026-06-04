@@ -229,6 +229,23 @@ public class HexenMapWriterTests
     }
 
     [Fact]
+    public void MissingSidedefSectorThrowsLikeUdb()
+    {
+        var map = new MapSet();
+        var v0 = new Vertex(new Vector2D(0, 0));
+        var v1 = new Vertex(new Vector2D(10, 0));
+        map.Vertices.Add(v0);
+        map.Vertices.Add(v1);
+        var line = new Linedef(v0, v1);
+        var side = new Sidedef(line, true);
+        line.Front = side;
+        map.Linedefs.Add(line);
+        map.Sidedefs.Add(side);
+
+        Assert.Throws<InvalidDataException>(() => HexenMapWriter.WriteMap(map, new WAD(new MemoryStream()), "MAP01", 0));
+    }
+
+    [Fact]
     public void ArgsZeroByDefaultWriteAsZero()
     {
         // Build a map without going through the loader so arg bytes are at their default zero.
