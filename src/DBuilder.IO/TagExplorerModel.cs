@@ -415,7 +415,7 @@ public static class TagExplorerModel
                     thing.Action,
                     polyobjectNumber,
                     Comment(thing, isUdmf),
-                    "Thing",
+                    ThingTitle(thing.Type, config),
                     ThingCategory(thing, config),
                     LinedefActionTitle(thing.Action, config)), commentSearch, commentsOnly, displayMode);
             }
@@ -430,7 +430,7 @@ public static class TagExplorerModel
                     thing.Action,
                     polyobjectNumber,
                     "",
-                    "Thing"), commentSearch, commentsOnly, displayMode);
+                    ThingTitle(thing.Type, config)), commentSearch, commentsOnly, displayMode);
             }
         }
     }
@@ -648,6 +648,9 @@ public static class TagExplorerModel
 
         return info.Category.Length > 0 ? info.Category : "UNKNOWN";
     }
+
+    private static string ThingTitle(int type, GameConfiguration? config)
+        => config?.GetThing(type)?.Title ?? "Thing";
 
     private static string LinedefActionTitle(int action, GameConfiguration? config)
         => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "";

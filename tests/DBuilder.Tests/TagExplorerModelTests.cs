@@ -249,9 +249,9 @@ public sealed class TagExplorerModelTests
 
         Assert.Equal("Things:", things.Title);
         Assert.Equal(new[] { "Monsters", "UNKNOWN", "Decorations" }, things.Children.Select(node => node.Title));
-        Assert.Equal("0: Thing, Tag 7", things.Children[0].Children[0].Title);
+        Assert.Equal("0: Imp, Tag 7", things.Children[0].Children[0].Title);
         Assert.Equal("1: Thing, Tag 9", things.Children[1].Children[0].Title);
-        Assert.Equal("2: Thing, Tag 11", things.Children[2].Children[0].Title);
+        Assert.Equal("2: Column, Tag 11", things.Children[2].Children[0].Title);
     }
 
     [Fact]
