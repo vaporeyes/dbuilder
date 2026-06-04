@@ -3226,6 +3226,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (hit.Thing is { } selected && seen.Add(selected))
                 result.Add(selected);
 
+        if (result.Count == 0 && _target3D?.Thing is { } target)
+            result.Add(target);
+
         return result;
     }
 

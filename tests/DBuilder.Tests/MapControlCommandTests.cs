@@ -158,4 +158,17 @@ public sealed class MapControlCommandTests
         Assert.True(helperIndex > methodIndex);
         Assert.Contains("SectorFlatAlignment.AlignToClosestLine", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SelectedThings3DUsesHighlightedThingFallback()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private System.Collections.Generic.List<Thing> SelectedThings3D()", StringComparison.Ordinal);
+        int loopIndex = body.IndexOf("foreach (VisualHit hit in _sel3D)", methodIndex, StringComparison.Ordinal);
+        int fallbackIndex = body.IndexOf("if (result.Count == 0 && _target3D?.Thing is { } target)", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(loopIndex > methodIndex);
+        Assert.True(fallbackIndex > loopIndex);
+    }
 }
