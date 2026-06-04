@@ -841,6 +841,28 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ScalarThingsFilterEntriesUseDefaultFilterLikeUdb()
+    {
+        const string cfg = """
+            thingsfilters
+            {
+                filter0 = "Ignored scalar";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var filter = Assert.Single(gc.ThingsFilters);
+        Assert.Equal("filter0", filter.Key);
+        Assert.Equal("Unnamed filter", filter.Name);
+        Assert.Equal("", filter.Category);
+        Assert.False(filter.Invert);
+        Assert.Equal(0, filter.DisplayMode);
+        Assert.Equal(-1, filter.ThingType);
+        Assert.Equal(new[] { -1, -1, -1, -1, -1 }, filter.ThingArgs);
+    }
+
+    [Fact]
     public void ParsesTextureDefaultsAndDefaultSkyMappings()
     {
         const string cfg = """

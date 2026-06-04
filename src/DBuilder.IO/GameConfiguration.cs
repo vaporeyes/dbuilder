@@ -2234,7 +2234,8 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in block)
         {
             string key = e.Key.ToString() ?? "";
-            if (key.Length == 0 || e.Value is not IDictionary filter) continue;
+            if (key.Length == 0) continue;
+            IDictionary filter = e.Value as IDictionary ?? new Hashtable();
 
             var args = new int[5];
             for (int i = 0; i < args.Length; i++)
