@@ -1404,6 +1404,11 @@ public static class DecorateParser
                 SkipRemainingActorBody(t, ref i, depth);
                 return false;
             }
+            else if (zscriptBody && inStates && currentState != null && IsMixedZScriptPlaceholderSpriteName(tk.Text, t, i))
+            {
+                SkipRemainingActorBody(t, ref i, depth);
+                return false;
+            }
             else if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateFrameLetters(tk.Text, t, i))
             {
                 SkipRemainingActorBody(t, ref i, depth);
@@ -1637,6 +1642,16 @@ public static class DecorateParser
         && !LooksLikeStateFrameLetters(t[frameIndex].Text)
         && frameIndex + 1 < t.Count
         && (t[frameIndex + 1].Kind == Kind.Word || t[frameIndex + 1].Text == ";");
+
+    private static bool IsMixedZScriptPlaceholderSpriteName(string spriteName, List<Tok> t, int frameIndex)
+        => spriteName.Length == 4
+        && spriteName.Contains('-', StringComparison.Ordinal)
+        && spriteName.Contains('#', StringComparison.Ordinal)
+        && frameIndex < t.Count
+        && t[frameIndex].Kind is Kind.Word or Kind.Str
+        && LooksLikeStateFrameLetters(t[frameIndex].Text)
+        && frameIndex + 1 < t.Count
+        && HasValidZScriptStateFrameDuration(t, frameIndex + 1);
 
     private static StateSpriteCandidate BuildSpriteCandidate(string spriteName, List<Tok> t, int frameIndex)
     {

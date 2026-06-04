@@ -1410,6 +1410,24 @@ class InvalidStateSpriteNameZThing : Actor
     }
 
     [Fact]
+    public void RejectsMixedZScriptPlaceholderSpriteNamesLikeUdb()
+    {
+        const string zscript = @"
+class MixedPlaceholderSpriteNameZThing : Actor
+{
+    States { Spawn: --## A -1; Stop; }
+}
+class ValidAfterMixedPlaceholderSpriteNameZThing : Actor
+{
+    States { Spawn: VMPS A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterMixedPlaceholderSpriteNameZThing", actor.ClassName);
+        Assert.Equal("VMPSA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void RejectsZScriptStateFrameTokensWithInvalidFrameLetters()
     {
         const string zscript = @"
