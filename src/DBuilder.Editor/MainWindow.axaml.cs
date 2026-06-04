@@ -3595,11 +3595,12 @@ public partial class MainWindow : Window
             CurrentVisplaneViewRectangle(),
             currentQueuedPoints: 0,
             targetQueuedPoints: 1024);
-        SetStatus(VisplaneExplorerInterfaceModel.ReadyStatus(
+        string readyStatus = VisplaneExplorerInterfaceModel.ReadyStatus(
             scan.Tiles.Count,
             queued.Count,
             _settings.VisplaneExplorerSettings.SelectedStat,
-            _settings.VisplaneExplorerSettings));
+            _settings.VisplaneExplorerSettings);
+        SetStatus($"{readyStatus} {scan.Progress(queued.Count).FormatStatus()}");
         MapView.Focus();
     }
 
