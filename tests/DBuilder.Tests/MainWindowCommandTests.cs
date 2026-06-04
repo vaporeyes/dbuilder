@@ -191,6 +191,10 @@ public sealed class MainWindowCommandTests
         Assert.Contains("e.Key == Key.A && HasCopyModifier(e.KeyModifiers)", code, StringComparison.Ordinal);
         Assert.Contains("SelectAllVisibleResults();", code, StringComparison.Ordinal);
         Assert.Contains("_model.AllVisibleIssues().ToHashSet();", code, StringComparison.Ordinal);
+        Assert.Contains("UpdateSelectionInfo();", code, StringComparison.Ordinal);
+        Assert.Contains("All results are hidden. Use Show All to restore them.", code, StringComparison.Ordinal);
+        Assert.Contains("Select a result to view details. Hold Ctrl to select several results. Hold Shift to select a range.", code, StringComparison.Ordinal);
+        Assert.Contains("\" Fixes: \" + string.Join(\", \", issue.Fixes.Take(3).Select(fix => fix.Label)) + \".\"", code, StringComparison.Ordinal);
     }
 
     [Fact]

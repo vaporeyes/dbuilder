@@ -16,6 +16,7 @@ public sealed class MapCheckWindow : Window
 {
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
+    private readonly TextBlock _selectionInfo = new();
     private readonly List<ListBoxItem> _rows = new();
     private readonly Button _ignoreSelected;
     private readonly Button _showAll;
@@ -54,6 +55,9 @@ public sealed class MapCheckWindow : Window
         _header.Margin = new Avalonia.Thickness(10, 8);
         _header.TextWrapping = TextWrapping.Wrap;
         UpdateHeader(_model.VisibleIssues);
+        _selectionInfo.Margin = new Avalonia.Thickness(10, 0, 10, 8);
+        _selectionInfo.Foreground = Brushes.LightGray;
+        _selectionInfo.TextWrapping = TextWrapping.Wrap;
 
         _ignoreSelected = ActionButton("Ignore Selected", leading: true);
         _ignoreSelected.Click += (_, _) => IgnoreSelected();
@@ -75,6 +79,7 @@ public sealed class MapCheckWindow : Window
 
         var header = new StackPanel();
         header.Children.Add(_header);
+        header.Children.Add(_selectionInfo);
         if (checkerSelection is not null)
             header.Children.Add(CheckerSelectionPanel(checkerSelection, runChecks));
         header.Children.Add(new StackPanel
@@ -95,6 +100,7 @@ public sealed class MapCheckWindow : Window
             if (_list.SelectedItem is ListBoxItem { Tag: MapIssue mi }) IssueActivated?.Invoke(mi);
             UpdateActionButtons();
             UpdateFixButtons();
+            UpdateSelectionInfo();
         };
         _list.KeyUp += async (_, e) =>
         {
@@ -117,6 +123,7 @@ public sealed class MapCheckWindow : Window
         Content = root;
         UpdateFixButtons();
         UpdateActionButtons();
+        UpdateSelectionInfo();
     }
 
     private static Button ActionButton(string content, bool leading = false) => new()
@@ -228,6 +235,23 @@ public sealed class MapCheckWindow : Window
         _selectType.IsEnabled = hasSelection;
         _showOnlyType.IsEnabled = hasSelection;
         _showAll.IsEnabled = hasHidden;
+    }
+
+    private void UpdateSelectionInfo()
+    {
+        var issue = SelectedIssue;
+        if (issue is not null)
+        {
+            string fixes = issue.Fixes.Count == 0
+                ? ""
+                : " Fixes: " + string.Join(", ", issue.Fixes.Take(3).Select(fix => fix.Label)) + ".";
+            _selectionInfo.Text = issue.Message + fixes;
+            return;
+        }
+
+        _selectionInfo.Text = _model.AllIssues.Count > 0 && _model.VisibleIssues.Count == 0
+            ? "All results are hidden. Use Show All to restore them."
+            : "Select a result to view details. Hold Ctrl to select several results. Hold Shift to select a range.";
     }
 
     private void ApplySelectedFix(int index)
@@ -343,6 +367,7 @@ public sealed class MapCheckWindow : Window
         _list.ItemsSource = _rows;
         UpdateHeader(_model.VisibleIssues);
         UpdateActionButtons();
+        UpdateSelectionInfo();
     }
 
     private void UpdateHeader(IReadOnlyList<MapIssue> issues)
