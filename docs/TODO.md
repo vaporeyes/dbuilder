@@ -943,6 +943,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse map lump script configuration names with UDB-style scalar value conversion.
   - [x] Parse and order flag translations like UDB.
   - [x] Keep configured empty enum lists like UDB.
+  - [x] Sort linedef activation metadata like UDB.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

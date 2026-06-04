@@ -1736,6 +1736,7 @@ ID # = 31005
         var gc = GameConfiguration.FromText(cfg);
 
         Assert.Equal(3, gc.LinedefActivations.Count);
+        Assert.Equal(new[] { "repeatspecial", "playercross", "1024" }, gc.LinedefActivations.Select(a => a.Key));
         var use = gc.LinedefActivations.Single(a => a.Key == "1024");
         Assert.Equal(1024, use.Index);
         Assert.Equal("Player presses Use", use.Title);

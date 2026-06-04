@@ -2475,6 +2475,8 @@ public sealed class GameConfiguration
                     true));
             }
         }
+
+        linedefActivations.Sort((left, right) => left.Index.CompareTo(right.Index));
     }
 
     private static int ParseActivationIndex(string key)
