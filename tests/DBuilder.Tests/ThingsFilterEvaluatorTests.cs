@@ -274,7 +274,7 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
-    public void NormalizesDisplayModeToUdbRange()
+    public void ConfigurationPreservesDisplayModeButDraftNormalizesToUiRange()
     {
         var config = GameConfiguration.FromText("""
             thingsfilters
@@ -292,8 +292,8 @@ public class ThingsFilterEvaluatorTests
             }
             """);
 
-        Assert.Equal(0, config.ThingsFilters[0].DisplayMode);
-        Assert.Equal(2, config.ThingsFilters[1].DisplayMode);
+        Assert.Equal(-20, config.ThingsFilters[0].DisplayMode);
+        Assert.Equal(20, config.ThingsFilters[1].DisplayMode);
 
         var draft = new ThingsFilterDraft { DisplayMode = 20, ThingType = 3001 };
         Assert.Equal(2, draft.ToInfo("filter0").DisplayMode);
