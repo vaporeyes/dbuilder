@@ -7,6 +7,9 @@ namespace DBuilder.IO;
 
 public static class GridSetupDialogModel
 {
+    private const double DegreesPerRadian = 180.0 / Math.PI;
+    private const double RadiansPerDegree = Math.PI / 180.0;
+
     public static double ParseGridSize(string? text, double fallbackSize)
     {
         double size = ParseDouble(text, fallbackSize);
@@ -26,6 +29,15 @@ public static class GridSetupDialogModel
 
     public static string FormatBackgroundScalePercent(double scale)
         => (GridSetup.ClampBackgroundScale(scale) * 100.0).ToString("0.###", CultureInfo.InvariantCulture);
+
+    public static string FormatRotationDegrees(double radians)
+        => (double.IsFinite(radians) ? radians * DegreesPerRadian : 0.0).ToString("0.###", CultureInfo.InvariantCulture);
+
+    public static double ParseRotationDegrees(string? text, double fallbackRadians)
+    {
+        double degrees = ParseDouble(text, double.NaN);
+        return double.IsFinite(degrees) ? degrees * RadiansPerDegree : fallbackRadians;
+    }
 
     public static double ParseBackgroundScalePercent(string? text, double fallbackScale)
     {

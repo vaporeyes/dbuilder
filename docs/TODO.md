@@ -1135,6 +1135,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style show background image toggle.
   - [x] Disable background controls when the UDB-style show-background toggle is off.
   - [x] Add tested dialog model parsing for grid size and transform fields.
+  - [x] Show grid rotation in degrees while preserving radians in map options.
 - [x] Port center-on-coordinates dialog.
 - [x] Port error/check results dialog.
 - [x] Port exception dialog.

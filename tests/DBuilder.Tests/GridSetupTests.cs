@@ -133,6 +133,25 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void DialogModelFormatsAndParsesRotationAsDegrees()
+    {
+        Assert.Equal("90", GridSetupDialogModel.FormatRotationDegrees(Math.PI / 2.0));
+        Assert.Equal("45", GridSetupDialogModel.FormatRotationDegrees(Math.PI / 4.0));
+        Assert.Equal(Math.PI / 2.0, GridSetupDialogModel.ParseRotationDegrees("90", 0.0), 1e-12);
+        Assert.Equal(Math.PI / 4.0, GridSetupDialogModel.ParseRotationDegrees("45", 0.0), 1e-12);
+        Assert.Equal(0.25, GridSetupDialogModel.ParseRotationDegrees("not a number", 0.25));
+    }
+
+    [Fact]
+    public void GridSetupDialogShowsRotationInDegrees()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/GridSetupDialog.cs"));
+
+        Assert.Contains("AddField(\"Rotation degrees\", GridSetupDialogModel.FormatRotationDegrees(grid.GridRotate))", body, StringComparison.Ordinal);
+        Assert.Contains("ResultRotation = GridSetupDialogModel.ParseRotationDegrees(_rotation.Text, ResultRotation);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DialogModelClearsBackgroundWhenShowBackgroundIsDisabled()
     {
         var result = GridSetupDialogModel.BackgroundSelection(false, "GRIDPIC", GridSetup.SourceTextures);

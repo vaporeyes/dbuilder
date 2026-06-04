@@ -52,7 +52,7 @@ public sealed class GridSetupDialog : PropertyDialog
         _size = AddField("Grid size", grid.GridSizeF.ToString("0.###", CultureInfo.InvariantCulture));
         _originX = AddField("Origin X", grid.GridOriginX.ToString("0.###", CultureInfo.InvariantCulture));
         _originY = AddField("Origin Y", grid.GridOriginY.ToString("0.###", CultureInfo.InvariantCulture));
-        _rotation = AddField("Rotation radians", grid.GridRotate.ToString("0.###", CultureInfo.InvariantCulture));
+        _rotation = AddField("Rotation degrees", GridSetupDialogModel.FormatRotationDegrees(grid.GridRotate));
         _showBackground = AddCheckBox("Show background image", !string.IsNullOrWhiteSpace(grid.BackgroundName));
         _background = AddBackgroundField(grid.BackgroundName);
         _backgroundSource = AddCombo("Background source", BackgroundSourceItems(), grid.BackgroundSource);
@@ -69,7 +69,7 @@ public sealed class GridSetupDialog : PropertyDialog
         ResultSize = GridSetupDialogModel.ParseGridSize(_size.Text, ResultSize);
         ResultOriginX = GridSetupDialogModel.ParseDouble(_originX.Text, ResultOriginX);
         ResultOriginY = GridSetupDialogModel.ParseDouble(_originY.Text, ResultOriginY);
-        ResultRotation = GridSetupDialogModel.ParseDouble(_rotation.Text, ResultRotation);
+        ResultRotation = GridSetupDialogModel.ParseRotationDegrees(_rotation.Text, ResultRotation);
         (ResultBackground, ResultBackgroundSource) = GridSetupDialogModel.BackgroundSelection(
             _showBackground.IsChecked == true,
             _background.Text,
