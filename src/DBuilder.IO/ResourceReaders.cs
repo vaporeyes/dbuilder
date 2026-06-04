@@ -69,6 +69,11 @@ internal sealed class WadResourceReader : IResourceReader
         ("S_START", "S_END"),
         ("SS_START", "SS_END"),
     };
+    private static readonly (string Start, string End)[] VoxelRanges =
+    {
+        ("VX_START", "VX_END"),
+        ("V_START", "V_END"),
+    };
     private static readonly (string Start, string End)[] PatchRanges =
     {
         ("P_START", "P_END"),
@@ -433,44 +438,24 @@ internal sealed class WadResourceReader : IResourceReader
     {
         // Flats live between F_START/F_END (and FF_/F1_/F2_/F3_) namespace markers.
         var result = new List<string>();
-        bool inFlats = false;
-        foreach (var l in wad.Lumps)
-        {
-            string n = l.Name;
-            if (IsRangeStart(n, FlatRanges)) { inFlats = true; continue; }
-            if (IsRangeEnd(n, FlatRanges)) { inFlats = false; continue; }
-            if (inFlats && l.Length > 0) result.Add(n);
-        }
+        result.AddRange(NamesInMarkerRanges(FlatRanges, includeEmpty: false));
         result.AddRange(NamesInRanges(ConfiguredFlatRanges()));
         return result;
     }
 
-    private static bool IsRangeStart(string name, IReadOnlyList<(string Start, string End)> ranges)
+    private IEnumerable<string> NamesInMarkerRanges(IReadOnlyList<(string Start, string End)> ranges, bool includeEmpty)
     {
-        foreach (var range in ranges)
-            if (string.Equals(name, range.Start, StringComparison.OrdinalIgnoreCase))
-                return true;
-        return false;
-    }
-
-    private static bool IsRangeEnd(string name, IReadOnlyList<(string Start, string End)> ranges)
-    {
-        foreach (var range in ranges)
-            if (string.Equals(name, range.End, StringComparison.OrdinalIgnoreCase))
-                return true;
-        return false;
+        foreach (var (start, end) in ResolveMarkerRanges(ranges))
+            for (int i = start + 1; i < end; i++)
+                if (includeEmpty || wad.Lumps[i].Length > 0)
+                    yield return wad.Lumps[i].Name;
     }
 
     public IEnumerable<string> SpriteNames()
     {
-        bool inSprites = false;
-        foreach (var l in wad.Lumps)
-        {
-            string n = l.Name;
-            if (n is "S_START" or "SS_START") { inSprites = true; continue; }
-            if (n is "S_END" or "SS_END") { inSprites = false; continue; }
-            if (inSprites && IsValidSpriteName(n)) yield return n;
-        }
+        foreach (var name in NamesInMarkerRanges(SpriteRanges, includeEmpty: true))
+            if (IsValidSpriteName(name))
+                yield return name;
         foreach (var name in NamesInRanges(ConfiguredSpriteRanges()))
             if (IsValidSpriteName(name))
                 yield return name;
@@ -478,14 +463,9 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> VoxelNames()
     {
-        bool inVoxels = false;
-        foreach (var l in wad.Lumps)
-        {
-            string n = l.Name;
-            if (n is "VX_START" or "V_START") { inVoxels = true; continue; }
-            if (n is "VX_END" or "V_END") { inVoxels = false; continue; }
-            if (inVoxels && IsValidVoxelName(n)) yield return n;
-        }
+        foreach (var name in NamesInMarkerRanges(VoxelRanges, includeEmpty: true))
+            if (IsValidVoxelName(name))
+                yield return name;
         foreach (var name in NamesInRanges(ConfiguredVoxelRanges()))
             if (IsValidVoxelName(name))
                 yield return name;
@@ -497,15 +477,12 @@ internal sealed class WadResourceReader : IResourceReader
         var rangeLump = FindInRanges(shortName, ConfiguredVoxelRanges());
         if (rangeLump != null) return rangeLump.Stream.ReadAllBytes();
 
-        bool inVoxels = false;
-        foreach (var l in wad.Lumps)
+        foreach (var (start, end) in ResolveMarkerRanges(VoxelRanges))
         {
-            string n = l.Name;
-            if (n is "VX_START" or "V_START") { inVoxels = true; continue; }
-            if (n is "VX_END" or "V_END") { inVoxels = false; continue; }
-            if (inVoxels && string.Equals(n, shortName, StringComparison.OrdinalIgnoreCase))
-                return l.Stream.ReadAllBytes();
+            var lump = wad.FindLump(shortName, start, end);
+            if (lump != null) return lump.Stream.ReadAllBytes();
         }
+
         return null;
     }
 

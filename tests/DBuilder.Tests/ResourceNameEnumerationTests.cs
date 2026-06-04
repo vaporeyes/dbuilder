@@ -173,6 +173,35 @@ public class ResourceNameEnumerationTests
     }
 
     [Fact]
+    public void WadMarkerNameEnumerationResolvesEachRangeFamilyIndependently()
+    {
+        byte[] flat = new byte[64 * 64];
+        using var wad = BuildWad(
+            ("F_START", Array.Empty<byte>()),
+            ("FLAT1", flat),
+            ("FF_END", Array.Empty<byte>()),
+            ("FLAT2", flat),
+            ("F_END", Array.Empty<byte>()),
+            ("S_START", Array.Empty<byte>()),
+            ("TROOA0", Array.Empty<byte>()),
+            ("SS_END", Array.Empty<byte>()),
+            ("BOSSA1B2", Array.Empty<byte>()),
+            ("S_END", Array.Empty<byte>()),
+            ("V_START", Array.Empty<byte>()),
+            ("BAR1", new byte[] { 1 }),
+            ("VX_END", Array.Empty<byte>()),
+            ("CYBR", new byte[] { 2 }),
+            ("V_END", Array.Empty<byte>()));
+        using var rm = new ResourceManager();
+        rm.AddResource(wad);
+
+        Assert.Contains("FLAT2", rm.GetFlatNames());
+        Assert.Contains("BOSSA1B2", rm.GetSpriteNames());
+        Assert.Contains("CYBR", rm.GetVoxelNames());
+        Assert.Equal(new byte[] { 2 }, rm.GetVoxelBytes("CYBR"));
+    }
+
+    [Fact]
     public void EnumeratesSpriteNamesFromTexturesDefinitionsAndSkipsGraphics()
     {
         string textures = "Sprite SPOSA0, 4, 4 { NullTexture }\nGraphic GFXA0, 4, 4 { NullTexture }\n";
