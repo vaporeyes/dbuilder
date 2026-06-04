@@ -53,36 +53,20 @@ public sealed class ShortcutsWindow : Window
         };
         root.Children.Add(toolbar);
 
-        var expandAll = new Button { Content = "Expand All", MinWidth = 92 };
-        expandAll.Click += (_, _) => SetAllSectionsExpanded(true);
-
-        var collapseAll = new Button { Content = "Collapse All", MinWidth = 92 };
-        collapseAll.Click += (_, _) => SetAllSectionsExpanded(false);
-
-        var sectionTools = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Children = { expandAll, collapseAll },
-        };
-
         var scroll = new ScrollViewer { Content = _sections };
         Grid.SetRow(scroll, 1);
         root.Children.Add(scroll);
 
         var footer = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto"),
+            ColumnDefinitions = new ColumnDefinitions("*,Auto"),
             ColumnSpacing = 8,
         };
         footer.Children.Add(_matchSummary);
-        Grid.SetColumn(sectionTools, 1);
-        footer.Children.Add(sectionTools);
 
         var close = new Button { Content = "Close", MinWidth = 80, IsCancel = true, IsDefault = true, HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => Close();
-        Grid.SetColumn(close, 2);
+        Grid.SetColumn(close, 1);
         footer.Children.Add(close);
         Grid.SetRow(footer, 2);
         root.Children.Add(footer);
@@ -104,10 +88,15 @@ public sealed class ShortcutsWindow : Window
             _search.Text = "";
             _search.Focus();
         };
+        var expandAll = new Button { Content = "Expand All", MinWidth = 92 };
+        expandAll.Click += (_, _) => SetAllSectionsExpanded(true);
+
+        var collapseAll = new Button { Content = "Collapse All", MinWidth = 92 };
+        collapseAll.Click += (_, _) => SetAllSectionsExpanded(false);
 
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"),
+            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto,Auto"),
             ColumnSpacing = 8,
         };
         grid.Children.Add(new TextBlock
@@ -121,6 +110,10 @@ public sealed class ShortcutsWindow : Window
         grid.Children.Add(_search);
         Grid.SetColumn(_clearSearch, 2);
         grid.Children.Add(_clearSearch);
+        Grid.SetColumn(expandAll, 3);
+        grid.Children.Add(expandAll);
+        Grid.SetColumn(collapseAll, 4);
+        grid.Children.Add(collapseAll);
         return grid;
     }
 
