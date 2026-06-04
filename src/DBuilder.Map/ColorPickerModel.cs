@@ -30,6 +30,21 @@ public enum DynamicLightColorMode
     SpotOrSun,
 }
 
+public enum ColorPickerToggleMode
+{
+    Other,
+    Things,
+    Sectors,
+    Visual,
+}
+
+public enum ColorPickerToggleTarget
+{
+    None,
+    DynamicLights,
+    SectorColors,
+}
+
 public sealed record SectorColorPickerState(
     ColorRgb LightColor,
     ColorRgb FadeColor,
@@ -80,6 +95,26 @@ public sealed record DynamicLightThingEditTarget(
     Thing Thing,
     DynamicLightEditTarget EditTarget);
 
+public sealed record ColorPickerToggleContext(
+    ColorPickerToggleMode Mode,
+    bool IsDoomMap,
+    bool IsUdmfMap,
+    int SelectedThings,
+    bool HasHighlightedThing,
+    int SelectedSectors,
+    bool HasHighlightedSector,
+    int SelectedVisualThings,
+    int SelectedVisualSectors);
+
+public sealed record ColorPickerToggleDecision(
+    ColorPickerToggleTarget Target,
+    string WarningText,
+    bool SelectHighlightedThing,
+    bool SelectHighlightedSector)
+{
+    public bool CanOpen => Target != ColorPickerToggleTarget.None;
+}
+
 public static class ColorPickerModel
 {
     public const int DefaultLightColor = 0xffffff;
@@ -90,6 +125,13 @@ public static class ColorPickerModel
     public const string NoDynamicLightsWarning = "No lights found in selection!";
     public const string NoSelectedSectorsWarning = "Select one or more sectors to set color.";
     public const string SectorColorsRequireUdmfWarning = "Sector colors can only be set if map is in UDMF format!";
+    public const string ToggleActionId = "togglelightpannel";
+    public const string SelectOrHighlightLightsWarning = "Select or highlight some lights first!";
+    public const string SelectOrHighlightSectorsWarning = "Select or highlight some sectors first!";
+    public const string SelectVisualLightsOrSurfacesWarning = "Select some lights , sectors or surfaces first!";
+    public const string SelectVisualLightsWarning = "Select some lights first!";
+    public const string SwitchToSectorsThingsOrVisualWarning = "Switch to Sectors, Things or GZDoom Visual Mode first!";
+    public const string SwitchToThingsOrVisualWarning = "Switch to Things or GZDoom Visual Mode first!";
 
     private static readonly HashSet<int> LightsUsingAngleValue =
     [
@@ -282,6 +324,24 @@ public static class ColorPickerModel
 
     public static bool CanEditSectorColors(bool isUdmf)
         => isUdmf;
+
+    public static ColorPickerToggleDecision ToggleLightPanelDecision(ColorPickerToggleContext context)
+    {
+        if (context.IsDoomMap)
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.None, "", false, false);
+
+        return context.Mode switch
+        {
+            ColorPickerToggleMode.Things => ThingsModeToggleDecision(context),
+            ColorPickerToggleMode.Sectors => SectorsModeToggleDecision(context),
+            ColorPickerToggleMode.Visual => VisualModeToggleDecision(context),
+            _ => new ColorPickerToggleDecision(
+                ColorPickerToggleTarget.None,
+                context.IsUdmfMap ? SwitchToSectorsThingsOrVisualWarning : SwitchToThingsOrVisualWarning,
+                false,
+                false),
+        };
+    }
 
     public static bool DynamicLightUsesAngleValue(int lightNumber)
         => LightsUsingAngleValue.Contains(lightNumber);
@@ -713,6 +773,44 @@ public static class ColorPickerModel
 
     private static string SliderLabel(IReadOnlyList<string> argTitles, int index)
         => (index >= 0 && index < argTitles.Count ? argTitles[index] : "") + ":";
+
+    private static ColorPickerToggleDecision ThingsModeToggleDecision(ColorPickerToggleContext context)
+    {
+        if (context.SelectedThings > 0)
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.DynamicLights, "", false, false);
+
+        return context.HasHighlightedThing
+            ? new ColorPickerToggleDecision(ColorPickerToggleTarget.DynamicLights, "", true, false)
+            : new ColorPickerToggleDecision(ColorPickerToggleTarget.None, SelectOrHighlightLightsWarning, false, false);
+    }
+
+    private static ColorPickerToggleDecision SectorsModeToggleDecision(ColorPickerToggleContext context)
+    {
+        if (!context.IsUdmfMap)
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.None, SectorColorsRequireUdmfWarning, false, false);
+
+        if (context.SelectedSectors > 0)
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.SectorColors, "", false, false);
+
+        return context.HasHighlightedSector
+            ? new ColorPickerToggleDecision(ColorPickerToggleTarget.SectorColors, "", false, true)
+            : new ColorPickerToggleDecision(ColorPickerToggleTarget.None, SelectOrHighlightSectorsWarning, false, false);
+    }
+
+    private static ColorPickerToggleDecision VisualModeToggleDecision(ColorPickerToggleContext context)
+    {
+        if (context.SelectedVisualThings > 0)
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.DynamicLights, "", false, false);
+
+        if (context.IsUdmfMap && (context.SelectedVisualSectors > 0 || context.SelectedSectors > 0))
+            return new ColorPickerToggleDecision(ColorPickerToggleTarget.SectorColors, "", false, false);
+
+        return new ColorPickerToggleDecision(
+            ColorPickerToggleTarget.None,
+            context.IsUdmfMap ? SelectVisualLightsOrSurfacesWarning : SelectVisualLightsWarning,
+            false,
+            false);
+    }
 
     private static string SectorColorFieldName(SectorColorField field)
         => field == SectorColorField.LightColor ? LightColorField : FadeColorField;

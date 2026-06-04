@@ -223,15 +223,179 @@ public sealed class ColorPickerModelTests
     [Fact]
     public void DynamicLightPickerMetadataMatchesUdbSelectionMessages()
     {
+        Assert.Equal("togglelightpannel", ColorPickerModel.ToggleActionId);
         Assert.Equal("No lights found in selection!", ColorPickerModel.NoDynamicLightsWarning);
         Assert.Equal("Select one or more sectors to set color.", ColorPickerModel.NoSelectedSectorsWarning);
         Assert.Equal("Sector colors can only be set if map is in UDMF format!", ColorPickerModel.SectorColorsRequireUdmfWarning);
+        Assert.Equal("Select or highlight some lights first!", ColorPickerModel.SelectOrHighlightLightsWarning);
+        Assert.Equal("Select or highlight some sectors first!", ColorPickerModel.SelectOrHighlightSectorsWarning);
+        Assert.Equal("Select some lights , sectors or surfaces first!", ColorPickerModel.SelectVisualLightsOrSurfacesWarning);
+        Assert.Equal("Select some lights first!", ColorPickerModel.SelectVisualLightsWarning);
+        Assert.Equal("Switch to Sectors, Things or GZDoom Visual Mode first!", ColorPickerModel.SwitchToSectorsThingsOrVisualWarning);
+        Assert.Equal("Switch to Things or GZDoom Visual Mode first!", ColorPickerModel.SwitchToThingsOrVisualWarning);
         Assert.Equal("Editing 1 sector", ColorPickerModel.SectorColorPickerTitle(1));
         Assert.Equal("Editing 2 sectors", ColorPickerModel.SectorColorPickerTitle(2));
         Assert.Equal("Editing 1 light", ColorPickerModel.DynamicLightPickerTitle(1));
         Assert.Equal("Editing 2 lights", ColorPickerModel.DynamicLightPickerTitle(2));
         Assert.Equal(3, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: false));
         Assert.Equal(0, ColorPickerModel.FirstDynamicLightRadiusArgument(lightVavoom: true));
+    }
+
+    [Fact]
+    public void ToggleLightPanelDecisionMatchesUdbThingsMode()
+    {
+        ColorPickerToggleDecision selected = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Things,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 1,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision highlighted = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Things,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: true,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision missing = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Things,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+
+        Assert.Equal(ColorPickerToggleTarget.DynamicLights, selected.Target);
+        Assert.False(selected.SelectHighlightedThing);
+        Assert.Equal(ColorPickerToggleTarget.DynamicLights, highlighted.Target);
+        Assert.True(highlighted.SelectHighlightedThing);
+        Assert.Equal(ColorPickerToggleTarget.None, missing.Target);
+        Assert.Equal(ColorPickerModel.SelectOrHighlightLightsWarning, missing.WarningText);
+    }
+
+    [Fact]
+    public void ToggleLightPanelDecisionMatchesUdbSectorsMode()
+    {
+        ColorPickerToggleDecision selected = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Sectors,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 1,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision highlighted = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Sectors,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: true,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision binary = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Sectors,
+            IsDoomMap: false,
+            IsUdmfMap: false,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 1,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision missing = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Sectors,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+
+        Assert.Equal(ColorPickerToggleTarget.SectorColors, selected.Target);
+        Assert.Equal(ColorPickerToggleTarget.SectorColors, highlighted.Target);
+        Assert.True(highlighted.SelectHighlightedSector);
+        Assert.Equal(ColorPickerModel.SectorColorsRequireUdmfWarning, binary.WarningText);
+        Assert.Equal(ColorPickerModel.SelectOrHighlightSectorsWarning, missing.WarningText);
+    }
+
+    [Fact]
+    public void ToggleLightPanelDecisionMatchesUdbVisualAndWrongModeBranches()
+    {
+        ColorPickerToggleDecision visualThing = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Visual,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 1,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision visualSector = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Visual,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 1));
+        ColorPickerToggleDecision visualNoTarget = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Visual,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision wrongMode = ColorPickerModel.ToggleLightPanelDecision(new ColorPickerToggleContext(
+            ColorPickerToggleMode.Other,
+            IsDoomMap: false,
+            IsUdmfMap: true,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0));
+        ColorPickerToggleDecision doomMap = ColorPickerModel.ToggleLightPanelDecision(WrongModeContext(isDoomMap: true));
+
+        Assert.Equal(ColorPickerToggleTarget.DynamicLights, visualThing.Target);
+        Assert.Equal(ColorPickerToggleTarget.SectorColors, visualSector.Target);
+        Assert.Equal(ColorPickerModel.SelectVisualLightsOrSurfacesWarning, visualNoTarget.WarningText);
+        Assert.Equal(ColorPickerModel.SwitchToSectorsThingsOrVisualWarning, wrongMode.WarningText);
+        Assert.Equal(ColorPickerToggleTarget.None, doomMap.Target);
+        Assert.Equal("", doomMap.WarningText);
+
+        static ColorPickerToggleContext WrongModeContext(bool isDoomMap) => new(
+            ColorPickerToggleMode.Other,
+            isDoomMap,
+            IsUdmfMap: false,
+            SelectedThings: 0,
+            HasHighlightedThing: false,
+            SelectedSectors: 0,
+            HasHighlightedSector: false,
+            SelectedVisualThings: 0,
+            SelectedVisualSectors: 0);
     }
 
     [Theory]
