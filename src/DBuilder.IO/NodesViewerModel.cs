@@ -20,6 +20,8 @@ public sealed record NodesViewerModeDescriptor(
     bool Volatile,
     bool AllowCopyPaste);
 
+public sealed record NodesViewerTreeStats(int TreeDepth, int TreeBalancePercent);
+
 public static class NodesViewerModel
 {
     public static NodesViewerModeDescriptor ModeDescriptor { get; } = new(
@@ -110,6 +112,27 @@ public static class NodesViewerModel
         };
     }
 
+    public static NodesViewerTreeStats TreeStats(ClassicNodesStructure structure)
+    {
+        if (structure == null || !structure.IsValid || structure.Nodes.Count == 0)
+            return new NodesViewerTreeStats(0, 0);
+
+        var leafDepths = new List<int>();
+        AddLeafDepths(structure, structure.Nodes.Count - 1, 0, leafDepths);
+        if (leafDepths.Count == 0) return new NodesViewerTreeStats(0, 0);
+
+        int maxDepth = leafDepths.Max();
+        int minDepth = leafDepths.Min();
+        int balance = maxDepth == 0 ? 0 : (int)((float)minDepth / maxDepth * 100f);
+        return new NodesViewerTreeStats(maxDepth, balance);
+    }
+
+    public static string TreeStatsText(ClassicNodesStructure structure)
+    {
+        NodesViewerTreeStats stats = TreeStats(structure);
+        return $"Tree depth {stats.TreeDepth}, balance {stats.TreeBalancePercent}%.";
+    }
+
     private static string FormatNode(int index, ClassicNode node)
     {
         string right = node.RightChildIsSubsector ? $"subsector {node.RightChildIndex}" : $"node {node.RightChildIndex}";
@@ -128,4 +151,26 @@ public static class NodesViewerModel
 
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count.ToString(CultureInfo.InvariantCulture)} {(count == 1 ? singular : plural ?? singular + "s")}";
+
+    private static void AddLeafDepths(
+        ClassicNodesStructure structure,
+        int nodeIndex,
+        int level,
+        List<int> leafDepths)
+    {
+        if (nodeIndex < 0 || nodeIndex >= structure.Nodes.Count) return;
+
+        level++;
+        ClassicNode node = structure.Nodes[nodeIndex];
+
+        if (node.LeftChildIsSubsector)
+            leafDepths.Add(level);
+        else
+            AddLeafDepths(structure, node.LeftChildIndex, level, leafDepths);
+
+        if (node.RightChildIsSubsector)
+            leafDepths.Add(level);
+        else
+            AddLeafDepths(structure, node.RightChildIndex, level, leafDepths);
+    }
 }

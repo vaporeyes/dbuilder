@@ -261,6 +261,39 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerModelCalculatesTreeDepthAndBalanceLikeUdb()
+    {
+        var balanced = NodesReader.ParseClassicStructures(
+            NodeRecord(0, 0, 64, 0, 0x8000, 0x8001),
+            SegRecord(0, 1, 0, 3, 1, -16),
+            VertexRecord(0, 0),
+            SubsectorRecord(1, 0));
+        var unevenNodes = new byte[56];
+        NodeRecord(10, 20, 0, -32, 0x8001, 0x8002).CopyTo(unevenNodes, 0);
+        NodeRecord(0, 0, 64, 0, 0x8000, 0).CopyTo(unevenNodes, 28);
+        var unevenSubsectors = SubsectorRecord(1, 0)
+            .Concat(SubsectorRecord(0, 1))
+            .Concat(SubsectorRecord(0, 1))
+            .ToArray();
+        var uneven = NodesReader.ParseClassicStructures(
+            unevenNodes,
+            SegRecord(0, 1, 0, 3, 1, -16),
+            VertexRecord(0, 0),
+            unevenSubsectors);
+
+        NodesViewerTreeStats balancedStats = NodesViewerModel.TreeStats(balanced);
+        NodesViewerTreeStats unevenStats = NodesViewerModel.TreeStats(uneven);
+
+        Assert.Equal(new NodesViewerTreeStats(1, 100), balancedStats);
+        Assert.Equal("Tree depth 1, balance 100%.", NodesViewerModel.TreeStatsText(balanced));
+        Assert.Equal(new NodesViewerTreeStats(2, 50), unevenStats);
+        Assert.Equal("Tree depth 2, balance 50%.", NodesViewerModel.TreeStatsText(uneven));
+        Assert.Equal(
+            new NodesViewerTreeStats(0, 0),
+            NodesViewerModel.TreeStats(ClassicNodesStructure.Failure(ClassicNodesStatus.MissingOrTooShortNodes)));
+    }
+
+    [Fact]
     public void NodesViewerModeDescriptorMatchesUdbEditModeMetadata()
     {
         NodesViewerModeDescriptor mode = NodesViewerModel.ModeDescriptor;

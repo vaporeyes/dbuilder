@@ -1583,6 +1583,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add counted Nodes Viewer tab row model for classic nodes, segs, subsectors, and vertices.
   - [x] Add UDB-style singular and plural labels to Nodes Viewer counts.
   - [x] Add UDB-style singular and plural labels to Nodes Viewer and overlay status text.
+  - [x] Add UDB-style Nodes Viewer tree depth and balance stats.
 - [ ] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
@@ -2295,6 +2296,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Render classic NodesViewer subsector polygons in the editor nodes overlay.
   - [x] Add Nodes Viewer row model and vertex list tab.
   - [x] Surface ZNODES payload status in the Nodes Viewer window.
+  - [x] Add UDB-style Nodes Viewer tree depth and balance stats.
 - [ ] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
