@@ -1116,6 +1116,7 @@ public sealed class GameConfiguration
 
     private static int ActorWidth(ActorInfo actor, ThingTypeInfo? existing)
     {
+        if (actor.Properties.ContainsKey("radius")) return actor.Radius;
         if (actor.Radius <= 0) return existing?.Width ?? 16;
         return actor.Radius;
     }

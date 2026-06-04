@@ -1041,6 +1041,39 @@ class ZeroHeightZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsPreservesExplicitZeroRadiusLikeUdb()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        9059
+        {
+            title = ""Configured Thing"";
+            class = ""ZeroRadiusZThing"";
+            width = 32;
+        }
+    }
+}";
+        const string zscript = @"
+class ZeroRadiusZThing : Actor
+{
+    Default { Radius 0; Height 48; }
+    States { Spawn: ZZRD A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9059 = ZeroRadiusZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9059);
+        Assert.NotNull(info);
+        Assert.Equal(14, info!.Width);
+    }
+
+    [Fact]
     public void MergesZScriptActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
     {
         const string cfg = @"

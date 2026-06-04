@@ -1755,6 +1755,37 @@ ACTOR ZeroHeightThing 31023
     }
 
     [Fact]
+    public void MergeActorsPreservesExplicitZeroRadiusLikeUdb()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        31024
+        {
+            title = ""Configured Thing"";
+            class = ""ZeroRadiusThing"";
+            width = 32;
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR ZeroRadiusThing 31024
+{
+    Radius 0
+    Height 48
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31024);
+        Assert.NotNull(info);
+        Assert.Equal(14, info!.Width);
+    }
+
+    [Fact]
     public void MergeActorsRecategorizesReplacementActorWithExplicitCategory()
     {
         const string cfg = @"
