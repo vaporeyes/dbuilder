@@ -61,6 +61,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesShowEventLinesPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("ShowEventLines", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Show event lines\", s.ShowEventLines)", body, StringComparison.Ordinal);
+        Assert.Contains("ShowEventLines = _showEventLines.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.ShowEventLines = dlg.ShowEventLines;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetShowEventLines(_settings.ShowEventLines);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);

@@ -11,13 +11,14 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
     public bool UseHighlight;
     public bool AlphaBasedTextureHighlighting;
+    public bool ShowEventLines;
     public bool ShowVisualVertices;
     public bool SelectAdjacentVisualVertexSlopeHandles;
     public int DefaultViewMode;
@@ -45,6 +46,7 @@ public sealed class SettingsWindow : PropertyDialog
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
+        _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
         _showVisualVertices = AddCheckBox("Show visual vertices", s.ShowVisualVertices);
         _selectAdjacentVisualVertexSlopeHandles = AddCheckBox("Select adjacent visual vertex slope handles", s.SelectAdjacentVisualVertexSlopeHandles);
         _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);
@@ -66,6 +68,7 @@ public sealed class SettingsWindow : PropertyDialog
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
         AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;
+        ShowEventLines = _showEventLines.IsChecked == true;
         ShowVisualVertices = _showVisualVertices.IsChecked == true;
         SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;
         DefaultViewMode = ComboNumber(_defaultViewMode, 0);
