@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace DBuilder.IO;
 
@@ -48,11 +49,22 @@ public static class CvarInfoParser
                 string lower = flag.ToLowerInvariant();
                 if (Scopes.Contains(lower) && scope.Length == 0) scope = lower;
                 if (lower == "archive") archive = true;
-                if (Flags.Contains(lower)) flags.Add(lower);
-                else if (lower.StartsWith("handlerclass", StringComparison.OrdinalIgnoreCase))
+                if (lower == "handlerclass" || lower.StartsWith("handlerclass(", StringComparison.OrdinalIgnoreCase))
                 {
                     flags.Add("handlerclass");
-                    handlerClass = ReadHandlerClass(t, ref i, flag);
+                    if (!TryReadHandlerClass(t, ref i, flag, out handlerClass))
+                    {
+                        invalidDeclaration = true;
+                        SkipDeclaration(t, ref i);
+                        break;
+                    }
+                }
+                else if (Flags.Contains(lower)) flags.Add(lower);
+                else if (lower.StartsWith("handlerclass", StringComparison.OrdinalIgnoreCase))
+                {
+                    invalidDeclaration = true;
+                    SkipDeclaration(t, ref i);
+                    break;
                 }
                 else
                 {
@@ -109,26 +121,34 @@ public static class CvarInfoParser
         if (i < t.Count) i++;
     }
 
-    private static string? ReadHandlerClass(List<string> t, ref int i, string token)
+    private static bool TryReadHandlerClass(List<string> t, ref int i, string token, out string? handlerClass)
     {
+        handlerClass = null;
         int open = token.IndexOf('(');
-        if (open >= 0 && token.EndsWith(')') && token.Length > open + 2) return token.Substring(open + 1, token.Length - open - 2);
+        if (open >= 0 && token.EndsWith(')') && token.Length > open + 2)
+        {
+            handlerClass = token.Substring(open + 1, token.Length - open - 2);
+            return IsHandlerClassName(handlerClass);
+        }
         if (open >= 0)
         {
-            if (i < t.Count)
-            {
-                string handlerClass = t[i++];
-                if (i < t.Count && t[i] == ")") i++;
-                return handlerClass;
-            }
-            return null;
+            if (i >= t.Count || !IsHandlerClassName(t[i])) return false;
+            handlerClass = t[i++];
+            if (i >= t.Count || t[i] != ")") return false;
+            i++;
+            return true;
         }
-        if (i < t.Count && t[i] == "(") i++;
-        if (i >= t.Count) return null;
-        string value = t[i++];
-        if (i < t.Count && t[i] == ")") i++;
-        return value;
+        if (i >= t.Count || t[i] != "(") return false;
+        i++;
+        if (i >= t.Count || !IsHandlerClassName(t[i])) return false;
+        handlerClass = t[i++];
+        if (i >= t.Count || t[i] != ")") return false;
+        i++;
+        return true;
     }
+
+    private static bool IsHandlerClassName(string value)
+        => value.Length > 0 && value.All(c => char.IsLetterOrDigit(c) || c == '_');
 
     private static bool IsValidDefaultValue(string type, string? value)
     {

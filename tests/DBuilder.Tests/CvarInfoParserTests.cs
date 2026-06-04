@@ -42,7 +42,7 @@ ignored int nope = 0;";
     {
         const string text = @"
 server cheat latch int sv_secret = 3;
-local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
+local noarchive handlerclass ( ""UiHandler"" ) string ui_mode = ""compact"";";
 
         var info = CvarInfoParser.Parse(text);
 
@@ -58,6 +58,17 @@ local noarchive handlerclass(""UiHandler"") string ui_mode = ""compact"";";
         Assert.Contains("handlerclass", local.Flags);
         Assert.Equal("UiHandler", local.HandlerClass);
         Assert.Equal("compact", local.DefaultValue);
+    }
+
+    [Fact]
+    public void ParsesCompactHandlerClassSyntax()
+    {
+        const string text = @"local handlerclass(UiHandler) string ui_mode = ""compact"";";
+
+        var variable = Assert.Single(CvarInfoParser.Parse(text).Variables);
+
+        Assert.Equal("ui_mode", variable.Name);
+        Assert.Equal("UiHandler", variable.HandlerClass);
     }
 
     [Fact]
@@ -121,6 +132,24 @@ user int later_cvar = 3;";
 user int before = 1;
 ignored int nope = 0;
 user int after = 2;";
+
+        var info = CvarInfoParser.Parse(text);
+
+        Assert.Equal(new[] { "before" }, info.Variables.Select(c => c.Name).ToArray());
+    }
+
+    [Theory]
+    [InlineData("handlerclass")]
+    [InlineData("handlerclass UiHandler")]
+    [InlineData("handlerclass(UiHandler")]
+    [InlineData("handlerclass(Ui-Handler)")]
+    public void InvalidHandlerClassSyntaxStopsParsingLikeUdb(string handlerClass)
+    {
+        string text = $$"""
+            user int before = 1;
+            local {{handlerClass}} string bad = "compact";
+            user int after = 2;
+            """;
 
         var info = CvarInfoParser.Parse(text);
 
