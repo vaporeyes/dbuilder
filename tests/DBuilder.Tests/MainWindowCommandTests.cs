@@ -100,6 +100,27 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void SelectionGroupCommandsAreRoutedThroughDynamicWindowCommandDispatch()
+    {
+        Type type = typeof(MainWindow);
+        MethodInfo? dispatcher = type.GetMethod("RunWindowCommand", BindingFlags.Instance | BindingFlags.NonPublic);
+        MethodInfo? groupDispatcher = type.GetMethod("RunSelectionGroupCommand", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(dispatcher);
+        Assert.NotNull(groupDispatcher);
+
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        Assert.Contains("return RunUdbScriptCommand(commandId) || RunSelectionGroupCommand(commandId);", body, StringComparison.Ordinal);
+        Assert.Contains("const string selectPrefix = \"window.select-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("const string assignPrefix = \"window.assign-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("const string clearPrefix = \"window.clear-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("SelectGroup(selectGroup);", body, StringComparison.Ordinal);
+        Assert.Contains("AddSelectionToGroup(assignGroup);", body, StringComparison.Ordinal);
+        Assert.Contains("ClearGroup(clearGroup);", body, StringComparison.Ordinal);
+        Assert.Contains("groupNumber is < 1 or > MapOptions.SelectionGroupCount", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void VisplaneExplorerModeReportsQueuedReadyStatusWithPersistedSettings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
