@@ -334,6 +334,58 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ActionArgumentQueriesIgnoreInvalidLaterArgsLikeUdb()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Args[0] = 17;
+        map.Linedefs[0].Args[1] = 41;
+        map.Linedefs[1].Action = 80;
+        map.Linedefs[1].Args[0] = 18;
+        map.Linedefs[1].Args[1] = 41;
+        map.Things[0].Action = 80;
+        map.Things[0].Args[0] = 17;
+        map.Things[0].Args[1] = 41;
+        map.Things[1].Action = 80;
+        map.Things[1].Args[0] = 18;
+        map.Things[1].Args[1] = 41;
+
+        SearchResult lineResult = MapSearch.Find(map, FindCategory.LinedefActionArguments, "80 17 invalid");
+
+        Assert.Equal(1, lineResult.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Linedefs[1].Selected);
+
+        SearchResult thingResult = MapSearch.Find(map, FindCategory.ThingActionArguments, "80 17 invalid");
+
+        Assert.Equal(1, thingResult.Count);
+        Assert.True(map.Things[0].Selected);
+        Assert.False(map.Things[1].Selected);
+    }
+
+    [Fact]
+    public void ActionArgumentReplacementsIgnoreInvalidLaterArgsLikeUdb()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Args[0] = 17;
+        map.Linedefs[0].Args[1] = 41;
+        map.Things[0].Action = 80;
+        map.Things[0].Args[0] = 17;
+        map.Things[0].Args[1] = 41;
+
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 17 41", "81 invalid 99"));
+        Assert.Equal(1, MapSearch.Replace(map, FindCategory.ThingActionArguments, "80 17 41", "82 invalid 99"));
+
+        Assert.Equal(81, map.Linedefs[0].Action);
+        Assert.Equal(17, map.Linedefs[0].Args[0]);
+        Assert.Equal(99, map.Linedefs[0].Args[1]);
+        Assert.Equal(82, map.Things[0].Action);
+        Assert.Equal(17, map.Things[0].Args[0]);
+        Assert.Equal(99, map.Things[0].Args[1]);
+    }
+
+    [Fact]
     public void FindLinedefActionArgumentsMinusOneMatchesAnyNonzeroAction()
     {
         var map = Build();

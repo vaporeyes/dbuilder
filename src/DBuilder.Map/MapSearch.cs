@@ -825,8 +825,8 @@ public static class MapSearch
         for (int i = start; i < parts.Length && i - 1 < args.Length; i++)
         {
             if (parts[i] == "*") continue;
-            if (!int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int arg)) return false;
-            args[i - 1] = arg;
+            if (int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int arg))
+                args[i - 1] = arg;
         }
 
         query = new ActionArgQuery(action, arg0String, args);
