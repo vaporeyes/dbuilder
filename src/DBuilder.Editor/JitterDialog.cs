@@ -24,6 +24,8 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _thingScaleMaxY;
     private readonly CheckBox _relativeThingScale;
     private readonly CheckBox _uniformThingScale;
+    private readonly CheckBox _allowNegativeThingScaleX;
+    private readonly CheckBox _allowNegativeThingScaleY;
 
     public int ResultPositionAmount { get; private set; } = 16;
     public int ResultFloorAmount { get; private set; } = 16;
@@ -40,6 +42,8 @@ public sealed class JitterDialog : PropertyDialog
     public double ResultThingScaleMaxY { get; private set; } = 1.0;
     public bool ResultRelativeThingScale { get; private set; }
     public bool ResultUniformThingScale { get; private set; }
+    public bool ResultAllowNegativeThingScaleX { get; private set; }
+    public bool ResultAllowNegativeThingScaleY { get; private set; }
 
     public JitterDialog(string title)
         : base(title)
@@ -59,6 +63,8 @@ public sealed class JitterDialog : PropertyDialog
         _thingScaleMaxY = AddField("Thing scale Y max", ResultThingScaleMaxY.ToString(CultureInfo.InvariantCulture));
         _relativeThingScale = AddCheckBox("Relative thing scale", ResultRelativeThingScale);
         _uniformThingScale = AddCheckBox("Uniform thing scale", ResultUniformThingScale);
+        _allowNegativeThingScaleX = AddCheckBox("Use negative width scale", ResultAllowNegativeThingScaleX);
+        _allowNegativeThingScaleY = AddCheckBox("Use negative height scale", ResultAllowNegativeThingScaleY);
     }
 
     protected override void OnConfirm()
@@ -72,12 +78,14 @@ public sealed class JitterDialog : PropertyDialog
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
         ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));
-        ResultThingScaleMinX = Math.Max(0.0, ParseDouble(_thingScaleMinX, ResultThingScaleMinX));
-        ResultThingScaleMaxX = Math.Max(0.0, ParseDouble(_thingScaleMaxX, ResultThingScaleMaxX));
-        ResultThingScaleMinY = Math.Max(0.0, ParseDouble(_thingScaleMinY, ResultThingScaleMinY));
-        ResultThingScaleMaxY = Math.Max(0.0, ParseDouble(_thingScaleMaxY, ResultThingScaleMaxY));
+        ResultThingScaleMinX = ParseDouble(_thingScaleMinX, ResultThingScaleMinX);
+        ResultThingScaleMaxX = ParseDouble(_thingScaleMaxX, ResultThingScaleMaxX);
+        ResultThingScaleMinY = ParseDouble(_thingScaleMinY, ResultThingScaleMinY);
+        ResultThingScaleMaxY = ParseDouble(_thingScaleMaxY, ResultThingScaleMaxY);
         ResultRelativeThingScale = _relativeThingScale.IsChecked == true;
         ResultUniformThingScale = _uniformThingScale.IsChecked == true;
+        ResultAllowNegativeThingScaleX = _allowNegativeThingScaleX.IsChecked == true;
+        ResultAllowNegativeThingScaleY = _allowNegativeThingScaleY.IsChecked == true;
     }
 
     private static IEnumerable<CatalogItem> FloorOffsetModeItems()

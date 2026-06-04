@@ -1521,6 +1521,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB-style Randomize thing height jitter when the map format supports thing heights.
   - [x] Expose UDB-style Randomize thing pitch and roll jitter for UDMF maps.
   - [x] Expose UDB-style Randomize thing scale jitter for UDMF maps.
+  - [x] Expose UDB-style Randomize negative thing scale jitter options.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

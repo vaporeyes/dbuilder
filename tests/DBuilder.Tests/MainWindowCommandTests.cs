@@ -254,13 +254,14 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
-        int scaleXFactorIndex = body.IndexOf("ScaleXFactor: RandomPositiveFactor()", methodIndex, StringComparison.Ordinal);
-        int scaleYFactorIndex = body.IndexOf("ScaleYFactor: RandomPositiveFactor()", scaleXFactorIndex, StringComparison.Ordinal);
+        int scaleXFactorIndex = body.IndexOf("ScaleXFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleX)", methodIndex, StringComparison.Ordinal);
+        int scaleYFactorIndex = body.IndexOf("ScaleYFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleY)", scaleXFactorIndex, StringComparison.Ordinal);
         int guardIndex = body.IndexOf("if (_mapFormat == MapFormat.Udmf)", scaleYFactorIndex, StringComparison.Ordinal);
         int scaleIndex = body.IndexOf("BuilderEffects.ApplyThingScale(", guardIndex, StringComparison.Ordinal);
         int minXIndex = body.IndexOf("dialog.ResultThingScaleMinX", scaleIndex, StringComparison.Ordinal);
         int relativeIndex = body.IndexOf("dialog.ResultRelativeThingScale", minXIndex, StringComparison.Ordinal);
         int uniformIndex = body.IndexOf("dialog.ResultUniformThingScale", relativeIndex, StringComparison.Ordinal);
+        int factorMethodIndex = body.IndexOf("private static double RandomScaleFactor(bool allowNegative)", uniformIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(scaleXFactorIndex > methodIndex);
@@ -270,6 +271,7 @@ public sealed class MainWindowCommandTests
         Assert.True(minXIndex > scaleIndex);
         Assert.True(relativeIndex > minXIndex);
         Assert.True(uniformIndex > relativeIndex);
+        Assert.True(factorMethodIndex > uniformIndex);
     }
 
     [Fact]
@@ -318,15 +320,21 @@ public sealed class MainWindowCommandTests
         Assert.Contains("public double ResultThingScaleMaxX { get; private set; } = 1.0;", body, StringComparison.Ordinal);
         Assert.Contains("public double ResultThingScaleMinY { get; private set; } = 1.0;", body, StringComparison.Ordinal);
         Assert.Contains("public double ResultThingScaleMaxY { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultAllowNegativeThingScaleX { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultAllowNegativeThingScaleY { get; private set; }", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing scale X min\", ResultThingScaleMinX.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing scale X max\", ResultThingScaleMaxX.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing scale Y min\", ResultThingScaleMinY.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing scale Y max\", ResultThingScaleMaxY.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Relative thing scale\", ResultRelativeThingScale)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Uniform thing scale\", ResultUniformThingScale)", body, StringComparison.Ordinal);
-        Assert.Contains("ResultThingScaleMinX = Math.Max(0.0, ParseDouble(_thingScaleMinX, ResultThingScaleMinX));", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use negative width scale\", ResultAllowNegativeThingScaleX)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use negative height scale\", ResultAllowNegativeThingScaleY)", body, StringComparison.Ordinal);
+        Assert.Contains("ResultThingScaleMinX = ParseDouble(_thingScaleMinX, ResultThingScaleMinX);", body, StringComparison.Ordinal);
         Assert.Contains("ResultRelativeThingScale = _relativeThingScale.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ResultUniformThingScale = _uniformThingScale.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultAllowNegativeThingScaleX = _allowNegativeThingScaleX.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultAllowNegativeThingScaleY = _allowNegativeThingScaleY.IsChecked == true;", body, StringComparison.Ordinal);
     }
 
     [Fact]

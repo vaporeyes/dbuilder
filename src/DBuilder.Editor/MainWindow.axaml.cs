@@ -5325,8 +5325,8 @@ public partial class MainWindow : Window
                 PitchFactor: RandomPositiveFactor(),
                 RollFactor: RandomPositiveFactor(),
                 HeightFactor: RandomFactor(),
-                ScaleXFactor: RandomPositiveFactor(),
-                ScaleYFactor: RandomPositiveFactor(),
+                ScaleXFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleX),
+                ScaleYFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleY),
                 SafeDistance: dialog.ResultPositionAmount,
                 SectorHeight: JitterThingSectorHeight(thing))).ToList();
             changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
@@ -5390,6 +5390,9 @@ public partial class MainWindow : Window
 
     private static double RandomPositiveFactor()
         => Random.Shared.NextDouble();
+
+    private static double RandomScaleFactor(bool allowNegative)
+        => allowNegative ? RandomFactor() : RandomPositiveFactor();
 
     private async void OnApplyDirectionalShading(object? sender, RoutedEventArgs e)
     {
