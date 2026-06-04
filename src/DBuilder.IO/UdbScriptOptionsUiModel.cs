@@ -132,7 +132,7 @@ public static class UdbScriptOptionsUiModel
         bool resetToDefault = proposedValue is null || string.IsNullOrWhiteSpace(proposedValue.ToString());
         object? value = resetToDefault ? option.DefaultValue : proposedValue;
         string valueText = value?.ToString() ?? "";
-        string defaultText = option.DefaultValue.ToString() ?? "";
+        string defaultText = option.DefaultValue?.ToString() ?? "";
         string foreColor = valueText == defaultText
             ? DefaultValueForeColor
             : EditedValueForeColor;
@@ -142,7 +142,7 @@ public static class UdbScriptOptionsUiModel
 
     public static UdbScriptOptionEnumEditorState EnumEditorState(UdbScriptOption option)
     {
-        string text = option.Value.ToString() ?? "";
+        string text = option.Value?.ToString() ?? "";
         if (option.Type != (int)UniversalType.EnumOption || option.EnumValues.Count == 0)
             return new UdbScriptOptionEnumEditorState(false, EnumDropDownStyle, text, null, false, Array.Empty<UdbScriptOptionEnumItem>());
 

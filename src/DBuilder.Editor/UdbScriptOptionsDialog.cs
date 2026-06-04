@@ -44,7 +44,7 @@ public sealed class UdbScriptOptionsDialog : PropertyDialog
         UdbScriptOptionEnumEditorState enumState = UdbScriptOptionsUiModel.EnumEditorState(option);
         if (enumState.Visible)
         {
-            string current = enumState.SelectedItem?.Key ?? option.Value.ToString() ?? "";
+            string current = enumState.SelectedItem?.Key ?? option.Value?.ToString() ?? "";
             var combo = AddStringCombo(
                 option.Description,
                 enumState.Items.Select(item => new CatalogTextItem(item.Key, item.Text)),
@@ -55,7 +55,7 @@ public sealed class UdbScriptOptionsDialog : PropertyDialog
 
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*") };
         grid.Children.Add(new TextBlock { Text = option.Description, VerticalAlignment = VerticalAlignment.Center });
-        var box = new TextBox { Text = option.Value.ToString() ?? "" };
+        var box = new TextBox { Text = option.Value?.ToString() ?? "" };
         Grid.SetColumn(box, 1);
         grid.Children.Add(box);
         AddCustomRow(grid);

@@ -137,7 +137,7 @@ public sealed class UdbScriptQueryOptionsModel
         if (!TryReadEnumValues(enumValues, out IReadOnlyList<UdbScriptEnumValue> values))
             return new UdbScriptQueryOptionAddResult(false);
 
-        object effectiveDefault = UdbScriptDiscovery.EffectiveDefault(defaultValue, values);
+        object? effectiveDefault = UdbScriptDiscovery.EffectiveDefault(defaultValue, values);
 
         options.Add(new UdbScriptOption(
             name,

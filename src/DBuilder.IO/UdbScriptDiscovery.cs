@@ -21,8 +21,8 @@ public sealed record UdbScriptOption(
     string Name,
     string Description,
     int Type,
-    object DefaultValue,
-    object Value,
+    object? DefaultValue,
+    object? Value,
     IReadOnlyList<UdbScriptEnumValue> EnumValues,
     string SettingKey);
 
@@ -175,7 +175,7 @@ public static class UdbScriptDiscovery
             if (!IsValidOptionType(type))
                 continue;
 
-            object effectiveDefault = EffectiveDefault(defaultValue, enumValues);
+            object? effectiveDefault = EffectiveDefault(defaultValue, enumValues);
             options.Add(new UdbScriptOption(
                 optionName,
                 description,
@@ -298,7 +298,7 @@ public static class UdbScriptDiscovery
         return result;
     }
 
-    internal static object EffectiveDefault(object defaultValue, IReadOnlyList<UdbScriptEnumValue> enumValues)
+    internal static object? EffectiveDefault(object defaultValue, IReadOnlyList<UdbScriptEnumValue> enumValues)
     {
         if (enumValues.Count == 0)
             return defaultValue;
@@ -310,7 +310,7 @@ public static class UdbScriptDiscovery
                 return value.Label ?? value.Key;
         }
 
-        return defaultValue;
+        return null;
     }
 
     private static UdbScriptOption ApplySavedOptionValue(

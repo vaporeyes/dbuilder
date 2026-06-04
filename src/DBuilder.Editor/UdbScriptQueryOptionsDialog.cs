@@ -40,14 +40,14 @@ public sealed class UdbScriptQueryOptionsDialog : PropertyDialog
             var combo = AddStringCombo(
                 option.Description,
                 option.EnumValues.Select(value => new CatalogTextItem(value.Key, value.Label ?? value.Key)),
-                option.Value.ToString() ?? "");
+                option.Value?.ToString() ?? "");
             _editors.Add((option, null, combo));
             return;
         }
 
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*") };
         grid.Children.Add(new TextBlock { Text = option.Description, VerticalAlignment = VerticalAlignment.Center });
-        var box = new TextBox { Text = option.Value.ToString() ?? "" };
+        var box = new TextBox { Text = option.Value?.ToString() ?? "" };
         Grid.SetColumn(box, 1);
         grid.Children.Add(box);
         AddCustomRow(grid);

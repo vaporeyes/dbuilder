@@ -149,6 +149,28 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void AddOptionLeavesUnmatchedEnumDefaultsUnsetLikeUdb()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            4,
+            new Dictionary<string, object?>
+            {
+                ["1"] = "Up",
+                ["2"] = "Down",
+            });
+
+        UdbScriptOption option = Assert.Single(model.Options);
+        Assert.Null(option.DefaultValue);
+        Assert.Null(option.Value);
+    }
+
+    [Fact]
     public void OptionRowMatchesUdbQueryOptionsFormAddOptionCells()
     {
         var model = new UdbScriptQueryOptionsModel();

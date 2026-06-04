@@ -218,6 +218,37 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void EnumDefaultsStayUnsetWhenDefaultKeyDoesNotMatchUdbEnumValues()
+    {
+        string file = Path.Combine(TempDir(), "enum-miss.js");
+        try
+        {
+            IReadOnlyList<UdbScriptOption> parsed = UdbScriptDiscovery.ParseOptions("""
+                direction
+                {
+                    default = 3;
+                    type = 11;
+                    enumvalues
+                    {
+                        1 = "Up";
+                        2 = "Down";
+                    }
+                }
+                """, file);
+
+            UdbScriptOption option = Assert.Single(parsed);
+
+            Assert.Null(option.DefaultValue);
+            Assert.Null(option.Value);
+            Assert.Equal(new[] { "1:Up", "2:Down" }, option.EnumValues.Select(v => v.Key + ":" + v.Label).ToArray());
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(file)!, recursive: true);
+        }
+    }
+
+    [Fact]
     public void RejectsInvalidScriptOptionConfig()
     {
         string file = Path.Combine(TempDir(), "badoptions.js");
