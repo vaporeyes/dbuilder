@@ -78,6 +78,21 @@ maplumpnames
     }
 
     [Fact]
+    public void ScalarScriptConfigurationNamesConvertLikeUdb()
+    {
+        var gc = GameConfiguration.FromText("""
+            maplumpnames
+            {
+                SCRIPTS { script = 123; }
+                ACS { script = 456; scriptbuild = true; }
+            }
+            """);
+
+        Assert.Equal("123", gc.MapLumpNames["SCRIPTS"].Script);
+        Assert.Null(gc.MapLumpNames["ACS"].Script);
+    }
+
+    [Fact]
     public void ResolvesConfiguredScriptConfigurationByLowerFileName()
     {
         var scripts = new ScriptConfigurationCatalog();

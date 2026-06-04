@@ -2310,7 +2310,8 @@ public sealed class GameConfiguration
             string name = e.Key.ToString() ?? "";
             IDictionary d = e.Value as IDictionary ?? new Hashtable();
             bool scriptBuild = GetBool(d, "scriptbuild", false);
-            string? script = scriptBuild ? null : d["script"] as string;
+            string? script = scriptBuild ? null : GetString(d, "script", "");
+            if (script != null && script.Length == 0) script = null;
             mapLumpNames[name] = new MapLumpInfo
             {
                 Name = name,
