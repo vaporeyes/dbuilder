@@ -1305,6 +1305,7 @@ public partial class MainWindow : Window
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
+        _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
@@ -1316,6 +1317,7 @@ public partial class MainWindow : Window
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
+        MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);

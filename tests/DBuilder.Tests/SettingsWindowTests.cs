@@ -75,6 +75,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawSkyPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawSky", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw sky\", s.DrawSky)", body, StringComparison.Ordinal);
+        Assert.Contains("DrawSky = _drawSky.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawSky = dlg.DrawSky;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetDrawSky(_settings.DrawSky);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);
