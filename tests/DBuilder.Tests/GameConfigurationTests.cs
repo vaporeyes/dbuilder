@@ -1289,6 +1289,35 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void StaticThingConfigLightSettingIsIgnoredLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                lights
+                {
+                    title = "Lights";
+                    light = "CATEGORY_LIGHT";
+
+                    9800
+                    {
+                        title = "Torch";
+                        light = "THING_LIGHT";
+                    }
+
+                    9801 = "Scalar Torch";
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("", gc.ThingCategories["lights"].LightName);
+        Assert.Equal("", gc.GetThing(9800)!.LightName);
+        Assert.Equal("", gc.GetThing(9801)!.LightName);
+    }
+
+    [Fact]
     public void ThingTypeSafetyMatchesUdbForFixedSizeAndAbsoluteZ()
     {
         const string cfg = """
