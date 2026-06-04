@@ -15,6 +15,12 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.TextureApplied3DStatusText(textureName, surfaceCount));
 
     [Theory]
+    [InlineData("FLOOR0_1", true, "Copied flat \"FLOOR0_1\".")]
+    [InlineData("STARTAN3", false, "Copied texture \"STARTAN3\".")]
+    public void TextureCopied3DStatusTextMatchesUdbTargetKind(string textureName, bool flat, string expected)
+        => Assert.Equal(expected, MapControl.TextureCopied3DStatusText(textureName, flat));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -251,6 +257,18 @@ public sealed class MapControlCommandTests
         Assert.True(methodIndex >= 0);
         Assert.True(resetIndex > methodIndex);
         Assert.Contains("VisualTextureReset.ResetSidedefForCommand(side, hit.Part, local: true, isUdmf: _mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CopyTexture3DUsesUdbFlatAndTextureStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void CopyTexture3D()", StringComparison.Ordinal);
+        int formatterIndex = body.IndexOf("TextureCopied3DStatusText(tex, _target3D?.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling)", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(formatterIndex > methodIndex);
+        Assert.DoesNotContain("copied texture {tex}", body, StringComparison.Ordinal);
     }
 
     [Fact]

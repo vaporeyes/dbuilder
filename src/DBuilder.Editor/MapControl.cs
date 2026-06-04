@@ -2313,7 +2313,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var tex = TargetTextureName3D();
         if (string.IsNullOrEmpty(tex)) { Target3DChanged?.Invoke("nothing to copy"); return; }
         _texClipboard3D = tex;
-        Target3DChanged?.Invoke($"copied texture {tex}");
+        Target3DChanged?.Invoke(TextureCopied3DStatusText(tex, _target3D?.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling));
     }
 
     /// <summary>Raised when the 3D user requests the texture browser (true = flats for a floor/ceiling target).</summary>
@@ -2352,6 +2352,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string TextureApplied3DStatusText(string textureName, int surfaceCount)
         => $"applied texture {textureName} to {CountLabel(surfaceCount, "surface")}";
+
+    public static string TextureCopied3DStatusText(string textureName, bool flat)
+        => flat ? $"Copied flat \"{textureName}\"." : $"Copied texture \"{textureName}\".";
 
     private System.Collections.Generic.List<VisualHit> TextureApplyTargets3D()
         => EditTargets3D()
