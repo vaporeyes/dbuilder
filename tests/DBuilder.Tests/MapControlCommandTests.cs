@@ -74,6 +74,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualTextureFloodFill3DStatusText(kind, textureName));
 
     [Theory]
+    [InlineData(true, true, "Set upper-unpegged setting.")]
+    [InlineData(true, false, "Removed upper-unpegged setting.")]
+    [InlineData(false, true, "Set lower-unpegged setting.")]
+    [InlineData(false, false, "Removed lower-unpegged setting.")]
+    public void VisualUnpegged3DStatusTextMatchesUdb(bool upper, bool set, string expected)
+        => Assert.Equal(expected, MapControl.VisualUnpegged3DStatusText(upper, set));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -556,6 +564,18 @@ public sealed class MapControlCommandTests
         Assert.True(targetsIndex > targetIndex);
         Assert.True(fallbackIndex > targetsIndex);
         Assert.True(nextIndex > fallbackIndex);
+    }
+
+    [Fact]
+    public void VisualUnpeggedToggleUsesUdbStatusText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ToggleUnpegged3D(bool upper)", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualUnpegged3DStatusText(upper, next));", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
+        Assert.DoesNotContain("set\" : \"removed", body, StringComparison.Ordinal);
     }
 
     [Fact]

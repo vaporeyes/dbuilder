@@ -2652,8 +2652,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"{(next ? "set" : "removed")} {(upper ? "upper" : "lower")} unpegged");
+        Target3DChanged?.Invoke(VisualUnpegged3DStatusText(upper, next));
     }
+
+    public static string VisualUnpegged3DStatusText(bool upper, bool set)
+        => (set ? "Set " : "Removed ") + (upper ? "upper" : "lower") + "-unpegged setting.";
 
     private void CopyTextureOffsets3D()
     {
