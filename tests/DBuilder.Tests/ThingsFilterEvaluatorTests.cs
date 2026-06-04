@@ -274,7 +274,7 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
-    public void ConfigurationPreservesDisplayModeButDraftNormalizesToUiRange()
+    public void ConfigurationAndDraftPreserveDisplayModeLikeUdb()
     {
         var config = GameConfiguration.FromText("""
             thingsfilters
@@ -296,7 +296,7 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal(20, config.ThingsFilters[1].DisplayMode);
 
         var draft = new ThingsFilterDraft { DisplayMode = 20, ThingType = 3001 };
-        Assert.Equal(2, draft.ToInfo("filter0").DisplayMode);
+        Assert.Equal(20, draft.ToInfo("filter0").DisplayMode);
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public class ThingsFilterEvaluatorTests
             Name = "Custom imps",
             Category = "monsters",
             Invert = true,
-            DisplayMode = (int)ThingsFilterDisplayMode.ClassicModesOnly,
+            DisplayMode = 20,
             ThingType = 3001,
             ThingAngle = 90,
             ThingZHeight = 32,
@@ -353,7 +353,7 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal("Custom imps", filter.Name);
         Assert.Equal("monsters", filter.Category);
         Assert.True(filter.Invert);
-        Assert.Equal((int)ThingsFilterDisplayMode.ClassicModesOnly, filter.DisplayMode);
+        Assert.Equal(20, filter.DisplayMode);
         Assert.Equal(3001, filter.ThingType);
         Assert.Equal(90, filter.ThingAngle);
         Assert.Equal(32, filter.ThingZHeight);
