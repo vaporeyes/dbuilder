@@ -347,6 +347,14 @@ public sealed class MapControlCommandTests
             MapControl.VisualHeight3DStatusText(new VisualHit(VisualHitKind.Thing, 0, new(), null, null, true, 0, 0, Thing: thing)));
     }
 
+    [Theory]
+    [InlineData(VisualHitKind.Floor, "Change floor height")]
+    [InlineData(VisualHitKind.Ceiling, "Change ceiling height")]
+    [InlineData(VisualHitKind.Thing, "Change thing height")]
+    [InlineData(VisualHitKind.Wall, null)]
+    public void VisualHeight3DEditNameMatchesUdbTargetKind(VisualHitKind kind, string? expected)
+        => Assert.Equal(expected, MapControl.VisualHeight3DEditName(kind));
+
     [Fact]
     public void VisualThingPosition3DStatusTextMatchesUdb()
     {
@@ -983,15 +991,18 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void AdjustTarget3D(int step)", StringComparison.Ordinal);
         int statusVariableIndex = body.IndexOf("string heightStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
-        int applyIndex = body.IndexOf("ApplyHeightDelta(h, step);", statusVariableIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(editLabel);", statusVariableIndex, StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("ApplyHeightDelta(h, step);", editIndex, StringComparison.Ordinal);
         int statusAssignmentIndex = body.IndexOf("heightStatus = VisualHeight3DStatusText(h);", applyIndex, StringComparison.Ordinal);
         int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(heightStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(statusVariableIndex > methodIndex);
-        Assert.True(applyIndex > statusVariableIndex);
+        Assert.True(editIndex > statusVariableIndex);
+        Assert.True(applyIndex > editIndex);
         Assert.True(statusAssignmentIndex > applyIndex);
         Assert.True(finalStatusIndex > statusAssignmentIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Change height\")", body, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -3550,8 +3550,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string heightStatus = string.Empty;
         foreach (var h in EditTargets3D())
         {
-            if (HeightEditLabel(h) == null) continue;
-            if (!any) { EditBegun?.Invoke("Change height"); any = true; }
+            string? editLabel = VisualHeight3DEditName(h.Kind);
+            if (editLabel == null) continue;
+            if (!any) { EditBegun?.Invoke(editLabel); any = true; }
             ApplyHeightDelta(h, step);
             heightStatus = VisualHeight3DStatusText(h);
         }
@@ -3592,12 +3593,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.Message);
     }
 
-    private static string? HeightEditLabel(VisualHit h) => h.Kind switch
+    private static string? HeightEditLabel(VisualHit h) => VisualHeight3DEditName(h.Kind);
+
+    public static string? VisualHeight3DEditName(VisualHitKind kind) => kind switch
     {
         VisualHitKind.Floor => "Change floor height",
         VisualHitKind.Ceiling => "Change ceiling height",
         VisualHitKind.Thing => "Change thing height",
-        _ => null, // walls are not directly height-editable
+        _ => null,
     };
 
     private static void ApplyHeightDelta(VisualHit h, int delta)
