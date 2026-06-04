@@ -142,4 +142,20 @@ public sealed class MapControlCommandTests
         Assert.True(filterIndex > methodIndex);
         Assert.True(sectorWriteIndex > filterIndex);
     }
+
+    [Fact]
+    public void VisualAutoAlign3DTriesUdmfFlatTargets()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void AutoAlignTarget3D(bool alignX, bool alignY)", StringComparison.Ordinal);
+        int flatHelperIndex = body.IndexOf("if (AutoAlignFlatTargets3D(alignX, alignY)) return;", methodIndex, StringComparison.Ordinal);
+        int wallMessageIndex = body.IndexOf("aim at a wall or UDMF flat to align textures", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private bool AutoAlignFlatTargets3D(bool alignX, bool alignY)", StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(flatHelperIndex > methodIndex);
+        Assert.True(wallMessageIndex > flatHelperIndex);
+        Assert.True(helperIndex > methodIndex);
+        Assert.Contains("SectorFlatAlignment.AlignToClosestLine", body, StringComparison.Ordinal);
+    }
 }

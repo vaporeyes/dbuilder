@@ -80,6 +80,50 @@ public class SectorFlatAlignmentTests
         Assert.Empty(sector.Fields);
     }
 
+    [Fact]
+    public void AlignToClosestLineUsesNearestEndpointForVisualFlatPanning()
+    {
+        var sector = new Sector();
+        var near = LineWithFrontSector(new Vector2D(16, 32), new Vector2D(16, 96), sector);
+        var far = LineWithFrontSector(new Vector2D(256, 0), new Vector2D(256, 128), sector);
+
+        SectorFlatAlignmentResult result = SectorFlatAlignment.AlignToClosestLine(
+            sector,
+            [near, far],
+            new Vector2D(18, 88),
+            floors: true,
+            alignX: true,
+            alignY: true);
+
+        Assert.True(result.Applied);
+        Assert.Equal(1, result.SectorCount);
+        Assert.Equal("Aligned floor texture on X and Y.", result.Message);
+        Assert.Equal(270.0, sector.GetFloatField("rotationfloor"));
+        Assert.Equal(-96.0, sector.GetFloatField("xpanningfloor"));
+        Assert.Equal(-16.0, sector.GetFloatField("ypanningfloor"));
+    }
+
+    [Fact]
+    public void AlignToClosestLineOnlyWritesRequestedPanningAxis()
+    {
+        var sector = new Sector();
+        sector.SetFloatField("xpanningceiling", 12.0, 0.0);
+        sector.SetFloatField("ypanningceiling", 34.0, 0.0);
+        var line = LineWithBackSector(new Vector2D(16, 32), new Vector2D(16, 96), sector);
+
+        SectorFlatAlignment.AlignToClosestLine(
+            sector,
+            [line],
+            new Vector2D(20, 40),
+            floors: false,
+            alignX: false,
+            alignY: true);
+
+        Assert.Equal(270.0, sector.GetFloatField("rotationceiling"));
+        Assert.Equal(12.0, sector.GetFloatField("xpanningceiling"));
+        Assert.Equal(-16.0, sector.GetFloatField("ypanningceiling"));
+    }
+
     private static Linedef LineWithFrontSector(Vector2D start, Vector2D end, Sector sector)
     {
         var line = new Linedef(new Vertex(start), new Vertex(end));

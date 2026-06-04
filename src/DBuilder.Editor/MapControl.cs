@@ -2945,9 +2945,59 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void AutoAlignTarget3D(bool alignX, bool alignY)
     {
-        if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to align textures"); return; }
+        if (TargetSidedef3D() is not { } sd)
+        {
+            if (AutoAlignFlatTargets3D(alignX, alignY)) return;
+            Target3DChanged?.Invoke("aim at a wall or UDMF flat to align textures");
+            return;
+        }
+
         string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
         AutoAlignSide3D(sd, alignX, alignY, $"Auto-align ({axis})", $"on {axis}");
+    }
+
+    private bool AutoAlignFlatTargets3D(bool alignX, bool alignY)
+    {
+        if (_mapFormat != MapFormat.Udmf) return false;
+        if (_target3D is not { Kind: VisualHitKind.Floor or VisualHitKind.Ceiling, Sector: { } targetSector } target)
+            return false;
+
+        bool ceiling = target.Kind == VisualHitKind.Ceiling;
+        string targetTexture = ceiling ? targetSector.CeilTexture : targetSector.FloorTexture;
+        var candidates = targetSector.Sidedefs.Select(side => side.Line).Distinct().ToList();
+        if (candidates.Count == 0) return false;
+
+        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
+        int changed = 0;
+        bool begun = false;
+        foreach (VisualHit hit in EditTargets3D())
+        {
+            if (hit.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling) || hit.Sector is not { } sector) continue;
+            bool hitCeiling = hit.Kind == VisualHitKind.Ceiling;
+            string textureName = hitCeiling ? sector.CeilTexture : sector.FloorTexture;
+            if (!string.Equals(textureName, targetTexture, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var image = _resources?.GetFlat(textureName);
+            var texture = image == null ? (SectorFlatAlignmentTexture?)null : new SectorFlatAlignmentTexture(image.Width, image.Height);
+            if (!begun) { EditBegun?.Invoke($"Auto-align flat textures ({axis})"); begun = true; }
+            SectorFlatAlignmentResult result = SectorFlatAlignment.AlignToClosestLine(
+                sector,
+                candidates,
+                new Vector2D(target.Point.x, target.Point.y),
+                floors: !hitCeiling,
+                alignX: alignX,
+                alignY: alignY,
+                texture: texture);
+            if (result.Applied) changed++;
+        }
+
+        if (changed == 0) return false;
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"aligned {changed} flat{(changed == 1 ? "" : "s")} on {axis}");
+        return true;
     }
 
     private void AutoAlignSelectedVisualTextures3D(bool alignX, bool alignY)
