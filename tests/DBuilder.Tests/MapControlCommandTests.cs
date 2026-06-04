@@ -768,6 +768,14 @@ public sealed class MapControlCommandTests
         Assert.True(handlerIndex >= 0);
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);", body, StringComparison.Ordinal);
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.pitchclockwise\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.pitchcounterclockwise\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.rollclockwise\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.rollcounterclockwise\":", body, StringComparison.Ordinal);
+        Assert.Contains("ChangeThingPitchTargets3D(-5);", body, StringComparison.Ordinal);
+        Assert.Contains("ChangeThingPitchTargets3D(5);", body, StringComparison.Ordinal);
+        Assert.Contains("ChangeThingRollTargets3D(-5);", body, StringComparison.Ordinal);
+        Assert.Contains("ChangeThingRollTargets3D(5);", body, StringComparison.Ordinal);
         Assert.Contains("VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
     }
 

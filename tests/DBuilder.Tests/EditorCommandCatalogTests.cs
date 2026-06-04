@@ -1509,9 +1509,13 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.rotate-clockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp")]
     [InlineData("map3d.rotate-counterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown")]
     [InlineData("map3d.pitch-clockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp")]
+    [InlineData("map3d.pitchclockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp")]
     [InlineData("map3d.pitch-counterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown")]
+    [InlineData("map3d.pitchcounterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown")]
     [InlineData("map3d.roll-clockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp")]
+    [InlineData("map3d.rollclockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp")]
     [InlineData("map3d.roll-counterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown")]
+    [InlineData("map3d.rollcounterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown")]
     public void VisualRotationAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
