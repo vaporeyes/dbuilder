@@ -1130,7 +1130,7 @@ class OutOfOrderExtensionThing : Actor
     }
 
     [Fact]
-    public void DoesNotResolveZScriptGotoWithoutRequiredSemicolon()
+    public void RejectsZScriptGotoWithoutRequiredSemicolon()
     {
         const string zscript = @"
 class GotoTargetZThing : Actor
@@ -1140,10 +1140,15 @@ class GotoTargetZThing : Actor
 class MissingGotoSemicolonZThing : Actor
 {
     States { Spawn: goto GotoTargetZThing::Spawn }
+}
+class ValidAfterMissingGotoSemicolonZThing : Actor
+{
+    States { Spawn: VGTS A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingGotoSemicolonZThing");
+        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName != "GotoTargetZThing");
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterMissingGotoSemicolonZThing", actor.ClassName);
+        Assert.Equal("VGTSA0", actor.EditorSprite);
     }
 
     [Fact]

@@ -1449,9 +1449,19 @@ public static class DecorateParser
             }
             else if (inStates && currentState != null && lw == "goto")
             {
-                if (TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target)
-                    && (!zscriptBody || TryConsumeZScriptStateGotoSemicolon(t, ref i)))
+                if (!TryReadStateGoto(t, ref i, allowSingleColonClassTarget: !zscriptBody, out var target)
+                    || (zscriptBody && !TryConsumeZScriptStateGotoSemicolon(t, ref i)))
+                {
+                    if (zscriptBody)
+                    {
+                        SkipRemainingActorBody(t, ref i, depth);
+                        return false;
+                    }
+                }
+                else
+                {
                     actor.StateGotos[currentState] = target;
+                }
             }
             else if (zscriptBody && inStates && currentState != null && lw == "hold" && NextTokenIsSemicolon(t, i))
             {

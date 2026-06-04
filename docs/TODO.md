@@ -799,6 +799,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prefer inherited relevant state sprites before unrelated child states.
   - [x] Only apply ZScript mixin and extension preview sprites from `Spawn` states.
   - [x] Require UDB-style semicolons after ZScript state `goto` targets.
+  - [x] Reject malformed ZScript state `goto` flow like UDB.
   - [x] Reject ZScript state frames without required semicolons like UDB.
   - [x] Reject duplicate ZScript state-frame specials before using preview frames.
   - [x] Require ZScript `Light` and `Offset` state-frame specials to use arguments.
