@@ -18,6 +18,12 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _thingHeightAmount;
     private readonly TextBox _thingPitchAmount;
     private readonly TextBox _thingRollAmount;
+    private readonly TextBox _thingScaleMinX;
+    private readonly TextBox _thingScaleMaxX;
+    private readonly TextBox _thingScaleMinY;
+    private readonly TextBox _thingScaleMaxY;
+    private readonly CheckBox _relativeThingScale;
+    private readonly CheckBox _uniformThingScale;
 
     public int ResultPositionAmount { get; private set; } = 16;
     public int ResultFloorAmount { get; private set; } = 16;
@@ -28,6 +34,12 @@ public sealed class JitterDialog : PropertyDialog
     public int ResultThingHeightAmount { get; private set; } = 16;
     public int ResultThingPitchAmount { get; private set; }
     public int ResultThingRollAmount { get; private set; }
+    public double ResultThingScaleMinX { get; private set; } = 1.0;
+    public double ResultThingScaleMaxX { get; private set; } = 1.0;
+    public double ResultThingScaleMinY { get; private set; } = 1.0;
+    public double ResultThingScaleMaxY { get; private set; } = 1.0;
+    public bool ResultRelativeThingScale { get; private set; }
+    public bool ResultUniformThingScale { get; private set; }
 
     public JitterDialog(string title)
         : base(title)
@@ -41,6 +53,12 @@ public sealed class JitterDialog : PropertyDialog
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
         _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
         _thingRollAmount = AddField("Thing roll amount", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture));
+        _thingScaleMinX = AddField("Thing scale X min", ResultThingScaleMinX.ToString(CultureInfo.InvariantCulture));
+        _thingScaleMaxX = AddField("Thing scale X max", ResultThingScaleMaxX.ToString(CultureInfo.InvariantCulture));
+        _thingScaleMinY = AddField("Thing scale Y min", ResultThingScaleMinY.ToString(CultureInfo.InvariantCulture));
+        _thingScaleMaxY = AddField("Thing scale Y max", ResultThingScaleMaxY.ToString(CultureInfo.InvariantCulture));
+        _relativeThingScale = AddCheckBox("Relative thing scale", ResultRelativeThingScale);
+        _uniformThingScale = AddCheckBox("Uniform thing scale", ResultUniformThingScale);
     }
 
     protected override void OnConfirm()
@@ -54,6 +72,12 @@ public sealed class JitterDialog : PropertyDialog
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
         ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));
+        ResultThingScaleMinX = Math.Max(0.0, ParseDouble(_thingScaleMinX, ResultThingScaleMinX));
+        ResultThingScaleMaxX = Math.Max(0.0, ParseDouble(_thingScaleMaxX, ResultThingScaleMaxX));
+        ResultThingScaleMinY = Math.Max(0.0, ParseDouble(_thingScaleMinY, ResultThingScaleMinY));
+        ResultThingScaleMaxY = Math.Max(0.0, ParseDouble(_thingScaleMaxY, ResultThingScaleMaxY));
+        ResultRelativeThingScale = _relativeThingScale.IsChecked == true;
+        ResultUniformThingScale = _uniformThingScale.IsChecked == true;
     }
 
     private static IEnumerable<CatalogItem> FloorOffsetModeItems()

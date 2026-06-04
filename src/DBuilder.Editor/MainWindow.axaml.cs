@@ -5325,8 +5325,8 @@ public partial class MainWindow : Window
                 PitchFactor: RandomPositiveFactor(),
                 RollFactor: RandomPositiveFactor(),
                 HeightFactor: RandomFactor(),
-                ScaleXFactor: 0,
-                ScaleYFactor: 0,
+                ScaleXFactor: RandomPositiveFactor(),
+                ScaleYFactor: RandomPositiveFactor(),
                 SafeDistance: dialog.ResultPositionAmount,
                 SectorHeight: JitterThingSectorHeight(thing))).ToList();
             changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
@@ -5340,6 +5340,14 @@ public partial class MainWindow : Window
             {
                 changed += BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, relative: false);
                 changed += BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, relative: false);
+                changed += BuilderEffects.ApplyThingScale(
+                    thingJitter,
+                    dialog.ResultThingScaleMinX,
+                    dialog.ResultThingScaleMaxX,
+                    dialog.ResultThingScaleMinY,
+                    dialog.ResultThingScaleMaxY,
+                    dialog.ResultRelativeThingScale,
+                    dialog.ResultUniformThingScale);
             }
             foreach (Thing thing in things)
                 thing.DetermineSector(_map);

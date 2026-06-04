@@ -250,6 +250,29 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionAppliesThingScaleOnlyInUdmf()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int scaleXFactorIndex = body.IndexOf("ScaleXFactor: RandomPositiveFactor()", methodIndex, StringComparison.Ordinal);
+        int scaleYFactorIndex = body.IndexOf("ScaleYFactor: RandomPositiveFactor()", scaleXFactorIndex, StringComparison.Ordinal);
+        int guardIndex = body.IndexOf("if (_mapFormat == MapFormat.Udmf)", scaleYFactorIndex, StringComparison.Ordinal);
+        int scaleIndex = body.IndexOf("BuilderEffects.ApplyThingScale(", guardIndex, StringComparison.Ordinal);
+        int minXIndex = body.IndexOf("dialog.ResultThingScaleMinX", scaleIndex, StringComparison.Ordinal);
+        int relativeIndex = body.IndexOf("dialog.ResultRelativeThingScale", minXIndex, StringComparison.Ordinal);
+        int uniformIndex = body.IndexOf("dialog.ResultUniformThingScale", relativeIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(scaleXFactorIndex > methodIndex);
+        Assert.True(scaleYFactorIndex > scaleXFactorIndex);
+        Assert.True(guardIndex > scaleYFactorIndex);
+        Assert.True(scaleIndex > guardIndex);
+        Assert.True(minXIndex > scaleIndex);
+        Assert.True(relativeIndex > minXIndex);
+        Assert.True(uniformIndex > relativeIndex);
+    }
+
+    [Fact]
     public void JitterDialogExposesUdbSectorOffsetModes()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
@@ -284,6 +307,26 @@ public sealed class MainWindowCommandTests
         Assert.Contains("AddField(\"Thing roll amount\", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));", body, StringComparison.Ordinal);
         Assert.Contains("ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JitterDialogExposesUdbThingScaleControls()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
+
+        Assert.Contains("public double ResultThingScaleMinX { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("public double ResultThingScaleMaxX { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("public double ResultThingScaleMinY { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("public double ResultThingScaleMaxY { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing scale X min\", ResultThingScaleMinX.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing scale X max\", ResultThingScaleMaxX.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing scale Y min\", ResultThingScaleMinY.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing scale Y max\", ResultThingScaleMaxY.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Relative thing scale\", ResultRelativeThingScale)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Uniform thing scale\", ResultUniformThingScale)", body, StringComparison.Ordinal);
+        Assert.Contains("ResultThingScaleMinX = Math.Max(0.0, ParseDouble(_thingScaleMinX, ResultThingScaleMinX));", body, StringComparison.Ordinal);
+        Assert.Contains("ResultRelativeThingScale = _relativeThingScale.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUniformThingScale = _uniformThingScale.IsChecked == true;", body, StringComparison.Ordinal);
     }
 
     [Fact]
