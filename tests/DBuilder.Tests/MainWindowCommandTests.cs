@@ -124,6 +124,8 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
         Assert.Contains("EditBegun?.Invoke(WadAuthorModeModel.EditDescription(action));", body, StringComparison.Ordinal);
+        Assert.Contains("WadAuthorLinedefPopupResult propertiesResult = WadAuthorModeModel.ExecuteLinedefPopupAction(_map, line, action, splitPosition);", body, StringComparison.Ordinal);
+        Assert.Contains("propertiesResult.Status == WadAuthorModeModel.EditPropertiesStatus", body, StringComparison.Ordinal);
     }
 
     [Fact]

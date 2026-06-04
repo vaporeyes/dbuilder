@@ -57,6 +57,7 @@ public static class WadAuthorModeModel
     public const double LinedefHighlightRange = 10.0;
     public const double VertexHighlightRange = 8.0;
     public const double ThingHighlightRange = 2.0;
+    public const string EditPropertiesStatus = "Edit linedef properties.";
 
     public static WadAuthorToolsMetadata ToolsMetadata { get; } = new(
         "WAuthorTools",
@@ -134,7 +135,7 @@ public static class WadAuthorModeModel
         switch (action)
         {
             case WadAuthorLinedefPopupAction.Properties:
-                return new WadAuthorLinedefPopupResult(false, "Edit linedef properties.");
+                return new WadAuthorLinedefPopupResult(false, EditPropertiesStatus);
             case WadAuthorLinedefPopupAction.Delete:
                 map.RemoveLinedef(line);
                 return new WadAuthorLinedefPopupResult(true, "Deleted linedef.");

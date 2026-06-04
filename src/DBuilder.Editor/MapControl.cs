@@ -5775,9 +5775,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Vec2D splitPosition = NearestPointOnLine(line, _cursorWorld);
         if (action == WadAuthorLinedefPopupAction.Properties)
         {
-            WadAuthorModeModel.SelectOnlyLinedef(_map, line);
-            Changed?.Invoke();
-            EditRequested?.Invoke();
+            WadAuthorLinedefPopupResult propertiesResult = WadAuthorModeModel.ExecuteLinedefPopupAction(_map, line, action, splitPosition);
+            if (propertiesResult.Status == WadAuthorModeModel.EditPropertiesStatus)
+            {
+                Changed?.Invoke();
+                EditRequested?.Invoke();
+            }
+
+            Picked?.Invoke(propertiesResult.Status);
             return;
         }
 

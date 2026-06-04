@@ -88,6 +88,10 @@ public class WadAuthorModeModelTests
         => Assert.Equal(expected, WadAuthorModeModel.EditDescription(action));
 
     [Fact]
+    public void LinedefPopupPropertiesStatusIsStableForEditorDispatch()
+        => Assert.Equal("Edit linedef properties.", WadAuthorModeModel.EditPropertiesStatus);
+
+    [Fact]
     public void EnterModeConvertsSelectedSectorsToLinedefsLikeUdb()
     {
         var (map, sector, lines) = SquareSectorMap();
@@ -135,7 +139,7 @@ public class WadAuthorModeModelTests
         Assert.False(result.Changed);
         Assert.True(line.Selected);
         Assert.False(vertex.Selected);
-        Assert.Equal("Edit linedef properties.", result.Status);
+        Assert.Equal(WadAuthorModeModel.EditPropertiesStatus, result.Status);
     }
 
     [Fact]
