@@ -3221,16 +3221,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         var done = new System.Collections.Generic.HashSet<Sector>();
+        var doneSides = new System.Collections.Generic.HashSet<(Sidedef Side, SidedefPart Part)>();
+        bool begun = false;
         string brightnessStatus = string.Empty;
         foreach (var h in EditTargets3D())
         {
-            if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;
+            Sidedef? wallSide = h.Kind == VisualHitKind.Wall && h.Line != null
+                ? (h.Front ? h.Line.Front : h.Line.Back)
+                : null;
+            if (wallSide != null && !doneSides.Add((wallSide, h.Part))) continue;
+            if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, delta, _mapFormat, _gameConfig, out brightnessStatus))
+            {
+                if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
+                continue;
+            }
+
+            if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
-            if (done.Count == 1) EditBegun?.Invoke("Change brightness");
+            if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
             s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
             brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);
         }
-        if (done.Count == 0) return;
+        if (!begun) return;
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -3239,7 +3251,54 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     public static string VisualBrightness3DStatusText(VisualHitKind kind, int brightness)
-        => (kind == VisualHitKind.Ceiling ? "Changed ceiling brightness to " : "Changed sector brightness to ") + brightness + ".";
+        => kind switch
+        {
+            VisualHitKind.Ceiling => "Changed ceiling brightness to " + brightness + ".",
+            VisualHitKind.Wall => "Changed wall brightness to " + brightness + ".",
+            _ => "Changed sector brightness to " + brightness + ".",
+        };
+
+    public static bool AdjustVisualWallBrightness3D(
+        VisualHit hit,
+        int delta,
+        MapFormat mapFormat,
+        GameConfiguration? config,
+        out string status)
+    {
+        status = string.Empty;
+        if (hit.Kind != VisualHitKind.Wall || hit.Line == null || hit.Sector == null) return false;
+
+        Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+        if (side?.Sector == null) return false;
+
+        bool distinctWallBrightness = mapFormat == MapFormat.Udmf &&
+            (config?.DistinctWallBrightness == true || config?.DistinctSidedefPartBrightness == true);
+        if (!distinctWallBrightness) return false;
+
+        string field = config?.DistinctSidedefPartBrightness == true
+            ? "light_" + SidedefPartBrightnessName(hit.Part)
+            : "light";
+        string absoluteField = config?.DistinctSidedefPartBrightness == true
+            ? "lightabsolute_" + SidedefPartBrightnessName(hit.Part)
+            : "lightabsolute";
+        bool absolute = side.GetField(absoluteField, false);
+        int current = side.GetIntegerField(field);
+        int next = Math.Clamp(current + delta, absolute ? 0 : -255, 255);
+        if (next == current) return false;
+
+        side.SetIntegerField(field, next, absolute ? int.MinValue : 0);
+        SidedefFogTools.UpdateLightFogFlag(side, mapInfo: null, config);
+        status = VisualBrightness3DStatusText(VisualHitKind.Wall, next);
+        return true;
+    }
+
+    private static string SidedefPartBrightnessName(SidedefPart part) => part switch
+    {
+        SidedefPart.Upper => "top",
+        SidedefPart.Middle => "mid",
+        SidedefPart.Lower => "bottom",
+        _ => "mid",
+    };
 
     private void MatchBrightness3D()
     {

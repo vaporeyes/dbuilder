@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using DBuilder.Editor;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -103,8 +104,66 @@ public sealed class MapControlCommandTests
     [InlineData(VisualHitKind.Floor, 0, "Changed sector brightness to 0.")]
     [InlineData(VisualHitKind.Floor, 168, "Changed sector brightness to 168.")]
     [InlineData(VisualHitKind.Ceiling, 255, "Changed ceiling brightness to 255.")]
+    [InlineData(VisualHitKind.Wall, 24, "Changed wall brightness to 24.")]
     public void VisualBrightness3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, int brightness, string expected)
         => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(kind, brightness));
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DUsesUdbRelativeWallLightField()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        VisualHit hit = WallHit(side, SidedefPart.Middle);
+        GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(8, side.GetIntegerField("light"));
+        Assert.Equal("Changed wall brightness to 8.", status);
+    }
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DUsesUdbAbsoluteWallLightField()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        side.SetField("lightabsolute", true);
+        side.SetIntegerField("light", 32);
+        VisualHit hit = WallHit(side, SidedefPart.Middle);
+        GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, -8, MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(24, side.GetIntegerField("light"));
+        Assert.Equal("Changed wall brightness to 24.", status);
+    }
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DUsesUdbPartSpecificWallLightField()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        VisualHit hit = WallHit(side, SidedefPart.Upper);
+        GameConfiguration config = GameConfiguration.FromText("distinctsidedefpartbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Udmf, config, out _);
+
+        Assert.True(changed);
+        Assert.Equal(8, side.GetIntegerField("light_top"));
+        Assert.Equal(0, side.GetIntegerField("light"));
+    }
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DRequiresUdmfDistinctWallBrightness()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        VisualHit hit = WallHit(side, SidedefPart.Middle);
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Doom, GameConfiguration.FromText(""), out string status);
+
+        Assert.False(changed);
+        Assert.Equal(0, side.GetIntegerField("light"));
+        Assert.Equal("", status);
+    }
 
     [Theory]
     [InlineData("angle", 270, 0, 0, "Changed thing angle to 270.")]
@@ -587,17 +646,19 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void VisualBrightnessStep3DOnlyChangesFlatSurfaces()
+    public void VisualBrightnessStep3DUsesUdbWallAndFlatTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(int delta)", StringComparison.Ordinal);
-        int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;", methodIndex, StringComparison.Ordinal);
+        int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, delta, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
+        int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;", methodIndex, StringComparison.Ordinal);
         int sectorWriteIndex = body.IndexOf("s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);", methodIndex, StringComparison.Ordinal);
         int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(brightnessStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(filterIndex > methodIndex);
+        Assert.True(wallIndex > methodIndex);
+        Assert.True(filterIndex > wallIndex);
         Assert.True(sectorWriteIndex > filterIndex);
         Assert.True(statusAssignmentIndex > sectorWriteIndex);
         Assert.True(statusIndex > statusAssignmentIndex);
@@ -823,5 +884,16 @@ public sealed class MapControlCommandTests
         Assert.True(guardIndex > methodIndex);
         Assert.True(helperIndex > methodIndex);
         Assert.True(policyIndex > helperIndex);
+    }
+
+    private static VisualHit WallHit(Sidedef side, SidedefPart part)
+        => new(VisualHitKind.Wall, 1, new DBuilder.Geometry.Vector3D(0, 0, 0), side.Sector, side.Line, side.IsFront, 0, 128, part);
+
+    private static Sidedef WallSide(Sector sector)
+    {
+        var line = new Linedef(new Vertex(new DBuilder.Geometry.Vector2D(0, 0)), new Vertex(new DBuilder.Geometry.Vector2D(64, 0)));
+        var side = new Sidedef(line, true) { Sector = sector };
+        line.Front = side;
+        return side;
     }
 }
