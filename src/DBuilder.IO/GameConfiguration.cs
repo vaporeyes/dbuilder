@@ -1893,19 +1893,20 @@ public sealed class GameConfiguration
             if (entry["arg" + i] is not IDictionary ad) continue;
             args ??= new ArgInfo[5];
             string title = GetString(ad, "title", "Argument " + (i + 1).ToString(CultureInfo.InvariantCulture));
+            int type = GetInt(ad, "type", 0);
             args[i] = new ArgInfo
             {
                 Title = title,
                 Used = true,
                 ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
-                Type = GetInt(ad, "type", 0),
+                Type = type,
                 Enum = GetReferenceName(ad["enum"]),
                 Flags = GetReferenceName(ad["flags"]),
                 InlineEnumItems = ad["enum"] is IDictionary inlineEnum ? ParseInlineEnum(inlineEnum) : Array.Empty<EnumItemInfo>(),
                 InlineFlagsItems = ad["flags"] is IDictionary inlineFlags ? ParseInlineEnum(inlineFlags) : Array.Empty<EnumItemInfo>(),
                 Default = GetInt(ad, "default", 0),
                 DefaultValue = ad["default"] ?? 0,
-                TargetClasses = ParseTargetClasses(GetString(ad, "targetclasses", "")),
+                TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(GetString(ad, "targetclasses", "")) : EmptyTargetClasses,
                 RenderStyle = GetString(ad, "renderstyle", "").ToLowerInvariant(),
                 RenderColor = ParseArgColor(GetString(ad, "rendercolor", ""), alpha: 192),
                 MinRange = GetInt(ad, "minrange", 0),

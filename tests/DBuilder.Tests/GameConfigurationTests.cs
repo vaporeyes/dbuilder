@@ -1407,6 +1407,39 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ArgumentTargetClassesOnlyApplyToThingTagArgsLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                special
+                {
+                    80
+                    {
+                        title = "Special";
+                        arg0
+                        {
+                            type = 0;
+                            targetclasses = "IgnoredClass";
+                        }
+                        arg1
+                        {
+                            type = 14;
+                            targetclasses = "Door, Lift";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var args = gc.GetLinedefAction(80)!.Args;
+        Assert.Empty(args[0].TargetClasses);
+        Assert.Equal(["Door", "Lift"], args[1].TargetClasses);
+    }
+
+    [Fact]
     public void LinedefActionZeroIsNone()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

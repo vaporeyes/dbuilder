@@ -65,7 +65,7 @@ linedeftypes
                     2 = ""South"";
                 }
             }
-            arg3 { type = 11; }
+            arg3 { type = 14; targetclasses = ""MapSpot, MapSpotGravity""; }
         }
     }
 }
@@ -129,8 +129,7 @@ thingtypes
         Assert.Equal(16, a.Args[1].Default);
         Assert.Equal(16, a.Args[1].DefaultValue);
         Assert.Equal("How fast\nit rotates", a.Args[1].ToolTip);
-        Assert.Contains("MapSpot", a.Args[1].TargetClasses);
-        Assert.Contains("MapSpotGravity", a.Args[1].TargetClasses);
+        Assert.Empty(a.Args[1].TargetClasses);
         Assert.Equal("circle", a.Args[1].RenderStyle);
         Assert.Equal(32, a.Args[1].MinRange);
         Assert.Equal(256, a.Args[1].MaxRange);
@@ -139,6 +138,8 @@ thingtypes
         Assert.Equal("Inline Mode", a.Args[2].Title);
         Assert.True(a.Args[3].Used);
         Assert.Equal("Argument 4", a.Args[3].Title);
+        Assert.Contains("MapSpot", a.Args[3].TargetClasses);
+        Assert.Contains("MapSpotGravity", a.Args[3].TargetClasses);
         Assert.False(a.Args[4].Used); // unused slot
     }
 
