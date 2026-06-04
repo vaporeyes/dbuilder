@@ -982,6 +982,20 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsStripWindowsTempPathFromBccErrors()
+    {
+        var errors = ScriptCompilerErrors.ParseBcc(
+            new[] { @"C:\tmp\dbuilder_compile\scripts.bcs:12:2: Unknown function" },
+            @"C:\tmp\dbuilder_compile",
+            @"C:\maps");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(Path.Combine(@"C:\maps", "scripts.bcs"), error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseZtBccStderrLines()
     {
         var errors = ScriptCompilerErrors.ParseZtBcc(
