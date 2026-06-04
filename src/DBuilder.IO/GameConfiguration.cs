@@ -1676,7 +1676,9 @@ public sealed class GameConfiguration
             GetInt(cat, "color", parent?.Color ?? 0),
             SafeThingCategoryWidth(GetInt(cat, "width", parent?.Width ?? 10)),
             GetInt(cat, "height", parent?.Height ?? 20),
-            Math.Clamp(GetDouble(cat, "alpha", parent?.Alpha ?? 1.0), 0.0, 1.0),
+            parent == null
+                ? Math.Clamp(GetDouble(cat, "alpha", 1.0), 0.0, 1.0)
+                : GetDouble(cat, "alpha", parent.Alpha),
             GetString(cat, "renderstyle", parent?.RenderStyle ?? "normal").ToLowerInvariant(),
             GetString(cat, "sprite", parent?.Sprite ?? ""),
             GetString(cat, "light", parent?.LightName ?? ""),

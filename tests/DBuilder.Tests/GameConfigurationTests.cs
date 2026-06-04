@@ -1257,6 +1257,38 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void NestedThingCategoryAlphaIsNotClampedLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                root
+                {
+                    title = "Root";
+                    alpha = 2.0;
+
+                    child
+                    {
+                        title = "Child";
+                        alpha = 1.5;
+
+                        3001
+                        {
+                            title = "Imp";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(1.0, gc.ThingCategories["root"].Alpha);
+        Assert.Equal(1.5, gc.ThingCategories["root.child"].Alpha);
+        Assert.Equal(1.0, gc.GetThing(3001)!.Alpha);
+    }
+
+    [Fact]
     public void ThingTypeSafetyMatchesUdbForFixedSizeAndAbsoluteZ()
     {
         const string cfg = """
