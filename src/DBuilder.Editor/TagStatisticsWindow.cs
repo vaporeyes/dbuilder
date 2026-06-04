@@ -37,9 +37,10 @@ public sealed class TagStatisticsWindow : Window
         DockPanel.SetDock(header, Dock.Top);
         root.Children.Add(header);
 
+        var rowModels = TagWindowModel.BuildTagStatisticsRows(tags, labels);
         var rows = new StackPanel { Margin = new Avalonia.Thickness(10, 0, 10, 10), Spacing = 3 };
         rows.Children.Add(HeaderRow());
-        foreach (var tag in tags) rows.Children.Add(DataRow(tag, labels));
+        foreach (var row in rowModels) rows.Children.Add(DataRow(row));
 
         root.Children.Add(new ScrollViewer { Content = rows });
         Content = root;
@@ -57,21 +58,20 @@ public sealed class TagStatisticsWindow : Window
         return grid;
     }
 
-    private Grid DataRow(TagStatistic tag, IReadOnlyDictionary<int, string>? labels)
+    private Grid DataRow(TagStatisticsRow row)
     {
         var grid = RowGrid();
-        AddText(grid, tag.Tag.ToString(), 0, Brushes.Khaki);
-        AddLabelEditor(grid, tag.Tag, labels);
-        AddButton(grid, tag.Tag, 2, tag.Total, null);
-        AddButton(grid, tag.Tag, 3, tag.Sectors, MapControl.EditMode.Sectors);
-        AddButton(grid, tag.Tag, 4, tag.Linedefs, MapControl.EditMode.Linedefs);
-        AddButton(grid, tag.Tag, 5, tag.Things, MapControl.EditMode.Things);
+        AddText(grid, row.Tag.ToString(), 0, Brushes.Khaki);
+        AddLabelEditor(grid, row.Tag, row.Label);
+        AddButton(grid, row.Tag, 2, row.Total, null);
+        AddButton(grid, row.Tag, 3, row.Sectors, MapControl.EditMode.Sectors);
+        AddButton(grid, row.Tag, 4, row.Linedefs, MapControl.EditMode.Linedefs);
+        AddButton(grid, row.Tag, 5, row.Things, MapControl.EditMode.Things);
         return grid;
     }
 
-    private void AddLabelEditor(Grid grid, int tag, IReadOnlyDictionary<int, string>? labels)
+    private void AddLabelEditor(Grid grid, int tag, string label)
     {
-        string label = labels != null && labels.TryGetValue(tag, out string? value) ? value : "";
         var box = new TextBox
         {
             Text = label,

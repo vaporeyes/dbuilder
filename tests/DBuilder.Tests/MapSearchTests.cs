@@ -1027,6 +1027,33 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void TagStatisticsWindowModelBuildsRowsLikeUdbTagStatisticsForm()
+    {
+        var tags = new[]
+        {
+            new TagStatistic(7, Sectors: 1, Linedefs: 2, Things: 3),
+            new TagStatistic(3, Sectors: 4, Linedefs: 0, Things: 1),
+            new TagStatistic(5, Sectors: 0, Linedefs: 1, Things: 0),
+        };
+        var labels = new Dictionary<int, string>
+        {
+            [7] = "Exit",
+            [3] = "  ",
+        };
+
+        IReadOnlyList<TagStatisticsRow> rows = TagWindowModel.BuildTagStatisticsRows(tags, labels);
+
+        Assert.Equal(
+            new[]
+            {
+                new TagStatisticsRow(3, "  ", 4, 0, 1),
+                new TagStatisticsRow(5, "", 0, 1, 0),
+                new TagStatisticsRow(7, "Exit", 1, 2, 3),
+            },
+            rows);
+    }
+
+    [Fact]
     public void UsedTagStatisticsSplitsCountsByElementType()
     {
         var map = Build();

@@ -1,7 +1,14 @@
 // ABOUTME: Formats tag list and tag statistics window labels outside the Avalonia layer.
 // ABOUTME: Keeps UDB-style tag count headers and rows testable for tag-related editor windows.
 
+using DBuilder.Map;
+
 namespace DBuilder.IO;
+
+public sealed record TagStatisticsRow(int Tag, string Label, int Sectors, int Linedefs, int Things)
+{
+    public int Total => Sectors + Linedefs + Things;
+}
 
 public static class TagWindowModel
 {
@@ -21,6 +28,20 @@ public static class TagWindowModel
             ? $" - {value}"
             : "";
         return $"Tag {tag}{label}  ({CountLabel(count, "element")})";
+    }
+
+    public static IReadOnlyList<TagStatisticsRow> BuildTagStatisticsRows(
+        IEnumerable<TagStatistic> tags,
+        IReadOnlyDictionary<int, string>? labels)
+    {
+        var rows = new List<TagStatisticsRow>();
+        foreach (var tag in tags)
+        {
+            string label = labels != null && labels.TryGetValue(tag.Tag, out string? value) ? value : "";
+            rows.Add(new TagStatisticsRow(tag.Tag, label, tag.Sectors, tag.Linedefs, tag.Things));
+        }
+        rows.Sort((a, b) => a.Tag.CompareTo(b.Tag));
+        return rows;
     }
 
     public static string TagActivatedStatusText(int tag, int elementCount)
