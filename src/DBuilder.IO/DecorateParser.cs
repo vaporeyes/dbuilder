@@ -634,6 +634,12 @@ public static class DecorateParser
         while (i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "\n") i++;
     }
 
+    private static bool NextTokenStartsBlock(List<Tok> t, int i)
+    {
+        SkipNewlines(t, ref i);
+        return i < t.Count && t[i].Kind == Kind.Sym && t[i].Text == "{";
+    }
+
     private static bool SkipBlock(List<Tok> t, ref int i)
     {
         if (i >= t.Count || t[i].Kind != Kind.Sym || t[i].Text != "{") return false;
@@ -1295,7 +1301,15 @@ public static class DecorateParser
                 SkipUntilSemicolon(t, ref i);
                 pendingUserVariableMetadata.Clear();
             }
-            else if (zscriptBody && depth == 1 && lw == "default") pendingUserVariableMetadata.Clear();
+            else if (zscriptBody && depth == 1 && lw == "default")
+            {
+                if (!NextTokenStartsBlock(t, i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
+                pendingUserVariableMetadata.Clear();
+            }
             else if (zscriptBody && depth == 1 && lw != "default")
             {
                 if (!TryParseZScriptUserVariables(actor, tk.Text, pendingUserVariableMetadata, t, ref i))

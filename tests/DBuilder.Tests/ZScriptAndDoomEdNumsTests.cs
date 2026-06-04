@@ -533,6 +533,28 @@ class ValidDefaultProperty : Actor
     }
 
     [Fact]
+    public void RejectsZScriptDefaultWithoutBlockLikeUdb()
+    {
+        const string text = @"
+class MissingDefaultBlock : Actor
+{
+    Default Radius 64;
+}
+class ValidDefaultBlock : Actor
+{
+    Default
+    {
+        Radius 16;
+    }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("ValidDefaultBlock", actor.ClassName);
+        Assert.Equal(16, actor.Radius);
+    }
+
+    [Fact]
     public void RejectsZScriptDefaultFlagSignsWithoutNames()
     {
         const string text = @"
