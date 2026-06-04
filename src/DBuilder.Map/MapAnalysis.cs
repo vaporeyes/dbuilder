@@ -337,6 +337,14 @@ public static class MapAnalysis
     private const string OffGridVertexDescription = "This vertex is not aligned with the grid.";
     private const string OverlappingVerticesDescription = "These vertices have the same position.";
     private const string VertexOverlappingLinedefDescription = "This vertex overlaps this linedef without splitting it.";
+    private const string MissingTextureDescription =
+        "This sidedef is missing a texture where it is required and could cause a 'Hall Of Mirrors' visual problem in the map.";
+    private const string UnknownTextureDescription =
+        "This sidedef uses an unknown texture. This could be the result of missing resources, or a mistyped texture name.";
+    private const string UnusedTextureDescription =
+        "This sidedef uses an upper or lower texture, which is not required (it will never be visible ingame). Click the Remove Texture button to remove the texture (this will also reset texture offsets and scale in UDMF map format).";
+    private const string MisalignedTextureDescription =
+        "Textures are not aligned on given sidedefs. Some players may not like that.";
 
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
@@ -1452,7 +1460,7 @@ public static class MapAnalysis
             int targetIndex = lineIndexes.TryGetValue(target.Line, out int ti) ? ti : -1;
             issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture,
                 $"Texture \"{texture}\" is not aligned on linedefs {sourceIndex} ({(side.IsFront ? "front" : "back")}) and {targetIndex} ({(target.IsFront ? "front" : "back")})")
-                { Target = side.Line, RelatedTargets = new[] { target.Line }, Focus = LinedefMidpoint(side.Line) });
+                { Description = MisalignedTextureDescription, Target = side.Line, RelatedTargets = new[] { target.Line }, Focus = LinedefMidpoint(side.Line) });
         }
     }
 
@@ -1635,6 +1643,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, message)
         {
+            Description = MissingTextureDescription,
             Target = line,
             Focus = focus,
             Fixes = fixes,
@@ -1649,6 +1658,7 @@ public static class MapAnalysis
         Vector2D focus)
         => new(MapIssueSeverity.Warning, MapIssueKind.UnusedTexture, message)
         {
+            Description = UnusedTextureDescription,
             Target = line,
             Focus = focus,
             Fixes = new[]
@@ -1704,6 +1714,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownTexture, message)
         {
+            Description = UnknownTextureDescription,
             Target = line,
             Focus = focus,
             Fixes = fixes,
@@ -1716,6 +1727,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingFlat, message)
         {
+            Description = MissingFlatDescription(ceiling),
             Target = sector,
             Fixes = fixes,
         };
@@ -1727,10 +1739,17 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownFlat, message)
         {
+            Description = UnknownFlatDescription(ceiling),
             Target = sector,
             Fixes = fixes,
         };
     }
+
+    private static string MissingFlatDescription(bool ceiling)
+        => $"This sector's {(ceiling ? "ceiling" : "floor")} is missing a flat where it is required and could cause a 'Hall Of Mirrors' visual problem in the map.";
+
+    private static string UnknownFlatDescription(bool ceiling)
+        => $"This sector's {(ceiling ? "ceiling" : "floor")} uses an unknown flat. This could be the result of missing resources, or a mistyped flat name.";
 
     private static IReadOnlyList<MapIssueFix> FlatFixes(Sector sector, bool ceiling, MapCheckContext ctx)
     {

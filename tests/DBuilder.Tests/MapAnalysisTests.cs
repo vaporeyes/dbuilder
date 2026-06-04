@@ -993,6 +993,9 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Linedef 0 has missing middle texture (front side)", issue.Message);
+        Assert.Equal(
+            "This sidedef is missing a texture where it is required and could cause a 'Hall Of Mirrors' visual problem in the map.",
+            issue.Description);
         Assert.Equal("Add Default Texture", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -1454,6 +1457,9 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes, f => f.Label == "Remove Texture");
 
         Assert.Equal("Linedef 0 has unknown middle texture \"NOPE99\" (front side)", issue.Message);
+        Assert.Equal(
+            "This sidedef uses an unknown texture. This could be the result of missing resources, or a mistyped texture name.",
+            issue.Description);
         Assert.True(fix.Apply(map));
 
         Assert.Equal("-", side.MidTexture);
@@ -1550,6 +1556,9 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Sidedef 0 has unused upper texture \"UNUSEDHI\"", issue.Message);
+        Assert.Equal(
+            "This sidedef uses an upper or lower texture, which is not required (it will never be visible ingame). Click the Remove Texture button to remove the texture (this will also reset texture offsets and scale in UDMF map format).",
+            issue.Description);
         Assert.Equal("Remove Texture", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -1632,6 +1641,9 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Sector 0 has unknown ceiling flat \"WAT99\"", issue.Message);
+        Assert.Equal(
+            "This sector's ceiling uses an unknown flat. This could be the result of missing resources, or a mistyped flat name.",
+            issue.Description);
         Assert.Equal("Add Default Flat", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -1671,6 +1683,9 @@ public class MapAnalysisTests
         var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MissingFlat);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal(
+            "This sector's floor is missing a flat where it is required and could cause a 'Hall Of Mirrors' visual problem in the map.",
+            issue.Description);
         Assert.Equal("Add Default Flat", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -2266,6 +2281,7 @@ public class MapAnalysisTests
         var issue = MapAnalysis.Check(map, ctx).First(i => i.Kind == MapIssueKind.MisalignedTexture);
         Assert.Same(lines[0], issue.Target);
         Assert.Equal("Texture \"WALL\" is not aligned on linedefs 0 (front) and 1 (front)", issue.Message);
+        Assert.Equal("Textures are not aligned on given sidedefs. Some players may not like that.", issue.Description);
     }
 
     [Fact]
