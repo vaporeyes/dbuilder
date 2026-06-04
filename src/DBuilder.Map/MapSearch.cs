@@ -255,7 +255,7 @@ public static class MapSearch
                 if (numOk && num >= 0 && num < map.Things.Count) { map.Things[num].Selected = true; count = 1; focus = map.Things[num].Position; }
                 break;
             case FindCategory.ThingAngle:
-                if (numOk) foreach (var t in lists.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
+                if (numOk) foreach (var t in lists.Things) if (ThingAngleMatches(t.Angle, num)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingActionArguments:
                 if (TryParseActionQuery(value, actionArg0StringSearchSupported, out var thingActionQuery))
@@ -637,7 +637,7 @@ public static class MapSearch
         {
             case FindCategory.ThingAngle:
                 int normalizedAngle = Angle2D.RealToDoom(Angle2D.DoomToReal(to));
-                foreach (var t in lists.Things) if (t.Angle == from) { t.Angle = normalizedAngle; changed++; }
+                foreach (var t in lists.Things) if (ThingAngleMatches(t.Angle, from)) { t.Angle = normalizedAngle; changed++; }
                 break;
             case FindCategory.LinedefAction:
                 foreach (var l in lists.Linedefs)
@@ -853,6 +853,9 @@ public static class MapSearch
 
     private static bool NumberMatches(int actual, int expected, Func<int, int, bool>? matcher)
         => actual == expected || (matcher?.Invoke(actual, expected) ?? false);
+
+    private static bool ThingAngleMatches(int actual, int expected)
+        => Angle2D.RealToDoom(Angle2D.DoomToReal(actual)) == expected;
 
     private static bool ActionQueryMatches(IFielded element, int action, int[] args, ActionArgQuery query)
         => ActionQueryMatches(element, action, args, query, null);
