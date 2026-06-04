@@ -76,6 +76,9 @@ public sealed class MainWindowCommandTests
     [InlineData("window.sector-color", "OnSectorColor")]
     [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
     [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
+    [InlineData("window.export-object", "OnExportObject")]
+    [InlineData("window.export-image", "OnExportImage")]
+    [InlineData("window.export-wavefront", "OnExportWavefront")]
     [InlineData("window.export-idstudio", "OnExportIdStudio")]
     [InlineData("window.check-map", "OnCheckMap")]
     [InlineData("window.clean-up-geometry", "OnCleanUpGeometry")]
@@ -116,6 +119,18 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("MapView.ToggleWadAuthorMode()", body, StringComparison.Ordinal);
         Assert.Contains("WadAuthorModeModel.ModeToggleStatusText(enabled, MapView.CurrentEditMode.ToString())", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UndoRedoPanelBeginRowUsesCurrentMapLabel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("UndoRedoPanelModel.Build(UndoRedoPanelBeginDescription(), _undo)", body, StringComparison.Ordinal);
+        Assert.Contains("private string UndoRedoPanelBeginDescription()", body, StringComparison.Ordinal);
+        Assert.Contains("return $\"{System.IO.Path.GetFileName(_wadPath)} ({marker})\";", body, StringComparison.Ordinal);
+        Assert.Contains("return $\"{System.IO.Path.GetFileName(_pk3Path)} ({_pk3MapArchivePath}:{marker})\";", body, StringComparison.Ordinal);
+        Assert.Contains("return marker;", body, StringComparison.Ordinal);
     }
 
     [Fact]

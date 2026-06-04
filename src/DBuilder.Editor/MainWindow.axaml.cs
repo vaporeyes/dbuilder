@@ -3216,7 +3216,17 @@ public partial class MainWindow : Window
     }
 
     private UndoRedoPanelState UndoRedoPanelState()
-        => UndoRedoPanelModel.Build("Map loaded", _undo);
+        => UndoRedoPanelModel.Build(UndoRedoPanelBeginDescription(), _undo);
+
+    private string UndoRedoPanelBeginDescription()
+    {
+        string marker = _mapMarker ?? "MAP01";
+        if (_wadPath is not null)
+            return $"{System.IO.Path.GetFileName(_wadPath)} ({marker})";
+        if (_pk3Path is not null && _pk3MapArchivePath is not null)
+            return $"{System.IO.Path.GetFileName(_pk3Path)} ({_pk3MapArchivePath}:{marker})";
+        return marker;
+    }
 
     private void PerformUndoRedoPanelOperation(UndoRedoPanelOperation operation)
     {
