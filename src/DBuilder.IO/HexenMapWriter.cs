@@ -61,8 +61,8 @@ public static class HexenMapWriter
         using var w = new BinaryWriter(ms);
         foreach (var l in map.Linedefs)
         {
-            ushort v1 = vertexIndex.TryGetValue(l.Start, out int v1i) ? (ushort)v1i : (ushort)0;
-            ushort v2 = vertexIndex.TryGetValue(l.End,   out int v2i) ? (ushort)v2i : (ushort)0;
+            ushort v1 = (ushort)RequireIndex(vertexIndex, l.Start, "linedef start vertex");
+            ushort v2 = (ushort)RequireIndex(vertexIndex, l.End, "linedef end vertex");
             ushort sideFront = l.Front != null && sidedefIndex.TryGetValue(l.Front, out int srI) ? (ushort)srI : (ushort)0xFFFF;
             ushort sideBack  = l.Back  != null && sidedefIndex.TryGetValue(l.Back,  out int slI) ? (ushort)slI : (ushort)0xFFFF;
 
@@ -109,6 +109,12 @@ public static class HexenMapWriter
         var dict = new Dictionary<T, int>(list.Count, ReferenceEqualityComparer.Instance);
         for (int i = 0; i < list.Count; i++) dict[list[i]] = i;
         return dict;
+    }
+
+    private static int RequireIndex<T>(Dictionary<T, int> indexes, T? item, string description) where T : class
+    {
+        if (item != null && indexes.TryGetValue(item, out int index)) return index;
+        throw new InvalidDataException("Cannot write Hexen map with missing " + description + ".");
     }
 
     private static void InsertLump(WAD wad, string name, byte[] data, int position)

@@ -330,9 +330,8 @@ public class DoomMapWriterTests
     }
 
     [Fact]
-    public void UnreferencedSectorOnSidedefWritesAsZero()
+    public void MissingSectorOnSidedefThrowsLikeUdb()
     {
-        // If a Sidedef has no Sector reference, writer falls back to 0 (safe default).
         var map = new MapSet();
         map.Sectors.Add(new Sector { Index = 0, FloorTexture = "-", CeilTexture = "-" });
         var v0 = new Vertex(new Vector2D(0, 0));
@@ -344,10 +343,19 @@ public class DoomMapWriterTests
         map.Sidedefs.Add(sd);
         map.Linedefs.Add(l);
 
-        var sideBytes = DoomMapWriter.WriteSidedefs(map);
-        // Last 2 bytes of the sole sidedef record encode the sector index.
-        short sectorIdx = System.BitConverter.ToInt16(sideBytes, DoomMapWriter.SidedefRecordSize - 2);
-        Assert.Equal(0, sectorIdx);
+        Assert.Throws<InvalidDataException>(() => DoomMapWriter.WriteSidedefs(map));
+    }
+
+    [Fact]
+    public void MissingLinedefVertexThrowsLikeUdb()
+    {
+        var map = new MapSet();
+        var v0 = new Vertex(new Vector2D(0, 0));
+        var v1 = new Vertex(new Vector2D(10, 0));
+        map.Vertices.Add(v0);
+        map.Linedefs.Add(new Linedef(v0, v1));
+
+        Assert.Throws<InvalidDataException>(() => DoomMapWriter.WriteLinedefs(map));
     }
 
     [Fact]

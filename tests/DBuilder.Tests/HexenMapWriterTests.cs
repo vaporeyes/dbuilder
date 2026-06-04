@@ -204,6 +204,18 @@ public class HexenMapWriterTests
     }
 
     [Fact]
+    public void MissingLinedefVertexThrowsLikeUdb()
+    {
+        var map = new MapSet();
+        var v0 = new Vertex(new Vector2D(0, 0));
+        var v1 = new Vertex(new Vector2D(10, 0));
+        map.Vertices.Add(v0);
+        map.Linedefs.Add(new Linedef(v0, v1));
+
+        Assert.Throws<InvalidDataException>(() => HexenMapWriter.WriteLinedefs(map));
+    }
+
+    [Fact]
     public void ArgsZeroByDefaultWriteAsZero()
     {
         // Build a map without going through the loader so arg bytes are at their default zero.
