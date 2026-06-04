@@ -79,6 +79,9 @@ public class ResourceManagerTests
     private static byte[] SndInfoBytes(string logicalName, string lumpName)
         => Encoding.ASCII.GetBytes($"{logicalName} {lumpName}");
 
+    private static byte[] TerrainBytes(string flatName, string splashName)
+        => Encoding.ASCII.GetBytes($"terrain {flatName} {{ splash {splashName} }}");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -344,6 +347,52 @@ public class ResourceManagerTests
             var sounds = rm.GetSndInfo().Sounds;
             Assert.Equal("DSDIR", sounds["world/door"]);
             Assert.Equal("DSEXTRA", sounds["world/extra"]);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesTerrainFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("TERRAIN", TerrainBytes("FWATER1", "Water")),
+            ("TERRAIN", TerrainBytes("NUKAGE1", "Slime")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var terrains = rm.GetTerrainData().Terrains;
+        Assert.Equal("Water", terrains["FWATER1"].Splash);
+        Assert.Equal("Slime", terrains["NUKAGE1"].Splash);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootTerrainTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("TERRAIN", TerrainBytes("FWATER1", "Nested")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TERRAIN.txt", TerrainBytes("FWATER1", "Root")),
+            ("TERRAIN.extra", TerrainBytes("LAVA1", "Lava")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_terrain_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "TERRAIN.txt"), TerrainBytes("SLIME1", "Directory"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var terrains = rm.GetTerrainData().Terrains;
+            Assert.Equal("Root", terrains["FWATER1"].Splash);
+            Assert.Equal("Lava", terrains["LAVA1"].Splash);
+            Assert.Equal("Directory", terrains["SLIME1"].Splash);
         }
         finally
         {

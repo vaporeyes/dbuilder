@@ -1139,6 +1139,24 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>TERRAIN definitions from every resource, oldest first.</summary>
+    public TerrainData GetTerrainData(TerrainBaseGame? baseGame = null)
+    {
+        var result = new TerrainData();
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetTerrainLumps())
+            {
+                var data = TerrainParser.Parse(text, baseGame);
+                foreach (var terrain in data.Terrains)
+                    if (!result.Terrains.ContainsKey(terrain.Key))
+                        result.Terrains[terrain.Key] = terrain.Value;
+                foreach (var splash in data.Splashes) result.Splashes[splash.Key] = splash.Value;
+            }
+        }
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {
