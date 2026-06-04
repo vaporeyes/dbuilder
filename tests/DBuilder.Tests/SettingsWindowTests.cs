@@ -94,6 +94,25 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawEllipseModePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawEllipseSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw ellipses continuously\", s.NormalizedDrawEllipseSettings.ContinuousDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Draw ellipses radially\", s.NormalizedDrawEllipseSettings.RadialDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Place things at ellipse vertices\", s.NormalizedDrawEllipseSettings.PlaceThingsAtVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("Subdivisions: _drawEllipseSubdivisions", body, StringComparison.Ordinal);
+        Assert.Contains("BevelWidth: _drawEllipseBevelWidth", body, StringComparison.Ordinal);
+        Assert.Contains("Angle: _drawEllipseAngle", body, StringComparison.Ordinal);
+        Assert.Contains("ShowGuidelines: _drawEllipseShowGuidelines", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawEllipseSettings = dlg.DrawEllipseSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesDrawCurveModePreferences()
     {
         Type type = typeof(SettingsWindow);
