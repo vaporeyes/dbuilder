@@ -12,6 +12,9 @@ public static class StairBuilder
     public const int DefaultUpperUnpeggedBit = 8;
     public const int DefaultLowerUnpeggedBit = 16;
 
+    public static string ApplyStatusText(int sectorCount, int startFloor, int floorStep)
+        => $"Built stairs across {CountLabel(sectorCount, "sector")} (start {startFloor}, step {floorStep}).";
+
     public static IReadOnlyList<Linedef> SelectSectorsOutline(MapSet map, IReadOnlyList<Sector>? sectors = null)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
@@ -732,6 +735,9 @@ public static class StairBuilder
 
         return vertices;
     }
+
+    private static string CountLabel(int count, string singular, string? plural = null)
+        => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
     private sealed record SplineData(IReadOnlyList<Vector2D> ControlPoints, IReadOnlyList<Vector2D> Tangents);
     private sealed record ConnectedLineChain(Linedef FirstLine, IReadOnlyList<Linedef> Lines, IReadOnlyList<Vector2D> Vertices);

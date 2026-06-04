@@ -5037,7 +5037,7 @@ public partial class MainWindow : Window
             dlg.ResultApplyCeiling, dlg.ResultCeilingStart, dlg.ResultCeilingStep);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus($"Built stairs across {n} sectors (start {dlg.ResultFloorStart}, step {dlg.ResultFloorStep}).");
+        SetStatus(StairBuilder.ApplyStatusText(n, dlg.ResultFloorStart, dlg.ResultFloorStep));
     }
 
     // Traces Doom-style sound propagation from the selected sector, or a leak path between two sectors.

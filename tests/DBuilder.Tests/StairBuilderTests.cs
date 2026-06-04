@@ -9,6 +9,16 @@ namespace DBuilder.Tests;
 
 public class StairBuilderTests
 {
+    [Theory]
+    [InlineData(1, 0, 8, "Built stairs across 1 sector (start 0, step 8).")]
+    [InlineData(3, 16, -4, "Built stairs across 3 sectors (start 16, step -4).")]
+    public void ApplyStatusTextFormatsSingularAndPluralSectorCounts(
+        int sectorCount,
+        int startFloor,
+        int floorStep,
+        string expected)
+        => Assert.Equal(expected, StairBuilder.ApplyStatusText(sectorCount, startFloor, floorStep));
+
     private static void AssertEqualVertices(IReadOnlyList<Vector2D> expected, IReadOnlyList<Vector2D> actual)
     {
         Assert.Equal(expected.Count, actual.Count);
