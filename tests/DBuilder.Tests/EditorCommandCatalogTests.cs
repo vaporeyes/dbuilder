@@ -426,6 +426,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
+    [InlineData("window.export-object", "Export Object OBJ")]
+    [InlineData("window.export-image", "Export Image PNG")]
+    [InlineData("window.export-wavefront", "Export Wavefront OBJ")]
     [InlineData("window.export-idstudio", "Export idStudio")]
     public void ImportExportToolCommandsMatchUdbActionSurface(string commandId, string title)
     {

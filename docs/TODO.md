@@ -218,6 +218,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for slope arch and slope-special utility commands.
   - [x] Add stable UDB action ids for sector and dynamic-light color dialogs.
   - [x] Add stable UDB action ids for OBJ terrain import and idStudio export.
+  - [x] Add stable UDB action ids for object, image, and Wavefront export.
   - [x] Add stable UDB action ids for map check and geometry cleanup.
   - [x] Add stable UDB action ids for bridge and stairs construction tools.
   - [x] Add stable UDB action id for USDF Conversations.
