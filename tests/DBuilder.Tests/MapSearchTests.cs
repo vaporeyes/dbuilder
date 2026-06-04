@@ -90,10 +90,12 @@ public class MapSearchTests
 
         Assert.Equal(Enum.GetValues<FindCategory>().Length, descriptors.Count);
         Assert.Equal(Enum.GetValues<FindCategory>().OrderBy(category => category), descriptors.Select(descriptor => descriptor.Category).OrderBy(category => category));
-        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingType, "Thing type"), descriptors[0]);
-        Assert.Equal(new FindCategoryDescriptor(FindCategory.TextureOrFlat, "Any texture or flat"), descriptors[25]);
-        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingUdmfField, "UDMF field (thing)"), descriptors[^1]);
-        Assert.Equal("Texture (middle)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SidedefMiddleTexture).ToString());
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingType, "Thing Type"), descriptors[0]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.TextureOrFlat, "Any Texture or Flat"), descriptors[25]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingUdmfField, "Thing UDMF Field"), descriptors[^1]);
+        Assert.Equal("Sidedef Texture (Middle)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SidedefMiddleTexture).ToString());
+        Assert.Equal("Sector Height (Ceiling)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SectorCeilingHeight).Label);
+        Assert.Equal("Sector Flat (Floor)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SectorFloorFlat).Label);
     }
 
     [Theory]
