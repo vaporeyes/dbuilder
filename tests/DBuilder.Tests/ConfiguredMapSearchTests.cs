@@ -185,6 +185,58 @@ public class ConfiguredMapSearchTests
     }
 
     [Fact]
+    public void FindFlagsIgnoresUnknownConfiguredFindFlagsWhenKnownFlagsRemain()
+    {
+        var config = GameConfiguration.FromText(FlagCfg);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+        map.Linedefs[0].SetFlag("playeruse", true);
+        map.Sidedefs[0].SetFlag("clipmidtex", true);
+        map.Sectors[0].SetFlag("secret", true);
+        map.Things[0].SetFlag("ambush", true);
+
+        Assert.Equal(1, ConfiguredMapSearch.Find(map, FindCategory.LinedefFlags, "playeruse, missing", config).Count);
+        Assert.Equal(1, ConfiguredMapSearch.Find(map, FindCategory.SidedefFlags, "clipmidtex, missing", config).Count);
+        Assert.Equal(1, ConfiguredMapSearch.Find(map, FindCategory.SectorFlags, "secret, missing", config).Count);
+        Assert.Equal(1, ConfiguredMapSearch.Find(map, FindCategory.ThingFlags, "ambush, missing", config).Count);
+    }
+
+    [Fact]
+    public void ReplaceFlagsIgnoresUnknownConfiguredFindFlagsWhenKnownFlagsRemain()
+    {
+        var config = GameConfiguration.FromText(FlagCfg);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+        map.Linedefs[0].SetFlag("playeruse", true);
+        map.Sidedefs[0].SetFlag("clipmidtex", true);
+        map.Sectors[0].SetFlag("secret", true);
+        map.Things[0].SetFlag("ambush", true);
+
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefFlags, "playeruse, missing", "monsteruse", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.SidedefFlags, "clipmidtex, missing", "wrapmidtex", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.SectorFlags, "secret, missing", "damagehazard", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.ThingFlags, "ambush, missing", "skill2", config));
+
+        Assert.True(map.Linedefs[0].IsFlagSet("monsteruse"));
+        Assert.True(map.Sidedefs[0].IsFlagSet("wrapmidtex"));
+        Assert.True(map.Sectors[0].IsFlagSet("damagehazard"));
+        Assert.True(map.Things[0].IsFlagSet("skill2"));
+    }
+
+    [Fact]
+    public void FindFlagsWithOnlyUnknownConfiguredFlagsMatchesNothing()
+    {
+        var config = GameConfiguration.FromText(FlagCfg);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+
+        Assert.Equal(0, ConfiguredMapSearch.Find(map, FindCategory.LinedefFlags, "missing", config).Count);
+        Assert.Equal(0, ConfiguredMapSearch.Find(map, FindCategory.SidedefFlags, "missing", config).Count);
+        Assert.Equal(0, ConfiguredMapSearch.Find(map, FindCategory.SectorFlags, "missing", config).Count);
+        Assert.Equal(0, ConfiguredMapSearch.Find(map, FindCategory.ThingFlags, "missing", config).Count);
+    }
+
+    [Fact]
     public void CategoryDescriptorsHideUnsupportedDoomFormatCategories()
     {
         var config = GameConfiguration.FromText("""

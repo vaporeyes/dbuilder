@@ -16,23 +16,23 @@ public static class ConfiguredMapSearch
             .ToArray();
 
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config)
-        => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
+        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
 
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config, bool withinSelection)
-        => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
+        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
     }
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
     }
 
     private static (int Min, int Max) ThingTypeRange(GameConfiguration? config)
@@ -65,9 +65,20 @@ public static class ConfiguredMapSearch
     {
         HashSet<string>? known = KnownReplacementFlags(category, config);
         if (known is null) return true;
-        foreach (string flag in ParsedFlagNames(replace))
-            if (!known.Contains(flag)) return false;
+        foreach (var flag in ParsedFlagTokens(replace))
+            if (!known.Contains(flag.Name)) return false;
         return true;
+    }
+
+    private static string KnownFindFlagsOrOriginal(FindCategory category, string find, GameConfiguration? config)
+    {
+        HashSet<string>? known = KnownReplacementFlags(category, config);
+        if (known is null) return find;
+
+        var flags = ParsedFlagTokens(find)
+            .Where(flag => known.Contains(flag.Name))
+            .Select(flag => flag.Set ? flag.Name : "!" + flag.Name);
+        return string.Join(", ", flags);
     }
 
     private static HashSet<string>? KnownReplacementFlags(FindCategory category, GameConfiguration? config)
@@ -90,12 +101,13 @@ public static class ConfiguredMapSearch
         };
     }
 
-    private static IEnumerable<string> ParsedFlagNames(string value)
+    private static IEnumerable<(string Name, bool Set)> ParsedFlagTokens(string value)
     {
         foreach (string part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            string flag = part.StartsWith("!", StringComparison.Ordinal) ? part[1..].Trim() : part;
-            if (!string.IsNullOrWhiteSpace(flag)) yield return flag;
+            bool set = !part.StartsWith("!", StringComparison.Ordinal);
+            string flag = set ? part : part[1..].Trim();
+            if (!string.IsNullOrWhiteSpace(flag)) yield return (flag, set);
         }
     }
 
