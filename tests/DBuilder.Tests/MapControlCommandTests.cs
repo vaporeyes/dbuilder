@@ -153,6 +153,16 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualAutoAlign3DStatusText(alignX, alignY, selected));
 
     [Theory]
+    [InlineData(true, false, false, "Auto-align textures (X)")]
+    [InlineData(false, true, false, "Auto-align textures (Y)")]
+    [InlineData(true, true, false, "Auto-align textures (X and Y)")]
+    [InlineData(true, false, true, "Auto-align textures to selected sidedefs (X)")]
+    [InlineData(false, true, true, "Auto-align textures to selected sidedefs (Y)")]
+    [InlineData(true, true, true, "Auto-align textures to selected sidedefs (X and Y)")]
+    public void VisualAutoAlign3DEditNameMatchesUdb(bool alignX, bool alignY, bool selected, string expected)
+        => Assert.Equal(expected, MapControl.VisualAutoAlign3DEditName(alignX, alignY, selected));
+
+    [Theory]
     [InlineData(true, "Alpha-based textures highlighting is ENABLED")]
     [InlineData(false, "Alpha-based textures highlighting is DISABLED")]
     public void AlphaBasedTextureHighlightingStatusTextMatchesUdb(bool enabled, string expected)
@@ -1007,17 +1017,26 @@ public sealed class MapControlCommandTests
         int sideIndex = body.IndexOf("private void AutoAlignSide3D(Sidedef side, bool alignX, bool alignY, string editName)", StringComparison.Ordinal);
         int sideStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: false));", sideIndex, StringComparison.Ordinal);
         int flatIndex = body.IndexOf("private bool AutoAlignFlatTargets3D(bool alignX, bool alignY)", StringComparison.Ordinal);
+        int flatEditIndex = body.IndexOf("EditBegun?.Invoke(VisualAutoAlign3DEditName(alignX, alignY, selected: false));", flatIndex, StringComparison.Ordinal);
         int flatStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: false));", flatIndex, StringComparison.Ordinal);
         int selectedIndex = body.IndexOf("private void AutoAlignSelectedVisualTextures3D(bool alignX, bool alignY)", StringComparison.Ordinal);
+        int selectedEditIndex = body.IndexOf("EditBegun?.Invoke(VisualAutoAlign3DEditName(alignX, alignY, selected: true));", selectedIndex, StringComparison.Ordinal);
         int selectedStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: true));", selectedIndex, StringComparison.Ordinal);
+        int targetIndex = body.IndexOf("AutoAlignSide3D(sd, alignX, alignY, VisualAutoAlign3DEditName(alignX, alignY, selected: false));", sideStatusIndex, StringComparison.Ordinal);
 
         Assert.True(sideIndex >= 0);
         Assert.True(sideStatusIndex > sideIndex);
+        Assert.True(targetIndex > sideStatusIndex);
         Assert.True(flatIndex > sideIndex);
-        Assert.True(flatStatusIndex > flatIndex);
+        Assert.True(flatEditIndex > flatIndex);
+        Assert.True(flatStatusIndex > flatEditIndex);
         Assert.True(selectedIndex > flatIndex);
-        Assert.True(selectedStatusIndex > selectedIndex);
+        Assert.True(selectedEditIndex > selectedIndex);
+        Assert.True(selectedStatusIndex > selectedEditIndex);
         string visual3DBody = body[sideIndex..body.IndexOf("// Adjusts the selected", selectedIndex, StringComparison.Ordinal)];
+        Assert.DoesNotContain("Auto-align (", visual3DBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("Auto-align flat textures", visual3DBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("Auto-align selected textures", visual3DBody, StringComparison.Ordinal);
         Assert.DoesNotContain("aligned {n} sidedef", visual3DBody, StringComparison.Ordinal);
         Assert.DoesNotContain("aligned {changed} flat", visual3DBody, StringComparison.Ordinal);
         Assert.DoesNotContain("aligned {aligned} sidedef", visual3DBody, StringComparison.Ordinal);

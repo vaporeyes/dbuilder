@@ -3188,8 +3188,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
-        AutoAlignSide3D(sd, alignX, alignY, $"Auto-align ({axis})");
+        AutoAlignSide3D(sd, alignX, alignY, VisualAutoAlign3DEditName(alignX, alignY, selected: false));
     }
 
     private bool AutoAlignFlatTargets3D(bool alignX, bool alignY)
@@ -3203,7 +3202,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var candidates = targetSector.Sidedefs.Select(side => side.Line).Distinct().ToList();
         if (candidates.Count == 0) return false;
 
-        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
         int changed = 0;
         bool begun = false;
         foreach (VisualHit hit in EditTargets3D())
@@ -3215,7 +3213,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             var image = _resources?.GetFlat(textureName);
             var texture = image == null ? (SectorFlatAlignmentTexture?)null : new SectorFlatAlignmentTexture(image.Width, image.Height);
-            if (!begun) { EditBegun?.Invoke($"Auto-align flat textures ({axis})"); begun = true; }
+            if (!begun) { EditBegun?.Invoke(VisualAutoAlign3DEditName(alignX, alignY, selected: false)); begun = true; }
             SectorFlatAlignmentResult result = SectorFlatAlignment.AlignToClosestLine(
                 sector,
                 candidates,
@@ -3241,9 +3239,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var targets = SelectedWallTextureParts3D();
         if (targets.Count == 0) { Target3DChanged?.Invoke("select wall surfaces to align textures"); return; }
 
-        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
         var seen = new System.Collections.Generic.HashSet<Sidedef>();
-        EditBegun?.Invoke($"Auto-align selected textures ({axis})");
+        EditBegun?.Invoke(VisualAutoAlign3DEditName(alignX, alignY, selected: true));
         foreach ((Sidedef side, _) in targets)
         {
             if (!seen.Add(side)) continue;
@@ -3266,6 +3263,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return selected
             ? "Auto-aligned textures to selected sidedefs (" + axis + ")."
             : "Auto-aligned textures (" + axis + ").";
+    }
+
+    public static string VisualAutoAlign3DEditName(bool alignX, bool alignY, bool selected)
+    {
+        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
+        return selected
+            ? "Auto-align textures to selected sidedefs (" + axis + ")"
+            : "Auto-align textures (" + axis + ")";
     }
 
     // Adjusts the selected (or targeted) sectors' brightness ([ darker / ] brighter), undoable.
