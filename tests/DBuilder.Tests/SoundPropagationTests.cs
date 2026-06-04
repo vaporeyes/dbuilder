@@ -381,6 +381,15 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void LifecycleMetadataMatchesUdbPluginResetEvents()
+    {
+        SoundPropagationLifecycleDescriptor lifecycle = SoundPropagationColorSettings.Lifecycle;
+
+        Assert.Equal(new[] { "OnMapOpenBegin", "OnMapNewBegin", "OnEditEngage" }, lifecycle.ResetDataEvents);
+        Assert.Equal(new[] { "OnMapSaveBegin" }, lifecycle.StaleEnvironmentEvents);
+    }
+
+    [Fact]
     public void ModeDescriptorsMatchUdbEditModeMetadata()
     {
         SoundPropagationModeDescriptor propagation = SoundPropagationColorSettings.ModeDescriptor;

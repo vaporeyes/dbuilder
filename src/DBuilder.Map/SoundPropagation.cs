@@ -61,6 +61,10 @@ public sealed record SoundPropagationColorField(
     string Label,
     uint DefaultColor);
 
+public sealed record SoundPropagationLifecycleDescriptor(
+    IReadOnlyList<string> ResetDataEvents,
+    IReadOnlyList<string> StaleEnvironmentEvents);
+
 public sealed record SoundPropagationColorSettings(
     uint HighlightColor,
     uint Level1Color,
@@ -132,6 +136,10 @@ public sealed record SoundPropagationColorSettings(
         AllowKeys: true,
         AllowMouse: true,
         AllowScroll: true);
+
+    public static SoundPropagationLifecycleDescriptor Lifecycle { get; } = new(
+        ["OnMapOpenBegin", "OnMapNewBegin", "OnEditEngage"],
+        ["OnMapSaveBegin"]);
 
     public static IReadOnlyList<SoundPropagationColorField> ColorConfigurationFields { get; } =
     [
