@@ -293,4 +293,59 @@ public class HexenMapWriterTests
         ushort tid = System.BitConverter.ToUInt16(bytes, 0);
         Assert.Equal((ushort)50000, tid);
     }
+
+    [Fact]
+    public void UnsignedBinaryFieldsAboveSignedShortRangeRoundTrip()
+    {
+        const int highVertexIndex = 40000;
+        var map = new MapSet();
+        var sector = new Sector { Index = 0, FloorTexture = "-", CeilTexture = "-" };
+        map.Sectors.Add(sector);
+
+        for (int i = 0; i <= highVertexIndex; i++)
+            map.Vertices.Add(new Vertex(new Vector2D(i, 0)));
+
+        var line = new Linedef(map.Vertices[0], map.Vertices[highVertexIndex])
+        {
+            Flags = 0x8001,
+            Action = 80,
+        };
+        line.Args[0] = 250;
+        line.Args[1] = 251;
+        var side = new Sidedef(line, true) { Sector = sector };
+        line.Front = side;
+        map.Sidedefs.Add(side);
+        map.Linedefs.Add(line);
+        map.Things.Add(new Thing
+        {
+            Position = new Vector2D(0, 0),
+            Type = 1,
+            Flags = 0x840F,
+            Tag = 50000,
+            Action = 81,
+        });
+        map.Things[0].Args[0] = 252;
+        map.Things[0].Args[1] = 253;
+
+        var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            HexenMapWriter.WriteMap(map, wad, "MAP01", 0);
+        }
+        ms.Position = 0;
+
+        using var rwad = new WAD(ms, openreadonly: true);
+        var reloaded = HexenMapLoader.Load(rwad, "MAP01")!;
+
+        Assert.Same(reloaded.Vertices[highVertexIndex], reloaded.Linedefs[0].End);
+        Assert.Equal(0x8001, reloaded.Linedefs[0].Flags);
+        Assert.Equal(80, reloaded.Linedefs[0].Action);
+        Assert.Equal(250, reloaded.Linedefs[0].Args[0]);
+        Assert.Equal(251, reloaded.Linedefs[0].Args[1]);
+        Assert.Equal(0x840F, reloaded.Things[0].Flags);
+        Assert.Equal(50000, reloaded.Things[0].Tag);
+        Assert.Equal(81, reloaded.Things[0].Action);
+        Assert.Equal(252, reloaded.Things[0].Args[0]);
+        Assert.Equal(253, reloaded.Things[0].Args[1]);
+    }
 }

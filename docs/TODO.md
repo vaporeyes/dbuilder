@@ -417,6 +417,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep scanning Hexen-format map blocks through zero-length nodebuilder lumps.
 - [ ] Complete Hexen-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Hexen-format map writes.
+  - [x] Write unsigned Hexen-format binary ids, flags, args, and references above signed-short range.
   - [x] Reject incomplete required vertex references during Hexen-format writes.
   - [x] Reject incomplete sidedef sector references during Hexen-format writes.
   - [x] Round Hexen-format binary vertex coordinates during writes like UDB.
