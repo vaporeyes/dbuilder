@@ -1730,6 +1730,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lower-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raise-brightness-8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
+        Assert.Equal("map3d.match-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "M", accelerator: true));
         Assert.Equal("map3d.texture-copy", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.texture-paste", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V"));
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
@@ -1802,8 +1803,7 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8")]
     [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8")]
-    [InlineData("map3d.match-brightness", "Match Brightness")]
-    public void VisualBrightnessCommandsMatchUdbActionSurface(string id, string title)
+    public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
 
@@ -1814,10 +1814,22 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        if (id is "map3d.match-brightness")
-            Assert.False(command.Repeat);
-        else
-            Assert.True(command.Repeat);
+        Assert.True(command.Repeat);
+    }
+
+    [Fact]
+    public void VisualMatchBrightnessCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map3d.match-brightness");
+
+        Assert.NotNull(command);
+        Assert.Equal("Match Brightness", command.Title);
+        Assert.Equal("Ctrl/Cmd+M", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
     }
 
     [Fact]
