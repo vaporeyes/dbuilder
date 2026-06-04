@@ -17,6 +17,27 @@ public sealed record ImageExamplePresentationDescriptor(
     double Alpha,
     bool Transform);
 
+public sealed record ImageExampleLifecyclePlan(
+    bool LoadEmbeddedImage,
+    bool LoadImageImmediately,
+    bool ThrowOnLoadFailure,
+    bool CreateTexture,
+    bool SetOverlayPresentation,
+    bool DisposeImage,
+    bool ReturnToPreviousStableMode);
+
+public sealed record ImageExampleRedrawPlan(
+    bool CallBaseRedraw,
+    bool StartOverlayCleared,
+    double X,
+    double Y,
+    double Width,
+    double Height,
+    string FillColor,
+    bool Transform,
+    bool FinishOverlay,
+    bool Present);
+
 public static class ImageExampleModeModel
 {
     public const string PluginName = "Image Drawing Example";
@@ -35,4 +56,43 @@ public static class ImageExampleModeModel
         "None",
         1.0,
         Transform: false);
+
+    public static ImageExampleLifecyclePlan EngagePlan { get; } = new(
+        LoadEmbeddedImage: true,
+        LoadImageImmediately: true,
+        ThrowOnLoadFailure: true,
+        CreateTexture: true,
+        SetOverlayPresentation: true,
+        DisposeImage: false,
+        ReturnToPreviousStableMode: false);
+
+    public static ImageExampleLifecyclePlan DisengagePlan { get; } = new(
+        LoadEmbeddedImage: false,
+        LoadImageImmediately: false,
+        ThrowOnLoadFailure: false,
+        CreateTexture: false,
+        SetOverlayPresentation: false,
+        DisposeImage: true,
+        ReturnToPreviousStableMode: false);
+
+    public static ImageExampleLifecyclePlan CancelPlan { get; } = new(
+        LoadEmbeddedImage: false,
+        LoadImageImmediately: false,
+        ThrowOnLoadFailure: false,
+        CreateTexture: false,
+        SetOverlayPresentation: false,
+        DisposeImage: false,
+        ReturnToPreviousStableMode: true);
+
+    public static ImageExampleRedrawPlan RedrawPlan { get; } = new(
+        CallBaseRedraw: true,
+        StartOverlayCleared: true,
+        X: 20.0,
+        Y: 20.0,
+        Width: 428.0,
+        Height: 332.0,
+        FillColor: "White",
+        Transform: false,
+        FinishOverlay: true,
+        Present: true);
 }

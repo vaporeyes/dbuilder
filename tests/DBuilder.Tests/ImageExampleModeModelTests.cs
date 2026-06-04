@@ -37,4 +37,50 @@ public class ImageExampleModeModelTests
         Assert.Equal(1.0, presentation.Alpha);
         Assert.False(presentation.Transform);
     }
+
+    [Fact]
+    public void EngagePlanLoadsResourceAndCreatesOverlayPresentationLikeUdb()
+    {
+        ImageExampleLifecyclePlan plan = ImageExampleModeModel.EngagePlan;
+
+        Assert.True(plan.LoadEmbeddedImage);
+        Assert.True(plan.LoadImageImmediately);
+        Assert.True(plan.ThrowOnLoadFailure);
+        Assert.True(plan.CreateTexture);
+        Assert.True(plan.SetOverlayPresentation);
+        Assert.False(plan.DisposeImage);
+        Assert.False(plan.ReturnToPreviousStableMode);
+    }
+
+    [Fact]
+    public void DisengageAndCancelPlansMatchUdbModeLifecycle()
+    {
+        ImageExampleLifecyclePlan disengage = ImageExampleModeModel.DisengagePlan;
+        ImageExampleLifecyclePlan cancel = ImageExampleModeModel.CancelPlan;
+
+        Assert.True(disengage.DisposeImage);
+        Assert.False(disengage.ReturnToPreviousStableMode);
+        Assert.False(disengage.LoadEmbeddedImage);
+
+        Assert.True(cancel.ReturnToPreviousStableMode);
+        Assert.False(cancel.DisposeImage);
+        Assert.False(cancel.SetOverlayPresentation);
+    }
+
+    [Fact]
+    public void RedrawPlanMatchesUdbScreenSpaceImageRectangle()
+    {
+        ImageExampleRedrawPlan plan = ImageExampleModeModel.RedrawPlan;
+
+        Assert.True(plan.CallBaseRedraw);
+        Assert.True(plan.StartOverlayCleared);
+        Assert.Equal(20.0, plan.X);
+        Assert.Equal(20.0, plan.Y);
+        Assert.Equal(428.0, plan.Width);
+        Assert.Equal(332.0, plan.Height);
+        Assert.Equal("White", plan.FillColor);
+        Assert.False(plan.Transform);
+        Assert.True(plan.FinishOverlay);
+        Assert.True(plan.Present);
+    }
 }
