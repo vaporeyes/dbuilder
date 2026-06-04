@@ -795,7 +795,8 @@ public class CompilerConfigurationTests
         {
             new ScriptCompilerError("Unknown function", "/maps/project/scripts.acs", 11),
             new ScriptCompilerError("Bad map lump", "?SCRIPTS", -1),
-            new ScriptCompilerError("Fatal error")
+            new ScriptCompilerError("Fatal error"),
+            new ScriptCompilerError("Windows source", @"C:\maps\project\script.bcs", 2)
         });
 
         Assert.Collection(
@@ -817,6 +818,12 @@ public class CompilerConfigurationTests
                 Assert.Equal(3, item.Index);
                 Assert.Equal("Fatal error", item.Description);
                 Assert.Equal("", item.Source);
+            },
+            item =>
+            {
+                Assert.Equal(4, item.Index);
+                Assert.Equal("Windows source", item.Description);
+                Assert.Equal("script.bcs (line 3)", item.Source);
             });
     }
 

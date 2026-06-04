@@ -285,9 +285,15 @@ public static class ScriptCompilerErrorDisplay
     {
         string fileName = error.FileName.StartsWith("?", StringComparison.Ordinal)
             ? error.FileName.Replace("?", "")
-            : Path.GetFileName(error.FileName);
+            : ErrorFileName(error.FileName);
         string lineNumber = error.LineNumber != -1 ? " (line " + (error.LineNumber + 1) + ")" : "";
         return fileName + lineNumber;
+    }
+
+    private static string ErrorFileName(string fileName)
+    {
+        string normalized = fileName.Replace('\\', Path.DirectorySeparatorChar);
+        return Path.GetFileName(normalized);
     }
 }
 
