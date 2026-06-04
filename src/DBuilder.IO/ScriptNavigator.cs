@@ -180,8 +180,27 @@ public static class ScriptNavigator
         for (int i = 0; i + 2 < tokens.Count; i++)
         {
             if (!tokens[i].Text.Equals("model", StringComparison.OrdinalIgnoreCase)) continue;
-            if (tokens[i + 2].Text == "{") items.Add(new ScriptNavigatorItem(tokens[i + 1].Text, tokens[i + 1].StartOffset));
+            if (tokens[i + 2].Text != "{") continue;
+
+            items.Add(new ScriptNavigatorItem(tokens[i + 1].Text, tokens[i + 1].StartOffset));
+            i = SkipBlock(tokens, i + 2);
         }
+    }
+
+    private static int SkipBlock(IReadOnlyList<Token> tokens, int openBraceIndex)
+    {
+        int level = 0;
+        for (int i = openBraceIndex; i < tokens.Count; i++)
+        {
+            if (tokens[i].Text == "{") level++;
+            else if (tokens[i].Text == "}")
+            {
+                level--;
+                if (level == 0) return i;
+            }
+        }
+
+        return openBraceIndex;
     }
 
     private static void AddZScriptItems(IReadOnlyList<Token> tokens, List<ScriptNavigatorItem> items)

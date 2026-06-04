@@ -58,6 +58,9 @@ public class ScriptNavigatorTests
         const string text = """
             model Zed
             {
+                model Nested
+                {
+                }
             }
 
             model Alpha

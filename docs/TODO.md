@@ -1344,6 +1344,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script handlers for ACS, DECORATE, MODELDEF, and ZScript.
   - [x] Add UDB-style script navigator entries for ACS, DECORATE, MODELDEF, and ZScript.
   - [x] Show UDB-style numbered ACS script custom names from opening-brace comments.
+  - [x] Skip UDB-style MODELDEF model blocks after adding navigator entries.
 - [x] Match UDB exact script type names in script configuration parsing.
 - [ ] Port script editor UI.
 - [ ] Port script document tabs.
