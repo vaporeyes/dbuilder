@@ -3317,7 +3317,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool PlaceThingTargetsAtCursor3D()
     {
         var things = ThingTargets3D();
-        if (things.Count == 0 || _target3D is not { } target) return false;
+        if (_target3D is not { } target)
+        {
+            Target3DChanged?.Invoke("Cannot place Thing here");
+            return false;
+        }
+
+        if (things.Count == 0) return false;
 
         DBuilder.Geometry.Vector3D[] coordinates = things
             .Select(thing => new DBuilder.Geometry.Vector3D(thing.Position, thing.Height))

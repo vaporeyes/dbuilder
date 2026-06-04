@@ -111,6 +111,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void PlaceThingAtCursor3DUsesUdbInvalidHitWarning()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool PlaceThingTargetsAtCursor3D()", StringComparison.Ordinal);
+        int missingTargetIndex = body.IndexOf("if (_target3D is not { } target)", methodIndex, StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Cannot place Thing here", methodIndex, StringComparison.Ordinal);
+        int emptySelectionIndex = body.IndexOf("if (things.Count == 0) return false;", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(missingTargetIndex > methodIndex);
+        Assert.True(warningIndex > missingTargetIndex);
+        Assert.True(emptySelectionIndex > warningIndex);
+    }
+
+    [Fact]
     public void VisualTextureOffset3DCommandsUseFlatOffsetTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
