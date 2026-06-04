@@ -2516,7 +2516,10 @@ public sealed class GameConfiguration
     }
 
     private static string GetString(IDictionary d, string key, string fallback)
-        => d[key] is string s ? s : fallback;
+    {
+        object? value = d[key];
+        return value == null ? fallback : Convert.ToString(value, CultureInfo.InvariantCulture) ?? fallback;
+    }
 
     private static string GetFlagString(IDictionary d, string key, string fallback)
         => d[key] switch

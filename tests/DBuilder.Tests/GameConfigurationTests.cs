@@ -347,6 +347,34 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void StringSettingsConvertScalarValuesLikeUdb()
+    {
+        const string cfg = """
+            game = 123;
+            engine = 456;
+            defaultwalltexture = 789;
+            linedeftypes
+            {
+                scalar
+                {
+                    title = 100;
+                    1 { title = 200; prefix = 300; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("123", gc.GameName);
+        Assert.Equal("456", gc.EngineName);
+        Assert.Equal("789", gc.DefaultWallTexture);
+        Assert.Equal("100", gc.LinedefActionCategories["scalar"].Title);
+        var action = gc.GetLinedefAction(1)!;
+        Assert.Equal("200", action.Title);
+        Assert.Equal("300", action.Prefix);
+    }
+
+    [Fact]
     public void InvalidFileTitleStyleFallsBackToDefault()
     {
         var gc = GameConfiguration.FromText("filetitlestyle = \"Unknown\";");
