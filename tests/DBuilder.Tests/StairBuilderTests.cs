@@ -19,6 +19,13 @@ public class StairBuilderTests
         string expected)
         => Assert.Equal(expected, StairBuilder.ApplyStatusText(sectorCount, startFloor, floorStep));
 
+    [Theory]
+    [InlineData(0, "No sector outline lines found.")]
+    [InlineData(1, "Selected 1 sector outline line.")]
+    [InlineData(2, "Selected 2 sector outline lines.")]
+    public void SelectSectorsOutlineStatusTextFormatsSingularAndPluralLineCounts(int lineCount, string expected)
+        => Assert.Equal(expected, StairBuilder.SelectSectorsOutlineStatusText(lineCount));
+
     private static void AssertEqualVertices(IReadOnlyList<Vector2D> expected, IReadOnlyList<Vector2D> actual)
     {
         Assert.Equal(expected.Count, actual.Count);

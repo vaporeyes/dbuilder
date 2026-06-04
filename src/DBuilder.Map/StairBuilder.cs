@@ -15,6 +15,11 @@ public static class StairBuilder
     public static string ApplyStatusText(int sectorCount, int startFloor, int floorStep)
         => $"Built stairs across {CountLabel(sectorCount, "sector")} (start {startFloor}, step {floorStep}).";
 
+    public static string SelectSectorsOutlineStatusText(int lineCount)
+        => lineCount == 0
+            ? "No sector outline lines found."
+            : $"Selected {CountLabel(lineCount, "sector outline line")}.";
+
     public static IReadOnlyList<Linedef> SelectSectorsOutline(MapSet map, IReadOnlyList<Sector>? sectors = null)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));

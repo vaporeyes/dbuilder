@@ -2140,6 +2140,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style prefab name suggestion, reserved-name, overwrite, and insert-position behavior.
   - [x] Add UDB-style form startup state for default prefabs, available tabs, and selected-sector overrides.
   - [x] Add UDB-style Stair Sector Builder mode and Select Sectors Outline command metadata and outline selection helper.
+  - [x] Wire editor Select Sectors Outline command dispatch.
   - [x] Add editor Stair Builder prefab save, load, delete, set-default, and previous-prefab persistence.
   - [x] Add UDB-style loaded-prefab preview planning for straight, curved, and spline stair tabs.
   - [x] Add UDB-style singular and plural labels to Stair Builder apply status text.

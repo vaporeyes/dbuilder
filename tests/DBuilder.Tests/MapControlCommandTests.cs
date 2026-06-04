@@ -27,6 +27,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.3dfloor.select-control-sector", "SelectThreeDFloorControlSectors")]
     [InlineData("map2d.3dfloor.relocate-control-sectors", "RelocateThreeDFloorControlSectors")]
     [InlineData("map2d.3dfloor.duplicate-geometry", "DuplicateThreeDFloorGeometry")]
+    [InlineData("map2d.select-sectors-outline", "SelectSectorsOutline")]
     public void MapCommandsAreRoutedThroughMapCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MapControl);

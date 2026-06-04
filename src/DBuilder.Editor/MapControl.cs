@@ -5144,6 +5144,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.mode-sectors":
                 SetEditMode(EditMode.Sectors);
                 return true;
+            case "map2d.select-sectors-outline":
+                SelectSectorsOutline();
+                return true;
             case "map2d.mode-things":
                 SetEditMode(EditMode.Things);
                 return true;
@@ -7009,6 +7012,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = count == 0
             ? "No managed 3D floor control sectors found."
             : "Relocated " + count + " 3D floor control sector" + (count == 1 ? "." : "s.");
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string SelectSectorsOutline()
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "Select sectors to outline.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        IReadOnlyList<Linedef> outline = StairBuilder.SelectSectorsOutline(_map, sectors);
+        SetEditMode(EditMode.Linedefs);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = StairBuilder.SelectSectorsOutlineStatusText(outline.Count);
         Picked?.Invoke(status);
         return status;
     }
