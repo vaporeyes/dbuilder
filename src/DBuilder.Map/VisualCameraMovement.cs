@@ -15,6 +15,7 @@ public static class VisualCameraMovement
     public const int MovingCameraThingType = 9073;
     public const int InterpolationPointThingType = 9070;
     public const int SecurityCameraThingType = 9025;
+    public const string MissingCameraTargetMessagePrefix = "Camera target with Tag ";
 
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, out Vector3D nextPosition)
         => TryMoveCameraToCursor(currentPosition, hitPosition, MoveCameraToCursorDistance, out nextPosition);
@@ -82,12 +83,18 @@ public static class VisualCameraMovement
             }
 
             Thing? target = things.FirstOrDefault(candidate => candidate.Tag == thing.Args[3]);
-            if (target != null)
+            if (target == null)
             {
-                Vector3D direction = centerOfThing(target) - position;
-                yaw = YawFromDirection(direction);
-                pitch = (thing.Args[2] & 4) != 0 ? PitchFromDirection(direction) : 0.0;
+                return new VisualCameraPose(
+                    position,
+                    yaw,
+                    0.0,
+                    MissingCameraTargetMessagePrefix + thing.Args[3] + " does not exist!");
             }
+
+            Vector3D direction = centerOfThing(target) - position;
+            yaw = YawFromDirection(direction);
+            pitch = (thing.Args[2] & 4) != 0 ? PitchFromDirection(direction) : 0.0;
         }
         else if ((thing.Type == SecurityCameraThingType || thing.Type == MovingCameraThingType || thing.Type == InterpolationPointThingType) && thing.Args[0] != 0)
         {
@@ -114,4 +121,4 @@ public static class VisualCameraMovement
     }
 }
 
-public sealed record VisualCameraPose(Vector3D Position, double Yaw, double Pitch);
+public sealed record VisualCameraPose(Vector3D Position, double Yaw, double Pitch, string? StatusMessage = null);

@@ -120,6 +120,26 @@ public class VisualCameraMovementTests
 
         Assert.Equal(0, pose.Yaw, 0.0001);
         Assert.Equal(Math.Atan2(100, 100), pose.Pitch, 0.0001);
+        Assert.Null(pose.StatusMessage);
+    }
+
+    [Fact]
+    public void LookThroughCameraThingWarnsWhenTaggedTargetIsMissingLikeUdb()
+    {
+        var camera = new Thing(new Vector2D(0, 0), VisualCameraMovement.AimingCameraThingType, 90);
+        camera.Args[2] = 4;
+        camera.Args[3] = 7;
+
+        VisualCameraPose pose = VisualCameraMovement.LookThroughThing(
+            camera,
+            new[] { camera },
+            candidate => new Vector3D(candidate.Position, candidate.Height),
+            useUdmfPitch: false);
+
+        Assert.Equal(new Vector3D(0, 0, 0), pose.Position);
+        Assert.Equal(0, pose.Yaw, 0.0001);
+        Assert.Equal(0, pose.Pitch, 0.0001);
+        Assert.Equal("Camera target with Tag 7 does not exist!", pose.StatusMessage);
     }
 
     [Fact]

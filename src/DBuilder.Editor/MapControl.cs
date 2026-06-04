@@ -3557,7 +3557,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _yaw = pose.Yaw;
         _pitch = pose.Pitch;
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke("looking through thing");
+        Target3DChanged?.Invoke(pose.StatusMessage ?? "looking through thing");
         return true;
     }
 
