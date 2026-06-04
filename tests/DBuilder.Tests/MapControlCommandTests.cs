@@ -123,6 +123,13 @@ public sealed class MapControlCommandTests
     public void VisualBrightness3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, int brightness, string expected)
         => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(kind, brightness));
 
+    [Theory]
+    [InlineData(VisualHitKind.Floor, "Change sector brightness")]
+    [InlineData(VisualHitKind.Ceiling, "Change ceiling brightness")]
+    [InlineData(VisualHitKind.Wall, "Change wall brightness")]
+    public void VisualBrightness3DEditNameMatchesUdbTargetKind(VisualHitKind kind, string expected)
+        => Assert.Equal(expected, MapControl.VisualBrightness3DEditName(kind));
+
     [Fact]
     public void AdjustVisualCeilingBrightness3DUsesUdbRelativeCeilingLightField()
     {
@@ -845,26 +852,33 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void VisualBrightnessStep3DUsesUdbWallAndFlatTargets()
+    public void VisualBrightnessStep3DUsesUdbEditNamesAndSectorFallbackStatus()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(bool raise)", StringComparison.Ordinal);
         int levelsIndex = body.IndexOf("IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];", methodIndex, StringComparison.Ordinal);
         int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
+        int wallEditIndex = body.IndexOf("EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind));", wallIndex, StringComparison.Ordinal);
         int ceilingIndex = body.IndexOf("AdjustVisualCeilingBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", wallIndex, StringComparison.Ordinal);
+        int ceilingEditIndex = body.IndexOf("EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind));", ceilingIndex, StringComparison.Ordinal);
         int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;", methodIndex, StringComparison.Ordinal);
+        int sectorEditIndex = body.IndexOf("EditBegun?.Invoke(VisualBrightness3DEditName(VisualHitKind.Floor));", filterIndex, StringComparison.Ordinal);
         int sectorWriteIndex = body.IndexOf("SectorBrightnessAdjustment.NextHigher(brightnessLevels, s.Brightness)", methodIndex, StringComparison.Ordinal);
-        int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
+        int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(VisualHitKind.Floor, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(brightnessStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(levelsIndex > methodIndex);
         Assert.True(wallIndex > levelsIndex);
-        Assert.True(ceilingIndex > wallIndex);
+        Assert.True(wallEditIndex > wallIndex);
+        Assert.True(ceilingIndex > wallEditIndex);
+        Assert.True(ceilingEditIndex > ceilingIndex);
         Assert.True(filterIndex > ceilingIndex);
-        Assert.True(sectorWriteIndex > filterIndex);
+        Assert.True(sectorEditIndex > filterIndex);
+        Assert.True(sectorWriteIndex > sectorEditIndex);
         Assert.True(statusAssignmentIndex > sectorWriteIndex);
         Assert.True(statusIndex > statusAssignmentIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Change brightness\")", body, StringComparison.Ordinal);
     }
 
     [Fact]

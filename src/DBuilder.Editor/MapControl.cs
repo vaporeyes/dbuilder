@@ -3241,7 +3241,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (wallSide != null && !doneSides.Add((wallSide, h.Part))) continue;
             if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
             {
-                if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind)); begun = true; }
                 continue;
             }
 
@@ -3250,17 +3250,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 doneCeilings.Add(h.Sector) &&
                 AdjustVisualCeilingBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
             {
-                if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind)); begun = true; }
                 continue;
             }
 
             if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
-            if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
+            if (!begun) { EditBegun?.Invoke(VisualBrightness3DEditName(VisualHitKind.Floor)); begun = true; }
             s.Brightness = raise
                 ? SectorBrightnessAdjustment.NextHigher(brightnessLevels, s.Brightness)
                 : SectorBrightnessAdjustment.NextLower(brightnessLevels, s.Brightness);
-            brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);
+            brightnessStatus = VisualBrightness3DStatusText(VisualHitKind.Floor, s.Brightness);
         }
         if (!begun) return;
         _geo3DDirty = true;
@@ -3276,6 +3276,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             VisualHitKind.Ceiling => "Changed ceiling brightness to " + brightness + ".",
             VisualHitKind.Wall => "Changed wall brightness to " + brightness + ".",
             _ => "Changed sector brightness to " + brightness + ".",
+        };
+
+    public static string VisualBrightness3DEditName(VisualHitKind kind)
+        => kind switch
+        {
+            VisualHitKind.Ceiling => "Change ceiling brightness",
+            VisualHitKind.Wall => "Change wall brightness",
+            _ => "Change sector brightness",
         };
 
     public static bool AdjustVisualCeilingBrightness3D(
