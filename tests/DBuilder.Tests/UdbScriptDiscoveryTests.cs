@@ -195,7 +195,7 @@ public class UdbScriptDiscoveryTests
             Assert.Equal("length", length.Name);
             Assert.Equal("Length", length.Description);
             Assert.Equal((int)UniversalType.Integer, length.Type);
-            Assert.Equal(128, length.DefaultValue);
+            Assert.Equal("128", length.DefaultValue);
             Assert.Empty(length.EnumValues);
 
             var direction = parsed[1];

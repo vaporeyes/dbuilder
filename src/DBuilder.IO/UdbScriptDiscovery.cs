@@ -169,7 +169,7 @@ public static class UdbScriptDiscovery
             string optionName = entry.Key.ToString() ?? "";
             string description = cfg.ReadSetting($"{optionName}.description", DefaultOptionDescription) ?? DefaultOptionDescription;
             int type = cfg.ReadSetting($"{optionName}.type", 0);
-            object defaultValue = cfg.ReadSettingObject($"{optionName}.default", "") ?? "";
+            string defaultValue = cfg.ReadSetting($"{optionName}.default", "") ?? "";
             IReadOnlyList<UdbScriptEnumValue> enumValues = ReadEnumValues(cfg.ReadSetting($"{optionName}.enumvalues", (IDictionary?)null));
 
             if (!IsValidOptionType(type))
