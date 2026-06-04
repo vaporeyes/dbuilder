@@ -541,6 +541,22 @@ public sealed class MapControlCommandTests
         Assert.Contains($"{handlerName}();", body, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("map3d.resettexture", "ResetVisualTexture3D(local: false)")]
+    [InlineData("map3d.resettextureudmf", "ResetVisualTexture3D(local: true)")]
+    [InlineData("map3d.visualfittextures", "FitSelectedVisualTextures3D()")]
+    [InlineData("map3d.toggleupperunpegged", "ToggleUnpegged3D(upper: true)")]
+    [InlineData("map3d.togglelowerunpegged", "ToggleUnpegged3D(upper: false)")]
+    public void UdbVisualTextureActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
     [Fact]
     public void RelocateThreeDFloorControlSectorsUsesInjectedAreaSettings()
     {

@@ -1990,7 +1990,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.reset-offsets", "Reset Texture Offsets", "O")]
+    [InlineData("map3d.resettexture", "Reset Texture Offsets", "O")]
     [InlineData("map3d.reset-local-offsets", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R")]
+    [InlineData("map3d.resettextureudmf", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R")]
     public void VisualTextureResetCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -2086,7 +2088,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged")]
+    [InlineData("map3d.toggleupperunpegged", "Toggle Upper Unpegged")]
     [InlineData("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged")]
+    [InlineData("map3d.togglelowerunpegged", "Toggle Lower Unpegged")]
     public void VisualUnpeggedCommandsMatchUdbActionSurface(string id, string title)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -2279,6 +2283,7 @@ public class EditorCommandCatalogTests
     public void VisualFitTexturesCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.fit-textures");
+        var udbAlias = EditorCommandCatalog.Find("map3d.visualfittextures");
 
         Assert.NotNull(command);
         Assert.Equal("Fit Textures", command.Title);
@@ -2288,6 +2293,10 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]

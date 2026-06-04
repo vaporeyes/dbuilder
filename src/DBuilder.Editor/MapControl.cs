@@ -6193,9 +6193,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ClearSelection3D();
                 return true;
             case "map3d.reset-offsets":
+            case "map3d.resettexture":
                 ResetVisualTexture3D(local: false);
                 return true;
             case "map3d.reset-local-offsets":
+            case "map3d.resettextureudmf":
                 ResetVisualTexture3D(local: true);
                 return true;
             case "map3d.texture-copy-offsets":
@@ -6216,12 +6218,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PastePropertiesOptionsRequested?.Invoke();
                 return true;
             case "map3d.fit-textures":
+            case "map3d.visualfittextures":
                 FitSelectedVisualTextures3D();
                 return true;
             case "map3d.toggle-upper-unpegged":
+            case "map3d.toggleupperunpegged":
                 ToggleUnpegged3D(upper: true);
                 return true;
             case "map3d.toggle-lower-unpegged":
+            case "map3d.togglelowerunpegged":
                 ToggleUnpegged3D(upper: false);
                 return true;
             case "map3d.toggle-slope":
