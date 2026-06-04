@@ -2172,7 +2172,10 @@ ID # = 31005
         Assert.Equal("gzdoom", archive.Name);
         Assert.Equal("gzdoom.pk3", archive.Filename);
         Assert.False(archive.NeedExclude);
-        Assert.Equal(2, archive.Entries.Count);
+        Assert.Equal(3, archive.Entries.Count);
+        var exclude = archive.Entries.Single(e => e.Name == "need_exclude");
+        Assert.Null(exclude.Lump);
+        Assert.Null(exclude.ClassName);
         var actors = archive.Entries.Single(e => e.Name == "actors");
         Assert.Equal("DECORATE", actors.Lump);
         Assert.Equal("Actor", actors.ClassName);

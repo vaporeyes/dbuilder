@@ -35,6 +35,9 @@ public class RequiredArchiveDetectorTests
 
         try
         {
+            Assert.Contains(config.RequiredArchives.Single(a => a.Name == "gzdoom").Entries, entry =>
+                entry.Name == "need_exclude" && entry.Lump == null && entry.ClassName == null);
+
             var detected = RequiredArchiveDetector.Detect(config, new DataLocation(DataLocationType.Wad, path));
 
             Assert.Equal(new[] { "gzdoom" }, detected);

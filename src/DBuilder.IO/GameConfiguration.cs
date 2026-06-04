@@ -2532,11 +2532,12 @@ public sealed class GameConfiguration
             foreach (DictionaryEntry child in archive)
             {
                 string entryName = child.Key.ToString() ?? "";
-                if (child.Value is not IDictionary entry) continue;
+                if (entryName == "filename") continue;
+                IDictionary entry = child.Value as IDictionary ?? new Hashtable();
                 entries.Add(new RequiredArchiveEntry(
                     entryName,
-                    Convert.ToString(entry["lump"], CultureInfo.InvariantCulture),
-                    Convert.ToString(entry["class"], CultureInfo.InvariantCulture)));
+                    OptionalString(entry["lump"]),
+                    OptionalString(entry["class"])));
             }
             requiredArchives.Add(new RequiredArchiveInfo(
                 name,
@@ -2545,6 +2546,9 @@ public sealed class GameConfiguration
                 entries));
         }
     }
+
+    private static string? OptionalString(object? value)
+        => value == null ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
 
     private void ParseTextureSets(IDictionary block)
     {
