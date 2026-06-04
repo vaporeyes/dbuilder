@@ -65,6 +65,11 @@ public static class ShortcutHelpModel
             : $"{CountLabel(commandCount, "shortcut")} in {CountLabel(sectionCount, "group")}";
     }
 
+    public static string SectionCountText(ShortcutHelpSection section, bool searching)
+        => searching && section.TotalRows != section.Rows.Count
+            ? $"{section.Rows.Count} of {CountLabel(section.TotalRows, "shortcut")}"
+            : CountLabel(section.Rows.Count, "shortcut");
+
     private static string CountLabel(int count, string noun)
         => $"{count} {noun}{Plural(count)}";
 

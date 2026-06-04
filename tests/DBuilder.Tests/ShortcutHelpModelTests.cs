@@ -199,4 +199,16 @@ public sealed class ShortcutHelpModelTests
     [InlineData("texture", 120, 2, 3, "3 shortcuts in 2 groups matched")]
     public void MatchSummaryDescribesAllAndFilteredStates(string filter, int commandCount, int sectionCount, int matchCount, string expected)
         => Assert.Equal(expected, ShortcutHelpModel.MatchSummary(filter, commandCount, sectionCount, matchCount));
+
+    [Fact]
+    public void SectionCountTextDescribesFilteredAndUnfilteredRows()
+    {
+        var command = EditorCommandCatalog.Find("window.save")!;
+        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "");
+        var section = new ShortcutHelpSection("File and configuration", "Project commands.", [row], true, 12);
+
+        Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section, searching: false));
+        Assert.Equal("1 of 12 shortcuts", ShortcutHelpModel.SectionCountText(section, searching: true));
+        Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section with { TotalRows = 1 }, searching: true));
+    }
 }

@@ -147,7 +147,7 @@ public sealed class ShortcutsWindow : Window
 
         var count = new TextBlock
         {
-            Text = searching && section.TotalRows != section.Rows.Count ? $"{section.Rows.Count} of {section.TotalRows}" : section.Rows.Count.ToString(),
+            Text = ShortcutHelpModel.SectionCountText(section, searching),
             Foreground = Brushes.Khaki,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,
