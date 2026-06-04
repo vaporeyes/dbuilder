@@ -375,6 +375,24 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void SpecialFlagSettingsKeepScalarValuesLikeUdb()
+    {
+        const string cfg = """
+            singlesidedflag = true;
+            doublesidedflag = false;
+            impassableflag = 32;
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("True", gc.SingleSidedFlag);
+        Assert.Equal("False", gc.DoubleSidedFlag);
+        Assert.Equal("32", gc.ImpassableFlag);
+        Assert.Equal("0", gc.UpperUnpeggedFlag);
+        Assert.Equal("0", gc.LowerUnpeggedFlag);
+    }
+
+    [Fact]
     public void InvalidFileTitleStyleFallsBackToDefault()
     {
         var gc = GameConfiguration.FromText("filetitlestyle = \"Unknown\";");
