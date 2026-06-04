@@ -2265,6 +2265,25 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void BlockMapContentWrappersUseClassicFlagFormat()
+    {
+        var (map, line, _, thing, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map, mapFormat: MapFormat.Hexen);
+        UdbScriptBlockEntryWrapper block = wrapper.getBlockAt(new UdbScriptVector2DWrapper(32, 32));
+
+        UdbScriptFlagsWrapper lineFlags = block.getLinedefs().First(item => ReferenceEquals(line, item.Linedef)).flags;
+        UdbScriptFlagsWrapper thingFlags = Assert.Single(block.getThings()).flags;
+
+        lineFlags["64"] = true;
+        thingFlags["8"] = true;
+
+        Assert.Equal(64, line.Flags);
+        Assert.Equal(8, thing.Flags);
+        Assert.False(line.IsFlagSet("64"));
+        Assert.False(thing.IsFlagSet("8"));
+    }
+
+    [Fact]
     public void BlockMapWrapperHonorsOptionsObjectSelection()
     {
         var (map, _, sector, _, vertex) = CreateBlockMapFixture(64);
