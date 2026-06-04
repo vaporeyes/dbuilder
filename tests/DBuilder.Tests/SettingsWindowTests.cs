@@ -145,6 +145,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesLightRenderModePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("LightRenderMode", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCombo(\"Light render mode\", LightRenderModeItems(), (int)s.NormalizedLightRenderMode)", body, StringComparison.Ordinal);
+        Assert.Contains("LightRenderMode = ComboNumber(_lightRenderMode, (int)ThingLightRenderMode.All);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.LightRenderMode = dlg.LightRenderMode;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetLightRenderMode(_settings.NormalizedLightRenderMode);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);

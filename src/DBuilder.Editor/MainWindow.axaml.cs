@@ -1314,6 +1314,7 @@ public partial class MainWindow : Window
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.ModelRenderMode = dlg.ModelRenderMode;
+        _settings.LightRenderMode = dlg.LightRenderMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
@@ -1322,6 +1323,7 @@ public partial class MainWindow : Window
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
         MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);
+        MapView.SetLightRenderMode(_settings.NormalizedLightRenderMode);
         MapView.SetEnhancedRenderingEffects(_settings.EnhancedRenderingEffects);
         MapView.SetClassicRendering(_settings.ClassicRendering);
         MapView.SetDrawFog(_settings.DrawFog);
