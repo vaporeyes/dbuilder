@@ -47,6 +47,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDynamicGridSizePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DynamicGridSize", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Dynamic grid size\", s.DynamicGridSize)", body, StringComparison.Ordinal);
+        Assert.Contains("DynamicGridSize = _dynamicGridSize.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DynamicGridSize = dlg.DynamicGridSize;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesShowVisualVerticesPreference()
     {
         Type type = typeof(SettingsWindow);

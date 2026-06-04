@@ -11,11 +11,12 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
+    public bool DynamicGridSize;
     public bool UseHighlight;
     public bool AlphaBasedTextureHighlighting;
     public bool EnhancedRenderingEffects;
@@ -50,6 +51,7 @@ public sealed class SettingsWindow : PropertyDialog
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
+        _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
         _enhancedRenderingEffects = AddCheckBox("Enhanced rendering effects", s.EnhancedRenderingEffects);
@@ -78,6 +80,7 @@ public sealed class SettingsWindow : PropertyDialog
         MaxRecentFiles = Settings.AcceptMaxRecentFilesText(_maxRecentFiles.Text);
         StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
+        DynamicGridSize = _dynamicGridSize.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
         AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;
         EnhancedRenderingEffects = _enhancedRenderingEffects.IsChecked == true;

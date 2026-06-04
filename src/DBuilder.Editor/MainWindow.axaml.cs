@@ -1303,6 +1303,7 @@ public partial class MainWindow : Window
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
+        _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
         _settings.EnhancedRenderingEffects = dlg.EnhancedRenderingEffects;
@@ -1320,6 +1321,7 @@ public partial class MainWindow : Window
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
+        MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
         MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);
