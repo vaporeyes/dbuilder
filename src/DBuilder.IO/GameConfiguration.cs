@@ -2401,19 +2401,7 @@ public sealed class GameConfiguration
     private static StaticLimitsInfo ParseStaticLimits(IDictionary block)
     {
         var values = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (DictionaryEntry e in block)
-        {
-            string key = e.Key.ToString() ?? "";
-            int value = e.Value switch
-            {
-                int i => i,
-                long l => (int)l,
-                double d => (int)d,
-                string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) => parsed,
-                _ => 0,
-            };
-            if (key.Length > 0) values[key] = value;
-        }
+        values["visplanes"] = GetInt(block, "visplanes", StaticLimitsInfo.DefaultVisplanes);
         return new StaticLimitsInfo(values);
     }
 

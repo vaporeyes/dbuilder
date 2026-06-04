@@ -1570,8 +1570,8 @@ ID # = 31005
 
             staticlimits
             {
-                visplanes = 128;
-                drawsegs = 256;
+                visplanes = 255.6;
+                drawsegs = 512;
             }
 
             requiredarchives
@@ -1593,13 +1593,13 @@ ID # = 31005
         Assert.Equal("acc", gc.DefaultScriptCompiler);
         Assert.Equal("custom_save", gc.NodeBuilderSave);
         Assert.Equal("custom_test", gc.NodeBuilderTest);
-        Assert.Equal(128, gc.StaticLimits.Get("visplanes"));
-        Assert.Equal(256, gc.StaticLimits.Get("drawsegs"));
-        Assert.Equal(128, gc.StaticLimits.Visplanes);
+        Assert.Equal(256, gc.StaticLimits.Get("visplanes"));
+        Assert.Equal(0, gc.StaticLimits.Get("drawsegs"));
+        Assert.Equal(256, gc.StaticLimits.Visplanes);
         Assert.Equal(256, gc.StaticLimits.Drawsegs);
         Assert.Equal(32, gc.StaticLimits.Solidsegs);
         Assert.Equal(320 * 64, gc.StaticLimits.Openings);
-        Assert.Equal(64, gc.StaticLimits.InterpolateVisplanes(64));
+        Assert.Equal(32, gc.StaticLimits.InterpolateVisplanes(64));
 
         var archive = Assert.Single(gc.RequiredArchives);
         Assert.Equal("gzdoom", archive.Name);

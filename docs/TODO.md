@@ -939,6 +939,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse integer settings with UDB-style scalar value conversion.
   - [x] Parse double settings with UDB-style scalar value conversion.
   - [x] Parse boolean settings with UDB-style scalar value conversion.
+  - [x] Keep only UDB-configurable static limit fields.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
