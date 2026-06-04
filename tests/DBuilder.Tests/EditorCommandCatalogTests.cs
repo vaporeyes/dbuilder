@@ -2039,11 +2039,12 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.AllowScroll, legacyAlias.AllowScroll);
     }
 
     [Theory]
@@ -2290,6 +2291,8 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map3d.align-texture-x", "Align texture X", "A")]
+    [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A")]
     [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl+A")]
     [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu")]
     [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu")]
