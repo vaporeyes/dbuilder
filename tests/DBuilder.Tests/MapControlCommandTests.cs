@@ -168,6 +168,18 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ResetTargetOffsets3DUsesUdbStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ResetTargetOffsets3D()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(\"Texture offsets reset.\");", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
+        Assert.DoesNotContain("Target3DChanged?.Invoke(\"reset offsets\");", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ApplyCameraRotation3DUsesUdbEmptySelectionWarning()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

@@ -2912,7 +2912,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke("reset offsets");
+        Target3DChanged?.Invoke("Texture offsets reset.");
     }
 
     private void ToggleSlope3D()
