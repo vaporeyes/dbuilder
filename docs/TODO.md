@@ -928,6 +928,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse scalar sector effect titles with UDB-style value conversion.
   - [x] Parse flat numeric-key display dictionaries with UDB-style scalar value conversion.
   - [x] Preserve comma whitespace in default sky texture map names like UDB.
+  - [x] Keep bare map lump entries with default flags like UDB.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

@@ -148,6 +148,26 @@ maplumpnames
     }
 
     [Fact]
+    public void BareMapLumpEntriesUseDefaultFlagsLikeUdb()
+    {
+        var gc = GameConfiguration.FromText("""
+            maplumpnames
+            {
+                BLOCKMAP;
+            }
+            """);
+
+        var lump = gc.MapLumpNames["BLOCKMAP"];
+        Assert.False(lump.Required);
+        Assert.False(lump.BlindCopy);
+        Assert.False(lump.NodeBuild);
+        Assert.False(lump.AllowEmpty);
+        Assert.False(lump.Forbidden);
+        Assert.False(lump.ScriptBuild);
+        Assert.Null(lump.Script);
+    }
+
+    [Fact]
     public void PreservesConfiguredLumpOrder()
     {
         var gc = GameConfiguration.FromText(Cfg);

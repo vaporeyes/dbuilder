@@ -2271,7 +2271,7 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in block)
         {
             string name = e.Key.ToString() ?? "";
-            if (e.Value is not IDictionary d) continue;
+            IDictionary d = e.Value as IDictionary ?? new Hashtable();
             bool scriptBuild = GetBool(d, "scriptbuild", false);
             string? script = scriptBuild ? null : d["script"] as string;
             mapLumpNames[name] = new MapLumpInfo
