@@ -35,8 +35,8 @@ public sealed class SettingsWindow : PropertyDialog
             s.UdbScriptExternalEditor ?? "",
             "...",
             BrowseExternalEditor);
-        _maxRecentFiles = AddField("Max recent files", s.MaxRecentFiles?.ToString() ?? "");
-        _statusHistoryLimit = AddField("Status history", s.StatusHistoryLimit?.ToString() ?? "");
+        _maxRecentFiles = AddField("Max recent files", Settings.MaxRecentFilesText(s));
+        _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -96,6 +97,12 @@ public sealed class Settings
         if (!int.TryParse(text, out int value) || value <= 0) return null;
         return Math.Clamp(value, MinStatusHistoryLimit, MaxStatusHistoryLimit);
     }
+
+    public static string MaxRecentFilesText(Settings settings)
+        => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
+
+    public static string StatusHistoryLimitText(Settings settings)
+        => settings.NormalizedStatusHistoryLimit.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

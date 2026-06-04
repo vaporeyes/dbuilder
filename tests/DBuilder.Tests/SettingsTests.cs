@@ -753,4 +753,13 @@ public class SettingsTests
     [InlineData("5000", Settings.MaxStatusHistoryLimit)]
     public void AcceptStatusHistoryLimitTextClampsSettingsDialogInput(string text, int? expected)
         => Assert.Equal(expected, Settings.AcceptStatusHistoryLimitText(text));
+
+    [Fact]
+    public void NumericPreferenceTextShowsNormalizedSettingsDialogValues()
+    {
+        Assert.Equal("8", Settings.MaxRecentFilesText(new Settings()));
+        Assert.Equal("25", Settings.MaxRecentFilesText(new Settings { MaxRecentFiles = 50 }));
+        Assert.Equal("100", Settings.StatusHistoryLimitText(new Settings()));
+        Assert.Equal("10", Settings.StatusHistoryLimitText(new Settings { StatusHistoryLimit = 1 }));
+    }
 }
