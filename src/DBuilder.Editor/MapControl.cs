@@ -5840,18 +5840,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ToggleDrawMode(linesOnly: false);
                 return true;
             case "map2d.draw-lines":
+            case "map2d.drawlinesmode":
                 ToggleDrawMode(linesOnly: true);
                 return true;
             case "map2d.draw-rectangle":
+            case "map2d.drawrectanglemode":
                 SetShapeMode(ShapeKind.Rectangle);
                 return true;
             case "map2d.draw-ellipse":
+            case "map2d.drawellipsemode":
                 SetShapeMode(ShapeKind.Ellipse);
                 return true;
             case "map2d.draw-curve":
+            case "map2d.drawcurvemode":
                 ToggleDrawMode(linesOnly: true, curve: true);
                 return true;
             case "map2d.draw-grid":
+            case "map2d.drawgridmode":
                 SetShapeMode(ShapeKind.Grid);
                 return true;
             case "map2d.increase-subdivision-level":
@@ -5914,18 +5919,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 DuplicateThreeDFloorGeometry();
                 return true;
             case "map2d.mode-vertices":
+            case "map2d.verticesmode":
                 SetEditMode(EditMode.Vertices);
                 return true;
             case "map2d.mode-linedefs":
+            case "map2d.linedefsmode":
                 SetEditMode(EditMode.Linedefs);
                 return true;
             case "map2d.mode-sectors":
+            case "map2d.sectorsmode":
                 SetEditMode(EditMode.Sectors);
                 return true;
             case "map2d.select-sectors-outline":
                 SelectSectorsOutline();
                 return true;
             case "map2d.mode-things":
+            case "map2d.thingsmode":
                 SetEditMode(EditMode.Things);
                 return true;
             case "map2d.mode-image-example":

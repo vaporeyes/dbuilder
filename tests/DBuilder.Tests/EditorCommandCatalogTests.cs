@@ -1096,6 +1096,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.verticesmode", "Vertices Mode", "V")]
+    [InlineData("map2d.linedefsmode", "Linedefs Mode", "L")]
+    [InlineData("map2d.sectorsmode", "Sectors Mode", "S")]
+    [InlineData("map2d.thingsmode", "Things Mode", "T")]
+    public void ClassicModeAliasesMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("map2d.toggle-highlight", EditorCommandScope.Map2D)]
     [InlineData("map3d.toggle-highlight", EditorCommandScope.Map3D)]
     public void HighlightCommandsMatchUdbActionSurface(string commandId, EditorCommandScope scope)
@@ -1717,10 +1735,15 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
+    [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D")]
+    [InlineData("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
     [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]
+    [InlineData("map2d.drawellipsemode", "Start Ellipse Drawing", "Alt+Shift+D")]
     [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
+    [InlineData("map2d.drawcurvemode", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
     [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C")]
     [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu")]
+    [InlineData("map2d.drawgridmode", "Start Grid Drawing", "Menu")]
     public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
