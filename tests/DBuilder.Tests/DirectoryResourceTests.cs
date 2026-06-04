@@ -91,6 +91,28 @@ public class DirectoryResourceTests
     }
 
     [Fact]
+    public void DirectoryNamespaceLookupsSearchSubfoldersAndLongTitlesLikeUdb()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "textures", "detail"));
+            Directory.CreateDirectory(Path.Combine(dir, "flats", "detail"));
+            File.WriteAllBytes(Path.Combine(dir, "textures", "detail", "SUBWALL.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255)));
+            File.WriteAllBytes(Path.Combine(dir, "flats", "detail", "SUBFLAT.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255)));
+            File.WriteAllBytes(Path.Combine(dir, "textures", "LONGNAMEEXTRA.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 30, 31, 32, 255)));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(dir);
+
+            Assert.Equal(new byte[] { 10, 11, 12, 255 }, rm.GetWallTexture("SUBWALL")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 20, 21, 22, 255 }, rm.GetFlat("SUBFLAT")!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 30, 31, 32, 255 }, rm.GetWallTexture("LONGNAME")!.Rgba[0..4]);
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
     public void DirectoryOverlaidUnderAWadResolvesBoth()
     {
         // A base WAD-less manager: directory provides everything; sprite rotation fallback still applies.
