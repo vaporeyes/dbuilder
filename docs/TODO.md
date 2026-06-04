@@ -1124,7 +1124,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port thing statistics dialog.
   - [x] Add testable Thing Types window header formatting with singular and plural labels.
   - [x] Add UDB-style singular and plural labels to thing type activation status text.
-- [ ] Port grid setup dialog.
+- [x] Port grid setup dialog.
   - [x] Add basic grid size, origin, and rotation dialog.
   - [x] Persist grid setup through UDB-compatible map options.
   - [x] Add grid background metadata fields.
