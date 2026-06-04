@@ -1040,7 +1040,7 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
 
         element.Fields[key] = element.Fields.TryGetValue(key, out object? oldValue)
             ? ConvertExistingValue(key, value, oldValue)
-            : ConvertValue(key, value);
+            : ConvertNewValue(key, value);
     }
 
     private IEnumerable<KeyValuePair<string, object?>> EnumerateFields()
@@ -1160,6 +1160,14 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
         throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + ".");
     }
 
+    private object ConvertNewValue(string key, object value)
+    {
+        UniversalFieldInfo? field = KnownUniversalField(key);
+        return field == null
+            ? ConvertValue(key, value)
+            : ConvertKnownFieldValue(key, value, field);
+    }
+
     private static object ConvertExistingValue(string key, object value, object oldValue)
     {
         object proposed = ConvertValue(key, value);
@@ -1173,6 +1181,42 @@ public sealed class UdbScriptFieldsWrapper : IDictionary<string, object?>
             bool flag when oldValue is bool => flag,
             _ => throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + "."),
         };
+    }
+
+    private static object ConvertKnownFieldValue(string key, object value, UniversalFieldInfo field)
+    {
+        return value switch
+        {
+            double number when field.DefaultValue is double => number,
+            double number when field.DefaultValue is int => Convert.ToInt32(number),
+            int number when field.DefaultValue is double => Convert.ToDouble(number),
+            int number when field.DefaultValue is int => number,
+            string text when field.DefaultValue is string => text,
+            bool flag when field.DefaultValue is bool => flag,
+            _ => throw new InvalidOperationException("UDMF field '" + key + "' is of incompatible type for value " + value + "."),
+        };
+    }
+
+    private UniversalFieldInfo? KnownUniversalField(string key)
+    {
+        if (config == null)
+            return null;
+
+        string? elementName = element switch
+        {
+            Vertex => "vertex",
+            Linedef => "linedef",
+            Sidedef => "sidedef",
+            Sector => "sector",
+            Thing => "thing",
+            _ => null,
+        };
+
+        return elementName != null
+            && config.UniversalFields.TryGetValue(elementName, out Dictionary<string, UniversalFieldInfo>? fields)
+            && fields.TryGetValue(key, out UniversalFieldInfo? field)
+                ? field
+                : null;
     }
 }
 
@@ -1309,15 +1353,17 @@ public sealed class UdbScriptFlagsWrapper : IDictionary<string, bool>
 
 public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
 {
+    private readonly GameConfiguration? config;
     private readonly Vertex vertex;
     private readonly GridSetup grid;
     private readonly MapSet? owner;
 
-    public UdbScriptVertexWrapper(Vertex vertex, MapSet? owner = null, GridSetup? grid = null)
+    public UdbScriptVertexWrapper(Vertex vertex, MapSet? owner = null, GridSetup? grid = null, GameConfiguration? config = null)
     {
         this.vertex = vertex;
         this.owner = owner;
         this.grid = grid ?? new GridSetup();
+        this.config = config;
     }
 
     public Vertex Vertex
@@ -1337,7 +1383,7 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
         get
         {
             ThrowIfDisposed("fields");
-            return new UdbScriptFieldsWrapper(vertex);
+            return new UdbScriptFieldsWrapper(vertex, config: config);
         }
     }
 
@@ -1559,7 +1605,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("start");
-            return new UdbScriptVertexWrapper(linedef.Start, owner, grid);
+            return new UdbScriptVertexWrapper(linedef.Start, owner, grid, config);
         }
     }
 
@@ -1568,7 +1614,7 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         get
         {
             ThrowIfDisposed("end");
-            return new UdbScriptVertexWrapper(linedef.End, owner, grid);
+            return new UdbScriptVertexWrapper(linedef.End, owner, grid, config);
         }
     }
 
@@ -3319,7 +3365,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getVertices");
         return map.Vertices
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid, config))
             .ToArray();
     }
 
@@ -3367,7 +3413,7 @@ public sealed class UdbScriptMapWrapper
         Vector2D point = ToVector2D(pos);
         Vertex? nearest = map.NearestVertexSquareRange(point, double.IsNaN(maxrange) ? double.MaxValue : maxrange);
 
-        return nearest == null ? null : new UdbScriptVertexWrapper(nearest, map, grid);
+        return nearest == null ? null : new UdbScriptVertexWrapper(nearest, map, grid, config);
     }
 
     public UdbScriptSidedefWrapper? nearestSidedef(object pos)
@@ -3494,7 +3540,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getMarkedVertices");
         return map.GetMarkedVertices(mark)
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid, config))
             .ToArray();
     }
 
@@ -3563,7 +3609,7 @@ public sealed class UdbScriptMapWrapper
         ThrowIfDisposed("getSelectedVertices");
         return map.GetSelectedVertices(selected)
             .Where(vertex => !vertex.IsDisposed)
-            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid))
+            .Select(vertex => new UdbScriptVertexWrapper(vertex, map, grid, config))
             .ToArray();
     }
 
@@ -3571,7 +3617,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("getHighlightedVertex");
         return highlightedObject is Vertex vertex && !vertex.IsDisposed
-            ? new UdbScriptVertexWrapper(vertex, map, grid)
+            ? new UdbScriptVertexWrapper(vertex, map, grid, config)
             : null;
     }
 
@@ -3750,7 +3796,7 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("createVertex");
         Vector2D point = ToVector2D(pos);
-        return new UdbScriptVertexWrapper(map.AddVertex(point), map, grid);
+        return new UdbScriptVertexWrapper(map.AddVertex(point), map, grid, config);
     }
 
     public UdbScriptThingWrapper createThing(object pos, int type = 0)

@@ -2419,6 +2419,63 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFieldsUseConfiguredKnownFieldDefaultTypesLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            universalfields
+            {
+                vertex
+                {
+                    user_vertex_int { type = 0; default = 0; }
+                }
+                linedef
+                {
+                    user_line_float { type = 1; default = 0.0; }
+                }
+                sidedef
+                {
+                    user_side_text { type = 2; default = ""; }
+                }
+                sector
+                {
+                    user_sector_bool { type = 3; default = false; }
+                }
+                thing
+                {
+                    user_thing_int { type = 0; default = 0; }
+                    user_thing_otherint { type = 0; default = 0; }
+                }
+            }
+            """);
+        var vertex = new Vertex(new Vector2D(1, 2));
+        var line = new Linedef(vertex, new Vertex(new Vector2D(3, 4)));
+        var side = new Sidedef(line, isFront: true);
+        var sector = new Sector();
+        var thing = new Thing();
+
+        new UdbScriptVertexWrapper(vertex, config: config).fields["user_vertex_int"] = 2.6;
+        new UdbScriptLinedefWrapper(line, config: config).fields["user_line_float"] = 3;
+        new UdbScriptSidedefWrapper(side, config: config).fields["user_side_text"] = "side";
+        new UdbScriptSectorWrapper(sector, config: config).fields["user_sector_bool"] = true;
+        UdbScriptFieldsWrapper thingFields = new UdbScriptThingWrapper(thing, config: config).fields;
+        thingFields["user_thing_int"] = 7.1;
+
+        Assert.Equal(3, vertex.Fields["user_vertex_int"]);
+        Assert.IsType<int>(vertex.Fields["user_vertex_int"]);
+        Assert.Equal(3.0, line.Fields["user_line_float"]);
+        Assert.IsType<double>(line.Fields["user_line_float"]);
+        Assert.Equal("side", side.Fields["user_side_text"]);
+        Assert.Equal(true, sector.Fields["user_sector_bool"]);
+        Assert.Equal(7, thing.Fields["user_thing_int"]);
+        Assert.IsType<int>(thing.Fields["user_thing_int"]);
+
+        InvalidOperationException badType = Assert.Throws<InvalidOperationException>(
+            () => thingFields["user_thing_otherint"] = new BigInteger(8));
+
+        Assert.StartsWith("UDMF field 'user_thing_otherint' is of incompatible type", badType.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MapElementFieldsPreserveExistingNumericFieldTypesLikeUdb()
     {
         var thing = new Thing();
