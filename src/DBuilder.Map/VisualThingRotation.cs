@@ -41,7 +41,7 @@ public static class VisualThingRotation
         {
             thing.Rotate(cameraYaw - Angle2D.PI);
             if (applyPitch)
-                thing.SetPitch((int)Angle2D.RadToDeg(cameraPitch));
+                thing.SetPitch((int)Angle2D.RadToDeg(cameraPitch - Angle2D.PI));
         }
 
         return things.Count;
