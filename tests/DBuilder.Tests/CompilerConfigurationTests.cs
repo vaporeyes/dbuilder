@@ -796,7 +796,8 @@ public class CompilerConfigurationTests
             new ScriptCompilerError("Unknown function", "/maps/project/scripts.acs", 11),
             new ScriptCompilerError("Bad map lump", "?SCRIPTS", -1),
             new ScriptCompilerError("Fatal error"),
-            new ScriptCompilerError("Windows source", @"C:\maps\project\script.bcs", 2)
+            new ScriptCompilerError("Windows source", @"C:\maps\project\script.bcs", 2),
+            new ScriptCompilerError("Quoted source", "\"/maps/project/scripts with spaces.acs\"", 4)
         });
 
         Assert.Collection(
@@ -824,6 +825,12 @@ public class CompilerConfigurationTests
                 Assert.Equal(4, item.Index);
                 Assert.Equal("Windows source", item.Description);
                 Assert.Equal("script.bcs (line 3)", item.Source);
+            },
+            item =>
+            {
+                Assert.Equal(5, item.Index);
+                Assert.Equal("Quoted source", item.Description);
+                Assert.Equal("scripts with spaces.acs (line 5)", item.Source);
             });
     }
 

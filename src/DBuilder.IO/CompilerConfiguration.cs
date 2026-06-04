@@ -292,8 +292,18 @@ public static class ScriptCompilerErrorDisplay
 
     private static string ErrorFileName(string fileName)
     {
+        fileName = UnquoteFileName(fileName.Trim());
         string normalized = fileName.Replace('\\', Path.DirectorySeparatorChar);
         return Path.GetFileName(normalized);
+    }
+
+    private static string UnquoteFileName(string fileName)
+    {
+        if (fileName.Length >= 2
+            && ((fileName[0] == '"' && fileName[^1] == '"')
+                || (fileName[0] == '\'' && fileName[^1] == '\'')))
+            return fileName[1..^1];
+        return fileName;
     }
 }
 
