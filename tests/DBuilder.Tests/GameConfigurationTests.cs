@@ -761,6 +761,37 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void UniversalFieldEnumReferencesAreCaseSensitiveLikeUdb()
+    {
+        const string cfg = """
+            enums
+            {
+                Modes
+                {
+                    0 = "Off";
+                }
+            }
+            universalfields
+            {
+                thing
+                {
+                    mode
+                    {
+                        type = 11;
+                        enum = "modes";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var field = gc.UniversalFields["thing"]["mode"];
+        Assert.Equal("modes", field.EnumName);
+        Assert.Null(gc.GetFieldEnumList(field));
+    }
+
+    [Fact]
     public void UniversalFieldsNormalizeTypesLikeUdb()
     {
         const string cfg = """
@@ -1632,6 +1663,47 @@ public class GameConfigurationTests
                         {
                             enum = "missing";
                             flags = "also_missing";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var arg = gc.GetLinedefAction(80)!.Args[0];
+        Assert.Null(arg.Enum);
+        Assert.Null(arg.Flags);
+        Assert.Null(gc.GetArgEnumList(arg));
+        Assert.Null(gc.GetArgFlagsList(arg));
+    }
+
+    [Fact]
+    public void ArgumentEnumAndFlagsReferencesAreCaseSensitiveLikeUdb()
+    {
+        const string cfg = """
+            enums
+            {
+                Speeds
+                {
+                    0 = "Slow";
+                }
+                Flags
+                {
+                    1 = "Silent";
+                }
+            }
+            linedeftypes
+            {
+                special
+                {
+                    80
+                    {
+                        title = "Special";
+                        arg0
+                        {
+                            enum = "speeds";
+                            flags = "flags";
                         }
                     }
                 }

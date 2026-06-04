@@ -382,8 +382,8 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, string> thingFlags = new();
     private readonly HashSet<string> thingFlagKeys = new(StringComparer.Ordinal);
     private readonly Dictionary<int, string> skills = new();
-    private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, EnumListInfo> enumLists = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EnumListInfo> enumLists = new(StringComparer.Ordinal);
     private readonly List<GeneralizedCategory> genLinedefs = new();
     private readonly List<GeneralizedCategory> genSectors = new();
     private readonly List<GeneralizedOption> genSectorEffects = new();
