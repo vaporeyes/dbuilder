@@ -44,6 +44,7 @@ public sealed class TexturesPatch
     public byte BlendBlue { get; set; }
     public byte BlendAlpha { get; set; }
     public bool Skip { get; set; }
+    public bool HasLongName { get; set; }
 }
 
 /// <summary>A composite definition from the TEXTURES lump.</summary>
@@ -260,6 +261,7 @@ public static class TexturesParser
             X = x,
             Y = y,
             Skip = name.Equals("TNT1A0", StringComparison.OrdinalIgnoreCase),
+            HasLongName = !string.IsNullOrEmpty(Path.GetExtension(name)),
         };
 
         if (i < t.Count && t[i] == "{")

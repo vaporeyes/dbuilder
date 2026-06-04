@@ -788,7 +788,7 @@ public sealed class ResourceManager : IDisposable
         {
             if (patch.Skip) continue;
             usablePatches++;
-            var img = ResolvePatchRaw(patch.Name, pal);
+            var img = ResolvePatchRaw(patch.Name, pal, patch.HasLongName);
             if (img == null) continue;
             Blit(buf, def.Width, def.Height, img, patch);
             loadedPatches++;
@@ -804,14 +804,14 @@ public sealed class ResourceManager : IDisposable
     }
 
     // Resolves a patch as a single image across resources (never via TEXTURES defs, so composition can't recurse).
-    private ImageData? ResolvePatchRaw(string name, DoomPalette? pal)
+    private ImageData? ResolvePatchRaw(string name, DoomPalette? pal, bool longName)
     {
         for (int i = readers.Count - 1; i >= 0; i--)
         {
-            var img = readers[i].GetPatch(name, pal, MixTexturesFlats);
+            var img = readers[i].GetPatch(name, pal, MixTexturesFlats, longName);
             if (img != null) return img;
         }
-        if (!MixTexturesFlats) return null;
+        if (longName || !MixTexturesFlats) return null;
 
         for (int i = readers.Count - 1; i >= 0; i--)
         {

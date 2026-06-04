@@ -547,6 +547,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port TEXTURES lump composite definitions fully.
   - [x] Resolve composite patches through mixed wall/flat base namespaces.
   - [x] Honor namespace mixing when resolving PK3 composite patch folders.
+  - [x] Require exact file lookup for extension-bearing TEXTURES patch paths like UDB.
   - [x] Apply TEXTURES patch flip transforms before rotation like UDB.
 - [ ] Port sprite offsets, rotations, and fallback behavior fully.
   - [x] Skip placeholder actor state sprites when choosing editor sprites.

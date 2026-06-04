@@ -22,7 +22,7 @@ internal interface IResourceReader : IDisposable
     ImageData? GetWallTextureBase(string name, DoomPalette? palette);
     ImageData? GetSpriteBase(string name, DoomPalette? palette);
     ImageData? GetHiRes(string name, DoomPalette? palette);
-    ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces);
+    ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces, bool longName);
     /// <summary>The text of a named lump (e.g. TEXTURES, DECORATE) if this resource has one, else null.</summary>
     string? GetTextLump(string name);
     /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
@@ -143,8 +143,9 @@ internal sealed class WadResourceReader : IResourceReader
         return palette == null ? null : DecodePicture(bytes, palette);
     }
 
-    public ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
+    public ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces, bool longName)
     {
+        if (longName) return null;
         if (palette == null || FindPatchLump(name) is not { } lump) return null;
         return DecodePicture(lump, palette);
     }
@@ -643,11 +644,14 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual ImageData? GetHiRes(string name, DoomPalette? palette) => Decode(Find(name, "hires"), palette, preferFlat: false);
 
-    public virtual ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces)
+    public virtual ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces, bool longName)
     {
+        if (longName)
+            return Decode(FindExact(name), palette, preferFlat: false);
+
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            var nestedImage = nestedReaders[i].GetPatch(name, palette, includeMixedNamespaces);
+            var nestedImage = nestedReaders[i].GetPatch(name, palette, includeMixedNamespaces, longName: false);
             if (nestedImage != null) return nestedImage;
         }
 
@@ -829,6 +833,9 @@ internal abstract class FolderResourceReader : IResourceReader
 
     private byte[]? Find(string name, params string[] folders) => Find(name, folders, allowPathTitleFallback: false);
 
+    private byte[]? FindExact(string name)
+        => files.TryGetValue(name.Replace('\\', '/').TrimStart('/'), out var read) ? read() : null;
+
     private byte[]? Find(string name, string[] folders, bool allowPathTitleFallback)
     {
         if (IsPathQualified(name))
@@ -886,7 +893,7 @@ internal abstract class FolderResourceReader : IResourceReader
         var canvas = DoomWallTextureCompositor.Compose(
             def,
             pnames,
-            patchName => GetPatch(patchName, palette, includeMixedNamespaces: false),
+            patchName => GetPatch(patchName, palette, includeMixedNamespaces: false, longName: false),
             config?.FixNegativePatchOffsets ?? true,
             config?.FixMaskedPatchOffsets ?? true);
         return canvas != null ? new ImageData(def.Width, def.Height, canvas) : null;

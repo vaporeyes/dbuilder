@@ -642,6 +642,33 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void ExtensionBearingTexturePatchPathsRequireExactFileLikeUdb()
+    {
+        string textures =
+            "WallTexture WEXACT, 1, 1\n" +
+            "{\n" +
+            "    Patch \"graphics/PATHPAT.png\", 0, 0\n" +
+            "}\n" +
+            "WallTexture WWRONG, 1, 1\n" +
+            "{\n" +
+            "    Patch \"graphics/PATHPAT.lmp\", 0, 0\n" +
+            "}\n";
+
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("graphics/PATHPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 12, 34, 56, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(new byte[] { 12, 34, 56, 255 }, rm.GetWallTexture("WEXACT")!.Rgba[0..4]);
+            Assert.Null(rm.GetWallTexture("WWRONG"));
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void MissingRequiredTexturesPatchesDoNotCreateTransparentTexture()
     {
         string pk3 = TestArtifacts.BuildPk3(("TEXTURES.txt", Encoding.ASCII.GetBytes("WallTexture WMISS, 1, 1 { Patch \"MISSING\", 0, 0 }\n")));
