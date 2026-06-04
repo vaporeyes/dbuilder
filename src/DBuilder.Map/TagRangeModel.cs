@@ -53,6 +53,12 @@ public sealed record TagRangeFormatCapabilities(
     bool HasLinedefTag,
     bool HasThingTag);
 
+public sealed record TagRangeToolbarUpdatePlan(
+    bool RemoveExistingButtons,
+    bool AddButtons,
+    bool ButtonOnToolbarAfter,
+    IReadOnlyList<string> ItemOrder);
+
 public static class TagRangeModel
 {
     public const string ActionName = "rangetagselection";
@@ -70,6 +76,15 @@ public static class TagRangeModel
     public const string OkText = "OK";
     public const string CancelText = "Cancel";
     public const string NoSelectionWarning = "This action requires a selection!";
+    public const string ToolbarLeadingSeparatorName = "seperator1";
+    public const string ToolbarButtonName = "tagrangebutton";
+    public const string ToolbarTrailingSeparatorName = "seperator2";
+    public static readonly IReadOnlyList<string> ToolbarItemOrder =
+    [
+        ToolbarLeadingSeparatorName,
+        ToolbarButtonName,
+        ToolbarTrailingSeparatorName,
+    ];
 
     public static bool ShouldShowToolbarButton(string? modeName, TagRangeFormatCapabilities capabilities)
         => modeName switch
@@ -79,6 +94,19 @@ public static class TagRangeModel
             "ThingsMode" => capabilities.HasThingTag,
             _ => false,
         };
+
+    public static TagRangeToolbarUpdatePlan UpdateToolbarButton(
+        bool currentlyOnToolbar,
+        string? modeName,
+        TagRangeFormatCapabilities capabilities)
+    {
+        bool addButtons = ShouldShowToolbarButton(modeName, capabilities);
+        return new TagRangeToolbarUpdatePlan(
+            currentlyOnToolbar,
+            addButtons,
+            addButtons,
+            ToolbarItemOrder);
+    }
 
     public static bool HasSelection(int selectionCount) => selectionCount > 0;
 

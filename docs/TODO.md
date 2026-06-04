@@ -1649,6 +1649,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Tag Range action, toolbar, dialog label, warning, and undo text metadata.
   - [x] Add testable Tag Range apply and warning status text model.
   - [x] Add UDB-style singular and plural labels to Tag Range status messages.
+  - [x] Add UDB-style Tag Range toolbar update lifecycle plan.
 - [ ] Port `UDBScript`.
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
   - [x] Add UDBScript execute-current and execute-slot dispatch planning.
@@ -2361,6 +2362,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style toolbar availability and no-selection action warning behavior.
   - [x] Gate editor Tag Range command availability by selected sectors, linedefs, and things.
   - [x] Wire Tag Range end-tag preview and duplicate/out-of-range warnings into the editor dialog.
+  - [x] Add UDB-style Tag Range toolbar update lifecycle plan.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.

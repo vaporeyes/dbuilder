@@ -29,6 +29,9 @@ public sealed class TagRangeModelTests
             TagRangeModel.OutOfTagsMessage);
         Assert.Equal("OK", TagRangeModel.OkText);
         Assert.Equal("Cancel", TagRangeModel.CancelText);
+        Assert.Equal(
+            new[] { "seperator1", "tagrangebutton", "seperator2" },
+            TagRangeModel.ToolbarItemOrder);
     }
 
     [Theory]
@@ -48,6 +51,29 @@ public sealed class TagRangeModelTests
         var capabilities = new TagRangeFormatCapabilities(hasLinedefTag, hasThingTag);
 
         Assert.Equal(expected, TagRangeModel.ShouldShowToolbarButton(modeName, capabilities));
+    }
+
+    [Theory]
+    [InlineData(true, "SectorsMode", true, true, true, true)]
+    [InlineData(false, "SectorsMode", true, true, false, true)]
+    [InlineData(true, "LinedefsMode", false, true, true, false)]
+    [InlineData(false, null, true, true, false, false)]
+    public void ToolbarUpdatePlanMatchesUdbRemoveThenAddLifecycle(
+        bool currentlyOnToolbar,
+        string? modeName,
+        bool hasLinedefTag,
+        bool hasThingTag,
+        bool expectedRemove,
+        bool expectedAdd)
+    {
+        var capabilities = new TagRangeFormatCapabilities(hasLinedefTag, hasThingTag);
+
+        TagRangeToolbarUpdatePlan plan = TagRangeModel.UpdateToolbarButton(currentlyOnToolbar, modeName, capabilities);
+
+        Assert.Equal(expectedRemove, plan.RemoveExistingButtons);
+        Assert.Equal(expectedAdd, plan.AddButtons);
+        Assert.Equal(expectedAdd, plan.ButtonOnToolbarAfter);
+        Assert.Equal(TagRangeModel.ToolbarItemOrder, plan.ItemOrder);
     }
 
     [Fact]
