@@ -63,7 +63,7 @@ public class ScriptFindUsagesTests
     }
 
     [Fact]
-    public void TreatsFindTextAsLiteralTextLikeUdb()
+    public void TreatsFindTextAsRegexSyntaxLikeUdb()
     {
         const string text = """
             Thing.Spawn
@@ -75,17 +75,15 @@ public class ScriptFindUsagesTests
         var dotted = ScriptFindUsages.Find(text, "Thing.Spawn", caseSensitive: true);
         var plus = ScriptFindUsages.Find(text, "A+B", caseSensitive: true);
 
-        var dottedUsage = Assert.Single(dotted);
-        Assert.Equal(0, dottedUsage.LineIndex);
-        Assert.Equal("Thing.Spawn", dottedUsage.Line);
+        Assert.Equal(new[] { 0, 1 }, dotted.Select(usage => usage.LineIndex));
 
         var plusUsage = Assert.Single(plus);
-        Assert.Equal(2, plusUsage.LineIndex);
-        Assert.Equal("A+B", plusUsage.Line);
+        Assert.Equal(3, plusUsage.LineIndex);
+        Assert.Equal("AAAB", plusUsage.Line);
     }
 
     [Fact]
-    public void CaseInsensitiveMatchingIsCultureInvariantLikeUdb()
+    public void CaseInsensitiveMatchingUsesCurrentCultureLikeUdb()
     {
         CultureInfo previousCulture = CultureInfo.CurrentCulture;
         CultureInfo previousUiCulture = CultureInfo.CurrentUICulture;
@@ -96,8 +94,7 @@ public class ScriptFindUsagesTests
 
             var usages = ScriptFindUsages.Find("Identifier", "identifier");
 
-            var usage = Assert.Single(usages);
-            Assert.Equal("Identifier", usage.Line);
+            Assert.Empty(usages);
         }
         finally
         {

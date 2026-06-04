@@ -1361,8 +1361,8 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Ignore configured array and code block delimiters when highlighting calltip arguments.
 - [ ] Port find-usages behavior.
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
-  - [x] Treat script find-usages search text as literal text instead of regex syntax.
-  - [x] Keep script find-usages case-insensitive matching culture-invariant.
+  - [x] Treat script find-usages search text as regex syntax.
+  - [x] Keep script find-usages case-insensitive matching culture-sensitive.
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Select script compiler output target rules from UDB compiler interface metadata.

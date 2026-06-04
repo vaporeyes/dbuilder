@@ -35,9 +35,8 @@ public static class ScriptFindUsages
         var result = new List<ScriptUsageResult>();
         if (string.IsNullOrEmpty(findText)) return result;
 
-        string escapedFindText = Regex.Escape(findText);
-        string pattern = wholeWord ? "\\b" + escapedFindText + "\\b" : escapedFindText;
-        var options = caseSensitive ? RegexOptions.CultureInvariant : RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+        string pattern = wholeWord ? "\\b" + findText + "\\b" : findText;
+        var options = caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
         var regex = new Regex(pattern, options);
         string[] lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         for (int i = 0; i < lines.Length; i++)
