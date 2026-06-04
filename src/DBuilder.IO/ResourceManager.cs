@@ -1223,6 +1223,23 @@ public sealed class ResourceManager : IDisposable
         foreach (var environment in sorted) environments[environment.Name] = environment;
     }
 
+    /// <summary>DECALDEF decal and generator definitions from every resource, oldest first.</summary>
+    public DecalDefs GetDecalDefs()
+    {
+        var result = new DecalDefs();
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetDecaldefLumps())
+            {
+                var parsed = DecaldefParser.Parse(text);
+                foreach (var decal in parsed.Decals.Values) result.SetDecal(decal);
+                foreach (var group in parsed.Groups.Values) result.SetGroup(group);
+                result.Generators.AddRange(parsed.Generators);
+            }
+        }
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

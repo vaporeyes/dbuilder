@@ -53,6 +53,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetSndSeqLumps();
     /// <summary>REVERBS texts selected with UDB's per-resource rules.</summary>
     IEnumerable<string> GetReverbsLumps();
+    /// <summary>DECALDEF texts selected with UDB's per-resource rules.</summary>
+    IEnumerable<string> GetDecaldefLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -502,6 +504,8 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> GetReverbsLumps() => GetTextLumps("REVERBS", partialTitleMatch: false);
 
+    public IEnumerable<string> GetDecaldefLumps() => GetTextLumps("DECALDEF", partialTitleMatch: false);
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -912,6 +916,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         foreach (var reader in nestedReaders)
             foreach (string text in reader.GetReverbsLumps())
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetDecaldefLumps()
+    {
+        foreach (string text in LocalTextLumps("DECALDEF", partialTitleMatch: false))
+            yield return text;
+
+        foreach (var reader in nestedReaders)
+            foreach (string text in reader.GetDecaldefLumps())
                 yield return text;
     }
 

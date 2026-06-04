@@ -88,6 +88,9 @@ public class ResourceManagerTests
     private static byte[] ReverbsBytes(string name, int arg0, int arg1)
         => Encoding.ASCII.GetBytes($"\"{name}\" {arg0.ToString(System.Globalization.CultureInfo.InvariantCulture)} {arg1.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
 
+    private static byte[] DecaldefBytes(string name, int id, string pic)
+        => Encoding.ASCII.GetBytes($"decal {name} {id.ToString(System.Globalization.CultureInfo.InvariantCulture)} {{ pic {pic} }}");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -497,6 +500,54 @@ public class ResourceManagerTests
             Assert.Equal(new[] { "Cave", "Hall" }, reverbs.Keys.ToArray());
             Assert.Equal(new ReverbDefinition("Cave", 3, 0), reverbs["Cave"]);
             Assert.Equal(new ReverbDefinition("Hall", 2, 0), reverbs["Hall"]);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesDecaldefFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("DECALDEF", DecaldefBytes("BulletHole", 1, "BULL")),
+            ("DECALDEF", DecaldefBytes("Scorch", 2, "SCOR")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var defs = rm.GetDecalDefs();
+        Assert.Equal("BULL", defs.Decals["BulletHole"].Pic);
+        Assert.Equal("SCOR", defs.Decals["Scorch"].Pic);
+        Assert.Equal("BulletHole", defs.GetDecalDefsById()[1].Name);
+        Assert.Equal("Scorch", defs.GetDecalDefsById()[2].Name);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootDecaldefTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("DECALDEF", DecaldefBytes("BulletHole", 1, "NEST")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("DECALDEF.txt", DecaldefBytes("BulletHole", 1, "ROOT")),
+            ("DECALDEF.extra", Encoding.ASCII.GetBytes("generator ZombieMan { decal BulletHole }")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_decaldef_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "DECALDEF.txt"), DecaldefBytes("BulletHole", 1, "DIR"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var defs = rm.GetDecalDefs();
+            Assert.Equal("DIR", defs.Decals["BulletHole"].Pic);
+            Assert.Contains(defs.Generators, generator => generator.ActorClass == "ZombieMan" && generator.DecalName == "BulletHole");
+            Assert.Equal("BulletHole", defs.GetDecalDefsById()[1].Name);
         }
         finally
         {
