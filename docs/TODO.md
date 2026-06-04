@@ -916,6 +916,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse inline argument enum and flag metadata.
   - [x] Preserve configured argument usage independent of title text.
   - [x] Parse compact scalar thing type definitions.
+  - [x] Parse compact scalar thing type titles with UDB-style value conversion.
   - [x] Ignore empty thing category grouping blocks.
   - [x] Parse editor behavior metadata for scaled texture offsets, format interface, default activation, generalized toggles, 3D start type, activation filter, and visplane view height.
   - [x] Parse game-level default texture scales, default textures, and default sky texture mappings.

@@ -1182,6 +1182,28 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void CompactThingTypeDefinitionsConvertScalarTitlesLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                misc
+                {
+                    sprite = "BON1A0";
+                    9001 = 123;
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var thing = gc.GetThing(9001);
+        Assert.NotNull(thing);
+        Assert.Equal("123", thing!.Title);
+        Assert.Equal("BON1A0", thing.Sprite);
+    }
+
+    [Fact]
     public void IgnoresInvalidThingCategoryBlocks()
     {
         const string cfg = """

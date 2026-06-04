@@ -1696,8 +1696,10 @@ public sealed class GameConfiguration
             string childKey = e.Key.ToString() ?? "";
             if (int.TryParse(childKey, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
             {
-                if (e.Value is string scalarTitle)
+                if (e.Value is not IDictionary)
                 {
+                    string? scalarTitle = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+                    if (scalarTitle == null) continue;
                     bool scalarAbsoluteZ = info.AbsoluteZ;
                     AddThingType(number, new ThingTypeInfo
                     {
