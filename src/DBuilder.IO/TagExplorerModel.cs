@@ -682,7 +682,10 @@ public static class TagExplorerModel
         }
 
         if (groups.Count > 0 && remainingEffect > 0)
-            groups.Add(new TagExplorerActionGroup(effect, config.SectorEffectTitle(effect), config.SectorEffectTitle(effect)));
+        {
+            string title = config.SectorEffectTitle(effect);
+            groups.Add(new TagExplorerActionGroup(effect, title, title + ": " + effect));
+        }
 
         if (remainingEffect > 0)
         {

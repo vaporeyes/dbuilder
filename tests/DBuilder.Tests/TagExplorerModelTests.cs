@@ -337,7 +337,7 @@ public sealed class TagExplorerModelTests
         Assert.Equal(new[] { "1 - Secret", "32 - Damage", "33 - Secret + Damage: 5 per second" }, sectors.Children.Select(node => node.Title));
         Assert.Equal("Tag 7: Secret, Index 0", sectors.Children[0].Children[0].Title);
         Assert.Equal("Tag 7: Damage: 5 per second, Index 0", sectors.Children[1].Children[0].Title);
-        Assert.Equal("Tag 7: Secret + Damage: 5 per second, Index 0", sectors.Children[2].Children[0].Title);
+        Assert.Equal("Tag 7: Secret + Damage: 5 per second: 33, Index 0", sectors.Children[2].Children[0].Title);
     }
 
     [Fact]
