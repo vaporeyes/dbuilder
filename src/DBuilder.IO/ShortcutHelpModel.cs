@@ -5,7 +5,12 @@ namespace DBuilder.IO;
 
 public sealed record ShortcutHelpRow(EditorCommandDescriptor Command, string GestureText, string ModifierText);
 
-public sealed record ShortcutHelpSection(string Title, string Description, IReadOnlyList<ShortcutHelpRow> Rows, bool DefaultExpanded);
+public sealed record ShortcutHelpSection(
+    string Title,
+    string Description,
+    IReadOnlyList<ShortcutHelpRow> Rows,
+    bool DefaultExpanded,
+    int TotalRows);
 
 public static class ShortcutHelpModel
 {
@@ -34,16 +39,19 @@ public static class ShortcutHelpModel
         var sections = new List<ShortcutHelpSection>();
         foreach (string title in GroupTitles)
         {
-            var rows = commands
+            var allRows = commands
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
                 .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings), ModifierText(command)))
                 .Where(row => row.GestureText != "-")
-                .Where(row => text.Length == 0 || Matches(row, title, GroupDescription(title), text))
                 .OrderBy(row => row.Command.Title, StringComparer.Ordinal)
                 .ToArray();
 
+            var rows = allRows
+                .Where(row => text.Length == 0 || Matches(row, title, GroupDescription(title), text))
+                .ToArray();
+
             if (rows.Length > 0)
-                sections.Add(new ShortcutHelpSection(title, GroupDescription(title), rows, IsDefaultExpanded(title)));
+                sections.Add(new ShortcutHelpSection(title, GroupDescription(title), rows, IsDefaultExpanded(title), allRows.Length));
         }
 
         return sections;

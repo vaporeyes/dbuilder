@@ -145,12 +145,9 @@ public sealed class ShortcutsWindow : Window
         for (int i = 0; i < section.Rows.Count; i++)
             panel.Children.Add(Row(section.Rows[i], i));
 
-        int totalCount = ShortcutHelpModel.BuildSections(EditorCommandCatalog.All, _bindings, filter: "")
-            .FirstOrDefault(group => group.Title == section.Title)
-            ?.Rows.Count ?? section.Rows.Count;
         var count = new TextBlock
         {
-            Text = searching && totalCount != section.Rows.Count ? $"{section.Rows.Count} of {totalCount}" : section.Rows.Count.ToString(),
+            Text = searching && section.TotalRows != section.Rows.Count ? $"{section.Rows.Count} of {section.TotalRows}" : section.Rows.Count.ToString(),
             Foreground = Brushes.Khaki,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Center,

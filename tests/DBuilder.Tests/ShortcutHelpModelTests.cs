@@ -26,6 +26,7 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(sections, section => section.Title == "2D view and modes");
         Assert.Contains(sections, section => section.Title == "3D navigation");
         Assert.All(sections, section => Assert.Contains(section.Title, ShortcutHelpModel.GroupTitles));
+        Assert.All(sections, section => Assert.Equal(section.Rows.Count, section.TotalRows));
         Assert.DoesNotContain(sections.SelectMany(section => section.Rows), row => row.GestureText == "-");
         Assert.All(sections, section =>
             Assert.Equal(section.Rows.OrderBy(row => row.Command.Title, StringComparer.Ordinal), section.Rows));
@@ -82,6 +83,7 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             "Ctrl/Cmd+S");
         Assert.Contains(gesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+        Assert.Contains(gesture, section => section.TotalRows > section.Rows.Count);
 
         var modifiers = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
@@ -99,11 +101,20 @@ public sealed class ShortcutHelpModelTests
     [Fact]
     public void BuildSectionsMatchesMultiWordFiltersAcrossRowMetadata()
     {
+        var unfiltered = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "");
         var titleAndGroup = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
             "3D texture copy");
         Assert.Contains(titleAndGroup.SelectMany(section => section.Rows), row => row.Command.Id == "map3d.texture-copy");
+        Assert.All(titleAndGroup, section =>
+        {
+            var original = Assert.Single(unfiltered, candidate => candidate.Title == section.Title);
+            Assert.Equal(original.Rows.Count, section.TotalRows);
+        });
 
         var titleAndGesture = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
