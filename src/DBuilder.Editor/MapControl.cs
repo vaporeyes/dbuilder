@@ -198,6 +198,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 2D view-layer visibility toggles.
     private bool _showFills = true;
     private bool _showThings = true;
+    private bool _synchronizedThingEditing;
     private int _showVisualThings = 2;
     private bool _fixedThingsScale = true;
     private bool _alwaysShowVertices = true;
@@ -218,6 +219,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
+    public bool SynchronizedThingEditing => _synchronizedThingEditing;
     public int ShowVisualThings => _showVisualThings;
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
@@ -253,6 +255,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showThings;
+    }
+
+    public bool ToggleSynchronizedThingEditing()
+    {
+        _synchronizedThingEditing = !_synchronizedThingEditing;
+        ActionStateChanged?.Invoke();
+        return _synchronizedThingEditing;
     }
 
     public int CycleVisualThings()
@@ -5907,6 +5916,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.point-thing-to-cursor":
             case "map2d.thinglookatcursor":
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
+                return true;
+            case "map2d.syncedthingedit":
+                Picked?.Invoke(ToggleSynchronizedThingEditing()
+                    ? "Things editing is SYNCHRONIZED"
+                    : "Things editing is not synchronized");
                 return true;
             case "map2d.bridge-mode":
             case "map2d.bridgemode":

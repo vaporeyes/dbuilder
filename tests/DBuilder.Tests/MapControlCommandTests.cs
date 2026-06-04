@@ -560,6 +560,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.placevisualstart", "PlaceVisualStart()")]
     [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
     [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]
+    [InlineData("map2d.syncedthingedit", "ToggleSynchronizedThingEditing()")]
     [InlineData("map2d.bridgemode", "RunBridgeCommand()")]
     [InlineData("map2d.gzdbvisualmode", "Toggle3DMode()")]
     [InlineData("map2d.curvelinesmode", "CurveSelectedLinedefs()")]
@@ -592,6 +593,17 @@ public sealed class MapControlCommandTests
 
         Assert.True(commandIndex >= 0);
         Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Fact]
+    public void SynchronizedThingEditingToggleExposesStateAndStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool SynchronizedThingEditing => _synchronizedThingEditing;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ToggleSynchronizedThingEditing()", body, StringComparison.Ordinal);
+        Assert.Contains("Things editing is SYNCHRONIZED", body, StringComparison.Ordinal);
+        Assert.Contains("Things editing is not synchronized", body, StringComparison.Ordinal);
     }
 
     [Theory]

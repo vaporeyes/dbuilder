@@ -901,6 +901,21 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.placevisualstart", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "W", accelerator: true));
     }
 
+    [Fact]
+    public void SynchronizedThingEditingCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.syncedthingedit");
+
+        Assert.NotNull(command);
+        Assert.Equal("Synchronized Things Editing", command.Title);
+        Assert.Equal("Shift+T", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal("map2d.syncedthingedit", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "T", shift: true));
+    }
+
     [Theory]
     [InlineData("map2d.insert", "map2d.insertitem", "Insert vertex or thing", "I")]
     [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L")]
