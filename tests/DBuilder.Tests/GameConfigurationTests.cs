@@ -1525,6 +1525,30 @@ ID # = 31005
     }
 
     [Fact]
+    public void TextureSetFiltersUseScalarToStringAndExactNameKeyLikeUdb()
+    {
+        const string cfg = """
+            texturesets
+            {
+                set0
+                {
+                    Name = "CaseSensitiveNameKey";
+                    filter0 = 123;
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var set = Assert.Single(gc.TextureSets);
+        Assert.Equal("Unnamed Set", set.Name);
+        Assert.Contains("CASESENSITIVENAMEKEY", set.Filters);
+        Assert.Contains("123", set.Filters);
+        Assert.True(set.Matches("CaseSensitiveNameKey"));
+        Assert.True(set.Matches("123"));
+    }
+
+    [Fact]
     public void ParsesLinedefActivationInfo()
     {
         const string cfg = """

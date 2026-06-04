@@ -2448,8 +2448,9 @@ public sealed class GameConfiguration
             foreach (DictionaryEntry child in set)
             {
                 string childKey = child.Key.ToString() ?? "";
-                if (string.Equals(childKey, "name", StringComparison.OrdinalIgnoreCase)) continue;
-                if (child.Value is not string filter) continue;
+                if (string.Equals(childKey, "name", StringComparison.Ordinal)) continue;
+                string? filter = Convert.ToString(child.Value, CultureInfo.InvariantCulture);
+                if (filter == null) continue;
                 filters.Add(filter.ToUpperInvariant());
             }
             textureSets.Add(new TextureSetInfo(key, GetString(set, "name", "Unnamed Set"), filters));
