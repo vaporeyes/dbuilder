@@ -49,10 +49,11 @@ public static class VisualBrightnessMatch
         VisualHit highlighted,
         GameConfiguration? config)
     {
+        VisualHit[] selected = selection.ToArray();
         int brightness = Math.Clamp(targetBrightness, 0, 255);
         int changed = 0;
 
-        foreach (VisualHit hit in selection)
+        foreach (VisualHit hit in selected)
         {
             if (SameSurface(hit, highlighted)) continue;
 
@@ -76,7 +77,7 @@ public static class VisualBrightnessMatch
             }
         }
 
-        return new VisualBrightnessMatchResult(changed, $"Matched brightness for {changed} surface{(changed == 1 ? "" : "s")}.");
+        return new VisualBrightnessMatchResult(changed, $"Matched brightness for {selected.Length} surfaces.");
     }
 
     private static int SurfaceLightValue(Sector sector, string lightKey, string absoluteKey)

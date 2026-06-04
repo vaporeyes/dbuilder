@@ -56,9 +56,28 @@ public class VisualBrightnessMatchTests
             config: null);
 
         Assert.Equal(3, result.ChangedSurfaces);
+        Assert.Equal("Matched brightness for 3 surfaces.", result.Message);
         Assert.Equal(64, relativeFloor.GetIntegerField("lightfloor"));
         Assert.Equal(160, absoluteCeiling.GetIntegerField("lightceiling"));
         Assert.Equal(16, side.GetIntegerField("light"));
+    }
+
+    [Fact]
+    public void StatusUsesSelectedCountEvenWhenHighlightedSurfaceIsSkippedLikeUdb()
+    {
+        var target = new Sector { Brightness = 120 };
+        var selected = new Sector { Brightness = 96 };
+        Assert.True(VisualBrightnessMatch.TryReadTargetBrightness(FloorHit(target), out int brightness, out _));
+
+        VisualBrightnessMatchResult result = VisualBrightnessMatch.Apply(
+            brightness,
+            [FloorHit(target), FloorHit(selected)],
+            FloorHit(target),
+            config: null);
+
+        Assert.Equal(1, result.ChangedSurfaces);
+        Assert.Equal("Matched brightness for 2 surfaces.", result.Message);
+        Assert.Equal(24, selected.GetIntegerField("lightfloor"));
     }
 
     [Fact]
