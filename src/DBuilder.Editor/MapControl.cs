@@ -2521,6 +2521,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         int changed = 0;
         bool begun = false;
+        string offsetStatus = string.Empty;
         var seenGlobalSides = new System.Collections.Generic.HashSet<Sidedef>();
         foreach ((Sidedef side, SidedefPart part) in wallPartTargets)
         {
@@ -2535,10 +2536,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
 
             if (VisualSidedefTextureOffsets.Nudge(side, part, deltaX, deltaY, localOffsets, textureWidth, textureHeight))
+            {
                 changed++;
+                var offsets = VisualSidedefTextureOffsets.Copy(side, part, localOffsets);
+                offsetStatus = VisualTextureOffset3DStatusText(VisualHitKind.Wall, offsets.X, offsets.Y);
+            }
         }
 
-        int skippedFlats = 0;
         if (_mapFormat == MapFormat.Udmf)
         {
             foreach ((Sector sector, bool ceiling) in flatTargets)
@@ -2547,7 +2551,6 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 var image = _resources?.GetFlat(textureName);
                 if (image == null)
                 {
-                    skippedFlats++;
                     continue;
                 }
 
@@ -2562,6 +2565,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     _yaw))
                 {
                     changed++;
+                    offsetStatus = VisualTextureOffset3DStatusText(
+                        ceiling ? VisualHitKind.Ceiling : VisualHitKind.Floor,
+                        sector.GetFloatField(ceiling ? "xpanningceiling" : "xpanningfloor", 0.0),
+                        sector.GetFloatField(ceiling ? "ypanningceiling" : "ypanningfloor", 0.0));
                 }
             }
         }
@@ -2578,9 +2585,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke(skippedFlats == 0
-            ? $"offset {changed} target{(changed == 1 ? "" : "s")}"
-            : $"offset {changed} target{(changed == 1 ? "" : "s")} ({skippedFlats} missing flat image{(skippedFlats == 1 ? "" : "s")})");
+        Target3DChanged?.Invoke(offsetStatus);
+    }
+
+    public static string VisualTextureOffset3DStatusText(VisualHitKind kind, double x, double y)
+    {
+        string offsets = x.ToString(CultureInfo.InvariantCulture) + ", " + y.ToString(CultureInfo.InvariantCulture) + ".";
+        return kind switch
+        {
+            VisualHitKind.Floor => "Changed floor texture offsets to " + offsets,
+            VisualHitKind.Ceiling => "Changed ceiling texture offsets to " + offsets,
+            _ => "Changed texture offsets to " + offsets,
+        };
     }
 
     private static bool IsLineFlagSet3D(Linedef line, string flag)

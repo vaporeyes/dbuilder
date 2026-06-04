@@ -60,6 +60,13 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualRotation3DStatusText(kind, angle));
 
     [Theory]
+    [InlineData(VisualHitKind.Wall, -1.0, 2.0, "Changed texture offsets to -1, 2.")]
+    [InlineData(VisualHitKind.Floor, -1.5, 2.25, "Changed floor texture offsets to -1.5, 2.25.")]
+    [InlineData(VisualHitKind.Ceiling, 3.0, -4.0, "Changed ceiling texture offsets to 3, -4.")]
+    public void VisualTextureOffset3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, double x, double y, string expected)
+        => Assert.Equal(expected, MapControl.VisualTextureOffset3DStatusText(kind, x, y));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -365,6 +372,24 @@ public sealed class MapControlCommandTests
         Assert.True(pasteStatusIndex > pasteIndex);
         Assert.DoesNotContain("copied offsets {_texOffsetClipboard3D.Value.X}", body, StringComparison.Ordinal);
         Assert.DoesNotContain("pasted offsets to {targetCount}", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NudgeTargetOffset3DUsesUdbStatusForLastOffsetTarget()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void NudgeTargetOffset3D(int deltaX, int deltaY)", StringComparison.Ordinal);
+        int statusVariableIndex = body.IndexOf("string offsetStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
+        int wallStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(VisualHitKind.Wall", statusVariableIndex, StringComparison.Ordinal);
+        int flatStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(", wallStatusIndex + 1, StringComparison.Ordinal);
+        int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(offsetStatus);", flatStatusIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusVariableIndex > methodIndex);
+        Assert.True(wallStatusIndex > statusVariableIndex);
+        Assert.True(flatStatusIndex > wallStatusIndex);
+        Assert.True(finalStatusIndex > flatStatusIndex);
+        Assert.DoesNotContain("offset {changed} target", body, StringComparison.Ordinal);
     }
 
     [Fact]
