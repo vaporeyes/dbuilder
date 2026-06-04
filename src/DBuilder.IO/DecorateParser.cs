@@ -1292,6 +1292,11 @@ public static class DecorateParser
                     stopParsing = !zscriptBody;
                     return false;
                 }
+                if (zscriptBody && !NextTokenStartsBlock(t, i))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    return false;
+                }
                 pendingUserVariableMetadata.Clear();
                 pendingStates = true;
             }

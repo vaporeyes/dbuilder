@@ -98,6 +98,25 @@ class SpacedStatesCastActor : Actor
     }
 
     [Fact]
+    public void RejectsZScriptStatesWithoutBlockLikeUdb()
+    {
+        const string text = @"
+class MissingStatesBlock : Actor
+{
+    States Spawn: MISS A -1; stop;
+}
+class ValidStatesBlock : Actor
+{
+    States { Spawn: VALD A -1; stop; }
+}";
+
+        var actor = ZScriptParser.Parse(text).Single();
+
+        Assert.Equal("ValidStatesBlock", actor.ClassName);
+        Assert.Equal("VALDA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void ParsesSpacedZScriptEditorLineComments()
     {
         const string text = @"

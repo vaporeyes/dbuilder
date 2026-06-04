@@ -617,6 +617,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject ZScript `Default` blocks without braces like UDB.
   - [x] Require semicolon-terminated ZScript size defaults like UDB.
   - [x] Parse spaced ZScript `States(...)` cast headers.
+  - [x] Reject ZScript `States` blocks without braces like UDB.
   - [x] Require semicolon-terminated ZScript default properties like UDB.
   - [x] Reject ZScript default flag signs without names like UDB.
   - [x] Parse spaced ZScript class header modifier arguments like UDB.
