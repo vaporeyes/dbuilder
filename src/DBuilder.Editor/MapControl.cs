@@ -3530,12 +3530,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         VisualThingRotation.ApplyCameraRotation(things, _yaw, _pitch, _mapFormat == MapFormat.Udmf);
-        FinishThingOrientationChange3D(
-            things,
-            "Apply camera rotation to thing",
-            "Apply camera rotation to things",
-            "applied camera rotation to thing",
-            "applied camera rotation to things");
+        EditBegun?.Invoke(things.Count == 1 ? "Apply camera rotation to thing" : "Apply camera rotation to things");
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"Applied camera rotation and pitch to {things.Count} thing{(things.Count == 1 ? "" : "s")}.");
         return true;
     }
 

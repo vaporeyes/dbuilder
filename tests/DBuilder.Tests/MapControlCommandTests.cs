@@ -100,6 +100,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ApplyCameraRotation3DUsesUdbSuccessStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool ApplyCameraRotationToSelectedThings3D()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Applied camera rotation and pitch to {things.Count} thing", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
+    }
+
+    [Fact]
     public void VisualTextureOffset3DCommandsUseFlatOffsetTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
