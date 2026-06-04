@@ -160,6 +160,8 @@ public static class VisplaneExplorerViewHeight
 
 public static class VisplaneExplorerInterfaceModel
 {
+    public const string PluginName = "VisplaneExplorer";
+    public const int MinimumRevision = 2411;
     public const string OpenDoorsSettingsKey = "opendoors";
     public const string ShowHeatmapSettingsKey = "showheatmap";
     public const string ViewHeightSettingsKey = "viewheight";

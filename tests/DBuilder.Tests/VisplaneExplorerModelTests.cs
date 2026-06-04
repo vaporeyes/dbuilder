@@ -25,6 +25,13 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void PluginMetadataMatchesUdbBuilderPlug()
+    {
+        Assert.Equal("VisplaneExplorer", VisplaneExplorerInterfaceModel.PluginName);
+        Assert.Equal(2411, VisplaneExplorerInterfaceModel.MinimumRevision);
+    }
+
+    [Fact]
     public void InterfaceSettingsDefaultsMatchUdbPluginSettings()
     {
         VisplaneExplorerInterfaceSettings settings = VisplaneExplorerInterfaceModel.CreateSettings(

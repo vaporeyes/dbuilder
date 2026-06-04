@@ -1622,6 +1622,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to USDF viewer summaries.
   - [x] Add UDB-style singular and plural labels to USDF editor status text.
 - [ ] Port `VisplaneExplorer`.
+  - [x] Add UDB-style VisplaneExplorer plugin name and minimum revision metadata.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
   - [x] Add UDB-style palette row model, heatmap palette selection, and void-color override.
