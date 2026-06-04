@@ -11,6 +11,14 @@ namespace DBuilder.Map;
 
 public enum MapIssueSeverity { Warning, Error }
 
+public enum MapAnalysisModeLifecycleAction
+{
+    Cancel,
+    Engage,
+    Disengage,
+    Accept,
+}
+
 [Flags]
 public enum ActionTextureCheckKind
 {
@@ -80,6 +88,41 @@ public sealed record MapIssueFixOptions(
     string DefaultBottomTexture = "STARTAN3",
     string DefaultFloorTexture = "FLOOR0_1",
     string DefaultCeilingTexture = "CEIL1_1");
+
+public sealed record MapAnalysisModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool AllowCopyPaste,
+    bool Volatile,
+    bool UseByDefault,
+    string HelpTopic);
+
+public sealed record MapAnalysisModeLifecyclePlan(
+    MapAnalysisModeLifecycleAction Action,
+    bool ReturnToPreviousStableMode,
+    bool SetStandardPresentation,
+    bool ClearMarks,
+    bool MarkSelectedGeometry,
+    bool ClearSelection,
+    bool SetSelectionTypeAll,
+    bool ShowAnalysisWindow,
+    bool HideInfo,
+    bool RestoreMarkedSelection,
+    bool HideAnalysisWindow,
+    bool SnapAllToAccuracy,
+    bool UpdateMap,
+    bool MarkMapChanged);
+
+public sealed record MapAnalysisModeRedrawPlan(
+    bool RedrawSurface,
+    bool DrawLinedefsAndVertices,
+    bool PlotSelectedResults,
+    bool DrawThings,
+    bool DrawOverlaySelection,
+    bool Present);
 
 public sealed record MapErrorCheckerDescriptor(
     string DisplayName,
@@ -276,6 +319,25 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
 
 public static class MapAnalysis
 {
+    public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
+        "Map Analysis Mode",
+        "errorcheckmode",
+        "MapAnalysisMode.png",
+        200,
+        "002_tools",
+        AllowCopyPaste: false,
+        Volatile: true,
+        UseByDefault: true,
+        "e_mapanalysis.html");
+
+    public static MapAnalysisModeRedrawPlan RedrawPlan { get; } = new(
+        RedrawSurface: true,
+        DrawLinedefsAndVertices: true,
+        PlotSelectedResults: true,
+        DrawThings: true,
+        DrawOverlaySelection: true,
+        Present: true);
+
     public static IReadOnlyList<MapErrorCheckerDescriptor> CheckerDescriptors { get; } =
     [
         new("Check texture alignment", "CheckTextureAlignment", false, 1000, [MapIssueKind.MisalignedTexture]),
@@ -304,6 +366,72 @@ public static class MapAnalysis
 
     public static IReadOnlyList<MapErrorCheckerDescriptor> DefaultCheckerDescriptors { get; } =
         CheckerDescriptors.Where(descriptor => descriptor.DefaultChecked).ToArray();
+
+    public static MapAnalysisModeLifecyclePlan ModeLifecyclePlan(MapAnalysisModeLifecycleAction action)
+        => action switch
+        {
+            MapAnalysisModeLifecycleAction.Cancel => new MapAnalysisModeLifecyclePlan(
+                action,
+                ReturnToPreviousStableMode: true,
+                SetStandardPresentation: false,
+                ClearMarks: false,
+                MarkSelectedGeometry: false,
+                ClearSelection: false,
+                SetSelectionTypeAll: false,
+                ShowAnalysisWindow: false,
+                HideInfo: false,
+                RestoreMarkedSelection: false,
+                HideAnalysisWindow: false,
+                SnapAllToAccuracy: false,
+                UpdateMap: false,
+                MarkMapChanged: false),
+            MapAnalysisModeLifecycleAction.Engage => new MapAnalysisModeLifecyclePlan(
+                action,
+                ReturnToPreviousStableMode: false,
+                SetStandardPresentation: true,
+                ClearMarks: true,
+                MarkSelectedGeometry: true,
+                ClearSelection: true,
+                SetSelectionTypeAll: true,
+                ShowAnalysisWindow: true,
+                HideInfo: false,
+                RestoreMarkedSelection: false,
+                HideAnalysisWindow: false,
+                SnapAllToAccuracy: false,
+                UpdateMap: false,
+                MarkMapChanged: false),
+            MapAnalysisModeLifecycleAction.Disengage => new MapAnalysisModeLifecyclePlan(
+                action,
+                ReturnToPreviousStableMode: false,
+                SetStandardPresentation: false,
+                ClearMarks: true,
+                MarkSelectedGeometry: false,
+                ClearSelection: false,
+                SetSelectionTypeAll: false,
+                ShowAnalysisWindow: false,
+                HideInfo: true,
+                RestoreMarkedSelection: true,
+                HideAnalysisWindow: true,
+                SnapAllToAccuracy: false,
+                UpdateMap: false,
+                MarkMapChanged: false),
+            MapAnalysisModeLifecycleAction.Accept => new MapAnalysisModeLifecyclePlan(
+                action,
+                ReturnToPreviousStableMode: true,
+                SetStandardPresentation: false,
+                ClearMarks: false,
+                MarkSelectedGeometry: false,
+                ClearSelection: false,
+                SetSelectionTypeAll: false,
+                ShowAnalysisWindow: false,
+                HideInfo: false,
+                RestoreMarkedSelection: false,
+                HideAnalysisWindow: false,
+                SnapAllToAccuracy: true,
+                UpdateMap: true,
+                MarkMapChanged: true),
+            _ => throw new ArgumentOutOfRangeException(nameof(action), action, null),
+        };
 
     public static IReadOnlyList<MapIssue> FilterIssuesForCheckers(
         IEnumerable<MapIssue> issues,

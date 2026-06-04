@@ -54,6 +54,64 @@ public class MapAnalysisTests
         => MapAnalysis.Check(map).Any(i => i.Kind == kind);
 
     [Fact]
+    public void ModeDescriptorMatchesUdbErrorCheckModeAttribute()
+    {
+        MapAnalysisModeDescriptor descriptor = MapAnalysis.ModeDescriptor;
+
+        Assert.Equal("Map Analysis Mode", descriptor.DisplayName);
+        Assert.Equal("errorcheckmode", descriptor.SwitchAction);
+        Assert.Equal("MapAnalysisMode.png", descriptor.ButtonImage);
+        Assert.Equal(200, descriptor.ButtonOrder);
+        Assert.Equal("002_tools", descriptor.ButtonGroup);
+        Assert.False(descriptor.AllowCopyPaste);
+        Assert.True(descriptor.Volatile);
+        Assert.True(descriptor.UseByDefault);
+        Assert.Equal("e_mapanalysis.html", descriptor.HelpTopic);
+    }
+
+    [Fact]
+    public void ModeLifecyclePlansMatchUdbModeSideEffects()
+    {
+        MapAnalysisModeLifecyclePlan cancel = MapAnalysis.ModeLifecyclePlan(MapAnalysisModeLifecycleAction.Cancel);
+        MapAnalysisModeLifecyclePlan engage = MapAnalysis.ModeLifecyclePlan(MapAnalysisModeLifecycleAction.Engage);
+        MapAnalysisModeLifecyclePlan disengage = MapAnalysis.ModeLifecyclePlan(MapAnalysisModeLifecycleAction.Disengage);
+        MapAnalysisModeLifecyclePlan accept = MapAnalysis.ModeLifecyclePlan(MapAnalysisModeLifecycleAction.Accept);
+
+        Assert.True(cancel.ReturnToPreviousStableMode);
+        Assert.False(cancel.ShowAnalysisWindow);
+
+        Assert.True(engage.SetStandardPresentation);
+        Assert.True(engage.ClearMarks);
+        Assert.True(engage.MarkSelectedGeometry);
+        Assert.True(engage.ClearSelection);
+        Assert.True(engage.SetSelectionTypeAll);
+        Assert.True(engage.ShowAnalysisWindow);
+
+        Assert.True(disengage.HideInfo);
+        Assert.True(disengage.RestoreMarkedSelection);
+        Assert.True(disengage.ClearMarks);
+        Assert.True(disengage.HideAnalysisWindow);
+
+        Assert.True(accept.SnapAllToAccuracy);
+        Assert.True(accept.UpdateMap);
+        Assert.True(accept.MarkMapChanged);
+        Assert.True(accept.ReturnToPreviousStableMode);
+    }
+
+    [Fact]
+    public void ModeRedrawPlanMatchesUdbLayerSequence()
+    {
+        MapAnalysisModeRedrawPlan plan = MapAnalysis.RedrawPlan;
+
+        Assert.True(plan.RedrawSurface);
+        Assert.True(plan.DrawLinedefsAndVertices);
+        Assert.True(plan.PlotSelectedResults);
+        Assert.True(plan.DrawThings);
+        Assert.True(plan.DrawOverlaySelection);
+        Assert.True(plan.Present);
+    }
+
+    [Fact]
     public void CheckerDescriptorsExposeUdbNamesDefaultsCostsAndIssueKinds()
     {
         IReadOnlyList<MapErrorCheckerDescriptor> descriptors = MapAnalysis.CheckerDescriptors;
