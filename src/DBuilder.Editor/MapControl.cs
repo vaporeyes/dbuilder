@@ -2583,7 +2583,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         foreach ((Sidedef side, SidedefPart part) in wallPartTargets)
         {
             if (!localOffsets && !seenGlobalSides.Add(side)) continue;
-            if (!begun) { EditBegun?.Invoke("Texture offset"); begun = true; }
+            if (!begun) { EditBegun?.Invoke(VisualTextureOffset3DEditName()); begun = true; }
             int? textureWidth = null;
             int? textureHeight = null;
             if (_resources?.GetWallTexture(side.GetTexture(part)) is { } image)
@@ -2611,7 +2611,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                if (!begun) { EditBegun?.Invoke("Texture offset"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualTextureOffset3DEditName()); begun = true; }
                 if (VisualFlatOffset.Nudge(
                     sector,
                     ceiling,
@@ -2655,6 +2655,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _ => "Changed texture offsets to " + offsets,
         };
     }
+
+    public static string VisualTextureOffset3DEditName()
+        => "Change texture offsets";
 
     private static bool IsLineFlagSet3D(Linedef line, string flag)
     {

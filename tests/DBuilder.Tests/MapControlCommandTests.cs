@@ -104,6 +104,10 @@ public sealed class MapControlCommandTests
     public void VisualTextureOffset3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, double x, double y, string expected)
         => Assert.Equal(expected, MapControl.VisualTextureOffset3DStatusText(kind, x, y));
 
+    [Fact]
+    public void VisualTextureOffset3DEditNameMatchesUdb()
+        => Assert.Equal("Change texture offsets", MapControl.VisualTextureOffset3DEditName());
+
     [Theory]
     [InlineData(VisualHitKind.Floor, "FLOOR0_1", "Flood-filled floors with FLOOR0_1.")]
     [InlineData(VisualHitKind.Ceiling, "CEIL1_1", "Flood-filled ceilings with CEIL1_1.")]
@@ -827,16 +831,19 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void NudgeTargetOffset3D(int deltaX, int deltaY)", StringComparison.Ordinal);
         int statusVariableIndex = body.IndexOf("string offsetStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
+        int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualTextureOffset3DEditName());", statusVariableIndex, StringComparison.Ordinal);
         int wallStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(VisualHitKind.Wall", statusVariableIndex, StringComparison.Ordinal);
         int flatStatusIndex = body.IndexOf("offsetStatus = VisualTextureOffset3DStatusText(", wallStatusIndex + 1, StringComparison.Ordinal);
         int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(offsetStatus);", flatStatusIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(statusVariableIndex > methodIndex);
-        Assert.True(wallStatusIndex > statusVariableIndex);
+        Assert.True(editNameIndex > statusVariableIndex);
+        Assert.True(wallStatusIndex > editNameIndex);
         Assert.True(flatStatusIndex > wallStatusIndex);
         Assert.True(finalStatusIndex > flatStatusIndex);
         Assert.DoesNotContain("offset {changed} target", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Texture offset\")", body, StringComparison.Ordinal);
     }
 
     [Fact]
