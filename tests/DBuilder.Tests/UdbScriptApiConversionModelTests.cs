@@ -776,9 +776,9 @@ localsidedeftextureoffsets = true;
         line.AttachFront(front);
         var wrapper = new UdbScriptLinedefWrapper(line);
 
-        UdbScriptLinedefWrapper created = wrapper.split(new object[] { 16.0, 0.0 });
+        UdbScriptLinedefWrapper created = wrapper.split(new object[] { 16.12345, 0.0 });
 
-        Assert.Equal(new Vector2D(16, 0), line.End.Position);
+        Assert.Equal(new Vector2D(16.123, 0), line.End.Position);
         Assert.Same(line.End, created.Linedef.Start);
         Assert.Same(end, created.Linedef.End);
         Assert.Equal(80, created.Linedef.Action);
@@ -786,6 +786,23 @@ localsidedeftextureoffsets = true;
         Assert.NotNull(created.Linedef.Front);
         Assert.Equal("STARTAN3", created.Linedef.Front!.MidTexture);
         Assert.Equal(20, created.Linedef.Front.OffsetX);
+    }
+
+    [Fact]
+    public void MapOwnedLinedefWrappersSnapNewSplitVerticesLikeUdbScript()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var wrapper = new UdbScriptLinedefWrapper(line, map);
+
+        UdbScriptLinedefWrapper created = wrapper.split(new object[] { 16.12345, 0.00049 });
+
+        Vertex split = line.End;
+        Assert.Contains(split, map.Vertices);
+        Assert.Equal(new Vector2D(16.123, 0), split.Position);
+        Assert.Same(split, created.Linedef.Start);
     }
 
     [Fact]

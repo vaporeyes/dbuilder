@@ -1868,7 +1868,9 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
     private Vertex CreateSplitVertex(object pos)
     {
         Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
-        return owner?.AddVertex(new Vector2D(point.x, point.y)) ?? new Vertex(new Vector2D(point.x, point.y));
+        Vertex vertex = owner?.AddVertex(new Vector2D(point.x, point.y)) ?? new Vertex(new Vector2D(point.x, point.y));
+        vertex.SnapToAccuracy(3);
+        return vertex;
     }
 
     private static Linedef SplitStandalone(Linedef line, Vertex vertex)
