@@ -221,6 +221,23 @@ public class Pk3ResourceTests
     }
 
     [Fact]
+    public void Pk3ResourceSkipsInvalidArchivePathCharactersLikeUdb()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("textures/KEEP.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))),
+            ("textures/BAD<.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.NotNull(rm.GetWallTexture("KEEP"));
+            Assert.Null(rm.GetWallTexture("BAD<"));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void RootWadInsidePk3ProvidesPaletteAndFlats()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");

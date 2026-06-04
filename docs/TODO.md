@@ -483,6 +483,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.
   - [x] Honor configured ignored directory names and ignored extensions when scanning PK3 resources.
   - [x] Skip files directly inside configured ignored PK3 directories like UDB.
+  - [x] Skip PK3 entries with UDB-unsupported path characters.
 - [ ] Port directory reader behavior.
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
   - [x] Skip files directly inside configured ignored folder-resource directories like UDB.

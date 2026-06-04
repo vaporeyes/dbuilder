@@ -979,6 +979,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         foreach (var e in zip.Entries)
         {
             if (e.FullName.EndsWith("/")) continue; // directory entry
+            if (!IsValidArchivePath(e.FullName)) continue;
             var entry = e;
             bool isRootWad = IsRootWad(e.FullName);
             if (!isRootWad && ShouldSkipPath(e.FullName, config)) continue;
@@ -1014,6 +1015,14 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
     private static bool IsRootWad(string path)
         => Path.GetDirectoryName(path) is null or ""
             && Path.GetExtension(path).Equals(".wad", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsValidArchivePath(string path)
+    {
+        foreach (char c in path)
+            if (c is '"' or '<' or '>' or '|' || c < 32)
+                return false;
+        return true;
+    }
 
     public override ImageData? GetHiRes(string name, DoomPalette? palette)
     {
