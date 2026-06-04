@@ -264,6 +264,21 @@ public static class UdbScriptDockerModel
         return items;
     }
 
+    public static IReadOnlyDictionary<int, string> SlotHotkeys(
+        IReadOnlyList<EditorShortcutBinding> bindings,
+        int slotCount = UdbScriptActions.ScriptSlotCount)
+    {
+        var hotkeys = new Dictionary<int, string>();
+        for (int slot = 1; slot <= slotCount; slot++)
+        {
+            string gesture = EditorCommandCatalog.GestureText($"window.udbscriptexecuteslot{slot}", bindings);
+            if (gesture != "-")
+                hotkeys[slot] = gesture;
+        }
+
+        return hotkeys;
+    }
+
     public static IReadOnlyDictionary<int, UdbScriptInfo?> AssignSlot(
         IReadOnlyDictionary<int, UdbScriptInfo?> slotAssignments,
         int slot,

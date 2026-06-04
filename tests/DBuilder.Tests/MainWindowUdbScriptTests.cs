@@ -20,4 +20,15 @@ public class MainWindowUdbScriptTests
         Assert.NotNull(type.GetMethod("RunUdbScriptInRunner", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("HandleUdbScriptRunnerExceptionAsync", BindingFlags.Instance | BindingFlags.NonPublic));
     }
+
+    [Fact]
+    public void MainWindowPassesSlotHotkeysIntoUdbScriptDocker()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("UdbScriptDockerModel.SlotHotkeys(_shortcutBindings)", body, StringComparison.Ordinal);
+        Assert.Contains("new UdbScriptDockerWindow(", body, StringComparison.Ordinal);
+    }
 }

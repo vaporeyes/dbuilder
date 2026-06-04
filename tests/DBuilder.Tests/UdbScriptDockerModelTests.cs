@@ -300,6 +300,22 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
+    public void SlotHotkeysUseEffectiveShortcutBindings()
+    {
+        IReadOnlyDictionary<int, string> hotkeys = UdbScriptDockerModel.SlotHotkeys(
+            new[]
+            {
+                new EditorShortcutBinding("window.udbscriptexecuteslot1", EditorCommandScope.Window, "F1"),
+                new EditorShortcutBinding("window.udbscriptexecuteslot3", EditorCommandScope.Window, "F3", Accelerator: true),
+            },
+            slotCount: 3);
+
+        Assert.Equal("F1", hotkeys[1]);
+        Assert.False(hotkeys.ContainsKey(2));
+        Assert.Equal("Ctrl/Cmd+F3", hotkeys[3]);
+    }
+
+    [Fact]
     public void AssignSlotMovesExistingScriptAndCanClearSlot()
     {
         UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");

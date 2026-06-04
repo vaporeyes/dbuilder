@@ -2863,7 +2863,11 @@ public partial class MainWindow : Window
         IReadOnlySet<string> collapsedDirectoryHashes = UdbScriptDockerModel.LoadCollapsedDirectoryHashes(
             scripts,
             _settings.UdbScriptSettings);
-        _udbScriptDocker = new UdbScriptDockerWindow(scripts, _udbScriptSlotAssignments, collapsedDirectoryHashes: collapsedDirectoryHashes);
+        _udbScriptDocker = new UdbScriptDockerWindow(
+            scripts,
+            _udbScriptSlotAssignments,
+            UdbScriptDockerModel.SlotHotkeys(_shortcutBindings),
+            collapsedDirectoryHashes);
         _udbScriptDocker.Closed += (_, _) => _udbScriptDocker = null;
         _udbScriptDocker.RunRequested += script => RunUdbScriptPlan(UdbScriptActions.ExecuteCurrentPlan(script));
         _udbScriptDocker.EditRequested += OpenUdbScriptExternalEditor;

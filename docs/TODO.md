@@ -2028,6 +2028,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script discovery and execution.
 - [ ] Port script options.
 - [ ] Port script docker UI integration.
+  - [x] Show effective UDBScript slot hotkeys in the script docker.
 - [ ] Port script runner UI integration.
 - [ ] Port full script runtime constraint integration.
 - [ ] Port script exception handling.
