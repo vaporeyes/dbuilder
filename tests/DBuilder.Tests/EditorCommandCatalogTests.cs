@@ -97,6 +97,7 @@ public class EditorCommandCatalogTests
     public void MakeDoorCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.make-door");
+        var udbAlias = EditorCommandCatalog.Find("window.makedoor");
 
         Assert.NotNull(command);
         Assert.Equal("Make Door", command.Title);
@@ -350,8 +351,11 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.gradient-floor-heights", "Gradient Floor Heights")]
+    [InlineData("window.gradientfloors", "Gradient Floor Heights")]
     [InlineData("window.gradient-ceiling-heights", "Gradient Ceiling Heights")]
+    [InlineData("window.gradientceilings", "Gradient Ceiling Heights")]
     [InlineData("window.gradient-sector-brightness", "Gradient Brightness")]
+    [InlineData("window.gradientbrightness", "Gradient Brightness")]
     [InlineData("window.gradient-floor-light", "Gradient Floor Light")]
     [InlineData("window.gradient-ceiling-light", "Gradient Ceiling Light")]
     [InlineData("window.gradient-light-color", "Gradient Light Color")]
@@ -558,6 +562,7 @@ public class EditorCommandCatalogTests
     public void SelectSimilarCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.select-similar");
+        var udbAlias = EditorCommandCatalog.Find("window.selectsimilar");
 
         Assert.NotNull(command);
         Assert.Equal("Select Similar Map Elements", command.Title);
@@ -565,12 +570,16 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
     public void FilterSelectedThingsCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.filter-selected-things");
+        var udbAlias = EditorCommandCatalog.Find("window.filterselectedthings");
 
         Assert.NotNull(command);
         Assert.Equal("Filter Selected Things", command.Title);
@@ -579,12 +588,16 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
     public void ChangeMapElementIndexCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.change-map-element-index");
+        var udbAlias = EditorCommandCatalog.Find("window.changemapelementindex");
 
         Assert.NotNull(command);
         Assert.Equal("Change Map Element Index", command.Title);
@@ -593,12 +606,18 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
     [InlineData("window.copy-properties", "Copy Properties")]
+    [InlineData("window.classiccopyproperties", "Copy Properties")]
     [InlineData("window.paste-properties", "Paste Properties")]
+    [InlineData("window.classicpasteproperties", "Paste Properties")]
     [InlineData("window.paste-properties-options", "Paste Properties With Options")]
+    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties With Options")]
     public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -679,9 +698,13 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.flip-selection-horizontal", "Flip Horizontal")]
+    [InlineData("window.flipselectionh", "Flip Horizontal")]
     [InlineData("window.flip-selection-vertical", "Flip Vertical")]
+    [InlineData("window.flipselectionv", "Flip Vertical")]
     [InlineData("window.rotate-selection-cw", "Rotate 90 CW")]
+    [InlineData("window.rotateclockwise", "Rotate 90 CW")]
     [InlineData("window.rotate-selection-ccw", "Rotate 90 CCW")]
+    [InlineData("window.rotatecounterclockwise", "Rotate 90 CCW")]
     [InlineData("window.scale-selection-up", "Scale Up")]
     [InlineData("window.scale-selection-down", "Scale Down")]
     public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title)
@@ -699,9 +722,13 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.align-floor-to-front", "Align Floor to Front Side")]
+    [InlineData("window.alignfloortofront", "Align Floor to Front Side")]
     [InlineData("window.align-floor-to-back", "Align Floor to Back Side")]
+    [InlineData("window.alignfloortoback", "Align Floor to Back Side")]
     [InlineData("window.align-ceiling-to-front", "Align Ceiling to Front Side")]
+    [InlineData("window.alignceilingtofront", "Align Ceiling to Front Side")]
     [InlineData("window.align-ceiling-to-back", "Align Ceiling to Back Side")]
+    [InlineData("window.alignceilingtoback", "Align Ceiling to Back Side")]
     public void WindowFlatAlignmentCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);

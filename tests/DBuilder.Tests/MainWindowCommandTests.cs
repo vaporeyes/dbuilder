@@ -56,8 +56,11 @@ public sealed class MainWindowCommandTests
     [InlineData("window.toggle-blockmap", "OnToggleBlockmap")]
     [InlineData("window.toggle-nodes", "OnToggleNodes")]
     [InlineData("window.gradient-floor-heights", "OnGradientFloorHeights")]
+    [InlineData("window.gradientfloors", "OnGradientFloorHeights")]
     [InlineData("window.gradient-ceiling-heights", "OnGradientCeilingHeights")]
+    [InlineData("window.gradientceilings", "OnGradientCeilingHeights")]
     [InlineData("window.gradient-sector-brightness", "OnGradientBrightness")]
+    [InlineData("window.gradientbrightness", "OnGradientBrightness")]
     [InlineData("window.gradient-floor-light", "OnGradientFloorLight")]
     [InlineData("window.gradient-ceiling-light", "OnGradientCeilingLight")]
     [InlineData("window.gradient-light-color", "OnGradientLightColor")]
@@ -83,6 +86,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.check-map", "OnCheckMap")]
     [InlineData("window.clean-up-geometry", "OnCleanUpGeometry")]
     [InlineData("window.build-bridge", "OnBuildBridge")]
+    [InlineData("window.makedoor", "OnMakeDoor")]
     [InlineData("window.build-stairs", "OnBuildStairs")]
     [InlineData("window.usdf-conversations", "OnUsdfConversations")]
     [InlineData("window.usdf-dialog-editor", "OnUsdfConversations")]
@@ -97,6 +101,37 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         Assert.Contains($"case \"{commandId}\"", body, StringComparison.Ordinal);
         Assert.Contains($"{handlerName}(this, new RoutedEventArgs())", body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("window.classiccopyproperties", "OnCopyProperties")]
+    [InlineData("window.classicpasteproperties", "OnPasteProperties")]
+    [InlineData("window.classicpastepropertieswithoptions", "OnPastePropertiesWithOptions")]
+    [InlineData("window.selectsimilar", "OnSelectSimilar")]
+    [InlineData("window.filterselectedthings", "OnFilterSelectedThings")]
+    [InlineData("window.changemapelementindex", "OnChangeMapElementIndex")]
+    [InlineData("window.flipselectionh", "OnFlipH")]
+    [InlineData("window.flipselectionv", "OnFlipV")]
+    [InlineData("window.rotateclockwise", "OnRotateCW")]
+    [InlineData("window.rotatecounterclockwise", "OnRotateCCW")]
+    [InlineData("window.alignfloortofront", "OnAlignFloorToFront")]
+    [InlineData("window.alignfloortoback", "OnAlignFloorToBack")]
+    [InlineData("window.alignceilingtofront", "OnAlignCeilingToFront")]
+    [InlineData("window.alignceilingtoback", "OnAlignCeilingToBack")]
+    public void UdbClassicWindowActionAliasesAreDispatched(string commandId, string handlerName)
+    {
+        Type type = typeof(MainWindow);
+        MethodInfo? dispatcher = type.GetMethod("RunWindowCommand", BindingFlags.Instance | BindingFlags.NonPublic);
+        MethodInfo? handler = type.GetMethod(handlerName, BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(dispatcher);
+        Assert.NotNull(handler);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf($"{handlerName}(this, new RoutedEventArgs())", commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
     }
 
     [Fact]
