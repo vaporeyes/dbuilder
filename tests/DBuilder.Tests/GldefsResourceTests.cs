@@ -110,6 +110,53 @@ object SharedActor { frame SHAR { light NEW_LIGHT } }
     }
 
     [Fact]
+    public void ResourceManagerLoadsBaseGameGldefsBeforeGenericGldefsLikeUdb()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("DOOMDEFS.extra", Encoding.ASCII.GetBytes("pointlight DOOM_LIGHT { color 0.1 0.2 0.3 size 16 }")),
+            ("GLDEFS.txt", Encoding.ASCII.GetBytes("pointlight GENERIC_LIGHT { color 0.4 0.5 0.6 size 32 }")));
+
+        try
+        {
+            using var resources = new ResourceManager(GameConfiguration.FromText("basegame = \"doom\";"));
+            resources.AddResource(pk3);
+
+            var gldefs = resources.GetGldefs();
+            Assert.True(gldefs.Lights.ContainsKey("DOOM_LIGHT"));
+            Assert.True(gldefs.Lights.ContainsKey("GENERIC_LIGHT"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void Pk3GldefsIncludesNestedWadGldefsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(
+            ("GLDEFS", Encoding.ASCII.GetBytes("pointlight NESTED_LIGHT { color 0.7 0.8 0.9 size 64 }")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("GLDEFS.txt", Encoding.ASCII.GetBytes("pointlight ROOT_LIGHT { color 0.1 0.2 0.3 size 16 }")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            var gldefs = resources.GetGldefs();
+            Assert.True(gldefs.Lights.ContainsKey("ROOT_LIGHT"));
+            Assert.True(gldefs.Lights.ContainsKey("NESTED_LIGHT"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+            File.Delete(nestedWad);
+        }
+    }
+
+    [Fact]
     public void ResourceManagerUsesX11ColorsForGlowTextures()
     {
         string pk3 = TestArtifacts.BuildPk3(

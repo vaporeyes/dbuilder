@@ -29,6 +29,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch);
     /// <summary>MAPINFO/ZMAPINFO texts selected with UDB's per-resource precedence rules.</summary>
     IEnumerable<string> GetMapInfoLumps();
+    /// <summary>GLDEFS texts selected with UDB's base-game and nested-resource ordering.</summary>
+    IEnumerable<string> GetGldefsLumps(string baseGame);
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -427,6 +429,26 @@ internal sealed class WadResourceReader : IResourceReader
         if (index >= 0) yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
     }
 
+    public IEnumerable<string> GetGldefsLumps(string baseGame)
+    {
+        if (GldefsBaseGameLump(baseGame) is { } gameLump)
+            foreach (string text in GetTextLumps(gameLump, partialTitleMatch: false))
+                yield return text;
+
+        foreach (string text in GetTextLumps("GLDEFS", partialTitleMatch: false))
+            yield return text;
+    }
+
+    internal static string? GldefsBaseGameLump(string baseGame)
+        => baseGame.ToLowerInvariant() switch
+        {
+            "doom" or "chex" => "DOOMDEFS",
+            "heretic" => "HTICDEFS",
+            "hexen" => "HEXNDEFS",
+            "strife" => "STRFDEFS",
+            _ => null,
+        };
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -715,6 +737,20 @@ internal abstract class FolderResourceReader : IResourceReader
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
             foreach (string text in nestedReaders[i].GetMapInfoLumps())
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetGldefsLumps(string baseGame)
+    {
+        if (WadResourceReader.GldefsBaseGameLump(baseGame) is { } gameLump)
+            foreach (string text in LocalTextLumps(gameLump, partialTitleMatch: true))
+                yield return text;
+
+        foreach (string text in LocalTextLumps("GLDEFS", partialTitleMatch: true))
+            yield return text;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+            foreach (string text in nestedReaders[i].GetGldefsLumps(baseGame))
                 yield return text;
     }
 

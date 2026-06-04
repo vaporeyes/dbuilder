@@ -513,9 +513,10 @@ public sealed class ResourceManager : IDisposable
         gldefsBuilt = true;
         gldefs = new Gldefs();
         var knownColors = BuildKnownColors();
+        string baseGame = configuration?.BaseGame ?? "";
         foreach (var reader in readers)
         {
-            foreach (string text in reader.GetTextLumps("GLDEFS", partialTitleMatch: true))
+            foreach (string text in reader.GetGldefsLumps(baseGame))
             {
                 var parsed = GldefsParser.Parse(text, reader.GetTextResource, knownColors);
                 MergeGldefs(gldefs, parsed);
