@@ -85,6 +85,18 @@ public sealed class Settings
     public int NormalizedMaxRecentFiles =>
         Math.Clamp(MaxRecentFiles ?? DefaultMaxRecentFiles, MinMaxRecentFiles, MaxMaxRecentFiles);
 
+    public static int? AcceptMaxRecentFilesText(string? text)
+    {
+        if (!int.TryParse(text, out int value) || value <= 0) return null;
+        return Math.Clamp(value, MinMaxRecentFiles, MaxMaxRecentFiles);
+    }
+
+    public static int? AcceptStatusHistoryLimitText(string? text)
+    {
+        if (!int.TryParse(text, out int value) || value <= 0) return null;
+        return Math.Clamp(value, MinStatusHistoryLimit, MaxStatusHistoryLimit);
+    }
+
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
 

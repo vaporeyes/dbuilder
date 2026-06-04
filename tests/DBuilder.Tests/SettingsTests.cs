@@ -735,4 +735,22 @@ public class SettingsTests
         Assert.Equal(Settings.MinStatusHistoryLimit, new Settings { StatusHistoryLimit = 1 }.NormalizedStatusHistoryLimit);
         Assert.Equal(Settings.MaxStatusHistoryLimit, new Settings { StatusHistoryLimit = 5000 }.NormalizedStatusHistoryLimit);
     }
+
+    [Theory]
+    [InlineData("", null)]
+    [InlineData("nope", null)]
+    [InlineData("1", Settings.MinMaxRecentFiles)]
+    [InlineData("12", 12)]
+    [InlineData("50", Settings.MaxMaxRecentFiles)]
+    public void AcceptMaxRecentFilesTextClampsSettingsDialogInput(string text, int? expected)
+        => Assert.Equal(expected, Settings.AcceptMaxRecentFilesText(text));
+
+    [Theory]
+    [InlineData("", null)]
+    [InlineData("nope", null)]
+    [InlineData("1", Settings.MinStatusHistoryLimit)]
+    [InlineData("250", 250)]
+    [InlineData("5000", Settings.MaxStatusHistoryLimit)]
+    public void AcceptStatusHistoryLimitTextClampsSettingsDialogInput(string text, int? expected)
+        => Assert.Equal(expected, Settings.AcceptStatusHistoryLimitText(text));
 }

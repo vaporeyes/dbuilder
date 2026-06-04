@@ -53,8 +53,8 @@ public sealed class SettingsWindow : PropertyDialog
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         UdbScriptExternalEditor = UdbScriptPreferencesModel.AcceptExternalEditorPath(_udbScriptExternalEditor.Text ?? "")?.Value?.ToString();
-        MaxRecentFiles = int.TryParse(_maxRecentFiles.Text, out int maxRecent) && maxRecent > 0 ? maxRecent : null;
-        StatusHistoryLimit = int.TryParse(_statusHistoryLimit.Text, out int limit) && limit > 0 ? limit : null;
+        MaxRecentFiles = Settings.AcceptMaxRecentFilesText(_maxRecentFiles.Text);
+        StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         DefaultViewMode = ComboNumber(_defaultViewMode, 0);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
