@@ -6090,6 +6090,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.look-through-selection":
             case "map3d.look-through-thing":
+            case "map3d.lookthroughthing":
                 LookThroughSelectedThing3D();
                 return true;
             case "map3d.thing-align-to-wall":
@@ -6193,10 +6194,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.visual-edit":
             case "map3d.edit-properties":
+            case "map3d.visualedit":
                 OpenTargetDialog3D();
                 return true;
             case "map3d.clear-selection":
             case "map3d.clear-target":
+            case "map3d.clearselection":
                 ClearSelection3D();
                 return true;
             case "map3d.reset-offsets":
@@ -6237,9 +6240,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ToggleUnpegged3D(upper: false);
                 return true;
             case "map3d.toggle-slope":
+            case "map3d.toggleslope":
                 ToggleSlope3D();
                 return true;
             case "map3d.reset-slope":
+            case "map3d.resetslope":
                 ResetSlope3D();
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
@@ -6281,15 +6286,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Visual vertices are {(_showVisualVertices ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-sidedef-slope-picking":
+            case "map3d.togglevisualslopepicking":
                 ToggleVisualSidedefSlopePicking();
                 return true;
             case "map3d.toggle-visual-vertex-slope-picking":
+            case "map3d.togglevisualvertexslopepicking":
                 ToggleVisualVertexSlopePicking();
                 return true;
             case "map3d.toggle-visual-vertex-slope-adjacent-selection":
+            case "map3d.togglevisualvertexslopeadjacentselection":
                 ToggleVisualVertexSlopeAdjacentSelection();
                 return true;
             case "map3d.delete-target":
+            case "map3d.deleteitem":
                 DeleteVisualTargets3D();
                 return true;
             case "map3d.select-texture":

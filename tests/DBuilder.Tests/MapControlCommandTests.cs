@@ -577,6 +577,26 @@ public sealed class MapControlCommandTests
         Assert.True(handlerIndex > commandIndex);
     }
 
+    [Theory]
+    [InlineData("map3d.lookthroughthing", "LookThroughSelectedThing3D()")]
+    [InlineData("map3d.visualedit", "OpenTargetDialog3D()")]
+    [InlineData("map3d.clearselection", "ClearSelection3D()")]
+    [InlineData("map3d.toggleslope", "ToggleSlope3D()")]
+    [InlineData("map3d.resetslope", "ResetSlope3D()")]
+    [InlineData("map3d.togglevisualslopepicking", "ToggleVisualSidedefSlopePicking()")]
+    [InlineData("map3d.togglevisualvertexslopepicking", "ToggleVisualVertexSlopePicking()")]
+    [InlineData("map3d.togglevisualvertexslopeadjacentselection", "ToggleVisualVertexSlopeAdjacentSelection()")]
+    [InlineData("map3d.deleteitem", "DeleteVisualTargets3D()")]
+    public void UdbVisualBaseAndSlopeActionAliasesAreDispatched(string commandId, string handlerCall)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf($"case \"{commandId}\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf(handlerCall, commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(handlerIndex > commandIndex);
+    }
+
     [Fact]
     public void RelocateThreeDFloorControlSectorsUsesInjectedAreaSettings()
     {

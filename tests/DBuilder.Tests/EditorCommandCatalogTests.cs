@@ -1320,11 +1320,17 @@ public class EditorCommandCatalogTests
         var expected = new Dictionary<string, string>
         {
             ["map3d.toggle-visual-sidedef-slope-picking"] = "Toggle Visual Sidedef Slope Picking",
+            ["map3d.togglevisualslopepicking"] = "Toggle Visual Sidedef Slope Picking",
             ["map3d.toggle-visual-vertex-slope-picking"] = "Toggle Visual Vertex Slope Picking",
+            ["map3d.togglevisualvertexslopepicking"] = "Toggle Visual Vertex Slope Picking",
             ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = "Toggle Adjacent Visual Vertex Slope Selection",
+            ["map3d.togglevisualvertexslopeadjacentselection"] = "Toggle Adjacent Visual Vertex Slope Selection",
             ["map3d.reset-slope"] = "Reset Plane Slope",
+            ["map3d.resetslope"] = "Reset Plane Slope",
             ["map3d.slope-between-handles"] = "Slope Between Handles",
+            ["map3d.slopebetweenhandles"] = "Slope Between Handles",
             ["map3d.arch-between-handles"] = "Arch Between Slope Handles",
+            ["map3d.archbetweenhandles"] = "Arch Between Slope Handles",
             ["map3d.move-camera-to-cursor"] = "Move Camera to Cursor",
         };
 
@@ -1431,6 +1437,7 @@ public class EditorCommandCatalogTests
 
         var lookThrough = EditorCommandCatalog.Find("map3d.look-through-selection");
         var lookThroughAlias = EditorCommandCatalog.Find("map3d.look-through-thing");
+        var udbLookThroughAlias = EditorCommandCatalog.Find("map3d.lookthroughthing");
 
         Assert.NotNull(lookThrough);
         Assert.Equal("Look Through Selection", lookThrough.Title);
@@ -1444,6 +1451,9 @@ public class EditorCommandCatalogTests
         Assert.NotNull(lookThroughAlias);
         Assert.Equal(lookThrough.Title, lookThroughAlias.Title);
         Assert.Equal(lookThrough.DefaultGesture, lookThroughAlias.DefaultGesture);
+        Assert.NotNull(udbLookThroughAlias);
+        Assert.Equal(lookThrough.Title, udbLookThroughAlias.Title);
+        Assert.Equal(lookThrough.DefaultGesture, udbLookThroughAlias.DefaultGesture);
 
         var align = EditorCommandCatalog.Find("map3d.thing-align-to-wall");
         var alignAlias = EditorCommandCatalog.Find("map3d.align-things-to-wall");
@@ -1867,13 +1877,14 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.visual-select", "map3d.select-target", "Select", "Click", false)]
-    [InlineData("map3d.visual-edit", "map3d.edit-properties", "Edit", "Enter", false)]
-    [InlineData("map3d.clear-selection", "map3d.clear-target", "Clear Selection", "Esc", true)]
-    public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture, bool allowScroll)
+    [InlineData("map3d.visual-select", "map3d.select-target", "map3d.visualselect", "Select", "Click", false)]
+    [InlineData("map3d.visual-edit", "map3d.edit-properties", "map3d.visualedit", "Edit", "Enter", false)]
+    [InlineData("map3d.clear-selection", "map3d.clear-target", "map3d.clearselection", "Clear Selection", "Esc", true)]
+    public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture, bool allowScroll)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
+        var udbAlias = EditorCommandCatalog.Find(udbId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
@@ -1886,6 +1897,9 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -1930,6 +1944,7 @@ public class EditorCommandCatalogTests
     public void VisualPaintSelectCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.visual-paint-select");
+        var udbAlias = EditorCommandCatalog.Find("map3d.visualpaintselect");
 
         Assert.NotNull(command);
         Assert.Equal("Paint Selection", command.Title);
@@ -1942,17 +1957,24 @@ public class EditorCommandCatalogTests
         Assert.True(command.DisregardAccelerator);
         Assert.True(command.DisregardAlt);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
     public void VisualDeleteCommandMatchesUdbDeleteItemAction()
     {
         var command = EditorCommandCatalog.Find("map3d.delete-target");
+        var udbAlias = EditorCommandCatalog.Find("map3d.deleteitem");
 
         Assert.NotNull(command);
         Assert.Equal("Delete Item", command.Title);
         Assert.Equal("Delete", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -2124,6 +2146,7 @@ public class EditorCommandCatalogTests
     public void VisualToggleSlopeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-slope");
+        var udbAlias = EditorCommandCatalog.Find("map3d.toggleslope");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Slope", command.Title);
@@ -2133,6 +2156,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
