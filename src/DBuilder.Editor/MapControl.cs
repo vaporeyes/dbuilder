@@ -2704,7 +2704,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int targetCount = localOffsets ? partTargets.Count : sideTargets.Count;
         if (targetCount == 0) { Target3DChanged?.Invoke("aim at a wall to paste offsets"); return; }
 
-        EditBegun?.Invoke("Paste offsets");
+        EditBegun?.Invoke(TextureOffsetsPasted3DEditName());
         foreach ((Sidedef side, SidedefPart part) in partTargets)
             VisualSidedefTextureOffsets.Paste(side, part, offsets, localOffsets);
         foreach (Sidedef side in sideTargets)
@@ -2722,6 +2722,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string TextureOffsetsPasted3DStatusText(int x, int y)
         => $"Pasted texture offsets {x}, {y}.";
+
+    public static string TextureOffsetsPasted3DEditName()
+        => "Paste texture offsets";
 
     private void FitSelectedVisualTextures3D()
     {

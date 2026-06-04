@@ -29,6 +29,7 @@ public sealed class MapControlCommandTests
     {
         Assert.Equal("Copied texture offsets 12, -8.", MapControl.TextureOffsetsCopied3DStatusText(12, -8));
         Assert.Equal("Pasted texture offsets 12, -8.", MapControl.TextureOffsetsPasted3DStatusText(12, -8));
+        Assert.Equal("Paste texture offsets", MapControl.TextureOffsetsPasted3DEditName());
     }
 
     [Theory]
@@ -760,13 +761,16 @@ public sealed class MapControlCommandTests
         int copyIndex = body.IndexOf("private void CopyTextureOffsets3D()", StringComparison.Ordinal);
         int copyStatusIndex = body.IndexOf("TextureOffsetsCopied3DStatusText(_texOffsetClipboard3D.Value.X, _texOffsetClipboard3D.Value.Y)", copyIndex, StringComparison.Ordinal);
         int pasteIndex = body.IndexOf("private void PasteTextureOffsets3D()", StringComparison.Ordinal);
-        int pasteStatusIndex = body.IndexOf("TextureOffsetsPasted3DStatusText(offsets.X, offsets.Y)", pasteIndex, StringComparison.Ordinal);
+        int pasteEditIndex = body.IndexOf("EditBegun?.Invoke(TextureOffsetsPasted3DEditName());", pasteIndex, StringComparison.Ordinal);
+        int pasteStatusIndex = body.IndexOf("TextureOffsetsPasted3DStatusText(offsets.X, offsets.Y)", pasteEditIndex, StringComparison.Ordinal);
 
         Assert.True(copyIndex >= 0);
         Assert.True(copyStatusIndex > copyIndex);
         Assert.True(pasteIndex >= 0);
-        Assert.True(pasteStatusIndex > pasteIndex);
+        Assert.True(pasteEditIndex > pasteIndex);
+        Assert.True(pasteStatusIndex > pasteEditIndex);
         Assert.DoesNotContain("copied offsets {_texOffsetClipboard3D.Value.X}", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Paste offsets\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("pasted offsets to {targetCount}", body, StringComparison.Ordinal);
     }
 
