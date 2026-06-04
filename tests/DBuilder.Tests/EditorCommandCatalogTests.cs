@@ -200,6 +200,29 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("window.setleakfinderstart", "Set leak finder start sector", "Shift+S")]
+    [InlineData("window.setleakfinderend", "Set leak finder end sector", "Shift+E")]
+    public void SoundLeakFinderCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("S", "window.setleakfinderstart")]
+    [InlineData("E", "window.setleakfinderend")]
+    public void SoundLeakFinderShortcutsMatchUdbDefaults(string key, string commandId)
+        => Assert.Equal(commandId, EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, key, shift: true));
+
     [Fact]
     public void SoundEnvironmentModeCommandMatchesUdbActionSurface()
     {

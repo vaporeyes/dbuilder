@@ -77,6 +77,8 @@ public partial class MainWindow : Window
     private BlockmapExplorerWindow? _blockmapExplorer;
     private SoundEnvironmentWindow? _soundEnvironments;
     private SoundEnvironmentModeModel? _soundEnvironmentModel;
+    private Sector? _soundLeakStartSector;
+    private Sector? _soundLeakEndSector;
     private InterpolationTools.Mode _gradientInterpolationMode = InterpolationTools.Mode.LINEAR;
     private string? _lastPrefabPath;
 
@@ -1561,6 +1563,8 @@ public partial class MainWindow : Window
             case "window.soundenvironmentmode": OnSoundEnvironments(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-colors": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
             case "window.soundpropagationcolorconfiguration": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
+            case "window.setleakfinderstart": OnSetLeakFinderStart(this, new RoutedEventArgs()); return true;
+            case "window.setleakfinderend": OnSetLeakFinderEnd(this, new RoutedEventArgs()); return true;
             case "window.apply-slope-arch": OnApplySlopeArch(this, new RoutedEventArgs()); return true;
             case "window.apply-slopes": OnApplySlopes(this, new RoutedEventArgs()); return true;
             case "window.gradient-floor-heights": OnGradientFloorHeights(this, new RoutedEventArgs()); return true;
@@ -5248,6 +5252,36 @@ public partial class MainWindow : Window
         SetStatus(path == null
             ? "No sound leak path found between the two selected sectors."
             : path.StatusText);
+    }
+
+    private void OnSetLeakFinderStart(object? sender, RoutedEventArgs e)
+        => SetSoundLeakMarker(startMarker: true);
+
+    private void OnSetLeakFinderEnd(object? sender, RoutedEventArgs e)
+        => SetSoundLeakMarker(startMarker: false);
+
+    private void SetSoundLeakMarker(bool startMarker)
+    {
+        if (_map is null) { SetStatus("No map loaded."); return; }
+        var sectors = _map.GetSelectedSectors();
+        if (sectors.Count != 1)
+        {
+            SetStatus(startMarker
+                ? "Select one sector to set the sound leak start."
+                : "Select one sector to set the sound leak end.");
+            return;
+        }
+
+        if (startMarker) _soundLeakStartSector = sectors[0];
+        else _soundLeakEndSector = sectors[0];
+
+        Sector? start = _soundLeakStartSector;
+        Sector? end = _soundLeakEndSector;
+        bool hasStart = start is not null && _map.Sectors.Contains(start);
+        bool hasEnd = end is not null && _map.Sectors.Contains(end);
+        SetStatus(startMarker ? "Sound leak start sector set." : "Sound leak end sector set.");
+        if (hasStart && hasEnd)
+            ShowSoundLeakPath(start!, end!);
     }
 
     private void OnSoundEnvironments(object? sender, RoutedEventArgs e)

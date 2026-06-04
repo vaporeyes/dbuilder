@@ -144,6 +144,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.soundpropagationmode", "OnSoundPropagation")]
     [InlineData("window.soundenvironmentmode", "OnSoundEnvironments")]
     [InlineData("window.soundpropagationcolorconfiguration", "OnSoundPropagationColors")]
+    [InlineData("window.setleakfinderstart", "OnSetLeakFinderStart")]
+    [InlineData("window.setleakfinderend", "OnSetLeakFinderEnd")]
     public void UdbClassicWindowActionAliasesAreDispatched(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
