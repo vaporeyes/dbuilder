@@ -17,6 +17,12 @@ public sealed class MapCheckWindow : Window
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
     private readonly List<ListBoxItem> _rows = new();
+    private readonly Button _ignoreSelected;
+    private readonly Button _showAll;
+    private readonly Button _copySelected;
+    private readonly Button _hideType;
+    private readonly Button _selectType;
+    private readonly Button _showOnlyType;
     private readonly Button[] _fixButtons;
     private readonly MapIssueListModel _model;
     private readonly Func<MapIssueFix, bool>? _applyFix;
@@ -49,53 +55,23 @@ public sealed class MapCheckWindow : Window
         _header.TextWrapping = TextWrapping.Wrap;
         UpdateHeader(_model.VisibleIssues);
 
-        var ignoreSelected = new Button
-        {
-            Content = "Ignore Selected",
-            Margin = new Avalonia.Thickness(10, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        ignoreSelected.Click += (_, _) => IgnoreSelected();
+        _ignoreSelected = ActionButton("Ignore Selected", leading: true);
+        _ignoreSelected.Click += (_, _) => IgnoreSelected();
 
-        var showAll = new Button
-        {
-            Content = "Show All",
-            Margin = new Avalonia.Thickness(0, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        showAll.Click += (_, _) => ShowAll();
+        _showAll = ActionButton("Show All");
+        _showAll.Click += (_, _) => ShowAll();
 
-        var copySelected = new Button
-        {
-            Content = "Copy",
-            Margin = new Avalonia.Thickness(0, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        copySelected.Click += async (_, _) => await CopySelectedToClipboard();
+        _copySelected = ActionButton("Copy");
+        _copySelected.Click += async (_, _) => await CopySelectedToClipboard();
 
-        var hideType = new Button
-        {
-            Content = "Hide Type",
-            Margin = new Avalonia.Thickness(0, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        hideType.Click += (_, _) => HideSelectedTypes();
+        _hideType = ActionButton("Hide Type");
+        _hideType.Click += (_, _) => HideSelectedTypes();
 
-        var selectType = new Button
-        {
-            Content = "Select Type",
-            Margin = new Avalonia.Thickness(0, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        selectType.Click += (_, _) => SelectSelectedTypes();
+        _selectType = ActionButton("Select Type");
+        _selectType.Click += (_, _) => SelectSelectedTypes();
 
-        var showOnlyType = new Button
-        {
-            Content = "Show Only Type",
-            Margin = new Avalonia.Thickness(0, 0, 10, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        showOnlyType.Click += (_, _) => ShowOnlySelectedTypes();
+        _showOnlyType = ActionButton("Show Only Type");
+        _showOnlyType.Click += (_, _) => ShowOnlySelectedTypes();
 
         var header = new StackPanel();
         header.Children.Add(_header);
@@ -104,7 +80,7 @@ public sealed class MapCheckWindow : Window
         header.Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Children = { ignoreSelected, showAll, copySelected, hideType, selectType, showOnlyType },
+            Children = { _ignoreSelected, _showAll, _copySelected, _hideType, _selectType, _showOnlyType },
         });
         header.Children.Add(new StackPanel
         {
@@ -117,6 +93,7 @@ public sealed class MapCheckWindow : Window
         _list.SelectionChanged += (_, _) =>
         {
             if (_list.SelectedItem is ListBoxItem { Tag: MapIssue mi }) IssueActivated?.Invoke(mi);
+            UpdateActionButtons();
             UpdateFixButtons();
         };
         _list.KeyUp += async (_, e) =>
@@ -134,7 +111,15 @@ public sealed class MapCheckWindow : Window
         root.Children.Add(new ScrollViewer { Content = _list });
         Content = root;
         UpdateFixButtons();
+        UpdateActionButtons();
     }
+
+    private static Button ActionButton(string content, bool leading = false) => new()
+    {
+        Content = content,
+        Margin = new Avalonia.Thickness(leading ? 10 : 0, 0, 10, 8),
+        HorizontalAlignment = HorizontalAlignment.Left,
+    };
 
     private Button FixButton(int index)
     {
@@ -213,6 +198,18 @@ public sealed class MapCheckWindow : Window
             _fixButtons[i].IsVisible = visible;
             _fixButtons[i].Content = visible ? fixes[i].Label : "";
         }
+    }
+
+    private void UpdateActionButtons()
+    {
+        bool hasSelection = SelectedIssues().Length > 0;
+        bool hasHidden = _model.VisibleIssues.Count < _model.AllIssues.Count;
+        _ignoreSelected.IsEnabled = hasSelection;
+        _copySelected.IsEnabled = hasSelection;
+        _hideType.IsEnabled = hasSelection;
+        _selectType.IsEnabled = hasSelection;
+        _showOnlyType.IsEnabled = hasSelection;
+        _showAll.IsEnabled = hasHidden;
     }
 
     private void ApplySelectedFix(int index)
@@ -327,6 +324,7 @@ public sealed class MapCheckWindow : Window
         _list.ItemsSource = null;
         _list.ItemsSource = _rows;
         UpdateHeader(_model.VisibleIssues);
+        UpdateActionButtons();
     }
 
     private void UpdateHeader(IReadOnlyList<MapIssue> issues)

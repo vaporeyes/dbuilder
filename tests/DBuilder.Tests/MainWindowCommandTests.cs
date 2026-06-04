@@ -185,6 +185,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("foreach (var similarIssue in SelectedIssues())", code, StringComparison.Ordinal);
         Assert.Contains("if (similarIssue.Kind != issue.Kind || index >= similarIssue.Fixes.Count) continue;", code, StringComparison.Ordinal);
         Assert.Contains("if (!_applyFix(similarIssue.Fixes[index])) break;", code, StringComparison.Ordinal);
+        Assert.Contains("UpdateActionButtons();", code, StringComparison.Ordinal);
+        Assert.Contains("_showAll.IsEnabled = hasHidden;", code, StringComparison.Ordinal);
+        Assert.Contains("_copySelected.IsEnabled = hasSelection;", code, StringComparison.Ordinal);
     }
 
     [Fact]
