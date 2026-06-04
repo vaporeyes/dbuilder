@@ -2341,10 +2341,13 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in src)
         {
             if (!int.TryParse(e.Key.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit)) continue;
-            if (e.Value is not string spec) continue;
+            string? spec = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+            if (spec == null) continue;
             var ft = FlagTranslation.Parse(bit, spec);
             if (ft != null) dest.Add(ft);
         }
+
+        dest.Sort((left, right) => right.Flag.CompareTo(left.Flag));
     }
 
     /// <summary>Converts a binary linedef flags value into the set of true UDMF flag field names.</summary>

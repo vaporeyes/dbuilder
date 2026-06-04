@@ -40,6 +40,24 @@ thingflagstranslation
     }
 
     [Fact]
+    public void TranslationSpecsConvertScalarsAndSortHighestFirstLikeUdb()
+    {
+        const string cfg = """
+            linedefflagstranslation
+            {
+                1 = "blocking";
+                16 = 123;
+                4 = "twosided";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(new[] { 16, 4, 1 }, gc.LinedefFlagsTranslation.Select(t => t.Flag));
+        Assert.Equal("123", gc.LinedefFlagsTranslation[0].Fields[0]);
+    }
+
+    [Fact]
     public void LinedefBitsToUdmf()
     {
         var gc = GameConfiguration.FromText(Cfg);
