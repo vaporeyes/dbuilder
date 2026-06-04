@@ -1276,6 +1276,24 @@ class ValidAfterShortSpriteNameZThing : Actor
     }
 
     [Fact]
+    public void RejectsSingleCharacterZScriptStateFrameSpriteNamesLikeUdb()
+    {
+        const string zscript = @"
+class SingleCharacterSpriteNameZThing : Actor
+{
+    States { Spawn: A B -1; Stop; }
+}
+class ValidAfterSingleCharacterSpriteNameZThing : Actor
+{
+    States { Spawn: VSCS A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterSingleCharacterSpriteNameZThing", actor.ClassName);
+        Assert.Equal("VSCSA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void UsesZScriptStateFrameWithDottedActionFunctionLikeUdb()
     {
         const string zscript = @"

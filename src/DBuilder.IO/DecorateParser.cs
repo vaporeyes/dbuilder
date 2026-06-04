@@ -1256,7 +1256,7 @@ public static class DecorateParser
                     stopParsing = !zscriptBody;
                     return false;
                 }
-                if (zscriptBody && inStates && currentState != null && IsMalformedZScriptStateSpriteName(tk.Text, t, i))
+                if (zscriptBody && inStates && currentState != null && tk.Kind == Kind.Str && IsMalformedZScriptStateSpriteName(tk.Text, t, i))
                 {
                     SkipRemainingActorBody(t, ref i, depth);
                     return false;
@@ -1578,13 +1578,27 @@ public static class DecorateParser
     }
 
     private static bool IsMalformedZScriptStateSpriteName(string spriteName, List<Tok> t, int frameIndex)
-        => spriteName.Length is > 1 and not 4
-        && ZScriptStateFrameSpecial(spriteName) == null
-        && frameIndex < t.Count
-        && t[frameIndex].Kind is Kind.Word or Kind.Str
-        && LooksLikeStateFrameLetters(t[frameIndex].Text)
-        && frameIndex + 1 < t.Count
-        && HasValidZScriptStateFrameDuration(t, frameIndex + 1);
+    {
+        if (spriteName.Length == 4 || ZScriptStateFrameSpecial(spriteName) != null)
+            return false;
+        if (IsZScriptStateFrameLettersForPreviousSprite(t, frameIndex - 1))
+            return false;
+        if (frameIndex + 1 >= t.Count || t[frameIndex].Kind is not (Kind.Word or Kind.Str))
+            return false;
+        return LooksLikeStateFrameLetters(t[frameIndex].Text)
+            && HasValidZScriptStateFrameDuration(t, frameIndex + 1);
+    }
+
+    private static bool IsZScriptStateFrameLettersForPreviousSprite(List<Tok> t, int frameTokenIndex)
+    {
+        if (frameTokenIndex <= 0 || frameTokenIndex + 1 >= t.Count)
+            return false;
+        if (t[frameTokenIndex].Kind is not (Kind.Word or Kind.Str))
+            return false;
+        return LooksLikeStateFrameLetters(t[frameTokenIndex].Text)
+            && LooksLikeSpriteFrame(t[frameTokenIndex - 1].Text, t, frameTokenIndex)
+            && HasValidZScriptStateFrameDuration(t, frameTokenIndex + 1);
+    }
 
     private static bool IsMalformedZScriptStateFrameLetters(string spriteName, List<Tok> t, int frameIndex)
         => spriteName.Length == 4
