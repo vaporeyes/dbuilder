@@ -71,4 +71,20 @@ public sealed class MapControlCommandTests
         Assert.True(thingScaleIndex > guardIndex);
         Assert.True(wallScaleIndex > guardIndex);
     }
+
+    [Fact]
+    public void VisualRotation3DCommandsUseVisualTargetRotation()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int clockwiseCase = body.IndexOf("case \"map3d.rotate-clockwise\":", StringComparison.Ordinal);
+        int counterclockwiseCase = body.IndexOf("case \"map3d.rotate-counterclockwise\":", StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf("private bool RotateVisualTargets3D", StringComparison.Ordinal);
+
+        Assert.True(clockwiseCase >= 0);
+        Assert.True(counterclockwiseCase >= 0);
+        Assert.True(handlerIndex >= 0);
+        Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);", body, StringComparison.Ordinal);
+        Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);", body, StringComparison.Ordinal);
+        Assert.Contains("VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
+    }
 }

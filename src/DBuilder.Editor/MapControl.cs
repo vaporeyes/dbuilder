@@ -3264,6 +3264,38 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return true;
     }
 
+    private bool RotateVisualTargets3D(int thingAngleIncrement, int textureAngleIncrement)
+    {
+        var targets = EditTargets3D();
+        if (targets.Count == 0) return false;
+
+        var things = new List<Thing>();
+        var seenThings = new HashSet<Thing>();
+        foreach (VisualHit hit in targets)
+        {
+            if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
+                things.Add(thing);
+        }
+
+        int thingCount = VisualThingRotation.Rotate(things, thingAngleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
+        int flatCount = VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf);
+        if (thingCount == 0 && flatCount == 0) return false;
+
+        if (thingCount > 0 && flatCount == 0)
+        {
+            FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "rotated thing", "rotated things");
+            return true;
+        }
+
+        EditBegun?.Invoke(thingCount > 0 ? "Rotate things and textures" : flatCount == 1 ? "Rotate texture" : "Rotate textures");
+        _geo3DDirty = true;
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        RequestNextFrameRendering();
+        Target3DChanged?.Invoke($"rotated {thingCount + flatCount} target{(thingCount + flatCount == 1 ? "" : "s")}");
+        return true;
+    }
+
     private bool ChangeThingPitchTargets3D(int increment)
     {
         var things = ThingTargets3D();
@@ -5312,11 +5344,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.rotate-clockwise":
             case "map3d.rotate-thing-clockwise":
-                RotateThingTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5);
+                RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);
                 return true;
             case "map3d.rotate-counterclockwise":
             case "map3d.rotate-thing-counterclockwise":
-                RotateThingTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5);
+                RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);
                 return true;
             case "map3d.pitch-clockwise":
             case "map3d.pitch-thing-clockwise":
