@@ -51,21 +51,27 @@ public sealed class DynamicLightDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
+        ResultRelativeMode = _relativeMode.IsChecked == true;
+        DynamicLightSliderLimits radiusLimits = ResultRelativeMode
+            ? ColorPickerModel.DynamicLightRadiusLimits(relativeMode: true)
+            : _state.PrimaryLimits;
+        DynamicLightSliderLimits intervalLimits = ResultRelativeMode
+            ? ColorPickerModel.DynamicLightIntervalLimits(relativeMode: true)
+            : _state.IntervalLimits;
         var rgbColor = new ColorRgb(
             ClampByte(ParseInt(_red, _state.Color.Red)),
             ClampByte(ParseInt(_green, _state.Color.Green)),
             ClampByte(ParseInt(_blue, _state.Color.Blue)));
         ResultColor = ColorPickerModel.ResolveTypedColorInput(_state.Color, rgbColor, _hex.Text, _float.Text);
         ResultPrimaryRadius = ColorPickerModel.ClampDynamicLightSliderValue(
-            _state.PrimaryLimits,
+            radiusLimits,
             ParseInt(_primaryRadius, _state.PrimaryRadius));
         ResultSecondaryRadius = _secondaryRadius == null
             ? _state.SecondaryRadius
-            : ColorPickerModel.ClampDynamicLightSliderValue(_state.SecondaryLimits, ParseInt(_secondaryRadius, _state.SecondaryRadius));
+            : ColorPickerModel.ClampDynamicLightSliderValue(radiusLimits, ParseInt(_secondaryRadius, _state.SecondaryRadius));
         ResultInterval = _interval == null
             ? _state.Interval
-            : ColorPickerModel.ClampDynamicLightSliderValue(_state.IntervalLimits, ParseInt(_interval, _state.Interval));
-        ResultRelativeMode = _relativeMode.IsChecked == true;
+            : ColorPickerModel.ClampDynamicLightSliderValue(intervalLimits, ParseInt(_interval, _state.Interval));
     }
 
     private static int ClampByte(int value)

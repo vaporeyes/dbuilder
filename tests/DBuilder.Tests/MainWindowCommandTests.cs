@@ -116,6 +116,18 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void DynamicLightDialogUsesRelativeLimitsWhenRelativeModeIsSelected()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/DynamicLightDialog.cs"));
+
+        Assert.Contains("ResultRelativeMode = _relativeMode.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.DynamicLightRadiusLimits(relativeMode: true)", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.DynamicLightIntervalLimits(relativeMode: true)", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.ClampDynamicLightSliderValue(\n            radiusLimits,", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.ClampDynamicLightSliderValue(intervalLimits,", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SaveCommandAvailabilityReflectsWritableSourceArchive()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
