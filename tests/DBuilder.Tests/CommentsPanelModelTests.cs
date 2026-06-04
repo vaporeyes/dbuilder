@@ -178,6 +178,39 @@ public sealed class CommentsPanelModelTests
         Assert.Equal(set, CommentsPanelModel.SetStatusText(elementCount));
     }
 
+    [Theory]
+    [InlineData(1, "Remove comment")]
+    [InlineData(2, "Remove 2 comments")]
+    public void RemoveUndoTextMatchesUdbSingularAndPluralLabels(int elementCount, string expected)
+        => Assert.Equal(expected, CommentsPanelModel.RemoveUndoText(elementCount));
+
+    [Fact]
+    public void EditObjectMenuTextMatchesUdbElementKindLabels()
+    {
+        var map = new MapSet();
+        var firstVertex = map.AddVertex(new Vector2D(0, 0));
+        var secondVertex = map.AddVertex(new Vector2D(8, 0));
+        firstVertex.Fields["comment"] = "vertex";
+        secondVertex.Fields["comment"] = "vertex";
+
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 16)), map.AddVertex(new Vector2D(8, 16)));
+        var side = map.AddSidedef(line, true, map.AddSector());
+        side.Fields["comment"] = "side";
+
+        map.AddSector().Fields["comment"] = "sector";
+        map.AddThing(new Vector2D(16, 16), 1).Fields["comment"] = "thing";
+
+        var groups = CommentsPanelModel.BuildGroups(map);
+
+        Assert.Equal("Edit Vertices...", CommentsPanelModel.EditObjectMenuText(groups.Single(group => group.Comment == "vertex")));
+        Assert.Equal("Edit Linedef...", CommentsPanelModel.EditObjectMenuText(groups.Single(group => group.Comment == "side")));
+        Assert.Equal("Edit Sector...", CommentsPanelModel.EditObjectMenuText(groups.Single(group => group.Comment == "sector")));
+        Assert.Equal("Edit Thing...", CommentsPanelModel.EditObjectMenuText(groups.Single(group => group.Comment == "thing")));
+        Assert.Equal(
+            "Edit Object...",
+            CommentsPanelModel.EditObjectMenuText(new CommentGroup(CommentsPanelMode.All, "", [])));
+    }
+
     [Fact]
     public void CreateSelectionTargetUsesFirstCommentedElementKind()
     {

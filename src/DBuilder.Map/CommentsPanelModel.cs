@@ -153,6 +153,14 @@ public static class CommentsPanelModel
     public static string SetStatusText(int elementCount)
         => $"Set comment on {elementCount} {Label(elementCount, "element")}.";
 
+    public static string RemoveUndoText(int elementCount)
+        => elementCount == 1 ? "Remove comment" : $"Remove {elementCount} comments";
+
+    public static string EditObjectMenuText(CommentGroup group)
+        => group.Elements.Count == 0
+            ? "Edit Object..."
+            : $"Edit {ObjectLabel(group.Elements[0].Kind, group.Elements.Count)}...";
+
     public static void SetComment(IEnumerable<IFielded> elements, string comment)
     {
         foreach (var element in elements)
@@ -506,4 +514,14 @@ public static class CommentsPanelModel
 
     private static string Label(int count, string singular)
         => count == 1 ? singular : singular + "s";
+
+    private static string ObjectLabel(CommentedElementKind kind, int count)
+        => kind switch
+        {
+            CommentedElementKind.Vertex => count == 1 ? "Vertex" : "Vertices",
+            CommentedElementKind.Linedef or CommentedElementKind.Sidedef => count == 1 ? "Linedef" : "Linedefs",
+            CommentedElementKind.Sector => count == 1 ? "Sector" : "Sectors",
+            CommentedElementKind.Thing => count == 1 ? "Thing" : "Things",
+            _ => Label(count, "Object"),
+        };
 }

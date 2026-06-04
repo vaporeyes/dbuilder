@@ -3372,7 +3372,7 @@ public partial class MainWindow : Window
     private void RemoveCommentGroup(CommentGroup group)
     {
         if (_map is null || _undo is null) return;
-        CreateUndo("Remove comment");
+        CreateUndo(CommentsPanelModel.RemoveUndoText(group.Elements.Count));
         CommentsPanelModel.RemoveComment(group);
         MapView.MarkGeometryDirty();
         UpdateInfo();
