@@ -1164,6 +1164,27 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>SNDSEQ sound sequences from every resource, oldest first.</summary>
+    public SndSeq GetSndSeq()
+    {
+        var result = new SndSeq();
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetSndSeqLumps())
+            {
+                var parsed = SndSeqParser.Parse(text);
+                foreach (string group in parsed.SequenceGroups)
+                    if (names.Add(group))
+                        result.SequenceGroups.Add(group);
+                foreach (var sequence in parsed.Sequences)
+                    if (names.Add(sequence.Name))
+                        result.Sequences.Add(sequence);
+            }
+        }
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

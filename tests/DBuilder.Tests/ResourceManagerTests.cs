@@ -82,6 +82,9 @@ public class ResourceManagerTests
     private static byte[] TerrainBytes(string flatName, string splashName)
         => Encoding.ASCII.GetBytes($"terrain {flatName} {{ splash {splashName} }}");
 
+    private static byte[] SndSeqBytes(string name, string sound)
+        => Encoding.ASCII.GetBytes($":{name}\nplay {sound}\nend");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -393,6 +396,57 @@ public class ResourceManagerTests
             Assert.Equal("Root", terrains["FWATER1"].Splash);
             Assert.Equal("Lava", terrains["LAVA1"].Splash);
             Assert.Equal("Directory", terrains["SLIME1"].Splash);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesSndSeqFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("SNDSEQ", SndSeqBytes("Doors", "world/door")),
+            ("SNDSEQ", SndSeqBytes("Platforms", "world/lift")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var sequences = rm.GetSndSeq().Sequences;
+        Assert.Equal(2, sequences.Count);
+        Assert.Equal("Doors", sequences[0].Name);
+        Assert.Equal("world/door", sequences[0].Commands[0].Sound);
+        Assert.Equal("Platforms", sequences[1].Name);
+        Assert.Equal("world/lift", sequences[1].Commands[0].Sound);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootSndSeqTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("SNDSEQ", SndSeqBytes("Doors", "world/nested")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("SNDSEQ.txt", SndSeqBytes("Doors", "world/root")),
+            ("SNDSEQ.extra", SndSeqBytes("Extra", "world/extra")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_sndseq_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "SNDSEQ.txt"), SndSeqBytes("Doors", "world/directory"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var sequences = rm.GetSndSeq().Sequences;
+            Assert.Equal(2, sequences.Count);
+            Assert.Equal("Doors", sequences[0].Name);
+            Assert.Equal("world/root", sequences[0].Commands[0].Sound);
+            Assert.Equal("Extra", sequences[1].Name);
+            Assert.Equal("world/extra", sequences[1].Commands[0].Sound);
         }
         finally
         {

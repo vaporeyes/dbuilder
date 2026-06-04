@@ -49,6 +49,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetVoxeldefLumps();
     /// <summary>ANIMDEFS texts selected with UDB's per-resource rules.</summary>
     IEnumerable<string> GetAnimdefsLumps();
+    /// <summary>SNDSEQ texts selected with UDB's per-resource rules.</summary>
+    IEnumerable<string> GetSndSeqLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -494,6 +496,8 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> GetAnimdefsLumps() => GetTextLumps("ANIMDEFS", partialTitleMatch: false);
 
+    public IEnumerable<string> GetSndSeqLumps() => GetTextLumps("SNDSEQ", partialTitleMatch: false);
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -884,6 +888,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         foreach (var reader in nestedReaders)
             foreach (string text in reader.GetAnimdefsLumps())
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetSndSeqLumps()
+    {
+        foreach (string text in LocalTextLumps("SNDSEQ", partialTitleMatch: false))
+            yield return text;
+
+        foreach (var reader in nestedReaders)
+            foreach (string text in reader.GetSndSeqLumps())
                 yield return text;
     }
 
