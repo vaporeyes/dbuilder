@@ -1822,6 +1822,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve USDF include lumps from the current map WAD or embedded PK3 map archive.
   - [x] Add UDB-style singular and plural labels to USDF viewer summaries.
   - [x] Add UDB-style singular and plural labels to USDF editor status text.
+  - [x] Add UDB-style USDF Dialog Editor plugin lifecycle plan.
 - [ ] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer plugin name and minimum revision metadata.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
@@ -2373,6 +2374,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Render UDB-style Dialog Editor tree nodes alongside USDF detail rows.
   - [x] Apply UDB Dialog Editor window-state model to the editor window.
   - [x] Persist UDB Dialog Editor window-state settings through editor settings.
+  - [x] Add UDB-style USDF Dialog Editor plugin lifecycle plan.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.

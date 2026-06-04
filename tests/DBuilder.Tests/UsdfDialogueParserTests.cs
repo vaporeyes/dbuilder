@@ -29,6 +29,70 @@ public class UsdfDialogueParserTests
     }
 
     [Fact]
+    public void DialogEditorLifecycleLoadsToolsOnlyWhenDialogueCanBeEdited()
+    {
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: true,
+                UnloadTools: false,
+                DisposeEditor: false,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapLoadedLifecycle(canEditDialogue: true));
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: false,
+                UnloadTools: false,
+                DisposeEditor: false,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapLoadedLifecycle(canEditDialogue: false));
+    }
+
+    [Fact]
+    public void DialogEditorLifecycleUnloadsToolsAndDisposesEditorOnMapClose()
+    {
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: false,
+                UnloadTools: true,
+                DisposeEditor: true,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapClosedLifecycle(editorOpen: true));
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: false,
+                UnloadTools: true,
+                DisposeEditor: false,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapClosedLifecycle(editorOpen: false));
+    }
+
+    [Fact]
+    public void DialogEditorLifecycleUnloadsThenReloadsToolsOnMapReconfigure()
+    {
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: true,
+                UnloadTools: true,
+                DisposeEditor: true,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapReconfiguredLifecycle(canEditDialogue: true, editorOpen: true));
+        Assert.Equal(
+            new UsdfDialogEditorLifecyclePlan(
+                LoadTools: false,
+                UnloadTools: true,
+                DisposeEditor: false,
+                SaveOpenEditor: false),
+            UsdfDialogEditorModel.MapReconfiguredLifecycle(canEditDialogue: false, editorOpen: false));
+    }
+
+    [Fact]
+    public void DialogEditorLifecycleSavesOpenEditorOnMapSave()
+    {
+        Assert.True(UsdfDialogEditorModel.MapSaveLifecycle(editorOpen: true).SaveOpenEditor);
+        Assert.False(UsdfDialogEditorModel.MapSaveLifecycle(editorOpen: false).SaveOpenEditor);
+    }
+
+    [Fact]
     public void DialogEditorMainFormMetadataMatchesUdbDesigner()
     {
         Assert.Equal("Dialog Editor", UsdfDialogEditorModel.MainFormTitle);

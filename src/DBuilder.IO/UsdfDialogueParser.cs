@@ -82,6 +82,12 @@ public sealed record UsdfDialogEditorTreeNode(
     int Depth,
     string ImageKey);
 
+public sealed record UsdfDialogEditorLifecyclePlan(
+    bool LoadTools,
+    bool UnloadTools,
+    bool DisposeEditor,
+    bool SaveOpenEditor);
+
 public enum UsdfConversationRowKind
 {
     Include,
@@ -416,6 +422,34 @@ public static class UsdfDialogEditorModel
         "Dialog Editor...",
         ActionId,
         "Dialog.png");
+
+    public static UsdfDialogEditorLifecyclePlan MapLoadedLifecycle(bool canEditDialogue)
+        => new(
+            LoadTools: canEditDialogue,
+            UnloadTools: false,
+            DisposeEditor: false,
+            SaveOpenEditor: false);
+
+    public static UsdfDialogEditorLifecyclePlan MapClosedLifecycle(bool editorOpen)
+        => new(
+            LoadTools: false,
+            UnloadTools: true,
+            DisposeEditor: editorOpen,
+            SaveOpenEditor: false);
+
+    public static UsdfDialogEditorLifecyclePlan MapReconfiguredLifecycle(bool canEditDialogue, bool editorOpen)
+        => new(
+            LoadTools: canEditDialogue,
+            UnloadTools: true,
+            DisposeEditor: editorOpen,
+            SaveOpenEditor: false);
+
+    public static UsdfDialogEditorLifecyclePlan MapSaveLifecycle(bool editorOpen)
+        => new(
+            LoadTools: false,
+            UnloadTools: false,
+            DisposeEditor: false,
+            SaveOpenEditor: editorOpen);
 
     public static UsdfDialogEditorTreeMetadata TreeMetadata { get; } = new(
         ".",
