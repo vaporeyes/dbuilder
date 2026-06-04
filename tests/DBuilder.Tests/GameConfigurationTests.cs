@@ -1977,6 +1977,24 @@ ID # = 31005
     }
 
     [Fact]
+    public void ScalarTextureSetEntriesUseDefaultEmptySetLikeUdb()
+    {
+        const string cfg = """
+            texturesets
+            {
+                set0 = "Ignored scalar";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var set = Assert.Single(gc.TextureSets);
+        Assert.Equal("set0", set.Key);
+        Assert.Equal("Unnamed Set", set.Name);
+        Assert.Empty(set.Filters);
+    }
+
+    [Fact]
     public void ParsesLinedefActivationInfo()
     {
         const string cfg = """

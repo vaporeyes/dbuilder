@@ -2511,7 +2511,7 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in block)
         {
             string key = e.Key.ToString() ?? "";
-            if (e.Value is not IDictionary set) continue;
+            IDictionary set = e.Value as IDictionary ?? new Hashtable();
             var filters = new List<string>();
             foreach (DictionaryEntry child in set)
             {
