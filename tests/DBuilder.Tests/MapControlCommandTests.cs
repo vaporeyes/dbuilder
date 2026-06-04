@@ -130,6 +130,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void VisualFitTextures3DUsesUdbSelectionWarningBeforeResourceGuard()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void FitSelectedVisualTextures3D()", StringComparison.Ordinal);
+        int targetsIndex = body.IndexOf("var targets = SelectedWallTextureParts3D();", methodIndex, StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Fit Textures action requires selected sidedefs.", targetsIndex, StringComparison.Ordinal);
+        int resourcesIndex = body.IndexOf("if (_resources == null)", warningIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(targetsIndex > methodIndex);
+        Assert.True(warningIndex > targetsIndex);
+        Assert.True(resourcesIndex > warningIndex);
+    }
+
+    [Fact]
     public void VisualTextureReset3DUsesMapFormatAwareSidedefReset()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

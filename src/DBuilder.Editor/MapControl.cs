@@ -2661,9 +2661,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void FitSelectedVisualTextures3D()
     {
-        if (_resources == null) { Target3DChanged?.Invoke("no resources loaded for texture dimensions"); return; }
         var targets = SelectedWallTextureParts3D();
-        if (targets.Count == 0) { Target3DChanged?.Invoke("select wall surfaces to fit textures"); return; }
+        if (targets.Count == 0) { Target3DChanged?.Invoke("Fit Textures action requires selected sidedefs."); return; }
+        if (_resources == null) { Target3DChanged?.Invoke("no resources loaded for texture dimensions"); return; }
 
         int changed = 0;
         int skipped = 0;
