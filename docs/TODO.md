@@ -945,6 +945,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse and order flag translations like UDB.
   - [x] Keep configured empty enum lists like UDB.
   - [x] Sort linedef activation metadata like UDB.
+  - [x] Preserve UDMF linedef activation order like UDB.
   - [x] Sort sector effect metadata like UDB.
   - [x] Sort linedef action and category metadata like UDB.
   - [x] Drop unknown default thing flags like UDB.

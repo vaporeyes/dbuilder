@@ -1848,6 +1848,24 @@ ID # = 31005
     }
 
     [Fact]
+    public void UniversalLinedefActivationsKeepConfiguredOrderLikeUdb()
+    {
+        const string cfg = """
+            formatinterface = "UniversalMapSetIO";
+            linedefactivations
+            {
+                1024 = "Player presses Use";
+                repeatspecial = "Repeatable action";
+                playercross = "When player walks over";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(new[] { "1024", "repeatspecial", "playercross" }, gc.LinedefActivations.Select(a => a.Key));
+    }
+
+    [Fact]
     public void LoadsRealDoomConfigWhenAvailable()
     {
         // Opportunistic: only runs when the UDB asset tree is present on this machine.

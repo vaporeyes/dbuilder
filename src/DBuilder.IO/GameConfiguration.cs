@@ -2518,11 +2518,15 @@ public sealed class GameConfiguration
             }
         }
 
-        linedefActivations.Sort((left, right) => left.Index.CompareTo(right.Index));
+        if (HasNumericLinedefActivations())
+            linedefActivations.Sort((left, right) => left.Index.CompareTo(right.Index));
     }
 
     private static int ParseActivationIndex(string key)
         => int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index) ? index : 0;
+
+    private bool HasNumericLinedefActivations()
+        => !string.Equals(FormatInterface, "UniversalMapSetIO", StringComparison.Ordinal);
 
     // Parses a flat "<int> = <display value>;" map (flags, etc.) into the destination dictionary.
     private void ParseFlatIntStrings(IDictionary src, Dictionary<int, string> dest)
