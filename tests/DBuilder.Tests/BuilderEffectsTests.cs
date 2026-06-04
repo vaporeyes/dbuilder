@@ -102,6 +102,69 @@ public class BuilderEffectsTests
     }
 
     [Fact]
+    public void SectorHeightTexturesFillRequiredUpperAndLowerSlots()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var frontSector = map.AddSector();
+        frontSector.FloorHeight = 0;
+        frontSector.CeilHeight = 128;
+        frontSector.FloorTexture = "FRONTFLAT";
+        frontSector.CeilTexture = "FRONTCEIL";
+        var backSector = map.AddSector();
+        backSector.FloorHeight = 16;
+        backSector.CeilHeight = 96;
+        backSector.FloorTexture = "BACKFLAT";
+        backSector.CeilTexture = "BACKCEIL";
+        var front = map.AddSidedef(line, isFront: true, frontSector);
+        var back = map.AddSidedef(line, isFront: false, backSector);
+        map.BuildIndexes();
+
+        int changed = BuilderEffects.ApplySectorHeightTextures(
+            [frontSector],
+            JitterSectorTextureMode.SectorTexture,
+            JitterSectorTextureMode.CustomTexture,
+            upperTexture: "UPPER",
+            lowerTexture: "LOWER",
+            keepExisting: true);
+
+        Assert.Equal(2, changed);
+        Assert.Equal("FRONTCEIL", front.HighTexture);
+        Assert.Equal("LOWER", front.LowTexture);
+        Assert.Equal("-", back.LowTexture);
+    }
+
+    [Fact]
+    public void SectorHeightTexturesCanPreserveExistingTextures()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var frontSector = map.AddSector();
+        frontSector.CeilHeight = 128;
+        var backSector = map.AddSector();
+        backSector.CeilHeight = 96;
+        var front = map.AddSidedef(line, isFront: true, frontSector);
+        front.SetTextureHigh("KEEP");
+        map.AddSidedef(line, isFront: false, backSector);
+        map.BuildIndexes();
+
+        int changed = BuilderEffects.ApplySectorHeightTextures(
+            [frontSector],
+            JitterSectorTextureMode.CustomTexture,
+            JitterSectorTextureMode.NoChange,
+            upperTexture: "REPLACE",
+            lowerTexture: "",
+            keepExisting: true);
+
+        Assert.Equal(0, changed);
+        Assert.Equal("KEEP", front.HighTexture);
+    }
+
+    [Fact]
     public void ThingTranslationRotationPitchRollAndHeightUseCachedValues()
     {
         var thing = new Thing(new Vector2D(0, 0), 3001, angle: 90)

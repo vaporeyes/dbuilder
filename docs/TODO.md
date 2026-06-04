@@ -1532,6 +1532,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Remember UDB-style BuilderEffects jitter and directional shading dialog settings.
   - [x] Expose UDB-style Randomize triangular sector floor and ceiling vertex-height jitter.
   - [x] Expose UDB-style Randomize sector upper and lower unpegged flag controls.
+  - [x] Expose UDB-style Randomize sector upper and lower texture fill controls.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

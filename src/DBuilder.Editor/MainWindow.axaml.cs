@@ -5319,6 +5319,13 @@ public partial class MainWindow : Window
                 _config?.LowerUnpeggedFlag,
                 dialog.ResultUpperUnpegged,
                 dialog.ResultLowerUnpegged);
+            changed += BuilderEffects.ApplySectorHeightTextures(
+                sectors,
+                dialog.ResultUpperTextureMode,
+                dialog.ResultLowerTextureMode,
+                dialog.ResultUpperTexture,
+                dialog.ResultLowerTexture,
+                dialog.ResultKeepExistingSectorTextures);
         }
 
         if (things.Count > 0)

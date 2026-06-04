@@ -13,6 +13,7 @@ public sealed class JitterDialog : PropertyDialog
     private static JitterOffsetMode s_ceilingOffsetMode = JitterOffsetMode.RaiseAndLower;
     private static bool s_useFloorVertexHeights;
     private static bool s_useCeilingVertexHeights;
+    private static bool s_keepExistingSectorTextures = true;
     private static bool s_relativeThingPitch;
     private static bool s_relativeThingRoll;
     private static bool s_allowNegativeThingPitch;
@@ -31,6 +32,11 @@ public sealed class JitterDialog : PropertyDialog
     private readonly CheckBox _useCeilingVertexHeights;
     private readonly CheckBox _upperUnpegged;
     private readonly CheckBox _lowerUnpegged;
+    private readonly ComboBox _upperTextureMode;
+    private readonly ComboBox _lowerTextureMode;
+    private readonly TextBox _upperTexture;
+    private readonly TextBox _lowerTexture;
+    private readonly CheckBox _keepExistingSectorTextures;
     private readonly TextBox _thingRotationAmount;
     private readonly TextBox _thingHeightAmount;
     private readonly TextBox _thingPitchAmount;
@@ -57,6 +63,11 @@ public sealed class JitterDialog : PropertyDialog
     public bool ResultUseCeilingVertexHeights { get; private set; }
     public bool ResultUpperUnpegged { get; private set; }
     public bool ResultLowerUnpegged { get; private set; }
+    public JitterSectorTextureMode ResultUpperTextureMode { get; private set; } = JitterSectorTextureMode.NoChange;
+    public JitterSectorTextureMode ResultLowerTextureMode { get; private set; } = JitterSectorTextureMode.NoChange;
+    public string ResultUpperTexture { get; private set; } = "-";
+    public string ResultLowerTexture { get; private set; } = "-";
+    public bool ResultKeepExistingSectorTextures { get; private set; } = true;
     public int ResultThingRotationAmount { get; private set; } = 45;
     public int ResultThingHeightAmount { get; private set; } = 16;
     public int ResultThingPitchAmount { get; private set; }
@@ -81,6 +92,7 @@ public sealed class JitterDialog : PropertyDialog
         ResultCeilingOffsetMode = s_ceilingOffsetMode;
         ResultUseFloorVertexHeights = vertexHeightsSupported && s_useFloorVertexHeights;
         ResultUseCeilingVertexHeights = vertexHeightsSupported && s_useCeilingVertexHeights;
+        ResultKeepExistingSectorTextures = s_keepExistingSectorTextures;
         ResultRelativeThingPitch = s_relativeThingPitch;
         ResultRelativeThingRoll = s_relativeThingRoll;
         ResultAllowNegativeThingPitch = s_allowNegativeThingPitch;
@@ -101,6 +113,11 @@ public sealed class JitterDialog : PropertyDialog
         _useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;
         _upperUnpegged = AddCheckBox("Upper Unpegged", ResultUpperUnpegged);
         _lowerUnpegged = AddCheckBox("Lower Unpegged", ResultLowerUnpegged);
+        _upperTextureMode = AddCombo("Upper texture mode", TextureModeItems(), (int)ResultUpperTextureMode);
+        _upperTexture = AddField("Upper texture", ResultUpperTexture);
+        _lowerTextureMode = AddCombo("Lower texture mode", TextureModeItems(), (int)ResultLowerTextureMode);
+        _lowerTexture = AddField("Lower texture", ResultLowerTexture);
+        _keepExistingSectorTextures = AddCheckBox("Don't change existing sidedef textures", ResultKeepExistingSectorTextures);
         _thingRotationAmount = AddField("Thing angle amount", ResultThingRotationAmount.ToString(CultureInfo.InvariantCulture));
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
         _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
@@ -130,6 +147,11 @@ public sealed class JitterDialog : PropertyDialog
         ResultUseCeilingVertexHeights = _useCeilingVertexHeights.IsEnabled && _useCeilingVertexHeights.IsChecked == true;
         ResultUpperUnpegged = _upperUnpegged.IsChecked == true;
         ResultLowerUnpegged = _lowerUnpegged.IsChecked == true;
+        ResultUpperTextureMode = (JitterSectorTextureMode)ComboNumber(_upperTextureMode, (int)ResultUpperTextureMode);
+        ResultLowerTextureMode = (JitterSectorTextureMode)ComboNumber(_lowerTextureMode, (int)ResultLowerTextureMode);
+        ResultUpperTexture = string.IsNullOrWhiteSpace(_upperTexture.Text) ? "-" : _upperTexture.Text!.Trim();
+        ResultLowerTexture = string.IsNullOrWhiteSpace(_lowerTexture.Text) ? "-" : _lowerTexture.Text!.Trim();
+        ResultKeepExistingSectorTextures = _keepExistingSectorTextures.IsChecked == true;
         ResultThingRotationAmount = Math.Max(0, ParseInt(_thingRotationAmount, ResultThingRotationAmount));
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
@@ -151,6 +173,7 @@ public sealed class JitterDialog : PropertyDialog
         s_ceilingOffsetMode = ResultCeilingOffsetMode;
         s_useFloorVertexHeights = ResultUseFloorVertexHeights;
         s_useCeilingVertexHeights = ResultUseCeilingVertexHeights;
+        s_keepExistingSectorTextures = ResultKeepExistingSectorTextures;
         s_relativeThingPitch = ResultRelativeThingPitch;
         s_relativeThingRoll = ResultRelativeThingRoll;
         s_allowNegativeThingPitch = ResultAllowNegativeThingPitch;
@@ -173,5 +196,12 @@ public sealed class JitterDialog : PropertyDialog
         yield return new CatalogItem((int)JitterOffsetMode.RaiseAndLower, "Raise and lower");
         yield return new CatalogItem((int)JitterOffsetMode.RaiseOnly, "Lower only");
         yield return new CatalogItem((int)JitterOffsetMode.LowerOnly, "Raise only");
+    }
+
+    private static IEnumerable<CatalogItem> TextureModeItems()
+    {
+        yield return new CatalogItem((int)JitterSectorTextureMode.NoChange, "No change");
+        yield return new CatalogItem((int)JitterSectorTextureMode.SectorTexture, "Use sector texture");
+        yield return new CatalogItem((int)JitterSectorTextureMode.CustomTexture, "Use given texture");
     }
 }

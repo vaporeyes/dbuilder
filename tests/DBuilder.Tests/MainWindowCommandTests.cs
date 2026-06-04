@@ -219,6 +219,10 @@ public sealed class MainWindowCommandTests
         int lowerUnpeggedFlagIndex = body.IndexOf("_config?.LowerUnpeggedFlag", upperUnpeggedFlagIndex, StringComparison.Ordinal);
         int upperUnpeggedResultIndex = body.IndexOf("dialog.ResultUpperUnpegged", lowerUnpeggedFlagIndex, StringComparison.Ordinal);
         int lowerUnpeggedResultIndex = body.IndexOf("dialog.ResultLowerUnpegged", upperUnpeggedResultIndex, StringComparison.Ordinal);
+        int texturesIndex = body.IndexOf("BuilderEffects.ApplySectorHeightTextures(", lowerUnpeggedResultIndex, StringComparison.Ordinal);
+        int upperTextureModeIndex = body.IndexOf("dialog.ResultUpperTextureMode", texturesIndex, StringComparison.Ordinal);
+        int lowerTextureModeIndex = body.IndexOf("dialog.ResultLowerTextureMode", upperTextureModeIndex, StringComparison.Ordinal);
+        int keepTexturesIndex = body.IndexOf("dialog.ResultKeepExistingSectorTextures", lowerTextureModeIndex, StringComparison.Ordinal);
         int helperIndex = body.IndexOf("private static int JitterSectorSafeHeightDistance(Sector sector)", StringComparison.Ordinal);
         int formulaIndex = body.IndexOf("Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2)", helperIndex, StringComparison.Ordinal);
 
@@ -233,6 +237,10 @@ public sealed class MainWindowCommandTests
         Assert.True(lowerUnpeggedFlagIndex > upperUnpeggedFlagIndex);
         Assert.True(upperUnpeggedResultIndex > lowerUnpeggedFlagIndex);
         Assert.True(lowerUnpeggedResultIndex > upperUnpeggedResultIndex);
+        Assert.True(texturesIndex > lowerUnpeggedResultIndex);
+        Assert.True(upperTextureModeIndex > texturesIndex);
+        Assert.True(lowerTextureModeIndex > upperTextureModeIndex);
+        Assert.True(keepTexturesIndex > lowerTextureModeIndex);
         Assert.True(helperIndex > ceilingIndex);
         Assert.True(formulaIndex > helperIndex);
     }
@@ -384,13 +392,24 @@ public sealed class MainWindowCommandTests
         Assert.Contains("_useCeilingVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Upper Unpegged\", ResultUpperUnpegged)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Lower Unpegged\", ResultLowerUnpegged)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCombo(\"Upper texture mode\", TextureModeItems(), (int)ResultUpperTextureMode)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCombo(\"Lower texture mode\", TextureModeItems(), (int)ResultLowerTextureMode)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Upper texture\", ResultUpperTexture)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Lower texture\", ResultLowerTexture)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Don't change existing sidedef textures\", ResultKeepExistingSectorTextures)", body, StringComparison.Ordinal);
         Assert.Contains("ResultUpperUnpegged = _upperUnpegged.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ResultLowerUnpegged = _lowerUnpegged.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUpperTextureMode = (JitterSectorTextureMode)ComboNumber(_upperTextureMode, (int)ResultUpperTextureMode);", body, StringComparison.Ordinal);
+        Assert.Contains("ResultLowerTextureMode = (JitterSectorTextureMode)ComboNumber(_lowerTextureMode, (int)ResultLowerTextureMode);", body, StringComparison.Ordinal);
+        Assert.Contains("ResultKeepExistingSectorTextures = _keepExistingSectorTextures.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseAndLower, \"Raise and lower\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Raise only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Lower only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Lower only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Raise only\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterSectorTextureMode.NoChange, \"No change\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterSectorTextureMode.SectorTexture, \"Use sector texture\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterSectorTextureMode.CustomTexture, \"Use given texture\")", body, StringComparison.Ordinal);
     }
 
     [Fact]

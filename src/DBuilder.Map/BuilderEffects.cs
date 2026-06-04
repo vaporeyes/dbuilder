@@ -13,6 +13,13 @@ public enum JitterOffsetMode
     LowerOnly
 }
 
+public enum JitterSectorTextureMode
+{
+    NoChange,
+    SectorTexture,
+    CustomTexture
+}
+
 public readonly record struct VertexJitter(Vertex Vertex, Vector2D InitialPosition, double AngleRadians, int SafeDistance = int.MaxValue);
 
 public readonly record struct SectorVertexHeightJitter(Vertex Vertex, double InitialFloorHeight, double InitialCeilingHeight, double FloorFactor, double CeilingFactor);
@@ -138,6 +145,35 @@ public static class BuilderEffects
         {
             if (upperUnpegged && SetLineFlag(line, upperUnpeggedFlag, true)) changed++;
             if (lowerUnpegged && SetLineFlag(line, lowerUnpeggedFlag, true)) changed++;
+        }
+
+        return changed;
+    }
+
+    public static int ApplySectorHeightTextures(
+        IReadOnlyCollection<Sector> sectors,
+        JitterSectorTextureMode upperMode,
+        JitterSectorTextureMode lowerMode,
+        string upperTexture,
+        string lowerTexture,
+        bool keepExisting)
+    {
+        var selected = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance);
+        int changed = 0;
+
+        foreach (Sector sector in sectors)
+        {
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                changed += ApplySectorHeightTexture(side, upper: true, upperMode, upperTexture, keepExisting);
+                changed += ApplySectorHeightTexture(side, upper: false, lowerMode, lowerTexture, keepExisting);
+
+                if (side.Other?.Sector is { } otherSector && !selected.Contains(otherSector))
+                {
+                    changed += ApplySectorHeightTexture(side.Other, upper: true, upperMode, upperTexture, keepExisting);
+                    changed += ApplySectorHeightTexture(side.Other, upper: false, lowerMode, lowerTexture, keepExisting);
+                }
+            }
         }
 
         return changed;
@@ -358,6 +394,34 @@ public static class BuilderEffects
         line.SetFlag(flag, value);
         return previous != value;
     }
+
+    private static int ApplySectorHeightTexture(
+        Sidedef side,
+        bool upper,
+        JitterSectorTextureMode mode,
+        string customTexture,
+        bool keepExisting)
+    {
+        if (mode == JitterSectorTextureMode.NoChange) return 0;
+        if (upper && !side.HighRequired()) return 0;
+        if (!upper && !side.LowRequired()) return 0;
+
+        string current = upper ? side.HighTexture : side.LowTexture;
+        if (keepExisting && !IsBlankTexture(current)) return 0;
+
+        string texture = mode == JitterSectorTextureMode.CustomTexture
+            ? customTexture
+            : upper ? side.Sector?.CeilTexture ?? "-" : side.Sector?.FloorTexture ?? "-";
+        if (string.IsNullOrWhiteSpace(texture)) texture = "-";
+        if (current == texture) return 0;
+
+        if (upper) side.SetTextureHigh(texture);
+        else side.SetTextureLow(texture);
+        return 1;
+    }
+
+    private static bool IsBlankTexture(string? texture)
+        => string.IsNullOrEmpty(texture) || texture == "-";
 
     private static int Clamp(int value, int min, int max) => Math.Min(max, Math.Max(min, value));
 
