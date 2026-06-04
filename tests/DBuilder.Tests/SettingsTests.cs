@@ -172,6 +172,22 @@ public class SettingsTests
     }
 
     [Fact]
+    public void MapErrorCheckerSelectionRoundTripsThroughSettings()
+    {
+        var settings = new Settings();
+
+        var selection = settings.MapErrorCheckerSelection();
+        selection.SetChecked("errorchecks.checktexturealignment", true);
+        selection.SetChecked("errorchecks.checkmissingtextures", false);
+        settings.ApplyMapErrorCheckerSelection(selection);
+
+        Assert.True(settings.MapErrorCheckSettings["errorchecks.checktexturealignment"]);
+        Assert.False(settings.MapErrorCheckSettings["errorchecks.checkmissingtextures"]);
+        Assert.Contains(settings.EnabledMapErrorCheckers(), checker => checker.SettingsKey == "errorchecks.checktexturealignment");
+        Assert.DoesNotContain(settings.EnabledMapErrorCheckers(), checker => checker.SettingsKey == "errorchecks.checkmissingtextures");
+    }
+
+    [Fact]
     public void ExistingRecentFilesSkipsMissingPathsLikeUdbMenu()
     {
         var s = new Settings

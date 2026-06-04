@@ -199,6 +199,17 @@ public sealed class Settings
             .ToArray();
     }
 
+    public MapErrorCheckerSelectionModel MapErrorCheckerSelection()
+    {
+        MapErrorCheckSettings ??= new(StringComparer.Ordinal);
+        return new MapErrorCheckerSelectionModel(MapAnalysis.CheckerDescriptors, MapErrorCheckSettings);
+    }
+
+    public void ApplyMapErrorCheckerSelection(MapErrorCheckerSelectionModel selection)
+    {
+        MapErrorCheckSettings = new Dictionary<string, bool>(selection.ToSettings(), StringComparer.Ordinal);
+    }
+
     public void SetMapErrorCheckerEnabled(MapErrorCheckerDescriptor descriptor, bool enabled)
     {
         MapErrorCheckSettings ??= new(StringComparer.Ordinal);
