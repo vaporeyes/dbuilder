@@ -120,6 +120,7 @@ public static class HexenMapLoader
     {
         "VERTEXES" or "LINEDEFS" or "SIDEDEFS" or "SECTORS" or "THINGS"
             or "BLOCKMAP" or "REJECT" or "NODES" or "SEGS" or "SSECTORS"
+            or "ZNODES" or "GL_NODES" or "GL_VERT" or "GL_SEGS" or "GL_SSECT"
             or "BEHAVIOR" or "SCRIPTS" or "TEXTMAP" or "ENDMAP" or "DIALOGUE" => true,
         _ => false,
     };

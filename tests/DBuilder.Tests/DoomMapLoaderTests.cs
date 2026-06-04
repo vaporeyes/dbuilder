@@ -454,6 +454,35 @@ public class DoomMapLoaderTests
     }
 
     [Fact]
+    public void ZeroLengthNodebuilderLumpsDoNotEndMapScan()
+    {
+        var wadBytes = BuildSyntheticDoomMap();
+        using var source = new WAD(wadBytes, openreadonly: true);
+
+        var ms = new MemoryStream();
+        using (var wad = new WAD(ms))
+        {
+            wad.Insert("MAP01", 0, 0);
+            wad.Insert("GL_NODES", 1, 0);
+            WriteLump(wad, "THINGS", source.FindLump("THINGS")!.Stream.ReadAllBytes(), 2);
+            wad.Insert("ZNODES", 3, 0);
+            WriteLump(wad, "LINEDEFS", source.FindLump("LINEDEFS")!.Stream.ReadAllBytes(), 4);
+            WriteLump(wad, "SIDEDEFS", source.FindLump("SIDEDEFS")!.Stream.ReadAllBytes(), 5);
+            WriteLump(wad, "VERTEXES", source.FindLump("VERTEXES")!.Stream.ReadAllBytes(), 6);
+            WriteLump(wad, "SECTORS", source.FindLump("SECTORS")!.Stream.ReadAllBytes(), 7);
+            wad.WriteHeaders();
+        }
+        ms.Position = 0;
+        using var reopened = new WAD(ms, openreadonly: true);
+
+        var map = DoomMapLoader.Load(reopened, "MAP01");
+
+        Assert.NotNull(map);
+        Assert.Single(map!.Linedefs);
+        Assert.Single(map.Things);
+    }
+
+    [Fact]
     public void TwoSidedLineThroughBinaryFormat()
     {
         // Build a 4-vert square with a middle divider that has both sidedefs.

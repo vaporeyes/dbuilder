@@ -403,6 +403,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Load Doom-format thing counts past the vertex format limit like UDB.
   - [x] Preserve unsigned Doom-format binary ids and references above signed-short range.
   - [x] Preserve unsigned Doom-format thing flags above signed-short range.
+  - [x] Keep scanning Doom-format map blocks through zero-length nodebuilder lumps.
 - [ ] Complete Doom-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Doom-format map writes.
   - [x] Write unsigned Doom-format binary ids and references above signed-short range.
@@ -413,6 +414,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Materialize Hexen-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Hexen-format binary map element loads to UDB format limits.
   - [x] Load Hexen-format thing counts past the vertex format limit like UDB.
+  - [x] Keep scanning Hexen-format map blocks through zero-length nodebuilder lumps.
 - [ ] Complete Hexen-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Hexen-format map writes.
   - [x] Reject incomplete required vertex references during Hexen-format writes.
