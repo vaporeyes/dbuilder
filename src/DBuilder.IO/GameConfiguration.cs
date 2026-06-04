@@ -2504,15 +2504,25 @@ public sealed class GameConfiguration
 
     private static int GetInt(IDictionary d, string key, int fallback)
     {
-        var v = d[key];
-        return v switch
+        object? value = d[key];
+        if (value == null) return fallback;
+
+        try
         {
-            int i => i,
-            long l => (int)l,
-            double db => (int)db,
-            string s when int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int p) => p,
-            _ => fallback,
-        };
+            return Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            return fallback;
+        }
+        catch (InvalidCastException)
+        {
+            return fallback;
+        }
+        catch (OverflowException)
+        {
+            return fallback;
+        }
     }
 
     private static string GetString(IDictionary d, string key, string fallback)

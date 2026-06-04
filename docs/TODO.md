@@ -936,6 +936,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse required archive string fields with UDB-style scalar value conversion.
   - [x] Parse string settings with UDB-style scalar value conversion.
   - [x] Preserve scalar special flag settings like UDB.
+  - [x] Parse integer settings with UDB-style scalar value conversion.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

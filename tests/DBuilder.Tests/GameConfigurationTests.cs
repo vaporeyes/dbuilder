@@ -231,6 +231,25 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void IntegerSettingsUseUdbScalarConversion()
+    {
+        const string cfg = """
+            start3dmode = 1.6;
+            linedefactivationsfilter = true;
+            visplaneexplorer
+            {
+                viewheightdefault = 40.4;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(2, gc.Start3DModeThingType);
+        Assert.Equal(1, gc.LinedefActivationsFilter);
+        Assert.Equal(40, gc.VisplaneViewHeightDefault);
+    }
+
+    [Fact]
     public void ParsesMakeDoorAndDefaultThingFlags()
     {
         const string cfg = """
