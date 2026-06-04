@@ -932,6 +932,20 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsParseBccWindowsPathErrorLines()
+    {
+        var errors = ScriptCompilerErrors.ParseBcc(
+            new[] { @"C:\maps\scripts.bcs:12:2: Unknown function" },
+            @"C:\tmp\dbuilder_compile",
+            @"C:\maps");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(@"C:\maps\scripts.bcs", error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsParseZtBccStderrLines()
     {
         var errors = ScriptCompilerErrors.ParseZtBcc(
@@ -942,6 +956,20 @@ public class CompilerConfigurationTests
         var error = Assert.Single(errors);
         Assert.Equal("Unknown identifier", error.Description);
         Assert.Equal(Path.Combine("/maps/project", "scripts/main.acs"), error.FileName);
+        Assert.Equal(9, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsStripWindowsTempPathFromZtBccErrors()
+    {
+        var errors = ScriptCompilerErrors.ParseZtBcc(
+            new[] { @"C:\tmp\dbuilder_compile\scripts.bcs:10:2: Unknown identifier" },
+            @"C:\tmp\dbuilder_compile",
+            @"C:\maps");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown identifier", error.Description);
+        Assert.Equal(Path.Combine(@"C:\maps", "scripts.bcs"), error.FileName);
         Assert.Equal(9, error.LineNumber);
     }
 

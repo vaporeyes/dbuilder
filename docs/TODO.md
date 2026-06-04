@@ -1346,6 +1346,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse UDB-style ACC and BCC compiler error lines into file, line, and description metadata.
   - [x] Parse UDB-style ZT-BCC stderr error lines into file, line, and description metadata.
   - [x] Parse UDB-style ACC compiler errors when Windows paths contain drive-letter colons.
+  - [x] Parse UDB-style BCC and ZT-BCC compiler errors when Windows paths contain drive-letter colons.
   - [x] Strip Windows-style ACC temporary compiler paths before resolving source files.
   - [x] Resolve relative compiler errors in ACS include resources like UDB.
   - [x] Format and combine script compiler error list rows like UDB.

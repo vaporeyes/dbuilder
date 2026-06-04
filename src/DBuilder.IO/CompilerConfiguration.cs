@@ -419,11 +419,11 @@ public static class ScriptCompilerErrors
         var errors = new List<ScriptCompilerError>();
         foreach (string line in lines)
         {
-            string[] parts = line.Split(new[] { ':' }, 4);
-            if (parts.Length != 4 || !int.TryParse(parts[1], out int lineNumber)) continue;
+            if (!TryFindBccErrorLocation(line, out string fileName, out int lineNumber, out string description))
+                continue;
             errors.Add(new ScriptCompilerError(
-                parts[3].Trim(),
-                NormalizeCompilerErrorFile(parts[0], tempPath, workingDirectory, resolveIncludeFile),
+                description,
+                NormalizeCompilerErrorFile(fileName, tempPath, workingDirectory, resolveIncludeFile),
                 lineNumber - 1));
         }
 
@@ -434,6 +434,30 @@ public static class ScriptCompilerErrors
         }
 
         return errors;
+    }
+
+    private static bool TryFindBccErrorLocation(string line, out string fileName, out int lineNumber, out string description)
+    {
+        fileName = "";
+        lineNumber = -1;
+        description = "";
+
+        for (int firstColon = 1; firstColon < line.Length; firstColon++)
+        {
+            if (line[firstColon] != ':') continue;
+            int secondColon = line.IndexOf(':', firstColon + 1);
+            if (secondColon <= firstColon + 1) continue;
+            int thirdColon = line.IndexOf(':', secondColon + 1);
+            if (thirdColon <= secondColon + 1) continue;
+            if (!int.TryParse(line[(firstColon + 1)..secondColon], out lineNumber)) continue;
+            if (!int.TryParse(line[(secondColon + 1)..thirdColon], out _)) continue;
+
+            fileName = line[..firstColon];
+            description = line[(thirdColon + 1)..].Trim();
+            return true;
+        }
+
+        return false;
     }
 
     private static bool TryFindAccErrorLocation(string line, out int firstColon, out int secondColon, out int lineNumber)
