@@ -1618,6 +1618,36 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void UnknownArgumentEnumAndFlagsReferencesAreIgnoredLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                special
+                {
+                    80
+                    {
+                        title = "Special";
+                        arg0
+                        {
+                            enum = "missing";
+                            flags = "also_missing";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var arg = gc.GetLinedefAction(80)!.Args[0];
+        Assert.Null(arg.Enum);
+        Assert.Null(arg.Flags);
+        Assert.Null(gc.GetArgEnumList(arg));
+        Assert.Null(gc.GetArgFlagsList(arg));
+    }
+
+    [Fact]
     public void ArgumentTargetClassesOnlyApplyToThingTagArgsLikeUdb()
     {
         const string cfg = """

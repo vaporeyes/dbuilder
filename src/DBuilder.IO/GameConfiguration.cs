@@ -1887,7 +1887,7 @@ public sealed class GameConfiguration
     }
 
     // Parses up to 5 argN { title; type; enum; default } sub-dicts from a linedef action / thing entry.
-    private static ArgInfo[] ParseArgs(IDictionary entry)
+    private ArgInfo[] ParseArgs(IDictionary entry)
     {
         ArgInfo[]? args = null;
         for (int i = 0; i < 5; i++)
@@ -1906,8 +1906,8 @@ public sealed class GameConfiguration
                 Used = true,
                 ToolTip = ConfigArgToolTip(ad, minRange, maxRange),
                 Type = type,
-                Enum = GetReferenceName(ad["enum"]),
-                Flags = GetReferenceName(ad["flags"]),
+                Enum = GetKnownArgReferenceName(ad["enum"]),
+                Flags = GetKnownArgReferenceName(ad["flags"]),
                 InlineEnumItems = ad["enum"] is IDictionary inlineEnum ? ParseInlineEnum(inlineEnum) : Array.Empty<EnumItemInfo>(),
                 InlineFlagsItems = ad["flags"] is IDictionary inlineFlags ? ParseInlineEnum(inlineFlags) : Array.Empty<EnumItemInfo>(),
                 Default = GetInt(ad, "default", 0),
@@ -1930,6 +1930,12 @@ public sealed class GameConfiguration
 
     private static string? GetReferenceName(object? value)
         => value is null or IDictionary ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+
+    private string? GetKnownArgReferenceName(object? value)
+    {
+        string? name = GetReferenceName(value);
+        return name != null && enumLists.ContainsKey(name) ? name : null;
+    }
 
     private static string ParseArgRenderStyle(string value)
     {
