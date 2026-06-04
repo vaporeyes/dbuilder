@@ -500,6 +500,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve WAD `SNDINFO` definitions through the resource stack like UDB.
   - [x] Resolve WAD `TERRAIN` definitions through the resource stack like UDB.
   - [x] Resolve WAD `VOXELDEF` definitions through the resource stack like UDB.
+  - [x] Resolve WAD `ANIMDEFS` definitions through the resource stack like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
   - [x] Resolve singular root PK3 lump-style files from the first matching title like UDB.
@@ -512,6 +513,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve root `SNDINFO` title files before nested WAD SNDINFO data like UDB.
   - [x] Resolve root `TERRAIN` title files before nested WAD TERRAIN data like UDB.
   - [x] Resolve root `VOXELDEF` title files before nested WAD VOXELDEF data like UDB.
+  - [x] Resolve root `ANIMDEFS` title files before nested WAD ANIMDEFS data like UDB.
 - [ ] Port structured PK3 reader behavior.
   - [x] Discover and load maps from nested PK3 archives.
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.

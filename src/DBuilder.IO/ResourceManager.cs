@@ -335,7 +335,7 @@ public sealed class ResourceManager : IDisposable
         void Add(string off, string on) { switchPairs[off] = on; switchPairs[on] = off; }
         foreach (var bytes in GetLumpBytesAll("SWITCHES"))
             foreach (var sw in BoomSwitches.Parse(bytes)) Add(sw.OffTexture, sw.OnTexture);
-        foreach (var text in GetTextLumps("ANIMDEFS"))
+        foreach (var text in GetAnimdefsLumps())
             foreach (var sw in AnimdefsParser.Parse(text).Switches) Add(sw.OffTexture, sw.OnTexture);
     }
 
@@ -377,7 +377,7 @@ public sealed class ResourceManager : IDisposable
                 AddRangeAnim(e.IsTexture, e.First, e.Last, e.Tics, flatNames, texNames);
 
         // 3) ZDoom ANIMDEFS (highest priority; also supports explicit frame blocks).
-        foreach (var text in GetTextLumps("ANIMDEFS"))
+        foreach (var text in GetAnimdefsLumps())
         {
             foreach (var def in AnimdefsParser.Parse(text).Animations)
             {
@@ -480,7 +480,7 @@ public sealed class ResourceManager : IDisposable
     {
         if (cameraTexturesBuilt) return;
         cameraTexturesBuilt = true;
-        foreach (var text in GetTextLumps("ANIMDEFS"))
+        foreach (var text in GetAnimdefsLumps())
         {
             foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
                 cameraTextures[texture.Name] = texture;
@@ -1016,7 +1016,7 @@ public sealed class ResourceManager : IDisposable
                 if (def.Value.ResourceIndex == readerIndex) textures.Add(def.Key);
             foreach (var def in flatDefs)
                 if (def.Value.ResourceIndex == readerIndex) flats.Add(def.Key);
-            foreach (string text in reader.GetTextLumps("ANIMDEFS", partialTitleMatch: false))
+            foreach (string text in reader.GetAnimdefsLumps())
             {
                 foreach (var texture in AnimdefsParser.Parse(text).CameraTextures)
                 {
@@ -1049,6 +1049,14 @@ public sealed class ResourceManager : IDisposable
         foreach (var name in first) set.Add(name);
         foreach (var name in second) set.Add(name);
         return set.ToList();
+    }
+
+    /// <summary>ANIMDEFS texts from every resource, oldest first.</summary>
+    private IEnumerable<string> GetAnimdefsLumps()
+    {
+        foreach (var reader in readers)
+            foreach (string text in reader.GetAnimdefsLumps())
+                yield return text;
     }
 
     /// <summary>The text of a named lump (e.g. DECORATE) from every resource that has one, oldest first.</summary>
