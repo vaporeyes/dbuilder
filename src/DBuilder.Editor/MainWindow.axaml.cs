@@ -5304,7 +5304,7 @@ public partial class MainWindow : Window
                 sector.CeilHeight,
                 RandomFactor(),
                 RandomFactor(),
-                SafeDistance: Math.Max(dialog.ResultFloorAmount, dialog.ResultCeilingAmount))).ToList();
+                SafeDistance: JitterSectorSafeHeightDistance(sector))).ToList();
             changed += BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode);
             changed += BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode);
         }
@@ -5371,6 +5371,9 @@ public partial class MainWindow : Window
         vertices.Add(line.Start);
         vertices.Add(line.End);
     }
+
+    private static int JitterSectorSafeHeightDistance(Sector sector)
+        => Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2);
 
     private static int JitterVertexSafeDistance(Vertex vertex, MapSet map)
     {

@@ -186,12 +186,18 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
-        int floorIndex = body.IndexOf("BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode)", methodIndex, StringComparison.Ordinal);
+        int safeDistanceIndex = body.IndexOf("SafeDistance: JitterSectorSafeHeightDistance(sector)", methodIndex, StringComparison.Ordinal);
+        int floorIndex = body.IndexOf("BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode)", safeDistanceIndex, StringComparison.Ordinal);
         int ceilingIndex = body.IndexOf("BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode)", floorIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private static int JitterSectorSafeHeightDistance(Sector sector)", StringComparison.Ordinal);
+        int formulaIndex = body.IndexOf("Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2)", helperIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
+        Assert.True(safeDistanceIndex > methodIndex);
         Assert.True(floorIndex > methodIndex);
         Assert.True(ceilingIndex > floorIndex);
+        Assert.True(helperIndex > ceilingIndex);
+        Assert.True(formulaIndex > helperIndex);
     }
 
     [Fact]
