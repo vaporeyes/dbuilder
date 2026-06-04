@@ -1991,7 +1991,7 @@ public sealed class GameConfiguration
             string skyTexture = e.Key.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(skyTexture)) continue;
             string mapsText = e.Value?.ToString() ?? "";
-            foreach (string map in mapsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (string map in mapsText.Split(',', StringSplitOptions.RemoveEmptyEntries))
             {
                 if (map.Length > 0 && !defaultSkyTextures.ContainsKey(map))
                     defaultSkyTextures[map] = skyTexture;

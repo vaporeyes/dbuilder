@@ -651,7 +651,7 @@ public class GameConfigurationTests
             defaultceilingtexture = "CEIL3_5";
             defaultskytextures
             {
-                SKY1 = "MAP01, MAP02";
+                SKY1 = "MAP01,MAP02";
                 SKY2 = "E1M1";
             }
             """;
@@ -666,6 +666,23 @@ public class GameConfigurationTests
         Assert.Equal("SKY1", gc.DefaultSkyTextures["MAP01"]);
         Assert.Equal("SKY1", gc.DefaultSkyTextures["MAP02"]);
         Assert.Equal("SKY2", gc.DefaultSkyTextures["E1M1"]);
+    }
+
+    [Fact]
+    public void DefaultSkyTextureMapNamesKeepCommaWhitespaceLikeUdb()
+    {
+        const string cfg = """
+            defaultskytextures
+            {
+                SKY1 = "MAP01, MAP02";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("SKY1", gc.DefaultSkyTextures["MAP01"]);
+        Assert.False(gc.DefaultSkyTextures.ContainsKey("MAP02"));
+        Assert.Equal("SKY1", gc.DefaultSkyTextures[" MAP02"]);
     }
 
     [Fact]
