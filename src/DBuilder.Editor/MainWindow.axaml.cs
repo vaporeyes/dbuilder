@@ -1963,12 +1963,12 @@ public partial class MainWindow : Window
 
     private void OnEditProperties(object? sender, RoutedEventArgs e) => OnEditSelected();
 
-    // Opens the named UDMF flags dialog for one selected thing, linedef or sector.
+    // Opens the named UDMF flags dialog for one selected thing, linedef, sidedef or sector.
     private async void OnFlags(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) return;
 
-        if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        if (_map.SelectedLinedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var line = _map.GetSelectedLinedefs()[0];
             var current = new HashSet<string>(line.UdmfFlags, StringComparer.OrdinalIgnoreCase);
@@ -1985,7 +1985,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        if (_map.SelectedThingsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var thing = _map.GetSelectedThings()[0];
             var current = new HashSet<string>(thing.UdmfFlags, StringComparer.OrdinalIgnoreCase);
@@ -2002,7 +2002,20 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_map.SelectedSectorsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedThingsCount == 0 && _map.SelectedVerticesCount == 0)
+        if (_map.SelectedSidedefsCount == 1 && _map.SelectedThingsCount == 0 && _map.SelectedLinedefsCount == 0 && _map.SelectedSectorsCount == 0 && _map.SelectedVerticesCount == 0)
+        {
+            var side = _map.GetSelectedSidedefs()[0];
+            var name = $"Sidedef {_map.Sidedefs.IndexOf(side)}";
+            var dlg = new UdmfFlagsDialog(name, UdmfFlagChoices.KnownSidedefFlags(_config, side), side.UdmfFlags);
+            if (!await dlg.ShowDialog<bool>(this)) return;
+
+            CreateUndo("Edit sidedef flags");
+            UdmfFlagChoices.ApplyFlags(side.UdmfFlags, dlg.ResultFlags);
+            AfterEdit($"{name} flags updated");
+            return;
+        }
+
+        if (_map.SelectedSectorsCount == 1 && _map.SelectedLinedefsCount == 0 && _map.SelectedSidedefsCount == 0 && _map.SelectedThingsCount == 0 && _map.SelectedVerticesCount == 0)
         {
             var sector = _map.GetSelectedSectors()[0];
             var name = $"Sector {_map.Sectors.IndexOf(sector)}";
@@ -2015,7 +2028,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        SetStatus("Select exactly one linedef, sector or thing to edit flags.");
+        SetStatus("Select exactly one linedef, sidedef, sector or thing to edit flags.");
     }
 
     // Opens the generic UDMF custom-fields dialog for one selected map element, including vertices.

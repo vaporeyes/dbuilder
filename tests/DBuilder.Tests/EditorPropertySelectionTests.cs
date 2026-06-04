@@ -27,6 +27,7 @@ public sealed class EditorPropertySelectionTests
 
     [Theory]
     [InlineData(0, 1, 0, 0, 0)]
+    [InlineData(0, 0, 1, 0, 0)]
     [InlineData(0, 0, 0, 1, 0)]
     [InlineData(0, 0, 0, 0, 1)]
     public void CanEditFlagsForSingleFlaggableSelection(int vertices, int linedefs, int sidedefs, int sectors, int things)
@@ -34,8 +35,8 @@ public sealed class EditorPropertySelectionTests
 
     [Theory]
     [InlineData(1, 0, 0, 0, 0)]
-    [InlineData(0, 0, 1, 0, 0)]
     [InlineData(0, 1, 0, 1, 0)]
+    [InlineData(0, 1, 1, 0, 0)]
     [InlineData(0, 0, 0, 0, 0)]
     public void CannotEditFlagsForNonFlaggableOrMixedSelection(int vertices, int linedefs, int sidedefs, int sectors, int things)
         => Assert.False(EditorPropertySelection.CanEditFlags(vertices, linedefs, sidedefs, sectors, things));

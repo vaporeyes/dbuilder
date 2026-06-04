@@ -9,11 +9,11 @@ public static class EditorPropertySelection
         => vertices + linedefs + sidedefs + sectors + things == 1;
 
     public static bool CanEditFlags(int vertices, int linedefs, int sidedefs, int sectors, int things)
-        => sidedefs == 0
-           && vertices == 0
-           && ((linedefs == 1 && sectors == 0 && things == 0)
-               || (sectors == 1 && linedefs == 0 && things == 0)
-               || (things == 1 && linedefs == 0 && sectors == 0));
+        => vertices == 0
+           && ((linedefs == 1 && sidedefs == 0 && sectors == 0 && things == 0)
+               || (sidedefs == 1 && linedefs == 0 && sectors == 0 && things == 0)
+               || (sectors == 1 && linedefs == 0 && sidedefs == 0 && things == 0)
+               || (things == 1 && linedefs == 0 && sidedefs == 0 && sectors == 0));
 
     public static bool CanEditCustomFields(bool supportsCustomFields, int vertices, int linedefs, int sidedefs, int sectors, int things)
         => supportsCustomFields
