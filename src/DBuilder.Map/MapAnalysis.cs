@@ -294,6 +294,9 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
     /// <summary>A representative world location to center the view on (null when unknown).</summary>
     public Vector2D? Focus { get; init; }
 
+    /// <summary>Padding in map units for result navigation; short linedefs use UDB's tighter zoom area.</summary>
+    public double FocusPadding { get; init; } = 100.0;
+
     public IReadOnlyList<MapIssueFix> Fixes { get; init; } = Array.Empty<MapIssueFix>();
 
     public IReadOnlyList<IMapElement> SuppressionTargets
@@ -1534,7 +1537,7 @@ public static class MapAnalysis
             if (len < ctx.ShortLinedefLength)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
                     $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} mu.")
-                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5), FocusPadding = 3.0 });
         }
     }
 

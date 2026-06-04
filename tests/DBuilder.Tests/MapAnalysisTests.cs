@@ -738,6 +738,14 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssuesUseUdbDefaultNavigationPadding()
+    {
+        var issue = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+
+        Assert.Equal(100.0, issue.FocusPadding);
+    }
+
+    [Fact]
     public void MapIssueListModelReturnsAllVisibleIssues()
     {
         var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
@@ -2492,6 +2500,7 @@ public class MapAnalysisTests
         map.BuildIndexes();
         var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.ShortLinedef);
         Assert.Equal("Linedef 0 is shorter than 1 mu.", issue.Message);
+        Assert.Equal(3.0, issue.FocusPadding);
     }
 
     [Fact]
