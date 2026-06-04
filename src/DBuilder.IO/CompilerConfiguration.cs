@@ -502,6 +502,7 @@ public static class ScriptCompilerErrors
         string workingDirectory,
         Func<string, string?>? resolveIncludeFile)
     {
+        fileName = UnquoteCompilerFileName(fileName.Trim());
         string tempNormalized = NormalizePathSeparators(tempPath);
         string tempPrefix = tempNormalized.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
             + Path.DirectorySeparatorChar;
@@ -520,6 +521,15 @@ public static class ScriptCompilerErrors
         }
 
         return IsRootedCompilerPath(normalized) ? normalized : Path.Combine(workingDirectory, normalized);
+    }
+
+    private static string UnquoteCompilerFileName(string fileName)
+    {
+        if (fileName.Length >= 2
+            && ((fileName[0] == '"' && fileName[^1] == '"')
+                || (fileName[0] == '\'' && fileName[^1] == '\'')))
+            return fileName[1..^1];
+        return fileName;
     }
 
     private static string NormalizePathSeparators(string path)

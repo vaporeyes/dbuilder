@@ -1389,6 +1389,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve relative compiler errors in ACS include resources like UDB.
   - [x] Format Windows compiler error paths as file names in display rows.
   - [x] Format and combine script compiler error list rows like UDB.
+  - [x] Strip quoted compiler error path wrappers before resolving source files.
 
 ## Built-In Plugin Ports
 

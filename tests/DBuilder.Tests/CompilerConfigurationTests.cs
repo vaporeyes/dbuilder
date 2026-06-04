@@ -894,6 +894,20 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsParseQuotedAccPathErrorLines()
+    {
+        var errors = ScriptCompilerErrors.ParseAcc(
+            new[] { "\"scripts with spaces.acs\":12: Unknown function" },
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(Path.Combine("/maps/project", "scripts with spaces.acs"), error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsStripWindowsTempPathFromAccErrors()
     {
         var errors = ScriptCompilerErrors.ParseAcc(
@@ -978,6 +992,20 @@ public class CompilerConfigurationTests
         var error = Assert.Single(errors);
         Assert.Equal("Unknown function", error.Description);
         Assert.Equal(@"C:\maps\scripts.bcs", error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsParseQuotedBccWindowsPathErrorLines()
+    {
+        var errors = ScriptCompilerErrors.ParseBcc(
+            new[] { @"""C:\maps\scripts with spaces.bcs"":12:2: Unknown function" },
+            @"C:\tmp\dbuilder_compile",
+            @"C:\maps");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(@"C:\maps\scripts with spaces.bcs", error.FileName);
         Assert.Equal(11, error.LineNumber);
     }
 
