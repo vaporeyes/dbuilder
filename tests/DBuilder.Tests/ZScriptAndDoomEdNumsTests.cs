@@ -1204,16 +1204,21 @@ class ValidAfterMissingFrameSemicolonZThing : Actor
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameWithDuplicateSpecials()
+    public void RejectsZScriptStateFrameWithDuplicateSpecials()
     {
         const string zscript = @"
 class DuplicateStateSpecialZThing : Actor
 {
     States { Spawn: DUPL A -1 Bright Bright; Stop; }
+}
+class ValidAfterDuplicateStateSpecialZThing : Actor
+{
+    States { Spawn: VADS A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "DuplicateStateSpecialZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterDuplicateStateSpecialZThing", actor.ClassName);
+        Assert.Equal("VADSA0", actor.EditorSprite);
     }
 
     [Fact]
@@ -1250,6 +1255,24 @@ class ValidAfterFlowZThing : Actor
 
         Assert.Equal("ValidAfterFlowZThing", actor.ClassName);
         Assert.Equal("FLOWA0", actor.EditorSprite);
+    }
+
+    [Fact]
+    public void RejectsShortZScriptStateFrameSpriteNamesLikeUdb()
+    {
+        const string zscript = @"
+class ShortSpriteNameZThing : Actor
+{
+    States { Spawn: ABC A -1; Stop; }
+}
+class ValidAfterShortSpriteNameZThing : Actor
+{
+    States { Spawn: VSHT A -1; Stop; }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("ValidAfterShortSpriteNameZThing", actor.ClassName);
+        Assert.Equal("VSHTA0", actor.EditorSprite);
     }
 
     [Fact]
@@ -1354,16 +1377,21 @@ class InvalidStateFrameLettersZThing : Actor
     }
 
     [Fact]
-    public void DoesNotUseZScriptStateFrameActionWithoutRequiredSemicolon()
+    public void RejectsZScriptStateFrameActionWithoutRequiredSemicolon()
     {
         const string zscript = @"
 class MissingStateActionSemicolonZThing : Actor
 {
     States { Spawn: ACTS A -1 A_FadeOut Stop; }
+}
+class ValidAfterMissingStateActionSemicolonZThing : Actor
+{
+    States { Spawn: VASA A -1; Stop; }
 }";
-        var actor = ZScriptParser.Parse(zscript).Single(a => a.ClassName == "MissingStateActionSemicolonZThing");
+        var actor = ZScriptParser.Parse(zscript).Single();
 
-        Assert.Null(actor.EditorSprite);
+        Assert.Equal("ValidAfterMissingStateActionSemicolonZThing", actor.ClassName);
+        Assert.Equal("VASAA0", actor.EditorSprite);
     }
 
     [Fact]

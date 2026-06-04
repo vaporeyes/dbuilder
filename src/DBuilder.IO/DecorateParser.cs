@@ -1578,13 +1578,13 @@ public static class DecorateParser
     }
 
     private static bool IsMalformedZScriptStateSpriteName(string spriteName, List<Tok> t, int frameIndex)
-        => spriteName.Length > 4
+        => spriteName.Length is > 1 and not 4
         && ZScriptStateFrameSpecial(spriteName) == null
         && frameIndex < t.Count
         && t[frameIndex].Kind is Kind.Word or Kind.Str
         && LooksLikeStateFrameLetters(t[frameIndex].Text)
         && frameIndex + 1 < t.Count
-        && t[frameIndex + 1].Kind == Kind.Word;
+        && HasValidZScriptStateFrameDuration(t, frameIndex + 1);
 
     private static bool IsMalformedZScriptStateFrameLetters(string spriteName, List<Tok> t, int frameIndex)
         => spriteName.Length == 4
