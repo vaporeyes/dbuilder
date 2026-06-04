@@ -346,6 +346,7 @@ public class ConfiguredMapSearchTests
     public void ReplaceActionArgumentsWritesArg0StringOnlyWhenReplacementActionSupportsIt()
     {
         var config = GameConfiguration.FromText("""
+            formatinterface = "UniversalMapSetIO";
             thingtypes
             {
                 scripts
@@ -407,6 +408,37 @@ public class ConfiguredMapSearchTests
         Assert.Equal("TypeBackedThing", map.Things[1].Fields["arg0str"]);
         Assert.Equal(0, map.Things[1].Action);
         Assert.Equal(9, map.Things[1].Args[1]);
+    }
+
+    [Fact]
+    public void ActionArgumentNamedScriptSyntaxOnlyAppliesToUdmfLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            linedeftypes
+            {
+                scripts
+                {
+                    82
+                    {
+                        title = "Script string";
+                        arg0 { str = true; }
+                    }
+                }
+            }
+            """);
+        var map = BuildMap();
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Fields["arg0str"] = "CurrentLine";
+        map.Linedefs[0].Args[1] = 5;
+
+        SearchResult result = ConfiguredMapSearch.Find(map, FindCategory.LinedefActionArguments, "80 OtherLine 5", config);
+
+        Assert.Equal(1, result.Count);
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 OtherLine 5", "82 NextLine 9", config));
+        Assert.Equal("CurrentLine", map.Linedefs[0].Fields["arg0str"]);
+        Assert.Equal(82, map.Linedefs[0].Action);
+        Assert.Equal(0, map.Linedefs[0].Args[0]);
+        Assert.Equal(9, map.Linedefs[0].Args[1]);
     }
 
     [Fact]

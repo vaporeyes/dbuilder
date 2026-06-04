@@ -16,29 +16,32 @@ public static class ConfiguredMapSearch
             .ToArray();
 
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config)
-        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
+        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, Arg0StringSearchSupported(config));
 
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config, bool withinSelection)
-        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
+        => MapSearch.Find(map, category, KnownFindFlagsOrOriginal(category, value, config), TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, Arg0StringSearchSupported(config));
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config));
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config), Arg0StringSearchSupported(config));
     }
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
         if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
-        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config));
+        return MapSearch.Replace(map, category, KnownFindFlagsOrOriginal(category, find, config), replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType, ActionArg0StringSupported(config), ThingActionArg0StringSupported(config), Arg0StringSearchSupported(config));
     }
 
     private static (int Min, int Max) ThingTypeRange(GameConfiguration? config)
         => config?.MapFormat == MapFormat.Udmf
             ? (int.MinValue, int.MaxValue)
             : (short.MinValue, short.MaxValue);
+
+    private static bool Arg0StringSearchSupported(GameConfiguration? config)
+        => config is null || config.MapFormat == MapFormat.Udmf;
 
     private static bool CategoryIsVisible(FindCategory category, GameConfiguration? config)
         => category switch

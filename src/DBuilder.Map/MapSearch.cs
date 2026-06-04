@@ -226,6 +226,17 @@ public static class MapSearch
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, int, bool>? sectorEffectMatcher,
         bool withinSelection)
+        => Find(map, cat, value, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, true);
+
+    public static SearchResult Find(
+        MapSet map,
+        FindCategory cat,
+        string value,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection,
+        bool actionArg0StringSearchSupported)
     {
         SearchLists lists = SearchLists.From(map, withinSelection);
         map.ClearAllSelected();
@@ -247,7 +258,7 @@ public static class MapSearch
                 if (numOk) foreach (var t in lists.Things) if (t.Angle == num) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
             case FindCategory.ThingActionArguments:
-                if (TryParseActionQuery(value, out var thingActionQuery))
+                if (TryParseActionQuery(value, actionArg0StringSearchSupported, out var thingActionQuery))
                     foreach (var t in lists.Things)
                         if (ActionQueryMatches(t, t.Action, t.Args, thingActionQuery)) { t.Selected = true; count++; focus ??= t.Position; }
                 break;
@@ -269,7 +280,7 @@ public static class MapSearch
                         if (num == -1 ? l.Action > 0 : NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.LinedefActionArguments:
-                if (TryParseActionQuery(value, out var lineActionQuery))
+                if (TryParseActionQuery(value, actionArg0StringSearchSupported, out var lineActionQuery))
                     foreach (var l in lists.Linedefs)
                         if (ActionQueryMatches(l, l.Action, l.Args, lineActionQuery, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
@@ -526,7 +537,8 @@ public static class MapSearch
         int minThingType,
         int maxThingType,
         Func<int, bool>? actionArg0StringSupported = null,
-        Func<int, int, bool>? thingTypeActionArg0StringSupported = null)
+        Func<int, int, bool>? thingTypeActionArg0StringSupported = null,
+        bool actionArg0StringSearchSupported = true)
     {
         if (!CanReplace(cat, mixTexturesFlats)) return 0;
 
@@ -589,7 +601,7 @@ public static class MapSearch
             return ReplaceFlags(lists, cat, find, replace);
 
         if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
-            return ReplaceActionArguments(lists, cat, find, replace, linedefActionMatcher, actionArg0StringSupported, thingTypeActionArg0StringSupported);
+            return ReplaceActionArguments(lists, cat, find, replace, linedefActionMatcher, actionArg0StringSupported, thingTypeActionArg0StringSupported, actionArg0StringSearchSupported);
 
         if (cat == FindCategory.ThingType)
         {
@@ -812,7 +824,7 @@ public static class MapSearch
 
     private readonly record struct ActionArgQuery(int Action, string? Arg0String, int?[] Args);
 
-    private static bool TryParseActionQuery(string input, out ActionArgQuery query)
+    private static bool TryParseActionQuery(string input, bool arg0StringSupported, out ActionArgQuery query)
     {
         query = default;
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -822,7 +834,7 @@ public static class MapSearch
         var args = new int?[5];
         string? arg0String = null;
         int start = 1;
-        if (parts.Length > 1 && parts[1] != "*" && !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+        if (arg0StringSupported && parts.Length > 1 && parts[1] != "*" && !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
         {
             arg0String = parts[1].Replace("\"", "", StringComparison.Ordinal);
             start = 2;
@@ -877,10 +889,11 @@ public static class MapSearch
         string replace,
         Func<int, int, bool>? linedefActionMatcher,
         Func<int, bool>? actionArg0StringSupported,
-        Func<int, int, bool>? thingTypeActionArg0StringSupported)
+        Func<int, int, bool>? thingTypeActionArg0StringSupported,
+        bool actionArg0StringSearchSupported)
     {
-        if (!TryParseActionQuery(find, out var findQuery) ||
-            !TryParseActionQuery(replace, out var replaceQuery) ||
+        if (!TryParseActionQuery(find, actionArg0StringSearchSupported, out var findQuery) ||
+            !TryParseActionQuery(replace, actionArg0StringSearchSupported, out var replaceQuery) ||
             replaceQuery.Action < 0 ||
             replaceQuery.Action > short.MaxValue)
             return 0;
