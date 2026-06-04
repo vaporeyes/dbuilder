@@ -171,4 +171,21 @@ public sealed class MapControlCommandTests
         Assert.True(loopIndex > methodIndex);
         Assert.True(fallbackIndex > loopIndex);
     }
+
+    [Fact]
+    public void VisualUnpeggedToggleUsesHighlightedWallState()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ToggleUnpegged3D(bool upper)", StringComparison.Ordinal);
+        int targetIndex = body.IndexOf("Sidedef? targetSide = TargetSidedef3D();", methodIndex, StringComparison.Ordinal);
+        int targetsIndex = body.IndexOf("var targets = WallLineTargets3D();", targetIndex, StringComparison.Ordinal);
+        int fallbackIndex = body.IndexOf("if (targets.Count == 0) targets.Add(targetSide.Line);", targetsIndex, StringComparison.Ordinal);
+        int nextIndex = body.IndexOf("bool next = !IsLineFlagSet3D(targetSide.Line, flag);", fallbackIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(targetIndex > methodIndex);
+        Assert.True(targetsIndex > targetIndex);
+        Assert.True(fallbackIndex > targetsIndex);
+        Assert.True(nextIndex > fallbackIndex);
+    }
 }

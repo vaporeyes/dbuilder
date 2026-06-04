@@ -2599,10 +2599,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        var targets = WallLineTargets3D();
-        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a wall to toggle unpegged"); return; }
+        Sidedef? targetSide = TargetSidedef3D();
+        if (targetSide == null) { Target3DChanged?.Invoke("aim at a wall to toggle unpegged"); return; }
 
-        bool next = !IsLineFlagSet3D(targets[0], flag);
+        var targets = WallLineTargets3D();
+        if (targets.Count == 0) targets.Add(targetSide.Line);
+
+        bool next = !IsLineFlagSet3D(targetSide.Line, flag);
         EditBegun?.Invoke(next
             ? (upper ? "Set upper unpegged" : "Set lower unpegged")
             : (upper ? "Remove upper unpegged" : "Remove lower unpegged"));
