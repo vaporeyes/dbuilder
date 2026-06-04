@@ -5076,10 +5076,17 @@ public partial class MainWindow : Window
         });
         if (files.Count == 0 || files[0].TryGetLocalPath() is not { } path) return;
 
+        var dialog = new ObjTerrainImportDialog(_config?.VertexHeightSupport == true);
+        if (!await dialog.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
         try
         {
             string text = System.IO.File.ReadAllText(path);
-            ObjTerrainParseResult parsed = ObjTerrainImporter.Parse(text, axis: ObjTerrainUpAxis.Z);
+            ObjTerrainParseResult parsed = ObjTerrainImporter.Parse(text, dialog.ResultScale, dialog.ResultUpAxis);
             if (!parsed.Success)
             {
                 SetStatus("OBJ terrain import failed: " + parsed.Errors[0]);
@@ -5096,7 +5103,7 @@ public partial class MainWindow : Window
             ObjTerrainImportResult result = ObjTerrainImporter.BuildMapGeometry(
                 _map,
                 parsed.Geometry,
-                BuildObjTerrainImportOptions());
+                BuildObjTerrainImportOptions(dialog.ResultUseVertexHeights));
             MapView.MarkGeometryDirty();
             MapView.RevealSelection(MapControl.EditMode.Sectors, null);
             UpdateInfo();
@@ -5109,7 +5116,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private ObjTerrainImportOptions BuildObjTerrainImportOptions()
+    private ObjTerrainImportOptions BuildObjTerrainImportOptions(bool useVertexHeights)
     {
         int brightness = _mapOptions?.OverrideBrightness == true ? _mapOptions.CustomBrightness : 160;
         return new ObjTerrainImportOptions(
@@ -5117,7 +5124,7 @@ public partial class MainWindow : Window
             DefaultFloorTexture: FirstNonBlankOr("FLOOR0_1", _mapOptions?.DefaultFloorTexture ?? "", _config?.DefaultFloorTexture ?? ""),
             DefaultCeilingTexture: FirstNonBlankOr("F_SKY1", _mapOptions?.DefaultCeilingTexture ?? "", _config?.DefaultCeilingTexture ?? ""),
             DefaultWallTexture: FirstNonBlankOr("STARTAN3", _mapOptions?.DefaultWallTexture ?? "", _config?.DefaultWallTexture ?? ""),
-            UseVertexHeights: _config?.VertexHeightSupport == true);
+            UseVertexHeights: useVertexHeights);
     }
 
     private void OnApplySlopeArch(object? sender, RoutedEventArgs e)

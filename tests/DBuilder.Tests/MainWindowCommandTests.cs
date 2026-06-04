@@ -165,6 +165,27 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ObjTerrainImportActionExposesUdbSettingsBeforeParsing()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnImportObjTerrain", StringComparison.Ordinal);
+        int dialogIndex = body.IndexOf("var dialog = new ObjTerrainImportDialog(_config?.VertexHeightSupport == true);", methodIndex, StringComparison.Ordinal);
+        int showIndex = body.IndexOf("await dialog.ShowDialog<bool>(this)", dialogIndex, StringComparison.Ordinal);
+        int parseIndex = body.IndexOf("ObjTerrainImporter.Parse(text, dialog.ResultScale, dialog.ResultUpAxis)", showIndex, StringComparison.Ordinal);
+        int buildOptionsIndex = body.IndexOf("BuildObjTerrainImportOptions(dialog.ResultUseVertexHeights)", parseIndex, StringComparison.Ordinal);
+        int optionsMethodIndex = body.IndexOf("private ObjTerrainImportOptions BuildObjTerrainImportOptions(bool useVertexHeights)", buildOptionsIndex, StringComparison.Ordinal);
+        int useVertexHeightsIndex = body.IndexOf("UseVertexHeights: useVertexHeights", optionsMethodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(dialogIndex > methodIndex);
+        Assert.True(showIndex > dialogIndex);
+        Assert.True(parseIndex > showIndex);
+        Assert.True(buildOptionsIndex > parseIndex);
+        Assert.True(optionsMethodIndex > buildOptionsIndex);
+        Assert.True(useVertexHeightsIndex > optionsMethodIndex);
+    }
+
+    [Fact]
     public void JitterActionUsesVisualSelectionPriorityIn3DMode()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
@@ -407,6 +428,27 @@ public sealed class MainWindowCommandTests
         Assert.Contains("ResultUniformThingScale = _uniformThingScale.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ResultAllowNegativeThingScaleX = _allowNegativeThingScaleX.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ResultAllowNegativeThingScaleY = _allowNegativeThingScaleY.IsChecked == true;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ObjTerrainImportDialogExposesUdbSettings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ObjTerrainImportDialog.cs"));
+
+        Assert.Contains("public ObjTerrainUpAxis ResultUpAxis { get; private set; } = ObjTerrainUpAxis.Y;", body, StringComparison.Ordinal);
+        Assert.Contains("public double ResultScale { get; private set; } = 1.0;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultUseVertexHeights { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUseVertexHeights = vertexHeightsSupported;", body, StringComparison.Ordinal);
+        Assert.Contains("AddCombo(\"Up axis\", UpAxisItems(), (int)ResultUpAxis)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Scale\", ResultScale.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use vertex heights\", ResultUseVertexHeights)", body, StringComparison.Ordinal);
+        Assert.Contains("_useVertexHeights.IsEnabled = vertexHeightsSupported;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUpAxis = (ObjTerrainUpAxis)ComboNumber(_upAxis, (int)ResultUpAxis);", body, StringComparison.Ordinal);
+        Assert.Contains("ResultScale = scale == 0.0 ? ResultScale : scale;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultUseVertexHeights = _vertexHeightsSupported && _useVertexHeights.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)ObjTerrainUpAxis.Y, \"Y\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)ObjTerrainUpAxis.Z, \"Z\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)ObjTerrainUpAxis.X, \"X\")", body, StringComparison.Ordinal);
     }
 
     [Fact]
