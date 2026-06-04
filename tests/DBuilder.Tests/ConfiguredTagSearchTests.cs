@@ -360,6 +360,20 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void NextFreeTagCountsDirectMoreidsWhenPrimaryTagIsZeroLikeUdbForAllTags()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tags.Clear();
+        map.Sectors[0].Tags.AddRange([0, 1]);
+        map.Linedefs[0].Tags.Clear();
+        map.Linedefs[0].Tags.AddRange([0, 2]);
+        map.Things[0].Tag = 3;
+
+        Assert.Equal(4, ConfiguredTagSearch.NextFreeTag(map, config));
+    }
+
+    [Fact]
     public void ConfigCapabilitiesSuppressUnsupportedDirectTagOwners()
     {
         var config = GameConfiguration.FromText("""

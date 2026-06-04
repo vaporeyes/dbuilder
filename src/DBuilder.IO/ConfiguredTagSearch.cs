@@ -340,8 +340,33 @@ public static class ConfiguredTagSearch
     public static int NextFreeTag(MapSet map, GameConfiguration? config, int maxTag = int.MaxValue)
     {
         var used = new HashSet<int>();
-        foreach (var stat in UsedTagStatistics(map, config))
-            if (stat.Tag > 0) used.Add(stat.Tag);
+
+        foreach (var sector in map.Sectors)
+            foreach (int tag in MapElementTags.PositiveTags(sector)) used.Add(tag);
+
+        if (config?.HasThingTag ?? true)
+        {
+            foreach (var thing in map.Things)
+                foreach (int tag in MapElementTags.PositiveTags(thing)) used.Add(tag);
+        }
+
+        if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
+        {
+            foreach (var thing in map.Things)
+                foreach (int tag in PositiveActionArgTags(thing.Action, thing.Args, config)) used.Add(tag);
+        }
+
+        if (config?.HasLinedefTag ?? true)
+        {
+            foreach (var line in map.Linedefs)
+                foreach (int tag in MapElementTags.PositiveTags(line)) used.Add(tag);
+        }
+
+        if (config?.HasActionArgs ?? true)
+        {
+            foreach (var line in map.Linedefs)
+                foreach (int tag in PositiveActionArgTags(line.Action, line.Args, config)) used.Add(tag);
+        }
 
         for (int tag = 1; tag <= maxTag; tag++)
             if (!used.Contains(tag)) return tag;
