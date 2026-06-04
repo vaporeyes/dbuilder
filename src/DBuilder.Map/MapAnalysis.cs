@@ -325,6 +325,15 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
 
 public static class MapAnalysis
 {
+    private const string LinedefMissingSidesDescription =
+        "This linedef is missing front and back sidedefs.A line must have at least a front side and optionally a back side!";
+    private const string LinedefMissingFrontDescription =
+        "This linedef has a back sidedef, but is missing a front sidedef. A line must have at least a front side and optionally a back side! Click 'Flip Linedef' button if the line is supposed to be single-sided.";
+    private const string LinedefNotDoubleSidedDescription =
+        "This linedef is marked as double-sided, but is missing the back sidedef. Click 'Make Single-Sided' button to remove the double-sided flag from the line.";
+    private const string LinedefNotSingleSidedDescription =
+        "This linedef is marked as single-sided, but has both a front and a back sidedef. Click 'Make Double-Sided' button to flag the line as double-sided. Or click 'Remove Sidedef' button to remove the sidedef on the back side (making the line really single-sided).";
+
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
         "errorcheckmode",
@@ -1847,6 +1856,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefWithoutSidedefs, message)
         {
+            Description = LinedefMissingSidesDescription,
             Target = line,
             Focus = focus,
             Fixes = fixes,
@@ -1882,6 +1892,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefMissingFront, message)
         {
+            Description = LinedefMissingFrontDescription,
             Target = line,
             Focus = focus,
             Fixes = fixes,
@@ -1915,6 +1926,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.LinedefNotDoubleSided, message)
         {
+            Description = LinedefNotDoubleSidedDescription,
             Target = line,
             Focus = focus,
             Fixes = fixes,
@@ -1955,6 +1967,7 @@ public static class MapAnalysis
     private static MapIssue LineNotSingleSidedIssue(Linedef line, string? doubleSidedFlag, string message, Vector2D focus)
         => new(MapIssueSeverity.Error, MapIssueKind.LinedefNotSingleSided, message)
         {
+            Description = LinedefNotSingleSidedDescription,
             Target = line,
             Focus = focus,
             Fixes = new[]

@@ -1958,6 +1958,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB overlapping linedef result text.
   - [x] Match UDB misaligned texture result text.
   - [x] Add UDB-style selected-result descriptions for short and overlapping linedef results.
+  - [x] Add UDB-style selected-result descriptions for line reference results.
 - [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style draw vertex, remove drawn vertex, and finish drawing action metadata, shortcut, and command dispatch.
   - [x] Add UDB-style drawing-session subdivision and bevel action metadata, shortcuts, and command dispatch.

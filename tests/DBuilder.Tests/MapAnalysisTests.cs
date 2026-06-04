@@ -321,6 +321,9 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Linedef 0 is missing front side", issue.Message);
+        Assert.Equal(
+            "This linedef has a back sidedef, but is missing a front sidedef. A line must have at least a front side and optionally a back side! Click 'Flip Linedef' button if the line is supposed to be single-sided.",
+            issue.Description);
         Assert.Equal("Flip Linedef", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -362,6 +365,9 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotDoubleSided);
         Assert.Same(line, issue.Target);
         Assert.Equal("Linedef 0 is marked double-sided but has no back side", issue.Message);
+        Assert.Equal(
+            "This linedef is marked as double-sided, but is missing the back sidedef. Click 'Make Single-Sided' button to remove the double-sided flag from the line.",
+            issue.Description);
     }
 
     [Fact]
@@ -416,6 +422,9 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefWithoutSidedefs);
 
         Assert.Equal("Linedef 1 is missing both sides", issue.Message);
+        Assert.Equal(
+            "This linedef is missing front and back sidedefs.A line must have at least a front side and optionally a back side!",
+            issue.Description);
         Assert.Equal(new[] { "Create One Side", "Create Both Sides" }, issue.Fixes.Select(fix => fix.Label).ToArray());
         Assert.True(issue.Fixes[1].Apply(map));
 
@@ -444,6 +453,9 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.LinedefNotSingleSided);
         Assert.Same(line, issue.Target);
         Assert.Equal("Linedef 0 is marked single-sided but has two sides", issue.Message);
+        Assert.Equal(
+            "This linedef is marked as single-sided, but has both a front and a back sidedef. Click 'Make Double-Sided' button to flag the line as double-sided. Or click 'Remove Sidedef' button to remove the sidedef on the back side (making the line really single-sided).",
+            issue.Description);
     }
 
     [Fact]
