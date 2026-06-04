@@ -1092,6 +1092,16 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>CVARINFO variables from every resource, oldest first.</summary>
+    public CvarInfo GetCvarInfo()
+    {
+        var result = new CvarInfo();
+        foreach (var reader in readers)
+            foreach (string text in reader.GetCvarInfoLumps())
+                result.Variables.AddRange(CvarInfoParser.Parse(text).Variables);
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

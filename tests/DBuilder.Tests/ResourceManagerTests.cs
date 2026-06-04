@@ -67,6 +67,9 @@ public class ResourceManagerTests
     private static byte[] DehackedThingBytes(string name)
         => Encoding.ASCII.GetBytes($"Thing 1 ({name})\nID # = 9001\n");
 
+    private static byte[] CvarInfoBytes(string name, int value)
+        => Encoding.ASCII.GetBytes($"server int {name} = {value.ToString(System.Globalization.CultureInfo.InvariantCulture)};");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -188,6 +191,55 @@ public class ResourceManagerTests
             Assert.Equal("Extra", patches[1].Things[0].Name);
             Assert.Equal("Nested", patches[2].Things[0].Name);
             Assert.Equal("Directory", patches[3].Things[0].Name);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesCvarInfoFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("CVARINFO", CvarInfoBytes("first_cvar", 1)),
+            ("CVARINFO", CvarInfoBytes("second_cvar", 2)));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var cvars = rm.GetCvarInfo().Variables;
+        Assert.Equal(2, cvars.Count);
+        Assert.Equal("first_cvar", cvars[0].Name);
+        Assert.Equal("second_cvar", cvars[1].Name);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootCvarInfoTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("CVARINFO", CvarInfoBytes("nested_cvar", 3)));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("CVARINFO.txt", CvarInfoBytes("root_cvar", 1)),
+            ("CVARINFO.extra", CvarInfoBytes("extra_cvar", 2)),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_cvarinfo_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "CVARINFO.txt"), CvarInfoBytes("directory_cvar", 4));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var cvars = rm.GetCvarInfo().Variables;
+            Assert.Equal(4, cvars.Count);
+            Assert.Equal("root_cvar", cvars[0].Name);
+            Assert.Equal("extra_cvar", cvars[1].Name);
+            Assert.Equal("nested_cvar", cvars[2].Name);
+            Assert.Equal("directory_cvar", cvars[3].Name);
         }
         finally
         {

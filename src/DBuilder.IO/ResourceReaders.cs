@@ -37,6 +37,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<IwadDefinition> GetIwadInfos();
     /// <summary>DEHACKED texts selected with UDB's per-resource rules.</summary>
     IEnumerable<string> GetDehackedLumps();
+    /// <summary>CVARINFO texts selected with UDB's per-resource rules.</summary>
+    IEnumerable<string> GetCvarInfoLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -470,6 +472,8 @@ internal sealed class WadResourceReader : IResourceReader
 
     public IEnumerable<string> GetDehackedLumps() => GetTextLumps("DEHACKED", partialTitleMatch: false);
 
+    public IEnumerable<string> GetCvarInfoLumps() => GetTextLumps("CVARINFO", partialTitleMatch: false);
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -800,6 +804,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         foreach (var reader in nestedReaders)
             foreach (string text in reader.GetDehackedLumps())
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetCvarInfoLumps()
+    {
+        foreach (string text in LocalTextLumps("CVARINFO", partialTitleMatch: false))
+            yield return text;
+
+        foreach (var reader in nestedReaders)
+            foreach (string text in reader.GetCvarInfoLumps())
                 yield return text;
     }
 
