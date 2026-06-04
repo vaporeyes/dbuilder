@@ -794,9 +794,13 @@ internal abstract class FolderResourceReader : IResourceReader
 
         string lookup = WadResourceReader.VoxelLookupName(normalized);
         string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
-        byte[]? bytes = string.IsNullOrWhiteSpace(folder)
-            ? Find(lookup, "voxels", "")
-            : Find(lookup, folder);
+        byte[]? bytes;
+        if (string.IsNullOrWhiteSpace(folder))
+            bytes = string.IsNullOrWhiteSpace(Path.GetExtension(normalized))
+                ? Find(lookup, "voxels")
+                : Find(lookup, "");
+        else
+            bytes = Find(lookup, folder);
         if (bytes != null) return bytes;
 
         return null;

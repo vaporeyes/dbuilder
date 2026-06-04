@@ -106,6 +106,29 @@ public class VoxelResourceTests
     }
 
     [Fact]
+    public void VoxelFileNameWithExtensionResolvesFromRootLikeUdb()
+    {
+        byte[] rootVoxel = { 21, 22, 23, 24 };
+        byte[] spriteVoxel = { 31, 32, 33, 34 };
+        string pk3 = TestArtifacts.BuildPk3(
+            ("BARREL.kvx", rootVoxel),
+            ("voxels/BARREL.kvx", spriteVoxel));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            Assert.Equal(rootVoxel, resources.GetVoxelBytes("barrel.kvx"));
+            Assert.Equal(spriteVoxel, resources.GetVoxelBytes("BARREL"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void DirectVoxelModelNamesResolveToVoxelPlaceholders()
     {
         byte[] voxel = { 13, 14, 15, 16 };
