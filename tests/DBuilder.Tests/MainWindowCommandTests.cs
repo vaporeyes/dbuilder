@@ -412,6 +412,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("x:Name=\"NewMapMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(NewMapMenuItem, \"New Map\", \"window.new-map\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapMenuItem, \"Open Map\", \"window.open-map-in-current-wad\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SaveAsMenuItem, \"Save WAD As\", \"window.save-map-as\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SaveAsFormatMenuItem, \"Save As Format\", \"window.save-as-format\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SettingsMenuItem, \"Preferences\", \"window.preferences\");", code, StringComparison.Ordinal);
     }
@@ -438,6 +439,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(SelectSimilarMenuItem, \"Select Similar Map Elements\", \"window.select-similar\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lower-floor-8\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FitSelectedTexturesMenuItem, \"Fit Selected Textures\", \"map2d.fit-selected-textures\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ApplyLightFogFlagMenuItem, \"Apply 'lightfog' Flag\", \"map2d.apply-lightfog-flag\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(InsertPrefabMenuItem, \"Insert Prefab File\", \"window.insert-prefab-file\");", body, StringComparison.Ordinal);
     }
 

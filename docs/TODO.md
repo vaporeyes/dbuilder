@@ -169,6 +169,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut bindings in remaining View menu item tooltips.
   - [x] Show effective shortcut bindings in Tools menu item tooltips.
   - [x] Show effective shortcut bindings in Help menu item tooltips.
+  - [x] Show effective shortcut bindings in Save As and lightfog menu item tooltips.
 - [ ] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
   - [x] Reflect Info Panel visibility in its menu checkmark.

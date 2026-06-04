@@ -282,6 +282,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AddResourceMenuItem, "Add Resource", "window.add-resource");
         SetShortcutToolTip(AddResourceDirectoryMenuItem, "Add Resource Directory", "window.add-resource-directory");
         SetShortcutToolTip(SaveMenuItem, "Save WAD", "window.save");
+        SetShortcutToolTip(SaveAsMenuItem, "Save WAD As", "window.save-map-as");
         SetShortcutToolTip(SaveAsFormatMenuItem, "Save As Format", "window.save-as-format");
         SetShortcutToolTip(LoadGameConfigMenuItem, "Game Configurations", "window.game-configurations");
         SetShortcutToolTip(MapOptionsMenuItem, "Map Options", "window.map-options");
@@ -332,6 +333,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AlignCeilingToFrontMenuItem, "Align Ceiling to Front Side", "window.align-ceiling-to-front");
         SetShortcutToolTip(AlignCeilingToBackMenuItem, "Align Ceiling to Back Side", "window.align-ceiling-to-back");
         SetShortcutToolTip(AlignThingsToWallMenuItem, "Align Things to Wall", "window.align-things-to-wall");
+        SetShortcutToolTip(ApplyLightFogFlagMenuItem, "Apply 'lightfog' Flag", "map2d.apply-lightfog-flag");
         SetShortcutToolTip(AutoClearSidedefTexturesMenuItem, "Auto Clear Sidedef Textures", "window.toggle-auto-clear-sidedef-textures");
         SetShortcutToolTip(FindReplaceMenuItem, "Find and Replace", "window.find-replace");
         SetShortcutToolTip(PropertiesMenuItem, "Properties", "window.properties");
