@@ -4540,7 +4540,11 @@ public partial class MainWindow : Window
         if (map is null) { SetStatus("No map loaded."); return; }
         var checkerSelection = _settings.MapErrorCheckerSelection();
         var issues = MapAnalysis.Check(map, BuildCheckContext(), checkerSelection.EnabledDescriptors());
-        var win = new MapCheckWindow(issues, checkerSelection, enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled));
+        var win = new MapCheckWindow(
+            issues,
+            checkerSelection,
+            enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled),
+            fix => ApplyMapCheckFix(map, fix));
         win.IssueActivated += iss =>
         {
             MapView.NavigateTo(iss.Target, iss.Focus);
@@ -4554,6 +4558,20 @@ public partial class MainWindow : Window
         };
         win.Show(this);
         SetStatus(MapIssueListModel.AnalysisStatusText(issues.Count));
+    }
+
+    private bool ApplyMapCheckFix(MapSet map, MapIssueFix fix)
+    {
+        _undo?.CreateUndo("Fix map analysis issue");
+        if (!fix.Apply(map)) return false;
+
+        MarkMapDirty();
+        map.BuildIndexes();
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        RefreshUndoRedoPanel();
+        SetStatus($"Applied fix: {fix.Label}");
+        return true;
     }
 
     private void OnCleanUpGeometry(object? sender, RoutedEventArgs e)

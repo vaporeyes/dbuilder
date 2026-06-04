@@ -17,7 +17,11 @@ public sealed class MapCheckWindow : Window
     private readonly ListBox _list = new();
     private readonly TextBlock _header = new();
     private readonly List<ListBoxItem> _rows = new();
+    private readonly Button[] _fixButtons;
     private readonly MapIssueListModel _model;
+    private readonly Func<MapIssueFix, bool>? _applyFix;
+    private Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? _runChecks;
+    private MapErrorCheckerSelectionModel? _checkerSelection;
 
     /// <summary>Raised when the user selects an issue row, carrying the issue so the host can navigate to it.</summary>
     public event Action<MapIssue>? IssueActivated;
@@ -27,9 +31,14 @@ public sealed class MapCheckWindow : Window
     public MapCheckWindow(
         IReadOnlyList<MapIssue> issues,
         MapErrorCheckerSelectionModel? checkerSelection = null,
-        Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks = null)
+        Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks = null,
+        Func<MapIssueFix, bool>? applyFix = null)
     {
         _model = new MapIssueListModel(issues);
+        _checkerSelection = checkerSelection;
+        _runChecks = runChecks;
+        _applyFix = applyFix;
+        _fixButtons = Enumerable.Range(0, 3).Select(FixButton).ToArray();
 
         Title = "Map Analysis";
         Width = 480;
@@ -97,12 +106,18 @@ public sealed class MapCheckWindow : Window
             Orientation = Orientation.Horizontal,
             Children = { ignoreSelected, showAll, copySelected, hideType, selectType, showOnlyType },
         });
+        header.Children.Add(new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Children = { _fixButtons[0], _fixButtons[1], _fixButtons[2] },
+        });
 
         _list.SelectionMode = SelectionMode.Multiple;
         RefreshRows();
         _list.SelectionChanged += (_, _) =>
         {
             if (_list.SelectedItem is ListBoxItem { Tag: MapIssue mi }) IssueActivated?.Invoke(mi);
+            UpdateFixButtons();
         };
         _list.KeyUp += async (_, e) =>
         {
@@ -118,6 +133,20 @@ public sealed class MapCheckWindow : Window
         root.Children.Add(header);
         root.Children.Add(new ScrollViewer { Content = _list });
         Content = root;
+        UpdateFixButtons();
+    }
+
+    private Button FixButton(int index)
+    {
+        var button = new Button
+        {
+            Margin = new Avalonia.Thickness(index == 0 ? 10 : 0, 0, 10, 8),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            IsVisible = false,
+            Tag = index,
+        };
+        button.Click += (_, _) => ApplySelectedFix(index);
+        return button;
     }
 
     private void IgnoreSelected()
@@ -171,6 +200,32 @@ public sealed class MapCheckWindow : Window
     private MapIssue[] SelectedIssues() =>
         _list.SelectedItems?.OfType<ListBoxItem>().Select(row => (MapIssue)row.Tag!).ToArray()
         ?? Array.Empty<MapIssue>();
+
+    private MapIssue? SelectedIssue =>
+        _list.SelectedItem is ListBoxItem { Tag: MapIssue issue } ? issue : null;
+
+    private void UpdateFixButtons()
+    {
+        var fixes = SelectedIssue?.Fixes ?? Array.Empty<MapIssueFix>();
+        for (int i = 0; i < _fixButtons.Length; i++)
+        {
+            bool visible = _applyFix is not null && i < fixes.Count;
+            _fixButtons[i].IsVisible = visible;
+            _fixButtons[i].Content = visible ? fixes[i].Label : "";
+        }
+    }
+
+    private void ApplySelectedFix(int index)
+    {
+        var issue = SelectedIssue;
+        if (issue is null || _applyFix is null || index >= issue.Fixes.Count) return;
+        if (!_applyFix(issue.Fixes[index])) return;
+
+        if (_runChecks is not null && _checkerSelection is not null)
+            RunChecks(_checkerSelection, _runChecks);
+        else
+            RefreshRows();
+    }
 
     private static bool HasCopyModifier(KeyModifiers modifiers) =>
         modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);

@@ -157,10 +157,13 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("var checkerSelection = _settings.MapErrorCheckerSelection();", code, StringComparison.Ordinal);
         Assert.Contains("MapAnalysis.Check(map, BuildCheckContext(), checkerSelection.EnabledDescriptors())", code, StringComparison.Ordinal);
-        Assert.Contains("var win = new MapCheckWindow(issues, checkerSelection, enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled));", code, StringComparison.Ordinal);
+        Assert.Contains("enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled),", code, StringComparison.Ordinal);
+        Assert.Contains("fix => ApplyMapCheckFix(map, fix));", code, StringComparison.Ordinal);
         Assert.Contains("win.IssuesChanged += count => SetStatus(MapIssueListModel.AnalysisStatusText(count));", code, StringComparison.Ordinal);
         Assert.Contains("_settings.ApplyMapErrorCheckerSelection(checkerSelection);", code, StringComparison.Ordinal);
         Assert.Contains("SaveSettings();", code, StringComparison.Ordinal);
+        Assert.Contains("_undo?.CreateUndo(\"Fix map analysis issue\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Applied fix: {fix.Label}\");", code, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -170,12 +173,15 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("MapErrorCheckerSelectionModel? checkerSelection = null", code, StringComparison.Ordinal);
         Assert.Contains("Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks = null", code, StringComparison.Ordinal);
+        Assert.Contains("Func<MapIssueFix, bool>? applyFix = null", code, StringComparison.Ordinal);
         Assert.Contains("CheckerSelectionPanel(checkerSelection, runChecks)", code, StringComparison.Ordinal);
         Assert.Contains("new Expander", code, StringComparison.Ordinal);
         Assert.Contains("new CheckBox", code, StringComparison.Ordinal);
         Assert.Contains("Content = \"Run Checks\"", code, StringComparison.Ordinal);
         Assert.Contains("_model.ReplaceIssues(issues);", code, StringComparison.Ordinal);
         Assert.Contains("selection.SetChecked(row.SettingsKey, check.IsChecked == true)", code, StringComparison.Ordinal);
+        Assert.Contains("ApplySelectedFix(index)", code, StringComparison.Ordinal);
+        Assert.Contains("_applyFix(issue.Fixes[index])", code, StringComparison.Ordinal);
     }
 
     [Fact]
