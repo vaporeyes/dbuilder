@@ -32,6 +32,13 @@ public sealed class MapControlCommandTests
     }
 
     [Theory]
+    [InlineData(true, true, "Fit texture (width and height)")]
+    [InlineData(true, false, "Fit texture (width)")]
+    [InlineData(false, true, "Fit texture (height)")]
+    public void VisualFitTexture3DEditNameMatchesUdb(bool fitWidth, bool fitHeight, string expected)
+        => Assert.Equal(expected, MapControl.VisualFitTexture3DEditName(fitWidth, fitHeight));
+
+    [Theory]
     [InlineData(VisualHitKind.Floor, false, "Texture offsets reset.")]
     [InlineData(VisualHitKind.Ceiling, true, "Texture offsets, scale, rotation and brightness reset.")]
     [InlineData(VisualHitKind.Wall, false, "Texture offsets reset.")]
@@ -682,11 +689,16 @@ public sealed class MapControlCommandTests
         int targetsIndex = body.IndexOf("var targets = SelectedWallTextureParts3D();", methodIndex, StringComparison.Ordinal);
         int warningIndex = body.IndexOf("Fit Textures action requires selected sidedefs.", targetsIndex, StringComparison.Ordinal);
         int resourcesIndex = body.IndexOf("if (_resources == null)", warningIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(VisualFitTexture3DEditName(fitWidth: true, fitHeight: true));", resourcesIndex, StringComparison.Ordinal);
+        int fitIndex = body.IndexOf("SidedefTextureFitting.Fit(", editIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(targetsIndex > methodIndex);
         Assert.True(warningIndex > targetsIndex);
         Assert.True(resourcesIndex > warningIndex);
+        Assert.True(editIndex > resourcesIndex);
+        Assert.True(fitIndex > editIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Fit visual textures\")", body, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -2731,7 +2731,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         int changed = 0;
         int skipped = 0;
-        EditBegun?.Invoke("Fit visual textures");
+        EditBegun?.Invoke(VisualFitTexture3DEditName(fitWidth: true, fitHeight: true));
         foreach ((Sidedef side, SidedefPart part) in targets)
         {
             string textureName = side.GetTexture(part);
@@ -2758,6 +2758,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(changed == 0
             ? $"no selected wall textures fitted ({skipped} missing image{(skipped == 1 ? "" : "s")})"
             : $"fit {changed} wall texture{(changed == 1 ? "" : "s")} ({skipped} missing image{(skipped == 1 ? "" : "s")})");
+    }
+
+    public static string VisualFitTexture3DEditName(bool fitWidth, bool fitHeight)
+    {
+        string axis = fitWidth && fitHeight ? "width and height" : fitWidth ? "width" : "height";
+        return "Fit texture (" + axis + ")";
     }
 
     private void ChangeVisualScale3D(int incrementX, int incrementY)
