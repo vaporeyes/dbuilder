@@ -108,6 +108,21 @@ public sealed record VisualSlopeBetweenHandlesApplyResult(
     int ChangedLevels,
     string StatusMessage);
 
+public enum VisualSlopeNearestHandleResult
+{
+    Changed,
+    NoSelectedHandles,
+    TooManySelectedHandles,
+    AlreadyAtHighestLevel,
+    AlreadyAtLowestLevel,
+    ChangeRejected,
+}
+
+public sealed record VisualSlopeNearestHandleApplyResult(
+    VisualSlopeNearestHandleResult Result,
+    int ChangedLevels,
+    string StatusMessage);
+
 public sealed record VisualSlopeHandlePairResult(
     IReadOnlyList<VisualSlopeHandle> Handles,
     string? WarningMessage = null);
@@ -125,6 +140,11 @@ public static class VisualSlopeHandles
     public const string MissingSmartPivotHandleMessage = "Couldn't find a smart pivot handle.";
     public const string TooManySlopeHandlesMessage = "Too many slope handles selected.";
     public const string NoSlopeHandlesMessage = "No slope handles selected or highlighted.";
+    public const string TooManyRaiseNearestHandlesMessage = "Can only raise to nearest when one visual slope handle is selected";
+    public const string TooManyLowerNearestHandlesMessage = "Can only lower to nearest when one visual slope handle is selected";
+    public const string AlreadyAtHighestLevelMessage = "Can't raise: already at the highest level";
+    public const string AlreadyAtLowestLevelMessage = "Can't lower: already at the lowest level";
+    public const string ChangedSlopeMessage = "Changed slope.";
 
     public static VisualSlopeHandleMesh LineMesh { get; } = new(
     [
@@ -427,6 +447,93 @@ public static class VisualSlopeHandles
             ApplySlope(level, plane);
 
         return VisualSlopeChangeResult.Changed;
+    }
+
+    public static VisualSlopeNearestHandleApplyResult RaiseSelectedSlopeHandleToNearest(
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? pivot = null,
+        IReadOnlyList<VisualSlopeLevel>? affectedLevels = null)
+        => ChangeSelectedSlopeHandleToNearest(handles, raise: true, pivot, affectedLevels);
+
+    public static VisualSlopeNearestHandleApplyResult LowerSelectedSlopeHandleToNearest(
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? pivot = null,
+        IReadOnlyList<VisualSlopeLevel>? affectedLevels = null)
+        => ChangeSelectedSlopeHandleToNearest(handles, raise: false, pivot, affectedLevels);
+
+    private static VisualSlopeNearestHandleApplyResult ChangeSelectedSlopeHandleToNearest(
+        IEnumerable<VisualSlopeHandle> handles,
+        bool raise,
+        VisualSlopeHandle? pivot,
+        IReadOnlyList<VisualSlopeLevel>? affectedLevels)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        VisualSlopeHandle[] all = handles.ToArray();
+        VisualSlopeHandle[] selected = all
+            .Where(handle => handle.Selected && handle.Kind == VisualSlopeHandleKind.Line && handle.Sidedef != null)
+            .ToArray();
+
+        if (selected.Length == 0)
+            return new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.NoSelectedHandles,
+                0,
+                NoSlopeHandlesMessage);
+
+        if (selected.Length > 1)
+            return new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.TooManySelectedHandles,
+                0,
+                raise ? TooManyRaiseNearestHandlesMessage : TooManyLowerNearestHandlesMessage);
+
+        VisualSlopeHandle handle = selected[0];
+        int startHeight = Convert.ToInt32(Math.Round(handle.GetPivotPoint().z));
+        int targetHeight = raise ? int.MaxValue : int.MinValue;
+
+        foreach (VisualSlopeHandle candidate in all)
+        {
+            if (ReferenceEquals(candidate, handle)
+                || candidate.Kind != VisualSlopeHandleKind.Line
+                || candidate.Sidedef == null
+                || candidate.Sidedef.Line != handle.Sidedef!.Line)
+                continue;
+
+            int z = Convert.ToInt32(Math.Round(candidate.GetPivotPoint().z));
+            if (raise)
+            {
+                if (z > startHeight && z < targetHeight) targetHeight = z;
+            }
+            else if (z < startHeight && z > targetHeight)
+            {
+                targetHeight = z;
+            }
+        }
+
+        if (raise && targetHeight == int.MaxValue)
+            return new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.AlreadyAtHighestLevel,
+                0,
+                AlreadyAtHighestLevelMessage);
+
+        if (!raise && targetHeight == int.MinValue)
+            return new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.AlreadyAtLowestLevel,
+                0,
+                AlreadyAtLowestLevelMessage);
+
+        VisualSlopeHandle? resolvedPivot = pivot
+            ?? all.FirstOrDefault(candidate => candidate.Pivot)
+            ?? GetSmartSidedefPivot(handle, all);
+        VisualSlopeChangeResult change = ChangeTargetHeight(handle, resolvedPivot, targetHeight - startHeight, affectedLevels);
+        return change == VisualSlopeChangeResult.Changed
+            ? new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.Changed,
+                AffectedChangeLevels(handle.Level, affectedLevels).Count,
+                ChangedSlopeMessage)
+            : new VisualSlopeNearestHandleApplyResult(
+                VisualSlopeNearestHandleResult.ChangeRejected,
+                0,
+                change.ToString());
     }
 
     public static VisualSlopeBetweenHandlesApplyResult ApplySlopeBetweenHandles(

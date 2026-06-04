@@ -765,6 +765,74 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void RaiseSelectedSlopeHandleToNearestUsesNextHigherSameLinedefHandleLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        Sidedef side = sector.Sidedefs[0];
+        VisualSlopeHandle selected = SidedefHandle(side, sector, 0) with { Selected = true };
+        VisualSlopeHandle farTarget = SidedefHandle(side, sector, 32);
+        VisualSlopeHandle nearTarget = SidedefHandle(side, sector, 16);
+        VisualSlopeHandle otherLine = SidedefHandle(sector.Sidedefs[1], sector, 8);
+        VisualSlopeHandle pivot = SidedefHandle(sector.Sidedefs[2], sector, 0) with { Pivot = true };
+
+        VisualSlopeNearestHandleApplyResult result = VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest(
+            [selected, farTarget, nearTarget, otherLine, pivot]);
+
+        Assert.Equal(VisualSlopeNearestHandleResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal(VisualSlopeHandles.ChangedSlopeMessage, result.StatusMessage);
+        Assert.Equal(16, sector.GetFloorZ(side.Line.GetCenterPoint()), 1e-9);
+        Assert.Equal(0, sector.GetFloorZ(sector.Sidedefs[2].Line.GetCenterPoint()), 1e-9);
+    }
+
+    [Fact]
+    public void LowerSelectedSlopeHandleToNearestUsesNextLowerSameLinedefHandleLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        Sidedef side = sector.Sidedefs[0];
+        VisualSlopeHandle selected = SidedefHandle(side, sector, 32) with { Selected = true };
+        VisualSlopeHandle farTarget = SidedefHandle(side, sector, 0);
+        VisualSlopeHandle nearTarget = SidedefHandle(side, sector, 16);
+        VisualSlopeHandle pivot = SidedefHandle(sector.Sidedefs[2], sector, 32) with { Pivot = true };
+
+        VisualSlopeNearestHandleApplyResult result = VisualSlopeHandles.LowerSelectedSlopeHandleToNearest(
+            [selected, farTarget, nearTarget, pivot]);
+
+        Assert.Equal(VisualSlopeNearestHandleResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal(VisualSlopeHandles.ChangedSlopeMessage, result.StatusMessage);
+        Assert.Equal(16, sector.GetFloorZ(side.Line.GetCenterPoint()), 1e-9);
+        Assert.Equal(32, sector.GetFloorZ(sector.Sidedefs[2].Line.GetCenterPoint()), 1e-9);
+    }
+
+    [Fact]
+    public void SelectedSlopeHandleToNearestWarnsForTooManyAndMissingTargetsLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        Sidedef side = sector.Sidedefs[0];
+        VisualSlopeHandle first = SidedefHandle(side, sector, 0) with { Selected = true };
+        VisualSlopeHandle second = SidedefHandle(side, sector, 16) with { Selected = true };
+        VisualSlopeHandle highest = SidedefHandle(side, sector, 32) with { Selected = true };
+        VisualSlopeHandle lower = SidedefHandle(side, sector, 16);
+        VisualSlopeHandle lowest = SidedefHandle(side, sector, 0) with { Selected = true };
+        VisualSlopeHandle higher = SidedefHandle(side, sector, 16);
+
+        VisualSlopeNearestHandleApplyResult tooMany = VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest([first, second]);
+        VisualSlopeNearestHandleApplyResult highestResult = VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest([highest, lower]);
+        VisualSlopeNearestHandleApplyResult lowestResult = VisualSlopeHandles.LowerSelectedSlopeHandleToNearest([lowest, higher]);
+
+        Assert.Equal(VisualSlopeNearestHandleResult.TooManySelectedHandles, tooMany.Result);
+        Assert.Equal(VisualSlopeHandles.TooManyRaiseNearestHandlesMessage, tooMany.StatusMessage);
+        Assert.Equal(VisualSlopeNearestHandleResult.AlreadyAtHighestLevel, highestResult.Result);
+        Assert.Equal(VisualSlopeHandles.AlreadyAtHighestLevelMessage, highestResult.StatusMessage);
+        Assert.Equal(VisualSlopeNearestHandleResult.AlreadyAtLowestLevel, lowestResult.Result);
+        Assert.Equal(VisualSlopeHandles.AlreadyAtLowestLevelMessage, lowestResult.StatusMessage);
+    }
+
+    [Fact]
     public void ApplySlopeBetweenHandlesUsesFirstHandleLineAndSecondHandleCenter()
     {
         var map = new MapSet();
@@ -1045,4 +1113,13 @@ public class VisualSlopeHandleTests
         map.BuildIndexes();
         return VisualSlopeHandles.CreateSidedef(side, level, up: true);
     }
+
+    private static VisualSlopeHandle SidedefHandle(Sidedef side, Sector sector, int height)
+        => VisualSlopeHandles.CreateSidedef(
+            side,
+            new VisualSlopeLevel(
+                sector,
+                VisualSlopeLevelType.Floor,
+                new Plane(new Vector3D(0, 0, 1), -height)),
+            up: true);
 }
