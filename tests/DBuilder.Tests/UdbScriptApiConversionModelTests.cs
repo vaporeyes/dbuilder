@@ -2463,6 +2463,52 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapElementFieldsRejectConfiguredInactiveFlagNamesLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            linedefflags
+            {
+                1 = "blocking";
+            }
+            sidedefflags
+            {
+                lightfog = "Light fog";
+            }
+            sectorflags
+            {
+                noattack = "No attack";
+            }
+            thingflags
+            {
+                ambush = "Ambush";
+            }
+            """);
+        var line = new Linedef();
+        var side = new Sidedef(line, isFront: true);
+        var sector = new Sector();
+        var thing = new Thing();
+
+        InvalidOperationException lineException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptLinedefWrapper(line, config: config).fields["blocking"] = false);
+        InvalidOperationException sideException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptSidedefWrapper(side, config: config).fields["lightfog"] = false);
+        InvalidOperationException sectorException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptSectorWrapper(sector, config: config).fields["noattack"] = false);
+        InvalidOperationException thingException = Assert.Throws<InvalidOperationException>(
+            () => new UdbScriptThingWrapper(thing, config: config).fields["ambush"] = false);
+
+        const string expected = "You are trying to modify a flag through the UDMF fields. Please use the 'flags' property instead.";
+        Assert.Equal(expected, lineException.Message);
+        Assert.Equal(expected, sideException.Message);
+        Assert.Equal(expected, sectorException.Message);
+        Assert.Equal(expected, thingException.Message);
+        Assert.Empty(line.Fields);
+        Assert.Empty(side.Fields);
+        Assert.Empty(sector.Fields);
+        Assert.Empty(thing.Fields);
+    }
+
+    [Fact]
     public void MapElementWrappersRejectDisposedFieldsAccess()
     {
         var wrapper = new UdbScriptVertexWrapper(new Vertex { IsDisposed = true });
