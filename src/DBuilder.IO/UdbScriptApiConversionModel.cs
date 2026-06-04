@@ -4057,19 +4057,19 @@ public static class UdbScriptApiConversionModel
 
     private static Vector3D VectorFromArray(object data)
     {
-        if (data is not IEnumerable enumerable)
+        if (data is not object[] values)
             throw new UdbScriptVectorConversionException(VectorConversionFailureMessage);
 
-        var values = new List<double>();
-        foreach (object? raw in enumerable)
+        var numbers = new List<double>();
+        foreach (object? raw in values)
         {
             if (raw is double number)
             {
-                values.Add(number);
+                numbers.Add(number);
             }
             else if (raw is BigInteger bigInteger)
             {
-                values.Add((double)bigInteger);
+                numbers.Add((double)bigInteger);
             }
             else
             {
@@ -4077,10 +4077,10 @@ public static class UdbScriptApiConversionModel
             }
         }
 
-        return values.Count switch
+        return numbers.Count switch
         {
-            2 => new Vector2D(values[0], values[1]),
-            3 => new Vector3D(values[0], values[1], values[2]),
+            2 => new Vector2D(numbers[0], numbers[1]),
+            3 => new Vector3D(numbers[0], numbers[1], numbers[2]),
             _ => throw new UdbScriptVectorConversionException(VectorConversionFailureMessage),
         };
     }

@@ -34,6 +34,10 @@ public class UdbScriptApiConversionModelTests
         UdbScriptVectorConversionException badLength = Assert.Throws<UdbScriptVectorConversionException>(
             () => UdbScriptApiConversionModel.GetVector3DFromObject(new object[] { 1.0 }));
         Assert.Equal(UdbScriptApiConversionModel.VectorConversionFailureMessage, badLength.Message);
+
+        UdbScriptVectorConversionException typedArray = Assert.Throws<UdbScriptVectorConversionException>(
+            () => UdbScriptApiConversionModel.GetVector3DFromObject(new double[] { 1.0, 2.0 }));
+        Assert.Equal(UdbScriptApiConversionModel.VectorConversionFailureMessage, typedArray.Message);
     }
 
     [Fact]
