@@ -559,6 +559,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Vertices 0 and 1 have the same position", issue.Message);
+        Assert.Equal("These vertices have the same position.", issue.Description);
         Assert.Equal("Merge Vertices", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(remove, map.Vertices);
@@ -579,6 +580,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.VertexOverlappingLinedef);
         Assert.Same(vertex, issue.Target);
         Assert.Equal("Vertex 2 overlaps line 0 without splitting it", issue.Message);
+        Assert.Equal("This vertex overlaps this linedef without splitting it.", issue.Description);
         Assert.Same(line, map.Linedefs[0]);
     }
 
@@ -935,6 +937,7 @@ public class MapAnalysisTests
         map.BuildIndexes();
         var issue = MapAnalysis.Check(map).First(i => i.Kind == MapIssueKind.UnusedVertex);
         Assert.Same(v, issue.Target);
+        Assert.Equal("This vertex is not connected to any linedef.", issue.Description);
         Assert.Equal(900, issue.Focus!.Value.y, 3);
     }
 
@@ -948,6 +951,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Vertex 4 at 900, 900 is not connected to any linedef.", issue.Message);
+        Assert.Equal("This vertex is not connected to any linedef.", issue.Description);
         Assert.Equal("Delete Vertex", fix.Label);
         Assert.True(fix.Apply(map));
 
@@ -2593,6 +2597,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.OffGridVertex);
         var fix = Assert.Single(issue.Fixes);
 
+        Assert.Equal("This vertex is not aligned with the grid.", issue.Description);
         Assert.Equal("Align Vertex", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(new Vector2D(70, 96), vertex.Position);

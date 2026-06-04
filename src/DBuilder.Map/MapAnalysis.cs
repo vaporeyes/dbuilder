@@ -333,6 +333,10 @@ public static class MapAnalysis
         "This linedef is marked as double-sided, but is missing the back sidedef. Click 'Make Single-Sided' button to remove the double-sided flag from the line.";
     private const string LinedefNotSingleSidedDescription =
         "This linedef is marked as single-sided, but has both a front and a back sidedef. Click 'Make Double-Sided' button to flag the line as double-sided. Or click 'Remove Sidedef' button to remove the sidedef on the back side (making the line really single-sided).";
+    private const string StrayVertexDescription = "This vertex is not connected to any linedef.";
+    private const string OffGridVertexDescription = "This vertex is not aligned with the grid.";
+    private const string OverlappingVerticesDescription = "These vertices have the same position.";
+    private const string VertexOverlappingLinedefDescription = "This vertex overlaps this linedef without splitting it.";
 
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
@@ -1582,6 +1586,7 @@ public static class MapAnalysis
     private static MapIssue OffGridVertexIssue(Vertex vertex, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex, message)
         {
+            Description = OffGridVertexDescription,
             Target = vertex,
             Focus = vertex.Position,
             Fixes = new[]
@@ -2058,6 +2063,7 @@ public static class MapAnalysis
     private static MapIssue OverlappingVerticesIssue(Vertex[] vertices, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.OverlappingVertices, message)
         {
+            Description = OverlappingVerticesDescription,
             Target = vertices[0],
             RelatedTargets = vertices.Skip(1).Cast<IMapElement>().ToArray(),
             Focus = vertices[0].Position,
@@ -2100,6 +2106,7 @@ public static class MapAnalysis
     private static MapIssue VertexOverlappingLinedefIssue(Vertex vertex, Linedef line, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.VertexOverlappingLinedef, message)
         {
+            Description = VertexOverlappingLinedefDescription,
             Target = vertex,
             RelatedTargets = new[] { line },
             Focus = vertex.Position,
@@ -2127,6 +2134,7 @@ public static class MapAnalysis
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex,
                     $"Vertex {vertexIndex[v]} at {Coordinate(v.Position.x)}, {Coordinate(v.Position.y)} is not connected to any linedef.")
                 {
+                    Description = StrayVertexDescription,
                     Target = v,
                     Focus = v.Position,
                     Fixes = new[]
