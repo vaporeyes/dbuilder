@@ -120,6 +120,10 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/DynamicLightDialog.cs"));
 
+        Assert.Contains("_relativeMode.IsCheckedChanged += (_, _) => RefreshRelativeModeFields();", body, StringComparison.Ordinal);
+        Assert.Contains("_primaryRadius.Text = FormatInt(relativeMode ? 0 : _state.PrimaryRadius);", body, StringComparison.Ordinal);
+        Assert.Contains("_secondaryRadius.Text = FormatInt(relativeMode ? 0 : _state.SecondaryRadius)", body, StringComparison.Ordinal);
+        Assert.Contains("_interval.Text = FormatInt(relativeMode ? 0 : _state.Interval)", body, StringComparison.Ordinal);
         Assert.Contains("ResultRelativeMode = _relativeMode.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ColorPickerModel.DynamicLightRadiusLimits(relativeMode: true)", body, StringComparison.Ordinal);
         Assert.Contains("ColorPickerModel.DynamicLightIntervalLimits(relativeMode: true)", body, StringComparison.Ordinal);

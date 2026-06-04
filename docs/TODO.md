@@ -2190,6 +2190,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable selected-sector color warning metadata and editor command wiring.
   - [x] Add UDB-style singular and plural labels to dynamic light color status text.
   - [x] Clamp dynamic light relative-mode dialog input with UDB relative numeric limits.
+  - [x] Reset dynamic light radius and interval dialog fields when switching relative mode.
 
 ## Validation And Test Strategy
 

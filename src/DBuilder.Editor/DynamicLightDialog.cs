@@ -47,6 +47,7 @@ public sealed class DynamicLightDialog : PropertyDialog
             _interval = AddField(Label(presentation.IntervalLabel, "Interval"), state.Interval.ToString(CultureInfo.InvariantCulture));
         }
         _relativeMode = AddCheckBox("Relative mode", false);
+        _relativeMode.IsCheckedChanged += (_, _) => RefreshRelativeModeFields();
     }
 
     protected override void OnConfirm()
@@ -76,6 +77,17 @@ public sealed class DynamicLightDialog : PropertyDialog
 
     private static int ClampByte(int value)
         => Math.Clamp(value, 0, 255);
+
+    private void RefreshRelativeModeFields()
+    {
+        bool relativeMode = _relativeMode.IsChecked == true;
+        _primaryRadius.Text = FormatInt(relativeMode ? 0 : _state.PrimaryRadius);
+        if (_secondaryRadius != null) _secondaryRadius.Text = FormatInt(relativeMode ? 0 : _state.SecondaryRadius);
+        if (_interval != null) _interval.Text = FormatInt(relativeMode ? 0 : _state.Interval);
+    }
+
+    private static string FormatInt(int value)
+        => value.ToString(CultureInfo.InvariantCulture);
 
     private static string Label(string label, string fallback)
         => string.IsNullOrWhiteSpace(label) ? fallback : label.TrimEnd(':');
