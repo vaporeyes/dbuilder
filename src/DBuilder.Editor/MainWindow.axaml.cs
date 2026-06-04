@@ -1305,6 +1305,7 @@ public partial class MainWindow : Window
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
+        _settings.ShowVisualVertices = dlg.ShowVisualVertices;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
@@ -1313,6 +1314,7 @@ public partial class MainWindow : Window
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
+        MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
