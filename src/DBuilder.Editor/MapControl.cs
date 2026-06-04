@@ -5883,6 +5883,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.split-line":
                 SplitLinedefs();
                 return true;
+            case "map2d.curvelinesmode":
+                CurveSelectedLinedefs();
+                return true;
             case "map2d.insert":
             case "map2d.insertitem":
                 InsertAtCursor();
@@ -7562,6 +7565,41 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = count == 1 ? "Flipped a sidedef." : "Flipped " + count + " sidedefs.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string CurveSelectedLinedefs()
+    {
+        if (_map == null) return "No map loaded.";
+
+        bool deselect = false;
+        List<Linedef> selected = _map.GetSelectedLinedefs();
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        {
+            highlighted.Selected = true;
+            selected.Add(highlighted);
+            deselect = true;
+        }
+
+        if (selected.Count == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        EditBegun?.Invoke(selected.Count == 1 ? "Curve linedef" : "Curve " + selected.Count + " linedefs");
+        CurveLinedefsResult result = CurveLinedefs.ApplyToSelectedLinedefs(_map);
+        if (deselect)
+            selected[0].Selected = false;
+
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = result.CurvedLinedefs == 1
+            ? "Curved a linedef."
+            : "Curved " + result.CurvedLinedefs + " linedefs.";
         Picked?.Invoke(status);
         return status;
     }

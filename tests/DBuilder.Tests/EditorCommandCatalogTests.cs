@@ -1648,6 +1648,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-rectangle", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, shift: true));
         Assert.Equal("map2d.draw-ellipse", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true, alt: true));
         Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
+        Assert.Equal("map2d.curvelinesmode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "C", shift: true));
         Assert.Equal("map2d.bridge-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "B", accelerator: true));
         Assert.Equal("map2d.increase-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true));
         Assert.Equal("map2d.decrease-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
@@ -1684,6 +1685,7 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
     [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]
     [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
+    [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C")]
     [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu")]
     public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
     {

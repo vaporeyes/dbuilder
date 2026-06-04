@@ -553,6 +553,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.insertitem", "InsertAtCursor()")]
     [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
     [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]
+    [InlineData("map2d.curvelinesmode", "CurveSelectedLinedefs()")]
     [InlineData("map2d.fliplinedefs", "FlipLinedefs()")]
     [InlineData("map2d.flipsidedefs", "FlipSidedefs()")]
     [InlineData("map2d.selectsinglesided", "KeepSelectedLinedefsBySidedness(doubleSided: false)")]
