@@ -1919,7 +1919,7 @@ public sealed class GameConfiguration
                 if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
                     map[intValue] = title;
             }
-            if (list.Items.Count > 0) enumLists[name] = list;
+            enumLists[name] = list;
             if (map.Count > 0) enums[name] = map;
         }
     }

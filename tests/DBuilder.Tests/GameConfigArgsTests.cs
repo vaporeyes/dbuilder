@@ -99,6 +99,22 @@ thingtypes
     }
 
     [Fact]
+    public void KeepsEmptyEnumListsLikeUdb()
+    {
+        var gc = GameConfiguration.FromText("""
+            enums
+            {
+                empty { }
+            }
+            """);
+
+        var list = gc.GetEnumList("empty");
+        Assert.NotNull(list);
+        Assert.Empty(list!.Items);
+        Assert.Null(gc.GetEnum("empty"));
+    }
+
+    [Fact]
     public void ParsesLinedefActionArgs()
     {
         var gc = GameConfiguration.FromText(Cfg);
