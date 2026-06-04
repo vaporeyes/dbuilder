@@ -2833,14 +2833,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ToggleSlope3D()
     {
         if (_map == null) return;
-        if (_sel3D.Count == 0)
-        {
-            Target3DChanged?.Invoke(VisualSlopeToggle.EmptySelectionMessage);
-            return;
-        }
 
         var targets = new List<VisualSlopeToggleTarget>();
-        foreach (VisualHit hit in _sel3D)
+        foreach (VisualHit hit in EditTargets3D())
         {
             switch (hit.Kind)
             {
@@ -2883,14 +2878,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ResetSlope3D()
     {
         if (_map == null) return;
-        if (_sel3D.Count == 0)
-        {
-            Target3DChanged?.Invoke(VisualSlopeReset.EmptySelectionMessage);
-            return;
-        }
 
         var targets = new List<VisualSlopeResetTarget>();
-        foreach (VisualHit hit in _sel3D)
+        foreach (VisualHit hit in EditTargets3D())
         {
             if (hit.Kind == VisualHitKind.Floor && hit.Sector != null)
                 targets.Add(new VisualSlopeResetTarget(hit.Sector, Ceiling: false));
