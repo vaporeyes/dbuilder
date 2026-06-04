@@ -337,7 +337,7 @@ public class UdbScriptOptionsUiModelTests
     }
 
     [Fact]
-    public void CommitEditedValueStoresCellValueAndHandlerValue()
+    public void CommitEditedValueStoresRawCellValueLikeUdb()
     {
         var length = new UdbScriptOption(
             "length",
@@ -363,12 +363,12 @@ public class UdbScriptOptionsUiModelTests
         UdbScriptOptionEditCommitState integer = UdbScriptOptionsUiModel.CommitEditedValue(length, "256");
 
         Assert.Equal("256", integer.CellValue);
-        Assert.Equal(256, integer.OptionValue);
+        Assert.Equal("256", integer.OptionValue);
 
         UdbScriptOptionEditCommitState enumValue = UdbScriptOptionsUiModel.CommitEditedValue(direction, "Up");
 
         Assert.Equal("Up", enumValue.CellValue);
-        Assert.Equal(1, enumValue.OptionValue);
+        Assert.Equal("Up", enumValue.OptionValue);
     }
 
     [Fact]

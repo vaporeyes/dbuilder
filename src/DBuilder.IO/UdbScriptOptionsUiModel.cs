@@ -70,7 +70,7 @@ public sealed record UdbScriptOptionEnumApplyState(
 
 public sealed record UdbScriptOptionEditCommitState(
     object? CellValue,
-    object OptionValue);
+    object? OptionValue);
 
 public sealed record UdbScriptOptionSelectionChangedPlan(
     bool HideBrowseButton,
@@ -236,7 +236,7 @@ public static class UdbScriptOptionsUiModel
         UniversalTypeHandler handler = HandlerFor(option);
         handler.SetValue(cellValue);
 
-        return new UdbScriptOptionEditCommitState(cellValue, handler.GetValue());
+        return new UdbScriptOptionEditCommitState(cellValue, cellValue);
     }
 
     public static UdbScriptOptionEnumApplyState ApplyEnumEditor(
