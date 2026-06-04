@@ -254,6 +254,25 @@ public static class MapAnalysis
         new("Check very short linedefs", false, 10, [MapIssueKind.ShortLinedef]),
     ];
 
+    public static IReadOnlyList<MapErrorCheckerDescriptor> DefaultCheckerDescriptors { get; } =
+        CheckerDescriptors.Where(descriptor => descriptor.DefaultChecked).ToArray();
+
+    public static IReadOnlyList<MapIssue> FilterIssuesForCheckers(
+        IEnumerable<MapIssue> issues,
+        IEnumerable<MapErrorCheckerDescriptor> enabledCheckers)
+    {
+        var enabledKinds = enabledCheckers
+            .SelectMany(descriptor => descriptor.IssueKinds)
+            .ToHashSet();
+        var checkerKinds = CheckerDescriptors
+            .SelectMany(descriptor => descriptor.IssueKinds)
+            .ToHashSet();
+
+        return issues
+            .Where(issue => !checkerKinds.Contains(issue.Kind) || enabledKinds.Contains(issue.Kind))
+            .ToArray();
+    }
+
     /// <summary>Scans the map and returns all detected issues (empty list when clean).</summary>
     public static IReadOnlyList<MapIssue> Check(MapSet map) => Check(map, null);
 

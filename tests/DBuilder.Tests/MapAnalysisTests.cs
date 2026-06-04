@@ -72,6 +72,34 @@ public class MapAnalysisTests
         Assert.DoesNotContain(MapIssueKind.ZeroLengthLinedef, descriptors.SelectMany(descriptor => descriptor.IssueKinds));
     }
 
+    [Fact]
+    public void FilterIssuesForCheckersAppliesUdbDefaultCheckedState()
+    {
+        var missingTexture = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");
+        var misalignedTexture = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture, "misaligned");
+        var shortLinedef = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var zeroLength = new MapIssue(MapIssueSeverity.Error, MapIssueKind.ZeroLengthLinedef, "zero");
+
+        var visible = MapAnalysis.FilterIssuesForCheckers(
+            new[] { missingTexture, misalignedTexture, shortLinedef, zeroLength },
+            MapAnalysis.DefaultCheckerDescriptors);
+
+        Assert.Equal(new[] { missingTexture, zeroLength }, visible);
+    }
+
+    [Fact]
+    public void FilterIssuesForCheckersIncludesExplicitlyEnabledOptionalChecks()
+    {
+        var misalignedTexture = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MisalignedTexture, "misaligned");
+        var shortLinedef = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var enabled = MapAnalysis.CheckerDescriptors
+            .Where(descriptor => descriptor.DisplayName is "Check texture alignment" or "Check very short linedefs");
+
+        var visible = MapAnalysis.FilterIssuesForCheckers(new[] { misalignedTexture, shortLinedef }, enabled);
+
+        Assert.Equal(new[] { misalignedTexture, shortLinedef }, visible);
+    }
+
     private static (MapSet Map, Linedef Shared) AdjacentSquares()
     {
         var map = new MapSet();
