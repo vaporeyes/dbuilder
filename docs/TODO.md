@@ -1612,6 +1612,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript top-level host API property surface metadata.
 - [ ] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
+  - [x] Trim configured DIALOGUE map-lump names when checking USDF availability like UDB.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
   - [x] Add UDB-style Dialog Editor form title, tree metadata, and image-key metadata.
   - [x] Route the stable USDF Dialog Editor action id to the editor window.

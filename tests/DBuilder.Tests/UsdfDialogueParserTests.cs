@@ -153,6 +153,19 @@ public class UsdfDialogueParserTests
     }
 
     [Fact]
+    public void CanEditDialogueTrimsConfiguredLumpNamesLikeUdb()
+    {
+        var config = new GameConfiguration();
+        var field = typeof(GameConfiguration).GetField(
+            "mapLumpNames",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var mapLumps = Assert.IsType<Dictionary<string, MapLumpInfo>>(field?.GetValue(config));
+        mapLumps[" dialogue "] = new MapLumpInfo { Name = " dialogue " };
+
+        Assert.True(UsdfDialogueParser.CanEditDialogue(config));
+    }
+
+    [Fact]
     public void ParseReadsConversationsPagesConditionsAndChoices()
     {
         const string text = """

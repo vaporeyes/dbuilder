@@ -99,7 +99,7 @@ public sealed record UsdfConversationRow(
 public static class UsdfDialogueParser
 {
     public static bool CanEditDialogue(GameConfiguration? config)
-        => config?.MapLumpNames.ContainsKey("DIALOGUE") == true;
+        => config?.MapLumpNames.Keys.Any(name => name.Trim().Equals("DIALOGUE", StringComparison.OrdinalIgnoreCase)) == true;
 
     public static string ViewerStatus(UsdfParseResult result)
         => result.Success ? "DIALOGUE: OK" : $"DIALOGUE parse error on line {result.ErrorLine}: {result.ErrorDescription}";
