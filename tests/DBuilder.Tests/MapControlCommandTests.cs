@@ -564,10 +564,13 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void ResetTargetOffsets3D()", StringComparison.Ordinal);
-        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(\"Texture offsets reset.\");", methodIndex, StringComparison.Ordinal);
+        int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualTextureReset3DEditName(VisualHitKind.Wall, false));", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(\"Texture offsets reset.\");", editNameIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(statusIndex > methodIndex);
+        Assert.True(editNameIndex > methodIndex);
+        Assert.True(statusIndex > editNameIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Reset offsets\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("Target3DChanged?.Invoke(\"reset offsets\");", body, StringComparison.Ordinal);
     }
 

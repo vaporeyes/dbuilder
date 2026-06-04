@@ -3009,7 +3009,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ResetTargetOffsets3D()
     {
         if (TargetSidedef3D() is not { } sd) { Target3DChanged?.Invoke("aim at a wall to reset offsets"); return; }
-        EditBegun?.Invoke("Reset offsets");
+        EditBegun?.Invoke(VisualTextureReset3DEditName(VisualHitKind.Wall, false));
         sd.OffsetX = 0;
         sd.OffsetY = 0;
         _geo3DDirty = true;
