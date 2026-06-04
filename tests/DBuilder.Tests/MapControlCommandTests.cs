@@ -173,6 +173,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void LookThroughSelection3DUsesUdbSelectionWarning()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool LookThroughSelectedThing3D()", StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Look Through Selection action requires 1 selected Thing!", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(warningIndex > methodIndex);
+    }
+
+    [Fact]
     public void VisualUnpeggedToggleUsesHighlightedWallState()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

@@ -3544,7 +3544,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var things = SelectedThings3D();
         if (_map == null || things.Count != 1)
         {
-            Target3DChanged?.Invoke("select one thing");
+            Target3DChanged?.Invoke("Look Through Selection action requires 1 selected Thing!");
             return false;
         }
 
