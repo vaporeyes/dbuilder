@@ -582,6 +582,7 @@ public static class MapSearch
 
         if (!int.TryParse(find, NumberStyles.Integer, CultureInfo.InvariantCulture, out int from)) return 0;
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
+        if (cat == FindCategory.LinedefAction && (to < 0 || to > short.MaxValue)) return 0;
         if (cat == FindCategory.SectorEffect && (to < 0 || to > short.MaxValue)) return 0;
         switch (cat)
         {

@@ -285,6 +285,19 @@ public class MapSearchTests
         Assert.Equal(97, map.Linedefs[0].Action);
     }
 
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("32768")]
+    public void ReplaceLinedefActionRejectsInvalidReplacementValues(string replacement)
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(map, FindCategory.LinedefAction, "11", replacement);
+
+        Assert.Equal(0, changed);
+        Assert.Equal(11, map.Linedefs[0].Action);
+    }
+
     [Fact]
     public void FindAndReplaceLinedefActionArguments()
     {
