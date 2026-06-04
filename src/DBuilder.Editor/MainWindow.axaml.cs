@@ -5324,15 +5324,18 @@ public partial class MainWindow : Window
                 RotationFactor: RandomFactor(),
                 PitchFactor: 0,
                 RollFactor: 0,
-                HeightFactor: 0,
+                HeightFactor: RandomFactor(),
                 ScaleXFactor: 0,
                 ScaleYFactor: 0,
-                SafeDistance: dialog.ResultPositionAmount)).ToList();
+                SafeDistance: dialog.ResultPositionAmount,
+                SectorHeight: JitterThingSectorHeight(thing))).ToList();
             changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
             changed += BuilderEffects.ApplyThingRotation(
                 thingJitter,
                 dialog.ResultThingRotationAmount,
                 _config?.DoomThingRotationAngles == true);
+            if (_config?.HasThingHeight == true)
+                changed += BuilderEffects.ApplyThingHeight(thingJitter, dialog.ResultThingHeightAmount);
             foreach (Thing thing in things)
                 thing.DetermineSector(_map);
         }
@@ -5354,6 +5357,16 @@ public partial class MainWindow : Window
     {
         vertices.Add(line.Start);
         vertices.Add(line.End);
+    }
+
+    private int JitterThingSectorHeight(Thing thing)
+    {
+        if (_config?.HasThingHeight != true) return 0;
+        thing.DetermineSector(_map!);
+        if (thing.Sector is null) return 0;
+
+        int thingHeight = _config.GetThing(thing.Type)?.Height ?? 0;
+        return Math.Max(0, thing.Sector.CeilHeight - thingHeight - thing.Sector.FloorHeight);
     }
 
     private static double RandomAngle()

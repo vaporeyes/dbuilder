@@ -15,6 +15,7 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _ceilingAmount;
     private readonly ComboBox _ceilingOffsetMode;
     private readonly TextBox _thingRotationAmount;
+    private readonly TextBox _thingHeightAmount;
 
     public int ResultPositionAmount { get; private set; } = 16;
     public int ResultFloorAmount { get; private set; } = 16;
@@ -22,6 +23,7 @@ public sealed class JitterDialog : PropertyDialog
     public int ResultCeilingAmount { get; private set; } = 16;
     public JitterOffsetMode ResultCeilingOffsetMode { get; private set; } = JitterOffsetMode.RaiseAndLower;
     public int ResultThingRotationAmount { get; private set; } = 45;
+    public int ResultThingHeightAmount { get; private set; } = 16;
 
     public JitterDialog(string title)
         : base(title)
@@ -32,6 +34,7 @@ public sealed class JitterDialog : PropertyDialog
         _ceilingAmount = AddField("Ceiling amount", ResultCeilingAmount.ToString(CultureInfo.InvariantCulture));
         _ceilingOffsetMode = AddCombo("Ceiling offset mode", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode);
         _thingRotationAmount = AddField("Thing angle amount", ResultThingRotationAmount.ToString(CultureInfo.InvariantCulture));
+        _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
     }
 
     protected override void OnConfirm()
@@ -42,6 +45,7 @@ public sealed class JitterDialog : PropertyDialog
         ResultCeilingAmount = Math.Max(0, ParseInt(_ceilingAmount, ResultCeilingAmount));
         ResultCeilingOffsetMode = (JitterOffsetMode)ComboNumber(_ceilingOffsetMode, (int)ResultCeilingOffsetMode);
         ResultThingRotationAmount = Math.Max(0, ParseInt(_thingRotationAmount, ResultThingRotationAmount));
+        ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
     }
 
     private static IEnumerable<CatalogItem> FloorOffsetModeItems()

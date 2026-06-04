@@ -1518,6 +1518,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual-mode Apply Directional Shading routing for selected floors and walls.
   - [x] Expose UDB-style Randomize sector floor and ceiling offset modes in the editor dialog.
   - [x] Snap UDB-style Randomize thing rotations to Doom angles when the game configuration requires it.
+  - [x] Expose UDB-style Randomize thing height jitter when the map format supports thing heights.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

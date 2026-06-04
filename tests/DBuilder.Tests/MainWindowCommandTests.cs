@@ -208,6 +208,27 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionAppliesThingHeightWhenGameConfigSupportsThingHeight()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int factorIndex = body.IndexOf("HeightFactor: RandomFactor()", methodIndex, StringComparison.Ordinal);
+        int sectorHeightIndex = body.IndexOf("SectorHeight: JitterThingSectorHeight(thing)", factorIndex, StringComparison.Ordinal);
+        int guardIndex = body.IndexOf("if (_config?.HasThingHeight == true)", sectorHeightIndex, StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("BuilderEffects.ApplyThingHeight(thingJitter, dialog.ResultThingHeightAmount)", guardIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private int JitterThingSectorHeight(Thing thing)", StringComparison.Ordinal);
+        int thingTypeHeightIndex = body.IndexOf("_config.GetThing(thing.Type)?.Height ?? 0", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(factorIndex > methodIndex);
+        Assert.True(sectorHeightIndex > factorIndex);
+        Assert.True(guardIndex > sectorHeightIndex);
+        Assert.True(applyIndex > guardIndex);
+        Assert.True(helperIndex > applyIndex);
+        Assert.True(thingTypeHeightIndex > helperIndex);
+    }
+
+    [Fact]
     public void JitterDialogExposesUdbSectorOffsetModes()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
@@ -219,6 +240,16 @@ public sealed class MainWindowCommandTests
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Lower only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Lower only\")", body, StringComparison.Ordinal);
         Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Raise only\")", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JitterDialogExposesUdbThingHeightAmount()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
+
+        Assert.Contains("public int ResultThingHeightAmount { get; private set; } = 16;", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Thing height amount\", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));", body, StringComparison.Ordinal);
     }
 
     [Fact]
