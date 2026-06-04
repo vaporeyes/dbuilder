@@ -2392,7 +2392,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             EditBegun?.Invoke("Flood-fill floors");
             Tools.FloodfillFlats(_map, floor, fillCeilings: false, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { floor.FloorTexture }, fillTexture, resetSectorMarks: true);
-            FinishFloodFill3D("flood-filled floors");
+            FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
         else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector is { } ceiling)
         {
@@ -2401,7 +2401,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             EditBegun?.Invoke("Flood-fill ceilings");
             Tools.FloodfillFlats(_map, ceiling, fillCeilings: true, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ceiling.CeilTexture }, fillTexture, resetSectorMarks: true);
-            FinishFloodFill3D("flood-filled ceilings");
+            FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
         else if (hit.Kind == VisualHitKind.Wall && hit.Line != null)
         {
@@ -2413,7 +2413,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             EditBegun?.Invoke("Flood-fill textures");
             Tools.FloodfillTextures(_map, side, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { oldTexture }, fillTexture, resetSideMarks: true);
-            FinishFloodFill3D("flood-filled textures");
+            FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
         else
         {
@@ -2429,6 +2429,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
         Target3DChanged?.Invoke(status);
     }
+
+    public static string VisualTextureFloodFill3DStatusText(VisualHitKind kind, string textureName)
+        => kind switch
+        {
+            VisualHitKind.Floor => "Flood-filled floors with " + textureName + ".",
+            VisualHitKind.Ceiling => "Flood-filled ceilings with " + textureName + ".",
+            _ => "Flood-filled textures with " + textureName + ".",
+        };
 
     // The sidedef on the camera-facing side of the targeted wall, or null.
     private Sidedef? TargetSidedef3D()

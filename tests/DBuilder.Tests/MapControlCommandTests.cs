@@ -67,6 +67,13 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualTextureOffset3DStatusText(kind, x, y));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, "FLOOR0_1", "Flood-filled floors with FLOOR0_1.")]
+    [InlineData(VisualHitKind.Ceiling, "CEIL1_1", "Flood-filled ceilings with CEIL1_1.")]
+    [InlineData(VisualHitKind.Wall, "STARTAN3", "Flood-filled textures with STARTAN3.")]
+    public void VisualTextureFloodFill3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, string textureName, string expected)
+        => Assert.Equal(expected, MapControl.VisualTextureFloodFill3DStatusText(kind, textureName));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -355,6 +362,20 @@ public sealed class MapControlCommandTests
         Assert.True(loopIndex > methodIndex);
         Assert.True(formatterIndex > loopIndex);
         Assert.DoesNotContain("TextureApplied3DStatusText", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FloodFillTexture3DUsesUdbStatusWithTextureName()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void FloodFillTexture3D()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
+        Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled floors\")", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled ceilings\")", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled textures\")", body, StringComparison.Ordinal);
     }
 
     [Fact]
