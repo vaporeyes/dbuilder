@@ -808,6 +808,35 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void DoubleSettingsUseUdbScalarConversion()
+    {
+        const string cfg = """
+            defaulttexturescale = true;
+            defaultflatscale = false;
+            thingtypes
+            {
+                scalar
+                {
+                    alpha = false;
+                    spritescale = true;
+                    3001 { title = "Scalar Thing"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(1.0, gc.DefaultTextureScale);
+        Assert.Equal(0.0, gc.DefaultFlatScale);
+        var category = gc.ThingCategories["scalar"];
+        Assert.Equal(0.0, category.Alpha);
+        Assert.Equal(1.0, category.SpriteScale);
+        var thing = gc.GetThing(3001)!;
+        Assert.Equal(0.0, thing.Alpha);
+        Assert.Equal(1.0, thing.SpriteScale);
+    }
+
+    [Fact]
     public void DefaultSkyTextureMapNamesKeepCommaWhitespaceLikeUdb()
     {
         const string cfg = """

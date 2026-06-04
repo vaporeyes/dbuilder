@@ -2552,15 +2552,29 @@ public sealed class GameConfiguration
         };
 
     private static double GetDouble(IDictionary d, string key, double fallback)
-        => d[key] switch
+    {
+        object? value = d[key];
+        if (value == null) return fallback;
+
+        try
         {
-            double db => db,
-            float f => f,
-            int i => i,
-            long l => l,
-            string s when double.TryParse(s.TrimEnd('f', 'F'), NumberStyles.Float, CultureInfo.InvariantCulture, out double p) => p,
-            _ => fallback,
-        };
+            return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            if (value is string text && double.TryParse(text.TrimEnd('f', 'F'), NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
+                return parsed;
+            return fallback;
+        }
+        catch (InvalidCastException)
+        {
+            return fallback;
+        }
+        catch (OverflowException)
+        {
+            return fallback;
+        }
+    }
 
     private static bool GetBoolishInt(IDictionary d, string key, bool fallback)
         => d[key] switch
