@@ -10,6 +10,11 @@ namespace DBuilder.IO;
 
 public static class ConfiguredMapSearch
 {
+    public static IReadOnlyList<FindCategoryDescriptor> CategoryDescriptors(GameConfiguration? config)
+        => MapSearch.CategoryDescriptors
+            .Where(descriptor => CategoryIsVisible(descriptor.Category, config))
+            .ToArray();
+
     public static SearchResult Find(MapSet map, FindCategory category, string value, GameConfiguration? config)
         => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config));
 
@@ -34,6 +39,27 @@ public static class ConfiguredMapSearch
         => config?.MapFormat == MapFormat.Udmf
             ? (int.MinValue, int.MaxValue)
             : (short.MinValue, short.MaxValue);
+
+    private static bool CategoryIsVisible(FindCategory category, GameConfiguration? config)
+        => category switch
+        {
+            FindCategory.ThingActionArguments => (config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true),
+            FindCategory.LinedefSectorReference or FindCategory.LinedefThingReference => config?.HasActionArgs ?? true,
+            FindCategory.ThingSectorReference => (config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true),
+            FindCategory.ThingThingReference => (config?.HasThingAction ?? true) && (config?.HasThingTag ?? true),
+            FindCategory.LinedefTag => config?.HasLinedefTag ?? true,
+            FindCategory.ThingTag => config?.HasThingTag ?? true,
+            FindCategory.SidedefFlags => config is null || config.SidedefFlags.Count > 0,
+            FindCategory.SectorFlags => config is null || config.SectorFlags.Count > 0 || config.CeilingPortalFlags.Count > 0 || config.FloorPortalFlags.Count > 0,
+            FindCategory.ThingFlags => config is null || config.ThingFlagKeys.Count > 0,
+            FindCategory.AnyUdmfField or
+            FindCategory.VertexUdmfField or
+            FindCategory.LinedefUdmfField or
+            FindCategory.SidedefUdmfField or
+            FindCategory.SectorUdmfField or
+            FindCategory.ThingUdmfField => config is null || config.MapFormat == MapFormat.Udmf,
+            _ => true,
+        };
 
     private static bool ReplacementFlagsAreKnown(FindCategory category, string replace, GameConfiguration? config)
     {

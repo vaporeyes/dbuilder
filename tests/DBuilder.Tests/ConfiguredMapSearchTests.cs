@@ -185,6 +185,67 @@ public class ConfiguredMapSearchTests
     }
 
     [Fact]
+    public void CategoryDescriptorsHideUnsupportedDoomFormatCategories()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "DoomMapSetIO";
+            linedefactivations { playeruse = "Player use"; }
+            """);
+
+        var categories = ConfiguredMapSearch.CategoryDescriptors(config)
+            .Select(descriptor => descriptor.Category)
+            .ToHashSet();
+
+        Assert.Contains(FindCategory.LinedefTag, categories);
+        Assert.DoesNotContain(FindCategory.ThingTag, categories);
+        Assert.DoesNotContain(FindCategory.ThingActionArguments, categories);
+        Assert.DoesNotContain(FindCategory.LinedefSectorReference, categories);
+        Assert.DoesNotContain(FindCategory.AnyUdmfField, categories);
+        Assert.DoesNotContain(FindCategory.SidedefFlags, categories);
+        Assert.DoesNotContain(FindCategory.SectorFlags, categories);
+        Assert.DoesNotContain(FindCategory.ThingFlags, categories);
+    }
+
+    [Fact]
+    public void CategoryDescriptorsHideUnsupportedHexenFormatCategories()
+    {
+        var config = GameConfiguration.FromText("""
+            formatinterface = "HexenMapSetIO";
+            thingflags { skill1 = "Skill 1"; }
+            """);
+
+        var categories = ConfiguredMapSearch.CategoryDescriptors(config)
+            .Select(descriptor => descriptor.Category)
+            .ToHashSet();
+
+        Assert.DoesNotContain(FindCategory.LinedefTag, categories);
+        Assert.Contains(FindCategory.ThingTag, categories);
+        Assert.Contains(FindCategory.ThingActionArguments, categories);
+        Assert.Contains(FindCategory.LinedefSectorReference, categories);
+        Assert.DoesNotContain(FindCategory.AnyUdmfField, categories);
+        Assert.Contains(FindCategory.ThingFlags, categories);
+    }
+
+    [Fact]
+    public void CategoryDescriptorsKeepUdmfAndConfiguredFlagCategories()
+    {
+        var config = GameConfiguration.FromText("formatinterface = \"UniversalMapSetIO\";\n" + FlagCfg);
+
+        var categories = ConfiguredMapSearch.CategoryDescriptors(config)
+            .Select(descriptor => descriptor.Category)
+            .ToHashSet();
+
+        Assert.Contains(FindCategory.LinedefTag, categories);
+        Assert.Contains(FindCategory.ThingTag, categories);
+        Assert.Contains(FindCategory.ThingActionArguments, categories);
+        Assert.Contains(FindCategory.ThingThingReference, categories);
+        Assert.Contains(FindCategory.AnyUdmfField, categories);
+        Assert.Contains(FindCategory.SidedefFlags, categories);
+        Assert.Contains(FindCategory.SectorFlags, categories);
+        Assert.Contains(FindCategory.ThingFlags, categories);
+    }
+
+    [Fact]
     public void FindLinedefActionMatchesGeneralizedActionsWithSharedBits()
     {
         var config = GameConfiguration.FromText(Cfg);

@@ -26,7 +26,7 @@ public sealed class FindReplaceWindow : Window
     public event Action? ReplaceRequested;
     public event Action? NextFreeTagRequested;
 
-    public FindReplaceWindow(bool mixTexturesFlats = false)
+    public FindReplaceWindow(bool mixTexturesFlats = false, IReadOnlyList<FindCategoryDescriptor>? categories = null)
     {
         Title = "Find & Replace";
         Width = 380;
@@ -37,7 +37,7 @@ public sealed class FindReplaceWindow : Window
         _category = new ComboBox
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            ItemsSource = MapSearch.CategoryDescriptors,
+            ItemsSource = categories ?? MapSearch.CategoryDescriptors,
         };
         _category.SelectedIndex = 0;
         _find = new TextBox();

@@ -4547,7 +4547,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (_findWindow != null) { _findWindow.Activate(); return; }
 
-        var win = new FindReplaceWindow(_config?.MixTexturesFlats == true);
+        var win = new FindReplaceWindow(_config?.MixTexturesFlats == true, ConfiguredMapSearch.CategoryDescriptors(_config));
         _findWindow = win;
         win.Closed += (_, _) => _findWindow = null;
         win.FindRequested += () =>
