@@ -91,6 +91,9 @@ public class ResourceManagerTests
     private static byte[] DecaldefBytes(string name, int id, string pic)
         => Encoding.ASCII.GetBytes($"decal {name} {id.ToString(System.Globalization.CultureInfo.InvariantCulture)} {{ pic {pic} }}");
 
+    private static byte[] TextBytes(string text)
+        => Encoding.ASCII.GetBytes(text);
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -548,6 +551,51 @@ public class ResourceManagerTests
             Assert.Equal("DIR", defs.Decals["BulletHole"].Pic);
             Assert.Contains(defs.Generators, generator => generator.ActorClass == "ZombieMan" && generator.DecalName == "BulletHole");
             Assert.Equal("BulletHole", defs.GetDecalDefsById()[1].Name);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesSingularExtraTextLumpsFromLastWadLumpLikeUdb()
+    {
+        using var wad = BuildWad(
+            ("MENUDEF", TextBytes("old menu")),
+            ("MENUDEF", TextBytes("new menu")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        string text = Assert.Single(rm.GetExtraTextLumps(ScriptType.MenuDef));
+        Assert.Equal("new menu", text);
+        Assert.Empty(rm.GetExtraTextLumps(ScriptType.Decorate));
+    }
+
+    [Fact]
+    public void FolderResourcesResolveFirstRootExtraTextTitleFileThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("MENUDEF", TextBytes("nested menu")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("MENUDEF.txt", TextBytes("root menu")),
+            ("MENUDEF.extra", TextBytes("ignored extra menu")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_extratext_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "MENUDEF.txt"), TextBytes("directory menu"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            Assert.Equal(
+                new[] { "root menu", "nested menu", "directory menu" },
+                rm.GetExtraTextLumps(ScriptType.MenuDef).ToArray());
         }
         finally
         {

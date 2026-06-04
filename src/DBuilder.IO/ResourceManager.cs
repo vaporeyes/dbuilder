@@ -1240,6 +1240,29 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>Singular extra text lumps from every resource, oldest first.</summary>
+    public IReadOnlyList<string> GetExtraTextLumps(ScriptType scriptType)
+    {
+        string? name = ExtraTextLumpName(scriptType);
+        if (name == null) return Array.Empty<string>();
+
+        var result = new List<string>();
+        foreach (var reader in readers)
+            result.AddRange(reader.GetSingularTextLumps(name));
+        return result;
+    }
+
+    private static string? ExtraTextLumpName(ScriptType scriptType)
+        => scriptType switch
+        {
+            ScriptType.MenuDef => "MENUDEF",
+            ScriptType.SbarInfo => "SBARINFO",
+            ScriptType.GameInfo => "GAMEINFO",
+            ScriptType.KeyConf => "KEYCONF",
+            ScriptType.FontDefs => "FONTDEFS",
+            _ => null,
+        };
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

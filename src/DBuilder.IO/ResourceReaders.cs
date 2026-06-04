@@ -27,6 +27,8 @@ internal interface IResourceReader : IDisposable
     string? GetTextLump(string name);
     /// <summary>The text of every matching lump or root text file in this resource, oldest first.</summary>
     IEnumerable<string> GetTextLumps(string name, bool partialTitleMatch);
+    /// <summary>The text selected with UDB's singular text-resource rules.</summary>
+    IEnumerable<string> GetSingularTextLumps(string name);
     /// <summary>MAPINFO/ZMAPINFO texts selected with UDB's per-resource precedence rules.</summary>
     IEnumerable<string> GetMapInfoLumps();
     /// <summary>GLDEFS texts selected with UDB's base-game and nested-resource ordering.</summary>
@@ -441,6 +443,12 @@ internal sealed class WadResourceReader : IResourceReader
         }
     }
 
+    public IEnumerable<string> GetSingularTextLumps(string name)
+    {
+        int index = wad.FindLastLumpIndex(name);
+        if (index >= 0) yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
+    }
+
     public string? GetTextResource(string name)
         => wad.FindLastLump(name)?.Stream.ReadAllBytes() is { } bytes
             ? System.Text.Encoding.ASCII.GetString(bytes)
@@ -767,6 +775,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
             foreach (string text in nestedReaders[i].GetTextLumps(name, partialTitleMatch))
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetSingularTextLumps(string name)
+    {
+        foreach (string text in LocalTextLumps(name, partialTitleMatch: false).Take(1))
+            yield return text;
+
+        foreach (var reader in nestedReaders)
+            foreach (string text in reader.GetSingularTextLumps(name))
                 yield return text;
     }
 
