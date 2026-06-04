@@ -6063,6 +6063,7 @@ public partial class MainWindow : Window
         bool hasSelectedInternalDynamicLight = _map is not null && ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings());
         bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
         bool canApplyLightFogFlag = hasMap && _mapFormat == MapFormat.Udmf;
+        bool canEditSectorColor = ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf) && hasSelectedSector;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
@@ -6146,6 +6147,7 @@ public partial class MainWindow : Window
         SetEnabled(canAlignTextures, AlignTexturesMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
         SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
+        SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);

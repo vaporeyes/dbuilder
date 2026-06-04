@@ -171,6 +171,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate the Edit Mode parent menu by loaded map state.
   - [x] Gate the Browsers parent menu by child browser availability.
   - [x] Gate the Automap parent menu by child automap flag availability.
+  - [x] Gate sector color command availability by UDMF map format and selected sectors.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.
@@ -2203,6 +2204,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB sector color dialog title, sector-color label, typed HEX parsing, and paired-field apply behavior.
   - [x] Expose typed float color input in the selected-sector color dialog.
   - [x] Gate selected-sector color editing to UDMF maps with UDB's warning.
+  - [x] Gate selected-sector color command availability to UDMF maps with selected sectors.
   - [x] Add editor command and dialog for selected UDB internal dynamic light things.
   - [x] Gate dynamic light color command availability to selected UDB internal dynamic light things.
   - [x] Clamp accepted dynamic light radius and interval values to UDB numeric limits.
