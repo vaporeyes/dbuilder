@@ -182,6 +182,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("selection.SetChecked(row.SettingsKey, check.IsChecked == true)", code, StringComparison.Ordinal);
         Assert.Contains("ApplySelectedFix(index)", code, StringComparison.Ordinal);
         Assert.Contains("_applyFix(issue.Fixes[index])", code, StringComparison.Ordinal);
+        Assert.Contains("foreach (var similarIssue in SelectedIssues())", code, StringComparison.Ordinal);
+        Assert.Contains("if (similarIssue.Kind != issue.Kind || index >= similarIssue.Fixes.Count) continue;", code, StringComparison.Ordinal);
+        Assert.Contains("if (!_applyFix(similarIssue.Fixes[index])) break;", code, StringComparison.Ordinal);
     }
 
     [Fact]

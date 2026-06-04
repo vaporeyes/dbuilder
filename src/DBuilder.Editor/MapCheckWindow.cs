@@ -221,6 +221,13 @@ public sealed class MapCheckWindow : Window
         if (issue is null || _applyFix is null || index >= issue.Fixes.Count) return;
         if (!_applyFix(issue.Fixes[index])) return;
 
+        foreach (var similarIssue in SelectedIssues())
+        {
+            if (ReferenceEquals(similarIssue, issue)) continue;
+            if (similarIssue.Kind != issue.Kind || index >= similarIssue.Fixes.Count) continue;
+            if (!_applyFix(similarIssue.Fixes[index])) break;
+        }
+
         if (_runChecks is not null && _checkerSelection is not null)
             RunChecks(_checkerSelection, _runChecks);
         else

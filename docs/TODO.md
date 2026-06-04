@@ -1695,6 +1695,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add map-check window support for selecting all visible results of the selected type.
   - [x] Add map-check window support for copying selected result descriptions to the clipboard.
   - [x] Add map-check window support for applying selected result fixes.
+  - [x] Add map-check window support for applying fixes to same-kind selected results.
 - [ ] Port all map error checks.
   - [x] Add UDB-style action-driven lower texture checks for floor lower/raise specials.
   - [x] Add UDB-style 3D floor upper and lower texture requirements.
