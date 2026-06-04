@@ -2338,8 +2338,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ApplyTextureToTarget(string tex)
     {
         if (_map == null) return;
-        var targets = EditTargets3D();
-        if (targets.Count == 0) return;
+        var targets = TextureApplyTargets3D();
+        if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to apply texture"); return; }
         EditBegun?.Invoke("Apply texture");
         foreach (var h in targets) ApplyTextureToHit(h, tex);
         _geo3DDirty = true;
@@ -2351,6 +2351,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static string TextureApplied3DStatusText(string textureName, int surfaceCount)
         => $"applied texture {textureName} to {CountLabel(surfaceCount, "surface")}";
+
+    private System.Collections.Generic.List<VisualHit> TextureApplyTargets3D()
+        => EditTargets3D()
+            .Where(hit => hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)
+            .ToList();
 
     private static void ApplyTextureToHit(VisualHit h, string tex)
     {

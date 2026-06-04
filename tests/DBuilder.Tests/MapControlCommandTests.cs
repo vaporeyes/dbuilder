@@ -203,4 +203,19 @@ public sealed class MapControlCommandTests
         Assert.True(resetIndex >= 0);
         Assert.True(resetTargetsIndex > resetIndex);
     }
+
+    [Fact]
+    public void VisualTexturePasteTargetsOnlySurfacesLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int applyIndex = body.IndexOf("private void ApplyTextureToTarget(string tex)", StringComparison.Ordinal);
+        int targetsIndex = body.IndexOf("var targets = TextureApplyTargets3D();", applyIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private System.Collections.Generic.List<VisualHit> TextureApplyTargets3D()", StringComparison.Ordinal);
+        int filterIndex = body.IndexOf("hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(applyIndex >= 0);
+        Assert.True(targetsIndex > applyIndex);
+        Assert.True(helperIndex > applyIndex);
+        Assert.True(filterIndex > helperIndex);
+    }
 }
