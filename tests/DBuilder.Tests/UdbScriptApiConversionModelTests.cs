@@ -2308,6 +2308,17 @@ localsidedeftextureoffsets = true;
             Assert.Equal(4, flat.width);
             Assert.Equal(5, flat.height);
             Assert.True(flat.isFlat);
+
+            UdbScriptImageInfo missingTexture = wrapper.getTextureInfo("MISSING");
+            UdbScriptImageInfo missingFlat = wrapper.getFlatInfo("MISSING");
+            Assert.Equal("MISSING", missingTexture.name);
+            Assert.Equal(64, missingTexture.width);
+            Assert.Equal(64, missingTexture.height);
+            Assert.False(missingTexture.isFlat);
+            Assert.Equal("MISSING", missingFlat.name);
+            Assert.Equal(64, missingFlat.width);
+            Assert.Equal(64, missingFlat.height);
+            Assert.True(missingFlat.isFlat);
         }
         finally
         {
