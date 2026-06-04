@@ -2781,7 +2781,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 {
                     if (hit.Part == SidedefPart.None || !seenParts.Add((side, hit.Part))) continue;
                     if (!begun) { EditBegun?.Invoke("Reset local texture offsets"); begun = true; }
-                    if (VisualTextureReset.ResetLocalSidedef(side, hit.Part)) changed++;
+                    if (VisualTextureReset.ResetSidedefForCommand(side, hit.Part, local: true, isUdmf: _mapFormat == MapFormat.Udmf)) changed++;
                 }
                 else if (seenSides.Add(side))
                 {

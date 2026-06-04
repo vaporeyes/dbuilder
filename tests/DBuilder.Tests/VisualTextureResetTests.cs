@@ -49,6 +49,42 @@ public class VisualTextureResetTests
     }
 
     [Fact]
+    public void ResetSidedefForLocalCommandFallsBackToClassicOffsetsOutsideUdmfLikeUdb()
+    {
+        var side = new Sidedef(new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0))), isFront: true)
+        {
+            OffsetX = 8,
+            OffsetY = -16,
+        };
+        side.Fields["offsetx_mid"] = 4.0;
+
+        bool changed = VisualTextureReset.ResetSidedefForCommand(side, SidedefPart.Middle, local: true, isUdmf: false);
+
+        Assert.True(changed);
+        Assert.Equal(0, side.OffsetX);
+        Assert.Equal(0, side.OffsetY);
+        Assert.Contains("offsetx_mid", side.Fields.Keys);
+    }
+
+    [Fact]
+    public void ResetSidedefForLocalCommandClearsLocalFieldsInUdmf()
+    {
+        var side = new Sidedef(new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0))), isFront: true)
+        {
+            OffsetX = 8,
+            OffsetY = -16,
+        };
+        side.Fields["offsetx_mid"] = 4.0;
+
+        bool changed = VisualTextureReset.ResetSidedefForCommand(side, SidedefPart.Middle, local: true, isUdmf: true);
+
+        Assert.True(changed);
+        Assert.Equal(8, side.OffsetX);
+        Assert.Equal(-16, side.OffsetY);
+        Assert.DoesNotContain("offsetx_mid", side.Fields.Keys);
+    }
+
+    [Fact]
     public void ResetSectorFlatClearsBasicAndLocalFloorFields()
     {
         var sector = new Sector();

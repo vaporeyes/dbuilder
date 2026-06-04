@@ -28,6 +28,9 @@ public static class VisualTextureReset
         });
     }
 
+    public static bool ResetSidedefForCommand(Sidedef side, SidedefPart part, bool local, bool isUdmf)
+        => local && isUdmf ? ResetLocalSidedef(side, part) : ResetSidedefOffsets(side);
+
     public static bool ResetSectorFlat(Sector sector, bool ceiling, bool local)
         => RemoveFields(sector, local ? LocalFlatFields(ceiling) : FlatOffsetFields(ceiling));
 
