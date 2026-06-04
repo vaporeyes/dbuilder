@@ -31,4 +31,18 @@ public class SettingsWindowTests
         Assert.Contains("_settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);", mainWindow, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SettingsWindowExposesUseHighlightPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("UseHighlight", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Use highlight\", s.UseHighlight)", body, StringComparison.Ordinal);
+        Assert.Contains("UseHighlight = _useHighlight.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.UseHighlight = dlg.UseHighlight;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetUseHighlight(_settings.UseHighlight);", mainWindow, StringComparison.Ordinal);
+    }
 }

@@ -1303,6 +1303,7 @@ public partial class MainWindow : Window
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
+        _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
@@ -1310,6 +1311,7 @@ public partial class MainWindow : Window
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
+        MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
