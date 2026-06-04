@@ -4936,21 +4936,58 @@ public partial class MainWindow : Window
     private void OnToggleLightPanel(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
-        if (ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings()))
+        ColorPickerToggleDecision decision = ColorPickerModel.ToggleLightPanelDecision(ColorPickerToggleContext());
+        switch (decision.Target)
         {
-            OnDynamicLightColor(sender, e);
-            return;
+            case ColorPickerToggleTarget.DynamicLights:
+                OnDynamicLightColor(sender, e);
+                return;
+            case ColorPickerToggleTarget.SectorColors:
+                OnSectorColor(sender, e);
+                return;
+            default:
+                SetStatus(decision.WarningText);
+                return;
+        }
+    }
+
+    private ColorPickerToggleContext ColorPickerToggleContext()
+    {
+        if (_map is null)
+        {
+            return new ColorPickerToggleContext(
+                ColorPickerToggleMode.Other,
+                IsDoomMap: true,
+                IsUdmfMap: false,
+                SelectedThings: 0,
+                HasHighlightedThing: false,
+                SelectedSectors: 0,
+                HasHighlightedSector: false,
+                SelectedVisualThings: 0,
+                SelectedVisualSectors: 0);
         }
 
-        if (_map.SelectedSectorsCount > 0)
-        {
-            OnSectorColor(sender, e);
-            return;
-        }
+        return new ColorPickerToggleContext(
+            ColorPickerModeForCurrentEditorState(),
+            IsDoomMap: _mapFormat == MapFormat.Doom,
+            IsUdmfMap: _mapFormat == MapFormat.Udmf,
+            SelectedThings: _map.SelectedThingsCount,
+            HasHighlightedThing: false,
+            SelectedSectors: _map.SelectedSectorsCount,
+            HasHighlightedSector: false,
+            SelectedVisualThings: MapView.SelectedVisualThingsForActions().Count,
+            SelectedVisualSectors: MapView.SelectedVisualSurfacesForActions().Count);
+    }
 
-        SetStatus(ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf)
-            ? "Select some lights, sectors or surfaces first!"
-            : ColorPickerModel.NoDynamicLightsWarning);
+    private ColorPickerToggleMode ColorPickerModeForCurrentEditorState()
+    {
+        if (MapView.In3DMode) return ColorPickerToggleMode.Visual;
+        return MapView.CurrentEditMode switch
+        {
+            MapControl.EditMode.Things => ColorPickerToggleMode.Things,
+            MapControl.EditMode.Sectors => ColorPickerToggleMode.Sectors,
+            _ => ColorPickerToggleMode.Other,
+        };
     }
 
     private IReadOnlyList<string> ArgTitles(int thingType)

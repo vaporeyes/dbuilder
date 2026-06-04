@@ -666,7 +666,11 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);", body, StringComparison.Ordinal);
         Assert.Contains("private void OnToggleLightPanel(object? sender, RoutedEventArgs e)", body, StringComparison.Ordinal);
-        Assert.Contains("ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings())", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.ToggleLightPanelDecision(ColorPickerToggleContext())", body, StringComparison.Ordinal);
+        Assert.Contains("private ColorPickerToggleContext ColorPickerToggleContext()", body, StringComparison.Ordinal);
+        Assert.Contains("private ColorPickerToggleMode ColorPickerModeForCurrentEditorState()", body, StringComparison.Ordinal);
+        Assert.Contains("SelectedVisualThings: MapView.SelectedVisualThingsForActions().Count", body, StringComparison.Ordinal);
+        Assert.Contains("SelectedVisualSectors: MapView.SelectedVisualSurfacesForActions().Count", body, StringComparison.Ordinal);
         Assert.Contains("OnDynamicLightColor(sender, e);", body, StringComparison.Ordinal);
         Assert.Contains("OnSectorColor(sender, e);", body, StringComparison.Ordinal);
     }
