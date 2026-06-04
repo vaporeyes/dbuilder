@@ -529,6 +529,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
   - [x] Keep root PK3 flat and texture images opt-in through UDB resource options.
   - [x] Resolve extension-bearing VOXELDEF file names from the PK3 root like UDB.
+  - [x] Require exact file extensions for path-qualified PK3 and directory image lookups like UDB.
   - [x] Keep root directory flat and texture images opt-in through UDB resource options.
   - [x] Honor config-driven texture and flat namespace mixing for lookups and browsers.
   - [x] Resolve and prioritize simple WAD flats from configured flat ranges.

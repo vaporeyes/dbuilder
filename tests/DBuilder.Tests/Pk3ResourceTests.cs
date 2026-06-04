@@ -238,6 +238,22 @@ public class Pk3ResourceTests
     }
 
     [Fact]
+    public void PathQualifiedPk3LookupsRequireExactFileExtensionLikeUdb()
+    {
+        string path = TestArtifacts.BuildPk3(
+            ("textures/ROCK.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.NotNull(rm.GetWallTexture("textures/ROCK.png"));
+            Assert.Null(rm.GetWallTexture("textures/ROCK.lmp"));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
     public void RootWadInsidePk3ProvidesPaletteAndFlats()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");

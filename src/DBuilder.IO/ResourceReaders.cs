@@ -654,7 +654,7 @@ internal abstract class FolderResourceReader : IResourceReader
         string[] folders = includeMixedNamespaces
             ? new[] { "patches", "textures", "flats", "sprites", "graphics" }
             : new[] { "patches" };
-        var image = Decode(Find(name, folders), palette, preferFlat: false);
+        var image = Decode(Find(name, folders, allowPathTitleFallback: true), palette, preferFlat: false);
         if (image != null) return image;
 
         return null;
@@ -827,9 +827,15 @@ internal abstract class FolderResourceReader : IResourceReader
         return null;
     }
 
-    private byte[]? Find(string name, params string[] folders)
+    private byte[]? Find(string name, params string[] folders) => Find(name, folders, allowPathTitleFallback: false);
+
+    private byte[]? Find(string name, string[] folders, bool allowPathTitleFallback)
     {
-        if (IsPathQualified(name) && TryFindPath(name, out var bytes)) return bytes;
+        if (IsPathQualified(name))
+        {
+            if (TryFindPath(name, out var bytes)) return bytes;
+            if (allowPathTitleFallback && TryFindPathTitle(name, out bytes)) return bytes;
+        }
 
         string key = name.ToUpperInvariant();
         foreach (var f in folders)
@@ -840,15 +846,28 @@ internal abstract class FolderResourceReader : IResourceReader
     private bool TryFindPath(string path, out byte[] bytes)
     {
         string normalized = path.Replace('\\', '/').TrimStart('/');
-        int slash = normalized.LastIndexOf('/');
-        string folder = slash >= 0 ? normalized.Substring(0, slash).ToLowerInvariant() : "";
-        string file = slash >= 0 ? normalized.Substring(slash + 1) : normalized;
-        int dot = file.LastIndexOf('.');
-        string baseName = (dot >= 0 ? file.Substring(0, dot) : file).ToUpperInvariant();
-        if (entries.TryGetValue(folder + "/" + baseName, out var read))
+        if (files.TryGetValue(normalized, out var read))
         {
             bytes = read();
             return true;
+        }
+
+        bytes = Array.Empty<byte>();
+        return false;
+    }
+
+    private bool TryFindPathTitle(string path, out byte[] bytes)
+    {
+        string normalized = path.Replace('\\', '/').TrimStart('/');
+        string? folder = Path.GetDirectoryName(normalized)?.Replace('\\', '/');
+        if (!string.IsNullOrWhiteSpace(folder))
+        {
+            string key = folder.ToLowerInvariant() + "/" + Path.GetFileNameWithoutExtension(normalized).ToUpperInvariant();
+            if (entries.TryGetValue(key, out var read))
+            {
+                bytes = read();
+                return true;
+            }
         }
 
         bytes = Array.Empty<byte>();

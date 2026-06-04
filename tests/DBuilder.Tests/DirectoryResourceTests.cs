@@ -74,6 +74,23 @@ public class DirectoryResourceTests
     }
 
     [Fact]
+    public void PathQualifiedDirectoryLookupsRequireExactFileExtensionLikeUdb()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            File.WriteAllBytes(Path.Combine(dir, "textures", "ROCK.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 10, 11, 12, 255)));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(dir);
+
+            Assert.NotNull(rm.GetWallTexture("textures/ROCK.png"));
+            Assert.Null(rm.GetWallTexture("textures/ROCK.lmp"));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    [Fact]
     public void DirectoryOverlaidUnderAWadResolvesBoth()
     {
         // A base WAD-less manager: directory provides everything; sprite rotation fallback still applies.
