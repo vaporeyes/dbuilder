@@ -307,7 +307,7 @@ public static class UdbScriptDiscovery
         foreach (UdbScriptEnumValue value in enumValues)
         {
             if (value.Key == defaultText)
-                return value.Label ?? value.Key;
+                return value.Label;
         }
 
         return null;
