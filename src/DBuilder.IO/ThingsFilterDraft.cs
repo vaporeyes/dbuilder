@@ -76,6 +76,7 @@ public sealed class ThingsFilterDraft
             || ThingAngle != -1
             || ThingZHeight != int.MinValue
             || ThingAction != -1
+            || HasThingArg()
             || ThingTag != -1
             || RequiredFields.Count > 0
             || ForbiddenFields.Count > 0
@@ -108,4 +109,11 @@ public sealed class ThingsFilterDraft
 
     private static int NormalizeDisplayMode(int displayMode)
         => Math.Clamp(displayMode, 0, 2);
+
+    private bool HasThingArg()
+    {
+        foreach (int arg in ThingArgs)
+            if (arg != -1) return true;
+        return false;
+    }
 }

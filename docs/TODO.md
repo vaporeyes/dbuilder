@@ -920,6 +920,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
   - [x] Add custom things filter list add, delete, sort, and active-name preservation behavior.
   - [x] Preserve active custom things filter selection by stable key after renames.
+  - [x] Treat explicit action arguments as valid custom things filter criteria.
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.

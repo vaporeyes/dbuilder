@@ -315,8 +315,9 @@ public class ThingsFilterEvaluatorTests
         Assert.False(draft.IsValid());
 
         draft.ThingArgs[0] = 7;
-        Assert.False(draft.IsValid());
+        Assert.True(draft.IsValid());
 
+        draft.ThingArgs[0] = -1;
         draft.RequiredFields.Add("skill1");
         Assert.True(draft.IsValid());
     }
