@@ -115,6 +115,24 @@ maplumpnames
     }
 
     [Fact]
+    public void MapLumpNamesKeepCaseDistinctEntriesLikeUdb()
+    {
+        const string cfg = """
+            maplumpnames
+            {
+                DATA { required = true; }
+                data { forbidden = true; }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(2, gc.MapLumpNames.Count);
+        Assert.True(gc.MapLumpNames["DATA"].Required);
+        Assert.True(gc.MapLumpNames["data"].Forbidden);
+    }
+
+    [Fact]
     public void IsMapLumpExcludesMarkerAndUnknowns()
     {
         var gc = GameConfiguration.FromText(Cfg);

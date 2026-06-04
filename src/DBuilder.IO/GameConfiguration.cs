@@ -389,7 +389,7 @@ public sealed class GameConfiguration
     private readonly List<GeneralizedOption> genSectorEffects = new();
     private readonly List<FlagTranslation> linedefFlagsTranslation = new();
     private readonly List<FlagTranslation> thingFlagsTranslation = new();
-    private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, MapLumpInfo> mapLumpNames = new(StringComparer.Ordinal);
     private readonly List<RequiredArchiveInfo> requiredArchives = new();
     private readonly List<LinedefActivationInfo> linedefActivations = new();
     private readonly List<TextureSetInfo> textureSets = new();
@@ -2362,7 +2362,13 @@ public sealed class GameConfiguration
 
     /// <summary>True when a lump name is a configured map lump (excluding the ~MAP marker placeholder).</summary>
     public bool IsMapLump(string name)
-        => mapLumpNames.TryGetValue(name, out var info) && !info.IsMarker;
+    {
+        foreach (var info in mapLumpNames.Values)
+            if (string.Equals(info.Name, name, StringComparison.OrdinalIgnoreCase) && !info.IsMarker)
+                return true;
+
+        return false;
+    }
 
     /// <summary>Rejects map marker names that overlap configured map lump names, matching UDB ConfigurationInfo.ValidateMapName.</summary>
     public bool ValidateMapName(string name)
