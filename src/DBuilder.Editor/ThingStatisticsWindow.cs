@@ -15,7 +15,8 @@ namespace DBuilder.Editor;
 public sealed class ThingStatisticsWindow : Window
 {
     private readonly StackPanel _rows = new() { Margin = new Avalonia.Thickness(10, 0, 10, 10), Spacing = 3 };
-    private readonly IReadOnlyList<ThingStatisticRow> _allRows;
+    private readonly IReadOnlyList<ThingTypeStatistic> _usedTypes;
+    private readonly GameConfiguration? _config;
     private readonly CheckBox _hideUnused = new() { Content = "Hide unused thing types", IsChecked = true };
 
     /// <summary>Raised when the user requests selecting all things with a type.</summary>
@@ -28,13 +29,16 @@ public sealed class ThingStatisticsWindow : Window
         Height = 460;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        _allRows = BuildRows(usedTypes, config);
+        _usedTypes = usedTypes;
+        _config = config;
 
         var root = new DockPanel();
         var top = new StackPanel { Margin = new Avalonia.Thickness(10, 8), Spacing = 5 };
         top.Children.Add(new TextBlock
         {
-            Text = ThingStatisticsWindowModel.HeaderText(usedTypes.Sum(t => t.Count), _allRows.Count),
+            Text = ThingStatisticsWindowModel.HeaderText(
+                usedTypes.Sum(t => t.Count),
+                ThingStatisticsWindowModel.BuildRows(usedTypes, config, hideUnused: false).Count),
             Foreground = Brushes.LightSkyBlue,
         });
         _hideUnused.IsCheckedChanged += (_, _) => RebuildRows();
@@ -52,32 +56,8 @@ public sealed class ThingStatisticsWindow : Window
         _rows.Children.Clear();
         _rows.Children.Add(HeaderRow());
         bool hideUnused = _hideUnused.IsChecked == true;
-        foreach (var row in _allRows)
-        {
-            if (hideUnused && row.Count == 0) continue;
+        foreach (var row in ThingStatisticsWindowModel.BuildRows(_usedTypes, _config, hideUnused))
             _rows.Children.Add(DataRow(row));
-        }
-    }
-
-    private static IReadOnlyList<ThingStatisticRow> BuildRows(IReadOnlyList<ThingTypeStatistic> usedTypes, GameConfiguration? config)
-    {
-        var counts = usedTypes.ToDictionary(t => t.Type, t => t.Count);
-        var rows = new List<ThingStatisticRow>();
-
-        if (config != null)
-        {
-            foreach (var info in config.Things.Values.OrderBy(t => t.Index))
-            {
-                counts.TryGetValue(info.Index, out int count);
-                rows.Add(new ThingStatisticRow(info.Index, info.Title, string.IsNullOrEmpty(info.ClassName) ? "-" : info.ClassName, count));
-                counts.Remove(info.Index);
-            }
-        }
-
-        foreach (var kv in counts.OrderBy(k => k.Key))
-            rows.Add(new ThingStatisticRow(kv.Key, "Unknown thing", "-", kv.Value));
-
-        return rows;
     }
 
     private static Grid HeaderRow()
@@ -90,7 +70,7 @@ public sealed class ThingStatisticsWindow : Window
         return grid;
     }
 
-    private Grid DataRow(ThingStatisticRow row)
+    private Grid DataRow(ThingStatisticsRow row)
     {
         var grid = RowGrid();
         AddText(grid, row.Type.ToString(), 0, Brushes.Khaki);
@@ -138,6 +118,4 @@ public sealed class ThingStatisticsWindow : Window
         Grid.SetColumn(block, column);
         grid.Children.Add(block);
     }
-
-    private sealed record ThingStatisticRow(int Type, string Title, string ClassName, int Count);
 }

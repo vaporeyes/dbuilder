@@ -1087,6 +1087,40 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ThingStatisticsWindowModelBuildsRowsLikeUdbThingStatisticsForm()
+    {
+        var config = GameConfiguration.FromText("""
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+                    3001 { title = "Imp"; class = "DoomImp"; }
+                    3002 { title = "Demon"; }
+                }
+            }
+            """);
+        var used = new[]
+        {
+            new ThingTypeStatistic(3001, 2),
+            new ThingTypeStatistic(9, 1),
+        };
+
+        IReadOnlyList<ThingStatisticsRow> allRows = ThingStatisticsWindowModel.BuildRows(used, config, hideUnused: false);
+        IReadOnlyList<ThingStatisticsRow> usedRows = ThingStatisticsWindowModel.BuildRows(used, config, hideUnused: true);
+
+        Assert.Equal(
+            new[]
+            {
+                new ThingStatisticsRow(9, "Unknown thing", "-", 1),
+                new ThingStatisticsRow(3001, "Imp", "DoomImp", 2),
+                new ThingStatisticsRow(3002, "Demon", "-", 0),
+            },
+            allRows);
+        Assert.Equal(new[] { 9, 3001 }, usedRows.Select(row => row.Type).ToArray());
+    }
+
+    [Fact]
     public void NextFreeTagSkipsUsed()
     {
         var map = Build();
