@@ -276,6 +276,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.view-mode-brightness", "View Brightness Levels", "Menu", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.view-mode-floors", "View Floor Textures", "Menu", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.view-mode-ceilings", "View Ceiling Textures", "Menu", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.flooralignmode", "Floor Align Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.ceilingalignmode", "Ceiling Align Mode", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.next-view-mode", "Next View Mode", "Menu", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.previous-view-mode", "Previous View Mode", "Menu", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.draw-sector", "Draw sector", "D", EditorCommandScope.Map2D),

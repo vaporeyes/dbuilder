@@ -5841,9 +5841,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SetViewMode2D(ClassicViewMode.Brightness);
                 return true;
             case "map2d.view-mode-floors":
+            case "map2d.flooralignmode":
                 SetViewMode2D(ClassicViewMode.FloorTextures);
                 return true;
             case "map2d.view-mode-ceilings":
+            case "map2d.ceilingalignmode":
                 SetViewMode2D(ClassicViewMode.CeilingTextures);
                 return true;
             case "map2d.next-view-mode":

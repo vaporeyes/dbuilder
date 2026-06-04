@@ -1095,6 +1095,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.flooralignmode", "Floor Align Mode")]
+    [InlineData("map2d.ceilingalignmode", "Ceiling Align Mode")]
+    public void FlatAlignModeCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
     [InlineData("map2d.toggle-full-brightness", EditorCommandScope.Map2D)]
     [InlineData("map3d.toggle-full-brightness", EditorCommandScope.Map3D)]
     public void FullBrightnessCommandsMatchUdbActionSurface(string commandId, EditorCommandScope scope)

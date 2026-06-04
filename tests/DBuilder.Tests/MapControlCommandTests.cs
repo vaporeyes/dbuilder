@@ -582,6 +582,8 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.linedefsmode", "SetEditMode(EditMode.Linedefs)")]
     [InlineData("map2d.sectorsmode", "SetEditMode(EditMode.Sectors)")]
     [InlineData("map2d.thingsmode", "SetEditMode(EditMode.Things)")]
+    [InlineData("map2d.flooralignmode", "SetViewMode2D(ClassicViewMode.FloorTextures)")]
+    [InlineData("map2d.ceilingalignmode", "SetViewMode2D(ClassicViewMode.CeilingTextures)")]
     [InlineData("map2d.raisebrightness8", "AdjustSectorBrightness(raise: true)")]
     [InlineData("map2d.lowerbrightness8", "AdjustSectorBrightness(raise: false)")]
     [InlineData("map2d.applylightfogflag", "ApplyLightFogFlag()")]
