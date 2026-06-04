@@ -27,6 +27,8 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(sections, section => section.Title == "3D navigation");
         Assert.All(sections, section => Assert.Contains(section.Title, ShortcutHelpModel.GroupTitles));
         Assert.DoesNotContain(sections.SelectMany(section => section.Rows), row => row.GestureText == "-");
+        Assert.All(sections, section =>
+            Assert.Equal(section.Rows.OrderBy(row => row.Command.Title, StringComparer.Ordinal), section.Rows));
     }
 
     [Fact]
