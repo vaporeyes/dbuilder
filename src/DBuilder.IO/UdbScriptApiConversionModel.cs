@@ -3716,8 +3716,14 @@ public sealed class UdbScriptMapWrapper
         if (config == null) return;
 
         thing.UdmfFlags.Clear();
+        thing.Flags = 0;
         foreach (string flag in config.DefaultThingFlags)
-            thing.SetFlag(flag, true);
+        {
+            if (mapFormat == MapFormat.Udmf)
+                thing.SetFlag(flag, true);
+            else if (int.TryParse(flag, NumberStyles.Integer, CultureInfo.InvariantCulture, out int bit) && bit > 0)
+                thing.Flags |= bit;
+        }
 
         ThingTypeInfo? info = config.GetThing(thing.Type);
         if (info == null) return;

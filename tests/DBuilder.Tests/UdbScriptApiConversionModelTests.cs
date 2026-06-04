@@ -1656,7 +1656,7 @@ localsidedeftextureoffsets = true;
             }
             """);
         var map = new MapSet();
-        var wrapper = new UdbScriptMapWrapper(map, config: config);
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Udmf, config: config);
 
         UdbScriptThingWrapper thing = wrapper.createThing(new UdbScriptVector3DWrapper(64, 96, 12), type: 3001);
 
@@ -1666,6 +1666,40 @@ localsidedeftextureoffsets = true;
         Assert.True(thing.Thing.IsFlagSet("skill1"));
         Assert.True(thing.Thing.IsFlagSet("ambush"));
         Assert.Equal(new[] { 7, 0, 12, 0, 0 }, thing.Thing.Args);
+    }
+
+    [Fact]
+    public void MapWrapperCreateThingAppliesConfiguredNumericFlagsLikeUdbScript()
+    {
+        var config = GameConfiguration.FromText("""
+            thingflags
+            {
+                1 = "Easy";
+                2 = "Medium";
+            }
+            defaultthingflags
+            {
+                1;
+                2;
+            }
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+                    3001 { title = "Imp"; }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Doom, config: config);
+
+        UdbScriptThingWrapper thing = wrapper.createThing(new object[] { 64.0, 96.0 }, type: 3001);
+
+        Assert.Equal(3, thing.Thing.Flags);
+        Assert.True(thing.flags["1"]);
+        Assert.True(thing.flags["2"]);
+        Assert.Empty(thing.Thing.UdmfFlags);
     }
 
     [Fact]
