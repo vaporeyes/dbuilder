@@ -1894,11 +1894,15 @@ public sealed class GameConfiguration
             args ??= new ArgInfo[5];
             string title = GetString(ad, "title", "Argument " + (i + 1).ToString(CultureInfo.InvariantCulture));
             int type = GetInt(ad, "type", 0);
+            string renderStyle = ParseArgRenderStyle(GetString(ad, "renderstyle", ""));
+            bool hasRenderStyle = renderStyle.Length > 0;
+            int minRange = hasRenderStyle ? GetPositiveArgRange(ad, "minrange") : 0;
+            int maxRange = hasRenderStyle ? GetPositiveArgRange(ad, "maxrange") : 0;
             args[i] = new ArgInfo
             {
                 Title = title,
                 Used = true,
-                ToolTip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine),
+                ToolTip = ConfigArgToolTip(ad, minRange, maxRange),
                 Type = type,
                 Enum = GetReferenceName(ad["enum"]),
                 Flags = GetReferenceName(ad["flags"]),
@@ -1907,12 +1911,12 @@ public sealed class GameConfiguration
                 Default = GetInt(ad, "default", 0),
                 DefaultValue = ad["default"] ?? 0,
                 TargetClasses = type == (int)UniversalType.ThingTag ? ParseTargetClasses(GetString(ad, "targetclasses", "")) : EmptyTargetClasses,
-                RenderStyle = GetString(ad, "renderstyle", "").ToLowerInvariant(),
-                RenderColor = ParseArgColor(GetString(ad, "rendercolor", ""), alpha: 192),
-                MinRange = GetInt(ad, "minrange", 0),
-                MaxRange = GetInt(ad, "maxrange", 0),
-                MinRangeColor = ParseArgColor(GetString(ad, "minrangecolor", ""), alpha: 96),
-                MaxRangeColor = ParseArgColor(GetString(ad, "maxrangecolor", ""), alpha: 96),
+                RenderStyle = renderStyle,
+                RenderColor = hasRenderStyle ? ParseArgColor(GetString(ad, "rendercolor", ""), alpha: 192) : null,
+                MinRange = minRange,
+                MaxRange = maxRange,
+                MinRangeColor = minRange > 0 ? ParseArgColor(GetString(ad, "minrangecolor", ""), alpha: 96) : null,
+                MaxRangeColor = maxRange > 0 ? ParseArgColor(GetString(ad, "maxrangecolor", ""), alpha: 96) : null,
                 Str = GetBool(ad, "str", false),
                 TitleStr = GetString(ad, "titlestr", title),
             };
@@ -1924,6 +1928,29 @@ public sealed class GameConfiguration
 
     private static string? GetReferenceName(object? value)
         => value is null or IDictionary ? null : Convert.ToString(value, CultureInfo.InvariantCulture);
+
+    private static string ParseArgRenderStyle(string value)
+    {
+        string normalized = value.ToLowerInvariant();
+        return normalized is "circle" or "rectangle" ? normalized : "";
+    }
+
+    private static int GetPositiveArgRange(IDictionary ad, string key)
+    {
+        string text = GetString(ad, key, "");
+        return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) && value > 0 ? value : 0;
+    }
+
+    private static string ConfigArgToolTip(IDictionary ad, int minRange, int maxRange)
+    {
+        string tooltip = GetString(ad, "tooltip", "").Replace("\\n", Environment.NewLine);
+        if (minRange <= 0 && maxRange <= 0) return tooltip;
+
+        if (tooltip.Length > 0) tooltip += Environment.NewLine;
+        if (minRange > 0 && maxRange > 0) return tooltip + "Range: " + minRange.ToString(CultureInfo.InvariantCulture) + " - " + maxRange.ToString(CultureInfo.InvariantCulture);
+        if (minRange > 0) return tooltip + "Minimum range: " + minRange.ToString(CultureInfo.InvariantCulture);
+        return tooltip + "Maximum range: " + maxRange.ToString(CultureInfo.InvariantCulture);
+    }
 
     // Parses the "enums" block: UDB stores string value/title pairs; the int map is kept for existing callers.
     private void ParseEnums(IDictionary enumsDict)

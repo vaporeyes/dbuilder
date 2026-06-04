@@ -1440,6 +1440,52 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ArgumentRangeHintsRequireRenderStyleLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                special
+                {
+                    80
+                    {
+                        title = "Special";
+                        arg0
+                        {
+                            tooltip = "No helper";
+                            minrange = 16;
+                            minrangecolor = "#102030";
+                            maxrange = 256;
+                            maxrangecolor = "#405060";
+                        }
+                        arg1
+                        {
+                            tooltip = "With helper";
+                            renderstyle = "rectangle";
+                            minrange = 16;
+                            maxrange = 256;
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var args = gc.GetLinedefAction(80)!.Args;
+        Assert.Equal("No helper", args[0].ToolTip);
+        Assert.Equal("", args[0].RenderStyle);
+        Assert.Equal(0, args[0].MinRange);
+        Assert.Null(args[0].MinRangeColor);
+        Assert.Equal(0, args[0].MaxRange);
+        Assert.Null(args[0].MaxRangeColor);
+        Assert.Equal("With helper" + Environment.NewLine + "Range: 16 - 256", args[1].ToolTip);
+        Assert.Equal("rectangle", args[1].RenderStyle);
+        Assert.Equal(16, args[1].MinRange);
+        Assert.Equal(256, args[1].MaxRange);
+    }
+
+    [Fact]
     public void LinedefActionZeroIsNone()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

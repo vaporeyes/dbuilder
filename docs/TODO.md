@@ -916,6 +916,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse inline argument enum and flag metadata.
   - [x] Parse argument enum and flag references with UDB-style scalar value conversion.
   - [x] Restrict argument target classes to ThingTag args like UDB.
+  - [x] Gate argument range hints on render style like UDB.
   - [x] Preserve configured argument usage independent of title text.
   - [x] Parse compact scalar thing type definitions.
   - [x] Parse compact scalar thing type titles with UDB-style value conversion.

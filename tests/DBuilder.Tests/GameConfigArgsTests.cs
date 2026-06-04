@@ -128,7 +128,7 @@ thingtypes
         Assert.Equal("spawnflags", a.Args[1].Flags);
         Assert.Equal(16, a.Args[1].Default);
         Assert.Equal(16, a.Args[1].DefaultValue);
-        Assert.Equal("How fast\nit rotates", a.Args[1].ToolTip);
+        Assert.Equal("How fast\nit rotates" + Environment.NewLine + "Range: 32 - 256", a.Args[1].ToolTip);
         Assert.Empty(a.Args[1].TargetClasses);
         Assert.Equal("circle", a.Args[1].RenderStyle);
         Assert.Equal(32, a.Args[1].MinRange);
