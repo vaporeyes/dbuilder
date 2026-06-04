@@ -3912,9 +3912,6 @@ public static class UdbScriptApiConversionModel
         if (data is ExpandoObject expando)
             return VectorFromDictionary((IDictionary<string, object?>)expando);
 
-        if (data is IReadOnlyDictionary<string, object?> dictionary)
-            return VectorFromDictionary(dictionary);
-
         throw new UdbScriptVectorConversionException(VectorConversionFailureMessage);
     }
 
@@ -3978,27 +3975,6 @@ public static class UdbScriptApiConversionModel
             3 => new Vector3D(values[0], values[1], values[2]),
             _ => throw new UdbScriptVectorConversionException(VectorConversionFailureMessage),
         };
-    }
-
-    private static Vector3D VectorFromDictionary(IReadOnlyDictionary<string, object?> values)
-    {
-        double x = double.NaN;
-        double y = double.NaN;
-        double z = 0.0;
-
-        if (values.ContainsKey("x"))
-            x = ConvertMember("x", values["x"]);
-
-        if (values.ContainsKey("y"))
-            y = ConvertMember("y", values["y"]);
-
-        if (values.ContainsKey("z"))
-            z = ConvertMember("z", values["z"]);
-
-        if (!double.IsNaN(x) && !double.IsNaN(y) && !double.IsNaN(z))
-            return new Vector3D(x, y, z);
-
-        throw new UdbScriptVectorConversionException(VectorConversionFailureMessage);
     }
 
     private static Vector3D VectorFromDictionary(IDictionary<string, object?> values)

@@ -45,16 +45,21 @@ public class UdbScriptApiConversionModelTests
         expando.z = "3";
 
         Assert.Equal(new Vector3D(1.5, 2, 3), UdbScriptApiConversionModel.GetVector3DFromObject(expando));
-        Assert.Equal(
-            new Vector3D(4, 5, 0),
-            UdbScriptApiConversionModel.GetVector3DFromObject(new Dictionary<string, object?> { ["x"] = 4.0, ["y"] = 5.0 }));
+        UdbScriptVectorConversionException dictionary = Assert.Throws<UdbScriptVectorConversionException>(
+            () => UdbScriptApiConversionModel.GetVector3DFromObject(new Dictionary<string, object?> { ["x"] = 4.0, ["y"] = 5.0 }));
+        Assert.Equal(UdbScriptApiConversionModel.VectorConversionFailureMessage, dictionary.Message);
 
+        dynamic missing = new ExpandoObject();
+        missing.x = 1.0;
         UdbScriptVectorConversionException missingY = Assert.Throws<UdbScriptVectorConversionException>(
-            () => UdbScriptApiConversionModel.GetVector3DFromObject(new Dictionary<string, object?> { ["x"] = 1.0 }));
+            () => UdbScriptApiConversionModel.GetVector3DFromObject(missing));
         Assert.Equal(UdbScriptApiConversionModel.VectorConversionFailureMessage, missingY.Message);
 
+        dynamic bad = new ExpandoObject();
+        bad.x = "bad";
+        bad.y = 1.0;
         UdbScriptVectorConversionException badX = Assert.Throws<UdbScriptVectorConversionException>(
-            () => UdbScriptApiConversionModel.GetVector3DFromObject(new Dictionary<string, object?> { ["x"] = "bad", ["y"] = 1.0 }));
+            () => UdbScriptApiConversionModel.GetVector3DFromObject(bad));
         Assert.StartsWith("Can not convert 'x' property of data:", badX.Message, StringComparison.Ordinal);
     }
 
