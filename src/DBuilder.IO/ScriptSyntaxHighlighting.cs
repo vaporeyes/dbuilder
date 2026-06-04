@@ -193,14 +193,15 @@ public static class ScriptSyntaxHighlighting
             && argsClosePosition > -1
             && scriptConfiguration.ArgumentDelimiter.Length > 0)
         {
-            string argsText = definition.Substring(argsOpenPosition + 1, argsClosePosition - argsOpenPosition - 1);
-            string[] args = argsText.Split(scriptConfiguration.ArgumentDelimiter[0]);
-            if (position.ArgumentIndex >= 0 && position.ArgumentIndex < args.Length)
+            if (FindArgumentSpan(
+                    scriptConfiguration,
+                    definition,
+                    argsOpenPosition,
+                    argsClosePosition,
+                    position.ArgumentIndex) is { } span)
             {
-                int argOffset = 0;
-                for (int i = 0; i < position.ArgumentIndex; i++) argOffset += args[i].Length + 1;
-                highlightStart = argsOpenPosition + argOffset + 1;
-                highlightEnd = highlightStart + args[position.ArgumentIndex].Length;
+                highlightStart = span.Start;
+                highlightEnd = span.End;
             }
         }
 
@@ -210,6 +211,50 @@ public static class ScriptSyntaxHighlighting
             position.FunctionStartOffset,
             highlightStart,
             highlightEnd);
+    }
+
+    private static (int Start, int End)? FindArgumentSpan(
+        ScriptConfigurationInfo scriptConfiguration,
+        string definition,
+        int argsOpenPosition,
+        int argsClosePosition,
+        int targetArgumentIndex)
+    {
+        if (targetArgumentIndex < 0 || scriptConfiguration.ArgumentDelimiter.Length == 0) return null;
+
+        char argumentDelimiter = scriptConfiguration.ArgumentDelimiter[0];
+        var openingDelimiters = new HashSet<char>();
+        var closingDelimiters = new HashSet<char>();
+        AddDelimiter(openingDelimiters, scriptConfiguration.FunctionOpen);
+        AddDelimiter(openingDelimiters, scriptConfiguration.ArrayOpen);
+        AddDelimiter(openingDelimiters, scriptConfiguration.CodeBlockOpen);
+        AddDelimiter(closingDelimiters, scriptConfiguration.FunctionClose);
+        AddDelimiter(closingDelimiters, scriptConfiguration.ArrayClose);
+        AddDelimiter(closingDelimiters, scriptConfiguration.CodeBlockClose);
+
+        int argumentIndex = 0;
+        int argumentStart = argsOpenPosition + 1;
+        int bracketLevel = 0;
+        for (int i = argsOpenPosition + 1; i < argsClosePosition; i++)
+        {
+            char current = definition[i];
+            if (openingDelimiters.Contains(current))
+            {
+                bracketLevel++;
+            }
+            else if (closingDelimiters.Contains(current))
+            {
+                if (bracketLevel > 0) bracketLevel--;
+            }
+            else if (current == argumentDelimiter && bracketLevel == 0)
+            {
+                if (argumentIndex == targetArgumentIndex) return (argumentStart, i);
+                argumentIndex++;
+                argumentStart = i + 1;
+            }
+        }
+
+        return argumentIndex == targetArgumentIndex ? (argumentStart, argsClosePosition) : null;
     }
 
     private static void AddSet(

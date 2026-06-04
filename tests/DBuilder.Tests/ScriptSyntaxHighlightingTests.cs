@@ -312,6 +312,27 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void FunctionCallTipHighlightIgnoresConfiguredNestedDelimitersLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            functionopen = "(";
+            functionclose = ")";
+            codeblockopen = "{";
+            codeblockclose = "}";
+            arrayopen = "[";
+            arrayclose = "]";
+            argumentdelimiter = ",";
+            keywords { Thing_Spawn = "Thing_Spawn([tid, alias], {type, flags}, angle)"; }
+            """);
+        var position = new ScriptFunctionCallPosition("Thing_Spawn", 2, 0);
+
+        var tip = ScriptSyntaxHighlighting.BuildFunctionCallTip(config, position);
+
+        Assert.NotNull(tip);
+        Assert.Equal(" angle", tip.Definition[tip.HighlightStart..tip.HighlightEnd]);
+    }
+
+    [Fact]
     public void LeavesFunctionCallTipHighlightEmptyWhenArgumentIsMissingLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""
