@@ -391,6 +391,12 @@ public static class UsdfDialogEditorModel
     public const int DefaultClientWidth = 942;
     public const int DefaultClientHeight = 612;
     public const int TreeWidth = 257;
+    public static UsdfDialogEditorWindowState DefaultWindowState { get; } = new(
+        0,
+        0,
+        DefaultClientWidth,
+        DefaultClientHeight,
+        NormalWindowState);
 
     public static UsdfDialogEditorAction Action { get; } = new(
         ActionId,

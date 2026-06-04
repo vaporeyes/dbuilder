@@ -14,11 +14,25 @@ public sealed class UsdfConversationWindow : Window
     private readonly ListBox _list = new();
 
     public UsdfConversationWindow(UsdfParseResult result)
+        : this(result, UsdfDialogEditorModel.DefaultWindowState, applyPosition: false)
+    {
+    }
+
+    public UsdfConversationWindow(UsdfParseResult result, UsdfDialogEditorWindowState windowState)
+        : this(result, windowState, applyPosition: true)
+    {
+    }
+
+    private UsdfConversationWindow(UsdfParseResult result, UsdfDialogEditorWindowState windowState, bool applyPosition)
     {
         Title = UsdfDialogEditorModel.MainFormTitle;
-        Width = UsdfDialogEditorModel.DefaultClientWidth;
-        Height = UsdfDialogEditorModel.DefaultClientHeight;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        Width = Math.Max(1, windowState.SizeWidth);
+        Height = Math.Max(1, windowState.SizeHeight);
+        WindowState = (Avalonia.Controls.WindowState)windowState.WindowState;
+        if (applyPosition)
+            Position = new PixelPoint(windowState.PositionX, windowState.PositionY);
+        else
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         var root = new DockPanel { Margin = new Thickness(10) };
         var header = new StackPanel { Spacing = 4 };

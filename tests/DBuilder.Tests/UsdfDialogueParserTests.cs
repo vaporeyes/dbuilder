@@ -34,6 +34,14 @@ public class UsdfDialogueParserTests
         Assert.Equal("Dialog Editor", UsdfDialogEditorModel.MainFormTitle);
         Assert.Equal(942, UsdfDialogEditorModel.DefaultClientWidth);
         Assert.Equal(612, UsdfDialogEditorModel.DefaultClientHeight);
+        Assert.Equal(
+            new UsdfDialogEditorWindowState(
+                0,
+                0,
+                UsdfDialogEditorModel.DefaultClientWidth,
+                UsdfDialogEditorModel.DefaultClientHeight,
+                UsdfDialogEditorModel.NormalWindowState),
+            UsdfDialogEditorModel.DefaultWindowState);
         Assert.Equal(257, UsdfDialogEditorModel.TreeWidth);
         Assert.Equal(".", UsdfDialogEditorModel.TreeMetadata.PathSeparator);
         Assert.Equal(22, UsdfDialogEditorModel.TreeMetadata.Indent);

@@ -523,8 +523,19 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/UsdfConversationWindow.cs"));
 
-        Assert.Contains("Width = UsdfDialogEditorModel.DefaultClientWidth;", body, StringComparison.Ordinal);
-        Assert.Contains("Height = UsdfDialogEditorModel.DefaultClientHeight;", body, StringComparison.Ordinal);
+        Assert.Contains(": this(result, UsdfDialogEditorModel.DefaultWindowState, applyPosition: false)", body, StringComparison.Ordinal);
+        Assert.Contains("Width = Math.Max(1, windowState.SizeWidth);", body, StringComparison.Ordinal);
+        Assert.Contains("Height = Math.Max(1, windowState.SizeHeight);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UsdfWindowAppliesDialogEditorWindowStateModel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/UsdfConversationWindow.cs"));
+
+        Assert.Contains("public UsdfConversationWindow(UsdfParseResult result, UsdfDialogEditorWindowState windowState)", body, StringComparison.Ordinal);
+        Assert.Contains("WindowState = (Avalonia.Controls.WindowState)windowState.WindowState;", body, StringComparison.Ordinal);
+        Assert.Contains("Position = new PixelPoint(windowState.PositionX, windowState.PositionY);", body, StringComparison.Ordinal);
     }
 
     [Fact]
