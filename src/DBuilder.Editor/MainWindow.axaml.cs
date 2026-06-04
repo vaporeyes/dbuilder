@@ -5327,7 +5327,7 @@ public partial class MainWindow : Window
                 HeightFactor: RandomFactor(),
                 ScaleXFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleX),
                 ScaleYFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleY),
-                SafeDistance: dialog.ResultPositionAmount,
+                SafeDistance: JitterThingSafeDistance(thing, things),
                 SectorHeight: JitterThingSectorHeight(thing))).ToList();
             changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
             changed += BuilderEffects.ApplyThingRotation(
@@ -5380,6 +5380,15 @@ public partial class MainWindow : Window
 
         int thingHeight = _config.GetThing(thing.Type)?.Height ?? 0;
         return Math.Max(0, thing.Sector.CeilHeight - thingHeight - thing.Sector.FloorHeight);
+    }
+
+    private static int JitterThingSafeDistance(Thing thing, ICollection<Thing> things)
+    {
+        Thing? closest = MapSet.NearestThing(things, thing);
+        int distance = closest is null
+            ? 512
+            : (int)Math.Round(Vector2D.Distance(thing.Position, closest.Position));
+        return distance > 0 ? distance / 2 : 0;
     }
 
     private static double RandomAngle()

@@ -229,6 +229,27 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionUsesUdbThingSafeDistanceClamp()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int safeDistanceIndex = body.IndexOf("SafeDistance: JitterThingSafeDistance(thing, things)", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private static int JitterThingSafeDistance(Thing thing, ICollection<Thing> things)", StringComparison.Ordinal);
+        int nearestIndex = body.IndexOf("Thing? closest = MapSet.NearestThing(things, thing);", helperIndex, StringComparison.Ordinal);
+        int fallbackIndex = body.IndexOf("? 512", nearestIndex, StringComparison.Ordinal);
+        int distanceIndex = body.IndexOf("Vector2D.Distance(thing.Position, closest.Position)", fallbackIndex, StringComparison.Ordinal);
+        int clampIndex = body.IndexOf("return distance > 0 ? distance / 2 : 0;", distanceIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(safeDistanceIndex > methodIndex);
+        Assert.True(helperIndex > safeDistanceIndex);
+        Assert.True(nearestIndex > helperIndex);
+        Assert.True(fallbackIndex > nearestIndex);
+        Assert.True(distanceIndex > fallbackIndex);
+        Assert.True(clampIndex > distanceIndex);
+    }
+
+    [Fact]
     public void JitterActionAppliesThingPitchAndRollOnlyInUdmf()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
