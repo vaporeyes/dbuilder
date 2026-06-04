@@ -100,11 +100,11 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualAutoAlign3DStatusText(alignX, alignY, selected));
 
     [Theory]
-    [InlineData(0, "Changed sector brightness to 0.")]
-    [InlineData(168, "Changed sector brightness to 168.")]
-    [InlineData(255, "Changed sector brightness to 255.")]
-    public void VisualBrightness3DStatusTextMatchesUdb(int brightness, string expected)
-        => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(brightness));
+    [InlineData(VisualHitKind.Floor, 0, "Changed sector brightness to 0.")]
+    [InlineData(VisualHitKind.Floor, 168, "Changed sector brightness to 168.")]
+    [InlineData(VisualHitKind.Ceiling, 255, "Changed ceiling brightness to 255.")]
+    public void VisualBrightness3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, int brightness, string expected)
+        => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(kind, brightness));
 
     [Theory]
     [InlineData("angle", 270, 0, 0, "Changed thing angle to 270.")]
@@ -593,7 +593,7 @@ public sealed class MapControlCommandTests
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(int delta)", StringComparison.Ordinal);
         int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;", methodIndex, StringComparison.Ordinal);
         int sectorWriteIndex = body.IndexOf("s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);", methodIndex, StringComparison.Ordinal);
-        int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
+        int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(brightnessStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);

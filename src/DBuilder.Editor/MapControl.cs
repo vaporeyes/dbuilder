@@ -3228,7 +3228,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
             if (done.Count == 1) EditBegun?.Invoke("Change brightness");
             s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
-            brightnessStatus = VisualBrightness3DStatusText(s.Brightness);
+            brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);
         }
         if (done.Count == 0) return;
         _geo3DDirty = true;
@@ -3238,8 +3238,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(brightnessStatus);
     }
 
-    public static string VisualBrightness3DStatusText(int brightness)
-        => "Changed sector brightness to " + brightness + ".";
+    public static string VisualBrightness3DStatusText(VisualHitKind kind, int brightness)
+        => (kind == VisualHitKind.Ceiling ? "Changed ceiling brightness to " : "Changed sector brightness to ") + brightness + ".";
 
     private void MatchBrightness3D()
     {
