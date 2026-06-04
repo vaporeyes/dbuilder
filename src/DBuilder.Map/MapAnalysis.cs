@@ -345,6 +345,14 @@ public static class MapAnalysis
         "This sidedef uses an upper or lower texture, which is not required (it will never be visible ingame). Click the Remove Texture button to remove the texture (this will also reset texture offsets and scale in UDMF map format).";
     private const string MisalignedTextureDescription =
         "Textures are not aligned on given sidedefs. Some players may not like that.";
+    private const string UnknownLinedefActionDescription =
+        "This linedef uses unknown action. This can potentially cause gameplay issues.";
+    private const string UnknownThingActionDescription =
+        "This thing uses unknown action. This can potentially cause gameplay issues.";
+    private const string UnknownSectorEffectDescription =
+        "This sector uses unknown effect. This can potentially cause gameplay issues.";
+    private const string MissingActivationDescription =
+        "This linedef has an assigned action, but no way to activate it has been set.";
 
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
@@ -902,12 +910,14 @@ public static class MapAnalysis
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
                     issues.Add(UnknownLinedefScriptIssue(line, ctx,
-                        $"Linedef references unknown ACS script name \"{scriptName}\"."));
+                        namedScript: true,
+                        message: $"Linedef references unknown ACS script name \"{scriptName}\"."));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(line.Args[0]))
             {
                 issues.Add(UnknownLinedefScriptIssue(line, ctx,
-                    $"Linedef references unknown ACS script number \"{line.Args[0]}\"."));
+                    namedScript: false,
+                    message: $"Linedef references unknown ACS script number \"{line.Args[0]}\"."));
             }
         }
 
@@ -924,12 +934,14 @@ public static class MapAnalysis
             {
                 if (ctx.ScriptNameExists != null && !ctx.ScriptNameExists(scriptName))
                     issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
-                        $"Thing references unknown ACS script name \"{scriptName}\"."));
+                        $"Thing references unknown ACS script name \"{scriptName}\".",
+                        UnknownThingScriptDescription(namedScript: true)));
             }
             else if (ctx.ScriptNumberExists != null && !ctx.ScriptNumberExists(thing.Args[0]))
             {
                 issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingScript, thing, ctx.EditThing,
-                    $"Thing references unknown ACS script number \"{thing.Args[0]}\"."));
+                    $"Thing references unknown ACS script number \"{thing.Args[0]}\".",
+                    UnknownThingScriptDescription(namedScript: false)));
             }
         }
     }
@@ -990,6 +1002,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownAction, message)
         {
+            Description = UnknownLinedefActionDescription,
             Target = line,
             Focus = LinedefMidpoint(line),
             Fixes = fixes,
@@ -1022,6 +1035,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownThingAction, message)
         {
+            Description = UnknownThingActionDescription,
             Target = thing,
             Focus = thing.Position,
             Fixes = fixes,
@@ -1054,6 +1068,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownSectorEffect, message)
         {
+            Description = UnknownSectorEffectDescription,
             Target = sector,
             Fixes = fixes,
         };
@@ -1073,13 +1088,14 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MissingActivation, message)
         {
+            Description = MissingActivationDescription,
             Target = line,
             Focus = LinedefMidpoint(line),
             Fixes = fixes,
         };
     }
 
-    private static MapIssue UnknownLinedefScriptIssue(Linedef line, MapCheckContext ctx, string message)
+    private static MapIssue UnknownLinedefScriptIssue(Linedef line, MapCheckContext ctx, bool namedScript, string message)
     {
         var fixes = new List<MapIssueFix>();
         if (ctx.EditLinedef != null)
@@ -1093,11 +1109,18 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnknownLinedefScript, message)
         {
+            Description = UnknownLinedefScriptDescription(namedScript),
             Target = line,
             Focus = LinedefMidpoint(line),
             Fixes = fixes,
         };
     }
+
+    private static string UnknownLinedefScriptDescription(bool namedScript)
+        => $"This linedef references unknown ACS script {(namedScript ? "name" : "number")}.";
+
+    private static string UnknownThingScriptDescription(bool namedScript)
+        => $"This thing references unknown ACS script {(namedScript ? "name" : "number")}.";
 
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
@@ -1207,7 +1230,12 @@ public static class MapAnalysis
     private static MapIssue DeleteThingIssue(MapIssueKind kind, Thing thing, string message)
         => DeleteThingIssue(kind, thing, null, message);
 
-    private static MapIssue DeleteThingIssue(MapIssueKind kind, Thing thing, Func<Thing, bool>? editThing, string message)
+    private static MapIssue DeleteThingIssue(
+        MapIssueKind kind,
+        Thing thing,
+        Func<Thing, bool>? editThing,
+        string message,
+        string? description = null)
     {
         var fixes = new List<MapIssueFix>();
         if (editThing != null)
@@ -1228,6 +1256,7 @@ public static class MapAnalysis
 
         return new MapIssue(MapIssueSeverity.Warning, kind, message)
         {
+            Description = description ?? message,
             Target = thing,
             Focus = thing.Position,
             Fixes = fixes,

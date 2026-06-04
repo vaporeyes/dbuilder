@@ -1728,6 +1728,7 @@ public class MapAnalysisTests
         issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownAction);
         fix = Assert.Single(issue.Fixes);
         Assert.Equal("Linedef 0 uses unknown action 4242", issue.Message);
+        Assert.Equal("This linedef uses unknown action. This can potentially cause gameplay issues.", issue.Description);
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, map.Linedefs[0].Action);
@@ -2148,6 +2149,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.UnknownLinedefScript);
         Assert.Same(line, issue.Target);
         Assert.Equal("Linedef references unknown ACS script number \"12\".", issue.Message);
+        Assert.Equal("This linedef references unknown ACS script number.", issue.Description);
     }
 
     [Fact]
@@ -2168,6 +2170,7 @@ public class MapAnalysisTests
 
         Assert.Same(line, issue.Target);
         Assert.Equal("Linedef references unknown ACS script name \"OpenDoor\".", issue.Message);
+        Assert.Equal("This linedef references unknown ACS script name.", issue.Description);
     }
 
     [Fact]
@@ -2213,6 +2216,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing references unknown ACS script name \"OpenDoor\".", issue.Message);
+        Assert.Equal("This thing references unknown ACS script name.", issue.Description);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -2350,6 +2354,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(map.Sectors[0], issue.Target);
         Assert.Equal("Sector 0 uses unknown effect 4242", issue.Message);
+        Assert.Equal("This sector uses unknown effect. This can potentially cause gameplay issues.", issue.Description);
         Assert.Equal("Remove Effect", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, map.Sectors[0].Special);
@@ -2389,6 +2394,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing 0 uses unknown action 4242", issue.Message);
+        Assert.Equal("This thing uses unknown action. This can potentially cause gameplay issues.", issue.Description);
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, thing.Action);
@@ -2450,6 +2456,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Linedef 0 has an action with no activation", issue.Message);
+        Assert.Equal("This linedef has an assigned action, but no way to activate it has been set.", issue.Description);
         Assert.Equal("Edit Linedef", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Contains("playeruse", line.UdmfFlags);
