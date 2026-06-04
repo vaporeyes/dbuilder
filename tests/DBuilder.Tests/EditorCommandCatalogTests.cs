@@ -432,8 +432,11 @@ public class EditorCommandCatalogTests
     [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
     [InlineData("window.export-object", "Export Object OBJ")]
     [InlineData("window.export-image", "Export Image PNG")]
+    [InlineData("window.exporttoimage", "Export Image PNG")]
     [InlineData("window.export-wavefront", "Export Wavefront OBJ")]
+    [InlineData("window.exporttoobj", "Export Wavefront OBJ")]
     [InlineData("window.export-idstudio", "Export idStudio")]
+    [InlineData("window.exporttoidstudio", "Export idStudio")]
     public void ImportExportToolCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -646,9 +649,26 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.delete")]
+    [InlineData("window.deleteitem")]
+    public void DeleteSelectionCommandsMatchUdbActionSurface(string commandId)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal("Remove selection", command.Title);
+        Assert.Equal("Delete", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("window.select-all", "Select all")]
     [InlineData("window.invert-selection", "Invert selection")]
     [InlineData("window.select-none", "Select none")]
+    [InlineData("window.clearselection", "Select none")]
     public void WindowSelectionCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);

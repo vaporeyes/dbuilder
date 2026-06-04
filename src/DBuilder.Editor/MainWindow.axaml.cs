@@ -1499,9 +1499,11 @@ public partial class MainWindow : Window
             case "window.paste-properties-options": OnPastePropertiesWithOptions(this, new RoutedEventArgs()); return true;
             case "window.classicpastepropertieswithoptions": OnPastePropertiesWithOptions(this, new RoutedEventArgs()); return true;
             case "window.delete": OnDelete(this, new RoutedEventArgs()); return true;
+            case "window.deleteitem": OnDelete(this, new RoutedEventArgs()); return true;
             case "window.select-all": OnSelectAll(this, new RoutedEventArgs()); return true;
             case "window.invert-selection": OnInvertSelection(this, new RoutedEventArgs()); return true;
             case "window.select-none": OnSelectNone(this, new RoutedEventArgs()); return true;
+            case "window.clearselection": OnSelectNone(this, new RoutedEventArgs()); return true;
             case "window.properties": OnEditProperties(this, new RoutedEventArgs()); return true;
             case "window.flags": OnFlags(this, new RoutedEventArgs()); return true;
             case "window.custom-fields": OnCustomFields(this, new RoutedEventArgs()); return true;
@@ -1582,8 +1584,11 @@ public partial class MainWindow : Window
             case "window.import-obj-terrain": OnImportObjTerrain(this, new RoutedEventArgs()); return true;
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
+            case "window.exporttoimage": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.export-wavefront": OnExportWavefront(this, new RoutedEventArgs()); return true;
+            case "window.exporttoobj": OnExportWavefront(this, new RoutedEventArgs()); return true;
             case "window.export-idstudio": OnExportIdStudio(this, new RoutedEventArgs()); return true;
+            case "window.exporttoidstudio": OnExportIdStudio(this, new RoutedEventArgs()); return true;
             case "window.create-prefab": OnSavePrefab(this, new RoutedEventArgs()); return true;
             case "window.insert-prefab-file": OnInsertPrefab(this, new RoutedEventArgs()); return true;
             case "window.insert-previous-prefab": OnInsertPreviousPrefab(this, new RoutedEventArgs()); return true;
