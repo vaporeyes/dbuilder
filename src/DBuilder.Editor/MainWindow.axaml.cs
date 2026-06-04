@@ -1319,11 +1319,13 @@ public partial class MainWindow : Window
         _settings.MergeGeometryMode = dlg.MergeGeometryMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.DrawLineSettings = dlg.DrawLineSettings;
+        _settings.DrawRectangleSettings = dlg.DrawRectangleSettings;
         _settings.DrawCurveSettings = dlg.DrawCurveSettings;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
         MapView.DrawLineSettings = _settings.NormalizedDrawLineSettings;
+        MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;

@@ -12,8 +12,10 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
+    private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
+    private readonly bool _drawRectangleShowGuidelines;
     private readonly int _drawCurveSegmentLength;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
@@ -35,6 +37,7 @@ public sealed class SettingsWindow : PropertyDialog
     public MergeGeometryMode MergeGeometryMode;
     public int? StatusHistoryLimit;
     public DrawLineModeSettings DrawLineSettings = new();
+    public DrawRectangleModeSettings DrawRectangleSettings = new();
     public DrawCurveModeSettings DrawCurveSettings = new();
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
@@ -57,11 +60,17 @@ public sealed class SettingsWindow : PropertyDialog
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _drawLineShowGuidelines = s.NormalizedDrawLineSettings.ShowGuidelines;
+        _drawRectangleSubdivisions = s.NormalizedDrawRectangleSettings.Subdivisions;
+        _drawRectangleBevelWidth = s.NormalizedDrawRectangleSettings.BevelWidth;
+        _drawRectangleShowGuidelines = s.NormalizedDrawRectangleSettings.ShowGuidelines;
         _drawCurveSegmentLength = s.NormalizedDrawCurveSettings.SegmentLength;
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
         _drawLineAutoCloseDrawing = AddCheckBox("Auto-close drawn lines", s.NormalizedDrawLineSettings.AutoCloseDrawing);
+        _drawRectangleContinuousDrawing = AddCheckBox("Draw rectangles continuously", s.NormalizedDrawRectangleSettings.ContinuousDrawing);
+        _drawRectangleRadialDrawing = AddCheckBox("Draw rectangles radially", s.NormalizedDrawRectangleSettings.RadialDrawing);
+        _drawRectanglePlaceThingsAtVertices = AddCheckBox("Place things at rectangle vertices", s.NormalizedDrawRectangleSettings.PlaceThingsAtVertices);
         _drawCurveContinuousDrawing = AddCheckBox("Draw curves continuously", s.NormalizedDrawCurveSettings.ContinuousDrawing);
         _drawCurveAutoCloseDrawing = AddCheckBox("Auto-close drawn curves", s.NormalizedDrawCurveSettings.AutoCloseDrawing);
         _drawCurvePlaceThingsAtVertices = AddCheckBox("Place things at curve vertices", s.NormalizedDrawCurveSettings.PlaceThingsAtVertices);
@@ -112,6 +121,13 @@ public sealed class SettingsWindow : PropertyDialog
             ContinuousDrawing: _drawLineContinuousDrawing.IsChecked == true,
             AutoCloseDrawing: _drawLineAutoCloseDrawing.IsChecked == true,
             ShowGuidelines: _drawLineShowGuidelines);
+        DrawRectangleSettings = new DrawRectangleModeSettings(
+            Subdivisions: _drawRectangleSubdivisions,
+            BevelWidth: _drawRectangleBevelWidth,
+            ContinuousDrawing: _drawRectangleContinuousDrawing.IsChecked == true,
+            ShowGuidelines: _drawRectangleShowGuidelines,
+            RadialDrawing: _drawRectangleRadialDrawing.IsChecked == true,
+            PlaceThingsAtVertices: _drawRectanglePlaceThingsAtVertices.IsChecked == true);
         DrawCurveSettings = new DrawCurveModeSettings(
             SegmentLength: _drawCurveSegmentLength,
             ContinuousDrawing: _drawCurveContinuousDrawing.IsChecked == true,

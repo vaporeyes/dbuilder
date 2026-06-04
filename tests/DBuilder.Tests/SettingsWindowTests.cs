@@ -76,6 +76,24 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawRectangleModePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawRectangleSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw rectangles continuously\", s.NormalizedDrawRectangleSettings.ContinuousDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Draw rectangles radially\", s.NormalizedDrawRectangleSettings.RadialDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Place things at rectangle vertices\", s.NormalizedDrawRectangleSettings.PlaceThingsAtVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("Subdivisions: _drawRectangleSubdivisions", body, StringComparison.Ordinal);
+        Assert.Contains("BevelWidth: _drawRectangleBevelWidth", body, StringComparison.Ordinal);
+        Assert.Contains("ShowGuidelines: _drawRectangleShowGuidelines", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawRectangleSettings = dlg.DrawRectangleSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesDrawCurveModePreferences()
     {
         Type type = typeof(SettingsWindow);
