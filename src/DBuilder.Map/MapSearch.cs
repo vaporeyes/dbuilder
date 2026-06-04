@@ -621,7 +621,8 @@ public static class MapSearch
         switch (cat)
         {
             case FindCategory.ThingAngle:
-                foreach (var t in lists.Things) if (t.Angle == from) { t.Angle = to; changed++; }
+                int normalizedAngle = Angle2D.RealToDoom(Angle2D.DoomToReal(to));
+                foreach (var t in lists.Things) if (t.Angle == from) { t.Angle = normalizedAngle; changed++; }
                 break;
             case FindCategory.LinedefAction:
                 foreach (var l in lists.Linedefs) if (NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }

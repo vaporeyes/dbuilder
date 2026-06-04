@@ -781,6 +781,22 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ReplaceThingAngleNormalizesReplacementLikeUdb()
+    {
+        var map = Build();
+
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.ThingAngle, "90", "450"));
+
+        Assert.Equal(90, map.Things[0].Angle);
+        Assert.Equal(90, map.Things[2].Angle);
+
+        Assert.Equal(2, MapSearch.Replace(map, FindCategory.ThingAngle, "90", "-90"));
+
+        Assert.Equal(270, map.Things[0].Angle);
+        Assert.Equal(270, map.Things[2].Angle);
+    }
+
+    [Fact]
     public void FindAndReplaceLinedefFlags()
     {
         var map = Build();
