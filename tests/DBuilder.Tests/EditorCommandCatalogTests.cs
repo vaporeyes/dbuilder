@@ -1402,6 +1402,38 @@ public class EditorCommandCatalogTests
         Assert.Equal("visplaneexplorermode", VisplaneExplorerInterfaceModel.ModeDescriptor.SwitchAction);
     }
 
+    [Theory]
+    [InlineData("map2d.automapmode", "Automap mode", EditorCommandScope.Map2D, true)]
+    [InlineData("map2d.imageexamplemode", "Image Example", EditorCommandScope.Map2D, true)]
+    [InlineData("map2d.wadauthormode", "WadAuthor Mode", EditorCommandScope.Map2D, true)]
+    [InlineData("map2d.visplaneexplorermode", "Visplane Explorer Mode", EditorCommandScope.Map2D, false)]
+    [InlineData("map2d.stairsectorbuildermode", "Stair Sector Builder Mode", EditorCommandScope.Map2D, true)]
+    [InlineData("map2d.selectsectorsoutline", "Select Sectors Outline", EditorCommandScope.Map2D, true)]
+    [InlineData("window.rangetagselection", "Tag Range", EditorCommandScope.Window, true)]
+    [InlineData("window.blockmapexplorermode", "Blockmap Explorer mode", EditorCommandScope.Window, true)]
+    [InlineData("window.rejectexplorermode", "Reject Explorer mode", EditorCommandScope.Window, true)]
+    [InlineData("window.nodesviewermode", "Nodes Viewer Mode", EditorCommandScope.Window, false)]
+    [InlineData("window.soundpropagationmode", "Sound propagation mode", EditorCommandScope.Window, true)]
+    [InlineData("window.soundenvironmentmode", "Sound environment mode", EditorCommandScope.Window, true)]
+    [InlineData("window.soundpropagationcolorconfiguration", "Configure colors", EditorCommandScope.Window, true)]
+    public void BundledPluginActionAliasesMatchUdbActionSurface(
+        string commandId,
+        string title,
+        EditorCommandScope scope,
+        bool allowScroll)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(scope, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.Equal(allowScroll, command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
     [Fact]
     public void StairSectorBuilderCommandsMatchUdbActionSurface()
     {

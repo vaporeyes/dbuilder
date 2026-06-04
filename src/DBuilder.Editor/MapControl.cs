@@ -5987,6 +5987,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SetEditMode(EditMode.Sectors);
                 return true;
             case "map2d.select-sectors-outline":
+            case "map2d.selectsectorsoutline":
                 SelectSectorsOutline();
                 return true;
             case "map2d.mode-things":
@@ -5994,15 +5995,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SetEditMode(EditMode.Things);
                 return true;
             case "map2d.mode-image-example":
+            case "map2d.imageexamplemode":
                 ToggleImageExampleMode();
                 return true;
             case "map2d.mode-automap":
+            case "map2d.automapmode":
                 ToggleAutomapMode();
                 return true;
             case "map2d.mode-wadauthor":
+            case "map2d.wadauthormode":
                 ToggleWadAuthorMode();
                 return true;
             case "map2d.mode-visplane-explorer":
+            case "map2d.visplaneexplorermode":
                 VisplaneExplorerRequested?.Invoke();
                 return true;
             case "map2d.flip":

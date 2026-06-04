@@ -517,6 +517,9 @@ public sealed class MapControlCommandTests
 
     [Theory]
     [InlineData("map2d.mode-automap", "ToggleAutomapMode")]
+    [InlineData("map2d.automapmode", "ToggleAutomapMode")]
+    [InlineData("map2d.imageexamplemode", "ToggleImageExampleMode")]
+    [InlineData("map2d.wadauthormode", "ToggleWadAuthorMode")]
     [InlineData("map2d.editselectionmode", "BeginEditSelectionMode")]
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
@@ -527,6 +530,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.3dfloor.duplicate-geometry", "DuplicateThreeDFloorGeometry")]
     [InlineData("map2d.duplicate3dfloorgeometry", "DuplicateThreeDFloorGeometry")]
     [InlineData("map2d.select-sectors-outline", "SelectSectorsOutline")]
+    [InlineData("map2d.selectsectorsoutline", "SelectSectorsOutline")]
     public void MapCommandsAreRoutedThroughMapCommandDispatch(string commandId, string handlerName)
     {
         Type type = typeof(MapControl);

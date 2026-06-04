@@ -133,6 +133,13 @@ public sealed class MainWindowCommandTests
     [InlineData("window.alignfloortoback", "OnAlignFloorToBack")]
     [InlineData("window.alignceilingtofront", "OnAlignCeilingToFront")]
     [InlineData("window.alignceilingtoback", "OnAlignCeilingToBack")]
+    [InlineData("window.rangetagselection", "OnTagRange")]
+    [InlineData("window.blockmapexplorermode", "OnBlockmapExplorer")]
+    [InlineData("window.rejectexplorermode", "OnRejectViewer")]
+    [InlineData("window.nodesviewermode", "OnNodesViewer")]
+    [InlineData("window.soundpropagationmode", "OnSoundPropagation")]
+    [InlineData("window.soundenvironmentmode", "OnSoundEnvironments")]
+    [InlineData("window.soundpropagationcolorconfiguration", "OnSoundPropagationColors")]
     public void UdbClassicWindowActionAliasesAreDispatched(string commandId, string handlerName)
     {
         Type type = typeof(MainWindow);
