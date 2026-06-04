@@ -71,4 +71,25 @@ public class SectorBrightnessAdjustmentTests
     [InlineData(0, 0)]
     public void NextLowerUsesFallbackLevelsWhenConfigHasNoSteps(int current, int expected)
         => Assert.Equal(expected, SectorBrightnessAdjustment.NextLower([], current));
+
+    [Theory]
+    [InlineData(-64, -32)]
+    [InlineData(-8, 0)]
+    [InlineData(0, 8)]
+    public void NextHigherHandlesRelativeLightFieldsLikeUdb(int current, int expected)
+        => Assert.Equal(expected, SectorBrightnessAdjustment.NextHigher([0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], current, absolute: false));
+
+    [Theory]
+    [InlineData(64, 32)]
+    [InlineData(0, -8)]
+    [InlineData(-8, -16)]
+    public void NextLowerHandlesRelativeLightFieldsLikeUdb(int current, int expected)
+        => Assert.Equal(expected, SectorBrightnessAdjustment.NextLower([0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], current, absolute: false));
+
+    [Fact]
+    public void RelativeLightFieldStepsUseConfiguredBrightnessLevels()
+    {
+        Assert.Equal(-128, SectorBrightnessAdjustment.NextHigher([0, 128, 255], -255, absolute: false));
+        Assert.Equal(-255, SectorBrightnessAdjustment.NextLower([0, 128, 255], -128, absolute: false));
+    }
 }

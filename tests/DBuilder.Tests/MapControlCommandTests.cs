@@ -115,7 +115,7 @@ public sealed class MapControlCommandTests
         VisualHit hit = WallHit(side, SidedefPart.Middle);
         GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
 
-        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Udmf, config, out string status);
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: true, [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], MapFormat.Udmf, config, out string status);
 
         Assert.True(changed);
         Assert.Equal(8, side.GetIntegerField("light"));
@@ -131,11 +131,11 @@ public sealed class MapControlCommandTests
         VisualHit hit = WallHit(side, SidedefPart.Middle);
         GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
 
-        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, -8, MapFormat.Udmf, config, out string status);
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: false, [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], MapFormat.Udmf, config, out string status);
 
         Assert.True(changed);
-        Assert.Equal(24, side.GetIntegerField("light"));
-        Assert.Equal("Changed wall brightness to 24.", status);
+        Assert.Equal(16, side.GetIntegerField("light"));
+        Assert.Equal("Changed wall brightness to 16.", status);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public sealed class MapControlCommandTests
         VisualHit hit = WallHit(side, SidedefPart.Upper);
         GameConfiguration config = GameConfiguration.FromText("distinctsidedefpartbrightness = true;");
 
-        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Udmf, config, out _);
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: true, [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], MapFormat.Udmf, config, out _);
 
         Assert.True(changed);
         Assert.Equal(8, side.GetIntegerField("light_top"));
@@ -158,11 +158,40 @@ public sealed class MapControlCommandTests
         Sidedef side = WallSide(new Sector { Brightness = 160 });
         VisualHit hit = WallHit(side, SidedefPart.Middle);
 
-        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, 8, MapFormat.Doom, GameConfiguration.FromText(""), out string status);
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: true, [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255], MapFormat.Doom, GameConfiguration.FromText(""), out string status);
 
         Assert.False(changed);
         Assert.Equal(0, side.GetIntegerField("light"));
         Assert.Equal("", status);
+    }
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DUsesConfiguredStepsLikeUdb()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        VisualHit hit = WallHit(side, SidedefPart.Middle);
+        GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: true, [0, 128, 255], MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(128, side.GetIntegerField("light"));
+        Assert.Equal("Changed wall brightness to 128.", status);
+    }
+
+    [Fact]
+    public void AdjustVisualWallBrightness3DUsesRelativeNegativeStepsLikeUdb()
+    {
+        Sidedef side = WallSide(new Sector { Brightness = 160 });
+        side.SetIntegerField("light", -16);
+        VisualHit hit = WallHit(side, SidedefPart.Middle);
+        GameConfiguration config = GameConfiguration.FromText("distinctwallbrightness = true;");
+
+        bool changed = MapControl.AdjustVisualWallBrightness3D(hit, raise: true, [0, 8, 16, 32, 64], MapFormat.Udmf, config, out string status);
+
+        Assert.True(changed);
+        Assert.Equal(-8, side.GetIntegerField("light"));
+        Assert.Equal("Changed wall brightness to -8.", status);
     }
 
     [Theory]
@@ -649,15 +678,17 @@ public sealed class MapControlCommandTests
     public void VisualBrightnessStep3DUsesUdbWallAndFlatTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
-        int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(int delta)", StringComparison.Ordinal);
-        int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, delta, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
+        int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(bool raise)", StringComparison.Ordinal);
+        int levelsIndex = body.IndexOf("IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];", methodIndex, StringComparison.Ordinal);
+        int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
         int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;", methodIndex, StringComparison.Ordinal);
-        int sectorWriteIndex = body.IndexOf("s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);", methodIndex, StringComparison.Ordinal);
+        int sectorWriteIndex = body.IndexOf("SectorBrightnessAdjustment.NextHigher(brightnessLevels, s.Brightness)", methodIndex, StringComparison.Ordinal);
         int statusAssignmentIndex = body.IndexOf("brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);", sectorWriteIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(brightnessStatus);", statusAssignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(wallIndex > methodIndex);
+        Assert.True(levelsIndex > methodIndex);
+        Assert.True(wallIndex > levelsIndex);
         Assert.True(filterIndex > wallIndex);
         Assert.True(sectorWriteIndex > filterIndex);
         Assert.True(statusAssignmentIndex > sectorWriteIndex);

@@ -51,6 +51,11 @@ public static class SectorBrightnessAdjustment
         return levels[high];
     }
 
+    public static int NextHigher(IReadOnlyList<int> brightnessLevels, int level, bool absolute)
+        => absolute || level >= 0
+            ? NextHigher(brightnessLevels, level)
+            : -NextLower(brightnessLevels, Math.Abs(level));
+
     public static int NextLower(IReadOnlyList<int> brightnessLevels, int level)
     {
         IReadOnlyList<int> levels = NormalizedLevels(brightnessLevels);
@@ -70,6 +75,11 @@ public static class SectorBrightnessAdjustment
 
         return levels[low];
     }
+
+    public static int NextLower(IReadOnlyList<int> brightnessLevels, int level, bool absolute)
+        => absolute || level > 0
+            ? NextLower(brightnessLevels, level)
+            : -NextHigher(brightnessLevels, Math.Abs(level));
 
     private static IReadOnlyList<int> NormalizedLevels(IReadOnlyList<int> brightnessLevels)
         => brightnessLevels.Count == 0 ? [0, 8, 16, 32, 64, 96, 128, 160, 192, 224, 255] : brightnessLevels;

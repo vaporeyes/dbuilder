@@ -3217,11 +3217,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Adjusts the selected (or targeted) sectors' brightness ([ darker / ] brighter), undoable.
-    private void AdjustTargetBrightness3D(int delta)
+    private void AdjustTargetBrightness3D(bool raise)
     {
         if (_map == null) return;
         var done = new System.Collections.Generic.HashSet<Sector>();
         var doneSides = new System.Collections.Generic.HashSet<(Sidedef Side, SidedefPart Part)>();
+        IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];
         bool begun = false;
         string brightnessStatus = string.Empty;
         foreach (var h in EditTargets3D())
@@ -3230,7 +3231,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ? (h.Front ? h.Line.Front : h.Line.Back)
                 : null;
             if (wallSide != null && !doneSides.Add((wallSide, h.Part))) continue;
-            if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, delta, _mapFormat, _gameConfig, out brightnessStatus))
+            if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
             {
                 if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
                 continue;
@@ -3239,7 +3240,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)) continue;
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
             if (!begun) { EditBegun?.Invoke("Change brightness"); begun = true; }
-            s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);
+            s.Brightness = raise
+                ? SectorBrightnessAdjustment.NextHigher(brightnessLevels, s.Brightness)
+                : SectorBrightnessAdjustment.NextLower(brightnessLevels, s.Brightness);
             brightnessStatus = VisualBrightness3DStatusText(h.Kind, s.Brightness);
         }
         if (!begun) return;
@@ -3260,7 +3263,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public static bool AdjustVisualWallBrightness3D(
         VisualHit hit,
-        int delta,
+        bool raise,
+        IReadOnlyList<int> brightnessLevels,
         MapFormat mapFormat,
         GameConfiguration? config,
         out string status)
@@ -3283,7 +3287,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             : "lightabsolute";
         bool absolute = side.GetField(absoluteField, false);
         int current = side.GetIntegerField(field);
-        int next = Math.Clamp(current + delta, absolute ? 0 : -255, 255);
+        int next = raise
+            ? SectorBrightnessAdjustment.NextHigher(brightnessLevels, current, absolute)
+            : SectorBrightnessAdjustment.NextLower(brightnessLevels, current, absolute);
         if (next == current) return false;
 
         side.SetIntegerField(field, next, absolute ? int.MinValue : 0);
@@ -5921,11 +5927,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.brightness-down":
             case "map3d.lower-brightness-8":
-                AdjustTargetBrightness3D(-8);
+                AdjustTargetBrightness3D(raise: false);
                 return true;
             case "map3d.brightness-up":
             case "map3d.raise-brightness-8":
-                AdjustTargetBrightness3D(8);
+                AdjustTargetBrightness3D(raise: true);
                 return true;
             case "map3d.match-brightness":
                 MatchBrightness3D();
