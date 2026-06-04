@@ -79,6 +79,8 @@ public readonly record struct ThingTypeStatistic(int Type, int Count);
 
 public static class MapSearch
 {
+    private const int ClassicTextureNameLength = 8;
+
     public static IReadOnlyList<FindCategoryDescriptor> CategoryDescriptors { get; } =
     [
         new(FindCategory.ThingType, "Thing Type", BrowseButton: true),
@@ -491,6 +493,19 @@ public static class MapSearch
         Func<int, int, bool>? sectorEffectMatcher,
         bool withinSelection,
         bool mixTexturesFlats)
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, mixTexturesFlats, ClassicTextureNameLength);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection,
+        bool mixTexturesFlats,
+        int maxTextureNameLength)
     {
         if (!CanReplace(cat, mixTexturesFlats)) return 0;
 
@@ -498,6 +513,8 @@ public static class MapSearch
         SearchLists lists = SearchLists.From(map, withinSelection);
         if (IsTextual(cat))
         {
+            if (!IsValidTextureReplacement(replace, maxTextureNameLength)) return 0;
+
             switch (cat)
             {
                 case FindCategory.Texture:
@@ -763,6 +780,9 @@ public static class MapSearch
 
     private static bool TextureSlotMatches(string name, string pattern, bool required)
         => TexturePatternMatches(name, pattern) && (pattern != "-" || required);
+
+    private static bool IsValidTextureReplacement(string replace, int maxTextureNameLength)
+        => !string.IsNullOrEmpty(replace) && replace.Length <= maxTextureNameLength;
 
     private static Vector2D Mid(Linedef l)
         => new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5);

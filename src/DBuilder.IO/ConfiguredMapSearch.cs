@@ -16,10 +16,10 @@ public static class ConfiguredMapSearch
         => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
-        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true);
+        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8);
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
-        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true);
+        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8);
 
     private static Func<int, int, bool>? LinedefActionMatcher(GameConfiguration? config)
         => config?.GeneralizedActions == true && config.GeneralizedLinedefs.Count > 0

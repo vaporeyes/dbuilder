@@ -92,6 +92,19 @@ public class ConfiguredMapSearchTests
     }
 
     [Fact]
+    public void ReplaceTextureHonorsConfiguredLongTextureNames()
+    {
+        var config = GameConfiguration.FromText("longtexturenames = true;");
+        var map = BuildMap();
+        map.Linedefs[0].Front!.MidTexture = "STARTAN3";
+
+        int changed = ConfiguredMapSearch.Replace(map, FindCategory.Texture, "STARTAN3", "LONGTEX01", config);
+
+        Assert.Equal(1, changed);
+        Assert.Equal("LONGTEX01", map.Linedefs[0].Front!.MidTexture);
+    }
+
+    [Fact]
     public void FindLinedefActionMatchesGeneralizedActionsWithSharedBits()
     {
         var config = GameConfiguration.FromText(Cfg);

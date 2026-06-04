@@ -446,6 +446,22 @@ public class MapSearchTests
         Assert.All(map.Sidedefs, sd => Assert.Equal("BROWN1", sd.MidTexture));
     }
 
+    [Theory]
+    [InlineData(FindCategory.Texture, "STARTAN3", "")]
+    [InlineData(FindCategory.Texture, "STARTAN3", "LONGTEX01")]
+    [InlineData(FindCategory.Flat, "FLOOR4_8", "")]
+    [InlineData(FindCategory.Flat, "FLOOR4_8", "LONGFLAT1")]
+    public void ReplaceTextureAndFlatRejectsInvalidReplacementNames(FindCategory category, string find, string replacement)
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(map, category, find, replacement);
+
+        Assert.Equal(0, changed);
+        Assert.Equal("STARTAN3", map.Sidedefs[0].MidTexture);
+        Assert.Equal("FLOOR4_8", map.Sectors[0].FloorTexture);
+    }
+
     [Fact]
     public void FindAndReplaceTextureSupportsWildcards()
     {
