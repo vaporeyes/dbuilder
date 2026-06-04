@@ -263,6 +263,13 @@ public sealed class MapControlCommandTests
         Assert.Equal(expected, MapControl.VisualThingOrientation3DStatusText(thing, orientation));
     }
 
+    [Theory]
+    [InlineData("angle", "Change thing angle")]
+    [InlineData("pitch", "Change thing pitch")]
+    [InlineData("roll", "Change thing roll")]
+    public void VisualThingOrientationEditNameMatchesUdb(string orientation, string expected)
+        => Assert.Equal(expected, MapControl.VisualThingOrientationEditName(orientation));
+
     [Fact]
     public void VisualHeight3DStatusTextMatchesUdbTargetKind()
     {
@@ -778,19 +785,28 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void VisualThingOrientation3DUsesUdbStatusForLastChangedThing()
+    public void VisualThingOrientation3DUsesUdbEditNameBeforeMutationAndStatusForLastChangedThing()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
-        int rotateIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Rotate thing\", \"Rotate things\", \"angle\");", StringComparison.Ordinal);
-        int pitchIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Change thing pitch\", \"Change thing pitches\", \"pitch\");", StringComparison.Ordinal);
-        int rollIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Change thing roll\", \"Change thing rolls\", \"roll\");", StringComparison.Ordinal);
-        int finishIndex = body.IndexOf("private void FinishThingOrientationChange3D(", StringComparison.Ordinal);
+        int rotateMethodIndex = body.IndexOf("private bool RotateThingTargets3D(int angleIncrement)", StringComparison.Ordinal);
+        int rotateEditIndex = body.IndexOf("BeginThingOrientationChange3D(things, VisualThingOrientationEditName(\"angle\"))", rotateMethodIndex, StringComparison.Ordinal);
+        int rotateMutationIndex = body.IndexOf("VisualThingRotation.Rotate(things, angleIncrement", rotateEditIndex, StringComparison.Ordinal);
+        int pitchMethodIndex = body.IndexOf("private bool ChangeThingPitchTargets3D(int increment)", StringComparison.Ordinal);
+        int pitchEditIndex = body.IndexOf("BeginThingOrientationChange3D(things, VisualThingOrientationEditName(\"pitch\"))", pitchMethodIndex, StringComparison.Ordinal);
+        int pitchMutationIndex = body.IndexOf("VisualThingRotation.ChangePitch(things, increment);", pitchEditIndex, StringComparison.Ordinal);
+        int rollMethodIndex = body.IndexOf("private bool ChangeThingRollTargets3D(int increment)", StringComparison.Ordinal);
+        int rollEditIndex = body.IndexOf("BeginThingOrientationChange3D(things, VisualThingOrientationEditName(\"roll\"))", rollMethodIndex, StringComparison.Ordinal);
+        int rollMutationIndex = body.IndexOf("VisualThingRotation.ChangeRoll(things, increment);", rollEditIndex, StringComparison.Ordinal);
+        int finishIndex = body.IndexOf("private void FinishThingOrientationChange3D(IReadOnlyList<Thing> things, string orientation)", StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingOrientation3DStatusText(things[^1], orientation));", finishIndex, StringComparison.Ordinal);
 
-        Assert.True(rotateIndex >= 0);
-        Assert.True(pitchIndex > rotateIndex);
-        Assert.True(rollIndex > pitchIndex);
-        Assert.True(finishIndex > rollIndex);
+        Assert.True(rotateEditIndex > rotateMethodIndex);
+        Assert.True(rotateMutationIndex > rotateEditIndex);
+        Assert.True(pitchEditIndex > pitchMethodIndex);
+        Assert.True(pitchMutationIndex > pitchEditIndex);
+        Assert.True(rollEditIndex > rollMethodIndex);
+        Assert.True(rollMutationIndex > rollEditIndex);
+        Assert.True(finishIndex > rollMutationIndex);
         Assert.True(statusIndex > finishIndex);
         Assert.DoesNotContain("rotated things", body, StringComparison.Ordinal);
         Assert.DoesNotContain("changed thing pitches", body, StringComparison.Ordinal);

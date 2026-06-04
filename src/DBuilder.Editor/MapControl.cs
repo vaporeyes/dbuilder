@@ -3810,10 +3810,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool RotateThingTargets3D(int angleIncrement)
     {
         var things = ThingTargets3D();
-        if (things.Count == 0) return false;
+        if (!BeginThingOrientationChange3D(things, VisualThingOrientationEditName("angle"))) return false;
 
         VisualThingRotation.Rotate(things, angleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
-        FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "angle");
+        FinishThingOrientationChange3D(things, "angle");
         return true;
     }
 
@@ -3830,23 +3830,44 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 things.Add(thing);
         }
 
-        int thingCount = VisualThingRotation.Rotate(things, thingAngleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
-        int flatCount = VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf);
+        int thingCount = things.Count;
+        int flatCount = CountFlatRotationTargets3D(targets);
         if (thingCount == 0 && flatCount == 0) return false;
 
         if (thingCount > 0 && flatCount == 0)
+            BeginThingOrientationChange3D(things, VisualThingOrientationEditName("angle"));
+        else
+            EditBegun?.Invoke(thingCount > 0 ? "Rotate things and textures" : flatCount == 1 ? "Rotate texture" : "Rotate textures");
+
+        thingCount = VisualThingRotation.Rotate(things, thingAngleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
+        flatCount = VisualFlatRotation.Rotate(targets, textureAngleIncrement, _mapFormat == MapFormat.Udmf);
+
+        if (thingCount > 0 && flatCount == 0)
         {
-            FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "angle");
+            FinishThingOrientationChange3D(things, "angle");
             return true;
         }
 
-        EditBegun?.Invoke(thingCount > 0 ? "Rotate things and textures" : flatCount == 1 ? "Rotate texture" : "Rotate textures");
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
         Target3DChanged?.Invoke(VisualRotation3DStatusFromTargets(targets));
         return true;
+    }
+
+    private int CountFlatRotationTargets3D(IEnumerable<VisualHit> targets)
+    {
+        if (_mapFormat != MapFormat.Udmf) return 0;
+
+        var seen = new HashSet<(Sector Sector, bool Ceiling)>();
+        foreach (VisualHit hit in targets)
+        {
+            if (hit.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling) || hit.Sector == null) continue;
+            seen.Add((hit.Sector, hit.Kind == VisualHitKind.Ceiling));
+        }
+
+        return seen.Count;
     }
 
     public static string VisualRotation3DStatusText(VisualHitKind kind, double angle)
@@ -3873,20 +3894,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool ChangeThingPitchTargets3D(int increment)
     {
         var things = ThingTargets3D();
-        if (things.Count == 0) return false;
+        if (!BeginThingOrientationChange3D(things, VisualThingOrientationEditName("pitch"))) return false;
 
         VisualThingRotation.ChangePitch(things, increment);
-        FinishThingOrientationChange3D(things, "Change thing pitch", "Change thing pitches", "pitch");
+        FinishThingOrientationChange3D(things, "pitch");
         return true;
     }
 
     private bool ChangeThingRollTargets3D(int increment)
     {
         var things = ThingTargets3D();
-        if (things.Count == 0) return false;
+        if (!BeginThingOrientationChange3D(things, VisualThingOrientationEditName("roll"))) return false;
 
         VisualThingRotation.ChangeRoll(things, increment);
-        FinishThingOrientationChange3D(things, "Change thing roll", "Change thing rolls", "roll");
+        FinishThingOrientationChange3D(things, "roll");
         return true;
     }
 
@@ -3975,13 +3996,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return new DBuilder.Geometry.Vector3D(thing.Position, floorZ + thing.Height + height * 0.5);
     }
 
-    private void FinishThingOrientationChange3D(
+    private bool BeginThingOrientationChange3D(
         IReadOnlyList<Thing> things,
-        string singleEditLabel,
-        string pluralEditLabel,
-        string orientation)
+        string editLabel)
     {
-        EditBegun?.Invoke(things.Count == 1 ? singleEditLabel : pluralEditLabel);
+        if (things.Count == 0) return false;
+        EditBegun?.Invoke(editLabel);
+        return true;
+    }
+
+    private void FinishThingOrientationChange3D(IReadOnlyList<Thing> things, string orientation)
+    {
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -3995,6 +4020,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             "pitch" => "Changed thing pitch to " + thing.Pitch + ".",
             "roll" => "Changed thing roll to " + thing.Roll + ".",
             _ => "Changed thing angle to " + thing.Angle + ".",
+        };
+
+    public static string VisualThingOrientationEditName(string orientation)
+        => orientation switch
+        {
+            "pitch" => "Change thing pitch",
+            "roll" => "Change thing roll",
+            _ => "Change thing angle",
         };
 
     // Routes a right-drag by the captured target's kind: a thing moves on the plane; a surface changes height.
