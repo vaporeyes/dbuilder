@@ -125,6 +125,7 @@ public sealed class ShortcutHelpModelTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ShortcutsWindow.cs"));
 
         Assert.Contains("private Control FilterBar()", body, StringComparison.Ordinal);
+        Assert.Contains("Opened += (_, _) => _search.Focus();", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Clear\"", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);

@@ -117,6 +117,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Report Help shortcut totals from effective shortcut bindings.
   - [x] Match multi-word Help shortcut searches across command metadata.
   - [x] Report filtered Help shortcut matches with matching group counts.
+  - [x] Focus the Help shortcut filter when the reference window opens.
 - [ ] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.

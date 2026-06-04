@@ -88,6 +88,7 @@ public sealed class ShortcutsWindow : Window
         root.Children.Add(footer);
 
         Content = root;
+        Opened += (_, _) => _search.Focus();
         RebuildSections("");
     }
 
