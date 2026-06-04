@@ -1322,6 +1322,7 @@ public partial class MainWindow : Window
         _settings.DrawRectangleSettings = dlg.DrawRectangleSettings;
         _settings.DrawEllipseSettings = dlg.DrawEllipseSettings;
         _settings.DrawCurveSettings = dlg.DrawCurveSettings;
+        _settings.DrawGridSettings = dlg.DrawGridSettings;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
@@ -1329,6 +1330,7 @@ public partial class MainWindow : Window
         MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
+        MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);

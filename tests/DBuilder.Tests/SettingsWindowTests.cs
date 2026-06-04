@@ -129,6 +129,24 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawGridModePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawGridSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("_drawGridSettings = s.NormalizedDrawGridSettings;", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Draw grids continuously\", s.NormalizedDrawGridSettings.ContinuousDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Triangulate drawn grids\", s.NormalizedDrawGridSettings.Triangulate)", body, StringComparison.Ordinal);
+        Assert.Contains("DrawGridSettings = _drawGridSettings with", body, StringComparison.Ordinal);
+        Assert.Contains("ContinuousDrawing = _drawGridContinuousDrawing.IsChecked == true", body, StringComparison.Ordinal);
+        Assert.Contains("Triangulate = _drawGridTriangulate.IsChecked == true", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawGridSettings = dlg.DrawGridSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesShowVisualVerticesPreference()
     {
         Type type = typeof(SettingsWindow);

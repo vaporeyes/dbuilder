@@ -82,6 +82,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose draw-rectangle continuous, radial, and thing placement preferences in the Settings dialog.
   - [x] Expose draw-ellipse continuous, radial, and thing placement preferences in the Settings dialog.
   - [x] Expose draw-curve continuous, auto-close, and thing placement preferences in the Settings dialog.
+  - [x] Expose draw-grid continuous and triangulation preferences in the Settings dialog.
   - [x] Clamp Settings dialog numeric preference input to supported UDB ranges.
   - [x] Show normalized numeric preference defaults in the Settings dialog.
   - [x] Expose alpha-based texture highlighting in the Settings dialog.

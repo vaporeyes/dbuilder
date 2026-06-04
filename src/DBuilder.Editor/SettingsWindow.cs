@@ -12,13 +12,14 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
     private readonly int _drawEllipseSubdivisions, _drawEllipseBevelWidth, _drawEllipseAngle;
     private readonly bool _drawEllipseShowGuidelines;
     private readonly int _drawCurveSegmentLength;
+    private readonly DrawGridModeSettings _drawGridSettings;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
@@ -42,6 +43,7 @@ public sealed class SettingsWindow : PropertyDialog
     public DrawRectangleModeSettings DrawRectangleSettings = new();
     public DrawEllipseModeSettings DrawEllipseSettings = new();
     public DrawCurveModeSettings DrawCurveSettings = new();
+    public DrawGridModeSettings DrawGridSettings = new();
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
 
@@ -71,6 +73,7 @@ public sealed class SettingsWindow : PropertyDialog
         _drawEllipseAngle = s.NormalizedDrawEllipseSettings.Angle;
         _drawEllipseShowGuidelines = s.NormalizedDrawEllipseSettings.ShowGuidelines;
         _drawCurveSegmentLength = s.NormalizedDrawCurveSettings.SegmentLength;
+        _drawGridSettings = s.NormalizedDrawGridSettings;
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
@@ -84,6 +87,8 @@ public sealed class SettingsWindow : PropertyDialog
         _drawCurveContinuousDrawing = AddCheckBox("Draw curves continuously", s.NormalizedDrawCurveSettings.ContinuousDrawing);
         _drawCurveAutoCloseDrawing = AddCheckBox("Auto-close drawn curves", s.NormalizedDrawCurveSettings.AutoCloseDrawing);
         _drawCurvePlaceThingsAtVertices = AddCheckBox("Place things at curve vertices", s.NormalizedDrawCurveSettings.PlaceThingsAtVertices);
+        _drawGridContinuousDrawing = AddCheckBox("Draw grids continuously", s.NormalizedDrawGridSettings.ContinuousDrawing);
+        _drawGridTriangulate = AddCheckBox("Triangulate drawn grids", s.NormalizedDrawGridSettings.Triangulate);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
         _enhancedRenderingEffects = AddCheckBox("Enhanced rendering effects", s.EnhancedRenderingEffects);
@@ -151,6 +156,11 @@ public sealed class SettingsWindow : PropertyDialog
             ContinuousDrawing: _drawCurveContinuousDrawing.IsChecked == true,
             AutoCloseDrawing: _drawCurveAutoCloseDrawing.IsChecked == true,
             PlaceThingsAtVertices: _drawCurvePlaceThingsAtVertices.IsChecked == true);
+        DrawGridSettings = _drawGridSettings with
+        {
+            ContinuousDrawing = _drawGridContinuousDrawing.IsChecked == true,
+            Triangulate = _drawGridTriangulate.IsChecked == true,
+        };
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {
