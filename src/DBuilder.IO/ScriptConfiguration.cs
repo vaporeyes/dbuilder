@@ -200,22 +200,30 @@ public sealed class ScriptConfigurationInfo : IComparable<ScriptConfigurationInf
     }
 
     public string GetKeywordCase(string keyword)
-        => lowerKeywords.TryGetValue(keyword.ToLowerInvariant(), out string? value) ? value : keyword;
+        => !CaseSensitive && lowerKeywords.TryGetValue(keyword.ToLowerInvariant(), out string? value) ? value : keyword;
 
     public string GetConstantCase(string constant)
-        => lowerConstants.TryGetValue(constant.ToLowerInvariant(), out string? value) ? value : constant;
+        => !CaseSensitive && lowerConstants.TryGetValue(constant.ToLowerInvariant(), out string? value) ? value : constant;
 
     public string GetPropertyCase(string property)
-        => lowerProperties.TryGetValue(property.ToLowerInvariant(), out string? value) ? value : property;
+        => !CaseSensitive && lowerProperties.TryGetValue(property.ToLowerInvariant(), out string? value) ? value : property;
 
-    public bool IsKeyword(string keyword) => lowerKeywords.ContainsKey(keyword.ToLowerInvariant());
+    public bool IsKeyword(string keyword)
+        => CaseSensitive ? keywords.ContainsKey(keyword) : lowerKeywords.ContainsKey(keyword.ToLowerInvariant());
 
-    public bool IsConstant(string constant) => lowerConstants.ContainsKey(constant.ToLowerInvariant());
+    public bool IsConstant(string constant)
+        => CaseSensitive ? constants.Contains(constant, StringComparer.Ordinal) : lowerConstants.ContainsKey(constant.ToLowerInvariant());
 
-    public bool IsProperty(string property) => lowerProperties.ContainsKey(property.ToLowerInvariant());
+    public bool IsProperty(string property)
+        => CaseSensitive ? properties.Contains(property, StringComparer.Ordinal) : lowerProperties.ContainsKey(property.ToLowerInvariant());
 
     public string? GetFunctionDefinition(string keyword)
-        => keywords.TryGetValue(keyword, out string? definition) ? definition : null;
+    {
+        if (keywords.TryGetValue(keyword, out string? definition)) return definition;
+        if (!CaseSensitive && lowerKeywords.TryGetValue(keyword.ToLowerInvariant(), out string? configuredKeyword))
+            return keywords.TryGetValue(configuredKeyword, out definition) ? definition : null;
+        return null;
+    }
 
     public string[]? GetSnippet(string name)
         => snippets.TryGetValue(name, out string[]? lines) ? lines : null;

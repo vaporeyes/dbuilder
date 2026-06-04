@@ -216,6 +216,22 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void FunctionCallSearchRespectsCaseSensitiveConfigurationsLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            casesensitive = true;
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Thing_Spawn = "Thing_Spawn(tid)"; }
+            """);
+
+        Assert.NotNull(ScriptSyntaxHighlighting.FindFunctionCallPosition(config, "Thing_Spawn(", "Thing_Spawn(".Length));
+        Assert.Null(ScriptSyntaxHighlighting.FindFunctionCallPosition(config, "thing_spawn(", "thing_spawn(".Length));
+    }
+
+    [Fact]
     public void BuildsFunctionCallTipHighlightLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""

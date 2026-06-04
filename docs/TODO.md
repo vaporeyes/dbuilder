@@ -1354,6 +1354,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Build UDB-style script autocomplete list text for editor controls.
   - [x] Track UDB-style function call argument positions for script calltips.
   - [x] Build UDB-style script function calltip definitions and argument highlight spans.
+  - [x] Respect script configuration case sensitivity for keyword, property, constant, and calltip lookups.
 - [ ] Port find-usages behavior.
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
   - [x] Treat script find-usages search text as literal text instead of regex syntax.

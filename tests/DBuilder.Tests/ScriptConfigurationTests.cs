@@ -75,6 +75,31 @@ properties
     }
 
     [Fact]
+    public void CaseSensitiveConfigurationsRequireExactLookupCaseLikeUdb()
+    {
+        var cfg = ScriptConfigurationInfo.FromText("""
+            casesensitive = true;
+            keywords { Thing_ChangeTID = "Thing_ChangeTID(tid, newtid)"; }
+            constants { APROP_Health = "health"; }
+            properties { Health = "health"; }
+            """);
+
+        Assert.True(cfg.IsKeyword("Thing_ChangeTID"));
+        Assert.False(cfg.IsKeyword("thing_changetid"));
+        Assert.Equal("thing_changetid", cfg.GetKeywordCase("thing_changetid"));
+        Assert.Equal("Thing_ChangeTID(tid, newtid)", cfg.GetFunctionDefinition("Thing_ChangeTID"));
+        Assert.Null(cfg.GetFunctionDefinition("thing_changetid"));
+
+        Assert.True(cfg.IsConstant("APROP_Health"));
+        Assert.False(cfg.IsConstant("aprop_health"));
+        Assert.Equal("aprop_health", cfg.GetConstantCase("aprop_health"));
+
+        Assert.True(cfg.IsProperty("Health"));
+        Assert.False(cfg.IsProperty("health"));
+        Assert.Equal("health", cfg.GetPropertyCase("health"));
+    }
+
+    [Fact]
     public void UnknownScriptTypeFallsBackToUnknown()
     {
         var cfg = ScriptConfigurationInfo.FromText(@"description = ""Mystery""; scripttype = ""doesnotexist"";");
