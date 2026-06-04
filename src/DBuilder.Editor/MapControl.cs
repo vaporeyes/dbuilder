@@ -2597,6 +2597,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool begun = false;
         var seenThings = new HashSet<Thing>();
         var seenWalls = new HashSet<(Sidedef Side, SidedefPart Part)>();
+        var seenFlats = new HashSet<(Sector Sector, VisualHitKind Kind)>();
 
         foreach (VisualHit hit in EditTargets3D())
         {
@@ -2628,11 +2629,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 bool adjusted = VisualScaleAdjustment.AdjustWall(side, hit.Part, incrementX, incrementY, image.Width, image.Height);
                 if (adjusted) changed++;
             }
+            else if (hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling && hit.Sector is { } sector && seenFlats.Add((sector, hit.Kind)))
+            {
+                bool ceiling = hit.Kind == VisualHitKind.Ceiling;
+                string textureName = ceiling ? sector.CeilTexture : sector.FloorTexture;
+                var image = _resources?.GetFlat(textureName);
+                if (image == null)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                bool adjusted = VisualScaleAdjustment.AdjustFlatForView(sector, ceiling, incrementX, incrementY, image.Width, image.Height, _yaw);
+                if (adjusted) changed++;
+            }
         }
 
         if (changed == 0)
         {
-            Target3DChanged?.Invoke(skipped == 0 ? "aim at a wall or thing to scale" : "no texture dimensions for selected wall scale");
+            Target3DChanged?.Invoke(skipped == 0 ? "aim at a surface or thing to scale" : "no texture dimensions for selected visual scale");
             return;
         }
 

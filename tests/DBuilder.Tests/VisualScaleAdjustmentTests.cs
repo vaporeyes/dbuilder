@@ -1,4 +1,4 @@
-// ABOUTME: Verifies UDB-style visual scale commands for wall texture parts and things.
+// ABOUTME: Verifies UDB-style visual scale commands for wall texture parts, flats, and things.
 // ABOUTME: Uses direct model helpers so scale math stays covered without a live renderer.
 
 using DBuilder.Geometry;
@@ -38,6 +38,69 @@ public class VisualScaleAdjustmentTests
     }
 
     [Fact]
+    public void FloorScaleUsesInverseFlatPixelIncrementLikeUdb()
+    {
+        var sector = new Sector();
+
+        bool changed = VisualScaleAdjustment.AdjustFlat(sector, ceiling: false, incrementX: 1, incrementY: -1, textureWidth: 32, textureHeight: 64);
+
+        Assert.True(changed);
+        Assert.Equal(0.969, sector.GetFloatField("xscalefloor", 1.0), 1e-9);
+        Assert.Equal(1.016, sector.GetFloatField("yscalefloor", 1.0), 1e-9);
+    }
+
+    [Fact]
+    public void CeilingScaleUsesCeilingFieldsLikeUdb()
+    {
+        var sector = new Sector();
+
+        bool changed = VisualScaleAdjustment.AdjustFlat(sector, ceiling: true, incrementX: 1, incrementY: -1, textureWidth: 32, textureHeight: 64);
+
+        Assert.True(changed);
+        Assert.Equal(0.969, sector.GetFloatField("xscaleceiling", 1.0), 1e-9);
+        Assert.Equal(1.016, sector.GetFloatField("yscaleceiling", 1.0), 1e-9);
+    }
+
+    [Fact]
+    public void FlatScaleSwapsIncrementsForCameraQuadrantsLikeUdb()
+    {
+        var sector = new Sector();
+
+        bool changed = VisualScaleAdjustment.AdjustFlatForView(
+            sector,
+            ceiling: false,
+            incrementX: 1,
+            incrementY: 0,
+            textureWidth: 32,
+            textureHeight: 64,
+            cameraAngleXY: Angle2D.DegToRad(90));
+
+        Assert.True(changed);
+        Assert.Equal(1.0, sector.GetFloatField("xscalefloor", 1.0), 1e-9);
+        Assert.Equal(0.984, sector.GetFloatField("yscalefloor", 1.0), 1e-9);
+    }
+
+    [Fact]
+    public void FlatScaleAddsSurfaceRotationBeforeCameraQuadrantLikeUdb()
+    {
+        var sector = new Sector();
+        sector.SetFloatField("rotationfloor", 90.0, 0.0);
+
+        bool changed = VisualScaleAdjustment.AdjustFlatForView(
+            sector,
+            ceiling: false,
+            incrementX: 1,
+            incrementY: 0,
+            textureWidth: 32,
+            textureHeight: 64,
+            cameraAngleXY: 0.0);
+
+        Assert.True(changed);
+        Assert.Equal(1.0, sector.GetFloatField("xscalefloor", 1.0), 1e-9);
+        Assert.Equal(0.984, sector.GetFloatField("yscalefloor", 1.0), 1e-9);
+    }
+
+    [Fact]
     public void DefaultScaleFieldsAreRemovedWhenWallScaleReturnsToOne()
     {
         var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0)));
@@ -48,6 +111,18 @@ public class VisualScaleAdjustmentTests
 
         Assert.True(changed);
         Assert.False(side.Fields.ContainsKey("scalex_top"));
+    }
+
+    [Fact]
+    public void DefaultScaleFieldsAreRemovedWhenFlatScaleReturnsToOne()
+    {
+        var sector = new Sector();
+        sector.SetFloatField("xscalefloor", 0.5, 1.0);
+
+        bool changed = VisualScaleAdjustment.AdjustFlat(sector, ceiling: false, incrementX: -32, incrementY: 0, textureWidth: 64, textureHeight: 64);
+
+        Assert.True(changed);
+        Assert.False(sector.Fields.ContainsKey("xscalefloor"));
     }
 
     [Fact]
