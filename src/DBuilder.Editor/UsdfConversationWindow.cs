@@ -1,5 +1,5 @@
-// ABOUTME: Non-modal USDF conversation viewer for parsed DIALOGUE map lumps.
-// ABOUTME: Presents includes, conversations, pages, inventory conditions, and choices without save-back editing.
+// ABOUTME: Non-modal USDF Dialog Editor window for parsed DIALOGUE map lumps.
+// ABOUTME: Presents UDB-style conversation tree nodes and detail rows without save-back editing.
 
 using Avalonia;
 using Avalonia.Controls;
@@ -10,6 +10,7 @@ namespace DBuilder.Editor;
 
 public sealed class UsdfConversationWindow : Window
 {
+    private readonly TreeView _tree = new();
     private readonly ListBox _list = new();
 
     public UsdfConversationWindow(UsdfParseResult result)
@@ -27,11 +28,50 @@ public sealed class UsdfConversationWindow : Window
         DockPanel.SetDock(header, Dock.Top);
         root.Children.Add(header);
 
+        foreach (TreeViewItem item in TreeItems(UsdfDialogEditorModel.BuildTree(result)))
+            _tree.Items.Add(item);
+
         foreach (UsdfConversationRow row in UsdfDialogueParser.ViewerRows(result))
             _list.Items.Add(Row(row));
 
-        root.Children.Add(new ScrollViewer { Content = _list });
+        var content = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions($"{UsdfDialogEditorModel.TreeWidth},*"),
+        };
+        var treeScroll = new ScrollViewer { Content = _tree };
+        var listScroll = new ScrollViewer { Content = _list };
+        Grid.SetColumn(treeScroll, 0);
+        Grid.SetColumn(listScroll, 1);
+        content.Children.Add(treeScroll);
+        content.Children.Add(listScroll);
+        root.Children.Add(content);
         Content = root;
+    }
+
+    private static IReadOnlyList<TreeViewItem> TreeItems(IReadOnlyList<UsdfDialogEditorTreeNode> nodes)
+    {
+        var roots = new List<TreeViewItem>();
+        var parents = new List<TreeViewItem>();
+        foreach (UsdfDialogEditorTreeNode node in nodes)
+        {
+            var item = new TreeViewItem
+            {
+                Header = node.Text,
+                Tag = node.ImageKey,
+                IsExpanded = true,
+            };
+
+            if (node.Depth == 0 || node.Depth - 1 >= parents.Count)
+                roots.Add(item);
+            else
+                parents[node.Depth - 1].Items.Add(item);
+
+            if (parents.Count <= node.Depth) parents.Add(item);
+            else parents[node.Depth] = item;
+            if (parents.Count > node.Depth + 1) parents.RemoveRange(node.Depth + 1, parents.Count - node.Depth - 1);
+        }
+
+        return roots;
     }
 
     private static Control Row(UsdfConversationRow row)

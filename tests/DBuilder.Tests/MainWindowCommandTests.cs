@@ -517,4 +517,15 @@ public sealed class MainWindowCommandTests
         Assert.Contains("Width = UsdfDialogEditorModel.DefaultClientWidth;", body, StringComparison.Ordinal);
         Assert.Contains("Height = UsdfDialogEditorModel.DefaultClientHeight;", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void UsdfWindowUsesDialogEditorTreeModel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/UsdfConversationWindow.cs"));
+
+        Assert.Contains("private readonly TreeView _tree = new();", body, StringComparison.Ordinal);
+        Assert.Contains("UsdfDialogEditorModel.BuildTree(result)", body, StringComparison.Ordinal);
+        Assert.Contains("UsdfDialogEditorModel.TreeWidth", body, StringComparison.Ordinal);
+        Assert.Contains("Tag = node.ImageKey", body, StringComparison.Ordinal);
+    }
 }

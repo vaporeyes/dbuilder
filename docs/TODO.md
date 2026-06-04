@@ -2174,6 +2174,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable USDF conversation viewer status, summary, and row model.
   - [x] Add testable UDB-style Dialog Editor tree node model for root, conversation, and page entries.
   - [x] Use UDB Dialog Editor default dimensions in the editor window.
+  - [x] Render UDB-style Dialog Editor tree nodes alongside USDF detail rows.
 - [ ] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
