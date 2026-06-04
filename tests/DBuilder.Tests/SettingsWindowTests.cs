@@ -131,6 +131,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesModelRenderModePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("ModelRenderMode", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCombo(\"Model render mode\", ModelRenderModeItems(), (int)s.NormalizedModelRenderMode)", body, StringComparison.Ordinal);
+        Assert.Contains("ModelRenderMode = ComboNumber(_modelRenderMode, (int)ThingModelRenderMode.All);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.ModelRenderMode = dlg.ModelRenderMode;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);

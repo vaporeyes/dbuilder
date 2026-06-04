@@ -84,6 +84,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose classic rendering in the Settings dialog.
   - [x] Expose fog rendering in the Settings dialog.
   - [x] Expose sky rendering in the Settings dialog.
+  - [x] Expose model render mode in the Settings dialog.
   - [x] Expose event-line visibility in the Settings dialog.
   - [x] Expose visual vertex visibility in the Settings dialog.
   - [x] Expose adjacent visual vertex slope handle selection in the Settings dialog.

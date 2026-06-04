@@ -10,7 +10,7 @@ namespace DBuilder.Editor;
 public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
-    private readonly ComboBox _defaultViewMode, _pasteTagMode;
+    private readonly ComboBox _defaultViewMode, _modelRenderMode, _pasteTagMode;
     private readonly CheckBox _autoClearSidedefTextures, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
@@ -26,6 +26,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool ShowVisualVertices;
     public bool SelectAdjacentVisualVertexSlopeHandles;
     public int DefaultViewMode;
+    public int ModelRenderMode;
     public int? StatusHistoryLimit;
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
@@ -58,6 +59,7 @@ public sealed class SettingsWindow : PropertyDialog
         _showVisualVertices = AddCheckBox("Show visual vertices", s.ShowVisualVertices);
         _selectAdjacentVisualVertexSlopeHandles = AddCheckBox("Select adjacent visual vertex slope handles", s.SelectAdjacentVisualVertexSlopeHandles);
         _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);
+        _modelRenderMode = AddCombo("Model render mode", ModelRenderModeItems(), (int)s.NormalizedModelRenderMode);
         _pasteTagMode = AddCombo("Pasted tags", PasteTagModeItems(), (int)s.NormalizedPasteOptions.ChangeTags);
         _pasteRemoveActions = AddCheckBox("Remove pasted actions", s.NormalizedPasteOptions.RemoveActions);
     }
@@ -84,6 +86,7 @@ public sealed class SettingsWindow : PropertyDialog
         ShowVisualVertices = _showVisualVertices.IsChecked == true;
         SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;
         DefaultViewMode = ComboNumber(_defaultViewMode, 0);
+        ModelRenderMode = ComboNumber(_modelRenderMode, (int)ThingModelRenderMode.All);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {
@@ -120,6 +123,14 @@ public sealed class SettingsWindow : PropertyDialog
         yield return new CatalogItem(1, "Brightness Levels");
         yield return new CatalogItem(2, "Floor Textures");
         yield return new CatalogItem(3, "Ceiling Textures");
+    }
+
+    private static IEnumerable<CatalogItem> ModelRenderModeItems()
+    {
+        yield return new CatalogItem((int)ThingModelRenderMode.None, "None");
+        yield return new CatalogItem((int)ThingModelRenderMode.Selection, "Selection only");
+        yield return new CatalogItem((int)ThingModelRenderMode.ActiveThingsFilter, "Active things filter only");
+        yield return new CatalogItem((int)ThingModelRenderMode.All, "All");
     }
 
     private static IEnumerable<CatalogItem> PasteTagModeItems()

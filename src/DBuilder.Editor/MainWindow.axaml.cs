@@ -1313,6 +1313,7 @@ public partial class MainWindow : Window
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
+        _settings.ModelRenderMode = dlg.ModelRenderMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
@@ -1320,6 +1321,7 @@ public partial class MainWindow : Window
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
+        MapView.SetModelRenderMode(_settings.NormalizedModelRenderMode);
         MapView.SetEnhancedRenderingEffects(_settings.EnhancedRenderingEffects);
         MapView.SetClassicRendering(_settings.ClassicRendering);
         MapView.SetDrawFog(_settings.DrawFog);
