@@ -68,6 +68,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Block in-place WAD saves when the source archive changed on disk after load.
   - [x] Block in-place WAD saves when the source archive is read-only.
   - [x] Disable in-place Save command availability for read-only source WADs.
+  - [x] Block Save As overwrite attempts for read-only target WADs before writing.
 - [ ] Port program configuration loading and persistence.
   - [x] Persist and restore the main editor window placement.
   - [x] Persist and restore the last used game configuration for startup.

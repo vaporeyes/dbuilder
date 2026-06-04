@@ -8,6 +8,8 @@ namespace DBuilder.IO;
 
 public readonly record struct FileSaveStamp(DateTime LastWriteTimeUtc, long Length)
 {
+    public const string ReadOnlyTargetSaveStatus = "Save blocked: the target WAD is read-only. Choose another file or clear the read-only flag.";
+
     public static bool TryRead(string? path, out FileSaveStamp stamp)
     {
         stamp = default;
@@ -32,4 +34,7 @@ public readonly record struct FileSaveStamp(DateTime LastWriteTimeUtc, long Leng
 
     public static bool CanWriteExistingPath(string? path)
         => !IsReadOnly(path);
+
+    public static string? ExistingPathWriteBlockStatus(string? path)
+        => CanWriteExistingPath(path) ? null : ReadOnlyTargetSaveStatus;
 }
