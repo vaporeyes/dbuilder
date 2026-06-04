@@ -708,9 +708,17 @@ public static class MapSearch
             if (tag != 0) counts[tag] = counts.TryGetValue(tag, out int c) ? c + 1 : 1;
         }
 
-        foreach (var s in map.Sectors) foreach (int tag in MapElementTags.PositiveTags(s)) Add(sectors, tag);
+        foreach (var s in map.Sectors)
+        {
+            if (s.Tag == 0) continue;
+            foreach (int tag in MapElementTags.PositiveTags(s)) Add(sectors, tag);
+        }
         if (options.IncludeLinedefs)
-            foreach (var l in map.Linedefs) foreach (int tag in MapElementTags.PositiveTags(l)) Add(linedefs, tag);
+            foreach (var l in map.Linedefs)
+            {
+                if (l.Tag == 0) continue;
+                foreach (int tag in MapElementTags.PositiveTags(l)) Add(linedefs, tag);
+            }
         if (options.IncludeThings)
             foreach (var t in map.Things) foreach (int tag in MapElementTags.PositiveTags(t)) Add(things, tag);
 

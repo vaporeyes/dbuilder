@@ -1092,6 +1092,21 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void UsedTagStatisticsSkipsSectorAndLinedefMoreidsWhenPrimaryTagIsZero()
+    {
+        var map = Build();
+        map.Sectors[0].Tags.Clear();
+        map.Sectors[0].Tags.AddRange([0, 7]);
+        map.Linedefs[0].Tags.Clear();
+        map.Linedefs[0].Tags.AddRange([0, 7]);
+        map.Things[0].Tag = 0;
+
+        var tags = MapSearch.UsedTagStatistics(map);
+
+        Assert.DoesNotContain(tags, tag => tag.Tag == 7);
+    }
+
+    [Fact]
     public void ThingTypeStatisticsCountsTypesAscending()
     {
         var map = Build();
