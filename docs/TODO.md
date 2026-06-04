@@ -1646,6 +1646,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [x] Add UDB-style Image Example mode action metadata and 2D command dispatch.
+  - [x] Add UDB-style Image Example plugin name, embedded resource, mode, and overlay presentation metadata.
   - [ ] Revisit once the plugin loader exists so this can ship as a real sample plugin.
 
 ## BuilderModes Detail

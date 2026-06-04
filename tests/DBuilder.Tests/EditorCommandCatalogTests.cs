@@ -106,6 +106,7 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.Equal("imageexamplemode", ImageExampleModeModel.ModeDescriptor.SwitchAction);
     }
 
     [Fact]
