@@ -1316,6 +1316,7 @@ public partial class MainWindow : Window
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.ModelRenderMode = dlg.ModelRenderMode;
         _settings.LightRenderMode = dlg.LightRenderMode;
+        _settings.MergeGeometryMode = dlg.MergeGeometryMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;

@@ -173,6 +173,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesMergeGeometryModePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("MergeGeometryMode", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCombo(\"Merge geometry mode\", MergeGeometryModeItems(), (int)s.NormalizedMergeGeometryMode)", body, StringComparison.Ordinal);
+        Assert.Contains("MergeGeometryMode = (MergeGeometryMode)ComboNumber(_mergeGeometryMode, (int)MergeGeometryMode.Replace);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.MergeGeometryMode = dlg.MergeGeometryMode;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_map.StitchSelectedGeometry(_settings.NormalizedMergeGeometryMode, 0.5)", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);
