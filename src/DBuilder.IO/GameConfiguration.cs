@@ -2355,7 +2355,8 @@ public sealed class GameConfiguration
         {
             string key = e.Key.ToString() ?? "";
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
-            if (e.Value is string title)
+            string? title = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+            if (title != null)
                 sectorEffects[number] = new SectorEffectInfo { Index = number, Title = title };
         }
     }

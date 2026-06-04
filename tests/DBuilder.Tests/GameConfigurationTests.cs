@@ -1074,6 +1074,22 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ParsesNonStringSectorEffectTitlesLikeUdb()
+    {
+        const string cfg = """
+            sectortypes
+            {
+                12 = 345;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal("345", gc.SectorEffectTitle(12));
+        Assert.Equal("345", gc.GetSectorEffect(12)!.Title);
+    }
+
+    [Fact]
     public void ParsesFlagDefinitions()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

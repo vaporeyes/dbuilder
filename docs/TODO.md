@@ -925,6 +925,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse texture, flat, patch, sprite, hires, and voxel range metadata.
   - [x] Preserve the first configured thing type when duplicate thing numbers are defined like UDB.
   - [x] Preserve the first configured linedef action when duplicate action numbers are defined like UDB.
+  - [x] Parse scalar sector effect titles with UDB-style value conversion.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
