@@ -97,6 +97,11 @@ public sealed record VisplaneExplorerViewHeightMenuItem(
     string Tag,
     bool Checked);
 
+public sealed record VisplaneExplorerToolbarLifecyclePlan(
+    IReadOnlyList<string> AddOrder,
+    IReadOnlyList<string> RemoveOrder,
+    bool SaveSettingsOnRemove);
+
 public readonly record struct VisplaneExplorerProgress(
     int TileCount,
     int IssuedPointCount,
@@ -176,6 +181,25 @@ public static class VisplaneExplorerInterfaceModel
     public const string CustomHeightText = "Set custom height";
     public const string CustomHeightTag = "-1";
     public const string CustomHeightImageName = "Add";
+    public static readonly IReadOnlyList<string> ToolbarAddOrder =
+    [
+        "statsbutton",
+        "separator",
+        "cbopendoors",
+        "cbheatmap",
+        "heightbutton",
+    ];
+    public static readonly IReadOnlyList<string> ToolbarRemoveOrder =
+    [
+        "heightbutton",
+        "cbheatmap",
+        "cbopendoors",
+        "separator",
+        "statsbutton",
+    ];
+
+    public static VisplaneExplorerToolbarLifecyclePlan ToolbarLifecyclePlan()
+        => new(ToolbarAddOrder, ToolbarRemoveOrder, SaveSettingsOnRemove: true);
 
     public static VisplaneExplorerModeDescriptor ModeDescriptor { get; } = new(
         "Visplane Explorer",

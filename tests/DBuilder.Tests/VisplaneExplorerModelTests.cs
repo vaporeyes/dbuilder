@@ -91,6 +91,20 @@ public class VisplaneExplorerModelTests
     }
 
     [Fact]
+    public void ToolbarLifecyclePlanMatchesUdbInterfaceAddRemoveOrder()
+    {
+        VisplaneExplorerToolbarLifecyclePlan plan = VisplaneExplorerInterfaceModel.ToolbarLifecyclePlan();
+
+        Assert.Equal(
+            new[] { "statsbutton", "separator", "cbopendoors", "cbheatmap", "heightbutton" },
+            plan.AddOrder);
+        Assert.Equal(
+            new[] { "heightbutton", "cbheatmap", "cbopendoors", "separator", "statsbutton" },
+            plan.RemoveOrder);
+        Assert.True(plan.SaveSettingsOnRemove);
+    }
+
+    [Fact]
     public void ReadyStatusFormatsQueuedAnalysisState()
     {
         var settings = new VisplaneExplorerInterfaceSettings(
