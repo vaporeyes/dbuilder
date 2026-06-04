@@ -2590,6 +2590,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ChangeVisualScale3D(int incrementX, int incrementY)
     {
         if (_map == null) return;
+        if (_mapFormat != MapFormat.Udmf) return;
 
         int changed = 0;
         int skipped = 0;
