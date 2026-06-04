@@ -380,6 +380,7 @@ public sealed class GameConfiguration
     private readonly Dictionary<int, SectorEffectInfo> sectorEffects = new();
     private readonly Dictionary<int, string> linedefFlags = new();
     private readonly Dictionary<int, string> thingFlags = new();
+    private readonly HashSet<string> thingFlagKeys = new(StringComparer.Ordinal);
     private readonly Dictionary<int, string> skills = new();
     private readonly Dictionary<string, Dictionary<int, string>> enums = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, EnumListInfo> enumLists = new(StringComparer.OrdinalIgnoreCase);
@@ -674,7 +675,7 @@ public sealed class GameConfiguration
             if (root["sectortypes"] is IDictionary st) gc.ParseSectorTypes(st);
             if (root["linedefflags"] is IDictionary lf) gc.ParseFlatIntStrings(lf, gc.linedefFlags);
             if (root["linedefactivations"] is IDictionary la) gc.ParseLinedefActivations(la);
-            if (root["thingflags"] is IDictionary tf) gc.ParseFlatIntStrings(tf, gc.thingFlags);
+            if (root["thingflags"] is IDictionary tf) gc.ParseThingFlags(tf);
             if (root["defaultthingflags"] is IDictionary dtf) gc.ParseDefaultThingFlags(dtf);
             if (root["thingflagscompare"] is IDictionary tfc) gc.ParseThingFlagsCompare(tfc);
             if (root["universalfields"] is IDictionary uf) gc.ParseUniversalFields(uf);
@@ -2053,7 +2054,20 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in block)
         {
             string flag = e.Key.ToString() ?? "";
-            if (flag.Length > 0) defaultThingFlags.Add(flag);
+            if (flag.Length > 0 && thingFlagKeys.Contains(flag)) defaultThingFlags.Add(flag);
+        }
+    }
+
+    private void ParseThingFlags(IDictionary src)
+    {
+        foreach (DictionaryEntry e in src)
+        {
+            string key = e.Key.ToString() ?? "";
+            if (key.Length == 0) continue;
+            thingFlagKeys.Add(key);
+            if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
+            string? value = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
+            if (value != null) thingFlags[number] = value;
         }
     }
 

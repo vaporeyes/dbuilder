@@ -304,6 +304,12 @@ public class GameConfigurationTests
                 repeatspecial;
                 -monsteractivate;
             }
+            thingflags
+            {
+                1 = "Easy";
+                2 = "Medium";
+                skill1 = "Skill 1";
+            }
             defaultthingflags
             {
                 1;
@@ -324,6 +330,26 @@ public class GameConfigurationTests
         Assert.True(gc.MakeDoorFlags["repeatspecial"]);
         Assert.False(gc.MakeDoorFlags["monsteractivate"]);
         Assert.Equal(new[] { "1", "2", "skill1" }, gc.DefaultThingFlags);
+    }
+
+    [Fact]
+    public void DefaultThingFlagsDropUnknownFlagsLikeUdb()
+    {
+        const string cfg = """
+            thingflags
+            {
+                skill1 = "Skill 1";
+            }
+            defaultthingflags
+            {
+                skill1;
+                missing;
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal(["skill1"], gc.DefaultThingFlags);
     }
 
     [Fact]
