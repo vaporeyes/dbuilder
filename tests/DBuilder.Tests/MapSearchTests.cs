@@ -90,12 +90,16 @@ public class MapSearchTests
 
         Assert.Equal(Enum.GetValues<FindCategory>().Length, descriptors.Count);
         Assert.Equal(Enum.GetValues<FindCategory>().OrderBy(category => category), descriptors.Select(descriptor => descriptor.Category).OrderBy(category => category));
-        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingType, "Thing Type"), descriptors[0]);
-        Assert.Equal(new FindCategoryDescriptor(FindCategory.TextureOrFlat, "Any Texture or Flat"), descriptors[25]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingType, "Thing Type", BrowseButton: true), descriptors[0]);
+        Assert.Equal(new FindCategoryDescriptor(FindCategory.TextureOrFlat, "Any Texture or Flat", BrowseButton: true), descriptors[25]);
         Assert.Equal(new FindCategoryDescriptor(FindCategory.ThingUdmfField, "Thing UDMF Field"), descriptors[^1]);
         Assert.Equal("Sidedef Texture (Middle)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SidedefMiddleTexture).ToString());
         Assert.Equal("Sector Height (Ceiling)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SectorCeilingHeight).Label);
         Assert.Equal("Sector Flat (Floor)", descriptors.Single(descriptor => descriptor.Category == FindCategory.SectorFloorFlat).Label);
+        Assert.True(descriptors.Single(descriptor => descriptor.Category == FindCategory.LinedefActionArguments).BrowseButton);
+        Assert.True(descriptors.Single(descriptor => descriptor.Category == FindCategory.SectorEffect).BrowseButton);
+        Assert.False(descriptors.Single(descriptor => descriptor.Category == FindCategory.ThingTag).BrowseButton);
+        Assert.False(descriptors.Single(descriptor => descriptor.Category == FindCategory.AnyUdmfField).BrowseButton);
     }
 
     [Theory]
