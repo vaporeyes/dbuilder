@@ -12,8 +12,9 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
+    private readonly int _drawCurveSegmentLength;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
@@ -34,6 +35,7 @@ public sealed class SettingsWindow : PropertyDialog
     public MergeGeometryMode MergeGeometryMode;
     public int? StatusHistoryLimit;
     public DrawLineModeSettings DrawLineSettings = new();
+    public DrawCurveModeSettings DrawCurveSettings = new();
     public PasteOptions PasteOptions = new();
     public List<EditorShortcutBinding> ShortcutOverrides = new();
 
@@ -55,10 +57,14 @@ public sealed class SettingsWindow : PropertyDialog
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _drawLineShowGuidelines = s.NormalizedDrawLineSettings.ShowGuidelines;
+        _drawCurveSegmentLength = s.NormalizedDrawCurveSettings.SegmentLength;
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
         _drawLineAutoCloseDrawing = AddCheckBox("Auto-close drawn lines", s.NormalizedDrawLineSettings.AutoCloseDrawing);
+        _drawCurveContinuousDrawing = AddCheckBox("Draw curves continuously", s.NormalizedDrawCurveSettings.ContinuousDrawing);
+        _drawCurveAutoCloseDrawing = AddCheckBox("Auto-close drawn curves", s.NormalizedDrawCurveSettings.AutoCloseDrawing);
+        _drawCurvePlaceThingsAtVertices = AddCheckBox("Place things at curve vertices", s.NormalizedDrawCurveSettings.PlaceThingsAtVertices);
         _useHighlight = AddCheckBox("Use highlight", s.UseHighlight);
         _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
         _enhancedRenderingEffects = AddCheckBox("Enhanced rendering effects", s.EnhancedRenderingEffects);
@@ -106,6 +112,11 @@ public sealed class SettingsWindow : PropertyDialog
             ContinuousDrawing: _drawLineContinuousDrawing.IsChecked == true,
             AutoCloseDrawing: _drawLineAutoCloseDrawing.IsChecked == true,
             ShowGuidelines: _drawLineShowGuidelines);
+        DrawCurveSettings = new DrawCurveModeSettings(
+            SegmentLength: _drawCurveSegmentLength,
+            ContinuousDrawing: _drawCurveContinuousDrawing.IsChecked == true,
+            AutoCloseDrawing: _drawCurveAutoCloseDrawing.IsChecked == true,
+            PlaceThingsAtVertices: _drawCurvePlaceThingsAtVertices.IsChecked == true);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
         {

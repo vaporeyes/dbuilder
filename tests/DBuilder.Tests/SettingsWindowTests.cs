@@ -76,6 +76,22 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesDrawCurveModePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DrawCurveSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Draw curves continuously\", s.NormalizedDrawCurveSettings.ContinuousDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Auto-close drawn curves\", s.NormalizedDrawCurveSettings.AutoCloseDrawing)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Place things at curve vertices\", s.NormalizedDrawCurveSettings.PlaceThingsAtVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("SegmentLength: _drawCurveSegmentLength", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DrawCurveSettings = dlg.DrawCurveSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesShowVisualVerticesPreference()
     {
         Type type = typeof(SettingsWindow);
