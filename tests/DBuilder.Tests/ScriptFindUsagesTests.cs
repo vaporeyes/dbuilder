@@ -62,6 +62,28 @@ public class ScriptFindUsagesTests
     }
 
     [Fact]
+    public void TreatsFindTextAsLiteralTextLikeUdb()
+    {
+        const string text = """
+            Thing.Spawn
+            ThingXSpawn
+            A+B
+            AAAB
+            """;
+
+        var dotted = ScriptFindUsages.Find(text, "Thing.Spawn", caseSensitive: true);
+        var plus = ScriptFindUsages.Find(text, "A+B", caseSensitive: true);
+
+        var dottedUsage = Assert.Single(dotted);
+        Assert.Equal(0, dottedUsage.LineIndex);
+        Assert.Equal("Thing.Spawn", dottedUsage.Line);
+
+        var plusUsage = Assert.Single(plus);
+        Assert.Equal(2, plusUsage.LineIndex);
+        Assert.Equal("A+B", plusUsage.Line);
+    }
+
+    [Fact]
     public void ContainsTextStopsAtFirstMatchingLineLikeUdb()
     {
         const string text = """

@@ -1356,6 +1356,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Build UDB-style script function calltip definitions and argument highlight spans.
 - [ ] Port find-usages behavior.
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
+  - [x] Treat script find-usages search text as literal text instead of regex syntax.
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Select script compiler output target rules from UDB compiler interface metadata.
