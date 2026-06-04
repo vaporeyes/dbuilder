@@ -2483,12 +2483,13 @@ public class EditorCommandCatalogTests
     [Fact]
     public void ParseOverrideTextReadsCommandGestures()
     {
-        var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[; window.cancel-draw=Esc");
+        var overrides = EditorCommandCatalog.ParseOverrideText("window.save=F5; map2d.fit=Shift+R; map3d.brightness-down=[; window.cancel-draw=Esc; window.copy=Control+C");
 
         Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "F5");
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "R" && b.Shift);
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets");
         Assert.Contains(overrides, b => b.CommandId == "window.cancel-draw" && b.Key == "Escape");
+        Assert.Contains(overrides, b => b.CommandId == "window.copy" && b.Key == "C" && b.Accelerator);
     }
 
     [Fact]

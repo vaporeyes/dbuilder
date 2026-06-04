@@ -634,6 +634,7 @@ public static class EditorCommandCatalog
         {
             string part = rawPart.Trim();
             if (part.Equals("Ctrl", StringComparison.OrdinalIgnoreCase)
+                || part.Equals("Control", StringComparison.OrdinalIgnoreCase)
                 || part.Equals("Cmd", StringComparison.OrdinalIgnoreCase)
                 || part.Equals("Command", StringComparison.OrdinalIgnoreCase)
                 || part.Equals("Ctrl/Cmd", StringComparison.OrdinalIgnoreCase))
