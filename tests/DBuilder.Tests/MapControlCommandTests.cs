@@ -117,6 +117,23 @@ public sealed class MapControlCommandTests
         Assert.Equal(expected, MapControl.VisualThingOrientation3DStatusText(thing, orientation));
     }
 
+    [Fact]
+    public void VisualHeight3DStatusTextMatchesUdbTargetKind()
+    {
+        var sector = new Sector { FloorHeight = 16, CeilHeight = 128 };
+        var thing = new Thing { Height = 24.5 };
+
+        Assert.Equal(
+            "Changed floor height to 16.",
+            MapControl.VisualHeight3DStatusText(new VisualHit(VisualHitKind.Floor, 0, new(), sector, null, true, 0, 0)));
+        Assert.Equal(
+            "Changed ceiling height to 128.",
+            MapControl.VisualHeight3DStatusText(new VisualHit(VisualHitKind.Ceiling, 0, new(), sector, null, true, 0, 0)));
+        Assert.Equal(
+            "Changed thing height to 24.5.",
+            MapControl.VisualHeight3DStatusText(new VisualHit(VisualHitKind.Thing, 0, new(), null, null, true, 0, 0, Thing: thing)));
+    }
+
     [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
@@ -538,6 +555,23 @@ public sealed class MapControlCommandTests
         Assert.True(methodIndex >= 0);
         Assert.True(callIndex > methodIndex);
         Assert.True(capabilityIndex > callIndex);
+    }
+
+    [Fact]
+    public void AdjustTarget3DUsesUdbHeightStatusForLastChangedTarget()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void AdjustTarget3D(int step)", StringComparison.Ordinal);
+        int statusVariableIndex = body.IndexOf("string heightStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("ApplyHeightDelta(h, step);", statusVariableIndex, StringComparison.Ordinal);
+        int statusAssignmentIndex = body.IndexOf("heightStatus = VisualHeight3DStatusText(h);", applyIndex, StringComparison.Ordinal);
+        int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(heightStatus);", statusAssignmentIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusVariableIndex > methodIndex);
+        Assert.True(applyIndex > statusVariableIndex);
+        Assert.True(statusAssignmentIndex > applyIndex);
+        Assert.True(finalStatusIndex > statusAssignmentIndex);
     }
 
     [Fact]

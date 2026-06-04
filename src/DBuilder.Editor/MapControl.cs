@@ -3333,17 +3333,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return;
         bool any = false;
+        string heightStatus = string.Empty;
         foreach (var h in EditTargets3D())
         {
             if (HeightEditLabel(h) == null) continue;
             if (!any) { EditBegun?.Invoke("Change height"); any = true; }
             ApplyHeightDelta(h, step);
+            heightStatus = VisualHeight3DStatusText(h);
         }
         if (!any) return;
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
+        Target3DChanged?.Invoke(heightStatus);
     }
 
     private void AdjustTargetToNearest3D(bool raise, bool withinSelection)
@@ -3392,6 +3395,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case VisualHitKind.Thing: if (h.Thing is { } t) t.Height += delta; break;
         }
     }
+
+    public static string VisualHeight3DStatusText(VisualHit hit)
+        => hit.Kind switch
+        {
+            VisualHitKind.Floor when hit.Sector != null => "Changed floor height to " + hit.Sector.FloorHeight + ".",
+            VisualHitKind.Ceiling when hit.Sector != null => "Changed ceiling height to " + hit.Sector.CeilHeight + ".",
+            VisualHitKind.Thing when hit.Thing != null => "Changed thing height to " + hit.Thing.Height.ToString(CultureInfo.InvariantCulture) + ".",
+            _ => string.Empty,
+        };
 
     // The surfaces a right-drag affects: the selection if any, otherwise the captured target.
     private System.Collections.Generic.List<VisualHit> DragTargets3D()
