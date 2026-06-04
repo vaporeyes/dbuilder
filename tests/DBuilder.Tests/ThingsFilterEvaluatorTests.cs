@@ -274,6 +274,32 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void NormalizesDisplayModeToUdbRange()
+    {
+        var config = GameConfiguration.FromText("""
+            thingsfilters
+            {
+                low
+                {
+                    name = "Low";
+                    displaymode = -20;
+                }
+                high
+                {
+                    name = "High";
+                    displaymode = 20;
+                }
+            }
+            """);
+
+        Assert.Equal(0, config.ThingsFilters[0].DisplayMode);
+        Assert.Equal(2, config.ThingsFilters[1].DisplayMode);
+
+        var draft = new ThingsFilterDraft { DisplayMode = 20, ThingType = 3001 };
+        Assert.Equal(2, draft.ToInfo("filter0").DisplayMode);
+    }
+
+    [Fact]
     public void DraftUsesUdbDefaultsAndValidationRules()
     {
         var draft = new ThingsFilterDraft();

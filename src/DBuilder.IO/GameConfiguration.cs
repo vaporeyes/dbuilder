@@ -2132,7 +2132,7 @@ public sealed class GameConfiguration
                 GetString(filter, "name", "Unnamed filter"),
                 GetString(filter, "category", ""),
                 GetBool(filter, "invert", false),
-                GetInt(filter, "displaymode", 0),
+                NormalizeThingsFilterDisplayMode(GetInt(filter, "displaymode", 0)),
                 GetInt(filter, "type", -1),
                 GetInt(filter, "angle", -1),
                 GetInt(filter, "zheight", int.MinValue),
@@ -2144,6 +2144,9 @@ public sealed class GameConfiguration
                 customFields));
         }
     }
+
+    private static int NormalizeThingsFilterDisplayMode(int displayMode)
+        => Math.Clamp(displayMode, 0, 2);
 
     private static void ParseThingsFilterFields(IDictionary fields, List<string> requiredFields, List<string> forbiddenFields)
     {

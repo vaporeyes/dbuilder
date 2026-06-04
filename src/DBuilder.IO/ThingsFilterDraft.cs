@@ -59,7 +59,7 @@ public sealed class ThingsFilterDraft
             Name,
             Category,
             Invert,
-            DisplayMode,
+            NormalizeDisplayMode(DisplayMode),
             ThingType,
             ThingAngle,
             ThingZHeight,
@@ -86,7 +86,7 @@ public sealed class ThingsFilterDraft
         configuration.WriteSetting(path + ".name", Name);
         configuration.WriteSetting(path + ".category", Category);
         configuration.WriteSetting(path + ".invert", Invert);
-        configuration.WriteSetting(path + ".displaymode", DisplayMode);
+        configuration.WriteSetting(path + ".displaymode", NormalizeDisplayMode(DisplayMode));
         configuration.WriteSetting(path + ".type", ThingType);
         configuration.WriteSetting(path + ".angle", ThingAngle);
         configuration.WriteSetting(path + ".zheight", ThingZHeight);
@@ -105,4 +105,7 @@ public sealed class ThingsFilterDraft
             configuration.WriteSetting(path + ".customfieldvalues." + key, field.Value);
         }
     }
+
+    private static int NormalizeDisplayMode(int displayMode)
+        => Math.Clamp(displayMode, 0, 2);
 }
