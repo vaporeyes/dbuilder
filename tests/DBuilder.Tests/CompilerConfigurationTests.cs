@@ -314,6 +314,32 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerProcessBuildsZtBccStartInfoLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "zt-bcc.cfg",
+            "zt-bcc",
+            "/compilers/ZT-BCC",
+            "zt-bcc",
+            "ZtBccCompiler",
+            new HashSet<string>());
+
+        var startInfo = ScriptCompilerProcess.CreateZtBccStartInfo(
+            compiler,
+            "-i scripts.bcs -o behavior.o",
+            "/tmp/dbuilder_compile");
+
+        Assert.Equal(Path.Combine("/compilers/ZT-BCC", "zt-bcc"), startInfo.FileName);
+        Assert.Equal("-i scripts.bcs -o behavior.o", startInfo.Arguments);
+        Assert.Equal("/tmp/dbuilder_compile", startInfo.WorkingDirectory);
+        Assert.True(startInfo.CreateNoWindow);
+        Assert.True(startInfo.RedirectStandardError);
+        Assert.True(startInfo.RedirectStandardOutput);
+        Assert.False(startInfo.UseShellExecute);
+        Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, startInfo.WindowStyle);
+    }
+
+    [Fact]
     public void ScriptCompileFlowBuildsDirectoryPlanLikeUdb()
     {
         var plan = ScriptCompileFlow.BuildDirectoryPlan(

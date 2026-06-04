@@ -81,6 +81,9 @@ public static class ScriptCompilerProcess
         startInfo.RedirectStandardOutput = true;
         return startInfo;
     }
+
+    public static ProcessStartInfo CreateZtBccStartInfo(CompilerInfo compiler, string arguments, string workingDirectory)
+        => CreateBccStartInfo(compiler, arguments, workingDirectory);
 }
 
 public static class ScriptCompileFlow

@@ -1334,6 +1334,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Configure redirected stdout and stderr process mode like UDB.
 - [ ] Port ZT-BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
+  - [x] Add UDB-style ZT-BCC compiler process start settings.
 - [ ] Port nodes compiler integration.
   - [x] Add UDB-style nodebuilder process result handling for exit codes and output containing errors.
   - [x] Add UDB-style nodebuilder process start settings.
