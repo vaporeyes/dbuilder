@@ -22,13 +22,13 @@ public sealed class MapCheckWindow : Window
     /// <summary>Raised when the user selects an issue row, carrying the issue so the host can navigate to it.</summary>
     public event Action<MapIssue>? IssueActivated;
 
-    public MapCheckWindow(IReadOnlyList<MapIssue> issues)
+    public MapCheckWindow(IReadOnlyList<MapIssue> issues, MapErrorCheckerSelectionModel? checkerSelection = null)
     {
         _model = new MapIssueListModel(issues);
 
         Title = "Map Analysis";
         Width = 480;
-        Height = 360;
+        Height = 440;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         _header.Margin = new Avalonia.Thickness(10, 8);
@@ -83,18 +83,15 @@ public sealed class MapCheckWindow : Window
         };
         showOnlyType.Click += (_, _) => ShowOnlySelectedTypes();
 
-        var header = new StackPanel
+        var header = new StackPanel();
+        header.Children.Add(_header);
+        if (checkerSelection is not null)
+            header.Children.Add(CheckerSelectionPanel(checkerSelection));
+        header.Children.Add(new StackPanel
         {
-            Children =
-            {
-                _header,
-                new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    Children = { ignoreSelected, showAll, copySelected, hideType, selectType, showOnlyType },
-                },
-            },
-        };
+            Orientation = Orientation.Horizontal,
+            Children = { ignoreSelected, showAll, copySelected, hideType, selectType, showOnlyType },
+        });
 
         _list.SelectionMode = SelectionMode.Multiple;
         RefreshRows();
@@ -172,6 +169,39 @@ public sealed class MapCheckWindow : Window
 
     private static bool HasCopyModifier(KeyModifiers modifiers) =>
         modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
+
+    private static Control CheckerSelectionPanel(MapErrorCheckerSelectionModel selection)
+    {
+        var rows = new StackPanel { Spacing = 2, Margin = new Avalonia.Thickness(8, 4) };
+        foreach (var row in selection.Rows)
+        {
+            var check = new CheckBox
+            {
+                Content = row.DisplayName,
+                IsChecked = row.IsChecked,
+                Margin = new Avalonia.Thickness(0, 1),
+            };
+            check.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == CheckBox.IsCheckedProperty)
+                    selection.SetChecked(row.SettingsKey, check.IsChecked == true);
+            };
+            rows.Children.Add(check);
+        }
+
+        int enabledCount = selection.EnabledDescriptors().Count;
+        return new Expander
+        {
+            Header = $"Checks ({enabledCount}/{selection.Rows.Count})",
+            IsExpanded = false,
+            Margin = new Avalonia.Thickness(10, 0, 10, 8),
+            Content = new ScrollViewer
+            {
+                MaxHeight = 150,
+                Content = rows,
+            },
+        };
+    }
 
     private void RefreshRows()
     {

@@ -4537,12 +4537,18 @@ public partial class MainWindow : Window
     private void OnCheckMap(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        var issues = MapAnalysis.Check(_map, BuildCheckContext(), _settings.EnabledMapErrorCheckers());
-        var win = new MapCheckWindow(issues);
+        var checkerSelection = _settings.MapErrorCheckerSelection();
+        var issues = MapAnalysis.Check(_map, BuildCheckContext(), checkerSelection.EnabledDescriptors());
+        var win = new MapCheckWindow(issues, checkerSelection);
         win.IssueActivated += iss =>
         {
             MapView.NavigateTo(iss.Target, iss.Focus);
             UpdateInfo();
+        };
+        win.Closed += (_, _) =>
+        {
+            _settings.ApplyMapErrorCheckerSelection(checkerSelection);
+            SaveSettings();
         };
         win.Show(this);
         SetStatus(MapIssueListModel.AnalysisStatusText(issues.Count));
