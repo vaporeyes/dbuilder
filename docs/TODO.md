@@ -584,6 +584,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop MAPINFO numbered actor parsing on malformed entries like UDB.
   - [x] Stop MAPINFO parsing on malformed `gameinfo` blocks like UDB.
   - [x] Stop MAPINFO parsing on unexpected map directives inside braced map blocks like UDB.
+  - [x] Stop MAPINFO parsing on invalid or duplicate includes like UDB.
 - [ ] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
   - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.

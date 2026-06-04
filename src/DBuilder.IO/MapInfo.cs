@@ -135,7 +135,7 @@ public sealed class MapInfo
             if (!t.IsString && t.Text.Equals("include", StringComparison.OrdinalIgnoreCase))
             {
                 i++;
-                ParseInclude(mi, toks, ref i, includeResolver, knownColors, parsedIncludes);
+                if (!ParseInclude(mi, toks, ref i, includeResolver, knownColors, parsedIncludes)) return;
                 continue;
             }
             // Any other directive's brace block (gameinfo, cluster, ...) is skipped wholesale; non-map
@@ -153,14 +153,16 @@ public sealed class MapInfo
         if (other.SkyFlatName != null) SkyFlatName = other.SkyFlatName;
     }
 
-    private static void ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
+    private static bool ParseInclude(MapInfo mi, List<Tok> toks, ref int i, Func<string, string?>? includeResolver, IReadOnlyDictionary<string, X11Color>? knownColors, HashSet<string> parsedIncludes)
     {
-        if (includeResolver == null || i >= toks.Count) return;
+        if (i >= toks.Count) return false;
         string include = toks[i++].Text;
-        if (!IsValidIncludePath(include)) return;
-        if (!parsedIncludes.Add(include)) return;
+        if (!IsValidIncludePath(include)) return false;
+        if (!parsedIncludes.Add(include)) return false;
+        if (includeResolver == null) return true;
         string? text = includeResolver(include);
         if (text != null) ParseInto(mi, text, includeResolver, knownColors, parsedIncludes);
+        return true;
     }
 
     private static bool IsValidIncludePath(string include)

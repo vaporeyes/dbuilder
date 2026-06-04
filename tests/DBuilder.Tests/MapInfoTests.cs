@@ -224,7 +224,7 @@ map MAP01 ""Entryway"" { next = MAP02 }";
     }
 
     [Fact]
-    public void ParsesIncludesOnce()
+    public void DuplicateIncludesStopParsingLikeUdb()
     {
         const string text = @"
 include ""mapinfo/maps.txt""
@@ -238,7 +238,7 @@ DoomEdNums { 9001 = LocalActor }";
         Assert.Single(mi.Maps);
         Assert.Equal("MAP02", mi.GetMap("MAP01")!.Next);
         Assert.Equal("includedactor", mi.DoomEdNums[9000]);
-        Assert.Equal("localactor", mi.DoomEdNums[9001]);
+        Assert.False(mi.DoomEdNums.ContainsKey(9001));
     }
 
     [Theory]
@@ -246,13 +246,27 @@ DoomEdNums { 9001 = LocalActor }";
     [InlineData("./mapinfo/maps.txt")]
     [InlineData("mapinfo\\maps.txt")]
     [InlineData("/mapinfo/maps.txt")]
-    public void RejectsInvalidIncludePaths(string includePath)
+    public void InvalidIncludesStopParsingLikeUdb(string includePath)
     {
-        string text = includePath.Contains('\\') ? "include " + includePath : "include \"" + includePath + "\"";
+        string text = includePath.Contains('\\')
+            ? "include " + includePath + "\nDoomEdNums { 9001 = LocalActor }"
+            : "include \"" + includePath + "\"\nDoomEdNums { 9001 = LocalActor }";
 
-        var mi = MapInfo.Parse(text, _ => "map MAP01 \"Entryway\" { next = MAP02 }");
+        var mi = MapInfo.Parse(text, _ => "DoomEdNums { 9000 = IncludedActor }");
 
-        Assert.Empty(mi.Maps);
+        Assert.Empty(mi.DoomEdNums);
+    }
+
+    [Fact]
+    public void EmptyIncludesStopParsingLikeUdb()
+    {
+        const string text = @"
+include """"
+DoomEdNums { 9001 = LocalActor }";
+
+        var mi = MapInfo.Parse(text, _ => "DoomEdNums { 9000 = IncludedActor }");
+
+        Assert.Empty(mi.DoomEdNums);
     }
 
     [Fact]
