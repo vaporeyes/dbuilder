@@ -182,6 +182,33 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void DirectionalShadingActionUsesVisualFloorAndWallSelectionsIn3DMode()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyDirectionalShading", StringComparison.Ordinal);
+        int visualModeIndex = body.IndexOf("if (MapView.In3DMode)", methodIndex, StringComparison.Ordinal);
+        int visualSurfacesIndex = body.IndexOf("MapView.SelectedVisualSurfacesForActions()", visualModeIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("AddDirectionalShadingVisualSurface(hit, sectors, sides)", visualSurfacesIndex, StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Select some floor or wall surfaces first!", helperIndex, StringComparison.Ordinal);
+        int linedefsModeIndex = body.IndexOf("MapView.CurrentEditMode == MapControl.EditMode.Linedefs", warningIndex, StringComparison.Ordinal);
+        int helperMethodIndex = body.IndexOf("private static void AddDirectionalShadingVisualSurface", StringComparison.Ordinal);
+        int floorIndex = body.IndexOf("hit.Kind == VisualHitKind.Floor", helperMethodIndex, StringComparison.Ordinal);
+        int wallIndex = body.IndexOf("hit.Kind == VisualHitKind.Wall", floorIndex, StringComparison.Ordinal);
+        int ceilingIndex = body.IndexOf("VisualHitKind.Ceiling", helperMethodIndex, body.IndexOf("// Traces Doom-style", helperMethodIndex, StringComparison.Ordinal) - helperMethodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(visualModeIndex > methodIndex);
+        Assert.True(visualSurfacesIndex > visualModeIndex);
+        Assert.True(helperIndex > visualSurfacesIndex);
+        Assert.True(warningIndex > helperIndex);
+        Assert.True(linedefsModeIndex > warningIndex);
+        Assert.True(helperMethodIndex > methodIndex);
+        Assert.True(floorIndex > helperMethodIndex);
+        Assert.True(wallIndex > floorIndex);
+        Assert.Equal(-1, ceilingIndex);
+    }
+
+    [Fact]
     public void RejectExplorerColorConfigurationUsesSharedDialogHandler()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

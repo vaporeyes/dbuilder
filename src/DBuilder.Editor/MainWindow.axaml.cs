@@ -5370,7 +5370,19 @@ public partial class MainWindow : Window
 
         var sectors = new HashSet<Sector>();
         var sides = new HashSet<Sidedef>();
-        if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs && _map.SelectedLinedefsCount > 0)
+        if (MapView.In3DMode)
+        {
+            var visualSurfaces = MapView.SelectedVisualSurfacesForActions();
+            foreach (VisualHit hit in visualSurfaces)
+                AddDirectionalShadingVisualSurface(hit, sectors, sides);
+
+            if (sectors.Count == 0 && sides.Count == 0)
+            {
+                SetStatus("Select some floor or wall surfaces first!");
+                return;
+            }
+        }
+        else if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs && _map.SelectedLinedefsCount > 0)
         {
             var lines = _map.GetSelectedLinedefs();
             foreach (Sector sector in _map.GetSectorsFromLinedefs(lines))
@@ -5427,6 +5439,19 @@ public partial class MainWindow : Window
     {
         if (line.Front is not null) sides.Add(line.Front);
         if (line.Back is not null) sides.Add(line.Back);
+    }
+
+    private static void AddDirectionalShadingVisualSurface(VisualHit hit, HashSet<Sector> sectors, HashSet<Sidedef> sides)
+    {
+        if (hit.Kind == VisualHitKind.Floor && hit.Sector is { } sector)
+        {
+            AddDirectionalShadingSector(sector, sectors, sides);
+        }
+        else if (hit.Kind == VisualHitKind.Wall && hit.Line is { } line)
+        {
+            Sidedef? side = hit.Front ? line.Front : line.Back;
+            if (side is not null) sides.Add(side);
+        }
     }
 
     // Traces Doom-style sound propagation from the selected sector, or a leak path between two sectors.
