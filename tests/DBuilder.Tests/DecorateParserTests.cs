@@ -2022,6 +2022,49 @@ ACTOR SpacedLightThing 31018
     }
 
     [Fact]
+    public void MissingDecorateStateFrameDurationStopsParsingLikeUdb()
+    {
+        const string decorate = """
+            ACTOR BeforeMissingStateDuration 31021
+            {
+                Radius 8
+            }
+            ACTOR MissingStateDurationThing 31022
+            {
+                States
+                {
+                Spawn:
+                    MISS A
+                }
+            }
+            ACTOR AfterMissingStateDuration 31023
+            {
+                Radius 16
+            }
+            """;
+
+        var actors = DecorateParser.Parse(decorate);
+
+        var actor = Assert.Single(actors);
+        Assert.Equal("BeforeMissingStateDuration", actor.ClassName);
+    }
+
+    [Fact]
+    public void DecorateStateFrameAllowsNonNumericDurationLikeUdb()
+    {
+        const string decorate = """
+            ACTOR NonNumericStateDurationThing 31024
+            {
+                States { Spawn: NNDR A A_FadeOut(0.1) stop }
+            }
+            """;
+
+        var actor = Assert.Single(DecorateParser.Parse(decorate));
+
+        Assert.Equal("NNDRA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void MergeActorsMarksObsoleteActorsAndForcesRedColor()
     {
         const string text = @"

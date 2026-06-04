@@ -1249,6 +1249,12 @@ public static class DecorateParser
                 }
                 if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
                 {
+                    if (!zscriptBody && HasMissingDecorateStateFrameDuration(t, i + 1))
+                    {
+                        SkipRemainingActorBody(t, ref i, depth);
+                        stopParsing = true;
+                        return false;
+                    }
                     if (!zscriptBody && HasMalformedDecorateStateFrameLight(t, i + 2))
                     {
                         SkipRemainingActorBody(t, ref i, depth);
@@ -1363,6 +1369,12 @@ public static class DecorateParser
             }
             else if (inStates && actor.Sprite == null && LooksLikeSpriteFrame(tk.Text, t, i))
             {
+                if (!zscriptBody && HasMissingDecorateStateFrameDuration(t, i + 1))
+                {
+                    SkipRemainingActorBody(t, ref i, depth);
+                    stopParsing = true;
+                    return false;
+                }
                 if (!zscriptBody && HasMalformedDecorateStateFrameLight(t, i + 2))
                 {
                     SkipRemainingActorBody(t, ref i, depth);
@@ -1530,6 +1542,13 @@ public static class DecorateParser
 
     private static bool CanUseStateFrame(bool zscriptBody, List<Tok> t, int frameIndex)
         => !zscriptBody || HasValidZScriptStateFrameTail(t, frameIndex + 1);
+
+    private static bool HasMissingDecorateStateFrameDuration(List<Tok> t, int durationIndex)
+    {
+        if (durationIndex >= t.Count || t[durationIndex].Kind != Kind.Word) return true;
+        if (t[durationIndex].Text != "-") return false;
+        return durationIndex + 1 >= t.Count || t[durationIndex + 1].Kind != Kind.Word;
+    }
 
     private static bool HasMalformedDecorateStateFrameLight(List<Tok> t, int start)
     {
