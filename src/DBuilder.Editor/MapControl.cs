@@ -3459,7 +3459,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke(things.Count == 1 ? "moved thing" : $"moved {things.Count} things");
+        Target3DChanged?.Invoke(VisualThingPosition3DStatusText(things[^1]));
         return true;
     }
 
@@ -3489,9 +3489,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke(things.Count == 1 ? "placed thing at cursor" : $"placed {things.Count} things at cursor");
+        Target3DChanged?.Invoke(VisualThingPosition3DStatusText(things[^1]));
         return true;
     }
+
+    public static string VisualThingPosition3DStatusText(Thing thing)
+        => "Changed thing position to " + new DBuilder.Geometry.Vector3D(thing.Position, thing.Height) + ".";
 
     private bool InsertThingAtTarget3D()
     {

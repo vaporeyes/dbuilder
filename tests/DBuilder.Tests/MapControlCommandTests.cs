@@ -134,6 +134,14 @@ public sealed class MapControlCommandTests
             MapControl.VisualHeight3DStatusText(new VisualHit(VisualHitKind.Thing, 0, new(), null, null, true, 0, 0, Thing: thing)));
     }
 
+    [Fact]
+    public void VisualThingPosition3DStatusTextMatchesUdb()
+    {
+        var thing = new Thing { Position = new DBuilder.Geometry.Vector2D(64, 96), Height = 24 };
+
+        Assert.Equal("Changed thing position to 64, 96, 24.", MapControl.VisualThingPosition3DStatusText(thing));
+    }
+
     [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
@@ -525,6 +533,23 @@ public sealed class MapControlCommandTests
         Assert.DoesNotContain("rotated things", body, StringComparison.Ordinal);
         Assert.DoesNotContain("changed thing pitches", body, StringComparison.Ordinal);
         Assert.DoesNotContain("changed thing rolls", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VisualThingMovement3DUsesUdbPositionStatusForLastMovedThing()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int moveIndex = body.IndexOf("private bool MoveThingTargets3D(Vector2D direction)", StringComparison.Ordinal);
+        int moveStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingPosition3DStatusText(things[^1]));", moveIndex, StringComparison.Ordinal);
+        int placeIndex = body.IndexOf("private bool PlaceThingTargetsAtCursor3D()", StringComparison.Ordinal);
+        int placeStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingPosition3DStatusText(things[^1]));", placeIndex, StringComparison.Ordinal);
+
+        Assert.True(moveIndex >= 0);
+        Assert.True(moveStatusIndex > moveIndex);
+        Assert.True(placeIndex > moveStatusIndex);
+        Assert.True(placeStatusIndex > placeIndex);
+        Assert.DoesNotContain("moved {things.Count}", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("placed {things.Count}", body, StringComparison.Ordinal);
     }
 
     [Fact]
