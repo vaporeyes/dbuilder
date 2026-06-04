@@ -88,6 +88,32 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void MetadataCommandsAreCaseSensitiveLikeUdb()
+    {
+        string dir = TempDir();
+        try
+        {
+            string file = Path.Combine(dir, "case.js");
+            File.WriteAllText(file, """
+                `#NAME Ignored Name`;
+                `#DESCRIPTION Ignored Description`;
+                `#VERSION 4`;
+                `#name Accepted Name`;
+                """);
+
+            var info = UdbScriptDiscovery.ParseScript(file);
+
+            Assert.Equal("Accepted Name", info.Name);
+            Assert.Equal("No description.", info.Description);
+            Assert.Equal(1u, info.Version);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void StopsMetadataParsingAfterNormalJavaScript()
     {
         string dir = TempDir();

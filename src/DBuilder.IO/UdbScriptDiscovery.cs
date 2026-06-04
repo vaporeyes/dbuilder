@@ -126,7 +126,7 @@ public static class UdbScriptDiscovery
 
         foreach ((string command, string payload) in ReadMetadata(text))
         {
-            switch (command.ToLowerInvariant())
+            switch (command)
             {
                 case "name":
                     name = NormalizeTemplatePayload(payload);
