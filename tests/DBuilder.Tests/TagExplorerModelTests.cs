@@ -310,6 +310,35 @@ public sealed class TagExplorerModelTests
     }
 
     [Fact]
+    public void BuildTreeLabelsGeneralizedLinedefActionsLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            generalizedlinedefs = true;
+            gen_linedeftypes
+            {
+                floors
+                {
+                    title = "Floor";
+                    offset = 24576;
+                    length = 8192;
+                    trigger { 0 = "Walk Over Once"; 3 = "Switch Repeatable"; }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tag = 9;
+        line.Action = 24576 + 3;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByAction);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, config, options);
+        TagExplorerTreeNode linedefs = Assert.Single(TagExplorerModel.BuildTree(entries, options));
+
+        Assert.Equal("24579 - Generalized (Floor)", linedefs.Children[0].Title);
+        Assert.Equal("Tag 9: Generalized (Floor), Index 0", linedefs.Children[0].Children[0].Title);
+    }
+
+    [Fact]
     public void BuildTreeExpandsGeneralizedSectorEffectsByActionLikeUdb()
     {
         var config = GameConfiguration.FromText("""
@@ -340,6 +369,36 @@ public sealed class TagExplorerModelTests
         Assert.Equal("Tag 7: Secret, Index 0", sectors.Children[0].Children[0].Title);
         Assert.Equal("Tag 7: Damage: 5 per second, Index 0", sectors.Children[1].Children[0].Title);
         Assert.Equal("Tag 7: Secret + Damage: 5 per second: 33, Index 0", sectors.Children[2].Children[0].Title);
+    }
+
+    [Fact]
+    public void BuildTreeLabelsGeneralizedSectorEffectsInTagModeLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            generalizedsectors = true;
+            gen_sectortypes
+            {
+                damage
+                {
+                    0 = "None";
+                    32 = "5 per second";
+                }
+            }
+            sectortypes
+            {
+                1 = "Secret";
+            }
+            """);
+        var map = new MapSet();
+        var sector = map.AddSector();
+        sector.Tag = 7;
+        sector.Special = 33;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByTag);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, config, options);
+        TagExplorerTreeNode sectors = Assert.Single(TagExplorerModel.BuildTree(entries, options));
+
+        Assert.Equal("Action 33: Secret + Damage: 5 per second, Index 0", sectors.Children[0].Children[0].Title);
     }
 
     [Fact]

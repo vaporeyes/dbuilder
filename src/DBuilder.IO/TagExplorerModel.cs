@@ -653,16 +653,38 @@ public static class TagExplorerModel
         => config?.GetThing(type)?.Title ?? "Thing";
 
     private static string LinedefDefaultName(int action, GameConfiguration? config)
-        => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "Linedef";
+    {
+        if (action != 0 && config?.GetLinedefAction(action) is { } info) return info.Title;
+        if (action > 0 && config != null)
+        {
+            foreach (GeneralizedCategory category in config.GeneralizedLinedefs)
+            {
+                if (category.Contains(action)) return "Generalized (" + category.Title + ")";
+            }
+        }
+
+        return "Linedef";
+    }
 
     private static string LinedefActionTitle(int action, GameConfiguration? config)
-        => action != 0 && config?.GetLinedefAction(action) is { } info ? info.Title : "";
+    {
+        string title = LinedefDefaultName(action, config);
+        if (title != "Linedef") return title;
+        return action > 0 && config != null ? "Unknown" : "";
+    }
 
     private static string SectorDefaultName(int effect, GameConfiguration? config)
-        => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "Sector";
+    {
+        if (effect != 0 && config?.GetSectorEffect(effect) is { } info) return info.Title;
+        if (effect > 0 && config != null) return config.DescribeGeneralizedSectorEffect(effect) ?? "Unknown effect";
+        return "Sector";
+    }
 
     private static string SectorEffectTitle(int effect, GameConfiguration? config)
-        => effect != 0 && config?.GetSectorEffect(effect) is { } info ? info.Title : "";
+    {
+        if (effect != 0 && config?.GetSectorEffect(effect) is { } info) return info.Title;
+        return effect > 0 && config != null ? "Unknown" : "";
+    }
 
     private static IReadOnlyList<TagExplorerActionGroup>? SectorActionGroups(int effect, GameConfiguration? config)
     {
